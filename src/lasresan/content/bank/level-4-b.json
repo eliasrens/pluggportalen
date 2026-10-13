@@ -1,0 +1,3510 @@
+[
+  {
+    "id": "lr-n1-talangshowen",
+    "title": "Ella vågar sjunga",
+    "level": 4,
+    "textType": "story",
+    "topic": "skola",
+    "body": "Det är talangshow i skolan på fredag. Ella vill sjunga en sång. Hon har övat hemma i flera veckor.\n\nMen på fredag morgon har hon fjärilar i magen. Händerna skakar och munnen är torr. ”Jag kan inte”, viskar hon till sin kompis Malik.\n\nMalik tänker en stund. ”Titta bara på mig när du sjunger”, säger han. ”Låtsas att det bara är vi två.”\n\nNär det blir Ellas tur går hon upp på scenen. Hon letar efter Malik och hittar honom längst fram. Hon tittar på honom och börjar sjunga.\n\nEfteråt klappar alla händerna länge. Ella ler hela vägen hem.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "När är talangshowen?",
+        "options": [
+          "På måndag",
+          "På lördag",
+          "På fredag",
+          "På onsdag"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur länge har Ella övat?",
+        "options": [
+          "I en dag",
+          "I ett helt år",
+          "I flera veckor",
+          "I en timme"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Ella har fjärilar i magen. Vad betyder det?",
+        "options": [
+          "Hon är hungrig",
+          "Hon har ätit något konstigt",
+          "Hon är lugn och glad",
+          "Hon är nervös"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad säger Malik att Ella ska göra?",
+        "options": [
+          "Blunda hela tiden",
+          "Titta på honom",
+          "Sjunga en annan sång",
+          "Gå hem och vila"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför hjälper det Ella att titta på Malik?",
+        "options": [
+          "Han håller upp en lapp med texten",
+          "Han sjunger med henne",
+          "Han står närmast lampan",
+          "Hon känner sig tryggare"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Hur går det för Ella till sist?",
+        "options": [
+          "Hon glömmer texten",
+          "Det går bra",
+          "Hon vågar inte sjunga",
+          "Malik sjunger i stället"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-sixten-rymmer",
+    "title": "Sixten följer nosen",
+    "level": 4,
+    "textType": "story",
+    "topic": "djur",
+    "body": "Det är lördag och familjen Berg ska äta frukost i trädgården. Plötsligt ser Saga att grinden står öppen. Hunden Sixten är borta!\n\nSaga och pappa springer ut på gatan. De ropar och visslar, men ingen hund kommer.\n\nDå känner Saga en god lukt. Det luktar grillad korv. Lukten kommer från huset längre bort, där grannen Åke bor.\n\nDe går dit och tittar över staketet. Där sitter Sixten bredvid grillen och viftar på svansen. Åke skrattar. ”Han har redan fått två korvar”, säger han.\n\nPappa suckar. ”Nu ska vi laga grinden”, säger han.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var ska familjen äta frukost?",
+        "options": [
+          "I köket",
+          "Hos grannen",
+          "I trädgården",
+          "På en bänk i parken"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur kom Sixten ut?",
+        "options": [
+          "Grinden stod öppen",
+          "Han grävde under staketet",
+          "Han hoppade över staketet",
+          "Någon släppte ut honom"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad luktar det?",
+        "options": [
+          "Nybakat bröd",
+          "Varma pannkakor",
+          "Grillad korv",
+          "Stekt fisk"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Hur hittade Sixten till Åkes trädgård?",
+        "options": [
+          "Han hörde Åke ropa på honom",
+          "Han följde lukten",
+          "Han kände igen vägen",
+          "Saga visade honom"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Sixten viftar på svansen. Hur mår han?",
+        "options": [
+          "Han är rädd",
+          "Han är glad",
+          "Han är sjuk",
+          "Han är arg"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför vill pappa laga grinden?",
+        "options": [
+          "Så att grannen blir glad",
+          "För att den är ful",
+          "För att grannen Åke bad dem om det",
+          "Så att Sixten inte rymmer igen"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-mormors-glasogon",
+    "title": "Mormors glasögon",
+    "level": 4,
+    "textType": "story",
+    "topic": "roliga situationer",
+    "body": "Mormor ska läsa en saga för Hugo. Hon sätter sig i den stora fåtöljen och öppnar boken. Men sedan stänger hon den igen.\n\n”Var är mina glasögon?” säger hon. ”Utan dem kan jag inte läsa.”\n\nHugo hjälper till att leta. Han tittar i köket och i hallen. Han letar i mormors väska och under kuddarna i soffan. Glasögonen finns ingenstans.\n\nDå vänder sig Hugo om och tittar på mormor. Han börjar fnissa. Glasögonen sitter uppe på hennes huvud!\n\nMormor känner efter med handen. Sedan skrattar hon så att hela fåtöljen skakar.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad ska mormor göra?",
+        "options": [
+          "Läsa en saga",
+          "Baka en kaka",
+          "Sticka en tröja",
+          "Titta på tv"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var sätter sig mormor?",
+        "options": [
+          "I den stora fåtöljen",
+          "I soffan i vardagsrummet",
+          "Vid köksbordet",
+          "På sängen"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Var letar Hugo först?",
+        "options": [
+          "I trädgården",
+          "I badrummet",
+          "I mormors bil",
+          "I köket"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Hugo börjar fnissa. Vad gör han?",
+        "options": [
+          "Gråter lite",
+          "Nyser högt",
+          "Visslar en låt",
+          "Skrattar tyst"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Var är glasögonen?",
+        "options": [
+          "I mormors väska",
+          "Under en kudde",
+          "I bokhyllan",
+          "På mormors huvud"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför skrattar mormor till sist?",
+        "options": [
+          "Hugo kittlar henne under foten",
+          "Sagan i boken är så rolig",
+          "Fåtöljen gör ett konstigt ljud",
+          "Glasögonen var där hela tiden"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-strommen-gick",
+    "title": "När lamporna slocknade",
+    "level": 4,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "Det är en mörk kväll i november. Det blåser hårt ute. Plötsligt slocknar alla lampor i huset. Tv:n blir svart och kylskåpet slutar brumma.\n\n”Strömmen har gått”, säger mamma. Hon hämtar en ficklampa och tänder några ljus på bordet.\n\nFörst tycker Leo att det är tråkigt. Han kan inte spela på datorn. Men sedan tar mamma fram ett gammalt kortspel. De spelar och äter kakor i ljusets sken. Lillasyster Ida vinner tre gånger.\n\nEfter två timmar tänds lamporna igen. ”Åh nej”, säger Leo. ”Kan vi inte spela lite till?”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken månad är det?",
+        "options": [
+          "November",
+          "Juli",
+          "April",
+          "Mars"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad händer med kylskåpet?",
+        "options": [
+          "Det börjar läcka",
+          "Det slutar brumma",
+          "Dörren går upp",
+          "Det blir varmt direkt"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Strömmen har gått. Vad betyder det?",
+        "options": [
+          "Vattnet i kranen är avstängt",
+          "Det finns ingen el i huset",
+          "Någon har gått ut",
+          "Det har slutat blåsa"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vem vinner tre gånger?",
+        "options": [
+          "Leo",
+          "Mamma",
+          "Ida",
+          "Pappa"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Hur länge är strömmen borta?",
+        "options": [
+          "Tio minuter",
+          "Två timmar",
+          "En hel natt",
+          "Fem dagar"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vad gjorde nog att strömmen gick?",
+        "options": [
+          "Att Leo spelade för mycket",
+          "Att mamma tände ljus",
+          "Den hårda blåsten",
+          "Att Ida vann i kortspelet"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Hur har Leo ändrat sig till sist?",
+        "options": [
+          "Han är arg på mamma",
+          "Han vill gå och lägga sig direkt",
+          "Han vill fortsätta spela kort",
+          "Han vill spela på datorn"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-hopprepet",
+    "title": "Femtio hopp i rad",
+    "level": 4,
+    "textType": "story",
+    "topic": "sport",
+    "body": "På rasterna hoppar alla i klass 3 hopprep. Den som klarar femtio hopp i rad får skriva sitt namn på en lista vid dörren.\n\nAmir har försökt många gånger. Han kommer alltid till tjugo. Sedan trasslar repet in sig i hans fötter.\n\nEn dag ger hans storasyster ett tips. ”Hoppa lågt och snurra repet med handlederna, inte med hela armarna.”\n\nAmir tränar hemma på gården varje kväll. Först går det sämre. Men efter en vecka klarar han trettio, sedan fyrtio.\n\nPå fredagens rast räknar hela klassen högt. ”… fyrtioåtta, fyrtionio, femtio!” Amir skriver sitt namn på listan med stora bokstäver.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad får man göra om man klarar femtio hopp?",
+        "options": [
+          "Få en guldmedalj av rektorn",
+          "Gå först i kön till lunchen",
+          "Välja lek på nästa idrottslektion",
+          "Skriva namnet på en lista"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur många hopp klarar Amir i början?",
+        "options": [
+          "Tio",
+          "Femtio",
+          "Tjugo",
+          "Fem"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vem ger Amir ett tips?",
+        "options": [
+          "Hans lärare",
+          "Hans storasyster",
+          "Hans pappa",
+          "Hans bästa kompis"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Repet trasslar in sig i fötterna. Vad betyder det?",
+        "options": [
+          "Repet går sönder",
+          "Repet blir för långt",
+          "Repet fastnar runt fötterna",
+          "Repet flyger iväg"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför går det sämre först när Amir tränar?",
+        "options": [
+          "Repet hemma är för kort för honom",
+          "Gården är alldeles hal av is",
+          "Han hoppar på ett nytt sätt",
+          "Han är förkyld hela veckan"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad visar texten?",
+        "options": [
+          "Man ska ge upp om det är svårt",
+          "Hopprep är bara för stora barn",
+          "Det går bäst att hoppa högt",
+          "Den som övar blir bättre"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-fel-namn-tartan",
+    "title": "Grattis, Stina!",
+    "level": 4,
+    "textType": "story",
+    "topic": "roliga situationer",
+    "body": "Tina fyller åtta år. Pappa har beställt en tårta från bageriet. Den ska vara rosa med jordgubbar på.\n\nNär pappa kommer hem med kartongen samlas alla runt bordet. Tina lyfter försiktigt på locket. Tårtan är rosa och fin. Men med vit glasyr står det: ”Grattis, Stina!”\n\nPappa blir alldeles röd i ansiktet. ”Bagaren måste ha hört fel i telefonen”, säger han.\n\nTina tittar på tårtan en stund. Sedan tar hon en jordgubbe och lägger den över bokstaven S. ”Nu står det rätt”, säger hon.\n\nAlla skrattar, och sedan sjunger de för Tina.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur många år fyller Tina?",
+        "options": [
+          "Åtta år",
+          "Sju år",
+          "Nio år",
+          "Tio år"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var har pappa beställt tårtan?",
+        "options": [
+          "Hos en kompis",
+          "I affären på torget",
+          "Hos mormor",
+          "På bageriet"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad står det på tårtan?",
+        "options": [
+          "Grattis, Stina!",
+          "Grattis, Tina!",
+          "Grattis på dagen!",
+          "Hurra för dig!"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Tina lyfter försiktigt på locket. Hur gör hon?",
+        "options": [
+          "Lugnt och varsamt",
+          "Snabbt och slarvigt",
+          "Med båda fötterna",
+          "Med en stor kniv"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför blir pappa röd i ansiktet?",
+        "options": [
+          "Han skäms över misstaget",
+          "Han har sprungit hem från bageriet",
+          "Han är förkyld och har feber",
+          "Tårtan är för tung att bära"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Hur löser Tina problemet?",
+        "options": [
+          "Hon lägger en jordgubbe över S:et",
+          "Hon skrapar bort glasyren",
+          "Hon byter namn till Stina",
+          "Hon ringer till bageriet"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad tycker Tina om misstaget?",
+        "options": [
+          "Hon blir jättearg på pappa",
+          "Hon vill inte äta tårtan",
+          "Hon tar det med ett skratt",
+          "Hon blir ledsen och gråter"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-nya-grannen",
+    "title": "Ord på papper",
+    "level": 4,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "I huset bredvid har en ny familj flyttat in. De kommer från ett annat land. Deras dotter heter Lina och är lika gammal som Wilma.\n\nWilma vill gärna leka. Men Lina kan inte så mycket svenska än, och Wilma kan inte Linas språk.\n\nDå hämtar Wilma papper och kritor. Hon ritar en boll och pekar ut mot gården. Lina ler och nickar. Sedan ritar Lina en katt och pekar på sig själv. Hon har en katt hemma!\n\nVarje dag lär de sig nya ord av varandra. Efter en månad kan de prata om nästan allt.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var bor den nya familjen?",
+        "options": [
+          "På andra sidan stan",
+          "I samma lägenhet",
+          "Långt ut på landet",
+          "I huset bredvid"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför är det svårt för flickorna att prata?",
+        "options": [
+          "Lina är för blyg för att prata",
+          "De kan inte samma språk",
+          "Wilma har ont i halsen",
+          "Deras föräldrar säger nej"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad ritar Wilma?",
+        "options": [
+          "En boll",
+          "En katt",
+          "Ett hus",
+          "En sol"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad vill Wilma säga när hon pekar mot gården?",
+        "options": [
+          "Ska vi leka ute?",
+          "Jag har tappat min boll",
+          "Gården är för liten",
+          "Vi får inte vara ute"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Lina ler och nickar. Vad menar hon?",
+        "options": [
+          "Ja, gärna!",
+          "Nej tack",
+          "Jag förstår inte",
+          "Jag är trött"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Vad har Lina hemma?",
+        "options": [
+          "En hund",
+          "En kanin",
+          "En fågel",
+          "En katt"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur man ritar djur",
+          "Hur två barn blir vänner",
+          "En familj som flyttar bort",
+          "En katt som försvinner"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-ljuset-i-kojan",
+    "title": "Ljuset i trädkojan",
+    "level": 4,
+    "textType": "story",
+    "topic": "mysterier",
+    "body": "Det är sent på kvällen. Ebba ska just somna när hon ser något genom fönstret. Uppe i trädkojan i trädgården lyser ett litet ljus. Det rör sig fram och tillbaka.\n\nEbba blir rädd. Vem är där ute så här sent? Hon smyger in till sin storebror Viktor, men hans säng är tom.\n\nEbba tar på sig stövlarna och går ut. Hon klättrar upp för stegen och tittar in. Där ligger Viktor med en ficklampa och en tjock bok.\n\n”Boken var så spännande”, viskar han. ”Jag ville inte väcka dig med lampan.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "När ser Ebba ljuset?",
+        "options": [
+          "Sent på kvällen",
+          "Tidigt på morgonen",
+          "Mitt på dagen",
+          "Direkt efter skolan"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var lyser ljuset?",
+        "options": [
+          "I trädkojan",
+          "I garaget",
+          "Hos grannen",
+          "I köket"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Ebba smyger in till Viktor. Hur går hon?",
+        "options": [
+          "Tyst och försiktigt",
+          "Snabbt och högljutt",
+          "Baklänges",
+          "Hoppande på ett ben"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad har Viktor med sig?",
+        "options": [
+          "En kudde och en filt",
+          "En ficklampa och en bok",
+          "En kikare och en karta",
+          "Ett ljus och en tändsticksask"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför läser Viktor i trädkojan och inte i sitt rum?",
+        "options": [
+          "Det är varmare där ute",
+          "Han gömmer sig för mamma",
+          "Han vill inte väcka Ebba",
+          "Lampan i rummet är trasig"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Hur känner sig Ebba nog när hon ser Viktor?",
+        "options": [
+          "Ännu mer rädd",
+          "Sur på mamma",
+          "Lättad",
+          "Avundsjuk på kojan"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-blota-laxan",
+    "title": "Läxan som badade",
+    "level": 4,
+    "textType": "story",
+    "topic": "skola",
+    "body": "Jonas har skrivit sin läxa om hästar. Den är fyra sidor lång och har fina bilder. Han är mycket stolt.\n\nPå väg till skolan regnar det. Jonas hoppar över en vattenpöl, men då öppnas väskan. Läxan flyger ut och landar mitt i pölen.\n\nJonas lyfter upp papperen. De är blöta och färgerna har runnit ut. Han vill gråta.\n\nI klassrummet berättar han för läraren Karin. Hon tar fram en hårtork och torkar papperen försiktigt. De blir skrynkliga, men det går att läsa.\n\n”Den här läxan har till och med badat”, säger Karin och ler.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad handlar Jonas läxa om?",
+        "options": [
+          "Hundar",
+          "Kor",
+          "Hästar",
+          "Katter"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur lång är läxan?",
+        "options": [
+          "En sida",
+          "Fyra sidor",
+          "Tio sidor",
+          "Två rader"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför ramlar läxan ut?",
+        "options": [
+          "Jonas tappar den",
+          "Väskan öppnas",
+          "Det blåser hårt",
+          "En hund tar den"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Färgerna har runnit ut. Vad betyder det?",
+        "options": [
+          "Färgerna har blivit starkare",
+          "Någon har målat över alla bilderna",
+          "Vattnet har fått färgerna att flyta",
+          "Bilderna har blivit större"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför vill Jonas gråta?",
+        "options": [
+          "Han har slagit i knät",
+          "Han har jobbat hårt med läxan",
+          "Han har glömt sin mössa",
+          "Han är rädd för regn"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad använder Karin för att torka papperen?",
+        "options": [
+          "En hårtork",
+          "En handduk",
+          "Ett element",
+          "Solen"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Hur är Karin mot Jonas?",
+        "options": [
+          "Arg och sträng",
+          "Snäll och hjälpsam",
+          "Ointresserad och trött",
+          "Sur och tyst"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-fyren",
+    "title": "Ön med fyren",
+    "level": 4,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "På sommarlovet åker Sam och morfar båt till en liten ö. På ön står en gammal fyr. Den är vit med ett rött band.\n\n”Förr bodde en fyrvaktare här”, berättar morfar. ”Han såg till att lampan lyste varje natt, så att båtarna inte körde på klipporna.”\n\nDe klättrar upp för en smal trappa som snurrar runt och runt. Sam räknar stegen. Det är 98 steg!\n\nHögst upp blåser det. Sam ser ut över havet. På en klippa långt borta ligger något grått och blankt. Det är sälar som solar.\n\n”Det här är bästa dagen i sommar”, säger Sam.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur kommer Sam och morfar till ön?",
+        "options": [
+          "Med flyg",
+          "De simmar",
+          "Med båt",
+          "Över en bro"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur ser fyren ut?",
+        "options": [
+          "Vit med ett rött band",
+          "Röd med vita prickar",
+          "Grå med svarta ränder",
+          "Helt blå"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad gjorde en fyrvaktare?",
+        "options": [
+          "Såg till att lampan lyste",
+          "Byggde stora båtar av trä",
+          "Sålde fisk i hamnen",
+          "Räknade sälar"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Hur många steg har trappan?",
+        "options": [
+          "89",
+          "98",
+          "48",
+          "198"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför var fyren viktig för båtarna?",
+        "options": [
+          "Den varnade för klipporna",
+          "Den visade vad klockan var",
+          "Den gav båtarna bensin",
+          "Den skrämde bort sälarna"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad ser Sam på klippan?",
+        "options": [
+          "Fåglar som bygger bo",
+          "En båt som har sjunkit",
+          "En gammal skattkista",
+          "Sälar som solar"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Hur tycker Sam att dagen har varit?",
+        "options": [
+          "Läskig",
+          "Jättebra",
+          "Tråkig",
+          "Jobbig"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-kycklingarna",
+    "title": "Pickandet i lådan",
+    "level": 4,
+    "textType": "story",
+    "topic": "skola",
+    "body": "Klass 2 har fått låna en äggkläckare. Det är en låda med glaslock som håller äggen varma. Inuti ligger sex ägg.\n\nVarje morgon vänder barnen försiktigt på äggen. Läraren Nadia skriver upp hur många dagar som har gått.\n\nPå dag tjugoen hör Elsa ett litet pickande ljud. Det kommer inifrån ett ägg! Alla samlas runt lådan. En liten spricka blir större och större. Till slut kryper en blöt kyckling ut.\n\n”Den ser ju inte alls gullig ut”, säger Omar. Men nästa dag har kycklingen torkat. Nu är den gul och fluffig som en boll.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur många ägg ligger i lådan?",
+        "options": [
+          "Tre",
+          "Tio",
+          "Sex",
+          "Tolv"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är en äggkläckare?",
+        "options": [
+          "En sorts stekpanna",
+          "Ett bo i ett träd",
+          "En låda som håller äggen varma",
+          "En korg som man bär äggen hem i"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Vad gör barnen varje morgon?",
+        "options": [
+          "Tvättar äggen",
+          "Målar äggen",
+          "Vänder på äggen",
+          "Räknar kycklingarna"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vilken dag hör Elsa ljudet?",
+        "options": [
+          "Dag ett",
+          "Dag tio",
+          "Dag trettio",
+          "Dag tjugoen"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför samlas alla runt lådan?",
+        "options": [
+          "Nadia har ropat på dem från dörren",
+          "De vill se när ägget kläcks",
+          "Lådan har gått sönder",
+          "Det är dags för lunch"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför tycker Omar att kycklingen inte ser gullig ut först?",
+        "options": [
+          "Den är blöt",
+          "Den är för stor",
+          "Den är grön",
+          "Den har inga ögon"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Hur har kycklingen ändrats till nästa dag?",
+        "options": [
+          "Från liten till jättestor",
+          "Från gul till svart",
+          "Från blöt till fluffig",
+          "Från glad till arg"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-dimman-pa-fjallet",
+    "title": "Stenhögarna i dimman",
+    "level": 4,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Maja och hennes pappa vandrar i fjällen. Stigen går över kala berg utan träd. Här och där står små högar av stenar. ”De heter rösen”, säger pappa. ”De visar var stigen går.”\n\nEfter en stund kommer dimman. Den är tjock och grå som gröt. Maja ser knappt sina egna skor.\n\n”Nu gäller det att hålla ihop”, säger pappa. De går sakta från röse till röse. När de ser ett röse letar de efter nästa innan de går vidare.\n\nEfter en timme blir dimman tunnare. Där nere ligger stugan med rök ur skorstenen. Maja suckar av lättnad.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var vandrar Maja och pappa?",
+        "options": [
+          "I en tät skog",
+          "Längs en strand",
+          "Genom en stad",
+          "I fjällen"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är ett röse?",
+        "options": [
+          "En sorts fjällblomma",
+          "En hög av stenar",
+          "En liten stuga",
+          "En karta över fjället"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Hur ser dimman ut?",
+        "options": [
+          "Tunn och vit",
+          "Tjock och grå",
+          "Rosa och glittrig",
+          "Svart som natten"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför letar de efter nästa röse innan de går vidare?",
+        "options": [
+          "Så att de inte går vilse",
+          "Så att de kan vila benen",
+          "För att räkna stenarna",
+          "För att leka en lek"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Hur länge går de i dimman?",
+        "options": [
+          "Tio minuter",
+          "En timme",
+          "En hel dag",
+          "Två dagar"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Maja suckar av lättnad. Hur känner hon sig?",
+        "options": [
+          "Ledsen och trött",
+          "Arg på pappa",
+          "Glad att det gick bra",
+          "Rädd för stugan"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Vad hjälpte dem mest att hitta rätt?",
+        "options": [
+          "En kompass i fickan",
+          "En hund som visade vägen",
+          "En mobil med karta",
+          "Rösena längs stigen"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-frukost-till-mamma",
+    "title": "Frukost på sängen",
+    "level": 4,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "Mamma är sjuk och ligger i sängen. Hon har feber och ont i huvudet. Theo och lillasyster Nora vill göra något snällt.\n\n”Vi gör frukost till henne!” säger Theo. Han rostar bröd och brer på smör. Nora häller upp ett glas apelsinjuice. Lite hamnar på golvet, men hon torkar upp det.\n\nSedan plockar Theo en maskros i trädgården och sätter den i en äggkopp. Allt ställer de på en bricka.\n\nFörsiktigt bär de in brickan till mamma. Brödet är lite bränt i kanten. Men mamma ler stort. ”Det här är den finaste frukost jag har fått”, säger hon.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad är det för fel på mamma?",
+        "options": [
+          "Hon har brutit benet",
+          "Hon är bara trött",
+          "Hon har ont i magen",
+          "Hon har feber"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad gör Nora?",
+        "options": [
+          "Rostar bröd",
+          "Plockar en blomma",
+          "Häller upp juice",
+          "Kokar ägg"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad sätter Theo i äggkoppen?",
+        "options": [
+          "Ett ägg",
+          "En sked",
+          "En ros",
+          "En maskros"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är en bricka?",
+        "options": [
+          "En sorts tallrik för soppa",
+          "En liten korg med ett lock på",
+          "Något platt man bär mat på",
+          "En kopp"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför ler mamma fast brödet är bränt?",
+        "options": [
+          "Barnen har varit omtänksamma",
+          "Hon tycker bäst om bröd som är bränt i kanten",
+          "Hon har inte sett det",
+          "Hon är inte hungrig"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vilket ord beskriver Theo och Nora bäst?",
+        "options": [
+          "Lata",
+          "Busiga",
+          "Elaka",
+          "Omtänksamma"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-ballongbrevet",
+    "title": "Lappen på ballongen",
+    "level": 4,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "På Hannas kalas fick alla barn en ballong. Innan de släppte dem skrev de en lapp: ”Hej! Om du hittar den här, skriv till mig!” Under stod Hannas adress.\n\nDe knöt fast lapparna och släppte ballongerna. Snart var de bara små prickar på himlen.\n\nHanna väntade och väntade. Veckorna gick. Hon trodde att ingen hade hittat den.\n\nMen en dag kom ett brev med ett konstigt frimärke. Det var från en flicka i Finland! Hon hade hittat en röd ballong i skogen bakom sitt hus.\n\nNu skriver Hanna och flickan brev till varandra varje månad.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad fick barnen på kalaset?",
+        "options": [
+          "En godispåse var",
+          "En bok var",
+          "En ballong var",
+          "En leksaksbil var"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad stod det på lappen?",
+        "options": [
+          "Grattis på födelsedagen!",
+          "Kom på mitt kalas!",
+          "Skriv till mig!",
+          "Ta väl hand om ballongen!"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Ballongerna blev små prickar på himlen. Vad betyder det?",
+        "options": [
+          "De var långt bort",
+          "De gick sönder",
+          "De blev prickiga",
+          "De kom tillbaka"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Hur kände sig Hanna när veckorna gick?",
+        "options": [
+          "Arg",
+          "Rädd",
+          "Stolt",
+          "Besviken"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Var kom brevet ifrån?",
+        "options": [
+          "Från Finland",
+          "Från Norge",
+          "Från Danmark",
+          "Från Tyskland"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför var frimärket konstigt?",
+        "options": [
+          "Det var målat för hand av flickan",
+          "Det satt upp och ner",
+          "Det kom från ett annat land",
+          "Det var trasigt"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad blev det till sist av ballongen?",
+        "options": [
+          "En ny ballong",
+          "Ett nytt kalas",
+          "En ny brevvän",
+          "En resa till Finland"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-simmarket",
+    "title": "Tjugofem meter",
+    "level": 4,
+    "textType": "story",
+    "topic": "sport",
+    "body": "Leila ska ta simmärket. Hon måste simma tjugofem meter utan att stanna eller ta i kanten.\n\nVid första försöket stannar hon efter halva bassängen. Hon blir trött i armarna och sväljer vatten.\n\nSimläraren Bosse ger henne ett råd. ”Du simmar för fort i början. Ta lugna tag och andas lugnt.”\n\nVarje lördag övar Leila. Hon räknar sina simtag i huvudet: ett, två, tre, andas.\n\nEn lördag i mars försöker hon igen. Hon simmar lugnt hela vägen. När hon slår handen i kanten på andra sidan ropar Bosse: ”Grattis, du klarade det!”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur långt måste Leila simma?",
+        "options": [
+          "Tio meter",
+          "Tjugofem meter",
+          "Femtio meter",
+          "Hundra meter"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur långt kommer hon första gången?",
+        "options": [
+          "Hela vägen",
+          "Bara en meter",
+          "Två varv",
+          "Halva bassängen"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vilket råd ger Bosse?",
+        "options": [
+          "Att simma ännu fortare",
+          "Att sluta simma",
+          "Att simma lugnare",
+          "Att använda simdynor"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är ett simtag?",
+        "options": [
+          "Ett hopp från startpallen",
+          "En sorts badmössa",
+          "En rörelse med armarna",
+          "En tävling i vattnet"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför blev Leila trött första gången?",
+        "options": [
+          "Vattnet var kallt",
+          "Hon hade ätit för mycket",
+          "Hon simmade för fort",
+          "Bassängen var djup"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "När klarar hon det?",
+        "options": [
+          "En söndag i maj",
+          "En fredag i juni",
+          "En onsdag i april",
+          "En lördag i mars"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad hjälpte Leila mest?",
+        "options": [
+          "Att hon fick nya och snabba simglasögon",
+          "Att Bosse simmade bredvid",
+          "Att vattnet var varmare",
+          "Att hon övade och simmade lugnt"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-vantarna",
+    "title": "Vantarna som försvann",
+    "level": 4,
+    "textType": "story",
+    "topic": "mysterier",
+    "body": "I hallen hos familjen Lund hänger vantarna på elementet för att torka. Men varje morgon fattas det en vante.\n\n”Någon tar våra vantar”, säger Ali. Han och lillebror Sami bestämmer sig för att lösa gåtan.\n\nPå kvällen gömmer de sig bakom dörren och väntar. Det dröjer inte länge. Tyst tassar katten Morris fram. Han sträcker på sig, tar en röd vante i munnen och smyger iväg.\n\nPojkarna följer efter. Morris går in i garderoben. Där ligger hans korg, full av vantar! Han lägger sig mitt i högen och spinner.\n\n”Han tycker att de är varma”, skrattar Sami.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför hänger vantarna på elementet?",
+        "options": [
+          "För att bli fina",
+          "För att torka",
+          "För att ingen ska ta dem",
+          "För att de är nya"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad händer varje morgon?",
+        "options": [
+          "Vantarna är blöta",
+          "En vante fattas",
+          "Elementet är kallt",
+          "Katten är borta"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför gömmer sig pojkarna bakom dörren?",
+        "options": [
+          "De vill se vem det är",
+          "De leker kurragömma med pappa",
+          "De är rädda för katten",
+          "De ska skrämma mamma"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Morris tassar fram. Hur går han?",
+        "options": [
+          "Snabbt och högt",
+          "Baklänges",
+          "Tyst och mjukt",
+          "Hoppande"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Var har Morris sin korg?",
+        "options": [
+          "I köket",
+          "Under sängen",
+          "I hallen",
+          "I garderoben"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Hur löses gåtan om vantarna?",
+        "options": [
+          "Sami har gömt dem i skolan",
+          "Katten bär dem till sin korg",
+          "Vinden blåser bort dem",
+          "Mamma tvättar dem"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-fel-gympapase",
+    "title": "Fel påse",
+    "level": 4,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "På onsdagar har klass 3 idrott. Klara tar sin gympapåse från kroken i hallen och springer till skolan.\n\nI omklädningsrummet öppnar hon påsen. Där ligger inga gympakläder. I stället hittar hon en rosa balettdräkt, ett par vita strumpbyxor och små balettskor.\n\nKlara förstår direkt. Hon har tagit storasyster Ellens påse! De ser nästan likadana ut.\n\nLäraren Peter skrattar när han ser henne. ”Du får låna kläder ur lådan med glömda saker”, säger han.\n\nSamma eftermiddag står Ellen på sin dansskola med ett par stora gympaskor och en fotbollströja.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken dag har klass 3 idrott?",
+        "options": [
+          "Måndag",
+          "Onsdag",
+          "Fredag",
+          "Tisdag"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad hittar Klara i påsen?",
+        "options": [
+          "En balettdräkt",
+          "En fotbollströja",
+          "En badmössa",
+          "En regnjacka"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Klara förstår direkt. Vad betyder direkt?",
+        "options": [
+          "Med en gång",
+          "Efter en lång stund",
+          "Nästa dag",
+          "Aldrig"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför tog Klara fel påse?",
+        "options": [
+          "Ellen bytte påsarna med flit",
+          "Påsarna är nästan lika",
+          "Det var mörkt i hallen",
+          "Klara ville prova att dansa"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad får Klara göra?",
+        "options": [
+          "Gå hem och byta",
+          "Ha på sig balettdräkten",
+          "Titta på från bänken",
+          "Låna kläder ur en låda"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vad har Ellen med sig till dansskolan?",
+        "options": [
+          "Sin egen balettdräkt",
+          "En ny påse",
+          "Ingenting",
+          "Klaras gympakläder"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vilken rubrik passar också till texten?",
+        "options": [
+          "Balett i skolan",
+          "Peters glömda kläder",
+          "Påsarna som bytte plats",
+          "Den rosa lådan"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-fagelungen",
+    "title": "Fågelungen på gräset",
+    "level": 4,
+    "textType": "story",
+    "topic": "djur",
+    "body": "På väg hem från skolan hittar Elin en liten fågelunge på gräset. Den har korta stjärtfjädrar och hoppar runt. Den kan inte flyga ordentligt än.\n\n”Stackars liten, den har ramlat ur boet”, säger Elin. Hon vill ta med den hem i sin mössa.\n\nMen morfar skakar på huvudet. ”Vänta”, säger han. ”Titta upp i trädet.”\n\nDär sitter en koltrast med en mask i näbben. Den piper oroligt.\n\n”Det är mamman”, förklarar morfar. ”Ungen tränar på att flyga. Föräldrarna matar den fast den är på marken.”\n\nElin och morfar går därifrån. Efter en stund flyger koltrasten ner med masken.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var hittar Elin fågelungen?",
+        "options": [
+          "I ett träd",
+          "På en bänk",
+          "På gräset",
+          "I en buske"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad vill Elin göra?",
+        "options": [
+          "Ta med den hem",
+          "Ge den vatten",
+          "Sätta tillbaka den",
+          "Ringa en veterinär"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Morfar skakar på huvudet. Vad menar han?",
+        "options": [
+          "Ja",
+          "Kanske",
+          "Hej då",
+          "Nej"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad har koltrasten i näbben?",
+        "options": [
+          "Ett frö",
+          "En mask",
+          "En pinne",
+          "Ett bär"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför piper koltrasten oroligt?",
+        "options": [
+          "Den vill sjunga för Elin",
+          "Den är själv hungrig",
+          "Den har tappat sin mask",
+          "Den oroar sig för ungen"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför går Elin och morfar därifrån?",
+        "options": [
+          "Så att fågeln vågar komma ner",
+          "Det börjar regna och blåsa kraftigt",
+          "Morfar är trött i benen",
+          "De ska hem och äta middag"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad lär sig Elin?",
+        "options": [
+          "Alla fågelungar kan flyga direkt när de föds",
+          "Ungen klarar sig med sina föräldrar",
+          "Man ska alltid ta hem fågelungar",
+          "Koltrastar äter inte mask"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-orienteringen",
+    "title": "Stenen till höger",
+    "level": 4,
+    "textType": "story",
+    "topic": "sport",
+    "body": "Klassen har orientering i skogen bakom skolan. Alla får en karta med sex ringar. Vid varje ring står en orange och vit skärm. Den kallas kontroll.\n\nMoa och Isak springer tillsammans. Den första kontrollen hittar de snabbt vid en stor gran. Den andra står vid en bäck.\n\nMen sedan springer Isak åt fel håll. Moa stannar och vänder på kartan så att den stämmer med skogen. ”Stenen ska ligga till höger om stigen”, säger hon. ”Vi måste tillbaka.”\n\nVid den sista kontrollen ligger en stor sten med mossa på. De är först i mål!",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var har klassen orientering?",
+        "options": [
+          "På den stora skolgården",
+          "I en park i stan",
+          "I skogen bakom skolan",
+          "Vid en sjö långt borta"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur många ringar finns på kartan?",
+        "options": [
+          "Två",
+          "Tre",
+          "Sex",
+          "Tio"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är en kontroll i orientering?",
+        "options": [
+          "En lärare som tittar på",
+          "En sorts karta",
+          "Ett startnummer",
+          "En skärm man ska leta upp"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Var står den andra kontrollen?",
+        "options": [
+          "Vid en gran",
+          "Vid en bäck",
+          "Vid en sten",
+          "Vid ett staket"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför vänder Moa på kartan?",
+        "options": [
+          "För att kartan har blivit blöt",
+          "För att visa en bild för Isak",
+          "För att den är trasig",
+          "Så att hon hittar rätt håll"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad hjälpte dem att komma först i mål?",
+        "options": [
+          "Att Isak sprang snabbast",
+          "Att de tog en genväg",
+          "Att de fick hjälp av läraren",
+          "Att Moa läste kartan noga"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-farfars-ora",
+    "title": "Farfar ringer med bild",
+    "level": 4,
+    "textType": "story",
+    "topic": "roliga situationer",
+    "body": "Farfar har fått en ny surfplatta. I kväll ska han videoringa till Wilmer för första gången.\n\nDet plingar. Wilmer svarar, men på skärmen syns bara något stort och rosa. Det är farfars öra!\n\n”Hallå? Hör du mig?” ropar farfar. ”Jag ser ingenting!”\n\n”Farfar, du håller plattan mot örat som en telefon”, säger Wilmer och fnissar.\n\nFarfar sänker plattan. Nu syns hans näsa, sedan hans mustasch. Till slut syns hela ansiktet. Han ler med hela munnen.\n\n”Så här ska det se ut”, säger Wilmer. Sedan pratar de i en hel timme.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad har farfar fått?",
+        "options": [
+          "En ny surfplatta",
+          "En ny telefon",
+          "En ny tv",
+          "En ny dator"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad syns först på skärmen?",
+        "options": [
+          "Farfars öra",
+          "Farfars näsa",
+          "Farfars katt",
+          "Taket"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför ser farfar ingenting?",
+        "options": [
+          "Plattan är trasig",
+          "Det är mörkt i rummet",
+          "Han håller plattan mot örat",
+          "Han har glömt glasögonen"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Wilmer fnissar. Vad gör han?",
+        "options": [
+          "Gråter tyst",
+          "Skrattar lite",
+          "Blir arg",
+          "Gäspar"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Hur länge pratar de?",
+        "options": [
+          "En hel timme",
+          "Fem minuter",
+          "En kvart",
+          "Hela natten"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför blir det fel för farfar?",
+        "options": [
+          "Han är inte van vid plattan",
+          "Wilmer har ringt fel nummer",
+          "Plattan har ingen skärm",
+          "Farfar vill skoja"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-igelkotten",
+    "title": "Djuret med tusentals taggar",
+    "level": 4,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "Igelkotten är ett litet djur med ungefär 6 000 taggar på ryggen. När den blir rädd rullar den ihop sig till en taggig boll. Då kan de flesta djur inte äta den.\n\nIgelkotten är vaken på natten. Den letar efter maskar, sniglar och skalbaggar att äta.\n\nPå hösten äter den extra mycket och blir tjock. Sedan bygger den ett bo av löv under en buske. Där sover den hela vintern. Det kallas vinterdvala.\n\nOm du ser en igelkott ska du inte ge den mjölk. Den får ont i magen av det. Ge den hellre vatten.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Ungefär hur många taggar har en igelkott?",
+        "options": [
+          "60",
+          "600",
+          "6 000",
+          "60 000"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad gör igelkotten när den blir rädd?",
+        "options": [
+          "Springer upp i ett träd",
+          "Rullar ihop sig till en boll",
+          "Gräver ner sig i jorden",
+          "Hoppar ner i vattnet"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "När är igelkotten vaken?",
+        "options": [
+          "På morgonen",
+          "Mitt på dagen",
+          "Bara på vintern",
+          "På natten"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad betyder vinterdvala?",
+        "options": [
+          "Att djuret flyttar söderut",
+          "Att djuret sover hela vintern",
+          "Att djuret byter till vit päls",
+          "Att djuret äter snö"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför äter igelkotten extra mycket på hösten?",
+        "options": [
+          "Den har fått ungar",
+          "Det finns mest mat då",
+          "Den ska klara vintern utan mat",
+          "Den vill kunna springa snabbare"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad ska du ge en igelkott att dricka?",
+        "options": [
+          "Mjölk",
+          "Saft",
+          "Te",
+          "Vatten"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-hjartat",
+    "title": "Hjärtat slutar aldrig",
+    "level": 4,
+    "textType": "fact",
+    "topic": "kroppen",
+    "body": "Lägg handen på bröstet, lite till vänster. Känner du något som slår? Det är ditt hjärta.\n\nHjärtat är en muskel som är ungefär lika stor som din knutna hand. Det pumpar runt blodet i hela kroppen. Blodet bär med sig syre och näring till alla delar av kroppen.\n\nHjärtat vilar aldrig, inte ens när du sover. Hos ett barn slår det ungefär 80 till 100 gånger i minuten.\n\nNär du springer behöver kroppen mer syre. Då slår hjärtat fortare. Det kan du känna själv efter en löptur.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur stort är hjärtat?",
+        "options": [
+          "Som din knutna hand",
+          "Som en fotboll",
+          "Som en ärta",
+          "Som ditt huvud"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad gör hjärtat?",
+        "options": [
+          "Tar in luft",
+          "Pumpar runt blodet",
+          "Tar hand om maten",
+          "Tänker åt dig"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad bär blodet med sig?",
+        "options": [
+          "Ljud och ljus",
+          "Syre och näring",
+          "Tankar och minnen",
+          "Sand och sten"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Hjärtat vilar aldrig. Vad betyder det?",
+        "options": [
+          "Det är alltid trött",
+          "Det slår bara på dagen",
+          "Det arbetar hela tiden",
+          "Det tar en paus på natten"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Ungefär hur många gånger i minuten slår ett barns hjärta?",
+        "options": [
+          "80 till 100",
+          "5 till 10",
+          "Omkring 500",
+          "Omkring 2 000"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför slår hjärtat fortare när du springer?",
+        "options": [
+          "Hjärtat blir rädd",
+          "Blodet blir kallt och trögt",
+          "Kroppen behöver mer syre",
+          "Man blir hungrig"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-mars",
+    "title": "Den röda planeten",
+    "level": 4,
+    "textType": "fact",
+    "topic": "rymden",
+    "body": "Mars är den fjärde planeten från solen. Den kallas ofta den röda planeten. Marken där är täckt av rött damm, nästan som rost.\n\nPå Mars är det mycket kallt. Det finns ingen luft som vi kan andas, och inga sjöar eller hav. Men vid polerna finns det is.\n\nEtt år på Mars är nästan dubbelt så långt som ett år på jorden. Det beror på att Mars har en längre väg runt solen.\n\nMänniskor har aldrig varit på Mars. Men forskare har skickat dit robotar på hjul. De kör runt, tar bilder och undersöker stenar.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken planet från solen är Mars?",
+        "options": [
+          "Den fjärde",
+          "Den första",
+          "Den andra",
+          "Den åttonde"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför kallas Mars den röda planeten?",
+        "options": [
+          "Den är väldigt varm",
+          "Den har röda moln",
+          "Solen lyser rött där",
+          "Marken har rött damm"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Var finns det is på Mars?",
+        "options": [
+          "I stora sjöar",
+          "Vid polerna",
+          "Mitt på planeten",
+          "Inuti robotarna"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Robotarna undersöker stenar. Vad gör de?",
+        "options": [
+          "Kastar bort dem",
+          "Målar dem röda",
+          "Bygger hus av dem",
+          "Tittar noga på dem"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför skulle det vara svårt för en människa att bo på Mars?",
+        "options": [
+          "Det finns för mycket vatten",
+          "Det finns ingen luft att andas",
+          "Planeten är för liten att stå på",
+          "Det är alltid mörkt"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad har forskare skickat till Mars?",
+        "options": [
+          "Robotar på hjul",
+          "Astronauter i rymddräkt",
+          "En ballong med en kamera",
+          "Ett flygplan med passagerare"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-potatisen",
+    "title": "Potatisens långa resa",
+    "level": 4,
+    "textType": "fact",
+    "topic": "mat",
+    "body": "Potatis är något som många svenskar äter nästan varje vecka. Men från början växte den inte här. Den kommer från bergen i Sydamerika.\n\nFör flera hundra år sedan kom potatisen till Europa med båt. Först ville inte så många äta den. Folk tyckte att den såg konstig ut.\n\nDet är knölarna som vi äter. De växer under jorden. Ovanför jorden växer gröna blad och blommor. Bladen och de andra gröna delarna ska man inte äta, för de är giftiga.\n\nI dag äter vi potatis kokt, stekt, som mos och som pommes frites.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var kommer potatisen från?",
+        "options": [
+          "Från skogarna i Sverige",
+          "Från bergen i Sydamerika",
+          "Från de varma öknarna i Afrika",
+          "Från öarna i Asien"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur kom potatisen till Europa?",
+        "options": [
+          "Med båt",
+          "Med flygplan",
+          "Med tåg",
+          "Med häst och vagn"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför ville folk inte äta potatis först?",
+        "options": [
+          "Den var för dyr",
+          "Den såg konstig ut",
+          "Den smakade salt",
+          "Den var för stor"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är knölarna?",
+        "options": [
+          "De vita blommorna högst upp på plantan",
+          "De gröna bladen",
+          "Delarna som växer under jorden",
+          "Fröna i blomman"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vilka delar av potatisplantan ska man inte äta?",
+        "options": [
+          "De kokta knölarna",
+          "De gröna delarna",
+          "Den stekta potatisen",
+          "Det färdiga moset"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur man lagar pommes frites hemma i köket",
+          "Potatisens historia och hur den växer",
+          "Bönder som bor i bergen",
+          "Vackra blommor i trädgården"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-runstenar",
+    "title": "Stenar som berättar",
+    "level": 4,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "I Sverige finns det tusentals runstenar. De flesta restes för ungefär tusen år sedan, på vikingatiden.\n\nPå stenarna finns tecken som kallas runor. Runorna var vikingarnas bokstäver. De var raka och kantiga, eftersom de var lätta att hugga in i sten och trä.\n\nOfta skrev man till minne av någon som hade dött. Det kunde stå: ”Tore reste stenen efter sin far.” Många stenar var målade i starka färger, men färgen har regnat bort.\n\nRunorna slingrar sig ofta i en lång orm runt stenen. Kanske finns det en runsten nära dig?",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "När restes de flesta runstenar?",
+        "options": [
+          "För tio år sedan",
+          "För hundra år sedan",
+          "För ungefär tusen år sedan",
+          "För en miljon år sedan"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är runor?",
+        "options": [
+          "Vikingarnas bokstäver",
+          "Vikingarnas vapen",
+          "Gamla mynt av silver",
+          "Stenar vid vägen"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Varför var runorna raka och kantiga?",
+        "options": [
+          "De var vackrast så",
+          "Kungen bestämde det",
+          "De var lätta att hugga in",
+          "De syntes bättre i mörker"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför skrev man ofta på stenarna?",
+        "options": [
+          "För att sälja fisk och tyg på marknaden",
+          "För att visa vägen",
+          "För att lära barnen att läsa",
+          "Till minne av någon som dött"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför ser de flesta runstenar inte färgglada ut i dag?",
+        "options": [
+          "Vikingarna målade aldrig",
+          "Färgen var osynlig",
+          "Regnet har tvättat bort färgen",
+          "Stenarna har bytts ut mot nya stenar"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad kan man lära sig av runstenar?",
+        "options": [
+          "Hur man bygger ett vikingaskepp av trä",
+          "Hur ormar ser ut på riktigt",
+          "Var det finns guld gömt i marken",
+          "Om människor på vikingatiden"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-bina",
+    "title": "Bina gör honung",
+    "level": 4,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "I en bikupa kan det bo över 40 000 bin. De flesta är arbetsbin. Det finns bara en drottning, och hon lägger alla ägg.\n\nArbetsbina flyger ut till blommor. Där suger de upp en söt saft som heter nektar. Hemma i kupan gör de om nektarn till honung. Honungen blir mat till vintern.\n\nBina hjälper också blommorna. När ett bi flyger från blomma till blomma följer det gula pollenet med. Då kan blommorna bli till frukt och bär.\n\nEtt bi som hittar många blommor dansar en särskild dans. Så visar det de andra vägen.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur många bin kan bo i en kupa?",
+        "options": [
+          "Omkring 40",
+          "Över 40 000",
+          "Ungefär 400",
+          "Exakt 4"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vem lägger alla ägg?",
+        "options": [
+          "Arbetsbina",
+          "De äldsta bina",
+          "Alla bin",
+          "Drottningen"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är nektar?",
+        "options": [
+          "Ett slags gult pollen",
+          "Vaxet i kupan",
+          "Ett bis gadd",
+          "En söt saft i blommor"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad gör bina med nektarn?",
+        "options": [
+          "Ger den till fåglarna",
+          "Gör om den till honung",
+          "Bygger hus av den",
+          "Häller ut den på marken"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför skulle det bli mindre frukt om det inte fanns några bin?",
+        "options": [
+          "Träden skulle frysa",
+          "Det skulle bli för mycket honung",
+          "Fåglarna skulle äta upp blommorna",
+          "Ingen skulle flytta pollenet"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Hur visar ett bi vägen till blommorna?",
+        "options": [
+          "Det surrar högt",
+          "Det ritar en karta",
+          "Det lyser",
+          "Det dansar"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vilken rubrik passar också till texten?",
+        "options": [
+          "Små djur med stora jobb",
+          "Bin är farliga",
+          "Så gör du sylt",
+          "Blommor på vintern"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-regnet",
+    "title": "Varför regnar det?",
+    "level": 4,
+    "textType": "fact",
+    "topic": "natur",
+    "body": "Solen värmer vattnet i hav, sjöar och pölar. Då blir lite av vattnet till ånga. Ångan är så lätt att den stiger upp i luften. Du kan inte se den.\n\nHögt upp är luften kall. Där blir ångan till små, små vattendroppar. Miljontals droppar tillsammans blir ett moln.\n\nNär dropparna i molnet slår ihop sig blir de större och tyngre. Till slut är de så tunga att de faller ner. Då regnar det.\n\nRegnet rinner ut i bäckar, älvar och hav. Sedan börjar resan om igen. Vattnet går runt, runt hela tiden.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad värmer vattnet i haven?",
+        "options": [
+          "Månen",
+          "Vinden",
+          "Solen",
+          "Molnen"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Ångan stiger. Vad betyder det?",
+        "options": [
+          "Den blir kallare",
+          "Den faller ner",
+          "Den blir synlig",
+          "Den rör sig uppåt"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Vad händer med ångan högt upp?",
+        "options": [
+          "Den blir till små droppar",
+          "Den blir varmare och varmare",
+          "Den försvinner för alltid",
+          "Den blir till fina sandkorn"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är ett moln?",
+        "options": [
+          "Rök från skorstenar",
+          "Massor av små droppar",
+          "Bomull som flyger",
+          "Snö som smälter"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "När faller dropparna ner?",
+        "options": [
+          "När solen går ner",
+          "När det blåser",
+          "När de blir för tunga",
+          "När det blir natt"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför tar vattnet på jorden inte slut?",
+        "options": [
+          "Samma vatten går runt hela tiden",
+          "Det kommer nytt vatten från rymden",
+          "Människor tillverkar nytt vatten",
+          "Molnen gör vatten av luft"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-australien",
+    "title": "Landet med kängurur",
+    "level": 4,
+    "textType": "fact",
+    "topic": "länder",
+    "body": "Australien ligger långt bort, på andra sidan jorden. Det är både ett land och en kontinent. När det är vinter i Sverige är det sommar i Australien.\n\nMitt i landet är det torrt och varmt. Där finns stora öknar med röd sand. De flesta människor bor nära havet, i stora städer.\n\nI Australien lever djur som är ovanliga i resten av världen. Kängurun hoppar fram på sina starka bakben. Ungen bor i en pung på mammans mage. Koalan sover nästan hela dagen uppe i träden.\n\nVid kusten finns ett stort korallrev med färgglada fiskar.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var ligger Australien?",
+        "options": [
+          "Nära Sverige",
+          "På andra sidan jorden",
+          "Mitt i Europa",
+          "Vid Nordpolen"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilken årstid är det i Australien när det är vinter i Sverige?",
+        "options": [
+          "Vinter",
+          "Höst",
+          "Sommar",
+          "Vår"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Var bor de flesta människor i Australien?",
+        "options": [
+          "Nära havet",
+          "Mitt i öknen",
+          "Uppe i bergen",
+          "I små byar i skogen"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är en pung?",
+        "options": [
+          "Ett bo högt uppe i ett träd",
+          "En sorts boll",
+          "En ficka på mammans mage",
+          "En liten unge"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad gör koalan nästan hela dagen?",
+        "options": [
+          "Hoppar",
+          "Simmar",
+          "Sover",
+          "Äter gräs"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför bor få människor mitt i landet?",
+        "options": [
+          "Kängurur bor där",
+          "Det är för kallt där",
+          "Det finns för många städer",
+          "Det är torrt och varmt där"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-solceller",
+    "title": "El från solen",
+    "level": 4,
+    "textType": "fact",
+    "topic": "teknik",
+    "body": "På en del hustak ser man blanka, mörkblå plattor. De kallas solceller eller solpaneler. De gör el av solljus.\n\nNär solen lyser på plattorna händer något inuti dem. Ljuset sätter fart på mycket små delar, och då blir det elektrisk ström. Strömmen går sedan in i huset. Där kan den få lampor, kylskåp och datorer att fungera.\n\nSolceller låter inte och släpper inte ut någon rök. Därför är de bra för miljön.\n\nMen på natten ger de ingen el alls. Och en mulen dag ger de mindre.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken färg har plattorna i texten?",
+        "options": [
+          "Ljusgröna",
+          "Knallröda",
+          "Mörkblå",
+          "Vita"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad gör solceller av solljus?",
+        "options": [
+          "Vatten",
+          "Bensin",
+          "El",
+          "Ljud"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad kan strömmen få att fungera i huset?",
+        "options": [
+          "Kranar och duschar",
+          "Fönster och dörrar",
+          "Trappor och golv",
+          "Lampor och kylskåp"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är en mulen dag?",
+        "options": [
+          "En dag med sol",
+          "En väldigt varm dag",
+          "En dag mitt i sommaren",
+          "En dag med moln"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför är solceller bra för miljön?",
+        "options": [
+          "De är blanka och fina",
+          "De släpper inte ut rök",
+          "De sitter uppe på taket",
+          "De är lätta att bära"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför behöver ett hus med solceller också få el på annat sätt?",
+        "options": [
+          "Plattorna går sönder när det regnar",
+          "Plattorna är för små för ett hus",
+          "De ger ingen el på natten",
+          "Grannarna tar elen"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur man bygger ett tak",
+          "Varför solen är varm",
+          "Hur solceller gör el av ljus",
+          "Hur man lagar en lampa"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-allemansratten",
+    "title": "Allemansrätten",
+    "level": 4,
+    "textType": "fact",
+    "topic": "samhälle",
+    "body": "I Sverige finns något som heter allemansrätten. Den betyder att alla får vara ute i naturen, även i skog som någon annan äger.\n\nDu får gå, cykla och plocka bär och svamp. Du får bada i sjöar och tälta ett par dygn på samma ställe.\n\nMen allemansrätten har också regler. Man ska inte störa eller förstöra. Du får inte bryta grenar från levande träd eller gå över någons tomt. Fåglarnas bon och ungar ska få vara i fred.\n\nAllt skräp tar du med dig hem. En bra regel är: lämna platsen som du själv vill hitta den.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad betyder allemansrätten?",
+        "options": [
+          "Att alla får bestämma i skogen",
+          "Att alla får vara ute i naturen",
+          "Att man får bygga hus var man vill",
+          "Att alla måste plocka bär"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q2",
+        "question": "Hur länge får man tälta på ett ställe?",
+        "options": [
+          "En hel månad",
+          "Ett helt år",
+          "Hur länge man vill",
+          "Ett par dygn"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad får du inte göra?",
+        "options": [
+          "Bryta grenar från levande träd",
+          "Plocka blåbär och lingon i skogen",
+          "Bada i en sjö",
+          "Cykla på en stig i skogen"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad ska du göra med skräpet?",
+        "options": [
+          "Gräva ner det",
+          "Ta med det hem",
+          "Lägga det under en sten",
+          "Elda upp det"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Du hittar ett fågelbo med ungar. Vad ska du göra?",
+        "options": [
+          "Låta det vara",
+          "Ta med det hem",
+          "Flytta det till ett annat träd",
+          "Klappa ungarna"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad menas med att lämna platsen som du själv vill hitta den?",
+        "options": [
+          "Den ska ha fler träd än förut",
+          "Du ska bygga något där",
+          "Du ska ta med dig stenar",
+          "Den ska vara ren och hel"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-skelettet",
+    "title": "Benen i din kropp",
+    "level": 4,
+    "textType": "fact",
+    "topic": "kroppen",
+    "body": "Utan skelett skulle du vara mjuk som en geléklump. Skelettet är kroppens stomme. Det håller dig upprätt och skyddar det som finns inuti.\n\nSkallen skyddar hjärnan. Revbenen bildar en bur runt hjärtat och lungorna.\n\nEn vuxen människa har 206 ben. En nyfödd bebis har ännu fler, ungefär 300. När barnet växer, växer en del av benen ihop.\n\nDet minsta benet sitter inne i örat. Det är inte större än ett riskorn. Det längsta benet är lårbenet.\n\nBen behöver kalk för att bli starka. Kalk finns till exempel i mjölk, ost och gröna grönsaker.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad betyder stomme?",
+        "options": [
+          "Något som är mjukt och slappt",
+          "En sorts muskel",
+          "Det som håller upp något",
+          "Ett skydd mot kyla"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q2",
+        "question": "Vad skyddar skallen?",
+        "options": [
+          "Hjärnan",
+          "Hjärtat",
+          "Magen",
+          "Lungorna"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Hur många ben har en vuxen människa?",
+        "options": [
+          "26",
+          "2 006",
+          "600",
+          "206"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför har en bebis fler ben än en vuxen?",
+        "options": [
+          "Bebisar dricker mer mjölk",
+          "Vuxna tappar sina ben",
+          "Bebisar är större",
+          "En del ben växer ihop"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Var sitter det minsta benet?",
+        "options": [
+          "Inne i örat",
+          "I lilltån",
+          "I näsan",
+          "I fingret"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vad behöver benen för att bli starka?",
+        "options": [
+          "Socker",
+          "Kalk",
+          "Salt",
+          "Luft"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad skulle hända om vi inte hade något skelett?",
+        "options": [
+          "Vi skulle bli mycket längre",
+          "Vi skulle springa fortare",
+          "Vi skulle inte kunna stå upp",
+          "Vi skulle inte behöva äta"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-kamelen",
+    "title": "Öknens skepp",
+    "level": 4,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "Kamelen kallas ibland öknens skepp. Den kan bära tunga saker långt genom heta öknar.\n\nMånga tror att kamelen har vatten i sina pucklar. Men det är fel. Pucklarna är fulla av fett. Fettet blir som ett förråd av energi när det inte finns mat.\n\nKamelen kan klara sig länge utan att dricka. Men när den väl hittar vatten kan den dricka över hundra liter på en kvart.\n\nKamelen har långa ögonfransar och kan stänga näsborrarna. Då kommer inte sanden in när det blåser.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför kallas kamelen öknens skepp?",
+        "options": [
+          "Den kan simma i sanden",
+          "Den ser ut som en båt",
+          "Den bär saker genom öknen",
+          "Den bor nära havet"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q2",
+        "question": "Vad finns i pucklarna?",
+        "options": [
+          "Fett",
+          "Vatten",
+          "Sand",
+          "Luft"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Hur mycket kan kamelen dricka på en kvart?",
+        "options": [
+          "En liter",
+          "Tio liter",
+          "En hink",
+          "Över hundra liter"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad skyddar de långa ögonfransarna mot?",
+        "options": [
+          "Sanden",
+          "Kylan",
+          "Regnet",
+          "Myggorna i öknen"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "En kamel har inte ätit på länge. Vad händer nog med pucklarna?",
+        "options": [
+          "De blir mindre",
+          "De blir större",
+          "De blir blöta",
+          "De byter färg"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad visar texten om kamelen?",
+        "options": [
+          "Den tycker inte om värme",
+          "Den är gjord för öknen",
+          "Den behöver dricka hela tiden",
+          "Den är rädd för sand"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-rymdstationen",
+    "title": "Ett hem i rymden",
+    "level": 4,
+    "textType": "fact",
+    "topic": "rymden",
+    "body": "Högt över jorden svävar en stor rymdstation. Där bor och arbetar astronauter i flera månader i taget.\n\nInne i stationen är allt tyngdlöst. Astronauterna svävar i stället för att gå. De sover i sovsäckar som sitter fast på väggen, så att de inte flyter iväg.\n\nMaten finns i påsar och burkar. Smulor är farliga, eftersom de kan flyga in i maskiner. Därför äter astronauterna mjuka bröd i stället för vanligt bröd.\n\nRymdstationen åker runt jorden på ungefär en och en halv timme. Därför ser astronauterna solen gå upp sexton gånger varje dygn.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur länge bor astronauterna i stationen?",
+        "options": [
+          "En dag",
+          "En timme",
+          "Tio år",
+          "Flera månader"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Allt är tyngdlöst. Vad betyder det?",
+        "options": [
+          "Att allt svävar",
+          "Att allt blir tungt",
+          "Att allt fryser",
+          "Att allt går sönder"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Var sitter sovsäckarna?",
+        "options": [
+          "På golvet",
+          "I en säng",
+          "Utanför stationen",
+          "På väggen"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför äter astronauterna mjuka bröd?",
+        "options": [
+          "Mjukt bröd är godare",
+          "Vanligt bröd smular",
+          "Det finns inget mjöl",
+          "Vanligt bröd är för tungt"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vad skulle hända med en boll som du släpper i stationen?",
+        "options": [
+          "Den skulle falla ner",
+          "Den skulle sväva",
+          "Den skulle studsa",
+          "Den skulle gå sönder"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Hur många gånger ser de solen gå upp varje dygn?",
+        "options": [
+          "En",
+          "Sexton",
+          "Två",
+          "Hundra"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur det är att leva i rymden",
+          "Hur man bygger en raket",
+          "Hur solen går upp",
+          "Hur man blir astronaut"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-telefonen",
+    "title": "När telefonen var ny",
+    "level": 4,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "För ungefär 150 år sedan fick en man som hette Alexander Graham Bell patent på telefonen. Plötsligt kunde människor prata med varandra fast de var långt ifrån varandra.\n\nDe första telefonerna satt på väggen. Man vevade på ett handtag och fick prata med en telefonist. Telefonisten kopplade sedan samtalet vidare med sladdar till rätt person.\n\nFörst hade bara några få rika familjer telefon. Många gick till posten eller en affär för att ringa.\n\nI dag har nästan alla en mobiltelefon i fickan. Med den kan man både prata, skicka bilder och se film.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad hette mannen som fick patent på telefonen?",
+        "options": [
+          "Alexander Graham Bell",
+          "Alfred Nobel",
+          "Carl von Linné",
+          "Christofer Columbus"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var satt de första telefonerna?",
+        "options": [
+          "På bordet",
+          "I fickan",
+          "På väggen",
+          "I bilen"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad gjorde en telefonist?",
+        "options": [
+          "Lagade trasiga telefoner",
+          "Kopplade samtal vidare",
+          "Sålde telefoner i affären",
+          "Bar ut brev"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför gick många till posten för att ringa?",
+        "options": [
+          "De hade ingen egen telefon",
+          "Det var roligare där",
+          "Posten låg nära",
+          "Det var gratis"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad kan man göra med en mobil i dag?",
+        "options": [
+          "Skicka bilder",
+          "Veva på ett handtag",
+          "Koppla sladdar",
+          "Skriva runor"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vad visar texten?",
+        "options": [
+          "Att telefoner alltid sett likadana ut",
+          "Att telefonen har ändrats mycket",
+          "Att bara rika har mobil i dag",
+          "Att telefonen är tusen år gammal"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-italien",
+    "title": "Landet som liknar en stövel",
+    "level": 4,
+    "textType": "fact",
+    "topic": "länder",
+    "body": "Titta på en karta över Europa. I söder ser du ett land som liknar en stövel. Det är Italien. Stöveln sticker ut i Medelhavet.\n\nHuvudstaden heter Rom. Där finns en jättestor, gammal arena som heter Colosseum. Den byggdes för nästan 2 000 år sedan.\n\nI Italien finns också vulkaner. Etna på ön Sicilien är en av Europas mest aktiva vulkaner. Den sprutar ut aska och lava då och då.\n\nMånga maträtter kommer från Italien, till exempel pizza och pasta. Pizzan kommer från staden Neapel.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad liknar Italien på kartan?",
+        "options": [
+          "En vante",
+          "En fisk",
+          "En stövel",
+          "En hatt"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad heter Italiens huvudstad?",
+        "options": [
+          "Neapel",
+          "Sicilien",
+          "Etna",
+          "Rom"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "När byggdes Colosseum?",
+        "options": [
+          "För 20 år sedan",
+          "För ungefär 200 år sedan",
+          "För ungefär 20 000 år sedan",
+          "För nästan 2 000 år sedan"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Etna är en aktiv vulkan. Vad betyder det?",
+        "options": [
+          "Den är mycket gammal",
+          "Den är täckt av snö",
+          "Den får utbrott ibland",
+          "Den har slocknat för alltid"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför kan det vara farligt att bo nära Etna?",
+        "options": [
+          "Det är alldeles för långt till Rom",
+          "Havet är för kallt att bada i",
+          "Det finns inga affärer",
+          "Det kan komma lava och aska"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Var kommer pizzan ifrån?",
+        "options": [
+          "Från Rom",
+          "Från Sicilien",
+          "Från Neapel",
+          "Från Sverige"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-uppvarmning",
+    "title": "Varför värmer man upp?",
+    "level": 4,
+    "textType": "fact",
+    "topic": "sport",
+    "body": "Innan en match eller ett träningspass brukar man värma upp. Man joggar lugnt, hoppar och svänger med armarna i några minuter.\n\nVarför gör man det? När musklerna blir varma blir de mjukare och fungerar bättre. Då är det mindre risk att man skadar sig. Hjärtat börjar slå lite fortare och skickar mer blod till musklerna.\n\nUppvärmningen gör också att man tänker på det man ska göra. Man blir redo i både kroppen och huvudet.\n\nEfter träningen är det bra att jogga lugnt en stund och sträcka ut musklerna. Det kallas nedvarvning.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad gör man när man värmer upp?",
+        "options": [
+          "Ligger och vilar",
+          "Joggar lugnt och hoppar",
+          "Äter en stor måltid",
+          "Sitter still på bänken"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad händer med musklerna när de blir varma?",
+        "options": [
+          "De blir mjukare",
+          "De blir kalla",
+          "De krymper",
+          "De somnar"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad kan hända om man inte värmer upp?",
+        "options": [
+          "Man kan lättare skada sig",
+          "Man blir hungrig",
+          "Matchen blir inställd",
+          "Man blir längre"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad gör hjärtat under uppvärmningen?",
+        "options": [
+          "Slutar slå",
+          "Slår lite fortare",
+          "Blir mindre",
+          "Slår långsammare"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Man blir redo. Vad betyder redo?",
+        "options": [
+          "Trött",
+          "Ledsen",
+          "Sjuk",
+          "Beredd"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Vad kallas det man gör efter träningen?",
+        "options": [
+          "Uppvärmning",
+          "Nedvarvning",
+          "Halvtid",
+          "Paus"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad är det viktigaste med uppvärmning?",
+        "options": [
+          "Man blir trött innan matchen",
+          "Man hinner prata med kompisarna",
+          "Man får vänta på domaren",
+          "Kroppen blir redo för att träna"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-svamparna",
+    "title": "Skogens svampar",
+    "level": 4,
+    "textType": "fact",
+    "topic": "natur",
+    "body": "På hösten växer det mycket svamp i skogen. Det vi ser ovanför marken är bara en liten del av svampen. Under jorden finns långa, tunna trådar som kallas mycel. De kan sprida sig över ett stort område.\n\nSvampar är varken växter eller djur. De har inga gröna blad och behöver inte solljus. De får sin näring från döda löv, gamla trädstammar och jorden.\n\nVissa svampar är goda att äta, till exempel kantareller. Men andra är mycket giftiga. Därför ska man aldrig plocka eller äta svamp utan en vuxen som kan svamp ordentligt.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "När växer det mycket svamp?",
+        "options": [
+          "På vintern",
+          "På våren",
+          "Bara på natten",
+          "På hösten"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är mycel?",
+        "options": [
+          "En sorts mycket giftig svamp",
+          "Trådar under jorden",
+          "Den runda hatten",
+          "Ett slags löv"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Behöver svampar solljus?",
+        "options": [
+          "Ja, hela dagen",
+          "Nej",
+          "Ja, men bara på morgonen",
+          "Bara på sommaren"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Var får svamparna sin näring ifrån?",
+        "options": [
+          "Från döda löv och stammar",
+          "Bara från solljuset på dagen",
+          "Från fåglar som äter dem",
+          "Från snö som smälter"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vilken svamp är god att äta enligt texten?",
+        "options": [
+          "Kantarell",
+          "Flugsvamp",
+          "Ingen alls",
+          "Alla svampar"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför ska en vuxen som kan svamp vara med?",
+        "options": [
+          "Vissa svampar är giftiga",
+          "Svampkorgarna är tunga att bära",
+          "Barn får inte gå i skogen",
+          "Svampar är dyra att köpa"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vilken rubrik passar också till texten?",
+        "options": [
+          "Livet under marken",
+          "Hur man lagar svampsoppa",
+          "Träd som tappar löv",
+          "Djuren i skogen"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-luften",
+    "title": "Luften du inte ser",
+    "level": 4,
+    "textType": "fact",
+    "topic": "vetenskap",
+    "body": "Luften finns runt omkring oss hela tiden. Vi kan inte se den, men vi kan känna den när det blåser.\n\nLuft tar plats, fast den är osynlig. Det kan du testa själv. Tryck ner ett tomt glas, med öppningen nedåt, i en balja med vatten. Vattnet kan inte fylla glaset. Det beror på att glaset redan är fullt av luft.\n\nLuft väger också lite. En stor ballong full med luft är lite tyngre än en tom ballong.\n\nEn viktig del av luften är syre. Människor, djur och växter behöver syre för att leva.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "När kan vi känna luften?",
+        "options": [
+          "När det är mörkt",
+          "När vi sover",
+          "När det blåser",
+          "När det snöar"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Luften är osynlig. Vad betyder det?",
+        "options": [
+          "Man kan inte känna den",
+          "Den är mycket kall",
+          "Den luktar illa",
+          "Man kan inte se den"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Hur ska man hålla glaset i testet?",
+        "options": [
+          "Med öppningen nedåt",
+          "Med öppningen uppåt",
+          "Liggande på sidan",
+          "Med ett lock på"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför kan vattnet inte fylla glaset?",
+        "options": [
+          "Glaset är för litet",
+          "Glaset är fullt av luft",
+          "Vattnet är för kallt",
+          "Baljan är tom"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Du blåser upp en ballong. Vad fyller du den med?",
+        "options": [
+          "Vatten",
+          "Sand",
+          "Luft från lungorna",
+          "Ingenting"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vilken väger mest?",
+        "options": [
+          "En ballong full med luft",
+          "En tom ballong",
+          "De väger exakt lika",
+          "Ingen av dem väger något"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad vill texten visa?",
+        "options": [
+          "Att man klarar sig bra utan luft",
+          "Att luft finns fast den inte syns",
+          "Att glas flyter i vatten",
+          "Att ballonger alltid spricker"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-cykelhjalmen",
+    "title": "Hjälmen som skyddar",
+    "level": 4,
+    "textType": "fact",
+    "topic": "teknik",
+    "body": "När du cyklar ska du ha hjälm. I Sverige är det en lag för alla barn under 15 år.\n\nUtanpå är hjälmen gjord av hård plast. Inuti finns ett tjockt lager av en lätt sorts skumplast. Om du ramlar och slår i huvudet trycks skumplasten ihop. Då tar hjälmen emot en stor del av smällen i stället för ditt huvud.\n\nEn hjälm måste sitta rätt för att skydda. Den ska sitta rakt på huvudet, en bit ovanför ögonbrynen. Remmen under hakan ska vara spänd.\n\nOm hjälmen har fått en hård smäll ska den bytas, även om den ser hel ut.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilka måste enligt lagen ha hjälm i Sverige?",
+        "options": [
+          "Bara vuxna",
+          "Alla över 15 år",
+          "Ingen alls",
+          "Barn under 15 år"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är hjälmen gjord av utanpå?",
+        "options": [
+          "Hård plast",
+          "Mjukt tyg",
+          "Tunt papper",
+          "Trä"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad händer med skumplasten vid en smäll?",
+        "options": [
+          "Den blir blöt",
+          "Den trycks ihop",
+          "Den börjar lysa",
+          "Den blir större"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Remmen ska vara spänd. Vad betyder det?",
+        "options": [
+          "Den ska hänga löst",
+          "Den ska vara lång",
+          "Den ska sitta åt",
+          "Den ska vara bortklippt"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Var ska hjälmen sitta?",
+        "options": [
+          "En bit ovanför ögonbrynen",
+          "Långt bak i nacken",
+          "Över öronen",
+          "På sned över ena örat"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför ska man byta en hjälm som fått en smäll fast den ser hel ut?",
+        "options": [
+          "Den har blivit för liten för huvudet",
+          "Färgen har gått ur",
+          "Den luktar konstigt",
+          "Skummet inuti kan vara förstört"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur man cyklar fort",
+          "Hur man lagar en cykel",
+          "Var man köper hjälm",
+          "Hur en hjälm skyddar huvudet"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-vasaskeppet",
+    "title": "Skeppet som sjönk direkt",
+    "level": 4,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "För nästan 400 år sedan byggdes ett stort och vackert krigsskepp i Stockholm. Det hette Vasa. Skeppet hade många kanoner och var fullt av utskurna figurer.\n\nÅr 1628 skulle Vasa segla ut för första gången. Men skeppet hade bara seglat en liten bit när det började luta. Vatten forsade in genom hålen för kanonerna. Vasa sjönk mitt i hamnen.\n\nI över 300 år låg skeppet på botten. År 1961 lyftes det upp igen. I dag kan man se det på ett museum i Stockholm. Det är nästan helt.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var byggdes Vasa?",
+        "options": [
+          "I Göteborg",
+          "I Stockholm",
+          "I Norge",
+          "I Danmark"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilket år sjönk Vasa?",
+        "options": [
+          "1961",
+          "1826",
+          "1682",
+          "1628"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vatten forsade in. Vad betyder det?",
+        "options": [
+          "Lite vatten droppade in",
+          "Mycket vatten rann in snabbt",
+          "Vattnet frös till is",
+          "Vattnet blev varmt"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför kom vatten in genom kanonhålen?",
+        "options": [
+          "Någon hade glömt att stänga en dörr",
+          "Det regnade kraftigt",
+          "Kanonerna sköt hål i båten",
+          "Skeppet lutade för mycket"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Hur länge låg skeppet på botten?",
+        "options": [
+          "I tre veckor",
+          "I tio år",
+          "I över 300 år",
+          "I tusen år"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vad är det märkliga med Vasa?",
+        "options": [
+          "Det seglade jorden runt",
+          "Det hade inga kanoner",
+          "Det sjönk på sin första resa",
+          "Det var världens minsta skepp"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  }
+]
