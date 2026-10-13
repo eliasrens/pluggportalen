@@ -142,3 +142,28 @@ test("normalizeLasresa tvättar trasig data och behåller okända fält", () => 
   assert.equal(l.extra, "kvar");
   assert.equal(l.worldId, "skogen");
 });
+
+test("#659: elev som klarat Öknen (förr sista världen) → Havet, inget annat nollställs", () => {
+  const sparad = {
+    levelScale: 10, level: 7, highStreak: 1, lowStreak: 0,
+    worldId: "oknen", stepInWorld: 20, completedWorlds: ["skogen", "oknen"],
+    totalTexts: 40, totalQuestions: 280, totalCorrect: 200, totalIncorrect: 80, moneyEarned: 600,
+    seenTextIds: ["a", "b"], catStats: { fakta: { q: 10, correct: 8 } }, lastTextId: "b",
+  };
+  const l = normalizeLasresa(sparad);
+  assert.equal(l.worldId, "havet");
+  assert.equal(l.stepInWorld, 0);
+  assert.deepEqual(l.completedWorlds, ["skogen", "oknen"]);
+  for (const k of ["level", "highStreak", "totalTexts", "totalQuestions", "totalCorrect", "totalIncorrect", "moneyEarned", "lastTextId"]) {
+    assert.equal(l[k], sparad[k], k);
+  }
+  assert.deepEqual(l.seenTextIds, ["a", "b"]);
+  assert.deepEqual(l.catStats.fakta, { q: 10, correct: 8 });
+  // Nästa text: ett steg i Havet, nivå och totaler räknas vidare.
+  const { lasresa, journey } = finish(sparad, makeText("t41", 6), 3);
+  assert.deepEqual(journey.walk, { worldId: "havet", fromStep: 0, toStep: 1 });
+  assert.equal(lasresa.worldId, "havet");
+  assert.equal(lasresa.stepInWorld, 1);
+  assert.equal(lasresa.totalTexts, 41);
+  assert.deepEqual(lasresa.completedWorlds, ["skogen", "oknen"]);
+});

@@ -115,7 +115,7 @@ test("banken: minst 40 texter per nivå 4–10 (lr-n<N> → nivå N+3), manifest
     }
   }
   // Nivå 1–3 fylls av delarna D1–D3 (epic #516) och räknas i egna banktester.
-  // Fler texter läggs till i nya filer per nivå (t.ex. level-7-b.json, #667).
+  // Minst 40: fler texter per nivå läggs i egna filer (t.ex. level-4-b.json, #664).
   for (const lvl of [4, 5, 6, 7, 8, 9, 10]) assert.ok(perLevel[lvl] >= 40, `nivå ${lvl}: ${perLevel[lvl]}`);
 });
 
