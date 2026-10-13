@@ -17,7 +17,10 @@ Allt syns utan scroll (scrollHeight = 768 i alla lägen).
 | 11-valj-ny-kod | "Välj ny kod" ovanför frågan – spelet fortsätter | appen mot emulatorerna |
 | 12-slut | Slutskärmen: läget, data, tillsammans, säkerhetstips | förhandsvisningen |
 | 13-quiz | Quiz (flerval) i Datakuppens stil | förhandsvisningen |
-| 14-helskarm | Helskärm ("hackervy") via knappen uppe till höger (ks-helskarm.js) | förhandsvisningen |
+| 14-helskarm | Helskärm ("hackervy") via knappen uppe till höger (ks-helskarm.js) – bara elevvyns egen container, ingen topbar/meny | förhandsvisningen |
+| 15-helskarm-hack-1920 | Helskärm 1920×1080: målväljaren ligger inuti containern | förhandsvisningen |
+| 16-helskarm-kodkort-1366 | Helskärm 1366×768: kodkorten | förhandsvisningen |
+| 17-helskarm-ny-kod-1920 | Helskärm 1920×1080: bli hackad → "Välj ny kod" (notis + rad inuti containern) | förhandsvisningen |
 
 Emojierna syns som ▯ i den huvudlösa testwebbläsaren (inget emoji-typsnitt) – i Chrome/Windows ritas de.
 Recept: `admin/qa-guldrush-preview.sh` (FS/AUTH/FN/PROXY-portar) + `admin/qa-datakuppen-elev.mjs lobby|start|hack [igen]|hackad|skydd|slut`, logga in som b01 / lilla123.

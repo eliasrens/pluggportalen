@@ -17,6 +17,7 @@ import { esc } from "../../../teacher-shared.js";
 import { createDkKoppling } from "./dk-koppling.js";
 import { ensureNatverkCss, natverkHtml, logoHtml } from "./dk-natverk.js";
 import { hackStats } from "./datakuppen-core.js";
+import { dataIcon } from "./dk-ikoner.js";
 import { matchClock, statSummary, standingRows, createRate, hackShare, tal } from "./dk-proj-scen.js";
 
 const PER_KOLUMN = 10;
@@ -84,7 +85,7 @@ export function createStatsView(host, { st, screen = false, deps = null }) {
 
     const hackOff = s.hacking === false;
     $(".dknx-kort-rad").innerHTML = [
-      kort("💾", "Tillsammans", `${tal(sum.totalGold)} MB`),
+      kort(dataIcon("1em"), "Tillsammans", `${tal(sum.totalGold)} MB`),
       kort("✅", "Rätt svar", tal(sum.correct), `av ${tal(sum.answered)} svar`),
       kort("🎯", "Andel rätt", `${sum.share} %`),
       kort("⚡", "Svar/min", perMin == null ? "–" : tal(perMin), perMin == null && !fin ? "mäts …" : "senaste minuten"),
