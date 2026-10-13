@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ämnesläsning – lärarens innehåll (#673)</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <link rel="stylesheet" href="../src/games.css" />
+    <!-- Ingen Firebase: arbetsområdena lever i minnet (stubbarna nedan). -->
+    <script type="importmap">
+      { "imports": {
+        "/src/data.js": "/preview/amnes-larare-stubs/data.js",
+        "/src/auth.js": "/preview/amnes-larare-stubs/auth.js"
+      } }
+    </script>
+    <style>
+      .pv-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 14px; padding: 10px 14px;
+        background: #202a36; border: 1px dashed rgba(255,255,255,.25); border-radius: 10px; color: #e7edf3; font-size: .85rem; }
+      .pv-bar button { font: inherit; padding: 5px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,.2); background: #161d26; color: #e7edf3; cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <main id="app" class="container"></main>
+    </div>
+
+    <script type="module">
+      // Issue #673: Innehållsstudions RIKTIGA områdestabell (teacher-content-list.js)
+      // med underradens flik "📖 Ämnesläsning" och panelen "Skapa ämnestexter".
+      // Läraren är "inloggad" via stubbar; sparningar går till minnet.
+      // Förhandsvisningsraden överst (streckad) är INTE en del av appen.
+      // ?oppna=1 → Vikingatidens underrad öppen på Ämnesläsning.
+      import { el, teacherNav } from "/src/teacher-shared.js";
+      import { buildAreaTable } from "/src/teacher-content-list.js";
+      import { getAreasSync } from "/src/data.js";
+      import { AREAS, AI_SVAR } from "/preview/amnes-larare-stubs/fixtur.js";
+
+      globalThis.PREVIEW_AREAS = JSON.parse(JSON.stringify(AREAS));
+      const app = document.getElementById("app");
+      const ctx = { app, go: () => {}, renderTopbar: () => {} };
+      const page = el(`<div class="teacher-page teacher-dark"></div>`);
+      page.append(teacherNav(ctx, "innehall"));
+      const bar = el(`<div class="pv-bar">Förhandsvisning (inte en del av appen):
+        <button type="button" data-pv="fill">Klistra in ett exempel-AI-svar i öppen panel</button>
+        <button type="button" data-pv="reset">Återställ data</button></div>`);
+      const studio = el(`<div class="studio"><section class="studio-card"><header class="studio-head">
+        <div class="studio-head-txt"><h1 class="studio-title">Innehållsstudion</h1>
+        <p class="studio-sub">SO · arbetsområden</p></div></header><div id="area-cards"></div></section></div>`);
+      page.append(bar, studio);
+      app.append(page);
+
+      const itemState = { open: new Set(), notice: new Map(), tab: new Map() };
+      if (new URLSearchParams(location.search).has("oppna")) {
+        itemState.open.add("so/vikingatiden");
+        itemState.tab.set("so/vikingatiden", "amnes");
+      }
+      const render = () => {
+        const areas = getAreasSync("so").sort((a, b) => (a.order || 0) - (b.order || 0));
+        studio.querySelector("#area-cards").replaceChildren(
+          buildAreaTable(areas, {
+            subjectId: "so",
+            subjectName: "SO",
+            onEdit: () => alert("Wizarden ingår inte i den här förhandsvisningen."),
+            onRefresh: render,
+            onItemsSaved: render,
+            sort: { key: "order", dir: "asc" },
+            onSort: () => {},
+            itemState,
+          })
+        );
+      };
+      render();
+
+      bar.addEventListener("click", (e) => {
+        const b = e.target.closest("[data-pv]");
+        if (!b) return;
+        if (b.dataset.pv === "reset") {
+          globalThis.PREVIEW_AREAS = JSON.parse(JSON.stringify(AREAS));
+          render();
+        } else {
+          const ta = document.querySelector(".amn-paste");
+          if (!ta) return alert('Öppna panelen först: klicka 📖 "Skapa ämnestexter".');
+          ta.value = JSON.stringify(AI_SVAR, null, 2);
+          document.querySelector('.amn-create [data-act="check"]').click();
+        }
+      });
+    </script>
+  </body>
+</html>

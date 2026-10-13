@@ -21,6 +21,7 @@ import { buildAmnesPrompt, buildAreaPrompt, buildMorePrompt } from "../src/promp
 import { validateArea } from "../src/validate.js";
 import { mergeAreaContent } from "../src/merge-area.js";
 import { deriveExerciseTypes, EXERCISE_TYPES } from "../src/exercise-types.js";
+import { tabsFor } from "../src/teacher-area-items-ops.js";
 import {
   AMNES_QUESTIONS_BY_LEVEL,
   AMNES_WORD_RANGES,
@@ -326,4 +327,12 @@ test("Lägg till innehåll (merge) behåller ämnestexterna och kan lägga till 
 test("levelGaps: varning när en nivå saknar texter eller har för få", () => {
   assert.deepEqual(levelGaps([text("a", 1), text("b", 1), text("c", 2)]).map((g) => [g.level, g.count]), [[2, 1], [3, 0]]);
   assert.deepEqual(levelGaps(nine()), []);
+});
+
+test("underradens flik Ämnesläsning: visas med ämnestexter eller vald typ, inte för gamla nivåtexter", () => {
+  const ids = (a) => tabsFor(a).map((t) => `${t.id}:${t.count}`);
+  assert.deepEqual(ids({ readingTexts: [text("a", 1), text("b", 2)] }), ["amnes:2"]);
+  assert.deepEqual(ids({ exerciseTypes: ["amneslasning"], readingTexts: [] }), ["amnes:0"]);
+  assert.deepEqual(ids({ readingTexts: [{ id: "rt1", title: "x", levels: { 1: {} } }] }), []);
+  assert.deepEqual(ids(area()), ["quiz:1", "amnes:1"]);
 });

@@ -27,6 +27,7 @@
 import { validateArea } from "./validate.js";
 import { areaExerciseTypes, hasGeneratorContent } from "./exercise-types.js";
 import { parseYear } from "./validate-timeline.js";
+import { readingTextsOf } from "./amneslasning/content.js";
 
 /** Innehållslistorna som underraderna hanterar. */
 export const ITEM_KINDS = ["quiz", "pairs", "texts", "timeline"];
@@ -256,8 +257,9 @@ export function lastItemWarning(area, kind) {
 
 // --- Flikar i underraden (#455) ---------------------------------------------
 
-/** Flikarnas ordning. */
-export const ITEM_TABS = ["quiz", "pairs", "timeline", "texts"];
+/** Flikarnas ordning. "amnes" = Ämnesläsning (#673, area.readingTexts – egen flik
+ *  och egna ops i src/amneslasning/content.js, inte en ITEM_KINDS-lista). */
+export const ITEM_TABS = ["quiz", "pairs", "timeline", "amnes", "texts"];
 
 /**
  * Vilka flikar underraden visar, i fast ordning, med antal:
@@ -268,8 +270,10 @@ export const ITEM_TABS = ["quiz", "pairs", "timeline", "texts"];
  */
 export function tabsFor(area, extra = []) {
   const shown = new Set(sectionsFor(area));
+  const amnes = readingTextsOf(area).length;
+  if (amnes || areaExerciseTypes(area).includes("amneslasning")) shown.add("amnes");
   for (const id of extra) if (ITEM_TABS.includes(id)) shown.add(id);
-  const counts = itemCounts(area);
+  const counts = { ...itemCounts(area), amnes };
   return ITEM_TABS.filter((id) => shown.has(id)).map((id) => ({ id, count: counts[id] }));
 }
 
