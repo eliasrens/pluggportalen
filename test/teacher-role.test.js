@@ -64,3 +64,19 @@ test("bootgrafen: rollfilerna och Översikt laddas bara dynamiskt", () => {
   assert.doesNotMatch(src, /^import .*teacher-(role|overview)/m);
   assert.match(src, /import\("\.\/teacher-role\.js"\)/);
 });
+
+// auth.js drar in Firebase-SDK:t från CDN → plocka ut den rena regeln ur källan.
+test("adminFromClaims: admin-claim och lärare utan role = admin, role arskurs = inte (#679, övergången)", () => {
+  const src = readFileSync(join(SRC, "auth.js"), "utf8");
+  const m = src.match(/export const adminFromClaims = (\(c\) => [^\n]+);/);
+  assert.ok(m, "adminFromClaims finns i auth.js");
+  const adminFromClaims = new Function(`return ${m[1]}`)();
+  assert.equal(adminFromClaims({ teacher: true, admin: true }), true, "admin-claim");
+  assert.equal(adminFromClaims({ teacher: true }), true, "legacy: teacher utan role");
+  assert.equal(adminFromClaims({ teacher: true, role: "arskurs" }), false, "årskurskonto");
+  assert.equal(adminFromClaims({ teacher: true, role: "annat" }), false, "okänd role");
+  assert.equal(adminFromClaims({ admin: true }), false, "inte lärare");
+  assert.equal(adminFromClaims(null), false);
+  assert.match(src, /isAdm = adminFromClaims\(tok\.claims\)/, "onAuthStateChanged");
+  assert.match(src, /adminClaim = adminFromClaims\(tok\.claims\)/, "signInTeacher");
+});

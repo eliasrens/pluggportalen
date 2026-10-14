@@ -1,7 +1,7 @@
 // ============================================================================
 // QA-seed för lärarsidan efter roll (#679) – BARA mot emulatorn. Körs EFTER
 // admin/qa-larkonton-seed.mjs (klasser + qaadmin/qarasmus/qaarskurs5) och lägger
-// till årskurskontot qaarskurs4 (4A, 4B), elever i 4A/4B/5A, ämnen + områden med
+// till årskurskontot qaarskurs4 (4A, 4B), legacy-läraren qalegacy (bara teacher:true), elever i 4A/4B/5A, ämnen + områden med
 // olika ägare (admin utan createdBy, Årskurs 4, Årskurs 5) och en Live-lobby
 // 4A mot 5A. Lösenord lilla123 (endast emulator). Används av
 // admin/qa-larkonton-roller-preview.sh.
@@ -22,6 +22,9 @@ await db.doc(`teacherAccounts/${u4.uid}`).set({
   username: "qaarskurs4", displayName: "Årskurs 4", role: "arskurs", classIds: ["4a", "4b"], active: true,
   createdAt: new Date(), createdBy: "qa-seed", updatedAt: new Date(),
 });
+// Omigrerat lärarkonto (bara teacher:true, inget teacherAccounts-dokument) = admin under övergången.
+const legacy = await auth.createUser({ email: teacherUsernameToEmail("qalegacy"), password: "lilla123" });
+await auth.setCustomUserClaims(legacy.uid, { teacher: true });
 const u5 = (await auth.getUserByEmail(teacherUsernameToEmail("qaarskurs5"))).uid;
 
 const ELEVER = { "4a": ["Alva", "Bilal", "Cleo", "Dante"], "4b": ["Ebba", "Fadi", "Gry"], "5a": ["Hugo", "Ines"] };
@@ -57,5 +60,5 @@ await db.doc("liveSessions/qa-roller-6a").set({
   name: "6A övar", status: "lobby", gameMode: "klassmatch", participatingClassIds: ["6a"],
   classNames: { "6a": "6A" }, createdByName: "qarasmus", createdAt: new Date(), durationSeconds: 300,
 });
-console.log("✓ qaarskurs4 / lilla123 (4A, 4B), elever i 4A/4B/5A, SO-områden med ägare, Live-lobbyer.");
+console.log("✓ qaarskurs4 / lilla123 (4A, 4B), qalegacy (bara teacher:true), elever i 4A/4B/5A, SO-områden med ägare, Live-lobbyer.");
 process.exit(0);
