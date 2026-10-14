@@ -625,34 +625,37 @@ service cloud.firestore {
           bumped('correct', 1);
       }
 
+      // ROLLER (#678, §2.2): bara admin skapar, startar, stoppar, avslutar
+      // och nollställer. Årskurskontot läser statistiken för sina klasser
+      // (dokumentens classId – en lista måste filtrera på sina klasser).
       allow read: if signedIn();
-      allow create, update: if isTeacher() && validCompetition();
-      allow delete: if isTeacher();
+      allow create, update: if isAdmin() && validCompetition();
+      allow delete: if isAdmin();
 
       match /answers/{attemptId} {
-        allow read: if isTeacher() || (signedIn() && resource.data.uid == request.auth.uid);
+        allow read: if hasClass(resource.data.classId) || (signedIn() && resource.data.uid == request.auth.uid);
         allow create: if mmAnswerCreate(attemptId);
         allow update: if false;
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
       match /studentStats/{uid} {
-        allow read: if isTeacher() || isSelf(uid);
+        allow read: if hasClass(resource.data.classId) || isSelf(uid);
         allow create, update: if mmStatsBump(uid);
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
       // Topp 25: elever får läsa enstaka poster och LISTA högst 25 åt gången.
       match /scores/{uid} {
         allow get: if signedIn();
-        allow list: if isTeacher() || (signedIn() && request.query.limit <= 25);
+        allow list: if hasClass(resource.data.classId) || (signedIn() && request.query.limit <= 25);
         allow create, update: if mmScoreBump(uid);
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
       // Klasskamp: summan av klassens shards / klassens elevantal.
       match /classCounters/{counterId} {
         allow read: if signedIn();
         allow create, update: if validCounterId(counterId) &&
           counterBump(mmPath('answers', request.resource.data.lastAttemptId), counterId);
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
     }
 
