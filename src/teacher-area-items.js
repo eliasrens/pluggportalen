@@ -36,6 +36,7 @@ import { formatYear } from "./validate-timeline.js";
 import { createTabs } from "./teacher-area-items-tabs.js";
 import { el, esc, icon } from "./teacher-shared.js";
 import { generatorSummary } from "./teacher-generator-labels.js";
+import { buildAmnesSection } from "./teacher-amnes-texts.js";
 
 const SECTION = {
   quiz: { title: "Quizfrågor", one: "frågan", add: "Lägg till fråga", ic: "📝" },
@@ -51,6 +52,7 @@ const TAB = {
   pairs: { label: "Para ihop", ic: "🔗" },
   texts: { label: "Lästexter", ic: "📄" },
   timeline: { label: "Tidsjakten", ic: "⏳" },
+  amnes: { label: "Ämnesläsning", ic: "📖" }, // #673: teacher-amnes-texts.js
 };
 
 const SAVED = {
@@ -102,7 +104,7 @@ function itemHtml(kind, it) {
  *   tab = senast vald flik (förvalet, tvingas fram), onTabChange = minns den.
  * @returns {HTMLElement & { selectTab:(id:string,opts?:{focus?:boolean})=>HTMLElement|null }}
  */
-export function buildItemsPanel(area, { subjectId, notice, onSaved, tab, onTabChange }) {
+export function buildItemsPanel(area, { subjectId, subjectName, notice, onSaved, tab, onTabChange }) {
   const panel = el(`<div class="ai-panel" role="region" tabindex="-1" aria-label="Innehåll i ${esc(area.name)}"></div>`);
   if (notice) {
     const n = el(`<div class="msg ok ai-notice" role="status">${icon("check", 15)} ${esc(notice)}</div>`);
@@ -335,7 +337,7 @@ export function buildItemsPanel(area, { subjectId, notice, onSaved, tab, onTabCh
     tabs: tabList.map(tabDef),
     order: ITEM_TABS,
     active: pickTab(tabList, tab),
-    render: (id) => buildSection(id),
+    render: (id) => (id === "amnes" ? buildAmnesSection(area, { subjectId, subjectName, onSaved }) : buildSection(id)),
     onChange: (id) => onTabChange?.(id),
   });
 

@@ -209,9 +209,21 @@ grad och exempel anpassas till årskursen – en styrning läraren kan sätta, i
   sparningen) för okända värden – fältet utelämnas då. Samma valfria fält finns på
   **Pair** (används när äventyren gör flervalsfrågor av par).
 
-**Borttaget (#531):** de gamla nivåtexterna `readingTexts` (3 nivåer, #152) och Plugga-läget
-Läsuppdrag/`lastext` finns inte längre. Äldre dokument kan ha kvar fältet – det ignoreras
-(valideras inte, visas inte, skickas inte med i AI-prompten). Läsresan (#398) ersätter dem.
+**ReadingText** (Ämnesläsning, #673) – fältet `readingTexts` på arbetsområdet, **inte** samma sak
+som `texts` (faktatexter utan frågor) eller `quiz[].passage` (Pluggas Läsförståelse):
+`{ id, title, level (ämnesnivå 1–3), textType ("fact"|"story"), body, questions: [{ id, question,
+options: [4], answerIndex, category ("fakta"|"ordforstaelse"|"mellan_raderna"|"helhet_slutsats") }] }`
+– Läsresans innehållskontrakt, så `renderReader` visar texten direkt. Validering i
+`src/amneslasning/content.js` (Läsresans `validateText` med ämnesläsningens tal ur
+`src/lasresan/config.js`): fel stoppar texten, ordantal/frågeantal/svarsposition/längdledtråd/
+för få texter per nivå är varningar. Läraren skriver (Innehållsstudion: panelen "📖 Skapa
+ämnestexter" och fliken Ämnesläsning), eleven läser – samma regel som resten av området.
+Övningstypen heter `amneslasning`; ett område kan ha bara den (inga quiz/par).
+
+**Borttaget (#531):** de gamla nivåtexterna (3 nivåer, #152, `{ id, title, levels: { 1: { body,
+questions } … } }`) och Plugga-läget Läsuppdrag/`lastext` finns inte längre. Äldre dokument kan ha
+kvar sådana poster i `readingTexts` – de känns igen på `levels` (`isLegacyReadingText`) och
+ignoreras (valideras inte, visas inte, räknas inte som ämnestexter). Läsresan (#398) ersätter dem.
 
 **Pair**: `{ id, term, definition, termImage?, defImage?, group? }` – används för para ihop / memory.
 
@@ -353,6 +365,7 @@ Firestore-batchen. Fel: `permission-denied`, `invalid-argument`, `already-exists
 | `farm`       | map    | **Gården** (epic gård-expansion, #327): laggård, odlingsbädd, skörde-förråd och djurplaceringar – se avsnittet nedan. **Bakåtkompatibelt:** saknas fältet (alla äldre dokument) default-mergas det vid inläsning (`farmFromData` i `src/farm-core.js`) – ingen migrering behövs |
 | `lasresa`    | map    | **Läsresan** (#399): `{ level, highStreak, lowStreak, worldId, stepInWorld, completedWorlds[], totalTexts, totalQuestions, totalCorrect, totalIncorrect, moneyEarned, seenTextIds[], catStats{kategori:{q,correct}}, currentTextId, currentStartedAt, lastTextId, updatedAt, pendingLevel, levelSetAt, levelSetBy }`. Läsresans **dolda** nivå (1–10) – helt skild från `readingLevel` (1–3). **Skala 1–10 (#519):** nivån lagras i `level10` (1–10) och väntande lärarnivå i `pendingLevel10` (1–10 eller null); `level`/`pendingLevel` är en SPEGEL i gammal skala 1–7 (ny − 3, klampad) för gamla cachade klienter. Saknas `level10` är datat gammalt och nivåerna flyttas +3 vid läsning (lat migrering, `src/lasresan/level-scale.js`). **Lärarstyrd nivå (#505):** `pendingLevel10` = lärarvald nivå som gäller efter elevens påbörjade text; `levelSetAt` (ms) + `levelSetBy: "teacher"` = senaste lärarbyte (brygga `src/data-lasresan-niva.js`). **Bakåtkompatibelt:** saknas fältet = ny elev (Skogen, steg 0, klassens startnivå eller nivå 4) via `normalizeLasresa` i `src/lasresan/progress.js`. Brygga: `src/data-lasresan.js`. Se [LASRESAN.md](LASRESAN.md). |
 | `lasresaAttemptsFallback` | array | Läsresan: de senaste (max 30) försöken när skrivning till `lasresaAttempts` nekas (regeln ännu ej deployad). Samma form som ett försöksdokument. Läses av `listAttempts`. |
+| `amneslasning` | map | **Ämnesläsning** (#671, `docs/UTVECKLINGSUPPDRAG_AMNESLASNING.md`): `{ areas: { [areaId]: { subjectId, read: { [textId]: { count, lastAt } }, currentTextId, currentStartedAt, totals } }, totals, updatedAt }` – läst-lista med tidpunkt (`count` = antal läsningar, styr omläsningstrappan för mynten) och påbörjad text per område. Ämnesläsningen har INGEN egen nivå: den läser och uppdaterar `lasresa`s dolda nivå + streaks (tak 7 uppåt, fritt nedåt) men rör aldrig resan (`worldId`, `stepInWorld`, `seenTextIds`, `currentTextId`, totaler). `totals` (#674, per område + för all ämnesläsning) = `{ totalTexts, totalQuestions, totalCorrect, totalIncorrect, moneyEarned, catStats }` (samma namn som `lasresa`), denormaliserade i textavslutets transaktion så att lärarvyerna (Läsresans källfilter, Per område) klarar sig med detta dokument. Kärna `src/amneslasning/`, brygga `src/data-amneslasning.js`. |
 | `kcDonation` | string | Klasscentret (#500): `"<classId>/<donationId>"` för elevens senaste donation – skrivs i samma batch som myntavdraget så att ett avdrag bara kan betala EN donationspost (se Crowdfunding). Läses inte av appen. |
 
 ### `studentData/{studentId}/lasresaAttempts/{autoId}` – Läsresan-försök (#399)
@@ -370,6 +383,8 @@ av `completeText` i `src/data-lasresan.js`):
 | `earnedMoney` | number | Pluggcoins för texten (3/rätt, lagda på `coins` via `addCoins`) |
 | `perQuestion` | array | `[{ qid, category, chosen, correct }]` |
 | `perCategory` | map | `{ kategori: { q, correct } }` |
+| `source` | string | `"amnesläsning"` = försök från Ämnesläsningen (#671). **Saknas = Läsresan** (alla gamla försök) |
+| `subjectId`, `areaId`, `amnesLevel`, `readNumber` | string/number | Bara Ämnesläsning: område, textens ämnesnivå 1–3 och vilken läsning av texten (1 = första). `textLevel` = textens motsvarande läsnivå (ämnesnivå 1/2/3 → 2/4/6), `earnedMoney` = 5/rätt × omläsningstrappan |
 
 Regel: läs/skriv för eleven själv eller lärare (striktare läsning än `studentData`).
 ⚠️ Kräver `firebase deploy --only firestore:rules`. Innan dess faller skrivningen

@@ -65,7 +65,8 @@ function mergeSummaryHtml(res) {
   if (a.quiz) parts.push(`${a.quiz} fråg${a.quiz > 1 ? "or" : "a"}`);
   if (a.pairs) parts.push(`${a.pairs} par`);
   if (a.timeline) parts.push(`${a.timeline} tidslinjehändelse${a.timeline > 1 ? "r" : ""}`);
-  const nAdded = a.texts + a.quiz + a.pairs + a.timeline;
+  if (a.readingTexts) parts.push(`${a.readingTexts} ämnestext${a.readingTexts > 1 ? "er" : ""}`);
+  const nAdded = a.texts + a.quiz + a.pairs + a.timeline + (a.readingTexts || 0);
   const s = res.skipped;
   const nSkip = s.texts + s.quiz + s.pairs + s.timeline;
   const addTxt = nAdded ? `<b>${parts.join(", ")}</b>` : "<b>inget nytt</b> (allt fanns redan)";

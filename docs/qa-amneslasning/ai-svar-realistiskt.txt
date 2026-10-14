@@ -1,0 +1,132 @@
+Här är 9 texter om vikingarnas handel och resor, tre per nivå:
+
+```json
+{
+  "readingTexts": [
+    {
+      "id": "vikingar-skepp-1",
+      "title": "Ut på resa",
+      "level": 1,
+      "textType": "fact",
+      "body": "Vikingarna tyckte om att resa. De åkte i sina långa skepp över havet.\n\nPå skeppet fanns mat för många dagar. De hade med sig torkad fisk, bröd och vatten. På natten sov de under ett tält av tyg.\n\nResan kunde ta flera veckor. När de kom fram gick de i land för att handla.",
+      "questions": [
+        { "id": "q1", "question": "Hur reste vikingarna över havet?", "options": ["Med häst", "I långa skepp", "Till fots", "Med vagn"], "answerIndex": 1, "category": "fakta" },
+        { "id": "q2", "question": "Vad åt de på skeppet?", "options": ["Glass och kakor", "Färsk frukt", "Torkad fisk och bröd", "Soppa"], "answerIndex": 2, "category": "fakta" },
+        { "id": "q3", "question": "Var sov de på natten?", "options": ["Under ett tält av tyg", "I ett hotell", "I en grotta", "På en ö"], "answerIndex": 0, "category": "fakta" },
+        { "id": "q4", "question": "Varför hade de med sig mat för många dagar?", "options": ["De tyckte om att äta", "Resan var lång", "Maten var billig", "De skulle sälja maten"], "answerIndex": 1, "category": "mellan_raderna" }
+      ]
+    },
+    {
+      "id": "vikingar-marknad-1",
+      "title": "På marknaden",
+      "level": 1,
+      "textType": "fact",
+      "body": "På en marknad kunde man köpa och sälja saker. Vikingarna tog med sig päls och skinn.\n\nDe bytte till sig pärlor, glas och silver. Ibland betalade de med silver. Då vägde de silvret på en liten våg.\n\nPå marknaden var det mycket folk. Där pratade man många olika språk.",
+      "questions": [
+        { "id": "q1", "question": "Vad tog vikingarna med sig till marknaden?", "options": ["Bilar", "Päls och skinn", "Papper", "Mjölk"], "answerIndex": 1, "category": "fakta" },
+        { "id": "q2", "question": "Vad gjorde de med silvret innan de betalade?", "options": ["Tvättade det", "Målade det", "Vägde det", "Gömde det"], "answerIndex": 2, "category": "fakta" },
+        { "id": "q3", "question": "Vad betyder att byta till sig något?", "options": ["Att ge bort något gratis", "Att få något i stället för något annat", "Att stjäla något", "Att laga något"], "answerIndex": 1, "category": "ordforstaelse" },
+        { "id": "q4", "question": "Varför talade man många språk på marknaden?", "options": ["Folk kom från olika länder", "Alla gick i skolan", "Det var en lek", "Kungen bestämde det"], "answerIndex": 0, "category": "mellan_raderna" }
+      ]
+    },
+    {
+      "id": "vikingar-hem-igen-1",
+      "title": "Hem igen",
+      "level": 1,
+      "textType": "story",
+      "body": "Torsten stod vid stranden och tittade ut över vattnet. Hans pappa hade varit borta hela sommaren.\n\nPlötsligt såg han ett segel. Det var pappas skepp! Torsten sprang ner till bryggan.\n\nPappa klev i land och kramade honom. I handen hade han en liten pärla av glas. – Den är till dig, sa pappa.",
+      "questions": [
+        { "id": "q1", "question": "Hur länge hade pappa varit borta?", "options": ["En dag", "En vecka", "Hela sommaren", "Ett år"], "answerIndex": 2, "category": "fakta" },
+        { "id": "q2", "question": "Hur kände sig Torsten när han såg seglet?", "options": ["Rädd", "Glad", "Arg", "Trött"], "answerIndex": 1, "category": "mellan_raderna" },
+        { "id": "q3", "question": "Vad fick Torsten av pappa?", "options": ["En pärla av glas", "Ett svärd", "En hjälm", "En båt"], "answerIndex": 0, "category": "fakta" }
+      ]
+    },
+    {
+      "id": "vikingar-birka-2",
+      "title": "Birka – en stad för handel",
+      "level": 2,
+      "textType": "fact",
+      "body": "Birka låg på en ö i Mälaren. Det var en av de första städerna i det som i dag är Sverige. Hit kom köpmän från många länder för att göra affärer.\n\nI Birka bodde hantverkare som tillverkade kammar av horn, smycken och pärlor. Köpmännen sålde päls från djur som levde i de norra skogarna. I utbyte fick de varor som inte fanns i Norden, till exempel siden och vin.\n\nArkeologer, alltså forskare som gräver fram saker från förr, har hittat mynt från länder långt bort i Birka. Det visar att handeln nådde mycket långt.",
+      "questions": [
+        { "id": "q1", "question": "Var låg Birka?", "options": ["På en ö i Mälaren", "Vid Gotlands kust", "I Norrlands skogar", "I Danmark"], "answerIndex": 0, "category": "fakta" },
+        { "id": "q2", "question": "Vad gör en arkeolog?", "options": ["Bygger skepp", "Gräver fram saker från förr", "Säljer päls", "Skriver lagar"], "answerIndex": 1, "category": "ordforstaelse" },
+        { "id": "q3", "question": "Vad tillverkade hantverkarna i Birka?", "options": ["Skepp och segel", "Kammar, smycken och pärlor", "Svärd och sköldar", "Kläder av siden"], "answerIndex": 1, "category": "fakta" },
+        { "id": "q4", "question": "Varför köpte man siden och vin från andra länder?", "options": ["Det var billigare där", "Kungen ville det", "Det fanns inte i Norden", "Det var tungt att bära"], "answerIndex": 2, "category": "mellan_raderna" },
+        { "id": "q5", "question": "Vad visar mynten som hittats i Birka?", "options": ["Att vikingarna var rika", "Att handeln nådde långt bort", "Att Birka hade en kung", "Att man inte använde silver"], "answerIndex": 1, "category": "helhet_slutsats" }
+      ]
+    },
+    {
+      "id": "vikingar-floder-2",
+      "title": "Vägen längs floderna",
+      "level": 2,
+      "textType": "fact",
+      "body": "Vikingar från det som i dag är Sverige reste ofta österut. De seglade över Östersjön och fortsatte längs stora floder i det som i dag är Ryssland och Ukraina.\n\nPå vissa ställen tog floden slut eller var full av forsar, alltså ställen där vattnet forsar fram över stenar. Då fick vikingarna bära eller dra sina skepp över land till nästa flod. Därför var skeppen som användes på floderna mindre och lättare än skeppen på havet.\n\nResan kunde sluta i stora handelsstäder i söder. Där fanns silver att tjäna.",
+      "questions": [
+        { "id": "q1", "question": "Åt vilket håll reste vikingarna från Sverige ofta?", "options": ["Västerut", "Österut", "Norrut", "Till Island"], "answerIndex": 1, "category": "fakta" },
+        { "id": "q2", "question": "Vad är en fors?", "options": ["En sorts båt", "En stad vid floden", "Där vattnet forsar fram över stenar", "Ett slags fisk"], "answerIndex": 2, "category": "ordforstaelse" },
+        { "id": "q3", "question": "Vad gjorde vikingarna när floden tog slut?", "options": ["Vände hem", "Byggde en bro", "Bar eller drog skeppen över land", "Väntade på regn"], "answerIndex": 2, "category": "fakta" },
+        { "id": "q4", "question": "Varför var flodskeppen mindre och lättare?", "options": ["De skulle kunna bäras över land", "Det fanns lite trä", "De skulle gå fortare på havet", "Vikingarna var små"], "answerIndex": 0, "category": "mellan_raderna" }
+      ]
+    },
+    {
+      "id": "vikingar-varor-2",
+      "title": "Vad sålde vikingarna?",
+      "level": 2,
+      "textType": "fact",
+      "body": "I Norden fanns det gott om saker som människor i andra länder ville ha. I skogarna jagade man djur med tjock päls, till exempel räv, mård och ekorre. Pälsen var värdefull, eftersom den höll värmen.\n\nVikingarna sålde också järn, honung och valrossbetar. Valrossbetarna användes för att snida fina föremål, nästan som elfenben.\n\nTill gengäld fick de silver, glas, kryddor och tyger. Mycket av silvret smältes om till smycken. Ett smycke var både vackert och ett sätt att spara sin rikedom.",
+      "questions": [
+        { "id": "q1", "question": "Varför var päls värdefull?", "options": ["Den var lätt att hitta", "Den höll värmen", "Den luktade gott", "Den var billig"], "answerIndex": 1, "category": "fakta" },
+        { "id": "q2", "question": "Vad användes valrossbetarna till?", "options": ["Att snida fina föremål", "Att laga mat", "Att bygga hus", "Att fånga fisk"], "answerIndex": 0, "category": "fakta" },
+        { "id": "q3", "question": "Vad betyder till gengäld?", "options": ["Som straff", "I stället, som betalning tillbaka", "Med en gång", "Utan att fråga"], "answerIndex": 1, "category": "ordforstaelse" },
+        { "id": "q4", "question": "Varför gjorde man smycken av silvret?", "options": ["Det var förbjudet att ha mynt", "Smycken var både vackra och ett sätt att spara", "Silvret var för tungt", "Kungen ville ha smycken"], "answerIndex": 1, "category": "helhet_slutsats" }
+      ]
+    },
+    {
+      "id": "vikingar-handelsnat-3",
+      "title": "Ett nät av handelsvägar",
+      "level": 3,
+      "textType": "fact",
+      "body": "Under vikingatiden knöts Norden ihop med stora delar av världen. Handelsvägarna gick som trådar i ett nät: västerut mot de brittiska öarna, söderut längs Europas kuster och österut längs floderna mot Svarta havet och Kaspiska havet.\n\nLängs vägarna växte handelsplatser fram, som Birka i Mälaren, Hedeby i nuvarande Tyskland och Kaupang i Norge. Platserna låg ofta skyddat vid vatten, så att skeppen kunde lägga till och folk kunde ta sig dit från flera håll.\n\nHandeln förde inte bara med sig varor. Människor som möttes utbytte också idéer, berättelser och kunskap om hantverk. Ett exempel är att vikingarna lärde sig nya sätt att göra pärlor av glas.\n\nAtt handelsnätet var så stort visar fynden. I svensk jord har man hittat tiotusentals silvermynt från arabiska länder. De kom inte hit av en slump, utan genom många led av handel.",
+      "questions": [
+        { "id": "q1", "question": "Vilka tre riktningar gick handelsvägarna åt?", "options": ["Norrut, söderut och upp i bergen", "Västerut, söderut och österut", "Bara österut", "Bara västerut"], "answerIndex": 1, "category": "fakta" },
+        { "id": "q2", "question": "Varför låg handelsplatserna ofta vid vatten?", "options": ["Det var vackert", "Vattnet skyddade mot kyla", "Skeppen kunde lägga till och folk kom från flera håll", "Man ville fiska"], "answerIndex": 2, "category": "mellan_raderna" },
+        { "id": "q3", "question": "Vad betyder att handelsvägarna gick som trådar i ett nät?", "options": ["Att de var gjorda av rep", "Att de hängde ihop med varandra", "Att de var farliga", "Att de var korta"], "answerIndex": 1, "category": "ordforstaelse" },
+        { "id": "q4", "question": "Vad mer än varor fördes med handeln?", "options": ["Idéer, berättelser och kunskap", "Bara silver", "Sjukdomar och krig", "Ingenting annat"], "answerIndex": 0, "category": "fakta" },
+        { "id": "q5", "question": "Vad visar de arabiska mynten i svensk jord?", "options": ["Att araber bodde i Sverige", "Att mynten tappades av misstag", "Att handeln nådde långt genom många led", "Att vikingarna inte hade eget silver"], "answerIndex": 2, "category": "helhet_slutsats" },
+        { "id": "q6", "question": "Vad är textens huvudbudskap?", "options": ["Birka var den största staden", "Handeln knöt ihop Norden med stora delar av världen", "Vikingarna tillverkade glaspärlor", "Silvermynt var vanliga"], "answerIndex": 1, "category": "helhet_slutsats" }
+      ]
+    },
+    {
+      "id": "vikingar-kopman-3",
+      "title": "Köpmannen Ingrids beslut",
+      "level": 3,
+      "textType": "story",
+      "body": "Ingrid räknade pälsarna en sista gång. Fyrtio mårdskinn, tjugo rävskinn och ett tunt knippe ekorrskinn. Det var hela vinterns jakt, och nu skulle allt säljas.\n\nHamnen i Birka var full av skepp. En köpman från andra sidan Östersjön ropade att han betalade bra i silver. En annan erbjöd glaspärlor och fint tyg från länder långt i söder. Ingrid tvekade. Pärlorna var vackra, men silver kunde hon väga upp och använda till vad som helst.\n\nHon tänkte på vintern som kom. Familjen behövde salt för att kunna lagra fisk, och en ny yxa till skogen. Ingen av köpmännen sålde salt eller yxor, men silver kunde hon betala med överallt.\n\n– Silver, sa Ingrid till slut och sträckte fram den första pälsen.",
+      "questions": [
+        { "id": "q1", "question": "Vad hade Ingrid att sälja?", "options": ["Fisk och salt", "Pälsar från vinterns jakt", "Glaspärlor", "Yxor"], "answerIndex": 1, "category": "fakta" },
+        { "id": "q2", "question": "Vad betyder att Ingrid tvekade?", "options": ["Hon blev arg", "Hon var osäker och väntade med att bestämma sig", "Hon skrattade", "Hon gick därifrån"], "answerIndex": 1, "category": "ordforstaelse" },
+        { "id": "q3", "question": "Varför valde Ingrid silver?", "options": ["Det var vackrast", "Hon kunde betala med det överallt", "Köpmannen var hennes vän", "Pärlorna var för dyra"], "answerIndex": 1, "category": "helhet_slutsats" },
+        { "id": "q4", "question": "Vad behövde familjen inför vintern?", "options": ["Tyg och pärlor", "Salt och en ny yxa", "Ett nytt skepp", "Fler pälsar"], "answerIndex": 1, "category": "fakta" },
+        { "id": "q5", "question": "Vad säger berättelsen om silver på vikingatiden?", "options": ["Att det var värdelöst", "Att det fungerade nästan som pengar", "Att bara kungar fick ha det", "Att det användes till yxor"], "answerIndex": 1, "category": "mellan_raderna" }
+      ]
+    },
+    {
+      "id": "vikingar-sjovag-3",
+      "title": "Faror på sjövägen",
+      "level": 3,
+      "textType": "fact",
+      "body": "En handelsresa var ingen säker affär. Skeppen var öppna, utan tak, och besättningen var helt utlämnad åt vädret. En storm kunde förstöra både skepp och last, och dimma gjorde det svårt att hitta rätt.\n\nVikingarna hade inga kompasser. I stället navigerade de efter solen, stjärnorna, kustlinjen och fåglar som flög mot land. Erfarna sjömän kände också igen havsströmmar och hur vågorna rörde sig nära kusten.\n\nPå vägen fanns dessutom risken att bli rånad. Därför reste köpmännen ofta tillsammans i flera skepp och hade vapen med sig. En köpman kunde alltså också behöva vara krigare.\n\nTrots farorna fortsatte vikingarna att resa. Vinsten från en lyckad resa kunde vara så stor att den var värd risken.",
+      "questions": [
+        { "id": "q1", "question": "Vad navigerade vikingarna efter?", "options": ["Kompass och karta", "Solen, stjärnorna och kusten", "Fyrar", "Vägskyltar"], "answerIndex": 1, "category": "fakta" },
+        { "id": "q2", "question": "Vad betyder att besättningen var utlämnad åt vädret?", "options": ["De kunde inte skydda sig mot vädret", "De tyckte om dåligt väder", "De kunde styra vädret", "De stannade hemma när det regnade"], "answerIndex": 0, "category": "ordforstaelse" },
+        { "id": "q3", "question": "Varför reste köpmännen ofta i flera skepp?", "options": ["För att bära mer last", "För att skydda sig mot rånare", "För att det gick fortare", "För att de inte fick plats"], "answerIndex": 1, "category": "mellan_raderna" },
+        { "id": "q4", "question": "Hur kunde fåglar hjälpa sjömännen?", "options": ["De bar brev", "De flög mot land", "De varnade för storm", "De fångade fisk"], "answerIndex": 1, "category": "fakta" },
+        { "id": "q5", "question": "Varför fortsatte vikingarna att resa trots farorna?", "options": ["De var tvungna av kungen", "Vinsten kunde vara värd risken", "Det fanns inga faror på vintern", "De tyckte om stormar"], "answerIndex": 1, "category": "helhet_slutsats" },
+        { "id": "q6", "question": "Vad kan man dra för slutsats om en vikingaköpman?", "options": ["Han behövde många olika kunskaper", "Han reste alltid ensam", "Han stannade alltid hemma", "Han kunde inte slåss"], "answerIndex": 0, "category": "mellan_raderna" }
+      ]
+    }
+  ]
+}
+```
+
+Säg till om du vill ha fler texter eller ändra svårighetsgraden!

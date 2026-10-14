@@ -83,6 +83,14 @@
   opacity: 0.85;
 }
 .big-card .card-stars.won { opacity: 1; }
+/* Ämnesläsning (#672): diskret läst-rad i stället för stjärnor. */
+.big-card .card-rad {
+  display: block;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  opacity: 0.92;
+}
 
 /* Tydlig hint ovanför övningskorten när läsförståelse-förkravet inte är klart. */
 .prereq-note {

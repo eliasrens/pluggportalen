@@ -24,6 +24,7 @@ const CARD_TITLES = {
   bildpar: "Bildpar",
   generator: "Räkna (generator)",
   tidsjakt: "Tidsjakten",
+  amneslasning: "Ämnesläsning",
 };
 
 /**

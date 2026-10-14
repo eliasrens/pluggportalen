@@ -4,7 +4,9 @@
 // issue #401, spec §6 steg 4 och §20. Båda vyerna är POSITIVA och visar ALDRIG
 // den dolda nivån, nivåändringar ("du gick ner") eller jämförelser med andra.
 //
-//   renderSummary(container, { correct, total, coins, worldDone, nextWorld, onContinue }) → { destroy() }
+//   renderSummary(container, { correct, total, coins, worldDone, nextWorld, onContinue,
+//                              continueLabel, note }) → { destroy() }
+//     continueLabel/note: valfria (Ämnesläsningen #672: "Läs nästa text" + läst-raden)
 //   renderMyReading(container, { stats, onBack }) → { destroy() }
 //     stats = stats.summarize(lasresa) (utan nivå)
 // ============================================================================
@@ -32,7 +34,7 @@ function bindOnce(container, selector, fn) {
   return { destroy: () => btn && btn.removeEventListener("click", h) };
 }
 
-export function renderSummary(container, { correct = 0, total = 0, coins = 0, worldDone = null, nextWorld = null, onContinue } = {}) {
+export function renderSummary(container, { correct = 0, total = 0, coins = 0, worldDone = null, nextWorld = null, onContinue, continueLabel = "Gå vidare 👣", note = "" } = {}) {
   const c = cheer(correct, total);
   const world = worldDone
     ? `<div class="lr-varld-klar">🏆 Du har klarat <b>${esc(worldDone.name)}</b>!${nextWorld ? ` Nu väntar <b>${esc(nextWorld.name)}</b>.` : " Hela Läsresan är klar! 🌟"}</div>`
@@ -46,7 +48,8 @@ export function renderSummary(container, { correct = 0, total = 0, coins = 0, wo
         <span class="lr-chip lr-chip-coins">${coinIcon(24)} +${coins}</span>
       </div>
       ${world}
-      <button class="btn gron lr-vidare" type="button" data-lr-vidare>Gå vidare 👣</button>
+      ${note ? `<p class="hint lr-summary-not">${esc(note)}</p>` : ""}
+      <button class="btn gron lr-vidare" type="button" data-lr-vidare>${esc(continueLabel)}</button>
     </div>`;
   const view = bindOnce(container, "[data-lr-vidare]", onContinue);
   const btn = container.querySelector("[data-lr-vidare]");

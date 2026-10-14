@@ -8,7 +8,7 @@
 //   * lasresaAttempts[]   – ett försök per text (per text / senaste texter)
 // ============================================================================
 
-import { CATEGORIES, CATEGORY_LABELS } from "./config.js";
+import { AMNES_SOURCE, CATEGORIES, CATEGORY_LABELS } from "./config.js";
 import { percent } from "./level.js";
 
 export { percent };
@@ -126,4 +126,59 @@ export function sortRows(rows, key = "namn", dir = "asc") {
     }
     return sign * (x - y);
   });
+}
+
+// ---------------------------------------------------------------------------
+// Källfilter (#674, Ämnesläsning): Alla / Läsresan / Ämnesläsning.
+// Läsresans totaler bor i studentData.lasresa, ämnesläsningens i
+// studentData.amneslasning.totals (samma fältnamn, denormaliserade i samma
+// transaktion som försöket) – så lärartabellen läser fortfarande bara ETT
+// dokument per elev. Gamla försök utan `source` räknas som Läsresan.
+// ---------------------------------------------------------------------------
+
+export const SOURCE_FILTERS = [
+  { key: "alla", label: "Alla" },
+  { key: "lasresan", label: "Läsresan" },
+  { key: "amnes", label: "Ämnesläsning" },
+];
+export const DEFAULT_SOURCE_FILTER = "alla";
+
+/** Giltig filternyckel (okänd → "alla"). */
+export function parseSourceFilter(v) {
+  return SOURCE_FILTERS.some((f) => f.key === v) ? v : DEFAULT_SOURCE_FILTER;
+}
+
+const TOTAL_KEYS = ["totalTexts", "totalQuestions", "totalCorrect", "totalIncorrect", "moneyEarned"];
+
+/**
+ * Lasresa-format med totalerna för filtret. Läsresans resa/nivå (worldId,
+ * level, …) följer alltid med orörd – bara totalerna och catStats byts.
+ * `amnesTotals` = studentData.amneslasning.totals (saknas → nollor).
+ *   "lasresan" → `lasresa` oförändrad (samma objekt)
+ *   "amnes"    → bara ämnestotalerna
+ *   "alla"     → summan
+ * lasresa null + inga ämnestexter → null (eleven har inte börjat).
+ */
+export function totalsForSource(lasresa, amnesTotals, source = DEFAULT_SOURCE_FILTER) {
+  const f = parseSourceFilter(source);
+  if (f === "lasresan") return lasresa || null;
+  const a = amnesTotals || {};
+  if (!lasresa && !(num(a.totalTexts) > 0)) return null;
+  const base = lasresa || {};
+  const out = { ...base };
+  for (const k of TOTAL_KEYS) out[k] = (f === "alla" ? num(base[k]) : 0) + num(a[k]);
+  out.catStats = mergeCategoryStats(f === "alla" ? base.catStats : null, a.catStats);
+  return out;
+}
+
+/** Försökets källa: "amnes" eller "lasresan" (saknad/okänd source = Läsresan). */
+export function attemptSourceKey(attempt) {
+  return attempt && attempt.source === AMNES_SOURCE ? "amnes" : "lasresan";
+}
+
+/** Försök som hör till filtret ("alla" → alla). */
+export function filterAttempts(attempts, source = DEFAULT_SOURCE_FILTER) {
+  const f = parseSourceFilter(source);
+  const list = (Array.isArray(attempts) ? attempts : []).filter(Boolean);
+  return f === "alla" ? list : list.filter((a) => attemptSourceKey(a) === f);
 }
