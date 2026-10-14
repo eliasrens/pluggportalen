@@ -5,7 +5,9 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { canEditArea, createdByLabel, filterClasses, studentsInClasses } from "../src/teacher-role-core.js";
+import {
+  canEditArea, createdByLabel, duplicateValue, filterClasses, studentsInClasses, withOwner,
+} from "../src/teacher-role-core.js";
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), "..", "src");
 const admin = { admin: true, uid: "a1", name: "Elias", classIds: null };
@@ -79,4 +81,25 @@ test("adminFromClaims: admin-claim och lärare utan role = admin, role arskurs =
   assert.equal(adminFromClaims(null), false);
   assert.match(src, /isAdm = adminFromClaims\(tok\.claims\)/, "onAuthStateChanged");
   assert.match(src, /adminClaim = adminFromClaims\(tok\.claims\)/, "signInTeacher");
+});
+
+test("withOwner (#680): nytt område stämplas, befintligt behåller ägaren", () => {
+  // Nytt: anroparen äger, även om värdet försöker ange någon annan.
+  assert.deepEqual(withOwner({ name: "Ny", createdBy: "u5" }, null, ak4),
+    { name: "Ny", createdBy: "u4", createdByName: "Årskurs 4" });
+  // Admin ändrar Årskurs 5:s område → ägaren står kvar.
+  assert.deepEqual(withOwner({ name: "Ändrad" }, { createdBy: "u5", createdByName: "Årskurs 5" }, admin),
+    { name: "Ändrad", createdBy: "u5", createdByName: "Årskurs 5" });
+  // Gammalt material utan createdBy förblir admins (inga fält läggs till).
+  assert.deepEqual(withOwner({ name: "Gammalt", createdBy: "a1" }, { name: "Gammalt" }, admin), { name: "Gammalt" });
+});
+
+test("duplicateValue (#680): allt innehåll följer med, (kopia), ledigt id, utan ägare", () => {
+  const src = { id: "viking", name: "Vikingar", order: 2, quiz: [{ q: "?" }], readingTexts: [{ id: "t1" }],
+    createdBy: "a1", createdByName: "Elias" };
+  const copy = duplicateValue(src, ["viking", "viking-kopia"], 9);
+  assert.deepEqual(copy, { id: "viking-kopia-2", name: "Vikingar (kopia)", order: 9,
+    quiz: [{ q: "?" }], readingTexts: [{ id: "t1" }] });
+  // Sparad som nytt dokument ägs kopian av Årskurs 4 (test 7).
+  assert.equal(withOwner(copy, null, ak4).createdBy, "u4");
 });
