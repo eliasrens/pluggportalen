@@ -14,6 +14,7 @@ import { HW_INNE } from "./hw-art-inne.js";
 import { HW_UTE } from "./hw-art-ute.js";
 import { HW_HUS_SKAL, HW_HUS_BILDER } from "./hw-art-hus.js";
 import { pumpa } from "./hw-art-delar.js";
+import { registreraHalloweenDjur } from "./hw-djur.js";
 
 /** Flik-ikonen för 🎃 Halloween i butiken (SVG, ingen Emoji 13+, #590). */
 export const HW_FLIK_IKON = { viewBox: "0 0 48 46", art: pumpa(24, 26, 19, "glad") };
@@ -27,4 +28,5 @@ export function registreraHalloweenKonst() {
   registerItemArt({ ...HW_INNE, ...HW_UTE, ...HW_HUS_BILDER });
   registerHusSkal(HW_HUS_SKAL);
   registerCategoryIcons({ halloween: HW_FLIK_IKON });
+  registreraHalloweenDjur(); // de tio Halloween-djuren + pumpaägget (#695)
 }

@@ -33,6 +33,8 @@ export const HW_UNDERGRUPPER = [
   { id: "inne", rubrik: "🕯️ Dekor & möbler", match: (it) => it.category === "dekor" || it.category === "mobler" },
   { id: "tradgard", rubrik: "🍂 Trädgård", match: (it) => it.category === "tradgard" },
   { id: "hus", rubrik: "🏚️ Hus", match: (it) => it.category === "hus" },
+  // Halloween-djuren (#695): pumpaägg som kläcks till valt djur.
+  { id: "djur", rubrik: "👻 Djur", match: (it) => !!it.hatchSpecies },
 ];
 
 /**
