@@ -290,7 +290,8 @@ reglerna *innan* eleverna fått Auth-konton kan ingen logga in. Rätt ordning:
 ## 8. Lärarkonton – driftordning utan utelåsning (#681)
 
 Gäller epicen Lärarkonton (spec `docs/UTVECKLINGSUPPDRAG_LARARKONTON.md` §6.2).
-Vem som får vad står i `docs/BEHORIGHETER.md`. Följ stegen i ordning. Inget steg
+Vem som får vad står i `docs/BEHORIGHETER.md`, och vad varje roll ser på
+lärarsidan i `docs/LARARSIDAN_STRUKTUR.md`. Följ stegen i ordning. Inget steg
 låser ute en lärare så länge ordningen hålls: reglerna (steg 4) kommer först när
 alla lärare har `admin: true`, och tills dess räknas en lärare utan roll som
 admin (övergången, §8.2).
@@ -300,8 +301,19 @@ admin (övergången, §8.2).
 - Kör allt från en utcheckning av epic-grenen, som innehåller main och epicen.
   **Merga inte PR:en till main förrän steg 5.** GitHub Pages deployar main
   automatiskt, och klienten ska ut sist.
-- Lokalt behövs Firebase CLI (`firebase login`), Node 22, Java 21+ och en
-  credential för Admin SDK (§0 punkt 4). Projektet är `pluggportalen-so-2026`.
+- Lokalt behövs Firebase CLI (`firebase login`), Node 22 och Java 21+.
+  Projektet är `pluggportalen-so-2026`.
+- Admin-skripten i steg 2–3 behöver en credential för Admin SDK
+  (`admin/credential.mjs` väljer, §0 punkt 4). Utan service-account-nyckel går
+  det med en `authorized_user`-JSON från gcloud. Sätt projektet explicit, så att
+  skripten inte tar `quota_project_id` ur filen:
+  ```bash
+  gcloud auth application-default login
+  export GOOGLE_APPLICATION_CREDENTIALS="$HOME/.config/gcloud/application_default_credentials.json"
+  export GOOGLE_CLOUD_PROJECT=pluggportalen-so-2026
+  ```
+  Skripten skriver ut vilken credential och vilket mål (LIVE/EMULATOR) de
+  använder. Kolla att det står LIVE och rätt projekt innan du kör `--apply`.
 - Kolla att testerna är gröna (§5):
   ```bash
   npm run test:rules
