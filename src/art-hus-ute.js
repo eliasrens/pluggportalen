@@ -17,7 +17,7 @@
 // igenom överallt.
 // ============================================================================
 
-import { O, LINE, THIN, limb } from "./art-style.js";
+import { O, LINE, THIN, limb, sz, lovhog, pumpaDekor } from "./art-style.js";
 import { MYSTERY_HUS_SKAL } from "./art-mystery.js";
 import { LYX_HUS_SKAL } from "./art-hus-lyx.js";
 import { NATUR_HUS_SKAL } from "./art-hus-natur.js";
@@ -319,7 +319,7 @@ export function husScen(avatarHtml, { skalId = DEFAULT_HUS_SKAL, skylt = null } 
   return `<svg viewBox="0 0 960 600" role="img" aria-label="Ditt hus utifrån"
       preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
     <defs><linearGradient id="hus-himmel" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#9AD3F0"/><stop offset="1" stop-color="#E8F6FD"/>
+      <stop offset="0" stop-color="${sz("sky1", "#9AD3F0")}"/><stop offset="1" stop-color="${sz("sky2", "#E8F6FD")}"/>
     </linearGradient></defs>
     <rect x="-2400" y="-1500" width="5760" height="3600" fill="url(#hus-himmel)"/>
     <g class="hus-solstralar">${sol}</g>
@@ -328,14 +328,14 @@ export function husScen(avatarHtml, { skalId = DEFAULT_HUS_SKAL, skylt = null } 
     <g class="hus-moln" style="--t:46s;animation-delay:-18s">${molnArt(0, 150, 0.9)}</g>
     <g class="hus-moln" style="--t:75s;animation-delay:-40s">${molnArt(0, 40, 0.7)}</g>
 
-    <path d="M-2400 470 L-480 480 Q240 380 520 470 Q760 380 1440 460 L3360 470 L3360 2100 L-2400 2100 Z" fill="#A8DA8F" ${LINE}/>
+    <path d="M-2400 470 L-480 480 Q240 380 520 470 Q760 380 1440 460 L3360 470 L3360 2100 L-2400 2100 Z" fill="${sz("hill", "#A8DA8F")}" ${LINE}/>
     <!-- Front-gräset: kullen består men plattas ut subtilt (~y500) under husets fotavtryck (x≈330–650) så den raka husbotten (y≈510) alltid sitter i gräset – inget hus "flyger". -->
-    <path d="M-2400 520 L-480 520 Q160 470 420 498 Q540 506 660 500 Q900 496 1440 520 L3360 520 L3360 2100 L-2400 2100 Z" fill="#8FCB74" ${LINE}/>
+    <path d="M-2400 520 L-480 520 Q160 470 420 498 Q540 506 660 500 Q900 496 1440 520 L3360 520 L3360 2100 L-2400 2100 Z" fill="${sz("grass", "#8FCB74")}" ${LINE}/>
 
     <g>${limb("M800 500 L800 430", WOOD, 14)}
-      <circle cx="800" cy="392" r="52" fill="#6FC66F" ${LINE}/>
-      <circle cx="766" cy="416" r="30" fill="#6FC66F" ${LINE}/>
-      <circle cx="836" cy="414" r="32" fill="#6FC66F" ${LINE}/>
+      <circle cx="800" cy="392" r="52" fill="${sz("tree-a", "#6FC66F")}" ${LINE}/>
+      <circle cx="766" cy="416" r="30" fill="${sz("tree-b", "#6FC66F")}" ${LINE}/>
+      <circle cx="836" cy="414" r="32" fill="${sz("tree-c", "#6FC66F")}" ${LINE}/>
       <circle cx="784" cy="384" r="6" fill="#EF6F6C" ${THIN}/>
       <circle cx="820" cy="404" r="6" fill="#EF6F6C" ${THIN}/></g>
 
@@ -347,6 +347,7 @@ export function husScen(avatarHtml, { skalId = DEFAULT_HUS_SKAL, skylt = null } 
          den övertecknade nederkanten (gräs ritas till y=2100) så vägen når hela
          vägen ner oavsett hur mycket extra gräs kant-i-kant avslöjar (#373). -->
     <path d="M390 512 Q380 560 340 600 L-520 2100 L1330 2100 L470 600 Q430 556 420 512 Z" fill="#EAD9C0" ${LINE}/>
+    ${lovhog(760, 512, 1.1)}${lovhog(150, 566, 0.9)}${lovhog(560, 548, 0.8)}${pumpaDekor(500, 534)}${pumpaDekor(645, 548, 0.8)}
     ${skyltHtml}
     <ellipse cx="395" cy="545" rx="12" ry="5" fill="#D8C4A4" stroke="none"/>
     <ellipse cx="410" cy="575" rx="14" ry="6" fill="#D8C4A4" stroke="none"/>
