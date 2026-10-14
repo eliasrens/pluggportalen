@@ -32,6 +32,13 @@
 //   adminCreateTeacher / adminUpdateTeacher / adminSetTeacherPassword /
 //   adminSetTeacherActive / adminDeleteTeacher. Logiken: teacher-accounts-core.js.
 //
+// Bråkresan (#708, epic #705) – servern avgör omgångar, bedömning, stjärnor,
+// mynt och drake (spec docs/BRAKRESAN-SPEC.md §13, docs/BRAKRESAN.md §6):
+//   brakresaStartRound / brakresaAnswer / brakresaRework /
+//   brakresaFinishRound / brakresaAbortRound / brakresaAckDragon
+// Bara inloggade elever – lärarkonton nekas (testläget körs i klienten och
+// skriver aldrig). Logiken: brakresan-core.js + brakresan-avslut.js.
+//
 // ⚠️ DEPLOY KRÄVS: firebase deploy --only functions (Blaze-planen). Klienten
 // (src/data-student-login.js, src/live/formats/guldrush/guldrush-data.js) visar
 // ett tydligt fel tills funktionerna finns.
@@ -55,6 +62,10 @@ import { callerRole } from "./teacher-role.js";
 import {
   TeacherError, createTeacher, updateTeacher, setTeacherPassword, setTeacherActive, deleteTeacher,
 } from "./teacher-accounts-core.js";
+import {
+  BrFel, startRound as brStart, answerTask as brAnswer, reworkTask as brRework, finishRound as brFinish,
+  abortRound as brAbort, ackDragon as brAckDragon,
+} from "./brakresan-core.js";
 
 initializeApp();
 
@@ -192,3 +203,33 @@ export const adminUpdateTeacher = adminCall("adminUpdateTeacher", updateTeacher)
 export const adminSetTeacherPassword = adminCall("adminSetTeacherPassword", setTeacherPassword);
 export const adminSetTeacherActive = adminCall("adminSetTeacherActive", setTeacherActive);
 export const adminDeleteTeacher = adminCall("adminDeleteTeacher", deleteTeacher);
+
+// --- Bråkresan (#708) ----------------------------------------------------------
+// Ett anrop per svar/avslut. Allt är idempotent (låst första svar, belöning
+// per händelse-id), så klienten anropar igen med samma id efter ett nätfel.
+// Lärare (claims teacher) nekas: inget lärarflöde får mutera elevdata (§12).
+const BR_OPTS = { region: "europe-west1", memory: "512MiB", cpu: 1, concurrency: 40, maxInstances: 4 };
+
+function brakresaCall(name, core) {
+  return onCall(BR_OPTS, async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) throw new HttpsError("unauthenticated", "Logga in först.");
+    if (request.auth.token?.teacher === true) {
+      throw new HttpsError("permission-denied", "Lärare provar Bråkresan i testläget – inget sparas på elever.");
+    }
+    try {
+      return await core({ db: getFirestore(), FieldValue, Timestamp, now: Date.now }, uid, request.data || {});
+    } catch (err) {
+      if (err instanceof BrFel) throw new HttpsError(err.code, err.message);
+      logger.error(`${name} oväntat fel`, err);
+      throw new HttpsError("internal", "Något gick fel på servern – försök igen.");
+    }
+  });
+}
+
+export const brakresaStartRound = brakresaCall("brakresaStartRound", brStart);
+export const brakresaAnswer = brakresaCall("brakresaAnswer", brAnswer);
+export const brakresaRework = brakresaCall("brakresaRework", brRework);
+export const brakresaFinishRound = brakresaCall("brakresaFinishRound", brFinish);
+export const brakresaAbortRound = brakresaCall("brakresaAbortRound", brAbort);
+export const brakresaAckDragon = brakresaCall("brakresaAckDragon", brAckDragon);
