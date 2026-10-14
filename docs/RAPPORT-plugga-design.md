@@ -49,3 +49,28 @@ Inget behöver scrollas. På områdessidan (Vikingatiden, 6 övningar + 3
 kortets bredd (`clamp(78px, 25cqi, 120px)`) på surfplatta och mobil. Annars
 skulle bilden zoomas in och kapas när kortet blir brett (krav: snygg
 beskärning i alla kortbredder). Se `docs/DESIGNSYSTEM.md` §4.6.
+
+## Testkörning (Tester, #704)
+
+Skärmdumpar av alla tre sidorna (startsidan, områdessidan och menyn, som
+öppnas med hamburgaren där den syns) i alla åtta testskärmar, plus
+`preview-aventyr-kort.html`, tas med
+`node admin/qa-plugga-design-skarmdumpar.mjs` (kräver `PORT=8704 node server.mjs`).
+Bilderna hamnar i `/tmp/plugga-design-skarmdumpar/` och läggs i PR:en.
+Inga konsolfel, ingen vågrät scroll i någon storlek.
+
+| Skärm | Kolumner | Äventyrsbild | Äventyrsraden slutar |
+|---|---|---|---|
+| 1920×1080, 1440×900, 1366×768, 1280×720, 1180×820 | 3 | 269×78 | 697 px |
+| 820×1180 | 2 | 382×96 | 1017 px (ryms i 1180) |
+| 390×844 | 1 | 350×88 | scroll (mobil, väntat) |
+| 360×740 | 1 | 320×80 | scroll (mobil, väntat) |
+
+Under äventyrsraden ligger "Ditt framsteg"; panelen börjar inom skärmen på
+1366×768 och fortsätter under kanten, som tidigare.
+
+Saker som inte hör till #704 (ingen ändring i `src/ui.js` i den här PR:en):
+
+- I menyn är "Plugga" inte markerad när man står på områdessidan
+  (`#/elev/omrade`), bara på `#/elev/plugga`.
+- På mobil med öppen meny täcker hamburgarknappen början av "Pluggporten".
