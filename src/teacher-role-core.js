@@ -36,3 +36,36 @@ export function createdByLabel(area) {
   if (name) return name;
   return area?.createdBy ? "en annan lärare" : "Admin";
 }
+
+/**
+ * Ägarfälten för ett område som sparas (#680, §2.3). saveArea skriver HELA
+ * dokumentet, så ägaren följer med därifrån det redan finns: ett befintligt
+ * område behåller sin createdBy/createdByName (eller saknar dem = admins), ett
+ * nytt stämplas med det sparande kontot. Fälten i `area` själv litas inte på.
+ * @param {object} area      det som ska sparas
+ * @param {object|null} existing dokumentet som finns nu (null = nytt område)
+ * @param {{uid:string, name:string}} role
+ */
+export function withOwner(area, existing, role) {
+  const { createdBy, createdByName, ...rest } = area;
+  const src = existing || { createdBy: role.uid, createdByName: role.name };
+  if (src.createdBy) rest.createdBy = src.createdBy;
+  if (src.createdBy && src.createdByName) rest.createdByName = src.createdByName;
+  return rest;
+}
+
+/**
+ * Kopian vid Duplicera (#680): allt innehåll följer med, titeln får "(kopia)",
+ * ett ledigt id ("<id>-kopia", "-kopia-2" …) och sist i ordningen. Ägaren
+ * stämplas av saveArea (nytt dokument = anroparen).
+ * @param {object} area     källområdet ({ id, name, … })
+ * @param {string[]} takenIds befintliga områdes-id i ämnet
+ * @param {number} order    nästa lediga order
+ */
+export function duplicateValue(area, takenIds, order) {
+  const { id, createdBy, createdByName, ...rest } = area;
+  const taken = new Set(takenIds);
+  let newId = `${id}-kopia`;
+  for (let n = 2; taken.has(newId); n++) newId = `${id}-kopia-${n}`;
+  return { ...rest, id: newId, name: `${area.name || id} (kopia)`, order };
+}
