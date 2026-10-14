@@ -40,7 +40,7 @@ Skärmdumpar finns i `docs/qa-host-halloween-696/`.
 | 8 Kostym bärs och syns i rum/by/Live | ✅ | 4 kostymer påtagna i garderoben. Synliga i sidomenyn, framför huset, i byn och på Live-sidan |
 | 9 Halloween av: osynlig, gråad, kan inte tas på, ingen data omskriven | ✅ | 0 synliga i hus/by/Live. Garderoben är gråad ("🎃 Ta av"). Avtagen kostym: "Kan bäras igen nästa Halloween", och ett nytt klick ger samma meddelande utan att kostymen tas på. `avatarItems` var orört tills eleven själv tog av |
 | 10 Halloween på igen → syns igen | ✅ | Live och efter omladdning: 6/6 synliga |
-| 11 Varje kostym på varje avatar, även de nya | ✅ | `preview/preview-kostymer.html` visar nu också de 6 köpbara avatarerna: 11 × 36 = 396 celler, 0 platshållare. Bilder: `kostym-matris-1…4.png`, förstorat `kostym-zoom.png` |
+| 11 Varje kostym på varje avatar, även de nya | ✅ | `preview/preview-kostymer.html` (D:s version 3b5c86a, med de 6 köpbara avatarerna först): 11 × 36 = 396 celler, 396 synliga kostymer, 0 platshållare. Bilder: `kostym-matris-1…4.png`, förstorat `kostym-zoom.png` |
 | 12 Köpt Halloween-avatar kan väljas och finns kvar när Halloween är av | ✅ | Köpte Litet spöke (400). Med Halloween av valdes den i avatarvalet och sparades som `avatarId=hw-av-spoke` |
 | 13 Ej köpt kan inte väljas, befintliga gratis | ✅ | De 5 ej köpta visas låsta: klick väljer inget. De 30 gratis visas olåsta som förut. Regeln `kopAvatarOk` testas i `test/firestore-rules-avatarer.test.js` (gratis väljs fritt, ej köpt nekas) |
 | 14 Köp Spökis → pumpaägg → Spökis | ✅ | 500 mynt, `pets[].eggSpecies=spokis`. Efter ett simulerat dygn kläcktes det till Spökis steg 1 (Dimfjun) via det vanliga flödet |
