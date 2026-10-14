@@ -311,7 +311,7 @@ export async function createUtmaningsvy(host, { challengeId, backend, onBack, on
       svarYta.replaceChildren();
       const text = forsta
         ? [res.correct ? fb.correct : fb.wrong, byggt(svar)].filter(Boolean).join(" ")
-        : res.correct ? "Nu stämmer det! Bra jobbat. (Poängen för uppgiften ändras inte.)" : "Inte riktigt ännu. Titta på hjälpen och jämför med modellen.";
+        : res.correct ? "Nu stämmer det! Bra jobbat. (Poängen för uppgiften ändras inte.)" : "Titta på hjälpen och jämför med modellen. Du kan försöka igen eller gå vidare.";
       const knappar = efter.map((e) => ({ ...e }));
       await createAterkoppling(svarYta, { correct: res.correct, feedback: text, message: res.correct ? null : res.message }, {
         onRework: res.correct ? null : () => bearbeta(),

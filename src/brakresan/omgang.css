@@ -241,7 +241,10 @@ a.brv-radlank:hover { border-color: var(--brv-turkos); }
   .brv-exempelbild { order: -1; }
   .brv-radlank { grid-template-columns: auto minmax(0, 1fr); }
   .brv-radstatus { grid-column: 2; white-space: normal; }
-  .br-omdelning-rad { grid-template-columns: 1fr; grid-template-areas: "namn" "stav" "verktyg"; }
+  .br-omdelning-rad { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "namn stav" "verktyg verktyg"; }
+  .br-omdelning-namn { font-size: 1.1rem; }
+  .br-omdelning-verktyg { flex-wrap: nowrap; gap: 6px; font-size: .95rem; }
+  .br-omdelning-k { min-width: 0; white-space: nowrap; }
 }
 
 /* Modellen stor men så att "Kontrollera" ryms på en laptopskärm. */

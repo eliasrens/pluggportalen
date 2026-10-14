@@ -13,6 +13,7 @@
 // ============================================================================
 
 import { app, go, getParams, loading, renderTopbar } from "../ui.js";
+import { currentStudentId } from "../data.js";
 import { h } from "./komponenter/bas.js";
 import { CHALLENGES, SECTIONS, isChallengeId } from "./schema/katalog.js";
 import { challengeStatus } from "./schema/regler.js";
@@ -41,6 +42,8 @@ export async function pageBrakresan() {
   aktiv = null;
   loading();
   const { u, lage } = getParams();
+  // Elevens omgångar kräver inloggning; testomgången (lage=test) körs helt i klienten.
+  if (!currentStudentId() && lage !== "test") return go("#/");
   const [{ ensureOmgangCss }] = await Promise.all([import("./omgang.js"), renderTopbar()]);
   await ensureOmgangCss();
   const host = h("div", { class: "brv-rot" });
