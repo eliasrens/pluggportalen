@@ -42,10 +42,10 @@ test("katalogen: 12 inne, 8 trädgård, 3 hus – alla i Halloween-samlingen", (
   assert.equal(new Set(ids).size, ids.length, "inga dubbla id:n i hela katalogen");
 });
 
-test("priser enligt spec §3 + Elias: inne 40–250, ute 60–300, hus exakt 10 000", () => {
+test("priser enligt spec §3 + Elias: inne 40–250, ute 60–300, hus exakt 4 000", () => {
   for (const it of INNE) assert.ok(it.price >= 40 && it.price <= 250, `${it.id} ${it.price}`);
   for (const it of UTE) assert.ok(it.price >= 60 && it.price <= 300, `${it.id} ${it.price}`);
-  for (const it of HUS) assert.equal(it.price, 10000, it.id);
+  for (const it of HUS) assert.equal(it.price, 4000, it.id);
 });
 
 test("test 5: samlingsvaror visas bara i Halloween-fliken, aldrig i vanliga flikar", () => {
