@@ -79,7 +79,7 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `liveSessions/{sid}/grPlayers`, `grEvents`, `grMeta`, `dkPlayers`, `dkEvents`, `dkMeta` | L/radera (servern skriver) | L som läraren i sessionen. S: aldrig. | RO serverdata |
 | `liveSessions/{sid}/dkSelf`, `dkSecret` | radera (bara eleven själv läser `dkSelf`, ingen klient `dkSecret`) | nekas | RO hemliga koder |
 | `liveClock` | bara sitt eget dokument | bara sitt eget dokument | LC liveClock, RO Live-klockan |
-| `{**}/answers` (collection group) | L | L: `classId` i egna klasser | SM test 1–2 |
+| `{**}/answers` (collection group) | L | L: `classId` i egna klasser, eller `uid` = egen elev (träningstotalen) | SM test 1–2 |
 | `classCenters` (profilen), `expMembers`, `kassa`, `kassaHistorik`, `donations` | L/S | L: egna klasser. S: aldrig. | SM test 1–2, LE test 18 |
 | `classCenters/{c}/expShards`, `fund`, `trophies`, `layout`, `layoutHistory` | L/S | L (som alla inloggade). S: aldrig. | LE test 18, RO inredning |
 | `hittaRattAttempts`, `hittaRattBest` | L | L: egna elever (per dokument) | SM test 1–2 |
@@ -107,7 +107,9 @@ bevisas av FM test 24.
 2. **Klassmatchens `coinPrize`** (pris till klasskassan) får bara admin sätta.
    Kassan är admins, och priset kunde annars aldrig betalas ut.
 3. **Efter en Live-match** skriver årskurskontot inte pokaler, kassapris eller
-   klassbonus-EXP. Pluggmynt till eleverna (kvittot) är tillåtet.
+   klassbonus-EXP. Pluggmynt till eleverna (kvittot) är tillåtet. Klienten hoppar
+   över de skrivningarna för årskurskontot (`live-data.js` writeResultIfMissing).
+   En match som ett årskurskonto avslutar ger alltså ingen pokal och ingen klassbonus.
 4. **Egna Hitta rätt!-kartor** räknas inte som Plugga-material. De är bara för admin.
 5. **`hiddenVillages`** (byarnas synlighet) räknas som "klassbyar" i §2.2 och är
    bara för admin.
@@ -126,3 +128,7 @@ bevisas av FM test 24.
   (`getDoc`), inte som en hel samling.
 - `setStudentLevel` (`src/data-lasresan-niva.js`) skriver nu nivåfälten som fältvägar.
 - `payLiveRewards` (`src/live/live-rewards-pay.js`) skriver nu `lastLiveReceipt` = sessionen.
+- Live-sidan (`teacher-live*.js`) visar årskurskontot bara matcher med egna klasser,
+  inget kassapris, och bara egna klasser i andra format än Klassmatchen
+  (`teacher-role-core.js`: `canSeeLiveSession`, `liveFieldsFor`, `liveClassChoices`).
+- `archiveIfEnded` (Mattematchen) arkiverar bara som admin.

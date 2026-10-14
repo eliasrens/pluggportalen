@@ -37,6 +37,32 @@ export function createdByLabel(area) {
   return area?.createdBy ? "en annan lärare" : "Admin";
 }
 
+// --- Live (#678): samma gränser som firestore.rules gradeLiveClassesOk ---------
+
+/** Sessionen har minst en av kontots klasser (admin: alla). Styr listor/historik. */
+export function canSeeLiveSession(session, role) {
+  if (!role || role.admin || !role.classIds) return true;
+  const ids = Array.isArray(session?.participatingClassIds) ? session.participatingClassIds : [];
+  return ids.some((id) => role.classIds.has(id));
+}
+
+/**
+ * Klasserna att välja bland när kontot skapar en match. Klassmatchen: alla
+ * (motståndaren får vara vilken klass som helst – minst en egen krävs av
+ * reglerna). Övriga format: bara kontots klasser.
+ */
+export function liveClassChoices(classes, formatId, role) {
+  if (!role || role.admin || formatId === "klassmatch") return classes;
+  return filterClasses(classes, role);
+}
+
+/** Inställningar bara admin får sätta (mynt-pris till klasskassan). */
+export const ADMIN_ONLY_LIVE_FIELDS = ["coinPrize"];
+export function liveFieldsFor(fields, role) {
+  if (!role || role.admin) return fields;
+  return fields.filter((f) => !ADMIN_ONLY_LIVE_FIELDS.includes(f.key));
+}
+
 /**
  * Ägarfälten för ett område som sparas (#680, §2.3). saveArea skriver HELA
  * dokumentet, så ägaren följer med därifrån det redan finns: ett befintligt

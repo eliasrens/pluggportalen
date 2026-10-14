@@ -40,10 +40,15 @@ export function detailHtml(s, result) {
       <tbody>${classRows}</tbody></table>`;
 }
 
-/** Mynt-priset (#526) om projektorn stängdes innan det betalades – idempotent. */
+/**
+ * Mynt-priset (#526) om projektorn stängdes innan det betalades – idempotent.
+ * Bara admin skriver klasskassan (#678).
+ */
 export function settle(s) {
   if (s.result && sessionPrize(s)) {
-    import("../../../klasscenter/kc-koppling.js").then((m) => m.livePrisEfterAvslut(s.id, s)).catch(() => {});
+    import("../../../auth.js")
+      .then((a) => a.isAdmin() && import("../../../klasscenter/kc-koppling.js").then((m) => m.livePrisEfterAvslut(s.id, s)))
+      .catch(() => {});
   }
 }
 

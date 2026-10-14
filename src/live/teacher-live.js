@@ -21,6 +21,7 @@ import { getGameMode } from "./modes/index.js";
 import { formatOf } from "./formats/index.js";
 import { watchActiveSessions, autoFinish, setClassDivisor, deleteLiveSession } from "./live-data.js";
 import { openDivisorDialog } from "./live-divisor-dialog.js";
+import { myRole, canSeeLiveSession } from "../teacher-role.js";
 import { serverNow, syncLiveClock } from "./live-clock.js";
 import { phaseAt, formatClock } from "./live-core.js";
 import { renderCreateForm } from "./teacher-live-form.js";
@@ -67,26 +68,28 @@ export async function pageLarareLive(ctx) {
     </div></div>`);
   page.appendChild(grid);
 
-  const classes = await data.getClasses().catch(() => []);
+  const [classes, role] = await Promise.all([data.getClasses().catch(() => []), myRole()]);
   const email = auth.currentUser?.email || "";
   renderCreateForm(grid.querySelector(".live-col-create"), {
     classes,
+    role,
     uid,
     createdByName: email.split("@")[0] || "",
     onCreated: (sid) => ctx.go(`#/larare/live?id=${sid}`),
   });
 
-  // Aktiva sessioner (alla lärares) i realtid + klocka per sekund.
+  // Aktiva sessioner i realtid + klocka per sekund. Årskurskontot (#678) ser
+  // bara matcher med någon av sina klasser – andra får det inte styra.
   const listHost = grid.querySelector(".live-active-list");
   let active = [];
   const draw = () => drawActive(ctx, listHost, active);
-  const unsub = watchActiveSessions((list) => { active = list; draw(); }, (err) => {
+  const unsub = watchActiveSessions((list) => { active = list.filter((s) => canSeeLiveSession(s, role)); draw(); }, (err) => {
     listHost.replaceChildren(el(`<p class="err-inline">Kunde inte läsa sessioner: ${esc(err.message)}</p>`));
   });
   const iv = setInterval(draw, 1000);
   cleanups.push(unsub, () => clearInterval(iv));
 
-  renderHistoryList(ctx, grid.querySelector(".live-history-list"));
+  renderHistoryList(ctx, grid.querySelector(".live-history-list"), role);
 }
 
 function statusText(s) {
