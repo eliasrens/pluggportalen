@@ -104,6 +104,25 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Säsongen (#690, epic #689): ETT dokument config/season som ALLA läser –
+    // även utloggade, inloggningsskärmen följer säsongen. Inget känsligt i det.
+    // Bara admin skriver; fälten valideras. Ny säsong = nyckeln här + en rad i
+    // src/season-config.js (SEASONS).
+    match /config/season {
+      allow read: if true;
+      allow create, update: if isAdmin() && validSeasonDoc(request.resource.data);
+      allow delete: if isAdmin();
+    }
+    function validSeasonDoc(d) {
+      return d.keys().hasOnly(['season', 'halloween', 'halloweenUntil', 'updatedAt', 'updatedBy']) &&
+        d.keys().hasAll(['season', 'halloween', 'updatedAt', 'updatedBy']) &&
+        d.season in ['sommar', 'host'] &&
+        d.halloween is bool &&
+        (!('halloweenUntil' in d) || d.halloweenUntil == null || d.halloweenUntil is timestamp) &&
+        d.updatedAt == request.time &&
+        d.updatedBy == request.auth.uid;
+    }
+
     // Kunskapsinnehåll (ämnen/arbetsområden): alla INLOGGADE får läsa.
     // Ämnesdokumentet skriver bara admin. Områden (#678, §2.3): årskurskontot
     // skapar i ett BEFINTLIGT ämne med createdBy = sig själv, och ändrar/
