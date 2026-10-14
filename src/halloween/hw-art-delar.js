@@ -5,7 +5,7 @@
 // (orange, lila, grönt, svart med glimt) – inga vassa tänder, inget blod, inga
 // realistiska dödskallar. Kontur/linjer ur stilguiden art-style.js.
 //
-// Animationer (bara transform/opacity, CSS i src/styles/31-halloween.css, av vid
+// Animationer (bara transform/opacity, CSS i src/styles/32-halloween.css, av vid
 // prefers-reduced-motion): .hw-glod (lyser svagt), .hw-flamma (fladdrar),
 // .hw-bubbla (bubblar upp), .hw-glimt (glimmar). Klassen sitter på ett <g>.
 // Laddas bara via import() (#271) – aldrig i den statiska bootgrafen.

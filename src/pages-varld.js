@@ -78,6 +78,9 @@ export async function pageElevVarld(startNiva) {
     return;
   }
   liveScen = null;
+  // Säsongen (#691): laddas parallellt med elevdatan och sätts ur cachen INNAN
+  // scenen visas (ingen blink grönt → höst). Fel = sommar, världen går aldrig sönder.
+  const szP = import("./season-world.js").catch(() => null);
 
   loading();
   await renderTopbar();
@@ -1054,7 +1057,10 @@ export async function pageElevVarld(startNiva) {
     }
   }
 
+  const sz = await szP;
+  sz?.applyCachedTheme();
   app.replaceChildren(view);
+  sz?.mountVarldSasong(stage);
 
   // Djuplänk till en kompis: zooma in till deras hus när scenen står i DOM:en.
   if (startNiva === "kompis") kompisVy.visa(kompisId);

@@ -29,10 +29,10 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { serverNow, syncServerClock } from "./data-class-lock.js";
 import { createSeasonStore } from "./season-store.js";
-import { SEASONS, normalizeSeason } from "./season-config.js";
+import { SEASONS, SEASON_CACHE_KEY, normalizeSeason } from "./season-config.js";
 
 /** localStorage-nyckeln: JSON { season, halloween, halloweenUntil(ms|null) }. */
-export const SEASON_CACHE_KEY = "pp:season";
+export { SEASON_CACHE_KEY };
 
 const store = createSeasonStore({
   now: serverNow,

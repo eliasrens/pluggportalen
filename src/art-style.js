@@ -161,3 +161,30 @@ export function stjarna(x, y, s, c) {
     `L2.3 1.1 L3.1 4.8 L0 2.8 L-3.1 4.8 L-2.3 1.1 L-5 -1.2 L-1.4 -1.5 Z" fill="${c}" stroke="none"/>`
   );
 }
+
+// --- Säsongspalett (#691, epic #689) ----------------------------------------
+// Världens färger som kan bytas per säsong UTAN kopior av konsten: konsten
+// ritar sz("namn", sommarfärg) = var(--sz-namn, sommarfärg). Sommar = ingen
+// variabel satt = exakt dagens färg. season-world.js sätter variablerna (ur
+// SEASONS[...].palette i season-config.js) bara på världen och inloggningen.
+
+/** Säsongsstyrd färg – sommarfärgen är fallbacken. */
+export const sz = (namn, sommar) => `var(--sz-${namn},${sommar})`;
+
+/** Lövhög på marken – syns bara på hösten (.sz-bara-host, styles/31-sasong.css). */
+export function lovhog(x, y, s = 1) {
+  return `<g class="sz-bara-host" transform="translate(${x} ${y}) scale(${s})">
+    <path d="M-30 0 Q-26 -14 -10 -16 Q0 -24 12 -16 Q28 -14 30 0 Z" fill="#E07B39" ${THIN}/>
+    <path d="M-18 -9 l5 -5 l3 6 Z M2 -15 l6 -2 l-1 7 Z M14 -6 l6 -4 l1 6 Z" fill="#F7C948" stroke="none"/>
+    <path d="M-6 -4 l4 -6 l4 5 Z M20 -2 l3 -5 l3 5 Z" fill="#C4574A" stroke="none"/></g>`;
+}
+
+/** Liten glad pumpa – syns bara under Halloween (.sz-bara-halloween). */
+export function pumpaDekor(x, y, s = 1) {
+  return `<g class="sz-bara-halloween" transform="translate(${x} ${y}) scale(${s})">
+    <ellipse cx="0" cy="-13" rx="18" ry="13" fill="#F49E4C" ${LINE}/>
+    <path d="M-6 -25 Q0 -13 -6 -1 M6 -25 Q0 -13 6 -1" fill="none" ${THIN}/>
+    <path d="M0 -25 q1 -7 6 -8" fill="none" stroke="#6FA85B" stroke-width="4" stroke-linecap="round"/>
+    <path d="M-9 -16 l3 -4 l3 4 Z M3 -16 l3 -4 l3 4 Z" fill="${O}"/>
+    <path d="M-7 -9 Q0 -4 7 -9" fill="none" ${THIN}/></g>`;
+}

@@ -24,6 +24,7 @@ import { husMini, DEFAULT_HUS_SKAL } from "./art-hus-ute.js";
 import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
 import { getPalette } from "./room-palettes.js";
 import { possessiv } from "./text-format.js";
+import { sz } from "./art-style.js";
 
 /** Minimal HTML-escape för elevnamn/id:n som kommer från Firestore. */
 function esc(s) {
@@ -67,12 +68,12 @@ export function mountByScen({ lager, meId, students, klasscenter = null }) {
   // → oförändrad storlek/placering (#373), bara marken breder ut sig runt om.
   const mark = `<svg class="by-mark" viewBox="0 0 100 100" preserveAspectRatio="none"
       aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
-    <rect x="-60" y="-60" width="220" height="240" fill="#A8DA8F"/>
-    <ellipse cx="22" cy="34" rx="20" ry="9" fill="#B4E19B" opacity="0.55"/>
-    <ellipse cx="74" cy="62" rx="24" ry="10" fill="#B4E19B" opacity="0.5"/>
-    <ellipse cx="40" cy="88" rx="18" ry="7" fill="#9ED584" opacity="0.5"/>
-    <rect x="-60" y="-60" width="220" height="66" fill="#9AD3F0"/>
-    <path d="M-60 6 Q25 4 50 6 Q75 8 160 5.5 L160 9 L-60 9 Z" fill="#8FCB74"/>
+    <rect x="-60" y="-60" width="220" height="240" fill="${sz("hill", "#A8DA8F")}"/>
+    <ellipse cx="22" cy="34" rx="20" ry="9" fill="${sz("grass-light", "#B4E19B")}" opacity="0.55"/>
+    <ellipse cx="74" cy="62" rx="24" ry="10" fill="${sz("grass-light", "#B4E19B")}" opacity="0.5"/>
+    <ellipse cx="40" cy="88" rx="18" ry="7" fill="${sz("grass-mid", "#9ED584")}" opacity="0.5"/>
+    <rect x="-60" y="-60" width="220" height="66" fill="${sz("sky1", "#9AD3F0")}"/>
+    <path d="M-60 6 Q25 4 50 6 Q75 8 160 5.5 L160 9 L-60 9 Z" fill="${sz("grass", "#8FCB74")}"/>
     ${byVagarSvg(layout)}
     ${dekorMarkSvg(dekor)}
   </svg>`;
