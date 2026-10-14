@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Bråkdraken (ägg + 15 nivåer)</title>
+    <style>
+      /* Fristående designöversikt för Bråkdraken (#718). Ingen Firebase, ingen
+         inloggning – bara konstmodulen src/brakresan/art-drake*.js.
+         ?matt=1 skriver ut uppmätta viewBox-värden (för VB i art-drake.js). */
+      :root { --ink: #3b3350; --kort: #fffdf8; --kant: #e4dccb; --turkos: #2aa9b0; }
+      * { box-sizing: border-box; }
+      body { margin: 0; font-family: "Baloo 2", "Nunito", system-ui, sans-serif; color: var(--ink);
+        background: radial-gradient(circle at 20% 0%, #e8f8f6, transparent 50%), radial-gradient(circle at 90% 10%, #efe9fb, transparent 45%), #f7f3ec; }
+      header { padding: 22px 28px 6px; display: flex; flex-wrap: wrap; gap: 12px 28px; align-items: flex-end; justify-content: space-between; }
+      h1 { margin: 0; font-size: 1.6rem; }
+      header p { margin: 4px 0 0; max-width: 62ch; opacity: .85; }
+      .val { display: flex; gap: 14px; flex-wrap: wrap; font-size: .95rem; }
+      .val label { display: flex; gap: 6px; align-items: center; background: #fff; border: 1px solid var(--kant); padding: 6px 12px; border-radius: 999px; cursor: pointer; }
+      section { padding: 8px 28px 22px; }
+      h2 { font-size: 1.2rem; margin: 18px 0 10px; }
+      .sub { margin: -6px 0 12px; opacity: .75; font-size: .92rem; }
+      /* Översikt i samma skala: bottenjusterade på en gemensam mark. */
+      .skala { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 18px 10px; padding: 18px 16px 10px;
+        background: #fff; border: 1px solid var(--kant); border-radius: 18px; }
+      .skala figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; border-bottom: 3px solid #cfe5db; }
+      .skala figcaption { font-size: .78rem; font-weight: 700; background: #fff8; padding: 0 6px; border-radius: 6px; }
+      .rutnat { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+      .kort { background: var(--kort); border: 1px solid var(--kant); border-radius: 18px; padding: 12px 14px 14px; box-shadow: 0 2px 0 #e9e1d0; }
+      .kort h3 { margin: 0; font-size: 1.05rem; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; white-space: nowrap; }
+      .kort h3 small { font-weight: 600; opacity: .7; font-size: .78rem; white-space: normal; text-align: right; }
+      .bild { height: 250px; display: flex; align-items: flex-end; justify-content: center; margin: 6px 0;
+        background: linear-gradient(#f2fbfa, #f8f4ff 70%, #e8f3ee); border-radius: 14px; }
+      .bild svg { max-width: 96%; max-height: 96%; width: auto; height: 100%; }
+      .kort p { margin: 4px 0 8px; font-size: .9rem; line-height: 1.3; }
+      .knappar { display: flex; flex-wrap: wrap; gap: 6px; }
+      button { font: inherit; font-size: .82rem; padding: 4px 11px; border: 1px solid #b9a8de; border-radius: 999px; background: #f6f1ff; cursor: pointer; color: var(--ink); }
+      button:hover { background: #ece3ff; }
+      button.stor { font-size: 1rem; padding: 8px 18px; background: var(--turkos); border-color: #1f8a91; color: #fff; font-weight: 700; }
+      .demo { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }
+      .bd-scen, .scenplats { position: relative; height: 320px; border-radius: 18px; overflow: hidden;
+        background: radial-gradient(ellipse at 50% 40%, #fff6d8, transparent 60%), linear-gradient(#e9f8f6, #efe8fb); border: 1px solid var(--kant); }
+      .bd-scen .bd-hoppa { background: #fff; border-color: var(--kant); }
+      .rad { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+      select, input[type=range] { font: inherit; }
+      pre { background: #fff; padding: 10px; border-radius: 10px; border: 1px solid var(--kant); }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>Bråkdraken – designöversikt</h1>
+        <p>Ägget och alla 15 nivåer av samma drake: turkos grund, blå/lila skuggor, mer guld för varje steg och bråkrunan ÷ i pannan. Allt är ritat i kod (SVG) – inga bildfiler.</p>
+      </div>
+      <div class="val">
+        <label><input type="checkbox" id="lugn" /> Reducerad rörelse</label>
+        <label><input type="checkbox" id="snabb" checked /> Visa gester ofta (demo)</label>
+      </div>
+    </header>
+
+    <section>
+      <h2>Alla 16 former i samma skala</h2>
+      <p class="sub">Storlek enligt specens tabell: ägget ≈ 0,35 häst, nivå 1 ≈ 0,43 … nivå 15 = 3 hästar.</p>
+      <div class="skala" id="skala"></div>
+    </section>
+
+    <section>
+      <h2>Varje form förstorad</h2>
+      <p class="sub">Andning hela tiden, blinkning och nivåns egna gester då och då. Knapparna spelar en gest direkt.</p>
+      <div class="rutnat" id="rutnat"></div>
+    </section>
+
+    <section>
+      <h2>Kläckning och evolution</h2>
+      <div class="demo">
+        <div>
+          <div class="scenplats" id="klack"></div>
+          <div class="rad"><button class="stor" id="spelaKlack">Spela kläckning</button><span class="sub">ca 4 s · ägg → nivå 1</span></div>
+        </div>
+        <div>
+          <div class="scenplats" id="evo"></div>
+          <div class="rad">
+            <button class="stor" id="spelaEvo">Spela evolution</button>
+            <label>från <select id="evoFran"></select></label>
+            <span class="sub">ca 3 s · glöd, silhuettbyte, nivåtext</span>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section id="mattUt" hidden><h2>Uppmätta viewBox</h2><pre></pre></section>
+
+    <script type="module">
+      import { drakeSvg, drakeMatt, skalaFor, STADIER } from "../src/brakresan/art-drake.js";
+      import { installeraDrakeCss } from "../src/brakresan/art-drake-css.js";
+      import { startaTomgang, spelaGest, spelaKlackning, spelaEvolution } from "../src/brakresan/art-drake-anim.js";
+
+      installeraDrakeCss();
+      const $ = (id) => document.getElementById(id);
+      const lugn = () => $("lugn").checked;
+      const tempo = () => ($("snabb").checked ? { min: 2500, max: 5000, blink: [2000, 4500] } : {});
+      const GEST = { blink: "Blinka", lut: "Huvudlut", svansvick: "Svansvick", nos: "Nosrörelse", vingstrack: "Vingsträck",
+        sitt: "Sätter sig", steg: "Tar ett steg", titta: "Tittar omkring", fladder: "Vingfladder", stolt: "Stolt hållning",
+        svanssving: "Svanssväng", puff: "Nospuff", langsamblink: "Långsam blink", andas: "Andas", huvudlyft: "Huvudlyft",
+        resning: "Resning", glod: "Glöd i fjällen", svav: "Svävningslyft", partiklar: "Ljuspartiklar", ande: "Magisk andedräkt",
+        vingoppning: "Vingöppning", ljussvep: "Ljussvep", magi: "Magisk gest", vicka: "Vickar", puls: "Pulsar" };
+      const stopp = [];
+
+      // 1) Samma skala. 1 häst = 52 px.
+      const PX_HAST = 52;
+      for (let n = 0; n <= 15; n++) {
+        const m = drakeMatt(n), k = skalaFor(n, PX_HAST);
+        const f = document.createElement("figure");
+        f.innerHTML = drakeSvg(n, { stjarnor: 7 }) + `<figcaption>${n === 0 ? "Ägg" : n}</figcaption>`;
+        const svg = f.querySelector("svg");
+        svg.style.width = `${Math.round(m.vb[2] * k)}px`;
+        svg.style.height = `${Math.round(m.vb[3] * k)}px`;
+        $("skala").appendChild(f);
+      }
+
+      // 2) Förstorade kort med tomgång.
+      function kort(n) {
+        const st = STADIER[n];
+        const d = document.createElement("article");
+        d.className = "kort";
+        const stj = n === 0 ? "0–9 stjärnor" : n === 15 ? "150 stjärnor" : `${st.stjarnor[0]}–${st.stjarnor[1]} stjärnor`;
+        const fam = { agg: "", unge: "unge", ungdom: "ungdom", vuxen: "vuxen", legend: "legendarisk" }[st.familj];
+        d.innerHTML =
+          `<h3>${n === 0 ? "Ägg" : `Nivå ${n}`} <small>${stj} · ${String(st.faktor).replace(".", ",")} häst${fam ? " · " + fam : ""}</small></h3>` +
+          `<div class="bild"></div><p>${st.text}</p><div class="knappar"></div>`;
+        const bild = d.querySelector(".bild");
+        const rita = (stjarnor) => {
+          bild.innerHTML = drakeSvg(n, { stjarnor });
+          const svg = bild.firstElementChild;
+          if (lugn()) svg.classList.add("bd-lugn");
+          stopp.push(startaTomgang(svg, tempo()));
+          return svg;
+        };
+        rita(n === 0 ? 7 : 0);
+        const kn = d.querySelector(".knappar");
+        const gester = n === 0 ? st.gester : ["blink", ...st.gester.filter((g) => g !== "blink")];
+        for (const g of gester) {
+          const b = document.createElement("button");
+          b.textContent = GEST[g] || g;
+          b.onclick = () => spelaGest(bild.firstElementChild, g);
+          kn.appendChild(b);
+        }
+        if (n === 0) {
+          const l = document.createElement("label");
+          l.style.cssText = "display:flex;gap:6px;align-items:center;font-size:.85rem";
+          l.innerHTML = `Stjärnor <input type="range" min="0" max="9" value="7"> <b>7</b>`;
+          const r = l.querySelector("input");
+          r.oninput = () => { l.querySelector("b").textContent = r.value; rita(+r.value); };
+          kn.appendChild(l);
+        }
+        return d;
+      }
+      const ritaKort = () => {
+        stopp.splice(0).forEach((f) => f());
+        $("rutnat").innerHTML = "";
+        for (let n = 0; n <= 15; n++) $("rutnat").appendChild(kort(n));
+      };
+      ritaKort();
+      $("snabb").onchange = ritaKort;
+      $("lugn").onchange = () => {
+        document.querySelectorAll("svg.bd-drake").forEach((s) => s.classList.toggle("bd-lugn", lugn()));
+        if (!lugn()) ritaKort();
+      };
+
+      // 3) Kläckning & evolution.
+      // Startbild i scenerna – samma placering som animationens lager.
+      const scenBild = (el, html, hojd) => {
+        el.innerHTML = `<div style="position:absolute;left:0;right:0;bottom:5%;height:${hojd}%;display:flex;justify-content:center;align-items:flex-end">${html}</div>`;
+        el.querySelector("svg").style.cssText = "height:100%;width:auto;max-width:100%";
+        startaTomgang(el.querySelector("svg"), tempo());
+      };
+      scenBild($("klack"), drakeSvg(0, { stjarnor: 9 }), 52);
+      $("spelaKlack").onclick = async () => {
+        const svg = await spelaKlackning($("klack"), { namn: "Bråkis", lugn: lugn() });
+        if (!lugn()) startaTomgang(svg, tempo());
+      };
+      for (let n = 1; n < 15; n++) $("evoFran").insertAdjacentHTML("beforeend", `<option value="${n}" ${n === 4 ? "selected" : ""}>nivå ${n} → ${n + 1}</option>`);
+      const visaEvoStart = () => scenBild($("evo"), drakeSvg(+$("evoFran").value), 76);
+      $("evoFran").onchange = visaEvoStart;
+      visaEvoStart();
+      $("spelaEvo").onclick = async () => {
+        const fran = +$("evoFran").value;
+        const svg = await spelaEvolution($("evo"), fran, fran + 1, { lugn: lugn() });
+        if (!lugn()) startaTomgang(svg, tempo());
+      };
+
+      // ?matt=1 – mät tight viewBox för VB-tabellen.
+      if (new URLSearchParams(location.search).has("matt")) {
+        const ut = {};
+        for (let n = 0; n <= 15; n++) {
+          const h = document.createElement("div");
+          h.innerHTML = drakeSvg(n);
+          document.body.appendChild(h);
+          const svg = h.firstElementChild;
+          svg.querySelectorAll(".bd-svep,.bd-gnistor,.bd-aura,.bd-puff,.bd-ande").forEach((e) => e.remove());
+          const b = svg.querySelector(".bd-andas").getBBox();
+          ut[n] = [b.x - 6, b.y - 10, b.width + 12, b.height + 12].map(Math.round);
+          h.remove();
+        }
+        $("mattUt").hidden = false;
+        $("mattUt").querySelector("pre").textContent = JSON.stringify(ut);
+      }
+    </script>
+  </body>
+</html>
