@@ -671,7 +671,7 @@ service cloud.firestore {
         d.countdownSeconds is int && d.countdownSeconds >= 0 && d.countdownSeconds <= 10 &&
         d.counterShards is int && d.counterShards >= 1 && d.counterShards <= 50 &&
         d.status in ['lobby', 'live', 'finished'] && liveWizardsOk(d) && liveFormatOk(d) &&
-        liveSessionAnswerKindOk(d);
+        liveSessionAnswerKindOk(d) && !('rewards' in d);
     }
     // Svarssätt (#551): 'free' (skriv själv) | 'choice' (flerval). Saknas =
     // 'free' (alla sessioner före #551) – ingen migrering. Vilka svarssätt
@@ -686,6 +686,10 @@ service cloud.firestore {
     // = Klassmatchens gren; ett nytt format får en EGEN gren (create/update
     // routas på formatet i match /liveSessions, som Snilleblixten #556) och
     // egna regeltester. Formatet byts aldrig (liveSessionUpdateOk, sbSettingsOk).
+    // Klassmatchen delar aldrig ut Pluggmynt (#557 gäller de nya formaten;
+    // Klassmatchens pris går till klasskassan, coinPrize). Ett rewards-fält
+    // på en Klassmatch nekas därför helt (#682 H1: annars påhittade tak och
+    // kvitton utan spel) – ingen klient skriver det.
     function liveFormatOk(d) {
       return !('format' in d) || d.format in ['klassmatch'];
     }
@@ -1126,6 +1130,23 @@ service cloud.firestore {
       // lärare, bara efter matchslut (aldrig demo), beloppen = det sparade
       // result.rewards[uid] (inom sessionens tak) och elevens saldo måste i
       // SAMMA skrivning öka med exakt total (live-rewards-pay.js).
+      // #682 H2: result.rewards skrivs av läraren och bevisar inget spel.
+      // Kvittot kräver därför också att matchen STARTADE och att eleven
+      // själv gick med (players/{uid} skapas bara av eleven, liveJoin). I
+      // kistformaten räknar servern elevens svar (grPlayers/dkPlayers):
+      // minst ett svar, och rätt-mynten högst perCorrect × verifierade rätt.
+      // Snilleblixten: rätt-mynten högst perCorrect × antal frågor.
+      // Gäller alla lärare (admin också) – riktiga utbetalningar uppfyller
+      // det redan (live-rewards computeRewards: bara deltagare med svar).
+      function liveCoinPlayerOk(s, uid, d, cfg) {
+        let gp = livePath(grFormat(s) ? 'grPlayers' : 'dkPlayers', uid);
+        return exists(livePath('players', uid)) && (
+          sbFormat(s)
+            ? d.correctCoins <= cfg.perCorrect * s.questionCount
+            : (grFormat(s) || dkFormat(s)) && exists(gp) &&
+              get(gp).data.get('correct', 0) + get(gp).data.get('incorrect', 0) >= 1 &&
+              d.correctCoins <= cfg.perCorrect * get(gp).data.get('correct', 0));
+      }
       function liveCoinReceipt(uid) {
         let d = request.resource.data;
         let s = session();
@@ -1134,6 +1155,7 @@ service cloud.firestore {
         let sd = /databases/$(database)/documents/studentData/$(uid);
         let fore = exists(sd) ? get(sd).data.get('coins', 0) : 0;
         return liveTeacherOf(s) && s.status == 'finished' && s.get('demo', false) != true &&
+          s.get('startedAt', null) != null &&
           cfg is map && r is map &&
           d.keys().hasOnly(['uid', 'prize', 'correctCoins', 'total', 'at', 'by']) &&
           d.uid == uid && d.at == request.time && d.by == request.auth.uid &&
@@ -1141,6 +1163,7 @@ service cloud.firestore {
           d.prize == r.prize && d.correctCoins == r.correctCoins && d.total == r.total &&
           d.total == d.prize + d.correctCoins &&
           d.prize <= cfg.firstPrize && d.correctCoins <= cfg.cap &&
+          liveCoinPlayerOk(s, uid, d, cfg) &&
           getAfter(sd).data.get('coins', 0) == fore + d.total;
       }
 

@@ -74,8 +74,8 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `mathCompetitions/{c}/answers`, `studentStats` | L/radera | L: dokument med `classId` i egna klasser. En lista måste filtrera på egna klasser. | SM test 1–2, LE test 17 |
 | `mathCompetitions/{c}/scores` | L/radera | Hämta en: som alla inloggade. Lista: filtrerat på egna klasser, annars högst 25 som elever. | SM test 1–2, LE test 17 |
 | `mathCompetitions/{c}/classCounters` | L/radera | L (som alla inloggade) | LE test 17 |
-| `liveSessions` | L/S | L (som alla inloggade). Skapa och styra: Klassmatchen med minst en egen klass och motståndare valfri, men utan `coinPrize`. Övriga format: alla klasser egna. Klasserna får inte bytas till andras. Radera: en lobby med en egen klass. | LE test 15–16 |
-| `liveSessions/{sid}/players`, `answers`, `counters`, `coinReceipts`, `sbPrivate`, `sbAnswers`, `sbScores`, `grPrivate`, `grPublic`, `dkPrivate`, `dkPublic` | L/S | Som läraren i sessionen: läsa, skapa facit, poäng och pluggmyntskvitton, och radera lobbyns dokument. Allt annat: bara admin. | LE test 16 och 18 |
+| `liveSessions` | L/S | L (som alla inloggade). Skapa och styra: Klassmatchen med minst en egen klass och motståndare valfri, men utan `coinPrize`. Övriga format: alla klasser egna. Klasserna får inte bytas till andras. Radera: en lobby med en egen klass. En Klassmatch får aldrig ha `rewards` (gäller även admin). | LE test 15–16, LE #682 H1 |
+| `liveSessions/{sid}/players`, `answers`, `counters`, `coinReceipts`, `sbPrivate`, `sbAnswers`, `sbScores`, `grPrivate`, `grPublic`, `dkPrivate`, `dkPublic` | L/S | Som läraren i sessionen: läsa, skapa facit, poäng och pluggmyntskvitton, och radera lobbyns dokument. Allt annat: bara admin. Ett pluggmyntskvitto (även admins) kräver en startad match och elevens egen `players/{uid}`. Rätt-mynten får vara högst `perCorrect` × serverns rätt i `grPlayers`/`dkPlayers` (minst ett svar), och i Snilleblixten högst `perCorrect` × antal frågor. | LE test 16 och 18, LE #682 H2 |
 | `liveSessions/{sid}/grPlayers`, `grEvents`, `grMeta`, `dkPlayers`, `dkEvents`, `dkMeta` | L/radera (servern skriver) | L som läraren i sessionen. S: aldrig. | RO serverdata |
 | `liveSessions/{sid}/dkSelf`, `dkSecret` | radera (bara eleven själv läser `dkSelf`, ingen klient `dkSecret`) | nekas | RO hemliga koder |
 | `liveClock` | bara sitt eget dokument | bara sitt eget dokument | LC liveClock, RO Live-klockan |
@@ -119,6 +119,15 @@ bevisas av FM test 24.
    läsningen för inloggade (#114) gäller elever, inte lärare.
 8. **`classProjections`/`classProjects`**: årskurskontot skriver inte.
    Lärarklientens självläkning nekas tyst.
+9. **Pluggmynt efter Live (#682 H1/H2)**: `result.rewards` skrivs av läraren
+   och bevisar inget spel. Därför kan en Klassmatch aldrig ha `rewards`
+   (formatet delar inte ut pluggmynt). Kvittot kräver dessutom en startad
+   match, att eleven själv gått med (`players/{uid}`) och, i kistformaten,
+   rätt-mynt inom serverns räknade rätt. Placeringspriset (högst `firstPrize`)
+   kan reglerna inte kontrollera mot ställningen. En elev som gått med och
+   svarat kan alltså få högst `firstPrize` + `cap` per match. Kontrollerna
+   gäller även admin. Riktiga utbetalningar uppfyller dem redan
+   (`computeRewards` tar bara med deltagare med svar).
 
 ## Att tänka på i klienten
 

@@ -50,7 +50,8 @@ const SCORES = [
   { index: 0, skipped: false, points: { alma: 5000, bo: 4200 }, correct: {} },
 ];
 const finished = (over = {}) => {
-  const s = sessionDoc({ status: "finished", startedAt: ts(-H), finishedAt: ts(-1000), ...over });
+  // 50 frågor: rätt-mynten får högst vara perCorrect × antal frågor (#682).
+  const s = sessionDoc({ status: "finished", startedAt: ts(-H), finishedAt: ts(-1000), questionCount: 50, ...over });
   const result = buildResult(s, [], PLAYERS, MULT, { scores: SCORES });
   // Antal rätt i matchen (sbScores-korrekt per fråga ersätts här av rätt-räkningen direkt).
   result.rewards.alma = { rank: 1, correct: 50, prize: 300, correctCoins: 210, total: 510 };
@@ -87,6 +88,13 @@ beforeEach(async () => {
     await setDoc(doc(db, "studentData", "cleo"), { coins: 7, xp: 0 });
     await setDoc(sess(db, "slut"), finished());
     await setDoc(sess(db, "demo"), finished({ demo: true }));
+    // Eleverna gick med i matchen (kvittot kräver players/{uid}, #682).
+    for (const sid of ["slut", "demo"]) {
+      for (const u of ["alma", "bo", "cleo"]) {
+        await setDoc(doc(db, "liveSessions", sid, "players", u),
+          { uid: u, classId: "4b", name: u, joinedAt: ts(-2 * H), lastSeenAt: ts(-H), correct: 0, incorrect: 0 });
+      }
+    }
     await setDoc(sess(db, "pagar"), sessionDoc({
       status: "live", startedAt: ts(-H), q: { index: 0, phase: "open", openedAt: ts(-2000), question: SNAP.questions[0] },
     }));
