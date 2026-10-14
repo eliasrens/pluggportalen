@@ -15,7 +15,8 @@
 //   4. alla key.examples.right bedöms RÄTT och alla .wrong bedöms FEL
 //      (status "graded" – ett felexempel får inte vara ett inmatningsfel)
 //   5. publicTask saknar facit (key, feedback, review, params, values, core)
-// Över alla exempel: minst MIN_VARIANTS olika kärnor. Reservbanken byggs och
+// Över alla exempel: minst MIN_VARIANTS olika kärnor (eller utmaningens
+// motiverade minVariants, aldrig under 30 – kontrakt.js). Reservbanken byggs och
 // valideras, och planRound ger tio olika kärnor för 20 seeds.
 // ============================================================================
 
@@ -29,7 +30,7 @@ const SECRET = ["key", "feedback", "review", "params", "values", "core"];
 /**
  * @returns {{ id, samples, distinctCores, problems: string[] }} – problems tom = godkänd
  */
-export function reviewChallenge(challenge, { samples = REVIEW_SAMPLES, plans = 20, minVariants = MIN_VARIANTS } = {}) {
+export function reviewChallenge(challenge, { samples = REVIEW_SAMPLES, plans = 20, minVariants = challenge.minVariants ?? MIN_VARIANTS } = {}) {
   const problems = [];
   const cores = new Set();
   const note = (seed, msg) => {

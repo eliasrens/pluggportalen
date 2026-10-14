@@ -23,6 +23,10 @@
 //   validate(task, answer)  valfri egen bedömning (standard: gradeAnswer)
 //   reserve       ≥ 10 validerade { slot?, params } – reservbanken när
 //                 generatorn inte hittar en ny kärna inom MAX_TRIES (§6)
+//   minVariants   valfri, bara när utmaningens EGNA talgränser i spec §8 ger
+//                 färre än MIN_VARIANTS olika kärnor (34: nämnare 2–8, mgn ≤ 24,
+//                 summa ≤ 1 ger 42 par). Kräver minVariantsReason och är aldrig
+//                 under MIN_CORES (§6: "minst 30 olika kärnuppgifter").
 //
 // En utmaning som ännu inte byggts är stubChallenge("NN") (implemented: false).
 // Servern vägrar starta omgångar för stubbar; generatorgranskningen
@@ -39,6 +43,8 @@ export const DEFAULT_SLOTS = Object.freeze(["intro", "intro", "intro", "normal",
   "overforing", "overforing", "overforing"]);
 /** §6: minst 60 meningsfulla varianter per utmaning. */
 export const MIN_VARIANTS = 60;
+/** §6: golvet för olika kärnor även när talgränserna är snäva. */
+export const MIN_CORES = 30;
 /** Reservbankens minsta storlek. */
 export const MIN_RESERVE = 10;
 /** §15: minst 200 deterministiska granskningsexempel per utmaning. */
@@ -69,6 +75,10 @@ export function defineChallenge(def) {
   if (!Array.isArray(def.reserve) || def.reserve.length < MIN_RESERVE ||
       def.reserve.some((r) => !r || typeof r.params !== "object")) {
     p.push(`reserve måste ha minst ${MIN_RESERVE} { params }`);
+  }
+  if (def.minVariants !== undefined && (!Number.isSafeInteger(def.minVariants) || def.minVariants < MIN_CORES ||
+      def.minVariants >= MIN_VARIANTS || typeof def.minVariantsReason !== "string" || !def.minVariantsReason.trim())) {
+    p.push(`minVariants måste vara ${MIN_CORES}–${MIN_VARIANTS - 1} och motiveras i minVariantsReason`);
   }
   if (p.length) throw new ContractError(def.id, p);
   return Object.freeze({ ...def, name: meta.name, slots: Object.freeze([...slots]), implemented: true });
