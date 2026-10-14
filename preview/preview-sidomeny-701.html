@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sidomenyn #701 – testrigg (riktig ui.js + styles.css)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <!-- Testrigg för issue #701: den RIKTIGA renderTopbar (src/ui.js) i
+         index.html-layouten. Bara datakällorna stubbas (sidomeny-701/*);
+         läget styrs med URL-parametrar: ?route=/elev/plugga&live=1&mm=1
+         &dolda=lasresan,shop&enabled=hittaratt,ekvationsresan&lock=lasresan|omrade
+         &dolj=1&coins=988583&stars=342. window.__pvSetLive(true|false) = lobby
+         startar/slutar medan sidan är öppen. -->
+    <script type="importmap">
+      { "imports": {
+        "../src/data.js": "./sidomeny-701/data.js",
+        "../src/live/live-watch.js": "./sidomeny-701/live-watch.js",
+        "../src/tavling/mm-watch.js": "./sidomeny-701/mm-watch.js",
+        "../src/class-lock-watch.js": "./sidomeny-701/class-lock-watch.js"
+      } }
+    </script>
+  </head>
+  <body>
+    <button class="hamburger" id="hamburger" aria-label="Öppna meny" aria-expanded="false" aria-controls="sidebar" hidden>
+      <span aria-hidden="true">☰</span>
+    </button>
+    <div class="sidebar-overlay" id="sidebar-overlay" hidden></div>
+    <div class="layout">
+      <aside class="sidebar" id="sidebar" aria-label="Sidomeny">
+        <button class="brand" id="brand"><span class="brand-text">Pluggporten</span></button>
+        <div id="sidebar-body" class="sidebar-body"></div>
+      </aside>
+      <main id="app" class="container"><div class="panel"><h1 id="pv-rubrik"></h1><p>Testrigg #701 – innehållsytan är tom med flit.</p></div></main>
+    </div>
+    <script type="module">
+      import { renderTopbar } from "../src/ui.js";
+      const q = new URLSearchParams(location.search);
+      if (!location.hash) location.hash = "#" + (q.get("route") || "/elev/plugga");
+      const rita = () => { document.getElementById("pv-rubrik").textContent = location.hash; renderTopbar(); };
+      window.addEventListener("hashchange", rita);
+      rita();
+    </script>
+  </body>
+</html>
