@@ -55,8 +55,9 @@
   color: var(--text-svag);
 }
 
-/* Biblioteks-korten (lärartabellen ersatte dem i #441; .area-card används
-   fortfarande av elevsidans områdesknappar i pages-elev.js – rör ej) */
+/* Biblioteks-korten (lärartabellen ersatte dem i #441). Elevsidans
+   områdesknappar heter .omrade-kort sedan #702 – .area-card här gav dem
+   kolumnlayout och ram ovanpå .big-card. */
 .area-cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));

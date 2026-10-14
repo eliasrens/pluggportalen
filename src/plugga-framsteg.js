@@ -6,13 +6,16 @@
 //   • starHelpHtml()        – "Vad betyder stjärnorna?" (inbyggd <details>)
 //   • areaProgressHtml()    – "Ditt framsteg" på områdets sida (#/elev/omrade)
 //   • resultFeedbackHtml()  – "Så gick det" på resultatskärmen efter ett spel
+//   • areaStarCount(), subjectColor(), isAreaNew() – korten på Plugga-
+//     startsidan (#702); areaStarCount delas med areaProgressHtml()
 // Tonen följer Läsresan (src/lasresan/ui-summary.js): ALLTID positiv, aldrig
 // "fel"/"dåligt", inga jämförelser med andra elever. Vi lyfter vad eleven blev
 // bättre på och föreslår vänligt vad man kan träna på. Stjärn-/coin-/XP-
 // ekonomin är orörd – här visas bara det som redan sparas.
 //
-// ⚠️ BOOTGRAF (#271): NY fil – importeras BARA dynamiskt (gamemodes.js och
-// game-shared.js gör await import() med catch → ingen panel om den saknas).
+// ⚠️ BOOTGRAF (#271): NY fil – importeras BARA dynamiskt (gamemodes.js,
+// game-shared.js och pages-elev.js gör await import() med catch → ingen panel
+// om den saknas; startsidans kort faller då tillbaka på orange utan stapel).
 // Testad i test/plugga-framsteg.test.js.
 // ============================================================================
 
@@ -140,6 +143,26 @@ export function hadFirstTryMisses(catStats, mode) {
 const name = (c) => `${c.icon} <b>${esc(c.short)}</b>`;
 
 /**
+ * "X av Y ★" för ett område – EN uträkning för korten på Plugga-startsidan och
+ * "Ditt framsteg" inne i området (#702), så siffrorna alltid stämmer.
+ * Y = stjärn-lägena × 3, X = sparade stjärnor i de lägena (högst 3 per läge).
+ * @param {object} o
+ * @param {string} o.areaId
+ * @param {object} o.progress    studentData.progress
+ * @param {string[]} o.starModes lägen som ger stjärnor (areaStarModes → id)
+ * @returns {{stars:number, maxStars:number, pct:number}}
+ */
+export function areaStarCount({ areaId, progress, starModes = [] }) {
+  const areaProgress = progress?.[areaId] || {};
+  const stars = starModes.reduce((sum, m) => {
+    const s = areaProgress[m]?.stars;
+    return sum + (typeof s === "number" && s > 0 ? Math.min(MAX_STARS_PER_MODE, s) : 0);
+  }, 0);
+  const maxStars = starModes.length * MAX_STARS_PER_MODE;
+  return { stars, maxStars, pct: maxStars ? Math.round((100 * stars) / maxStars) : 0 };
+}
+
+/**
  * "Ditt framsteg" för ett område.
  * @param {object} o
  * @param {string} o.areaId
@@ -148,13 +171,7 @@ const name = (c) => `${c.icon} <b>${esc(c.short)}</b>`;
  * @param {string[]} o.starModes  lägen på sidan som ger stjärnor (för "X av Y")
  */
 export function areaProgressHtml({ areaId, areaData, progress, starModes = [] }) {
-  const areaProgress = progress?.[areaId] || {};
-  const stars = starModes.reduce((sum, m) => {
-    const s = areaProgress[m]?.stars;
-    return sum + (typeof s === "number" && s > 0 ? Math.min(MAX_STARS_PER_MODE, s) : 0);
-  }, 0);
-  const maxStars = starModes.length * MAX_STARS_PER_MODE;
-  const starPct = maxStars ? Math.round((100 * stars) / maxStars) : 0;
+  const { stars, maxStars, pct: starPct } = areaStarCount({ areaId, progress, starModes });
 
   const summary = summarizeStudent(progress, { areaIds: [areaId] });
   const keys = areaCategoryKeys(areaData);
@@ -243,4 +260,69 @@ export function resultFeedbackHtml({ catStats, prevAreaProgress, noStars = false
     <ul class="pf-tips">${lines.map((l) => `<li>${l}</li>`).join("")}</ul>
     ${help}
   </div>`;
+}
+
+// ---------------------------------------------------------------------------
+// Plugga-startsidan (#702): ämnesfärg och "Ny!"-märke på områdeskorten
+// ---------------------------------------------------------------------------
+
+/** .big-card-färgerna, i den ordning okända ämnen får dem (efter plats i listan). */
+export const SUBJECT_COLORS = ["bla", "gron", "lila", "rosa", "orange"];
+
+// Ämnets id ELLER namn (gemener) → färgklass (spec §2.2).
+const SUBJECT_COLOR_TABLE = {
+  so: "bla", "samhällskunskap": "bla", historia: "bla", geografi: "bla", religion: "bla",
+  ma: "orange", matematik: "orange", matte: "orange",
+  no: "gron", biologi: "gron", fysik: "gron", kemi: "gron", teknik: "gron",
+  sv: "lila", svenska: "lila",
+  en: "rosa", engelska: "rosa",
+};
+
+/**
+ * Kortfärgen för ett ämne. Ett färgfält på ämnesdokumentet (`color`, en av
+ * SUBJECT_COLORS) vinner, annars tabellen på id/namn, annars platsen i listan.
+ * @param {object|string} subject  ämnesdokumentet ({ id, name, color? }) eller id/namn
+ * @param {number} [index]         ämnets plats i listan (för okända ämnen)
+ */
+export function subjectColor(subject, index = 0) {
+  const s = typeof subject === "string" ? { id: subject } : subject || {};
+  const own = String(s.color || "").trim().toLowerCase();
+  if (SUBJECT_COLORS.includes(own)) return own;
+  for (const key of [s.id, s.name]) {
+    const hit = SUBJECT_COLOR_TABLE[String(key ?? "").trim().toLowerCase()];
+    if (hit) return hit;
+  }
+  const i = Number.isInteger(index) && index >= 0 ? index : 0;
+  return SUBJECT_COLORS[i % SUBJECT_COLORS.length];
+}
+
+export const NEW_AREA_DAYS = 7;
+
+/** Firestore-Timestamp, {seconds}, Date eller millisekunder → ms (annars null). */
+function toMillis(t) {
+  if (t == null) return null;
+  if (typeof t === "number") return Number.isFinite(t) ? t : null;
+  if (typeof t.toMillis === "function") return t.toMillis();
+  if (t instanceof Date) return t.getTime();
+  if (typeof t.seconds === "number") return t.seconds * 1000;
+  return null;
+}
+
+/**
+ * "Ny!" på ett områdeskort: området skapades (`area.createdAt`) eller
+ * tilldelades (`assignment.assignedAt`) de senaste 7 dagarna OCH eleven har
+ * inte spelat något i det än. Ingen tidsstämpel → aldrig nytt.
+ * @param {object} o
+ * @param {object} o.area          områdesdokumentet
+ * @param {object} [o.assignment]  klassens rad i assignedAreas (om tilldelat)
+ * @param {object} [o.progress]    studentData.progress
+ * @param {number} [o.now]
+ */
+export function isAreaNew({ area, assignment = null, progress = null, now = Date.now() }) {
+  const played = progress?.[area?.id];
+  if (played && typeof played === "object" && Object.keys(played).length > 0) return false;
+  const times = [toMillis(area?.createdAt), toMillis(assignment?.assignedAt)].filter((t) => t != null);
+  if (times.length === 0) return false;
+  const newest = Math.max(...times);
+  return newest <= now && now - newest < NEW_AREA_DAYS * 24 * 60 * 60 * 1000;
 }
