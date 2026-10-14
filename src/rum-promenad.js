@@ -10,8 +10,8 @@
 // barnvänligt – accelererar/bromsar mjukt och pausar ofta.
 //
 // SEEK-LÄGE (matning): ligger det Mysterymat på golvet styr varje hungrigt
-// mystery-djur (sprite-art, icke-fullvuxet – se isHungry i data-pet.js) mot
-// NÄRMASTE lediga mat och äter upp den när det når fram. Vanliga (icke-sprite)
+// mystery-djur (art med mystery-flagga, icke-fullvuxet – se isHungry i data-pet.js) mot
+// NÄRMASTE lediga mat och äter upp den när det når fram. Vanliga (icke-mystery)
 // djur ignorerar maten helt. Varje mat "bokas" (claims) av som mest ett djur så
 // flera djur inte slåss om samma mat och inget dödläge uppstår. När ingen mat
 // finns vandrar djuren som vanligt. Fullvuxna mystery-djur bryr sig inte om mat.

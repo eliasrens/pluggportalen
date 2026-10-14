@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Halloween-djuren</title>
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      /* Fristående testyta för issue #695 (spec §6.4): alla tio Halloween-djur i
+         alla tre steg och alla fyra uttryck (+ vila), äggen och butikskorten.
+         Ritas med exakt samma creatureSvg/eggSvg/itemSvg som rummet och butiken;
+         konsten laddas lazy via loadCollectionArt() precis som i appen. */
+      body { margin: 0; font-family: "Baloo 2", system-ui, sans-serif; background: #fdf6ec; color: #4a3b2a; }
+      header { padding: 16px 20px 4px; }
+      header h1 { margin: 0 0 4px; font-size: 1.3rem; }
+      header p { margin: 0; font-size: 0.9rem; opacity: 0.85; max-width: 80ch; }
+      .wrap { padding: 8px 20px 40px; }
+      h2 { font-size: 1.1rem; margin: 26px 0 6px; }
+      .art { background: #fff; border: 3px solid #E5D8F7; border-radius: 16px; padding: 10px 12px 12px; margin-top: 14px; }
+      .art h3 { margin: 0 0 6px; font-size: 1rem; }
+      table { border-collapse: collapse; }
+      th { font-size: 0.75rem; font-weight: 700; opacity: 0.75; padding: 2px 6px; text-align: center; }
+      th.rad { text-align: left; white-space: nowrap; }
+      td { padding: 2px 4px; }
+      td .fig { width: 92px; height: 92px; border-radius: 12px; background: #F1EAF9; display: flex; }
+      td .fig svg { width: 100%; height: 100%; }
+      .strip { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; align-items: flex-end; }
+      .cell { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 130px; padding: 10px 6px;
+        background: #fff; border: 3px solid #E5D8F7; border-radius: 16px; }
+      .cell .bild { width: 100px; height: 100px; }
+      .cell .bild svg { width: 100%; height: 100%; }
+      .cell small { font-size: 0.8rem; text-align: center; }
+      .rum { position: relative; height: 210px; border-radius: 18px; margin-top: 10px; overflow: hidden;
+        background: linear-gradient(#cfe8f5 0 62%, #e9c99a 62%); box-shadow: 0 6px 18px rgba(59, 51, 80, 0.15); }
+      .rum .room-pet { position: absolute; transform: translate(-50%, -100%); }
+      .rum .room-pet .ri-emoji { display: block; }
+      .rum .room-pet .ri-emoji svg { width: 100%; height: 100%; }
+      label { font-size: 0.9rem; }
+      #fel { color: #b23; font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Förhandsvisning – Halloween-djuren (#695)</h1>
+      <p>
+        Tio djur × tre steg × fyra uttryck (glad, nyfiken, äter, sömnig) plus vila, ritade med samma
+        <code>creatureSvg</code> som rummet. Andas, svävar, flaxar och tuggar är CSS-animationer (av vid reducerad
+        rörelse). Längst ner: äggen, butikskorten och ett litet rum där djuren kan gå.
+      </p>
+      <p id="fel"></p>
+    </header>
+    <div class="wrap">
+      <h2>Rummet – steg 1, 2 och 3 i rätt storlek</h2>
+      <label><input type="checkbox" id="ga" /> Låt djuren gå (fötterna stegar, som när de promenerar)</label>
+      <div class="rum" id="rum"></div>
+      <h2>Äggen</h2>
+      <div class="strip" id="agg"></div>
+      <h2>Butikskorten (🎃 Halloween → 👻 Djur, 500 mynt)</h2>
+      <div class="strip" id="kort"></div>
+      <h2>Alla djur, steg och uttryck</h2>
+      <div id="djur"></div>
+    </div>
+    <script type="module">
+      import { HW_SPECIES, creatureSvg } from "../src/art-pets-creatures.js";
+      import { eggSvg } from "../src/art-pets.js";
+      import { itemSvg, loadCollectionArt } from "../src/art-items.js";
+      import { itemsInCollection } from "../src/shop-items.js";
+
+      await loadCollectionArt();
+      const UTTRYCK = [["glad", "glad"], ["nyfiken", "nyfiken"], ["ater", "äter"], ["somnig", "sömnig"], ["", "vila"]];
+      let fel = 0;
+      const fig = (id, expr, steg) => {
+        const svg = creatureSvg(id, expr, steg);
+        if (!svg || /NaN|undefined/.test(svg)) fel++;
+        return svg || "❌";
+      };
+
+      document.getElementById("djur").innerHTML = HW_SPECIES.map((s) => `<div class="art"><h3>${s.name} <small>(${s.id})</small></h3>
+        <table><tr><th></th>${UTTRYCK.map(([, n]) => `<th>${n}</th>`).join("")}</tr>
+        ${[1, 2, 3].map((steg) => `<tr><th class="rad">Steg ${steg}<br>${s.stageNames[steg - 1]}</th>
+          ${UTTRYCK.map(([e]) => `<td><div class="fig">${fig(s.id, e, steg)}</div></td>`).join("")}</tr>`).join("")}
+        </table></div>`).join("");
+
+      document.getElementById("agg").innerHTML =
+        `<div class="cell"><div class="bild">${eggSvg()}</div><small>Mystiskt ägg (som förut)</small></div>` +
+        `<div class="cell"><div class="bild">${eggSvg("hw-pumpaagg")}</div><small>Pumpaägg (Halloween-djuren)</small></div>`;
+
+      document.getElementById("kort").innerHTML = itemsInCollection("halloween").filter((it) => it.hatchSpecies)
+        .map((it) => `<div class="cell"><div class="bild">${itemSvg(it.id) || it.emoji}</div><small>${it.name} · ${it.price} mynt</small></div>`).join("");
+
+      // Litet rum: alla djur i ett steg i taget (byter var 4:e sekund), med rummets
+      // riktiga .room-pet/.pet-vuxen-N-klasser så storlekarna stämmer.
+      const rum = document.getElementById("rum");
+      let steg = 1;
+      const ritaRum = () => {
+        const ga = document.getElementById("ga").checked;
+        rum.innerHTML = HW_SPECIES.map((s, i) => `<div class="room-item room-pet pet-vuxen-${steg}${ga ? " promenerar" : ""}${i % 2 ? " vand-vanster" : ""}"
+          style="left:${6 + i * 9.6}%;top:92%"><span class="ri-emoji">${creatureSvg(s.id, "", steg)}</span>
+          <span class="rp-namn">${s.stageNames[steg - 1]}</span></div>`).join("");
+      };
+      ritaRum();
+      setInterval(() => { steg = (steg % 3) + 1; ritaRum(); }, 4000);
+      document.getElementById("ga").addEventListener("change", ritaRum);
+      document.getElementById("fel").textContent = fel ? `${fel} figurer saknas eller är trasiga!` : "";
+      document.body.dataset.klar = String(fel === 0);
+    </script>
+  </body>
+</html>
