@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Bråkresan: komponentbiblioteket (#707)</title>
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      body { padding: 16px; background: var(--ljus); }
+      .wrap { max-width: 1240px; margin: 0 auto; display: grid; gap: 18px; }
+      .intro { padding: 14px 18px; }
+      .intro p { margin: 6px 0 0; }
+      nav.hopp { display: flex; flex-wrap: wrap; gap: 6px; }
+      nav.hopp a { padding: 4px 10px; border-radius: 999px; background: #fff; border: 2px solid #d5deea; font-weight: 700; text-decoration: none; color: var(--text); }
+      section.komp { padding: 14px 18px; display: grid; gap: 12px; }
+      section.komp > h2 { margin: 0; font-size: 1.4rem; }
+      .fall { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 14px; align-items: start; }
+      .demo { display: grid; gap: 8px; padding: 10px; border-radius: 16px; background: #fff; border: 2px solid #e3e9f2; min-width: 0; }
+      .demo h3 { margin: 0; font-size: 1rem; }
+      .demo h3 small { color: var(--text-svag); font-weight: 600; }
+      .demo .prompt { margin: 0; font-weight: 700; }
+      .knappar { display: flex; flex-wrap: wrap; gap: 6px; }
+      .knappar button { margin: 0; padding: 6px 10px; font-size: .85rem; min-height: 36px; box-shadow: none; }
+      .knappar .kontroll { background: var(--gron); }
+      .logg { font: 12px/1.45 ui-monospace, monospace; color: var(--text-svag); white-space: pre-wrap; word-break: break-word; min-height: 1.4em; margin: 0; }
+      .meddelande { font-weight: 700; color: #9a3f07; min-height: 1.2em; margin: 0; }
+      .verktyg { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+      .verktyg label { display: inline-flex; gap: 6px; align-items: center; font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="panel intro">
+        <b>Bråkresan – komponentbiblioteket (issue #707, spec §4 komponent 1–12).</b>
+        <p>Varje komponent i <b>första</b>, <b>normal</b> och <b>svåraste</b> fall, ritad ur samma
+          <code>view</code>-data som uppgifterna använder (<code>src/brakresan/komponenter/</code>, laddas lat).
+          "Kontrollera" bedömer med den riktiga <code>gradeWith</code> (schema/bedomning.js): ofullständiga svar
+          ger inmatningshjälp, giltiga svar visar utfallet med kontur + ikon + text.</p>
+        <p>Prova klick, svep, drag, Tab + pilar + mellanslag/Enter, touch (DevTools) och reducerad rörelse.</p>
+      </div>
+      <div class="panel intro verktyg">
+        <label><input type="checkbox" id="stilla" /> Reducerad rörelse (nya komponenter)</label>
+        <label>Storlek <select id="storlek"><option value="stor">stor</option><option value="kort">kort</option><option value="mini">mini</option></select></label>
+        <button id="rita-om" class="liten">Rita om allt</button>
+        <nav class="hopp" id="hopp"></nav>
+      </div>
+      <div id="komponenter"></div>
+    </div>
+    <script type="module" src="./brakresan-komponenter/preview.js"></script>
+  </body>
+</html>
