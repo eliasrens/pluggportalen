@@ -24,7 +24,7 @@ och `admin/qa-sasong-satt.mjs <sommar|host|bort> [halloween [sek]]` för att byt
 | 4 Löven | ✅ se mätningen; `elementFromPoint` på alla 16 löv träffar aldrig lövet; reducerad rörelse → `display:none`; dold flik → `.sz-paus` |
 | 4b Inloggningen | ✅ sommar/höst/Halloween live + vid omladdning direkt ur cachen; login-skylten och fälten oförändrade (samma kräm/kontur/knapp), "Lärare →" får kräm-pastill på mörk mark |
 | Boot-graf | ✅ 107 filer, identisk lista (`node admin/qa-bootgraf-bfs.mjs`) |
-| Enhetstester | ✅ 2368/2368 (alla utom rules/functions/e2e), varav `test/season-world.test.js` ny |
+| Enhetstester | ✅ 2383/2383 efter merge av epic-grenen (alla utom rules/functions/e2e), varav `test/season-world.test.js` ny |
 
 ## Lövmätning (test 4)
 Headless Chrome, 1366×768, hus-vyn i höst, **4× CPU-strypning** (≈ skol-Chromebook), 3 × 6 s
@@ -40,5 +40,12 @@ här saknar GPU (SwiftShader rastrerar kompositorn i mjukvara), så enstaka tapp
 troligen mjukvarukompositorn – **bekräfta gärna på en riktig Chromebook** (DevTools → Rendering → FPS).
 
 ## Skärmdumpar
-`login-{sommar,host,halloween}-{1366,1920}.png`, `varld-{sommar,host}-*.png`, `by-*.png`, `gard-host-1366.png`
-(Halloween + höst samtidigt i gård-bilden).
+Sommar: `login-sommar-{1366,1920}.png`, `varld-sommar-1920.png`, `by-sommar-1366.png`.
+
+**Gladare höst (Elias feedback):** `fore-*.png` = första versionen (torr persika/oliv),
+`efter-*.png` = nuvarande: krispig höstblå himmel med varm horisont, grönt gräs med gyllene
+stänk, kronor i pumpaorange/klarröd/solgul, buskar i frisk gulgrön, varmare lövhögar.
+Halloween-inloggningen: spöket ersatt av Halloween-djuret **Spökis** (#695, steg 2) som vinkar –
+konsten laddas lazy (`src/halloween/hw-djur-a.js`) först när Halloween är på; bootgrafen orörd.
+Par: `{fore,efter}-varld-host-{1366,1920}`, `{fore,efter}-by-host-1366`, `{fore,efter}-login-host-{1366,1920}`,
+`{fore,efter}-login-halloween-{1366,1920}`.

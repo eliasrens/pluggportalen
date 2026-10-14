@@ -161,11 +161,27 @@ function mountLager(container, { fladder = false, before = null } = {}) {
     sync(theme) {
       if (theme.leaves && !lovEl.firstChild) lovEl.innerHTML = lovMarkup();
       if (fladderEl && theme.halloween && !fladderEl.firstChild) fladderEl.innerHTML = fladderMarkup();
+      if (theme.halloween) fyllVinkdjur(container);
     },
   };
   lager.add(l);
   l.sync(current || applyCachedTheme());
   return l;
+}
+
+/**
+ * Halloween-djuret som vinkar på inloggningen (Spökis, steg 2, glad – #695).
+ * Konsten laddas FÖRST när Halloween är på (src/halloween/, lazy) och ritas i
+ * dekorens tomma .sz-vinkdjur-platser; vinkningen = armens CSS-animation.
+ */
+export function fyllVinkdjur(root) {
+  const platser = [...root.querySelectorAll(".sz-vinkdjur:empty")];
+  if (!platser.length) return;
+  import("./halloween/hw-djur-a.js")
+    .then((m) => {
+      for (const g of platser) if (!g.firstChild) g.innerHTML = m.HW_DJUR_A.spokis(2, "glad");
+    })
+    .catch(() => {}); // ren dekor – inloggningen påverkas aldrig
 }
 
 /** Världen (pages-varld.js): löv i scenen, temat live. */
