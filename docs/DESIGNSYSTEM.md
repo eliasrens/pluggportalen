@@ -246,6 +246,32 @@ Uppmätt på områdessidan (Vikingatiden, 6 + 3 kort):
 
 ---
 
+## 5. Bråkresans matematikbilder (#707)
+
+Komponentbiblioteket i `src/brakresan/komponenter/` (kontrakt: `docs/BRAKRESAN.md` §5,
+facit: `preview/preview-brakresan-komponenter.html`). CSS:en `komponenter.css` laddas lat
+av komponenterna själva – den ligger inte i `styles.css`.
+
+| Token (på `.br-k`) | Värde | Används till |
+| --- | --- | --- |
+| `--br-turkos` / `-mork` / `-ljus` | `#13a39a` / `#0b7d76` / `#dff5f2` | valda delar, rätt-utfall, lodrät andel |
+| `--br-lila` / `-ljus` | `var(--lila)` / `#efe4fb` | knappar, operationer, fack, vågrät andel |
+| `--br-guld` / `-ljus` | `#e8a915` / `#fff4d1` | helhetsetiketten, hjälpens pekning, stjärnor, mynt |
+| `--br-black` | `#3b3350` | konturer och gränser (samma mörklila som appens konst) |
+
+- **Helheten märks alltid** med en guldkantad etikett ("Hela staven = 1").
+- **Aldrig bara färg:** valda delar har prickmönster, rätt = dubbel heldragen ram + ✓,
+  fel = streckad ram + ↻, kort har bock/parsymbol, produktmodellens andelar har lodräta
+  respektive vågräta ränder och överlappningen blir korsrandig.
+- **Klickytor:** knappar ≥ 48 px, stavens och cirkelns delar ≥ 40–44 px även i en smal spalt;
+  hundrarutans små celler kompletteras av radknappar, antalsknappar och tangentbord.
+- **Storlekar:** `stor` (arbetsytan, max 640 px), `kort` (max 300 px), `mini` (bild i kort).
+  Flera helheter (cirklar, hundrarutor) radbryts i stället för att krympa.
+- **Rörelse:** omdelningens nya gränser tonas in, ny stjärna fylls kort; allt stilla vid
+  `prefers-reduced-motion` eller `opts.reducedMotion`.
+
+---
+
 ## Kom-ihåg: historiska överlapp-buggar och hur systemet stoppar dem
 
 * **Knapp som hängde kvar trots `hidden`** ("🔭 Andra byar", `.varld-knapp`;

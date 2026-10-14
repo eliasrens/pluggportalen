@@ -25,7 +25,8 @@ Pluggportalen – kodbasen vinner, §13).
 | Synk till Cloud Functions | `admin/sync-brakresan-functions.mjs` → `functions/brakresan/` | klar, predeploy + `test/brakresan-delat.test.js` |
 | Datamodell | `docs/DATAMODELL.md` "Bråkresan" | dokumenterad |
 | Regelskelett | `firestore.rules` (Bråkresan-blocken) | klart, `test/firestore-rules-brakresan.test.js` |
-| Komponent-API (B), server-API (C, J) | §5, §6 nedan | skiss/kontrakt |
+| Komponentbibliotek (B #707) | `src/brakresan/komponenter/*` (+ `komponenter.css`), §5 nedan | klart, `test/brakresan-komponenter-geometri.test.js`, `preview/preview-brakresan-komponenter.html` |
+| Server-API (C, J) | §6 nedan | kontrakt |
 
 Inget i `src/brakresan/` importeras statiskt från bootgrafen (107 filer, `admin/qa-bootgraf-bfs.mjs`).
 
@@ -120,7 +121,7 @@ Tio olika kärnor alltid; tidigare kärnor undviks i de första 30 försöken pe
 släpps de; efter 60 försök tar reservbanken över; annars `PlanError`. `buildTask` bygger
 uppgiften, `publicTask` tar bort facit, `revealTask` ger det som visas efter kontroll.
 
-## 5. Komponent-API – skiss för B (#707)
+## 5. Komponent-API (B #707 – byggt)
 
 Alla tolv komponenter (§4) bor i `src/brakresan/komponenter/` och laddas lat. De ritar
 **bara ur data** (uppgiftens `view`) och vet ingenting om facit. Gemensamt gränssnitt:
@@ -163,6 +164,49 @@ delningar ur datan; `aria-label` ur `math/words.js` utan att ge facit.
 **Delarnas id**: `paint`-svar listar delarnas id. Konvention: `"p0"` … `"p{N−1}"` i läsordning
 (helhet för helhet; stav vänster→höger; cirkel medurs från klockan 12; rutnät rad för rad).
 Generatorn lägger samma lista i `answer.parts`.
+
+### Så används biblioteket (D, K och utmaningarna)
+
+```js
+const { mountTask, createHjalp, createAterkoppling, createResultat } =
+  await import("./komponenter/index.js");             // lat – aldrig statiskt
+const t = await mountTask(yta, publicTask, { size: "stor" });
+t.onChange(() => kontrollera.disabled = !t.getAnswer());
+t.onSubmit(kontrollera);                               // Enter i ett giltigt svarsfält
+const r = t.validate();                                // inmatningshjälp före anrop: { ok, message }
+t.setLocked(true); t.showResult(serverSvar);           // { status: "graded", correct }
+```
+
+- `mountTask(host, task, opts)` ritar `task.view` och, när svaret är `number`/`relation` och
+  modellen inte själv tar det, en notationsrad under (`view.expr` + svarsfälten). Svaret kommer
+  alltid från rätt del. `multi` sätts ihop av sidan med `createComponent` per del.
+- `createComponent(host, view, opts)` – en enskild komponent. `opts.answer` = uppgiftens
+  offentliga `task.answer` avgör läget (målning, punkt, val, par …); utan `answer` = visning.
+  `interactive: false` + `size: "mini" | "kort"` = bild i kort, hjälp, lista. Visningsläget får
+  en beskrivning för skärmläsare ("Cirkel delad i 4 lika delar, 3 markerade"); svarsläget
+  beskriver aldrig facit ("Del 2 av 5").
+- `highlight(target)`: `{ whole: true }` (helhetens ram + etikett), `{ count: true }` (delarna
+  numreras; på tallinjen delsträckorna, inte strecken), `{ marked: true }`, `{ ids: [...] }`,
+  `{ overlap: true }` (areamodellen), `{ groups: true }` (mängden), `null` rensar.
+- Extra: stav `regroup(k)` (omdelning i hjälpen, samma markerade längd), areamodell
+  `steg("lodratt" | "bada")`, stav `pieces()` (flyttbara delar), notation `focus()`.
+- `view`-fälten utöver skissen ovan: stav `bars: [{ parts, marked, label }]` (jämförelse,
+  samma längd) och `pieces: [{ id, d }]`; rutnät `regions: [{ cells }]` (olika form, lika area –
+  delarna är då regionerna) och `second: [cell]` (andra färgen); tallinje `labels: "alla" |
+  "hela" | [värden]`, `points[].label`; mängd `item: "kula" | "stjarna" | "knapp" | "kloss"`;
+  sortering `ends: ["Minst", "Störst"]`; areamodell `show`; notation `expr` med `{ input }`,
+  `{ relation }`, `{ okand }`, `{ text }`.
+- Hjälppanelens steg kan ha `highlight` (pekar på elevens modell) och `view` (en egen liten
+  modell med andra tal). `onStep(steg)` anropas när ett steg visas – sidan registrerar hjälp
+  före/efter fel. "Tillbaka till uppgiften" lämnar fokus till `returnFocus`. Ordlistan finns i panelen.
+- Resultatet tar `roundReward`-utfallet + `starsBefore` + `results` (tio booleans) + `suggestions`
+  (0–5 rätt) och skriver texten med `resultMessage` (regler.js). Mynt visas bara när `coins > 0`.
+- Rätt/fel visas med kontur + ikon + text: rätt = dubbel heldragen ram + ✓ "Rätt!", fel =
+  streckad ram + ↻ "Inte riktigt ännu". Valda delar = turkos + prickmönster. Ljud spelar
+  komponenterna aldrig – sidan använder `fx.js` (användarens ljudval).
+- Geometrin (`komponenter/geometri.js`) är ren och testad: sektorer exakt 360°/n, stav exakt
+  helhet/n, omdelning bevarar markerad längd, tallinjens x(v) och snäppning, 100 celler,
+  regioner med lika area, överlappningen = produkten, varje föremål en gång.
 
 ## 6. Server-API – kontrakt för C (#708) och J (#715)
 
