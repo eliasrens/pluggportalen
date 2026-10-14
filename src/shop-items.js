@@ -318,7 +318,7 @@ export function isHouseItem(id) {
  * inte statiska möbler. Ägget/värmelampan (mystery, data-pet.js) räknas inte. */
 export function isAnimalItem(id) {
   const it = getItem(id);
-  return !!(it && it.category === "husdjur" && !it.farmAnimal && id !== "mystery-egg" && id !== "varmelampa");
+  return !!(it && it.category === "husdjur" && !it.farmAnimal && !it.hatchSpecies && id !== "mystery-egg" && id !== "varmelampa");
 }
 
 /** BONDGÅRDSDJUR (häst/ko/gris, #330)? Bor i farm.animals (data-farm.js) och

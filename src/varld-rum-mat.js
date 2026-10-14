@@ -12,8 +12,8 @@
 //     matbit på golvet flyttar den tillbaka till förrådet (appleCount + 1),
 //     så läget går även att öppna med tomt förråd så länge det ligger mat ute.
 //   * floorApples: maten som ligger på golvet – ritas i scenen och söks upp av
-//     promenad-AI:n (rum-promenad.js seek-läge). BARA mystery-djuren (sprite-
-//     arterna Fjärlis/Flammis) dras mot och äter maten – se isHungry i
+//     promenad-AI:n (rum-promenad.js seek-läge). BARA mystery-djuren (arter med
+//     mystery-flaggan: sprite-arterna + Halloween-djuren) dras mot och äter maten – se isHungry i
 //     data-pet.js.
 //   * onEat(): när ett mystery-djur nått fram och ätit → ta bort maten, öka
 //     djurets feedCount (transaktion i data-pet.js), räkna om steget (10/20

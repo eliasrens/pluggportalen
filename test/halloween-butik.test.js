@@ -22,7 +22,8 @@ import { itemSvg, itemSize, categorySvg, loadCollectionArt } from "../src/art-it
 import { husSkalMarkup, isHusSkal, listHusSkal } from "../src/art-hus-ute.js";
 import { nyPlaceringsNyckel, ordnaNycklar, rumSakHtml } from "../src/rum-promenad-golv.js";
 
-const HW = itemsInCollection("halloween");
+// C:s varor (dekor/möbler/trädgård/hus); F:s djur (#695, hatchSpecies) testas i halloween-djur.test.js.
+const HW = itemsInCollection("halloween").filter((it) => !it.hatchSpecies);
 const INNE = HW.filter((it) => it.category === "dekor" || it.category === "mobler");
 const UTE = HW.filter((it) => it.category === "tradgard");
 const HUS = HW.filter((it) => it.category === "hus");
@@ -59,7 +60,7 @@ test("test 5: samlingsvaror visas bara i Halloween-fliken, aldrig i vanliga flik
 
 test("test 5: Halloween-flikens undergrupper – disjunkta, D–F kan lägga till egna", async () => {
   const hw = await import("../src/halloween/hw-butik.js");
-  const sek = hw.halloweenSektioner(HW); // C:s varor (köpavatarerna #694 testas i hw-avatarer.test.js)
+  const sek = hw.halloweenSektioner(HW);
   assert.deepEqual(sek.map((s) => s.id), ["inne", "tradgard", "hus"]);
   assert.deepEqual(sek.map((s) => s.items.length), [12, 8, 3]);
   // En ny undergrupp (som D:s kostymer) före "hus"; omatchade varor → "Övrigt".

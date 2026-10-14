@@ -7,7 +7,7 @@
 // men till skillnad från mystery-djuren (studentData.pets, data-pet.js):
 //   * FAST storlek – ingen tillväxt, inga steg, ingen feedCount.
 //   * INGEN mat – de blir aldrig hungriga och ignorerar Mysterymat helt
-//     (isHungry i data-pet.js är false för dem: de är inga sprite-arter).
+//     (isHungry i data-pet.js är false för dem: de är inga mystery-arter).
 //
 // Datamodell (studentData.roomAnimals: array):
 //   { uid, id, pos: { x, y }, name, stowed }

@@ -288,10 +288,35 @@ export const SPECIES = [
   { id: "mysko", name: "Mysko", fur: "#B0805A", belly: "#FFF3DC", inner: "#8A6242", features: { ears: "round", crown: "tuft", pattern: "spots" } },
 ];
 
-// Alla arter = SVG-arterna ovan + sprite-riggade bild-arter (art-pet-sprites.js).
-// Sprite-arterna har kind: "sprite" och ritas via spriteRigHtml() i stället för
-// creatureSvg() – resten av pipelinen väljer render-väg på det fältet.
-const ALL_SPECIES = [...SPECIES, ...SPRITE_SPECIES];
+// Halloween-djuren (#695, epic #689): mystery-djur (Mysterymat, 3 steg) som
+// köps som pumpaägg i butikens Halloween-flik och kläcks till VALD art. Här bara
+// katalogen (namn/steg behövs i bootgrafen); konsten bor i src/halloween/
+// hw-djur*.js och registreras lazy via registerCreatureArt (loadCollectionArt).
+export const HW_SPECIES = [
+  ["spokis", "Spökis", "Dimfjun", "Spökis", "Slottsspöket"],
+  ["pumpis", "Pumpis", "Pumpafrö", "Pumpaknopp", "Lyktkungen"],
+  ["fladdis", "Fladdis", "Fladderfjun", "Nattvinge", "Månfladdraren"],
+  ["gruffe", "Gruffe", "Ägglöga", "Skymningsdrake", "Månskensdraken"],
+  ["svartis", "Svartis", "Kattunge", "Häxkatt", "Månmagikern"],
+  ["mumme", "Mumme", "Lindfjun", "Bindelbjörn", "Faraonallen"],
+  ["spindis", "Spindis", "Trådfjun", "Nätvävaren", "Silkesdrottningen"],
+  ["skelli", "Skelli", "Benvalp", "Benrasslaren", "Skelettriddaren"],
+  ["uggli", "Uggli", "Duvunge", "Nattuggla", "Stjärnugglan"],
+  ["slemmis", "Slemmis", "Droppe", "Slemmis", "Slemkungen"],
+].map(([id, name, ...stageNames]) => ({ id, name, kind: "hw", mystery: true, egg: "hw-pumpaagg", stageNames }));
+
+// Alla arter = SVG-arterna ovan + sprite-riggade bild-arter (art-pet-sprites.js)
+// + Halloween-arterna. Sprite-arterna (kind: "sprite") ritas via spriteRigHtml()
+// i stället för creatureSvg(); `mystery: true` styr Mysterymat/tillväxt (#695).
+const ALL_SPECIES = [...SPECIES, ...SPRITE_SPECIES, ...HW_SPECIES];
+
+// Lazy-registrerad konst per art: id → (steg 1–3, uttryck) => SVG-innehåll.
+const LAZY_ART = {};
+
+/** Slå in konst för fler arter (#695): { id: (stage, expr) => svg-innehåll }. */
+export function registerCreatureArt(reg) {
+  Object.assign(LAZY_ART, reg);
+}
 
 const SPECIES_BY_ID = Object.fromEntries(ALL_SPECIES.map((s) => [s.id, s]));
 
@@ -314,10 +339,13 @@ export function randomSpeciesId() {
 /**
  * Varelsens SVG-innehåll (utan <svg>-wrapper), eller null om arten saknas.
  * expression (valfri): "glad" | "nyfiken" | "ater" | "somnig" – byter ansikte.
+ * stage (1–3) används av de lazy-registrerade arterna (Halloween-djuren), som
+ * ger null tills konsten laddats (loadCollectionArt) – anroparen faller tillbaka.
  */
-export function creatureArt(speciesId, expression) {
+export function creatureArt(speciesId, expression, stage = 1) {
   const s = SPECIES_BY_ID[speciesId];
-  if (!s || s.kind === "sprite") return null; // sprite-arter ritas i art-pet-sprites.js
+  if (s && LAZY_ART[speciesId]) return LAZY_ART[speciesId](stage, expression || "");
+  if (!s || s.kind) return null; // sprite-arter ritas i art-pet-sprites.js
   return (
     backFor(s) +
     tailFor(s) +
@@ -331,9 +359,9 @@ export function creatureArt(speciesId, expression) {
 }
 
 /** Fristående <svg> för en varelse, eller null om arten saknas. */
-export function creatureSvg(speciesId, expression) {
+export function creatureSvg(speciesId, expression, stage = 1) {
   const s = SPECIES_BY_ID[speciesId];
-  const art = creatureArt(speciesId, expression);
+  const art = creatureArt(speciesId, expression, stage);
   if (!art) return null;
   return (
     `<svg viewBox="0 0 100 100" role="img" aria-label="${s.name}" ` +

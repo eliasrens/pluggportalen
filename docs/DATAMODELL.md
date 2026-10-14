@@ -460,7 +460,8 @@ aldrig dö.
 | `pos`         | map         | `{ x, y }` – position i **procent** (0–100) av rumsscenen |
 | `eggBoughtAt` | number      | När ägget köptes (ms). Kläcks ~3 dagar senare            |
 | `hasHeatLamp` | bool        | Värmelampa köpt → ägget kläcks på **halva** tiden        |
-| `speciesId`   | string/null | Slumpad art vid kläckning (se `SPECIES` i `src/art-pets-creatures.js`) |
+| `eggSpecies`  | string      | *(valfri, #695)* Valt djur för Halloween-pumpaägget (`HW_SPECIES`, t.ex. `"spokis"`) – ägget kläcks till just den arten |
+| `speciesId`   | string/null | Art vid kläckning: `eggSpecies` om satt, annars slumpad sprite-art (se `src/art-pets-creatures.js`) |
 | `hatchedAt`   | number/null | När ägget kläcktes (ms); `null` = ruvar fortfarande      |
 | `stage`       | number      | Tillväxtsteg 1–3 (0 = okläckt ägg). Härleds ur `feedCount` |
 | `feedCount`   | number      | Antal **uppätna äpplen** totalt (styr steget: ≥10 → steg 2, ≥20 → steg 3) |
