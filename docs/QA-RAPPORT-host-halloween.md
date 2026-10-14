@@ -116,6 +116,24 @@ hus-vyn med Höst, med och utan löv.
     redan före epicen för alla butiksvaror. Att stänga det kräver köp via en server
     (functions).
 
+## Elias scope-ändringar (verifierade)
+
+- **Tre hus à 4000:** Gulligt spökhus, Pumpahus och Snällt döskallehus finns i
+  Halloween → Hus (`butik-halloween-hus-*.png`). Spökhuset köptes och valdes.
+- **Gladare höst (417e6a1):** krispig blå himmel, grönt gräs med guldstänk och kronor
+  i orange, rött och gult (`varld-host-*.png`, `by-host-*.png`, `login-host-*.png`).
+- **Spökis vinkar på Halloween-inloggningen:** visas nere till vänster om porten
+  (`login-halloween-*.png`) och laddas lazy. Bootgrafen har kvar 107 filer, och
+  `shop-items.js` har exakt 400 rader.
+
+## Kända begränsningar
+
+- **Halloween-köpspärren finns bara i klienten** (se Säkerhet).
+- **Löven är mätta i SwiftShader, inte på en riktig Chromebook** (se F1 och
+  Lövmätning).
+- **Grannbyn ("Andra byar") är inte testad i emulatorn.** Säsongspaletten gäller där
+  via samma `.varld-stage`-variabler som i den egna byn, som är testad.
+
 ## Kantfall att känna till
 
 - **Säsongsdekor finns bara i världen.** Plugga/Live sätter inte `data-sasong`. Där
