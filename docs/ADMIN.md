@@ -25,6 +25,12 @@ slutar fungera.
    - Spara som `admin/serviceAccountKey.json` (den är `.gitignore`:ad – checka
      **aldrig** in den). Alternativt: peka ut den med
      `GOOGLE_APPLICATION_CREDENTIALS=/väg/till/nyckel.json`.
+   - **Utan nyckel (#677):** en `authorized_user`-JSON (ADC, t.ex. efter
+     `gcloud auth application-default login`) fungerar också – via
+     `GOOGLE_APPLICATION_CREDENTIALS` eller gcloud:s standardplats. Sätt gärna
+     projektet explicit: `GOOGLE_CLOUD_PROJECT=<projekt-id>` (annars filens
+     `quota_project_id`, annars `pluggportalen-so-2026`). Väljaren:
+     `admin/credential.mjs`; skripten skriver ut vilken credential som används.
 
 ---
 
