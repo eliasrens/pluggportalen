@@ -1314,7 +1314,8 @@ service cloud.firestore {
     // (tävlingspoängen hålls ändå separata). Bara egna svar, admin, eller
     // årskurskontot för svar från sina klasser (#678 – svaret bär classId).
     match /{path=**}/answers/{attemptId} {
-      allow read: if (signedIn() && resource.data.uid == request.auth.uid) || hasClass(resource.data.classId);
+      allow read: if (signedIn() && resource.data.uid == request.auth.uid) || hasClass(resource.data.classId) ||
+        gradeStudent(resource.data.uid);
     }
 
     // ------------------------------------------------------------------

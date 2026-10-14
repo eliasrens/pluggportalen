@@ -43,7 +43,7 @@ L = läsa, S = skriva. "Egna" betyder klasser i kontots `classIds` och elever va
 | `mathCompetitions` + `answers`, `studentStats`, `scores`, `classCounters` | L/S | L: dokument med `classId` i egna klasser. En lista måste filtrera på egna klasser. Topp 25 som elever. |
 | `liveSessions` | L/S | Skapa och styra: Klassmatchen med minst en egen klass och motståndare valfri, men utan `coinPrize`. Övriga format: alla klasser egna. Radera: en lobby med en egen klass. |
 | `liveSessions/{sid}/…` (spelare, svar, räknare, facit, kvitton) | L/S | Som läraren i sessionen: läsa, skapa facit, poäng och pluggmyntskvitton, och radera lobbyns dokument. Allt annat: bara admin. |
-| `{**}/answers` (collection group) | L | L: `classId` i egna klasser |
+| `{**}/answers` (collection group) | L | L: `classId` i egna klasser, eller `uid` = egen elev (träningstotalen) |
 | `classCenters/{c}` (profil, `expMembers`, `kassa`, `kassaHistorik`, `donations`) | L/S | L: egna klasser. S: aldrig. |
 | `classCenters/{c}` (`expShards`, `fund`, `trophies`, `layout`) | L/S | L (som alla inloggade). S: aldrig. |
 | `hittaRattAttempts`, `hittaRattBest` | L | L: egna elever (per dokument) |
@@ -67,7 +67,9 @@ L = läsa, S = skriva. "Egna" betyder klasser i kontots `classIds` och elever va
 2. **Klassmatchens `coinPrize`** (pris till klasskassan) får bara admin sätta.
    Kassan är admins, och priset kunde annars aldrig betalas ut.
 3. **Efter en Live-match** skriver årskurskontot inte pokaler, kassapris eller
-   klassbonus-EXP. Pluggmynt till eleverna (kvittot) är tillåtet.
+   klassbonus-EXP. Pluggmynt till eleverna (kvittot) är tillåtet. Klienten hoppar
+   över de skrivningarna för årskurskontot (`live-data.js` writeResultIfMissing).
+   En match som ett årskurskonto avslutar ger alltså ingen pokal och ingen klassbonus.
 4. **Egna Hitta rätt!-kartor** räknas inte som Plugga-material. De är bara för admin.
 5. **`hiddenVillages`** (byarnas synlighet) räknas som "klassbyar" i §2.2 och är
    bara för admin.
@@ -86,3 +88,7 @@ L = läsa, S = skriva. "Egna" betyder klasser i kontots `classIds` och elever va
   (`getDoc`), inte som en hel samling.
 - `setStudentLevel` (`src/data-lasresan-niva.js`) skriver nu nivåfälten som fältvägar.
 - `payLiveRewards` (`src/live/live-rewards-pay.js`) skriver nu `lastLiveReceipt` = sessionen.
+- Live-sidan (`teacher-live*.js`) visar årskurskontot bara matcher med egna klasser,
+  inget kassapris, och bara egna klasser i andra format än Klassmatchen
+  (`teacher-role-core.js`: `canSeeLiveSession`, `liveFieldsFor`, `liveClassChoices`).
+- `archiveIfEnded` (Mattematchen) arkiverar bara som admin.
