@@ -2,9 +2,9 @@
 // Pluggporten – Cloud Functions (functions/index.js)
 // ----------------------------------------------------------------------------
 // updateStudentLogin (callable, europe-west1 – närmast Firestore eur3): läraren
-// byter en elevs användarnamn och/eller lösenord. Bara Auth-användare med
-// custom claim teacher:true (samma som isTeacher() i firestore.rules, sätts via
-// admin/set-teacher-claim.mjs). Logiken bor i login-core.js.
+// byter en elevs användarnamn och/eller lösenord. Admin: allt; årskurskonto
+// (#678): bara lösenord för elever i sina klasser. Rollen avgörs som i
+// firestore.rules (teacher-role.js). Logiken bor i login-core.js.
 //
 // Guldrushen (#563, epic #562) – servern avgör allt guld (funktionsspec §6.6):
 //   guldrushAnswer       eleven svarar → rättas här, answers/{attemptId}
@@ -25,7 +25,7 @@
 // omgångs svar → servern räknar om allt och sparar personbästa, skolans
 // topplista, ledare och coins i EN transaktion. Logiken: hitta-ratt-core.js.
 // Egna pack (#633, epic #612): hittaRattSparaPack / hittaRattRaderaPack – bara
-// lärare, bara ägaren skriver. hittaRattSattTopplista (#635) slår på/av
+// admin (#678: egna kartor är inte Plugga-material i §2.1), bara ägaren skriver. hittaRattSattTopplista (#635) slår på/av
 // skoltopplistan (PÅ = byggs upp ur personbästa). Logiken: hitta-ratt-egna.js.
 //
 // Lärarkonton (#677, epic Lärarkonton) – bara admin (färska claims i Auth):
@@ -51,6 +51,7 @@ import {
 } from "./datakuppen-core.js";
 import { HrFel, submit as hittaRattSubmitCore } from "./hitta-ratt-core.js";
 import { sparaPack, raderaPack, sattTopplista } from "./hitta-ratt-egna.js";
+import { callerRole, claimRole } from "./teacher-role.js";
 import {
   TeacherError, createTeacher, updateTeacher, setTeacherPassword, setTeacherActive, deleteTeacher,
 } from "./teacher-accounts-core.js";
@@ -60,7 +61,8 @@ initializeApp();
 export const updateStudentLogin = onCall(
   { region: "europe-west1", maxInstances: 3, memory: "256MiB" },
   async (request) => {
-    if (request.auth?.token?.teacher !== true) {
+    const caller = request.auth ? await callerRole(getFirestore(), request.auth) : null;
+    if (!caller) {
       throw new HttpsError("permission-denied", "Bara lärare får ändra elevers inloggning.");
     }
     try {
@@ -71,10 +73,12 @@ export const updateStudentLogin = onCall(
           FieldPath,
           serverTimestamp: () => FieldValue.serverTimestamp(),
         },
-        request.data
+        request.data,
+        caller
       );
       logger.info("updateStudentLogin", {
         teacher: request.auth.uid,
+        role: caller.role,
         uid: res.uid,
         usernameChanged: res.usernameChanged,
         passwordChanged: res.passwordChanged,
@@ -147,7 +151,7 @@ export const hittaRattSubmit = onCall(
 function hittaRattLarare(namn, core) {
   return onCall({ region: "europe-west1", memory: "256MiB", maxInstances: 3 }, async (request) => {
     const token = request.auth?.token;
-    if (token?.teacher !== true) throw new HttpsError("permission-denied", "Bara lärare kan ändra egna kartor.");
+    if (claimRole(token) !== "admin") throw new HttpsError("permission-denied", "Det här kan bara admin göra.");
     const lararNamn = token.name || String(token.email || "").split("@")[0];
     try {
       return await core({ db: getFirestore(), FieldValue, FieldPath, Timestamp, now: Date.now }, request.auth.uid, request.data || {}, { namn: lararNamn });
