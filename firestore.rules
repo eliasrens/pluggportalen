@@ -11,11 +11,58 @@ service cloud.firestore {
     function signedIn() { return request.auth != null; }
     // Lärare = Auth-användare med custom claim teacher:true
     // (sätts en gång via admin/set-teacher-claim.mjs).
-    function isTeacher() { return signedIn() && request.auth.token.teacher == true; }
-    // Admin = lärare med custom claim admin:true (#677, docs/UTVECKLINGSUPPDRAG_LARARKONTON.md §1.1).
-    // Årskurskonton har i stället role:"arskurs". Övergången (teacher utan role
-    // = admin) och resten av rollreglerna kommer i epicens del B.
-    function isAdmin() { return isTeacher() && request.auth.token.admin == true; }
+    // OBS (#678): isTeacher() ger INGEN behörighet längre – den är bara
+    // grunden för rollerna nedan. Varje regel säger isAdmin() eller kollar
+    // årskurskontot (hasClass/hasStudent) enligt §2.1.
+    function isTeacher() { return signedIn() && request.auth.token.get('teacher', false) == true; }
+
+    // ------------------------------------------------------------------
+    // ROLLER (#677/#678, docs/UTVECKLINGSUPPDRAG_LARARKONTON.md §1, §4.1).
+    //   admin    claims { teacher, admin: true }        allt, som förut
+    //   arskurs  claims { teacher, role: "arskurs" }    bara §2.1, bara sina
+    //            klasser – och bara så länge teacherAccounts/{uid}.active
+    // Klasserna läses med get() på kontots dokument (inte ur claims), så en
+    // klassändring eller avstängning slår igenom direkt utan ny token.
+    // Admin avgörs bara av claims (ingen get): en avstängd admin är
+    // disabled i Auth och token dör inom en timme.
+    // Tillåtelselista: en regel som inte uttryckligen släpper in
+    // årskurskontot är bara admin.
+    // ------------------------------------------------------------------
+    function isAdmin() { return isTeacher() && (request.auth.token.get('admin', false) == true || isLegacyTeacher()); }
+    // ⚠️ ÖVERGÅNG (§6.2) – TA BORT när migreringen är verifierad (alla lärare
+    // har admin:true eller role:"arskurs" och gamla tokens har gått ut, dvs.
+    // senast en timme efter att migreringsskriptet körts). Då: radera den här
+    // funktionen och "|| isLegacyTeacher()" i isAdmin() ovan.
+    function isLegacyTeacher() {
+      return !('role' in request.auth.token) && !('admin' in request.auth.token);
+    }
+    function teacherAccount() {
+      return get(/databases/$(database)/documents/teacherAccounts/$(request.auth.uid)).data;
+    }
+    // Årskurskonto med ett AKTIVT kontodokument (saknat dokument = nekad).
+    function isGradeTeacher() {
+      return isTeacher() && request.auth.token.get('admin', false) != true &&
+        request.auth.token.get('role', '') == 'arskurs' &&
+        exists(/databases/$(database)/documents/teacherAccounts/$(request.auth.uid)) &&
+        teacherAccount().get('active', false) == true &&
+        teacherAccount().get('role', '') == 'arskurs';
+    }
+    function gradeClassIds() { return teacherAccount().get('classIds', []); }
+    // Årskurskontots klass (admin ingår INTE – skrivregler säger isAdmin() ||
+    // gradeClass(...) så att admin-grenen aldrig gör en get()).
+    function gradeClass(classId) { return isGradeTeacher() && classId in gradeClassIds(); }
+    // Minst en av klasserna är årskurskontots.
+    function gradeAnyClass(classIds) { return isGradeTeacher() && classIds.hasAny(gradeClassIds()); }
+    // Eleven går i någon av årskurskontots klasser (students/{id}.classIds,
+    // denormaliserat). Saknas eleven nekas det.
+    function gradeStudent(studentId) {
+      return isGradeTeacher() &&
+        get(/databases/$(database)/documents/students/$(studentId)).data.get('classIds', [])
+          .hasAny(gradeClassIds());
+    }
+    // §1.3: admin, eller årskurskonto med klassen/eleven.
+    function hasClass(classId) { return isAdmin() || gradeClass(classId); }
+    function hasStudent(studentId) { return isAdmin() || gradeStudent(studentId); }
     // Eleven själv = den inloggades uid == dokumentets id (uid sattes = det
     // gamla doc-id:t vid migreringen, se admin/migrate-passwords.mjs).
     function isSelf(id)  { return signedIn() && request.auth.uid == id; }
@@ -43,14 +90,24 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Kunskapsinnehåll (ämnen/arbetsområden): alla INLOGGADE får läsa;
-    // bara lärare skriver. Inget world-read längre.
+    // Kunskapsinnehåll (ämnen/arbetsområden): alla INLOGGADE får läsa.
+    // Ämnesdokumentet skriver bara admin. Områden (#678, §2.3): årskurskontot
+    // skapar i ett BEFINTLIGT ämne med createdBy = sig själv, och ändrar/
+    // raderar bara sitt eget (createdBy får inte bytas). Område utan
+    // createdBy = admins. Andras material används/dupliceras via läsningen.
     match /subjects/{subjectId} {
       allow read:  if signedIn();
-      allow write: if isTeacher();
+      allow write: if isAdmin();
       match /areas/{areaId} {
         allow read:  if signedIn();
-        allow write: if isTeacher();
+        allow create: if isAdmin() || (isGradeTeacher() &&
+          request.resource.data.get('createdBy', null) == request.auth.uid &&
+          exists(/databases/$(database)/documents/subjects/$(subjectId)));
+        allow update: if isAdmin() || (isGradeTeacher() &&
+          resource.data.get('createdBy', null) == request.auth.uid &&
+          request.resource.data.get('createdBy', null) == request.auth.uid);
+        allow delete: if isAdmin() || (isGradeTeacher() &&
+          resource.data.get('createdBy', null) == request.auth.uid);
       }
     }
 
@@ -63,9 +120,11 @@ service cloud.firestore {
     // river #37 för utseende-data mellan klasser). students-dokumentet bär bara
     // namn/avatar/klasstillhörighet – inga lösenord/coins/progress – så det är
     // ofarligt att låta alla inloggade läsa det. Skrivning: fortfarande bara läraren.
+    // (#678) Elevkonton skapas/ändras/raderas bara av admin (§2.2) –
+    // lösenordsbyte går via Cloud Functionen updateStudentLogin.
     match /students/{studentId} {
       allow read:  if signedIn();
-      allow write: if isTeacher();
+      allow write: if isAdmin();
     }
 
     // Sparade elevlösenord (lärarens "Redigera inloggning" + inloggningskort):
@@ -73,9 +132,11 @@ service cloud.firestore {
     // lärare läser/skriver – en elev kan aldrig läsa något, inte ens sitt eget.
     // Skrivs av lärarklienten när konton skapas och av Cloud Functionen
     // updateStudentLogin (Admin SDK, förbi reglerna) när lösenordet byts.
+    // (#678) Årskurskontot LÄSER sina elevers (inloggningskort), skriver aldrig.
     match /studentCredentials/{studentId} {
-      allow read, delete: if isTeacher();
-      allow create, update: if isTeacher() &&
+      allow read: if hasStudent(studentId);
+      allow delete: if isAdmin();
+      allow create, update: if isAdmin() &&
         request.resource.data.keys().hasOnly(['username', 'password', 'updatedAt']) &&
         request.resource.data.username is string &&
         (!('password' in request.resource.data) ||
@@ -105,9 +166,17 @@ service cloud.firestore {
     // åtkomsten inom klassen). Appen visar aldrig andras coins/progress. Detta är
     // ett medvetet produktägar-beslut (#114). Skrivning: fortfarande bara eleven
     // själv/läraren – ingen kan ändra en annan elevs data.
+    //
+    // ROLLER (#678): admin läser/skriver allt. Årskurskontot läser BARA sina
+    // elever (den öppna läsgrenen gäller inte lärare – statistik för andra
+    // klasser nekas) och skriver bara gradeStudentDataOk nedan.
     match /studentData/{studentId} {
-      allow read:  if isTeacher() || isSelf(studentId) || (signedIn() && resource.data.get('husLast', false) != true);
-      allow write: if isTeacher() || isSelf(studentId);
+      allow read:  if isSelf(studentId) || hasStudent(studentId) ||
+        (signedIn() && !isTeacher() && resource.data.get('husLast', false) != true);
+      allow create: if isSelf(studentId) || isAdmin();
+      allow update: if isSelf(studentId) || isAdmin() ||
+        (gradeStudent(studentId) && gradeStudentDataOk(studentId));
+      allow delete: if isSelf(studentId) || isAdmin();
 
       // Läsresan (#399): ett försök per färdig text, se docs/LASRESAN.md.
       // Samma ägarmodell som studentData-skrivningen: eleven själv eller
@@ -118,7 +187,8 @@ service cloud.firestore {
       // Pages). Innan dess nekas skrivningen och data-lasresan.js sparar
       // försöket i studentData.lasresaAttemptsFallback i stället.
       match /lasresaAttempts/{attemptId} {
-        allow read, write: if isTeacher() || isSelf(studentId);
+        allow read: if hasStudent(studentId) || isSelf(studentId);
+        allow write: if isAdmin() || isSelf(studentId);
       }
 
       // Ekvationsresan (#618, docs/EKVATIONSRESAN.md §5): ETT progressdokument
@@ -128,20 +198,50 @@ service cloud.firestore {
       // aldrig sparas (och ge mynt) två gånger. Läraren får radera (städning)
       // och skriva progress (nivåstyrning, E1.12).
       // ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules`.
+      // Årskurskontot (#678): samma nivåstyrning som admin, för sina elever.
       match /ekvationsresa/{docId} {
-        allow read: if isTeacher() || isSelf(studentId);
+        allow read: if hasStudent(studentId) || isSelf(studentId);
         allow create, update: if docId == 'progress' && ekvProgressOk(request.resource.data) &&
           ekvMaxLevelOk(request.resource.data, resource) &&
-          (isSelf(studentId) || (isTeacher() && ekvTeacherLevelOk(request.resource.data, resource)));
-        allow delete: if isTeacher();
+          (isSelf(studentId) || (hasStudent(studentId) && ekvTeacherLevelOk(request.resource.data, resource)));
+        allow delete: if isAdmin();
       }
       match /ekvationsresaAttempts/{taskId} {
-        allow read: if isTeacher() || isSelf(studentId);
+        allow read: if hasStudent(studentId) || isSelf(studentId);
         allow create: if isSelf(studentId) && taskId.matches('^[A-Za-z0-9_-]{8,64}$') &&
           ekvAttemptOk(request.resource.data, taskId);
         allow update: if false;
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
+    }
+
+    // Årskurskontots skrivning i studentData (#678, §2.1) – bara ETT av:
+    //  • Läsresans nivå: bara fältet lasresa, och i det bara nivåfälten
+    //    (src/data-lasresan-niva.js setStudentLevel skriver dem som fältvägar).
+    //    En elev utan lasresa får ett NYTT tillstånd utan resultat och pengar.
+    //  • Pluggmynt efter en Live-match (#557): coins ökar exakt med kvittot
+    //    liveSessions/{lastLiveReceipt}/coinReceipts/{elev} som skapas i SAMMA
+    //    skrivning (src/live/live-rewards-pay.js) – aldrig coins annars.
+    // Ekvationsresans nivå bor i underdokumentet ekvationsresa/progress.
+    function gradeStudentDataOk(studentId) {
+      let n = request.resource.data;
+      let keys = n.diff(resource.data).affectedKeys();
+      return (keys.hasOnly(['lasresa']) && lasresaLevelOnly(resource.data.get('lasresa', null), n.lasresa)) ||
+        (keys.hasOnly(['coins', 'lastLiveReceipt']) && liveReceiptPaid(studentId));
+    }
+    function lasresaLevelOnly(o, n) {
+      return n is map && (
+        (o is map && n.diff(o).affectedKeys().hasOnly(['level', 'level10', 'pendingLevel', 'pendingLevel10',
+          'highStreak', 'lowStreak', 'levelSetAt', 'levelSetBy', 'updatedAt'])) ||
+        (o == null && n.get('moneyEarned', 0) == 0 && n.get('totalTexts', 0) == 0 &&
+          n.get('totalQuestions', 0) == 0 && n.get('totalCorrect', 0) == 0 &&
+          n.get('seenTextIds', []).size() == 0));
+    }
+    function liveReceiptPaid(studentId) {
+      let n = request.resource.data;
+      let r = /databases/$(database)/documents/liveSessions/$(n.lastLiveReceipt)/coinReceipts/$(studentId);
+      return n.lastLiveReceipt is string && !exists(r) && existsAfter(r) &&
+        n.coins == resource.data.get('coins', 0) + getAfter(r).data.total;
     }
 
     // Ekvationsresan (#618): formen på progress och försök. Nivå 1–12 (Etapp 2
@@ -273,11 +373,22 @@ service cloud.firestore {
              (!('lasresaStartLevel10' in d) ||
                (d.lasresaStartLevel10 is int && d.lasresaStartLevel10 >= 1 && d.lasresaStartLevel10 <= 10));
     }
+    // ROLLER (#678, §2.1/§2.2): admin skapar, raderar och ändrar allt.
+    // Årskurskontot ändrar BARA sina klasser och bara synlighet (områden,
+    // lägen, moduler), fokusläget och Läsresans startnivå + spegeln – aldrig
+    // name, studentIds, byarna (hiddenVillages) eller annat.
+    function classValid() {
+      return validHiddenVillages() && validHiddenModules() && validEnabledModules() &&
+        validLock() && validLasresaStartLevel();
+    }
     match /classes/{classId} {
       allow read:  if signedIn();
-      allow create, update: if isTeacher() && validHiddenVillages() && validHiddenModules() &&
-                               validEnabledModules() && validLock() && validLasresaStartLevel();
-      allow delete: if isTeacher();
+      allow create: if isAdmin() && classValid();
+      allow update: if classValid() && (isAdmin() || (gradeClass(classId) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['assignedAreas',
+          'hiddenModes', 'areaModes', 'hiddenModules', 'enabledModules', 'lock',
+          'lasresaStartLevel10', 'lasresaStartLevel'])));
+      allow delete: if isAdmin();
     }
 
     // Klass-projektion (#231/#232): ETT förberäknat dokument per klass som
@@ -302,7 +413,7 @@ service cloud.firestore {
     // Coins/progress/lösenord finns inte här. Lärare får också skriva (backfill).
     match /classProjections/{classId} {
       allow read:  if signedIn();
-      allow write: if isTeacher() || isClassMember(classId);
+      allow write: if isAdmin() || isClassMember(classId);
     }
 
     // Gemensamma klassprojekt (#331): klassen donerar tillsammans coins till
@@ -323,7 +434,7 @@ service cloud.firestore {
     // "Missing or insufficient permissions" i prod.
     match /classProjects/{classId} {
       allow read:  if signedIn();
-      allow write: if isTeacher() || isClassMember(classId);
+      allow write: if isAdmin() || isClassMember(classId);
     }
     // ------------------------------------------------------------------------
     // UTKAST (#316, SEKUNDÄRT – EJ aktiverat): begränsa en elev till att skriva
@@ -331,12 +442,12 @@ service cloud.firestore {
     // .hasOnly([...]) kan uttrycka precis det för UPDATE (nyckeln i members-mappen
     // som rörs måste vara den egna uid:n):
     //
-    //   allow update: if isTeacher() ||
+    //   allow update: if isAdmin() ||
     //     (signedIn() &&
     //      request.auth.uid in get(/databases/$(database)/documents/classes/$(classId)).data.studentIds &&
     //      request.resource.data.members.diff(resource.data.members)
     //        .affectedKeys().hasOnly([request.auth.uid]));
-    //   allow create: if isTeacher() ||
+    //   allow create: if isAdmin() ||
     //     (signedIn() &&
     //      request.auth.uid in get(/databases/$(database)/documents/classes/$(classId)).data.studentIds &&
     //      request.resource.data.members.keys().hasOnly([request.auth.uid]));
@@ -514,34 +625,37 @@ service cloud.firestore {
           bumped('correct', 1);
       }
 
+      // ROLLER (#678, §2.2): bara admin skapar, startar, stoppar, avslutar
+      // och nollställer. Årskurskontot läser statistiken för sina klasser
+      // (dokumentens classId – en lista måste filtrera på sina klasser).
       allow read: if signedIn();
-      allow create, update: if isTeacher() && validCompetition();
-      allow delete: if isTeacher();
+      allow create, update: if isAdmin() && validCompetition();
+      allow delete: if isAdmin();
 
       match /answers/{attemptId} {
-        allow read: if isTeacher() || (signedIn() && resource.data.uid == request.auth.uid);
+        allow read: if hasClass(resource.data.classId) || (signedIn() && resource.data.uid == request.auth.uid);
         allow create: if mmAnswerCreate(attemptId);
         allow update: if false;
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
       match /studentStats/{uid} {
-        allow read: if isTeacher() || isSelf(uid);
+        allow read: if hasClass(resource.data.classId) || isSelf(uid);
         allow create, update: if mmStatsBump(uid);
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
       // Topp 25: elever får läsa enstaka poster och LISTA högst 25 åt gången.
       match /scores/{uid} {
         allow get: if signedIn();
-        allow list: if isTeacher() || (signedIn() && request.query.limit <= 25);
+        allow list: if hasClass(resource.data.classId) || (signedIn() && request.query.limit <= 25);
         allow create, update: if mmScoreBump(uid);
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
       // Klasskamp: summan av klassens shards / klassens elevantal.
       match /classCounters/{counterId} {
         allow read: if signedIn();
         allow create, update: if validCounterId(counterId) &&
           counterBump(mmPath('answers', request.resource.data.lastAttemptId), counterId);
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
     }
 
@@ -776,11 +890,33 @@ service cloud.firestore {
         d.status in ['lobby', 'live', 'finished'];
     }
 
+    // ROLLER (#678, §2.1): årskurskontot skapar och styr Live med SINA
+    // klasser. Klassmatchen: minst en deltagande klass är kontots
+    // (motståndaren får vara vilken klass som helst). Övriga format (alla
+    // spelar för pluggmynt): alla deltagande klasser är kontots. Mynt-pris
+    // till klasskassan (coinPrize) får det inte sätta – kassan är bara admins.
+    function gradeLiveClassesOk(d) {
+      return isGradeTeacher() && (d.get('format', 'klassmatch') == 'klassmatch'
+        ? d.participatingClassIds.hasAny(gradeClassIds()) && d.get('coinPrize', 0) == 0
+        : gradeClassIds().hasAll(d.participatingClassIds));
+    }
+
     match /liveSessions/{sid} {
       function livePath(sub, id) {
         return /databases/$(database)/documents/liveSessions/$(sid)/$(sub)/$(id);
       }
       function session() { return get(/databases/$(database)/documents/liveSessions/$(sid)).data; }
+      // Läraren som får se och styra den här matchen (#678): admin, eller
+      // årskurskonto med minst en deltagande klass. s = sessionen (före
+      // eller efter skrivningen).
+      function liveTeacherOf(s) { return isAdmin() || gradeAnyClass(s.participatingClassIds); }
+      function liveTeacher() { return liveTeacherOf(session()); }
+      // Radera en ej startad session (#543): spelarna och quizets dokument
+      // följer med i samma batch (live-data deleteLiveSession).
+      function liveLobbyCleanup() { return isAdmin() || (session().status == 'lobby' && liveTeacher()); }
+      function liveTeacherAfter() {
+        return liveTeacherOf(getAfter(/databases/$(database)/documents/liveSessions/$(sid)).data);
+      }
       function liveAnswerCreate(attemptId) {
         let d = request.resource.data;
         let s = session();
@@ -906,14 +1042,14 @@ service cloud.firestore {
       function sbSnapshotCreate(docId) {
         let d = request.resource.data;
         let s = getAfter(/databases/$(database)/documents/liveSessions/$(sid)).data;
-        return isTeacher() && docId == 'snapshot' && sbFormat(s) && s.status == 'lobby' &&
+        return liveTeacherAfter() && docId == 'snapshot' && sbFormat(s) && s.status == 'lobby' &&
           d.keys().hasOnly(['questions', 'facit']) && d.questions is list && d.facit is list &&
           d.questions.size() == s.questionCount && d.facit.size() == s.questionCount;
       }
       function sbScoreCreate(qid) {
         let d = request.resource.data;
         let s = getAfter(/databases/$(database)/documents/liveSessions/$(sid)).data;
-        return isTeacher() && sbFormat(s) && s.q.phase in ['revealed', 'skipped'] &&
+        return liveTeacherAfter() && sbFormat(s) && s.q.phase in ['revealed', 'skipped'] &&
           qid == string(s.q.index) && d.index == s.q.index &&
           d.keys().hasOnly(['index', 'skipped', 'answered', 'correctCount', 'points', 'correct',
                             'choiceCounts', 'topWrong', 'guesses']) &&
@@ -975,12 +1111,12 @@ service cloud.firestore {
       function kistQuizDocCreate(docId, want, field, format) {
         let d = request.resource.data;
         let s = getAfter(/databases/$(database)/documents/liveSessions/$(sid)).data;
-        return isTeacher() && docId == want && s.get('format', 'klassmatch') == format && s.status == 'lobby' &&
+        return liveTeacherAfter() && docId == want && s.get('format', 'klassmatch') == format && s.status == 'lobby' &&
           s.gameMode == 'plugga_quiz' && d.keys().hasOnly([field]) && d[field] is list &&
           d[field].size() == s.questionCount;
       }
       function grReader() {
-        return isTeacher() || (signedIn() && exists(livePath('players', request.auth.uid)));
+        return (signedIn() && exists(livePath('players', request.auth.uid))) || liveTeacher();
       }
 
       // --- Pluggmynt efter matchen (#557) ---
@@ -997,7 +1133,7 @@ service cloud.firestore {
         let r = s.get('result', {}).get('rewards', {}).get(uid, null);
         let sd = /databases/$(database)/documents/studentData/$(uid);
         let fore = exists(sd) ? get(sd).data.get('coins', 0) : 0;
-        return isTeacher() && s.status == 'finished' && s.get('demo', false) != true &&
+        return liveTeacherOf(s) && s.status == 'finished' && s.get('demo', false) != true &&
           cfg is map && r is map &&
           d.keys().hasOnly(['uid', 'prize', 'correctCoins', 'total', 'at', 'by']) &&
           d.uid == uid && d.at == request.time && d.by == request.auth.uid &&
@@ -1008,21 +1144,28 @@ service cloud.firestore {
           getAfter(sd).data.get('coins', 0) == fore + d.total;
       }
 
-      // Alla inloggade läser sessionen (eleven ser lobby/status); ALLA lärare
-      // skapar/styr ALLA sessioner (projektorn i vilket klassrum som helst).
-      // Formatet avgör regelgrenen (Snilleblixten har en egen, #556).
+      // Alla inloggade läser sessionen (eleven ser lobby/status). Admin
+      // skapar/styr alla sessioner (projektorn i vilket klassrum som helst),
+      // årskurskontot sessioner med sina klasser (gradeLiveClassesOk – både
+      // före och efter en ändring, #678). Formatet avgör regelgrenen
+      // (Snilleblixten har en egen, #556).
+      function liveCreator() { return isAdmin() || gradeLiveClassesOk(request.resource.data); }
+      function liveController() {
+        return isAdmin() || (gradeAnyClass(resource.data.participatingClassIds) &&
+          gradeLiveClassesOk(request.resource.data));
+      }
       allow read: if signedIn();
-      allow create: if isTeacher() &&
+      allow create: if liveCreator() &&
         (sbFormat(request.resource.data) ? sbSessionCreateOk()
           : grFormat(request.resource.data) ? grSessionCreateOk()
           : dkFormat(request.resource.data) ? dkSessionCreateOk() : liveSessionCreateOk());
       allow update: if sbFormat(resource.data)
-        ? isTeacher() && sbSessionUpdateOk()
+        ? liveController() && sbSessionUpdateOk()
         : grFormat(resource.data)
-          ? (isTeacher() && grSessionUpdateOk()) || liveAutoFinishOk()
+          ? (liveController() && grSessionUpdateOk()) || liveAutoFinishOk()
           : dkFormat(resource.data)
-            ? (isTeacher() && dkSessionUpdateOk()) || liveAutoFinishOk()
-            : (isTeacher() && liveSessionUpdateOk()) || liveAutoFinishOk();
+            ? (liveController() && dkSessionUpdateOk()) || liveAutoFinishOk()
+            : (liveController() && liveSessionUpdateOk()) || liveAutoFinishOk();
       // Radera (#543): bara en session som ALDRIG startat (status lobby) –
       // startade/avslutade är historik. Lobbyns spelardokument (närvaro/redo)
       // raderas i samma batch (live-data deleteLiveSession); svar/räknare finns
@@ -1030,128 +1173,130 @@ service cloud.firestore {
       // kvar men är ofarligt: bara eleven själv + lärare läser det, ingen
       // räknar på det, och svar/nya spelare under en session som inte finns
       // nekas (session() → get() på saknat dokument).
-      allow delete: if isTeacher() && resource.data.status == 'lobby';
+      allow delete: if resource.data.status == 'lobby' &&
+        (isAdmin() || gradeAnyClass(resource.data.participatingClassIds));
 
       match /answers/{attemptId} {
-        allow read: if isTeacher() || (signedIn() && resource.data.uid == request.auth.uid);
+        allow read: if liveTeacher() || (signedIn() && resource.data.uid == request.auth.uid);
         allow create: if liveAnswerCreate(attemptId);
         allow update: if false;
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
       match /players/{uid} {
-        allow read: if isTeacher() || isSelf(uid);
+        allow read: if liveTeacher() || isSelf(uid);
         allow create: if liveJoin(uid);
         allow update: if liveHeartbeat(uid) || livePlayerBump(uid);
-        allow delete: if isTeacher();
+        // Lobbyns närvaro raderas ihop med en ej startad session (#543).
+        allow delete: if liveLobbyCleanup();
       }
       // Snilleblixten (#556): ögonblicksbilden (facit + kommande frågor) –
       // eleven kan aldrig läsa den.
       match /sbPrivate/{docId} {
-        allow read: if isTeacher();
+        allow read: if liveTeacher();
         allow create: if sbSnapshotCreate(docId);
         allow update: if false;
-        allow delete: if isTeacher();
+        allow delete: if liveLobbyCleanup();
       }
       // Ett svar per elev och fråga: id {fråga}_{uid}, bara create. Eleven får
       // läsa sitt eget (även "finns inte" – omladdning), läraren alla.
       match /sbAnswers/{answerId} {
-        allow read: if isTeacher() ||
+        allow read: if liveTeacher() ||
           (signedIn() && answerId == answerId.split('_')[0] + '_' + request.auth.uid);
         allow create: if sbAnswerCreate(answerId);
         allow update: if false;
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
       // Frågans poäng – läraren skriver EN gång, deltagarna läser.
       match /sbScores/{qid} {
-        allow read: if isTeacher() || (signedIn() && exists(livePath('players', request.auth.uid)));
+        allow read: if liveTeacher() || (signedIn() && exists(livePath('players', request.auth.uid)));
         allow create: if sbScoreCreate(qid);
         allow update: if false;
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
       // Guldrushen (#563): guld, skydd, händelser och ledaren skriver BARA
       // servern (Cloud Functions, Admin SDK). Deltagare och lärare läser.
       match /grPlayers/{uid} {
         allow read: if grReader();
         allow create, update: if false;
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
       match /grEvents/{eventId} {
         allow read: if grReader();
         allow create, update: if false;
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
       match /grMeta/{docId} {
         allow read: if grReader();
         allow create, update: if false;
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
       // Quizets facit – eleven kan aldrig läsa det (§4.4).
       match /grPrivate/{docId} {
-        allow read: if isTeacher();
+        allow read: if liveTeacher();
         allow create: if grQuizDocCreate(docId, 'snapshot', 'facit');
         allow update: if false;
-        allow delete: if isTeacher();
+        allow delete: if liveLobbyCleanup();
       }
       match /grPublic/{docId} {
         allow read: if signedIn();
         allow create: if grQuizDocCreate(docId, 'questions', 'questions');
         allow update: if false;
-        allow delete: if isTeacher();
+        allow delete: if liveLobbyCleanup();
       }
       // Datakuppen (#652): data, skydd, händelser och ledaren skriver BARA
       // servern. Deltagare och lärare läser – inga koder i dessa dokument.
       match /dkPlayers/{uid} {
         allow read: if grReader();
         allow create, update: if false;
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
       match /dkEvents/{eventId} {
         allow read: if grReader();
         allow create, update: if false;
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
       match /dkMeta/{docId} {
         allow read: if grReader();
         allow create, update: if false;
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
       // Elevens egen kod, kodförslag och pågående hackkoder – BARA eleven
       // själv läser (§1.2 "koden är hemlig"); servern skriver.
       match /dkSelf/{uid} {
         allow read: if isSelf(uid);
         allow create, update: if false;
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
       // Koder, lockkoder och strukna alternativ (minnesmomentet) – bara
       // servern. Ingen klient läser, inte ens läraren.
       match /dkSecret/{uid} {
         allow read, create, update: if false;
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
       match /dkPrivate/{docId} {
-        allow read: if isTeacher();
+        allow read: if liveTeacher();
         allow create: if dkQuizDocCreate(docId, 'snapshot', 'facit');
         allow update: if false;
-        allow delete: if isTeacher();
+        allow delete: if liveLobbyCleanup();
       }
       match /dkPublic/{docId} {
         allow read: if signedIn();
         allow create: if dkQuizDocCreate(docId, 'questions', 'questions');
         allow update: if false;
-        allow delete: if isTeacher();
+        allow delete: if liveLobbyCleanup();
       }
       // Pluggmynt-kvitton (#557) – eleven läser sitt eget, läraren alla.
       match /coinReceipts/{uid} {
-        allow read: if isTeacher() || isSelf(uid);
+        allow read: if liveTeacher() || isSelf(uid);
         allow create: if liveCoinReceipt(uid);
         allow update, delete: if false;
       }
       // Shardade klassräknare – läses av projektorvyerna (lärare).
       match /counters/{counterId} {
-        allow read: if isTeacher();
+        allow read: if liveTeacher();
         allow create, update: if validCounterId(counterId) &&
           counterBump(livePath('answers', request.resource.data.lastAttemptId), counterId);
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
     }
 
@@ -1166,9 +1311,10 @@ service cloud.firestore {
 
     // Gemensam träningsstatistik: collectionGroup('answers') where uid == X
     // ger elevens multiplikationssvar från BÅDE Mattematchen och Live
-    // (tävlingspoängen hålls ändå separata). Bara egna svar / lärare.
+    // (tävlingspoängen hålls ändå separata). Bara egna svar, admin, eller
+    // årskurskontot för svar från sina klasser (#678 – svaret bär classId).
     match /{path=**}/answers/{attemptId} {
-      allow read: if isTeacher() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow read: if (signedIn() && resource.data.uid == request.auth.uid) || hasClass(resource.data.classId);
     }
 
     // ------------------------------------------------------------------
@@ -1195,6 +1341,9 @@ service cloud.firestore {
     // ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` (separat från
     // Pages). Ingenting här är deployat.
     // ------------------------------------------------------------------
+    // ROLLER (#678, §2.2): kassan, pokalerna, insamlingarna, inredningen,
+    // EXP-bonusen och klassprofilen skriver bara admin (och eleverna enligt
+    // reglerna nedan). Årskurskontot LÄSER statistiken för sina klasser.
     match /classCenters/{classId} {
       function kcPath(sub, id) {
         return /databases/$(database)/documents/classCenters/$(classId)/$(sub)/$(id);
@@ -1224,7 +1373,7 @@ service cloud.firestore {
       }
       function kcShardTeacher(shardId) {
         let d = request.resource.data;
-        return isTeacher() && kcShardOk(shardId) &&
+        return isAdmin() && kcShardOk(shardId) &&
           changedOnly(['exp', 'lastUid', 'lastAt', 'lastKalla']) &&
           d.exp is int && kcDelta() >= 1 && kcDelta() <= 1000 &&
           d.lastUid == request.auth.uid && d.lastAt == request.time && kcKalla(d);
@@ -1253,12 +1402,12 @@ service cloud.firestore {
       match /expShards/{shardId} {
         allow read: if signedIn();
         allow create, update: if kcShardStudent(shardId) || kcShardTeacher(shardId);
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
       match /expMembers/{uid} {
-        allow read: if isTeacher() || isSelf(uid);
+        allow read: if isSelf(uid) || hasClass(classId);
         allow create, update: if kcMemberAward(uid) || kcMemberCounts(uid);
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
 
       // ----------------------------------------------------------------
@@ -1295,7 +1444,7 @@ service cloud.firestore {
       function kcFundWrite(itemId) {
         let d = request.resource.data;
         let don = getAfter(kcPath('donations', d.lastDonationId)).data;
-        return (isClassMember(classId) || (isTeacher() && don.get('kassa', false) == true)) &&
+        return (isClassMember(classId) || (isAdmin() && don.get('kassa', false) == true)) &&
           kcPris(itemId) > 0 &&
           (resource == null || resource.data.isUnlocked != true) &&
           changedOnly(['targetPrice', 'fundedAmount', 'isUnlocked', 'unlockedAt', 'lastDonationId']) &&
@@ -1345,7 +1494,7 @@ service cloud.firestore {
         allow create, update: if kcFundWrite(itemId);
       }
       match /donations/{donationId} {
-        allow read: if isTeacher();
+        allow read: if hasClass(classId);
         allow create: if kcDonationCreate(donationId);
       }
 
@@ -1373,7 +1522,7 @@ service cloud.firestore {
         return isClassMember(classId) && exists(p) &&
           request.auth.uid in get(p).data.get('kassorer', []);
       }
-      function kcKassaBehorig() { return isTeacher() || kcKassor(); }
+      function kcKassaBehorig() { return isAdmin() || kcKassor(); }
       function kcKassaSaldo(docId) {
         let d = request.resource.data;
         let tx = getAfter(kcPath('kassaHistorik', d.lastTxId)).data;
@@ -1388,7 +1537,7 @@ service cloud.firestore {
         let s = get(/databases/$(database)/documents/liveSessions/$(d.sessionId)).data;
         let vinnare = s.get('result', {}).get('winnerClasses', []);
         let pris = s.get('coinPrize', 0);
-        return isTeacher() &&
+        return isAdmin() &&
           d.keys().hasOnly(['typ', 'kalla', 'sessionId', 'titel', 'belopp', 'at', 'av']) &&
           d.kalla == 'live' && txId == 'live-' + d.sessionId &&
           d.titel is string && d.titel.size() <= 80 &&
@@ -1410,11 +1559,11 @@ service cloud.firestore {
       }
 
       match /kassa/{docId} {
-        allow read: if isTeacher() || isClassMember(classId);
+        allow read: if isClassMember(classId) || hasClass(classId);
         allow create, update: if kcKassaSaldo(docId);
       }
       match /kassaHistorik/{txId} {
-        allow read: if isTeacher() || isClassMember(classId);
+        allow read: if isClassMember(classId) || hasClass(classId);
         allow create: if (request.resource.data.typ == 'in' && kcKassaIn(txId)) ||
           (request.resource.data.typ == 'ut' && kcKassaUt(txId));
       }
@@ -1446,7 +1595,7 @@ service cloud.firestore {
         let p = /databases/$(database)/documents/classCenters/$(classId);
         return exists(p) && request.auth.uid in get(p).data.get('inredningSparr', []);
       }
-      function kcKanInreda() { return isTeacher() || (isClassMember(classId) && !kcSparrad()); }
+      function kcKanInreda() { return isAdmin() || (isClassMember(classId) && !kcSparrad()); }
       // En post {x, y, z}: x/y tal 0–100, z heltal 0–999 – som EN regex över
       // talen (`* 1` → fel för text/bool; ett flyttal z blir "1.0" och
       // nekas). 🔴 Budget: reglerna tillåter 1000 uttryck per skrivning; den
@@ -1593,7 +1742,7 @@ service cloud.firestore {
       }
       function kcPokalCreate(trophyId) {
         let d = request.resource.data;
-        return isTeacher() &&
+        return isAdmin() &&
           d.keys().hasOnly(['typ', 'kallaId', 'titel', 'detalj', 'motiv', 'wonAt', 'awardedBy']) &&
           d.keys().hasAll(['typ', 'kallaId', 'titel', 'wonAt', 'awardedBy']) &&
           d.typ in kcPokalTyper() &&
@@ -1608,15 +1757,15 @@ service cloud.firestore {
       match /trophies/{trophyId} {
         allow read: if signedIn();
         allow create: if kcPokalCreate(trophyId);
-        allow delete: if isTeacher() && resource.data.typ == 'larare';
+        allow delete: if isAdmin() && resource.data.typ == 'larare';
       }
 
       // Klassprofilen (pokalerna bor i trophies/ ovan, hogstaNiva valfritt).
       // Läses bara av klassen och lärare (#500): spärrlistan säger vilka
       // elever läraren bockat ur – gästläget behöver den inte. kassorer
       // (#526) = de elever läraren utsett till klasskassörer.
-      allow read: if isTeacher() || isClassMember(classId);
-      allow create, update: if isTeacher() && changedOnly(['inredningSparr', 'kassorer']) &&
+      allow read: if isClassMember(classId) || hasClass(classId);
+      allow create, update: if isAdmin() && changedOnly(['inredningSparr', 'kassorer']) &&
         request.resource.data.get('inredningSparr', []) is list &&
         request.resource.data.get('inredningSparr', []).size() <= 200 &&
         request.resource.data.get('kassorer', []) is list &&
@@ -1625,12 +1774,12 @@ service cloud.firestore {
       match /layout/{docId} {
         allow read: if signedIn();
         allow create, update: if docId == 'current' && kcLayoutCurrent();
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
       match /layoutHistory/{slot} {
         allow read: if signedIn();
         allow create, update: if kcLayoutHistory(slot);
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
     }
 
@@ -1645,8 +1794,12 @@ service cloud.firestore {
     // dok för husens pokaler.
     // ⚠️ DEPLOY KRÄVS: firebase deploy --only firestore:rules + functions.
     // ------------------------------------------------------------------
+    // ROLLER (#678): årskurskontot läser sina elevers försök och personbästa
+    // (statistik). Egna kartor (hittaRattPacks/-Bilder) är inte Plugga-
+    // material i §2.1 → bara admin (hittaRattSparaPack m.fl. kontrollerar
+    // samma sak).
     match /hittaRattAttempts/{attemptId} {
-      allow read: if isTeacher() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow read: if (signedIn() && resource.data.uid == request.auth.uid) || hasStudent(resource.data.uid);
       allow create: if signedIn() && validAttemptId(attemptId) &&
         request.resource.data.keys().hasOnly(['uid', 'packId', 'startedAt', 'status']) &&
         request.resource.data.uid == request.auth.uid &&
@@ -1657,7 +1810,7 @@ service cloud.firestore {
       allow update, delete: if false;
     }
     match /hittaRattBest/{uid} {
-      allow read: if isTeacher() || isSelf(uid);
+      allow read: if isSelf(uid) || hasStudent(uid);
       allow write: if false;
     }
     match /hittaRattBoards/{packId} {
@@ -1686,7 +1839,7 @@ service cloud.firestore {
     // Läsning som packen (eleven läser bara bilder i packet hen spelar).
     match /hittaRattBilder/{bildId} {
       allow read: if signedIn();
-      allow create: if isTeacher() &&
+      allow create: if isAdmin() &&
         bildId.matches('^e-[a-z0-9]{12}--[a-z0-9]{8}$') &&
         request.resource.data.keys().hasOnly(['ownerUid', 'packId', 'mime', 'bredd', 'hojd', 'data', 'skapad']) &&
         request.resource.data.ownerUid == request.auth.uid &&
@@ -1697,7 +1850,7 @@ service cloud.firestore {
         request.resource.data.hojd is int && request.resource.data.hojd > 0 && request.resource.data.hojd <= 800 &&
         request.resource.data.skapad == request.time;
       allow update: if false;
-      allow delete: if isTeacher() && resource.data.ownerUid == request.auth.uid;
+      allow delete: if isAdmin() && resource.data.ownerUid == request.auth.uid;
     }
 
     // Allt annat nekas.

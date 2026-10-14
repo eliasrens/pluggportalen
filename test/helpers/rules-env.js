@@ -5,7 +5,8 @@
 // exponerar de tre kontexterna testerna resonerar i:
 //   * unauth()  – ingen Auth alls
 //   * elev(uid) – inloggad elev, uid == doc-id, ingen teacher-claim
-//   * teacher() – valfri uid med custom claim teacher:true
+//   * teacher() – admin (claims teacher + admin, #678 – årskurskonton testas
+//                 i firestore-rules-roller-*.test.js)
 // Varje testfil skapar sin EGEN rigg med ett UNIKT projectId (node --test kan
 // köra filerna parallellt mot samma emulator – olika projekt = ingen krock)
 // och äger sin egen seed i beforeEach.
@@ -30,6 +31,6 @@ export async function createRulesEnv(projectId) {
     testEnv,
     unauth: () => testEnv.unauthenticatedContext().firestore(),
     elev: (uid) => testEnv.authenticatedContext(uid).firestore(),
-    teacher: () => testEnv.authenticatedContext("larare1", { teacher: true }).firestore(),
+    teacher: () => testEnv.authenticatedContext("larare1", { teacher: true, admin: true }).firestore(),
   };
 }

@@ -11,8 +11,9 @@
 // cachade klienter läser/skriver ofarligt – se src/lasresan/level-scale.js.
 // Se docs/LASRESAN.md "Lärarstyrd nivå" + docs/DATAMODELL.md.
 //
-// Behörighet ligger i firestore.rules: studentData skrivs bara av eleven själv
-// eller lärare, classes bara av lärare (lasresaStartLevel valideras där).
+// Behörighet ligger i firestore.rules: studentData skrivs av eleven själv,
+// admin eller årskurskontot (bara nivåfälten, #678), classes av admin eller
+// årskurskontot för sina klasser (lasresaStartLevel valideras där).
 //
 // Importeras BARA dynamiskt (lärarvyn / Läsresans moduler) – aldrig statiskt
 // från app.js (bootgrafen, #271 / incident 2026-09-10).
@@ -33,6 +34,7 @@ import {
   classStartLevelOf,
   effectiveStartLevel,
   parseTeacherLevel,
+  teacherLevelFieldPaths,
   withTeacherLevel,
 } from "./lasresan/level-control.js";
 import { LEVEL_MIN, LEVEL_MAX } from "./lasresan/config.js";
@@ -70,7 +72,9 @@ export async function setStudentLevel(studentId, level) {
     const cur = normalizeLasresa(sd && sd.lasresa, WORLDS);
     const out = withTeacherLevel(cur, lvl, Date.now());
     const lasresa = toStoredLasresa(out.lasresa);
-    if (snap.exists()) tx.update(ref, { lasresa });
+    // Befintligt tillstånd: bara nivåfälten (årskurskontot får inte mer, #678).
+    if (sd && sd.lasresa && typeof sd.lasresa === "object") tx.update(ref, teacherLevelFieldPaths(lasresa));
+    else if (snap.exists()) tx.update(ref, { lasresa });
     else tx.set(ref, { ...defaultStudentData(), lasresa });
     return out.applied;
   });
