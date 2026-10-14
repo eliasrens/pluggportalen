@@ -15,12 +15,12 @@
 // hjälparna { app, go, renderTopbar }.
 // ============================================================================
 
-import { isTeacher, signInTeacher, signOutCurrent, takeSessionLostNotice } from "./auth.js";
+import { isAdmin, isTeacher, signInTeacher, signOutCurrent, takeSessionLostNotice } from "./auth.js";
 
 // --- Lärarläge --------------------------------------------------------------
 // isTeacher() läser custom claim (teacher:true) ur den inloggade Auth-användaren
 // – re-exporteras här eftersom lärarsidans moduler importerar den härifrån.
-export { isTeacher };
+export { isAdmin, isTeacher };
 
 /** Lås lärarläget (logga ut lärar-Auth-användaren). */
 export function setTeacher(on) {
@@ -237,11 +237,13 @@ export const TEACHER_TABS = [
     page: lazyPage(() => import("./live/teacher-live.js"), "pageLarareLive"),
   },
   { key: "hittaratt", hash: "#/larare/hitta-ratt", label: "Hitta rätt!", title: "Hitta rätt!", icon: "pin", page: lazyPage(() => import("./hitta-ratt/larare/page-larare-hitta-ratt.js"), "pageLarareHittaRatt") },
+  // Lärarkonton (#677): admin: true = fliken syns bara för admin (sidan spärrar själv också).
+  { key: "konton", hash: "#/larare/konton", label: "Lärarkonton", title: "Lärarkonton", icon: "key", admin: true, page: lazyPage(() => import("./teacher-accounts.js"), "pageLarareKonton") },
 ];
 
 /** Gemensam lärar-toppnav (flikar) för lärarsidans undersidor. Sticky rad. */
 export function teacherNav(ctx, active) {
-  const tabs = TEACHER_TABS;
+  const tabs = TEACHER_TABS.filter((t) => !t.admin || isAdmin());
   const nav = el(`<nav class="teacher-nav" aria-label="Lärarnavigation">
     <div class="teacher-nav-inner">
       <span class="teacher-nav-brand" aria-hidden="true">

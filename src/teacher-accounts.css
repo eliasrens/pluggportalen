@@ -1,0 +1,75 @@
+/* ==========================================================================
+   Lärarkonton (#677) – adminsidan #/larare/konton. Laddas DYNAMISKT av
+   teacher-accounts-parts.js (ensureAccountsCss), ligger inte i styles.css.
+   Allt scopat under .teacher-dark (lärarsidans mörka tokens --t-*).
+   ========================================================================== */
+
+.teacher-dark .ta-topp { justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: nowrap; }
+.teacher-dark .ta-topp .hint { margin: 0; max-width: 680px; }
+.teacher-dark .ta-topp .btn { flex: none; }
+.teacher-dark .ta-flash:not(:empty) { margin: 12px 0 0; }
+.teacher-dark .ta-form-host:not(:empty) { margin: 14px 0 18px; }
+.teacher-dark .ta-tbl { margin-top: 14px; }
+.teacher-dark .ta-tbl td { vertical-align: middle; }
+.teacher-dark .ta-tbl code { color: var(--t-muted); font-size: 0.9em; }
+.teacher-dark .ta-klass-cell { max-width: 280px; }
+.teacher-dark .ta-handling { text-align: right; white-space: nowrap; }
+.teacher-dark .ta-rad.ta-av td:not(.ta-handling) { opacity: 0.55; }
+.teacher-dark .ta-rad.vald td { background: var(--t-accent-soft); }
+
+/* Brickor: roll och status */
+.teacher-dark .ta-chip {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--t-muted);
+}
+.teacher-dark .ta-chip-admin { background: rgba(86, 156, 255, 0.16); color: #a9cbff; }
+.teacher-dark .ta-chip-aktiv { background: var(--t-accent-soft); color: #7ee0a6; }
+.teacher-dark .ta-chip-av { background: rgba(235, 87, 87, 0.14); color: #ff9d9d; }
+
+/* Formulär */
+.teacher-dark .ta-form,
+.teacher-dark .ta-hantera { max-width: none; }
+.teacher-dark .ta-rad2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.teacher-dark .ta-roll { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; }
+.teacher-dark .ta-roll label { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-weight: 500; cursor: pointer; }
+.teacher-dark .ta-label { width: 100%; font-weight: 600; color: var(--t-text); }
+.teacher-dark .ta-losen-rad { gap: 8px; flex-wrap: nowrap; }
+.teacher-dark .ta-losen-rad input { flex: 1; min-width: 0; font-family: ui-monospace, Consolas, monospace; }
+.teacher-dark .ta-losen-rad .btn { flex: none; }
+.teacher-dark .ta-klasser { border: 0; padding: 0; margin: 6px 0 12px; }
+.teacher-dark .ta-klasser legend { font-weight: 600; margin-bottom: 8px; }
+.teacher-dark .ta-klass-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+.teacher-dark .ta-klass {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--t-border);
+  border-radius: 10px;
+  background: var(--t-surface-2);
+  cursor: pointer;
+}
+.teacher-dark .ta-klass:has(input:checked) { border-color: var(--t-accent); background: var(--t-accent-soft); }
+.teacher-dark .ta-klass-snabb { margin-top: 8px; gap: 6px; }
+.teacher-dark .ta-fel:not(:empty) { margin: 8px 0; }
+.teacher-dark .ta-form .row-inline,
+.teacher-dark .ta-hantera .row-inline { gap: 8px; }
+
+/* Hantera-panelen */
+.teacher-dark .ta-hantera-topp { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.teacher-dark .ta-hantera-topp .subhead { margin: 0; }
+.teacher-dark .ta-stang { margin-left: auto; }
+.teacher-dark .ta-del { padding: 14px 0 4px; border-top: 1px solid var(--t-border); margin-top: 14px; }
+.teacher-dark .ta-del-rubrik { margin: 0 0 10px; font-size: 1rem; color: var(--t-text); }
+
+@media (max-width: 720px) {
+  .teacher-dark .ta-topp,
+  .teacher-dark .ta-losen-rad { flex-wrap: wrap; }
+}

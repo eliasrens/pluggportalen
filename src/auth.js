@@ -96,6 +96,7 @@ function clearMirror() {
 // Optimistisk start-spegel; rekoncilieras mot Firebase Auth i authReady.
 let cachedSession = readMirror();
 let teacherClaim = false; // sätts true när en lärar-Auth-användare är inloggad
+let adminClaim = false; // admin:true (#677) – lärarkonto med full behörighet
 
 /** Sessionsobjektet ({ studentId, namn, username }) eller null. */
 export function getSession() {
@@ -112,6 +113,10 @@ export function isLoggedIn() {
 /** Är den inloggade användaren lärare (custom claim teacher:true)? */
 export function isTeacher() {
   return teacherClaim === true;
+}
+/** Är läraren ADMIN (claims teacher + admin, #677)? Årskurskonton har role:"arskurs". */
+export function isAdmin() {
+  return teacherClaim === true && adminClaim === true;
 }
 
 // ---------------------------------------------------------------------------
@@ -178,7 +183,7 @@ onAuthStateChanged(auth, async (user) => {
       // ingen signal här. Vid uppstart (före authReady) finns inget att tappa.
       const tappad = readySettled && (cachedSession || teacherClaim)
         ? { teacher: teacherClaim } : null;
-      teacherClaim = false;
+      teacherClaim = adminClaim = false;
       cachedSession = null;
       clearMirror();
       if (tappad) {
@@ -191,13 +196,16 @@ onAuthStateChanged(auth, async (user) => {
     }
     // Läs custom claims (teacher) ur ID-token.
     let isTeach = false;
+    let isAdm = false;
     try {
       const tok = await user.getIdTokenResult();
       isTeach = tok.claims.teacher === true;
+      isAdm = tok.claims.admin === true;
     } catch {}
     // Utloggad/bytt under väntan? Skriv då ingen inaktuell spegel (#464).
     if (auth.currentUser?.uid !== user.uid) return;
     teacherClaim = isTeach;
+    adminClaim = isTeach && isAdm;
 
     if (isTeach) {
       // En lärare är inloggad – det är ingen elevsession.
@@ -246,6 +254,8 @@ function loginErrorMessage(code) {
       return "Fel användarnamn eller lösenord. Försök igen.";
     case "auth/too-many-requests":
       return "För många försök. Vänta en stund och försök igen.";
+    case "auth/user-disabled":
+      return "Kontot är avstängt. Kontakta admin.";
     case "auth/network-request-failed":
       return "Nätverksfel. Kontrollera din uppkoppling och försök igen.";
     default:
@@ -285,7 +295,7 @@ export async function signInStudent(username, password, remember = false) {
 /** Logga ut (elev eller lärare). Rensar spegeln direkt + signOut i bakgrunden. */
 export function signOutCurrent() {
   cachedSession = null;
-  teacherClaim = false;
+  teacherClaim = adminClaim = false;
   clearMirror();
   notifyAuthChange();
   // Fire-and-forget: anroparna väntar inte, och onAuthStateChanged städar ändå.
@@ -322,7 +332,7 @@ export async function signInTeacher(username, password) {
     const tok = await cred.user.getIdTokenResult(true);
     if (tok.claims.teacher !== true) {
       // Avsiktlig utloggning: nolla spegeln först (annars "tappad session").
-      teacherClaim = false;
+      teacherClaim = adminClaim = false;
       cachedSession = null;
       clearMirror();
       await signOut(auth).catch(() => {});
@@ -332,6 +342,7 @@ export async function signInTeacher(username, password) {
       };
     }
     teacherClaim = true;
+    adminClaim = tok.claims.admin === true;
     cachedSession = null;
     clearMirror();
     return { ok: true };
