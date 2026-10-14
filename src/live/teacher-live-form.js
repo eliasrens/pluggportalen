@@ -19,15 +19,18 @@
 // samma antal klick som före #548 (nämnare, trollkarlsval #536, matchlängd,
 // mynt-pris #526 är Klassmatchens setupFields).
 //
-// API: renderCreateForm(host, { classes, uid, createdByName, onCreated(sid) })
+// API: renderCreateForm(host, { classes, uid, createdByName, onCreated(sid), role? })
+//   role = myRole() (#678): årskurskontot får inget kassapris och – utom i
+//   Klassmatchen – bara sina klasser att välja bland.
 // ============================================================================
 
-import { el, esc } from "../teacher-shared.js";
+import { el, errText, esc } from "../teacher-shared.js";
 import { listGameModes, DEFAULT_GAME_MODE } from "./modes/index.js";
 import { requireFormat, listFormats, answerKindsFor, defaultAnswerKind, DEFAULT_FORMAT } from "./formats/index.js";
 import { createLiveSession } from "./live-data.js";
 import { validateSessionInput } from "./live-core.js";
 import { defaultSessionName } from "./formats/klassmatch/klassmatch-core.js";
+import { liveClassChoices, liveFieldsFor } from "../teacher-role-core.js";
 import {
   fieldsFor, setupFieldsHtml, perClassRowsHtml, coerceSetupValue, CUSTOM_CHOICE, coerceCustomChoice, formatPickerHtml, answerKindHtml, classHint,
   answerKindDefaults,
@@ -38,10 +41,14 @@ export function renderCreateForm(host, opts) {
   drawForm(host, opts, keep);
 }
 
-function drawForm(host, { classes, uid, createdByName, onCreated }, keep) {
+function drawForm(host, opts, keep) {
+  const { uid, createdByName, onCreated, role } = opts;
   const format = requireFormat(keep.formatId);
   const modes = listGameModes().filter((m) => format.compatibleGameModes(m));
-  const fields = fieldsFor(format);
+  // Årskurskontot (#678): inget kassapris, och utom i Klassmatchen bara sina klasser.
+  const fields = liveFieldsFor(fieldsFor(format), role);
+  const classes = liveClassChoices(opts.classes, format.id, role);
+  keep.classIds = keep.classIds.filter((id) => classes.some((c) => c.id === id));
   const modeId = modes.some((m) => m.id === keep.mode) ? keep.mode
     : modes.some((m) => m.id === DEFAULT_GAME_MODE) ? DEFAULT_GAME_MODE : modes[0]?.id;
   const form = el(`<form class="panel live-form" novalidate>
@@ -58,7 +65,7 @@ function drawForm(host, { classes, uid, createdByName, onCreated }, keep) {
       <div class="live-classes">${classes.map((c) => `<label class="live-chip">
         <input type="checkbox" name="klass" value="${esc(c.id)}" ${keep.classIds.includes(c.id) ? "checked" : ""} />
         <span>${esc(c.name || c.id)} <small>(${(c.studentIds || []).length})</small></span></label>`).join("") ||
-        `<p class="hint">Inga klasser ännu – skapa klasser under Klasser &amp; elever.</p>`}</div>
+        `<p class="hint">Inga klasser ännu – admin skapar dem under Admin → Klasser &amp; elevkonton.</p>`}</div>
     </div>
     ${setupFieldsHtml(fields)}
     <div class="field"><label for="live-name">Matchnamn</label>
@@ -179,7 +186,7 @@ function drawForm(host, { classes, uid, createdByName, onCreated }, keep) {
     keep.formatId = i.value;
     keep.mode = selectedMode()?.id;
     keep.classIds = keep.classIds.slice(0, requireFormat(i.value).maxClasses);
-    drawForm(host, { classes, uid, createdByName, onCreated }, keep);
+    drawForm(host, opts, keep);
   }));
   syncModeSetup();
   syncAnswerKinds();
@@ -213,7 +220,7 @@ function drawForm(host, { classes, uid, createdByName, onCreated }, keep) {
       const sid = await createLiveSession(input, uid);
       onCreated?.(sid);
     } catch (err) {
-      msg.innerHTML = `<div class="msg error">Kunde inte skapa matchen: ${esc(err.message)}</div>`;
+      msg.innerHTML = `<div class="msg error">Kunde inte skapa matchen: ${esc(errText(err))}</div>`;
     } finally {
       btn.disabled = false;
     }

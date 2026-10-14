@@ -98,3 +98,23 @@ export function withTeacherLevel(lasresa, level, now = Date.now()) {
     applied: "now",
   };
 }
+
+/**
+ * Nivåfälten i studentData.lasresa – exakt de fält ett årskurskonto får
+ * ändra (firestore.rules lasresaLevelOnly, #678). Ändra båda tillsammans.
+ */
+export const TEACHER_LEVEL_FIELDS = [
+  "level", "level10", "pendingLevel", "pendingLevel10",
+  "highStreak", "lowStreak", "levelSetAt", "levelSetBy", "updatedAt",
+];
+
+/**
+ * Lärarens nivåbyte som fältvägar ("lasresa.level10" …) ur det SPARADE
+ * objektet (toStoredLasresa) – så att bara nivåfälten skrivs och inte resten
+ * av elevens Läsresan (resultat, sedda texter, pengar).
+ */
+export function teacherLevelFieldPaths(stored) {
+  const out = {};
+  for (const k of TEACHER_LEVEL_FIELDS) if (k in stored) out[`lasresa.${k}`] = stored[k];
+  return out;
+}

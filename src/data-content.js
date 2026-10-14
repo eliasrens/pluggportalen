@@ -97,9 +97,26 @@ export async function saveArea(subjectId, areaId, area) {
   const ref = doc(db, "subjects", subjectId, "areas", areaId);
   // { id } hör inte hemma inuti dokumentet – det är dokumentets id.
   const { id, ...rest } = area;
-  await setDoc(ref, rest);
+  // Ägarskap (#680, §2.3): alla skapa-flöden går hit. Befintligt område behåller
+  // sin ägare, nytt får createdBy/createdByName = kontot. teacher-role.js bara
+  // dynamiskt (#271).
+  const [{ myRole, withOwner }, snap] = await Promise.all([import("./teacher-role.js"), getDoc(ref)]);
+  await setDoc(ref, withOwner(rest, snap.exists() ? snap.data() : null, await myRole()));
   invalidateAreaCaches(subjectId, areaId);
   return areaId;
+}
+
+/** Duplicera ett område i samma ämne (#680): kopian ägs av anroparen, "(kopia)". */
+export async function duplicateArea(subjectId, areaId) {
+  const snap = await getDoc(doc(db, "subjects", subjectId, "areas", areaId));
+  if (!snap.exists()) throw new Error("Området finns inte längre.");
+  const { duplicateValue } = await import("./teacher-role.js");
+  _contentCache.invalidate(`areas/${subjectId}`);
+  const areas = await getAreas(subjectId);
+  const order = areas.reduce((m, a) => Math.max(m, Number(a.order) || 0), 0) + 1;
+  const copy = duplicateValue({ id: snap.id, ...snap.data() }, areas.map((a) => a.id), order);
+  await saveArea(subjectId, copy.id, copy);
+  return copy.id;
 }
 
 /** Ta bort ett arbetsområde. */

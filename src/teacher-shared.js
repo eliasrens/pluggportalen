@@ -5,7 +5,7 @@
 //   * Lärarinloggning via Firebase Auth (custom claim teacher:true). Ersätter
 //     det gamla hårdkodade lösenordet. Logiken bor i src/auth.js.
 //   * Små DOM-/text-hjälpare (el, esc, copyText, wireHashLinks).
-//   * Gemensam lärar-toppnav (teacherNav) – sticky flikrad.
+//   * Gemensam lärar-toppnav (teacherNav) – sticky rad med huvuddelarna (#679).
 //   * Diskret sidtitel (teacherHead) och vänliga tomtillstånd (emptyState)
 //     så alla undersidor känns som en familj.
 //   * Lärarinloggnings-vy (renderGate). Översikts-hubben (pageLarare) är
@@ -15,12 +15,12 @@
 // hjälparna { app, go, renderTopbar }.
 // ============================================================================
 
-import { isTeacher, signInTeacher, signOutCurrent, takeSessionLostNotice } from "./auth.js";
+import { isAdmin, isTeacher, signInTeacher, signOutCurrent, takeSessionLostNotice } from "./auth.js";
 
 // --- Lärarläge --------------------------------------------------------------
 // isTeacher() läser custom claim (teacher:true) ur den inloggade Auth-användaren
 // – re-exporteras här eftersom lärarsidans moduler importerar den härifrån.
-export { isTeacher };
+export { isAdmin, isTeacher };
 
 /** Lås lärarläget (logga ut lärar-Auth-användaren). */
 export function setTeacher(on) {
@@ -120,6 +120,7 @@ const ICONS = {
   check: '<path d="M5 12.5 10 17.5 19 6.5"/>',
   sparkle:
     '<path d="M12 4l1.6 4.4L18 10l-4.4 1.6L12 16l-1.6-4.4L6 10l4.4-1.6z"/><path d="M18.5 14.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/>',
+  home: '<path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10v9.5h11V10"/><path d="M10 19.5v-5h4v5"/>',
   upload:
     '<path d="M12 15V4"/><path d="M8 8l4-4 4 4"/><path d="M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/>',
 };
@@ -170,10 +171,12 @@ export async function copyText(text, btn) {
 /**
  * Lazy route-handler för en lärarflik: laddar sidmodulen med import() och visar
  * ett snällt fel om modulen inte kan hämtas (t.ex. mitt i en Pages-utrullning,
- * #271) i stället för en evig spinner.
+ * #271) i stället för en evig spinner. admin-flikar spärras för årskurskonton
+ * med ett vänligt besked (#679) – reglerna (#678) spärrar på riktigt.
  */
-function lazyPage(load, fn) {
+function lazyPage(load, fn, admin = false) {
   return async (ctx) => {
+    if (admin && isTeacher() && !isAdmin()) return renderAdminOnly(ctx);
     let mod;
     try {
       mod = await load();
@@ -189,81 +192,80 @@ function lazyPage(load, fn) {
   };
 }
 
+/** Vänligt besked när servern nekar (#679): aldrig ett tekniskt felmeddelande. */
+export const ADMIN_ONLY = "Det här kan bara admin göra.";
+export function errText(err) {
+  const code = String(err?.code || "").replace(/^(functions|firestore)\//, "");
+  if (code === "permission-denied" || /insufficient permissions|permission.denied/i.test(err?.message || ""))
+    return ADMIN_ONLY;
+  return String(err?.message || err || "Okänt fel");
+}
+
+function renderAdminOnly(ctx) {
+  ctx.renderTopbar();
+  const page = el(`<div class="teacher-page teacher-dark"><div class="panel">
+    <div class="msg warn">${ADMIN_ONLY}</div></div></div>`);
+  page.prepend(teacherNav(ctx, ""));
+  ctx.app.replaceChildren(page);
+}
+
 /**
- * Lärarskalets flik-registry (#440, Del 6). EN rad per lärarmodul:
- *   key   – id för aktiv-markering (teacherNav(ctx, key))
- *   hash  – route; app.js registrerar `page` på den
- *   label – fliktext, title – sidtitel (teacherHead), icon – linje-ikon (ICONS)
- *   page  – route-handler (ctx) => …; moduler laddas med import() så en ny flik
- *           aldrig lägger en ny fil i den statiska bootgrafen (#271).
- * En ny modul (t.ex. Läsresan) = en rad här + en sidfunktion i sin egen fil.
- * Översikts-hubben (#304) och Klass-fliken (#299) är borta; emojis är utbytta
- * mot linje-ikoner (#363). Logga ut ligger fast utanför registryn.
+ * Lärarsidans huvuddelar (#679, spec §5.1). Varje flik i TEACHER_TABS hör till
+ * en grupp; toppnaven visar grupperna och – när gruppen har flera flikar – en
+ * underrad. Grupper utan synliga flikar (Admin för årskurskonton) döljs helt.
  */
-export const TEACHER_TABS = [
-  {
-    key: "klasser",
-    hash: "#/larare/klasser",
-    label: "Klasser & elever",
-    title: "Klasser & elever",
-    icon: "users",
-    page: lazyPage(() => import("./teacher-classes.js"), "pageLarareKlasser"),
-  },
-  {
-    key: "innehall",
-    hash: "#/larare/innehall",
-    label: "Innehåll",
-    title: "Innehållsstudion",
-    icon: "book",
-    page: lazyPage(() => import("./teacher-content.js"), "pageLarareInnehall"),
-  },
-  {
-    // Mattematchen (#459): skapa/styr tävlingsperioder, följ, historik.
-    // ?id=<cid> = en tävlings detaljvy. Live (#460) registreras på raden efter.
-    key: "mattematchen",
-    hash: "#/larare/mattematchen",
-    label: "Mattematchen",
-    title: "Mattematchen",
-    icon: "trophy",
-    page: lazyPage(() => import("./tavling/teacher-mattematchen.js"), "pageLarareMattematchen"),
-  },
-  {
-    // Live (#460): realtidsmatch klass mot klass. ?id=<sid> = projektorvyn.
-    key: "live",
-    hash: "#/larare/live",
-    label: "Live",
-    title: "Live",
-    icon: "bolt",
-    page: lazyPage(() => import("./live/teacher-live.js"), "pageLarareLive"),
-  },
-  { key: "hittaratt", hash: "#/larare/hitta-ratt", label: "Hitta rätt!", title: "Hitta rätt!", icon: "pin", page: lazyPage(() => import("./hitta-ratt/larare/page-larare-hitta-ratt.js"), "pageLarareHittaRatt") },
+export const TEACHER_GROUPS = [
+  { key: "oversikt", label: "Översikt", icon: "home" },
+  { key: "klasser", label: "Klasser", icon: "users" },
+  { key: "material", label: "Material", icon: "book" },
+  { key: "live", label: "Live och tävlingar", icon: "bolt" },
+  { key: "statistik", label: "Statistik", icon: "chart" },
+  { key: "admin", label: "Admin", icon: "key" },
 ];
 
-/** Gemensam lärar-toppnav (flikar) för lärarsidans undersidor. Sticky rad. */
+/**
+ * Lärarskalets flik-registry (#440). EN rad per lärarsida:
+ *   key/hash/label/title/icon – id, route (app.js registrerar `page`), fliktext,
+ *   sidtitel (teacherHead) och linje-ikon; group – huvuddel ur TEACHER_GROUPS;
+ *   admin: true – bara admin (döljs i naven och spärras i lazyPage, #677/#679);
+ *   page – sidmodulen laddas med import() så bootgrafen aldrig växer (#271).
+ * Flikarna FLYTTADES in i grupperna i #679 – sidorna fungerar som förut.
+ */
+const tab = (key, hash, group, label, title, icon, load, fn, admin = false) =>
+  ({ key, hash, group, label, title, icon, admin, page: lazyPage(load, fn, admin) });
+export const TEACHER_TABS = [
+  tab("oversikt", "#/larare/oversikt", "oversikt", "Översikt", "Översikt", "home", () => import("./teacher-overview.js"), "pageLarareOversikt"),
+  tab("klasser", "#/larare/klasser", "klasser", "Klasser", "Klasser", "users", () => import("./teacher-classes.js"), "pageLarareKlasser"),
+  tab("innehall", "#/larare/innehall", "material", "Plugga-material", "Material", "book", () => import("./teacher-content.js"), "pageLarareInnehall"),
+  tab("hittaratt", "#/larare/hitta-ratt", "material", "Hitta rätt!", "Hitta rätt!", "pin", () => import("./hitta-ratt/larare/page-larare-hitta-ratt.js"), "pageLarareHittaRatt", true),
+  // Live (#460): realtidsmatch klass mot klass. ?id=<sid> = projektorvyn.
+  tab("live", "#/larare/live", "live", "Live", "Live", "bolt", () => import("./live/teacher-live.js"), "pageLarareLive"),
+  // Mattematchen (#459): skapa/styr tävlingsperioder – bara admin (§2.2). Statistiken finns under Statistik.
+  tab("mattematchen", "#/larare/mattematchen", "live", "Mattematchen", "Mattematchen", "trophy", () => import("./tavling/teacher-mattematchen.js"), "pageLarareMattematchen", true),
+  tab("statistik", "#/larare/statistik", "statistik", "Statistik", "Statistik", "chart", () => import("./teacher-classes.js"), "pageLarareStatistik"),
+  tab("adminklasser", "#/larare/admin/klasser", "admin", "Klasser & elevkonton", "Klasser & elevkonton", "school", () => import("./teacher-classes.js"), "pageLarareAdminKlasser", true),
+  tab("konton", "#/larare/konton", "admin", "Lärarkonton", "Lärarkonton", "key", () => import("./teacher-accounts.js"), "pageLarareKonton", true),
+];
+
+/** Gemensam lärar-toppnav: huvuddelarna + ev. underrad för aktiv del. Sticky. */
 export function teacherNav(ctx, active) {
-  const tabs = TEACHER_TABS;
+  const tabs = TEACHER_TABS.filter((t) => !t.admin || isAdmin());
+  const activeGroup = TEACHER_TABS.find((t) => t.key === active)?.group;
+  const groups = TEACHER_GROUPS.map((g) => ({ ...g, tabs: tabs.filter((t) => t.group === g.key) })).filter((g) => g.tabs.length);
+  const link = (cls, on, hash, ic, label) =>
+    `<a class="${cls} ${on ? "active" : ""}" data-hash="${hash}"${on ? ' aria-current="page"' : ""}><span class="tnav-ic">${icon(ic)}</span><span class="tnav-txt">${esc(label)}</span></a>`;
+  const sub = groups.find((g) => g.key === activeGroup && g.tabs.length > 1);
   const nav = el(`<nav class="teacher-nav" aria-label="Lärarnavigation">
     <div class="teacher-nav-inner">
       <span class="teacher-nav-brand" aria-hidden="true">
         <span class="teacher-nav-logo">${icon("school", 20)}</span>
         <span class="teacher-nav-wordmark">Lärarsida</span>
       </span>
-      <span class="teacher-nav-tabs">
-      ${tabs
-        .map(
-          (t) =>
-            `<a class="tnav ${t.key === active ? "active" : ""}" data-hash="${t.hash}"${
-              t.key === active ? ' aria-current="page"' : ""
-            }><span class="tnav-ic">${icon(t.icon)}</span><span class="tnav-txt">${esc(
-              t.label
-            )}</span></a>`
-        )
-        .join("")}
-      </span>
-      <a class="tnav logout" data-logout="1" title="Logga ut"><span class="tnav-ic">${icon(
-        "logout"
-      )}</span><span class="tnav-txt">Logga ut</span></a>
+      <span class="teacher-nav-tabs">${groups.map((g) => link("tnav", g.key === activeGroup, g.tabs[0].hash, g.icon, g.label)).join("")}</span>
+      <span class="teacher-nav-who" hidden></span>
+      <a class="tnav logout" data-logout="1" title="Logga ut"><span class="tnav-ic">${icon("logout")}</span><span class="tnav-txt">Logga ut</span></a>
     </div>
+    ${sub ? `<div class="teacher-subnav" aria-label="${esc(sub.label)}">${sub.tabs.map((t) => link("tsub", t.key === active, t.hash, t.icon, t.label)).join("")}</div>` : ""}
   </nav>`);
   nav.querySelectorAll("[data-hash]").forEach((a) =>
     a.addEventListener("click", () => ctx.go(a.dataset.hash))
@@ -272,16 +274,18 @@ export function teacherNav(ctx, active) {
     setTeacher(false);
     ctx.go("#/");
   });
+  // "Inloggad som Årskurs 4" (§5.2) – kontots namn läses dynamiskt (#271).
+  const who = nav.querySelector(".teacher-nav-who");
+  import("./teacher-role.js").then((m) => m.myRole()).then((r) => {
+    who.textContent = `Inloggad som ${r.name}`;
+    who.hidden = false;
+  }, () => {});
   return nav;
 }
 
 /**
- * Diskret sidtitel för en lärar-undersida – bara för orientering. Tidigare var
- * detta ett helt hjälte-block med brödsmula "← Till översikten", stor ikon och
- * en förklarande ingress; allt det är bortskalat (issue #304) eftersom
- * toppnaven (teacherNav) redan markerar var man är och översikts-hubben är
- * borta. `emoji`/`title` behålls; ev. `lead` ignoreras (bakåtkompatibel signatur).
- * Eller en flik-nyckel ur TEACHER_TABS, t.ex. teacherHead(ctx, "klasser").
+ * Diskret sidtitel för en lärar-undersida (#304: toppnaven orienterar). `emoji`/
+ * `title` behålls, ev. `lead` ignoreras – eller en flik-nyckel ur TEACHER_TABS.
  */
 export function teacherHead(_ctx, opts = {}) {
   // #440: en flik-nyckel (sträng) hämtar titel + ikon ur TEACHER_TABS.
@@ -325,12 +329,8 @@ export function emptyState(
 }
 
 // ============================================================================
-// Lärarspärr (gate)
-// ----------------------------------------------------------------------------
-// Översikts-hubben (pageLarare: välkomst-hero + stora genvägskort) är borttagen
-// (issue #304) – den dubblerade toppnaven. Efter inloggning landar man direkt
-// på "Klasser & elever" (#/larare/klasser); route #/larare omdirigerar dit
-// (se app.js) så gamla länkar/bokmärken inte bryts.
+// Lärarspärr (gate). Efter inloggning landar man på Översikt (#679); route
+// #/larare omdirigerar dit (app.js) så gamla länkar/bokmärken inte bryts.
 // ============================================================================
 
 export function renderGate(ctx) {
@@ -371,13 +371,10 @@ export function renderGate(ctx) {
         view.querySelector("#p").value
       );
       if (res.ok) {
-        // Landa direkt på "Klasser & elever" (issue #304) i stället för den
-        // borttagna översikts-hubben. Spärren visas ofta REDAN på
-        // #/larare/klasser (#/larare → redirect → gate), så en bar go() skulle
-        // sätta samma hash → ingen hashchange → routern kör inte → man fastnar
-        // på inloggningsrutan. Tvinga därför en om-routning när hashen redan
-        // matchar (routern lyssnar på window "hashchange", se app.js).
-        const target = "#/larare/klasser";
+        // Spärren visas ofta REDAN på målet (#/larare → redirect → gate); en
+        // bar go() till samma hash ger ingen hashchange → tvinga om-routning.
+        const h = window.location.hash;
+        const target = h.startsWith("#/larare/") ? h : "#/larare/oversikt";
         if (window.location.hash === target) {
           window.dispatchEvent(new HashChangeEvent("hashchange"));
         } else {

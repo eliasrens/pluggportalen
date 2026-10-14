@@ -80,7 +80,7 @@ const ELEV1_PW = "hejsan6"; // >= 6 för emulator-seed via createUser-liknande v
 
 test("seed: skapa lärare, elever och data i emulatorn", async () => {
   const t = await adminAuth.createUser({ email: TEACHER_EMAIL, password: TEACHER_PW });
-  await adminAuth.setCustomUserClaims(t.uid, { teacher: true });
+  await adminAuth.setCustomUserClaims(t.uid, { teacher: true, admin: true });
 
   await adminAuth.createUser({ uid: "elev1", email: usernameToEmail("elev1"), password: ELEV1_PW });
   await adminAuth.createUser({ uid: "elev2", email: usernameToEmail("elev2"), password: "hejsan7" });

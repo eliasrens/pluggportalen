@@ -12,13 +12,16 @@
 // är utfällda (och vald flik, #455) minns i opts.itemState så de står kvar när listan laddas om. Rubrikerna Område/Årskurs är
 // klickbara (aria-sort + ▲/▼); själva sorteringen sker i grades.filterSortAreas
 // och sorteringsstate ägs av teacher-content.js – hit kommer redan sorterade områden.
+// #679: "Skapat av …" under namnet; Använd/Duplicera på allt, Ändra/Radera (och
+// underraderna) bara på material kontot får ändra (opts.role, teacher-role.js).
 // ============================================================================
 
 import * as data from "./data.js";
 import { buildMergeForm } from "./teacher-content-merge.js";
 import { areaExerciseTypes, hasGeneratorContent, EXERCISE_TYPES } from "./exercise-types.js";
 import { normalizeGrade, gradeLabel } from "./grades.js";
-import { el, esc, icon } from "./teacher-shared.js";
+import { el, errText, esc, icon } from "./teacher-shared.js";
+import { canEditArea, createdByLabel } from "./teacher-role.js";
 import { generatorSummary } from "./teacher-generator-labels.js";
 
 let itemsMod = null; // teacher-area-items.js efter första import() (#454/#271).
@@ -91,6 +94,11 @@ const actBtn = (act, ic, label, extra = "") =>
   `<button type="button" class="area-act ${extra}" data-act="${act}"
     title="${esc(label)}" aria-label="${esc(label)}">${icon(ic, 16)}</button>`;
 
+/** Ikon + kort text (#679: Använd/Duplicera ska synas, inte bara som ikon). */
+const txtBtn = (act, ic, text, label) =>
+  `<button type="button" class="area-act area-act-txt" data-act="${act}"
+    title="${esc(label)}" aria-label="${esc(label)}">${icon(ic, 15)}<span>${esc(text)}</span></button>`;
+
 /**
  * Bygg den sorterbara innehållstabellen.
  * @param {object[]} areas – redan filtrerade/sorterade områden att visa.
@@ -104,9 +112,12 @@ const actBtn = (act, ic, label, extra = "") =>
  *   områden + engångs-notis efter sparning + senast vald flik per område (#455) (ägs av teacher-content.js, överlever omladdning).
  * @param {()=>void} [opts.onItemsSaved] – tyst omladdning efter sparad underrad (#454).
  * @param {string} [opts.subjectName] – ämnets namn (Ämnesläsningens AI-prompt, #673).
+ * @param {object} [opts.role] – myRole() (#679); saknas → allt ändringsbart som förr.
+ * @param {(area:object)=>void} [opts.onUse] – "Använd": välj området för en klass.
+ * @param {(area:object)=>void} [opts.onDuplicate] – "Duplicera" (#680); saknas → ingen knapp.
  * @returns {HTMLElement}
  */
-export function buildAreaTable(areas, { subjectId, subjectName, onEdit, onRefresh, sort, onSort, itemState, onItemsSaved }) {
+export function buildAreaTable(areas, { subjectId, subjectName, onEdit, onRefresh, sort, onSort, itemState, onItemsSaved, role, onUse, onDuplicate }) {
   const state = itemState || { open: new Set(), notice: new Map() };
   state.tab ??= new Map();
   const wrap = el(`<div class="table-scroll area-table-scroll">
@@ -129,18 +140,22 @@ export function buildAreaTable(areas, { subjectId, subjectName, onEdit, onRefres
   for (const a of areas) {
     const grade = normalizeGrade(a.grade);
     const key = `${subjectId}/${a.id}`;
-    const row = el(`<table><tbody><tr class="area-tbl-row" tabindex="0"
-        aria-expanded="false" aria-label="Visa innehållet i ${esc(a.name)}">
-      <td class="area-tbl-name"><span class="area-tbl-emoji" aria-hidden="true">${esc(a.coverEmoji || "📖")}</span><span>${esc(a.name)}</span></td>
+    const own = canEditArea(a, role);
+    const owner = role ? `<small class="area-tbl-owner">Skapat av ${esc(createdByLabel(a))}${own ? "" : " · bara använda"}</small>` : "";
+    const row = el(`<table><tbody><tr class="area-tbl-row${own ? "" : " readonly"}" ${own ? 'tabindex="0"' : ""}
+        aria-expanded="false" aria-label="${own ? "Visa innehållet i " : ""}${esc(a.name)}">
+      <td class="area-tbl-name"><span class="area-tbl-emoji" aria-hidden="true">${esc(a.coverEmoji || "📖")}</span><span class="area-tbl-name-txt"><span>${esc(a.name)}</span>${owner}</span></td>
       <td class="area-tbl-grade">${grade ? esc(gradeLabel(grade)) : "–"}</td>
       <td><div class="area-tbl-badges">${typeBadges(a)}${textBadges(a)}</div></td>
       <td class="area-tbl-count">${esc(quantityText(a))}</td>
       <td><div class="area-tbl-actions">
-        ${actBtn("edit", "pencil", `Redigera ${a.name}`)}
+        ${onUse ? txtBtn("use", "check", "Använd", `Använd ${a.name} i en klass`) : ""}
+        ${onDuplicate ? txtBtn("dup", "copy", "Duplicera", `Duplicera ${a.name} till en egen kopia`) : ""}
+        ${own ? `${actBtn("edit", "pencil", `Redigera ${a.name}`)}
         ${actBtn("review", "eye", "Granska innehållet")}
         ${actBtn("add", "plus", "Lägg till innehåll")}
         ${actBtn("amnes", "book", "Skapa ämnestexter")}
-        ${actBtn("del", "trash", "Ta bort", "danger")}
+        ${actBtn("del", "trash", "Ta bort", "danger")}` : ""}
       </div></td>
     </tr></tbody></table>`).querySelector("tr");
 
@@ -151,6 +166,13 @@ export function buildAreaTable(areas, { subjectId, subjectName, onEdit, onRefres
     const mergeSlot = el(`<div class="area-merge" hidden></div>`);
     expandRow.firstElementChild.append(itemsSlot, mergeSlot);
     const btn = (act) => row.querySelector(`[data-act="${act}"]`);
+    btn("use")?.addEventListener("click", () => onUse(a));
+    btn("dup")?.addEventListener("click", () => onDuplicate(a));
+    if (!own) {
+      // Andras material (#679): bara Använd/Duplicera – inga underrader att ändra i.
+      tbody.append(row);
+      continue;
+    }
     const slotBtns = new Map([[itemsSlot, btn("review")], [mergeSlot, btn("add")]]);
     let panel = null; // underradens panel när den är byggd.
 
@@ -262,7 +284,7 @@ export function buildAreaTable(areas, { subjectId, subjectName, onEdit, onRefres
         await data.deleteArea(subjectId, a.id);
         onRefresh();
       } catch (err) {
-        alert("Kunde inte ta bort: " + err.message);
+        alert("Kunde inte ta bort: " + errText(err));
       }
     });
 

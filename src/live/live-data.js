@@ -41,6 +41,7 @@
 // ============================================================================
 
 import { db } from "../firebase-config.js";
+import { isAdmin } from "../auth.js";
 import {
   doc, getDoc, getDocs, getDocFromServer, collection, query, where, onSnapshot,
   addDoc, updateDoc, setDoc, writeBatch, runTransaction, increment, serverTimestamp, Timestamp,
@@ -197,15 +198,17 @@ export async function writeResultIfMissing(sid, result) {
     skrev = { ...snap.data(), result };
   });
   // Först NÄR result är committat: bonus + pokaler (#495, idempotenta id:n).
-  if (skrev) {
+  // Klasscentrets kassa, pokaler och klassbonus skriver bara admin (#678) –
+  // ett årskurskonto hoppar över dem i stället för att nekas.
+  if (skrev && isAdmin()) {
     import("../klasscenter/kc-koppling.js").then((m) => {
       m.liveKlassBonus(result);
       m.pokalerEfterAvslut("live", sid, skrev);
       m.livePrisEfterAvslut(sid, skrev);
     }).catch(() => {});
-    // Pluggmynt efter matchen (#557) – idempotent (kvitto per elev).
-    if (result?.rewards) import("./live-rewards-data.js").then((m) => m.settleLiveRewards(sid, skrev)).catch(() => {});
   }
+  // Pluggmynt efter matchen (#557) – idempotent (kvitto per elev).
+  if (skrev && result?.rewards) import("./live-rewards-data.js").then((m) => m.settleLiveRewards(sid, skrev)).catch(() => {});
 }
 
 function newestFirst(list) {

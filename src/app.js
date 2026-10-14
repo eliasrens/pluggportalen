@@ -27,9 +27,9 @@
 //   #/elev/profil     profil: avatar, namn, coins, statistik
 //   #/elev/klassfoto  (borttagen sida – omdirigerar till #/elev/by, klassbyn)
 //   #/elev/klasskamrat  en klasskamrats rum i läsläge (?id=<studentId>)
-//   #/larare          lärarsida (översikt)
-//   #/larare/klass    klassöversikt (elevers framsteg, läs-endast)
-//   #/larare/klasser  klasser & elevkonton (skapa klass + konton, medlemshantering)
+//   #/larare          → #/larare/oversikt (Översikt, #679)
+//   #/larare/klass    → #/larare/statistik (elevers framsteg per klass)
+//   #/larare/klasser  Klasser (synlighet, fokusläge, inloggning); skapa/ändra klasser + konton under Admin
 //   #/larare/live     Live: skapa session, aktiva sessioner, historik; ?id= = projektorvy (#460)
 //   #/larare/innehall innehållsinmatning (arbetsområdes-JSON) + AI-promptbyggare
 //   #/larare/elever   (sammanslagen med #/larare/klasser – omdirigerar dit)
@@ -249,14 +249,13 @@ const routes = {
   "/elev/klassfoto": () => go("#/elev/by"),
   // Klasskamratens rum (#/elev/klasskamrat?id=…) – läs-endast vy av annans rum.
   "/elev/klasskamrat": pageElevKlasskamrat,
-  // Översikts-hubben är borttagen (issue #304): #/larare omdirigerar till den
-  // enade klass-fliken så gamla länkar/bokmärken inte bryts. Lärarspärren
-  // (renderGate) visas av #/larare/klasser om man inte är inloggad.
-  "/larare": () => go("#/larare/klasser"),
+  // #/larare → Översikt (#679, ny struktur). Lärarspärren (renderGate) visas av
+  // sidan själv om man inte är inloggad.
+  "/larare": () => go("#/larare/oversikt"),
   // Klassöversikt/statistik (gamla #/larare/klass) är sammanslagen med Klasser &
   // elever (issue #299): framstegsmatrisen är nu en 📊-expander per klasskort.
   // Gamla länkar/bokmärken skickas dit (samma mönster som /larare/elever).
-  "/larare/klass": () => go("#/larare/klasser"),
+  "/larare/klass": () => go("#/larare/statistik"),
   // #/larare/klasser (klass-master-detail) och #/larare/innehall registreras
   // ur TEACHER_TABS nedanför routes-objektet (#440).
   // AI-prompt-sidan är sammanslagen med innehållssidan (issue #62): den
@@ -320,7 +319,7 @@ onSessionLost(() => {
   const { path } = aktuellRutt();
   const larare = path === "/larare" || path.startsWith("/larare/");
   if (!larare && !path.startsWith("/elev/")) return void takeSessionLostNotice();
-  const dit = larare ? "#/larare/klasser" : "#/";
+  const dit = larare ? "#/larare/oversikt" : "#/";
   if ((window.location.hash || "#/") === dit) router();
   else window.location.replace(dit);
 });

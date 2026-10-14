@@ -88,9 +88,12 @@ function authErrorToLogin(err) {
 /**
  * Ändra en elevs inloggning. `deps` = { auth, db, FieldPath, serverTimestamp }
  * (Admin SDK: getAuth(), getFirestore(), FieldPath, () => FieldValue.serverTimestamp()).
+ * `caller` = anroparens roll (teacher-role.js callerRole). Årskurskontot
+ * (#678, spec §4.2) får bara byta LÖSENORD, och bara för elever i sina klasser
+ * (students/{uid}.classIds). Admin: allt, som förut.
  * @returns {Promise<{uid, username, usernameChanged:boolean, passwordChanged:boolean}>}
  */
-export async function updateStudentLogin({ auth, db, FieldPath, serverTimestamp }, raw) {
+export async function updateStudentLogin({ auth, db, FieldPath, serverTimestamp }, raw, caller = { role: "admin" }) {
   const { uid, username, password } = validateInput(raw);
   const studentRef = db.collection("students").doc(uid);
   const credRef = db.collection("studentCredentials").doc(uid);
@@ -104,6 +107,13 @@ export async function updateStudentLogin({ auth, db, FieldPath, serverTimestamp 
     }),
   ]);
   if (!studentSnap.exists) throw new LoginError("not-found", "Eleven finns inte.");
+  if (caller?.role !== "admin") {
+    const egna = Array.isArray(caller?.classIds) ? caller.classIds : [];
+    const elevens = studentSnap.get("classIds");
+    if (caller?.role !== "arskurs" || !Array.isArray(elevens) || !elevens.some((c) => egna.includes(c))) {
+      throw new LoginError("permission-denied", "Eleven går inte i någon av dina klasser.");
+    }
+  }
   // En lärare får aldrig byta en ANNAN lärares inloggning den här vägen.
   if (user.customClaims?.teacher === true) {
     throw new LoginError("permission-denied", "Kontot är ett lärarkonto, inte en elev.");
@@ -113,6 +123,9 @@ export async function updateStudentLogin({ auth, db, FieldPath, serverTimestamp 
   const newUsername = username && username !== oldUsername ? username : null;
   if (!newUsername && !password) {
     throw new LoginError("invalid-argument", "Inget att ändra – användarnamnet är redan " + oldUsername + ".");
+  }
+  if (newUsername && caller?.role !== "admin") {
+    throw new LoginError("permission-denied", "Bara admin kan byta användarnamn – du kan byta lösenordet.");
   }
 
   if (newUsername) {

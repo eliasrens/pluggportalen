@@ -135,3 +135,8 @@ test("klassvyns nya moduler ligger utanför den statiska bootgrafen från app.js
   const entry = readFileSync(join(root, "teacher-classes.js"), "utf8");
   assert.match(entry, /import\(["']\.\/teacher-classes-page\.js["']\)/);
 });
+
+test("classesHash med sidlägets route (#679)", () => {
+  assert.equal(classesHash("4a", "statistik", "#/larare/statistik"), "#/larare/statistik?klass=4a&sektion=statistik");
+  assert.equal(classesHash(null, null, "#/larare/admin/klasser"), "#/larare/admin/klasser");
+});

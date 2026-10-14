@@ -46,7 +46,7 @@ export function renderCompetitionForm(host, { classes, competition, api, onSaved
           <button type="button" class="btn ghost small" data-alla="1">Välj alla</button>
           <button type="button" class="btn ghost small" data-alla="0">Inga</button>
         </div>`
-        : `<p class="hint">Det finns inga klasser än – skapa en under Klasser & elever först.</p>`}
+        : `<p class="hint">Det finns inga klasser än – skapa en under Admin → Klasser & elevkonton först.</p>`}
     </fieldset>
     <div class="mmt-tider">
       <div class="field"><label for="mmt-sd">Startdatum</label><input id="mmt-sd" type="date" value="${s.date}" /></div>

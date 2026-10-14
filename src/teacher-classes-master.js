@@ -3,7 +3,8 @@
 // ----------------------------------------------------------------------------
 // Issue #440: smal vänstermeny med ENDAST klassnamn + antal elever (K-10/K-11),
 // aktiv klass markerad (aria-current), "+ Skapa en ny klass" överst (K-02) och
-// tomtillstånd (K-09). Klick = store.select() → detaljytan byts utan sidladdning.
+// tomtillstånd (K-09); skapa-knappen bara i Admin-läget (store.manage, #679).
+// Klick = store.select() → detaljytan byts utan sidladdning.
 // På smal skärm ersätts listan av en <select> överst (CSS växlar).
 // 🔒 visas på klasser med aktivt fokusläge (activeLock + serverklockan – ingen
 // extra läsning); kollas om var 15:e s så ett passerat klockslag släcks.
@@ -22,7 +23,7 @@ export function createClassMaster(store) {
     <div class="cls-master-head">
       <span class="cls-master-title">Klasser</span>
     </div>
-    <button type="button" class="btn ghost small cls-new">${icon("plus", 16)}<span>Skapa en ny klass</span></button>
+    ${store.manage ? `<button type="button" class="btn ghost small cls-new">${icon("plus", 16)}<span>Skapa en ny klass</span></button>` : ""}
     <ul class="cls-list" role="list"></ul>
     <label class="cls-picker-wrap">
       <span class="sr-only">Välj klass</span>
@@ -34,7 +35,7 @@ export function createClassMaster(store) {
   const newBtn = root.querySelector(".cls-new");
   const picker = root.querySelector(".cls-picker");
 
-  newBtn.addEventListener("click", () => store.showCreate());
+  newBtn?.addEventListener("click", () => store.showCreate());
   listEl.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-id]");
     if (btn) store.select(btn.dataset.id);
@@ -47,12 +48,13 @@ export function createClassMaster(store) {
     const classes = store.sorted();
     const activeId = store.creating ? null : store.selectedId;
     const now = serverNow();
-    newBtn.classList.toggle("active", store.creating);
-    newBtn.setAttribute("aria-pressed", String(store.creating));
+    newBtn?.classList.toggle("active", store.creating);
+    newBtn?.setAttribute("aria-pressed", String(store.creating));
 
     if (!classes.length) {
       listEl.replaceChildren(
-        el(`<li class="cls-empty"><b>Inga klasser än</b><span>Skapa din första klass – t.ex. 6A.</span></li>`)
+        el(`<li class="cls-empty"><b>Inga klasser än</b><span>${store.manage ? "Skapa din första klass – t.ex. 6A."
+          : "Admin skapar klasser och väljer vilka kontot har."}</span></li>`)
       );
     } else {
       listEl.replaceChildren(
@@ -79,7 +81,7 @@ export function createClassMaster(store) {
             )} (${countLabel(studentCount(cls))})</option>`
         )
         .join("") +
-      `<option value="${NEW_VALUE}"${store.creating ? " selected" : ""}>+ Skapa en ny klass</option>`;
+      (store.manage ? `<option value="${NEW_VALUE}"${store.creating ? " selected" : ""}>+ Skapa en ny klass</option>` : "");
   }
 
   // Fokusläget kan gå ut (klockslag) eller ändras i Fokus-sektionen – håll 🔒 färsk.
