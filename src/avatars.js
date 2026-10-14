@@ -8,7 +8,7 @@
 // t.ex. i lärarens elevtabell), men allt eleven ser renderas som inline SVG.
 // ============================================================================
 
-import { getItem } from "./shop-items.js";
+import { getItem, SHOP_ITEMS } from "./shop-items.js";
 import { CHARACTERS, characterSvg } from "./art-characters.js";
 import { wearableSvg, wearableAnchor } from "./art-wearables.js";
 import { loadCollectionArt } from "./art-items.js";
@@ -51,14 +51,91 @@ export const AVATARS = {
 
 export const DEFAULT_AVATAR = "fox";
 
+// --- Köpbara avatarer (#694) -------------------------------------------------
+// Alla i AVATARS ovan är GRATIS. Köpbara figurer är butiksvaror med category
+// "avatar" (ingen egen flik) och `collection` (t.ex. Halloween-fliken), ägs i
+// studentData.ownedItems – för alltid. Katalograderna står HÄR och slås in i
+// SHOP_ITEMS när modulen laddas (avatars.js ligger i bootgrafen, så getItem
+// känner dem innan något ritas; shop-items.js är vid 400-taket). Konsten laddas
+// lazy per samling (AVATAR_KONST nedan, #271). En ny köpbar figur: rad nedan +
+// konst i samlingens modul + id:t i firestore.rules (kopAvatarOk).
+const KOP_AVATARER = [
+  { id: "hw-av-spoke", name: "Litet spöke", emoji: "👻", price: 400, collection: "halloween" },
+  { id: "hw-av-fladdermus", name: "Fladdermus", emoji: "🦇", price: 450, collection: "halloween" },
+  { id: "hw-av-pumpgubbe", name: "Pumpgubbe", emoji: "🎃", price: 500, collection: "halloween" },
+  { id: "hw-av-mumie", name: "Gullig mumie", emoji: "🧻", price: 600, collection: "halloween" },
+  { id: "hw-av-haxkatt", name: "Häxkatt", emoji: "🐈", price: 700, collection: "halloween" },
+  { id: "hw-av-vampyr", name: "Liten vampyr", emoji: "🧛", price: 800, collection: "halloween" },
+];
+for (const it of KOP_AVATARER) {
+  if (!getItem(it.id)) SHOP_ITEMS.push({ ...it, category: "avatar" });
+}
+
+/** Är id:t en köpbar avatar (inte gratis)? */
+export function isBuyableAvatar(id) {
+  const it = getItem(id);
+  return !!(it && it.category === "avatar");
+}
+
+/** Alla köpbara avatarer (katalogposter) i katalogordning. */
+export function buyableAvatars() {
+  return SHOP_ITEMS.filter((it) => it.category === "avatar");
+}
+
+/** Får eleven använda avataren? Gratis alltid, köpbar bara om den ägs. */
+export function canUseAvatar(id, ownedItems) {
+  if (AVATARS[id]) return true;
+  return isBuyableAvatar(id) && Array.isArray(ownedItems) && ownedItems.includes(id);
+}
+
+/** Samling → laddare som registrerar samlingens avatarkonst (lazy, #271). */
+const AVATAR_KONST = {
+  halloween: () => import("./halloween/hw-avatarer.js").then((m) => m.registreraHalloweenAvatarer()),
+};
+let konstLaddas = null;
+
+/**
+ * Ladda (en gång) de köpbara avatarernas konst. Löses alltid, även vid fel
+ * (då står platshållaren kvar). Efteråt byts platshållare i dokumentet ut
+ * mot den riktiga figuren, så vyer som ritade för tidigt läker sig själva.
+ */
+export function loadAvatarArt() {
+  konstLaddas ||= Promise.all(
+    Object.values(AVATAR_KONST).map((ladda) =>
+      ladda().catch((err) => console.warn("Avatarkonsten kunde inte laddas", err)))
+  ).then(() => {
+    if (typeof document === "undefined") return;
+    for (const svg of document.querySelectorAll("svg[data-av-vantar]")) {
+      const id = svg.getAttribute("data-av-vantar");
+      if (CHARACTERS[id]) svg.outerHTML = characterSvg(id);
+    }
+  });
+  return konstLaddas;
+}
+
+/** Är avatarens konst redo att ritas (gratis, eller köpbar + laddad)? */
+export function avatarArtReady(id) {
+  return !!AVATARS[id] || !isBuyableAvatar(id) || !!CHARACTERS[id];
+}
+
+/** Neutral siluett medan en köpbar figurs konst laddas (aldrig fel figur). */
+function vantarSvg(id) {
+  return (
+    `<svg viewBox="0 0 100 120" role="img" aria-label="${avatarName(id)}" data-av-vantar="${id}" ` +
+    `preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">` +
+    `<path d="M50 14 C34 14 28 26 28 38 C28 50 34 56 38 58 C30 66 29 84 31 104 L69 104 C71 84 70 66 62 58 C66 56 72 50 72 38 C72 26 66 14 50 14 Z" fill="#3B3350" opacity="0.12"/></svg>`
+  );
+}
+
 /** Emoji för ett avatar-id, med säker fallback till standardavataren. */
 export function avatarEmoji(id) {
-  return AVATARS[id] || AVATARS[DEFAULT_AVATAR];
+  return AVATARS[id] || (isBuyableAvatar(id) && getItem(id).emoji) || AVATARS[DEFAULT_AVATAR];
 }
 
 /** Svenskt namn för ett avatar-id (för aria-labels och titlar). */
 export function avatarName(id) {
-  return (CHARACTERS[id] || CHARACTERS[DEFAULT_AVATAR]).name;
+  if (CHARACTERS[id]) return CHARACTERS[id].name;
+  return isBuyableAvatar(id) ? getItem(id).name : CHARACTERS[DEFAULT_AVATAR].name;
 }
 
 /**
@@ -68,7 +145,11 @@ export function avatarName(id) {
  * kan utvecklas).
  */
 export function avatarSvg(id) {
-  return characterSvg(AVATARS[id] ? id : DEFAULT_AVATAR);
+  if (AVATARS[id]) return characterSvg(id);
+  if (!isBuyableAvatar(id)) return characterSvg(DEFAULT_AVATAR);
+  if (CHARACTERS[id]) return characterSvg(id);
+  loadAvatarArt(); // köpbar figur vars konst inte laddats än (#694)
+  return vantarSvg(id);
 }
 
 /**

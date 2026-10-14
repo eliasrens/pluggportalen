@@ -22,6 +22,7 @@ import { HW_KOSTYMER_KATALOG } from "./hw-kostymer.js";
 import { registreraUndergrupp } from "./hw-butik.js";
 import { pumpa } from "./hw-art-delar.js";
 import { registreraHalloweenDjur } from "./hw-djur.js";
+import { registreraHalloweenAvatarer } from "./hw-avatarer.js";
 
 /** Flik-ikonen för 🎃 Halloween i butiken (SVG, ingen Emoji 13+, #590). */
 export const HW_FLIK_IKON = { viewBox: "0 0 48 46", art: pumpa(24, 26, 19, "glad") };
@@ -39,4 +40,5 @@ export function registreraHalloweenKonst() {
   registreraUndergrupp({ id: "kostymer", rubrik: "🎭 Kostymer", match: (it) => it.category === "klader" });
   registerCategoryIcons({ halloween: HW_FLIK_IKON });
   registreraHalloweenDjur(); // de tio Halloween-djuren + pumpaägget (#695)
+  registreraHalloweenAvatarer(); // köpbara avatarer (#694): figurer + butikskort
 }
