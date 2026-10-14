@@ -152,7 +152,7 @@ test("anropspunkterna skickar rätt modul + resultatform (dynamiskt, utan await)
   assert.match(las("games-rakna.js"), /classResult: \{ ratt: correct \}/);
   assert.match(las("lasresan/page-lasresan.js"), /modul: "lasresan", resultat: \{ ratt: a\.correct, totalt: a\.totalQuestions \}/);
   assert.match(las("tavling/page-mattematchen.js"), /modul: "mattematchen", resultat: \{ rattFore, rattEfter: bekraftade \}/);
-  assert.match(las("live/live-data.js"), /if \(skrev\) \{\s*import\("\.\.\/klasscenter\/kc-koppling\.js"\)\.then\(\(m\) => \{\s*m\.liveKlassBonus\(result\);\s*m\.pokalerEfterAvslut\("live", sid, skrev\);/);
+  assert.match(las("live/live-data.js"), /if \(skrev && isAdmin\(\)\) \{\s*import\("\.\.\/klasscenter\/kc-koppling\.js"\)\.then\(\(m\) => \{\s*m\.liveKlassBonus\(result\);\s*m\.pokalerEfterAvslut\("live", sid, skrev\);/);
 });
 
 // --- Pokaler (#495) -----------------------------------------------------------

@@ -80,3 +80,23 @@ test("adminFromClaims: admin-claim och lärare utan role = admin, role arskurs =
   assert.match(src, /isAdm = adminFromClaims\(tok\.claims\)/, "onAuthStateChanged");
   assert.match(src, /adminClaim = adminFromClaims\(tok\.claims\)/, "signInTeacher");
 });
+
+// #678: Live efter roll – samma gränser som firestore.rules gradeLiveClassesOk.
+test("canSeeLiveSession: årskurskontot ser bara matcher med någon av sina klasser", async () => {
+  const { canSeeLiveSession } = await import("../src/teacher-role-core.js");
+  assert.equal(canSeeLiveSession({ participatingClassIds: ["4a", "5a"] }, ak4), true);
+  assert.equal(canSeeLiveSession({ participatingClassIds: ["5a", "6a"] }, ak4), false);
+  assert.equal(canSeeLiveSession({}, ak4), false);
+  assert.equal(canSeeLiveSession({ participatingClassIds: ["6a"] }, admin), true);
+  assert.equal(canSeeLiveSession({ participatingClassIds: ["6a"] }, null), true);
+});
+
+test("liveClassChoices/liveFieldsFor: valfri motståndare bara i Klassmatchen, inget kassapris", async () => {
+  const { liveClassChoices, liveFieldsFor } = await import("../src/teacher-role-core.js");
+  assert.equal(liveClassChoices(classes, "klassmatch", ak4).length, 3);
+  assert.deepEqual(liveClassChoices(classes, "guldrush", ak4).map((c) => c.id), ["4a", "4b"]);
+  assert.equal(liveClassChoices(classes, "guldrush", admin).length, 3);
+  const fields = [{ key: "durationMin" }, { key: "coinPrize" }];
+  assert.deepEqual(liveFieldsFor(fields, ak4).map((f) => f.key), ["durationMin"]);
+  assert.equal(liveFieldsFor(fields, admin).length, 2);
+});
