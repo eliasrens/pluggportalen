@@ -51,6 +51,7 @@ tabellerna, om en rad saknar test, eller om en testfil inte körs av
 | GR | `test/functions-guldrush.test.mjs` |
 | DK | `test/functions-datakuppen.test.mjs` |
 | HR | `test/functions-hitta-ratt.test.mjs` |
+| BR | `test/firestore-rules-brakresan.test.js` |
 
 Admin-kolumnen bevisas dessutom av OG test 25 (lärare utan roll gör allt som
 admin) och av alla äldre regeltester, som kör sina lärare som admin (§7 test 26).
@@ -73,6 +74,7 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `studentData/{id}/lasresaAttempts` | L/S | L: egna elever. S: aldrig. | SM test 1–2 |
 | `studentData/{id}/ekvationsresa` (bara `progress`) | L/S (validerat), radera | L: egna elever. S: lärarens nivåbyte (`ekvTeacherLevelOk`) för egna elever. | SM test 1–2, KE test 14 |
 | `studentData/{id}/ekvationsresaAttempts` | L/radera | L: egna elever | SM test 1–2 |
+| `studentData/{id}/brakresa`, `brakresaRounds`, `brakresaRewards`, `brakresaHunts` (Bråkresan, #706) | L (Cloud Functions skriver) | L: egna elever. S: aldrig. | BR |
 | `classes` | L/S | L. Ändra egna klasser, bara fälten `assignedAreas`, `hiddenModes`, `areaModes`, `hiddenModules`, `enabledModules`, `lock`, `lasresaStartLevel10` och `lasresaStartLevel`. Skapa och radera: aldrig. | KE test 9–12 |
 | `classProjections`, `classProjects` | L/S | L. S: aldrig. | RO klassprojektioner |
 | `mathCompetitions` (tävlingen) | L/S | L (som alla inloggade). Skapa, styra, nollställa och radera: aldrig. | LE test 17 |
@@ -90,6 +92,8 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `hittaRattAttempts`, `hittaRattBest` | L | L: egna elever (per dokument) | SM test 1–2 |
 | `hittaRattBoards`, `hittaRattMeta`, `hittaRattPacks` | L (servern skriver) | L | RO Hitta rätt! |
 | `hittaRattBilder` | L. Skapa och radera egna bilder. | L. S: aldrig. | RO egna bilder |
+| `brakresaSecrets` (Bråkresans facit) | nekas (bara Cloud Functions) | nekas | BR |
+| `brakresaRecommendations` | L/S | L/S: rekommendationer till egna klasser och elever, med `teacherId` = sig själv och exakt ett av `classId`/`studentId`. Ändra bara `active`, `endedAt`, `comment` och `challengeIds`. | BR |
 | allt annat (`{document=**}`) | nekas | nekas | RO allt annat |
 
 ## Cloud Functions
