@@ -51,6 +51,7 @@ tabellerna, om en rad saknar test, eller om en testfil inte körs av
 | GR | `test/functions-guldrush.test.mjs` |
 | DK | `test/functions-datakuppen.test.mjs` |
 | HR | `test/functions-hitta-ratt.test.mjs` |
+| SA | `test/firestore-rules-season.test.js` |
 
 Admin-kolumnen bevisas dessutom av OG test 25 (lärare utan roll gör allt som
 admin) och av alla äldre regeltester, som kör sina lärare som admin (§7 test 26).
@@ -90,6 +91,7 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `hittaRattAttempts`, `hittaRattBest` | L | L: egna elever (per dokument) | SM test 1–2 |
 | `hittaRattBoards`, `hittaRattMeta`, `hittaRattPacks` | L (servern skriver) | L | RO Hitta rätt! |
 | `hittaRattBilder` | L. Skapa och radera egna bilder. | L. S: aldrig. | RO egna bilder |
+| `config/season` (bara det dokumentet; läses av alla, även utloggade) | L/S (fälten valideras) | L. S: aldrig. | SA test 3 |
 | allt annat (`{document=**}`) | nekas | nekas | RO allt annat |
 
 ## Cloud Functions
