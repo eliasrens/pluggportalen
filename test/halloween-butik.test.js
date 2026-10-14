@@ -22,8 +22,9 @@ import { itemSvg, itemSize, categorySvg, loadCollectionArt } from "../src/art-it
 import { husSkalMarkup, isHusSkal, listHusSkal } from "../src/art-hus-ute.js";
 import { nyPlaceringsNyckel, ordnaNycklar, rumSakHtml } from "../src/rum-promenad-golv.js";
 
-// C:s varor (dekor/möbler/trädgård/hus); F:s djur (#695, hatchSpecies) testas i halloween-djur.test.js.
-const HW = itemsInCollection("halloween").filter((it) => !it.hatchSpecies);
+// C:s varor (dekor/möbler/trädgård/hus); kostymerna (#693) testas i halloween-kostymer.test.js,
+// F:s djur (#695, hatchSpecies) i halloween-djur.test.js.
+const HW = itemsInCollection("halloween").filter((it) => ["dekor", "mobler", "tradgard", "hus"].includes(it.category) && !it.hatchSpecies);
 const INNE = HW.filter((it) => it.category === "dekor" || it.category === "mobler");
 const UTE = HW.filter((it) => it.category === "tradgard");
 const HUS = HW.filter((it) => it.category === "hus");
@@ -66,10 +67,10 @@ test("test 5: Halloween-flikens undergrupper – disjunkta, D–F kan lägga til
   // En ny undergrupp (som D:s kostymer) före "hus"; omatchade varor → "Övrigt".
   const kostym = { id: "x-kostym", name: "Testkostym", category: "klader", collection: "halloween" };
   const okand = { id: "x-okand", name: "Okänd", category: "mat", collection: "halloween" };
-  hw.registreraUndergrupp({ id: "kostymer", rubrik: "Kostymer", match: (it) => it.category === "klader" }, "hus");
-  hw.registreraUndergrupp({ id: "kostymer", rubrik: "dubbel", match: () => true }); // idempotent
+  hw.registreraUndergrupp({ id: "x-kostymer", rubrik: "Kostymer", match: (it) => it.category === "klader" }, "hus");
+  hw.registreraUndergrupp({ id: "x-kostymer", rubrik: "dubbel", match: () => true }); // idempotent
   const sek2 = hw.halloweenSektioner([...HW, kostym, okand]);
-  assert.deepEqual(sek2.map((s) => s.id), ["inne", "tradgard", "kostymer", "hus", "ovrigt"]);
+  assert.deepEqual(sek2.map((s) => s.id), ["inne", "tradgard", "x-kostymer", "hus", "ovrigt"]);
   assert.deepEqual(sek2.find((s) => s.id === "ovrigt").items, [okand]);
   assert.equal(hw.HALLOWEEN_FLIK.id, "halloween");
 });

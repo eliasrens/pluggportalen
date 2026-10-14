@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Halloween-kostymer</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      body { padding: 16px; background: #fdf6ec; }
+      .preview-bar { max-width: 1200px; margin: 0 auto 16px; padding: 12px 16px; background: #f3edff; border: 2px solid #ddd0fb; border-radius: 14px; }
+      .preview-bar h1 { margin: 0 0 4px; font-size: 1.2rem; }
+      .preview-bar p { margin: 0 0 8px; color: #4a3d6e; }
+      .knappar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+      #status { font-weight: 700; }
+      #flash { margin-top: 8px; min-height: 1.4em; }
+      #flash.fel { color: #b3261e; } #flash.ok { color: #2e7d32; }
+      main { max-width: 1200px; margin: 0 auto; }
+      .garderob { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; background: #fff; border: 2px solid #e6d9c2; border-radius: 14px; padding: 14px; }
+      .figur .avatar-figure { font-size: 150px; }
+      .wear-tray { display: flex; flex-wrap: wrap; gap: 12px; flex: 1; min-width: 300px; }
+      h2 { font-size: 1.05rem; margin: 22px 0 6px; }
+      .rad { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px 2px 8px; }
+      .cell { flex: none; display: flex; flex-direction: column; align-items: center; background: #fff; border: 1px solid #e6d9c2; border-radius: 10px; padding: 6px 2px; width: 84px; }
+      .cell .avatar-figure { font-size: 72px; }
+      .cell .lbl { font-size: 0.62rem; opacity: 0.75; }
+    </style>
+    <!-- Firebase-beroenden → lätta stubbar. avatars.js, art-wearables.js, shop-items.js,
+         halloween/*, season-world.js, season-store.js och varld-rum-wear.js körs OFÖRÄNDRADE. -->
+    <script type="importmap">
+      {
+        "imports": {
+          "/src/ui.js": "/preview/kostym-stubs/ui.js",
+          "/src/data.js": "/preview/kostym-stubs/data.js",
+          "/src/season.js": "/preview/halloween-butik-stubs/season.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="preview-bar">
+      <h1>🎃 Halloween-kostymer (issue #693)</h1>
+      <p>
+        Garderoben och figuren är den riktiga koden mot en minnes-elev som äger alla
+        kostymer. Halloween <b>av</b>: kostymerna syns inte på någon avatar, är gråade
+        i garderoben och kan tas av men inte på. Inget sparas om
+        (<b id="skriv">0</b> skrivningar). <b>På</b> igen: de syns igen.
+      </p>
+      <div class="knappar">
+        <button class="btn" id="pa">Halloween på</button>
+        <button class="btn" id="pa10">På, slutar om 10 s</button>
+        <button class="btn ghost" id="av">Halloween av</button>
+        <span>Läge: <span id="status"></span></span>
+      </div>
+      <div id="flash"></div>
+    </div>
+    <main>
+      <div class="garderob">
+        <div class="figur" id="figur"></div>
+        <div class="wear-tray" id="tray"></div>
+      </div>
+      <div id="matris"></div>
+    </main>
+    <script type="module">
+      await import("/src/season.js"); // stubben: styrbar säsong (__season)
+      const { SHOP_ITEMS } = await import("/src/shop-items.js");
+      const { AVATARS, avatarMarkup } = await import("/src/avatars.js");
+      const { loadCollectionArt } = await import("/src/art-items.js");
+      const { mountWearTray } = await import("/src/varld-rum-wear.js");
+      await loadCollectionArt();
+
+      const KOSTYMER = SHOP_ITEMS.filter((it) => it.seasonal);
+      const AVATAR = new URLSearchParams(location.search).get("avatar") || "fox";
+      __MEM.ownedItems = [...KOSTYMER.map((it) => it.id), "keps", "halsduk"];
+      __MEM.avatarItems = ["hw-haxhatt", "hw-vampyrkrage", "hw-fladdervingar", "hw-godispase"];
+
+      const figur = document.getElementById("figur");
+      globalThis.__ritaFigur = () => { figur.innerHTML = avatarMarkup(AVATAR, __MEM.avatarItems); };
+      __ritaFigur();
+      mountWearTray({ wearTray: document.getElementById("tray"), sd: __MEM, onEquippedChange: (eq) => { __MEM.avatarItems = eq; __ritaFigur(); } });
+
+      // Matris: varje kostym på varje avatar (test 11) – nya avatarer i AVATARS kommer med automatiskt.
+      const matris = document.getElementById("matris");
+      for (const k of KOSTYMER) {
+        matris.insertAdjacentHTML("beforeend", `<h2>${k.name} <small>(${k.slot}, ${k.price} mynt)</small></h2>`);
+        const rad = document.createElement("div");
+        rad.className = "rad";
+        rad.innerHTML = Object.keys(AVATARS).map((av) => `<div class="cell">${avatarMarkup(av, [k.id])}<span class="lbl">${av}</span></div>`).join("");
+        matris.appendChild(rad);
+      }
+
+      const visa = () => {
+        const s = __season.get();
+        document.getElementById("status").textContent = s.halloweenActive
+          ? `Halloween PÅ${s.halloweenUntil ? " till " + new Date(s.halloweenUntil).toLocaleTimeString("sv-SE") : ""}`
+          : "Halloween av";
+        document.getElementById("skriv").textContent = __MEM.skrivningar;
+      };
+      const satt = (doc) => { __season.set(doc); visa(); };
+      document.getElementById("pa").onclick = () => satt({ season: "host", halloween: true, halloweenUntil: null });
+      document.getElementById("pa10").onclick = () => {
+        satt({ season: "host", halloween: true, halloweenUntil: __season.serverNow() + 10_000 });
+        setTimeout(visa, 10_400);
+      };
+      document.getElementById("av").onclick = () => satt({ season: "host", halloween: false });
+      setInterval(visa, 1000);
+      // Startläge enligt ?lage=av, annars på.
+      satt({ season: "host", halloween: new URLSearchParams(location.search).get("lage") !== "av", halloweenUntil: null });
+    </script>
+  </body>
+</html>

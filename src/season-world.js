@@ -89,6 +89,16 @@ export function applyCachedTheme() {
   return applyTheme({ ...s, halloweenActive: halloweenActive(s, Date.now()) });
 }
 
+/**
+ * Temat för sidor som inte monterar egen säsongsdekor men ritar säsongsberoende
+ * saker – kostymerna på avatarer (#693, avatars.js) i t.ex. sidomenyn, byn och
+ * Live. Första bilden ur cachen om inget tema satts än, sedan live. Idempotent.
+ */
+export function ensureTheme() {
+  if (!current) applyCachedTheme();
+  return startLive();
+}
+
 /** Starta live-uppdateringen (season.js, EN lyssnare). Idempotent. */
 export function startLive() {
   if (!liveP) {

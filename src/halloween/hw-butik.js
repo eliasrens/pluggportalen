@@ -26,7 +26,7 @@ export const HALLOWEEN_FLIK = {
   id: HALLOWEEN,
   name: "Halloween",
   emoji: "🎃",
-  hint: "Bara under Halloween! Allt du köper här behåller du för alltid – även när Halloween är slut.",
+  hint: "Bara under Halloween! Allt du köper här behåller du för alltid – även när Halloween är slut. Kostymerna kan bäras varje Halloween.",
 };
 
 /** Undergrupperna i ordning. `match(it)` avgör vilka samlingsvaror som hör hit. */
