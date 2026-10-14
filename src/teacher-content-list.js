@@ -94,6 +94,11 @@ const actBtn = (act, ic, label, extra = "") =>
   `<button type="button" class="area-act ${extra}" data-act="${act}"
     title="${esc(label)}" aria-label="${esc(label)}">${icon(ic, 16)}</button>`;
 
+/** Ikon + kort text (#679: Använd/Duplicera ska synas, inte bara som ikon). */
+const txtBtn = (act, ic, text, label) =>
+  `<button type="button" class="area-act area-act-txt" data-act="${act}"
+    title="${esc(label)}" aria-label="${esc(label)}">${icon(ic, 15)}<span>${esc(text)}</span></button>`;
+
 /**
  * Bygg den sorterbara innehållstabellen.
  * @param {object[]} areas – redan filtrerade/sorterade områden att visa.
@@ -144,8 +149,8 @@ export function buildAreaTable(areas, { subjectId, subjectName, onEdit, onRefres
       <td><div class="area-tbl-badges">${typeBadges(a)}${textBadges(a)}</div></td>
       <td class="area-tbl-count">${esc(quantityText(a))}</td>
       <td><div class="area-tbl-actions">
-        ${onUse ? actBtn("use", "check", `Använd ${a.name} i en klass`) : ""}
-        ${onDuplicate ? actBtn("dup", "copy", `Duplicera ${a.name} till en egen kopia`) : ""}
+        ${onUse ? txtBtn("use", "check", "Använd", `Använd ${a.name} i en klass`) : ""}
+        ${onDuplicate ? txtBtn("dup", "copy", "Duplicera", `Duplicera ${a.name} till en egen kopia`) : ""}
         ${own ? `${actBtn("edit", "pencil", `Redigera ${a.name}`)}
         ${actBtn("review", "eye", "Granska innehållet")}
         ${actBtn("add", "plus", "Lägg till innehåll")}

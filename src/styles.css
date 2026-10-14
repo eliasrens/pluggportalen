@@ -7514,7 +7514,7 @@ body:has(.teacher-dark) .container {
 .teacher-dark .ov-h { display: flex; align-items: center; gap: 8px; margin: 0 0 14px; }
 .teacher-dark .ov-classes {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 12px;
 }
 .teacher-dark .ov-class {
@@ -7537,6 +7537,7 @@ body:has(.teacher-dark) .container {
 .teacher-dark .ov-lock { display: flex; align-items: center; gap: 6px; margin: 6px 0 10px; color: var(--t-muted); font-size: 0.86rem; }
 .teacher-dark .ov-lock.on { color: #f2c94c; }
 .teacher-dark .ov-quick { display: flex; flex-wrap: wrap; gap: 6px; }
+.teacher-dark .ov-quick .btn { padding: 6px 10px; gap: 6px; }
 .teacher-dark .ov-live-list { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
 .teacher-dark .ov-live-item {
   display: flex;
@@ -7553,3 +7554,4 @@ body:has(.teacher-dark) .container {
 .teacher-dark .area-tbl-name-txt { display: inline-flex; flex-direction: column; vertical-align: middle; }
 .teacher-dark .area-tbl-owner { color: var(--t-muted); font-weight: 500; font-size: 0.8rem; }
 .teacher-dark .area-tbl-row.readonly { cursor: default; }
+.teacher-dark .area-act.area-act-txt { width: auto; gap: 6px; padding: 0 10px; font-weight: 600; font-size: 0.84rem; }
