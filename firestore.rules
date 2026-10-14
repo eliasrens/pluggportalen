@@ -1341,6 +1341,9 @@ service cloud.firestore {
     // ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` (separat från
     // Pages). Ingenting här är deployat.
     // ------------------------------------------------------------------
+    // ROLLER (#678, §2.2): kassan, pokalerna, insamlingarna, inredningen,
+    // EXP-bonusen och klassprofilen skriver bara admin (och eleverna enligt
+    // reglerna nedan). Årskurskontot LÄSER statistiken för sina klasser.
     match /classCenters/{classId} {
       function kcPath(sub, id) {
         return /databases/$(database)/documents/classCenters/$(classId)/$(sub)/$(id);
@@ -1370,7 +1373,7 @@ service cloud.firestore {
       }
       function kcShardTeacher(shardId) {
         let d = request.resource.data;
-        return isTeacher() && kcShardOk(shardId) &&
+        return isAdmin() && kcShardOk(shardId) &&
           changedOnly(['exp', 'lastUid', 'lastAt', 'lastKalla']) &&
           d.exp is int && kcDelta() >= 1 && kcDelta() <= 1000 &&
           d.lastUid == request.auth.uid && d.lastAt == request.time && kcKalla(d);
@@ -1399,12 +1402,12 @@ service cloud.firestore {
       match /expShards/{shardId} {
         allow read: if signedIn();
         allow create, update: if kcShardStudent(shardId) || kcShardTeacher(shardId);
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
       match /expMembers/{uid} {
-        allow read: if isTeacher() || isSelf(uid);
+        allow read: if isSelf(uid) || hasClass(classId);
         allow create, update: if kcMemberAward(uid) || kcMemberCounts(uid);
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
 
       // ----------------------------------------------------------------
@@ -1441,7 +1444,7 @@ service cloud.firestore {
       function kcFundWrite(itemId) {
         let d = request.resource.data;
         let don = getAfter(kcPath('donations', d.lastDonationId)).data;
-        return (isClassMember(classId) || (isTeacher() && don.get('kassa', false) == true)) &&
+        return (isClassMember(classId) || (isAdmin() && don.get('kassa', false) == true)) &&
           kcPris(itemId) > 0 &&
           (resource == null || resource.data.isUnlocked != true) &&
           changedOnly(['targetPrice', 'fundedAmount', 'isUnlocked', 'unlockedAt', 'lastDonationId']) &&
@@ -1491,7 +1494,7 @@ service cloud.firestore {
         allow create, update: if kcFundWrite(itemId);
       }
       match /donations/{donationId} {
-        allow read: if isTeacher();
+        allow read: if hasClass(classId);
         allow create: if kcDonationCreate(donationId);
       }
 
@@ -1519,7 +1522,7 @@ service cloud.firestore {
         return isClassMember(classId) && exists(p) &&
           request.auth.uid in get(p).data.get('kassorer', []);
       }
-      function kcKassaBehorig() { return isTeacher() || kcKassor(); }
+      function kcKassaBehorig() { return isAdmin() || kcKassor(); }
       function kcKassaSaldo(docId) {
         let d = request.resource.data;
         let tx = getAfter(kcPath('kassaHistorik', d.lastTxId)).data;
@@ -1534,7 +1537,7 @@ service cloud.firestore {
         let s = get(/databases/$(database)/documents/liveSessions/$(d.sessionId)).data;
         let vinnare = s.get('result', {}).get('winnerClasses', []);
         let pris = s.get('coinPrize', 0);
-        return isTeacher() &&
+        return isAdmin() &&
           d.keys().hasOnly(['typ', 'kalla', 'sessionId', 'titel', 'belopp', 'at', 'av']) &&
           d.kalla == 'live' && txId == 'live-' + d.sessionId &&
           d.titel is string && d.titel.size() <= 80 &&
@@ -1556,11 +1559,11 @@ service cloud.firestore {
       }
 
       match /kassa/{docId} {
-        allow read: if isTeacher() || isClassMember(classId);
+        allow read: if isClassMember(classId) || hasClass(classId);
         allow create, update: if kcKassaSaldo(docId);
       }
       match /kassaHistorik/{txId} {
-        allow read: if isTeacher() || isClassMember(classId);
+        allow read: if isClassMember(classId) || hasClass(classId);
         allow create: if (request.resource.data.typ == 'in' && kcKassaIn(txId)) ||
           (request.resource.data.typ == 'ut' && kcKassaUt(txId));
       }
@@ -1592,7 +1595,7 @@ service cloud.firestore {
         let p = /databases/$(database)/documents/classCenters/$(classId);
         return exists(p) && request.auth.uid in get(p).data.get('inredningSparr', []);
       }
-      function kcKanInreda() { return isTeacher() || (isClassMember(classId) && !kcSparrad()); }
+      function kcKanInreda() { return isAdmin() || (isClassMember(classId) && !kcSparrad()); }
       // En post {x, y, z}: x/y tal 0–100, z heltal 0–999 – som EN regex över
       // talen (`* 1` → fel för text/bool; ett flyttal z blir "1.0" och
       // nekas). 🔴 Budget: reglerna tillåter 1000 uttryck per skrivning; den
@@ -1739,7 +1742,7 @@ service cloud.firestore {
       }
       function kcPokalCreate(trophyId) {
         let d = request.resource.data;
-        return isTeacher() &&
+        return isAdmin() &&
           d.keys().hasOnly(['typ', 'kallaId', 'titel', 'detalj', 'motiv', 'wonAt', 'awardedBy']) &&
           d.keys().hasAll(['typ', 'kallaId', 'titel', 'wonAt', 'awardedBy']) &&
           d.typ in kcPokalTyper() &&
@@ -1754,15 +1757,15 @@ service cloud.firestore {
       match /trophies/{trophyId} {
         allow read: if signedIn();
         allow create: if kcPokalCreate(trophyId);
-        allow delete: if isTeacher() && resource.data.typ == 'larare';
+        allow delete: if isAdmin() && resource.data.typ == 'larare';
       }
 
       // Klassprofilen (pokalerna bor i trophies/ ovan, hogstaNiva valfritt).
       // Läses bara av klassen och lärare (#500): spärrlistan säger vilka
       // elever läraren bockat ur – gästläget behöver den inte. kassorer
       // (#526) = de elever läraren utsett till klasskassörer.
-      allow read: if isTeacher() || isClassMember(classId);
-      allow create, update: if isTeacher() && changedOnly(['inredningSparr', 'kassorer']) &&
+      allow read: if isClassMember(classId) || hasClass(classId);
+      allow create, update: if isAdmin() && changedOnly(['inredningSparr', 'kassorer']) &&
         request.resource.data.get('inredningSparr', []) is list &&
         request.resource.data.get('inredningSparr', []).size() <= 200 &&
         request.resource.data.get('kassorer', []) is list &&
@@ -1771,12 +1774,12 @@ service cloud.firestore {
       match /layout/{docId} {
         allow read: if signedIn();
         allow create, update: if docId == 'current' && kcLayoutCurrent();
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
       match /layoutHistory/{slot} {
         allow read: if signedIn();
         allow create, update: if kcLayoutHistory(slot);
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
     }
 
@@ -1791,8 +1794,12 @@ service cloud.firestore {
     // dok för husens pokaler.
     // ⚠️ DEPLOY KRÄVS: firebase deploy --only firestore:rules + functions.
     // ------------------------------------------------------------------
+    // ROLLER (#678): årskurskontot läser sina elevers försök och personbästa
+    // (statistik). Egna kartor (hittaRattPacks/-Bilder) är inte Plugga-
+    // material i §2.1 → bara admin (hittaRattSparaPack m.fl. kontrollerar
+    // samma sak).
     match /hittaRattAttempts/{attemptId} {
-      allow read: if isTeacher() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow read: if (signedIn() && resource.data.uid == request.auth.uid) || hasStudent(resource.data.uid);
       allow create: if signedIn() && validAttemptId(attemptId) &&
         request.resource.data.keys().hasOnly(['uid', 'packId', 'startedAt', 'status']) &&
         request.resource.data.uid == request.auth.uid &&
@@ -1803,7 +1810,7 @@ service cloud.firestore {
       allow update, delete: if false;
     }
     match /hittaRattBest/{uid} {
-      allow read: if isTeacher() || isSelf(uid);
+      allow read: if isSelf(uid) || hasStudent(uid);
       allow write: if false;
     }
     match /hittaRattBoards/{packId} {
@@ -1832,7 +1839,7 @@ service cloud.firestore {
     // Läsning som packen (eleven läser bara bilder i packet hen spelar).
     match /hittaRattBilder/{bildId} {
       allow read: if signedIn();
-      allow create: if isTeacher() &&
+      allow create: if isAdmin() &&
         bildId.matches('^e-[a-z0-9]{12}--[a-z0-9]{8}$') &&
         request.resource.data.keys().hasOnly(['ownerUid', 'packId', 'mime', 'bredd', 'hojd', 'data', 'skapad']) &&
         request.resource.data.ownerUid == request.auth.uid &&
@@ -1843,7 +1850,7 @@ service cloud.firestore {
         request.resource.data.hojd is int && request.resource.data.hojd > 0 && request.resource.data.hojd <= 800 &&
         request.resource.data.skapad == request.time;
       allow update: if false;
-      allow delete: if isTeacher() && resource.data.ownerUid == request.auth.uid;
+      allow delete: if isAdmin() && resource.data.ownerUid == request.auth.uid;
     }
 
     // Allt annat nekas.
