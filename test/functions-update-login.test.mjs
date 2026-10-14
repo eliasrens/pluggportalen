@@ -56,7 +56,7 @@ after(async () => {
 
 test("seed: lärare, elever i två klasser med projektioner", async () => {
   const t = await adminAuth.createUser({ email: TEACHER_EMAIL, password: "larare123" });
-  await adminAuth.setCustomUserClaims(t.uid, { teacher: true });
+  await adminAuth.setCustomUserClaims(t.uid, { teacher: true, admin: true });
   for (const [uid, u] of [["omar", "omar861"], ["lisa", "lisa4b"], ["ann", "ann4b"]]) {
     await adminAuth.createUser({ uid, email: usernameToEmail(u), password: PW });
     await adminDb.doc(`students/${uid}`).set({ namn: uid, username: u, avatarId: "fox" });

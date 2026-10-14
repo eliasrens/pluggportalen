@@ -218,3 +218,15 @@ test("bryggan laddas inte statiskt från app.js (bootgrafen)", () => {
   assert.ok(!/from\s+["'][^"']*data-lasresan-niva\.js["']/.test(app));
   assert.ok(!/from\s+["'][^"']*level-control\.js["']/.test(app));
 });
+
+// #678: årskurskontot får bara skriva nivåfälten – bryggan skriver dem som fältvägar.
+test("teacherLevelFieldPaths: bara nivåfälten som lasresa.<fält>", async () => {
+  const { teacherLevelFieldPaths, TEACHER_LEVEL_FIELDS } = await import("../src/lasresan/level-control.js");
+  const stored = { level: 4, level10: 7, pendingLevel: null, pendingLevel10: null, highStreak: 0, lowStreak: 0,
+    levelSetAt: 5, levelSetBy: "teacher", updatedAt: 5, moneyEarned: 36, seenTextIds: ["a"], totalTexts: 3 };
+  const out = teacherLevelFieldPaths(stored);
+  assert.deepEqual(Object.keys(out).sort(), TEACHER_LEVEL_FIELDS.map((k) => `lasresa.${k}`).sort());
+  assert.equal(out["lasresa.level10"], 7);
+  assert.equal(out["lasresa.pendingLevel"], null);
+  assert.ok(!("lasresa.moneyEarned" in out));
+});

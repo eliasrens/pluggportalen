@@ -19,7 +19,7 @@ const FINNS = `${PACK}--finns000`;
 
 before(async () => {
   ({ testEnv, unauth, elev, teacher } = await createRulesEnv("pluggportalen-rules-test-hitta-ratt-bilder"));
-  annanLarare = () => testEnv.authenticatedContext("larare2", { teacher: true }).firestore();
+  annanLarare = () => testEnv.authenticatedContext("larare2", { teacher: true, admin: true }).firestore();
 });
 
 after(async () => {

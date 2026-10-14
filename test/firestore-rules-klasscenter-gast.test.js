@@ -166,7 +166,7 @@ describe("Gästläge: skrivning (garanti 6)", () => {
 });
 
 describe("Lärarmodellen (garanti 7, förtroendemodell)", () => {
-  const annanLarare = () => testEnv.authenticatedContext("larare2", { teacher: true }).firestore();
+  const annanLarare = () => testEnv.authenticatedContext("larare2", { teacher: true, admin: true }).firestore();
 
   it("vilken lärare som helst (teacher:true) får inreda, spärra och dela ut verifierad pokal", async () => {
     await assertSucceeds(commit(annanLarare(), layout("larare2")));

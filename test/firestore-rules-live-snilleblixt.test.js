@@ -260,8 +260,8 @@ describe("Snilleblixten: övergångar och poäng", () => {
 
   it("test 10: två lärare trycker NÄSTA FRÅGA samtidigt → exakt ett steg", async () => {
     await testEnv.withSecurityRulesDisabled((ctx) => updateDoc(sess(ctx.firestore(), "stangd"), { "q.phase": "revealed", "q.facit": SNAP.choice.facit[1] }));
-    const a = testEnv.authenticatedContext("larare1", { teacher: true }).firestore();
-    const b = testEnv.authenticatedContext("larare2", { teacher: true }).firestore();
+    const a = testEnv.authenticatedContext("larare1", { teacher: true, admin: true }).firestore();
+    const b = testEnv.authenticatedContext("larare2", { teacher: true, admin: true }).firestore();
     const res = await Promise.all([step(a, "stangd", "open", 1), step(b, "stangd", "open", 1)]);
     assert.equal(res.filter((r) => r.done).length, 1, JSON.stringify(res));
     const q = (await getDoc(sess(a, "stangd"))).data().q;

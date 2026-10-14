@@ -68,7 +68,7 @@ const coins = async (uid) => {
   });
   return c;
 };
-const larare2 = () => testEnv.authenticatedContext("larare2", { teacher: true }).firestore();
+const larare2 = () => testEnv.authenticatedContext("larare2", { teacher: true, admin: true }).firestore();
 const pay = (db, sid, s, uid = "larare1") => payLiveRewards(sdk, db, { sid, session: s, uid, defaults: () => ({ xp: 0 }) });
 
 before(async () => {

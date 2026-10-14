@@ -14,7 +14,7 @@ service cloud.firestore {
     // OBS (#678): isTeacher() ger INGEN behörighet längre – den är bara
     // grunden för rollerna nedan. Varje regel säger isAdmin() eller kollar
     // årskurskontot (hasClass/hasStudent) enligt §2.1.
-    function isTeacher() { return signedIn() && request.auth.token.teacher == true; }
+    function isTeacher() { return signedIn() && request.auth.token.get('teacher', false) == true; }
 
     // ------------------------------------------------------------------
     // ROLLER (#677/#678, docs/UTVECKLINGSUPPDRAG_LARARKONTON.md §1, §4.1).
@@ -28,13 +28,13 @@ service cloud.firestore {
     // Tillåtelselista: en regel som inte uttryckligen släpper in
     // årskurskontot är bara admin.
     // ------------------------------------------------------------------
-    function isAdmin() { return isTeacher() && (request.auth.token.admin == true || isLegacyTeacher()); }
+    function isAdmin() { return isTeacher() && (request.auth.token.get('admin', false) == true || isLegacyTeacher()); }
     // ⚠️ ÖVERGÅNG (§6.2) – TA BORT när migreringen är verifierad (alla lärare
     // har admin:true eller role:"arskurs" och gamla tokens har gått ut, dvs.
     // senast en timme efter att migreringsskriptet körts). Då: radera den här
     // funktionen och "|| isLegacyTeacher()" i isAdmin() ovan.
     function isLegacyTeacher() {
-      return request.auth.token.get('role', null) == null && request.auth.token.get('admin', null) == null;
+      return !('role' in request.auth.token) && !('admin' in request.auth.token);
     }
     function teacherAccount() {
       return get(/databases/$(database)/documents/teacherAccounts/$(request.auth.uid)).data;
