@@ -7707,6 +7707,18 @@ html[data-halloween] .port-scen .port-larare-lank {
   padding: 3px 10px;
 }
 
+/* Halloween-djuret på inloggningen vinkar: armen (hwd-flax-h, 32-halloween.css)
+   får ett större, snabbare vink – bara transform. */
+.sz-vinkdjur .hwd-flax-h { animation: sz-vinka 1.3s ease-in-out infinite; }
+@keyframes sz-vinka {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-32deg); }
+  60% { transform: rotate(-6deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sz-vinkdjur .hwd-flax-h { animation: none; }
+}
+
 /* ── src/styles/32-halloween.css ── */
 /* Halloween-samlingen (#692, epic #689): små stämningsanimationer i konsten
    (src/halloween/hw-art-*.js). Bara transform/opacity, få element per sak,

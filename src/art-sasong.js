@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggporten – säsongsdekor: löv, fladdermöss, måne, spöke, pumpor (#691)
+// Pluggporten – säsongsdekor: löv, fladdermöss, måne, pumpor, vinkande djur (#691)
 // ----------------------------------------------------------------------------
 // Ren SVG-konst i stilguidens stil (art-style.js) – gulligt-läskigt, aldrig
 // otäckt: stora ögon, runda former, inga tänder. Används av season-world.js
@@ -53,16 +53,9 @@ function mane(x, y, r) {
     <circle cx="${x + r * 0.22}" cy="${y - r * 0.38}" r="${r * 0.08}" fill="#F2D27A" stroke="none"/>`;
 }
 
-/** Litet vänligt spöke som tittar fram (ritas BAKOM något, t.ex. ett träd). */
-function spoke(x, y, s = 1) {
-  return `<g transform="translate(${x} ${y}) scale(${s})">
-    <path d="M-22 30 L-22 -6 Q-22 -30 0 -30 Q22 -30 22 -6 L22 30 Q16 24 11 30 Q5 24 0 30 Q-5 24 -11 30 Q-16 24 -22 30 Z" fill="#FFFFFF" ${LINE}/>
-    <ellipse cx="-7" cy="-8" rx="4.2" ry="5.5" fill="${O}"/><ellipse cx="7" cy="-8" rx="4.2" ry="5.5" fill="${O}"/>
-    <circle cx="-5.6" cy="-10" r="1.5" fill="#fff"/><circle cx="8.4" cy="-10" r="1.5" fill="#fff"/>
-    <ellipse cx="0" cy="3" rx="3.5" ry="2.6" fill="#7C4A57"/>
-    <ellipse cx="-13" cy="0" rx="3.6" ry="2.2" fill="#FFB1B8" opacity="0.85"/><ellipse cx="13" cy="0" rx="3.6" ry="2.2" fill="#FFB1B8" opacity="0.85"/>
-    <path d="M22 4 Q34 -2 32 -12" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
-    <path d="M22 4 Q34 -2 32 -12" fill="none" stroke="${O}" stroke-width="2.2" stroke-linecap="round" opacity="0.6"/></g>`;
+/** Plats för ett Halloween-djur som vinkar (fylls av season-world.js). */
+function vinkdjur(x, y, s = 1) {
+  return `<g class="sz-bara-halloween" transform="translate(${x} ${y}) scale(${s})"><g class="sz-vinkdjur"></g></g>`;
 }
 
 /** Lyktpumpa som lyser svagt (för inloggningens förgrund). */
@@ -85,9 +78,12 @@ export function portDekor() {
   const stjarnor = [[300, 60], [420, 120], [560, 40], [700, 140], [880, 210], [40, 230], [250, 190], [640, 210]]
     .map(([x, y], i) => stjarna(x, y, i % 3 ? 1.2 : 1.8, "#FDE9A8"))
     .join("");
-  const bak = `<g class="sz-bara-halloween">${stjarnor}${mane(110, 104, 44)}${spoke(12, 424, 1.05)}</g>`;
+  const bak = `<g class="sz-bara-halloween">${stjarnor}${mane(110, 104, 44)}</g>`;
+  // Halloween-djuret som vinkar (spec §1.5) står framför vänstra pelarfoten;
+  // konsten fylls i lazy av season-world.js (src/halloween/, bara när Halloween är på).
   const fram = `${lovhog(112, 552, 1.5)}${lovhog(852, 550, 1.4)}${lovhog(318, 572, 1)}${lovhog(642, 574, 1)}
-    ${lyktpumpa(120, 556, 1.35)}${pumpaDekor(162, 566, 0.9)}${lyktpumpa(842, 556, 1.2)}${pumpaDekor(300, 584, 0.75)}`;
+    ${lyktpumpa(96, 560, 1.35)}${pumpaDekor(48, 588, 0.9)}${lyktpumpa(842, 556, 1.2)}${pumpaDekor(300, 584, 0.75)}
+    ${vinkdjur(176, 468, 0.95)}`;
   return { bak, fram };
 }
 
@@ -99,7 +95,7 @@ export function gateDekorSvg() {
   return `<svg class="sz-gate-svg" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMax slice"
       aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
     <g class="sz-bara-halloween">${mane(1080, 110, 52)}${stjarna(940, 70, 1.6, "#FDE9A8")}${stjarna(160, 90, 1.4, "#FDE9A8")}${stjarna(260, 180, 1.1, "#FDE9A8")}
-      ${spoke(1150, 600, 1.1)}</g>
+      </g>${vinkdjur(1060, 560, 1.15)}
     ${lovhog(90, 690, 2)}${lovhog(1110, 690, 1.8)}${lovhog(230, 696, 1.2)}
     ${lyktpumpa(110, 690, 1.8)}${pumpaDekor(200, 696, 1.2)}${lyktpumpa(1010, 692, 1.5)}
   </svg>`;

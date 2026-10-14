@@ -42,17 +42,19 @@ export const SEASONS = {
   },
   host: {
     label: "Höst",
-    // Värld (#691): varmare, dovare himmel, gulare gräs, orange/röda/gula kronor.
+    // Värld (#691, gladare efter Elias): klar krispig höstblå himmel med varm
+    // horisont, gräset fortfarande grönt med gyllene stänk, mättade kronor i
+    // pumpaorange/klarröd/solgul och buskar i frisk gulgrön.
     palette: {
-      sky1: "#EDBE8F", sky2: "#FBE9D2", hill: "#D2C274", grass: "#BDB35E",
-      "grass-light": "#DCCB80", "grass-mid": "#C8B866", tuft: "#B39A4C", "tuft-dark": "#9C7F3E",
-      "tree-a": "#F08A3C", "tree-b": "#EF6F6C", "tree-c": "#F7C948", bush: "#C8743C",
+      sky1: "#4BA2E8", sky2: "#FFF3DA", hill: "#B2D873", grass: "#93C95A",
+      "grass-light": "#E2D96A", "grass-mid": "#C4DA6A", tuft: "#7FB548", "tuft-dark": "#5F9A3A",
+      "tree-a": "#FF8A2A", "tree-b": "#F2524A", "tree-c": "#FFD23F", bush: "#A6CF3F",
       // Inloggningen (porten + lärarspärren).
-      "port-bg": "#F2C79A", "port-sky1": "#E59A5C", "port-sky2": "#F4C38E", "port-sky3": "#FBE3C2",
-      "port-far": "#E8C98E", "port-bush": "#D9823F", "gate-bg": "#3A2A26", "gate-bg2": "#5A3524",
+      "port-bg": "#9BCDF0", "port-sky1": "#5AA6E2", "port-sky2": "#A8D5F4", "port-sky3": "#FFE7BE",
+      "port-far": "#CFE59A", "port-bush": "#F2A23A", "gate-bg": "#3A2A26", "gate-bg2": "#5A3524",
     },
     dekor: { leaves: true },
-    preview: { sky: "#E9B98A", grass: "#C9B45A", tree: ["#F08A3C", "#EF6F6C", "#F7C948"] },
+    preview: { sky: "#4BA2E8", grass: "#93C95A", tree: ["#FF8A2A", "#F2524A", "#FFD23F"] },
   },
 };
 
