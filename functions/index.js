@@ -28,6 +28,10 @@
 // lärare, bara ägaren skriver. hittaRattSattTopplista (#635) slår på/av
 // skoltopplistan (PÅ = byggs upp ur personbästa). Logiken: hitta-ratt-egna.js.
 //
+// Lärarkonton (#677, epic Lärarkonton) – bara admin (färska claims i Auth):
+//   adminCreateTeacher / adminUpdateTeacher / adminSetTeacherPassword /
+//   adminSetTeacherActive / adminDeleteTeacher. Logiken: teacher-accounts-core.js.
+//
 // ⚠️ DEPLOY KRÄVS: firebase deploy --only functions (Blaze-planen). Klienten
 // (src/data-student-login.js, src/live/formats/guldrush/guldrush-data.js) visar
 // ett tydligt fel tills funktionerna finns.
@@ -47,6 +51,9 @@ import {
 } from "./datakuppen-core.js";
 import { HrFel, submit as hittaRattSubmitCore } from "./hitta-ratt-core.js";
 import { sparaPack, raderaPack, sattTopplista } from "./hitta-ratt-egna.js";
+import {
+  TeacherError, createTeacher, updateTeacher, setTeacherPassword, setTeacherActive, deleteTeacher,
+} from "./teacher-accounts-core.js";
 
 initializeApp();
 
@@ -155,3 +162,27 @@ function hittaRattLarare(namn, core) {
 export const hittaRattSparaPack = hittaRattLarare("hittaRattSparaPack", sparaPack);
 export const hittaRattRaderaPack = hittaRattLarare("hittaRattRaderaPack", raderaPack);
 export const hittaRattSattTopplista = hittaRattLarare("hittaRattSattTopplista", sattTopplista);
+
+// --- Lärarkonton (#677) -----------------------------------------------------------
+// Snabb koll på token först; kärnan kontrollerar sedan Auth-posten (en gammal
+// admin-token från ett nedgraderat eller avstängt konto räcker inte).
+function adminCall(name, core) {
+  return onCall({ region: "europe-west1", memory: "256MiB", maxInstances: 2 }, async (request) => {
+    if (request.auth?.token?.admin !== true) throw new HttpsError("permission-denied", "Det här kan bara admin göra.");
+    try {
+      const res = await core({ auth: getAuth(), db: getFirestore(), FieldValue }, request.auth.uid, request.data || {});
+      logger.info(name, { admin: request.auth.uid, uid: res.uid });
+      return res;
+    } catch (err) {
+      if (err instanceof TeacherError) throw new HttpsError(err.code, err.message);
+      logger.error(`${name} oväntat fel`, err);
+      throw new HttpsError("internal", "Något gick fel på servern – inget ändrades.");
+    }
+  });
+}
+
+export const adminCreateTeacher = adminCall("adminCreateTeacher", createTeacher);
+export const adminUpdateTeacher = adminCall("adminUpdateTeacher", updateTeacher);
+export const adminSetTeacherPassword = adminCall("adminSetTeacherPassword", setTeacherPassword);
+export const adminSetTeacherActive = adminCall("adminSetTeacherActive", setTeacherActive);
+export const adminDeleteTeacher = adminCall("adminDeleteTeacher", deleteTeacher);

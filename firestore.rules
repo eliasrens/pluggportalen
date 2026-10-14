@@ -12,6 +12,10 @@ service cloud.firestore {
     // Lärare = Auth-användare med custom claim teacher:true
     // (sätts en gång via admin/set-teacher-claim.mjs).
     function isTeacher() { return signedIn() && request.auth.token.teacher == true; }
+    // Admin = lärare med custom claim admin:true (#677, docs/UTVECKLINGSUPPDRAG_LARARKONTON.md §1.1).
+    // Årskurskonton har i stället role:"arskurs". Övergången (teacher utan role
+    // = admin) och resten av rollreglerna kommer i epicens del B.
+    function isAdmin() { return isTeacher() && request.auth.token.admin == true; }
     // Eleven själv = den inloggades uid == dokumentets id (uid sattes = det
     // gamla doc-id:t vid migreringen, se admin/migrate-passwords.mjs).
     function isSelf(id)  { return signedIn() && request.auth.uid == id; }
@@ -30,6 +34,14 @@ service cloud.firestore {
     // inloggade (grannby-vyn går in i andra klassers rum), och de denormaliserade
     // classStats/looks-kollektionerna som isClassMember skyddade finns inte kvar.
     // Isoleringen ligger nu i skrivreglerna (isSelf/isTeacher) + huslåset.
+
+    // Lärarkonton (#677): bara admin läser och skriver (i praktiken skriver
+    // Cloud Functions adminCreateTeacher m.fl. med Admin SDK); ett konto får
+    // läsa sitt EGET dokument (classIds, displayName, active).
+    match /teacherAccounts/{uid} {
+      allow read:  if isAdmin() || isSelf(uid);
+      allow write: if isAdmin();
+    }
 
     // Kunskapsinnehåll (ämnen/arbetsområden): alla INLOGGADE får läsa;
     // bara lärare skriver. Inget world-read längre.

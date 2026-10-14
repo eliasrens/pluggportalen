@@ -25,6 +25,12 @@ slutar fungera.
    - Spara som `admin/serviceAccountKey.json` (den är `.gitignore`:ad – checka
      **aldrig** in den). Alternativt: peka ut den med
      `GOOGLE_APPLICATION_CREDENTIALS=/väg/till/nyckel.json`.
+   - **Utan nyckel (#677):** en `authorized_user`-JSON (ADC, t.ex. efter
+     `gcloud auth application-default login`) fungerar också – via
+     `GOOGLE_APPLICATION_CREDENTIALS` eller gcloud:s standardplats. Sätt gärna
+     projektet explicit: `GOOGLE_CLOUD_PROJECT=<projekt-id>` (annars filens
+     `quota_project_id`, annars `pluggportalen-so-2026`). Väljaren:
+     `admin/credential.mjs`; skripten skriver ut vilken credential som används.
 
 ---
 
@@ -43,25 +49,54 @@ Detta kan **inte** göras programmatiskt utan konsol/inloggning:
 
 ---
 
-## 2. Skapa lärarkonto + sätt `teacher`-claim
+## 2. Lärarkonton: admin och årskurskonto (#677)
+
+Två roller (spec `docs/UTVECKLINGSUPPDRAG_LARARKONTON.md` §1):
+
+| Roll | Custom claims | `teacherAccounts/{uid}` |
+| --- | --- | --- |
+| Admin | `teacher: true`, `admin: true` | `role: "admin"`, `classIds: []` |
+| Årskurskonto | `teacher: true`, `role: "arskurs"` | `role: "arskurs"`, `classIds: [...]` |
+
+Vanligast: skapa och hantera konton på lärarsidan, fliken **Lärarkonton** (bara
+admin). Den anropar Cloud Functions `adminCreateTeacher`, `adminUpdateTeacher`,
+`adminSetTeacherPassword`, `adminSetTeacherActive` och `adminDeleteTeacher`
+(`functions/teacher-accounts-core.js`).
+
+### Migrering: alla befintliga lärare blir admin
 
 ```bash
-node admin/set-teacher-claim.mjs --username=teacher26 --password=<minst6>
+node admin/migrate-teacher-admins.mjs           # torrkörning: skriver bara ut listan
+node admin/migrate-teacher-admins.mjs --apply   # skriver + verifierar (✓ admin:true per konto)
+```
+
+Alla med `teacher: true` som inte är årskurskonton får `admin: true` och ett
+`teacherAccounts`-dokument. Idempotent. Kör det **efter** `firebase deploy --only
+functions` och **före** de nya Firestore-reglerna (epicens del B); hela
+driftordningen skrivs i del E.
+
+### Reserv: skriptet `set-teacher-claim.mjs`
+
+```bash
+node admin/set-teacher-claim.mjs --username=teacher26 --password=<minst6>            # admin
+node admin/set-teacher-claim.mjs --username=arskurs4 --role=arskurs \
+     --name="Årskurs 4" --classes=4a,4b --password=<minst6>                          # årskurskonto
 ```
 
 - Läraren loggar in med enbart ett **användarnamn** (t.ex. `teacher26`) – ingen
   e-post syns. Skriptet bygger internt e-posten
   `teacher26@larare.pluggportalen.local` (Firebase Auth kräver e-postformat).
-- Skapar kontot om det inte finns och sätter custom claim `teacher:true`.
-- Redan skapat konto? Kör utan `--password` för att bara sätta claimen.
-- Ta bort behörighet: `--off`.
+- Skapar kontot om det inte finns, sätter claims och skriver `teacherAccounts`.
+- Redan skapat konto? Kör utan `--password` för att bara sätta rollen.
+- Ta bort lärarrollen: `--off` (claims och dokumentet tas bort).
 - Avancerat: `--email=<riktig adress>` finns kvar för specialfall i stället för
   `--username`.
 
 Läraren loggar sedan in i lärarläget (📚-sidan) med **användarnamn + lösenord**
-(precis som eleverna). `isTeacher()` i `src/auth.js` läser claimen ur ID-token.
-**Obs:** efter att claimen satts måste läraren logga ut/in en gång för att den
-ska hamna i token.
+(precis som eleverna). `isTeacher()`/`isAdmin()` i `src/auth.js` läser claimen ur
+ID-token. **Obs:** efter att claims satts med skriptet måste läraren logga ut/in
+en gång. Fliken Lärarkonton förnyar själv token, och ett årskurskontos klasser
+läses ur dokumentet – de slår igenom direkt.
 
 ---
 

@@ -32,7 +32,8 @@ const FN = (process.env.FUNCTIONS_EMULATOR_HOST || "127.0.0.1:5001").split(":");
 const FN_BASE = `/${process.env.GCLOUD_PROJECT || "pluggportalen-so-2026"}/europe-west1`;
 const FN_NAMES = new Set(["/updateStudentLogin", "/guldrushAnswer", "/guldrushOpenChest", "/guldrushChooseVictim", "/hittaRattSubmit",
   "/hittaRattSparaPack", "/hittaRattRaderaPack", "/hittaRattSattTopplista",
-  "/datakuppAnswer", "/datakuppOpenFile", "/datakuppPickCode", "/datakuppChooseTarget", "/datakuppGuessCode"]);
+  "/datakuppAnswer", "/datakuppOpenFile", "/datakuppPickCode", "/datakuppChooseTarget", "/datakuppGuessCode",
+  "/adminCreateTeacher", "/adminUpdateTeacher", "/adminSetTeacherPassword", "/adminSetTeacherActive", "/adminDeleteTeacher"]);
 const SDK = "https://www.gstatic.com/firebasejs/10.12.2";
 
 const TYPES = {

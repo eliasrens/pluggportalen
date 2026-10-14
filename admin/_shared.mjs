@@ -10,7 +10,11 @@
 //
 // Peka ut nyckeln på ETT av dessa sätt:
 //   * lägg den i admin/serviceAccountKey.json (default), eller
-//   * sätt GOOGLE_APPLICATION_CREDENTIALS=/väg/till/nyckel.json
+//   * sätt GOOGLE_APPLICATION_CREDENTIALS=/väg/till/nyckel.json, eller
+//   * en authorized_user-JSON (ADC: gcloud auth application-default login) –
+//     via GOOGLE_APPLICATION_CREDENTIALS eller gcloud:s standardplats.
+// Väljaren bor i admin/credential.mjs. Projekt-id: GOOGLE_CLOUD_PROJECT /
+// GCLOUD_PROJECT / FIREBASE_PROJECT, annars filens, annars PROJECT_ID nedan.
 //
 // Mot emulatorn i stället för live: sätt
 //   FIRESTORE_EMULATOR_HOST=127.0.0.1:8080
@@ -22,6 +26,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import admin from "firebase-admin";
+import { pickCredential } from "./credential.mjs";
 
 export const PROJECT_ID = "pluggportalen-so-2026";
 // Syntetisk e-postdomän – MÅSTE matcha ELEV_EMAIL_DOMAIN i src/auth.js.
@@ -52,24 +57,32 @@ if (!admin.apps.length) {
     // Emulatorn kräver ingen riktig credential – bara ett projekt-id.
     app = admin.initializeApp({ projectId: PROJECT_ID });
   } else {
-    const keyPath =
-      process.env.GOOGLE_APPLICATION_CREDENTIALS ||
-      join(__dirname, "serviceAccountKey.json");
-    if (!existsSync(keyPath)) {
+    // Service-account ELLER authorized_user (ADC-inloggning), se admin/credential.mjs.
+    const pick = pickCredential({
+      defaultKeyPath: join(__dirname, "serviceAccountKey.json"),
+      fallbackProjectId: PROJECT_ID,
+      exists: existsSync,
+      readText: (p) => readFileSync(p, "utf8"),
+    });
+    if (pick.kind === "none" || pick.kind === "error") {
       console.error(
-        "\n✗ Hittar ingen service-account.\n" +
-          `  Förväntade mig ${keyPath}\n` +
-          "  Skaffa den i Firebase Console → Projektinställningar → Tjänstekonton,\n" +
-          "  spara som admin/serviceAccountKey.json (eller sätt GOOGLE_APPLICATION_CREDENTIALS).\n" +
+        "\n✗ Hittar ingen användbar inloggning för Admin SDK.\n" +
+          (pick.message ? `  ${pick.message}\n` : `  Förväntade mig ${pick.path}\n`) +
+          "  Antingen: Firebase Console → Projektinställningar → Tjänstekonton → spara\n" +
+          "  nyckeln som admin/serviceAccountKey.json (eller sätt GOOGLE_APPLICATION_CREDENTIALS),\n" +
+          "  eller: gcloud auth application-default login (authorized_user/ADC).\n" +
           "  Se docs/ADMIN.md.\n"
       );
       process.exit(1);
     }
-    const serviceAccount = JSON.parse(readFileSync(keyPath, "utf8"));
-    app = admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-      projectId: serviceAccount.project_id || PROJECT_ID,
-    });
+    // authorized_user: Firestore i Admin SDK godtar inte refreshToken()-
+    // credentials, bara cert eller ADC – så filen lämnas till ADC (som
+    // google-auth-library läser som authorized_user med refresh-token).
+    if (pick.kind === "authorizedUser") process.env.GOOGLE_APPLICATION_CREDENTIALS = pick.path;
+    const credential =
+      pick.kind === "cert" ? admin.credential.cert(pick.json) : admin.credential.applicationDefault();
+    console.error(`(Admin SDK: ${pick.kind} ur ${pick.path}, projekt ${pick.projectId})`);
+    app = admin.initializeApp({ credential, projectId: pick.projectId });
   }
 } else {
   app = admin.app();
