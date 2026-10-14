@@ -18,7 +18,7 @@ import { readFileSync } from "node:fs";
 import { SHOP_ITEMS, getItem, itemsInCategory, itemsInCollection, isWearable } from "../src/shop-items.js";
 import { WEARABLES, wearableSvg, wearableAnchor } from "../src/art-wearables.js";
 import { loadCollectionArt } from "../src/art-items.js";
-import { AVATARS, avatarMarkup, wearableActive } from "../src/avatars.js";
+import { AVATARS, avatarMarkup, wearableActive, buyableAvatars, loadAvatarArt } from "../src/avatars.js";
 import { HW_KOSTYMER } from "../src/halloween/hw-art-kostymer.js";
 import { HW_KOSTYMER_KATALOG } from "../src/halloween/hw-kostymer.js";
 
@@ -136,9 +136,11 @@ test("test 9/10: wearableActive – vanliga alltid, kostymer bara när <html dat
   assert.equal(wearableActive(getItem("hw-haxhatt")), false, "utan DOM: aldrig bärbar");
 });
 
-test("test 11: varje kostym ritas på varje avatar med slottens box", async () => {
-  await loadCollectionArt();
-  for (const av of Object.keys(AVATARS)) {
+test("test 11: varje kostym ritas på varje avatar – även de köpbara (#694) – med slottens box", async () => {
+  await Promise.all([loadCollectionArt(), loadAvatarArt()]);
+  const kop = buyableAvatars().map((a) => a.id);
+  assert.equal(kop.length, 6, "de sex Halloween-avatarerna");
+  for (const av of [...kop, ...Object.keys(AVATARS)]) {
     for (const it of KOSTYMER) {
       const html = avatarMarkup(av, [it.id]);
       assert.match(html, new RegExp(`af-wear af-${it.slot}( af-anchor-\\w+)? af-kostym`), `${it.id} på ${av}`);
