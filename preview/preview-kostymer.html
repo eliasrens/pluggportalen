@@ -67,10 +67,10 @@
     <script type="module">
       await import("/src/season.js"); // stubben: styrbar säsong (__season)
       const { SHOP_ITEMS } = await import("/src/shop-items.js");
-      const { AVATARS, avatarMarkup } = await import("/src/avatars.js");
+      const { AVATARS, avatarMarkup, buyableAvatars, loadAvatarArt } = await import("/src/avatars.js");
       const { loadCollectionArt } = await import("/src/art-items.js");
       const { mountWearTray } = await import("/src/varld-rum-wear.js");
-      await loadCollectionArt();
+      await Promise.all([loadCollectionArt(), loadAvatarArt()]);
 
       const KOSTYMER = SHOP_ITEMS.filter((it) => it.seasonal);
       const AVATAR = new URLSearchParams(location.search).get("avatar") || "fox";
@@ -82,13 +82,15 @@
       __ritaFigur();
       mountWearTray({ wearTray: document.getElementById("tray"), sd: __MEM, onEquippedChange: (eq) => { __MEM.avatarItems = eq; __ritaFigur(); } });
 
-      // Matris: varje kostym på varje avatar (test 11) – nya avatarer i AVATARS kommer med automatiskt.
+      // Matris: varje kostym på varje avatar (test 11) – de gratis i AVATARS och de
+      // köpbara (Halloween-avatarerna, #694) – nya kommer med automatiskt.
+      const ALLA = [...Object.keys(AVATARS), ...buyableAvatars().map((a) => a.id)];
       const matris = document.getElementById("matris");
       for (const k of KOSTYMER) {
         matris.insertAdjacentHTML("beforeend", `<h2>${k.name} <small>(${k.slot}, ${k.price} mynt)</small></h2>`);
         const rad = document.createElement("div");
         rad.className = "rad";
-        rad.innerHTML = Object.keys(AVATARS).map((av) => `<div class="cell">${avatarMarkup(av, [k.id])}<span class="lbl">${av}</span></div>`).join("");
+        rad.innerHTML = ALLA.map((av) => `<div class="cell">${avatarMarkup(av, [k.id])}<span class="lbl">${av}</span></div>`).join("");
         matris.appendChild(rad);
       }
 
