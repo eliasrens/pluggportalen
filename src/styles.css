@@ -175,21 +175,36 @@ body.med-sidomeny .sidebar {
   flex: 1 1 auto;
 }
 
-/* --- Karaktärspanel överst i menyn --- */
+/* --- Profilruta överst i menyn (#701) ---------------------------------------
+   En rad: avatar i vit cirkel + namn/"Min profil ›"; under den stjärnor och
+   mynt som två vita piller. Mått ur preview/preview-plugga-design-forslag.html. */
 .sido-karaktar {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 8px;
+  gap: 10px;
   background: linear-gradient(160deg, #eaf3ff 0%, #dcebff 100%);
   border-radius: 18px;
-  padding: 16px 14px;
+  padding: 12px;
   box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.9), 0 2px 8px rgba(47, 128, 237, 0.1);
 }
 
+.sido-profil-rad {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .sido-figur {
-  display: block;
-  font-size: 3.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 3px 0 rgba(47, 128, 237, 0.18);
+  font-size: 2.6rem;
   line-height: 1;
   text-decoration: none;
   transition: transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -200,14 +215,55 @@ body.med-sidomeny .sidebar {
 }
 
 .sido-namn {
-  font-weight: 800;
-  font-size: 1.1rem;
-  color: var(--bla-mork);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.1;
   text-decoration: none;
 }
 
-.sido-namn:hover {
+.sido-namn b {
+  font-size: 1.25rem;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.sido-namn span {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--bla-mork);
+}
+
+.sido-namn:hover span {
   text-decoration: underline;
+}
+
+.sido-namn:focus-visible,
+.sido-figur:focus-visible {
+  outline: 3px solid var(--bla);
+  outline-offset: 2px;
+}
+
+/* Stjärnor + mynt: två lika breda vita piller. */
+.sido-valuta {
+  display: flex;
+  gap: 6px;
+}
+
+.sido-valuta span {
+  flex: 1;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: #fff;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--text);
+  box-shadow: 0 2px 0 rgba(31, 45, 74, 0.08);
 }
 
 /* --- Fokusläget (#436): skylt ovanför navlänkarna när klassen är låst --- */
@@ -242,11 +298,72 @@ body.med-sidomeny .sidebar {
   outline-offset: 2px;
 }
 
+/* --- Live-rutan (#701): rosa som .big-card.rosa, bara när Live är synlig --- */
+.sido-live {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: linear-gradient(160deg, #ff9ebb, var(--rosa));
+  color: #fff;
+  text-decoration: none;
+  box-shadow: var(--skugga);
+  font-weight: 800;
+}
+
+.sido-live-ikon {
+  font-size: 1.5rem;
+}
+
+.sido-live-text small {
+  display: block;
+  font-weight: 700;
+  opacity: 0.92;
+  font-size: 0.8rem;
+}
+
+@keyframes sido-live-puls {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.35); }
+  50%      { box-shadow: 0 0 0 7px rgba(255, 255, 255, 0.12); }
+}
+
+.sido-live-prick {
+  margin-left: auto;
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.35);
+  animation: sido-live-puls 1.6s ease-in-out infinite;
+}
+
+/* Eleven står på Live-sidan: ljus ram runt rutan. */
+.sido-live.aktiv {
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.9), var(--skugga);
+}
+
+.sido-live:focus-visible {
+  outline: 3px solid var(--bla);
+  outline-offset: 2px;
+}
+
 /* --- Navlänkar: tre lägen (vila / hover / aktiv) + ikon-studs --- */
 .sido-nav {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
+}
+
+/* Grupprubrik (#701) – bara grupper med rubrik och synliga länkar ritar den. */
+.sido-grupp {
+  margin: 6px 0 2px 12px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7b8aa3;
 }
 
 @keyframes ikon-studs {
@@ -336,36 +453,31 @@ body.med-sidomeny .sidebar {
   box-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
 }
 
-/* Avdelare mellan nav-grupper (används om en länk får en egen grupp igen). */
-.sido-nav-avdelare {
-  border: 0;
-  height: 2px;
-  border-radius: 2px;
-  background: #e4ecfa;
-  margin: 8px 10px;
-}
-
-/* --- Fot: enhetlig valuta-rad (stjärnor + mynt) ovanför logga ut --- */
+/* --- Fot: diskret Logga ut-textknapp längst ner (#701) --- */
 .sido-fot {
   margin-top: auto;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-top: 8px;
+  justify-content: center;
 }
 
-/* Valuta-raden: stjärn- och mynt-badgen sida vid sida, samma pill-behandling
-   (issue #373). Wrappar snyggt om siffrorna blir långa på den smala menyn. */
-.sido-valuta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+.sido-logga-ut {
+  background: none;
+  border: 0;
+  font: 700 0.95rem var(--font);
+  color: var(--text-svag);
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 10px;
 }
 
-.sido-fot .coins,
-.sido-fot .stars {
-  font-size: 1.05rem;
+.sido-logga-ut:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+.sido-logga-ut:focus-visible {
+  outline: 3px solid var(--bla);
+  outline-offset: 2px;
 }
 
 /* --- Valuta-chips: mynt (guld) + stjärnor (sky), enhetlig pill-form ---------
@@ -407,6 +519,9 @@ body.med-sidomeny .sidebar {
   .sido-nav-ikon {
     transition: none;
   }
+  .sido-live-prick {
+    animation: none;
+  }
   .sido-figur:hover,
   .sido-nav-lank:not(.aktiv):hover,
   .sido-nav-lank:active,
@@ -435,14 +550,8 @@ body.med-sidomeny .sidebar {
     gap: 12px;
   }
   .sido-karaktar {
-    gap: 4px;
+    gap: 8px;
     padding: 10px 12px;
-  }
-  .sido-figur {
-    font-size: 2.8rem;
-  }
-  .sido-nav {
-    gap: 4px;
   }
   .sido-nav-lank {
     padding: 9px 14px;
@@ -451,30 +560,28 @@ body.med-sidomeny .sidebar {
     width: 1.8rem;
     height: 1.8rem;
   }
-  .sido-fot {
-    gap: 8px;
-    padding-top: 4px;
-  }
 }
 
-/* Riktigt kort fönster: karaktären läggs i en rad (figur bredvid namnet) och
-   navlänkarna blir lägre – allt ryms ned till ~430px fönsterhöjd. */
+/* Riktigt kort fönster: mindre avatarcirkel, tätare profilruta och lägre
+   navlänkar – allt ryms ned till ~430px fönsterhöjd. */
 @media (max-height: 600px) {
   .sido-karaktar {
-    flex-direction: row;
-    justify-content: center;
-    gap: 10px;
-    padding: 6px 12px;
+    gap: 6px;
+    padding: 6px 10px;
   }
   .sido-figur {
-    font-size: 2.2rem;
+    width: 48px;
+    height: 48px;
+    font-size: 2rem;
+  }
+  .sido-valuta span {
+    padding-block: 2px;
+  }
+  .sido-live {
+    padding-block: 6px;
   }
   .sido-nav-lank {
     padding: 7px 14px;
-  }
-  .sido-fot .coins,
-  .sido-fot .stars {
-    padding-block: 5px;
   }
 }
 
