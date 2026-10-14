@@ -51,6 +51,8 @@ const LARARE = {
   r678av: { teacher: true, role: "arskurs" },
   r678utan: { teacher: true, role: "arskurs" },
   r678gammal: { teacher: true },
+  r678avadmin: { teacher: true, admin: true },
+  r678nedgr: { teacher: true, admin: true },
 };
 const larEmail = (uid) => `${uid}@larare.pluggportalen.local`;
 async function loggaIn(uid) {
@@ -86,6 +88,10 @@ test("seed: lärarkonton, elever i 4A och 5A", async () => {
   // accounts räknar aktiva admin-dokument i samma emulator (sista admin).
   await konto("r678ak4", "arskurs", ["r678-4a", "r678-4b"]);
   await konto("r678av", "arskurs", ["r678-4a"], false);
+  // #682 H3: admin-claims kvar i token, men kontot är avstängt / nedgraderat.
+  // (Inget AKTIVT admin-dokument – sista-admin-testet räknar bara aktiva.)
+  await konto("r678avadmin", "admin", [], false);
+  await konto("r678nedgr", "arskurs", ["r678-4a"]);
   for (const [uid, classId] of [["r678e4a", "r678-4a"], ["r678e5a", "r678-5a"]]) {
     await adminAuth.createUser({ uid, email: usernameToEmail(uid), password: PW });
     await adminDb.doc(`students/${uid}`).set({ namn: uid, username: uid, classIds: [classId] });
@@ -142,5 +148,15 @@ test("egna Hitta rätt!-kartor och admin-funktionerna: bara admin (test 19)", as
   await nekas(fn("adminUpdateTeacher")({ uid: "r678ak4", classIds: ["r678-4a", "r678-4b", "r678-5a"] }));
   await nekas(fn("adminSetTeacherActive")({ uid: "r678admin", active: false }));
   assert.deepEqual((await adminDb.doc("teacherAccounts/r678ak4").get()).get("classIds"), ["r678-4a", "r678-4b"]);
+  await signOut(clientAuth);
+});
+
+test("H3 (#682): avstängd eller nedgraderad admin med giltig token nekas direkt", async () => {
+  for (const uid of ["r678avadmin", "r678nedgr"]) {
+    await loggaIn(uid);
+    await nekas(updateLogin({ uid: "r678e4a", password: "tiger999" }));
+    await nekas(fn("hittaRattSparaPack")({ pack: { namn: "Min karta" } }));
+  }
+  assert.notEqual((await adminDb.doc("studentCredentials/r678e4a").get()).get("password"), "tiger999");
   await signOut(clientAuth);
 });

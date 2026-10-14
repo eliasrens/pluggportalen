@@ -28,7 +28,21 @@ service cloud.firestore {
     // Tillåtelselista: en regel som inte uttryckligen släpper in
     // årskurskontot är bara admin.
     // ------------------------------------------------------------------
-    function isAdmin() { return isTeacher() && (request.auth.token.get('admin', false) == true || isLegacyTeacher()); }
+    function isAdmin() {
+      return isTeacher() && (request.auth.token.get('admin', false) == true || isLegacyTeacher()) &&
+        adminAccountOk();
+    }
+    // #682 H3 (§3.4): en avstängd eller nedgraderad admin nekas DIREKT, inte
+    // först när ID-token gått ut (≤ 1 h). Finns teacherAccounts/{uid} måste
+    // det vara aktivt med role "admin". Saknat dokument = som förut (claims
+    // avgör) – så fungerar lärare utan roll (övergången) och admin före
+    // migreringen. functions/teacher-role.js callerRole gör samma kontroll.
+    // EN get() (null om dokumentet saknas) – exists() + get() vore två
+    // dokumentanrop av högst 10 per skrivning (#682: pokalregeln låg på 10).
+    function adminAccountOk() {
+      let a = get(/databases/$(database)/documents/teacherAccounts/$(request.auth.uid));
+      return a == null || (a.data.get('active', false) == true && a.data.get('role', '') == 'admin');
+    }
     // ⚠️ ÖVERGÅNG (§6.2) – TA BORT när migreringen är verifierad (alla lärare
     // har admin:true eller role:"arskurs" och gamla tokens har gått ut, dvs.
     // senast en timme efter att migreringsskriptet körts). Då: radera den här
@@ -1737,8 +1751,11 @@ service cloud.firestore {
         return c.status == 'finished' && c.participatingClassIds.size() >= 3 &&
           classId in c.participatingClassIds && classId in c.get('result', {}).get(falt, []);
       }
+      // EN get() per shard (null = saknas): exists() + get() räknas som två
+      // av högst 10 dokumentanrop, och isAdmin läser kontot (#682 H3).
       function kcLasShard(s) {
-        return exists(kcPath('expShards', s)) ? get(kcPath('expShards', s)).data.get('lasresan', 0) : 0;
+        let d = get(kcPath('expShards', s));
+        return d == null ? 0 : d.data.get('lasresan', 0);
       }
       function kcPokalLasresan(m) {
         return m in ['100', '250', '500', '1000'] &&

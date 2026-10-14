@@ -16,8 +16,13 @@ Spec: `docs/UTVECKLINGSUPPDRAG_LARARKONTON.md` §2 och §4. Reglerna: `firestore
 - Årskurskontots klasser och `active` läses med `get()` på `teacherAccounts/{uid}`.
   En klassändring eller avstängning gäller därför direkt, utan ny token.
   Kontot gäller bara om dokumentet finns, `active == true` och `role == "arskurs"`.
-- Admin avgörs bara av claims, utan `get()`. En avstängd admin är `disabled` i Auth.
-  Den gamla token gäller högst en timme till.
+- Admin avgörs av claims plus en `get()` på `teacherAccounts/{uid}` (`adminAccountOk`,
+  #682 H3). Finns dokumentet måste det vara aktivt och ha `role == "admin"`. En
+  avstängd eller nedgraderad admin nekas därför direkt, trots gammal token. Saknas
+  dokumentet avgör claims, så övergången och admin före migreringen fungerar.
+  `callerRole` (Cloud Functions) läser dokumentet på samma sätt. Admin-funktionerna
+  läser färska claims i Auth, och `revokeRefreshTokens` körs vid avstängning och
+  rollbyte.
 - Övergången är `isLegacyTeacher()` i reglerna och `claimRole()` i
   `functions/teacher-role.js`. Ta bort båda när migreringen är verifierad
   (§6.2 steg 3). Då har gamla tokens gått ut, senast en timme efter migreringen.
@@ -59,7 +64,7 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 
 | Samling | Admin | Årskurskonto | Test |
 | --- | --- | --- | --- |
-| `teacherAccounts` | L/S | L: bara sitt eget dokument. S: aldrig (konton ändras via admin-funktionerna). | TA test 19, OG avstängt konto |
+| `teacherAccounts` | L/S | L: bara sitt eget dokument. S: aldrig (konton ändras via admin-funktionerna). | TA test 19, OG avstängt konto, OG H3 |
 | `subjects` (ämnet) | L/S | L | SM test 8 |
 | `subjects/{s}/areas` | L/S | L: allt. Skapa: i ett befintligt ämne, med `createdBy` = sig själv. Ändra: bara områden med `createdBy` = sig själv, och `createdBy` får inte bytas. Radera: bara egna. Område utan `createdBy` är admins. | SM test 4–7 |
 | `students` | L/S | L (som alla inloggade). S: aldrig. | KE test 12, RO elevkonton |
@@ -91,8 +96,8 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 
 | Funktion | Admin | Årskurskonto | Test |
 | --- | --- | --- | --- |
-| `updateStudentLogin` | allt | bara lösenord, bara för egna elever. Kontot läses färskt. | FR test 13, FR avstängt konto |
-| `hittaRattSparaPack`, `hittaRattRaderaPack`, `hittaRattSattTopplista` | ja | nej | FR test 19 |
+| `updateStudentLogin` | allt (inte med avstängt eller nedgraderat kontodokument) | bara lösenord, bara för egna elever. Kontot läses färskt. | FR test 13, FR avstängt konto, FR H3 |
+| `hittaRattSparaPack`, `hittaRattRaderaPack`, `hittaRattSattTopplista` | ja (som `updateStudentLogin`) | nej | FR test 19, FR H3 |
 | `adminCreateTeacher`, `adminUpdateTeacher`, `adminSetTeacherPassword`, `adminSetTeacherActive`, `adminDeleteTeacher` | ja (färska claims i Auth; inte sin egen roll eller det sista adminkontot) | nej | FT test 19–23, FR test 19 |
 | `guldrushAnswer`, `guldrushOpenChest`, `guldrushChooseVictim`, `datakuppAnswer`, `datakuppOpenFile`, `datakuppChooseTarget`, `datakuppGuessCode`, `datakuppPickCode`, `hittaRattSubmit` | elevfunktioner, inga lärarvägar | – | GR, DK, HR |
 

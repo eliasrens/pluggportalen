@@ -51,7 +51,7 @@ import {
 } from "./datakuppen-core.js";
 import { HrFel, submit as hittaRattSubmitCore } from "./hitta-ratt-core.js";
 import { sparaPack, raderaPack, sattTopplista } from "./hitta-ratt-egna.js";
-import { callerRole, claimRole } from "./teacher-role.js";
+import { callerRole } from "./teacher-role.js";
 import {
   TeacherError, createTeacher, updateTeacher, setTeacherPassword, setTeacherActive, deleteTeacher,
 } from "./teacher-accounts-core.js";
@@ -151,7 +151,9 @@ export const hittaRattSubmit = onCall(
 function hittaRattLarare(namn, core) {
   return onCall({ region: "europe-west1", memory: "256MiB", maxInstances: 3 }, async (request) => {
     const token = request.auth?.token;
-    if (claimRole(token) !== "admin") throw new HttpsError("permission-denied", "Det här kan bara admin göra.");
+    if ((await callerRole(getFirestore(), request.auth))?.role !== "admin") {
+      throw new HttpsError("permission-denied", "Det här kan bara admin göra.");
+    }
     const lararNamn = token.name || String(token.email || "").split("@")[0];
     try {
       return await core({ db: getFirestore(), FieldValue, FieldPath, Timestamp, now: Date.now }, request.auth.uid, request.data || {}, { namn: lararNamn });
