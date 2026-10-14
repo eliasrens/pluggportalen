@@ -23,6 +23,12 @@ classProjects/{classId}                  ← gemensamma klassprojekt (donationer
 studentData/{studentId}/lasresaAttempts/{autoId}  ← Läsresan: ett försök per färdig text (#399)
 studentData/{studentId}/ekvationsresa/progress     ← Ekvationsresan: nivå, fönster, räknare (#618)
 studentData/{studentId}/ekvationsresaAttempts/{taskId}  ← Ekvationsresan: ett försök per uppgift (#618)
+studentData/{studentId}/brakresa/state             ← Bråkresan: progress, totaler, drake (#706, servern skriver)
+studentData/{studentId}/brakresaRounds/{roundId}   ← Bråkresan: omgång med tio uppgifter + svar
+studentData/{studentId}/brakresaRewards/{eventId}  ← Bråkresan: belöningsbokföring (unikt händelse-id)
+studentData/{studentId}/brakresaHunts/{datum}      ← Bråkresan: daglig guldjakt
+brakresaSecrets/{roundId}                ← Bråkresan: omgångens facit – bara Cloud Functions
+brakresaRecommendations/{recId}          ← Bråkresan: lärarens rekommendationer
 mathCompetitions/{cid}/…                 ← Mattematchen (#457), se "Mattematchen & Live"
 liveSessions/{sid}/…                     ← Live-matcher (#457), se "Mattematchen & Live"
 liveClock/{uid}                          ← Live: klocksynk per inloggad (#460)
@@ -416,6 +422,7 @@ avstängning gäller därför direkt, utan ny token.
 | `lasresaAttemptsFallback` | array | Läsresan: de senaste (max 30) försöken när skrivning till `lasresaAttempts` nekas (regeln ännu ej deployad). Samma form som ett försöksdokument. Läses av `listAttempts`. |
 | `amneslasning` | map | **Ämnesläsning** (#671, `docs/UTVECKLINGSUPPDRAG_AMNESLASNING.md`): `{ areas: { [areaId]: { subjectId, read: { [textId]: { count, lastAt } }, currentTextId, currentStartedAt, totals } }, totals, updatedAt }` – läst-lista med tidpunkt (`count` = antal läsningar, styr omläsningstrappan för mynten) och påbörjad text per område. Ämnesläsningen har INGEN egen nivå: den läser och uppdaterar `lasresa`s dolda nivå + streaks (tak 7 uppåt, fritt nedåt) men rör aldrig resan (`worldId`, `stepInWorld`, `seenTextIds`, `currentTextId`, totaler). `totals` (#674, per område + för all ämnesläsning) = `{ totalTexts, totalQuestions, totalCorrect, totalIncorrect, moneyEarned, catStats }` (samma namn som `lasresa`), denormaliserade i textavslutets transaktion så att lärarvyerna (Läsresans källfilter, Per område) klarar sig med detta dokument. Kärna `src/amneslasning/`, brygga `src/data-amneslasning.js`. |
 | `kcDonation` | string | Klasscentret (#500): `"<classId>/<donationId>"` för elevens senaste donation – skrivs i samma batch som myntavdraget så att ett avdrag bara kan betala EN donationspost (se Crowdfunding). Läses inte av appen. |
+| `brakdrake` | map | **Bråkresans drake i huset** (#706/#714): `{ id, level, name, pos, stowed, room }` – servern skapar den vid kläckningen och håller `level` aktuell; eleven skriver namn och placering. Se "Bråkresan" nedan. Saknas = ingen kläckt drake. |
 
 ### `studentData/{studentId}/lasresaAttempts/{autoId}` – Läsresan-försök (#399)
 
@@ -444,6 +451,149 @@ tillbaka till `studentData.lasresaAttemptsFallback`.
 Se `docs/EKVATIONSRESAN.md` §5 (fälten, transaktionen, mynt-idempotensen). Läsning:
 eleven själv + lärare. Försöket är create-only med uppgiftens id som dokument-id.
 ⚠️ Kräver `firebase deploy --only firestore:rules` – ingen fallback i `studentData`.
+
+### Bråkresan (#706, epic #705) – `brakresa/state`, `brakresaRounds`, `brakresaRewards`, `brakresaHunts`
+
+Spec: [`docs/BRAKRESAN-SPEC.md`](BRAKRESAN-SPEC.md) §13 "Logiska dataobjekt", integrationen i
+[`docs/BRAKRESAN.md`](BRAKRESAN.md). **Allt nedan skrivs bara av Cloud Functions** (Admin SDK,
+#708 C / #715 J). Klienten läser: eleven sitt eget, läraren egna elever (`hasStudent`), inga
+klasskamrater. Reglerna nekar all klientskrivning (`test/firestore-rules-brakresan.test.js`).
+⚠️ Kräver `firebase deploy --only firestore:rules` + functions.
+
+Värden `{ n, d }` är reducerade rationella tal (`src/brakresan/math/rational.js`). Tider är
+Firestore-`Timestamp` satta av servern. Händelse-id och datum är dokument-id, så unikheten
+(en stjärna per ordinal, en uppmuntran per utmaning, en jakt per dag) vilar på dokumentets
+existens i transaktionen – inte på klienten.
+
+#### `studentData/{id}/brakresa/state` – elevens progress (ETT dokument per elev)
+
+Lärarens klassöversikt och matris läser bara detta dokument per elev (§12/#231: inga 50
+frågor per elev). Servern uppdaterar det i samma transaktion som svaret/avslutet/jakten.
+
+| Fält | Typ | Beskrivning |
+| ---- | --- | ----------- |
+| `schema` | int | `1` |
+| `totalStars` | int 0–150 | Summan av `challenges.*.stars`. Draknivån härleds ur den (`dragonLevel`, `schema/regler.js`). |
+| `mastered` | int 0–50 | Antal utmaningar med `stars == 3` |
+| `challenges` | map | `{ "03": ChallengeProgress }` – bara utmaningar eleven rört |
+| `encouragementCoins` | int 0–500 | Utbetalda uppmuntransmynt totalt (10 per utmaning, högst en gång) |
+| `totals` | map | `{ roundsCompleted, roundsAborted, firstCorrect, firstTotal, helpBefore, helpAfter }` – samma räknare som per utmaning, summerade |
+| `dragon` | map/null | `null` som ägg (0–9 stjärnor). Vid kläckningen (första transaktionen som når 10): `{ id, hatchedAt, levelShown }`. `id` = personligt drak-id (`"drake-" + uid`), `levelShown` = högsta nivå vars kläcknings-/evolutionsanimation visats (H/I sätter den via servern, så en avbruten animation visas igen men ger aldrig ny drake) |
+| `hunts` | map | `{ count, coins, lastDate }` – summerat ur BEKRÄFTADE jaktposter (J) |
+| `lastActivityAt` | timestamp | Senaste sparade spelaktivitet (svar, avslut, avbrott, jakt) – inte en öppnad sida |
+| `updatedAt` | timestamp | |
+
+**ChallengeProgress** (`challenges["03"]`):
+
+| Fält | Typ | Beskrivning |
+| ---- | --- | ----------- |
+| `stars` | int 0–3 | Tilldelade stjärnor. Höjs bara i serverns transaktion, med `brakresaRewards/stjarna-03-<ordinal>` |
+| `starRounds` | list | Omgångs-id per stjärna (index = ordinal − 1) |
+| `encouragementPaid` | bool | Uppmuntransmynt utbetalt för utmaningen (aldrig igen, aldrig efter bemästring) |
+| `activeRoundId` | string/null | Elevens enda aktiva omgång i utmaningen (§11: högst en) |
+| `activeAnswered` | int 0–10 | Bedömda uppgifter i den aktiva omgången (listans "4/10 svarade") |
+| `roundsCompleted`, `roundsAborted` | int | Avslutade (alla tio bedömda) resp. uttryckligt avbrutna omgångar |
+| `firstCorrect`, `firstTotal` | int | Rätta resp. alla FÖRSTA bedömningar, även i ofullständiga omgångar (§12 träffsäkerhet) |
+| `helpBefore`, `helpAfter` | int | Bedömda uppgifter där hjälp öppnats före första kontroll / efter ett fel |
+| `best`, `last` | int 0–10/null | Bästa och senaste avslutade resultat |
+| `lastAt` | timestamp | Senaste aktivitet i utmaningen |
+
+Status i listan (Inte påbörjad / Pågående omgång / Tränar / 1–2 av 3 stjärnor / Bemästrad)
+räknas ur posten med `challengeStatus` (`schema/regler.js`) – den lagras inte.
+
+#### `studentData/{id}/brakresaRounds/{roundId}` – omgång
+
+`roundId` väljs av servern (slump, `^[A-Za-z0-9]{12,40}$`). Skapas av `brakresaStartRound`
+med tio färdiga uppgifter; omladdning läser samma dokument (§5 återupptagning).
+
+| Fält | Typ | Beskrivning |
+| ---- | --- | ----------- |
+| `schema` | int | `1` |
+| `roundId`, `studentId`, `challengeId` | string | |
+| `mode` | string | `"elev"` eller `"repetition"` (utmaningen hade 3 stjärnor vid start). Lärarens testläge sparas ALDRIG. Belöningsbeslutet tas ändå med färska stjärnor vid avslutet (§13 samtidighet) |
+| `version` | int | Generatorversionen omgången byggdes med |
+| `status` | string | `"aktiv"` → `"avslutad"` (alla tio bedömda, belöning avgjord) eller `"avbruten"` (uttryckligt "Avsluta omgången", ingen belöning) |
+| `tasks` | list(10) | `publicTask(task)` (`schema/uppgift.js`) – uppgiften UTAN facit: id, prompt, view, answer, help, role |
+| `answers` | list(10) | TaskAnswer per index (nedan), skapas tomma vid start |
+| `answeredCount`, `correctCount` | int 0–10 | Antal första bedömningar resp. rätta – härledda ur `answers[*].first` |
+| `startedAt`, `finishedAt`, `updatedAt` | timestamp | `finishedAt` sätts vid avslutad/avbruten |
+| `reward` | map/null | Vid avslut: `{ kind: "stjarna"|"uppmuntran"|"ingen"|"repetition", eventId, coins, starOrdinal }`. Omförsök av avslutet svarar detta – betalar aldrig igen |
+| `cores` | list(10) | Uppgifternas kärnor – skrivs FÖRST när omgången är avslutad/avbruten (de kan avslöja facit). Nästa omgång undviker kärnorna i de senaste tre omgångarna (`planRound` avoidCores) |
+
+**TaskAnswer** (`answers[i]`):
+
+| Fält | Typ | Beskrivning |
+| ---- | --- | ----------- |
+| `index` | int 0–9 | |
+| `first` | map/null | Första GILTIGA svaret – låst när det satts: `{ answer, correct, reason, at }`. `answer` = elevens svar som skickat (JSON, inga arrayer i arrayer). Ett inmatningsfel (`status: "invalid"`) sparas inte |
+| `helpBefore` | list | Hjälpsteg som öppnats före första kontroll (`"orientering"`, `"princip"`, `"modellering"`, `"atergang"`) |
+| `helpAfter` | list | Hjälpsteg efter ett fel |
+| `rework` | list ≤ 5 | Bearbetning efter fel `{ answer, correct, at }` – ändrar ALDRIG poängen |
+| `reveal` | map/null | Skrivs när `first` sätts: `revealTask(task)` = `{ display, feedback, review }` (facit som text, återkoppling, genomgång). Lärarhistoriken visar uppgiften ur `tasks[i]` + detta, med omgångens version |
+
+#### `brakresaSecrets/{roundId}` – facit (bara servern)
+
+`{ studentId, challengeId, version, seed, plan: [{ index, role, params, core, source }], tasks:
+[task × 10], createdAt }` – hela uppgifterna med `key`, `feedback`, `review`. Rättningen läser
+de SPARADE uppgifterna, så en ändrad generator påverkar aldrig en gammal aktiv omgång (§13).
+Ingen klient läser dokumentet, inte ens admin.
+
+#### `studentData/{id}/brakresaRewards/{eventId}` – belöningsbokföring
+
+Dokument-id = unikt händelse-id (`schema/regler.js`): `stjarna-03-1` … `stjarna-03-3`,
+`uppmuntran-03`, `jakt-2026-10-14`. Servern skapar dokumentet och ökar `studentData.coins`
+med `FieldValue.increment(amount)` i SAMMA transaktion; finns dokumentet redan betalas inget
+(idempotent omförsök, dubbelklick, två flikar).
+
+| Fält | Typ | Beskrivning |
+| ---- | --- | ----------- |
+| `eventId`, `type` | string | `type` = `"stjarna"`, `"uppmuntran"` eller `"jakt"` |
+| `studentId` | string | Mottagaren |
+| `amount` | int | 40, 10 respektive 1–200 |
+| `challengeId`, `starOrdinal`, `roundId` | | Stjärna/uppmuntran |
+| `huntDate` | string | Jakt |
+| `coinsAfter` | int | Saldot efter utbetalningen (valutareferens för läraren/felsökning) |
+| `createdAt` | timestamp | |
+
+#### `studentData/{id}/brakresaHunts/{datum}` – daglig guldjakt (#715)
+
+Dokument-id = svensk kalenderdag `ÅÅÅÅ-MM-DD` ur SERVERNS klocka (`stockholmDate`). En post per
+elev och dag, skapad i samma transaktion som `brakresaRewards/jakt-<datum>` och myntet.
+
+| Fält | Typ | Beskrivning |
+| ---- | --- | ----------- |
+| `huntId`, `date` | string | = dokument-id |
+| `studentId`, `dragonId` | string | |
+| `startedAt` | timestamp | Serverns tid |
+| `level`, `max` | int | Draknivå vid start och dagens maxbelopp (`huntMax`) |
+| `amount` | int | Fyndet 1–`max`, likformigt med `node:crypto` |
+| `rewardEventId` | string | `jakt-<datum>` |
+| `status` | string | `"bekraftad"` |
+
+#### `studentData.brakdrake` – draken i huset (I #714)
+
+Draken bor INTE i `roomAnimals`: `saveAnimalPositions`/`saveAnimalName` skriver om hela listan ur
+`animalsFromData`, som hoppar över arter som inte är shop-djur – en drakpost där skulle tyst
+försvinna. Eget fält i stället, med samma namnregler (`cleanPetName`) och placeringsmönster:
+`{ id, level, name, pos: { x, y }, stowed, room }`. Servern skapar fältet vid kläckningen (`id` =
+`state.dragon.id`) och uppdaterar `level` i samma transaktion som stjärnan som ändrar nivån
+(cachad nivå så att klasskamrater som besöker huset ser rätt stadium utan att läsa `state`).
+Eleven skriver `name`, `pos`, `stowed`, `room` (som övriga husdjur). En egen ändring av `level`
+är bara kosmetisk i det egna huset – Bråkresan och jakten utgår alltid från `state`.
+
+#### `brakresaRecommendations/{recId}` – lärarens rekommendationer (K #716)
+
+| Fält | Typ | Beskrivning |
+| ---- | --- | ----------- |
+| `teacherId` | string | Skaparen (= `request.auth.uid`) |
+| `classId` / `studentId` | string/null | EXAKT ett av dem. Klassrekommendationen gäller klassens elever enligt `classes/{id}.studentIds`, även senare tillkomna |
+| `challengeIds` | list | 1–50 id ur `"01"`–`"50"` |
+| `comment` | string/null | ≤ 200 tecken, visas som text (aldrig HTML) |
+| `active` | bool | `true` vid skapande; avslutas med `active: false` + `endedAt` |
+| `createdAt`, `endedAt` | timestamp | |
+
+Eleven hämtar med `where("studentId", "==", uid)` och `where("classId", "==", klass)` (+
+`where("active", "==", true)`); läraren med `where("classId", "==", …)` per egen klass.
 
 ### `studentData.pets[]` – kläckbara husdjuren
 
