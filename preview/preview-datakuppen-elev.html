@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Datakuppens elevvy (#653)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      /* Bara förhandsvisningen: en låtsad toppmeny (~70 px som appens) + simuleringspanel. */
+      body { margin: 0; min-height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; }
+      .pv-topbar { flex: none; height: 64px; display: flex; align-items: center; padding: 0 18px; gap: 14px; background: #fff;
+        box-shadow: 0 2px 8px rgba(0,0,0,.08); font-weight: 800; color: #1b2559; }
+      .pv-main { flex: 1; display: flex; flex-direction: column; padding: 12px 16px; min-height: 0; }
+      .pv { position: fixed; left: 10px; bottom: 10px; z-index: 100; width: 340px; max-height: 72vh; overflow: auto;
+        font: 13px/1.35 system-ui, sans-serif; background: rgba(255, 255, 255, 0.97); color: #1b2559; border-radius: 12px;
+        box-shadow: 0 8px 30px rgba(0,0,0,.35); }
+      .pv:not([open]) { width: auto; }
+      .pv summary { cursor: pointer; padding: 8px 12px; font-weight: 700; }
+      .pv-body { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 12px; }
+      .pv-body b { width: 100%; margin-top: 6px; }
+      .pv button, .pv label, .pv select { font: inherit; padding: 4px 8px; border-radius: 8px; border: 1px solid #c5cde0; background: #f3f6fc; cursor: pointer; }
+      .pv-note, .pv-stat { width: 100%; color: #5a6585; }
+      .pv-stat { font-family: ui-monospace, monospace; font-size: 12px; color: #1b2559; white-space: pre-line; }
+    </style>
+  </head>
+  <body>
+    <div class="pv-topbar">🏠 Pluggporten <span style="margin-left:auto;font-weight:600">Elev: Jag</span></div>
+    <div class="pv-main" id="app"></div>
+
+    <details class="pv" open>
+      <summary>🧪 Simulering (#653, bara förhandsvisning)</summary>
+      <div class="pv-body">
+        <span class="pv-note">Låtsasserver (preview/datakuppen-elev-sim.js) med formatets delade regler. Ingen Firestore, inga pluggmynt.</span>
+        <b>Fas</b>
+        <button data-fas="lobby">Lobby (kodval)</button>
+        <button data-fas="live">Spel</button>
+        <button data-fas="ended">Slut</button>
+        <b>Nästa fil innehåller</b>
+        <select data-fil><option value="">🎲 Slump (serverns vikter)</option></select>
+        <b>Hack</b>
+        <button data-act="svara">✔ Svara rätt nu</button>
+        <button data-act="hack">💻 Nästa fil = Hack</button>
+        <button data-act="igen">↺ Tillåt samma mål igen</button>
+        <button data-act="hackad">Bli hackad (notis + ny kod)</button>
+        <button data-act="skydda">🛡️ Skydda de 3 rikaste</button>
+        <b>Inställningar</b>
+        <label>Serverns svarstid <select data-lat><option>50</option><option selected>150</option><option>600</option><option>2000</option><option>8000</option></select> ms</label>
+        <span class="pv-note">Svarssätt/innehåll via adressen: ?svar=choice · ?quiz=1 · Reducerad rörelse: emulera i webbläsaren.</span>
+        <div class="pv-stat" data-stat></div>
+      </div>
+    </details>
+
+    <script type="module">
+      import { createDkStage } from "../src/live/formats/datakuppen/dk-elev-vy.js";
+      import { createFullscreenButton } from "../src/live/kistspel/ks-helskarm.js";
+      import { lobbyHtml, endHtml, joinedText } from "../src/live/formats/datakuppen/dk-skarmar.js";
+      import { DK_FILES } from "../src/live/formats/datakuppen/delat/files-config.js";
+      import { codeList } from "../src/live/formats/datakuppen/delat/datakuppen-regler.js";
+      import { createAvatarRoster } from "../src/live/design/live-avatars.js";
+      import { requireGameMode } from "../src/live/modes/index.js";
+      import { createSim } from "./datakuppen-elev-sim.js";
+      import { demoMembers } from "../src/live/formats/snilleblixt/sb-demo.js";
+
+      const qs = new URLSearchParams(location.search);
+      // Demoläget (#655): ?koppla=1 i preview-datakuppen-demolage.html – eleven är
+      // en av projektordemons 30 (samma spelardokument, samma avatarer), panelen
+      // göms och sidan styrs av window.__dkDrive.
+      const KOPPLA = qs.get("koppla") === "1";
+      const k = KOPPLA ? await new Promise((res) => {
+        const t = setInterval(() => { const x = window.parent?.__dkKoppling?.(); if (x) { clearInterval(t); res(x); } }, 50);
+      }) : null;
+      if (KOPPLA) {
+        document.querySelector(".pv").hidden = true;
+        document.querySelector(".pv-topbar span").textContent = `Elev: ${k.me.name}`;
+        for (const key of Object.keys(localStorage)) if (key.startsWith("pp:dk:minne:pv-dk-655")) localStorage.removeItem(key);
+      }
+      const quizOn = qs.get("quiz") === "1";
+      const answerKind = quizOn || qs.get("svar") === "choice" ? "choice" : "free";
+      const mode = requireGameMode(quizOn ? "plugga_quiz" : "multiplication_0_10");
+      const QUIZ = [
+        { text: "Vilket av de här är ett bra lösenord?", options: ["123456", "lösenord", "Blå-Tiger-Hoppar-7", "mittnamn"], a: 2 },
+        { text: "Vad ska du göra om någon ber om ditt lösenord?", options: ["Ge det", "Säga nej och berätta för en vuxen", "Skriva det på en lapp", "Byta namn"], a: 1 },
+        { text: "Hur många bitar är en byte?", options: ["4", "8", "16", "2"], a: 1 },
+      ];
+
+      const DJUR = ["fox", "owl", "cat", "dog", "panda", "frog", "unicorn", "dragon", "lion", "penguin", "koala", "robot", "bjorn",
+        "tiger", "rabbit", "pig", "cow", "monkey", "hamster", "mouse", "chick", "sheep", "hedgehog", "wolf", "deer", "raccoon",
+        "turtle", "bee", "elephant", "goat"];
+      const KLADER = [["trollkarlshatt", "cape"], ["krona", "medalj"], ["keps", "glasogon"], ["partyhatt", "ballong"],
+        ["vikinghjalm", "cape"], ["strahatt", "blomma"], ["monokel", "fluga"], ["riddarhjalm", "svard", "cape"], ["kockmossa", "slips"]];
+      const NAMN = ["Jag", "Alma", "Omar", "Ines", "Leo", "Clara", "Sam", "Ella", "Noah", "Maja", "Elias", "Wilma", "Adam", "Saga", "Hugo",
+        "Vera", "Liam", "Nora", "Ali", "Selma", "Melvin", "Tyra", "Isak", "Juni", "Otto", "Stella", "Malte", "Siri", "Ebbe", "Lova"];
+      const members = {};
+      NAMN.forEach((n, i) => { members[`e${i}`] = { namn: n, avatarId: DJUR[i], avatarItems: KLADER[i % KLADER.length] }; });
+      const roster = createAvatarRoster({ load: async () => ({ members: KOPPLA ? demoMembers() : members }) });
+
+      const codes = codeList(await (await fetch("../src/live/formats/datakuppen/delat/koder.json")).json());
+      const now0 = Date.now();
+      const players = KOPPLA ? k.players : NAMN.slice(1).map((n, i) => ({
+        uid: `e${i + 1}`, name: n, classId: "4b", gold: Math.max(5, 330 - i * 11 + (i % 4) * 6), correct: 10 - (i % 7),
+        protectedUntil: i === 3 ? now0 + 42_000 : i === 8 ? now0 + 600_000 : null,
+      }));
+      const $ = (s) => document.querySelector(s);
+      let forcedFile = "";
+      let phase = "lobby";
+      const ME = KOPPLA ? k.me : { uid: "e0", name: "Jag", classId: "4b", gold: 250, correct: 12, protectedUntil: null };
+      const sim = createSim({
+        codes, players, quiz: quizOn ? QUIZ : null, me: ME, shared: KOPPLA, onAction: k?.onAction,
+        latency: () => Number($("[data-lat]").value) || 0,
+        forced: () => { const f = forcedFile; if ($("[data-fil]").value === "") forcedFile = ""; return f || $("[data-fil]").value || null; },
+        phase: () => phase,
+      });
+      window.__dkSim = sim;
+
+      for (const f of DK_FILES) $("[data-fil]").insertAdjacentHTML("beforeend", `<option value="${f.id}">${f.icon} ${f.label}</option>`);
+
+      // Kärnans elevvy (page-elev-live.js) i liten skala: lobby / spel / slut.
+      const session = { id: KOPPLA ? "pv-dk-655" : "pv-dk-653", name: "Datakuppen 4B", format: "datakuppen", gameMode: mode.id, answerKind, participatingClassIds: ["4b"] };
+      $("#app").innerHTML = `<div class="live-elev">
+          <header class="live-elev-head"><span class="live-elev-badge">⚡ LIVE</span>
+            <h1 class="live-elev-title">Datakuppen 4B</h1><span class="live-elev-me"></span></header>
+          <div class="live-elev-stage">
+            <div class="live-elev-lobby" hidden><p class="live-elev-wait">${joinedText}</p>${lobbyHtml(session)}</div>
+            <div class="live-elev-count" hidden></div>
+            <div class="live-elev-play" hidden></div>
+            <div class="live-elev-end" hidden></div>
+          </div></div>`;
+      const view = $(".live-elev");
+      const stage = createDkStage(
+        { view, host: $(".live-elev-play"), uid: ME.uid, classId: "4b", session, mode, answerKind },
+        { api: sim.api, now: () => Date.now(), roster },
+      );
+      // Som datakuppen-student.js: helskärmsknappen uppe till höger.
+      const full = createFullscreenButton(view, { cls: "dk-helskarm" });
+      if (full) view.appendChild(full.el);
+      const player = { uid: ME.uid, name: ME.name, classId: "4b" };
+      function setPhase(p) {
+        phase = p;
+        const part = p === "lobby" ? "lobby" : p === "live" ? "play" : "end";
+        for (const k of ["lobby", "count", "play", "end"]) $(`.live-elev-${k}`).hidden = k !== part;
+        const ranking = [sim.state.me, ...sim.state.players].sort((a, b) => b.gold - a.gold)
+          .map((r, i) => ({ uid: r.uid, name: r.name, gold: r.gold, correct: r.correct || 0, rank: i + 1 }));
+        const st = { phase: p, session, result: p === "ended" ? { ranking, totalGold: ranking.reduce((n, r) => n + r.gold, 0) } : null };
+        if (p === "ended") $(".live-elev-end").innerHTML = endHtml(st, player);
+        stage.update(st, player);
+      }
+      document.querySelectorAll("[data-fas]").forEach((b) => b.addEventListener("click", () => setPhase(b.dataset.fas)));
+      setPhase(qs.get("fas") || "lobby");
+      if (KOPPLA) window.__dkDrive = createDrive();
+
+      const stat = $("[data-stat]");
+      setInterval(() => {
+        const s = sim.state.self;
+        stat.textContent = `min kod: ${s.code || "–"}\nförslag: ${(s.offers || []).join(", ") || "–"}\ndata: ${sim.state.me.gold} MB`;
+      }, 400);
+
+      // Demoläget (#655): styr elevvyn som en elev skulle – klick i den riktiga vyn.
+      function createDrive() {
+        const wait = (sel, ms = 8000) => new Promise((res, rej) => {
+          const t0 = Date.now();
+          const t = setInterval(() => {
+            const el = typeof sel === "function" ? sel() : document.querySelector(sel);
+            if (el) { clearInterval(t); res(el); } else if (Date.now() - t0 > ms) { clearInterval(t); rej(new Error(`väntade på ${sel}`)); }
+          }, 60);
+        });
+        const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+        const svara = async () => { await wait(".dk-svar .fa-input, .dk-svar .ca-knapp"); $("[data-act=svara]").click(); };
+        return {
+          sim, wait, sleep, setPhase,
+          phase: () => phase,
+          /** Lobbyns kodval: klicka ett av förslagen. */
+          async pickLobbyCode(i = 1) { (await wait(".live-elev-lobby .dkv-kort")).parentElement.children[i]?.click(); },
+          /** Svara rätt och öppna en fil med givet innehåll; → filens id. */
+          async openFile(fileId, i = 1) {
+            forcedFile = fileId;
+            const filer = () => document.querySelectorAll(".dkf-fil").length && document.querySelectorAll(".dkf-fil");
+            // Svaret kan komma medan vyn fortfarande byter fråga – försök igen.
+            for (let n = 0; !filer() && n < 5; n++) {
+              await svara();
+              await wait(filer, 2500).catch(() => null);
+            }
+            (await wait(filer, 1000))[i]?.click();
+          },
+          /** Hack steg 1: välj målet (uid) i målväljaren. */
+          async pickTarget(uid) { (await wait(`.dko-kamrat[data-uid="${uid}"]:not([disabled])`)).click(); },
+          /** Hack steg 2: rätt (true) eller fel (false) kod; → koderna som visades. */
+          async guess(right) {
+            await wait(".dkk-kort[data-i]");
+            await sleep(900);
+            const target = sim.state.self.hack;
+            const btns = [...document.querySelectorAll(".dkk-kort[data-i]")];
+            const code = (x) => x.querySelector(".dk-kod")?.textContent || "";
+            btns.find((x) => (code(x) === sim.secret[target.targetUid]) === right)?.click();
+            return { shown: btns.length, struck: document.querySelectorAll(".dkk-borta").length };
+          },
+          /** Bli hackad → välj en av de nya koderna. */
+          async hackedBy(uid, i = 2) {
+            sim.hackMe(uid);
+            (await wait(".live-elev-play .dkv-kort", 12000)).parentElement.children[i]?.click();
+          },
+          stage,
+        };
+      }
+
+      $("[data-act=svara]").addEventListener("click", () => {
+        const fa = document.querySelector(".dk-svar .fa-input");
+        const q = document.querySelector(".dk-svar .fa-question")?.textContent || "";
+        const m = q.match(/(\d+)\s*[·×x*]\s*(\d+)/);
+        if (fa && m) {
+          fa.value = String(Number(m[1]) * Number(m[2]));
+          fa.form?.requestSubmit?.();
+          return;
+        }
+        document.querySelector(".dk-svar .ca-knapp")?.click();
+      });
+      $("[data-act=hack]").addEventListener("click", () => { forcedFile = "hack"; });
+      $("[data-act=igen]").addEventListener("click", () => { sim.state.me.lastVictimUid = null; sim.emit(); });
+      $("[data-act=hackad]").addEventListener("click", () => sim.hackMe("e2"));
+      $("[data-act=skydda]").addEventListener("click", () => {
+        [...sim.state.players].sort((a, b) => b.gold - a.gold).slice(0, 3).forEach((p, i) => sim.protect(p.uid, [8_000, 30_000, 60_000][i]));
+      });
+    </script>
+  </body>
+</html>

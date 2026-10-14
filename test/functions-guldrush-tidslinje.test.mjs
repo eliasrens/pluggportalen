@@ -1,6 +1,6 @@
 // ============================================================================
 // Guldrushen + tidslinjefrågor (#601, epic #595): SERVERNS rättning
-// (functions/guldrush-rattning.js via guldrush-core.js answerQuestion) mot
+// (functions/kistspel-rattning.js via guldrush-core.js answerQuestion) mot
 // Firestore-emulatorn – samma rigg som functions-guldrush-core.test.mjs.
 //
 //   • exakt år = rätt → kista som vanligt; fel år → ❌ + rätt år (correctYear)

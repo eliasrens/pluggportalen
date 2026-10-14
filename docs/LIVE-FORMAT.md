@@ -2,7 +2,7 @@
 
 Den här guiden beskriver steg för steg hur ett nytt **spelformat** byggs i Live
 (#547–#567). Den bygger på koden som finns i `src/live/formats/` – Klassmatchen,
-Snilleblixten och Guldrushen – och är skriven så att prompten
+Snilleblixten, Guldrushen och Datakuppen – och är skriven så att prompten
 **"bygg formatet X enligt `docs/LIVE-FORMAT.md`"** ska räcka.
 
 Läs först: API-kommentaren överst i `src/live/live-formats.js` (interfacet,
@@ -65,6 +65,82 @@ Använd `docs/DESIGNSYSTEM.md` och stöd `prefers-reduced-motion`.
 > `src/app.js`. Formatets DOM-/Firestore-delar laddas bara via `import()`.
 > `test/live-formats.test.js` ("Bootgrafen: formaten bara dynamiskt") fäller
 > en statisk import. Se även `admin/qa-bootgraf-bfs.mjs`.
+
+### 1.1 Kistspel – gemensam motor för Guldrushen-lika format (#651)
+
+Ett format där eleverna svarar i egen takt, öppnar kistor och kan ta från
+varandra (Guldrushen, Datakuppen) bygger på **`src/live/kistspel/`** i stället
+för att kopiera Guldrushen. Modulen är valutaneutral: valutans namn/enhet/ikon,
+kisttabellen, texterna, SVG:erna, ljuden och CSS-prefixen kommer från formatet.
+Saldot heter `gold` i spelardokumenten för alla format (Datakuppen visar det
+som MB). Ingen fil i `kistspel/` importerar ett format (testat i
+`test/live-kistspel.test.js`); formatet importerar modulen. Guldrushens
+`gr-*.js` är exempel på hur ett tema skrivs.
+
+| Fil | Vad | API (kort) |
+| --- | --- | --- |
+| `delat/ks-regler.js` | Kistmotorn (tabelldriven slump), skyddet (`protectedUntil`), trygghetsreglerna, stöld/byte, händelsetexter. **Delas med servern** | `createKistRegler({ chests, rules, eventTexts, anon, messages, vars?, stealCap?, loseCap? })` → `chestTable`, `rollChest`, `applySelfEffect`, `victimProblem`, `eligibleVictims`, `resolveVictim`, `shieldUntil`, `hitProtectionUntil`, `eventText` … |
+| `ks-core.js` | Speltid, quizets ögonblicksbild, ställning, `result`, händelsemarkör | `durationField`, `durationError`, `buildQuizPool`, `computeStandings(s, { players, grPlayers })`, `buildResult(format, s, players, inputs)`, `createEventCursor` |
+| `ks-proj-scen.js` | Projektorns rena logik | rena: `matchClock`, `topPiles`, `pileSlot`, `pileLevel`, `podiumGroups`, `statSummary`, `standingRows`, `createRate`, `tal`; tema: `createProjScen({ regler, milestones, title, unit, icon?, feed })` → `feedItem`, `trimPending`, `milestone`, `FINAL_TITLE`, `togetherHtml` |
+| `ks-elev.js` | Elevskärmens rena logik (ingen placering som nummer) | rena: `goldStanding`, `myProtection`, `endStanding` …; tema: `createKistElev({ regler, rules, eventTexts, keyPrefix, jubelChests?, texts })` → `standingText`, `victimRows`, `chestView`, `victimView`, `createHitWatcher`, `chestKey` |
+| `ks-historik-data.js` | Andel rätt per fråga/kategori, pall ur `result` | `questionStats`, `playerAnswerStats`, `hardestQuestions`, `podiumGroups` |
+| `ks-historik.js` | Historiken + Statistik → Live (#655): vinnare, pall, klassens saldo, formatets egen ruta, topplista med Pluggmynt, andel rätt per fråga och per `statKeys` | `createKistHistory({ icon, amount, classTotal, balanceHead, chestsHead, statsHead, summaryTitle, loadAnswers, css?, klasserCls?, extraHtml?, classStatsExtra? })` → `historyRenderer`-modulens exporter |
+| `ks-fraga.js` | Fråga → svar (skriv själv, flerval, tidslinje) | `createQuestionFlow(host, { mode, answerKind, send, onCorrect, questions?, tlCls })` |
+| `ks-offer.js` | Offerväljaren (levande, skyddade gråade med nedräkning) | `pickVictim(host, { …, theme: { cls, elev, rules, texts, runnerHtml } })` |
+| `ks-koppling.js` | Projektorns lyssnare på spelare + händelser, avatar-roster | `createKoppling({ sid, deps, onChange, dataKey, loadData, computeStandings, texts })`, `avatarRoster` |
+| `ks-flode.js` | Händelseflödet (≤ 4 rader, tempo, gallring) | `createFlode(host, { pool, cls, label, heading, empty, icons, trim })` |
+| `ks-hogar.js` | Topp 10 vid egna "högar" | `createHogar(host, { pool, cls, pileHtml, defs?, amount, leaderMark? })` |
+| `ks-totalruta.js` | Totalrutan med förloppsmätare, firande i rutan | `totalrutaHtml({ cls, label, unit, meterLabel })`, `createTotalruta(box, { cls, scen, texts, colors, cue?, sound })` |
+| `ks-pall.js` | Pallplatsen + lugn totalrad | `createFinal(host, { pool, sound, cls, piece, amountHtml, colors, cues })` |
+| `ks-demo.js` | Isolerat demoläge | `createKistDemo(theme, opts)` (+ `event(e)` för ett utfall som avgjorts utanför demot, `skip` = elever som styrs från en kopplad elevskärm, #655) |
+
+**CSS-prefixen:** komponenterna sätter `<cls>`, `<cls>-post`, `<cls>-steg` …
+(Guldrushen: `grf`, `grh`, `grk`, `grp`, `gro`). Ett nytt format väljer egna
+prefix och skriver egen CSS – inga klasser delas mellan formaten. Undantag:
+historiken på lärarsidan (`ks-historik.js`) använder `grh-*` ur
+`guldrush/guldrush-historik.css` för alla kistformat; formatet lägger bara
+till sina egna detaljer (Datakuppen: `datakuppen-historik.css`, `dkh-*`).
+
+**Servern:** `functions/kistspel-core.js` `createKistServer({ format, regler,
+rules, collections, fallbackChest, texts })` → `answerQuestion`, `openChest`,
+`chooseVictim`, `noteLeader`, `matchWindow`; rättningen i
+`functions/kistspel-rattning.js` (`KsError`, multiplikation, quiz, tidslinje).
+Guldrushen: `functions/guldrush-core.js` (samlingarna `grPlayers`,
+`grPrivate`, `grPublic`, `grMeta`, `grEvents`).
+
+**Synk till `functions/`:** `npm run sync:kistspel` (= `sync:guldrush`, körs
+som `predeploy`) kopierar `src/live/kistspel/delat/` → `functions/kistspel/`
+och formatets `delat/` → `functions/<id>/`. Formatets delat importerar motorn
+som `"../../../kistspel/delat/ks-regler.js"`; i kopian skrivs vägen om till
+`"../kistspel/ks-regler.js"`. Lägg formatets rad i `PAIRS` i
+`admin/sync-guldrush-functions.mjs`; `test/live-guldrush-delat.test.js` fäller
+en kopia som glidit isär.
+
+### 1.2 Datakuppen – mallen för nästa kistformat (#651–#655)
+
+Datakuppen (`src/live/formats/datakuppen/`, regler och konfiguration i
+[`docs/DATAKUPPEN.md`](DATAKUPPEN.md)) är det första format som byggts **på**
+kistspelsmotorn i stället för ur den. Kopiera dess uppdelning för nästa
+kistformat – byt tema, inte motor:
+
+| Del | Datakuppen | Vad du byter |
+| --- | --- | --- |
+| Format-objektet | `index.js` (`privateDocs`, `music`, `setupFields`, lata vyer) | id, namn, ikon, inställningar |
+| Ren logik | `datakuppen-core.js` → `ks-core.js` | samlingarnas namn (`dkPlayers` …), extra resultatfält (`hacks`) |
+| Konfig, delad med servern | `delat/files-config.js` (tabell, valuta, rattar, texter, tips), `delat/datakuppen-regler.js` (`createKistRegler` + formatets egna regler) | kistorna, valutan, rattarna. **En rad i `PAIRS`** i `admin/sync-guldrush-functions.mjs` |
+| Datalagret (latt) | `datakuppen-data.js` | samlingar + callables |
+| Elevskärmen | `datakuppen-student.js` (Firestore in) → `dk-elev-vy.js` (spelytan utan Firebase, `api` injiceras) + `dk-elev.js` (ren logik på `ks-elev.js`) | grafik, notiser, egna moment (koderna: `dk-kod-vy`, `dk-kodval`, `dk-kodkort`, `dk-hack-vy`) |
+| Projektorn | `datakuppen-projector.js` → `dk-natverket.js` (huvudvy på `ks-hogar`/`ks-flode`/`ks-totalruta`/`ks-pall`) + `dk-proj-scen.js` (ren logik på `ks-proj-scen.js`), `dk-statistik.js`, `dk-lobby.js` | scen, SVG, ljud, CSS-prefix |
+| Historiken | `datakuppen-history.js` = tema på `ks-historik.js` (+ `extraHtml` hackrutan, `classStatsExtra`) | ikon, enhet, texter, egna rutor |
+| Demoläget | `dk-demo.js` = tema på `ks-demo.js`; `preview/preview-datakuppen-demolage.html` kopplar projektordemon till elevvyn mot låtsasservern (`preview/datakuppen-elev-sim.js`, samma spelardokument) | specialhändelser, låtsasserverns moment |
+| Servern | `functions/datakuppen-server.js` (`createKistServer` med formatets tabell och samlingar) + egna moduler (`-koder`, `-hack`) + callables i `functions/index.js` (`guldrushCall`) | egna moment |
+| Regler | grenen "Datakuppen" i `firestore.rules` (`kistSessionCreateOk`/`kistSessionUpdateOk`, `grReader`) | samlingar, inställningsfält |
+
+**Hemligheter per elev** (Datakuppens koder) är ett mönster värt att
+återanvända: ett dokument bara eleven själv läser (`dkSelf/{uid}`) och ett
+bara servern läser (`dkSecret/{uid}`) – det publika spelardokumentet bär aldrig
+hemligheten. Händelser som inte flyttar saldo (misslyckat hack) skrivs inte
+som händelser utan räknas på spelardokumentet (`hackAttempts`).
 
 ---
 
@@ -246,7 +322,7 @@ Kom ihåg: regeländringar gäller först efter
   Projektorn visar linjen utan markör och vid avslöjandet rätt år + anonym spridning
   (`src/timeline/timeline-spread.js`). Förebild: Snilleblixten. Rättar SERVERN
   (Guldrushen, #601): frågans `kind` läses ur den lagrade ögonblicksbilden, aldrig
-  ur anropet – se `functions/guldrush-rattning.js` (form, spann, låst år).
+  ur anropet – se `functions/kistspel-rattning.js` (form, spann, låst år).
 - **Svarskomponent:** utan `createStage` monterar elevsidan kärnans komponent
   för svarssättet (`loadAnswerComponent(kind)` i `answer-kinds.js`:
   `free` = `src/mult/fast-answer.js`, `choice` = `src/live/choice-flow.js`).
@@ -367,6 +443,13 @@ i minnet – utan Firestore, Cloud Functions eller Pluggmynt.
 - Demot ska kunna visa: 25+ elever ansluter, svar (rätt och fel) strömmar in,
   formatets specialhändelser, "tiden snart slut", final/pallplats och
   oavgjort om förstaplatsen.
+- **Moment som bara syns på elevskärmen** (Datakuppens koder, minnesmomentet,
+  byt kod) visas med en kopplad demo: `preview/preview-datakuppen-demolage.html`
+  lägger projektordemon och elevvyn (mot en låtsasserver med formatets delade
+  regler) sida vid sida i samma match och spelar upp en guidad genomgång.
+  Elevvyn delar projektordemons spelardokument (`shared: true`); utfallet
+  skrivs tillbaka som händelser (`demo.event`), och `demo.skip` håller
+  autosvaren borta från den styrda eleven.
 
 ---
 
@@ -441,7 +524,10 @@ describe("<id>: ställning och resultat", () => {
 
 Lägg också till formatets egna planer/övergångar och demot (Snilleblixtens och
 Guldrushens demotester ligger i `test/live-snilleblixt-historik.test.js` resp.
-`test/live-guldrush-historik.test.js`).
+`test/live-guldrush-historik.test.js`; Datakuppens i
+`test/live-datakuppen-demo.test.js` och historiken i
+`test/live-datakuppen-historik.test.js` – den senare laddar historikvyn i Node
+med en loader-krok som stubbar lärarsidans `teacher-shared.js`).
 
 ### Regeltester (Firestore-emulatorn)
 
@@ -525,6 +611,7 @@ Tester i `test/functions-<id>*.test.mjs`, tillagda i `test:functions` i
 ## 10. Checklista
 
 - [ ] `src/live/formats/<id>/` med `index.js`, ren `<id>-core.js`, lata vyer
+- [ ] Kistformat (kistor, stöld, skydd)? Bygg på `src/live/kistspel/` (§1.1)
 - [ ] En rad i `BUILTIN_FORMATS` (`src/live/formats/index.js`)
 - [ ] Regelgren i `firestore.rules` + routning i `allow create`/`allow update`
 - [ ] `test/live-<id>.test.js` + `test/firestore-rules-live-<id>.test.js`

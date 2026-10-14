@@ -12,6 +12,15 @@
 //   guldrushChooseVictim stöld/byte i en transaktion + trygghetsreglerna
 // Bara inloggade elever som gått med i matchen. Logiken: guldrush-core.js.
 //
+// Datakuppen (#652, epic Datakuppen) – servern avgör all data, alla koder och
+// hack (spec docs/UTVECKLINGSUPPDRAG_DATAKUPPEN.md §2):
+//   datakuppAnswer       eleven svarar → rättas här, answers/{attemptId}
+//   datakuppOpenFile     ett rätt svar → en fil (slumpen här)
+//   datakuppChooseTarget Hack: välj mål → tre koder i slumpad ordning
+//   datakuppGuessCode    en gissning; rätt → 15 % flyttas i en transaktion
+//   datakuppPickCode     välj kod (index i förslagen, aldrig en egen kod)
+// Logiken: datakuppen-core.js (+ -server/-koder/-hack).
+//
 // Hitta rätt! (#609, epic #603) – hittaRattSubmit: eleven skickar en hel
 // omgångs svar → servern räknar om allt och sparar personbästa, skolans
 // topplista, ledare och coins i EN transaktion. Logiken: hitta-ratt-core.js.
@@ -32,6 +41,10 @@ import { getFirestore, FieldPath, FieldValue, Timestamp } from "firebase-admin/f
 import { randomInt } from "node:crypto";
 import { LoginError, updateStudentLogin as updateLogin } from "./login-core.js";
 import { GrError, answerQuestion, openChest, chooseVictim } from "./guldrush-core.js";
+import {
+  answerQuestion as dkAnswer, openFile as dkOpenFile, chooseTarget as dkChooseTarget,
+  guessCode as dkGuessCode, pickCode as dkPickCode,
+} from "./datakuppen-core.js";
 import { HrFel, submit as hittaRattSubmitCore } from "./hitta-ratt-core.js";
 import { sparaPack, raderaPack, sattTopplista } from "./hitta-ratt-egna.js";
 
@@ -93,6 +106,15 @@ function guldrushCall(name, fn) {
 export const guldrushAnswer = guldrushCall("guldrushAnswer", answerQuestion);
 export const guldrushOpenChest = guldrushCall("guldrushOpenChest", openChest);
 export const guldrushChooseVictim = guldrushCall("guldrushChooseVictim", chooseVictim);
+
+// --- Datakuppen (#652) -----------------------------------------------------------
+// Samma rigg som Guldrushen (crypto-slump, samma kapacitet): DkError och
+// GrError är båda kistspelsmotorns KsError, så guldrushCall fungerar rakt av.
+export const datakuppAnswer = guldrushCall("datakuppAnswer", dkAnswer);
+export const datakuppOpenFile = guldrushCall("datakuppOpenFile", dkOpenFile);
+export const datakuppChooseTarget = guldrushCall("datakuppChooseTarget", dkChooseTarget);
+export const datakuppGuessCode = guldrushCall("datakuppGuessCode", dkGuessCode);
+export const datakuppPickCode = guldrushCall("datakuppPickCode", dkPickCode);
 
 // --- Hitta rätt! (#609) ----------------------------------------------------------
 // Ett anrop per avslutad omgång (inte per fråga) – låg last. Retry med samma

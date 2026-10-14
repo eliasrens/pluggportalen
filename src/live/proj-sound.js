@@ -101,6 +101,15 @@ export const CUES = {
   vosh: { prio: 2, dur: 450, play: (t) => { t(220, 0, 0.32, "sine", 0.1, 660); t(880, 0.18, 0.3, "sine", 0.05, 1320); } },
   grotta: { prio: 5, dur: 1000, play: (t) => { t(70, 0, 1.5, "sawtooth", 0.16, 40); t(110, 0, 1.2, "sine", 0.22, 55); t(55, 0.25, 1.3, "triangle", 0.18, 35); } },
   guldregn: { prio: 4, dur: 1400, play: (t) => { for (let i = 0; i < 14; i++) t([2349, 2637, 3136, 3520][i % 4], i * 0.09, 0.1, "triangle", 0.06); } },
+  // Datakuppen (#654, spec §4.5): korta, digitala och dämpade – inget gällt,
+  // inget som ringer kvar. Lågt "access granted" vid hack, mjuka pip vid
+  // ledningsbyte/serverhall/milstolpe, lågt nätverkssurr när pallen tänds.
+  dkAccess: { prio: 2, dur: 600, gap: 500, play: (t) => { t(392, 0, 0.12, "triangle", 0.09); t(523, 0.13, 0.12, "triangle", 0.09); t(784, 0.26, 0.28, "sine", 0.08); } },
+  dkLedare: { prio: 3, dur: 420, play: (t) => { t(659, 0, 0.1, "sine", 0.09); t(988, 0.1, 0.22, "sine", 0.08); } },
+  dkUpp: { prio: 3, dur: 700, gap: 900, play: (t) => [523, 659, 784, 1047].forEach((f, i) => t(f, i * 0.08, i === 3 ? 0.3 : 0.08, "sine", 0.1)) },
+  dkMilstolpe: { prio: 3, dur: 700, gap: 900, play: (t) => { [784, 988, 1175].forEach((f, i) => t(f, i * 0.1, 0.12, "triangle", 0.1)); t(1568, 0.32, 0.3, "sine", 0.06); } },
+  dkStart: { prio: 5, dur: 1000, play: (t) => { t(110, 0, 1.1, "sine", 0.18, 220); t(220, 0.3, 0.8, "triangle", 0.06, 330); } },
+  dkRegn: { prio: 4, dur: 1400, play: (t) => { for (let i = 0; i < 12; i++) t([1047, 1319, 1568, 1319][i % 4], i * 0.1, 0.07, "sine", 0.05); } },
 };
 
 export function createSound({ key = KEY, defaultOn = true, volume = 0.5 } = {}) {

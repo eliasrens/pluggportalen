@@ -1,0 +1,208 @@
+/* ==========================================================================
+   Datakuppen – HACKET på elevens skärm (#653, spec §1.4, §4.3): steg 1
+   målväljaren (dk-offer.js = kistspelets ks-offer, prefix dko) och steg 2
+   de tre stora kodkorten (dk-kodkort.js, prefix dkk). Färgerna (--dk-*) och
+   .dk-kod kommer ur datakuppen-elev.css. Fel kod: ett streck dras över
+   kortet, kortet skakar lätt och bleknar. Korta glitch-ryck (≤ 0,3 s, ingen
+   blinkning); reducerad rörelse → toningar.
+   ========================================================================== */
+
+/* --- Hack steg 1: målväljaren (dk-offer.js, kistspelets ks-offer) ---------- */
+.dko { height: 100%; display: flex; flex-direction: column; gap: 6px; min-height: 0; }
+.dko-topp { flex: none; display: flex; align-items: center; justify-content: center; gap: 16px; }
+.dko-rubrik, .dkk-rubrik { margin: 0; font-size: clamp(20px, 3.6vh, 32px); color: var(--dk-gron); }
+.dkk-rubrik b { color: var(--dk-varm); }
+.dko-klocka, .dkk-klocka {
+  flex: none;
+  width: 2.3em;
+  height: 2.3em;
+  display: grid;
+  place-items: center;
+  grid-auto-flow: column;
+  border-radius: 50%;
+  border: 2px solid var(--dk-cyan);
+  background: var(--dk-panel);
+  color: var(--dk-cyan);
+  font-family: var(--dk-mono);
+  font-weight: 700;
+  font-size: clamp(18px, 3vh, 28px);
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+.dko-klocka small, .dkk-klocka small { font-size: 0.55em; margin-left: 1px; }
+.dko-brattom .dko-klocka, .dkk-brattom .dkk-klocka { border-color: var(--dk-varm); color: var(--dk-varm); }
+.dko-tid, .dkk-tid { flex: none; height: 8px; border-radius: 999px; background: var(--dk-panel); overflow: hidden; }
+.dko-tid i, .dkk-tid i { display: block; height: 100%; background: linear-gradient(90deg, var(--dk-gron), var(--dk-cyan)); transform-origin: left center; transition: transform 0.2s linear; }
+.dko-brattom .dko-tid i, .dkk-brattom .dkk-tid i { background: var(--dk-varm); }
+.dko-hint, .dkk-hint { flex: none; margin: 0; text-align: center; font-size: clamp(14px, 2.2vh, 19px); color: var(--dk-svag); font-weight: 700; }
+.dko-klar .dko-hint { font-size: clamp(20px, 3.4vh, 30px); color: var(--dk-gron); }
+.dko-tom, .dko-fel { flex: none; margin: 0; text-align: center; font-weight: 800; }
+.dko-fel { color: var(--dk-varm); }
+.dko-rutnat {
+  --dko-w: 158px;
+  --dko-av: clamp(44px, 7.5vh, 64px);
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--dko-w), 1fr));
+  align-content: start;
+  gap: 8px;
+  overflow: auto;
+  padding: 4px;
+}
+.dko[data-many="1"] .dko-rutnat { --dko-w: 146px; }
+.dko[data-many="2"] .dko-rutnat { --dko-w: 132px; --dko-av: clamp(38px, 6.4vh, 56px); }
+.dko[data-many="3"] .dko-rutnat { --dko-w: 122px; --dko-av: clamp(34px, 5.8vh, 50px); gap: 6px; }
+.dko-kamrat {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 8px;
+  padding: 4px 10px 4px 6px;
+  border-radius: 14px;
+  border: 2px solid var(--dk-linje);
+  background: var(--dk-panel);
+  color: var(--dk-text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease, opacity 0.2s ease;
+}
+.dko-kamrat:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--dk-gron); background: var(--dk-panel-ljus); }
+.dko-av { grid-row: span 3; font-size: var(--dko-av); line-height: 1; }
+.dko-namn { font-weight: 800; font-size: clamp(15px, 2.3vh, 20px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dko-guld { white-space: nowrap; font-family: var(--dk-mono); font-weight: 700; color: var(--dk-gron); font-size: clamp(12px, 1.9vh, 16px); font-variant-numeric: tabular-nums slashed-zero; }
+.dko-why { font-size: clamp(11px, 1.6vh, 14px); font-weight: 700; color: var(--dk-cyan); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.dko-why:empty { display: none; }
+.dko-kamrat.dko-av-gra { opacity: 0.5; border-style: dashed; background: #0f1b36; cursor: not-allowed; }
+.dko-kamrat.dko-av-gra .dko-av { filter: grayscale(0.9); }
+.dko-kamrat.vald { opacity: 1; border-color: var(--dk-gron); background: rgba(61, 255, 162, 0.16); transform: scale(1.04); }
+.dko-kamrat:disabled:not(.vald):not(.dko-av-gra) { opacity: 0.7; }
+.dko-spring { position: absolute; left: 0; top: 46%; width: clamp(70px, 11vh, 110px); pointer-events: none; }
+.dko-spring svg { display: block; width: 100%; height: auto; }
+
+/* --- Hack steg 2: tre stora kodkort (dk-kodkort.js) ------------------------- */
+.dkk { height: 100%; display: flex; flex-direction: column; gap: clamp(6px, 1.4vh, 14px); min-height: 0; }
+.dkk-topp { flex: none; display: flex; align-items: center; justify-content: center; gap: 16px; }
+.dkk-rad {
+  flex: 1;
+  min-height: 0;
+  max-height: 46vh;
+  container-type: inline-size;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(10px, 2vw, 28px);
+  padding: 0 clamp(0px, 2vw, 30px);
+}
+.dkk-kort {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  padding: 0.3em;
+  border-radius: 20px;
+  border: 3px solid var(--dk-cyan);
+  background: var(--dk-panel);
+  color: var(--dk-text);
+  font-size: clamp(18px, 4.4vh, 40px);
+  box-shadow: 0 6px 0 #06101f, 0 0 22px rgba(62, 230, 255, 0.18);
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.12s ease, border-color 0.12s ease, opacity 0.3s ease, background 0.2s ease;
+}
+/* Koderna är 4–11 tecken (--n, codeHtml): så stora som kortets bredd tillåter. */
+.dkk-kort .dk-kod { font-size: max(16px, min(6.4vh, 54px, calc(28cqi / (var(--n, 8) * 0.68)))); }
+.dkk-kort:hover:not(:disabled) { transform: translateY(-3px); border-color: var(--dk-gron); background: var(--dk-panel-ljus); }
+.dkk-nr {
+  position: absolute;
+  left: 10px;
+  top: 6px;
+  font-family: var(--dk-mono);
+  font-size: 0.4em;
+  font-weight: 700;
+  color: var(--dk-svag);
+}
+.dkk-valt .dkk-kort:disabled:not(.vald) { opacity: 0.4; }
+.dkk-kort.vald { border-color: var(--dk-varm); }
+.dkk-kort.ratt { border-color: var(--dk-gron); background: rgba(61, 255, 162, 0.18); box-shadow: 0 0 0 6px rgba(61, 255, 162, 0.25), 0 0 32px rgba(61, 255, 162, 0.5); }
+/* Fel kod: ett streck dras över kortet, kortet skakar lätt och bleknar. */
+.dkk-streck {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  top: 50%;
+  height: 0.12em;
+  border-radius: 999px;
+  background: var(--dk-varm);
+  transform: rotate(-8deg) scaleX(0);
+  transform-origin: left center;
+  pointer-events: none;
+}
+.dkk-kort.struken { border-color: var(--dk-varm); animation: dk-skak 0.32s ease 0.3s; }
+.dkk-kort.struken .dkk-streck { animation: dk-stryk 0.35s ease-out forwards; }
+.dkk-kort.struken .dk-kod { animation: dk-blekna 0.5s ease 0.35s forwards; }
+@keyframes dk-stryk { to { transform: rotate(-8deg) scaleX(1); } }
+@keyframes dk-skak { 25% { transform: translateX(-6px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+@keyframes dk-blekna { to { opacity: 0.35; } }
+/* Minnet: en struken kod är BORTA – tom, streckad plats. */
+.dkk-borta {
+  cursor: default;
+  border: 3px dashed var(--dk-linje);
+  background: transparent;
+  box-shadow: none;
+  opacity: 0.55;
+}
+.dkk-borta .dk-kod { text-decoration: line-through; text-decoration-color: var(--dk-varm); text-decoration-thickness: 0.1em; color: var(--dk-svag); }
+.dkk-borta .dk-kod b { color: var(--dk-svag); }
+.dkk-stampel {
+  position: absolute;
+  bottom: 8px;
+  font-size: 0.36em;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dk-varm);
+}
+.dkk-svar { flex: none; margin: 0; min-height: 1.4em; text-align: center; font-size: clamp(20px, 3.6vh, 32px); font-weight: 800; opacity: 0; }
+.dkk-svar.syns { animation: dk-in 0.25s ease-out forwards; }
+.dkk-svar[data-tone="ratt"] b { color: var(--dk-gron); }
+.dkk-svar[data-tone="fel"] b { color: var(--dk-varm); }
+.dkk-svar[data-tone="tid"] b { color: var(--dk-cyan); }
+.dkk-svar span { color: var(--dk-text); font-weight: 700; font-size: 0.8em; }
+.dkk-in .dkk-kort { animation: dk-glitch-in 0.28s steps(3, end) backwards; }
+.dkk-in .dkk-kort:nth-child(2) { animation-delay: 0.06s; }
+.dkk-in .dkk-kort:nth-child(3) { animation-delay: 0.12s; }
+/* Kort "glitch" (tre steg, ≤ 0,3 s, ingen blinkning). */
+@keyframes dk-glitch-in {
+  0% { opacity: 0; transform: translateX(-6px) skewX(-6deg); }
+  50% { opacity: 0.8; transform: translateX(4px) skewX(3deg); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes dk-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* Helskärm på stor skärm (1920×1080): bredare kort så att namnen får plats.
+   Bara i helskärm – i appen är elevytan lika smal (~840 px) som på en
+   Chromebook, och breda kort gav 3 kolumner och en målväljare som inte
+   rymdes utan scroll (slut-QA #656). */
+@media (min-width: 1500px) {
+  .dk-elev-vy:fullscreen .dko .dko-rutnat, .dk-elev-vy:fullscreen .dko[data-many] .dko-rutnat { --dko-w: 200px; --dko-av: clamp(50px, 6.4vh, 72px); gap: 10px; }
+  .dk-elev-vy:fullscreen .dko-guld { font-size: clamp(14px, 1.9vh, 19px); }
+}
+.dk-elev-vy:fullscreen .dko-rutnat { align-content: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dko-kamrat.vald, .dko-kamrat:hover:not(:disabled), .dkk-kort:hover:not(:disabled) { transform: none; }
+  .dko-tid i, .dkk-tid i { transition: none; }
+  .dkk-in .dkk-kort { animation: dk-tona 0.3s ease backwards; }
+  .dkk-kort.struken { animation: none; }
+  .dkk-kort.struken .dkk-streck { animation: dk-tona 0.35s ease forwards; transform: rotate(-8deg); opacity: 0; }
+  .dkk-svar.syns { animation: dk-tona 0.25s ease forwards; }
+}
+@media (prefers-contrast: more) {
+  .dko-kamrat, .dkk-kort { border-color: #fff; background: #000; }
+  .dko-kamrat.dko-av-gra { opacity: 1; color: #aaa; border-color: #888; }
+}
+@media (max-width: 820px) {
+  .dko .dko-rutnat { --dko-w: 150px; --dko-av: 40px; }
+  .dkk-rad { grid-template-columns: 1fr; max-height: none; }
+}
