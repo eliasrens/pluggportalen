@@ -264,11 +264,11 @@ export async function pageElevShop() {
     btn.disabled = true;
     btn.textContent = "Köper…";
     try {
-      // Ägg/värmelampa köps via data-pet.js (uppdaterar kläckningsklockan);
+      // Ägg (även Halloween-djurens pumpaägg, #695) / värmelampa köps via data-pet.js;
       // ägget kan köpas flera gånger och hamnar aldrig i ownedItems. Vanliga djur
       // blir levande djur i roomAnimals – inte statiska ownedItems.
       let res;
-      if (item.id === EGG_ITEM_ID) res = await buyEgg(item.price);
+      if (item.id === EGG_ITEM_ID || item.hatchSpecies) res = await buyEgg(item.price, undefined, item.hatchSpecies);
       else if (item.id === LAMP_ITEM_ID) res = await buyHeatLamp(item.price);
       else if (item.id === APPLE_ITEM_ID) res = await buyApple(item.price);
       else if (isAnimalItem(item.id)) res = await buyAnimal(item.id, item.price);

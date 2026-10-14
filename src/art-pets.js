@@ -327,10 +327,16 @@ export const PETS = {
   varmelampa: { viewBox: "0 0 100 100", art: heatLamp() },
 };
 
-/** Fristående <svg> för ägget (används på husdjurssidan). */
-export function eggSvg() {
+/** Slå in fler djur-/äggbilder (#695: Halloween-ägget, lazy): { id: { viewBox, art } }. */
+export function registerPetArt(reg) {
+  Object.assign(PETS, reg);
+}
+
+/** Fristående <svg> för ägget; kind = äggets bild-id (t.ex. "hw-pumpaagg", #695). */
+export function eggSvg(kind = "mystery-egg") {
+  const e = (kind && PETS[kind]) || PETS["mystery-egg"];
   return (
-    `<svg viewBox="0 0 100 100" role="img" aria-label="Mystiskt ägg" ` +
-    `preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${PETS["mystery-egg"].art}</svg>`
+    `<svg viewBox="${e.viewBox}" role="img" aria-label="${e.label || "Mystiskt ägg"}" ` +
+    `preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${e.art}</svg>`
   );
 }

@@ -56,12 +56,18 @@ function isSpritePet(pet) {
   return !!(species && species.kind === "sprite");
 }
 
-/** Figurens HTML: sprite-rigg för sprite-arter, annars procedurell SVG. */
+/** Figurens HTML: sprite-rigg för sprite-arter, annars procedurell SVG (per steg). */
 function petArtHtml(pet, expr) {
   if (isSpritePet(pet)) {
     return spriteRigHtml(pet.speciesId, pet.stage || 1, expr) || "🐾";
   }
-  return creatureSvg(pet.speciesId, expr) || "🐾";
+  return creatureSvg(pet.speciesId, expr, pet.stage || 1) || "🐾";
+}
+
+/** Okläckt ägg: valt djurs ägg (Halloween-pumpaägget, #695) eller mystery-ägget. */
+function petEggSvg(pet) {
+  const s = pet && pet.eggSpecies ? getSpecies(pet.eggSpecies) : null;
+  return eggSvg(s && s.egg);
 }
 
 function swapArt(node, pet, expr) {
@@ -74,7 +80,7 @@ function swapArt(node, pet, expr) {
     if (fx) fx.textContent = SPRITE_MOODS[expr] || "";
     return;
   }
-  slot.innerHTML = creatureSvg(pet.speciesId, expr) || "🐾";
+  slot.innerHTML = creatureSvg(pet.speciesId, expr, pet.stage || 1) || "🐾";
 }
 
 /** Visa ett uttryck i ms millisekunder, sedan tillbaka till vilouttrycket. */
@@ -136,7 +142,7 @@ export function petPat(petId) {
  */
 export function petStageNode(pet, selected) {
   const pos = pet.pos || { x: 50, y: 70 };
-  const art = pet.hatchedAt ? petArtHtml(pet, idleExpression(pet)) : eggSvg();
+  const art = pet.hatchedAt ? petArtHtml(pet, idleExpression(pet)) : petEggSvg(pet);
   const stageClass = pet.hatchedAt ? ` pet-vuxen-${pet.stage || 1}` : " pet-agg-i-rum";
   // Kläckt djur: namn-etiketten öppnar husdjurspanelen (namn/matning). ✏️-pennan
   // visas BARA innan djuret fått ett eget namn (döpnings-hint) – ett namngivet
@@ -144,7 +150,7 @@ export function petStageNode(pet, selected) {
   // panelen (och namnbyte där) nås fortfarande. Ägg går inte att döpa än.
   const label = pet.hatchedAt
     ? `<span class="rp-namn ${pet.name ? "rp-namn-tap" : "rp-namn-edit"}" data-rename="${pet.id}" title="${pet.name ? "Öppna djurets panel" : "Döp mig ✏️"}">${petDisplayName(pet)}</span>`
-    : `<span class="rp-namn rp-agg">🥚 ruvar…</span>`;
+    : `<span class="rp-namn rp-agg">${pet.eggSpecies ? "🎃" : "🥚"} ruvar…</span>`;
   const node = el(`<div class="room-item room-pet${stageClass}${selected ? " selected" : ""}"
     data-pet-id="${pet.id}" style="left:${pos.x}%;top:${pos.y}%" title="${petDisplayName(pet)}">
     <span class="ri-emoji">${art}</span>
@@ -188,11 +194,11 @@ export function petReadonlyNode(pet) {
  * Okläckta ägg (kan inte stuvas undan) faller tillbaka på ägg-bilden.
  */
 export function petArtThumb(pet) {
-  if (!pet || !pet.hatchedAt) return eggSvg();
+  if (!pet || !pet.hatchedAt) return petEggSvg(pet);
   if (isSpritePet(pet)) {
     return `<span class="tray-pet-sprite">${spriteRigHtml(pet.speciesId, pet.stage || 1, "") || "🐾"}</span>`;
   }
-  return creatureSvg(pet.speciesId, idleExpression(pet)) || "🐾";
+  return creatureSvg(pet.speciesId, idleExpression(pet), pet.stage || 1) || "🐾";
 }
 
 // Husdjurspanelen (under scenen) + de vanliga djurens lätta namn-vy bor i

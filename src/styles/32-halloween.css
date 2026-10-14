@@ -15,3 +15,31 @@
 @media (prefers-reduced-motion: reduce) {
   .hw-glod, .hw-flamma, .hw-bubbla, .hw-glimt { animation: none; }
 }
+
+/* Halloween-djuren (#695, src/halloween/hw-djur*.js): andas, svävar, studsar,
+   flaxar, viftar, tuggar och går – bara transform, få element per djur, av vid
+   prefers-reduced-motion. Fötterna rör sig bara när djuret promenerar
+   (.promenerar sätts av rum-promenad.js). */
+.hwd-andas, .hwd-svav, .hwd-studs, .hwd-flax-v, .hwd-flax-h, .hwd-svans, .hwd-mums, .hwd-fot-v, .hwd-fot-h { transform-box: fill-box; }
+.hwd-andas { transform-origin: 50% 100%; animation: hwd-andas 3.2s ease-in-out infinite; }
+@keyframes hwd-andas { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.025, 0.97); } }
+.hwd-svav { animation: hwd-svav 3s ease-in-out infinite; }
+@keyframes hwd-svav { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+.hwd-studs { transform-origin: 50% 100%; animation: hwd-studs 1.8s ease-in-out infinite; }
+@keyframes hwd-studs { 0%, 100% { transform: scale(1, 1); } 40% { transform: scale(1.06, 0.93); } 70% { transform: scale(0.97, 1.04); } }
+.hwd-flax-v { transform-origin: 100% 40%; animation: hwd-flax-v 2.6s ease-in-out infinite; }
+.hwd-flax-h { transform-origin: 0% 40%; animation: hwd-flax-h 2.6s ease-in-out infinite; }
+@keyframes hwd-flax-v { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(8deg); } }
+@keyframes hwd-flax-h { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-8deg); } }
+.hwd-svans { transform-origin: 0% 100%; animation: hwd-svans 1.6s ease-in-out infinite alternate; }
+@keyframes hwd-svans { from { transform: rotate(-5deg); } to { transform: rotate(6deg); } }
+.hwd-mums { transform-origin: 50% 50%; animation: hwd-mums 0.35s ease-in-out infinite alternate; }
+@keyframes hwd-mums { from { transform: scale(1, 1); } to { transform: scale(1.1, 0.55); } }
+.promenerar .hwd-fot-v { animation: hwd-steg 0.55s ease-in-out infinite; }
+.promenerar .hwd-fot-h { animation: hwd-steg 0.55s ease-in-out infinite -0.275s; }
+.promenerar .hwd-flax-v, .promenerar .hwd-flax-h { animation-duration: 0.5s; }
+@keyframes hwd-steg { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) {
+  .hwd-andas, .hwd-svav, .hwd-studs, .hwd-flax-v, .hwd-flax-h, .hwd-svans, .hwd-mums,
+  .promenerar .hwd-fot-v, .promenerar .hwd-fot-h { animation: none; }
+}

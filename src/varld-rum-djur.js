@@ -6,7 +6,7 @@
 // via data-animals.js). De promenerar omkring med samma promenad-AI som
 // mystery-djuren (rum-promenad.js) men:
 //   * FAST storlek – ingen tillväxt, inga steg.
-//   * INGEN mat – isHungry (data-pet.js) är false för dem (ingen sprite-art),
+//   * INGEN mat – isHungry (data-pet.js) är false för dem (ingen mystery-art),
 //     så seek-läget mot Mysterymat träffar dem aldrig.
 //
 // Djur-objekten är pet-FORMADE ({ id, pos, hatchedAt:true }) så de kan gå in i

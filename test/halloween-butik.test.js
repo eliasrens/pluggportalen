@@ -22,8 +22,9 @@ import { itemSvg, itemSize, categorySvg, loadCollectionArt } from "../src/art-it
 import { husSkalMarkup, isHusSkal, listHusSkal } from "../src/art-hus-ute.js";
 import { nyPlaceringsNyckel, ordnaNycklar, rumSakHtml } from "../src/rum-promenad-golv.js";
 
-// C:s varor (#692) – kostymerna (#693, klader) testas i halloween-kostymer.test.js.
-const HW = itemsInCollection("halloween").filter((it) => ["dekor", "mobler", "tradgard", "hus"].includes(it.category));
+// C:s varor (dekor/möbler/trädgård/hus); kostymerna (#693) testas i halloween-kostymer.test.js,
+// F:s djur (#695, hatchSpecies) i halloween-djur.test.js.
+const HW = itemsInCollection("halloween").filter((it) => ["dekor", "mobler", "tradgard", "hus"].includes(it.category) && !it.hatchSpecies);
 const INNE = HW.filter((it) => it.category === "dekor" || it.category === "mobler");
 const UTE = HW.filter((it) => it.category === "tradgard");
 const HUS = HW.filter((it) => it.category === "hus");
