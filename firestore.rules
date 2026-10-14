@@ -11,11 +11,58 @@ service cloud.firestore {
     function signedIn() { return request.auth != null; }
     // Lärare = Auth-användare med custom claim teacher:true
     // (sätts en gång via admin/set-teacher-claim.mjs).
+    // OBS (#678): isTeacher() ger INGEN behörighet längre – den är bara
+    // grunden för rollerna nedan. Varje regel säger isAdmin() eller kollar
+    // årskurskontot (hasClass/hasStudent) enligt §2.1.
     function isTeacher() { return signedIn() && request.auth.token.teacher == true; }
-    // Admin = lärare med custom claim admin:true (#677, docs/UTVECKLINGSUPPDRAG_LARARKONTON.md §1.1).
-    // Årskurskonton har i stället role:"arskurs". Övergången (teacher utan role
-    // = admin) och resten av rollreglerna kommer i epicens del B.
-    function isAdmin() { return isTeacher() && request.auth.token.admin == true; }
+
+    // ------------------------------------------------------------------
+    // ROLLER (#677/#678, docs/UTVECKLINGSUPPDRAG_LARARKONTON.md §1, §4.1).
+    //   admin    claims { teacher, admin: true }        allt, som förut
+    //   arskurs  claims { teacher, role: "arskurs" }    bara §2.1, bara sina
+    //            klasser – och bara så länge teacherAccounts/{uid}.active
+    // Klasserna läses med get() på kontots dokument (inte ur claims), så en
+    // klassändring eller avstängning slår igenom direkt utan ny token.
+    // Admin avgörs bara av claims (ingen get): en avstängd admin är
+    // disabled i Auth och token dör inom en timme.
+    // Tillåtelselista: en regel som inte uttryckligen släpper in
+    // årskurskontot är bara admin.
+    // ------------------------------------------------------------------
+    function isAdmin() { return isTeacher() && (request.auth.token.admin == true || isLegacyTeacher()); }
+    // ⚠️ ÖVERGÅNG (§6.2) – TA BORT när migreringen är verifierad (alla lärare
+    // har admin:true eller role:"arskurs" och gamla tokens har gått ut, dvs.
+    // senast en timme efter att migreringsskriptet körts). Då: radera den här
+    // funktionen och "|| isLegacyTeacher()" i isAdmin() ovan.
+    function isLegacyTeacher() {
+      return request.auth.token.get('role', null) == null && request.auth.token.get('admin', null) == null;
+    }
+    function teacherAccount() {
+      return get(/databases/$(database)/documents/teacherAccounts/$(request.auth.uid)).data;
+    }
+    // Årskurskonto med ett AKTIVT kontodokument (saknat dokument = nekad).
+    function isGradeTeacher() {
+      return isTeacher() && request.auth.token.get('admin', false) != true &&
+        request.auth.token.get('role', '') == 'arskurs' &&
+        exists(/databases/$(database)/documents/teacherAccounts/$(request.auth.uid)) &&
+        teacherAccount().get('active', false) == true &&
+        teacherAccount().get('role', '') == 'arskurs';
+    }
+    function gradeClassIds() { return teacherAccount().get('classIds', []); }
+    // Årskurskontots klass (admin ingår INTE – skrivregler säger isAdmin() ||
+    // gradeClass(...) så att admin-grenen aldrig gör en get()).
+    function gradeClass(classId) { return isGradeTeacher() && classId in gradeClassIds(); }
+    // Minst en av klasserna är årskurskontots.
+    function gradeAnyClass(classIds) { return isGradeTeacher() && classIds.hasAny(gradeClassIds()); }
+    // Eleven går i någon av årskurskontots klasser (students/{id}.classIds,
+    // denormaliserat). Saknas eleven nekas det.
+    function gradeStudent(studentId) {
+      return isGradeTeacher() &&
+        get(/databases/$(database)/documents/students/$(studentId)).data.get('classIds', [])
+          .hasAny(gradeClassIds());
+    }
+    // §1.3: admin, eller årskurskonto med klassen/eleven.
+    function hasClass(classId) { return isAdmin() || gradeClass(classId); }
+    function hasStudent(studentId) { return isAdmin() || gradeStudent(studentId); }
     // Eleven själv = den inloggades uid == dokumentets id (uid sattes = det
     // gamla doc-id:t vid migreringen, se admin/migrate-passwords.mjs).
     function isSelf(id)  { return signedIn() && request.auth.uid == id; }
@@ -43,14 +90,24 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Kunskapsinnehåll (ämnen/arbetsområden): alla INLOGGADE får läsa;
-    // bara lärare skriver. Inget world-read längre.
+    // Kunskapsinnehåll (ämnen/arbetsområden): alla INLOGGADE får läsa.
+    // Ämnesdokumentet skriver bara admin. Områden (#678, §2.3): årskurskontot
+    // skapar i ett BEFINTLIGT ämne med createdBy = sig själv, och ändrar/
+    // raderar bara sitt eget (createdBy får inte bytas). Område utan
+    // createdBy = admins. Andras material används/dupliceras via läsningen.
     match /subjects/{subjectId} {
       allow read:  if signedIn();
-      allow write: if isTeacher();
+      allow write: if isAdmin();
       match /areas/{areaId} {
         allow read:  if signedIn();
-        allow write: if isTeacher();
+        allow create: if isAdmin() || (isGradeTeacher() &&
+          request.resource.data.get('createdBy', null) == request.auth.uid &&
+          exists(/databases/$(database)/documents/subjects/$(subjectId)));
+        allow update: if isAdmin() || (isGradeTeacher() &&
+          resource.data.get('createdBy', null) == request.auth.uid &&
+          request.resource.data.get('createdBy', null) == request.auth.uid);
+        allow delete: if isAdmin() || (isGradeTeacher() &&
+          resource.data.get('createdBy', null) == request.auth.uid);
       }
     }
 
