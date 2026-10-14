@@ -1,0 +1,78 @@
+▶ Steg 0: main-läge (regler från origin/main, lärare utan roll)
+
+▶ Regler: origin/main
+  ✓ lärare A:s token före migreringen: { teacher: true }
+  ✓ main-reglerna: läraren gör allt ({"lasaElevdata":true,"lasaLosen":true,"gemynt":true,"nyKlass":true,"bytNamn":true,"nyElev":true,"material":true,"nyttAmne":true,"mm":true,"live":true})
+
+▶ Fel ordning: de nya reglerna FÖRE migreringen (övergången bär)
+
+▶ Regler: epic (nya) – före migreringen
+  ✓ gammal token under nya regler: allt fungerar ({"lasaElevdata":true,"lasaLosen":true,"gemynt":true,"nyKlass":true,"bytNamn":true,"nyElev":true,"material":true,"nyttAmne":true,"mm":true,"live":true})
+
+▶ Regler: origin/main igen
+
+▶ Steg 2: migreringen – torrkörning
+    Mål: EMULATOR – TORRKÖRNING (lägg till --apply för att skriva)
+    
+    Lärarkonton (2):
+      blir admin                   lararea                larareA                larareA
+      blir admin                   larareb                larareB                larareB
+    
+    2 konto(n) blir admin.
+    Torrkörning – inget ändrat. Kör igen med --apply.
+    
+  ✓ torrkörningen listar båda lärarna som 'blir admin'
+  ✓ torrkörningen skrev ingenting
+▶ Steg 2: --apply
+    Mål: EMULATOR – SKRIVER (--apply)
+    
+    Lärarkonton (2):
+      blir admin                   lararea                larareA                larareA
+      blir admin                   larareb                larareB                larareB
+    
+    2 konto(n) blir admin.
+    
+    Verifiering efter migreringen:
+      ✓ admin:true  lararea                larareA
+      ✓ admin:true  larareb                larareB
+    
+    ✓ Klart. Lärarna får admin-claimen vid nästa inloggning (eller inom en timme när token förnyas).
+    
+  ✓ --apply: ✓ Klart och två ✓ admin:true
+▶ Steg 3: torrkörning igen
+    Mål: EMULATOR – TORRKÖRNING (lägg till --apply för att skriva)
+    
+    Lärarkonton (2):
+      redan admin                  lararea                larareA                larareA
+      redan admin                  larareb                larareB                larareB
+    
+    0 konto(n) blir admin.
+    
+  ✓ '0 konto(n) blir admin', båda 'redan admin'
+  ✓ --apply en gång till är ofarligt (idempotent)
+
+▶ Regler: Steg 4: epic (nya) – efter migreringen
+  ✓ A:s GAMLA token (före migreringen) gör allt ({"lasaElevdata":true,"lasaLosen":true,"gemynt":true,"nyKlass":true,"bytNamn":true,"nyElev":true,"material":true,"nyttAmne":true,"mm":true,"live":true})
+  ✓ ny inloggning: { teacher, admin: true }
+  ✓ ny admin-token gör allt ({"lasaElevdata":true,"lasaLosen":true,"gemynt":true,"nyKlass":true,"bytNamn":true,"nyElev":true,"material":true,"nyttAmne":true,"mm":true,"live":true})
+  ✓ eleven skriver sin egen elevdata som förut
+  ✓ eleven läser inte lärarkontona
+
+▶ Regler: §8.1: övergången borttagen
+  ✓ gammal token { teacher } nekas nu allt ({"lasaElevdata":false,"lasaLosen":false,"gemynt":false,"nyKlass":false,"bytNamn":false,"nyElev":false,"material":false,"nyttAmne":false,"mm":false,"live":false})
+  ✓ ny admin-token fungerar utan övergången ({"lasaElevdata":true,"lasaLosen":true,"gemynt":true,"nyKlass":true,"bytNamn":true,"nyElev":true,"material":true,"nyttAmne":true,"mm":true,"live":true})
+
+▶ §8.2 reserv: set-teacher-claim.mjs skapar ett nytt adminkonto
+    Mål: EMULATOR – lärarkonto reservadmin@larare.pluggportalen.local
+    
+    ✓ Skapade lärarkonto reservadmin@larare.pluggportalen.local (uid V0HYXkVoE5BMeT7sKeJYz6ZoxNkW).
+    ✓ Lösenord uppdaterat.
+    ✓ reservadmin@larare.pluggportalen.local är ADMIN (teacher + admin).
+    
+    Klart. Läraren måste logga UT och IN igen för att de nya claimsen ska hamna i ID-token (eller vänta ~1 h på token-förnyelse).
+    
+  ✓ reservkontot har admin-claim och ett admin-dokument
+  ✓ reservkontot skriver som admin
+
+✓ Driftordningen gick igenom utan utelåsning.
+✔  Script exited successfully (code 0)
