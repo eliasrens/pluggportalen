@@ -43,6 +43,12 @@ Fokusläge · Klasscentret · Statistik. Döp om, Ta bort och Skapa klass låg i
 - `createdBy` / `createdByName` på området läses tåligt (`teacher-role-core.js`).
 - **Duplicera** visas när `data.duplicateArea(subjectId, areaId)` finns (exporteras via `data.js`);
   efter anropet laddas listan om. Utan den funktionen visas ingen Duplicera-knapp.
+- **Byggt i #680:** `data.saveArea` stämplar ägaren för ALLA skapa-flöden (guiden, AI-prompten,
+  "mer innehåll", importen, ämnestexter): finns dokumentet behålls dess `createdBy`/`createdByName`
+  (eller att de saknas = admins), annars får det kontots uid och visningsnamn (`withOwner`).
+  `data.duplicateArea` kopierar allt innehåll till `<id>-kopia` med namnet "… (kopia)", sist i
+  ordningen, ägd av anroparen (`duplicateValue`). Radering av konto: `deleteTeacher` (#677) tar
+  bort ägarfälten, så materialet blir admins.
 
 ## Oklart – valt det strängaste
 
