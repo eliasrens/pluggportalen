@@ -396,3 +396,5 @@ export function itemsInCategory(catId) {
 export function itemsInCollection(col) {
   return SHOP_ITEMS.filter((it) => it.collection === col && !it.mysteryOnly);
 }
+/** Lazy katalogtillägg (#693 kostymer via halloween/hw-konst.js): nya id:n läggs till, befintliga lämnas. */
+export const registerShopItems = (items) => items.forEach((it) => getItem(it.id) || SHOP_ITEMS.push(it));

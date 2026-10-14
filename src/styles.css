@@ -7720,3 +7720,34 @@ html[data-halloween] .port-scen .port-larare-lank {
 @media (prefers-reduced-motion: reduce) {
   .hw-glod, .hw-flamma, .hw-bubbla, .hw-glimt { animation: none; }
 }
+
+/* ── src/styles/33-kostymer.css ── */
+/* --- Halloween-kostymer (#693, epic #689) ----------------------------------- */
+
+/* avatarMarkup (avatars.js) ritar kostymerna alltid (af-kostym) men de syns
+   BARA när säsongen är på – <html data-halloween> sätts av season-world.js mot
+   den server-korrigerade klockan. Ingen elevdata skrivs om; ett byte slår
+   igenom direkt på alla redan ritade avatarer (rum, by, Live, Läsresan …). */
+html:not([data-halloween]) .af-kostym[data-seasonal="halloween"] { display: none; }
+
+/* Fladdermusvingarna (anchor "vingar"): hela figurens bredd, från hjässan –
+   rygg-boxen i 08-avatar-klader.css är för smal för att vingarna ska synas. */
+.af-wear.af-rygg.af-anchor-vingar { top: 14%; width: 100%; height: 56%; }
+
+/* Klädlådan (varld-rum-wear.js): vilande kostym när Halloween är av – gråad,
+   kan tas av men inte på. */
+.wear-item.vilar {
+  background: #f3f0f7;
+  border-color: #ddd5ea;
+}
+.wear-item.vilar[aria-disabled="true"] { cursor: not-allowed; }
+.wear-item.vilar .tray-emoji { filter: grayscale(1); opacity: 0.5; }
+.wear-item.vilar .wear-state {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 8.5rem;
+  color: #5f536f;
+  text-align: left;
+}
+.wear-vilar-ikon { width: 1.15em; height: 1.15em; flex: none; }

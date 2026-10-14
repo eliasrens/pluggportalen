@@ -22,7 +22,8 @@ import { itemSvg, itemSize, categorySvg, loadCollectionArt } from "../src/art-it
 import { husSkalMarkup, isHusSkal, listHusSkal } from "../src/art-hus-ute.js";
 import { nyPlaceringsNyckel, ordnaNycklar, rumSakHtml } from "../src/rum-promenad-golv.js";
 
-const HW = itemsInCollection("halloween");
+// C:s varor (#692) – kostymerna (#693, klader) testas i halloween-kostymer.test.js.
+const HW = itemsInCollection("halloween").filter((it) => ["dekor", "mobler", "tradgard", "hus"].includes(it.category));
 const INNE = HW.filter((it) => it.category === "dekor" || it.category === "mobler");
 const UTE = HW.filter((it) => it.category === "tradgard");
 const HUS = HW.filter((it) => it.category === "hus");
@@ -59,16 +60,16 @@ test("test 5: samlingsvaror visas bara i Halloween-fliken, aldrig i vanliga flik
 
 test("test 5: Halloween-flikens undergrupper – disjunkta, D–F kan lägga till egna", async () => {
   const hw = await import("../src/halloween/hw-butik.js");
-  const sek = hw.halloweenSektioner();
+  const sek = hw.halloweenSektioner(HW);
   assert.deepEqual(sek.map((s) => s.id), ["inne", "tradgard", "hus"]);
   assert.deepEqual(sek.map((s) => s.items.length), [12, 8, 3]);
   // En ny undergrupp (som D:s kostymer) före "hus"; omatchade varor → "Övrigt".
   const kostym = { id: "x-kostym", name: "Testkostym", category: "klader", collection: "halloween" };
   const okand = { id: "x-okand", name: "Okänd", category: "mat", collection: "halloween" };
-  hw.registreraUndergrupp({ id: "kostymer", rubrik: "Kostymer", match: (it) => it.category === "klader" }, "hus");
-  hw.registreraUndergrupp({ id: "kostymer", rubrik: "dubbel", match: () => true }); // idempotent
+  hw.registreraUndergrupp({ id: "x-kostymer", rubrik: "Kostymer", match: (it) => it.category === "klader" }, "hus");
+  hw.registreraUndergrupp({ id: "x-kostymer", rubrik: "dubbel", match: () => true }); // idempotent
   const sek2 = hw.halloweenSektioner([...HW, kostym, okand]);
-  assert.deepEqual(sek2.map((s) => s.id), ["inne", "tradgard", "kostymer", "hus", "ovrigt"]);
+  assert.deepEqual(sek2.map((s) => s.id), ["inne", "tradgard", "x-kostymer", "hus", "ovrigt"]);
   assert.deepEqual(sek2.find((s) => s.id === "ovrigt").items, [okand]);
   assert.equal(hw.HALLOWEEN_FLIK.id, "halloween");
 });
