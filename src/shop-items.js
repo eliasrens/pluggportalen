@@ -1,13 +1,11 @@
 // ============================================================================
 // Pluggporten – shop-katalog
 // ----------------------------------------------------------------------------
-// Alla köpbara saker i shoppen (emoji-rendering, inga externa assets). Id:na
-// sparas i Firestore (ownedItems, room.placements, avatarItems) → håll STABILA;
-// lägg gärna till nya, byt aldrig id på befintliga. Kategorier: klader (bärs på
-// avataren, en per `slot` hatt/ansikte/hals/hand/rygg – rygg ritas BAKOM
-// figuren, avatars.js); mobler/husdjur/dekor placeras i rummet; mat =
-// KONSUMERBAR (`consumable`, INTE ownedItems, köp ökar appleCount; data-pet.js).
-// Priser spridda (billigt → dyrt); `collection` = säsongsvara (#692, nedan).
+// Alla köpbara saker. Id:na sparas i Firestore (ownedItems, room.placements,
+// avatarItems) → håll STABILA, byt aldrig id. Kategorier: klader (avataren, en per
+// `slot` hatt/ansikte/hals/hand/rygg – rygg BAKOM figuren, avatars.js); mobler/
+// husdjur/dekor i rummet; mat = KONSUMERBAR (`consumable`, ökar appleCount);
+// avatar = köpbar figur (#694). `collection` = säsongsvara (#692, nedan).
 // ============================================================================
 
 import { MYSTERY_ITEMS, MYSTERY_BOXES } from "./mystery-items.js";
@@ -219,18 +217,16 @@ export const SHOP_ITEMS = [
   { id: "crop_lettuce", name: "Salladsfrön", emoji: "🥬", category: "tradgard", price: 20, seed: true },
 
   // --- Gårds-uppgraderingar (#333): odlingsbädd + laggård – myntsänkorna ------
-  // Nivån bor i farm.gardenTier/barnLevel (aldrig ownedItems, #331); buyFarmUpgrade
-  // höjer den i EN transaktion. `farmUpgrade`="garden"|"barn", `upgradeLevel` köps
-  // i ordning (2 före 3); nivå 1 = start, säljs ej.
+  // Nivån i farm.gardenTier/barnLevel (ej ownedItems, #331) via buyFarmUpgrade (EN transaktion).
+  // `farmUpgrade`="garden"|"barn", `upgradeLevel` köps i ordning; nivå 1 = start, säljs ej.
   { id: "odling-2", name: "Dubbel odlingslåda", emoji: "🪴", category: "tradgard", price: 150, farmUpgrade: "garden", upgradeLevel: 2 },
   { id: "odling-3", name: "Växthus", emoji: "🏡", category: "tradgard", price: 350, farmUpgrade: "garden", upgradeLevel: 3 },
   { id: "lada-2", name: "Röd trälada", emoji: "🛖", category: "tradgard", price: 450, farmUpgrade: "barn", upgradeLevel: 2 },
   { id: "lada-3", name: "Stor herrgårdslaggård", emoji: "🏛️", category: "tradgard", price: 800, farmUpgrade: "barn", upgradeLevel: 3 },
 
   // --- 🎃 Halloween-samlingen (#692, epic #689) ------------------------------
-  // Vanliga kategorier (placering/inventarie som förut) + `collection` → säljs BARA
-  // i Halloween-fliken när isHalloweenActive() (season.js); köpta saker gäller året
-  // runt. Konsten laddas lazy (halloween/hw-konst.js, #271). D–F lägger till här.
+  // Vanliga kategorier + `collection` → säljs BARA i Halloween-fliken när isHalloweenActive()
+  // (season.js); köpt gäller året runt. Konsten lazy (halloween/hw-konst.js, #271).
   { id: "hw-pumpalykta", name: "Pumpalykta", emoji: "🎃", category: "dekor", price: 60, collection: "halloween" },
   { id: "hw-spindelnat", name: "Spindelnät", emoji: "🕸️", category: "dekor", price: 40, collection: "halloween" },
   { id: "hw-fladdermusgirlang", name: "Fladdermusgirlang", emoji: "🦇", category: "dekor", price: 45, collection: "halloween" },
@@ -254,12 +250,18 @@ export const SHOP_ITEMS = [
   { id: "hw-spokhus", name: "Gulligt spökhus", emoji: "🏚️", category: "hus", price: 4000, skalId: "hw-spokhus", collection: "halloween" },
   { id: "hw-pumpahus", name: "Pumpahus", emoji: "🎃", category: "hus", price: 4000, skalId: "hw-pumpahus", collection: "halloween" },
   { id: "hw-skallehus", name: "Snällt döskallehus", emoji: "🏠", category: "hus", price: 4000, skalId: "hw-skallehus", collection: "halloween" },
+  // Köpbara avatarer (#694): category "avatar" (ingen egen flik) → ownedItems, väljs i avatarvalet (avatars.js).
+  { id: "hw-av-spoke", name: "Litet spöke", emoji: "👻", category: "avatar", price: 400, collection: "halloween" },
+  { id: "hw-av-fladdermus", name: "Fladdermus", emoji: "🦇", category: "avatar", price: 450, collection: "halloween" },
+  { id: "hw-av-pumpgubbe", name: "Pumpgubbe", emoji: "🎃", category: "avatar", price: 500, collection: "halloween" },
+  { id: "hw-av-mumie", name: "Gullig mumie", emoji: "🧻", category: "avatar", price: 600, collection: "halloween" },
+  { id: "hw-av-haxkatt", name: "Häxkatt", emoji: "🐈", category: "avatar", price: 700, collection: "halloween" },
+  { id: "hw-av-vampyr", name: "Liten vampyr", emoji: "🧛", category: "avatar", price: 800, collection: "halloween" },
 ];
 
 // --- Mysteryboxarna (köp & öppna → slumpad kosmetik ur viktad pool) ---------
-// Tre nivåer (#186) med olika legendaryChance (mystery-items.js); köps hur många
-// gånger som helst, öppnas via openMysteryBox (data-mystery.js) + pages-shop-
-// mystery.js. Läggs SIST (kategorin "mystery" sist) → längst ner i shoppen.
+// Tre nivåer (#186, legendaryChance i mystery-items.js); köps obegränsat, öppnas via
+// openMysteryBox (data-mystery.js). Läggs SIST → längst ner i shoppen.
 for (const box of MYSTERY_BOXES) {
   SHOP_ITEMS.push({
     id: box.id, name: box.name, emoji: box.emoji, category: "mystery",

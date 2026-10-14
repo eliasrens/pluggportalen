@@ -33,6 +33,7 @@ export const HW_UNDERGRUPPER = [
   { id: "inne", rubrik: "🕯️ Dekor & möbler", match: (it) => it.category === "dekor" || it.category === "mobler" },
   { id: "tradgard", rubrik: "🍂 Trädgård", match: (it) => it.category === "tradgard" },
   { id: "hus", rubrik: "🏚️ Hus", match: (it) => it.category === "hus" },
+  { id: "avatarer", rubrik: "👻 Avatarer", match: (it) => it.category === "avatar" }, // #694
 ];
 
 /**

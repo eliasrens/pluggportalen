@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – köpbara Halloween-avatarer</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      body { padding: 16px; }
+      .preview-bar { max-width: 1100px; margin: 0 auto 16px; padding: 12px 16px; background: #f3edff; border: 2px solid #ddd0fb; border-radius: 14px; }
+      .preview-bar h1 { margin: 0 0 4px; font-size: 1.2rem; }
+      .preview-bar p { margin: 0 0 8px; color: #4a3d6e; }
+      .knappar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+      #flash { margin-top: 8px; min-height: 1.4em; }
+      #flash.fel { color: #b3261e; } #flash.ok { color: #2e7d32; }
+      #app { max-width: 1100px; margin: 0 auto; }
+      .galleri { max-width: 1100px; margin: 24px auto; }
+      .galleri h2 { font-size: 1.05rem; margin: 18px 0 6px; }
+      .rad { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
+      .cell { display: flex; flex-direction: column; align-items: center; gap: 2px; background: #fff; border: 1px solid #e6d9c2; border-radius: 10px; padding: 8px 2px; }
+      .cell .avatar-figure { font-size: 92px; }
+      .cell .lbl { font-size: 0.66rem; opacity: 0.75; text-align: center; }
+      .stor .avatar-figure { font-size: 150px; }
+    </style>
+    <!-- Firebase-/router-beroenden → lätta stubbar. src/pages-elev.js (avatarvalet),
+         src/pages-shop.js, avatars.js, shop-items.js och halloween/* körs OFÖRÄNDRADE. -->
+    <script type="importmap">
+      {
+        "imports": {
+          "/src/ui.js": "/preview/halloween-avatar-stubs/ui.js",
+          "/src/data.js": "/preview/halloween-avatar-stubs/data.js",
+          "/src/auth.js": "/preview/halloween-avatar-stubs/auth.js",
+          "/src/game-shared.js": "/preview/halloween-avatar-stubs/game-shared.js",
+          "/src/data-pet.js": "/preview/halloween-butik-stubs/data-pet.js",
+          "/src/data-pet-mat.js": "/preview/halloween-butik-stubs/data-pet-mat.js",
+          "/src/data-animals.js": "/preview/halloween-butik-stubs/data-animals.js",
+          "/src/data-farm.js": "/preview/halloween-butik-stubs/data-farm.js",
+          "/src/pages-shop-mystery.js": "/preview/halloween-butik-stubs/pages-shop-mystery.js",
+          "/src/season.js": "/preview/halloween-butik-stubs/season.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="preview-bar">
+      <h1>👻 Köpbara Halloween-avatarer (issue #694)</h1>
+      <p>
+        Den riktiga butiken och det riktiga avatarvalet mot en minnes-elev (5 000 mynt).
+        Köp en figur under 🎃 Halloween → 👻 Avatarer, gå till "Byt figur": köpta står
+        först, ej köpta är låsta. Slå av Halloween – köpta figurer finns kvar.
+        Längst ner: varje klädsak på varje ny avatar.
+      </p>
+      <div class="knappar">
+        <button class="btn" id="butik">🛒 Butiken</button>
+        <button class="btn" id="val">Byt figur</button>
+        <button class="btn ghost" id="pa">Halloween på</button>
+        <button class="btn ghost" id="av">Halloween av</button>
+        <span>Saldo: <b id="saldo"></b> · Läge: <b id="status"></b> · Vald figur: <b id="vald"></b></span>
+      </div>
+      <div id="flash"></div>
+    </div>
+    <div id="app"></div>
+    <div class="galleri" id="galleri"></div>
+    <script type="module">
+      await import("/src/season.js"); // stubben: styrbar säsong (__season)
+      const { pageElevShop } = await import("/src/pages-shop.js");
+      const { pageElevAvatar } = await import("/src/pages-elev.js");
+      const av = await import("/src/avatars.js");
+      const { SHOP_ITEMS } = await import("/src/shop-items.js");
+
+      const visa = () => {
+        document.getElementById("status").textContent = __season.get().halloweenActive ? "Halloween PÅ" : "Halloween av";
+        document.getElementById("saldo").textContent = __MEM.coins;
+        document.getElementById("vald").textContent = av.avatarName(__MEM.avatarId);
+      };
+      globalThis.__onAvatar = visa;
+      const satt = (doc) => { __season.set(doc); visa(); };
+      document.getElementById("pa").onclick = () => satt({ season: "host", halloween: true });
+      document.getElementById("av").onclick = () => satt({ season: "host", halloween: false });
+      document.getElementById("butik").onclick = async () => { localStorage.setItem("pp:shop:aktivFlik", "halloween"); localStorage.setItem("pp:shop:halloweenFlik", "avatarer"); await pageElevShop(); visa(); };
+      document.getElementById("val").onclick = async () => { await pageElevAvatar(); visa(); };
+
+      const q = new URLSearchParams(location.search);
+      if (q.get("agd")) __MEM.ownedItems.push(...q.get("agd").split(","));
+      satt(q.get("halloween") === "av" ? { season: "host", halloween: false } : { season: "host", halloween: true });
+      if (q.get("vy") === "val") await pageElevAvatar();
+      else { localStorage.setItem("pp:shop:aktivFlik", "halloween"); localStorage.setItem("pp:shop:halloweenFlik", "avatarer"); await pageElevShop(); }
+      visa();
+
+      // Galleri: de nya figurerna bredvid några befintliga + varje klädsak på varje ny.
+      await av.loadAvatarArt();
+      const ids = av.buyableAvatars().map((it) => it.id);
+      const cell = (id, items, lbl) => `<div class="cell">${av.avatarMarkup(id, items)}<span class="lbl">${lbl}</span></div>`;
+      const g = document.getElementById("galleri");
+      let html = `<h2>De nya figurerna (stora) – jämför med räv, katt, robot</h2><div class="rad stor">` +
+        [...ids, "fox", "cat", "robot"].map((id) => cell(id, [], av.avatarName(id))).join("") + `</div>`;
+      const klader = SHOP_ITEMS.filter((it) => it.category === "klader");
+      for (const k of klader) {
+        html += `<h2>${k.name} <small>(${k.slot}, ${k.id})</small></h2><div class="rad">` +
+          [...ids, "fox"].map((id) => cell(id, [k.id], av.avatarName(id))).join("") + `</div>`;
+      }
+      html += `<h2>Hela utstyrseln (hatt + ansikte + hals + hand + rygg)</h2><div class="rad stor">` +
+        ids.map((id) => cell(id, ["trollkarlshatt", "glasogon", "halsduk", "ballong", ...klader.filter((k) => k.slot === "rygg").slice(0, 1).map((k) => k.id)], av.avatarName(id))).join("") + `</div>`;
+      g.innerHTML = html;
+    </script>
+  </body>
+</html>

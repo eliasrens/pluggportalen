@@ -163,9 +163,10 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   // Husskal (köpta hus) hör INTE hemma i lådan – de väljs separat i "Nytt hus"-
   // panelen och byter husets exteriör, inte rummets möblering.
   // Trädgårdssaker (isGardenItem) placeras UTE (varld-tradgard.js), aldrig i
-  // rummets möbel-låda → filtrera bort dem här också.
+  // rummets möbel-låda → filtrera bort dem här också. Köpbara avatarer (#694)
+  // väljs i avatarvalet, inte i lådan.
   const roomItemsOwned = owned.filter(
-    (id) => !isWearable(id) && !isAnimalItem(id) && !isHouseItem(id) && !isGardenItem(id) && id !== petData.EGG_ITEM_ID && getItem(id)
+    (id) => !isWearable(id) && !isAnimalItem(id) && !isHouseItem(id) && !isGardenItem(id) && id !== petData.EGG_ITEM_ID && getItem(id) && getItem(id).category !== "avatar"
   );
 
   // Elevens Kartmästare-pokaler (nyckel → pokal) + modulen som ritar dem –

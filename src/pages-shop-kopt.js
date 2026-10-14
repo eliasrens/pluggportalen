@@ -31,6 +31,7 @@ export function kopMeddelande(item, state) {
   }
   // Lada-skins (#353): väljs på gården (🛖 Ny lada), inte i 🏠 Nytt hus.
   if (item.barnSkin) return `Du köpte ${item.name}! ${item.emoji} Byt till den via 🛖 Ny lada på gården bakom ditt hus.`;
+  if (item.category === "avatar") return `Du köpte ${item.name}! ${item.emoji} Byt till figuren via Byt figur i din profil – den är din för alltid.`;
   if (item.category === "hus") return `Du köpte ${item.name}! ${item.emoji} Byt till det via 🏠 Nytt hus i din husvärld.`;
   if (item.seed) return `Du köpte ${item.name}! ${item.emoji} Så dem i odlingsbädden på gården bakom ditt hus.`;
   if (item.category === "tradgard") {
