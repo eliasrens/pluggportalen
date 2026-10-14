@@ -27,6 +27,7 @@
       .cell { flex: none; display: flex; flex-direction: column; align-items: center; background: #fff; border: 1px solid #e6d9c2; border-radius: 10px; padding: 6px 2px; width: 84px; }
       .cell .avatar-figure { font-size: 72px; }
       .cell .lbl { font-size: 0.62rem; opacity: 0.75; }
+      .cell.kop { background: #f3edff; border-color: #c9b6f2; }
     </style>
     <!-- Firebase-beroenden → lätta stubbar. avatars.js, art-wearables.js, shop-items.js,
          halloween/*, season-world.js, season-store.js och varld-rum-wear.js körs OFÖRÄNDRADE. -->
@@ -82,15 +83,16 @@
       __ritaFigur();
       mountWearTray({ wearTray: document.getElementById("tray"), sd: __MEM, onEquippedChange: (eq) => { __MEM.avatarItems = eq; __ritaFigur(); } });
 
-      // Matris: varje kostym på varje avatar (test 11) – de gratis i AVATARS och de
-      // köpbara (Halloween-avatarerna, #694) – nya kommer med automatiskt.
-      const ALLA = [...Object.keys(AVATARS), ...buyableAvatars().map((a) => a.id)];
+      // Matris: varje kostym på varje avatar (test 11) – de köpbara Halloween-avatarerna (#694, markerade)
+      // först, sedan alla gratis. Nya avatarer i AVATARS/buyableAvatars() kommer med automatiskt.
+      const KOP = buyableAvatars().map((a) => a.id);
+      const ALLA = [...KOP, ...Object.keys(AVATARS)];
       const matris = document.getElementById("matris");
       for (const k of KOSTYMER) {
         matris.insertAdjacentHTML("beforeend", `<h2>${k.name} <small>(${k.slot}, ${k.price} mynt)</small></h2>`);
         const rad = document.createElement("div");
         rad.className = "rad";
-        rad.innerHTML = ALLA.map((av) => `<div class="cell">${avatarMarkup(av, [k.id])}<span class="lbl">${av}</span></div>`).join("");
+        rad.innerHTML = ALLA.map((av) => `<div class="cell${KOP.includes(av) ? " kop" : ""}">${avatarMarkup(av, [k.id])}<span class="lbl">${av}</span></div>`).join("");
         matris.appendChild(rad);
       }
 
