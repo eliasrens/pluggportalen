@@ -129,6 +129,72 @@ function gnista(x, y) {
   );
 }
 
+// --- Bild på äventyrskortet (#704) -------------------------------------------
+// Områdessidans kort visar en remsa (78–120 px hög) av den här 320×140-bilden,
+// beskuren med xMidYMid slice: hela bredden syns alltid, höjden kapas uppifrån
+// och nerifrån. Allt viktigt ligger därför inom y≈40–100. Platt, inga gradienter.
+const SCEN_LINJE = `stroke="${O}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"`;
+const HAV = "#3AA0D4";
+const HAV_LJUS = "#AEE4F2";
+const STRAND = "#FFDF9A";
+const STRAND_MORK = "#F2C772";
+const PALM = "#6FC66F";
+const PALM_MORK = "#57A85A";
+
+function scenGnista(x, y, r = 4, col = "#FFF6C8") {
+  const k = r * 0.28;
+  return `<path d="M${x} ${y - r} L${x + k} ${y - k} L${x + r} ${y} L${x + k} ${y + k} L${x} ${y + r} L${x - k} ${y + k} L${x - r} ${y} L${x - k} ${y - k} Z" fill="${col}"/>`;
+}
+
+/** Sol, hav med vågor, en båt och sandön med palm och skattkista i mitten. */
+function oversiktScen() {
+  const vagor = Array.from({ length: 16 }, () => "q5 -5 10 0 t10 0").join(" ");
+  return (
+    `<svg viewBox="0 0 320 140" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" focusable="false">` +
+    `<rect width="320" height="140" fill="#A8DDF5"/>` +
+    // sol med korta strålar
+    [0, 45, 90, 135, 180, 225, 270, 315]
+      .map((v) => `<path d="M268 30 V24" stroke="${GULD}" stroke-width="3" stroke-linecap="round" transform="rotate(${v} 268 48)"/>`)
+      .join("") +
+    `<circle cx="268" cy="48" r="13" fill="${GULD}" ${SCEN_LINJE}/>` +
+    // moln och en mås
+    `<path d="M30 58 a8 8 0 0 1 9 -10 a12 12 0 0 1 22 1 a8 8 0 0 1 5 14 h-30 a7 7 0 0 1 -6 -5 z" fill="#FFFFFF" ${SCEN_LINJE}/>` +
+    `<path d="M196 46 a6 6 0 0 1 8 -6 a9 9 0 0 1 16 2 a6 6 0 0 1 2 10 h-22 a5 5 0 0 1 -4 -6 z" fill="#FFFFFF" ${SCEN_LINJE}/>` +
+    `<path d="M108 52 q5 -5 10 0 q5 -5 10 0" fill="none" stroke="${O}" stroke-width="2" stroke-linecap="round"/>` +
+    // havet med vågig ovankant
+    `<path d="M0 80 ${vagor} V140 H0 Z" fill="${HAV}"/>` +
+    `<path d="M0 80 ${vagor}" fill="none" ${SCEN_LINJE}/>` +
+    `<path d="M14 98 q6 -4 12 0 M262 92 q6 -4 12 0 M286 104 q6 -4 12 0 M90 106 q6 -4 12 0" fill="none" stroke="${HAV_LJUS}" stroke-width="2.5" stroke-linecap="round"/>` +
+    // segelbåten som eleven anländer med
+    `<path d="M50 90 V60" ${SCEN_LINJE}/>` +
+    `<path d="M52 62 L52 86 L72 86 Z" fill="#FFFFFF" ${SCEN_LINJE}/>` +
+    `<path d="M48 62 L48 84 L34 84 Z" fill="#FFF3DC" ${SCEN_LINJE}/>` +
+    `<path d="M50 60 l8 3 -8 3" fill="#EF6F6C" ${SCEN_LINJE}/>` +
+    `<path d="M28 88 H76 L69 99 H35 Z" fill="#EF6F6C" ${SCEN_LINJE}/>` +
+    // sandön
+    `<path d="M92 140 C100 106 128 88 168 88 C208 88 236 106 248 140 Z" fill="${STRAND}" ${SCEN_LINJE}/>` +
+    `<path d="M122 112 q8 4 16 0 M194 104 q6 3 12 0" fill="none" stroke="${STRAND_MORK}" stroke-width="2.5" stroke-linecap="round"/>` +
+    // palmen
+    `<path d="M214 100 Q216 76 206 54" fill="none" stroke="${O}" stroke-width="8" stroke-linecap="round"/>` +
+    `<path d="M214 100 Q216 76 206 54" fill="none" stroke="${TRA}" stroke-width="4" stroke-linecap="round"/>` +
+    `<path d="M206 54 Q190 42 174 50 Q190 50 206 56 Z" fill="${PALM}" ${SCEN_LINJE}/>` +
+    `<path d="M206 54 Q222 40 240 48 Q222 50 206 56 Z" fill="${PALM}" ${SCEN_LINJE}/>` +
+    `<path d="M206 55 Q186 56 180 72 Q194 62 207 57 Z" fill="${PALM_MORK}" ${SCEN_LINJE}/>` +
+    `<path d="M206 55 Q226 56 232 72 Q218 62 205 57 Z" fill="${PALM_MORK}" ${SCEN_LINJE}/>` +
+    `<circle cx="203" cy="60" r="3.5" fill="${TRA_MORK}" ${SCEN_LINJE}/>` +
+    `<circle cx="210" cy="61" r="3.5" fill="${TRA_MORK}" ${SCEN_LINJE}/>` +
+    // skattkistan – den tydliga saken i mitten
+    `<ellipse cx="160" cy="99" rx="24" ry="4" fill="${O}" opacity="0.18"/>` +
+    `<rect x="138" y="80" width="44" height="18" rx="4" fill="${TRA}" ${SCEN_LINJE}/>` +
+    `<path d="M138 82 Q138 66 160 66 Q182 66 182 82 Z" fill="${TRA_MORK}" ${SCEN_LINJE}/>` +
+    `<rect x="138" y="80" width="44" height="5" fill="${GULD}" stroke="${O}" stroke-width="2"/>` +
+    `<rect x="155" y="77" width="10" height="13" rx="2" fill="${GULD}" ${SCEN_LINJE}/>` +
+    `<circle cx="160" cy="84" r="1.8" fill="${O}"/>` +
+    scenGnista(130, 70, 5) + scenGnista(190, 74, 4) + scenGnista(172, 58, 3.5) +
+    `</svg>`
+  );
+}
+
 // ============================================================================
 export const skattjaktenTheme = {
   id: "skattjakten",
@@ -183,5 +249,6 @@ export const skattjaktenTheme = {
   oversikt: {
     sub: "Anländ med båt, utforska ön och samla ihop skattkartan!",
     color: "orange",
+    scen: oversiktScen,
   },
 };
