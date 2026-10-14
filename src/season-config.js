@@ -23,6 +23,9 @@
 
 export const DEFAULT_SEASON = "sommar";
 
+/** localStorage-nyckeln för senast kända läge: JSON { season, halloween, halloweenUntil(ms|null) }. */
+export const SEASON_CACHE_KEY = "pp:season";
+
 /**
  * Säsongernas konfiguration. `palette` = färgvärden som världen/inloggningen
  * sätter som CSS-variabler och SVG-färgparametrar; `dekor` = vad säsongen
@@ -31,6 +34,7 @@ export const DEFAULT_SEASON = "sommar";
 export const SEASONS = {
   sommar: {
     label: "Sommar",
+    // Tom = SVG-konstens egna fallback-färger (sz() i art-style.js) = i dag.
     palette: {},
     dekor: { leaves: false },
     // Förhandsvisningen i admin (teacher-season.js).
@@ -38,13 +42,46 @@ export const SEASONS = {
   },
   host: {
     label: "Höst",
-    palette: {},
+    // Värld (#691): varmare, dovare himmel, gulare gräs, orange/röda/gula kronor.
+    palette: {
+      sky1: "#EDBE8F", sky2: "#FBE9D2", hill: "#D2C274", grass: "#BDB35E",
+      "grass-light": "#DCCB80", "grass-mid": "#C8B866", tuft: "#B39A4C", "tuft-dark": "#9C7F3E",
+      "tree-a": "#F08A3C", "tree-b": "#EF6F6C", "tree-c": "#F7C948", bush: "#C8743C",
+      // Inloggningen (porten + lärarspärren).
+      "port-bg": "#F2C79A", "port-sky1": "#E59A5C", "port-sky2": "#F4C38E", "port-sky3": "#FBE3C2",
+      "port-far": "#E8C98E", "port-bush": "#D9823F", "gate-bg": "#3A2A26", "gate-bg2": "#5A3524",
+    },
     dekor: { leaves: true },
     preview: { sky: "#E9B98A", grass: "#C9B45A", tree: ["#F08A3C", "#EF6F6C", "#F7C948"] },
   },
 };
 
 export const SEASON_KEYS = Object.keys(SEASONS);
+
+/**
+ * Halloween-temat för INLOGGNINGEN (elev + lärare, §1.5): kvällshimmel i lila
+ * och mörkblått. Gäller bara när Halloween är på och vinner då över säsongens
+ * port-färger. Världen får inte den här paletten – bara små detaljer (§2.1).
+ */
+export const HALLOWEEN_LOGIN_PALETTE = {
+  "port-bg": "#2E2557", "port-sky1": "#1F1D4A", "port-sky2": "#3E2F73", "port-sky3": "#6B4E92",
+  "port-far": "#4A4380", hill: "#4F7A6A", grass: "#43695A", "tree-a": "#E98A3A",
+  "tree-b": "#B5546B", "tree-c": "#E2B23E", "port-bush": "#3F6E62", "port-moln": "#8E83B8",
+  "gate-bg": "#1E1B45", "gate-bg2": "#3B2C6E",
+};
+
+/**
+ * Temat som ska visas: { season, halloween } → attribut + palett.
+ * `login` = paletten för inloggningsskärmen (Halloween vinner), `world` =
+ * världens palett (bara säsongen).
+ */
+export function themeFor(state) {
+  const season = Object.prototype.hasOwnProperty.call(SEASONS, state?.season) ? state.season : DEFAULT_SEASON;
+  const halloween = !!state?.halloweenActive;
+  const world = { ...seasonConfig(season).palette };
+  const login = halloween ? { ...world, ...HALLOWEEN_LOGIN_PALETTE } : world;
+  return { season, halloween, leaves: !!seasonConfig(season).dekor?.leaves, world, login };
+}
 
 /** Säsongens konfiguration (okänd nyckel → sommar). */
 export function seasonConfig(key) {

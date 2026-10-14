@@ -393,4 +393,6 @@ export function renderGate(ctx) {
     }
   });
   ctx.app.replaceChildren(view);
+  // Säsongstemat (#691): dekor runt panelen, panelen själv oförändrad.
+  import("./season-world.js").then((m) => view.isConnected && m.mountGateSasong(view)).catch(() => {});
 }

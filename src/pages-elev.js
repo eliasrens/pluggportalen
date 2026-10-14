@@ -98,10 +98,14 @@ export async function pageElevLogin() {
   });
 
   // Grind-scenen: dynamisk import med snäll fallback (se kommentaren ovan).
+  // Säsongstemat (#691) laddas PARALLELLT och sätts ur localStorage-cachen
+  // innan scenen ritas – rätt tema direkt, ingen blink, ingen extra väntan.
   let scenSvg = "";
+  const szP = import("./season-world.js").catch(() => null);
   try {
-    const mod = await import("./art-port-majestic.js");
-    scenSvg = mod.portScenMajestic();
+    const [mod, sz] = await Promise.all([import("./art-port-majestic.js"), szP]);
+    sz?.applyCachedTheme();
+    scenSvg = mod.portScenMajestic(sz ? sz.portDekor() : undefined);
   } catch (err) {
     console.error("Porten kunde inte laddas – visar enkel inloggning:", err);
   }
@@ -128,6 +132,7 @@ export async function pageElevLogin() {
       <div class="port-scen">${scenSvg}${larareRad}</div>
     </div>`);
     view.querySelector(".port-scen").appendChild(card);
+    szP.then((sz) => sz?.mountPortSasong(view.querySelector(".port-scen")));
   } else {
     view = el(`<div>
       <div class="panel port-fallback"></div>
