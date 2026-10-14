@@ -72,8 +72,8 @@ node admin/migrate-teacher-admins.mjs --apply   # skriver + verifierar (✓ admi
 
 Alla med `teacher: true` som inte är årskurskonton får `admin: true` och ett
 `teacherAccounts`-dokument. Idempotent. Kör det **efter** `firebase deploy --only
-functions` och **före** de nya Firestore-reglerna (epicens del B); hela
-driftordningen skrivs i del E.
+functions` och **före** de nya Firestore-reglerna. Hela driftordningen står i
+**§8** nedan.
 
 ### Reserv: skriptet `set-teacher-claim.mjs`
 
@@ -284,3 +284,173 @@ reglerna *innan* eleverna fått Auth-konton kan ingen logga in. Rätt ordning:
 
 > Steg 3 och 5 hör ihop: migrering **före** regel-deploy. Gör man tvärtom slutar
 > befintliga elever kunna logga in tills migreringen är klar.
+
+---
+
+## 8. Lärarkonton – driftordning utan utelåsning (#681)
+
+Gäller epicen Lärarkonton (spec `docs/UTVECKLINGSUPPDRAG_LARARKONTON.md` §6.2).
+Vem som får vad står i `docs/BEHORIGHETER.md`, och vad varje roll ser på
+lärarsidan i `docs/LARARSIDAN_STRUKTUR.md`. Följ stegen i ordning. Inget steg
+låser ute en lärare så länge ordningen hålls: reglerna (steg 4) kommer först när
+alla lärare har `admin: true`, och tills dess räknas en lärare utan roll som
+admin (övergången, §8.2).
+
+**Före start**
+
+- Kör allt från en utcheckning av epic-grenen, som innehåller main och epicen.
+  **Merga inte PR:en till main förrän steg 5.** GitHub Pages deployar main
+  automatiskt, och klienten ska ut sist.
+- Lokalt behövs Firebase CLI (`firebase login`), Node 22 och Java 21+.
+  Projektet är `pluggportalen-so-2026`.
+- Admin-skripten i steg 2–3 behöver en credential för Admin SDK
+  (`admin/credential.mjs` väljer, §0 punkt 4). Utan service-account-nyckel går
+  det med en `authorized_user`-JSON från gcloud. Sätt projektet explicit, så att
+  skripten inte tar `quota_project_id` ur filen:
+  ```bash
+  gcloud auth application-default login
+  export GOOGLE_APPLICATION_CREDENTIALS="$HOME/.config/gcloud/application_default_credentials.json"
+  export GOOGLE_CLOUD_PROJECT=pluggportalen-so-2026
+  ```
+  Skripten skriver ut vilken credential och vilket mål (LIVE/EMULATOR) de
+  använder. Kolla att det står LIVE och rätt projekt innan du kör `--apply`.
+- Kolla att testerna är gröna (§5):
+  ```bash
+  npm run test:rules
+  npm run test:functions
+  node --test test/behorigheter-doc.test.js
+  ```
+- Valfritt: repetera steg 2–3 mot emulatorn först (§5,
+  `FIRESTORE_EMULATOR_HOST`/`FIREBASE_AUTH_EMULATOR_HOST`).
+
+### Steg 1: Cloud Functions
+
+```bash
+cd functions
+npm install            # INTE npm ci – det finns ingen package-lock.json i functions/
+cd ..
+firebase deploy --only functions --project pluggportalen-so-2026
+```
+
+- Predeploy-stegen kopierar Guldrushens/Datakuppens och Hitta rätt!:s delade kod
+  till `functions/` (se `firebase.json`).
+- Nytt: `adminCreateTeacher`, `adminUpdateTeacher`, `adminSetTeacherPassword`,
+  `adminSetTeacherActive` och `adminDeleteTeacher`. `updateStudentLogin` och
+  Hitta rätt!-funktionerna kontrollerar nu rollen. Med övergången fungerar de
+  som förut för alla befintliga lärare.
+- Frågar CLI:t om att **radera** funktioner som inte finns i koden: svara **nej**
+  och ta reda på varför (troligen en annan gren som inte är mergad). Använd inte
+  `--force`.
+
+### Steg 2: Migreringsskriptet – torrkörning, sedan `--apply`
+
+```bash
+node admin/migrate-teacher-admins.mjs           # torrkörning, skriver inget
+```
+
+Läs listan. Varje lärarkonto står med användarnamn, namn och uid. "blir admin" =
+får `admin: true` och ett `teacherAccounts`-dokument. Kolla att alla som ska vara
+lärare finns med och att inget okänt konto står där. Sedan:
+
+```bash
+node admin/migrate-teacher-admins.mjs --apply   # skriver och verifierar
+```
+
+Skriptet slutar med "✓ Klart" och en rad "✓ admin:true" per konto. Står det
+"✗ SAKNAR admin": kör `--apply` igen och gå **inte** vidare till steg 4.
+
+### Steg 3: Verifiera adminlistan
+
+```bash
+node admin/migrate-teacher-admins.mjs           # torrkörning igen
+```
+
+Godkänt när varje rad är "redan admin" (eller "hoppas över (årskurskonto)") och
+skriptet säger **"0 konto(n) blir admin."** Kontrollera också att minst ett
+adminkonto är ditt eget och att du kan logga in med det. Fliken
+**Lärarkonton** på lärarsidan visar samma lista när klienten är ute (steg 5).
+
+### Steg 4: Firestore-regler och index
+
+```bash
+firebase deploy --only firestore:rules,firestore:indexes --project pluggportalen-so-2026
+```
+
+Frågar CLI:t om att radera index som inte finns i `firestore.indexes.json`:
+svara **nej**. Efter detta gäller rollerna på servern. Logga in som admin och
+kolla att lärarsidan fungerar som förut (klasser, statistik, ge mynt).
+
+### Steg 5: Webbplatsen
+
+1. Merga epic-PR:en till main. GitHub Pages
+   (https://www.pluggporten.se) deployar automatiskt via
+   `.github/workflows/deploy.yml`. Vänta tills jobbet är grönt och sedan tio
+   minuter till: Pages cachar filer i upp till tio minuter, så revertera inte
+   på symptom inom den tiden.
+2. Firebase Hosting (web.app) deployas för hand, från main:
+   ```bash
+   firebase deploy --only hosting --project pluggportalen-so-2026
+   ```
+3. Rök-test: logga in som admin (allt syns, fliken **Lärarkonton** finns),
+   skapa ett årskurskonto där med en klass, logga in med det och kolla att bara
+   den klassen syns. Logga in som en elev och kolla att inget ändrats.
+
+### 8.1 Hur länge övergången behövs – och hur den tas bort
+
+Övergången gör ett lärarkonto med `teacher: true` **utan** `role` och `admin`
+till admin, så att en token från före migreringen inte låses ute. En ID-token
+lever högst en timme. Övergången behövs alltså bara i **en timme efter steg 2**.
+Ta bort den tidigast en timme efter steg 2, och när steg 3 visar
+"0 konto(n) blir admin". Kör torrkörningen en gång till precis innan. Om ett
+konto skapats sedan dess utan roll (det gör inget nuvarande verktyg) syns det där.
+
+Ta bort övergången på en egen gren, i en egen PR:
+
+1. `firestore.rules`: radera funktionen `isLegacyTeacher()` och
+   `|| isLegacyTeacher()` i `isAdmin()`.
+2. `functions/teacher-role.js`: radera raden med `!("role" in token) && !("admin" in token)`
+   i `claimRole()`.
+3. `src/auth.js`: `adminFromClaims` blir
+   `c?.teacher === true && (c.admin === true || c.role === "admin")`.
+4. Testerna: `test/firestore-rules-roller-overgang.test.js` test 25 ska nu
+   **neka** `gammal()`. `test/functions-roller.test.mjs` (claimRole och
+   "lärare utan roll") och `test/teacher-role.test.js` (adminFromClaims) ska
+   ge "inte admin" för `{ teacher: true }`.
+5. Deploya i samma ordning: `firebase deploy --only functions …`, sedan
+   `firebase deploy --only firestore:rules …`, sist main/hosting.
+
+### 8.2 Om någon blir utelåst
+
+Allt nedan körs lokalt med Admin SDK och går förbi reglerna och appen. Det
+fungerar alltså även om lärarsidan inte gör det.
+
+- **En lärare får "saknar behörighet" efter steg 4.** Kör torrkörningen
+  (`node admin/migrate-teacher-admins.mjs`). Står kontot som "blir admin": kör
+  `--apply`. Eller gör kontot till admin direkt:
+  `node admin/set-teacher-claim.mjs --username=<namn>`. Läraren loggar sedan ut
+  och in en gång (ny token).
+- **Det finns inget fungerande adminkonto.** Skapa ett nytt:
+  `node admin/set-teacher-claim.mjs --username=<nytt-namn> --password=<minst6>`.
+  Logga in med det och rätta resten i fliken **Lärarkonton**.
+- **Ett adminkonto är avstängt.** Firebase Console → Authentication → kontot →
+  ⋮ → **Enable account**. Kör sedan `node admin/set-teacher-claim.mjs --username=<namn>`
+  så att `teacherAccounts.active` blir `true` igen. (Det sista aktiva adminkontot
+  kan inte stängas av via appen, §7 test 23.)
+- **Ett årskurskonto ser fel klasser eller inget alls.** Kolla dokumentet
+  `teacherAccounts/{uid}`: `role: "arskurs"`, `active: true` och rätt `classIds`.
+  Rätta i fliken Lärarkonton eller med
+  `node admin/set-teacher-claim.mjs --username=<namn> --role=arskurs --classes=4a,4b`.
+  Klassändringar gäller direkt, utan ny inloggning.
+- **Nödläge: allt är låst och inget ovan hjälper.** Återställ förra reglerna:
+  Firebase Console → Firestore → **Regler** → versionshistoriken → välj
+  versionen före steg 4 → publicera. Det är säkrast, eftersom den versionen är
+  exakt det som var live. Från git går också, med main före epicen
+  (`origin/main` före steg 5, `origin/main^1` direkt efter mergen):
+  ```bash
+  git checkout origin/main -- firestore.rules
+  firebase deploy --only firestore:rules --project pluggportalen-so-2026
+  git checkout HEAD -- firestore.rules
+  ```
+  Med de gamla reglerna gör alla lärare allt som förut. Fliken Lärarkonton och
+  årskurskontona fungerar däremot inte, eftersom de gamla reglerna inte känner
+  till `teacherAccounts`. Hitta felet och gör sedan om steg 2–4.

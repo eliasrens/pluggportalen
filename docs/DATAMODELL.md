@@ -27,7 +27,11 @@ mathCompetitions/{cid}/…                 ← Mattematchen (#457), se "Mattemat
 liveSessions/{sid}/…                     ← Live-matcher (#457), se "Mattematchen & Live"
 liveClock/{uid}                          ← Live: klocksynk per inloggad (#460)
 classCenters/{classId}/…                 ← Klasscentret (#476–): Klass-EXP, crowdfunding, layout, pokaler
+teacherAccounts/{uid}                    ← lärarkonto: admin eller årskurskonto (#677)
 ```
+
+Vem som får läsa och skriva varje samling (admin respektive årskurskonto) står i
+[`docs/BEHORIGHETER.md`](BEHORIGHETER.md).
 
 `studentData` har **samma dokument-id** som `students` (elevens id), så de hör ihop.
 
@@ -70,6 +74,18 @@ läsning för klienten).
 | `generator`   | object \| saknas | Räknegenerator – ett eller flera räknesätt (se nedan) |
 | `timeline`    | array\<TimelineEvent\> \| saknas | Tidslinjefrågor för Tidsjakten, Quiz och Live (se nedan, #596) |
 | `timelineSpan` | `{ from, to }` \| saknas | Valfritt tidsspann för tidslinjen (se nedan, #596) |
+| `createdBy`   | string \| saknas | Ägarens uid (lärarkontot som skapade området, #680). Saknas = admins. |
+| `createdByName` | string \| saknas | Ägarens namn, visas som "skapad av …" på lärarsidan |
+
+**Ägarskap (#680, spec `UTVECKLINGSUPPDRAG_LARARKONTON.md` §2.3):** `data.saveArea`
+stämplar ägaren centralt (`withOwner` i `src/teacher-role-core.js`). Ett nytt
+område får den inloggade lärarens `createdBy`/`createdByName`. Ett befintligt
+behåller sin ägare (eller saknar den), oavsett vem som sparar. Reglerna låter ett
+årskurskonto skapa med `createdBy` = sig själv och ändra/radera bara egna
+områden; admin ändrar allt. **Duplicera** (`data.duplicateArea`) gör en kopia
+med nytt id (`<id>-kopia`), titeln "(kopia)" och den som duplicerar som ägare.
+När ett lärarkonto raderas tas `createdBy`/`createdByName` bort från dess
+områden, som därmed blir admins.
 
 **exerciseTypes**: läraren kryssar i vilka övningstyper området ska ha i
 "Fix område"-formuläret (`src/teacher-content.js`). Giltiga id (se
@@ -308,7 +324,8 @@ Exempel (`students/elev1`):
 
 Firebase Auth lagrar bara en hash, så lärarens klartextlösenord sparas här för
 att läraren ska kunna se det igen ("Inloggning" på elevraden) och skriva ut
-inloggningskort. **Läsbart och skrivbart bara av lärare** (`isTeacher()`); en elev
+inloggningskort. **Läsbart och skrivbart bara av lärare**: admin läser och
+skriver, ett årskurskonto läser bara sina elevers (`hasStudent`, #678); en elev
 kan aldrig läsa något dokument här, inte ens sitt eget (regeltester:
 `test/firestore-rules-student-credentials.test.js`).
 
@@ -327,8 +344,9 @@ inget dokument.
 ### Cloud Function `updateStudentLogin` (callable, `europe-west1`)
 
 `functions/index.js` + `functions/login-core.js`. Anrop `{ uid, username?, password? }`
-från lärarsidan (`src/data-student-login.js`). Bara Auth-användare med claim
-`teacher:true`; målet får inte vara ett lärarkonto. Validerar användarnamn
+från lärarsidan (`src/data-student-login.js`). Admin får byta allt; ett
+årskurskonto bara lösenordet, och bara för elever i sina klasser (#678,
+`functions/teacher-role.js`). Målet får inte vara ett lärarkonto. Validerar användarnamn
 (trim/gemener, `^[a-z0-9._-]{3,40}$`, unikt i både `students` och Auth) och
 lösenord (6–64 tecken). Skriver i EN Firestore-batch `students/{uid}.username`,
 `classProjections/{klass}.members.{uid}.username` (bara klasser där eleven redan
@@ -336,6 +354,37 @@ har en post) och `studentCredentials/{uid}`, och uppdaterar sedan Auth (e-post
 `username@elev.pluggportalen.local` + lösenord). Fallerar Auth återställs
 Firestore-batchen. Fel: `permission-denied`, `invalid-argument`, `already-exists`,
 `not-found`, `internal` – med svenska meddelanden som visas i dialogen.
+
+---
+
+## `teacherAccounts/{uid}` – lärarkonto (#677)
+
+Ett dokument per lärare, med samma id som Auth-kontot. Rollen finns också i
+custom claims (`teacher: true` + `admin: true`, eller `teacher: true` +
+`role: "arskurs"`), men årskurskontots klasser och `active` läses ur dokumentet
+(`get()` i reglerna, färsk läsning i Cloud Functions). En klassändring eller
+avstängning gäller därför direkt, utan ny token.
+
+| Fält          | Typ       | Beskrivning |
+| ------------- | --------- | ----------- |
+| `username`    | string    | Inloggningsnamn, t.ex. `arskurs4` (e-post `arskurs4@larare.pluggportalen.local` i Auth) |
+| `displayName` | string    | Visningsnamn, t.ex. "Årskurs 4" |
+| `role`        | `"admin"` \| `"arskurs"` | Rollen |
+| `classIds`    | string[]  | Årskurskontots klasser (admin väljer). `[]` för admin. |
+| `active`      | bool      | `false` = avstängt (Auth-kontot är också `disabled`) |
+| `createdAt`   | timestamp | |
+| `createdBy`   | string    | uid för admin som skapade kontot, eller `"migrering"` |
+| `updatedAt`   | timestamp | |
+
+- **Skrivs bara av servern:** Cloud Functions `adminCreateTeacher`,
+  `adminUpdateTeacher`, `adminSetTeacherPassword`, `adminSetTeacherActive` och
+  `adminDeleteTeacher` (`functions/teacher-accounts-core.js`), samt
+  admin-skripten `admin/set-teacher-claim.mjs` och `admin/migrate-teacher-admins.mjs`.
+  Reglerna tillåter också admin att skriva direkt.
+- **Läses** av admin (fliken Lärarkonton) och av kontot självt (sitt eget dokument).
+- Det sista aktiva adminkontot kan inte stängas av, nedgraderas eller raderas,
+  och ingen kan ändra sin egen roll.
+- Driftordningen och vad man gör vid utelåsning: `docs/ADMIN.md` §8.
 
 ---
 
@@ -1812,7 +1861,6 @@ valfritt sista `studentId`-argument.
 
 ## Säkerhetsregler
 
-Se [`firestore.rules`](../firestore.rules). Reglerna är medvetet öppna för
-`subjects`, `students` och `studentData` (läs + skriv) eftersom det rör sig om
-skolklassbruk utan riktig autentisering. Allt annat nekas. Detta är **inte**
-vattentätt men blockerar inte legitim användning – vilket är kravet.
+Se [`firestore.rules`](../firestore.rules) och tabellen per samling och roll i
+[`docs/BEHORIGHETER.md`](BEHORIGHETER.md). Allt som inte uttryckligen tillåts
+nekas.

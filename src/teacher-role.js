@@ -48,5 +48,6 @@ export async function myRole() {
 // Rena hjälpare (filtrera klasser/elever, ägarskap) bor i teacher-role-core.js
 // så de kan testas i node; de re-exporteras här.
 export {
-  canEditArea, createdByLabel, filterClasses, studentsInClasses, canSeeLiveSession, liveClassChoices, liveFieldsFor,
+  canEditArea, createdByLabel, duplicateValue, filterClasses, studentsInClasses, withOwner,
+  canSeeLiveSession, liveClassChoices, liveFieldsFor,
 } from "./teacher-role-core.js";

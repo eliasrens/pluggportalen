@@ -290,6 +290,7 @@ export {
   getArea,
   upsertSubject,
   saveArea,
+  duplicateArea,
   deleteArea,
   nextAreaOrder,
   getStudents,

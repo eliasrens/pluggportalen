@@ -2,7 +2,7 @@
 
 Spec: `docs/UTVECKLINGSUPPDRAG_LARARKONTON.md` §2 och §4. Reglerna: `firestore.rules`
 (hjälparna `isAdmin`, `isGradeTeacher`, `hasClass`, `hasStudent`). Testerna:
-`test/firestore-rules-roller-*.test.js` (§7 test 1–18, 25) och
+`test/firestore-rules-roller-*.test.js` (§7 test 1–18, 25, och `-ovrigt` för resten) och
 `test/functions-roller.test.mjs` (test 13, 19).
 
 ## Hur rollen avgörs
@@ -22,42 +22,82 @@ Spec: `docs/UTVECKLINGSUPPDRAG_LARARKONTON.md` §2 och §4. Reglerna: `firestore
   `functions/teacher-role.js`. Ta bort båda när migreringen är verifierad
   (§6.2 steg 3). Då har gamla tokens gått ut, senast en timme efter migreringen.
 
+## Testerna
+
+Kolumnen **Test** pekar ut testet som bevisar raden (nyckel + testnummer i spec §7
+eller testets namn). Kontrolltestet `test/behorigheter-doc.test.js` fäller om en
+samling i `firestore.rules` eller en callable i `functions/index.js` saknas i
+tabellerna, om en rad saknar test, eller om en testfil inte körs av
+`npm run test:rules` / `npm run test:functions`.
+
+| Nyckel | Testfil |
+| --- | --- |
+| TA | `test/firestore-rules-teacher-accounts.test.js` |
+| SM | `test/firestore-rules-roller-statistik-material.test.js` |
+| KE | `test/firestore-rules-roller-klasser-elever.test.js` |
+| LE | `test/firestore-rules-roller-live-ekonomi.test.js` |
+| OG | `test/firestore-rules-roller-overgang.test.js` |
+| RO | `test/firestore-rules-roller-ovrigt.test.js` |
+| LC | `test/firestore-rules-live-core.test.js` |
+| FR | `test/functions-roller.test.mjs` |
+| FT | `test/functions-teacher-accounts.test.mjs` |
+| FM | `test/functions-teacher-migration.test.mjs` |
+| SC | `test/firestore-rules-student-credentials.test.js` |
+| GR | `test/functions-guldrush.test.mjs` |
+| DK | `test/functions-datakuppen.test.mjs` |
+| HR | `test/functions-hitta-ratt.test.mjs` |
+
+Admin-kolumnen bevisas dessutom av OG test 25 (lärare utan roll gör allt som
+admin) och av alla äldre regeltester, som kör sina lärare som admin (§7 test 26).
+
 ## Samlingar
 
 L = läsa, S = skriva. "Egna" betyder klasser i kontots `classIds` och elever vars
-`students/{id}.classIds` har minst en sådan klass.
+`students/{id}.classIds` har minst en sådan klass. "Läraren i sessionen" betyder
+admin, eller ett årskurskonto med minst en egen klass i sessionens
+`participatingClassIds`.
 
-| Samling | Admin | Årskurskonto |
-| --- | --- | --- |
-| `teacherAccounts` | L/S | L: bara sitt eget dokument |
-| `subjects/{s}` (ämnet) | L/S | L |
-| `subjects/{s}/areas/{a}` | L/S | L: allt. Skapa: i ett befintligt ämne, med `createdBy` = sig själv. Ändra och radera: bara områden med `createdBy` = sig själv. Område utan `createdBy` är admins. |
-| `students` | L/S | L (som alla inloggade) |
-| `studentCredentials` | L/S | L: egna elever. S: aldrig. |
-| `studentData` | L/S | L: egna elever. S: bara `lasresa` och där bara nivåfälten (`level`, `level10`, `pendingLevel`, `pendingLevel10`, `highStreak`, `lowStreak`, `levelSetAt`, `levelSetBy`, `updatedAt`). En elev utan `lasresa` får ett nytt tillstånd utan resultat. `coins` + `lastLiveReceipt` bara i samma skrivning som Live-kvittot. Skapa och radera: aldrig. |
-| `studentData/{id}/lasresaAttempts` | L/S | L: egna elever |
-| `studentData/{id}/ekvationsresa/progress` | L/S | L: egna elever. S: lärarens nivåbyte (`ekvTeacherLevelOk`). |
-| `studentData/{id}/ekvationsresaAttempts` | L/radera | L: egna elever |
-| `classes` | L/S | L. Ändra egna klasser, bara fälten `assignedAreas`, `hiddenModes`, `areaModes`, `hiddenModules`, `enabledModules`, `lock`, `lasresaStartLevel10` och `lasresaStartLevel`. Skapa och radera: aldrig. |
-| `classProjections`, `classProjects` | L/S | L |
-| `mathCompetitions` + `answers`, `studentStats`, `scores`, `classCounters` | L/S | L: dokument med `classId` i egna klasser. En lista måste filtrera på egna klasser. Topp 25 som elever. |
-| `liveSessions` | L/S | Skapa och styra: Klassmatchen med minst en egen klass och motståndare valfri, men utan `coinPrize`. Övriga format: alla klasser egna. Radera: en lobby med en egen klass. |
-| `liveSessions/{sid}/…` (spelare, svar, räknare, facit, kvitton) | L/S | Som läraren i sessionen: läsa, skapa facit, poäng och pluggmyntskvitton, och radera lobbyns dokument. Allt annat: bara admin. |
-| `{**}/answers` (collection group) | L | L: `classId` i egna klasser, eller `uid` = egen elev (träningstotalen) |
-| `classCenters/{c}` (profil, `expMembers`, `kassa`, `kassaHistorik`, `donations`) | L/S | L: egna klasser. S: aldrig. |
-| `classCenters/{c}` (`expShards`, `fund`, `trophies`, `layout`) | L/S | L (som alla inloggade). S: aldrig. |
-| `hittaRattAttempts`, `hittaRattBest` | L | L: egna elever (per dokument) |
-| `hittaRattPacks`, `hittaRattBilder` | L/S (via Cloud Functions) | L |
-| allt annat | enligt regeln | nekas |
+| Samling | Admin | Årskurskonto | Test |
+| --- | --- | --- | --- |
+| `teacherAccounts` | L/S | L: bara sitt eget dokument. S: aldrig (konton ändras via admin-funktionerna). | TA test 19, OG avstängt konto |
+| `subjects` (ämnet) | L/S | L | SM test 8 |
+| `subjects/{s}/areas` | L/S | L: allt. Skapa: i ett befintligt ämne, med `createdBy` = sig själv. Ändra: bara områden med `createdBy` = sig själv, och `createdBy` får inte bytas. Radera: bara egna. Område utan `createdBy` är admins. | SM test 4–7 |
+| `students` | L/S | L (som alla inloggade). S: aldrig. | KE test 12, RO elevkonton |
+| `studentCredentials` | L/radera. S: bara fälten `username`, `password` (minst 6 tecken) och `updatedAt`. | L: egna elever. S: aldrig (lösenordsbyte via `updateStudentLogin`). | SM test 1–3, KE test 13, SC |
+| `studentData` | L/S | L: egna elever. S: bara `lasresa` och där bara nivåfälten (`level`, `level10`, `pendingLevel`, `pendingLevel10`, `highStreak`, `lowStreak`, `levelSetAt`, `levelSetBy`, `updatedAt`). En elev utan `lasresa` får ett nytt tillstånd utan resultat. `coins` + `lastLiveReceipt` bara i samma skrivning som Live-kvittot. Skapa och radera: aldrig. | SM test 1–2, KE test 12 och 14, LE test 16 och 18 |
+| `studentData/{id}/lasresaAttempts` | L/S | L: egna elever. S: aldrig. | SM test 1–2 |
+| `studentData/{id}/ekvationsresa` (bara `progress`) | L/S (validerat), radera | L: egna elever. S: lärarens nivåbyte (`ekvTeacherLevelOk`) för egna elever. | SM test 1–2, KE test 14 |
+| `studentData/{id}/ekvationsresaAttempts` | L/radera | L: egna elever | SM test 1–2 |
+| `classes` | L/S | L. Ändra egna klasser, bara fälten `assignedAreas`, `hiddenModes`, `areaModes`, `hiddenModules`, `enabledModules`, `lock`, `lasresaStartLevel10` och `lasresaStartLevel`. Skapa och radera: aldrig. | KE test 9–12 |
+| `classProjections`, `classProjects` | L/S | L. S: aldrig. | RO klassprojektioner |
+| `mathCompetitions` (tävlingen) | L/S | L (som alla inloggade). Skapa, styra, nollställa och radera: aldrig. | LE test 17 |
+| `mathCompetitions/{c}/answers`, `studentStats` | L/radera | L: dokument med `classId` i egna klasser. En lista måste filtrera på egna klasser. | SM test 1–2, LE test 17 |
+| `mathCompetitions/{c}/scores` | L/radera | Hämta en: som alla inloggade. Lista: filtrerat på egna klasser, annars högst 25 som elever. | SM test 1–2, LE test 17 |
+| `mathCompetitions/{c}/classCounters` | L/radera | L (som alla inloggade) | LE test 17 |
+| `liveSessions` | L/S | L (som alla inloggade). Skapa och styra: Klassmatchen med minst en egen klass och motståndare valfri, men utan `coinPrize`. Övriga format: alla klasser egna. Klasserna får inte bytas till andras. Radera: en lobby med en egen klass. | LE test 15–16 |
+| `liveSessions/{sid}/players`, `answers`, `counters`, `coinReceipts`, `sbPrivate`, `sbAnswers`, `sbScores`, `grPrivate`, `grPublic`, `dkPrivate`, `dkPublic` | L/S | Som läraren i sessionen: läsa, skapa facit, poäng och pluggmyntskvitton, och radera lobbyns dokument. Allt annat: bara admin. | LE test 16 och 18 |
+| `liveSessions/{sid}/grPlayers`, `grEvents`, `grMeta`, `dkPlayers`, `dkEvents`, `dkMeta` | L/radera (servern skriver) | L som läraren i sessionen. S: aldrig. | RO serverdata |
+| `liveSessions/{sid}/dkSelf`, `dkSecret` | radera (bara eleven själv läser `dkSelf`, ingen klient `dkSecret`) | nekas | RO hemliga koder |
+| `liveClock` | bara sitt eget dokument | bara sitt eget dokument | LC liveClock, RO Live-klockan |
+| `{**}/answers` (collection group) | L | L: `classId` i egna klasser, eller `uid` = egen elev (träningstotalen) | SM test 1–2 |
+| `classCenters` (profilen), `expMembers`, `kassa`, `kassaHistorik`, `donations` | L/S | L: egna klasser. S: aldrig. | SM test 1–2, LE test 18 |
+| `classCenters/{c}/expShards`, `fund`, `trophies`, `layout`, `layoutHistory` | L/S | L (som alla inloggade). S: aldrig. | LE test 18, RO inredning |
+| `hittaRattAttempts`, `hittaRattBest` | L | L: egna elever (per dokument) | SM test 1–2 |
+| `hittaRattBoards`, `hittaRattMeta`, `hittaRattPacks` | L (servern skriver) | L | RO Hitta rätt! |
+| `hittaRattBilder` | L. Skapa och radera egna bilder. | L. S: aldrig. | RO egna bilder |
+| allt annat (`{document=**}`) | nekas | nekas | RO allt annat |
 
 ## Cloud Functions
 
-| Funktion | Admin | Årskurskonto |
-| --- | --- | --- |
-| `updateStudentLogin` | allt | bara lösenord, bara för egna elever. Kontot läses färskt. |
-| `hittaRattSparaPack`, `hittaRattRaderaPack`, `hittaRattSattTopplista` | ja | nej |
-| `adminCreateTeacher` med flera (#677) | ja (färska claims i Auth) | nej |
-| `guldrush*`, `datakupp*`, `hittaRattSubmit` | elevfunktioner, inga lärarkontroller | – |
+| Funktion | Admin | Årskurskonto | Test |
+| --- | --- | --- | --- |
+| `updateStudentLogin` | allt | bara lösenord, bara för egna elever. Kontot läses färskt. | FR test 13, FR avstängt konto |
+| `hittaRattSparaPack`, `hittaRattRaderaPack`, `hittaRattSattTopplista` | ja | nej | FR test 19 |
+| `adminCreateTeacher`, `adminUpdateTeacher`, `adminSetTeacherPassword`, `adminSetTeacherActive`, `adminDeleteTeacher` | ja (färska claims i Auth; inte sin egen roll eller det sista adminkontot) | nej | FT test 19–23, FR test 19 |
+| `guldrushAnswer`, `guldrushOpenChest`, `guldrushChooseVictim`, `datakuppAnswer`, `datakuppOpenFile`, `datakuppChooseTarget`, `datakuppGuessCode`, `datakuppPickCode`, `hittaRattSubmit` | elevfunktioner, inga lärarvägar | – | GR, DK, HR |
+
+Migreringsskriptet `admin/migrate-teacher-admins.mjs` (Admin SDK, förbi reglerna)
+bevisas av FM test 24.
 
 ## Val där spec §2 var oklar (det strängaste valdes)
 
