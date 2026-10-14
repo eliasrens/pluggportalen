@@ -11,7 +11,7 @@
 //   (Ingen "Min by"-skylt – tillbaka till egna byn sker genom att klicka på den.)
 //   hus-nivå (framsidan): skylt "Till gården" (nere till HÖGER, .hoger) →
 //   baksidan/gården (#/elev/gard, issue #328). Tillbaka därifrån sker via
-//   ut-knappen ("Tillbaka till huset"), så gården behöver ingen egen skylt.
+//   ut-knappen ("Till framsidan", #697), så gården behöver ingen egen skylt.
 //
 // Skyltarna är overlay-UI (i .varld-ui), inte scen-element, så de återanvänds
 // aldrig av grannby-vyn (som ritar med samma mountByScen). visa() styr vilken
