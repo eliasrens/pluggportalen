@@ -92,3 +92,40 @@ describe("Kontots läge (get() på teacherAccounts)", () => {
     await assertFails(deleteDoc(doc(db, "subjects", "so", "areas", "admin-omr")));
   });
 });
+
+// #682 H3 (§3.4): en admin som stängs av eller nedgraderas tappar rätten
+// direkt – reglerna läser teacherAccounts/{uid} (adminAccountOk), inte bara
+// token. Saknat dokument = claims avgör (övergången, admin före migreringen).
+describe("H3: avstängd eller nedgraderad admin med giltig token", () => {
+  // Funktioner (inte promises) – annars nekas de innan assertFails hunnit vänta.
+  const adminSkriv = (db) => [
+    () => setDoc(doc(db, "students", "ny"), { namn: "x", classIds: ["5a"] }),
+    () => updateDoc(doc(db, "studentData", "e5a"), { coins: 99999 }),
+    () => getDoc(doc(db, "studentCredentials", "e5a")),
+    () => setDoc(doc(db, "subjects", "nytt"), { name: "Nytt" }),
+  ];
+  it("aktivt admindokument: allt som förut", async () => {
+    for (const f of adminSkriv(env.admin())) await assertSucceeds(f());
+  });
+  it("avstängd (active:false) – samma token nekas direkt", async () => {
+    await env.seed((db) => updateDoc(doc(db, "teacherAccounts", "admin1"), { active: false }));
+    for (const f of adminSkriv(env.admin())) await assertFails(f());
+  });
+  it("nedgraderad till årskurskonto i dokumentet – admin-claim ger ingen adminrätt", async () => {
+    await env.seed((db) => updateDoc(doc(db, "teacherAccounts", "admin1"), { role: "arskurs", classIds: ["5a"] }));
+    for (const f of adminSkriv(env.admin())) await assertFails(f());
+    // Inte heller årskursrätt förrän ny token (claims säger fortfarande admin).
+    await assertFails(getDoc(doc(env.admin(), "studentData", "e5a")));
+  });
+  it("lärare utan roll och utan dokument (övergången) fungerar som förut", async () => {
+    for (const f of adminSkriv(env.gammal())) await assertSucceeds(f());
+  });
+  it("lärare utan roll vars dokument stängts av eller fått rollen arskurs nekas", async () => {
+    await env.seed((db) => setDoc(doc(db, "teacherAccounts", "gammal"),
+      { username: "gammal", displayName: "gammal", role: "admin", classIds: [], active: false }));
+    for (const f of adminSkriv(env.gammal())) await assertFails(f());
+    await env.seed((db) => setDoc(doc(db, "teacherAccounts", "gammal"),
+      { username: "gammal", displayName: "gammal", role: "admin", classIds: [], active: true }));
+    for (const f of adminSkriv(env.gammal())) await assertSucceeds(f());
+  });
+});

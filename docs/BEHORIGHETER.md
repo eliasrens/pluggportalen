@@ -16,8 +16,13 @@ Spec: `docs/UTVECKLINGSUPPDRAG_LARARKONTON.md` §2 och §4. Reglerna: `firestore
 - Årskurskontots klasser och `active` läses med `get()` på `teacherAccounts/{uid}`.
   En klassändring eller avstängning gäller därför direkt, utan ny token.
   Kontot gäller bara om dokumentet finns, `active == true` och `role == "arskurs"`.
-- Admin avgörs bara av claims, utan `get()`. En avstängd admin är `disabled` i Auth.
-  Den gamla token gäller högst en timme till.
+- Admin avgörs av claims plus en `get()` på `teacherAccounts/{uid}` (`adminAccountOk`,
+  #682 H3). Finns dokumentet måste det vara aktivt och ha `role == "admin"`. En
+  avstängd eller nedgraderad admin nekas därför direkt, trots gammal token. Saknas
+  dokumentet avgör claims, så övergången och admin före migreringen fungerar.
+  `callerRole` (Cloud Functions) läser dokumentet på samma sätt. Admin-funktionerna
+  läser färska claims i Auth, och `revokeRefreshTokens` körs vid avstängning och
+  rollbyte.
 - Övergången är `isLegacyTeacher()` i reglerna och `claimRole()` i
   `functions/teacher-role.js`. Ta bort båda när migreringen är verifierad
   (§6.2 steg 3). Då har gamla tokens gått ut, senast en timme efter migreringen.
@@ -59,7 +64,7 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 
 | Samling | Admin | Årskurskonto | Test |
 | --- | --- | --- | --- |
-| `teacherAccounts` | L/S | L: bara sitt eget dokument. S: aldrig (konton ändras via admin-funktionerna). | TA test 19, OG avstängt konto |
+| `teacherAccounts` | L/S | L: bara sitt eget dokument. S: aldrig (konton ändras via admin-funktionerna). | TA test 19, OG avstängt konto, OG H3 |
 | `subjects` (ämnet) | L/S | L | SM test 8 |
 | `subjects/{s}/areas` | L/S | L: allt. Skapa: i ett befintligt ämne, med `createdBy` = sig själv. Ändra: bara områden med `createdBy` = sig själv, och `createdBy` får inte bytas. Radera: bara egna. Område utan `createdBy` är admins. | SM test 4–7 |
 | `students` | L/S | L (som alla inloggade). S: aldrig. | KE test 12, RO elevkonton |
@@ -74,8 +79,8 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `mathCompetitions/{c}/answers`, `studentStats` | L/radera | L: dokument med `classId` i egna klasser. En lista måste filtrera på egna klasser. | SM test 1–2, LE test 17 |
 | `mathCompetitions/{c}/scores` | L/radera | Hämta en: som alla inloggade. Lista: filtrerat på egna klasser, annars högst 25 som elever. | SM test 1–2, LE test 17 |
 | `mathCompetitions/{c}/classCounters` | L/radera | L (som alla inloggade) | LE test 17 |
-| `liveSessions` | L/S | L (som alla inloggade). Skapa och styra: Klassmatchen med minst en egen klass och motståndare valfri, men utan `coinPrize`. Övriga format: alla klasser egna. Klasserna får inte bytas till andras. Radera: en lobby med en egen klass. | LE test 15–16 |
-| `liveSessions/{sid}/players`, `answers`, `counters`, `coinReceipts`, `sbPrivate`, `sbAnswers`, `sbScores`, `grPrivate`, `grPublic`, `dkPrivate`, `dkPublic` | L/S | Som läraren i sessionen: läsa, skapa facit, poäng och pluggmyntskvitton, och radera lobbyns dokument. Allt annat: bara admin. | LE test 16 och 18 |
+| `liveSessions` | L/S | L (som alla inloggade). Skapa och styra: Klassmatchen med minst en egen klass och motståndare valfri, men utan `coinPrize`. Övriga format: alla klasser egna. Klasserna får inte bytas till andras. Radera: en lobby med en egen klass. En Klassmatch får aldrig ha `rewards` (gäller även admin). | LE test 15–16, LE #682 H1 |
+| `liveSessions/{sid}/players`, `answers`, `counters`, `coinReceipts`, `sbPrivate`, `sbAnswers`, `sbScores`, `grPrivate`, `grPublic`, `dkPrivate`, `dkPublic` | L/S | Som läraren i sessionen: läsa, skapa facit, poäng och pluggmyntskvitton, och radera lobbyns dokument. Allt annat: bara admin. Ett pluggmyntskvitto (även admins) kräver en startad match och elevens egen `players/{uid}`. Rätt-mynten får vara högst `perCorrect` × serverns rätt i `grPlayers`/`dkPlayers` (minst ett svar), och i Snilleblixten högst `perCorrect` × antal frågor. | LE test 16 och 18, LE #682 H2 |
 | `liveSessions/{sid}/grPlayers`, `grEvents`, `grMeta`, `dkPlayers`, `dkEvents`, `dkMeta` | L/radera (servern skriver) | L som läraren i sessionen. S: aldrig. | RO serverdata |
 | `liveSessions/{sid}/dkSelf`, `dkSecret` | radera (bara eleven själv läser `dkSelf`, ingen klient `dkSecret`) | nekas | RO hemliga koder |
 | `liveClock` | bara sitt eget dokument | bara sitt eget dokument | LC liveClock, RO Live-klockan |
@@ -91,8 +96,8 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 
 | Funktion | Admin | Årskurskonto | Test |
 | --- | --- | --- | --- |
-| `updateStudentLogin` | allt | bara lösenord, bara för egna elever. Kontot läses färskt. | FR test 13, FR avstängt konto |
-| `hittaRattSparaPack`, `hittaRattRaderaPack`, `hittaRattSattTopplista` | ja | nej | FR test 19 |
+| `updateStudentLogin` | allt (inte med avstängt eller nedgraderat kontodokument) | bara lösenord, bara för egna elever. Kontot läses färskt. | FR test 13, FR avstängt konto, FR H3 |
+| `hittaRattSparaPack`, `hittaRattRaderaPack`, `hittaRattSattTopplista` | ja (som `updateStudentLogin`) | nej | FR test 19, FR H3 |
 | `adminCreateTeacher`, `adminUpdateTeacher`, `adminSetTeacherPassword`, `adminSetTeacherActive`, `adminDeleteTeacher` | ja (färska claims i Auth; inte sin egen roll eller det sista adminkontot) | nej | FT test 19–23, FR test 19 |
 | `guldrushAnswer`, `guldrushOpenChest`, `guldrushChooseVictim`, `datakuppAnswer`, `datakuppOpenFile`, `datakuppChooseTarget`, `datakuppGuessCode`, `datakuppPickCode`, `hittaRattSubmit` | elevfunktioner, inga lärarvägar | – | GR, DK, HR |
 
@@ -119,6 +124,15 @@ bevisas av FM test 24.
    läsningen för inloggade (#114) gäller elever, inte lärare.
 8. **`classProjections`/`classProjects`**: årskurskontot skriver inte.
    Lärarklientens självläkning nekas tyst.
+9. **Pluggmynt efter Live (#682 H1/H2)**: `result.rewards` skrivs av läraren
+   och bevisar inget spel. Därför kan en Klassmatch aldrig ha `rewards`
+   (formatet delar inte ut pluggmynt). Kvittot kräver dessutom en startad
+   match, att eleven själv gått med (`players/{uid}`) och, i kistformaten,
+   rätt-mynt inom serverns räknade rätt. Placeringspriset (högst `firstPrize`)
+   kan reglerna inte kontrollera mot ställningen. En elev som gått med och
+   svarat kan alltså få högst `firstPrize` + `cap` per match. Kontrollerna
+   gäller även admin. Riktiga utbetalningar uppfyller dem redan
+   (`computeRewards` tar bara med deltagare med svar).
 
 ## Att tänka på i klienten
 

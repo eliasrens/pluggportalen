@@ -26,13 +26,19 @@ export function claimRole(token) {
  * @param {FirebaseFirestore.Firestore} db
  * @param {{uid:string, token:object}|undefined} auth request.auth
  * @returns {Promise<{role:"admin"}|{role:"arskurs", classIds:string[]}|null>}
- *   null = ingen lärarbehörighet (även avstängt eller saknat konto).
+ *   null = ingen lärarbehörighet (även avstängt eller saknat konto, och en
+ *   admin vars kontodokument är avstängt eller har en annan roll).
  */
 export async function callerRole(db, auth) {
   const role = claimRole(auth?.token);
-  if (role !== "arskurs") return role ? { role } : null;
+  if (!role) return null;
   const snap = await db.collection("teacherAccounts").doc(auth.uid).get();
   const d = snap.exists ? snap.data() : null;
+  // Admin (#682 H3, som isAdmin/adminAccountOk i reglerna): finns kontot
+  // måste det vara aktivt med role "admin" – en avstängd eller nedgraderad
+  // admin nekas direkt, inte först när ID-token går ut. Inget dokument =
+  // claims avgör (övergången och admin före migreringen).
+  if (role === "admin") return !d || (d.active === true && d.role === "admin") ? { role } : null;
   if (!d || d.active !== true || d.role !== "arskurs") return null;
   return { role, classIds: Array.isArray(d.classIds) ? d.classIds : [] };
 }

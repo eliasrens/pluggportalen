@@ -188,7 +188,11 @@ describe("Läsresan-milstolpar", () => {
 
   it("bara kända milstolpar", async () => {
     await lasta({ 0: 200, 1: 200, 2: 200, 3: 200, 4: 200 });
-    await assertSucceeds(skapa(teacher(), "6a", "lasresan-milstolpe", "1000"));
+    // Alla fem shardarna + adminens kontodokument (#682 H3: isAdmin läser
+    // teacherAccounts) = 12 dokumentanrop – över gränsen 10 för en enskild
+    // skrivning, men appen delar ut i en transaktion (gräns 20).
+    await seed((db) => setDoc(doc(db, "teacherAccounts", "larare1"), { role: "admin", active: true }));
+    assert.equal((await dela(teacher(), "6a", "lasresan-milstolpe", "1000")).ny, true);
     await assertFails(skapa(teacher(), "6a", "lasresan-milstolpe", "150"));
     await assertFails(skapa(teacher(), "6a", "lasresan-milstolpe", "1"));
   });

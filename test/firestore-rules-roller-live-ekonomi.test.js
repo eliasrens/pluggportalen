@@ -80,6 +80,10 @@ beforeEach(async () => {
     }
     await setDoc(doc(db, "liveSessions", "sb4a"), avslutadSb("4a", "e4a"));
     await setDoc(doc(db, "liveSessions", "sb5a"), avslutadSb("5a", "e5a"));
+    for (const [sid, uid, classId] of [["sb4a", "e4a", "4a"], ["sb5a", "e5a", "5a"]]) {
+      await setDoc(doc(db, "liveSessions", sid, "players", uid),
+        { uid, classId, name: uid, joinedAt: ts(-2 * H), lastSeenAt: ts(-H), correct: 0, incorrect: 0 });
+    }
     // Avslutad Klassmatch med pris till 4A:s kassa.
     await setDoc(doc(db, "liveSessions", "pris"), {
       ...lobby(["4a", "5a"]), coinPrize: 1000, status: "finished", startedAt: ts(-H),
@@ -213,5 +217,115 @@ describe("Test 18: Årskurs 4 ger mynt, ändrar klasskassan eller delar ut en po
     await assertSucceeds(setDoc(doc(env.admin(), "classCenters", "4a", "expShards", "0"), exp("admin1")));
     await assertFails(setDoc(doc(env.ak4(), "classCenters", "4a"), { kassorer: ["e4a"] }));
     await assertFails(setDoc(doc(env.ak4(), "classCenters", "4a"), { inredningSparr: ["e4a"] }));
+  });
+});
+
+// #682 (slut-QA): Pluggmynt utan riktig match. Kvittot + saldot i samma batch,
+// som tester-grenens admin/qa-lararkonton-attack.mjs avsnitt E.
+describe("#682 H1/H2: Pluggmynt utan riktig match nekas", () => {
+  const guldrush = (classIds, uid, over = {}) => ({
+    ...buildSessionDoc({
+      name: "Guldrushen", format: "guldrush", gameMode: "multiplication_0_10", answerKind: "free", classIds,
+      durationMin: 5, stealSwap: true, showNames: true,
+      rewards: { firstPrize: "1000", perCorrect: "50", cap: "1000" },
+    }, { uid }),
+    createdAt: serverTimestamp(),
+    ...over,
+  });
+  function betala(db, sid, uid, prize, correctCoins, fore) {
+    const b = writeBatch(db);
+    b.set(doc(db, "liveSessions", sid, "coinReceipts", uid),
+      { uid, prize, correctCoins, total: prize + correctCoins, at: serverTimestamp(), by: "ak4" });
+    b.update(doc(db, "studentData", uid), { coins: fore + prize + correctCoins, lastLiveReceipt: sid });
+    return b.commit();
+  }
+  const rw = (prize, correctCoins) => ({ e4a: { rank: 1, correct: 20, prize, correctCoins, total: prize + correctCoins } });
+  // En avslutad Guldrush (admin-seedad) – over ändrar sessionen, spelare/grPlayers styrs separat.
+  async function avslutadGr(sid, { over = {}, player = true, gp = { correct: 20, incorrect: 0 } } = {}) {
+    await env.seed(async (db) => {
+      await setDoc(doc(db, "liveSessions", sid), {
+        ...guldrush(["4a"], "admin1"), createdAt: ts(-2 * H), status: "finished", startedAt: ts(-H), finishedAt: ts(-1000),
+        result: { format: "guldrush", winner: null, rewards: rw(1000, 1000) }, ...over,
+      });
+      if (player) {
+        await setDoc(doc(db, "liveSessions", sid, "players", "e4a"),
+          { uid: "e4a", classId: "4a", name: "e4a", joinedAt: ts(-2 * H), lastSeenAt: ts(-H), correct: 0, incorrect: 0 });
+      }
+      if (gp) await setDoc(doc(db, "liveSessions", sid, "grPlayers", "e4a"), { uid: "e4a", classId: "4a", gold: 50, ...gp });
+    });
+  }
+
+  it("H1: en Klassmatch kan inte bära rewards – varken skapas, läggas till eller betalas", async () => {
+    const ny = (db) => doc(db, "liveSessions", `ny-${Math.random().toString(36).slice(2)}`);
+    const fusk = { rewards: { firstPrize: 1000000, perCorrect: 0, cap: 1000000 } };
+    await assertFails(setDoc(ny(env.ak4()), { ...klassmatch(["4a", "5a"], "ak4"), ...fusk }));
+    await assertFails(setDoc(ny(env.ak4()), { ...klassmatch(["4a", "5a"], "ak4"), rewards: { firstPrize: 10, perCorrect: 0, cap: 10 } }));
+    await assertFails(setDoc(ny(env.admin()), { ...klassmatch(["4a", "5a"], "admin1"), ...fusk }));
+    await assertFails(updateDoc(doc(env.ak4(), "liveSessions", "m4a6a"), fusk));
+    // Hela attacken: skapa → avsluta → result → kvitto.
+    const sid = "fusk-km";
+    await assertSucceeds(setDoc(doc(env.ak4(), "liveSessions", sid), klassmatch(["4a", "5a"], "ak4")));
+    await assertFails(updateDoc(doc(env.ak4(), "liveSessions", sid),
+      { status: "finished", ...fusk, result: { rewards: { e4a: { prize: 1000000, correctCoins: 0, total: 1000000 } } } }));
+    // Även om data redan finns (äldre klient/seed): en Klassmatch betalar aldrig ut.
+    await env.seed((db) => setDoc(doc(db, "liveSessions", "km-gammal"), {
+      ...klassmatch(["4a", "5a"], "admin1"), createdAt: ts(-2 * H), status: "finished", startedAt: ts(-H),
+      rewards: { firstPrize: 1000, perCorrect: 0, cap: 1000 }, result: { rewards: rw(1000, 0) },
+    }));
+    await env.seed((db) => setDoc(doc(db, "liveSessions", "km-gammal", "players", "e4a"),
+      { uid: "e4a", classId: "4a", name: "e4a", joinedAt: ts(-2 * H), lastSeenAt: ts(-H), correct: 0, incorrect: 0 }));
+    await assertFails(betala(env.ak4(), "km-gammal", "e4a", 1000, 0, 100));
+    await assertFails(betala(env.admin(), "km-gammal", "e4a", 1000, 0, 100));
+    assert.equal(await coins("e4a"), 100);
+  });
+
+  it("H2: tom Guldrush – lobby → avsluta → eget result → kvitto nekas", async () => {
+    const db = env.ak4();
+    const sid = "fusk-gr";
+    await assertSucceeds(setDoc(doc(db, "liveSessions", sid), guldrush(["4a"], "ak4")));
+    await assertSucceeds(updateDoc(doc(db, "liveSessions", sid), { status: "finished", finishedAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(doc(db, "liveSessions", sid), { result: { rewards: rw(1000, 1000) } }));
+    await assertFails(betala(db, sid, "e4a", 1000, 1000, 100));
+    assert.equal(await coins("e4a"), 100);
+  });
+
+  it("H2: avslutad och startad men eleven gick aldrig med, eller svarade aldrig – nekas", async () => {
+    await avslutadGr("gr-utan-spelare", { player: false });
+    await assertFails(betala(env.ak4(), "gr-utan-spelare", "e4a", 1000, 1000, 100));
+    await avslutadGr("gr-utan-svar", { gp: null });
+    await assertFails(betala(env.ak4(), "gr-utan-svar", "e4a", 1000, 1000, 100));
+    await avslutadGr("gr-noll-svar", { gp: { correct: 0, incorrect: 0 } });
+    await assertFails(betala(env.ak4(), "gr-noll-svar", "e4a", 1000, 0, 100));
+    await avslutadGr("gr-ej-startad", { over: { startedAt: null } });
+    await assertFails(betala(env.ak4(), "gr-ej-startad", "e4a", 1000, 1000, 100));
+    // Admin likadant.
+    await assertFails(betala(env.admin(), "gr-utan-spelare", "e4a", 1000, 1000, 100));
+    assert.equal(await coins("e4a"), 100);
+  });
+
+  it("H2: rätt-mynten får inte överstiga perCorrect × serverns verifierade rätt", async () => {
+    await avslutadGr("gr-fa-ratt", { gp: { correct: 2, incorrect: 5 }, over: { result: { rewards: rw(1000, 1000) } } });
+    await assertFails(betala(env.ak4(), "gr-fa-ratt", "e4a", 1000, 1000, 100));
+    await avslutadGr("gr-fa-ratt-2", { gp: { correct: 2, incorrect: 5 }, over: { result: { rewards: rw(1000, 100) } } });
+    await assertSucceeds(betala(env.ak4(), "gr-fa-ratt-2", "e4a", 1000, 100, 100));
+    assert.equal(await coins("e4a"), 1200);
+  });
+
+  it("kontroll: en riktig Guldrush (startad, eleven med, serverns svar) betalas som förut", async () => {
+    await avslutadGr("gr-riktig");
+    await assertSucceeds(betala(env.ak4(), "gr-riktig", "e4a", 1000, 1000, 100));
+    assert.equal(await coins("e4a"), 2100);
+    await assertFails(betala(env.ak4(), "gr-riktig", "e4a", 1000, 1000, 2100)); // en gång
+  });
+
+  it("Snilleblixten: rätt-mynten högst perCorrect × antal frågor", async () => {
+    await env.seed(async (db) => {
+      const s = avslutadSb("4a", "e4a");
+      s.result.rewards.e4a = { rank: 1, correct: 10, prize: 30, correctCoins: 26, total: 56 }; // 5 × 5 = 25
+      await setDoc(doc(db, "liveSessions", "sb-for-mycket"), s);
+      await setDoc(doc(db, "liveSessions", "sb-for-mycket", "players", "e4a"),
+        { uid: "e4a", classId: "4a", name: "e4a", joinedAt: ts(-2 * H), lastSeenAt: ts(-H), correct: 0, incorrect: 0 });
+    });
+    await assertFails(betala(env.ak4(), "sb-for-mycket", "e4a", 30, 26, 100));
   });
 });
