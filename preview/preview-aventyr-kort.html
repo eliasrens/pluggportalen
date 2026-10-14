@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Äventyrskorten #704 – bilder (oversikt.scen) i alla kortbredder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <!-- Förhandsvisning för issue #704 (spec §4.3): alla äventyrsteman i kortformat,
+         MED sin bild (oversikt.scen) och UTAN (reservläget: färgyta + emoji).
+         Korten byggs av den RIKTIGA adventureCards (src/gamemodes.js) och styles.css;
+         bara datakällorna stubbas (samma importmap som preview-plugga-703.html).
+         Varje rad visar korten i en fast bredd som motsvarar ett rutnät med
+         3, 2 eller 1 kolumner (bildens höjd följer kortets bredd, 78–108 px).
+         Kör: PORT=8704 node server.mjs → /preview/preview-aventyr-kort.html -->
+    <script type="importmap">
+      { "imports": {
+        "../src/data.js": "./plugga-703/data.js",
+        "../src/auth.js": "./plugga-702/auth.js",
+        "../src/data-xp.js": "./kategori-stubs/data-xp.js",
+        "../src/fx.js": "./kategori-stubs/fx.js",
+        "../src/firebase-config.js": "./kategori-stubs/firebase-config.js",
+        "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js": "./kategori-stubs/firestore.js",
+        "../src/live/live-watch.js": "./sidomeny-701/live-watch.js",
+        "../src/tavling/mm-watch.js": "./sidomeny-701/mm-watch.js",
+        "../src/class-lock-watch.js": "./sidomeny-701/class-lock-watch.js"
+      } }
+    </script>
+    <style>
+      body { padding: 24px; }
+      .rad { margin: 0 0 28px; }
+      .rad h2 { margin: 0 0 2px; font-size: 1.2rem; }
+      .rad p { margin: 0 0 10px; color: var(--text-svag); font-weight: 600; }
+      .rad .kompakt-grid { grid-template-columns: repeat(auto-fill, var(--kortbredd)); margin-bottom: 0; }
+    </style>
+  </head>
+  <body>
+    <main id="app" class="container" style="max-width: none">
+      <div class="pl-huvud">
+        <h1>Äventyrskorten</h1>
+        <p>Alla teman med sin bild (oversikt.scen) och utan (reservläget), i kortbredderna för 3, 2 och 1 kolumner.</p>
+      </div>
+    </main>
+    <script type="module">
+      import { THEMES } from "../src/adventure/themes/index.js";
+      import { adventureCards } from "../src/gamemodes.js";
+
+      const BREDDER = [
+        { w: 260, rubrik: "260 px – smalaste kortet", text: "3 kolumner i smal innehållsyta" },
+        { w: 283, rubrik: "283 px – 3 kolumner", text: "1920×1080, 1440×900, 1366×768, 1280×720 med sidomeny" },
+        { w: 328, rubrik: "328 px – 1 kolumn, mobil", text: "390×844 (360×740 ger ≈ 300 px)" },
+        { w: 390, rubrik: "390 px – 2 kolumner", text: "surfplatta 820×1180 / 1180×820" },
+        { w: 535, rubrik: "535 px – bredaste kortet", text: "1 kolumn precis innan rutnätet byter till 2" },
+      ];
+      const medScen = Object.values(THEMES);
+      const utanScen = medScen.map((t) => ({ ...t, oversikt: { ...t.oversikt, scen: undefined } }));
+      // Lite variation i stjärnor + en "Fortsätt här"-markering, som på riktiga sidan.
+      const progress = { "aventyr:skattjakten": { stars: 2 }, "aventyr:gruvan": { stars: 3 } };
+
+      const app = document.getElementById("app");
+      for (const { w, rubrik, text } of BREDDER) {
+        app.insertAdjacentHTML(
+          "beforeend",
+          `<section class="rad" style="--kortbredd:${w}px">
+            <h2>${rubrik}</h2><p>${text}</p>
+            <div class="kompakt-grid aventyr-grid">${adventureCards(medScen, progress, "aventyr:spokjakten")}</div>
+            <div class="kompakt-grid aventyr-grid" style="margin-top:16px">${adventureCards(utanScen, progress, null)}</div>
+          </section>`
+        );
+      }
+    </script>
+  </body>
+</html>

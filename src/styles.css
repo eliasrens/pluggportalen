@@ -7902,11 +7902,18 @@ body:has(.teacher-dark) .container {
   padding: 0;
   overflow: hidden;
   text-align: left;
+  /* Kortets bredd styr bildens höjd (cqi) – se .scen nedan. */
+  container-type: inline-size;
 }
+/* Bilden (320×140, xMidYMid slice) visar alltid hela bredden; höjden kapas.
+   78 px i tre kolumner (facit). Bredare kort (2 kolumner, 1 kolumn på
+   surfplatta/mobil) får en högre remsa, högst 120 px, så att samma del av
+   bilden (y≈35–105) syns och motivet inte zoomas in för mycket. */
 .adv-liten .scen {
   display: block;
   width: 100%;
   height: 78px;
+  height: clamp(78px, 25cqi, 120px);
   flex-shrink: 0;
 }
 .adv-liten .scen svg {

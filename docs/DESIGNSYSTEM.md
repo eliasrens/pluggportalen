@@ -125,6 +125,127 @@ clampa mot `FLOOR_TOP` – lägg det inte "på golvet framför" av misstag.
 
 ---
 
+## 4. Plugga-sidorna och sidomenyn (#701–#704)
+
+Facit: `preview/preview-plugga-design-forslag.html`. CSS:en ligger i
+`src/styles/31-plugga.css` (korten) och `src/styles/02-layout-meny.css`
+(menyn). Redigera delfilerna och kör `npm run build:css` – `src/styles.css`
+är genererad. Samma gradienter, skuggor och radier som `.big-card` i övrigt.
+
+### 4.1 Kompakta kort – `.big-card.kompakt`
+
+Liggande kort för Plugga-startsidan (områden) och områdessidans "Öva" (lägen).
+
+| Del | Värde |
+| --- | --- |
+| Kort | `.big-card <färg> kompakt` (+ `.omrade-kort` på startsidan), `padding: 14px 18px`, `min-height: 92px`, vänsterställd text |
+| Emoji-ruta | `.emoji` 52 × 52 px, `border-radius: 14px`, `rgba(255,255,255,.22)`, emoji 2,3rem |
+| Text | `.txt` (kolumn): `.amne` (små versaler 0,75rem, bara områdeskort) → `.title` 1,2rem (bryts, aldrig utanför) → `.sub` 0,88rem |
+| Framsteg | `.framsteg`: `.stapel` 7 px (vit på `rgba(255,255,255,.3)`) + "★ X av Y"; saknas när området inte har några stjärnlägen |
+| Märken | `.nymarke` – vitt snett piller i hörnet ("Ny!"); gult när kortet är `.fortsatt-har` ("Fortsätt här") |
+| "Fortsätt här" | `.fortsatt-har`: `outline: 4px solid #fff` + `box-shadow: 0 0 0 7px var(--gul)` – bara ett kort åt gången |
+| Rutnät | `.kompakt-grid`: `repeat(auto-fill, minmax(min(100%, 260px), 1fr))`, `gap: 16px` |
+
+`.title` och `.sub` är `display: block` i alla `.big-card` – namn och
+beskrivning hamnar alltid på var sin rad (buggen "SkattjaktenAnländ med båt").
+
+### 4.2 Sidrubrik och sektionsrubriker
+
+- `.pl-huvud` – sidrubrik direkt på bakgrunden (ingen vit panel): h1 2,1rem +
+  en dämpad rad (`var(--text-svag)`).
+- `.omr-huvud` – områdessidans rubrikrad: "← Plugga" (`btn ghost liten`),
+  emoji 3rem, h1 2rem + beskrivning, och längst till höger `.omr-pill`
+  (vitt piller, `starIcon(22)` + "X av Y").
+- `.sektion-rubrik` – h2 1,5rem ("Öva", "Äventyr", "Dina områden") och en
+  dämpad förklaring på samma baslinje (`<span>`). Bryts till två rader när
+  det inte får plats.
+
+### 4.3 Äventyrskort med bild – `.big-card.adv-liten`
+
+```
+┌──────────────────────────────┐
+│   [bild: oversikt.scen()]    │  78 px (3 kolumner) – 120 px (brett kort)
+├──────────────────────────────┤
+│ Skattjakten          ☆ ☆ ☆   │  temats gradient (oversikt.color)
+│ Anländ med båt, utforska …   │
+└──────────────────────────────┘
+```
+
+- Kortet: `padding: 0`, `overflow: hidden`, kolumn-flex. Under bilden
+  `.adv-rad` med `.txt` (`.title` 1,2rem utan "Äventyr:", `.sub` 0,85rem)
+  och stjärnraden till höger.
+- **Bilden** kommer från temats `oversikt.scen()` (i temafilen
+  `src/adventure/themes/<id>.js`, laddas med temaregistret – aldrig i
+  bootgrafen). Den returnerar en SVG-sträng med `viewBox="0 0 320 140"` och
+  `preserveAspectRatio="xMidYMid slice"`.
+- **Stil:** platt och lekfull som sajtens egen konst (`art-style.js`):
+  mörklila kontur `#3B3350` 2–2,5 px, runda ändar och hörn, klara färger,
+  **inga gradienter** (ett platt sken med `opacity` går bra). Ett tydligt
+  motiv i mitten.
+- **Beskärning:** hela bredden (320) syns alltid – bara höjden kapas, lika
+  mycket uppe som nere. Lägg allt viktigt inom **y ≈ 40–100** och låt
+  himmel/mark fylla hela 0–140 så att kanterna aldrig blir tomma.
+- **Reservläget** (tema utan `scen`, eller om `scen()` kastar):
+  `.scen-reserv` – ljus yta med temats `progressIcon` stor i mitten.
+- Förhandsvisning av alla teman med och utan bild i alla kortbredder:
+  `preview/preview-aventyr-kort.html`.
+
+### 4.4 Live-rutan i sidomenyn – `.sido-live`
+
+Rosa gradient (som `.big-card.rosa`), vit text: ⚡ + "Live pågår!" med "Gå
+med i klassens match" under (`.sido-live-text small`) och en vit pulserande
+prick (`.sido-live-prick`, stilla vid `prefers-reduced-motion`). Länk till
+`#/elev/live`; `.aktiv` (ljus inre ram) när eleven står på Live-sidan. Visas
+bara när Live-villkoret är sant och fokuslåset tillåter Live. Se
+`design/DESIGNBESLUT-meny-sidebar.md` §5.
+
+### 4.5 Ämnesfärger – `subjectColor(subject, index)`
+
+`src/plugga-framsteg.js`. Ett giltigt `color`-fält på ämnesdokumentet vinner,
+annars tabellen (id eller namn, gemener), annars ämnets plats i listan.
+
+| Ämne | Färgklass |
+| --- | --- |
+| so, samhällskunskap, historia, geografi, religion | `bla` |
+| ma, matematik, matte | `orange` |
+| no, biologi, fysik, kemi, teknik | `gron` |
+| sv, svenska | `lila` |
+| en, engelska | `rosa` |
+| annat | `bla`, `gron`, `lila`, `rosa`, `orange` efter plats i listan, sedan om |
+
+Övningskorten på områdessidan behåller lägets egen färg (`gm.color`) och
+äventyrskorten temats (`oversikt.color`).
+
+### 4.6 Olika skärmar och brytpunkter
+
+Inga nya brytpunkter – de nya delarna följer de som redan finns.
+
+| Brytpunkt | Vad som händer |
+| --- | --- |
+| Innehållsytans bredd (inte fönstret) | `.kompakt-grid` räknar kolumner ur ytan som blir kvar bredvid sidomenyn: 3 kolumner vid full bredd (880 px), 2 när ytan är 536–811 px, 1 under det |
+| `max-width: 820px` | Sidomenyn blir off-canvas-låda bakom hamburgern; innehållet får hela bredden (därav 2 kolumner på surfplatta stående) |
+| `max-width: 700px` | `.omr-huvud` bryts: knappen och stjärnpillret överst, emoji + titel under (h1 1,6rem) |
+| `max-height: 800px` / `600px` | Sidomenyn tätas i två steg (profilruta, avatarcirkel 56/48 px, Live-rutan, länkar) så att den ryms utan egen scroll |
+| `prefers-reduced-motion` | Live-prickens puls och länkarnas studs stängs av |
+
+**Äventyrsbildens höjd följer kortets bredd** (container query på kortet):
+`height: clamp(78px, 25cqi, 120px)`. I tre kolumner är kortet ≈ 270 px och
+bilden exakt 78 px som i facit. Bredare kort (2 kolumner på surfplatta, 1
+kolumn på mobil) får en högre remsa så att samma del av bilden (y ≈ 35–105)
+syns i stället för att motivet zoomas in och kapas. Webbläsare utan
+container queries får 78 px.
+
+Uppmätt på områdessidan (Vikingatiden, 6 + 3 kort):
+
+| Fönster | Kolumner | Kortbredd | Bildhöjd | Äventyrsradens underkant |
+| --- | --- | --- | --- | --- |
+| 1920×1080, 1440×900, 1366×768, 1280×720, 1180×820 | 3 | 269 px | 78 px | 697 px – allt syns utan scroll, även på 1366×768 och 1280×720 |
+| 820×1180 (surfplatta stående) | 2 | 375 px | 94 px | 1013 px – ryms |
+| 390×844 (mobil) | 1 | 335 px | 84 px | scrollar (en kolumn) |
+| 360×740 (mobil) | 1 | 305 px | 78 px | scrollar (en kolumn) |
+
+---
+
 ## Kom-ihåg: historiska överlapp-buggar och hur systemet stoppar dem
 
 * **Knapp som hängde kvar trots `hidden`** ("🔭 Andra byar", `.varld-knapp`;

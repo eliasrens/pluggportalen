@@ -80,7 +80,61 @@ Storlekar i sammanhang: sidomenyfot 22px, hjälte-hälsning 19px, shop-saldo 24p
   och coins-chip med nya myntikonen (i stället för texten "Du har 🪙 N pluggcoins").
 - Ingen annan navigering läggs till i vyn.
 
+## 5. Sidomeny 3.0 – grupper, profilrad och Live-ruta (#701, genomfört)
+
+> Godkänt av Elias i `preview/preview-plugga-design-forslag.html` (blocket
+> "NY SIDOMENY"). Implementerat i `src/ui.js` (`renderTopbar`, `NAV_LANKAR`,
+> `NAV_GRUPPER`) och `src/styles/02-layout-meny.css`. Ersätter §3:s
+> "sidomenyfot" – mynten sitter nu uppe vid namnet.
+
+**Ordning uppifrån:**
+
+```
+[Profilruta]          avatar + namn + "Min profil ›", under: ★ och mynt
+[Fokusruta]           bara i fokusläge (som förut)
+[Live-ruta]           bara när en Live-match pågår
+🏠 Hem                grupp "mitt" (ingen rubrik)
+🛒 Shoppen
+ÖVA                   grupp "ova" (rubrik)
+📚 Plugga · 📖 Läsresan · 🧮 Mattematchen · 🗺️ Hitta rätt! · ⚖️ Ekvationsresan
+Logga ut              diskret textknapp längst ner
+```
+
+**Profilruta (`.sido-karaktar`):** samma ljusblå gradient och skugga som §1.
+En rad (`.sido-profil-rad`): avatar i vit cirkel 64 px (`.sido-figur`) och
+till höger namnet med "Min profil ›" under (`.sido-namn`) – båda länkar till
+profilen. Under raden två vita piller (`.sido-valuta`): `starIcon(18)` +
+stjärnor och `coinIcon(18)` + mynt. Talen skrivs med `toLocaleString("sv-SE")`
+– mellanslag mellan tusental (988 583).
+
+**Grupper:** varje länk i `NAV_LANKAR` har fältet `grupp`. `NAV_GRUPPER`
+bestämmer ordningen: `"mitt"` (Hem, Shoppen) utan rubrik, `"ova"` med
+rubriken **ÖVA** (`.sido-grupp`: versaler 0,75rem, fetstil, 0,08em
+bokstavsavstånd, gråblå `#7b8aa3`). En grupp utan synliga länkar ritar ingen
+rubrik. Dolda moduler, villkor (Live, Mattematchen) och fokuslåset filtrerar
+precis som förut – grupperingen sorterar bara.
+
+**Regel för nya moduler:** nya övningsdelar läggs i gruppen `"ova"` (står
+också i kommentaren ovanför `NAV_LANKAR`).
+
+**Live-ruta (`.sido-live`):** Live är inte längre en länk i listan. När
+villkoret `live` är sant – och fokuslåset tillåter Live (`las.allows`) – visas
+en rosa ruta (samma gradient som `.big-card.rosa`, vit text) under
+profilrutan och en eventuell fokusruta: ⚡ · "Live pågår!" / "Gå med i
+klassens match" · vit pulserande prick. Hela rutan är en länk till
+`#/elev/live`; `.aktiv` (ljus inre ram) när eleven står där. Pricken pulserar
+inte vid `prefers-reduced-motion`.
+
+**Logga ut (`.sido-logga-ut`):** textknapp utan ram, dämpad färg, centrerad.
+Behåller `id="logout-btn"` och lämna-vakten (#605/#611).
+
+**Mobil / off-canvas:** under 820 px bred blir menyn en låda (`min(80vw,
+300px)`) som fälls ut med hamburgern; samma innehåll och ordning, Live-rutan
+syns överst i lådan. På låga fönster (`max-height: 800px` / `600px`) tätas
+profilruta, avatarcirkel (56/48 px), Live-ruta och länkar i två steg så att
+menyn ryms utan egen scroll och "Logga ut" alltid syns.
+
 ## Berörda filer vid implementation
 
-`src/ui.js` (renderTopbar), `src/styles.css` (`.sido-*`, `.coins`), `src/pages-elev.js` (pageElevHem),
+`src/ui.js` (renderTopbar, `NAV_LANKAR`/`NAV_GRUPPER`), `src/styles/02-layout-meny.css` (`.sido-*`, bygg med `npm run build:css`), `src/styles.css` (`.coins`), `src/pages-elev.js` (pageElevHem),
 samt shop-saldo/priser där 🪙 förekommer.

@@ -139,6 +139,65 @@ function gnista(x, y) {
   );
 }
 
+// --- Bild på äventyrskortet (#704) -------------------------------------------
+// Områdessidans kort visar en remsa (78–120 px hög) av den här 320×140-bilden,
+// beskuren med xMidYMid slice: hela bredden syns alltid, höjden kapas uppifrån
+// och nerifrån. Allt viktigt ligger därför inom y≈40–100. Platt, inga gradienter.
+const SCEN_LINJE = `stroke="${O}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"`;
+const NATTHIMMEL = "#3A2A73";
+const KULLE_BORT = "#2E2262";
+const KULLE = "#241A4D";
+const MANE = "#FBF3D0";
+const MANE_KRATER = "#EADFA8";
+const STEN = "#9AA2C0";
+const STEN_MORK = "#6E769A";
+const PUMPA = "#F49E4C";
+
+function scenGnista(x, y, r = 4, col = "#FFFFFF") {
+  const k = r * 0.28;
+  return `<path d="M${x} ${y - r} L${x + k} ${y - k} L${x + r} ${y} L${x + k} ${y + k} L${x} ${y + r} L${x - k} ${y + k} L${x - r} ${y} L${x - k} ${y - k} Z" fill="${col}"/>`;
+}
+
+/** Natthimmel med måne och stjärnor, mörka kullar och ett sött vitt spöke i mitten. */
+function oversiktScen() {
+  return (
+    `<svg viewBox="0 0 320 140" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" focusable="false">` +
+    `<rect width="320" height="140" fill="${NATTHIMMEL}"/>` +
+    // måne och stjärnor
+    `<circle cx="64" cy="54" r="16" fill="${MANE}" ${SCEN_LINJE}/>` +
+    `<circle cx="58" cy="50" r="3.5" fill="${MANE_KRATER}"/><circle cx="70" cy="60" r="2.5" fill="${MANE_KRATER}"/>` +
+    scenGnista(118, 46, 4) + scenGnista(226, 42, 5, GULD_LJUS) + scenGnista(292, 60, 4) +
+    scenGnista(22, 76, 3.5, GULD_LJUS) + scenGnista(204, 66, 3) + scenGnista(104, 72, 3) +
+    `<circle cx="252" cy="54" r="1.6" fill="#FFFFFF"/><circle cx="140" cy="30" r="1.6" fill="#FFFFFF"/><circle cx="34" cy="34" r="1.6" fill="#FFFFFF"/>` +
+    // kullarna
+    `<path d="M0 96 Q60 80 124 92 T240 88 T320 90 V140 H0 Z" fill="${KULLE_BORT}" ${SCEN_LINJE}/>` +
+    `<path d="M0 108 Q70 94 150 104 T320 100 V140 H0 Z" fill="${KULLE}" ${SCEN_LINJE}/>` +
+    // kalt träd till vänster
+    `<path d="M24 106 Q28 88 26 76 M26 86 Q18 80 14 72 M27 82 Q36 76 40 68" fill="none" stroke="${O}" stroke-width="7" stroke-linecap="round"/>` +
+    `<path d="M24 106 Q28 88 26 76 M26 86 Q18 80 14 72 M27 82 Q36 76 40 68" fill="none" stroke="#4A3A55" stroke-width="3" stroke-linecap="round"/>` +
+    // gravsten och en glad pumpa till höger
+    `<path d="M238 102 V86 a12 12 0 0 1 24 0 V102 Z" fill="${STEN}" ${SCEN_LINJE}/>` +
+    `<path d="M250 82 V94 M245 87 H255" stroke="${STEN_MORK}" stroke-width="2.5" stroke-linecap="round"/>` +
+    `<ellipse cx="282" cy="96" rx="13" ry="10" fill="${PUMPA}" ${SCEN_LINJE}/>` +
+    `<path d="M282 86 V96" stroke="${O}" stroke-width="2" opacity="0.5"/>` +
+    `<path d="M282 86 q1 -5 5 -6" fill="none" stroke="#57A85A" stroke-width="3" stroke-linecap="round"/>` +
+    `<path d="M275 93 l3 -3 3 3 Z M283 93 l3 -3 3 3 Z" fill="${O}"/>` +
+    `<path d="M276 99 Q282 104 288 99" fill="none" stroke="${O}" stroke-width="2" stroke-linecap="round"/>` +
+    // spöket – den tydliga saken i mitten – med ett svagt sken bakom
+    `<circle cx="160" cy="70" r="34" fill="${KIND}" opacity="0.1"/>` +
+    `<ellipse cx="160" cy="108" rx="16" ry="3" fill="#000000" opacity="0.25"/>` +
+    `<ellipse cx="137" cy="78" rx="8" ry="5" transform="rotate(-20 137 78)" fill="${SPOKE}" ${SCEN_LINJE}/>` +
+    `<ellipse cx="185" cy="62" rx="8" ry="5" transform="rotate(-55 185 62)" fill="${SPOKE}" ${SCEN_LINJE}/>` +
+    `<path d="M140 100 V64 Q140 42 160 42 Q180 42 180 64 V100 Q175 93 170 100 Q165 93 160 100 Q155 93 150 100 Q145 93 140 100 Z" fill="${SPOKE}" ${SCEN_LINJE}/>` +
+    `<path d="M170 48 Q177 54 176 66" fill="none" stroke="${SPOKE_SKUGGA}" stroke-width="3.5" stroke-linecap="round"/>` +
+    `<ellipse cx="152" cy="63" rx="3.5" ry="4.5" fill="${O}"/><ellipse cx="168" cy="63" rx="3.5" ry="4.5" fill="${O}"/>` +
+    `<circle cx="153.2" cy="61.4" r="1.3" fill="#FFFFFF"/><circle cx="169.2" cy="61.4" r="1.3" fill="#FFFFFF"/>` +
+    `<path d="M155 72 Q160 77 165 72" fill="none" stroke="${O}" stroke-width="2.5" stroke-linecap="round"/>` +
+    `<circle cx="146" cy="70" r="3.5" fill="#FFB1B8"/><circle cx="174" cy="70" r="3.5" fill="#FFB1B8"/>` +
+    `</svg>`
+  );
+}
+
 // ============================================================================
 export const spokjaktenTheme = {
   id: "spokjakten",
@@ -204,5 +263,6 @@ export const spokjaktenTheme = {
   oversikt: {
     sub: "Fånga söta spöken i månskenet – en mysig spökjakt!",
     color: "lila",
+    scen: oversiktScen,
   },
 };

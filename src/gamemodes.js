@@ -65,7 +65,7 @@ function adventureScene(t) {
   return `<span class="scen scen-reserv" aria-hidden="true">${t.progressIcon || "🗺️"}</span>`;
 }
 
-function adventureCards(themes, areaProgress, fortsattId) {
+export function adventureCards(themes, areaProgress, fortsattId) {
   return themes
     .map((t) => {
       const mode = `aventyr:${t.id}`;
