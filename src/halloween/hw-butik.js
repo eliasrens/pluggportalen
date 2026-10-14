@@ -17,6 +17,7 @@
 // ============================================================================
 
 import { itemsInCollection } from "../shop-items.js";
+import "../avatars.js"; // köpavatarernas katalograder (#694) slås in i SHOP_ITEMS där
 
 export const HALLOWEEN = "halloween";
 
@@ -35,6 +36,7 @@ export const HW_UNDERGRUPPER = [
   { id: "hus", rubrik: "🏚️ Hus", match: (it) => it.category === "hus" },
   // Halloween-djuren (#695): pumpaägg som kläcks till valt djur.
   { id: "djur", rubrik: "👻 Djur", match: (it) => !!it.hatchSpecies },
+  { id: "avatarer", rubrik: "🧛 Avatarer", match: (it) => it.category === "avatar" }, // #694
 ];
 
 /**

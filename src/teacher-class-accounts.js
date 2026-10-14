@@ -15,7 +15,7 @@
 // ============================================================================
 
 import * as data from "./data.js";
-import { AVATARS, avatarEmoji } from "./avatars.js";
+import { AVATARS, avatarEmoji, isBuyableAvatar } from "./avatars.js";
 import { el, errText, esc, icon, isAdmin } from "./teacher-shared.js";
 import { coinIcon } from "./icons.js";
 import { renderAccountEditor, credentialsPanel } from "./teacher-login-cards.js";
@@ -132,7 +132,9 @@ function wireGiveCoins(row, student) {
 }
 
 function avatarSelectHtml(sel) {
-  return `<select class="select avatar-sel">${Object.entries(AVATARS)
+  // En köpt avatar (#694) står inte i AVATARS – visa den så "Spara" inte byter bort den.
+  const val = isBuyableAvatar(sel) ? [[sel, avatarEmoji(sel)]] : [];
+  return `<select class="select avatar-sel">${[...Object.entries(AVATARS), ...val]
     .map(([id, emoji]) => `<option value="${id}" ${id === sel ? "selected" : ""}>${emoji}</option>`)
     .join("")}</select>`;
 }
