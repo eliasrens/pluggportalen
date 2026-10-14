@@ -21,7 +21,9 @@ Pluggportalen – kodbasen vinner, §13).
 | Omgångsplan (10 st, 3/4/3, inga dubbletter, reservbank) | `src/brakresan/schema/omgangsplan.js` | klar |
 | Regler i siffror (stjärnor, mynt, drake, jakt, datum, status) | `src/brakresan/schema/regler.js` | klara |
 | Generatorgranskning (200 exempel/utmaning) | `src/brakresan/schema/granskning.js`, `test/brakresan-generatorer.test.js` | klar – körs för varje byggd utmaning |
-| 50 utmaningsfiler | `src/brakresan/utmaningar/u01.js` … `u50.js` | **stubbar** – fylls av D/E/F/G |
+| 50 utmaningsfiler | `src/brakresan/utmaningar/u01.js` … `u50.js` | **byggda (D #709): 03, 12, 19, 34**; övriga stubbar – fylls av E/F/G |
+| Granskningsskript per utmaning (D #709) | `admin/qa-brakresan-generatorer.mjs` + egna kontroller `admin/qa-brakresan/uNN.mjs` | klart, `test/brakresan-utmaningar-d.test.js` |
+| Utmaningsvy + omgångsflöde (D #709) | `src/brakresan/omgang*.js`, `omgang.css`, `page-brakresan.js`, route `#/elev/brakresan?u=NN` | klart, §5b nedan, `test/brakresan-omgang-backend.test.js` |
 | Synk till Cloud Functions | `admin/sync-brakresan-functions.mjs` → `functions/brakresan/` | klar, predeploy + `test/brakresan-delat.test.js` |
 | Datamodell | `docs/DATAMODELL.md` "Bråkresan" | dokumenterad |
 | Regelskelett | `firestore.rules` (Bråkresan-blocken) | klart, `test/firestore-rules-brakresan.test.js` |
@@ -109,6 +111,23 @@ Fälten i `build` (detaljer i `schema/uppgift.js`):
 - `feedback = { correct, wrong }` kopplar till modellen ("Ja! Tre av fyra lika stora delar …").
   `review` = genomgången efter omgången.
 - Inga arrayer direkt i arrayer (Firestore) – använd `{ ids: [...] }`, `{ a, b }`.
+
+**Granskningsskriptet (D #709):** `node admin/qa-brakresan-generatorer.mjs [NN …] [--visa 3]` kör
+`reviewChallenge` + utmaningens EGNA kontroller i `admin/qa-brakresan/uNN.mjs`
+(`audit(task, { grade })` per uppgift: tillåtna tal, facit, alla alternativa rätta svar,
+unikhet, missuppfattningsalternativ; `plan(omgångar)` över 100 omgångar: t.ex. "minst fyra
+cirklar", "minst tre finare indelningar") + tre omgångar i följd med `avoidCores`. E/F/G lägger
+en `uNN.mjs` per utmaning och en rad i sin testfil (mönster: `test/brakresan-utmaningar-d.test.js`).
+
+**`minVariants` (D #709):** när utmaningens EGNA talgränser i §8 ger färre än 60 kärnor får
+`defineChallenge` ange `minVariants` (30–59) + `minVariantsReason`. Bara 34 använder det:
+nämnare 2–8, mgn ≤ 24, summa ≤ 1 och förkortade äkta addender ger exakt 42 talpar.
+
+**Flerstegsuppgift med stavar (`view.component: "omdelning"`, 34):** `bars: [{ parts, marked,
+label, maxDela }]` (verktyget "Dela varje bit i k", k ≤ maxDela), `expr` med `{ input: "id" }`
+per delsvar, `answer.type: "multi"`. Ritas av `omgang-uppgift.js`, inte av komponentbiblioteket.
+Kort med `view.stavar: true` (12) får jämförelsestavar under korten när hjälpen pekar
+`highlight: { stavar: true }`.
 
 Granskningen (`reviewChallenge`) körs automatiskt för varje byggd utmaning i
 `test/brakresan-generatorer.test.js`: 200 seeds, determinism, schema, rätt/fel-exempel,
@@ -210,6 +229,24 @@ t.setLocked(true); t.showResult(serverSvar);           // { status: "graded", co
   helhet/n, omdelning bevarar markerad längd, tallinjens x(v) och snäppning, 100 celler,
   regioner med lika area, överlappningen = produkten, varje föremål en gång.
 
+## 5b. Utmaningsvyn och omgångsflödet (D #709 – byggt)
+
+| Fil | Innehåll |
+| --- | --- |
+| `page-brakresan.js` | route-skalet: `#/elev/brakresan` (enkel lista tills H #713), `?u=NN` utmaningsvyn, `?u=NN&lage=test` testomgång utan server |
+| `omgang.js` | `createUtmaningsvy(host, { challengeId, backend, onBack, onOpen, onReward })`: före (mål, stjärnor, exempelbild, Starta/Fortsätt + uttryckligt val för ny, Prova ett exempel, Tillbaka), under (Uppgift X av 10, Kontrollera, hjälp i fyra steg, Försök igen/Fortsätt, Sparar …/Sparat, Avsluta omgången), efter |
+| `omgang-uppgift.js` | `monteraUppgift(host, publicTask, opts)` – mountTask + `omdelning` + jämförelsestavar + tallinjens värdetext utan bråknamn; `promptNod(text)` skriver "3/5" med vågrätt bråkstreck |
+| `omgang-backend.js` | `serverBackend(id)` (data.js, lat) och `demoBackend(id, { seed })` – samma regler helt i klienten, `fullTask(i)` ger facit (lärarens testläge K) |
+| `omgang-resultat.js` | `visaResultat` (createResultat + kläckning/nivå + genomgång av felen), `forslag(id)` (0–5 rätt), `svarText(task, answer)` (genomgång, K:s historik) |
+
+**H #713** byter `visaLista` i `page-brakresan.js` mot huvudvyn och lägger navigationen; utmaningsvyn
+öppnas med `#/elev/brakresan?u=NN`. **K #716** kan återanvända `createUtmaningsvy` med
+`demoBackend` (testläget) och `monteraUppgift`/`svarText` i historiken.
+
+Förhandsvisning: `PORT=8709 node server.mjs` → `preview/preview-brakresan-omgang.html?u=03` (testomgång).
+Riktiga kedjan mot emulatorn: `bash admin/qa-brakresan-preview.sh` (Auth + Firestore + Functions,
+elev1 / lilla123, proxy 8711) – proxyns vitlista har `brakresa*`.
+
 ## 6. Server-API – kontrakt för C (#708) och J (#715)
 
 Callables i `functions/index.js` (region `europe-west1`), kärnan i `functions/brakresan-core.js`
@@ -273,7 +310,7 @@ Färdigt i `src/brakresan/demo.js`: `demoRound(id, seed)` (tio hela uppgifter me
 | A #706 | `src/brakresan/{math,schema}/`, `utmaningar/index.js`, docs här, regelskelettet |
 | B #707 | `src/brakresan/komponenter/`, `preview/preview-brakresan-komponenter.html` |
 | C #708 | `functions/brakresan-core.js`, callables i `functions/index.js`, regler/index vid behov, `src/brakresan/data.js` |
-| D #709 | `utmaningar/u03.js`, `u12.js`, `u19.js`, `u34.js`, omgångsvyn (`src/brakresan/omgang*.js`), route |
+| D #709 | `utmaningar/u03.js`, `u12.js`, `u19.js`, `u34.js`, omgångsvyn (`src/brakresan/omgang*.js`), route, `admin/qa-brakresan-generatorer.mjs` |
 | E #710 / F #711 / G #712 | `utmaningar/u01–u20.js` / `u21–u35.js` / `u36–u50.js` (utom D:s fyra) |
 | H #713 | huvudvyn, drakpanelen, navigationen (`ui.js`, `gamemode-visibility.js`) |
 | I0 #718 / I #714 | drakens grafik och animation, `studentData.brakdrake` i huset |

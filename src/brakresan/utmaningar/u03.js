@@ -101,7 +101,7 @@ export default defineChallenge({
         { step: "princip", text: "Talet under bråkstrecket, nämnaren, säger hur många lika stora delar helheten är delad i. Talet över, täljaren, säger hur många av dem du ska måla." },
         {
           step: "modellering",
-          text: `Ett exempel med andra tal: ${ex.b}/${ex.m} betyder ${ex.b} av ${ex.m} lika stora delar. Här är ${ex.b} delar målade.`,
+          text: `Ett exempel med andra tal: ${ex.b}/${ex.m} betyder ${ex.b} av ${ex.m} lika stora delar. Här är ${ex.b === 1 ? "1 del målad" : `${ex.b} delar målade`}.`,
           view: viewFor(exShape, ex.m, { marked: ex.b, label: MODELL[exShape].helhet }),
         },
         { step: "atergang", text: "Nu provar du själv: titta på täljaren och måla så många delar. Vilka delar spelar ingen roll." },
