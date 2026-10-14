@@ -683,6 +683,13 @@ liveSessions/{sid}/grPrivate/snapshot                ← Guldrushen (quiz): faci
 liveSessions/{sid}/grPlayers/{uid}                   ← Guldrushen: elevens guld (bara servern skriver)
 liveSessions/{sid}/grEvents/{id}                     ← Guldrushen: händelseflödet (bara servern skriver)
 liveSessions/{sid}/grMeta/leader                     ← Guldrushen: vem som leder (bara servern skriver)
+liveSessions/{sid}/dkPublic/questions                ← Datakuppen (quiz): frågor utan facit
+liveSessions/{sid}/dkPrivate/snapshot                ← Datakuppen (quiz): facit (bara lärare + servern)
+liveSessions/{sid}/dkPlayers/{uid}                   ← Datakuppen: data, skydd, hackförsök – INGA koder (bara servern skriver)
+liveSessions/{sid}/dkEvents/{id}                     ← Datakuppen: händelseflödet (bara servern skriver)
+liveSessions/{sid}/dkMeta/leader                     ← Datakuppen: vem som leder (bara servern skriver)
+liveSessions/{sid}/dkSelf/{uid}                      ← Datakuppen: elevens EGEN kod + förslag (bara eleven själv läser)
+liveSessions/{sid}/dkSecret/{uid}                    ← Datakuppen: koder, lockkoder, strukna (INGEN klient läser)
 ```
 
 Hur ett nytt Live-format läggs till (filer, regelgren, tester, vyer,
@@ -795,7 +802,7 @@ klassens shards; **Klasskamp = rätt / `classes/{classId}.studentIds.length`**
 | `name` | string ≤ 80 | "4B mot 5E" |
 | `classNames` | map `{ classId: string }` | klassnamnen denormaliserade vid skapandet (#460) – elev/projektor slipper läsa `classes` |
 | `createdByName` | string (valfri) | lärarens användarnamn ("skapad av rasmus" i Aktiva Live-sessioner) |
-| `format` | string (valfri) | **#547** spelformat – HUR matchen spelas (id i formatregistret `src/live/formats/`). Skrivs av `buildSessionDoc`. **Saknas = `"klassmatch"`** (alla sessioner före #547, ingen migrering). Klassmatchens regelgren godtar frånvarande eller `"klassmatch"`; `"snilleblixt"` och `"guldrush"` har egna grenar (se Snilleblixten/Guldrushen nedan). Varje byte nekas |
+| `format` | string (valfri) | **#547** spelformat – HUR matchen spelas (id i formatregistret `src/live/formats/`). Skrivs av `buildSessionDoc`. **Saknas = `"klassmatch"`** (alla sessioner före #547, ingen migrering). Klassmatchens regelgren godtar frånvarande eller `"klassmatch"`; `"snilleblixt"`, `"guldrush"` och `"datakuppen"` har egna grenar (se Snilleblixten/Guldrushen/Datakuppen nedan). Varje byte nekas |
 | `gameMode` | string | id i gameMode-registret, t.ex. `"multiplication_0_10"` |
 | `answerKind` | `"free"` \| `"choice"` (valfri) | **#551** svarssätt: skriv själv / flerval. Skrivs av `buildSessionDoc` – lärarens val bland svarssätten som BÅDE formatet och spelläget stöder (förval `"free"`). **Saknas = `"free"`** (alla sessioner före #551, ingen migrering). Får ändras i lobbyn, låst efter start (reglerna). Svaren valideras mot det |
 | `quiz` | map (valfri) | **#553** bara spelläget `plugga_quiz`: `{ subjectId, areaId, subjectName, areaName, passagePolicy: "skip" }` – lärarens ämne + arbetsområde (`buildSessionFields`). Frågornas ögonblicksbild (elevsynligt + lärarskyddat facit, §4.4) skrivs av formatet som spelar quizet (Snilleblixten/Guldrushen) – inte här. Låst efter skapandet i Snilleblixtens och Guldrushens regelgrenar (Klassmatchen spelar inte quiz) |
@@ -1051,7 +1058,7 @@ områdets händelser in – `questions[i]` `{ id: "tl-<id>", key, kind: "timelin
 text, event, description?, span: { min, max }, statKeys }` och
 `facit[i]` `{ year }`. Svaret `{ q, year }` (bara ett heltalsår inom frågans
 `span` ur grPublic – inget `choiceIndex`/`answer`) rättas av servern
-(`functions/guldrush-rattning.js`): exakt år = rätt → kistor som vanligt;
+(`functions/kistspel-rattning.js`): exakt år = rätt → kistor som vanligt;
 fel → eleven ser rätt år (`correctYear` i svaret). Samma `attemptId` med ett
 annat år efter lås nekas (`already-exists`); regelgrenen är oförändrad.
 
@@ -1111,7 +1118,64 @@ statKeys, byClass{classId: { answered, correct }} }]` – multiplikation per
 faktorpar (7 × 8 = 8 × 7), quiz per fråga. Saknas i matcher före #566 –
 historiken räknar då om ur svaren när matchen öppnas (sparas inte).
 
-### Pluggmynt efter matchen (#557, nya format – Snilleblixten, Guldrushen)
+### Datakuppen (`format: "datakuppen"`, #652–#655, epic Datakuppen)
+
+Guldrushens kistmotor (`src/live/kistspel/`, `functions/kistspel-core.js`)
+med **filer** i stället för kistor, **data (MB)** i stället för guld och ett
+**hack** i två steg mot en klasskamrats hemliga **kod**. Regler,
+konfiguration, koder och filtyper: **[docs/DATAKUPPEN.md](DATAKUPPEN.md)**.
+Klientlogik `src/live/formats/datakuppen/` (`datakuppen-core.js` format/
+ställning/resultat, `datakuppen-data.js` Firestore + anrop). Servern:
+`functions/datakuppen-{core,server,koder,hack}.js`, fem anropbara funktioner
+(europe-west1): `datakuppAnswer`, `datakuppOpenFile`, `datakuppPickCode`,
+`datakuppChooseTarget`, `datakuppGuessCode`. Regler: `firestore.rules`
+"Datakuppen". Filtabellen + kodlistan: `delat/files-config.js`,
+`delat/koder.json` (`functions/datakuppen/` = GENERERAD kopia,
+`npm run sync:kistspel`).
+
+**`liveSessions/{sid}`** – som Guldrushens (kärnans fält, `durationSeconds`
+hela minuter 60–3600, `questionCount?`, `rewards?`; `hasOnly`), men
+`hacking` (bool, standard på – av = inga Hack-filer) i stället för
+`stealSwap`. `showNames` är enda inställningen som får ändras efter skapandet.
+
+**Vem får läsa och skriva vad** (koderna är hemliga – spec §1.2, §2):
+
+| Dokument | Innehåll | Läser | Skriver |
+| --- | --- | --- | --- |
+| `dkPublic/questions` | quiz: `{ questions[] }` utan facit | alla inloggade | läraren, i sessionens batch (sedan aldrig) |
+| `dkPrivate/snapshot` | quiz: `{ facit[] }` | **bara läraren** (+ servern) | läraren, i sessionens batch |
+| `answers/{attemptId}` | svaret, rättat; `chest`/`chestIndex`/`chestAt` när filen öppnats | deltagare + lärare (som Live) | **bara servern** |
+| `dkPlayers/{uid}` | `{ uid, classId, name, gold (= MB), correct, incorrect, chests, protectedUntil, lastVictimUid, pending, lastHit, hackAttempts, hackSuccess, nextQ?, joinedAt, lastAnswerAt, lastChestAt }` – **inga koder** | deltagare + lärare (`grReader`) | **bara servern** |
+| `dkEvents/{id}` | händelsen (som `grEvents`; lyckat hack = `type: "steal"`, `chest: "hack"`). Misslyckade hack skriver **ingen** händelse | deltagare + lärare | **bara servern** |
+| `dkMeta/leader` | `{ uid, gold, at }` | deltagare + lärare | **bara servern** |
+| `dkSelf/{uid}` | `{ code, codeVersion, offers[4] \| null, offersExpiresAt, hack { targetUid, targetName, options[3], expiresAt } \| null }` | **bara eleven själv** – inte andra elever, inte läraren | **bara servern** |
+| `dkSecret/{uid}` | `{ code, codeVersion, offers, hacks { [mål]: { codeVersion, decoys, struck, shown } }, hack }` | **ingen klient** (bara servern, Admin SDK) | **bara servern** |
+
+Läraren får radera alla underdokument (lobbyn raderas med `privateDocs`).
+
+- `pending` (väntande hack): `{ kind: "steal", chest: "hack", attemptId, at,
+  expiresAt, stage?: "guess", targetUid?, targetName?, guessExpiresAt? }` –
+  steg 1 (välj mål) eller, med `stage: "guess"`, steg 2 (koderna ligger i
+  elevens `dkSelf.hack`). Klienten ser aldrig vilken kod som är rätt.
+- `lastHit` (hackad, elevens notis): `{ kind: "steal", chest: "hack", byUid,
+  byName, amount, at }`.
+- `hackAttempts` / `hackSuccess`: servern räknar ett försök när målet väljs
+  (koderna visas) och ett lyckat när koden knäckts –
+  projektorns statistik och historiken visar dem bara för **hela klassen**.
+- **Minnesmomentet**: `dkSecret/{hackare}.hacks[mål]` – samma lockkoder vid
+  varje försök mot samma mål, minus `struck`, i ny ordning. Byter målet kod
+  (`codeVersion` ökar) börjar det om.
+- Koden väljs **lat** (ingen timer på servern): `pickCode(null)` från
+  klienten, eller `ensureCode` när någon försöker hacka eleven.
+
+`result` (`buildResult`, `datakuppen-core.js`): Guldrushens form (`ranking[{
+uid, name, classId, gold, correct, answered, chests, rank }]`, `totalGold`,
+`classGold`, `totalCorrect`, `players`, `perQuestion?`, `rewards`) +
+`hacks: { attempts, success }` (hela matchen) + `hacksByClass: { [classId]:
+{ attempts, success } }` (#655, Statistik → Live). Historiken:
+`datakuppen-history.js` (gemensamma `src/live/kistspel/ks-historik.js`).
+
+### Pluggmynt efter matchen (#557, nya format – Snilleblixten, Guldrushen, Datakuppen)
 
 Gemensam motor: `src/live/live-rewards.js` (ren logik), ekonomins rattar i
 `src/live/rewards-config.js` (block 20, trappa 1/.8/.6/.4/.2, förval 5 per
@@ -1147,6 +1211,7 @@ Inga migreringar – gamla sessioner läses som de är:
 | `answers.answerKind` / `choiceIndex` | skriv själv – exakt dokumentet före #551 | reglerna `liveAnswerKindOk` |
 | `liveSessions.rewards` / `result.rewards` | inga Pluggmynt | `sessionRewards(s)` / `myReward(result, uid)` |
 | `result.perQuestion` (Guldrushen) | räknas ur svaren när historiken öppnas | `guldrush-history.js` |
+| `result.hacksByClass` (Datakuppen, #655) | Statistik → Live visar "–" i Hack-kolumnen (`result.hacks` för hela matchen finns sedan #652) | `datakuppen-history.js` |
 | `result.perQuestion[].text` (Snilleblixten) | "Fråga n" | `snilleblixt-history.js` |
 
 Regler som håller det bakåtkompatibelt:

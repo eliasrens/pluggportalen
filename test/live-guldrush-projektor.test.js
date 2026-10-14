@@ -234,7 +234,10 @@ test("test 12 (#592): finalskärmen – exakt rubrik, lugn totalrad, inga klassn
   const fd = kammare.slice(kammare.indexOf("function finalData"), kammare.indexOf("let resultKey"));
   assert.match(fd, /title: FINAL_TITLE/);
   assert.doesNotMatch(fd, /classTitle|classNames/, "inga klassnamn på finalskärmen");
-  const pall = await readFile(new URL("../src/live/formats/guldrush/gr-pall.js", import.meta.url), "utf8");
+  // Pallen är kistspelsmodulens (#651); Guldrushens gr-pall.js ger bara temat.
+  const grPall = await readFile(new URL("../src/live/formats/guldrush/gr-pall.js", import.meta.url), "utf8");
+  assert.match(grPall, /from "\.\.\/\.\.\/kistspel\/ks-pall\.js"/);
+  const pall = await readFile(new URL("../src/live/kistspel/ks-pall.js", import.meta.url), "utf8");
   // 2:an vänster, 1:an mitten, 3:an höger – saknade steg byggs inte (ingen tom plats).
   assert.match(pall, /\[2, 1, 3\]\.map\(\(rank\) => g\.find\(\(x\) => x\.rank === rank\)\)/);
   assert.match(pall, /if \(!grp\) return;/);

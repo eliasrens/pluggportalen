@@ -1,0 +1,10 @@
+/* Datakuppen – historiken och Statistik → Live (#655). Utöver kistspelens
+   gemensamma grh-* (guldrush-historik.css): klassrutan i nätverksgrönt och
+   hackrutan. Genomskinliga toner – lärarsidans ljusa och mörka tema. */
+.grh-klasser.dkh-klasser li { background: rgba(46, 204, 113, 0.10); border-color: rgba(46, 204, 113, 0.45); }
+.dkh-hack { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 12px; padding: 0; }
+.dkh-hack li { display: flex; flex-direction: column; min-width: 140px; padding: 8px 14px; border-radius: 12px;
+  background: rgba(52, 152, 219, 0.10); border: 1px solid rgba(52, 152, 219, 0.45); }
+.dkh-hack b { font-size: 1.2rem; }
+.dkh-hack small { opacity: 0.75; }
+p.dkh-hack.dkh-av { display: block; padding: 8px 14px; border-radius: 12px; background: rgba(127, 140, 170, 0.12); opacity: 0.85; }

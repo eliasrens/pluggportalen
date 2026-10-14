@@ -17,6 +17,9 @@
 // Avatarerna är avatarpoolens element (plats per post) och släpps när posten
 // försvinner.
 //
+// Komponenten är den gemensamma kistspelsmodulen (#651): src/live/kistspel/
+// ks-flode.js – här bara grottans texter och CSS-prefixet grf.
+//
 // API
 //   createFlode(host, { pool, max? = 4, ttlMs? = 14000 }) → {
 //     add(items)       feedItem-poster, äldst först (köas i tempot)
@@ -24,120 +27,18 @@
 //   }
 // ============================================================================
 
-import { esc } from "../../../teacher-shared.js";
+import { createFlode as ksCreateFlode } from "../../kistspel/ks-flode.js";
 import { withGrIcons } from "./gr-ikoner.js";
-import { prefersReducedMotion } from "../../design/live-reactions.js";
 import { trimPending } from "./gr-proj-scen.js";
 
-const MAX = 4;
-const TTL_MS = 14_000;
-const OUT_MS = 500;
-const PACE_MS = 650;
-export function createFlode(host, { pool, max = MAX, ttlMs = TTL_MS }) {
-  const root = document.createElement("aside");
-  root.className = "grf";
-  root.setAttribute("aria-label", "Händelser i grottan");
-  root.innerHTML = `<h2 class="grf-h">📜 I grottan</h2><ol class="grf-lista" aria-live="polite"></ol><p class="grf-tom">Grottan väntar på första kistan …</p>`;
-  root.style.setProperty("--grf-max", String(max));
-  host.appendChild(root);
-  const list = root.querySelector(".grf-lista");
-  const posts = []; // { li, slots: [[uid, slot]], t }
-  let n = 0;
-  let dead = false;
-
-  function avatar(uid, slot, cls) {
-    if (!uid) return "";
-    const holder = document.createElement("span");
-    holder.className = `grf-av ${cls}`;
-    holder.appendChild(pool.el(uid, slot));
-    return holder;
-  }
-
-  function remove(post, { fade = true } = {}) {
-    const ix = posts.indexOf(post);
-    if (ix >= 0) posts.splice(ix, 1);
-    clearTimeout(post.t);
-    const done = () => {
-      post.li.remove();
-      for (const [uid, slot] of post.slots) pool.drop(uid, slot);
-      root.classList.toggle("grf-tomt", !posts.length);
-    };
-    if (!fade) return done();
-    post.li.animate([{ opacity: 1 }, { opacity: 0 }], { duration: OUT_MS, easing: "ease-in", fill: "forwards" })
-      .finished.catch(() => {}).finally(done);
-  }
-
-  function build(item) {
-    const id = `f${n++}`;
-    const li = document.createElement("li");
-    li.className = `grf-post${item.big ? " grf-stor" : ""}${item.tone ? ` grf-${item.tone}` : ""}`;
-    li.dataset.typ = item.type;
-    const slots = [];
-    // Bara den som gjorde det får en avatar (och bara när namn visas –
-    // feedItem.avatars är då tom). Klasskamraten står i texten.
-    const [first] = item.avatars || [];
-    const a = avatar(first, `${id}a`, "grf-av-1");
-    if (a) { li.appendChild(a); slots.push([first, `${id}a`]); }
-    li.insertAdjacentHTML("beforeend", `<span class="grf-text">${withGrIcons(esc(item.short || item.text))}</span>`);
-    li.title = String(item.text || "").replaceAll("{mynt}", "").replace(/\s+/g, " ").trim();
-    return { li, slots, t: 0 };
-  }
-
-  let pending = [];
-  let paceT = 0;
-  let lastShown = 0;
-
-  function add(items = []) {
-    if (dead || !items.length) return;
-    pending = trimPending([...pending, ...items]);
-    pump();
-  }
-
-  function pump() {
-    if (dead || paceT || !pending.length) return;
-    const wait = Math.max(0, lastShown + PACE_MS - performance.now());
-    if (wait > 0) { paceT = setTimeout(() => { paceT = 0; pump(); }, wait); return; }
-    lastShown = performance.now();
-    show([pending.shift()]);
-    if (pending.length) pump();
-  }
-
-  function show(fresh) {
-    const reduced = prefersReducedMotion();
-    // FLIP: kvarvarande posters läge före.
-    const before = new Map(posts.map((p) => [p, p.li.getBoundingClientRect().top]));
-    for (const item of fresh) {
-      const post = build(item);
-      list.prepend(post.li);
-      posts.unshift(post);
-      post.t = setTimeout(() => remove(post), ttlMs);
-      post.li.animate(reduced
-        ? [{ opacity: 0 }, { opacity: 1 }]
-        : [{ opacity: 0, transform: "translateX(40%) scale(.92)" }, { opacity: 1, transform: "none" }],
-      { duration: reduced ? 300 : 420, easing: "cubic-bezier(.2,.8,.3,1)" });
-    }
-    while (posts.length > max) remove(posts[posts.length - 1], { fade: false });
-    if (!reduced) {
-      for (const [post, top] of before) {
-        if (!posts.includes(post)) continue;
-        const dy = top - post.li.getBoundingClientRect().top;
-        if (Math.abs(dy) > 1) post.li.animate([{ transform: `translateY(${dy}px)` }, { transform: "none" }], { duration: 380, easing: "ease-out" });
-      }
-    }
-    root.classList.toggle("grf-tomt", !posts.length);
-  }
-
-  root.classList.add("grf-tomt");
-  return {
-    el: root,
-    add,
-    size: () => posts.length,
-    pending: () => pending.length,
-    destroy() {
-      dead = true;
-      clearTimeout(paceT);
-      for (const p of [...posts]) remove(p, { fade: false });
-      root.remove();
-    },
-  };
+export function createFlode(host, { pool, max, ttlMs }) {
+  return ksCreateFlode(host, {
+    pool, max, ttlMs,
+    cls: "grf",
+    label: "Händelser i grottan",
+    heading: "📜 I grottan",
+    empty: "Grottan väntar på första kistan …",
+    icons: withGrIcons,
+    trim: trimPending,
+  });
 }

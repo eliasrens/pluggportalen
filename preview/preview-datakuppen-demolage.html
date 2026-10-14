@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Demoläge – Datakuppen 💾 projektorn + elevskärmen (#655)</title>
+    <!--
+      Demoläget (#655, spec §5): EN påhittad match med 30 elever, projektorn och
+      en elevskärm sida vid sida. Projektorn = kistspelsdemon (dk-demo.js →
+      ks-demo.js, preview-datakuppen-demo.html). Elevskärmen = Datakuppens
+      riktiga elevvy mot låtsasservern (preview-datakuppen-elev.html?koppla=1,
+      datakuppen-elev-sim.js) – eleven är Alma, en av de 30, och delar
+      spelardokument med projektorn: data som flyttas på elevskärmen syns på
+      projektorn, och projektorn får händelsen (logFile/logHack/logHackFail).
+      Ingen Firestore, inga Cloud Functions, inga pluggmynt (sessionen har
+      demo:true, live-rewards betalar aldrig för den) – räknaren nere till vänster.
+      Genomgången: 30 elever med avatarer, hemlig kod, varje filtyp, ett
+      misslyckat och ett lyckat hack, minnesmomentet (andra försöket mot samma
+      mål med en struken kod), bli hackad → byt kod, brandvägg och skydd,
+      milstolpe, tid snart slut och pallen.
+    -->
+    <style>
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; background: #070d14; color: #d9f7e6; font: 14px/1.35 system-ui, sans-serif; }
+      body { display: grid; grid-template-columns: 290px 1fr; height: 100vh; overflow: hidden; }
+      aside { padding: 12px; overflow: auto; background: #0d1823; border-right: 1px solid #1d3346; }
+      aside h1 { font-size: 16px; margin: 0 0 4px; }
+      aside p { margin: 0 0 8px; color: #8fb3a3; font-size: 12px; }
+      .knappar { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+      button { font: inherit; padding: 5px 10px; border-radius: 8px; border: 1px solid #2c5a45; background: #12382a; color: #d9f7e6; cursor: pointer; }
+      button:hover:not(:disabled) { background: #1a4d39; }
+      button:disabled { opacity: 0.45; cursor: default; }
+      ol.steg { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+      ol.steg li { display: grid; grid-template-columns: 22px 1fr; gap: 4px; align-items: start; padding: 5px 6px; border-radius: 8px; }
+      ol.steg li.nu { background: #173a2c; outline: 1px solid #2ecc71; }
+      ol.steg li .bock { text-align: center; }
+      ol.steg li button { width: 100%; text-align: left; padding: 3px 8px; }
+      ol.steg li small { grid-column: 2; color: #8fb3a3; font-size: 11px; }
+      .status { margin-top: 10px; font: 11px/1.4 ui-monospace, monospace; color: #8fb3a3; white-space: pre-line; }
+      .ok { color: #2ecc71; font-weight: 700; } .bad { color: #e2554f; font-weight: 700; }
+      main { display: grid; grid-template-columns: 1.68fr 1fr; gap: 10px; padding: 10px; min-width: 0; min-height: 0; align-content: center; }
+      .ruta { aspect-ratio: var(--ar); }
+      .ruta { position: relative; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+      .ruta h2 { margin: 0 0 6px; font-size: 13px; color: #8fb3a3; font-weight: 600; }
+      .ram { position: relative; flex: 1; overflow: hidden; border-radius: 10px; background: #000; }
+      main { position: relative; }
+      [data-hist] { position: absolute; inset: 10px; width: calc(100% - 20px); height: calc(100% - 20px); border: 0; border-radius: 10px; background: #fff; }
+      [data-hist-x] { position: absolute; top: 18px; right: 22px; z-index: 2; }
+      [hidden] { display: none !important; }
+      .ram iframe { position: absolute; left: 0; top: 0; border: 0; transform-origin: 0 0; background: #fff; }
+    </style>
+  </head>
+  <body>
+    <aside>
+      <h1>💾 Datakuppen – demoläge</h1>
+      <p>Simulerad match: 30 påhittade elever, ingen riktig data, inga pluggmynt. Projektorn till vänster, Almas elevskärm till höger (samma match).</p>
+      <div class="knappar">
+        <button data-allt>▶ Spela upp allt</button>
+        <button data-om>↺ Börja om</button>
+      </div>
+      <ol class="steg" data-steg></ol>
+      <div class="status" data-status></div>
+    </aside>
+    <main>
+      <section class="ruta" style="--ar: 16 / 9.6"><h2>Projektorn – Nätverket (1920 × 1080)</h2><div class="ram"><iframe data-proj title="Projektorn" width="1920" height="1080"></iframe></div></section>
+      <section class="ruta" style="--ar: 1366 / 830"><h2>Almas skärm – Chromebook (1366 × 768)</h2><div class="ram"><iframe data-elev title="Elevskärmen" width="1366" height="768"></iframe></div></section>
+      <iframe data-hist title="Lärarvyn – historiken" hidden></iframe>
+      <button data-hist-x hidden aria-label="Stäng historiken">✕</button>
+    </main>
+
+    <script type="module">
+      import { DK_FILES } from "../src/live/formats/datakuppen/delat/files-config.js";
+
+      const $ = (s) => document.querySelector(s);
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      const ME = "e1"; // Alma – den första av kistdemons 30 elever
+      const projF = $("[data-proj]");
+      const elevF = $("[data-elev]");
+      let P = null; // projektordemon (dk-demo)
+      let D = null; // elevskärmens styrning (__dkDrive)
+      let mal = {}; // hackens mål: { fel, ratt }
+      const gp = (uid) => P.state().grPlayers.find((g) => g.uid === uid);
+
+      // Iframes i sin riktiga storlek, skalade till rutan.
+      function fit() {
+        for (const f of [projF, elevF]) {
+          const box = f.parentElement.getBoundingClientRect();
+          const k = Math.min(box.width / f.width, box.height / f.height);
+          f.style.transform = `scale(${k})`;
+        }
+      }
+      addEventListener("resize", fit);
+      fit();
+
+      async function waitFor(fn, ms = 15000) {
+        const t0 = Date.now();
+        for (;;) {
+          const v = fn();
+          if (v) return v;
+          if (Date.now() - t0 > ms) throw new Error("tog för lång tid");
+          await sleep(80);
+        }
+      }
+
+      // Elevskärmen kopplas till projektordemons spelardokument (samma objekt).
+      window.__dkKoppling = () => P && gp(ME) && {
+        me: gp(ME),
+        players: P.state().grPlayers.filter((g) => g.uid !== ME),
+        onAction(kind, d) {
+          if (kind === "fil") P.logFile(ME, d.file, d.delta, d.gold);
+          if (kind === "hack") P.logHack(ME, d.targetUid, d.amount);
+          if (kind === "fel") P.logHackFail(ME);
+          if (kind === "hackad") P.logHack(d.byUid, ME, d.amount);
+        },
+      };
+
+      /** Ett mål i målväljaren som går att välja (inte `not`), från mitten av listan. */
+      async function valbartMal(not = []) {
+        const btns = await waitFor(() => {
+          const b = [...elevF.contentDocument.querySelectorAll(".dko-kamrat:not([disabled])")];
+          return b.length > 2 && b;
+        });
+        const ok = btns.map((b) => b.dataset.uid).filter((u) => !not.includes(u));
+        return ok[Math.min(3, ok.length - 1)];
+      }
+      const namn = (uid) => gp(uid)?.name || uid;
+
+      const STEG = [
+        { id: "lobby", text: "30 elever med avatarer loggar in", async run() {
+          P.join(30, 110);
+          await waitFor(() => P.state().players.length === 30);
+          await sleep(1200);
+          P.skip.add(ME); // Alma styrs från elevskärmen – inga autosvar för henne
+          elevF.src = "preview-datakuppen-elev.html?koppla=1&fas=lobby&lat=120";
+          D = await waitFor(() => elevF.contentWindow?.__dkDrive);
+          return `${P.state().players.length} elever, ${P.state().players.length} avatarer`;
+        } },
+        { id: "kod", text: "Alma väljer sin hemliga kod (lobbyn)", async run() {
+          await D.pickLobbyCode(1);
+          await waitFor(() => D.sim.state.self.code);
+          await sleep(1500);
+          return "koden syns bara för Alma";
+        } },
+        { id: "start", text: "STARTA – matchen har pågått en stund", async run() {
+          P.playHistory(150);
+          // Historiken spelades på en sekund – annars vore nästan alla skyddade.
+          P.state().grPlayers.forEach((g, i) => { if (i % 6) g.protectedUntil = null; });
+          gp(ME).protectedUntil = null;
+          P.emit(true);
+          D.setPhase("live");
+          P.setAuto(true);
+          await sleep(2500);
+          return `${P.state().answers.length} svar`;
+        } },
+        { id: "filer", text: "Varje filtyp (Alma öppnar dem en i taget)", async run() {
+          const typer = DK_FILES.filter((f) => f.id !== "hack");
+          for (const f of typer) {
+            sub("filer", `${f.icon} ${f.label} …`);
+            await D.openFile(f.id);
+            await sleep(2800);
+          }
+          return typer.map((f) => f.icon).join(" ") + " + 💻 i hacken nedan";
+        } },
+        { id: "fel", text: "Misslyckat hack (fel kod – stryks)", async run() {
+          await D.openFile("hack");
+          mal.fel = await valbartMal();
+          P.skip.add(mal.fel); // målet ska gå att hacka igen i minnesmomentet
+          await D.pickTarget(mal.fel);
+          const r = await D.guess(false);
+          await sleep(3200);
+          return `mot ${namn(mal.fel)}: ${r.shown} koder, fel valt – ingen händelse, bara statistiken`;
+        } },
+        { id: "ratt", text: "Lyckat hack (ljuslinje på projektorn, målet skyddas)", async run() {
+          await D.openFile("hack");
+          mal.ratt = await valbartMal([mal.fel]);
+          await D.pickTarget(mal.ratt);
+          await D.guess(true);
+          await sleep(3500);
+          return `${namn(mal.ratt)} hackad – skyddad 30 s, nya koder åt hen`;
+        } },
+        { id: "minne", text: "Minnesmomentet – samma mål igen, en kod struken", async run() {
+          await D.openFile("hack");
+          await D.pickTarget(mal.fel);
+          const r = await D.guess(true);
+          P.skip.delete(mal.fel);
+          await sleep(3500);
+          return `mot ${namn(mal.fel)}: ${r.shown} koder kvar + ${r.struck} struken → rätt`;
+        } },
+        { id: "byt", text: "Alma blir hackad → byter kod", async run() {
+          const by = P.state().grPlayers.filter((g) => g.uid !== ME && g.gold > 0).sort((a, b) => b.gold - a.gold)[2]?.uid || "e5";
+          const fore = D.sim.state.self.code;
+          await D.hackedBy(by, 2);
+          await waitFor(() => D.sim.state.self.code && D.sim.state.self.code !== fore);
+          await sleep(2500);
+          return `${namn(by)} knäckte koden – ny kod vald`;
+        } },
+        { id: "skydd", text: "Brandvägg och skydd", async run() {
+          await D.openFile("brandvagg");
+          await sleep(1500);
+          const uid = P.shield();
+          await sleep(2500);
+          return `Alma + ${namn(uid)} skyddade (🛡️ med nedräkning)`;
+        } },
+        { id: "milstolpe", text: "Milstolpe", async run() {
+          P.treasure();
+          await sleep(4500);
+          return "klassen tillsammans över nästa milstolpe";
+        } },
+        { id: "snart", text: "Tid snart slut", async run() {
+          P.soonOut(10);
+          await sleep(7000);
+          return "nedräkningen blir varm";
+        } },
+        { id: "pall", text: "Pallen", async run() {
+          await waitFor(() => P.session.status === "finished", 20000);
+          P.setAuto(false);
+          await waitFor(() => P.session.result, 8000);
+          D.setPhase("ended");
+          const r = P.session.result;
+          await sleep(4000);
+          return `🥇 ${r.ranking[0]?.name} · ${r.hacks?.success}/${r.hacks?.attempts} hack lyckades · inga pluggmynt delas ut (demo)`;
+        } },
+        { id: "historik", text: "Historiken i lärarvyn", async run() {
+          const f = $("[data-hist]");
+          f.hidden = false;
+          f.src = "preview-datakuppen-historik.html";
+          const h = await waitFor(() => f.contentWindow?.__dkHistorik);
+          return `pall, data, ${h.result.hacks.attempts} hackförsök, topplista med pluggmynt, andel rätt (✕ stänger)`;
+        } },
+      ];
+      $("[data-hist-x]").addEventListener("click", () => { $("[data-hist]").hidden = true; $("[data-hist-x]").hidden = true; });
+      new MutationObserver(() => { $("[data-hist-x]").hidden = $("[data-hist]").hidden; }).observe($("[data-hist]"), { attributes: true });
+
+      const list = $("[data-steg]");
+      list.innerHTML = STEG.map((s, i) => `<li data-id="${s.id}"><span class="bock">${i + 1}</span>
+        <button data-steg-k="${s.id}">${s.text}</button><small></small></li>`).join("");
+      const li = (id) => list.querySelector(`[data-id="${id}"]`);
+      const sub = (id, t) => { li(id).querySelector("small").textContent = t; };
+      let busy = false;
+      let next = 0;
+      async function kor(i) {
+        const s = STEG[i];
+        li(s.id).classList.add("nu");
+        try {
+          const t = await s.run();
+          li(s.id).querySelector(".bock").textContent = "✓";
+          sub(s.id, t || "");
+        } catch (e) {
+          li(s.id).querySelector(".bock").textContent = "✖";
+          sub(s.id, `fel: ${e.message}`);
+          throw e;
+        } finally {
+          li(s.id).classList.remove("nu");
+        }
+      }
+      /** Kör stegen fram till och med `till` (de måste tas i ordning). */
+      async function spela(till) {
+        if (busy) return;
+        busy = true;
+        document.querySelectorAll("button").forEach((b) => { b.disabled = true; });
+        try {
+          while (next <= till) { await kor(next); next++; }
+        } catch (e) {
+          console.error(e);
+        } finally {
+          busy = false;
+          document.querySelectorAll("button").forEach((b) => { b.disabled = false; });
+        }
+      }
+      list.querySelectorAll("[data-steg-k]").forEach((b, i) => b.addEventListener("click", () => spela(i)));
+      $("[data-allt]").addEventListener("click", () => spela(STEG.length - 1));
+      $("[data-om]").addEventListener("click", () => location.reload());
+
+      // Projektorn: kistspelsdemon, tom lobby, utan panel och utan autosvar tills STARTA.
+      projF.src = "preview-datakuppen-demo.html?fas=lobby&panel=av";
+      ({ demo: P } = await waitFor(() => projF.contentWindow?.__dkDemo));
+      // Elevskärmen får projektorns ändringar (andras data, skydd) – högst ~4 ggr/s.
+      let t = 0;
+      P.onChange(() => { if (D && Date.now() - t > 250) { t = Date.now(); D.sim.emit(); } });
+
+      setInterval(() => {
+        const blocked = projF.contentWindow?.__dkDemoBlocked?.length ?? 0;
+        const h = P.hackStats();
+        const s = P.session;
+        $("[data-status]").innerHTML = `fas ${s.status} · elever ${P.state().players.length} · händelser ${P.state().events.length}
+hack ${h.success}/${h.attempts} · Alma ${gp(ME)?.gold ?? 0} MB · demo:${s.demo}
+Firebase-anrop: <span class="${blocked ? "bad" : "ok"}">${blocked ? `${blocked} BLOCKERADE` : "0 ✓"}</span>`;
+      }, 400);
+      if (new URLSearchParams(location.search).get("auto") === "1") spela(STEG.length - 1);
+      window.__dkLage = { get P() { return P; }, get D() { return D; }, spela, STEG };
+    </script>
+  </body>
+</html>
