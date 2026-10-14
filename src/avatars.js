@@ -52,10 +52,23 @@ export const DEFAULT_AVATAR = "fox";
 
 // --- Köpbara avatarer (#694) -------------------------------------------------
 // Alla i AVATARS ovan är GRATIS. Köpbara figurer är butiksvaror med category
-// "avatar" i shop-items.js (t.ex. Halloween-samlingen) och ägs i
-// studentData.ownedItems – för alltid. Konsten laddas lazy per samling
-// (AVATAR_KONST nedan, #271). En ny köpbar figur: katalograd i shop-items.js +
-// konst i samlingens modul + id:t i firestore.rules (kopAvatarer).
+// "avatar" (ingen egen flik) och `collection` (t.ex. Halloween-fliken), ägs i
+// studentData.ownedItems – för alltid. Katalograderna står HÄR och slås in i
+// SHOP_ITEMS när modulen laddas (avatars.js ligger i bootgrafen, så getItem
+// känner dem innan något ritas; shop-items.js är vid 400-taket). Konsten laddas
+// lazy per samling (AVATAR_KONST nedan, #271). En ny köpbar figur: rad nedan +
+// konst i samlingens modul + id:t i firestore.rules (kopAvatarOk).
+const KOP_AVATARER = [
+  { id: "hw-av-spoke", name: "Litet spöke", emoji: "👻", price: 400, collection: "halloween" },
+  { id: "hw-av-fladdermus", name: "Fladdermus", emoji: "🦇", price: 450, collection: "halloween" },
+  { id: "hw-av-pumpgubbe", name: "Pumpgubbe", emoji: "🎃", price: 500, collection: "halloween" },
+  { id: "hw-av-mumie", name: "Gullig mumie", emoji: "🧻", price: 600, collection: "halloween" },
+  { id: "hw-av-haxkatt", name: "Häxkatt", emoji: "🐈", price: 700, collection: "halloween" },
+  { id: "hw-av-vampyr", name: "Liten vampyr", emoji: "🧛", price: 800, collection: "halloween" },
+];
+for (const it of KOP_AVATARER) {
+  if (!getItem(it.id)) SHOP_ITEMS.push({ ...it, category: "avatar" });
+}
 
 /** Är id:t en köpbar avatar (inte gratis)? */
 export function isBuyableAvatar(id) {

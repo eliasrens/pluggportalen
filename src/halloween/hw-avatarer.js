@@ -6,8 +6,8 @@
 // fötter y≈109 – samma ankargrid, så ALLA kläder och kostymer sitter rätt.
 // Gulligt-läskigt: stora ögon, runda former, inga vassa tänder.
 //
-// Katalogen (id/namn/pris, category "avatar") ligger i shop-items.js; ägandet i
-// studentData.ownedItems. Konsten laddas bara med import() (#271) – av
+// Katalogen (id/namn/pris, category "avatar") står i avatars.js och slås in i
+// SHOP_ITEMS där; ägandet i studentData.ownedItems. Konsten laddas bara med import() (#271) – av
 // loadAvatarArt() i avatars.js och av hw-konst.js (butiken/världen).
 // Id:na sparas i Firestore (avatarId, ownedItems) – byt dem aldrig.
 // ============================================================================
@@ -16,6 +16,7 @@ import { O, LINE, THIN, STYLE, eye, eyes, cheeks, smile, limb, stdBody, head, po
 import { registerCharacters } from "../art-characters.js";
 import { registerItemArt } from "../art-items.js";
 import { getItem } from "../shop-items.js";
+import "../avatars.js"; // slår in köpavatarernas katalograder i SHOP_ITEMS
 
 const LILA = "#B79BE0", LILA_MORK = "#7E62B8", NATT = "#4C4661", GUL = "#F7C948";
 
@@ -132,7 +133,7 @@ function vampyrArt() {
   );
 }
 
-/** id → { name, art } – namnen hämtas ur katalogen (shop-items.js). */
+/** id → { name, art } – namnen hämtas ur katalogen (avatars.js). */
 const KONST = {
   "hw-av-spoke": spokeArt,
   "hw-av-pumpgubbe": pumpgubbeArt,

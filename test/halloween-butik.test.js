@@ -31,7 +31,7 @@ test("katalogen: 12 inne, 8 trädgård, 3 hus – alla i Halloween-samlingen", (
   assert.equal(INNE.length, 12);
   assert.equal(UTE.length, 8);
   assert.equal(HUS.length, 3);
-  assert.equal(INNE.length + UTE.length + HUS.length, 23, "C:s varor är just dessa (D–F lägger till fler)");
+  assert.equal(HW.length, 23, "C:s varor är just dessa (D–F lägger till fler)");
   for (const it of HW) {
     assert.equal(itemCollection(it.id), "halloween");
     assert.match(it.id, /^hw-[a-z0-9-]+$/, `${it.id}: stabilt hw-prefix, inget '#'`);
@@ -59,16 +59,16 @@ test("test 5: samlingsvaror visas bara i Halloween-fliken, aldrig i vanliga flik
 
 test("test 5: Halloween-flikens undergrupper – disjunkta, D–F kan lägga till egna", async () => {
   const hw = await import("../src/halloween/hw-butik.js");
-  const sek = hw.halloweenSektioner();
-  assert.deepEqual(sek.map((s) => s.id), ["inne", "tradgard", "hus", "avatarer"]);
-  assert.deepEqual(sek.map((s) => s.items.length), [12, 8, 3, 6]); // avatarerna: #694
+  const sek = hw.halloweenSektioner(HW); // C:s varor (köpavatarerna #694 testas i hw-avatarer.test.js)
+  assert.deepEqual(sek.map((s) => s.id), ["inne", "tradgard", "hus"]);
+  assert.deepEqual(sek.map((s) => s.items.length), [12, 8, 3]);
   // En ny undergrupp (som D:s kostymer) före "hus"; omatchade varor → "Övrigt".
   const kostym = { id: "x-kostym", name: "Testkostym", category: "klader", collection: "halloween" };
   const okand = { id: "x-okand", name: "Okänd", category: "mat", collection: "halloween" };
   hw.registreraUndergrupp({ id: "kostymer", rubrik: "Kostymer", match: (it) => it.category === "klader" }, "hus");
   hw.registreraUndergrupp({ id: "kostymer", rubrik: "dubbel", match: () => true }); // idempotent
   const sek2 = hw.halloweenSektioner([...HW, kostym, okand]);
-  assert.deepEqual(sek2.map((s) => s.id), ["inne", "tradgard", "kostymer", "hus", "avatarer", "ovrigt"]);
+  assert.deepEqual(sek2.map((s) => s.id), ["inne", "tradgard", "kostymer", "hus", "ovrigt"]);
   assert.deepEqual(sek2.find((s) => s.id === "ovrigt").items, [okand]);
   assert.equal(hw.HALLOWEEN_FLIK.id, "halloween");
 });

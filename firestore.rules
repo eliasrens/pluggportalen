@@ -250,7 +250,7 @@ service cloud.firestore {
 
     // Köpbara avatarer (#694): eleven får bara BYTA TILL en köpbar avatar som
     // finns i ownedItems (köpet och bytet kan inte smygas förbi av en ren
-    // avatarId-skrivning). Listan = katalogens category "avatar" i shop-items.js
+    // avatarId-skrivning). Listan = KOP_AVATARER i src/avatars.js
     // (test/hw-avatarer.test.js håller dem i synk). Oförändrat avatarId → alltid OK.
     function kopAvatarOk() {
       let n = request.resource.data;

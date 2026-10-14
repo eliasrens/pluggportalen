@@ -95,3 +95,10 @@ test("lazy konst: platshållare före laddning, riktig figur efter – med kläd
   // Okända id:n faller fortfarande tillbaka på räven.
   assert.match(avatarSvg("finns-inte"), /aria-label="Räv"/);
 });
+
+test("Halloween-fliken: egen undergrupp 👻 Avatarer med alla sex", async () => {
+  const hw = await import("../src/halloween/hw-butik.js");
+  const sek = hw.halloweenSektioner().find((s) => s.id === "avatarer");
+  assert.ok(sek, "undergruppen finns");
+  assert.deepEqual(sek.items.map((it) => it.id), IDS);
+});
