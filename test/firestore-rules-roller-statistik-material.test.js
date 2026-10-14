@@ -12,7 +12,7 @@ import { after, before, beforeEach, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
 import {
-  collection, collectionGroup, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where, Timestamp,
+  collection, collectionGroup, deleteDoc, doc, getCountFromServer, getDoc, getDocs, query, setDoc, updateDoc, where, Timestamp,
 } from "firebase/firestore";
 import { createRollerEnv, seedRoller } from "./helpers/roller-env.js";
 
@@ -82,6 +82,9 @@ describe("Test 1: Årskurs 4 läser statistik för 4A", () => {
     assert.deepEqual(s.docs.map((d) => d.id), ["e4a"]);
     await assertSucceeds(getDocs(query(collection(db, "liveSessions", "s1", "answers"), where("classId", "==", "4a"))));
     await assertSucceeds(getDocs(query(collectionGroup(db, "answers"), where("classId", "==", "4a"))));
+    // Elevens träningstotal (mm-teacher-data loadTrainingTotals): filtrerat på uid.
+    await assertSucceeds(getDocs(query(collectionGroup(db, "answers"), where("uid", "==", "e4a"))));
+    await assertSucceeds(getCountFromServer(query(collectionGroup(db, "answers"), where("uid", "==", "e4a"))));
   });
 });
 
@@ -95,6 +98,8 @@ describe("Test 2: Årskurs 4 läser statistik och lösenord för en elev i 5A �
     await assertFails(getDocs(collection(db, "studentCredentials")));
     await assertFails(getDocs(collection(db, "mathCompetitions", "mm1", "studentStats")));
     await assertFails(getDocs(query(collectionGroup(db, "answers"), where("classId", "==", "5a"))));
+    await assertFails(getDocs(query(collectionGroup(db, "answers"), where("uid", "==", "e5a"))));
+    await assertFails(getCountFromServer(query(collectionGroup(db, "answers"), where("uid", "==", "e5a"))));
   });
   it("Årskurs 5 läser inte 4A", async () => {
     await assertFails(getDoc(doc(env.ak5(), "studentData", "e4a")));

@@ -26,6 +26,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getClasses } from "../data-classes.js";
 import { getStudentsByIds } from "../data.js";
+import { isAdmin } from "../auth.js";
 import { buildResult, COUNTER_SHARDS } from "./mm-teacher-core.js";
 import { competitionPhase } from "./mm-core.js";
 
@@ -138,6 +139,8 @@ export async function finishCompetition(comp) {
  */
 export async function archiveIfEnded(comp, now = Date.now()) {
   if (comp.result || competitionPhase(comp, now) !== "avslutad") return comp.result || null;
+  // Bara admin arkiverar (#678) – ett årskurskonto ser tävlingen utan resultat.
+  if (!isAdmin()) return null;
   const result = await snapshotResult(comp);
   await updateDoc(doc(db, COL, comp.id), { status: "finished", result });
   delaUtPokaler(comp, result);

@@ -17,7 +17,9 @@
 // matchnamnet när fler än ett format är registrerat (#548).
 //
 // API
-//   renderHistoryList(ctx, host)                 – Live-flikens historiklista
+//   renderHistoryList(ctx, host, role?)          – Live-flikens historiklista
+//                                                  (årskurskonto: bara matcher med
+//                                                  sina klasser, #678)
 //   renderHistoryDetail(ctx, host, sid)          – en matchs resultat + elever
 //   renderClassLiveStats(ctx, host, { classId, students })
 //       Statistik → Live för EN klass: klassens matcher + elevernas summa
@@ -30,6 +32,7 @@ import {
   listFinishedSessions, listClassSessions, getSession, getPlayers, getCounters, writeResultIfMissing,
 } from "./live-data.js";
 import { toMs } from "./live-core.js";
+import { canSeeLiveSession } from "../teacher-role-core.js";
 
 const fmtDate = (t) => {
   const ms = toMs(t);
@@ -69,11 +72,11 @@ async function ensureResult(s, players) {
   return result;
 }
 
-export async function renderHistoryList(ctx, host) {
+export async function renderHistoryList(ctx, host, role = null) {
   host.replaceChildren(el(`<div class="spinner">Laddar historik…</div>`));
   let list, hist;
   try {
-    list = (await listFinishedSessions()).filter((s) => s.startedAt);
+    list = (await listFinishedSessions()).filter((s) => s.startedAt && canSeeLiveSession(s, role));
     hist = await Promise.all(list.slice(0, 30).map((s) => historyFor(s).catch(() => null)));
   } catch (err) {
     host.replaceChildren(el(`<p class="err-inline">Kunde inte läsa historiken: ${esc(err.message)}</p>`));
