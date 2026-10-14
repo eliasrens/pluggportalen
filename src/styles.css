@@ -5933,8 +5933,9 @@ body.varld-lage .container {
   color: var(--text-svag);
 }
 
-/* Biblioteks-korten (lärartabellen ersatte dem i #441; .area-card används
-   fortfarande av elevsidans områdesknappar i pages-elev.js – rör ej) */
+/* Biblioteks-korten (lärartabellen ersatte dem i #441). Elevsidans
+   områdesknappar heter .omrade-kort sedan #702 – .area-card här gav dem
+   kolumnlayout och ram ovanpå .big-card. */
 .area-cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -7642,3 +7643,144 @@ body:has(.teacher-dark) .container {
 .teacher-dark .area-tbl-owner { color: var(--t-muted); font-weight: 500; font-size: 0.8rem; }
 .teacher-dark .area-tbl-row.readonly { cursor: default; }
 .teacher-dark .area-act.area-act-txt { width: auto; gap: 6px; padding: 0 10px; font-weight: 600; font-size: 0.84rem; }
+
+/* ── src/styles/31-plugga.css ── */
+/* --- Plugga-sidorna (#702–#704): rubrik, sektionsrubriker, kompakta kort ---
+   Facit: preview/preview-plugga-design-forslag.html (blocket "FÖRSLAGET").
+   Bygger på .big-card (03-komponenter.css) – samma gradienter, skugga, radie. */
+
+/* Sidrubrik direkt på bakgrunden (ingen vit panel). */
+.pl-huvud {
+  margin: 4px 0 18px;
+}
+.pl-huvud h1 {
+  margin: 0;
+  font-size: 2.1rem;
+  line-height: 1.1;
+}
+.pl-huvud p {
+  margin: 2px 0 0;
+  color: var(--text-svag);
+  font-weight: 600;
+}
+
+.sektion-rubrik {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 10px;
+  margin: 0 0 12px;
+}
+.sektion-rubrik h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+.sektion-rubrik span {
+  color: var(--text-svag);
+  font-weight: 600;
+}
+
+/* Rutnätet: 3 kolumner i innehållsytans fulla bredd (880px), 2 när ytan är
+   smalare (surfplatta, liten laptop med sidomeny), 1 på mobil. Styrs av den
+   faktiska bredden i stället för fönstret, så sidomenyn räknas in. */
+.kompakt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 16px;
+  margin-bottom: 26px;
+}
+.kompakt-grid > .hint {
+  grid-column: 1 / -1;
+}
+
+/* Kompakt, liggande kort: emoji-ruta till vänster, text till höger. */
+.big-card.kompakt {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  padding: 14px 18px;
+  min-height: 92px;
+}
+.big-card.kompakt .emoji {
+  font-size: 2.3rem;
+  margin: 0;
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.big-card.kompakt .txt {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.big-card.kompakt .title {
+  font-size: 1.2rem;
+  line-height: 1.15;
+  /* Långa områdesnamn bryts på flera rader – aldrig utanför kortet. */
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+.big-card.kompakt .sub {
+  margin-top: 1px;
+  font-size: 0.88rem;
+  line-height: 1.25;
+}
+.big-card.kompakt .amne {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.85;
+  overflow-wrap: break-word;
+}
+.big-card.kompakt .card-stars {
+  margin-top: 4px;
+  font-size: 1.05rem;
+}
+
+/* Framstegsraden: tunn stapel + "★ X av Y". */
+.big-card.kompakt .framsteg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.big-card.kompakt .stapel {
+  flex: 1;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.3);
+  overflow: hidden;
+}
+.big-card.kompakt .stapel i {
+  display: block;
+  height: 100%;
+  background: #fff;
+  border-radius: 999px;
+}
+
+/* "Ny!"-märket: vitt piller i hörnet, lite snett. */
+.big-card .nymarke {
+  position: absolute;
+  top: -9px;
+  right: 12px;
+  background: #fff;
+  color: var(--orange);
+  font-weight: 800;
+  font-size: 0.8rem;
+  padding: 1px 10px;
+  border-radius: 999px;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.12);
+  transform: rotate(4deg);
+}
