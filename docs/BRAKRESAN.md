@@ -26,7 +26,9 @@ Pluggportalen – kodbasen vinner, §13).
 | Datamodell | `docs/DATAMODELL.md` "Bråkresan" | dokumenterad |
 | Regelskelett | `firestore.rules` (Bråkresan-blocken) | klart, `test/firestore-rules-brakresan.test.js` |
 | Komponentbibliotek (B #707) | `src/brakresan/komponenter/*` (+ `komponenter.css`), §5 nedan | klart, `test/brakresan-komponenter-geometri.test.js`, `preview/preview-brakresan-komponenter.html` |
-| Server-API (C, J) | §6 nedan | kontrakt |
+| Server-API (J) | §6 nedan | kontrakt |
+| Betrodd server (C #708): omgångar, bedömning, stjärnor, mynt, uppmuntran, drake | `functions/brakresan-{core,avslut,state}.js`, callables `brakresa*` i `functions/index.js` | klar, `test/functions-brakresan-{core,avslut}.test.mjs` (kärnan, §15) + `functions-brakresan.test.mjs` (e2e) |
+| Klientens dataskikt + demoläge | `src/brakresan/data.js` (lat), `data-core.js`, `demo.js` | klart, `test/brakresan-data-core.test.js` |
 
 Inget i `src/brakresan/` importeras statiskt från bootgrafen (107 filer, `admin/qa-bootgraf-bfs.mjs`).
 
@@ -219,10 +221,10 @@ jaga, utmaningen inte byggd), `invalid-argument`.
 
 | Callable | In | Ut | Transaktion och idempotens |
 | --- | --- | --- | --- |
-| `brakresaStartRound` | `{ challengeId, restart?: bool }` | `{ roundId, resumed, round }` (round = dokumentet: publika uppgifter + svar) | Finns `state.challenges[id].activeRoundId` och `restart` saknas: returnera den (återupptagning). `restart: true`: gamla → `avbruten` (ingen belöning) och ny skapas – i samma transaktion. Seed med `node:crypto`; `planRound(ch, { seed, avoidCores })` med kärnorna från de senaste tre avslutade omgångarna; `brakresaSecrets/{roundId}` + `brakresaRounds/{roundId}` + `state` skrivs tillsammans. |
+| `brakresaStartRound` | `{ challengeId, restart?: bool, replaceRoundId? }` | `{ roundId, resumed, round }` (round = dokumentet: publika uppgifter + svar) | Finns `state.challenges[id].activeRoundId` och `restart` saknas: returnera den (återupptagning). `restart: true`: gamla → `avbruten` (ingen belöning) och ny skapas – i samma transaktion. `replaceRoundId` (rekommenderas): byt bara om den aktiva fortfarande är just den – annars återupptas den aktiva (dubbelklick, två flikar). Seed med `node:crypto`; `planRound(ch, { seed, avoidCores })` med kärnorna från de senaste tre avslutade omgångarna; `brakresaSecrets/{roundId}` + `brakresaRounds/{roundId}` + `state` skrivs tillsammans. |
 | `brakresaAnswer` | `{ roundId, index, answer, helpBefore: [steg] }` | `{ status: "graded", correct, reason, message, reveal, answeredCount, correctCount }` eller `{ status: "invalid", error, message }` | Bedöms mot `brakresaSecrets` (sparade uppgifter, inte en ombyggd). Har `answers[index].first` redan satts svaras det SPARADE utfallet (`already: true`) – första giltiga svaret är låst. `invalid` sparas inte. Uppdaterar `state` (firstCorrect/firstTotal/helpBefore/activeAnswered/lastActivityAt). |
-| `brakresaRework` | `{ roundId, index, answer?, helpAfter?: [steg] }` | `{ status, correct, message }` | Bara efter ett fel; ≤ 5 försök sparas; ändrar ALDRIG `first`/poängen. |
-| `brakresaFinishRound` | `{ roundId }` | `{ correctCount, reward, message, totalStars, dragon: { levelBefore, levelAfter, hatched }, coinsAfter }` | Kräver tio `first`. EN transaktion: läs färska `state.challenges[id].stars` → `roundReward` → skapa `brakresaRewards/{stjarna-NN-ordinal \| uppmuntran-NN}` om det inte finns → `coins += amount` → `state` (stars, totalStars, mastered, best/last, kläckning: `dragon` + `studentData.brakdrake`, `brakdrake.level`) → omgången `avslutad` med `reward` och `cores`. Omförsök: svara `round.reward`. Två omgångar som tävlar om tredje stjärnan: transaktionen avgör ordinalen; den andra blir `repetition`. |
+| `brakresaRework` | `{ roundId, index, answer?, helpAfter?: [steg], attemptId? }` | `{ status: "graded"\|"invalid"\|"ok", correct, message, reworkCount }` | Bara efter ett fel; ≤ 5 försök sparas; ändrar ALDRIG `first`/poängen. `attemptId` (`data.newAttemptId()`) gör omförsöket idempotent. |
+| `brakresaFinishRound` | `{ roundId }` | `{ correctCount, reward: { kind, eventId, coins, starOrdinal }, message, rewardText, stars, totalStars, dragon: { levelBefore, levelAfter, hatched }, coinsAfter, already }` | Kräver tio `first`. EN transaktion: läs färska `state.challenges[id].stars` → `roundReward` → skapa `brakresaRewards/{stjarna-NN-ordinal \| uppmuntran-NN}` om det inte finns → `coins += amount` → `state` (stars, totalStars, mastered, best/last, kläckning: `dragon` + `studentData.brakdrake`, `brakdrake.level`) → omgången `avslutad` med `reward` och `cores`. Omförsök: svara `round.reward` (`already: true`). Finns belöningsdokumentet redan (state ur fas) betalas inget igen. Två omgångar som tävlar om tredje stjärnan: transaktionen avgör ordinalen; den andra blir `repetition`. |
 | `brakresaAbortRound` | `{ roundId }` | `{ status: "avbruten" }` | Ingen belöning; besvarade uppgifter finns kvar i statistiken. |
 | `brakresaAckDragon` | `{ level }` | `{ levelShown }` | Sätter `state.dragon.levelShown` = max(gammal, level ≤ aktuell nivå) – kläckning/evolution visas en gång, progressionen är redan sparad. |
 | `brakresaHunt` (J) | `{}` | `{ date, level, max, amount, coinsAfter, already }` | Datum = `stockholmDate(serverns now)`. Ägg → `failed-precondition`. EN transaktion: finns `brakresaHunts/{datum}` → svara den (`already: true`); annars `amount = randomInt(1, max + 1)`, skapa jaktposten + `brakresaRewards/jakt-{datum}` + `coins += amount` + `state.hunts`. |
@@ -240,17 +242,29 @@ Invarianterna i §13 och var de garanteras:
 | En Bråkdrake per elev | `state.dragon` skapas bara när den är `null` |
 | 0 ≤ totalStars ≤ 150, nivåformeln | `totalStars` = summan i samma transaktion; nivå ur `dragonLevel` |
 
-**Index (C):** omgångshistoriken frågar `brakresaRounds` med `challengeId ==`, `status ==` och
+**Vem får anropa (C):** bara inloggade elever. Lärarkonton (`token.teacher`) får
+`permission-denied` i alla `brakresa*` – testläget behöver inga anrop. En annans omgång
+ligger under ägarens `studentData` och svarar `not-found`. `rewardText` är
+"Ny stjärna! +40 mynt" / "10 mynt för ditt arbete" (§2: aldrig "tröstpris"), `null` utan mynt.
+
+**Index (C, inlagt i `firestore.indexes.json`):** omgångshistoriken frågar `brakresaRounds` med `challengeId ==`, `status ==` och
 sorterar på `finishedAt` → sammansatt index i `firestore.indexes.json`.
 
-**Klientens dataskikt:** `src/brakresan/data.js` (lat) med tunna omslag runt callables och
-läsningar (`getState`, `getRound`, `startRound`, `answer`, `rework`, `finishRound`, `abortRound`,
-`hunt`, lärarens `getClassStates(studentIds)` / `listRounds(studentId)`). Förslag: C skriver
-det tillsammans med servern så att API:t har en ägare.
+**Klientens dataskikt (C, klart):** `src/brakresan/data.js` (lat) – API:t står i filhuvudet:
+`startRound`, `answer`, `rework`, `finishRound`, `abortRound`, `ackDragon`, `newAttemptId`,
+`getState`, `getRound`, lärarens `getClassStates(studentIds)` / `listRounds(studentId, { challengeId })`.
+J lägger till `hunt` här. Nätfel och tillfälliga serverfel försöks igen automatiskt med
+SAMMA data (`data-core.js` `callWithRetry`, 3 omförsök); ger det upp kastas `BrakresaFel`
+med `retryable: true` – vyn behåller elevens inmatning (`drafts.save/load/clear`) och
+visar "Försök igen". `saveStatus.subscribe(cb)` ger "sparar" / "sparat" / "offline" / "fel"
+för "Sparar …/Sparat" (§13). Bekräfta aldrig en belöning förrän `finishRound` svarat.
+`finishRound` invaliderar studentData-cachen så att sidomenyns saldo uppdateras.
 
 **Lärarens testläge och "Prova ett exempel"** körs helt i klienten: `loadChallenge(id)` →
 `planRound`/`buildTask` med en lokal seed → `gradeTask` lokalt, facit (`key.display`) synligt för
 läraren. Inga skrivningar alls – därför kan testläget aldrig röra elevdata (§12).
+Färdigt i `src/brakresan/demo.js`: `demoRound(id, seed)` (tio hela uppgifter med facit),
+`exampleTask(id, seed)`, `gradeDemo(challenge, task, answer)` (+ `reveal`), `publicTask`.
 
 ## 7. Ägarskap och filkarta
 

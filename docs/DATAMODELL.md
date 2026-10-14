@@ -517,7 +517,7 @@ med tio färdiga uppgifter; omladdning läser samma dokument (§5 återupptagnin
 | `answers` | list(10) | TaskAnswer per index (nedan), skapas tomma vid start |
 | `answeredCount`, `correctCount` | int 0–10 | Antal första bedömningar resp. rätta – härledda ur `answers[*].first` |
 | `startedAt`, `finishedAt`, `updatedAt` | timestamp | `finishedAt` sätts vid avslutad/avbruten |
-| `reward` | map/null | Vid avslut: `{ kind: "stjarna"|"uppmuntran"|"ingen"|"repetition", eventId, coins, starOrdinal }`. Omförsök av avslutet svarar detta – betalar aldrig igen |
+| `reward` | map/null | Vid avslut: `{ kind: "stjarna"|"uppmuntran"|"ingen"|"repetition", eventId, coins, starOrdinal, stars, totalStars, levelBefore, levelAfter, hatched, coinsAfter }` – hela utfallet. Omförsök av avslutet svarar detta – betalar aldrig igen. `coins` = 0 om bokföringen redan fanns |
 | `cores` | list(10) | Uppgifternas kärnor – skrivs FÖRST när omgången är avslutad/avbruten (de kan avslöja facit). Nästa omgång undviker kärnorna i de senaste tre omgångarna (`planRound` avoidCores) |
 
 **TaskAnswer** (`answers[i]`):
@@ -525,10 +525,10 @@ med tio färdiga uppgifter; omladdning läser samma dokument (§5 återupptagnin
 | Fält | Typ | Beskrivning |
 | ---- | --- | ----------- |
 | `index` | int 0–9 | |
-| `first` | map/null | Första GILTIGA svaret – låst när det satts: `{ answer, correct, reason, at }`. `answer` = elevens svar som skickat (JSON, inga arrayer i arrayer). Ett inmatningsfel (`status: "invalid"`) sparas inte |
+| `first` | map/null | Första GILTIGA svaret – låst när det satts: `{ answer, correct, reason, message, at }`. `answer` = elevens svar som skickat (JSON, inga arrayer i arrayer). Ett inmatningsfel (`status: "invalid"`) sparas inte |
 | `helpBefore` | list | Hjälpsteg som öppnats före första kontroll (`"orientering"`, `"princip"`, `"modellering"`, `"atergang"`) |
 | `helpAfter` | list | Hjälpsteg efter ett fel |
-| `rework` | list ≤ 5 | Bearbetning efter fel `{ answer, correct, at }` – ändrar ALDRIG poängen |
+| `rework` | list ≤ 5 | Bearbetning efter fel `{ answer, correct, message, at, attemptId? }` – ändrar ALDRIG poängen. `attemptId` = klientens id för försöket (omförsök sparas inte två gånger) |
 | `reveal` | map/null | Skrivs när `first` sätts: `revealTask(task)` = `{ display, feedback, review }` (facit som text, återkoppling, genomgång). Lärarhistoriken visar uppgiften ur `tasks[i]` + detta, med omgångens version |
 
 #### `brakresaSecrets/{roundId}` – facit (bara servern)
