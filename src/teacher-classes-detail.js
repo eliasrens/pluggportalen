@@ -3,7 +3,8 @@
 // ----------------------------------------------------------------------------
 // Issue #440: visar inställningar för EN klass i taget (aldrig två klassers
 // samtidigt). Huvud: klassnamn + antal elever + Döp om (K-12) + Ta bort (K-13).
-// Under huvudet sektionsflikar ur CLASS_SECTIONS-registryn; exakt en sektion
+// Under huvudet sektionsflikar ur sidlägets sektioner (store.sections, #679;
+// Döp om/Ta bort bara i Admin-läget, store.manage); exakt en sektion
 // syns (ersätter K-14:s en-panel-åt-gången). Vald sektion behålls vid klassbyte.
 // I skapa-läget (store.creating, lead-beslut D-4) visas skapa-klass-formuläret.
 //
@@ -13,13 +14,14 @@
 // ============================================================================
 
 import * as data from "./data.js";
-import { el, esc, icon } from "./teacher-shared.js";
+import { el, esc, errText, icon, isAdmin } from "./teacher-shared.js";
 import { CLASS_SECTIONS, sectionFor, withLoading } from "./teacher-classes-sections.js";
 import { countLabel, studentCount } from "./teacher-classes-store.js";
 import { renderCreateClass } from "./teacher-classes-create.js";
 
 /** Bygg detaljytan. Returnerar { element, update() }. */
 export function createClassDetail(ctx, store) {
+  const sections = store.sections || CLASS_SECTIONS;
   const root = el(`<section class="panel cls-detail" aria-label="Vald klass"></section>`);
   // Vad som ritades senast – avgör om sektionen ska byggas om eller bara huvudet uppdateras.
   let shown = { id: undefined, section: undefined, creating: undefined };
@@ -35,13 +37,14 @@ export function createClassDetail(ctx, store) {
   function renderEmpty() {
     head = null;
     root.replaceChildren(
-      el(`<div class="cls-detail-empty"><p class="hint">Välj en klass i listan till vänster.</p></div>`)
+      el(`<div class="cls-detail-empty"><p class="hint">${store.classes.length ? "Välj en klass i listan till vänster."
+        : "Kontot har inga klasser än – admin väljer dem under Lärarkonton."}</p></div>`)
     );
   }
 
   function renderClass(cls, sectionKey) {
-    const sec = sectionFor(sectionKey);
-    const tabs = CLASS_SECTIONS.map(
+    const sec = sectionFor(sectionKey, sections);
+    const tabs = sections.map(
       (s) => `<button type="button" role="tab" class="cls-tab${s.key === sec.key ? " active" : ""}"
         data-key="${s.key}" id="cls-tab-${s.key}" aria-controls="cls-section"
         aria-selected="${s.key === sec.key}" tabindex="${s.key === sec.key ? 0 : -1}">
@@ -54,13 +57,13 @@ export function createClassDetail(ctx, store) {
           <h2 class="cls-detail-name"></h2>
           <span class="class-count cls-detail-count"></span>
         </div>
-        <div class="row-inline cls-detail-actions">
+        ${store.manage ? `<div class="row-inline cls-detail-actions">
           <button type="button" class="btn ghost small" data-act="rename">${icon("pencil", 16)}<span>Döp om</span></button>
           <button type="button" class="btn ghost small danger" data-act="del">${icon("trash", 16)}<span>Ta bort klassen</span></button>
-        </div>
+        </div>` : ""}
       </header>
       <div class="cls-flash"></div>
-      <div class="cls-tabs" role="tablist" aria-label="Inställningar för klassen">${tabs}</div>
+      <div class="cls-tabs" role="tablist" aria-label="Inställningar för klassen"${sections.length < 2 ? " hidden" : ""}>${tabs}</div>
       <div class="cls-section" id="cls-section" role="tabpanel" aria-labelledby="cls-tab-${sec.key}"></div>
     </div>`);
 
@@ -68,7 +71,8 @@ export function createClassDetail(ctx, store) {
     updateHead(cls);
     // Läsresan-milstolpar (#528): bara lärarklienten får dela ut pokalerna →
     // kollas när klassen öppnas (dynamiskt, max var 5:e minut, aldrig kastande).
-    import("./klasscenter/kc-pokal-data.js").then((m) => m.delaUtLasresanMilstolpar(cls.id), () => {});
+    // Pokaler = ekonomi (bara admin, §2.2) – årskurskonton försöker inte ens (#679).
+    if (isAdmin()) import("./klasscenter/kc-pokal-data.js").then((m) => m.delaUtLasresanMilstolpar(cls.id), () => {});
 
     const flash = store.flashes.get(cls.id);
     if (flash) {
@@ -77,7 +81,7 @@ export function createClassDetail(ctx, store) {
     }
 
     // Döp om (K-12) – samma prompt + data-anrop som förut; namnet i master följer med.
-    box.querySelector('[data-act="rename"]').addEventListener("click", async () => {
+    box.querySelector('[data-act="rename"]')?.addEventListener("click", async () => {
       const next = prompt("Nytt namn på klassen:", cls.name || "");
       if (next === null) return;
       const name = next.trim();
@@ -87,19 +91,19 @@ export function createClassDetail(ctx, store) {
         cls.name = name;
         store.notify();
       } catch (err) {
-        alert("Kunde inte döpa om: " + err.message);
+        alert("Kunde inte döpa om: " + errText(err));
       }
     });
 
     // Ta bort (K-13) – samma confirm; efter borttag väljs nästa klass.
-    box.querySelector('[data-act="del"]').addEventListener("click", async () => {
+    box.querySelector('[data-act="del"]')?.addEventListener("click", async () => {
       if (!confirm(`Ta bort klassen "${cls.name || cls.id}"? Elevkontona finns kvar – bara grupperingen försvinner.`))
         return;
       try {
         await data.deleteClass(cls.id);
         store.removeClass(cls.id);
       } catch (err) {
-        alert("Kunde inte ta bort: " + err.message);
+        alert("Kunde inte ta bort: " + errText(err));
       }
     });
 
@@ -111,7 +115,7 @@ export function createClassDetail(ctx, store) {
     });
     tablist.addEventListener("keydown", (e) => {
       if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
-      const keys = CLASS_SECTIONS.map((s) => s.key);
+      const keys = sections.map((s) => s.key);
       const i = keys.indexOf(sec.key);
       const j =
         e.key === "Home" ? 0 : e.key === "End" ? keys.length - 1

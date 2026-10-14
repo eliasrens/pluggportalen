@@ -7456,3 +7456,100 @@ body:has(.teacher-dark) .container {
   border-radius: 12px;
 }
 .amn-preview-done[hidden] { display: none; }
+
+/* ── src/styles/30-larare-roller.css ── */
+/* ==========================================================================
+   Lärarsidan: ny struktur + synlighet efter roll (#679)
+   Huvuddelar i toppnaven + underrad för aktiv del, "Inloggad som …",
+   Översikt (#/larare/oversikt) och "Skapat av …" i materiallistan.
+   Allt scopat under .teacher-dark (mörk stil, linje-ikoner).
+   ========================================================================== */
+
+.teacher-dark .teacher-nav-who {
+  margin-left: auto;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--t-border);
+  color: var(--t-muted);
+  font-size: 0.86rem;
+  white-space: nowrap;
+}
+.teacher-dark .teacher-nav-who + .tnav.logout { margin-left: 4px; }
+
+.teacher-dark .teacher-subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--t-border);
+}
+.teacher-dark .tsub {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  color: var(--t-muted);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+  text-decoration: none;
+}
+.teacher-dark .tsub:hover { color: var(--t-text); background: rgba(255, 255, 255, 0.05); }
+.teacher-dark .tsub.active {
+  color: #eafff2;
+  border-color: rgba(46, 193, 110, 0.4);
+  background: rgba(46, 193, 110, 0.08);
+}
+.teacher-dark .tsub.active .tnav-ic { color: var(--t-accent); }
+
+@media (max-width: 900px) {
+  .teacher-dark .teacher-nav-who { display: none; }
+}
+
+/* --- Översikt -------------------------------------------------------------- */
+.teacher-dark .ov-block { margin-bottom: 18px; }
+.teacher-dark .ov-h { display: flex; align-items: center; gap: 8px; margin: 0 0 14px; }
+.teacher-dark .ov-classes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
+}
+.teacher-dark .ov-class {
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--t-border);
+  background: rgba(255, 255, 255, 0.03);
+}
+.teacher-dark .ov-class-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.teacher-dark .ov-class-name {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--t-text);
+  font-size: 1.15rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.teacher-dark .ov-class-name:hover { color: var(--t-accent); }
+.teacher-dark .ov-lock { display: flex; align-items: center; gap: 6px; margin: 6px 0 10px; color: var(--t-muted); font-size: 0.86rem; }
+.teacher-dark .ov-lock.on { color: #f2c94c; }
+.teacher-dark .ov-quick { display: flex; flex-wrap: wrap; gap: 6px; }
+.teacher-dark .ov-live-list { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
+.teacher-dark .ov-live-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--t-border);
+}
+.teacher-dark .ov-live-item .hint { margin-left: 8px; }
+
+/* --- Material: "Skapat av …" ------------------------------------------------ */
+.teacher-dark .area-tbl-name-txt { display: inline-flex; flex-direction: column; vertical-align: middle; }
+.teacher-dark .area-tbl-owner { color: var(--t-muted); font-weight: 500; font-size: 0.8rem; }
+.teacher-dark .area-tbl-row.readonly { cursor: default; }

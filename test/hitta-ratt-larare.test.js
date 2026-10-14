@@ -245,7 +245,8 @@ describe("provspel (rättning i klienten)", () => {
 describe("lärarfliken och bootgrafen", () => {
   it("en rad i TEACHER_TABS med lazy import av lärarsidan", () => {
     const src = readFileSync(join(SRC, "teacher-shared.js"), "utf8");
-    assert.match(src, /key: "hittaratt", hash: "#\/larare\/hitta-ratt"[^\n]*import\("\.\/hitta-ratt\/larare\/page-larare-hitta-ratt\.js"\), "pageLarareHittaRatt"/);
+    // #679: registry-raden byggs med tab(key, hash, grupp, …, load, fn, admin).
+    assert.match(src, /tab\("hittaratt", "#\/larare\/hitta-ratt"[^\n]*import\("\.\/hitta-ratt\/larare\/page-larare-hitta-ratt\.js"\), "pageLarareHittaRatt"/);
     assert.doesNotMatch(src, /^import .*hitta-ratt/m, "ingen statisk import");
   });
   it("lärarmodulerna är max 400 rader", () => {

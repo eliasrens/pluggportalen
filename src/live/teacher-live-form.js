@@ -22,7 +22,7 @@
 // API: renderCreateForm(host, { classes, uid, createdByName, onCreated(sid) })
 // ============================================================================
 
-import { el, esc } from "../teacher-shared.js";
+import { el, errText, esc } from "../teacher-shared.js";
 import { listGameModes, DEFAULT_GAME_MODE } from "./modes/index.js";
 import { requireFormat, listFormats, answerKindsFor, defaultAnswerKind, DEFAULT_FORMAT } from "./formats/index.js";
 import { createLiveSession } from "./live-data.js";
@@ -58,7 +58,7 @@ function drawForm(host, { classes, uid, createdByName, onCreated }, keep) {
       <div class="live-classes">${classes.map((c) => `<label class="live-chip">
         <input type="checkbox" name="klass" value="${esc(c.id)}" ${keep.classIds.includes(c.id) ? "checked" : ""} />
         <span>${esc(c.name || c.id)} <small>(${(c.studentIds || []).length})</small></span></label>`).join("") ||
-        `<p class="hint">Inga klasser ännu – skapa klasser under Klasser &amp; elever.</p>`}</div>
+        `<p class="hint">Inga klasser ännu – admin skapar dem under Admin → Klasser &amp; elevkonton.</p>`}</div>
     </div>
     ${setupFieldsHtml(fields)}
     <div class="field"><label for="live-name">Matchnamn</label>
@@ -213,7 +213,7 @@ function drawForm(host, { classes, uid, createdByName, onCreated }, keep) {
       const sid = await createLiveSession(input, uid);
       onCreated?.(sid);
     } catch (err) {
-      msg.innerHTML = `<div class="msg error">Kunde inte skapa matchen: ${esc(err.message)}</div>`;
+      msg.innerHTML = `<div class="msg error">Kunde inte skapa matchen: ${esc(errText(err))}</div>`;
     } finally {
       btn.disabled = false;
     }

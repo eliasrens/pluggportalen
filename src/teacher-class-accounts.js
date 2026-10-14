@@ -16,7 +16,7 @@
 
 import * as data from "./data.js";
 import { AVATARS, avatarEmoji } from "./avatars.js";
-import { el, esc, icon } from "./teacher-shared.js";
+import { el, errText, esc, icon, isAdmin } from "./teacher-shared.js";
 import { coinIcon } from "./icons.js";
 import { renderAccountEditor, credentialsPanel } from "./teacher-login-cards.js";
 // credentialsPanel bor i teacher-login-cards.js (fil-cap, #440) – exportnamnet
@@ -124,7 +124,7 @@ function wireGiveCoins(row, student) {
       const namn = student.namn || student.username || "eleven";
       flashEl.innerHTML = `<span class="gc-ok">✓ ${esc(namn)} fick ${amount} ${coinIcon("1em")} – nytt saldo: ${nytt} ${coinIcon("1em")}</span>`;
     } catch (err) {
-      flashEl.innerHTML = `<span class="gc-err">Kunde inte ge coins: ${esc(err.message)}</span>`;
+      flashEl.innerHTML = `<span class="gc-err">Kunde inte ge coins: ${esc(errText(err))}</span>`;
     } finally {
       giveBtn.disabled = false;
     }
@@ -150,8 +150,10 @@ function countLabel(n) {
  * #440: `onChange()` anropas när antalet ändras (master-listans räknare) och
  * `creds` = { initial, save(created), clear() } håller nyss skapade lösenord
  * kvar över klassbyten tills läraren stänger panelen (X-08). Båda valfria.
+ * `loginOnly` (#679, Klasser → Inloggning): bara lösenord + inloggningskort –
+ * namn, mynt, ta ur/ta bort och skapa/lägg till konton (bara admin) döljs.
  */
-export function renderMemberManager(ctx, { cls, state, membersEl, countEl, onChange, creds }) {
+export function renderMemberManager(ctx, { cls, state, membersEl, countEl, onChange, creds, loginOnly = false }) {
   const students = state.students;
   // Persistent yta för nyss skapade inloggningsuppgifter – överlever omritningar.
   const credsHost = el(`<div class="mm-creds"></div>`);
@@ -194,7 +196,10 @@ export function renderMemberManager(ctx, { cls, state, membersEl, countEl, onCha
     wireGiveCoins(row, s);
     row.querySelector(".mm-login").addEventListener("click", () =>
       import("./teacher-login-edit.js").then((m) =>
-        m.openLoginEditor(s, { onSaved: () => (row.querySelector(".mm-username").value = s.username) })
+        m.openLoginEditor(s, {
+          passwordOnly: !isAdmin(),
+          onSaved: () => (row.querySelector(".mm-username").value = s.username),
+        })
       )
     );
 
@@ -211,7 +216,7 @@ export function renderMemberManager(ctx, { cls, state, membersEl, countEl, onCha
         s.avatarId = avatarId;
         saveFlash.innerHTML = `<span class="gc-ok">✓ Sparat</span>`;
       } catch (err) {
-        saveFlash.innerHTML = `<span class="gc-err">${esc(err.message)}</span>`;
+        saveFlash.innerHTML = `<span class="gc-err">${esc(errText(err))}</span>`;
       } finally {
         btn.disabled = false;
       }
@@ -225,7 +230,7 @@ export function renderMemberManager(ctx, { cls, state, membersEl, countEl, onCha
         updateCount();
         draw();
       } catch (err) {
-        alert("Kunde inte ta ur klassen: " + err.message);
+        alert("Kunde inte ta ur klassen: " + errText(err));
       }
     });
 
@@ -243,10 +248,14 @@ export function renderMemberManager(ctx, { cls, state, membersEl, countEl, onCha
         updateCount();
         draw();
       } catch (err) {
-        alert("Kunde inte ta bort: " + err.message);
+        alert("Kunde inte ta bort: " + errText(err));
       }
     });
 
+    if (loginOnly) {
+      row.querySelectorAll(".mm-save, .give-coins, .mm-actions").forEach((n) => n.remove());
+      row.querySelectorAll(".mm-namn, .avatar-sel").forEach((n) => (n.disabled = true));
+    }
     return row;
   }
 
@@ -286,7 +295,7 @@ export function renderMemberManager(ctx, { cls, state, membersEl, countEl, onCha
     );
     const listEl = wrap.querySelector(".mm-list");
     if (members.length === 0) {
-      listEl.appendChild(el(`<p class="hint">Inga elever i klassen än – skapa konton nedan.</p>`));
+      listEl.appendChild(el(`<p class="hint">Inga elever i klassen än${loginOnly ? "." : " – skapa konton nedan."}</p>`));
     } else {
       members.forEach((s) => listEl.appendChild(memberRow(s)));
     }
@@ -364,13 +373,14 @@ export function renderMemberManager(ctx, { cls, state, membersEl, countEl, onCha
           draw();
         } catch (err) {
           box.querySelector(".mm-link-flash").innerHTML =
-            `<span class="gc-err">Kunde inte lägga till: ${esc(err.message)}</span>`;
+            `<span class="gc-err">Kunde inte lägga till: ${esc(errText(err))}</span>`;
           btn.disabled = false;
         }
       });
       existingEl.appendChild(box);
     }
 
+    if (loginOnly) wrap.querySelectorAll(".mm-add").forEach((n) => n.remove());
     membersEl.replaceChildren(credsHost, wrap);
   }
 

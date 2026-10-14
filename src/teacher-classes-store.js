@@ -53,12 +53,12 @@ export function pickInitial(classes, { klass = null, sektion = null, saved = nul
   return { id, section };
 }
 
-/** Hash som speglar valet (läses av pickInitial vid omladdning). */
-export function classesHash(id, section) {
-  if (!id) return "#/larare/klasser";
+/** Hash som speglar valet (läses av pickInitial vid omladdning). base = sidlägets route (#679). */
+export function classesHash(id, section, base = "#/larare/klasser") {
+  if (!id) return base;
   const q = new URLSearchParams({ klass: id });
   if (section) q.set("sektion", section);
-  return `#/larare/klasser?${q}`;
+  return `${base}?${q}`;
 }
 
 /**
