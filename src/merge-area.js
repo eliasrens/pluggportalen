@@ -2,7 +2,8 @@
 // Pluggporten – lägg till nytt innehåll i ett befintligt område (merge-area.js)
 // ----------------------------------------------------------------------------
 // Issue #40: i stället för att klistra in/ersätta hela arbetsområdes-JSON:en kan
-// läraren klistra in BARA det nya innehållet (fler texts/quiz/pairs/timeline). Här mergas
+// läraren klistra in BARA det nya innehållet (fler texts/quiz/pairs/timeline/
+// readingTexts). Här mergas
 // det in i det som redan finns – befintligt behålls, nytt läggs till, dubbletter
 // hoppas över – och allt slutvalideras med validateArea (src/validate.js).
 // ============================================================================
@@ -10,6 +11,7 @@
 import { validateArea } from "./validate.js";
 import { normalizeExerciseTypes, deriveExerciseTypes } from "./exercise-types.js";
 import { timelineKey } from "./validate-timeline.js";
+import { validateReadingTexts } from "./amneslasning/content.js";
 
 // Innehålls-nycklar för dubblettkontroll: vi jämför på INNEHÅLL (inte id), så
 // att en text/fråga/par som redan finns inte läggs till igen. Fälten fogas ihop
@@ -78,15 +80,22 @@ export function mergeAreaContent(existing, incoming) {
   const inQuiz = Array.isArray(incoming.quiz) ? incoming.quiz : [];
   const inPairs = Array.isArray(incoming.pairs) ? incoming.pairs : [];
   const inTimeline = Array.isArray(incoming.timeline) ? incoming.timeline : [];
-  if (inTexts.length === 0 && inQuiz.length === 0 && inPairs.length === 0 && inTimeline.length === 0) {
+  const inReading = Array.isArray(incoming.readingTexts) ? incoming.readingTexts : [];
+  if (inTexts.length === 0 && inQuiz.length === 0 && inPairs.length === 0 && inTimeline.length === 0 && inReading.length === 0) {
     return {
       ok: false,
       errors: [
-        'Klistra in det NYA innehållet att lägga till – minst en "texts", "quiz", "pairs" eller "timeline".',
+        'Klistra in det NYA innehållet att lägga till – minst en "texts", "quiz", "pairs" eller "timeline" (eller ämnestexter i "readingTexts").',
       ],
       value: null,
     };
   }
+
+  // Ämnestexter (#673): läggs alltid till sist, id som krockar görs om.
+  const exReading = Array.isArray(existing.readingTexts) ? existing.readingTexts : [];
+  const reading = inReading.length ? validateReadingTexts(inReading, { existing: exReading }) : null;
+  if (reading && !reading.ok) return { ok: false, errors: reading.errors, value: null };
+  const addedReading = reading ? reading.valid : [];
 
   // 1) Validera/normalisera det nya innehållet med samma per-post-regler som ett
   //    helt område (lånar namnet så name-kravet inte stör). Fel på det nya
@@ -98,7 +107,10 @@ export function mergeAreaContent(existing, incoming) {
     pairs: inPairs.length ? inPairs : undefined,
     timeline: inTimeline.length ? inTimeline : undefined,
   });
-  if (!probe.ok) return { ok: false, errors: probe.errors, value: null };
+  // Bara ämnestexter inklistrade → probe säger "inget innehåll"; det är OK här.
+  const onlyReading = inTexts.length + inQuiz.length + inPairs.length + inTimeline.length === 0;
+  if (!probe.ok && !onlyReading) return { ok: false, errors: probe.errors, value: null };
+  const pv = probe.ok ? probe.value : { texts: [], quiz: [], pairs: [], timeline: [] };
 
   const exTexts = Array.isArray(existing.texts) ? existing.texts : [];
   const exQuiz = Array.isArray(existing.quiz) ? existing.quiz : [];
@@ -122,25 +134,25 @@ export function mergeAreaContent(existing, incoming) {
   const addedTimeline = [];
   const skipped = { texts: 0, quiz: 0, pairs: 0, timeline: 0 };
 
-  for (const t of probe.value.texts) {
+  for (const t of pv.texts) {
     const k = contentKeyText(t);
     if (seenText.has(k)) { skipped.texts++; continue; }
     seenText.add(k);
     addedTexts.push({ ...t, id: nextText() });
   }
-  for (const q of probe.value.quiz) {
+  for (const q of pv.quiz) {
     const k = contentKeyQuiz(q);
     if (seenQuiz.has(k)) { skipped.quiz++; continue; }
     seenQuiz.add(k);
     addedQuiz.push({ ...q, id: nextQuiz() });
   }
-  for (const p of probe.value.pairs) {
+  for (const p of pv.pairs) {
     const k = contentKeyPair(p);
     if (seenPair.has(k)) { skipped.pairs++; continue; }
     seenPair.add(k);
     addedPairs.push({ ...p, id: nextPair() });
   }
-  for (const e of probe.value.timeline || []) {
+  for (const e of pv.timeline || []) {
     const k = timelineKey(e);
     if (seenEvent.has(k)) { skipped.timeline++; continue; }
     seenEvent.add(k);
@@ -163,6 +175,7 @@ export function mergeAreaContent(existing, incoming) {
         pairs: mergedPairs,
         generator: existing.generator,
         timeline: mergedTimeline,
+        readingTexts: [...exReading, ...addedReading],
       }),
     ]),
   ];
@@ -193,6 +206,9 @@ export function mergeAreaContent(existing, incoming) {
     // Tidsspannet är lärarens inställning på området: det befintliga vinner; har
     // området inget tar vi det inklistrade (t.ex. första gången Tidsjakten läggs till).
     timelineSpan: existing.timelineSpan ?? incoming.timelineSpan,
+    // Ämnestexterna (#673): befintliga orörda + de nya sist.
+    // (Gamla nivåtexter i fältet släpps av validateArea, som förut.)
+    readingTexts: exReading.length || addedReading.length ? [...exReading, ...addedReading] : undefined,
   });
   if (!merged.ok) return { ok: false, errors: merged.errors, value: null };
 
@@ -201,13 +217,14 @@ export function mergeAreaContent(existing, incoming) {
     errors: [],
     // Icke-blockerande anmärkningar på det NYA innehållet (t.ex. okänd
     // frågekategori, #445) – numreringen avser det inklistrade innehållet.
-    warnings: probe.warnings || [],
+    warnings: [...(probe.ok ? probe.warnings || [] : []), ...(reading ? reading.warnings : [])],
     value: merged.value,
     added: {
       texts: addedTexts.length,
       quiz: addedQuiz.length,
       pairs: addedPairs.length,
       timeline: addedTimeline.length,
+      ...(addedReading.length ? { readingTexts: addedReading.length } : {}),
     },
     skipped,
   };

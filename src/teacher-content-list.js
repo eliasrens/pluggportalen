@@ -32,6 +32,7 @@ const TYPE_SHORT = {
   bildpar: "Bildpar",
   generator: "Räkna",
   tidsjakt: "Tidsjakten",
+  amneslasning: "Ämnesläsning",
 };
 
 /** Bygg typ-badges ur områdets övningstyper (ärlig status – vad området FAKTISKT har). */
@@ -55,6 +56,8 @@ function quantityText(a) {
   if (a.quiz?.length) parts.push(`${a.quiz.length} frågor`);
   if (a.pairs?.length) parts.push(`${a.pairs.length} par`);
   if (a.timeline?.length) parts.push(`${a.timeline.length} händelser`);
+  const amnes = (a.readingTexts || []).filter((t) => Array.isArray(t?.questions)).length;
+  if (amnes) parts.push(`${amnes} ämnestexter`);
   if (a.texts?.length) parts.push(`${a.texts.length} texter`);
   return parts.length ? parts.join(" · ") : "Tomt – inget innehåll ännu";
 }
@@ -100,9 +103,10 @@ const actBtn = (act, ic, label, extra = "") =>
  * @param {{open:Set<string>, notice:Map<string,string>, tab?:Map<string,string>}} [opts.itemState] – utfällda
  *   områden + engångs-notis efter sparning + senast vald flik per område (#455) (ägs av teacher-content.js, överlever omladdning).
  * @param {()=>void} [opts.onItemsSaved] – tyst omladdning efter sparad underrad (#454).
+ * @param {string} [opts.subjectName] – ämnets namn (Ämnesläsningens AI-prompt, #673).
  * @returns {HTMLElement}
  */
-export function buildAreaTable(areas, { subjectId, onEdit, onRefresh, sort, onSort, itemState, onItemsSaved }) {
+export function buildAreaTable(areas, { subjectId, subjectName, onEdit, onRefresh, sort, onSort, itemState, onItemsSaved }) {
   const state = itemState || { open: new Set(), notice: new Map() };
   state.tab ??= new Map();
   const wrap = el(`<div class="table-scroll area-table-scroll">
@@ -135,6 +139,7 @@ export function buildAreaTable(areas, { subjectId, onEdit, onRefresh, sort, onSo
         ${actBtn("edit", "pencil", `Redigera ${a.name}`)}
         ${actBtn("review", "eye", "Granska innehållet")}
         ${actBtn("add", "plus", "Lägg till innehåll")}
+        ${actBtn("amnes", "book", "Skapa ämnestexter")}
         ${actBtn("del", "trash", "Ta bort", "danger")}
       </div></td>
     </tr></tbody></table>`).querySelector("tr");
@@ -193,6 +198,7 @@ export function buildAreaTable(areas, { subjectId, onEdit, onRefresh, sort, onSo
         state.notice.delete(key);
         panel = itemsMod.buildItemsPanel(a, {
           subjectId,
+          subjectName,
           notice,
           tab: state.tab.get(key),
           onTabChange: (id) => {
@@ -240,6 +246,12 @@ export function buildAreaTable(areas, { subjectId, onEdit, onRefresh, sort, onSo
     });
 
     btn("edit").addEventListener("click", () => onEdit(a));
+    // 📖 Skapa ämnestexter (#673): underraden på fliken Ämnesläsning med panelen öppen.
+    btn("amnes").addEventListener("click", async () => {
+      state.tab.set(key, "amnes");
+      if (itemsSlot.hidden || !panel) await openItems();
+      panel?.selectTab("amnes")?.querySelector(".amn-section")?.openCreate();
+    });
     btn("review").addEventListener("click", toggleItems);
     btn("add").addEventListener("click", () =>
       toggleSlot(mergeSlot, () => buildMergeForm(a, mergeSlot, { subjectId, onSaved: onRefresh }))

@@ -34,10 +34,14 @@
       const now = Math.floor(Date.now() / 1000);
 
       const q = (n, cat) => Array.from({ length: n }, (_, i) => ({ q: `Fråga ${i + 1}`, options: ["a", "b", "c", "d"], correct: i % 4, category: cat }));
+      // #674: ämnestexter (nivå 1–3) i Vikingatiden; ?amnes=0 → inga.
+      const AMNES = new URLSearchParams(location.search).get("amnes") !== "0";
+      const rt = (id, level) => ({ id, title: id, level, textType: "fact", body: "…", questions: q(5, "fakta").map((x, i) => ({ id: `q${i}`, ...x })) });
       const pairs = (n) => Array.from({ length: n }, (_, i) => ({ term: `T${i}`, def: `D${i}` }));
       const SUBJECTS = [
         { id: "so", name: "SO", areas: [
-          { id: "vikingar", name: "Vikingatiden", coverEmoji: "⚔️", quiz: [...q(4, "begrepp"), ...q(4, "fakta"), ...q(4, "analys")], pairs: pairs(6) },
+          { id: "vikingar", name: "Vikingatiden", coverEmoji: "⚔️", quiz: [...q(4, "begrepp"), ...q(4, "fakta"), ...q(4, "analys")], pairs: pairs(6),
+            readingTexts: AMNES ? ["v1", "v2", "v3", "v4", "v5", "v6"].map((id, i) => rt(id, (i % 3) + 1)) : [] },
           { id: "medeltid", name: "Medeltiden", coverEmoji: "🏰", quiz: q(8, "fakta"), pairs: pairs(6) },
           { id: "rymden", name: "Rymden (äldre innehåll)", coverEmoji: "🪐", quiz: q(8), pairs: pairs(6) },
         ] },
@@ -64,6 +68,19 @@
         s9: { vikingar: Object.fromEntries(["quiz", "lasforstaelse", "kunskapsjakt", "para", "sanningsjakt", "memory",
           "aventyr:skattjakten", "aventyr:spokjakten", "aventyr:gruvan"].map((m) => [m, n(m === "memory" ? 0 : 3, true, 2, 0, m === "quiz" ? { fakta: [4, 4] } : null)])) },
       };
+      // #674: studentData.amneslasning – läst-lista + denormaliserade totaler per område.
+      const cs = (f, o, m, h) => ({ fakta: { q: f[0], correct: f[1] }, ordforstaelse: { q: o[0], correct: o[1] },
+        mellan_raderna: { q: m[0], correct: m[1] }, helhet_slutsats: { q: h[0], correct: h[1] } });
+      const am = (read, texts, qn, c, cats) => ({ areas: { vikingar: {
+        subjectId: "so", read: Object.fromEntries(read.map((id) => [id, { count: 1, lastAt: Date.now() }])),
+        totals: { totalTexts: texts, totalQuestions: qn, totalCorrect: c, totalIncorrect: qn - c, moneyEarned: c * 5, catStats: cats } } } });
+      globalThis.PREVIEW_AMNES = AMNES ? {
+        s1: am(["v1", "v2", "v3", "v4"], 5, 35, 28, cs([14, 13], [7, 5], [8, 5], [6, 5])),
+        s3: am(["v1"], 1, 7, 3, cs([3, 2], [2, 1], [1, 0], [1, 0])),
+        s4: am(["v1", "v2", "v3", "v4", "v5", "v6"], 6, 42, 39, cs([16, 16], [10, 9], [9, 8], [7, 6])),
+        s6: am(["v2", "v3"], 2, 14, 9, cs([6, 5], [4, 2], [2, 1], [2, 1])),
+        s7: am(["v1", "v2"], 3, 21, 8, cs([8, 4], [5, 2], [5, 1], [3, 1])),
+      } : {};
       const students = [
         { id: "s1", namn: "Örjan Lind", username: "orjan.6a", avatarId: "lion" },
         { id: "s2", namn: "Alva Berg", username: "alva.6a", avatarId: "owl" },

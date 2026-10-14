@@ -216,3 +216,24 @@ export function applyCompletion(lasresa, attempt, registry = WORLDS, now = Date.
   const out = applyPendingLevel(next);
   return { lasresa: out, levelChanged: out.level !== cur.level, journey };
 }
+
+/**
+ * BARA den dolda nivån: applicera ett färdigt textresultat på nivå + streaks
+ * (level.js-reglerna, SAMMA streaks) utan att röra resan, totaler eller sedda
+ * texter. För Ämnesläsningen (src/amneslasning/), som delar läsnivån men har
+ * egen "läst"-lista och aldrig flyttar avataren. `maxLevel` = tak uppåt.
+ * Lagras som allt annat via toStoredLasresa (level10 + spegel).
+ * @returns {{lasresa:object, levelChanged:boolean, band:("high"|"mid"|"low"|null)}}
+ */
+export function applyLevelResult(lasresa, { correct, total }, { maxLevel, now = Date.now() } = {}) {
+  const cur = normalizeLasresa(lasresa);
+  const lvl = applyResult(cur, { correct, total }, { maxLevel });
+  const out = applyPendingLevel({
+    ...cur,
+    level: lvl.level,
+    highStreak: lvl.highStreak,
+    lowStreak: lvl.lowStreak,
+    updatedAt: now,
+  });
+  return { lasresa: out, levelChanged: out.level !== cur.level, band: lvl.band };
+}

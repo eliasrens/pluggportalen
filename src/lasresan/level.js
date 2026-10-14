@@ -54,10 +54,13 @@ export function classifyResult(correct, total) {
  * Applicera ett FÄRDIGT textresultat på nivåtillståndet.
  * @param {{level?:number, highStreak?:number, lowStreak?:number}} state
  * @param {{correct:number, total:number}} result
+ * @param {{maxLevel?:number}} [opts] `maxLevel` = tak uppåt (Ämnesläsningen:
+ *   AMNES_LEVEL_CAP). Vid taket nollas streaken som vid LEVEL_MAX; en nivå som
+ *   redan ligger över taket står still uppåt men kan sjunka som vanligt.
  * @returns {{level:number, highStreak:number, lowStreak:number, changed:boolean, band:("high"|"mid"|"low"|null)}}
  *   `changed` = nivån ändrades (ALDRIG något eleven får se).
  */
-export function applyResult(state, { correct, total }) {
+export function applyResult(state, { correct, total }, { maxLevel = LEVEL_MAX } = {}) {
   const level = normalizeLevel(state && state.level);
   let highStreak = count(state && state.highStreak);
   let lowStreak = count(state && state.lowStreak);
@@ -73,7 +76,7 @@ export function applyResult(state, { correct, total }) {
     highStreak += 1;
     lowStreak = 0;
     if (highStreak >= HIGH_STREAK_TO_UP) {
-      const next = Math.min(LEVEL_MAX, level + 1);
+      const next = level < Math.min(LEVEL_MAX, maxLevel) ? level + 1 : level;
       return { level: next, highStreak: 0, lowStreak: 0, changed: next !== level, band };
     }
     return { level, highStreak, lowStreak, changed: false, band };

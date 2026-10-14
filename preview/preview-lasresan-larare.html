@@ -53,6 +53,16 @@
         s7: lr({ level: 1, totalTexts: 6, totalQuestions: 30, totalCorrect: 11, totalIncorrect: 19, moneyEarned: 33, stepInWorld: 6, catStats: cat([12, 6], [8, 3], [6, 1], [4, 1]) }),
         s8: lr({ level: 7, totalTexts: 20, totalQuestions: 160, totalCorrect: 149, totalIncorrect: 11, moneyEarned: 447, stepInWorld: 20, catStats: cat([60, 58], [40, 37], [32, 29], [28, 25]) }),
       };
+      // #674: ämnestotaler (studentData.amneslasning.totals) – källfiltret. ?amnes=0 → inga.
+      const AMNES_ON = new URLSearchParams(location.search).get("amnes") !== "0";
+      const at = (texts, qn, c, cats) => ({ totalTexts: texts, totalQuestions: qn, totalCorrect: c, totalIncorrect: qn - c, moneyEarned: c * 5, catStats: cats });
+      const AMNES = AMNES_ON ? {
+        s1: at(5, 35, 28, cat([14, 13], [7, 5], [8, 5], [6, 5])),
+        s3: at(1, 7, 3, cat([3, 2], [2, 1], [1, 0], [1, 0])),
+        s4: at(6, 42, 39, cat([16, 16], [10, 9], [9, 8], [7, 6])),
+        s5: at(2, 14, 10, cat([6, 5], [3, 2], [3, 2], [2, 1])), // bara ämnesläsning, inget i Läsresan
+        s7: at(3, 21, 8, cat([8, 4], [5, 2], [5, 1], [3, 1])),
+      } : {};
       const TITLES = ["Räven och kråkan", "Hur bin gör honung", "Stormnatten", "Vikingarnas skepp", "Brevet från <mormor>", "Myrstacken", "Isbjörnens vinter", "Den gamla fyren", "Solsystemet", "Hemliga rummet"];
       const DAY = 86400000;
       function attemptsFor(id, max) {
@@ -66,10 +76,21 @@
           return { textId: `t${i}`, title: TITLES[i % TITLES.length], textLevel: l.level - (i % 2), totalQuestions: total, correct, completedAt: Date.now() - i * 1.7 * DAY };
         });
       }
+      const AMNES_TITLES = ["Vikingarnas handel", "Livet på en gård", "Asagudarna", "Runstenar", "Långskeppet", "Tinget"];
+      function amnesAttemptsFor(id, max) {
+        const a = AMNES[id];
+        if (!a) return [];
+        return Array.from({ length: Math.min(max, a.totalTexts) }, (_, i) => ({
+          textId: `v${i}`, title: AMNES_TITLES[i % AMNES_TITLES.length], textLevel: 5, levelScale: 10, totalQuestions: 7,
+          correct: Math.round((7 * a.totalCorrect) / a.totalQuestions), completedAt: Date.now() - (i * 1.7 + 0.8) * DAY,
+          source: "amnesläsning", subjectId: "so", areaId: "vikingar", amnesLevel: 2,
+        }));
+      }
 
       const fake = (v, ms = 250) => new Promise((r) => setTimeout(() => r(v), ms));
-      const loadClass = (ids) => fake(ids.filter((id) => id !== "s2").map((studentId) => ({ studentId, lasresa: LASRESA[studentId] })));
-      const loadAttempts = (id, max) => fake(attemptsFor(id, max), 400);
+      const loadClass = (ids) => fake(ids.filter((id) => id !== "s2").map((studentId) => ({ studentId, lasresa: LASRESA[studentId], amnesTotals: AMNES[studentId] || null })));
+      const loadAttempts = (id, max) =>
+        fake([...attemptsFor(id, max), ...amnesAttemptsFor(id, max)].sort((a, b) => b.completedAt - a.completedAt).slice(0, max), 400);
 
       const container = el(`<div class="teacher-page teacher-dark"></div>`);
       container.appendChild(teacherNav(ctx, "klasser"));
