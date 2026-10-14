@@ -13,9 +13,13 @@
 // Byar/Moduler/Fokusläge/Läsresan/Klasscentret laddas med import() (#271).
 // Lead-beslut D-1: 6 sektioner – Moduler + Byar staplade i "Synlighet",
 // Läsresan stannar som underflik i Statistik (X-07).
+//
+// #679: sektionerna fördelas på tre sidlägen (CLASS_PAGE_MODES) – Klasser,
+// Statistik och Admin → Klasser & elevkonton. Sektionerna själva är oförändrade;
+// "Inloggning" är medlemshanteraren i lösenordsläge (det årskurskonton får).
 // ============================================================================
 
-import { el, esc } from "./teacher-shared.js";
+import { el, esc, errText, isAdmin } from "./teacher-shared.js";
 import { renderMemberManager } from "./teacher-class-accounts.js";
 import { renderClassAreaModes, renderClassAssignments } from "./teacher-class-modes.js";
 import { renderClassStats } from "./teacher-class.js";
@@ -26,11 +30,33 @@ export async function withLoading(host, what, render) {
   try {
     await render();
   } catch (err) {
-    host.replaceChildren(el(`<p class="err-inline">Kunde inte ladda ${esc(what)}: ${esc(err.message)}</p>`));
+    host.replaceChildren(el(`<p class="err-inline">Kunde inte ladda ${esc(what)}: ${esc(errText(err))}</p>`));
   }
 }
 
+const memberSection = (loginOnly) => (ctx, cls, host, store) =>
+  renderMemberManager(ctx, {
+    cls,
+    state: store.state,
+    membersEl: host,
+    loginOnly,
+    onChange: () => store.notify(),
+    creds: {
+      initial: store.creds.get(cls.id) || null,
+      save: (created) => store.creds.set(cls.id, created),
+      clear: () => store.creds.delete(cls.id),
+    },
+  });
+
 export const CLASS_SECTIONS = [
+  {
+    // #679: elevernas lösenord + inloggningskort (§2.1 Elevlösenord).
+    key: "inloggning",
+    label: "Inloggning",
+    icon: "key",
+    what: "elever",
+    render: memberSection(true),
+  },
   {
     key: "elever",
     label: "Elever",
@@ -39,18 +65,7 @@ export const CLASS_SECTIONS = [
     // E-01–E-17, A-, C-: medlemshanteraren. Räknaren i detaljhuvudet + master
     // hålls i synk via onChange → notify (ersätter countEl, E-17); nyss skapade
     // lösenord ligger kvar i storen tills läraren stänger panelen (X-08).
-    render: (ctx, cls, host, store) =>
-      renderMemberManager(ctx, {
-        cls,
-        state: store.state,
-        membersEl: host,
-        onChange: () => store.notify(),
-        creds: {
-          initial: store.creds.get(cls.id) || null,
-          save: (created) => store.creds.set(cls.id, created),
-          clear: () => store.creds.delete(cls.id),
-        },
-      }),
+    render: memberSection(false),
   },
   {
     key: "omraden",
@@ -76,15 +91,17 @@ export const CLASS_SECTIONS = [
     icon: "eye",
     what: "synlighet",
     // MO-01–MO-03 (#412) + B-01–B-06 (#391), staplade med var sitt Spara.
+    // Byarna (klassbyar = bara admin, §2.2) ritas bara för admin (#679).
     render: async (ctx, cls, host, store) => {
       const modulesEl = el(`<div class="cls-block"></div>`);
       const villagesEl = el(`<div class="cls-block"></div>`);
-      host.replaceChildren(modulesEl, villagesEl);
+      const byar = isAdmin();
+      host.replaceChildren(...(byar ? [modulesEl, villagesEl] : [modulesEl]));
       await Promise.all([
         withLoading(modulesEl, "moduler", async () =>
           (await import("./teacher-class-modules.js")).renderClassModules(ctx, cls, modulesEl)
         ),
-        withLoading(villagesEl, "byar", async () =>
+        byar && withLoading(villagesEl, "byar", async () =>
           (await import("./teacher-class-villages.js")).renderClassVillages(ctx, cls, villagesEl, store.classes)
         ),
       ]);
@@ -137,7 +154,25 @@ export const CLASS_SECTIONS = [
   },
 ];
 
-/** Sektion för en nyckel (okänd → första). */
-export function sectionFor(key) {
-  return CLASS_SECTIONS.find((s) => s.key === key) || CLASS_SECTIONS[0];
+/**
+ * Sidlägen (#679, spec §5.1). tab = flik i TEACHER_TABS, base = route,
+ * sections = sektionsnycklar i ordning, manage = skapa/döp om/ta bort klasser
+ * (bara Admin-läget, som i sin tur bara når admin). Nivåstyrningen för Läsresan
+ * och Ekvationsresan bor i statistikens flikar (#506) och följer med Statistik.
+ */
+export const CLASS_PAGE_MODES = {
+  klasser: { tab: "klasser", base: "#/larare/klasser", sections: ["omraden", "lagen", "synlighet", "fokus", "inloggning"], manage: false },
+  statistik: { tab: "statistik", base: "#/larare/statistik", sections: ["statistik"], manage: false },
+  admin: { tab: "adminklasser", base: "#/larare/admin/klasser", sections: ["elever", "klasscenter"], manage: true },
+};
+
+/** Sektionerna (rader ur CLASS_SECTIONS) för ett sidläge; okänt läge → alla. */
+export function sectionsFor(mode) {
+  const keys = CLASS_PAGE_MODES[mode]?.sections;
+  return keys ? keys.map((k) => CLASS_SECTIONS.find((s) => s.key === k)) : CLASS_SECTIONS;
+}
+
+/** Sektion för en nyckel (okänd → första) – bland `list` (default alla). */
+export function sectionFor(key, list = CLASS_SECTIONS) {
+  return list.find((s) => s.key === key) || list[0];
 }

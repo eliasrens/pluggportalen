@@ -71,7 +71,7 @@ export function buildLibraryView() {
       <header class="studio-head">
         <span class="teacher-page-ic" aria-hidden="true">${icon("book", 22)}</span>
         <div class="studio-head-txt">
-          <h1 class="studio-title" id="studio-title">Innehållsstudion</h1>
+          <h1 class="studio-title" id="studio-title">Plugga-material</h1>
           <p class="studio-sub">Hantera ämnen, arbetsområden och uppgifter för dina klasser</p>
         </div>
       </header>
@@ -86,6 +86,12 @@ export function buildLibraryView() {
             <option value="">Alla</option>
             <option value="ospecificerad">Ospecificerad</option>
             ${gradeOptions()}
+          </select>
+        </label>
+        <label class="studio-grade-filter">Visa:
+          <select id="area-owner-filter" class="select">
+            <option value="">Allt material</option>
+            <option value="mine">Mitt material</option>
           </select>
         </label>
         <button type="button" class="btn gron" id="create-new">${icon("plus")}<span>Skapa nytt område</span></button>

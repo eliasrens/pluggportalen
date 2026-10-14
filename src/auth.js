@@ -96,7 +96,7 @@ function clearMirror() {
 // Optimistisk start-spegel; rekoncilieras mot Firebase Auth i authReady.
 let cachedSession = readMirror();
 let teacherClaim = false; // sätts true när en lärar-Auth-användare är inloggad
-let adminClaim = false; // admin:true (#677) – lärarkonto med full behörighet
+let adminClaim = false; // admin enligt adminFromClaims (#677/#679) – full behörighet
 
 /** Sessionsobjektet ({ studentId, namn, username }) eller null. */
 export function getSession() {
@@ -114,7 +114,8 @@ export function isLoggedIn() {
 export function isTeacher() {
   return teacherClaim === true;
 }
-/** Är läraren ADMIN (claims teacher + admin, #677)? Årskurskonton har role:"arskurs". */
+/** Admin = lärare med admin:true ELLER utan role (övergången, spec §6.2); role "arskurs" m.fl. = inte admin. */
+export const adminFromClaims = (c) => c?.teacher === true && (c.admin === true || !c.role || c.role === "admin");
 export function isAdmin() {
   return teacherClaim === true && adminClaim === true;
 }
@@ -200,7 +201,7 @@ onAuthStateChanged(auth, async (user) => {
     try {
       const tok = await user.getIdTokenResult();
       isTeach = tok.claims.teacher === true;
-      isAdm = tok.claims.admin === true;
+      isAdm = adminFromClaims(tok.claims);
     } catch {}
     // Utloggad/bytt under väntan? Skriv då ingen inaktuell spegel (#464).
     if (auth.currentUser?.uid !== user.uid) return;
@@ -342,7 +343,7 @@ export async function signInTeacher(username, password) {
       };
     }
     teacherClaim = true;
-    adminClaim = tok.claims.admin === true;
+    adminClaim = adminFromClaims(tok.claims);
     cachedSession = null;
     clearMirror();
     return { ok: true };

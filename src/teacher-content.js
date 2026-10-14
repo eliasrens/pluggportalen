@@ -14,10 +14,11 @@
 // autosparas ALDRIG: materialrutan är ett redigerbart utkast och Spara sker först
 // efter Kontrollera/granskning.
 //
-// BOOT-SÄKERT: teacher-content.js ligger i den STATISKA bootgrafen (index.html →
-// app.js → teacher.js → hit). teacher-wizard.js + dess tunga imports laddas
-// därför DYNAMISKT nedan – en NY fil i den statiska grafen kan 404:a under en
-// icke-atomär deploy → vit sida (bevisad rotorsak #271, jfr #290).
+// #679: fliken heter Material. Ett årskurskonto ser "Skapat av …" och kan Använda/
+// Duplicera allt men bara ändra/radera sitt eget; nya ämnen skapar bara admin.
+//
+// BOOT-SÄKERT: laddas med import() ur TEACHER_TABS; teacher-wizard.js + dess tunga
+// imports laddas DYNAMISKT nedan (#271, jfr #290).
 // ============================================================================
 
 import * as data from "./data.js";
@@ -25,6 +26,7 @@ import { buildAreaTable } from "./teacher-content-list.js";
 import { buildLibraryView, buildSubjectTab } from "./teacher-content-view.js";
 import { wireNewSubjectForm } from "./teacher-subject-form.js";
 import { filterSortAreas } from "./grades.js";
+import { myRole } from "./teacher-role.js";
 import {
   el,
   esc,
@@ -32,6 +34,7 @@ import {
   teacherNav,
   teacherHead,
   emptyState,
+  errText,
   renderGate,
 } from "./teacher-shared.js";
 
@@ -42,8 +45,9 @@ export async function pageLarareInnehall(ctx) {
   ctx.app.replaceChildren(el(`<div class="spinner">Laddar ämnen…</div>`));
 
   let subjects = [];
+  let role;
   try {
-    subjects = await data.getSubjects();
+    [subjects, role] = await Promise.all([data.getSubjects(), myRole()]);
   } catch (err) {
     ctx.app.replaceChildren(
       el(`<div class="panel"><div class="msg error">Kunde inte ladda ämnen: ${esc(err.message)}</div></div>`)
@@ -80,6 +84,9 @@ export async function pageLarareInnehall(ctx) {
   const subjectTabs = lib.querySelector("#subject-tabs");
   const areaCardsEl = lib.querySelector("#area-cards");
   const gradeFilterSel = lib.querySelector("#area-grade-filter");
+  const ownerFilterSel = lib.querySelector("#area-owner-filter");
+  // "Mitt material" (#679): eget createdBy; material utan createdBy är admins (§2.3).
+  const isMine = (a) => (a.createdBy ? a.createdBy === role.uid : role.admin);
   // Tabellens sortering: "order" (områdets ordning) tills en rubrik klickas;
   // samma rubrik igen vänder riktningen.
   let sort = { key: "order", dir: "asc" };
@@ -124,13 +131,14 @@ export async function pageLarareInnehall(ctx) {
       );
       return;
     }
-    const shown = filterSortAreas(currentAreas, {
+    const pool = ownerFilterSel.value === "mine" ? currentAreas.filter(isMine) : currentAreas;
+    const shown = filterSortAreas(pool, {
       filter: gradeFilterSel.value,
       sort: sort.key,
       dir: sort.dir,
     });
     if (shown.length === 0) {
-      areaCardsEl.innerHTML = `<p class="hint">Inga arbetsområden matchar filtret. Ändra "Visa årskurs" ovan.</p>`;
+      areaCardsEl.innerHTML = `<p class="hint">Inga arbetsområden matchar filtret. Ändra "Visa årskurs" eller "Visa" ovan.</p>`;
       return;
     }
     areaCardsEl.replaceChildren(
@@ -143,8 +151,22 @@ export async function pageLarareInnehall(ctx) {
         onSort,
         itemState,
         onItemsSaved: () => refreshAreaList({ quiet: true }),
+        role,
+        // Använd = välj området för en klass (Klasser → Områden).
+        onUse: () => ctx.go("#/larare/klasser?sektion=omraden"),
+        // Duplicera byggs i #680 (data.duplicateArea) – utan den visas ingen knapp.
+        onDuplicate: typeof data.duplicateArea === "function" ? duplicate : null,
       })
     );
+  }
+
+  async function duplicate(area) {
+    try {
+      await data.duplicateArea(selected, area.id);
+      refreshAreaList();
+    } catch (err) {
+      alert("Kunde inte duplicera: " + errText(err));
+    }
   }
 
   // quiet: ingen spinner (efter sparad underrad, #454) – tabellen byts ut på
@@ -165,9 +187,12 @@ export async function pageLarareInnehall(ctx) {
   }
 
   gradeFilterSel.addEventListener("change", renderAreaCards);
+  ownerFilterSel.addEventListener("change", renderAreaCards);
+  // Ämnen skapar bara admin (§2.2) – knappen döljs för årskurskonton.
+  if (!role.admin) lib.querySelector("#new-subject").remove();
   renderSubjectTabs();
 
-  wireNewSubjectForm({
+  if (role.admin) wireNewSubjectForm({
     toggleBtn: lib.querySelector("#new-subject"),
     formEl: lib.querySelector("#new-subject-form"),
     subjects,

@@ -9,7 +9,7 @@
 // Laddas dynamiskt från medlemshanteraren (teacher-class-accounts.js).
 // ============================================================================
 
-import { el, esc, icon } from "./teacher-shared.js";
+import { el, errText, esc, icon } from "./teacher-shared.js";
 import { avatarEmoji } from "./avatars.js";
 import { generatePassword } from "./teacher-class-accounts.js";
 import { USERNAME_RE } from "./teacher-login-cards.js";
@@ -23,7 +23,7 @@ const defaultApi = () => import("./data-student-login.js");
  * @param {{onSaved?: Function, api?: object}} [opts] api = { updateStudentLogin,
  *   getStudentCredentials } (preview/test; default = data-student-login.js)
  */
-export function openLoginEditor(student, { onSaved, api } = {}) {
+export function openLoginEditor(student, { onSaved, api, passwordOnly = false } = {}) {
   const name = student.namn || student.username || student.id;
   const overlay = el(`<div class="cx-modal-overlay teacher-dark le-modal" role="dialog" aria-modal="true"
       aria-label="Redigera inloggning – ${esc(name)}">
@@ -138,7 +138,7 @@ export function openLoginEditor(student, { onSaved, api } = {}) {
       );
       if (onSaved) onSaved(res);
     } catch (err) {
-      setMsg("error", esc(err?.message || "Kunde inte spara."));
+      setMsg("error", esc(err ? errText(err) : "Kunde inte spara."));
     } finally {
       saveBtn.disabled = false;
     }
@@ -157,7 +157,12 @@ export function openLoginEditor(student, { onSaved, api } = {}) {
     if (e.target === overlay) close();
   });
   document.addEventListener("keydown", onKey);
+  // Årskurskonto (#679): bara lösenordet får bytas (§2.1) – användarnamnet låses.
+  if (passwordOnly) {
+    userIn.disabled = true;
+    $(".le-note").textContent = "Användarnamnet kan bara admin ändra.";
+  }
   document.body.appendChild(overlay);
-  userIn.focus();
+  (passwordOnly ? passIn : userIn).focus();
   return { close };
 }

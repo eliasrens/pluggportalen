@@ -12,6 +12,9 @@
 // query → sessionStorage → första klassen. pushState används INTE (back/forward
 // mellan hash-URL:er avfyrar hashchange → full omritning).
 //
+// #679: tre sidlägen (CLASS_PAGE_MODES): Klasser, Statistik, Admin → Klasser &
+// elevkonton. Ett årskurskonto ser bara sina klasser och deras elever.
+//
 // Laddas dynamiskt av teacher-classes.js – aldrig i den statiska bootgrafen (#271).
 // ============================================================================
 
@@ -24,7 +27,8 @@ import {
   loadLibraryFrom,
   pickInitial,
 } from "./teacher-classes-store.js";
-import { CLASS_SECTIONS } from "./teacher-classes-sections.js";
+import { CLASS_PAGE_MODES, sectionsFor } from "./teacher-classes-sections.js";
+import { filterClasses, myRole, studentsInClasses } from "./teacher-role.js";
 import { createClassMaster } from "./teacher-classes-master.js";
 import { createClassDetail } from "./teacher-classes-detail.js";
 
@@ -36,28 +40,31 @@ function readSaved() {
   }
 }
 
-function persist(id, section) {
+function persist(mode, id, section) {
   try {
     if (id) sessionStorage.setItem(SELECTED_KEY, id);
     else sessionStorage.removeItem(SELECTED_KEY);
   } catch {}
-  const hash = classesHash(id, section);
+  const hash = classesHash(id, section, mode.base);
   // Bara om vi fortfarande står på klassvyn (läraren kan ha hunnit byta flik).
-  if (window.location.hash.split("?")[0] === "#/larare/klasser" && window.location.hash !== hash) {
+  if (window.location.hash.split("?")[0] === mode.base && window.location.hash !== hash) {
     history.replaceState(history.state, "", hash);
   }
 }
 
 /** Montera Master-Detail-vyn i ctx.app (anropas efter lärarspärren). */
-export async function mountClassesPage(ctx) {
+export async function mountClassesPage(ctx, modeKey = "klasser") {
+  const mode = CLASS_PAGE_MODES[modeKey] || CLASS_PAGE_MODES.klasser;
+  const sections = sectionsFor(modeKey);
   ctx.app.replaceChildren(el(`<div class="spinner">Laddar klasser…</div>`));
   const startHash = window.location.hash;
 
   // Klasser + elever parallellt (elever behövs för medlemslistor/statistik).
   let classes = [];
   let students = [];
+  let role;
   try {
-    [classes, students] = await Promise.all([data.getClasses(), data.getStudents()]);
+    [classes, students, role] = await Promise.all([data.getClasses(), data.getStudents(), myRole()]);
   } catch (err) {
     ctx.app.replaceChildren(
       el(`<div class="panel"><div class="msg error">Kunde inte ladda klasser: ${esc(err.message)}</div></div>`)
@@ -67,6 +74,11 @@ export async function mountClassesPage(ctx) {
   // Läraren hann navigera vidare medan vi läste – rita inte över nästa vy.
   if (window.location.hash !== startHash) return;
 
+  // Årskurskonto: bara kontots klasser och elever (§5.2). Admin: allt som förut.
+  if (!role.admin) {
+    classes = filterClasses(classes, role);
+    students = studentsInClasses(students, classes);
+  }
   students = students
     .slice()
     .sort((a, b) => String(a.namn || "").localeCompare(String(b.namn || ""), "sv"));
@@ -77,15 +89,18 @@ export async function mountClassesPage(ctx) {
     klass: query.get("klass"),
     sektion: query.get("sektion"),
     saved: readSaved(),
-    sections: CLASS_SECTIONS.map((s) => s.key),
+    sections: sections.map((s) => s.key),
   });
   store.selectedId = initial.id;
   store.section = initial.section;
-  store.creating = !initial.id; // inga klasser → börja i skapa-läget (K-09)
+  store.sections = sections;
+  store.manage = mode.manage;
+  // Inga klasser → skapa-läget (K-09) – bara där klasser får skapas (Admin-läget).
+  store.creating = !initial.id && mode.manage;
 
   const container = el(`<div class="teacher-page teacher-dark cls-page"></div>`);
-  container.appendChild(teacherNav(ctx, "klasser"));
-  container.appendChild(teacherHead(ctx, "klasser"));
+  container.appendChild(teacherNav(ctx, mode.tab));
+  container.appendChild(teacherHead(ctx, mode.tab));
 
   const master = createClassMaster(store);
   const detail = createClassDetail(ctx, store);
@@ -96,11 +111,11 @@ export async function mountClassesPage(ctx) {
   store.subscribe(() => {
     master.update();
     detail.update();
-    if (!store.creating) persist(store.selectedId, store.section);
-    // Sista klassen borttagen → ren #/larare/klasser, inget gammalt ?klass= (#449 F3).
-    else if (!store.classes.length) persist(null);
+    if (!store.creating) persist(mode, store.selectedId, store.section);
+    // Sista klassen borttagen → ren route, inget gammalt ?klass= (#449 F3).
+    else if (!store.classes.length) persist(mode, null);
   });
 
   ctx.app.replaceChildren(container);
-  if (!store.creating) persist(store.selectedId, store.section);
+  if (!store.creating) persist(mode, store.selectedId, store.section);
 }
