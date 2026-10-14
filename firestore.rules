@@ -373,11 +373,22 @@ service cloud.firestore {
              (!('lasresaStartLevel10' in d) ||
                (d.lasresaStartLevel10 is int && d.lasresaStartLevel10 >= 1 && d.lasresaStartLevel10 <= 10));
     }
+    // ROLLER (#678, §2.1/§2.2): admin skapar, raderar och ändrar allt.
+    // Årskurskontot ändrar BARA sina klasser och bara synlighet (områden,
+    // lägen, moduler), fokusläget och Läsresans startnivå + spegeln – aldrig
+    // name, studentIds, byarna (hiddenVillages) eller annat.
+    function classValid() {
+      return validHiddenVillages() && validHiddenModules() && validEnabledModules() &&
+        validLock() && validLasresaStartLevel();
+    }
     match /classes/{classId} {
       allow read:  if signedIn();
-      allow create, update: if isTeacher() && validHiddenVillages() && validHiddenModules() &&
-                               validEnabledModules() && validLock() && validLasresaStartLevel();
-      allow delete: if isTeacher();
+      allow create: if isAdmin() && classValid();
+      allow update: if classValid() && (isAdmin() || (gradeClass(classId) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['assignedAreas',
+          'hiddenModes', 'areaModes', 'hiddenModules', 'enabledModules', 'lock',
+          'lasresaStartLevel10', 'lasresaStartLevel'])));
+      allow delete: if isAdmin();
     }
 
     // Klass-projektion (#231/#232): ETT förberäknat dokument per klass som
@@ -402,7 +413,7 @@ service cloud.firestore {
     // Coins/progress/lösenord finns inte här. Lärare får också skriva (backfill).
     match /classProjections/{classId} {
       allow read:  if signedIn();
-      allow write: if isTeacher() || isClassMember(classId);
+      allow write: if isAdmin() || isClassMember(classId);
     }
 
     // Gemensamma klassprojekt (#331): klassen donerar tillsammans coins till
@@ -423,7 +434,7 @@ service cloud.firestore {
     // "Missing or insufficient permissions" i prod.
     match /classProjects/{classId} {
       allow read:  if signedIn();
-      allow write: if isTeacher() || isClassMember(classId);
+      allow write: if isAdmin() || isClassMember(classId);
     }
     // ------------------------------------------------------------------------
     // UTKAST (#316, SEKUNDÄRT – EJ aktiverat): begränsa en elev till att skriva
@@ -431,12 +442,12 @@ service cloud.firestore {
     // .hasOnly([...]) kan uttrycka precis det för UPDATE (nyckeln i members-mappen
     // som rörs måste vara den egna uid:n):
     //
-    //   allow update: if isTeacher() ||
+    //   allow update: if isAdmin() ||
     //     (signedIn() &&
     //      request.auth.uid in get(/databases/$(database)/documents/classes/$(classId)).data.studentIds &&
     //      request.resource.data.members.diff(resource.data.members)
     //        .affectedKeys().hasOnly([request.auth.uid]));
-    //   allow create: if isTeacher() ||
+    //   allow create: if isAdmin() ||
     //     (signedIn() &&
     //      request.auth.uid in get(/databases/$(database)/documents/classes/$(classId)).data.studentIds &&
     //      request.resource.data.members.keys().hasOnly([request.auth.uid]));
