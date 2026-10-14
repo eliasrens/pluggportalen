@@ -53,7 +53,9 @@ async function payOne(sdk, db, { sid, post, uid, defaults, forsok, vanta }) {
     const snap = await tx.get(elev);
     const cur = snap.exists() ? Number(snap.data().coins) || 0 : 0;
     if (sammaSomNekat(ctx, `${snap.exists()}|${cur}`)) return SAMMA_LAGE;
-    if (snap.exists()) tx.update(elev, { coins: cur + post.total });
+    // lastLiveReceipt = sessionen: reglerna knyter årskurskontots
+    // coins-ökning till just det här kvittot (#678).
+    if (snap.exists()) tx.update(elev, { coins: cur + post.total, lastLiveReceipt: sid });
     else tx.set(elev, { ...(defaults ? defaults() : {}), coins: post.total });
     tx.set(kvitto, {
       uid: post.uid, prize: post.prize, correctCoins: post.correctCoins, total: post.total,

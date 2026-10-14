@@ -120,9 +120,11 @@ service cloud.firestore {
     // river #37 för utseende-data mellan klasser). students-dokumentet bär bara
     // namn/avatar/klasstillhörighet – inga lösenord/coins/progress – så det är
     // ofarligt att låta alla inloggade läsa det. Skrivning: fortfarande bara läraren.
+    // (#678) Elevkonton skapas/ändras/raderas bara av admin (§2.2) –
+    // lösenordsbyte går via Cloud Functionen updateStudentLogin.
     match /students/{studentId} {
       allow read:  if signedIn();
-      allow write: if isTeacher();
+      allow write: if isAdmin();
     }
 
     // Sparade elevlösenord (lärarens "Redigera inloggning" + inloggningskort):
@@ -130,9 +132,11 @@ service cloud.firestore {
     // lärare läser/skriver – en elev kan aldrig läsa något, inte ens sitt eget.
     // Skrivs av lärarklienten när konton skapas och av Cloud Functionen
     // updateStudentLogin (Admin SDK, förbi reglerna) när lösenordet byts.
+    // (#678) Årskurskontot LÄSER sina elevers (inloggningskort), skriver aldrig.
     match /studentCredentials/{studentId} {
-      allow read, delete: if isTeacher();
-      allow create, update: if isTeacher() &&
+      allow read: if hasStudent(studentId);
+      allow delete: if isAdmin();
+      allow create, update: if isAdmin() &&
         request.resource.data.keys().hasOnly(['username', 'password', 'updatedAt']) &&
         request.resource.data.username is string &&
         (!('password' in request.resource.data) ||
@@ -162,9 +166,17 @@ service cloud.firestore {
     // åtkomsten inom klassen). Appen visar aldrig andras coins/progress. Detta är
     // ett medvetet produktägar-beslut (#114). Skrivning: fortfarande bara eleven
     // själv/läraren – ingen kan ändra en annan elevs data.
+    //
+    // ROLLER (#678): admin läser/skriver allt. Årskurskontot läser BARA sina
+    // elever (den öppna läsgrenen gäller inte lärare – statistik för andra
+    // klasser nekas) och skriver bara gradeStudentDataOk nedan.
     match /studentData/{studentId} {
-      allow read:  if isTeacher() || isSelf(studentId) || (signedIn() && resource.data.get('husLast', false) != true);
-      allow write: if isTeacher() || isSelf(studentId);
+      allow read:  if isSelf(studentId) || hasStudent(studentId) ||
+        (signedIn() && !isTeacher() && resource.data.get('husLast', false) != true);
+      allow create: if isSelf(studentId) || isAdmin();
+      allow update: if isSelf(studentId) || isAdmin() ||
+        (gradeStudent(studentId) && gradeStudentDataOk(studentId));
+      allow delete: if isSelf(studentId) || isAdmin();
 
       // Läsresan (#399): ett försök per färdig text, se docs/LASRESAN.md.
       // Samma ägarmodell som studentData-skrivningen: eleven själv eller
@@ -175,7 +187,8 @@ service cloud.firestore {
       // Pages). Innan dess nekas skrivningen och data-lasresan.js sparar
       // försöket i studentData.lasresaAttemptsFallback i stället.
       match /lasresaAttempts/{attemptId} {
-        allow read, write: if isTeacher() || isSelf(studentId);
+        allow read: if hasStudent(studentId) || isSelf(studentId);
+        allow write: if isAdmin() || isSelf(studentId);
       }
 
       // Ekvationsresan (#618, docs/EKVATIONSRESAN.md §5): ETT progressdokument
@@ -185,20 +198,50 @@ service cloud.firestore {
       // aldrig sparas (och ge mynt) två gånger. Läraren får radera (städning)
       // och skriva progress (nivåstyrning, E1.12).
       // ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules`.
+      // Årskurskontot (#678): samma nivåstyrning som admin, för sina elever.
       match /ekvationsresa/{docId} {
-        allow read: if isTeacher() || isSelf(studentId);
+        allow read: if hasStudent(studentId) || isSelf(studentId);
         allow create, update: if docId == 'progress' && ekvProgressOk(request.resource.data) &&
           ekvMaxLevelOk(request.resource.data, resource) &&
-          (isSelf(studentId) || (isTeacher() && ekvTeacherLevelOk(request.resource.data, resource)));
-        allow delete: if isTeacher();
+          (isSelf(studentId) || (hasStudent(studentId) && ekvTeacherLevelOk(request.resource.data, resource)));
+        allow delete: if isAdmin();
       }
       match /ekvationsresaAttempts/{taskId} {
-        allow read: if isTeacher() || isSelf(studentId);
+        allow read: if hasStudent(studentId) || isSelf(studentId);
         allow create: if isSelf(studentId) && taskId.matches('^[A-Za-z0-9_-]{8,64}$') &&
           ekvAttemptOk(request.resource.data, taskId);
         allow update: if false;
-        allow delete: if isTeacher();
+        allow delete: if isAdmin();
       }
+    }
+
+    // Årskurskontots skrivning i studentData (#678, §2.1) – bara ETT av:
+    //  • Läsresans nivå: bara fältet lasresa, och i det bara nivåfälten
+    //    (src/data-lasresan-niva.js setStudentLevel skriver dem som fältvägar).
+    //    En elev utan lasresa får ett NYTT tillstånd utan resultat och pengar.
+    //  • Pluggmynt efter en Live-match (#557): coins ökar exakt med kvittot
+    //    liveSessions/{lastLiveReceipt}/coinReceipts/{elev} som skapas i SAMMA
+    //    skrivning (src/live/live-rewards-pay.js) – aldrig coins annars.
+    // Ekvationsresans nivå bor i underdokumentet ekvationsresa/progress.
+    function gradeStudentDataOk(studentId) {
+      let n = request.resource.data;
+      let keys = n.diff(resource.data).affectedKeys();
+      return (keys.hasOnly(['lasresa']) && lasresaLevelOnly(resource.data.get('lasresa', null), n.lasresa)) ||
+        (keys.hasOnly(['coins', 'lastLiveReceipt']) && liveReceiptPaid(studentId));
+    }
+    function lasresaLevelOnly(o, n) {
+      return n is map && (
+        (o is map && n.diff(o).affectedKeys().hasOnly(['level', 'level10', 'pendingLevel', 'pendingLevel10',
+          'highStreak', 'lowStreak', 'levelSetAt', 'levelSetBy', 'updatedAt'])) ||
+        (o == null && n.get('moneyEarned', 0) == 0 && n.get('totalTexts', 0) == 0 &&
+          n.get('totalQuestions', 0) == 0 && n.get('totalCorrect', 0) == 0 &&
+          n.get('seenTextIds', []).size() == 0));
+    }
+    function liveReceiptPaid(studentId) {
+      let n = request.resource.data;
+      let r = /databases/$(database)/documents/liveSessions/$(n.lastLiveReceipt)/coinReceipts/$(studentId);
+      return n.lastLiveReceipt is string && !exists(r) && existsAfter(r) &&
+        n.coins == resource.data.get('coins', 0) + getAfter(r).data.total;
     }
 
     // Ekvationsresan (#618): formen på progress och försök. Nivå 1–12 (Etapp 2
