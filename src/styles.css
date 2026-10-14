@@ -708,12 +708,15 @@ body.med-sidomeny .sidebar {
   margin-bottom: 10px;
 }
 
+/* .title och .sub på var sin rad i alla kort (spanar är annars inline, #703). */
 .big-card .title {
+  display: block;
   font-size: 1.4rem;
   font-weight: 800;
 }
 
 .big-card .sub {
+  display: block;
   font-size: 0.95rem;
   opacity: 0.92;
   margin-top: 4px;
@@ -7783,4 +7786,173 @@ body:has(.teacher-dark) .container {
   border-radius: 999px;
   box-shadow: 0 3px 0 rgba(0, 0, 0, 0.12);
   transform: rotate(4deg);
+}
+
+/* --- Områdessidan (#703): rubrikrad, "Fortsätt här", äventyrskort --- */
+
+/* Rubrikrad utan panel: ← Plugga, emoji, titel + beskrivning, stjärnpiller. */
+.omr-huvud {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 0 0 20px;
+}
+.omr-huvud .omr-tillbaka {
+  flex-shrink: 0;
+  min-height: 44px;
+}
+.omr-huvud .emoji {
+  font-size: 3rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.omr-huvud .txt {
+  flex: 1;
+  min-width: 0;
+}
+.omr-huvud h1 {
+  margin: 0;
+  font-size: 2rem;
+  line-height: 1.1;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+.omr-huvud p {
+  margin: 0;
+  color: var(--text-svag);
+  font-weight: 600;
+  overflow-wrap: break-word;
+}
+.omr-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: var(--skugga-mjuk);
+  font-weight: 800;
+  font-size: 1.05rem;
+  white-space: nowrap;
+}
+
+/* Mobil: knappen och pillret överst, emojin och titeln under. */
+@media (max-width: 560px) {
+  .omr-huvud {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 12px 12px;
+  }
+  .omr-huvud .omr-tillbaka {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+  }
+  .omr-huvud .omr-pill {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+  .omr-huvud .emoji {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: start;
+    font-size: 2.5rem;
+  }
+  .omr-huvud .txt {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .omr-huvud h1 {
+    font-size: 1.6rem;
+  }
+}
+
+/* Statusraderna i kompakta övningskort: tätare än i de stora korten. */
+.big-card.kompakt .card-lock {
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  line-height: 1.25;
+}
+.big-card.kompakt .card-rad {
+  margin-top: 4px;
+  font-size: 0.85rem;
+}
+
+/* "Fortsätt här" (spec §3.3): vit ram + gul ring och ett gult piller. */
+.big-card.fortsatt-har {
+  outline: 4px solid #fff;
+  box-shadow: 0 0 0 7px var(--gul), var(--skugga);
+}
+.big-card.fortsatt-har .nymarke {
+  color: #9a6b00;
+  background: var(--gul);
+}
+
+/* Äventyrskort: bild kant i kant överst, namn + text och stjärnor under. */
+.big-card.adv-liten {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  text-align: left;
+}
+.adv-liten .scen {
+  display: block;
+  width: 100%;
+  height: 78px;
+  flex-shrink: 0;
+}
+.adv-liten .scen svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* Reservläget (tema utan scen): färgad yta med temats emoji i mitten. */
+.adv-liten .scen-reserv {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.8rem;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.22);
+}
+.adv-liten .adv-rad {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px 12px;
+}
+.adv-liten .txt {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.adv-liten .title {
+  font-size: 1.2rem;
+  line-height: 1.15;
+  overflow-wrap: break-word;
+}
+.adv-liten .sub {
+  margin-top: 1px;
+  font-size: 0.85rem;
+  line-height: 1.25;
+}
+.adv-liten .card-stars {
+  margin: 0;
+  flex-shrink: 0;
+  font-size: 1.05rem;
+  white-space: nowrap;
+}
+/* Kortet klipper (overflow: hidden) – pillret sitter därför innanför kanten. */
+.adv-liten .nymarke {
+  top: 8px;
+  z-index: 1;
 }

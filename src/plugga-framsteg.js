@@ -8,6 +8,7 @@
 //   • resultFeedbackHtml()  – "Så gick det" på resultatskärmen efter ett spel
 //   • areaStarCount(), subjectColor(), isAreaNew() – korten på Plugga-
 //     startsidan (#702); areaStarCount delas med areaProgressHtml()
+//   • continueHereMode() – "Fortsätt här" på områdessidan (#703)
 // Tonen följer Läsresan (src/lasresan/ui-summary.js): ALLTID positiv, aldrig
 // "fel"/"dåligt", inga jämförelser med andra elever. Vi lyfter vad eleven blev
 // bättre på och föreslår vänligt vad man kan träna på. Stjärn-/coin-/XP-
@@ -19,7 +20,7 @@
 // Testad i test/plugga-framsteg.test.js.
 // ============================================================================
 
-import { summarizeStudent, categoryBreakdown, MAX_STARS_PER_MODE } from "./plugga-stats.js";
+import { summarizeStudent, categoryBreakdown, MAX_STARS_PER_MODE, toDate } from "./plugga-stats.js";
 import { normalizeQuestionCategory } from "./question-categories.js";
 
 const esc = (s) =>
@@ -325,4 +326,32 @@ export function isAreaNew({ area, assignment = null, progress = null, now = Date
   if (times.length === 0) return false;
   const newest = Math.max(...times);
   return newest <= now && now - newest < NEW_AREA_DAYS * 24 * 60 * 60 * 1000;
+}
+
+// ---------------------------------------------------------------------------
+// Områdessidan (#703): markeringen "Fortsätt här"
+// ---------------------------------------------------------------------------
+
+/**
+ * Vilket kort som får "Fortsätt här" (spec §3.3): läget eleven SENAST spelade
+ * bland korten på sidan (`progress[areaId][mode].lastPlayed`). Har det läget
+ * redan 3 stjärnor, eller är det låst, blir det ingen markering alls – vi
+ * hoppar inte vidare till näst senaste. Aldrig spelat → null.
+ * @param {object} areaProgress  progress[areaId]
+ * @param {Array<{id:string, locked?:boolean}>} cards  korten i visningsordning
+ * @returns {string|null}  lägets id
+ */
+export function continueHereMode(areaProgress, cards = []) {
+  let latest = null;
+  let latestMs = -Infinity;
+  for (const c of cards) {
+    const ms = toDate(areaProgress?.[c.id]?.lastPlayed)?.getTime();
+    if (Number.isFinite(ms) && ms > latestMs) {
+      latest = c;
+      latestMs = ms;
+    }
+  }
+  if (!latest || latest.locked) return null;
+  const stars = areaProgress[latest.id]?.stars;
+  return typeof stars === "number" && stars >= MAX_STARS_PER_MODE ? null : latest.id;
 }
