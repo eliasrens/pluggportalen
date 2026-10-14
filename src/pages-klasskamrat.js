@@ -16,7 +16,7 @@ import * as data from "./data.js";
 import { avatarMarkup, DEFAULT_AVATAR, avatarName } from "./avatars.js";
 import { app, el, go, loading, pageError, getParams, clamp } from "./ui.js";
 import { getItem, isWearable, isFlatItem, itemIdFromKey } from "./shop-items.js";
-import { itemSvg, itemSize } from "./art-items.js";
+import { itemSvg, itemSize, loadCollectionArt } from "./art-items.js";
 import { roomBackdropHtml, windowItemHtml, WINDOW_DEFAULT } from "./art-room.js";
 import { getPalette } from "./room-palettes.js";
 import { petsFromData } from "./data-pet.js";
@@ -94,6 +94,7 @@ export async function pageElevKlasskamrat() {
     const [sdRes, studentRes] = await Promise.all([
       data.getStudentData(otherId),
       data.getStudent(otherId).catch(() => null),
+      loadCollectionArt(), // säsongssamlingarnas konst (#692, lazy)
     ]);
     sd = sdRes;
     student = studentRes;

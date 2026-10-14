@@ -117,3 +117,31 @@ export function categorySvg(catId) {
     `preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${c.art}</svg>`
   );
 }
+
+// --- Säsongssamlingarnas konst (#692) laddas LAZY ---------------------------
+// Katalogen (shop-items.js) är statisk, men konsten för t.ex. Halloween-samlingen
+// ligger i src/halloween/ och laddas med import() (bootgrafen, #271). Sidor som
+// ritar elevernas saker (världen, kamratbesök, butiken) väntar på
+// loadCollectionArt() före första ritningen; misslyckas laddningen faller
+// itemSvg tillbaka på emoji-fältet och husskal på stugan – aldrig ett fel.
+
+/** Slå in konst för fler saker: { id: { viewBox, w?, art, flat? } }. */
+export function registerItemArt(reg) {
+  Object.assign(ITEMS, reg);
+}
+
+/** Slå in kategori-/flik-ikoner: { id: { viewBox, art } }. */
+export function registerCategoryIcons(reg) {
+  Object.assign(CATEGORY_ICONS, reg);
+}
+
+let samlingsKonst = null;
+
+/** Ladda (en gång) säsongssamlingarnas konst. Löses alltid, även vid fel. */
+export function loadCollectionArt() {
+  samlingsKonst ||= import("./halloween/hw-konst.js").then(
+    (m) => m.registreraHalloweenKonst(),
+    (err) => console.warn("Säsongskonsten kunde inte laddas", err)
+  );
+  return samlingsKonst;
+}

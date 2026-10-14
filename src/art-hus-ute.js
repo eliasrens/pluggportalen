@@ -172,6 +172,9 @@ const HUS_SKAL = {
   ...LEGEND_SHOP_HUS_SKAL, ...MYSTERY_HUS_SKAL, ...LEGENDARY_HUS_SKAL,
 };
 
+/** Fler skal efter start (#692: Halloween-husen laddas lazy, art-items.js). */
+export const registerHusSkal = (reg) => Object.assign(HUS_SKAL, reg);
+
 /** Exteriör-markup för ett husskal, med säkert fallback till stugan. */
 export function husSkalMarkup(skalId = DEFAULT_HUS_SKAL) {
   return (HUS_SKAL[skalId] || HUS_SKAL[DEFAULT_HUS_SKAL]).markup();

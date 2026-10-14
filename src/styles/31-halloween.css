@@ -1,0 +1,17 @@
+/* Halloween-samlingen (#692, epic #689): små stämningsanimationer i konsten
+   (src/halloween/hw-art-*.js). Bara transform/opacity, få element per sak,
+   av vid prefers-reduced-motion. Klassen sitter på ett <g> i SVG:n. */
+.hw-glod, .hw-flamma, .hw-bubbla, .hw-glimt { transform-box: fill-box; }
+.hw-glod { animation: hw-glod 2.8s ease-in-out infinite alternate; }
+@keyframes hw-glod { from { opacity: 0.45; } to { opacity: 1; } }
+.hw-flamma { transform-origin: 50% 100%; animation: hw-flamma 0.9s ease-in-out infinite alternate; }
+@keyframes hw-flamma { from { transform: scale(1, 1); } to { transform: scale(0.9, 1.08); } }
+.hw-bubbla { animation: hw-bubbla 2.4s ease-in infinite; }
+.hw-bubbla.d2 { animation-delay: -0.8s; }
+.hw-bubbla.d3 { animation-delay: -1.6s; }
+@keyframes hw-bubbla { 0% { transform: translateY(4px); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(-14px); opacity: 0; } }
+.hw-glimt { animation: hw-glimt 1.9s ease-in-out infinite alternate; }
+@keyframes hw-glimt { from { opacity: 0.25; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .hw-glod, .hw-flamma, .hw-bubbla, .hw-glimt { animation: none; }
+}
