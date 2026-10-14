@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggporten – Halloween-samlingens HUSSKAL (#692): gulligt spökhus + pumpahus
+// Pluggporten – Halloween-samlingens HUSSKAL (#692): spökhus, pumpahus, döskallehus
 // ----------------------------------------------------------------------------
 // Samma koordinatsystem som stugan i art-hus-ute.js: huset kring x 300–660,
 // marklinjen y ≈ 512, dörren ungefär centralt (avataren står till vänster,
@@ -95,10 +95,49 @@ function pumpahusMarkup() {
       ${fladdermus(640, 250, 1.5)}`;
 }
 
+// Snällt döskallehus: rund gräddvit "skalle" med stora runda ögonfönster som
+// lyser varmt, rosa kinder, hjärtformad näsa, ett brett leende och dörren i
+// munnen, rosett på hjässan. Mjukt och vänligt – inga tänder, inga hålögon.
+function skallehusMarkup() {
+  const oga = (cx) =>
+    `<circle cx="${cx}" cy="330" r="48" fill="${LILA_MORK}" ${LINE}/>` +
+    `<circle cx="${cx}" cy="334" r="38" fill="${SKEN}" ${THIN}/>` +
+    anim("hw-glod", `<circle cx="${cx}" cy="334" r="30" fill="#FFF8DE" opacity="0.9"/>`) +
+    `<path d="M${cx} 296 L${cx} 372 M${cx - 38} 334 L${cx + 38} 334" stroke="${O}" stroke-width="3"/>` +
+    `<circle cx="${cx - 18}" cy="312" r="7" fill="#fff" opacity="0.9"/>`;
+  return `${skugga(480, 514, 180)}
+      <!-- Skallen (fasaden) – rund hjässa, mjuk käke ner mot marklinjen -->
+      <path d="M362 512 L358 448 Q334 424 336 356 Q340 168 480 168 Q620 168 624 356 Q626 424 602 448 L598 512 Z"
+        fill="#FFF6E6" ${LINE}/>
+      <path d="M372 252 Q420 196 480 194" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" opacity="0.8"/>
+      <!-- Rosett på hjässan -->
+      <path d="M536 190 L506 168 L508 206 Z M536 190 L566 168 L564 206 Z" fill="${PUMPA}" ${LINE}/>
+      <circle cx="536" cy="190" r="9" fill="${PUMPA_MORK}" ${THIN}/>
+      <!-- Stora runda ögonfönster + rosa kinder -->
+      ${oga(412)}
+      ${oga(548)}
+      <ellipse cx="380" cy="404" rx="20" ry="11" fill="#FFB1B8" opacity="0.85"/>
+      <ellipse cx="580" cy="404" rx="20" ry="11" fill="#FFB1B8" opacity="0.85"/>
+      <!-- Hjärtformad näsa (litet fönster) -->
+      <path d="M480 402 Q462 386 470 376 Q478 368 480 380 Q482 368 490 376 Q498 386 480 402 Z" fill="${LILA}" ${THIN}/>
+      <!-- Brett leende; dörren sitter mitt i munnen -->
+      <path d="M394 430 Q480 476 566 430" fill="none" ${LINE}/>
+      <path d="M452 512 L452 466 Q452 446 480 446 Q508 446 508 466 L508 512 Z" fill="${LILA_MORK}" ${LINE}/>
+      <circle cx="497" cy="482" r="4.5" fill="${GUL}" ${THIN}/>
+      <!-- Blommor och en liten fladdermus som hälsar -->
+      ${limb("M392 512 L392 488", GRON_MORK, 3)}
+      <circle cx="392" cy="482" r="8" fill="#F890B7" ${THIN}/><circle cx="392" cy="482" r="3" fill="${GUL}"/>
+      ${limb("M568 512 L568 492", GRON_MORK, 3)}
+      <circle cx="568" cy="486" r="7" fill="${LILA}" ${THIN}/><circle cx="568" cy="486" r="2.6" fill="${GUL}"/>
+      ${pumpa(612, 496, 16, "glad")}
+      ${fladdermus(372, 196, 1.4)}`;
+}
+
 /** id → { namn, emoji, markup } – slås in i HUS_SKAL (registerHusSkal). */
 export const HW_HUS_SKAL = {
   "hw-spokhus": { namn: "Gulligt spökhus", emoji: "🏚️", markup: spokhusMarkup },
   "hw-pumpahus": { namn: "Pumpahus", emoji: "🎃", markup: pumpahusMarkup },
+  "hw-skallehus": { namn: "Snällt döskallehus", emoji: "🏠", markup: skallehusMarkup },
 };
 
 /** Butiksbilder (itemSvg) – tätt beskuret husskal, samma fasta färger. */

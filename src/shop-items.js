@@ -251,8 +251,9 @@ export const SHOP_ITEMS = [
   { id: "hw-fagelskramma", name: "Fågelskrämma", emoji: "🌾", category: "tradgard", price: 140, collection: "halloween" },
   { id: "hw-pumpastolpe", name: "Lyktstolpe med pumpa", emoji: "🏮", category: "tradgard", price: 180, collection: "halloween" },
   { id: "hw-lysvampar", name: "Lysande svampar", emoji: "🍄", category: "tradgard", price: 300, collection: "halloween" },
-  { id: "hw-spokhus", name: "Gulligt spökhus", emoji: "🏚️", category: "hus", price: 2000, skalId: "hw-spokhus", collection: "halloween" },
-  { id: "hw-pumpahus", name: "Pumpahus", emoji: "🎃", category: "hus", price: 2500, skalId: "hw-pumpahus", collection: "halloween" },
+  { id: "hw-spokhus", name: "Gulligt spökhus", emoji: "🏚️", category: "hus", price: 10000, skalId: "hw-spokhus", collection: "halloween" },
+  { id: "hw-pumpahus", name: "Pumpahus", emoji: "🎃", category: "hus", price: 10000, skalId: "hw-pumpahus", collection: "halloween" },
+  { id: "hw-skallehus", name: "Snällt döskallehus", emoji: "🏠", category: "hus", price: 10000, skalId: "hw-skallehus", collection: "halloween" },
 ];
 
 // --- Mysteryboxarna (köp & öppna → slumpad kosmetik ur viktad pool) ---------

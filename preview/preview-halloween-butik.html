@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../src/styles.css" />
     <style>
       /* Fristående testyta för issue #692: Halloween-samlingens 12 inne-saker,
-         8 trädgårdssaker och 2 husskal, ritade med exakt samma itemSvg/itemSize/
+         8 trädgårdssaker och 3 husskal, ritade med exakt samma itemSvg/itemSize/
          husScen som rummet, trädgården och ute-scenen. Konsten laddas lazy via
          loadCollectionArt() precis som i appen. Ingen inloggning behövs. */
       body { margin: 0; font-family: "Baloo 2", system-ui, sans-serif; background: #fdf6ec; color: #4a3b2a; }
@@ -81,7 +81,7 @@
           <div class="varld-lager varld-ute">${husScen(avatarMarkup("fox", ["trollkarlshatt"]), { skalId: it.skalId, skylt: { rad1: "Klass 4B", rad2: "– Solbyn –" } })}</div></div>`
       ).join("") + varor.filter((i) => i.category === "hus").map(cell).join("");
       renderHusSkalPicker(document.getElementById("husskalrad"), {
-        activeId: "hw-spokhus", owned: ["hw-spokhus", "hw-pumpahus"],
+        activeId: "hw-spokhus", owned: ["hw-spokhus", "hw-pumpahus", "hw-skallehus"],
         palette: { house: "#F7C948", roof: "#EF6F6C", wall: "#7FC7E8", wall2: "#C9EEFB" }, onPick: () => {},
       });
     </script>

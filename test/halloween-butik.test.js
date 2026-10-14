@@ -1,6 +1,6 @@
 // ============================================================================
 // Tester: Halloween-sektionen i butiken (#692, epic #689)
-//   • katalogen: 12 inne (dekor/möbler), 8 trädgård, 2 hus – alla
+//   • katalogen: 12 inne (dekor/möbler), 8 trädgård, 3 hus – alla
 //     `collection: "halloween"`, unika id:n, priser enligt spec §3
 //   • test 5 (katalogdelen): samlingsvarorna ligger BARA i sin flik – aldrig i
 //     de vanliga kategoriflikarna (itemsInCategory) – med undergrupper som D–F
@@ -27,11 +27,11 @@ const INNE = HW.filter((it) => it.category === "dekor" || it.category === "moble
 const UTE = HW.filter((it) => it.category === "tradgard");
 const HUS = HW.filter((it) => it.category === "hus");
 
-test("katalogen: 12 inne, 8 trädgård, 2 hus – alla i Halloween-samlingen", () => {
+test("katalogen: 12 inne, 8 trädgård, 3 hus – alla i Halloween-samlingen", () => {
   assert.equal(INNE.length, 12);
   assert.equal(UTE.length, 8);
-  assert.equal(HUS.length, 2);
-  assert.equal(HW.length, 22, "C:s varor är just dessa (D–F lägger till fler)");
+  assert.equal(HUS.length, 3);
+  assert.equal(HW.length, 23, "C:s varor är just dessa (D–F lägger till fler)");
   for (const it of HW) {
     assert.equal(itemCollection(it.id), "halloween");
     assert.match(it.id, /^hw-[a-z0-9-]+$/, `${it.id}: stabilt hw-prefix, inget '#'`);
@@ -42,12 +42,10 @@ test("katalogen: 12 inne, 8 trädgård, 2 hus – alla i Halloween-samlingen", (
   assert.equal(new Set(ids).size, ids.length, "inga dubbla id:n i hela katalogen");
 });
 
-test("priser enligt spec §3 (inne 40–250, ute 60–300, hus i nivå med dyrare hus)", () => {
+test("priser enligt spec §3 + Elias: inne 40–250, ute 60–300, hus exakt 10 000", () => {
   for (const it of INNE) assert.ok(it.price >= 40 && it.price <= 250, `${it.id} ${it.price}`);
   for (const it of UTE) assert.ok(it.price >= 60 && it.price <= 300, `${it.id} ${it.price}`);
-  for (const it of HUS) assert.ok(it.price >= 2000 && it.price <= 3000, `${it.id} ${it.price}`);
-  const vanligaHus = itemsInCategory("hus").filter((it) => it.skalId).map((it) => it.price).sort((a, b) => a - b);
-  assert.ok(HUS.every((it) => it.price > vanligaHus[0] * 4), "dyrare än instegshusen");
+  for (const it of HUS) assert.equal(it.price, 10000, it.id);
 });
 
 test("test 5: samlingsvaror visas bara i Halloween-fliken, aldrig i vanliga flikar", () => {
@@ -63,7 +61,7 @@ test("test 5: Halloween-flikens undergrupper – disjunkta, D–F kan lägga til
   const hw = await import("../src/halloween/hw-butik.js");
   const sek = hw.halloweenSektioner();
   assert.deepEqual(sek.map((s) => s.id), ["inne", "tradgard", "hus"]);
-  assert.deepEqual(sek.map((s) => s.items.length), [12, 8, 2]);
+  assert.deepEqual(sek.map((s) => s.items.length), [12, 8, 3]);
   // En ny undergrupp (som D:s kostymer) före "hus"; omatchade varor → "Övrigt".
   const kostym = { id: "x-kostym", name: "Testkostym", category: "klader", collection: "halloween" };
   const okand = { id: "x-okand", name: "Okänd", category: "mat", collection: "halloween" };
