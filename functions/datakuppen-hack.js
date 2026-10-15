@@ -11,7 +11,7 @@
 // ============================================================================
 
 import { DK_RULES } from "./datakuppen/files-config.js";
-import { DK_REGLER, codeOffers, pickDecoys, hackOptions } from "./datakuppen/datakuppen-regler.js";
+import { DK_REGLER, pickDecoys, hackOptions } from "./datakuppen/datakuppen-regler.js";
 import { KsError } from "./kistspel-rattning.js";
 import { toMs } from "./kistspel/ks-regler.js";
 import { SERVER, COL, HACK, dkRefs, pickRandom, parseUid, bad, isInt } from "./datakuppen-server.js";
@@ -114,13 +114,11 @@ export async function chooseTarget(deps, uid, raw) {
 export async function guessCode(deps, uid, raw) {
   const { db, FieldValue, Timestamp } = deps;
   const now = deps.now || Date.now;
-  const rng = deps.rng || Math.random;
   const sid = parseSid(raw);
   const index = raw?.index ?? null;
   if (index !== null && !isInt(index, 0, DK_RULES.codeOptions - 1)) throw bad("Välj en av koderna.");
   const asked = parseUid(raw?.targetUid ?? null, "Ogiltig klasskamrat.");
   const r = dkRefs(db, sid, uid);
-  const all = await secretsOf(r);
 
   const out = await db.runTransaction(async (tx) => {
     const [sSnap, gSnap, mySnap] = await tx.getAll(r.sess, r.gp, r.secret());
@@ -169,21 +167,15 @@ export async function guessCode(deps, uid, raw) {
       tx.set(r.secret(), { hack: null, hacks: { [hack.targetUid]: { ...mem, struck } } }, { merge: true });
       return { result: "wrong", targetUid: hack.targetUid, code: guess, left: hack.options.length - 1 };
     }
-    // Rätt kod: 15 % flyttas i EN transaktion, målet skyddas och får välja ny kod.
+    // Rätt kod: 15 % flyttas i EN transaktion och målet skyddas 30 s. Koden
+    // ligger KVAR (#719) – den som minns den kan hacka igen när skyddet är slut.
     const res = resolveVictim("steal", g, v);
-    const { codes, offers, decoys } = avoidSets(all, v.uid);
-    const fresh = {
-      offers: codeOffers(DK_CODES, [codes, offers, decoys], rng, DK_RULES.codeOffers, vs.code),
-      offersExpiresAt: Timestamp.fromMillis(t + DK_RULES.codePickMs),
-    };
     done({ gold: res.thiefGold, hackSuccess: FieldValue.increment(1) });
     tx.set(r.secret(), { hack: null }, { merge: true });
     tx.update(r.gpOf(v.uid), {
       gold: res.victimGold, protectedUntil: Timestamp.fromMillis(hitProtectionUntil(v, t)),
       lastHit: { kind: "steal", chest: HACK, byUid: uid, byName: g.name, amount: res.amount, at: Timestamp.fromMillis(t) },
     });
-    tx.set(r.secret(v.uid), fresh, { merge: true });
-    tx.set(r.self(v.uid), fresh, { merge: true });
     tx.create(r.events.doc(), {
       type: "steal", chest: HACK, uid, name: g.name, classId: g.classId,
       victimUid: v.uid, victimName: v.name, victimClassId: v.classId,
