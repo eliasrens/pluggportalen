@@ -20,7 +20,7 @@
 // husScen, så scenerna skalar med .varld-stage utan egna mått.
 // ============================================================================
 
-import { O, LINE, THIN, limb } from "./art-style.js";
+import { O, LINE, THIN, limb, sz, lovhog } from "./art-style.js";
 import { barnPlaceCountForLevel } from "./farm-core.js";
 import { LADA_SKINS } from "./art-lada-skins.js";
 
@@ -252,21 +252,21 @@ export function gardScen({ gardenTier = 1, barnLevel = 1, barnSkin = null } = {}
   return `<svg viewBox="0 0 960 600" role="img" aria-label="Gården på baksidan av huset"
       preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
     <defs><linearGradient id="gard-himmel" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#9AD3F0"/><stop offset="1" stop-color="#E8F6FD"/>
+      <stop offset="0" stop-color="${sz("sky1", "#9AD3F0")}"/><stop offset="1" stop-color="${sz("sky2", "#E8F6FD")}"/>
     </linearGradient></defs>
     <rect x="-2400" y="-1500" width="5760" height="3600" fill="url(#gard-himmel)"/>
     <g class="hus-moln" style="--t:58s">${molnArt(0, 80, 1.1)}</g>
     <g class="hus-moln" style="--t:44s;animation-delay:-16s">${molnArt(0, 160, 0.8)}</g>
 
     <!-- Gräset fyller nedre halvan (horisont ~y300), övertecknat åt alla håll -->
-    <path d="M-2400 310 L-480 316 Q240 280 520 312 Q760 284 1440 306 L3360 310 L3360 2100 L-2400 2100 Z" fill="#A8DA8F" ${LINE}/>
-    <path d="M-2400 380 L-480 380 Q300 350 620 384 Q820 362 1440 380 L3360 380 L3360 2100 L-2400 2100 Z" fill="#8FCB74" ${LINE}/>
+    <path d="M-2400 310 L-480 316 Q240 280 520 312 Q760 284 1440 306 L3360 310 L3360 2100 L-2400 2100 Z" fill="${sz("hill", "#A8DA8F")}" ${LINE}/>
+    <path d="M-2400 380 L-480 380 Q300 350 620 384 Q820 362 1440 380 L3360 380 L3360 2100 L-2400 2100 Z" fill="${sz("grass", "#8FCB74")}" ${LINE}/>
 
     <!-- Ett träd i bakkanten som binder ihop med framsidan -->
     <g>${limb("M60 396 L60 336", WOOD, 12)}
-      <circle cx="60" cy="304" r="42" fill="#6FC66F" ${LINE}/>
-      <circle cx="32" cy="324" r="24" fill="#6FC66F" ${LINE}/>
-      <circle cx="90" cy="322" r="26" fill="#6FC66F" ${LINE}/></g>
+      <circle cx="60" cy="304" r="42" fill="${sz("tree-a", "#6FC66F")}" ${LINE}/>
+      <circle cx="32" cy="324" r="24" fill="${sz("tree-b", "#6FC66F")}" ${LINE}/>
+      <circle cx="90" cy="322" r="26" fill="${sz("tree-c", "#6FC66F")}" ${LINE}/></g>${lovhog(100, 404, 0.9)}
 
     ${odlingsbadd(gardenTier)}
     ${hage()}

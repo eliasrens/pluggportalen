@@ -10,7 +10,7 @@
 // Bakgrunden är pointer-events:none och ligger under alla .room-item.
 // ============================================================================
 
-import { O, LINE, THIN } from "./art-style.js";
+import { O, LINE, THIN, sz } from "./art-style.js";
 
 /** Procent av scenhöjden där golvet börjar (används av drag & drop-clampen). */
 export const FLOOR_TOP = 62;
@@ -79,14 +79,14 @@ const floorSvg = buildFloorSvg();
 const windowSvg =
   `<svg class="room-window" viewBox="0 0 252 240" preserveAspectRatio="xMidYMid meet" aria-hidden="true">` +
   `<defs><linearGradient id="rum-himmel" x1="0" y1="0" x2="0" y2="1">` +
-  `<stop offset="0" stop-color="#9AD3F0"/><stop offset="1" stop-color="#E0F3FC"/></linearGradient>` +
+  `<stop offset="0" stop-color="${sz("sky1", "#9AD3F0")}"/><stop offset="1" stop-color="${sz("sky2", "#E0F3FC")}"/></linearGradient>` +
   `<clipPath id="rum-fclip"><rect x="16" y="14" width="220" height="182" rx="8"/></clipPath></defs>` +
   `<rect x="8" y="6" width="236" height="198" rx="12" fill="url(#rum-himmel)" ${LINE}/>` +
   `<g clip-path="url(#rum-fclip)">` +
   `<circle cx="62" cy="54" r="26" fill="#F7C948" ${THIN}/>` +
   `<g class="rum-moln" style="--t:38s">${moln(0, 58, 0.85)}</g>` +
   `<g class="rum-moln" style="--t:52s;animation-delay:-26s">${moln(0, 122, 0.6)}</g>` +
-  `<path d="M8 182 Q100 152 244 178 L244 204 L8 204 Z" fill="#A8DA8F" stroke="none"/>` +
+  `<path d="M8 182 Q100 152 244 178 L244 204 L8 204 Z" fill="${sz("hill", "#A8DA8F")}" stroke="none"/>` +
   `</g>` +
   `<path d="M126 10 L126 200 M12 105 L240 105" stroke="${O}" stroke-width="5" stroke-linecap="round"/>` +
   `<rect x="8" y="6" width="236" height="198" rx="12" fill="none" stroke="${O}" stroke-width="6"/>` +

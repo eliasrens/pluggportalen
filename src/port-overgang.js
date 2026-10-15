@@ -2,7 +2,7 @@
 // Pluggporten – inloggnings-övergången: porten öppnas + zoom in (issue #339)
 // ----------------------------------------------------------------------------
 // När elev-inloggningen lyckas spelas en kort "gå in genom porten"-sekvens:
-// grindhalvorna från port-scenen (art-port.js, #338) svänger upp och kameran
+// grindhalvorna från port-scenen (art-port-majestic.js, #338/#344) svänger upp och kameran
 // zoomar in genom öppningen, medan appen SAMTIDIGT navigerar till hus-scenen
 // under övergången. Känslan blir en sömlös inzoomning från porten in i
 // spelvärlden.
@@ -46,6 +46,18 @@ const ZOOM_START_MS = 260;
     zoomar MOT den punkten – samma fokus-idé som varld-kamera.js. */
 const FOKUS = { x: 480, y: 428 };
 
+/** Sätt tillbaka CSS-animationernas tider efter flytten (ren kosmetik). */
+function aterstallTider(noder, tider) {
+  try {
+    const nya = noder.flatMap((n) => (n.getAnimations ? n.getAnimations({ subtree: true }) : []));
+    for (const [mal, namn, tid] of tider) {
+      if (tid == null) continue;
+      const a = nya.find((x) => x.effect?.target === mal && x.animationName === namn);
+      if (a) a.currentTime = tid;
+    }
+  } catch {}
+}
+
 /**
  * Starta port-övergången ovanpå den nuvarande port-scenen.
  *
@@ -86,8 +98,19 @@ export function startaPortOvergang(scenEl) {
     const oy = rect.height / 2 + (FOKUS.y - 300) * skala;
     svg.style.transformOrigin = `${ox.toFixed(1)}px ${oy.toFixed(1)}px`;
 
-    overlay.appendChild(svg);
+    // Säsongens löv/fladdermöss (season-world.js, ligger direkt efter SVG:n)
+    // följer med, så zoomen har samma säsong hela vägen (#727). Paletten
+    // (--sz-*) når overlayt via .port-overgang i season-world.js.
+    const sasong = scenEl.querySelector(":scope > .sz-lager-wrap");
+    const flytta = [svg, sasong].filter(Boolean);
+    // En flyttad nod startar om sina CSS-animationer – spara tiderna så att
+    // löv, moln och fåglar fortsätter där de var i stället för att hoppa.
+    const tider = flytta.flatMap((n) =>
+      n.getAnimations ? n.getAnimations({ subtree: true }).map((a) => [a.effect?.target, a.animationName, a.currentTime]) : []
+    );
+    overlay.append(...flytta);
     document.body.appendChild(overlay);
+    aterstallTider(flytta, tider);
 
     // Två rAF: låt overlayt få sin startlayout innan transition-klasserna
     // sätts, annars hoppar animationen direkt till slutläget.

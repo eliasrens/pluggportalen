@@ -142,18 +142,17 @@ describe("Datakuppen elevvy: koden (§1.2, §1.5)", () => {
   });
 
   it("lobbyn: förslagen tills eleven valt, sedan bara koden", () => {
-    assert.deepEqual(codePickState({ offers: ["a1bc", "d2ef", "g3hi", "j4kl"], code: null }, "lobby", 0),
-      { show: true, offers: ["a1bc", "d2ef", "g3hi", "j4kl"], leftMs: null, code: null, lobby: true });
-    assert.equal(codePickState({ offers: null, code: "a1bc" }, "lobby", 0).show, false);
-    assert.equal(codePickState(null, "lobby", 0).show, false);
+    assert.deepEqual(codePickState({ offers: ["a1bc", "d2ef", "g3hi", "j4kl"], code: null }, "lobby"),
+      { show: true, offers: ["a1bc", "d2ef", "g3hi", "j4kl"], code: null, lobby: true });
+    assert.equal(codePickState({ offers: null, code: "a1bc" }, "lobby").show, false);
+    assert.equal(codePickState(null, "lobby").show, false);
   });
 
-  it("efter ett hack: \"Välj ny kod\" med nedräkning; ingen kod alls = servern väljer (visas inte)", () => {
-    const s = codePickState({ code: "a1bc", offers: ["d2ef", "g3hi", "j4kl", "m5no"], offersExpiresAt: 10_000 }, "live", 4_000);
-    assert.equal(s.show, true);
-    assert.equal(s.leftMs, 6_000);
-    assert.equal(codePickState({ code: "a1bc", offers: ["d2ef"], offersExpiresAt: 1 }, "live", 9).leftMs, 0);
-    assert.equal(codePickState({ code: null, offers: ["d2ef"] }, "live", 0).show, false);
+  it("#719: inget kodval i spelet – koden gäller hela matchen, även med gamla förslag kvar", () => {
+    assert.equal(codePickState({ code: "a1bc", offers: ["d2ef", "g3hi", "j4kl", "m5no"], offersExpiresAt: 10_000 }, "live").show, false);
+    assert.equal(codePickState({ code: null, offers: ["d2ef"] }, "live").show, false);
+    const src = ["dk-kod-vy.js", "dk-kodval.js", "dk-elev-vy.js"].map((f) => readFileSync(new URL(f, DIR), "utf8")).join("\n");
+    assert.doesNotMatch(src, /Välj ny kod|välj en ny|dk-nykod|codePickMs/i);
   });
 
   it("eleven kan aldrig skriva en egen kod: kodvalet har inga textfält och skickar bara index", () => {

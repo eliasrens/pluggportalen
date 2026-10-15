@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – butikens Halloween-flik</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      body { padding: 16px; }
+      .preview-bar { max-width: 1100px; margin: 0 auto 16px; padding: 12px 16px; background: #f3edff; border: 2px solid #ddd0fb; border-radius: 14px; }
+      .preview-bar h1 { margin: 0 0 4px; font-size: 1.2rem; }
+      .preview-bar p { margin: 0 0 8px; color: #4a3d6e; }
+      .knappar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+      #status { font-weight: 700; }
+      #flash { margin-top: 8px; min-height: 1.4em; }
+      #flash.fel { color: #b3261e; } #flash.ok { color: #2e7d32; }
+      #app { max-width: 1100px; margin: 0 auto; }
+    </style>
+    <!-- Firebase-/router-beroenden → lätta stubbar. src/pages-shop.js, shop-items.js,
+         art-items.js, halloween/* och season-store.js körs OFÖRÄNDRADE. -->
+    <script type="importmap">
+      {
+        "imports": {
+          "/src/ui.js": "/preview/halloween-butik-stubs/ui.js",
+          "/src/data.js": "/preview/halloween-butik-stubs/data.js",
+          "/src/data-pet.js": "/preview/halloween-butik-stubs/data-pet.js",
+          "/src/data-pet-mat.js": "/preview/halloween-butik-stubs/data-pet-mat.js",
+          "/src/data-animals.js": "/preview/halloween-butik-stubs/data-animals.js",
+          "/src/data-farm.js": "/preview/halloween-butik-stubs/data-farm.js",
+          "/src/pages-shop-mystery.js": "/preview/halloween-butik-stubs/pages-shop-mystery.js",
+          "/src/season.js": "/preview/halloween-butik-stubs/season.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="preview-bar">
+      <h1>🎃 Butikens Halloween-flik (issue #692)</h1>
+      <p>
+        Den riktiga butikssidan mot en minnes-elev (5 000 mynt) och en styrbar
+        <em>serverklocka</em>. Slå på Halloween med slutdatum om 10 s och se fliken
+        försvinna av sig själv – utan omladdning. "Ställ fram datorklockan" ändrar
+        bara elevens klocka, inte serverns, och påverkar därför inget.
+      </p>
+      <div class="knappar">
+        <button class="btn" id="pa">Halloween på</button>
+        <button class="btn" id="pa10">På, slutar om 10 s</button>
+        <button class="btn ghost" id="av">Halloween av</button>
+        <button class="btn ghost" id="fusk">Ställ fram datorklockan 1 år</button>
+        <span>Saldo: <b id="saldo"></b> · Läge: <span id="status"></span></span>
+      </div>
+      <div id="flash"></div>
+    </div>
+    <div id="app"></div>
+    <script type="module">
+      await import("/src/season.js"); // stubben: styrbar säsong (__season)
+      const { pageElevShop } = await import("/src/pages-shop.js");
+      const visa = () => {
+        const s = __season.get();
+        document.getElementById("status").textContent = s.halloweenActive
+          ? `Halloween PÅ${s.halloweenUntil ? " till " + new Date(s.halloweenUntil).toLocaleTimeString("sv-SE") : ""}`
+          : "Halloween av";
+        document.getElementById("saldo").textContent = __MEM.coins;
+      };
+      const satt = (doc) => { __season.set(doc); visa(); };
+      document.getElementById("pa").onclick = () => satt({ season: "host", halloween: true, halloweenUntil: null });
+      document.getElementById("pa10").onclick = () => {
+        satt({ season: "host", halloween: true, halloweenUntil: __season.serverNow() + 10_000 });
+        setTimeout(visa, 10_400);
+      };
+      document.getElementById("av").onclick = () => satt({ season: "host", halloween: false });
+      // Framflyttad datorklocka: Date.now ändras på sidan – serverklockan (offset i
+      // stubben) gör det inte, så Halloween-läget räknas inte om.
+      document.getElementById("fusk").onclick = () => {
+        const riktig = Date.now.bind(Date);
+        const år = 365 * 24 * 3600 * 1000;
+        Date.now = () => riktig() + år;
+        document.getElementById("flash").textContent = "Datorklockan står nu ett år fram – Halloween-läget ändras inte.";
+        visa();
+      };
+      const q = new URLSearchParams(location.search);
+      satt(q.get("halloween") === "av" ? { season: "host", halloween: false } : { season: "host", halloween: true });
+      localStorage.setItem("pp:shop:aktivFlik", "halloween");
+      await pageElevShop();
+      visa();
+    </script>
+  </body>
+</html>

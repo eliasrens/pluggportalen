@@ -72,6 +72,15 @@ describe("koderna (test 1, 2, §1.2)", () => {
     assert.equal(await gp(s, "alma"), undefined, "inget spelardokument (det andra läser) får koden");
   });
 
+  it("#719: koden väljs EN gång – ett nytt val i lobbyn eller under matchen avvisas", async () => {
+    const s = await lobby();
+    await pickCode(deps, "alma", { sid: s });
+    const r = await pickCode(deps, "alma", { sid: s, index: 1 });
+    assert.equal(await code(pickCode(deps, "alma", { sid: s, index: 0 })), "failed-precondition");
+    assert.equal((await pickCode(deps, "alma", { sid: s })).code, r.code, "utan index: samma kod");
+    assert.equal((await secret(s, "alma")).codeVersion, 1);
+  });
+
   it("§2: en egen påhittad kod som 'vald kod' nekas – bara ett index i förslagen tas", async () => {
     const s = await lobby();
     await pickCode(deps, "alma", { sid: s });

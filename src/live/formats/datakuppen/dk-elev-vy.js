@@ -6,14 +6,13 @@
 //
 // Layout (Chromebook 1366×768 först, allt utan scroll):
 //   överst   data stort ("💾 250 MB", SVG), läget ("20 MB bakom Alma" – aldrig
-//            placering som nummer), "Din kod: f0tb01l" diskret, "🛡️ Skyddad
-//            0:42", ljudknapp, avatar i hörnet
-//   ny kod   "Välj ny kod" som en smal rad efter ett hack (dk-kod-vy.js) –
-//            frågan under fortsätter
+//            placering som nummer), "Din kod: •••• [👁 Visa kod]" (dold tills
+//            eleven trycker, #719), "🛡️ Skyddad 0:42", ljudknapp, avatar i hörnet
 //   mitten   fråga (kistspelets frågeflöde: multiplikation skriv själv/flerval,
 //            quiz, tidslinje) ELLER tre filer (dk-filer.js) ELLER hacket i två
 //            steg (dk-hack-vy.js: målväljaren, sedan kodkorten)
-//   notis    "💻 Omar knäckte din kod och tog 45 MB!" ~2 s, blockerar aldrig
+//   notis    "💻 Omar knäckte din kod och tog 45 MB!" ~2 s, blockerar aldrig.
+//            Koden behålls hela matchen (#719) – inget nytt kodval efter hack.
 // Lobbyn: fyra kodförslag (dk-kod-vy.js) + roterande säkerhetstips.
 // Omladdning: en oöppnad fil (attemptId i localStorage) visas igen; ett
 // väntande hack öppnar målväljaren, ett valt mål kodkorten (dkSelf.hack).
@@ -41,7 +40,7 @@ import { dataIcon } from "./dk-ikoner.js";
 import { playFiles } from "./dk-filer.js";
 import { createHackFlow } from "./dk-hack-vy.js";
 import { createCodeArea } from "./dk-kod-vy.js";
-import { codeHtml } from "./dk-kodval.js";
+import { createCodeReveal } from "./dk-kodval.js";
 import { createDkSound } from "./dk-ljud.js";
 import { createDkNotice } from "./dk-notis.js";
 import { createTipRotator } from "./dk-skarmar.js";
@@ -64,7 +63,6 @@ export function createDkStage({ view, host, uid, classId, session, mode, answerK
         <button type="button" class="dk-ljud" aria-pressed="false"></button>
         <span class="dk-horn"></span>
       </div>
-      <div class="dk-nykod" hidden></div>
       <p class="dk-felrad" role="alert" hidden></p>
       <div class="dk-mitt">
         <div class="dk-svar"></div>
@@ -114,13 +112,13 @@ export function createDkStage({ view, host, uid, classId, session, mode, answerK
   let files = null;
   let coinTimers = null;
   let reacted = "";
-  let noticeUntil = 0;
   const hits = createHitWatcher();
   const data = createGoldCounter($(".dk-data"), { reduced });
   const notis = createDkNotice($(".dk-notis"), { pool, roster });
   const tips = createTipRotator(() => view.querySelector(".live-elev-lobby [data-dk-tips]"), { reduced });
   const mood = (m) => react(me, m).catch(() => {});
   let protT = 0;
+  const minKod = createCodeReveal($(".dk-minkod"));
 
   // --- Toppraden --------------------------------------------------------------
   function drawTop() {
@@ -129,8 +127,7 @@ export function createDkStage({ view, host, uid, classId, session, mode, answerK
     $(".dk-lage").textContent = standingText(rel) || (gotPlayers ? "Svara rätt – öppna en fil!" : "");
     const kod = $(".dk-minkod");
     kod.hidden = !self?.code;
-    const html = self?.code ? `Din kod: ${codeHtml(self.code)}` : "";
-    if (kod.innerHTML !== html) kod.innerHTML = html;
+    minKod.set(self?.code);
     drawSkydd();
   }
 
@@ -180,7 +177,7 @@ export function createDkStage({ view, host, uid, classId, session, mode, answerK
   });
 
   const code = createCodeArea({
-    view, box: $(".dk-nykod"), api, sid, sound, reduced, now,
+    view, api, sid, sound,
     onError: (err) => { if (!destroyed) problem(err?.message); },
   });
 
@@ -271,7 +268,6 @@ export function createDkStage({ view, host, uid, classId, session, mode, answerK
     const hit = hits.take(mine);
     if (hit && !over()) {
       notis.show(hit, list.find((p) => p.uid === hit.byUid));
-      noticeUntil = Date.now() + notis.ms;
       mood(hit.mood);
     }
     hack.update(mine, dkPlayers);
@@ -279,7 +275,7 @@ export function createDkStage({ view, host, uid, classId, session, mode, answerK
     if (hack.settled(mine)) nextQuestion();
     else if (!over() && ready && mine?.pending && (mode_ === "fraga" || mode_ === "laddar")) hack.resume(mine, self, dkPlayers);
     drawTop();
-    if (!over() && gotSelf) code.live(self, { noticeUntil });
+    if (!over() && gotSelf) code.live(self);
     if (first) begin();
   }
 
@@ -289,7 +285,7 @@ export function createDkStage({ view, host, uid, classId, session, mode, answerK
     drawTop();
     if (stageAction(st?.phase) === "lobby") code.lobby(self);
     else if (!over()) {
-      code.live(self, { noticeUntil });
+      code.live(self);
       // Steg 2 efter omladdning: koderna kom efter dkPlayers.
       if (ready && mode_ === "laddar" && mine?.pending) hack.resume(mine, self, dkPlayers);
     }
@@ -315,7 +311,7 @@ export function createDkStage({ view, host, uid, classId, session, mode, answerK
     const a = open ? await api.getMyAnswer(sid, open) : null;
     ready = true;
     if (over()) return;
-    code.live(self, { noticeUntil });
+    code.live(self);
     if (mine?.pending) return hack.resume(mine, self, dkPlayers);
     if (a && a.uid === uid && a.isCorrect === true && !a.chest) return startFiles(open, Promise.resolve({ correct: true }));
     if (open) try { localStorage.removeItem(chestKey(sid, uid)); } catch {}
@@ -331,7 +327,7 @@ export function createDkStage({ view, host, uid, classId, session, mode, answerK
     if (mode_ !== "slut") {
       flow.hide();
       clearMiddle();
-      code.hide();
+      minKod.hide();
       show("slut");
     }
     place(view.querySelector(".live-elev-end [data-dk-av]"));
@@ -379,6 +375,7 @@ export function createDkStage({ view, host, uid, classId, session, mode, answerK
       notis.destroy();
       tips.destroy();
       code.destroy();
+      minKod.destroy();
       clearTimeout(retryT);
       clearTimeout(problemT);
       clearTimeout(protT);
