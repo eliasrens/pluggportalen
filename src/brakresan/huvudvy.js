@@ -18,7 +18,7 @@
 
 import { h } from "./komponenter/bas.js";
 import { CHALLENGES, SECTIONS, extraLabel } from "./schema/katalog.js";
-import { CHALLENGE_COUNT, MAX_TOTAL_STARS, dragonLevel } from "./schema/regler.js";
+import { CHALLENGE_COUNT, MAX_TOTAL_STARS, dragonLevel, stockholmDate } from "./schema/regler.js";
 import { FILTER, filtrera, kortStatus, listlage, sammanfattning } from "./huvudvy-lista.js";
 import { miniatyrSvg } from "./miniatyr.js";
 
@@ -167,6 +167,7 @@ export async function createHuvudvy(host, { state, rek = new Map(), href, drakpa
   let aktuellt = state;
   const oppna = (fokusTillbaka, forandring = null) => oppnaDrakpanel({
     state: aktuellt, byt: drakpanel.byt, jakt: drakpanel.jakt, fokusTillbaka, forandring,
+    idag: stockholmDate(Date.now()), // bara visning – servern avgör jakten (J #715)
     onVisad: drakpanel.onVisad,
     onNamn: (namn) => {
       aktuellt = { ...aktuellt, dragon: { ...aktuellt.dragon, name: namn } };

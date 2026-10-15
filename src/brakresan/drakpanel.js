@@ -125,8 +125,9 @@ function namnRad(info, { byt, onNytt, fraga = false }) {
   const rad = h("div", { class: "bdp-namnrad" });
   const status = h("p", { class: "bdp-namnstatus", role: "status" });
   const visa = () => {
+    // Ägget har inget namn att byta – draken döps först när den kläckts.
     rad.replaceChildren(h("h2", { class: "bdp-namn", id: "bdp-titel" }, info.namn),
-      h("button", { type: "button", class: "bdp-lank", onclick: redigera }, "Byt namn"));
+      info.egg ? null : h("button", { type: "button", class: "bdp-lank", onclick: redigera }, "Byt namn"));
   };
   function redigera() {
     const falt = h("input", {
