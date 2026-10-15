@@ -22,7 +22,7 @@
 //        design/assets/husdjur/<dir>/evolution-{0,1,2}/
 //          00-head.png 01-left-hand.png 02-torso.png
 //          03-right-hand.png 04-left-foot.png 05-right-foot.png
-//   2. Lägg till EN rad i SPRITE_SPECIES: { id, name, kind: "sprite", dir }.
+//   2. Lägg till EN rad i SPRITE_SPECIES: { id, name, kind: "sprite", mystery: true, dir }.
 //   Klart – riggen mäter PNG:erna själv och monterar figuren.
 //
 // Animationerna (andning, gång, rull-på-rygg + sprattel) bor i styles.css
@@ -40,19 +40,19 @@ const ASSET_ROOT = new URL("../design/assets/husdjur", import.meta.url).href;
 // Visas i husdjurspanelens steg-chips (pages-rum-pet-panel.js); saknas den
 // faller panelen tillbaka på de generiska namnen (Bebis/Halvstor/Fullvuxen).
 export const SPRITE_SPECIES = [
-  { id: "butterfly", name: "Fjärlis", kind: "sprite", dir: "butterfly" },
-  { id: "eldis", name: "Eldis", kind: "sprite", dir: "eldis", stageNames: ["Gnista", "Låga", "Brasa"] },
-  { id: "broorgis", name: "Broorgis", kind: "sprite", dir: "broorgis", stageNames: ["Grodd", "Glöd", "Solbrand"] },
-  { id: "robob", name: "Robob", kind: "sprite", dir: "robob", stageNames: ["Kugge", "Kolv", "Koloss"] },
-  { id: "pingio", name: "Pingio", kind: "sprite", dir: "pingio", stageNames: ["Frostfjun", "Isväpnare", "Frostmonark"] },
-  { id: "bamze", name: "Bamze", kind: "sprite", dir: "bamze", stageNames: ["Maskfjun", "Sköldknatte", "Pansarriddaren"] },
-  { id: "buuu", name: "Buuu", kind: "sprite", dir: "buuu", stageNames: ["Skuggfjun", "Dunkelande", "Ametistfursten"] },
-  { id: "electrofox", name: "Electrofox", kind: "sprite", dir: "electrofox", stageNames: ["Gnistvalp", "Blixtrev", "Åskfursten"] },
-  { id: "turtleted", name: "Turtleted", kind: "sprite", dir: "turtleted", stageNames: ["Skalknopp", "Sköldvandrare", "Pansardraken"] },
-  { id: "catjacaj", name: "Catjacaj", kind: "sprite", dir: "catjacaj", stageNames: ["Spinnfjun", "Rovklo", "Klofursten"] },
-  { id: "toadster", name: "Toadster", kind: "sprite", dir: "toadster", stageNames: ["Fläckfjun", "Rosenkind", "Pansarödlan"] },
-  { id: "duplantais", name: "Duplantais", kind: "sprite", dir: "duplantais", stageNames: ["Orkidéfjun", "Slåtterblom", "Liefursten"] },
-  { id: "howlie", name: "Howlie", kind: "sprite", dir: "howlie", stageNames: ["Dunfjun", "Skymningsvinge", "Hornmonarken"] },
+  { id: "butterfly", name: "Fjärlis", kind: "sprite", mystery: true, dir: "butterfly" },
+  { id: "eldis", name: "Eldis", kind: "sprite", mystery: true, dir: "eldis", stageNames: ["Gnista", "Låga", "Brasa"] },
+  { id: "broorgis", name: "Broorgis", kind: "sprite", mystery: true, dir: "broorgis", stageNames: ["Grodd", "Glöd", "Solbrand"] },
+  { id: "robob", name: "Robob", kind: "sprite", mystery: true, dir: "robob", stageNames: ["Kugge", "Kolv", "Koloss"] },
+  { id: "pingio", name: "Pingio", kind: "sprite", mystery: true, dir: "pingio", stageNames: ["Frostfjun", "Isväpnare", "Frostmonark"] },
+  { id: "bamze", name: "Bamze", kind: "sprite", mystery: true, dir: "bamze", stageNames: ["Maskfjun", "Sköldknatte", "Pansarriddaren"] },
+  { id: "buuu", name: "Buuu", kind: "sprite", mystery: true, dir: "buuu", stageNames: ["Skuggfjun", "Dunkelande", "Ametistfursten"] },
+  { id: "electrofox", name: "Electrofox", kind: "sprite", mystery: true, dir: "electrofox", stageNames: ["Gnistvalp", "Blixtrev", "Åskfursten"] },
+  { id: "turtleted", name: "Turtleted", kind: "sprite", mystery: true, dir: "turtleted", stageNames: ["Skalknopp", "Sköldvandrare", "Pansardraken"] },
+  { id: "catjacaj", name: "Catjacaj", kind: "sprite", mystery: true, dir: "catjacaj", stageNames: ["Spinnfjun", "Rovklo", "Klofursten"] },
+  { id: "toadster", name: "Toadster", kind: "sprite", mystery: true, dir: "toadster", stageNames: ["Fläckfjun", "Rosenkind", "Pansarödlan"] },
+  { id: "duplantais", name: "Duplantais", kind: "sprite", mystery: true, dir: "duplantais", stageNames: ["Orkidéfjun", "Slåtterblom", "Liefursten"] },
+  { id: "howlie", name: "Howlie", kind: "sprite", mystery: true, dir: "howlie", stageNames: ["Dunfjun", "Skymningsvinge", "Hornmonarken"] },
 ];
 
 const BY_ID = Object.fromEntries(SPRITE_SPECIES.map((s) => [s.id, s]));

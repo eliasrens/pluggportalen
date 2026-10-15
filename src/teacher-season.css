@@ -1,0 +1,29 @@
+/* ==========================================================================
+   Säsong (#690) – adminsidan #/larare/admin/sasong. Laddas DYNAMISKT av
+   teacher-season.js, ligger inte i styles.css. Scopat under .teacher-dark.
+   ========================================================================== */
+
+.teacher-dark .ts-nu { padding: 12px 16px; }
+.teacher-dark .ts-nu-etikett { color: var(--t-muted); }
+.teacher-dark .ts-form { margin-top: 14px; max-width: none; }
+.teacher-dark .ts-grid { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(260px, 380px); gap: 20px; align-items: start; }
+@media (max-width: 820px) { .teacher-dark .ts-grid { grid-template-columns: 1fr; } }
+.teacher-dark .ts-grupp { border: 0; padding: 0; margin: 0 0 18px; min-width: 0; }
+.teacher-dark .ts-grupp legend { font-weight: 700; margin-bottom: 8px; padding: 0; }
+.teacher-dark .ts-grupp .hint { margin: 8px 0 0; }
+.teacher-dark .ts-knappar { display: flex; flex-wrap: wrap; gap: 8px; }
+.teacher-dark .ts-opt {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  padding: 8px 16px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.16);
+}
+.teacher-dark .ts-opt:has(input:checked) { background: var(--t-accent-soft); border-color: transparent; font-weight: 700; }
+.teacher-dark .ts-slut { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 16px; margin-top: 12px; }
+.teacher-dark .ts-slut .field { margin: 0; }
+.teacher-dark .ts-slut.ts-av { opacity: 0.5; }
+.teacher-dark .ts-inget { display: inline-flex; align-items: center; gap: 6px; padding-bottom: 8px; }
+.teacher-dark .ts-forhand { margin: 0; }
+.teacher-dark .ts-svg svg { display: block; width: 100%; height: auto; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.12); }
+.teacher-dark .ts-forhand figcaption { margin-top: 6px; text-align: center; }
+.teacher-dark .ts-fel:not(:empty) { margin: 6px 0 12px; }
+.teacher-dark .ts-bekrafta .msg { margin-bottom: 10px; }
+.teacher-dark .ts-spara-rad .hint { margin: 0; }

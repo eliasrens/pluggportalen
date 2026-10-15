@@ -5,8 +5,9 @@
 // rör pets[] och därför kan bo för sig (data-pet.js äger djurens tillväxt, dvs.
 // eatApple). Speglar studentData-fälten:
 //   studentData.appleCount     antal köpta men outlagda äpplen (heltal ≥ 0)
-//   studentData.floorApples[]  äpplen som ligger på golvet, { id, x, y }
-//                              (x/y i procent av rumsscenen, golvzonen)
+//   studentData.floorApples[]  äpplen som ligger på golvet, { id, x, y, room? }
+//                              (x/y i procent av rumsscenen, golvzonen; room =
+//                              rum-index ≥ 1, saknas = rum 1 – #698)
 // Köp (buyApple) ökar appleCount; lägg ut (placeApple) flyttar ett från
 // appleCount → floorApples; plocka upp (pickUpApple, #347) flyttar tillbaka
 // ett från floorApples → appleCount. När ett djur äter upp ett äpple sköts
@@ -65,9 +66,11 @@ export async function buyApple(price, studentId = currentStudentId()) {
  * `presetId` låter anroparen bestämma äpplets id i förväg (optimistisk placering:
  * ritas lokalt direkt och persisteras sedan med SAMMA id, så ingen ommappning
  * behövs och ät-flödet hittar rätt äpple även innan skrivningen hunnit klart).
+ * `room` = rummet (index) äpplet läggs i (#698); 0/saknas = rum 1 och sparas
+ * då utan `room`-fält, precis som förut.
  * @returns {Promise<{ok: boolean, appleCount: number, floorApples: object[], apple: object|null}>}
  */
-export async function placeApple(x, y, studentId = currentStudentId(), presetId = null) {
+export async function placeApple(x, y, studentId = currentStudentId(), presetId = null, room = 0) {
   if (!studentId) throw new Error("Ingen elev inloggad.");
   const ref = doc(db, "studentData", studentId);
   const result = await runTransaction(db, async (tx) => {
@@ -77,6 +80,7 @@ export async function placeApple(x, y, studentId = currentStudentId(), presetId 
     const apples = floorApplesFromData(data);
     if (count <= 0) return { ok: false, appleCount: count, floorApples: apples, apple: null };
     const apple = { id: presetId || newAppleId(), x, y };
+    if (Number.isInteger(room) && room > 0) apple.room = room;
     const nextApples = [...apples, apple];
     if (snap.exists()) tx.update(ref, { appleCount: count - 1, floorApples: nextApples });
     else tx.set(ref, { appleCount: count - 1, floorApples: nextApples });

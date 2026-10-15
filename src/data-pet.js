@@ -85,18 +85,15 @@ export function isFullGrown(pet) {
 }
 
 /**
- * Är arten ett MYSTERY-djur (sprite-riggad art, t.ex. Fjärlis/Flammis)? Bara de
- * dras mot och äter Mysterymat – vanliga (icke-sprite) djur ignorerar maten helt.
+ * Är arten ett MYSTERY-djur (flaggan `mystery: true` på arten, #695: sprite-
+ * arterna + Halloween-djuren)? Bara de dras mot och äter Mysterymat.
  */
 export function isMysteryPet(pet) {
   const s = pet && pet.speciesId ? getSpecies(pet.speciesId) : null;
-  return !!(s && s.kind === "sprite");
+  return !!(s && s.mystery);
 }
 
-/**
- * Är varelsen ett kläckt mystery-djur som är hungrigt (dvs. söker Mysterymat på
- * golvet)? Endast sprite-djuren – vanliga djur blir aldrig hungriga.
- */
+/** Kläckt mystery-djur som inte är fullvuxet = hungrigt (söker Mysterymat). */
 export function isHungry(pet) {
   return isMysteryPet(pet) && !!pet.hatchedAt && !isFullGrown(pet);
 }
@@ -189,11 +186,13 @@ export async function getPets(studentId = currentStudentId()) {
 
 /**
  * Köp mystery egg: drar coins och lägger ett NYTT ägg i pets[] – eleven kan ha
- * flera samtidigt. Allt i EN transaktion.
+ * flera samtidigt. Allt i EN transaktion. eggSpecies (#695) = valt djur
+ * (Halloween-ägget): ägget kläcks till just den arten i stället för slump.
  * @returns {Promise<{ok: boolean, coins: number, pets: object[]}>}
  */
-export async function buyEgg(price, studentId = currentStudentId()) {
+export async function buyEgg(price, studentId = currentStudentId(), eggSpecies = null) {
   const cost = Math.max(0, Math.round(price || 0));
+  const valt = eggSpecies && getSpecies(eggSpecies) ? { eggSpecies } : {};
   return updatePets(studentId, (pets, data) => {
     const coins = data.coins || 0;
     const hasLamp = (data.ownedItems || []).includes(LAMP_ITEM_ID);
@@ -210,6 +209,7 @@ export async function buyEgg(price, studentId = currentStudentId()) {
       lastFedAt: null,
       // Nya ägg hamnar lite utspritt på golvet så de inte staplas exakt.
       pos: { x: 30 + Math.round(Math.random() * 40), y: 70 + Math.round(Math.random() * 15) },
+      ...valt,
     };
     const next = [...pets, egg];
     return {
@@ -247,8 +247,8 @@ export async function buyHeatLamp(price, studentId = currentStudentId()) {
 }
 
 /**
- * Kläck alla ägg vars kläcktid passerats: slumpar art + sätter hatchedAt och
- * steg 1. Anropas vid inläsning av rummet.
+ * Kläck alla ägg vars kläcktid passerats: valt djur (eggSpecies) eller slumpad
+ * art + hatchedAt och steg 1. Anropas vid inläsning av rummet.
  * @returns {Promise<{pets: object[], justHatchedIds: string[]}>}
  */
 export async function hatchReadyPets(studentId = currentStudentId()) {
@@ -259,7 +259,7 @@ export async function hatchReadyPets(studentId = currentStudentId()) {
     const next = pets.map((p) => {
       if (!p.eggBoughtAt || p.hatchedAt || now < hatchTimeFor(p, hasLamp)) return p;
       justHatchedIds.push(p.id);
-      return { ...p, speciesId: randomSpeciesId(), hatchedAt: now, stage: 1 };
+      return { ...p, speciesId: p.eggSpecies || randomSpeciesId(), hatchedAt: now, stage: 1 };
     });
     if (justHatchedIds.length === 0) {
       return { result: { pets, justHatchedIds } };

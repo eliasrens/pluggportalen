@@ -16,15 +16,21 @@
 //                                 (fran 0) eller evolution FÖRST i panelen –
 //                                 progressionen är redan sparad av servern (§9).
 //
-// o = { state, byt?(namn) → { name }, jakt?(yta, info), onStang?, fokusTillbaka? }
-//   byt   – standard: data.js renameDragon (servern rensar texten)
-//   jakt  – guldjaktens knapp/animation (J #715) ritas i `yta`; utan den
-//           visas status och historik men ingen knapp. Ägget har aldrig knapp.
+// o = { state, byt?(namn) → { name }, jakt?(yta, info), onJakt?(svar), onStang?, fokusTillbaka?, idag? }
+//   byt    – standard: data.js renameDragon (servern rensar texten)
+//   jakt   – guldjaktens knapp/animation i `yta`. Standard (utelämnad): guldjakt.js
+//            (#715) – samma dagliga jakt i Bråkresan och huset. jakt: null = bara
+//            status och historik, ingen knapp. Ägget har aldrig knapp.
+//   onJakt – efter en BEKRÄFTAD jakt (svaret från brakresaHunt): uppdatera saldo/state
+//   idag   – "ÅÅÅÅ-MM-DD" för visningen; standard = enhetens svenska datum. Bara
+//            visning: servern avgör jakten med sin klocka.
+//   atgarder – extra knappar längst ner [{ text, gor }] (huset #714: "vila i
+//            Mina djur"); ett klick stänger panelen och kör sedan gor().
 // ============================================================================
 
 import { h } from "./komponenter/bas.js";
 import {
-  dragonProgress, huntMax, cleanDragonName, DRAGON_DEFAULT_NAME, DRAGON_NAME_MAX, MAX_TOTAL_STARS,
+  dragonProgress, huntMax, cleanDragonName, stockholmDate, DRAGON_DEFAULT_NAME, DRAGON_NAME_MAX, MAX_TOTAL_STARS,
 } from "./schema/regler.js";
 
 let cssLaddad = null;
@@ -70,6 +76,7 @@ export function drakInfo(state, { idag = null } = {}) {
       antal: hunts.count || 0,
       mynt: hunts.coins || 0,
       klarIdag: !!idag && hunts.lastDate === idag,
+      idagFynd: !!idag && hunts.lastDate === idag && Number.isInteger(hunts.lastAmount) ? hunts.lastAmount : null,
     },
   };
 }
@@ -180,8 +187,8 @@ function jaktDel(info, jakt) {
     yta,
     h("dl", { class: "bdp-fakta" },
       h("div", null, h("dt", null, "Fynd per jakt"), h("dd", null, j.intervallText)),
-      h("div", null, h("dt", null, "Genomförda jakter"), h("dd", null, String(j.antal))),
-      h("div", null, h("dt", null, "Funna mynt totalt"), h("dd", null, String(j.mynt)))));
+      h("div", null, h("dt", null, "Genomförda jakter"), h("dd", { "data-falt": "antal" }, String(j.antal))),
+      h("div", null, h("dt", null, "Funna mynt totalt"), h("dd", { "data-falt": "mynt" }, String(j.mynt)))));
   jakt?.(yta, info);
   return del;
 }
@@ -190,10 +197,16 @@ function jaktDel(info, jakt) {
  * Drakpanelen som dialog (Esc/Stäng, fokus tillbaka). Samma i Bråkresan och huset.
  * @returns {Promise<void>} när panelen stängts
  */
-export async function oppnaDrakpanel({ state, byt, jakt, forandring = null, onVisad, onNamn, fokusTillbaka = null, idag = null } = {}) {
+export async function oppnaDrakpanel({
+  state, byt, jakt, onJakt, forandring = null, onVisad, onNamn, fokusTillbaka = null, idag = stockholmDate(Date.now()), atgarder = [],
+} = {}) {
   await ensureDrakpanelCss();
   const info = drakInfo(state, { idag });
   byt ||= async (namn) => (await import("./data.js")).renameDragon(namn);
+  // Guldjakten (#715) laddas lat – samma knapp i Bråkresan och huset.
+  if (jakt === undefined) {
+    jakt = (yta, i) => import("./guldjakt.js").then((m) => m.monteraJakt(yta, i, { onJakt }));
+  }
   let stopp = () => {};
   // Kläckning/evolution räknas som visad när scenen är klar, hoppats över ELLER panelen stängts.
   let visadKlar = !forandring;
@@ -208,7 +221,9 @@ export async function oppnaDrakpanel({ state, byt, jakt, forandring = null, onVi
       namn.el,
       h("p", { class: "bdp-niva" }, h("strong", null, info.nivaText), " · ", info.starsText),
       progressNod(info),
-      jaktDel(info, jakt)));
+      jaktDel(info, jakt),
+      atgarder.length ? h("div", { class: "bdp-atgarder" }, ...atgarder.map((a) =>
+        h("button", { type: "button", class: "bdp-knapp", onclick: () => { dlg.close(); a.gor(); } }, a.text))) : null));
   document.body.append(dlg);
   const klar = new Promise((resolve) => {
     dlg.addEventListener("close", () => {

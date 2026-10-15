@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Halloween-samlingen</title>
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      /* Fristående testyta för issue #692: Halloween-samlingens 12 inne-saker,
+         8 trädgårdssaker och 3 husskal, ritade med exakt samma itemSvg/itemSize/
+         husScen som rummet, trädgården och ute-scenen. Konsten laddas lazy via
+         loadCollectionArt() precis som i appen. Ingen inloggning behövs. */
+      body { margin: 0; font-family: "Baloo 2", system-ui, sans-serif; background: #fdf6ec; color: #4a3b2a; }
+      header { padding: 16px 20px 4px; }
+      header h1 { margin: 0 0 4px; font-size: 1.3rem; }
+      header p { margin: 0; font-size: 0.9rem; opacity: 0.85; max-width: 70ch; }
+      .wrap { padding: 12px 20px 40px; }
+      h2 { font-size: 1.05rem; margin: 26px 0 4px; }
+      .strip { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 12px; }
+      .cell {
+        display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+        gap: 6px; width: 140px; padding: 12px 8px 10px;
+        background: #fff; border: 3px solid #E5D8F7; border-radius: 16px;
+      }
+      .cell .bild { display: flex; align-items: flex-end; justify-content: center; height: 120px; }
+      .cell .bild svg { width: 100%; height: 100%; }
+      .cell small { font-size: 0.8rem; text-align: center; }
+      .cell .pris { font-size: 0.75rem; opacity: 0.7; }
+      .strip.vagg .cell { background: #cfe8f5; }
+      .strip.gras .cell { background: #bfe6a8; border-color: #9fd187; }
+      .grid { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 12px; }
+      .stage {
+        position: relative; width: min(92vw, 520px); aspect-ratio: 3 / 2; border-radius: 18px; overflow: hidden;
+        box-shadow: 0 8px 24px rgba(59, 51, 80, 0.18);
+        --hus-house: #F7C948; --hus-roof: #EF6F6C; --hus-wall: #7FC7E8; --hus-wall2: #C9EEFB;
+      }
+      .stage .varld-lager { position: absolute; inset: 0; }
+      .stage .cap { position: absolute; left: 10px; top: 8px; z-index: 2; background: rgba(255,255,255,0.85); border-radius: 10px; padding: 3px 10px; font-weight: 800; }
+      .panelbox { background: #fff; border: 3px solid #E5D8F7; border-radius: 16px; padding: 14px 16px; max-width: 720px; margin-top: 22px; }
+      #husskalrad { display: flex; flex-wrap: wrap; gap: 12px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Förhandsvisning – Halloween-samlingen (#692)</h1>
+      <p>
+        Alla nya saker i butikens Halloween-flik, ritade med samma <code>itemSvg</code>/<code>itemSize</code>
+        som rummet och trädgården (1 rem ≈ 24 px här) och husen i ute-scenen. Glöd, lågor och bubblor
+        är CSS-animationer (av vid reducerad rörelse).
+      </p>
+    </header>
+    <div class="wrap">
+      <h2>Dekor &amp; möbler (inne)</h2>
+      <div class="strip vagg" id="inne"></div>
+      <h2>Trädgård (ute)</h2>
+      <div class="strip gras" id="ute"></div>
+      <h2>Hus</h2>
+      <div class="grid" id="hus"></div>
+      <div class="panelbox">
+        <h3>🏠 Nytt hus – väljare</h3>
+        <div id="husskalrad"></div>
+      </div>
+    </div>
+    <script type="module">
+      import { itemSvg, itemSize, loadCollectionArt } from "../src/art-items.js";
+      import { husScen, renderHusSkalPicker } from "../src/art-hus-ute.js";
+      import { avatarMarkup } from "../src/avatars.js";
+      import { itemsInCollection } from "../src/shop-items.js";
+
+      await loadCollectionArt();
+      const varor = itemsInCollection("halloween");
+      const cell = (it) => {
+        const s = itemSize(it.id);
+        return `<div class="cell"><div class="bild" style="width:${s.w * 24}px;max-width:120px">${itemSvg(it.id) || it.emoji}</div>
+          <small>${it.name}</small><span class="pris">${it.price} mynt · ${it.category}${it.flat ? " · platt" : ""}</span></div>`;
+      };
+      document.getElementById("inne").innerHTML = varor.filter((i) => i.category === "dekor" || i.category === "mobler").map(cell).join("");
+      document.getElementById("ute").innerHTML = varor.filter((i) => i.category === "tradgard").map(cell).join("");
+      document.getElementById("hus").innerHTML = varor.filter((i) => i.category === "hus").map((it) =>
+        `<div class="stage"><span class="cap">${it.name} · ${it.price} mynt</span>
+          <div class="varld-lager varld-ute">${husScen(avatarMarkup("fox", ["trollkarlshatt"]), { skalId: it.skalId, skylt: { rad1: "Klass 4B", rad2: "– Solbyn –" } })}</div></div>`
+      ).join("") + varor.filter((i) => i.category === "hus").map(cell).join("");
+      renderHusSkalPicker(document.getElementById("husskalrad"), {
+        activeId: "hw-spokhus", owned: ["hw-spokhus", "hw-pumpahus", "hw-skallehus"],
+        palette: { house: "#F7C948", roof: "#EF6F6C", wall: "#7FC7E8", wall2: "#C9EEFB" }, onPick: () => {},
+      });
+    </script>
+  </body>
+</html>

@@ -199,3 +199,65 @@
 .bdp-knapp--primar { border-color: var(--bdp-turkos-mork); background: var(--bdp-turkos-mork); color: #fff; }
 .bdp-knapp--primar:hover { background: var(--bdp-turkos); }
 .bdp-knapp:disabled { opacity: .6; cursor: default; }
+
+/* Extra knappar längst ner (huset #714: "Låt draken vila i Mina djur"). */
+.bdp-atgarder { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+
+/* --- guldjakten (#715, guldjakt.js) ------------------------------------------ */
+.gj-knapp {
+  justify-self: start;
+  border-color: #b9831a;
+  background: linear-gradient(180deg, #ffd65c 0%, var(--bdp-guld) 100%);
+  color: #3d2a00;
+}
+.gj-knapp:hover:not(:disabled) { border-color: #7a5600; background: #ffd65c; }
+.gj-knapp[aria-busy="true"] { cursor: progress; }
+.gj-fynd { font-weight: 800; color: #7a5600; }
+.gj-lager { position: absolute; inset: 0; pointer-events: none; }
+.gj-kista-ruta {
+  position: absolute;
+  right: 7%;
+  bottom: 6%;
+  width: clamp(70px, 22%, 110px);
+  opacity: 0;
+}
+.gj-kista { display: block; width: 100%; height: auto; overflow: visible; }
+.gj-lock { transform-box: fill-box; transform-origin: 0 100%; transition: transform .45s ease-out; }
+.gj-glans { opacity: 0; transition: opacity .45s ease-out .15s; }
+.gj-kista--oppen .gj-lock { transform: translate(-4%, -30%) rotate(-24deg); }
+.gj-kista--oppen .gj-glans { opacity: 1; }
+.gj-plus {
+  position: absolute;
+  right: 7%;
+  bottom: calc(6% + clamp(70px, 22%, 110px) * 1.4);
+  width: clamp(70px, 22%, 110px);
+  margin: 0;
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #b07800;
+  text-shadow: 0 2px 0 #fff, 0 0 10px #fff3c4;
+  opacity: 0;
+}
+.gj-scentext {
+  position: absolute;
+  top: 14px;
+  left: 0;
+  right: 0;
+  margin: 0;
+  text-align: center;
+  font-weight: 800;
+  color: var(--bdp-black);
+  opacity: 0;
+}
+.gj-gnista {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: #ffe58a;
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gj-lock, .gj-glans { transition: none; }
+}

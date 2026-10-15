@@ -203,18 +203,9 @@
 .dk-svar-tl { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; width: 100%; max-width: 1100px; margin: 0 auto; }
 .dk-svar-tl .tl-fraga:empty, .dk-svar-tl .tl-kontext:empty { display: none; }
 
-/* --- Kodvalet (dk-kodval.js): lobbyn + "Välj ny kod" ------------------------ */
+/* --- Kodvalet (dk-kodval.js): lobbyn + den dolda koden ("Visa kod", #719) --- */
 .dkv { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .dkv-rubrik { margin: 0; display: flex; align-items: center; gap: 12px; font-weight: 800; color: var(--dk-text); font-size: clamp(18px, 3vh, 26px); }
-.dkv-tid {
-  font-family: var(--dk-mono);
-  font-variant-numeric: tabular-nums slashed-zero;
-  padding: 0 10px;
-  border-radius: 999px;
-  background: var(--dk-varm);
-  color: var(--dk-natt);
-  font-size: 0.8em;
-}
 .dkv-rad { container-type: inline-size; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(6px, 1vw, 12px); width: 100%; }
 .dkv-kort {
   padding: 0.5em 0.4em;
@@ -229,28 +220,31 @@
 }
 /* Koderna är 4–11 tecken (--n, codeHtml): så stora som kortets bredd tillåter. */
 .dkv-kort .dk-kod { font-size: max(12px, min(3.6vh, 32px, calc(21cqi / (var(--n, 8) * 0.68)))); }
-.dkv-ny .dkv-kort .dk-kod { font-size: max(12px, min(2.6vh, 22px, calc(21cqi / (var(--n, 8) * 0.68)))); }
 .dkv-kort:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--dk-gron); background: var(--dk-panel-ljus); }
 .dkv-kort.vald { border-color: var(--dk-gron); background: rgba(61, 255, 162, 0.16); }
 .dkv-kort:disabled:not(.vald) { opacity: 0.55; cursor: default; }
-.dkv-min, .dkv-klar { margin: 0; font-size: clamp(20px, 3.4vh, 30px); font-weight: 800; color: var(--dk-text); text-align: center; }
+.dkv-min { margin: 0; font-size: clamp(20px, 3.4vh, 30px); font-weight: 800; color: var(--dk-text); text-align: center; }
 .dkv-min small { display: block; font-size: 0.55em; font-weight: 700; color: var(--dk-svag); }
 .dkv-bock { color: var(--dk-gron); }
 .dkv-fel { margin: 0; font-weight: 800; color: var(--dk-varm); }
-/* Efter ett hack: en smal rad ovanför frågan – frågan fortsätter under. */
-.dk-nykod {
-  flex: none;
-  padding: 6px 12px;
-  border-radius: 14px;
-  background: rgba(255, 179, 71, 0.1);
-  border: 2px solid var(--dk-varm);
+/* Den egna koden dold tills eleven trycker "Visa kod" (lobbyn + toppraden). */
+.dkr { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.dkr-dold { letter-spacing: 0.15em; color: var(--dk-svag); }
+.dkr-knapp {
+  font: inherit;
+  font-size: 0.8em;
+  font-weight: 800;
+  min-height: 32px;
+  padding: 2px 12px;
+  border-radius: 999px;
+  border: 2px solid var(--dk-linje);
+  background: var(--dk-panel);
+  color: var(--dk-text);
+  cursor: pointer;
 }
-.dkv-ny { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 6px 14px; }
-.dkv-ny .dkv-rubrik { font-size: clamp(15px, 2.4vh, 20px); }
-.dkv-ny .dkv-rad { width: auto; flex: 1; min-width: min(560px, 100%); }
-.dkv-ny .dkv-kort { padding: 0.25em 0.4em; }
-.dkv-ny .dkv-klar { font-size: clamp(16px, 2.6vh, 22px); }
-
+.dkr-knapp[aria-pressed="true"] { border-color: var(--dk-gron); }
+.dkr-knapp:focus-visible { outline: 3px solid var(--dk-gron); outline-offset: 2px; }
+.dkr-knapp:disabled { opacity: 0.5; cursor: default; }
 /* --- Notisen: "💻 Omar knäckte din kod och tog 45 MB!" --------------------- */
 .dk-notis {
   position: absolute;

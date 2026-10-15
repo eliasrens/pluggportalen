@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – möbler i fyra riktningar (#699)</title>
+    <style>
+      /* Fristående testyta för issue #699: varje fyrriktningsmöbel i alla fyra
+         riktningar (⟳ Rotera) + spegelvänd (↔ Vänd), ritad med exakt samma
+         itemSvg/itemSize/itemRiktning som rummet använder. Den streckade
+         golvlinjen visar att möbeln står på samma golvpunkt i varje riktning. */
+      body { margin: 0; font-family: "Baloo 2", system-ui, sans-serif; background: #fdf6ec; color: #4a3b2a; }
+      header { padding: 16px 20px 4px; }
+      header h1 { margin: 0 0 4px; font-size: 1.3rem; }
+      header p { margin: 0; font-size: 0.9rem; opacity: 0.85; max-width: 70ch; }
+      .wrap { padding: 8px 20px 40px; }
+      table { border-collapse: separate; border-spacing: 10px; }
+      th { font-size: 0.85rem; font-weight: 700; text-align: center; }
+      th.namn { text-align: left; min-width: 110px; }
+      td.cell {
+        background: #fff; border: 3px solid #ffe0b3; border-radius: 14px;
+        padding: 10px 10px 0; vertical-align: bottom; text-align: center;
+      }
+      td.cell.vand { border-color: #c9b3ec; }
+      .golv {
+        display: flex; align-items: flex-end; justify-content: center;
+        height: 150px; min-width: 120px; border-bottom: 2px dashed #b0805a;
+      }
+      .bild { display: block; }
+      .bild svg { display: block; width: 100%; height: 100%; }
+      .bild.spegel { transform: scaleX(-1); }
+      td.cell small { display: block; font-size: 0.72rem; opacity: 0.7; padding: 4px 0 6px; }
+      .ovriga { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+      .ovriga span { background: #fff; border: 2px solid #ffe0b3; border-radius: 10px; padding: 4px 10px; font-size: 0.85rem; }
+      .ovriga span.text { border-color: #EF6F6C; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Möbler i fyra riktningar ⟳ ↔</h1>
+      <p>
+        Varje rad är en möbel med fyra riktningar: framifrån, sidan, bakifrån och andra sidan
+        (⟳ Rotera stegar i den ordningen). Lila kolumnen = framsidan med ↔ Vänd. 1 rem ≈ 26 px.
+        Streckad linje = golvet: möbeln ska stå på samma punkt i varje riktning.
+      </p>
+    </header>
+    <div class="wrap">
+      <table id="tabell">
+        <thead><tr><th class="namn">Möbel</th><th>Framifrån (rot 0)</th><th>Sidan (rot 1)</th><th>Bakifrån (rot 2)</th><th>Andra sidan (rot 3)</th><th>↔ Vänd (rot 0)</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <h2 style="font-size:1.05rem;margin:26px 0 4px">Saker utan ↔ Vänd (text/siffror/karta)</h2>
+      <div class="ovriga" id="text"></div>
+    </div>
+    <script type="module">
+      import { itemSvg, itemSize, itemRiktning, kanRoteras, kanVandas, loadCollectionArt } from "../src/art-items.js";
+      import { SHOP_ITEMS } from "../src/shop-items.js";
+
+      const REM = 26;
+      await loadCollectionArt();
+      const tbody = document.querySelector("#tabell tbody");
+      const fyra = SHOP_ITEMS.filter((it) => kanRoteras(it.id));
+      for (const it of fyra) {
+        const tr = document.createElement("tr");
+        tr.dataset.id = it.id;
+        let html = `<th class="namn">${it.name}<br><small style="opacity:.6">${it.id}</small></th>`;
+        const lagen = [[0, false], [1, false], [2, false], [3, false], [0, true]];
+        for (const [rot, flip] of lagen) {
+          const { spegel } = itemRiktning(it.id, { rot, flip });
+          const { w, h } = itemSize(it.id, rot);
+          html += `<td class="cell${flip ? " vand" : ""}" data-rot="${rot}"><div class="golv">` +
+            `<span class="bild${spegel ? " spegel" : ""}" style="width:${(w * REM).toFixed(0)}px;height:${(h * REM).toFixed(0)}px">` +
+            `${itemSvg(it.id, { rot })}</span></div><small>${w}×${h} rem</small></td>`;
+        }
+        tr.innerHTML = html;
+        tbody.appendChild(tr);
+      }
+      const text = document.getElementById("text");
+      for (const it of SHOP_ITEMS) {
+        if (itemSvg(it.id) && !kanVandas(it.id)) {
+          text.insertAdjacentHTML("beforeend", `<span class="text">${it.emoji} ${it.name}</span>`);
+        }
+      }
+      document.body.dataset.klar = String(fyra.length);
+    </script>
+  </body>
+</html>

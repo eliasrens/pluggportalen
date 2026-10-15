@@ -11,7 +11,7 @@
 // studentData.garden.placements + ownedItems (Firestore); `emoji` = fallback.
 // ============================================================================
 
-import { O, LINE, THIN, limb } from "./art-style.js";
+import { O, LINE, THIN, limb, sz, lovhog } from "./art-style.js";
 
 // Palett – samma gröna/trä-toner som ute-scenen (färgas aldrig om av paletten).
 const LOV = "#6FC66F";
@@ -40,13 +40,13 @@ export const GARDEN = {
       shadow(60, 146, 40) +
       limb("M60 146 L60 78", WOOD, 15) +
       `<path d="M52 110 Q42 100 40 112" fill="none" ${THIN}/>` +
-      `<circle cx="60" cy="60" r="42" fill="${LOV}" ${LINE}/>` +
-      `<circle cx="30" cy="82" r="26" fill="${LOV}" ${LINE}/>` +
-      `<circle cx="92" cy="80" r="28" fill="${LOV}" ${LINE}/>` +
+      `<circle cx="60" cy="60" r="42" fill="${sz("tree-a", LOV)}" ${LINE}/>` +
+      `<circle cx="30" cy="82" r="26" fill="${sz("tree-b", LOV)}" ${LINE}/>` +
+      `<circle cx="92" cy="80" r="28" fill="${sz("tree-c", LOV)}" ${LINE}/>` +
       `<path d="M40 46 Q52 40 60 50" fill="none" ${THIN}/>` +
       `<circle cx="46" cy="54" r="6" fill="#EF6F6C" ${THIN}/>` +
       `<circle cx="82" cy="70" r="6" fill="#EF6F6C" ${THIN}/>` +
-      `<circle cx="66" cy="88" r="6" fill="#EF6F6C" ${THIN}/>`,
+      `<circle cx="66" cy="88" r="6" fill="#EF6F6C" ${THIN}/>` + lovhog(88, 147, 0.6),
   },
 
   // --- Buske: låg rund grönska med små blommor -----------------------------
@@ -55,9 +55,9 @@ export const GARDEN = {
     w: 4.6,
     art:
       shadow(55, 70, 40) +
-      `<circle cx="30" cy="46" r="24" fill="${LOV_MORK}" ${LINE}/>` +
-      `<circle cx="80" cy="46" r="24" fill="${LOV_MORK}" ${LINE}/>` +
-      `<circle cx="55" cy="34" r="28" fill="${LOV}" ${LINE}/>` +
+      `<circle cx="30" cy="46" r="24" fill="${sz("bush", LOV_MORK)}" ${LINE}/>` +
+      `<circle cx="80" cy="46" r="24" fill="${sz("bush", LOV_MORK)}" ${LINE}/>` +
+      `<circle cx="55" cy="34" r="28" fill="${sz("tree-c", LOV)}" ${LINE}/>` +
       `<path d="M40 40 Q55 32 70 40" fill="none" ${THIN}/>` +
       `<circle cx="34" cy="46" r="4.6" fill="#F890B7" ${THIN}/>` +
       `<circle cx="76" cy="48" r="4.6" fill="#F7C948" ${THIN}/>` +
@@ -80,6 +80,7 @@ export const GARDEN = {
   // --- Parkeringsruta (flat): asfalt med vit ram + stort P ------------------
   parkering: {
     viewBox: "0 0 120 96",
+    text: true, // P-skylten på asfalten → ingen ↔ Vänd (#699)
     w: 5.6,
     flat: true,
     art:

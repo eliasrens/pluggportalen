@@ -2,8 +2,10 @@
 // Bråkdraken – tomgång, kläckning och evolution (#718, spec §9)
 // ----------------------------------------------------------------------------
 //   startaTomgang(svg, opts)  → stopp(). Blinkar var 3–7 s och gör en av
-//        nivåns gester var 8–20 s. Pausar när fliken är dold eller draken är
-//        utanför skärmen (IntersectionObserver).
+//        nivåns gester var 8–20 s. Pausar när fliken är dold, draken är
+//        utanför skärmen (IntersectionObserver) eller opts.vy (t.ex. husets
+//        rumslager) är inert/.varld-dold. Huspose (data-hus) byter vinggester
+//        mot lugnare huvudgester – vingarna är hopvikta där (#714).
 //   spelaGest(svg, namn)      → spelar en gest en gång (för förhandsvisning).
 //   spelaKlackning(värd, o)   → ägg → nivå 1 på ~4 s, med "Hoppa över".
 //   spelaEvolution(värd, från, till, o) → ~3 s glöd/silhuettbyte + nivåtext.
@@ -32,13 +34,18 @@ export function spelaGest(svg, namn) {
   svg._bdGest = { ...(svg._bdGest || {}), [namn]: setTimeout(() => svg.classList.remove(k), 4200) };
 }
 
+// Gester som fäller ut vingarna → lugnare motsvarighet med hopvikta vingar.
+const HUS_GEST = { svav: "huvudlyft", vingoppning: "huvudlyft" };
+const vyDold = (vy) => !!vy && (vy.inert || vy.classList.contains("varld-dold"));
+
 /** Tomgångsrörelser för en draksvg. Returnerar stoppfunktion. */
-export function startaTomgang(svg, { min = 8000, max = 20000, blink = [3000, 7000] } = {}) {
+export function startaTomgang(svg, { min = 8000, max = 20000, blink = [3000, 7000], vy = null } = {}) {
   installeraDrakeCss(svg.ownerDocument);
   const niva = Number(svg.dataset.niva) || 0;
-  const gester = STADIER[niva].gester.filter((g) => g !== "blink");
+  const hus = svg.dataset.hus === "1";
+  const gester = STADIER[niva].gester.filter((g) => g !== "blink").map((g) => (hus && HUS_GEST[g]) || g);
   let synlig = true, timers = [], stoppad = false;
-  const aktiv = () => !stoppad && synlig && !svg.ownerDocument.hidden;
+  const aktiv = () => !stoppad && synlig && !svg.ownerDocument.hidden && !vyDold(vy);
   const schema = (fn, ms) => timers.push(setTimeout(fn, ms));
   const gest = () => {
     if (aktiv() && gester.length) spelaGest(svg, gester[Math.floor(Math.random() * gester.length)]);
@@ -56,11 +63,16 @@ export function startaTomgang(svg, { min = 8000, max = 20000, blink = [3000, 700
     ? new IntersectionObserver(([e]) => { synlig = e.isIntersecting; paus(); })
     : null;
   io?.observe(svg);
+  // Vyn (husets rumslager) göms med inert/.varld-dold när kameran lämnar den.
+  const mo = vy && typeof MutationObserver === "function" ? new MutationObserver(paus) : null;
+  mo?.observe(vy, { attributes: true, attributeFilter: ["inert", "class"] });
+  paus();
   svg.ownerDocument.addEventListener("visibilitychange", paus);
   return () => {
     stoppad = true;
     timers.forEach(clearTimeout);
     io?.disconnect();
+    mo?.disconnect();
     svg.ownerDocument.removeEventListener("visibilitychange", paus);
   };
 }

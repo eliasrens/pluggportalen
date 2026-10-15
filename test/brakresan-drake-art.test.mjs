@@ -3,7 +3,7 @@
 //   node --test test/brakresan-drake-art.test.mjs
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { drakeNiva, drakeProgress, drakeSvg, drakeMatt, skalaFor, STADIER } from "../src/brakresan/art-drake.js";
+import { drakeNiva, drakeProgress, drakeSvg, drakeMatt, skalaFor, STADIER, husMatt, husPassning, arHusVikt, HUS_MIN_H } from "../src/brakresan/art-drake.js";
 
 test("drakeNiva: 0–9 ägg, sedan floor(S/10) upp till 15", () => {
   assert.equal(drakeNiva(0), 0);
@@ -64,4 +64,48 @@ test("storleksrelation: nivå 1 ≈ 1/7 av nivå 15", () => {
   const k1 = skalaFor(1, 100) * drakeMatt(1).enhet, k15 = skalaFor(15, 100) * drakeMatt(15).enhet;
   assert.ok(Math.abs(k1 / k15 - 1 / 7) < 0.01);
   assert.equal(drakeMatt(15).pivot[1], 200);
+});
+
+// --- Draken i elevhuset (#714) ----------------------------------------------
+
+test("huspose: vuxna (10–15) har hopvikta vingar, yngre ritas som vanligt", () => {
+  for (let n = 1; n <= 15; n++) {
+    const hus = drakeSvg(n, { hus: true });
+    assert.match(hus, /data-hus="1"/);
+    assert.equal(arHusVikt(n), n >= 10);
+    // Samma rigg (tomgången behöver grupperna) och samma ruta som i Bråkresan.
+    assert.match(hus, /class="bd-andas"/);
+    assert.equal(hus.match(/viewBox="([^"]+)"/)[1], drakeSvg(n).match(/viewBox="([^"]+)"/)[1]);
+    const lika = hus.replace(/bd\d+x/g, "u").replace(' data-hus="1"', "") === drakeSvg(n).replace(/bd\d+x/g, "u");
+    assert.equal(lika, n < 10, `nivå ${n}: huspose ${n < 10 ? "ska" : "ska inte"} vara samma bild`);
+  }
+});
+
+test("husMatt: storleken växer med nivån, nivå 1 klickbar, nivå 15 ≈ 7× nivå 1:s kropp", () => {
+  // Logisk kroppsstorlek i huset (rums-enheter per "häst"-faktor) växer strikt.
+  let forra = 0;
+  for (let n = 1; n <= 15; n++) {
+    const m = husMatt(n), { vb, enhet } = drakeMatt(n);
+    assert.ok(m.h >= HUS_MIN_H - 0.05, `nivå ${n} för liten`);
+    const kropp = (m.h / vb[3]) * enhet;
+    assert.ok(kropp > forra, `nivå ${n} krymper`);
+    forra = kropp;
+  }
+  assert.ok(husMatt(15).h > 5 * husMatt(1).h);
+  // Ägget och skräpvärden faller på nivå 1 (ägget visas aldrig i huset).
+  assert.deepEqual(husMatt(0), husMatt(1));
+  assert.deepEqual(husMatt("x"), husMatt(1));
+});
+
+test("husPassning: krymper bara när draken inte ryms ovanför fötterna eller i bredd", () => {
+  const scen = { enhetPx: 25, scenW: 1100, scenH: 760 };
+  assert.equal(husPassning(husMatt(6), 90, scen), 1);
+  const s = husPassning(husMatt(15), 67, { enhetPx: 25, scenW: 1100, scenH: 520 });
+  assert.ok(s < 1 && s > 0.5);
+  // Huvudet hamnar då precis under överkanten (2 % marginal).
+  assert.ok(Math.abs(husMatt(15).h * 25 * s - (0.67 - 0.02) * 520) < 0.01);
+  // Smal scen: bredden styr.
+  assert.ok(husPassning({ w: 50, h: 2 }, 90, scen) < 1);
+  // Okänd scen (dold) → ingen ändring.
+  assert.equal(husPassning(husMatt(15), 67, { enhetPx: 25, scenW: 0, scenH: 0 }), 1);
 });

@@ -161,4 +161,22 @@ describe("brakresaRecommendations", () => {
     await assertFails(recs(env.ak4(), "classId", "5a"));
     await assertSucceeds(recs(env.admin(), "classId", "5a"));
   });
+
+  it("lärarvyn (K #716): en fråga per egen elev, aldrig andra elevers", async () => {
+    await assertSucceeds(recs(env.ak4(), "studentId", "e4a"));
+    await assertFails(recs(env.ak4(), "studentId", "e5a"));
+    await assertSucceeds(recs(env.admin(), "studentId", "e5a"));
+  });
+});
+
+describe("lärarvyns läsningar (K #716)", () => {
+  const rounds = (db, uid) => collection(db, "studentData", uid, "brakresaRounds");
+  it("omgångar per utmaning, per period och stjärnhändelser – bara egna elever", async () => {
+    const ak4 = env.ak4();
+    await assertSucceeds(getDocs(query(rounds(ak4, "e4a"), where("challengeId", "==", "03"))));
+    await assertSucceeds(getDocs(query(rounds(ak4, "e4a"), where("startedAt", ">=", new Date(0)))));
+    await assertSucceeds(getDocs(query(collection(ak4, "studentData", "e4a", "brakresaRewards"), where("type", "==", "stjarna"))));
+    await assertFails(getDocs(query(rounds(ak4, "e5a"), where("challengeId", "==", "03"))));
+    await assertFails(getDocs(query(collection(ak4, "studentData", "e5a", "brakresaRewards"), where("type", "==", "stjarna"))));
+  });
 });

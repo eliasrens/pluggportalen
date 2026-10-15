@@ -21,16 +21,18 @@ Pluggportalen – kodbasen vinner, §13).
 | Omgångsplan (10 st, 3/4/3, inga dubbletter, reservbank) | `src/brakresan/schema/omgangsplan.js` | klar |
 | Regler i siffror (stjärnor, mynt, drake, jakt, datum, status) | `src/brakresan/schema/regler.js` | klara |
 | Generatorgranskning (200 exempel/utmaning) | `src/brakresan/schema/granskning.js`, `test/brakresan-generatorer.test.js` | klar – körs för varje byggd utmaning |
-| 50 utmaningsfiler | `src/brakresan/utmaningar/u01.js` … `u50.js` | **byggda: 01–20 (D #709: 03, 12, 19 · E #710: övriga), 34, 36–50 (G #712)**; delade hjälpfunktioner för E i `utmaningar/delat-e.js`, för G i `utmaningar/delat-g.js` (elevsvar, blandad form, decimal/procent ur exakta värden); 50:s familjer i `u50-familjer.js`, `u50-resonemang.js`, `u50-delat.js`; övriga stubbar – fylls av F |
-| Granskningsskript per utmaning (D #709) | `admin/qa-brakresan-generatorer.mjs` + egna kontroller `admin/qa-brakresan/uNN.mjs` | klart, `test/brakresan-utmaningar-d.test.js`, `test/brakresan-utmaningar-e.test.js` (E #710), `test/brakresan-utmaningar-g.test.js` (G #712) |
+| 50 utmaningsfiler | `src/brakresan/utmaningar/u01.js` … `u50.js` | **alla 50 byggda: 01–20 (D #709: 03, 12, 19 · E #710: övriga), 21–35 (D #709: 34 · F #711: övriga), 36–50 (G #712)**; delade hjälpfunktioner `utmaningar/delat-e.js` (E), `f-delat.js` (F), `delat-g.js` (G: elevsvar, blandad form, decimal/procent ur exakta värden); 50:s familjer i `u50-familjer.js`, `u50-resonemang.js`, `u50-delat.js` |
+| Granskningsskript per utmaning (D #709) | `admin/qa-brakresan-generatorer.mjs` + egna kontroller `admin/qa-brakresan/uNN.mjs` | klart, `test/brakresan-utmaningar-d.test.js`, `test/brakresan-utmaningar-e.test.js` (E #710), `test/brakresan-utmaningar-f.test.js` (F #711), `test/brakresan-utmaningar-g.test.js` (G #712) |
+| Verkstaden – flerdelade uppgifter (F #711) | `src/brakresan/omgang-verkstad.js` + `verkstad-stav.js`, `verkstad-delar.js`, `verkstad.css` | klart, §5d nedan, `preview/preview-brakresan-f.html` |
 | Utmaningsvy + omgångsflöde (D #709) | `src/brakresan/omgang*.js`, `omgang.css`, `page-brakresan.js`, route `#/elev/brakresan?u=NN` | klart, §5b nedan, `test/brakresan-omgang-backend.test.js` |
 | Synk till Cloud Functions | `admin/sync-brakresan-functions.mjs` → `functions/brakresan/` | klar, predeploy + `test/brakresan-delat.test.js` |
 | Datamodell | `docs/DATAMODELL.md` "Bråkresan" | dokumenterad |
 | Regelskelett | `firestore.rules` (Bråkresan-blocken) | klart, `test/firestore-rules-brakresan.test.js` |
 | Komponentbibliotek (B #707) | `src/brakresan/komponenter/*` (+ `komponenter.css`), §5 nedan | klart, `test/brakresan-komponenter-geometri.test.js`, `preview/preview-brakresan-komponenter.html` |
-| Server-API (J) | §6 nedan | kontrakt |
+| Daglig guldjakt (J #715) | `functions/brakresan-jakt.js`, callable `brakresaHunt`, `src/brakresan/guldjakt.js` | klar, §5c + §6, `test/functions-brakresan-jakt.test.mjs` |
 | Betrodd server (C #708): omgångar, bedömning, stjärnor, mynt, uppmuntran, drake | `functions/brakresan-{core,avslut,state}.js`, callables `brakresa*` i `functions/index.js` | klar, `test/functions-brakresan-{core,avslut}.test.mjs` (kärnan, §15) + `functions-brakresan.test.mjs` (e2e) |
 | Klientens dataskikt + demoläge | `src/brakresan/data.js` (lat), `data-core.js`, `demo.js` | klart, `test/brakresan-data-core.test.js` |
+| Lärarvyn (K #716): klassöversikt, matris, individvy/historik, rekommendationer, testläge | `src/brakresan/larare/*` (lat), §5e nedan | klart, `test/brakresan-larare-statistik.test.js`, `preview/preview-brakresan-larare.html` |
 
 Inget i `src/brakresan/` importeras statiskt från bootgrafen (107 filer, `admin/qa-bootgraf-bfs.mjs`).
 
@@ -320,11 +322,99 @@ elev1 / lilla123, proxy 8711) – proxyns vitlista har `brakresa*`.
 | `huvudvy.js` (+ `huvudvy.css`, lat) | `createHuvudvy(host, { state, rek, href, drakpanel })`: rubrik + intro, X/150 stjärnor och Y/50 bemästrade, drakkortet (vid sidan ≥ 760 px, annars ovanför listan), ankarlänkar till de fem ämnesrubrikerna, "Börja här" (lärarens rekommendationer, länkar till ordinarie kort), sök + filter (Alla / Inte bemästrade / Bemästrade / Rekommenderade), alla 50 kort. Listans läge (filter, sök, scroll, fokus) sparas i sessionStorage när ett kort öppnas och återställs. Spelar kläckning/evolution som inte visats (`state.dragon.levelShown` < nivån) och kvitterar med `ackDragon`. |
 | `huvudvy-lista.js` | Ren logik: `filtrera`, `matcharSok` (namn, mål, taggar, nummer; å/ä/ö-okänslig), `kortStatus` (status + ikon + stjärnor + "Senast 8 av 10"), `sammanfattning`, `rekommendationer(docs)`, `listlage`. `test/brakresan-huvudvy.test.js`. |
 | `miniatyr.js` | `miniatyrSvg(id)` – en egen statisk SVG per utmaning (80 × 60, aria-hidden), utan komponentbiblioteket. |
-| `drakpanel.js` (+ `drakpanel.css`, lat) | **Gemensam panel för Bråkresan och huset (I #714):** `oppnaDrakpanel({ state, byt?, jakt?, forandring?, onVisad?, onNamn?, fokusTillbaka?, idag? })` = `<dialog>` med draken, namn + "Byt namn", nivå, stjärnor totalt, nästa tröskel, guldjaktens status/intervall/genomförda/funna mynt, "Fullt utvecklad" vid 150. Ägget: kläckningsmål, ingen jaktknapp. `forandring: { fran, till }` spelar `spelaKlackning` (fran 0, sedan namnfrågan) eller `spelaEvolution` först – "Hoppa över" finns, och stängd panel räknas som visad. `createDrakkort(host, { state, oppna })` = huvudvyns kompakta kort. `drakInfo(state)` = texterna (testad). Egen CSS och egna knappar (`bdp-*`) – beror inte på Bråkresans CSS. |
+| `drakpanel.js` (+ `drakpanel.css`, lat) | **Gemensam panel för Bråkresan och huset (I #714):** `oppnaDrakpanel({ state, byt?, jakt?, forandring?, onVisad?, onNamn?, fokusTillbaka?, idag?, atgarder? })` = `<dialog>` med draken, namn + "Byt namn", nivå, stjärnor totalt, nästa tröskel, guldjaktens status/intervall/genomförda/funna mynt, "Fullt utvecklad" vid 150. Ägget: kläckningsmål, ingen jaktknapp. `forandring: { fran, till }` spelar `spelaKlackning` (fran 0, sedan namnfrågan) eller `spelaEvolution` först – "Hoppa över" finns, och stängd panel räknas som visad. `createDrakkort(host, { state, oppna })` = huvudvyns kompakta kort. `drakInfo(state)` = texterna (testad). Egen CSS och egna knappar (`bdp-*`) – beror inte på Bråkresans CSS. |
 
-**J #715** ritar jaktknappen och animationen via `jakt(yta, info)` (yta = panelens jaktruta,
-`info.jakt` = `{ max, intervallText, antal, mynt, klarIdag }`). **I #714** öppnar samma panel från
-huset med `oppnaDrakpanel({ state: await getState() })`; namnbytet går via `renameDragon` i data.js.
+**Guldjakten (J #715 – byggt)** ritas i panelens jaktruta av `guldjakt.js` (lat) – det är
+standard när `jakt` utelämnas, så **I #714** får samma jakt genom att öppna panelen från huset med
+`oppnaDrakpanel({ state: await getState(), atgarder, onJakt })` (`onJakt(svar)` = efter bekräftad jakt, t.ex.
+`renderTopbar()` för saldot; `jakt: null` = ingen knapp). `info.jakt` = `{ max, intervallText, antal,
+mynt, klarIdag, idagFynd }`; `klarIdag`/`idagFynd` jämför `state.hunts.lastDate` med enhetens svenska
+datum – bara visning, servern avgör. Flödet (§10): knappen låses direkt → `data.hunt()` → först efter
+bekräftat svar ~4,5 s scen i panelens bild (lyfter, flyger iväg, tillbaka med kista, kistan öppnas,
+"+N") → "Dagens jakt är klar – tillbaka imorgon."; summor och saldo uppdateras när kistan öppnats.
+Reducerad rörelse och `already` (omladdning, annan flik, huset) → fyndet direkt. Fel → saklig text
+utan mynt + "Försök igen" (servern är idempotent per dag). Draken i huset rörs aldrig – scenen spelas
+bara i panelen. Förhandsvisning: `preview-brakresan-713.html?s=jakt` (nivå 11) / `?s=ny1` (nivå 1),
+`&fel=1` = första försöket får nätfel. Texter: `test/brakresan-guldjakt.test.js`.
+Namnbytet går via `renameDragon` i data.js. `atgarder: [{ text, gor }]` = extra knappar längst ner
+(huset: "Låt draken vila i Mina djur") – ett klick stänger panelen och kör `gor()`.
+
+## 5d. Verkstaden – flerdelade uppgifter (F #711 – byggt)
+
+`view.component: "verkstad"` ritas av `omgang-verkstad.js` (laddas lat från `monteraUppgift`) och
+används av 21, 22, 25, 28–33 och 35. En uppgift byggs av delar; varje del med ett `id` lämnar
+ett delsvar i `answer.parts[id]` (multi) – eller hela svaret när svarstypen är enkel. Samma API som
+`mountTask` (§5). Delarna (alla ritas ur uppgiftens data, ingen vet facit):
+
+| Del | `view`-data | Svar | Används av |
+| --- | --- | --- | --- |
+| `stavar` | `[{ id, parts, marked, monster: "a"\|"b", namn: form, helhet, verktyg, maxDela, ihop, etiketter, iHjalp }]` | `bort`/`mala` → paint (bara om `answer.parts[id]` är paint) | 21, 29, 30, 31, 32, 35 |
+| verktyg `dela` | "Dela varje bit i k" (k ≤ maxDela) – helhet och färgad längd oförändrade | – | 35 |
+| verktyg `ihop` | "Slå ihop g bitar till en", g ∈ `ihop` (delare av n); delvis färgad grupp markeras och sägs ut | – | 21 |
+| verktyg `bort` | klicka bort färgade bitar (tonas + streckad kontur, ramen kvar) | paint (32), verktyg (35) | 32, 35 |
+| verktyg `flytta` + `mall` | `mall: { id, parts, kallor, helhet }` – bitarna flyttas (klick/drag) till en tom stav | paint, "flytta båda" = inmatningshjälp | 31 |
+| `mangd` | `{ id, count, item, maxGrupper, label }` – "Dela i g lika grupper" + markering per grupp | paint | 29 |
+| `modell` (+ `modellIHjalp`) | vanlig komponentvy som bild | – | 28 |
+| `fragor` | `[{ id, text, options: [{ id, text, etikett, stavar }], stil: "rader" }]` | choice | 33 |
+| `expr` | form, `{ op, pilar }`, `{ text }`, `{ input: id }`, `{ relation: id }`, `{ brak: { n, d } }` med `{ input }` inne i bråket | number, relation | alla |
+| `delsteg` | `{ text, enhet }` – frivilligt mellansteg, bedöms aldrig | – | 30 |
+
+**29 använder inte E:s `gruppering`** (leadens beslut): specen kräver "gruppera hela mängden i n lika
+grupper, **markera a grupper** och skriv antal". `gruppering` fördelar föremål i grupper men har inget
+markeringssteg; verkstadens `mangd` (B:s mängdbild + "Dela i g lika grupper" + markering per grupp)
+täcker hela mekaniken.
+
+**Stöd som avslöjar svaret syns bara i hjälpen** (Elias, #709): `modellIHjalp`
+(28), elevlösningens före/efter-stavar (33) och 22:s pilar ("× ?"/"÷ ?", aldrig faktorn) visas när ett
+hjälpsteg har `highlight: { stavar: true }` resp. `{ pilar: true }` och döljs när hjälpen stängs.
+Sorteringskort med `view.stavar` (26) får jämförelsestavar på samma sätt som 12.
+
+Förhandsvisning: `PORT=8711 node server.mjs` → `preview/preview-brakresan-f.html?u=21` (testomgång,
+alla 15 i 21–35). Granskning: `node admin/qa-brakresan-generatorer.mjs 21 … 35`, egna kontroller i
+`admin/qa-brakresan/u21.mjs` … `u35.mjs`. Skärmdumpar: `design/brakresan-711/`.
+
+## 5e. Lärarvyn (K #716 – byggt)
+
+Allt i `src/brakresan/larare/` laddas lat; bootgrafen är orörd (107).
+
+| Fil | Innehåll |
+| --- | --- |
+| `statistik.js` | REN logik (Node-testad) ur state-dokumenten: `elevRad`, `klassSumma` (klassens träffsäkerhet = summan av rätt / summan av bedömda, antal elever bakom summan), `utmaningsAggregat` + `svaraOchLatta` (svåra < 65 %, lätta ≥ 85 %, bara med ≥ 3 elever och ≥ 20 svar – annars "Litet underlag"; "Inte tränat" egen status), `momentOversikt` (per `TAGS`), `matrisCell` (stjärnor + symbol – ↻ ◔ ✓), `elevUtmaningar`, `forslagElev` ("Öva likvärdiga bråk: 5 av 12 första svar rätt i 12 och 14"), `stjarnkurva`, `omgangRad`, `aktivSedan`, `recDokument` (reglernas form). |
+| `data-larare.js` | Firestore: `loadClass` (= `data.getClassStates`, ett state per elev), `listRounds(sid, { challengeId?, fran?, limit? })` (med `challengeId` bara likhetsfilter – inget nytt index), `listStarEvents` (stjärnhändelserna, progression), `listRecs`/`createRec`/`endRec`/`deleteRec`. Lärarens ENDA skrivningar är rekommendationerna. |
+| `klass.js` | Statistik → klasskort → fliken **Bråkresan** (`teacher-class.js` STATS_TABS): Översikt (summakort, elevlista sorterbar + periodfilter på senaste aktivitet, momenttabell, Behöver mer träning / Går bra med underlag, Litet underlag, Inte tränat) · Matris · Rekommendationer. |
+| `matris.js` | Elever × 50, sticky namnkolumn, ämnesgrupper i rubriken, horisontell scroll, ämnesfilter. Cellen = knapp (≥ 44 px) med 0–3 stjärnor + symbol; klick → individvyn fokuserad på utmaningen. |
+| `elev.js` | Individvyn (modal): alla mått i §12 "Exakta definitioner", förslag, stjärnkurva, omgångar per period, alla 50 (kategori, senaste/bästa, utfällbara omgångar), rekommendera till eleven. Läser omgångar/stjärnhändelser bara för EN elev. |
+| `omgang-vy.js` | En historisk omgång: de tio uppgifterna ritade ur omgångens SPARADE uppgifter (`round.tasks`, generatorversionen står i rubriken) med `monteraUppgift`, första svar (`svarText`), rätt svar (`reveal`), stöd före kontroll, stöd efter fel och bearbetning. |
+| `rek-vy.js` | Rekommendera en eller flera utmaningar till klassen (gäller även senare tillkomna elever) eller en elev, valfri kommentar ≤ 200. Klass → "Avsluta" (`active: false`), elev → "Ta bort". Eleven ser dem i H:s "Börja här". |
+| `testlage.js` | `#/larare/brakresan` (TEACHER_TABS, gruppen Material): alla 50 (ej byggda = "Byggs"), **Granska** (tio uppgifter ur `demoRound` med Kontrollera, hjälp, facit, hjälpsteg och genomgång) och **Spela som elev** (`createUtmaningsvy` + `demoBackend`). "Ny variant"/egen variant = seed i URL:en. Inga anrop, inga skrivningar; callables nekar dessutom lärarkonton. |
+| `vy-delat.js`, `larare.css` | Delade småbitar och lärarvyns lata stilark (mörk lärardesign, ljusa uppgiftskort). |
+
+**Datumintervall:** klassöversikten och matrisen visar totaler ur state (hela tiden) – det finns
+ingen datumuppdelning där utan att läsa omgångar per elev (#231). Periodvalet i översikten väljer
+elever efter senaste sparade spelaktivitet; i individvyn filtrerar perioden omgångarna (`startedAt`).
+
+Förhandsvisning utan Firebase: `PORT=8716 node server.mjs` →
+`preview/preview-brakresan-larare.html#/klass` (klassvyn, `?saknas=1`, `?tom=1`) och
+`#/larare/brakresan` (testläget). Stubben bygger omgångarna med den riktiga `demoRound`.
+
+## 5f. Draken i elevhuset (I #714 – byggt)
+
+| Fil | Innehåll |
+| --- | --- |
+| `art-drake.js` | `drakeSvg(n, { hus: true })` = huspose: vuxna (10–15) med hopvikta vingar (`arHusVikt`), `data-hus="1"` på `<svg>`; samma viewBox som i Bråkresan. `husMatt(n)` = storlek i rums-enheter (`HUS_HAST` = 4 enheter per "häst"-faktor, nivå 1 lyft mot `HUS_MIN_H`), `husPassning(matt, fotY, scen)` = skalfaktor ≤ 1 när draken inte ryms ovanför fötterna/i bredd. Testat i `test/brakresan-drake-art.test.mjs`. |
+| `art-drake-anim.js` | `startaTomgang(svg, { vy })` pausar också när `vy` (rumslagret) blir `inert`/`.varld-dold` (MutationObserver). Huspose byter vinggesterna (svävning, vingöppning) mot huvudlyft. |
+| `rum-drake.js` (lat) | `mountRumDrake({ sd, roomCount, stage })` för Mitt rum: noden (`.room-item.room-pet.room-drake`, `data-pet-id` = drak-id) går i rummets drag-pipeline, dörrarna, "Mina djur" och rumsvalet – men inte i promenad-AI:n (draken står still). Klick/namnskylt → drakpanelen. Skriver `brakdrake.pos` (debounce), `.stowed`, `.room` med `updateDoc`. `drakeLasNod(sd, roomCount, stage)` = klasskamratens läsläge. |
+
+Regler i huset (spec §9): `pos` = **fötternas** punkt i procent (pivot), så ett nivåbyte växer
+draken uppåt från samma golvplats; sidled hålls hela draken inne med `clamp` utan att den sparade
+platsen ändras. Ryms den inte (lågt fönster, högt placerad) ritas den mindre och eleven får ett
+meddelande en gång per nivå – den teleporteras aldrig. Klickytan är bara figuren
+(`pointer-events` på `.bd-andas`). Draken ritas UNDER djuren, så att en stor drake aldrig skymmer
+dem. Prestanda: andningen går som kompositerad transform på HTML-rutan, aurans puls är av, och
+blinkningarna är glesare (6–12 s) än i Bråkresan; tomgången pausas när rummet inte syns.
+Bootgrafen orörd (107): `varld-rum.js` och `pages-klasskamrat.js` importerar `rum-drake.js`
+dynamiskt bara när `studentData.brakdrake` finns. Förhandsvisning:
+`preview/preview-drake-hus-714.html` (`?niva=N`, `?reset`, `#/elev/klasskamrat?id=elev2`).
 
 Navigation (H): `NAV_LANKAR` i `ui.js` (grupp `ova`, `modul: "brakresan"`) + `TOGGLABLE_MODULES`
 i `gamemode-visibility.js` – **synlig som standard, döljbar per klass** (`hiddenModules`, som
@@ -348,7 +438,7 @@ jaga, utmaningen inte byggd), `invalid-argument`.
 | `brakresaAbortRound` | `{ roundId }` | `{ status: "avbruten" }` | Ingen belöning; besvarade uppgifter finns kvar i statistiken. |
 | `brakresaAckDragon` | `{ level }` | `{ levelShown }` | Sätter `state.dragon.levelShown` = max(gammal, level ≤ aktuell nivå) – kläckning/evolution visas en gång, progressionen är redan sparad. |
 | `brakresaRenameDragon` (H #713) | `{ name }` | `{ name }` | `cleanDragonName` (regler.js: inga HTML-/styrtecken, 1–16 tecken) på servern; ägget → `failed-precondition`, tomt → `invalid-argument`. EN transaktion: `state.dragon.name` + `studentData.brakdrake.name` (merge – placering och nivå orörda). Kläckningen sätter standardnamnet `DRAGON_DEFAULT_NAME` ("Bråkis") direkt, så namnvalet blockerar aldrig. |
-| `brakresaHunt` (J) | `{}` | `{ date, level, max, amount, coinsAfter, already }` | Datum = `stockholmDate(serverns now)`. Ägg → `failed-precondition`. EN transaktion: finns `brakresaHunts/{datum}` → svara den (`already: true`); annars `amount = randomInt(1, max + 1)`, skapa jaktposten + `brakresaRewards/jakt-{datum}` + `coins += amount` + `state.hunts`. |
+| `brakresaHunt` (J #715 – byggt) | `{}` (allt annat ignoreras) | `{ huntId, date, level, max, amount, coinsAfter, already, hunts: { count, coins, lastDate, lastAmount } }` | `functions/brakresan-jakt.js`. Datum = `stockholmDate(serverns now)`, läst INNE i transaktionen. Ägg → `failed-precondition`. EN transaktion: finns `brakresaHunts/{datum}` → svara den (`already: true`, inget betalas); annars nivå = `dragonLevel(totalStars)` nu (låser dagens intervall), `amount = randomInt(1, max + 1)`, skapa jaktposten + `brakresaRewards/jakt-{datum}` + `coins += amount` + `state.hunts`. Finns bokföringen men inte posten återskapas posten utan ny utbetalning. Tester: `test/functions-brakresan-jakt.test.mjs` (alla nivåer min/max, midnatt, sommar-/vintertid, klientfält, 8 samtidiga anrop). |
 
 Invarianterna i §13 och var de garanteras:
 
@@ -372,9 +462,9 @@ ligger under ägarens `studentData` och svarar `not-found`. `rewardText` är
 sorterar på `finishedAt` → sammansatt index i `firestore.indexes.json`.
 
 **Klientens dataskikt (C, klart):** `src/brakresan/data.js` (lat) – API:t står i filhuvudet:
-`startRound`, `answer`, `rework`, `finishRound`, `abortRound`, `ackDragon`, `renameDragon`, `newAttemptId`,
+`startRound`, `answer`, `rework`, `finishRound`, `abortRound`, `ackDragon`, `renameDragon`, `hunt`, `newAttemptId`,
 `getState`, `getRound`, `getRecommendations(classIds)`, lärarens `getClassStates(studentIds)` / `listRounds(studentId, { challengeId })`.
-J lägger till `hunt` här. Nätfel och tillfälliga serverfel försöks igen automatiskt med
+`hunt()` (J #715) invaliderar studentData-cachen (saldot). Nätfel och tillfälliga serverfel försöks igen automatiskt med
 SAMMA data (`data-core.js` `callWithRetry`, 3 omförsök); ger det upp kastas `BrakresaFel`
 med `retryable: true` – vyn behåller elevens inmatning (`drafts.save/load/clear`) och
 visar "Försök igen". `saveStatus.subscribe(cb)` ger "sparar" / "sparat" / "offline" / "fel"
@@ -395,11 +485,11 @@ Färdigt i `src/brakresan/demo.js`: `demoRound(id, seed)` (tio hela uppgifter me
 | B #707 | `src/brakresan/komponenter/`, `preview/preview-brakresan-komponenter.html` |
 | C #708 | `functions/brakresan-core.js`, callables i `functions/index.js`, regler/index vid behov, `src/brakresan/data.js` |
 | D #709 | `utmaningar/u03.js`, `u12.js`, `u19.js`, `u34.js`, omgångsvyn (`src/brakresan/omgang*.js`), route, `admin/qa-brakresan-generatorer.mjs` |
-| E #710 / F #711 / G #712 | `utmaningar/u01–u20.js` (+ `delat-e.js`, komponenterna `sammansatt`, `figur`, `relationsval`, `bygge`, `gruppering`) / `u21–u35.js` / `u36–u50.js` (utom D:s fyra; + `delat-g.js`, `u50-*.js`, opt-in `kort.helhet` och areamodellens `horizontal.n = 0`) |
+| E #710 / F #711 / G #712 | `utmaningar/u01–u20.js` (+ `delat-e.js`, komponenterna `sammansatt`, `figur`, `relationsval`, `bygge`, `gruppering`) / `u21–u35.js` (+ `f-delat.js`, verkstaden `omgang-verkstad.js`, `verkstad-*.js`, `preview-brakresan-f.html`) / `u36–u50.js` (utom D:s fyra; + `delat-g.js`, `u50-*.js`, opt-in `kort.helhet` och areamodellens `horizontal.n = 0`) |
 | H #713 | huvudvyn (`huvudvy*.js`, `miniatyr.js`), drakpanelen (`drakpanel.js`), navigationen (`ui.js`, `gamemode-visibility.js`), `brakresaRenameDragon` |
-| I0 #718 / I #714 | drakens grafik och animation, `studentData.brakdrake` i huset |
-| J #715 | guldjakten |
-| K #716 | lärarvyn, rekommendationer, testläget |
+| I0 #718 / I #714 | drakens grafik och animation, `studentData.brakdrake` i huset (§5f) |
+| J #715 | guldjakten: `functions/brakresan-jakt.js`, callable `brakresaHunt`, `src/brakresan/guldjakt.js` (+ `gj-*` i `drakpanel.css`) |
+| K #716 | lärarvyn, rekommendationer, testläget: `src/brakresan/larare/`, raderna i `teacher-class.js` (STATS_TABS) och `teacher-shared.js` (TEACHER_TABS + ikonen `brak`) |
 
 Ändras något i `math/`, `schema/` eller `utmaningar/`: kör `npm run sync:brakresan`
 (annars fäller `test/brakresan-delat.test.js`).

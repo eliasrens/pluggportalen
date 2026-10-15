@@ -14,7 +14,7 @@ import { buyFarmAnimal, buyFarmUpgrade } from "./data-farm.js";
 import { CATEGORIES, SHOP_ITEMS, getItem, itemsInCategory, isConsumable, isAnimalItem, isFarmAnimalItem, isFarmUpgradeItem, isGardenItem, isMultiItem, isMysteryBox, isSeedItem } from "./shop-items.js";
 import { runMysteryBox } from "./pages-shop-mystery.js";
 import { wearableSvg } from "./art-wearables.js";
-import { itemSvg, categorySvg } from "./art-items.js";
+import { itemSvg, categorySvg, loadCollectionArt } from "./art-items.js";
 import { coinIcon } from "./icons.js";
 
 // --- "🌾 Baksidan"-fliken (#358) --------------------------------------------
@@ -53,14 +53,28 @@ function itemsInTab(catId) {
   return itemsInCategory(catId).filter((it) => !isBaksidanItem(it));
 }
 
+/** Baksidans sektioner med varor (tomma får ingen sub-flik); samlingsvaror (#692) bor i sin flik. */
+function baksidanSektioner() {
+  return BAKSIDAN_SEKTIONER
+    .map((s) => ({ id: s.id, rubrik: s.rubrik, items: SHOP_ITEMS.filter((it) => !it.mysteryOnly && !it.collection && s.match(it)) }))
+    .filter((s) => s.items.length > 0);
+}
+
 export async function pageElevShop() {
   if (!data.isLoggedIn()) return go("#/elev");
   loading();
   await renderTopbar();
 
-  let sd;
+  // Säsongen + 🎃 Halloween-fliken och samlingskonsten (#692) laddas lazy (#271),
+  // parallellt med elevdatan. Misslyckas de syns butiken som förut.
+  let sd, season, hw;
   try {
-    sd = await data.getStudentData();
+    [sd, season, hw] = await Promise.all([
+      data.getStudentData(),
+      import("./season.js").catch(() => null),
+      import("./halloween/hw-butik.js").catch(() => null),
+      loadCollectionArt(),
+    ]);
   } catch (err) {
     return pageError("Kunde inte ladda shoppen", err);
   }
@@ -86,24 +100,28 @@ export async function pageElevShop() {
 
   const katalog = view.querySelector("#katalog");
 
-  // Bara kategorier som faktiskt har köpbara varor blir flikar. CATEGORIES-
-  // ordningen bevaras, så mysteryboxen (sist i listan) hamnar sist i flikraden.
-  // Baksidan-fliken (#358) tar den tömda trädgårds-flikens plats.
-  const tabCats = [];
-  for (const cat of CATEGORIES) {
-    if (cat.id === "tradgard") tabCats.push(BAKSIDAN_TAB);
-    if (cat.id === "mystery") tabCats.push(KC_TAB);
-    if (itemsInTab(cat.id).length > 0) tabCats.push(cat);
+  // Flikar = kategorier med köpbara varor i CATEGORIES-ordning (mysteryboxen sist);
+  // Baksidan (#358) tar trädgårdens plats. 🎃 Halloween (#692) ligger först men
+  // BARA medan isHalloweenActive() – räknas om vid varje ritning (onSeasonChange).
+  const halloweenPa = () => !!(season && hw && season.isHalloweenActive());
+  function byggFlikar() {
+    const flikar = halloweenPa() ? [hw.HALLOWEEN_FLIK] : [];
+    for (const cat of CATEGORIES) {
+      if (cat.id === "tradgard") flikar.push(BAKSIDAN_TAB);
+      if (cat.id === "mystery") flikar.push(KC_TAB);
+      if (itemsInTab(cat.id).length > 0) flikar.push(cat);
+    }
+    return flikar;
   }
+  let tabCats = byggFlikar();
 
   // Aktiv flik minns i localStorage (tåligt om storage saknas/är blockerad).
   // Default: första kategorin med varor.
   let activeCat = readSavedCat(tabCats) || (tabCats[0] && tabCats[0].id) || null;
 
-  // Aktiv sub-flik inne i Baksidan (#364). Rå-läses här; giltigheten (att
-  // sektionen finns & har varor) avgörs i renderKatalog mot de icke-tomma
-  // sektionerna. Default: första sub-fliken med varor.
-  let activeBaksidan = readLS(ACTIVE_BAKSIDAN_KEY);
+  // Aktiv sub-flik per flik med sub-flikar (Baksidan #364, Halloween #692). Rå-
+  // läses; giltigheten avgörs i renderKatalog (default: första med varor).
+  const activeSub = { baksidan: readLS(SUB_KEYS.baksidan), halloween: readLS(SUB_KEYS.halloween) };
   let kcStopp = null; // Klasscentrum-flikens realtidsprenumeration (#488)
 
   // Rita flikraden + den aktiva kategorins varor. Anropas om vid varje köp så
@@ -111,6 +129,7 @@ export async function pageElevShop() {
   // och vid flikbyte (ingen sidladdning – bara listan byts).
   function renderKatalog() {
     if (kcStopp) kcStopp = void kcStopp();
+    tabCats = byggFlikar();
     const cat = tabCats.find((c) => c.id === activeCat) || tabCats[0];
     if (!cat) {
       katalog.replaceChildren(el(`<p class="hint">Shoppen är tom just nu.</p>`));
@@ -132,18 +151,14 @@ export async function pageElevShop() {
       })
       .join("");
 
-    // Baksidan (#358) navigeras med klickbara sub-flikar (#364) i stället för en
-    // lång scroll: en sub-flik per sektion MED varor, bara den aktivas kort visas
-    // (så mysterymaten i "Djurmat & foder" hittas utan att scrolla). Övriga = grid.
+    // Baksidan (#358) och Halloween (#692) navigeras med sub-flikar (#364): en per
+    // sektion MED varor, bara den aktivas kort visas. Övriga flikar = ett grid.
     let varor;
-    if (cat.id === BAKSIDAN_TAB.id) {
-      // Tomma sektioner får ingen sub-flik (samma tomhets-regel som huvudflikarna).
-      const sektioner = BAKSIDAN_SEKTIONER
-        .map((s) => ({ id: s.id, rubrik: s.rubrik,
-          items: SHOP_ITEMS.filter((it) => !it.mysteryOnly && s.match(it)) }))
-        .filter((s) => s.items.length > 0);
-      const aktiv = sektioner.find((s) => s.id === activeBaksidan) || sektioner[0];
-      activeBaksidan = aktiv ? aktiv.id : null;
+    const sektioner = cat.id === BAKSIDAN_TAB.id ? baksidanSektioner()
+      : cat.id === "halloween" ? hw.halloweenSektioner() : null;
+    if (sektioner) {
+      const aktiv = sektioner.find((s) => s.id === activeSub[cat.id]) || sektioner[0];
+      activeSub[cat.id] = aktiv ? aktiv.id : null;
       const subtabs = sektioner
         .map((s) => {
           const on = aktiv && s.id === aktiv.id;
@@ -179,9 +194,11 @@ export async function pageElevShop() {
   }
 
   renderKatalog();
+  // Halloween av/på eller slutdatumet passerat (#692) → rita om utan omladdning.
+  const stoppSasong = season?.onSeasonChange(() => (katalog.isConnected ? renderKatalog() : stoppSasong()));
 
   // Flik- och sub-flikbyte (delegerat, ingen sidladdning). Huvudflik → byt
-  // kategori; sub-flik (#364) → byt Baksidan-sektion. Klasserna .shop-tab/
+  // kategori; sub-flik (#364) → byt sektion i aktiva fliken. Klasserna .shop-tab/
   // .shop-subtab/.buy-btn är disjunkta, så köp-listenern nedan är opåverkad.
   katalog.addEventListener("click", (e) => {
     const tab = e.target.closest(".shop-tab");
@@ -196,9 +213,9 @@ export async function pageElevShop() {
     const sub = e.target.closest(".shop-subtab");
     if (!sub) return;
     const id = sub.dataset.sub;
-    if (!id || id === activeBaksidan) return;
-    activeBaksidan = id;
-    writeLS(ACTIVE_BAKSIDAN_KEY, id);
+    if (!id || id === activeSub[activeCat]) return;
+    activeSub[activeCat] = id;
+    writeLS(SUB_KEYS[activeCat], id);
     renderKatalog();
   });
 
@@ -212,6 +229,11 @@ export async function pageElevShop() {
     // Förbrukningsvaror (äpplen), multi-saker (möbler/dekor) och vanliga djur kan
     // köpas hur många gånger som helst; single-saker bara om de inte redan ägs.
     if (!item || item.comingSoon) return;
+    // Säsongsvaror (#692) säljs bara medan samlingen är öppen (fliken kan ha hängt kvar).
+    if (item.collection && !halloweenPa()) {
+      renderKatalog();
+      return flash("Halloween är slut för i år – sakerna kommer tillbaka nästa Halloween!", true);
+    }
 
     // Mysterybox: köp & öppna → reveal-flöde (pages-shop-mystery.js). Boxen kan
     // köpas hur många gånger som helst; den lottade saken sparas i ownedItems.
@@ -242,11 +264,11 @@ export async function pageElevShop() {
     btn.disabled = true;
     btn.textContent = "Köper…";
     try {
-      // Ägg/värmelampa köps via data-pet.js (uppdaterar kläckningsklockan);
+      // Ägg (även Halloween-djurens pumpaägg, #695) / värmelampa köps via data-pet.js;
       // ägget kan köpas flera gånger och hamnar aldrig i ownedItems. Vanliga djur
       // blir levande djur i roomAnimals – inte statiska ownedItems.
       let res;
-      if (item.id === EGG_ITEM_ID) res = await buyEgg(item.price);
+      if (item.id === EGG_ITEM_ID || item.hatchSpecies) res = await buyEgg(item.price, undefined, item.hatchSpecies);
       else if (item.id === LAMP_ITEM_ID) res = await buyHeatLamp(item.price);
       else if (item.id === APPLE_ITEM_ID) res = await buyApple(item.price);
       else if (isAnimalItem(item.id)) res = await buyAnimal(item.id, item.price);
@@ -267,36 +289,8 @@ export async function pageElevShop() {
       renderKatalog();
       if (res.ok) {
         await renderTopbar(); // uppdatera saldot i sidhuvudet
-        if (item.id === EGG_ITEM_ID) {
-          flash(`Du köpte ett mystiskt ägg! 🥚 Det ruvar nu i Mitt rum.`);
-        } else if (item.id === LAMP_ITEM_ID) {
-          flash(`Du köpte en värmelampa! 🔦 Nu kläcks ägget dubbelt så snabbt.`);
-        } else if (item.id === APPLE_ITEM_ID) {
-          flash(`Du köpte ett äpple! 🍎 Du har nu ${state.appleCount} st – lägg ut dem i Mitt rum så äter husdjuren.`);
-        } else if (isAnimalItem(item.id)) {
-          flash(`Du köpte ${item.name}! ${item.emoji} Den promenerar nu omkring i Mitt rum.`);
-        } else if (isFarmAnimalItem(item.id)) {
-          flash(`Du köpte ${item.name}! ${item.emoji} Den bor i Mitt rum – välj rum, hage eller lada under 🐾 Mina djur.`);
-        } else if (item.farmUpgrade === "garden") {
-          flash(`Du köpte ${item.name}! ${item.emoji} Odlingsbädden på gården är nu större – så fler grödor där.`);
-        } else if (item.farmUpgrade === "barn") {
-          flash(`Du köpte ${item.name}! ${item.emoji} Laggården är uppgraderad – fler djur får plats i ladan.`);
-        } else if (item.roomUpgrade) {
-          flash(`Du köpte ${item.name}! 🚪 Ett nytt rum finns nu i ditt hus – gå in och byt rum via dörren eller rumslistan.`);
-        } else if (item.barnSkin) {
-          // Lada-skins (#353): väljs på gården (🛖 Ny lada), inte i 🏠 Nytt hus.
-          flash(`Du köpte ${item.name}! ${item.emoji} Byt till den via 🛖 Ny lada på gården bakom ditt hus.`);
-        } else if (item.category === "hus") {
-          flash(`Du köpte ${item.name}! ${item.emoji} Byt till det via 🏠 Nytt hus i din husvärld.`);
-        } else if (item.seed) {
-          flash(`Du köpte ${item.name}! ${item.emoji} Så dem i odlingsbädden på gården bakom ditt hus.`);
-        } else if (item.category === "tradgard") {
-          flash(`Du köpte ${item.name}! ${item.emoji} Ställ ut den via 🌳 Trädgård i din husvärld.`);
-        } else {
-          flash(item.category === "klader"
-            ? `Du köpte ${item.name}! Sätt på den i Mitt rum.`
-            : `Du köpte ${item.name}! Placera den i Mitt rum.`);
-        }
+        // Köpbekräftelsen per sorts sak bor i pages-shop-kopt.js (laddas lazy).
+        import("./pages-shop-kopt.js").then((m) => flash(m.kopMeddelande(item, state)), () => flash(`Du köpte ${item.name}!`));
       } else {
         // Täcker inte (t.ex. saldot ändrat i en annan flik).
         flash("Du har inte råd med den just nu.", true);
@@ -310,9 +304,9 @@ export async function pageElevShop() {
   app.replaceChildren(view);
 }
 
-// Nycklar som minns senast valda flik + Baksidan-sub-flik (#364) mellan besök.
+// Nycklar som minns senast valda flik + sub-flik (#364, #692) mellan besök.
 const ACTIVE_CAT_KEY = "pp:shop:aktivFlik";
-const ACTIVE_BAKSIDAN_KEY = "pp:shop:baksidanFlik";
+const SUB_KEYS = { baksidan: "pp:shop:baksidanFlik", halloween: "pp:shop:halloweenFlik" };
 
 /** localStorage-läsning (tålig om storage saknas/är blockerad → null). */
 function readLS(key) {
