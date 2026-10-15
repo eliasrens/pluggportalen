@@ -207,7 +207,7 @@ export async function getLiveVisible() {
       mod.onLiveVisibleChange((on) => {
         const path = (window.location.hash || "#/").slice(1).split("?")[0];
         if (!path.startsWith("/elev/")) return;
-        if (on && path !== "/elev/live") flash("⚡ En Live-match väntar på din klass – öppna <b>Live</b> i menyn!");
+        if (on && path !== "/elev/live") flash("⚡ En Live-match väntar på din klass – tryck på <b>Live pågår!</b> i menyn!");
         renderTopbar();
       });
       return mod;
@@ -229,32 +229,39 @@ const NAV_VILLKOR = {
   live: getLiveVisible,
 };
 
-// Elevens huvuddestinationer i sidomenyn (ordning = visningsordning).
-// `grupp` avskiljer profil-relaterade val från ev. framtida destinationer
-// (grupp-byte ritar en avdelare). "Min klass" är borta ur navet – klassen nås
-// numera i spelvärlden via klasskylten vid gården (#/elev/by, klassbyn).
+// Elevens huvuddestinationer i sidomenyn. Menyn ritas grupp för grupp i
+// NAV_GRUPPER-ordning (#701), inom gruppen i listans ordning.
+// `grupp`: "mitt" = Hem/Shoppen (ingen rubrik), "ova" = övningsdelarna (rubrik
+// ÖVA). NYA MODULER läggs i "ova". En grupp utan synliga länkar ritar ingen rubrik.
+// "Min klass" är borta ur navet – klassen nås numera i spelvärlden via
+// klasskylten vid gården (#/elev/by, klassbyn).
 // `modul` = id i TOGGLABLE_MODULES (#412): länken döljs om klassen döljer modulen.
 // `villkor` (#458/#460): länken syns bara när NAV_VILLKOR[villkor] svarar sant.
+// Live ritas inte som länk utan som Live-ruta överst (#701) – samma synlighet.
+const NAV_GRUPPER = [
+  { id: "mitt", rubrik: "" },
+  { id: "ova", rubrik: "Öva" },
+];
 const NAV_LANKAR = [
-  { hash: "#/elev/hus", ikon: "🏠", label: "Hem", grupp: "profil" },
-  { hash: "#/elev/plugga", ikon: "📚", label: "Plugga", grupp: "profil", modul: "plugga" },
+  { hash: "#/elev/hus", ikon: "🏠", label: "Hem", grupp: "mitt" },
+  { hash: "#/elev/shop", ikon: "🛒", label: "Shoppen", grupp: "mitt", modul: "shop" },
+  { hash: "#/elev/plugga", ikon: "📚", label: "Plugga", grupp: "ova", modul: "plugga" },
   // Läsresan (#398): egen huvudmodul, fristående från Plugga.
-  { hash: "#/elev/lasresan", ikon: "📖", label: "Läsresan", grupp: "profil", modul: "lasresan" },
+  { hash: "#/elev/lasresan", ikon: "📖", label: "Läsresan", grupp: "ova", modul: "lasresan" },
   // Mattematchen (#458): bara under en aktiv period för elevens klass.
-  { hash: "#/elev/mattematchen", ikon: "🧮", label: "Mattematchen", grupp: "profil", villkor: "mattematchen" },
-  { hash: "#/elev/shop", ikon: "🛒", label: "Shoppen", grupp: "profil", modul: "shop" },
-  // Live (#460): bara när klassen har en lobby/pågående match.
-  { hash: "#/elev/live", ikon: "⚡", label: "Live", grupp: "profil", villkor: "live" },
+  { hash: "#/elev/mattematchen", ikon: "🧮", label: "Mattematchen", grupp: "ova", villkor: "mattematchen" },
   // Hitta rätt! (#605): opt-in per klass (enabledModules) – annars dold.
-  { hash: "#/elev/hitta-ratt", ikon: "🗺️", label: "Hitta rätt!", grupp: "profil", modul: "hittaratt" },
+  { hash: "#/elev/hitta-ratt", ikon: "🗺️", label: "Hitta rätt!", grupp: "ova", modul: "hittaratt" },
   // Ekvationsresan (#618): opt-in per klass (enabledModules) – annars dold.
-  { hash: "#/elev/ekvationsresan", ikon: "⚖️", label: "Ekvationsresan", grupp: "profil", modul: "ekvationsresan" },
+  { hash: "#/elev/ekvationsresan", ikon: "⚖️", label: "Ekvationsresan", grupp: "ova", modul: "ekvationsresan" },
+  // Live (#460): bara när klassen har en lobby/pågående match – blir Live-rutan.
+  { hash: "#/elev/live", ikon: "⚡", label: "Live", grupp: "live", villkor: "live" },
 ];
 
 /**
  * Rita sidomenyn. Namnet behålls (renderTopbar) eftersom alla sidor redan
  * anropar det vid varje navigering – nu ritar det i stället den bestående
- * vänstermenyn med karaktärspanel, navlänkar, stjärnor och coins.
+ * vänstermenyn med profilruta (stjärnor + coins), Live-ruta och navgrupper.
  *
  * Sidomenyn (karaktär + nav) visas bara för en inloggad elev på elevsidorna.
  * På start-, inloggnings- och lärarsidorna fälls den ihop (body saknar
@@ -278,7 +285,7 @@ export async function renderTopbar() {
   let coins = 0;
   let avatarId = DEFAULT_AVATAR;
   let avatarItems = [];
-  let stjarnor = 0; // insamlade stjärnor – visas i sidomenyns fot ovanför mynten
+  let stjarnor = 0; // insamlade stjärnor – visas i profilrutan bredvid mynten
   const doldaP = getHiddenModules(); // parallellt med elevdatat nedan
   const lasP = getLockGate();
   // Alla villkor (NAV_VILLKOR) parallellt; ett fel döljer bara den länken.
@@ -314,33 +321,49 @@ export async function renderTopbar() {
           <small>till ${las.klockslag}</small></span>
       </a>`
     : "";
-  const navHtml = lankar.map((l, i) => {
-    // Avdelare när gruppen byts (om en framtida länk får en egen grupp).
-    const nyGrupp = i > 0 && l.grupp !== lankar[i - 1].grupp;
-    const avdelare = nyGrupp ? `<hr class="sido-nav-avdelare" aria-hidden="true" />` : "";
-    return `${avdelare}<a class="sido-nav-lank${l.hash.slice(1) === path ? " aktiv" : ""}" href="${l.hash}">
+  const lankHtml = (l) => `<a class="sido-nav-lank${l.hash.slice(1) === path ? " aktiv" : ""}" href="${l.hash}">
         <span class="sido-nav-ikon" aria-hidden="true">${l.ikon}</span>
         <span class="sido-nav-text">${l.label}</span>
       </a>`;
+  const navHtml = NAV_GRUPPER.map((g) => {
+    const iGrupp = lankar.filter((l) => l.grupp === g.id);
+    if (!iGrupp.length) return "";
+    const rubrik = g.rubrik ? `<div class="sido-grupp">${g.rubrik}</div>` : "";
+    return rubrik + iGrupp.map(lankHtml).join("");
   }).join("");
+  // Live-rutan (#701): samma filter som länkarna ovan (villkor + fokuslås).
+  const live = lankar.find((l) => l.grupp === "live");
+  const liveHtml = live
+    ? `<a class="sido-live${live.hash.slice(1) === path ? " aktiv" : ""}" href="${live.hash}">
+        <span class="sido-live-ikon" aria-hidden="true">${live.ikon}</span>
+        <span class="sido-live-text">Live pågår!<small>Gå med i klassens match</small></span>
+        <span class="sido-live-prick" aria-hidden="true"></span>
+      </a>`
+    : "";
+  const tal = (n) => Math.max(0, Math.floor(Number(n) || 0)).toLocaleString("sv-SE");
 
   const wrap = el(`<div class="sido-inner">
     <div class="sido-karaktar">
-      <a class="sido-figur" href="#/elev/profil" title="Min profil">
-        <span class="sido-avatar">${avatarMarkup(avatarId, avatarItems)}</span>
-      </a>
-      <a class="sido-namn" href="#/elev/profil" title="Min profil">${session.namn || "Elev"}</a>
+      <div class="sido-profil-rad">
+        <a class="sido-figur" href="#/elev/profil" title="Min profil">
+          <span class="sido-avatar">${avatarMarkup(avatarId, avatarItems)}</span>
+        </a>
+        <a class="sido-namn" href="#/elev/profil" title="Min profil">
+          <b>${escHtml(session.namn || "Elev")}</b><span>Min profil ›</span>
+        </a>
+      </div>
+      <div class="sido-valuta">
+        <span title="Dina stjärnor">${starIcon(18)} ${tal(stjarnor)}</span>
+        <span title="Dina pluggcoins">${coinIcon(18)} ${tal(coins)}</span>
+      </div>
     </div>
 
     ${fokusHtml}
+    ${liveHtml}
     <nav class="sido-nav" aria-label="Huvudmeny">${navHtml}</nav>
 
     <div class="sido-fot">
-      <div class="sido-valuta">
-        <span class="stars" title="Dina stjärnor">${starIcon(22)} ${stjarnor}</span>
-        <span class="coins" title="Dina pluggcoins">${coinIcon(22)} ${coins}</span>
-      </div>
-      <button class="btn ghost liten" id="logout-btn">Logga ut</button>
+      <button class="sido-logga-ut" id="logout-btn">Logga ut</button>
     </div>
   </div>`);
 

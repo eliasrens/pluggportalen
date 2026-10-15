@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Plugga-startsidan #702 – testrigg (riktig ui.js + styles.css)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <!-- Testrigg för issue #702: den RIKTIGA pageElevPlugga (src/pages-elev.js)
+         + renderTopbar i index.html-layouten. Bara datakällorna stubbas
+         (plugga-702/*, sidomeny-701/*). URL-parametrar: ?tilldelat=1, ?tom=1,
+         ?lock=omrade (fokus på Bråk), ?dolt=quiz (klassen döljer quiz) samt
+         sidomenyns (#701) parametrar. -->
+    <script type="importmap">
+      { "imports": {
+        "../src/data.js": "./plugga-702/data.js",
+        "../src/auth.js": "./plugga-702/auth.js",
+        "../src/data-xp.js": "./kategori-stubs/data-xp.js",
+        "../src/fx.js": "./kategori-stubs/fx.js",
+        "../src/firebase-config.js": "./kategori-stubs/firebase-config.js",
+        "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js": "./kategori-stubs/firestore.js",
+        "../src/live/live-watch.js": "./sidomeny-701/live-watch.js",
+        "../src/tavling/mm-watch.js": "./sidomeny-701/mm-watch.js",
+        "../src/class-lock-watch.js": "./sidomeny-701/class-lock-watch.js"
+      } }
+    </script>
+  </head>
+  <body>
+    <button class="hamburger" id="hamburger" aria-label="Öppna meny" aria-expanded="false" aria-controls="sidebar" hidden>
+      <span aria-hidden="true">☰</span>
+    </button>
+    <div class="sidebar-overlay" id="sidebar-overlay" hidden></div>
+    <div class="layout">
+      <aside class="sidebar" id="sidebar" aria-label="Sidomeny">
+        <button class="brand" id="brand"><span class="brand-text">Pluggporten</span></button>
+        <div id="sidebar-body" class="sidebar-body"></div>
+      </aside>
+      <main id="app" class="container"></main>
+    </div>
+    <script type="module">
+      import { pageElevPlugga } from "../src/pages-elev.js";
+      if (!location.hash) location.hash = "#/elev/plugga";
+      window.addEventListener("hashchange", () => { if (location.hash.startsWith("#/elev/plugga")) pageElevPlugga(); });
+      pageElevPlugga();
+    </script>
+  </body>
+</html>

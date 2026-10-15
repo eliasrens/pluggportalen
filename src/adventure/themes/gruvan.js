@@ -144,6 +144,75 @@ function pickaxe() {
   );
 }
 
+// --- Bild på äventyrskortet (#704) -------------------------------------------
+// Områdessidans kort visar en remsa (78–120 px hög) av den här 320×140-bilden,
+// beskuren med xMidYMid slice: hela bredden syns alltid, höjden kapas uppifrån
+// och nerifrån. Allt viktigt ligger därför inom y≈40–100. Platt, inga gradienter.
+const SCEN_LINJE = `stroke="${O}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"`;
+const BERGVAGG = "#6B4A35";
+const BERGVAGG_LJUS = "#7C583F";
+const GROTTA = "#2E1F15";
+const GOLV = "#4A3426";
+const LYKTA = "#FFCE73";
+const TURKOS = "#7FE3F0";
+const TURKOS_LJUS = "#DCF5FA";
+const ROSA = "#FF7FA8";
+const ROSA_LJUS = "#FFD0DE";
+const GUL = "#F7C948";
+const GUL_LJUS = "#FFF0B8";
+
+/** En klunga med tre kristaller som står på golvet vid x (botten y). */
+function scenKristaller(x, y, s, c, l) {
+  const p = (pts) => pts.map(([a, b]) => `${x + a * s} ${y + b * s}`).join(" L");
+  return (
+    `<path d="M${p([[-12, 0], [-16, -16], [-9, -22], [-4, 0]])} Z" fill="${c}" ${SCEN_LINJE}/>` +
+    `<path d="M${p([[8, 0], [14, -18], [19, -10], [16, 0]])} Z" fill="${c}" ${SCEN_LINJE}/>` +
+    `<path d="M${p([[-6, 0], [-6, -26], [2, -36], [8, -26], [8, 0]])} Z" fill="${c}" ${SCEN_LINJE}/>` +
+    `<path d="M${p([[-3, -3], [-3, -25], [2, -31]])} Z" fill="${l}" opacity="0.8"/>`
+  );
+}
+function scenGnista(x, y, r, col) {
+  const k = r * 0.28;
+  return `<path d="M${x} ${y - r} L${x + k} ${y - k} L${x + r} ${y} L${x + k} ${y + k} L${x} ${y + r} L${x - k} ${y + k} L${x - r} ${y} L${x - k} ${y - k} Z" fill="${col}"/>`;
+}
+
+/** Brun bergvägg med två grottöppningar, glittrande kristaller och en lykta. */
+function oversiktScen() {
+  return (
+    `<svg viewBox="0 0 320 140" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" focusable="false">` +
+    `<rect width="320" height="140" fill="${BERGVAGG}"/>` +
+    // bergets struktur: mjuka ljusare stenar
+    `<path d="M10 30 q14 -10 28 0 q-4 10 -28 0 Z M236 26 q18 -10 34 2 q-10 10 -34 -2 Z M86 40 q10 -6 20 0 q-6 7 -20 0 Z M14 112 q14 -8 26 2 q-10 8 -26 -2 Z" fill="${BERGVAGG_LJUS}"/>` +
+    // golvet
+    `<path d="M0 98 Q80 94 160 98 T320 96 V140 H0 Z" fill="${GOLV}" ${SCEN_LINJE}/>` +
+    // stora grottöppningen i mitten med trästöttor
+    `<path d="M116 140 V78 Q116 50 160 50 Q204 50 204 78 V140 Z" fill="${GROTTA}" ${SCEN_LINJE}/>` +
+    `<rect x="108" y="52" width="10" height="88" rx="2" fill="${TRA}" ${SCEN_LINJE}/>` +
+    `<rect x="202" y="52" width="10" height="88" rx="2" fill="${TRA}" ${SCEN_LINJE}/>` +
+    `<rect x="100" y="42" width="120" height="11" rx="3" fill="${TRA_LJUS}" ${SCEN_LINJE}/>` +
+    // lilla grottöppningen till höger
+    `<path d="M246 140 V92 Q246 72 268 72 Q290 72 290 92 V140 Z" fill="${GROTTA}" ${SCEN_LINJE}/>` +
+    // rälsen in i gruvan
+    `<path d="M146 98 L136 140 M174 98 L184 140" stroke="${METALL}" stroke-width="3" stroke-linecap="round"/>` +
+    `<path d="M143 108 H177 M140 120 H180" stroke="${TRA}" stroke-width="3" stroke-linecap="round"/>` +
+    // kristaller: turkos till vänster, gul inne i grottan, rosa vid lilla öppningen
+    scenKristaller(68, 99, 1, TURKOS, TURKOS_LJUS) +
+    scenKristaller(160, 98, 0.62, GUL, GUL_LJUS) +
+    scenKristaller(232, 99, 0.75, ROSA, ROSA_LJUS) +
+    scenGnista(52, 66, 4, "#FFFFFF") + scenGnista(86, 70, 3.5, TURKOS_LJUS) +
+    scenGnista(150, 70, 3, GUL_LJUS) + scenGnista(174, 76, 2.5, GUL_LJUS) + scenGnista(242, 76, 3.5, "#FFFFFF") +
+    // lyktan på en krok i bergväggen, med korta ljusstrålar
+    [-60, -30, 0, 30, 60, 120, 150, 180, 210, 240]
+      .map((v) => `<path d="M46 61 H51" stroke="${LYKTA}" stroke-width="2.5" stroke-linecap="round" transform="rotate(${v} 28 61)"/>`)
+      .join("") +
+    `<path d="M16 42 H28 V48" fill="none" stroke="${O}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>` +
+    `<rect x="20" y="50" width="16" height="22" rx="4" fill="${LYKTA}" ${SCEN_LINJE}/>` +
+    `<path d="M20 56 H36 M20 66 H36" stroke="${O}" stroke-width="2"/>` +
+    `<path d="M22 50 Q28 44 34 50" fill="${METALL_MORK}" ${SCEN_LINJE}/>` +
+    `</svg>`
+  );
+}
+
 // ============================================================================
 export const gruvanTheme = {
   id: "gruvan",
@@ -201,5 +270,6 @@ export const gruvanTheme = {
   oversikt: {
     sub: "Utforska den mysiga grottan och bryt glödande kristaller!",
     color: "gron",
+    scen: oversiktScen,
   },
 };

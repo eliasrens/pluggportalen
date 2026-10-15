@@ -13,7 +13,7 @@ import { isTeacher, takeSessionLostNotice } from "./auth.js";
 // Synlighetsgaten (browser-fri, re-exporteras via game-shared.js precis som i
 // gamemodes.js – redan i bootgrafen) avgör om ett område har SPELBART innehåll
 // för just den här eleven (issue #308).
-import { visibleGamemodesForClassArea } from "./game-shared.js";
+import { visibleGamemodesForClassArea, areaStarModes } from "./game-shared.js";
 
 // --- Inloggning: porten (issue #338) -----------------------------------------
 // Elevernas inloggning är sidans "framdörr": en trägrind i spelvärldens stil
@@ -243,23 +243,30 @@ export async function pageElevPlugga() {
   loading();
   await renderTopbar();
 
+  // Korten (#702): ämnesfärg, "X av Y ★" och "Ny!" byggs i plugga-framsteg.js –
+  // bara dynamiskt (#271). Saknas den blir korten orange utan stapel, som förr.
+  const framstegMod = import("./plugga-framsteg.js").catch(() => null);
+
   let subjects;
   let studentClass = null; // elevens klass – för tilldelning OCH lägessynlighet.
-  let assigned = null; // Set av "subjectId/areaId" om klassen har tilldelning, annars null.
+  let assigned = null; // Map "subjectId/areaId" → tilldelningsraden om klassen har tilldelning, annars null.
   let las = null; // fokusläget (#436): aktivt klass-lås → bara målområdet listas
+  let progress = {}; // studentData.progress – cachad läsning, samma som sidomenyn (#231)
   try {
     // Elevens klass (för att ev. filtrera på tilldelade områden) parallellt med ämnen.
-    const [subj, cls, gate] = await Promise.all([
+    const [subj, cls, gate, prog] = await Promise.all([
       data.getSubjects(),
       data.getClassForStudent().catch(() => null),
       getLockGate(),
+      data.getProgress().catch(() => ({})),
     ]);
     las = gate;
     subjects = subj;
     studentClass = cls;
+    progress = prog || {};
     const list = cls && Array.isArray(cls.assignedAreas) ? cls.assignedAreas : [];
     if (list.length > 0) {
-      assigned = new Set(list.map((a) => `${a.subjectId}/${a.areaId}`));
+      assigned = new Map(list.map((a) => [`${a.subjectId}/${a.areaId}`, a]));
     }
   } catch (err) {
     app.replaceChildren(
@@ -267,9 +274,10 @@ export async function pageElevPlugga() {
     );
     return;
   }
+  const mod = await framstegMod;
 
   const areaCards = [];
-  for (const subj of subjects) {
+  for (const [subjIndex, subj] of subjects.entries()) {
     const areas = await data.getAreas(subj.id);
     for (const a of areas) {
       // Fokusläge (#436)? Visa BARA låsets mål. Annars: har klassen en
@@ -277,37 +285,31 @@ export async function pageElevPlugga() {
       if (las) {
         if (!las.allowsArea(subj.id, a.id)) continue;
       } else if (assigned && !assigned.has(`${subj.id}/${a.id}`)) continue;
-      // Dölj områden som saknar SPELBART innehåll för den här eleven (#308): finns
-      // inget synligt läge med underlag visas ingen "inget innehåll än"-platshållare
-      // – området listas inte alls. Samma resolution som områdesöversikten
-      // (visibleGamemodesForClassArea): underlag ur areaContentFlags (quiz/pairs
-      // + generator-området, som ALDRIG räknas som tomt) minus lägen
-      // läraren bockat ur för område/klass/klass×område. Enbart elevvyn – lärarvyn
-      // (teacher.js) listar fortfarande tomma områden så de kan fyllas på.
+      // Dölj områden utan SPELBART innehåll för den här eleven (#308) – samma
+      // resolution som områdesöversikten (visibleGamemodesForClassArea: underlag
+      // minus lägen läraren bockat ur). Lärarvyn listar fortfarande tomma områden.
       if (visibleGamemodesForClassArea(a, studentClass).length === 0) continue;
-      areaCards.push(`<button class="big-card orange area-card" data-subj="${subj.id}" data-area="${a.id}">
-        <span class="emoji">${a.coverEmoji || "📖"}</span>
-        <span class="title">${a.name}</span>
-        <span class="sub">${subj.name}</span>
-      </button>`);
+      areaCards.push(areaCardHtml(mod, { subj, subjIndex, area: a, progress, studentClass,
+        assignment: assigned?.get(`${subj.id}/${a.id}`) || null }));
     }
   }
 
   const view = el(`<div>
-    <div class="panel center">
-      <h1>${las ? "Fokus just nu 🎯" : assigned ? "Det här jobbar vi med nu 📌" : "Plugga ✏️"}</h1>
-      <p class="hint">${las
+    <div class="pl-huvud">
+      <h1>${las ? "Fokus just nu" : "Plugga"}</h1>
+      <p>${las
         ? `Din lärare har låst klassen till <b>${escHtml(las.label)}</b> till ${las.klockslag}. Sen är allt öppet igen!`
         : assigned
-        ? "Din lärare har valt ut det här åt klassen. Välj ett område och börja öva!"
-        : "Välj ett arbetsområde och börja öva!"}</p>
+        ? "Din lärare har valt ut det här åt klassen."
+        : "Välj ett område och börja öva!"}</p>
     </div>
-    <div class="card-grid">
+    <div class="sektion-rubrik"><h2>Dina områden</h2></div>
+    <div class="kompakt-grid">
       ${areaCards.join("") || '<p class="hint">Inga arbetsområden ännu. Be din lärare fylla på innehåll.</p>'}
     </div>
   </div>`);
 
-  view.querySelectorAll(".area-card").forEach((btn) => {
+  view.querySelectorAll(".omrade-kort").forEach((btn) => {
     btn.addEventListener("click", () => {
       const subj = btn.dataset.subj;
       const area = btn.dataset.area;
@@ -316,6 +318,33 @@ export async function pageElevPlugga() {
   });
 
   app.replaceChildren(view);
+}
+
+/**
+ * Ett kompakt områdeskort (#702): emoji-ruta, ämnet i små versaler, namnet och
+ * en framstegsrad "★ X av Y" (samma areaStarCount som "Ditt framsteg" inne i
+ * området). Inga stjärn-lägen → ingen stapel. `mod` = plugga-framsteg.js eller
+ * null (laddningen misslyckades → orange kort utan stapel/märke).
+ */
+function areaCardHtml(mod, { subj, subjIndex, area, progress, studentClass, assignment }) {
+  const color = mod ? mod.subjectColor(subj, subjIndex) : "orange";
+  let framsteg = "";
+  const starModes = mod ? areaStarModes(area, studentClass).map((gm) => gm.id) : [];
+  if (starModes.length) {
+    const { stars, maxStars, pct } = mod.areaStarCount({ areaId: area.id, progress, starModes });
+    framsteg = `<span class="framsteg" aria-label="${stars} av ${maxStars} stjärnor">
+        <span class="stapel" aria-hidden="true"><i style="width:${pct}%"></i></span>
+        <span aria-hidden="true">★ ${stars} av ${maxStars}</span></span>`;
+  }
+  const ny = mod && mod.isAreaNew({ area, assignment, progress }) ? `<span class="nymarke">Ny!</span>` : "";
+  return `<button class="big-card ${color} kompakt omrade-kort" data-subj="${escHtml(subj.id)}" data-area="${escHtml(area.id)}">
+      ${ny}<span class="emoji" aria-hidden="true">${area.coverEmoji || "📖"}</span>
+      <span class="txt">
+        <span class="amne">${escHtml(subj.name || subj.id)}</span>
+        <span class="title">${escHtml(area.name || area.id)}</span>
+        ${framsteg}
+      </span>
+    </button>`;
 }
 
 // Shoppen ligger i pages-shop.js och Mitt rum i pages-rum.js. Profilen nedan.

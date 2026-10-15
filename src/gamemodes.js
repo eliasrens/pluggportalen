@@ -12,7 +12,8 @@
 // ============================================================================
 
 import * as data from "./data.js";
-import { app, el, go, loading, renderTopbar, getParams } from "./ui.js";
+import { app, el, go, loading, renderTopbar, getParams, escHtml } from "./ui.js";
+import { starIcon } from "./icons.js";
 import { GAMEMODES, starRow, enc, areaContentFlags, isModeHiddenForClassArea, areaStarModes } from "./game-shared.js";
 import { readingPrereqStatus } from "./reading-prereq.js";
 import { startQuiz, startLasforstaelse } from "./games-quiz.js";
@@ -51,16 +52,36 @@ function visibleThemes(has, areaData, studentClass) {
     .filter((t) => !isModeHiddenForClassArea(areaData, studentClass, `aventyr:${t.id}`));
 }
 
-function adventureCards(themes, areaProgress) {
+/**
+ * Bilden överst på äventyrskortet (#703/#704): temats `oversikt.scen()` (SVG,
+ * viewBox 320×140) om den finns, annars reservläget – en färgad yta med temats
+ * emoji stor i mitten. Ett fel i bilden ger reservläget, aldrig en trasig sida.
+ */
+function adventureScene(t) {
+  try {
+    const svg = typeof t.oversikt.scen === "function" ? t.oversikt.scen() : "";
+    if (svg) return `<span class="scen" aria-hidden="true">${svg}</span>`;
+  } catch {}
+  return `<span class="scen scen-reserv" aria-hidden="true">${t.progressIcon || "🗺️"}</span>`;
+}
+
+export function adventureCards(themes, areaProgress, fortsattId) {
   return themes
     .map((t) => {
-      const stars = areaProgress[`aventyr:${t.id}`]?.stars || 0;
-      const starsHtml = `<span class="card-stars${stars ? " won" : ""}">${starRow(stars)}</span>`;
-      return `<button class="big-card ${t.oversikt.color || "orange"} adv-card" data-tema="${t.id}">
-      <span class="emoji">${t.progressIcon || "🗺️"}</span>
-      <span class="title">Äventyr: ${t.namn}</span>
-      <span class="sub">${t.oversikt.sub || "Ett äventyr på området"}</span>
-      ${starsHtml}
+      const mode = `aventyr:${t.id}`;
+      const stars = areaProgress[mode]?.stars || 0;
+      const starsHtml = `<span class="card-stars${stars ? " won" : ""}" aria-label="${stars} av 3 stjärnor">${starRow(stars)}</span>`;
+      const fortsatt = mode === fortsattId;
+      // Namnet utan "Äventyr:" – sektionsrubriken säger redan det (spec §3.4).
+      return `<button class="big-card ${t.oversikt.color || "orange"} adv-liten adv-card${fortsatt ? " fortsatt-har" : ""}" data-tema="${t.id}">
+      ${fortsatt ? `<span class="nymarke">Fortsätt här</span>` : ""}${adventureScene(t)}
+      <span class="adv-rad">
+        <span class="txt">
+          <span class="title">${t.namn}</span>
+          <span class="sub">${t.oversikt.sub || "Ett äventyr på området"}</span>
+        </span>
+        ${starsHtml}
+      </span>
     </button>`;
     })
     .join("");
@@ -141,37 +162,61 @@ export async function pageElevOmrade() {
   const visibleModes = GAMEMODES
     .filter((gm) => has[gm.needs])
     .filter((gm) => !isModeHiddenForClassArea(areaData, studentClass, gm.id));
+  // Själva läsläget låses aldrig – det är ju det eleven ska göra först.
+  const isLocked = (gm) => lockOthers && gm.id !== "lasforstaelse";
+  const themes = visibleThemes(has, areaData, studentClass);
+
+  // plugga-framsteg.js (dynamisk, se ovan) räknar pillret "X av Y", väljer
+  // "Fortsätt här" och bygger "Ditt framsteg". Saknas den visas sidan ändå –
+  // bara utan pillret, markeringen och panelen.
+  const mod = await framstegMod;
+  // Stjärn-lägena är EN gemensam definition (areaStarModes, #467) – samma som
+  // lärarvyerna och startsidans kort (#702), så alla siffror stämmer överens.
+  const starModes = areaStarModes(areaData, studentClass).map((gm) => gm.id);
+  let fortsattId = null;
+  let pill = "";
+  let framsteg = "";
+  try {
+    if (mod) {
+      fortsattId = mod.continueHereMode(areaProgress, [
+        ...visibleModes.map((gm) => ({ id: gm.id, locked: isLocked(gm) })),
+        ...themes.map((t) => ({ id: `aventyr:${t.id}` })),
+      ]);
+      const { stars, maxStars } = mod.areaStarCount({ areaId: area, progress, starModes });
+      if (maxStars) {
+        pill = `<span class="omr-pill" aria-label="${stars} av ${maxStars} stjärnor">${starIcon(22)}<span aria-hidden="true">${stars} av ${maxStars}</span></span>`;
+      }
+      // Framstegspanelen: stjärnor av möjliga + rätt per kategori. Inga stjärn-
+      // lägen (t.ex. ett rent Ämnesläsning-område, #672) → ingen panel.
+      if (starModes.length) framsteg = mod.areaProgressHtml({ areaId: area, areaData, progress, starModes });
+    }
+  } catch {}
+
   const cards = visibleModes
     .map((gm) => {
       const stars = areaProgress[gm.id]?.stars || 0;
-      // Själva läsläget låses aldrig – det är ju det eleven ska göra först.
-      const locked = lockOthers && gm.id !== "lasforstaelse";
+      const locked = isLocked(gm);
+      const fortsatt = gm.id === fortsattId;
+      // Låset ersätter stjärnorna; Ämnesläsning har sin läst-rad och Memory
+      // (noStars) ingen rad alls.
       const statusHtml = locked
         ? `<span class="card-lock">🔒 Gör läsförståelsen först</span>`
         : gm.id === "amneslasning"
           ? `<span class="card-rad" data-amnes-rad>${amnesText}</span>`
-          : `<span class="card-stars${stars ? " won" : ""}">${starRow(stars)}</span>`;
-      return `<button class="big-card ${gm.color} gm-card${locked ? " locked" : ""}" data-mode="${gm.id}" ${locked ? "disabled" : ""}>
-      <span class="emoji">${gm.emoji}</span>
-      <span class="title">${gm.name}</span>
-      <span class="sub">${gm.sub}</span>
-      ${statusHtml}
+          : gm.noStars
+            ? ""
+            : `<span class="card-stars${stars ? " won" : ""}" aria-label="${stars} av 3 stjärnor">${starRow(stars)}</span>`;
+      return `<button class="big-card ${gm.color} kompakt gm-card${locked ? " locked" : ""}${fortsatt ? " fortsatt-har" : ""}" data-mode="${gm.id}" ${locked ? "disabled" : ""}>
+      ${fortsatt ? `<span class="nymarke">Fortsätt här</span>` : ""}<span class="emoji" aria-hidden="true">${gm.emoji}</span>
+      <span class="txt">
+        <span class="title">${gm.name}</span>
+        <span class="sub">${gm.sub}</span>
+        ${statusHtml}
+      </span>
     </button>`;
     }).join("");
 
-  const themes = visibleThemes(has, areaData, studentClass);
-  const advCards = adventureCards(themes, areaProgress);
-
-  // Framstegspanelen: stjärnor av möjliga + rätt per kategori. Stjärn-lägena är
-  // EN gemensam definition (areaStarModes, #467) – samma som lärarvyerna, så
-  // eleven och läraren ser samma nämnare. Ett fel i panelen får aldrig fälla sidan.
-  let framsteg = "";
-  try {
-    const mod = await framstegMod;
-    const starModes = areaStarModes(areaData, studentClass).map((gm) => gm.id);
-    // Inga stjärn-lägen (t.ex. ett rent Ämnesläsning-område, #672) → ingen panel.
-    framsteg = mod && starModes.length ? mod.areaProgressHtml({ areaId: area, areaData, progress, starModes }) : "";
-  } catch {}
+  const advCards = adventureCards(themes, areaProgress, fortsattId);
 
   // Tydlig hint ovanför korten när förkravet ännu inte är uppfyllt.
   const prereqBanner = lockOthers
@@ -180,17 +225,28 @@ export async function pageElevOmrade() {
         för att låsa upp de andra övningarna i området.</div>`
     : "";
 
+  // Rubrikrad utan panel (#703): tillbaka-knapp, emoji, titel + beskrivning och
+  // stjärnpillret längst till höger. På mobil bryts den (31-plugga.css).
   const view = el(`<div>
-    <div class="panel center">
-      <div class="big-emoji">${areaData.coverEmoji || "📖"}</div>
-      <h1>${areaData.name}</h1>
-      <p class="hint">${areaData.description || "Välj en övning och samla pluggcoins!"}</p>
+    <div class="omr-huvud">
+      <button class="btn ghost liten omr-tillbaka" type="button">← Plugga</button>
+      <span class="emoji" aria-hidden="true">${areaData.coverEmoji || "📖"}</span>
+      <div class="txt">
+        <h1>${escHtml(areaData.name)}</h1>
+        <p>${escHtml(areaData.description || "Välj en övning och samla pluggcoins!")}</p>
+      </div>
+      ${pill}
     </div>
     ${prereqBanner}
-    <div class="card-grid">${cards}${advCards}</div>
+    ${cards ? `<div class="sektion-rubrik"><h2>Öva</h2><span>Lär dig fakta och begrepp</span></div>
+    <div class="kompakt-grid">${cards}</div>` : ""}
+    ${advCards ? `<div class="sektion-rubrik"><h2>Äventyr</h2><span>Spela med det du har lärt dig</span></div>
+    <div class="kompakt-grid aventyr-grid">${advCards}</div>` : ""}
+    ${cards || advCards ? "" : `<p class="hint">Här finns inget att öva på än. Be din lärare fylla på innehåll.</p>`}
     ${framsteg}
   </div>`);
 
+  view.querySelector(".omr-tillbaka").addEventListener("click", () => go("#/elev/plugga"));
   view.querySelectorAll(".gm-card").forEach((btn) => {
     if (btn.disabled) return;
     btn.addEventListener("click", () => {

@@ -1,0 +1,316 @@
+/* --- Plugga-sidorna (#702–#704): rubrik, sektionsrubriker, kompakta kort ---
+   Facit: preview/preview-plugga-design-forslag.html (blocket "FÖRSLAGET").
+   Bygger på .big-card (03-komponenter.css) – samma gradienter, skugga, radie. */
+
+/* Sidrubrik direkt på bakgrunden (ingen vit panel). */
+.pl-huvud {
+  margin: 4px 0 18px;
+}
+.pl-huvud h1 {
+  margin: 0;
+  font-size: 2.1rem;
+  line-height: 1.1;
+}
+.pl-huvud p {
+  margin: 2px 0 0;
+  color: var(--text-svag);
+  font-weight: 600;
+}
+
+.sektion-rubrik {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 10px;
+  margin: 0 0 12px;
+}
+.sektion-rubrik h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+.sektion-rubrik span {
+  color: var(--text-svag);
+  font-weight: 600;
+}
+
+/* Rutnätet: 3 kolumner i innehållsytans fulla bredd (880px), 2 när ytan är
+   smalare (surfplatta, liten laptop med sidomeny), 1 på mobil. Styrs av den
+   faktiska bredden i stället för fönstret, så sidomenyn räknas in. */
+.kompakt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 16px;
+  margin-bottom: 26px;
+}
+.kompakt-grid > .hint {
+  grid-column: 1 / -1;
+}
+
+/* Kompakt, liggande kort: emoji-ruta till vänster, text till höger. */
+.big-card.kompakt {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  padding: 14px 18px;
+  min-height: 92px;
+}
+.big-card.kompakt .emoji {
+  font-size: 2.3rem;
+  margin: 0;
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.big-card.kompakt .txt {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.big-card.kompakt .title {
+  font-size: 1.2rem;
+  line-height: 1.15;
+  /* Långa områdesnamn bryts på flera rader – aldrig utanför kortet. */
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+.big-card.kompakt .sub {
+  margin-top: 1px;
+  font-size: 0.88rem;
+  line-height: 1.25;
+}
+.big-card.kompakt .amne {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.85;
+  overflow-wrap: break-word;
+}
+.big-card.kompakt .card-stars {
+  margin-top: 4px;
+  font-size: 1.05rem;
+}
+
+/* Framstegsraden: tunn stapel + "★ X av Y". */
+.big-card.kompakt .framsteg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.big-card.kompakt .stapel {
+  flex: 1;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.3);
+  overflow: hidden;
+}
+.big-card.kompakt .stapel i {
+  display: block;
+  height: 100%;
+  background: #fff;
+  border-radius: 999px;
+}
+
+/* "Ny!"-märket: vitt piller i hörnet, lite snett. */
+.big-card .nymarke {
+  position: absolute;
+  top: -9px;
+  right: 12px;
+  background: #fff;
+  color: var(--orange);
+  font-weight: 800;
+  font-size: 0.8rem;
+  padding: 1px 10px;
+  border-radius: 999px;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.12);
+  transform: rotate(4deg);
+}
+
+/* --- Områdessidan (#703): rubrikrad, "Fortsätt här", äventyrskort --- */
+
+/* Rubrikrad utan panel: ← Plugga, emoji, titel + beskrivning, stjärnpiller. */
+.omr-huvud {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 0 0 20px;
+}
+.omr-huvud .omr-tillbaka {
+  flex-shrink: 0;
+  min-height: 44px;
+}
+.omr-huvud .emoji {
+  font-size: 3rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.omr-huvud .txt {
+  flex: 1;
+  min-width: 0;
+}
+.omr-huvud h1 {
+  margin: 0;
+  font-size: 2rem;
+  line-height: 1.1;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+.omr-huvud p {
+  margin: 0;
+  color: var(--text-svag);
+  font-weight: 600;
+  overflow-wrap: break-word;
+}
+.omr-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: var(--skugga-mjuk);
+  font-weight: 800;
+  font-size: 1.05rem;
+  white-space: nowrap;
+}
+
+/* Mobil/smal surfplatta: knappen och pillret överst, emojin och titeln under. */
+@media (max-width: 700px) {
+  .omr-huvud {
+    display: grid;
+    /* 3 kolumner: knappen spänner 1–2 så att kolumn 1 bara blir emojins bredd. */
+    grid-template-columns: auto 1fr auto;
+    gap: 12px 12px;
+  }
+  .omr-huvud .omr-tillbaka {
+    grid-column: 1 / 3;
+    grid-row: 1;
+    justify-self: start;
+  }
+  .omr-huvud .omr-pill {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+  }
+  .omr-huvud .emoji {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: start;
+    font-size: 2.5rem;
+  }
+  .omr-huvud .txt {
+    grid-column: 2 / 4;
+    grid-row: 2;
+  }
+  .omr-huvud h1 {
+    font-size: 1.6rem;
+  }
+}
+
+/* Statusraderna i kompakta övningskort: tätare än i de stora korten. */
+.big-card.kompakt .card-lock {
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  line-height: 1.25;
+}
+.big-card.kompakt .card-rad {
+  margin-top: 4px;
+  font-size: 0.85rem;
+}
+
+/* "Fortsätt här" (spec §3.3): vit ram + gul ring och ett gult piller. */
+.big-card.fortsatt-har {
+  outline: 4px solid #fff;
+  box-shadow: 0 0 0 7px var(--gul), var(--skugga);
+}
+.big-card.fortsatt-har .nymarke {
+  color: #9a6b00;
+  background: var(--gul);
+}
+
+/* Äventyrskort: bild kant i kant överst, namn + text och stjärnor under. */
+.big-card.adv-liten {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  text-align: left;
+  /* Kortets bredd styr bildens höjd (cqi) – se .scen nedan. */
+  container-type: inline-size;
+}
+/* Bilden (320×140, xMidYMid slice) visar alltid hela bredden; höjden kapas.
+   78 px i tre kolumner (facit). Bredare kort (2 kolumner, 1 kolumn på
+   surfplatta/mobil) får en högre remsa, högst 120 px, så att samma del av
+   bilden (y≈35–105) syns och motivet inte zoomas in för mycket. */
+.adv-liten .scen {
+  display: block;
+  width: 100%;
+  height: 78px;
+  height: clamp(78px, 25cqi, 120px);
+  flex-shrink: 0;
+}
+.adv-liten .scen svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* Reservläget (tema utan scen): färgad yta med temats emoji i mitten. */
+.adv-liten .scen-reserv {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.8rem;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.22);
+}
+.adv-liten .adv-rad {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px 12px;
+}
+.adv-liten .txt {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.adv-liten .title {
+  font-size: 1.2rem;
+  line-height: 1.15;
+  overflow-wrap: break-word;
+}
+.adv-liten .sub {
+  margin-top: 1px;
+  font-size: 0.85rem;
+  line-height: 1.25;
+}
+.adv-liten .card-stars {
+  margin: 0;
+  flex-shrink: 0;
+  font-size: 1.05rem;
+  white-space: nowrap;
+}
+/* Kortet klipper (overflow: hidden) – pillret sitter därför innanför kanten. */
+.adv-liten .nymarke {
+  top: 8px;
+  z-index: 1;
+}

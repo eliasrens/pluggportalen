@@ -210,6 +210,7 @@
     height: min(clamp(380px, calc(100dvh - 120px), 700px), 116vw);
   }
   .varld-knapp span { display: none; } /* bara ikoner på små skärmar */
+  #ut-btn span { display: inline; }      /* utom ut-knappen: säger vart den leder (#697) */
   .varld-knapp { padding: 6px 11px; }  /* tightare så alla ikoner ryms på raden */
   .varld-titel { font-size: 0.95rem; }
   .varld-ui { padding: 8px; }          /* mer plats åt scenen/knappraden */

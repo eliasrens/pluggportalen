@@ -58,12 +58,53 @@ import { possessiv } from "./text-format.js";
 // för att bygga om sidan.
 let liveScen = null; // { stage: HTMLElement, visaNiva(nivaId, id?) }
 
+// --- "Ett steg ut" – knappen OCH webbläsarens bakåtknapp (#697) ------------
+// Varje nivå i elevens eget hus har EN förälder, ett steg utåt: rummet (alla
+// rum) och gården → framsidan, laggården → gården. Varje nivåbyte är redan ett
+// hash-byte (= en historikpost). Vi ser till att posten UNDER en inre nivå
+// alltid är just dess förälder, så bakåt = ett steg ut, aldrig ett hopp:
+//  - kom vi dit från föräldern (klick på huset/skylten/dörren) stämplas posten
+//    med `ppVarldUnder` = förälderns hash;
+//  - annars (djuplänk, omladdning, annan sida, byn…) läggs föräldrakedjan in
+//    under posten: replaceState(förälder) + pushState(nivån).
+// Ut-knappen går sedan history.back() när posten under är föräldern (då pekar
+// bakåt och framåt rätt), annars location.replace(föräldern).
+const FORALDER = { rum: "#/elev/hus", gard: "#/elev/hus", laggard: "#/elev/gard" };
+const NIVA_FRAN_HASH = { "#/elev/gard": "gard" };
+let forraHash = null; // hashen före senaste hash-bytet (null = sidladdning)
+window.addEventListener("hashchange", (e) => {
+  forraHash = new URL(e.oldURL).hash || "#/";
+});
+
+function sakraHistorik(nivaId) {
+  const under = FORALDER[nivaId];
+  if (!under || history.state?.ppVarldUnder === under) return;
+  if (forraHash === under) {
+    history.replaceState({ ...history.state, ppVarldUnder: under }, "");
+    return;
+  }
+  // Föräldrakedjan ytterst → innerst, t.ex. laggård: hus, gård, laggård.
+  const kedja = [window.location.hash];
+  for (let n = nivaId; FORALDER[n]; n = NIVA_FRAN_HASH[FORALDER[n]]) kedja.unshift(FORALDER[n]);
+  history.replaceState(null, "", kedja[0]);
+  for (let i = 1; i < kedja.length; i++) {
+    history.pushState({ ppVarldUnder: kedja[i - 1] }, "", kedja[i]);
+  }
+}
+
+function ettStegUt(nivaId) {
+  const dit = FORALDER[nivaId];
+  if (history.state?.ppVarldUnder === dit) history.back();
+  else window.location.replace(dit);
+}
+
 /**
  * Sidfunktion för ALLA tre routerna. `startNiva` = "by" (klassbyn), "hus"
  * (ute) eller "rum" (inne).
  */
 export async function pageElevVarld(startNiva) {
   if (!data.isLoggedIn()) return go("#/elev");
+  sakraHistorik(startNiva);
 
   // Kompis-hus-nivån bär den klickade kamratens id i query (?id=…); grannby-
   // nivån bär den klickade klassens id på samma sätt; grannby-HUS-nivån bär den
@@ -159,14 +200,8 @@ export async function pageElevVarld(startNiva) {
 
       <div class="varld-ui">
         <div class="varld-ui-topp">
+          <!-- Ett steg utåt, alltid samma mål och ingen valmeny (#697). -->
           <button class="varld-knapp" id="ut-btn"></button>
-          <!-- Rummets "Gå ut" är ett VAL (#328): framsidan eller gården.
-               Menyn ankras uppe till vänster under ut-knappen (styles.css
-               .varld-ut-meny) och togglas av ut-knappen bara på rum-nivån. -->
-          <div class="varld-ut-meny" id="ut-meny" role="menu" aria-label="Gå ut" hidden>
-            <button class="varld-knapp" role="menuitem" id="ut-framsida">🏡 <span>Gå till framsidan</span></button>
-            <button class="varld-knapp" role="menuitem" id="ut-gard">🌾 <span>Gå till gården</span></button>
-          </div>
           <!-- "Andra byar" (by→skolan) och "Min by" (skolan→byn) är inte längre
                knappar utan trä-SKYLTAR nere i vänstra hörnet – samma skylt-
                komponent som gårdskylten (mountNavSkyltar, varld-navskylt.js). -->
@@ -260,7 +295,6 @@ export async function pageElevVarld(startNiva) {
   const rumLager = view.querySelector("#rum-lager");
   const titel = view.querySelector("#titel");
   const utBtn = view.querySelector("#ut-btn");
-  const utMeny = view.querySelector("#ut-meny");
 
   // Nav-skyltarna i hörnen (samma skylt-komponent + klick-som-zoom som
   // gårdskylten; updateUi styr vilken som syns): "Andra byar" (by → skolan)
@@ -571,16 +605,9 @@ export async function pageElevVarld(startNiva) {
     for (const b of view.querySelectorAll("[data-panel]")) b.classList.remove("aktiv");
   }
 
-  // Rummets "Gå ut"-val (framsidan/gården, #328): stäng menyn + aria-state.
-  function stangUtMeny() {
-    utMeny.hidden = true;
-    utBtn.setAttribute("aria-expanded", "false");
-  }
-
   function updateUi(nivaId) {
     stage.dataset.niva = nivaId;
     stangPaneler();
-    stangUtMeny(); // nivåbyte lämnar aldrig "Gå ut"-valet hängande
     rumCtl?.exitMat(); // byte av nivå (t.ex. ut ur rummet) lämnar inget mat-läge kvar
     visaKlassStats(); // klass-skylten syns bara på by-nivån
     utBtn.style.display = "";
@@ -638,27 +665,19 @@ export async function pageElevVarld(startNiva) {
       utBtn.title = "Tillbaka till klassbyn";
       titel.textContent = `${possessiv(namn)} hus 🏠`;
     } else if (nivaId === "gard") {
-      // Baksidan/gården (#328): tomt navigerbart skal än så länge.
-      utBtn.innerHTML = "⬅ <span>Tillbaka till huset</span>";
-      utBtn.title = "Tillbaka till framsidan av huset";
+      // Baksidan/gården (#328) → framsidan (#697).
+      utBtn.innerHTML = "⬅ <span>Till framsidan</span>";
+      utBtn.title = "Till framsidan av huset";
       titel.textContent = "Gården 🌾";
     } else if (nivaId === "laggard") {
       utBtn.innerHTML = "⬅ <span>Ut till gården</span>";
       utBtn.title = "Ut till gården";
       titel.textContent = "Inne i laggården 🐄";
     } else {
+      // Alla rum: "Gå ut" leder direkt till framsidan (#697, ingen valmeny).
       utBtn.innerHTML = "🚪 <span>Gå ut</span>";
-      utBtn.title = "Gå ut ur huset – till framsidan eller gården";
+      utBtn.title = "Gå ut till framsidan av huset";
       titel.textContent = "Mitt rum 🛏️";
-    }
-    // "Gå ut" i rummet är en VALMENY (#328) – markera det för hjälpmedel.
-    if (nivaId === "rum") {
-      utBtn.setAttribute("aria-haspopup", "true");
-      utBtn.setAttribute("aria-controls", "ut-meny");
-    } else {
-      utBtn.removeAttribute("aria-haspopup");
-      utBtn.removeAttribute("aria-controls");
-      utBtn.removeAttribute("aria-expanded");
     }
   }
   updateUi(kamera.aktivId);
@@ -752,7 +771,8 @@ export async function pageElevVarld(startNiva) {
   //   grannby   → tillbaka till skolan
   //   skola     → zooma in till den egna byn
   //   kompishus → tillbaka till byn
-  //   by/rum    → ut till/in i egna huset (rummet = gå ut, byn = zooma in)
+  //   rum/gard/laggard → ett steg ut (ettStegUt: framsidan/framsidan/gården)
+  //   by        → in i egna huset
   // På hus-nivån är knappen dold (updateUi), så den grenen nås aldrig därifrån.
   utBtn.addEventListener("click", () => {
     const n = stage.dataset.niva;
@@ -763,25 +783,8 @@ export async function pageElevVarld(startNiva) {
     if (n === "grannby") return go("#/elev/skolan");
     if (n === "skola") return go("#/elev/by");
     if (n === "kompishus") return go("#/elev/by");
-    if (n === "gard") return go("#/elev/hus");
-    if (n === "laggard") return go("#/elev/gard");
     if (n === "by") return go("#/elev/hus");
-    // Rummet: "Gå ut" öppnar VALET framsidan/gården (#328) i stället för att
-    // gå direkt – menyn togglas så ett andra klick stänger den igen.
-    const oppna = utMeny.hidden;
-    stangUtMeny();
-    if (oppna) {
-      utMeny.hidden = false;
-      utBtn.setAttribute("aria-expanded", "true");
-    }
-  });
-  view.querySelector("#ut-framsida").addEventListener("click", () => {
-    stangUtMeny();
-    go("#/elev/hus");
-  });
-  view.querySelector("#ut-gard").addEventListener("click", () => {
-    stangUtMeny();
-    go("#/elev/gard");
+    if (FORALDER[n]) ettStegUt(n);
   });
   // "Andra byar"/"Min by" är nu skyltar (mountNavSkyltar) – klicken kopplas där.
 
@@ -879,22 +882,11 @@ export async function pageElevVarld(startNiva) {
       stangMeny(true);
       verktygTrigger.focus();
     }
-    // Samma Escape-beteende för rummets "Gå ut"-val (#328).
-    if (e.key === "Escape" && !utMeny.hidden) {
-      stangUtMeny();
-      utBtn.focus();
-    }
   });
   // Scenen fyller vyn; scopa klick-utanför hit så listenern städas bort med
   // vyn (inget kvarlämnat document-lyssnare vid route-byten).
   view.addEventListener("pointerdown", (e) => {
     if (!verktygMeny.hidden && !e.target.closest(".varld-verktyg")) stangMeny(true);
-    // "Gå ut"-valet: klick utanför stänger. Ut-knappen själv undantas – dess
-    // klick-toggle sköter öppna/stäng (annars stänger pointerdown + klicket
-    // öppnar igen, och menyn gick aldrig att stänga via knappen).
-    if (!utMeny.hidden && !e.target.closest("#ut-meny") && !e.target.closest("#ut-btn")) {
-      stangUtMeny();
-    }
   });
 
   // --- Gå in i huset: klick på husgruppen → route-byte (kameran zoomar) -----
