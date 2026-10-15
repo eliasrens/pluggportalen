@@ -35,3 +35,12 @@ både på main och på grenen. Säsongen är alltså inte orsaken, vilket bekrä
 - Klick på ett hus (Ella) öppnar `#/elev/kompis?id=…`. Skylten och huset träffar samma tomt.
 - "Du!" sitter på exakt samma pixel som på main (623,285 i 1920). Att den svävar ovanför huset fanns redan före fixen.
 - Enhetstester (alla utom rules/functions/e2e): 2424 pass, 0 fail. Bootgrafen: 107 (main 107).
+
+## Omtest efter lövändringen (5a5a4f2)
+Höst + Halloween, 30 elever, mätt 10–21 gånger med 0,5 s mellanrum medan löven faller. Den här gången
+**räknades löven med**, eftersom även lövlagret fick `pointer-events:auto`.
+- 1920, 1366 och 1280: 0 täckta skyltar i alla mätningar. Grannbyn (20 elever): 0.
+- Mobil: samma 5 kantnudd skylt mot skylt som förut. Inget löv täcker någon skylt.
+- Byns löv ligger i by-lagret (z 1050) och syns. Scenens lövlager är dolt på by- och grannby-nivå.
+  På husnivå syns scenens löv, och by-lagret är dolt (opacity 0), så löven ritas inte dubbelt.
+- Enhetstester 2424 pass, 0 fail. Bootgraf 107. Bild: `efter-lov-halloween-30-1366.png`.
