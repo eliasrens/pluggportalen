@@ -32,6 +32,7 @@ Pluggportalen – kodbasen vinner, §13).
 | Daglig guldjakt (J #715) | `functions/brakresan-jakt.js`, callable `brakresaHunt`, `src/brakresan/guldjakt.js` | klar, §5c + §6, `test/functions-brakresan-jakt.test.mjs` |
 | Betrodd server (C #708): omgångar, bedömning, stjärnor, mynt, uppmuntran, drake | `functions/brakresan-{core,avslut,state}.js`, callables `brakresa*` i `functions/index.js` | klar, `test/functions-brakresan-{core,avslut}.test.mjs` (kärnan, §15) + `functions-brakresan.test.mjs` (e2e) |
 | Klientens dataskikt + demoläge | `src/brakresan/data.js` (lat), `data-core.js`, `demo.js` | klart, `test/brakresan-data-core.test.js` |
+| Lärarvyn (K #716): klassöversikt, matris, individvy/historik, rekommendationer, testläge | `src/brakresan/larare/*` (lat), §5e nedan | klart, `test/brakresan-larare-statistik.test.js`, `preview/preview-brakresan-larare.html` |
 
 Inget i `src/brakresan/` importeras statiskt från bootgrafen (107 filer, `admin/qa-bootgraf-bfs.mjs`).
 
@@ -378,6 +379,30 @@ Förhandsvisning: `PORT=8711 node server.mjs` → `preview/preview-brakresan-f.h
 alla 15 i 21–35). Granskning: `node admin/qa-brakresan-generatorer.mjs 21 … 35`, egna kontroller i
 `admin/qa-brakresan/u21.mjs` … `u35.mjs`. Skärmdumpar: `design/brakresan-711/`.
 
+## 5e. Lärarvyn (K #716 – byggt)
+
+Allt i `src/brakresan/larare/` laddas lat; bootgrafen är orörd (107).
+
+| Fil | Innehåll |
+| --- | --- |
+| `statistik.js` | REN logik (Node-testad) ur state-dokumenten: `elevRad`, `klassSumma` (klassens träffsäkerhet = summan av rätt / summan av bedömda, antal elever bakom summan), `utmaningsAggregat` + `svaraOchLatta` (svåra < 65 %, lätta ≥ 85 %, bara med ≥ 3 elever och ≥ 20 svar – annars "Litet underlag"; "Inte tränat" egen status), `momentOversikt` (per `TAGS`), `matrisCell` (stjärnor + symbol – ↻ ◔ ✓), `elevUtmaningar`, `forslagElev` ("Öva likvärdiga bråk: 5 av 12 första svar rätt i 12 och 14"), `stjarnkurva`, `omgangRad`, `aktivSedan`, `recDokument` (reglernas form). |
+| `data-larare.js` | Firestore: `loadClass` (= `data.getClassStates`, ett state per elev), `listRounds(sid, { challengeId?, fran?, limit? })` (med `challengeId` bara likhetsfilter – inget nytt index), `listStarEvents` (stjärnhändelserna, progression), `listRecs`/`createRec`/`endRec`/`deleteRec`. Lärarens ENDA skrivningar är rekommendationerna. |
+| `klass.js` | Statistik → klasskort → fliken **Bråkresan** (`teacher-class.js` STATS_TABS): Översikt (summakort, elevlista sorterbar + periodfilter på senaste aktivitet, momenttabell, Behöver mer träning / Går bra med underlag, Litet underlag, Inte tränat) · Matris · Rekommendationer. |
+| `matris.js` | Elever × 50, sticky namnkolumn, ämnesgrupper i rubriken, horisontell scroll, ämnesfilter. Cellen = knapp (≥ 44 px) med 0–3 stjärnor + symbol; klick → individvyn fokuserad på utmaningen. |
+| `elev.js` | Individvyn (modal): alla mått i §12 "Exakta definitioner", förslag, stjärnkurva, omgångar per period, alla 50 (kategori, senaste/bästa, utfällbara omgångar), rekommendera till eleven. Läser omgångar/stjärnhändelser bara för EN elev. |
+| `omgang-vy.js` | En historisk omgång: de tio uppgifterna ritade ur omgångens SPARADE uppgifter (`round.tasks`, generatorversionen står i rubriken) med `monteraUppgift`, första svar (`svarText`), rätt svar (`reveal`), stöd före kontroll, stöd efter fel och bearbetning. |
+| `rek-vy.js` | Rekommendera en eller flera utmaningar till klassen (gäller även senare tillkomna elever) eller en elev, valfri kommentar ≤ 200. Klass → "Avsluta" (`active: false`), elev → "Ta bort". Eleven ser dem i H:s "Börja här". |
+| `testlage.js` | `#/larare/brakresan` (TEACHER_TABS, gruppen Material): alla 50 (ej byggda = "Byggs"), **Granska** (tio uppgifter ur `demoRound` med Kontrollera, hjälp, facit, hjälpsteg och genomgång) och **Spela som elev** (`createUtmaningsvy` + `demoBackend`). "Ny variant"/egen variant = seed i URL:en. Inga anrop, inga skrivningar; callables nekar dessutom lärarkonton. |
+| `vy-delat.js`, `larare.css` | Delade småbitar och lärarvyns lata stilark (mörk lärardesign, ljusa uppgiftskort). |
+
+**Datumintervall:** klassöversikten och matrisen visar totaler ur state (hela tiden) – det finns
+ingen datumuppdelning där utan att läsa omgångar per elev (#231). Periodvalet i översikten väljer
+elever efter senaste sparade spelaktivitet; i individvyn filtrerar perioden omgångarna (`startedAt`).
+
+Förhandsvisning utan Firebase: `PORT=8716 node server.mjs` →
+`preview/preview-brakresan-larare.html#/klass` (klassvyn, `?saknas=1`, `?tom=1`) och
+`#/larare/brakresan` (testläget). Stubben bygger omgångarna med den riktiga `demoRound`.
+
 ## 6. Server-API – kontrakt för C (#708) och J (#715)
 
 Callables i `functions/index.js` (region `europe-west1`), kärnan i `functions/brakresan-core.js`
@@ -447,7 +472,7 @@ Färdigt i `src/brakresan/demo.js`: `demoRound(id, seed)` (tio hela uppgifter me
 | H #713 | huvudvyn (`huvudvy*.js`, `miniatyr.js`), drakpanelen (`drakpanel.js`), navigationen (`ui.js`, `gamemode-visibility.js`), `brakresaRenameDragon` |
 | I0 #718 / I #714 | drakens grafik och animation, `studentData.brakdrake` i huset |
 | J #715 | guldjakten: `functions/brakresan-jakt.js`, callable `brakresaHunt`, `src/brakresan/guldjakt.js` (+ `gj-*` i `drakpanel.css`) |
-| K #716 | lärarvyn, rekommendationer, testläget |
+| K #716 | lärarvyn, rekommendationer, testläget: `src/brakresan/larare/`, raderna i `teacher-class.js` (STATS_TABS) och `teacher-shared.js` (TEACHER_TABS + ikonen `brak`) |
 
 Ändras något i `math/`, `schema/` eller `utmaningar/`: kör `npm run sync:brakresan`
 (annars fäller `test/brakresan-delat.test.js`).
