@@ -35,7 +35,8 @@
 // Bråkresan (#708, epic #705) – servern avgör omgångar, bedömning, stjärnor,
 // mynt och drake (spec docs/BRAKRESAN-SPEC.md §13, docs/BRAKRESAN.md §6):
 //   brakresaStartRound / brakresaAnswer / brakresaRework /
-//   brakresaFinishRound / brakresaAbortRound / brakresaAckDragon / brakresaRenameDragon
+//   brakresaFinishRound / brakresaAbortRound / brakresaAckDragon / brakresaRenameDragon /
+//   brakresaHunt (daglig guldjakt, #715 – brakresan-jakt.js)
 // Bara inloggade elever – lärarkonton nekas (testläget körs i klienten och
 // skriver aldrig). Logiken: brakresan-core.js + brakresan-avslut.js.
 //
@@ -66,6 +67,7 @@ import {
   BrFel, startRound as brStart, answerTask as brAnswer, reworkTask as brRework, finishRound as brFinish,
   abortRound as brAbort, ackDragon as brAckDragon, renameDragon as brRenameDragon,
 } from "./brakresan-core.js";
+import { hunt as brHunt } from "./brakresan-jakt.js";
 
 initializeApp();
 
@@ -234,3 +236,5 @@ export const brakresaFinishRound = brakresaCall("brakresaFinishRound", brFinish)
 export const brakresaAbortRound = brakresaCall("brakresaAbortRound", brAbort);
 export const brakresaAckDragon = brakresaCall("brakresaAckDragon", brAckDragon);
 export const brakresaRenameDragon = brakresaCall("brakresaRenameDragon", brRenameDragon); // #713
+// Servertid avgör dagen (Europe/Stockholm) – klienten skickar inga fält (#715).
+export const brakresaHunt = brakresaCall("brakresaHunt", (deps, uid) => brHunt(deps, uid));

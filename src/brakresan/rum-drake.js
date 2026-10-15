@@ -206,6 +206,8 @@ export function mountRumDrake({ sd, roomCount, stage }) {
         fokusTillbaka: fokus,
         onNamn: (namn) => { d.name = namn; onNamn?.(namn); },
         atgarder: onStow ? [{ text: "Låt draken vila i Mina djur 🐾", gor: onStow }] : [],
+        // Guldjakten (#715) är panelens standard – nytt saldo i sidomenyn efter en bekräftad jakt.
+        onJakt: () => import("../ui.js").then((u) => u.renderTopbar()).catch(() => {}),
       });
     },
     stopp: () => stopp(),

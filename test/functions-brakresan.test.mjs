@@ -8,6 +8,7 @@
 //   utloggad → unauthenticated; lärare (admin/årskurskonto) → permission-denied
 //   en stubbe → failed-precondition; skräp → invalid-argument
 //   eleven läser inte facit och skriver inga stjärnor/mynt/omgångar själv
+//   guldjakten (#715): ägget nekas, en jakt per dag och elev även vid samtidiga anrop
 //   hel omgång (om någon utmaning är byggd): svar, låst första svar,
 //   avslut, belöning, omförsök utan dubbla mynt
 //
@@ -90,7 +91,7 @@ test("utloggad och lärare nekas – inget lärarflöde muterar elevdata", async
   assert.equal(await errCode(call("brakresaStartRound", { challengeId: "03" })), "unauthenticated");
   for (const uid of [LARARE, AK]) {
     await as(uid);
-    for (const name of ["brakresaStartRound", "brakresaAnswer", "brakresaRework", "brakresaFinishRound", "brakresaAbortRound", "brakresaAckDragon"]) {
+    for (const name of ["brakresaStartRound", "brakresaAnswer", "brakresaRework", "brakresaFinishRound", "brakresaAbortRound", "brakresaAckDragon", "brakresaHunt"]) {
       assert.equal(await errCode(call(name, { challengeId: "03", roundId: "abcdefghijkl", index: 0, answer: {}, level: 1 })), "permission-denied", `${uid} ${name}`);
     }
   }
@@ -112,6 +113,34 @@ test("eleven skriver aldrig stjärnor, mynt-händelser eller omgångar själv", 
   assert.equal(await errCode(setDoc(sub("brakresaRewards", "stjarna-03-1"), { amount: 40 })), "permission-denied");
   assert.equal(await errCode(setDoc(sub("brakresaRounds", "abcdefghijkl"), { status: "avslutad", correctCount: 10 })), "permission-denied");
   assert.equal(await errCode(getDoc(doc(cdb, "brakresaSecrets", "abcdefghijkl"))), "permission-denied");
+});
+
+test("guldjakten (#715): ägget nekas; samtidiga anrop → en jaktpost och en överföring", async () => {
+  await as(ANNAN);
+  assert.equal(await errCode(call("brakresaHunt", {})), "failed-precondition", "ingen drake = ingen jakt");
+  await as(ELEV);
+  await adb.doc(`studentData/${ELEV}/brakresa/state`).set({
+    totalStars: 110, dragon: { id: `drake-${ELEV}`, name: "Bråkis", levelShown: 11 }, hunts: { count: 0, coins: 0, lastDate: null },
+  }, { merge: true });
+  const fore = (await adb.doc(`studentData/${ELEV}`).get()).data().coins;
+  // Klientens "datum", "nivå" och "belopp" ignoreras – servern bestämmer.
+  const svar = await Promise.all([1, 2, 3].map(() => call("brakresaHunt", { date: "2030-01-01", level: 15, amount: 200 })));
+  assert.equal(new Set(svar.map((s) => s.amount)).size, 1);
+  assert.equal(svar.filter((s) => !s.already).length, 1);
+  const [{ amount, date, level, max }] = svar;
+  assert.deepEqual([level, max], [11, 120]);
+  assert.ok(amount >= 1 && amount <= 120);
+  assert.notEqual(date, "2030-01-01");
+  assert.equal((await adb.doc(`studentData/${ELEV}`).get()).data().coins, fore + amount);
+  assert.equal((await adb.collection(`studentData/${ELEV}/brakresaHunts`).get()).size, 1);
+  // Eleven läser sin jaktpost men skriver den aldrig.
+  assert.equal((await getDoc(doc(cdb, "studentData", ELEV, "brakresaHunts", date))).data().amount, amount);
+  assert.equal(await errCode(setDoc(doc(cdb, "studentData", ELEV, "brakresaHunts", "2030-01-01"), { amount: 200 })), "permission-denied");
+  await as(ANNAN);
+  assert.equal(await errCode(getDoc(doc(cdb, "studentData", ELEV, "brakresaHunts", date))), "permission-denied");
+  // Återställ så att hela omgången nedan börjar från ett känt saldo.
+  await adb.recursiveDelete(adb.doc(`studentData/${ELEV}`));
+  await adb.doc(`studentData/${ELEV}`).set({ coins: 50 });
 });
 
 test("hel omgång genom callables: låst första svar, belöning en gång", { skip: !built && "ingen av de 50 utmaningarna är byggd ännu" }, async () => {

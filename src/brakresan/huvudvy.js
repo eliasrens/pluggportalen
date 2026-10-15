@@ -13,7 +13,7 @@
 //     state      getState() (data.js) – visas, aldrig skrivs
 //     rek        Map(id → kommentarer) ur rekommendationer() (huvudvy-lista.js)
 //     href(id)   länken till utmaningsvyn
-//     drakpanel  { byt?, jakt?, onVisad? } vidare till drakpanel.js
+//     drakpanel  { byt?, jakt?, onJakt?, onVisad? } vidare till drakpanel.js
 // ============================================================================
 
 import { h } from "./komponenter/bas.js";
@@ -169,6 +169,11 @@ export async function createHuvudvy(host, { state, rek = new Map(), href, drakpa
     state: aktuellt, byt: drakpanel.byt, jakt: drakpanel.jakt, fokusTillbaka, forandring,
     idag: stockholmDate(Date.now()), // bara visning – servern avgör jakten (J #715)
     onVisad: drakpanel.onVisad,
+    // Bekräftad jakt: panelen öppnad igen ska visa "klar" och nya summor.
+    onJakt: (res) => {
+      aktuellt = { ...aktuellt, hunts: res.hunts };
+      drakpanel.onJakt?.(res);
+    },
     onNamn: (namn) => {
       aktuellt = { ...aktuellt, dragon: { ...aktuellt.dragon, name: namn } };
       drakkort.uppdatera(aktuellt);

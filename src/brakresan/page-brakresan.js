@@ -87,6 +87,7 @@ async function visaLista(host) {
       byt: data.renameDragon,
       // Kläckningen/evolutionen är visad – progressionen sparades redan av servern.
       onVisad: (niva) => data.ackDragon(niva).catch(() => {}),
+      onJakt: () => renderTopbar().catch(() => {}), // nytt saldo i sidomenyn (#715)
     },
   });
 }

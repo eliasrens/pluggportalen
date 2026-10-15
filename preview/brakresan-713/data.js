@@ -1,6 +1,9 @@
 // Stubbe för src/brakresan/data.js i preview-brakresan-713.html (#713): elevens
 // state ur ?s=… (samma lägen som preview-brakresan-huvudvy.html), namnbyte och
 // ackDragon sparas i sessionStorage så att omladdning visar resultatet. Inga anrop.
+// #715: hunt() låtsas vara brakresaHunt – en jakt per dag, samma fynd vid omladdning;
+// ?s=jakt = nivå 11 som inte jagat idag, &fel=1 = första försöket får nätfel.
+import { huntMax, dragonLevel } from "../../src/brakresan/schema/regler.js";
 import { createSaveStatus, createDrafts } from "../../src/brakresan/data-core.js";
 import { CHALLENGE_IDS } from "../../src/brakresan/schema/katalog.js";
 import { stockholmDate } from "../../src/brakresan/schema/regler.js";
@@ -37,6 +40,8 @@ const LAGEN = {
     return st;
   },
   evo: () => bygg(40, { dragon: drake(3), hunts: { count: 9, coins: 142, lastDate: "2026-01-01" } }),
+  jakt: () => bygg(110, { dragon: drake(11, "Guldvinge"), hunts: { count: 4, coins: 231, lastDate: "2026-10-01" } }),
+  ny1: () => bygg(10, { dragon: drake(1, "Bråkis"), hunts: { count: 0, coins: 0, lastDate: null } }),
   full: () => bygg(150, { dragon: drake(15, "Stjärnfall"), hunts: { count: 120, coins: 9876, lastDate: idag } }),
 };
 
@@ -47,6 +52,7 @@ export async function getState() {
   const p = sparat();
   if (st.dragon && p.name) st.dragon.name = p.name;
   if (st.dragon && p.levelShown) st.dragon.levelShown = p.levelShown;
+  if (p.hunts) st.hunts = p.hunts;
   return st;
 }
 export async function getRecommendations() {
@@ -63,4 +69,26 @@ export async function renameDragon(name) {
 export async function ackDragon(level) {
   spara({ levelShown: level });
   return { levelShown: level };
+}
+
+let felKvar = new URLSearchParams(location.search).get("fel") === "1";
+export async function hunt() {
+  await new Promise((r) => setTimeout(r, 700));
+  if (felKvar) {
+    felKvar = false;
+    throw Object.assign(new Error("Ingen kontakt med servern just nu."), { code: "unavailable", retryable: true });
+  }
+  const st = await getState();
+  const level = dragonLevel(st.totalStars);
+  const p = sparat();
+  if (p.jakt?.date === idag) return { ...p.jakt, already: true, hunts: st.hunts };
+  if (st.hunts.lastDate === idag) {
+    return { huntId: idag, date: idag, level, max: huntMax(level), amount: st.hunts.lastAmount ?? 23, already: true, hunts: st.hunts };
+  }
+  const max = huntMax(level);
+  const amount = 1 + Math.floor(Math.random() * max);
+  const hunts = { count: st.hunts.count + 1, coins: st.hunts.coins + amount, lastDate: idag, lastAmount: amount };
+  const jakt = { huntId: idag, date: idag, level, max, amount, coinsAfter: 500 + amount };
+  spara({ jakt, hunts });
+  return { ...jakt, already: false, hunts };
 }
