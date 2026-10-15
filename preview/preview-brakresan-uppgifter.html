@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Bråkresan: alla tio uppgifter i en omgång (#710)</title>
+    <link rel="stylesheet" href="../src/styles.css" />
+    <link rel="stylesheet" href="../src/brakresan/omgang.css" />
+    <style>
+      body { padding: 12px; background: var(--ljus); }
+      .val { max-width: 1100px; margin: 0 auto 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+      .val a { padding: 4px 10px; border-radius: 999px; background: #fff; border: 2px solid #d5deea; font-weight: 700; text-decoration: none; color: var(--text); }
+      .val a[aria-current="page"] { border-color: #13a39a; background: #dff5f2; }
+      .lista { max-width: 760px; margin: 0 auto; display: grid; gap: 18px; }
+      .uppg { background: #fff; border-radius: 18px; padding: 12px 16px; box-shadow: 0 4px 14px rgba(31,45,74,.08); display: grid; gap: 10px; }
+      .uppg h2 { margin: 0; font-size: 1rem; color: #64748b; }
+      .knappar { display: flex; gap: 8px; flex-wrap: wrap; }
+      .utfall { font-weight: 700; }
+      .facit { color: #64748b; font-size: .95rem; }
+    </style>
+  </head>
+  <body>
+    <!-- Alla tio uppgifter ur EN planerad omgång (demoRound: samma generator, plan och
+         bedömning som servern) under varandra – för granskning och skärmdumpar.
+         ?u=NN&seed=… · &facit=1 visar facit · &i=3 bara uppgift 4. Inget sparas. -->
+    <nav class="val" aria-label="Utmaning"></nav>
+    <main class="lista" id="yta"></main>
+    <script type="module">
+      import { demoRound, gradeDemo, publicTask } from "../src/brakresan/demo.js";
+      import { monteraUppgift, promptNod } from "../src/brakresan/omgang-uppgift.js";
+      import { createHjalp } from "../src/brakresan/komponenter/index.js";
+      import { CHALLENGE_IDS } from "../src/brakresan/schema/katalog.js";
+      import { loadChallenge } from "../src/brakresan/utmaningar/index.js";
+      const p = new URLSearchParams(location.search);
+      const u = p.get("u") || "01";
+      const nav = document.querySelector(".val");
+      for (const id of CHALLENGE_IDS) {
+        const ch = await loadChallenge(id);
+        if (!ch.implemented) continue;
+        const a = document.createElement("a");
+        a.href = `?u=${id}`;
+        a.textContent = `${id} ${ch.name}`;
+        if (id === u) a.setAttribute("aria-current", "page");
+        nav.append(a);
+      }
+      const { challenge, tasks } = await demoRound(u, p.get("seed") || `preview-${u}`);
+      const yta = document.getElementById("yta");
+      const bara = p.has("i") ? Number(p.get("i")) : null;
+      for (const task of tasks) {
+        if (bara !== null && task.index !== bara) continue;
+        const pub = publicTask(task);
+        const kort = document.createElement("section");
+        kort.className = "uppg";
+        kort.dataset.index = String(task.index);
+        const rubrik = document.createElement("h2");
+        rubrik.textContent = `Uppgift ${task.index + 1} av 10 · ${task.role} · ${task.core}`;
+        const modell = document.createElement("div");
+        const knappar = document.createElement("div");
+        knappar.className = "knappar";
+        const kontroll = Object.assign(document.createElement("button"), { type: "button", className: "br-knapp", textContent: "Kontrollera" });
+        const hjalpKnapp = Object.assign(document.createElement("button"), { type: "button", className: "br-knapp br-knapp--hjalp", textContent: "Visa hjälp" });
+        const utfall = Object.assign(document.createElement("p"), { className: "utfall" });
+        const facit = Object.assign(document.createElement("p"), { className: "facit", hidden: !p.has("facit"), textContent: `Facit: ${task.key.display}` });
+        const hjalpYta = document.createElement("div");
+        knappar.append(kontroll, hjalpKnapp);
+        kort.append(rubrik, promptNod(pub.prompt), modell, knappar, utfall, facit, hjalpYta);
+        yta.append(kort);
+        const t = await monteraUppgift(modell, pub, { size: "stor" });
+        const hjalp = await createHjalp(hjalpYta, pub.help, { model: t, returnFocus: hjalpKnapp });
+        hjalpKnapp.onclick = () => (hjalp.isOpen() ? hjalp.next() : hjalp.open());
+        const skicka = () => {
+          const v = t.validate();
+          if (v && v.ok === false) { utfall.textContent = v.message; return; }
+          const r = gradeDemo(challenge, task, t.getAnswer());
+          if (r.status === "invalid") { utfall.textContent = r.message; return; }
+          t.showResult(r);
+          utfall.textContent = `${r.correct ? r.reveal.feedback.correct : r.reveal.feedback.wrong}${r.message ? ` (${r.message})` : ""}`;
+          facit.hidden = false;
+        };
+        kontroll.onclick = skicka;
+        t.onSubmit(skicka);
+        window.__brUppgifter = [...(window.__brUppgifter || []), { task, t }];
+      }
+      document.body.dataset.klar = "1";
+    </script>
+  </body>
+</html>
