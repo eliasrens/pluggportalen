@@ -9,6 +9,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="../src/styles.css" />
+    <script type="importmap">{ "imports": { "/src/season.js": "/preview/by-namnskyltar-732/season.js" } }</script>
     <style>
       body { background: #0b0f14; margin: 0; }
       .pv-ctrl { padding: 8px 12px; display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center;
@@ -19,7 +20,8 @@
       .pv-pick button[aria-pressed="true"] { background: #2f8f5b; border-color: #2f8f5b; color: #fff; }
       .pv-status { color: #7ee0a6; }
       .pv-status.fel { color: #ff8a8a; }
-      .pv-scen { position: relative; margin: 0 auto 30px; overflow: hidden; background: #a8da8f; }
+      .pv-scen.varld-stage { position: relative; margin: 0 auto 30px; overflow: hidden; background: #a8da8f;
+        border-radius: 0; box-shadow: none; }
       .pv-scen > .varld-lager { inset: 0; width: 100% !important; height: 100% !important;
         margin: 0 !important; transform: none !important; }
     </style>
@@ -29,19 +31,21 @@
       <div class="pv-pick" id="pv-antal"><span>Elever:</span></div>
       <div class="pv-pick" id="pv-skarm"><span>By-lager (skärm):</span></div>
       <div class="pv-pick" id="pv-kc"><span>Klasscentrum:</span></div>
+      <div class="pv-pick" id="pv-sasong"><span>Säsong:</span></div>
       <span class="pv-status" id="pv-status"></span>
     </div>
-    <div class="pv-scen" id="pv-scen"><div class="varld-lager varld-by" id="pv-lager"></div><div class="varld-ui" id="pv-ui"></div></div>
+    <div class="pv-scen varld-stage" data-niva="by" id="pv-scen"><div class="varld-lager varld-by" id="pv-lager"></div><div class="varld-ui" id="pv-ui"></div></div>
 
     <script type="module">
       // Riktiga mountByScen i ett by-lager med samma mått som husvärldens lager på
       // respektive skärm (desktop: min(stage − 40, 1400) × clamp(420, 100dvh − 150, 900),
-      // stage = skärmbredd − sidomenyn). Statusraden räknar namnskyltar som täcks av
-      // något annat element (elementFromPoint i 9 punkter per skylt). ?elever=&skarm=&kc=
+      // stage = skärmbredd − sidomenyn). ?sasong=sommar|host|halloween (season.js stubbad). Statusraden räknar namnskyltar som täcks av
+      // något annat element (elementFromPoint i 9 punkter per skylt). ?elever=&skarm=&kc=&sasong=
       import { mountByScen } from "../src/varld-by-scen.js";
       import { ROOM_PALETTES } from "../src/room-palettes.js";
       import { AVATARS } from "../src/avatars.js";
       import { mountNavSkyltar } from "../src/varld-navskylt.js";
+      import { mountVarldSasong } from "../src/season-world.js";
 
       const NAMN = ["Noah", "Alice", "Elsa", "Freja", "Hugo", "Ines", "Liam", "Oskar", "Stella", "Theo",
         "Vincent", "Wilma", "Elias", "Ella", "Maja", "Leo", "Saga", "Ebbe", "Adam", "Siri",
@@ -55,12 +59,14 @@
       let antal = Number(q.get("elever") ?? 20);
       let skarm = q.get("skarm") || "1366x768";
       let kc = q.get("kc") !== "0";
+      const sasong = q.get("sasong") || "sommar";
 
       const scen = document.getElementById("pv-scen");
       const lager = document.getElementById("pv-lager");
       const status = document.getElementById("pv-status");
       const skylt = mountNavSkyltar({ ui: document.getElementById("pv-ui"), onAndraByar() {}, onTillGarden() {} });
       skylt.visa("by", true);
+      mountVarldSasong(scen); // löven: scenens (dolda i byn) + byns egna i lagret
 
       function rita() {
         const [w, h] = SKARMAR[skarm];
@@ -73,11 +79,22 @@
           })),
           klasscenter: kc ? { classId: "demo", klassNamn: "4A", kalla: (_id, cb) => { cb({ exp: 0, antalElever: antal }); return () => {}; } } : null,
         });
-        setTimeout(matt, 400);
+        // Löven rör sig: mät 12 gånger (var 300:e ms) och slå ihop.
+        const alla = new Map();
+        for (let i = 0; i < 12; i++) setTimeout(() => {
+          for (const t of matt(true)) alla.set(t.namn, Math.max(alla.get(t.namn) || 0, t.traff));
+          if (i === 11) visa([...alla].map(([namn, traff]) => ({ namn, traff })));
+        }, 400 + i * 300);
       }
 
-      /** Namnskyltar som täcks (helt eller delvis) av något annat element. */
-      function matt() {
+      /**
+       * Namnskyltar som täcks (helt eller delvis) av något annat element. Dekor och
+       * löv är klickgenomsläppliga (pointer-events: none) → slås på under mätningen.
+       */
+      function matt(tyst = false) {
+        const pe = document.createElement("style");
+        pe.textContent = ".by-dekor, .by-dekor *, .sz-lov, .sz-lov * { pointer-events: auto !important; }";
+        document.head.appendChild(pe);
         const tackta = [];
         for (const n of lager.querySelectorAll(".by-namn")) {
           const r = n.getBoundingClientRect();
@@ -86,12 +103,18 @@
             const el = document.elementFromPoint(r.left + r.width * fx, r.top + r.height * fy);
             if (el && el !== n && !n.contains(el)) traff++;
           }
-          if (traff) tackta.push(`${n.textContent}(${traff}/9)`);
+          if (traff) tackta.push({ namn: n.textContent, traff });
         }
-        status.textContent = tackta.length ? `Täckta skyltar: ${tackta.join(", ")}` : "Inga täckta skyltar ✓";
+        pe.remove();
+        if (!tyst) visa(tackta);
+        return tackta;
+      }
+      function visa(tackta) {
+        status.textContent = tackta.length
+          ? `Täckta skyltar: ${tackta.map((t) => `${t.namn}(${t.traff}/9)`).join(", ")}`
+          : "Inga täckta skyltar ✓";
         status.classList.toggle("fel", tackta.length > 0);
         window.__tackta = tackta;
-        return tackta;
       }
       window.matt = matt;
 
@@ -110,6 +133,9 @@
       knappar(document.getElementById("pv-antal"), [3, 6, 10, 15, 20, 25, 30].map((n) => [n, String(n)]), antal, (n) => { antal = n; rita(); });
       knappar(document.getElementById("pv-skarm"), Object.keys(SKARMAR).map((k) => [k, k]), skarm, (k) => { skarm = k; rita(); });
       knappar(document.getElementById("pv-kc"), [[true, "med"], [false, "utan"]], kc, (v) => { kc = v; skylt.visa("by", true); rita(); });
+      knappar(document.getElementById("pv-sasong"), ["sommar", "host", "halloween"].map((v) => [v, v]), sasong, (v) => {
+        q.set("sasong", v); location.search = q.toString(); // stubben läser säsongen vid start
+      });
       rita();
     </script>
   </body>

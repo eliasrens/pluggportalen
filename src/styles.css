@@ -40,6 +40,7 @@
 
   /* 1) Scen (lokalt i spelvyn) */
   --z-scen-markor: 2;   /* små brickor i scenen: omrade-du, trädgårdens markörer */
+  --z-by-lov: 1050;     /* byns säsongslöv: över hus+dekor, under namnskyltarna (#732) */
   --z-by-skylt: 1100;   /* byns namnskylt, by-du, by-last-ikon/-bubbla: över alla hus+dekor (deras z = markpunkt-y·10 ≤ 1000) */
   --z-scen-drag: 5;     /* möbel som just dras (room-item.dragging) */
   --z-scen-objekt: 6;   /* objekt/dörrar/rumslista på scenen (rum-dorr, rum-lista) */
@@ -8150,6 +8151,15 @@ html.sz-paus .sz-fladder > i { animation-play-state: paused; }
 /* Löven ligger ovanpå scenlagren men under scenens knappar (.varld-ui) och,
    på inloggningen, under login-skylten (som ritas efter lagret). */
 .varld-stage .sz-lager { z-index: calc(var(--z-scen-ui) - 1); }
+/* Byarna (#732): scenens löv döljs och byns egna löv (inne i by-lagret) faller
+   mellan husen och namnskyltarna, så inget löv täcker ett namn. Lagret sträcker
+   sig ut över hela det kant-i-kant-breddade staget (som klipper). */
+.varld-stage[data-niva="by"] > .sz-lager-wrap > .sz-lager,
+.varld-stage[data-niva="grannby"] > .sz-lager-wrap > .sz-lager { display: none; }
+.varld-lager .sz-lager {
+  z-index: var(--z-by-lov);
+  inset: 0 -50vw -50vh;
+}
 
 /* På inloggningen läggs lagret direkt efter port-SVG:n i DOM:en (före
    login-skylten), så skylten alltid ritas ovanpå löv och fladdermöss. */

@@ -131,7 +131,10 @@ export function mountByScen({ lager, meId, students, klasscenter = null }) {
         style="left:${c.x.toFixed(2)}%;top:${c.topp.toFixed(2)}%;width:${c.bredd.toFixed(2)}%;height:${c.hojd.toFixed(2)}%;z-index:${Math.round(c.botten * 10)}"></div>`
     : "";
 
+  // Byns säsongslöv (season-world.js mountVarldSasong) överlever omritningen.
+  const lov = lager.querySelector(":scope > .sz-lager-wrap");
   lager.innerHTML = mark + dekorHtml + kcHtml + tomter;
+  if (lov) lager.append(lov);
 
   if (c) {
     const slot = lager.querySelector(".by-klasscenter");
