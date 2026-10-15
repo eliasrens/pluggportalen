@@ -48,7 +48,8 @@ function felDecimaler(b) {
     const m = /^(\d+),(\d{1,2})$/.exec(t);
     if (!m) return;
     const w = q(Number(m[1] + m[2]), 10 ** m[2].length);
-    if (valueKey(w) !== valueKey(v) && !ut.some((x) => x === t)) ut.push(t);
+    // Olika VÄRDEN (0,1 och 0,10 är samma tal) – och skilda från målet.
+    if (valueKey(w) !== valueKey(v) && !ut.some((x) => valueKey(parseDecimal(x).form.value) === valueKey(w))) ut.push(t);
   };
   if (b.a < 10 && b.d < 10) lagg(`0,${b.a}${b.d}`);
   if (b.a < 100 && b.d < 100) lagg(`${b.a},${b.d}`);
