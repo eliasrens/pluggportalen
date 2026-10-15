@@ -7,7 +7,8 @@
 //   • "omdelning" (34, och fler flerstegsuppgifter med stavar + uttryck):
 //     stavar med verktyget "Dela varje bit i k" och en uttrycksrad med flera
 //     bråkfält – svaret är multi { parts: { id: { fields } } }
-//   • kort med bråk (12): en jämförelsestav under varje kort syns bara medan
+//   • "verkstad" (F #711: 21, 22, 28–33, 35): omgang-verkstad.js, lat
+//   • kort med bråk (12) och sorteringskort (26): en jämförelsestav under varje kort syns bara medan
 //     hjälpen visar ett steg med highlight { stavar: true } – aldrig från
 //     början och utan facitetikett
 //   • tallinjen: skärmläsarens värdetext säger "streck 3 av 8", inte
@@ -41,8 +42,9 @@ export function promptNod(text, tag = "p", klass = "br-prompt") {
 export async function monteraUppgift(host, task, opts = {}) {
   await ensureCss();
   if (task.view?.component === "omdelning") return monteraOmdelning(host, task, opts);
+  if (task.view?.component === "verkstad") return (await import("./omgang-verkstad.js")).monteraVerkstad(host, task, opts); // F #711
   const t = await mountTask(host, task, opts);
-  if (task.view.component === "kort" && task.view.stavar) return medJamforelsestavar(t, task);
+  if ((task.view.component === "kort" || task.view.component === "sortering") && task.view.stavar) return medJamforelsestavar(t, task);
   if (task.view.component === "tallinje" && task.answer?.type === "point") doljVardenamn(t, task);
   return t;
 }
@@ -89,14 +91,16 @@ function doljVardenamn(t, task) {
   const svg = t.el.querySelector(".br-tallinje-svg");
   if (!svg) return;
   const ticks = task.view.ticks;
+  const max = task.view.max ?? 1; // 27: tallinjen 0–3 (heltal), annars 0–1
+  const streck = ticks * max;
   const skriv = (a) => {
     const v = a?.value;
-    svg.setAttribute("aria-valuetext", v ? `Punkt på streck ${(v.n * ticks) / v.d} av ${ticks} från 0` : "Ingen punkt placerad");
+    svg.setAttribute("aria-valuetext", v ? `Punkt på streck ${(v.n * ticks) / v.d} av ${streck} från 0` : "Ingen punkt placerad");
   };
   t.onChange(skriv);
   const set = t.setAnswer;
   t.setAnswer = (a) => { set(a); skriv(a); };
-  svg.setAttribute("aria-label", `Tallinje från noll till ett, delad i ${ticks} lika mellanrum. Flytta punkten med piltangenterna.`);
+  svg.setAttribute("aria-label", `Tallinje från noll till ${max === 1 ? "ett" : max === 3 ? "tre" : max}, delad i ${streck} lika mellanrum. Flytta punkten med piltangenterna.`);
 }
 
 /**

@@ -46,6 +46,8 @@ function kortNamn(cards, id) {
 /** Korten i vyn (även inne i en sammansatt vy). */
 function allaKort(view) {
   if (view?.cards) return view.cards;
+  // Verkstadens val (F #711: elevlösningens rader och förklaringar i 33) som textkort.
+  if (view?.fragor) return view.fragor.flatMap((f) => f.options.map((o) => ({ id: o.id, face: { text: o.etikett ? `${o.etikett}: ${o.text}` : o.text } })));
   return (view?.delar || []).flatMap((d) => allaKort(d.view));
 }
 

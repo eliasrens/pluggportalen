@@ -21,8 +21,9 @@ Pluggportalen – kodbasen vinner, §13).
 | Omgångsplan (10 st, 3/4/3, inga dubbletter, reservbank) | `src/brakresan/schema/omgangsplan.js` | klar |
 | Regler i siffror (stjärnor, mynt, drake, jakt, datum, status) | `src/brakresan/schema/regler.js` | klara |
 | Generatorgranskning (200 exempel/utmaning) | `src/brakresan/schema/granskning.js`, `test/brakresan-generatorer.test.js` | klar – körs för varje byggd utmaning |
-| 50 utmaningsfiler | `src/brakresan/utmaningar/u01.js` … `u50.js` | **byggda: 01–20 (D #709: 03, 12, 19 · E #710: övriga), 34**; delade hjälpfunktioner för E i `utmaningar/delat-e.js`; övriga stubbar – fylls av F/G |
-| Granskningsskript per utmaning (D #709) | `admin/qa-brakresan-generatorer.mjs` + egna kontroller `admin/qa-brakresan/uNN.mjs` | klart, `test/brakresan-utmaningar-d.test.js`, `test/brakresan-utmaningar-e.test.js` (E #710) |
+| 50 utmaningsfiler | `src/brakresan/utmaningar/u01.js` … `u50.js` | **byggda: 01–20 (D #709: 03, 12, 19 · E #710: övriga), 21–35 (D #709: 34 · F #711: övriga)**; delade hjälpfunktioner `utmaningar/delat-e.js` (E), `f-delat.js` (F); övriga stubbar – fylls av G |
+| Granskningsskript per utmaning (D #709) | `admin/qa-brakresan-generatorer.mjs` + egna kontroller `admin/qa-brakresan/uNN.mjs` | klart, `test/brakresan-utmaningar-d.test.js`, `test/brakresan-utmaningar-e.test.js` (E #710), `test/brakresan-utmaningar-f.test.js` (F #711) |
+| Verkstaden – flerdelade uppgifter (F #711) | `src/brakresan/omgang-verkstad.js` + `verkstad-stav.js`, `verkstad-delar.js`, `verkstad.css` | klart, §5d nedan, `preview/preview-brakresan-f.html` |
 | Utmaningsvy + omgångsflöde (D #709) | `src/brakresan/omgang*.js`, `omgang.css`, `page-brakresan.js`, route `#/elev/brakresan?u=NN` | klart, §5b nedan, `test/brakresan-omgang-backend.test.js` |
 | Synk till Cloud Functions | `admin/sync-brakresan-functions.mjs` → `functions/brakresan/` | klar, predeploy + `test/brakresan-delat.test.js` |
 | Datamodell | `docs/DATAMODELL.md` "Bråkresan" | dokumenterad |
@@ -313,6 +314,40 @@ Navigation (H): `NAV_LANKAR` i `ui.js` (grupp `ova`, `modul: "brakresan"`) + `TO
 i `gamemode-visibility.js` – **synlig som standard, döljbar per klass** (`hiddenModules`, som
 Läsresan). Regelns modullistor validerar bara längden, så ingen regeländring behövs.
 
+## 5d. Verkstaden – flerdelade uppgifter (F #711 – byggt)
+
+`view.component: "verkstad"` ritas av `omgang-verkstad.js` (laddas lat från `monteraUppgift`) och
+används av 21, 22, 25, 28–33 och 35. En uppgift byggs av delar; varje del med ett `id` lämnar
+ett delsvar i `answer.parts[id]` (multi) – eller hela svaret när svarstypen är enkel. Samma API som
+`mountTask` (§5). Delarna (alla ritas ur uppgiftens data, ingen vet facit):
+
+| Del | `view`-data | Svar | Används av |
+| --- | --- | --- | --- |
+| `stavar` | `[{ id, parts, marked, monster: "a"\|"b", namn: form, helhet, verktyg, maxDela, ihop, etiketter, iHjalp }]` | `bort`/`mala` → paint (bara om `answer.parts[id]` är paint) | 21, 29, 30, 31, 32, 35 |
+| verktyg `dela` | "Dela varje bit i k" (k ≤ maxDela) – helhet och färgad längd oförändrade | – | 35 |
+| verktyg `ihop` | "Slå ihop g bitar till en", g ∈ `ihop` (delare av n); delvis färgad grupp markeras och sägs ut | – | 21 |
+| verktyg `bort` | klicka bort färgade bitar (tonas + streckad kontur, ramen kvar) | paint (32), verktyg (35) | 32, 35 |
+| verktyg `flytta` + `mall` | `mall: { id, parts, kallor, helhet }` – bitarna flyttas (klick/drag) till en tom stav | paint, "flytta båda" = inmatningshjälp | 31 |
+| `mangd` | `{ id, count, item, maxGrupper, label }` – "Dela i g lika grupper" + markering per grupp | paint | 29 |
+| `modell` (+ `modellIHjalp`) | vanlig komponentvy som bild | – | 28 |
+| `fragor` | `[{ id, text, options: [{ id, text, etikett, stavar }], stil: "rader" }]` | choice | 33 |
+| `expr` | form, `{ op, pilar }`, `{ text }`, `{ input: id }`, `{ relation: id }`, `{ brak: { n, d } }` med `{ input }` inne i bråket | number, relation | alla |
+| `delsteg` | `{ text, enhet }` – frivilligt mellansteg, bedöms aldrig | – | 30 |
+
+**29 använder inte E:s `gruppering`** (leadens beslut): specen kräver "gruppera hela mängden i n lika
+grupper, **markera a grupper** och skriv antal". `gruppering` fördelar föremål i grupper men har inget
+markeringssteg; verkstadens `mangd` (B:s mängdbild + "Dela i g lika grupper" + markering per grupp)
+täcker hela mekaniken.
+
+**Stöd som avslöjar svaret syns bara i hjälpen** (Elias, #709): `modellIHjalp`
+(28), elevlösningens före/efter-stavar (33) och 22:s pilar ("× ?"/"÷ ?", aldrig faktorn) visas när ett
+hjälpsteg har `highlight: { stavar: true }` resp. `{ pilar: true }` och döljs när hjälpen stängs.
+Sorteringskort med `view.stavar` (26) får jämförelsestavar på samma sätt som 12.
+
+Förhandsvisning: `PORT=8711 node server.mjs` → `preview/preview-brakresan-f.html?u=21` (testomgång,
+alla 15 i 21–35). Granskning: `node admin/qa-brakresan-generatorer.mjs 21 … 35`, egna kontroller i
+`admin/qa-brakresan/u21.mjs` … `u35.mjs`. Skärmdumpar: `design/brakresan-711/`.
+
 ## 6. Server-API – kontrakt för C (#708) och J (#715)
 
 Callables i `functions/index.js` (region `europe-west1`), kärnan i `functions/brakresan-core.js`
@@ -378,7 +413,7 @@ Färdigt i `src/brakresan/demo.js`: `demoRound(id, seed)` (tio hela uppgifter me
 | B #707 | `src/brakresan/komponenter/`, `preview/preview-brakresan-komponenter.html` |
 | C #708 | `functions/brakresan-core.js`, callables i `functions/index.js`, regler/index vid behov, `src/brakresan/data.js` |
 | D #709 | `utmaningar/u03.js`, `u12.js`, `u19.js`, `u34.js`, omgångsvyn (`src/brakresan/omgang*.js`), route, `admin/qa-brakresan-generatorer.mjs` |
-| E #710 / F #711 / G #712 | `utmaningar/u01–u20.js` (+ `delat-e.js`, komponenterna `sammansatt`, `figur`, `relationsval`, `bygge`, `gruppering`) / `u21–u35.js` / `u36–u50.js` (utom D:s fyra) |
+| E #710 / F #711 / G #712 | `utmaningar/u01–u20.js` (+ `delat-e.js`, komponenterna `sammansatt`, `figur`, `relationsval`, `bygge`, `gruppering`) / `u21–u35.js` (+ `f-delat.js`, verkstaden `omgang-verkstad.js`, `verkstad-*.js`, `preview-brakresan-f.html`) / `u36–u50.js` (utom D:s fyra) |
 | H #713 | huvudvyn (`huvudvy*.js`, `miniatyr.js`), drakpanelen (`drakpanel.js`), navigationen (`ui.js`, `gamemode-visibility.js`), `brakresaRenameDragon` |
 | I0 #718 / I #714 | drakens grafik och animation, `studentData.brakdrake` i huset |
 | J #715 | guldjakten |
