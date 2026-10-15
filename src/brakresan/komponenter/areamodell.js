@@ -9,6 +9,8 @@
 //
 // view = { component: "areamodell", vertical: {n,d}, horizontal: {n,d},
 //          show?: "lodratt" | "bada" (standard), marked?: antal | [id], label? }
+// horizontal.n = 0 (G #712, 38): bara raderna som rutnät, utan vågräta ränder i
+// legenden – eleven målar den andra andelen själv inuti den lodräta.
 // Svar: paint { selected } (rutorna p0 … rad för rad) när eleven ska måla.
 // Extra API: steg("lodratt" | "bada") – förklaringen byggs upp stegvis.
 // ============================================================================
@@ -67,8 +69,9 @@ export function createAreamodell(host, view, opts = {}) {
     vagratt.setAttribute("visibility", bada ? "visible" : "hidden");
     hLinjer.setAttribute("visibility", bada ? "visible" : "hidden");
     overlapp.setAttribute("visibility", bada ? "visible" : "hidden");
-    legend.querySelector(".br-legend--vagratt").hidden = !bada;
-    legend.querySelector(".br-legend--bada").hidden = !bada;
+    // G #712 (38): vågrätt 0/d = bara raderna som rutnät – eleven målar själv andra andelen.
+    legend.querySelector(".br-legend--vagratt").hidden = !bada || hz.n === 0;
+    legend.querySelector(".br-legend--bada").hidden = !bada || hz.n === 0;
     rot.classList.toggle("br-area--steg", !bada);
     if (bada) rot.classList.add("br-tona-in-area");
   }
