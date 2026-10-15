@@ -292,6 +292,11 @@ ett delsvar i `answer.parts[id]` (multi) – eller hela svaret när svarstypen �
 | `expr` | form, `{ op, pilar }`, `{ text }`, `{ input: id }`, `{ relation: id }`, `{ brak: { n, d } }` med `{ input }` inne i bråket | number, relation | alla |
 | `delsteg` | `{ text, enhet }` – frivilligt mellansteg, bedöms aldrig | – | 30 |
 
+**29 använder inte E:s `gruppering`** (leadens beslut): specen kräver "gruppera hela mängden i n lika
+grupper, **markera a grupper** och skriv antal". `gruppering` fördelar föremål i grupper men har inget
+markeringssteg; verkstadens `mangd` (B:s mängdbild + "Dela i g lika grupper" + markering per grupp)
+täcker hela mekaniken.
+
 **Stöd som avslöjar svaret syns bara i hjälpen** (Elias, #709): `modellIHjalp`
 (28), elevlösningens före/efter-stavar (33) och 22:s pilar ("× ?"/"÷ ?", aldrig faktorn) visas när ett
 hjälpsteg har `highlight: { stavar: true }` resp. `{ pilar: true }` och döljs när hjälpen stängs.
