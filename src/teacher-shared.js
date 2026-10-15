@@ -245,6 +245,8 @@ export const TEACHER_TABS = [
   tab("statistik", "#/larare/statistik", "statistik", "Statistik", "Statistik", "chart", () => import("./teacher-classes.js"), "pageLarareStatistik"),
   tab("adminklasser", "#/larare/admin/klasser", "admin", "Klasser & elevkonton", "Klasser & elevkonton", "school", () => import("./teacher-classes.js"), "pageLarareAdminKlasser", true),
   tab("konton", "#/larare/konton", "admin", "Lärarkonton", "Lärarkonton", "key", () => import("./teacher-accounts.js"), "pageLarareKonton", true),
+  // Säsong (#690): config/season – Sommar/Höst + Halloween på/av och slutdatum.
+  tab("sasong", "#/larare/admin/sasong", "admin", "Säsong", "Säsong och Halloween", "sparkle", () => import("./teacher-season.js"), "pageLarareSasong", true),
 ];
 
 /** Gemensam lärar-toppnav: huvuddelarna + ev. underrad för aktiv del. Sticky. */
@@ -391,4 +393,6 @@ export function renderGate(ctx) {
     }
   });
   ctx.app.replaceChildren(view);
+  // Säsongstemat (#691): dekor runt panelen, panelen själv oförändrad.
+  import("./season-world.js").then((m) => view.isConnected && m.mountGateSasong(view)).catch(() => {});
 }

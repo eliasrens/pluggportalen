@@ -114,15 +114,58 @@ export function nyPlaceringsNyckel(placements, id) {
  * vid varje bredd (ingen ihopklumpning). cqw skrivs DIREKT här (inte via en
  * egen var) – annars resolvas den mot fel container i Chromium. calc →
  * faktiskt layoutmått, så drag-clampen (offsetWidth/Height) följer med.
- * taBort = false → ingen 🗑️ (läsläge).
+ * taBort = false → ingen 🗑️ (läsläge). spegel = konsten visas spegelvänd
+ * (↔ Vänd / andra sidan, #699) – bara bilden, inte 🗑️ eller noden.
  */
-export function rumSakHtml({ key, x, y, titel, art, w, h, vald = false, taBort = true }) {
-  const enhet = "min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px))";
+export const RUM_ENHET = "min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px))";
+
+export function rumSakHtml({ key, x, y, titel, art, w, h, vald = false, taBort = true, spegel = false }) {
+  const enhet = RUM_ENHET;
   return `<div class="room-item${vald ? " selected" : ""}"
         data-id="${key}" style="left:${x}%;top:${y}%" title="${titel}">
-        <span class="ri-emoji" style="width:calc(${w} * ${enhet});height:calc(${h} * ${enhet})">${art}</span>
+        <span class="ri-emoji${spegel ? " spegel" : ""}" style="width:calc(${w} * ${enhet});height:calc(${h} * ${enhet})">${art}</span>
         ${taBort ? `<button class="ri-remove" data-remove="${key}" title="Plocka bort">🗑️</button>` : ""}
       </div>`;
+}
+
+/**
+ * ⟳ Rotera / ↔ Vänd-knapparna (#699) vid en markerad sak, som EGEN nod i
+ * scenen (inte inuti saken – då kunde senare ritade saker skymma knapparna
+ * och sakens ritordning ändras inte). Hamnar ovanför saken när den står lågt
+ * (golvet) och under den när den sitter högt (väggen). h = sakens höjd i
+ * enheter, enhet = scenens längdenhet (RUM_ENHET i rummet). null = inga knappar.
+ */
+export function sakVerktygHtml({ key, x, y, h, enhet = RUM_ENHET, rotera = false, vand = false }) {
+  if (!rotera && !vand) return null;
+  const upp = y > 50;
+  const top = `calc(${y}% ${upp ? "-" : "+"} ${h / 2} * ${enhet})`;
+  return `<div class="sak-verktyg${upp ? " upp" : ""}" style="left:clamp(64px, ${x}%, calc(100% - 64px));top:${top}">` +
+    (rotera ? `<button type="button" class="sak-verktyg-knapp" data-rotera="${key}" title="Rotera (R)" aria-label="Rotera">⟳</button>` : "") +
+    (vand ? `<button type="button" class="sak-verktyg-knapp" data-vand="${key}" title="Vänd (F)" aria-label="Vänd">↔</button>` : "") +
+    `</div>`;
+}
+
+/**
+ * Tangenterna R (rotera) och F (vänd) för en markerad sak (#699). Lyssnaren
+ * sitter på document och tar bort sig själv när scenen lämnat DOM:en.
+ * aktiv() → true när scenen syns och tar emot tangenter; gor(typ) utför
+ * "rot"/"flip" på den markerade saken (gör inget om ingen är markerad).
+ */
+export function kopplaVridTangenter(stage, { aktiv, gor }) {
+  function onKey(e) {
+    if (!stage.isConnected) {
+      document.removeEventListener("keydown", onKey);
+      return;
+    }
+    if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+    const t = e.target;
+    if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+    const k = e.key.toLowerCase();
+    const typ = k === "r" ? "rot" : k === "f" ? "flip" : null;
+    if (!typ || !aktiv()) return;
+    if (gor(typ)) e.preventDefault();
+  }
+  document.addEventListener("keydown", onKey);
 }
 
 /**
@@ -144,6 +187,8 @@ export function rumSakHtml({ key, x, y, titel, art, w, h, vald = false, taBort =
 export function kopplaRumDrag(stage, { zon, tomYta, flytt, slapp, golvTopp = FLOOR_TOP }) {
   let drag = null;
   stage.addEventListener("pointerdown", (e) => {
+    // ⟳/↔-knapparna (#699) är klick – inte tom yta (som skulle avmarkera).
+    if (e.target.closest(".sak-verktyg")) return;
     const node = e.target.closest(".room-item");
     if (!node) {
       tomYta?.();
@@ -171,6 +216,9 @@ export function kopplaRumDrag(stage, { zon, tomYta, flytt, slapp, golvTopp = FLO
     if (Math.abs(e.clientX - drag.startX) > 3 || Math.abs(e.clientY - drag.startY) > 3) {
       drag.moved = true;
     }
+    // Pekarens sista punkt (px) – t.ex. "släppt på en dörr" (#698).
+    drag.lastX = e.clientX;
+    drag.lastY = e.clientY;
     const { x, y } = dragPos({
       px: ((e.clientX - drag.rect.left) / drag.rect.width) * 100,
       py: ((e.clientY - drag.rect.top) / drag.rect.height) * 100,

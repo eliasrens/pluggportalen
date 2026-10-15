@@ -304,11 +304,32 @@ elev1 / lilla123, proxy 8711) – proxyns vitlista har `brakresa*`.
 | `huvudvy.js` (+ `huvudvy.css`, lat) | `createHuvudvy(host, { state, rek, href, drakpanel })`: rubrik + intro, X/150 stjärnor och Y/50 bemästrade, drakkortet (vid sidan ≥ 760 px, annars ovanför listan), ankarlänkar till de fem ämnesrubrikerna, "Börja här" (lärarens rekommendationer, länkar till ordinarie kort), sök + filter (Alla / Inte bemästrade / Bemästrade / Rekommenderade), alla 50 kort. Listans läge (filter, sök, scroll, fokus) sparas i sessionStorage när ett kort öppnas och återställs. Spelar kläckning/evolution som inte visats (`state.dragon.levelShown` < nivån) och kvitterar med `ackDragon`. |
 | `huvudvy-lista.js` | Ren logik: `filtrera`, `matcharSok` (namn, mål, taggar, nummer; å/ä/ö-okänslig), `kortStatus` (status + ikon + stjärnor + "Senast 8 av 10"), `sammanfattning`, `rekommendationer(docs)`, `listlage`. `test/brakresan-huvudvy.test.js`. |
 | `miniatyr.js` | `miniatyrSvg(id)` – en egen statisk SVG per utmaning (80 × 60, aria-hidden), utan komponentbiblioteket. |
-| `drakpanel.js` (+ `drakpanel.css`, lat) | **Gemensam panel för Bråkresan och huset (I #714):** `oppnaDrakpanel({ state, byt?, jakt?, forandring?, onVisad?, onNamn?, fokusTillbaka?, idag? })` = `<dialog>` med draken, namn + "Byt namn", nivå, stjärnor totalt, nästa tröskel, guldjaktens status/intervall/genomförda/funna mynt, "Fullt utvecklad" vid 150. Ägget: kläckningsmål, ingen jaktknapp. `forandring: { fran, till }` spelar `spelaKlackning` (fran 0, sedan namnfrågan) eller `spelaEvolution` först – "Hoppa över" finns, och stängd panel räknas som visad. `createDrakkort(host, { state, oppna })` = huvudvyns kompakta kort. `drakInfo(state)` = texterna (testad). Egen CSS och egna knappar (`bdp-*`) – beror inte på Bråkresans CSS. |
+| `drakpanel.js` (+ `drakpanel.css`, lat) | **Gemensam panel för Bråkresan och huset (I #714):** `oppnaDrakpanel({ state, byt?, jakt?, forandring?, onVisad?, onNamn?, fokusTillbaka?, idag?, atgarder? })` = `<dialog>` med draken, namn + "Byt namn", nivå, stjärnor totalt, nästa tröskel, guldjaktens status/intervall/genomförda/funna mynt, "Fullt utvecklad" vid 150. Ägget: kläckningsmål, ingen jaktknapp. `forandring: { fran, till }` spelar `spelaKlackning` (fran 0, sedan namnfrågan) eller `spelaEvolution` först – "Hoppa över" finns, och stängd panel räknas som visad. `createDrakkort(host, { state, oppna })` = huvudvyns kompakta kort. `drakInfo(state)` = texterna (testad). Egen CSS och egna knappar (`bdp-*`) – beror inte på Bråkresans CSS. |
 
 **J #715** ritar jaktknappen och animationen via `jakt(yta, info)` (yta = panelens jaktruta,
 `info.jakt` = `{ max, intervallText, antal, mynt, klarIdag }`). **I #714** öppnar samma panel från
-huset med `oppnaDrakpanel({ state: await getState() })`; namnbytet går via `renameDragon` i data.js.
+huset med `oppnaDrakpanel({ state: await getState(), atgarder })`; namnbytet går via `renameDragon`
+i data.js. `atgarder: [{ text, gor }]` = extra knappar längst ner (huset: "Låt draken vila i Mina
+djur") – ett klick stänger panelen och kör `gor()`.
+
+## 5d. Draken i elevhuset (I #714 – byggt)
+
+| Fil | Innehåll |
+| --- | --- |
+| `art-drake.js` | `drakeSvg(n, { hus: true })` = huspose: vuxna (10–15) med hopvikta vingar (`arHusVikt`), `data-hus="1"` på `<svg>`; samma viewBox som i Bråkresan. `husMatt(n)` = storlek i rums-enheter (`HUS_HAST` = 4 enheter per "häst"-faktor, nivå 1 lyft mot `HUS_MIN_H`), `husPassning(matt, fotY, scen)` = skalfaktor ≤ 1 när draken inte ryms ovanför fötterna/i bredd. Testat i `test/brakresan-drake-art.test.mjs`. |
+| `art-drake-anim.js` | `startaTomgang(svg, { vy })` pausar också när `vy` (rumslagret) blir `inert`/`.varld-dold` (MutationObserver). Huspose byter vinggesterna (svävning, vingöppning) mot huvudlyft. |
+| `rum-drake.js` (lat) | `mountRumDrake({ sd, roomCount, stage })` för Mitt rum: noden (`.room-item.room-pet.room-drake`, `data-pet-id` = drak-id) går i rummets drag-pipeline, dörrarna, "Mina djur" och rumsvalet – men inte i promenad-AI:n (draken står still). Klick/namnskylt → drakpanelen. Skriver `brakdrake.pos` (debounce), `.stowed`, `.room` med `updateDoc`. `drakeLasNod(sd, roomCount, stage)` = klasskamratens läsläge. |
+
+Regler i huset (spec §9): `pos` = **fötternas** punkt i procent (pivot), så ett nivåbyte växer
+draken uppåt från samma golvplats; sidled hålls hela draken inne med `clamp` utan att den sparade
+platsen ändras. Ryms den inte (lågt fönster, högt placerad) ritas den mindre och eleven får ett
+meddelande en gång per nivå – den teleporteras aldrig. Klickytan är bara figuren
+(`pointer-events` på `.bd-andas`). Draken ritas UNDER djuren, så att en stor drake aldrig skymmer
+dem. Prestanda: andningen går som kompositerad transform på HTML-rutan, aurans puls är av, och
+blinkningarna är glesare (6–12 s) än i Bråkresan; tomgången pausas när rummet inte syns.
+Bootgrafen orörd (107): `varld-rum.js` och `pages-klasskamrat.js` importerar `rum-drake.js`
+dynamiskt bara när `studentData.brakdrake` finns. Förhandsvisning:
+`preview/preview-drake-hus-714.html` (`?niva=N`, `?reset`, `#/elev/klasskamrat?id=elev2`).
 
 Navigation (H): `NAV_LANKAR` i `ui.js` (grupp `ova`, `modul: "brakresan"`) + `TOGGLABLE_MODULES`
 i `gamemode-visibility.js` – **synlig som standard, döljbar per klass** (`hiddenModules`, som

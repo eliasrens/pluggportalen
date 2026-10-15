@@ -1,0 +1,164 @@
+/* ==========================================================================
+   Säsonger i världen + inloggningen (#691, epic #689)
+   ==========================================================================
+   <html data-sasong="host" data-halloween="1" data-lov="1"> sätts av
+   season-world.js (saknas = sommar = exakt som i dag). Färgerna kommer som
+   --sz-*-variabler (paletten i season-config.js, inskriven av season-world.js
+   i <style id="sz-palett">) och SVG-konsten läser dem via sz() i art-style.js.
+   Här bor bara synlighet, lövens/fladdermössens rörelse och temabakgrunder. */
+
+/* Säsongsdekor som ritas i konsten men bara syns i rätt läge. */
+.sz-bara-host,
+.sz-bara-halloween { display: none; }
+html[data-sasong="host"] .sz-bara-host,
+html[data-halloween] .sz-bara-halloween { display: inline; }
+html[data-halloween] .sz-dolj-halloween { display: none; }
+
+/* By-/skolnivåns stage-bakgrund (gräset under scen-boxen, 18-varld.css). */
+@media (min-width: 821px) {
+  .varld-stage[data-niva="by"],
+  .varld-stage[data-niva="skola"],
+  .varld-stage[data-niva="grannby"] {
+    background: var(--sz-hill, #a8da8f);
+  }
+}
+/* Port-övergångens overlay (port-overgang.js) visar samma scen – samma
+   bakgrund, annars blinkar sommarblått i kanterna under zoomen (#727). */
+.port-scen,
+.port-overgang { background: var(--sz-port-bg, #bde3f5); }
+
+/* --- Fallande löv ---------------------------------------------------------
+   Högst 16 löv, BARA transform + opacity (kompositorn, ingen layout och
+   ingen JS per bildruta). EN animation per löv (fall + svaj + snurr i samma
+   transform) = ett kompositorlager per löv. pointer-events:none → hindrar
+   aldrig klick. */
+.sz-lager {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+.sz-lov-lager, .sz-fladder-lager { display: none; }
+html[data-lov] .sz-lov-lager,
+html[data-halloween] .sz-fladder-lager { display: block; }
+
+.sz-lov {
+  position: absolute;
+  top: -40px;
+  left: var(--x);
+  width: var(--w, 22px);
+  height: var(--w, 22px);
+  animation: sz-falla var(--d, 14s) ease-in-out var(--del, 0s) infinite;
+}
+.sz-lov svg, .sz-fladder svg { display: block; width: 100%; height: 100%; }
+@keyframes sz-falla {
+  0% { transform: translate3d(0, 0, 0) rotate(-20deg); opacity: 0; }
+  8% { opacity: 1; }
+  25% { transform: translate3d(calc(var(--drift, 40px) * 0.25 + 18px), calc(var(--h, 100vh) * 0.25), 0) rotate(45deg); }
+  50% { transform: translate3d(calc(var(--drift, 40px) * 0.5 - 18px), calc(var(--h, 100vh) * 0.5 + 20px), 0) rotate(-30deg); }
+  75% { transform: translate3d(calc(var(--drift, 40px) * 0.75 + 18px), calc(var(--h, 100vh) * 0.75 + 40px), 0) rotate(60deg); }
+  90% { opacity: 1; }
+  100% { transform: translate3d(var(--drift, 40px), calc(var(--h, 100vh) + 80px), 0) rotate(10deg); opacity: 0; }
+}
+
+/* Fladdermöss (bara inloggningen under Halloween): flyger förbi uppe i
+   kvällshimlen, långsamt, med mjuk vingflaxning (scaleY). */
+.sz-fladder {
+  position: absolute;
+  left: 0;
+  top: var(--y);
+  width: var(--w, 54px);
+  height: calc(var(--w, 54px) * 0.625);
+  animation: sz-flyga var(--d, 22s) linear var(--del, 0s) infinite;
+  will-change: transform;
+}
+.sz-fladder > i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  animation: sz-flaxa 0.45s ease-in-out infinite alternate;
+}
+@keyframes sz-flyga {
+  0% { transform: translate3d(-80px, 0, 0); }
+  50% { transform: translate3d(50vw, -24px, 0); }
+  100% { transform: translate3d(calc(100vw + 80px), 6px, 0); }
+}
+@keyframes sz-flaxa {
+  from { transform: scaleY(1); }
+  to { transform: scaleY(0.72); }
+}
+
+/* Pausa i dold flik (season-world.js sätter .sz-paus) … */
+html.sz-paus .sz-lov,
+html.sz-paus .sz-fladder,
+html.sz-paus .sz-fladder > i { animation-play-state: paused; }
+/* … och inne i rummet/laggården (rummet följer inte säsongen, §1.3). */
+.varld-stage[data-niva="rum"] .sz-lager,
+.varld-stage[data-niva="laggard"] .sz-lager { display: none; }
+/* Av vid reducerad rörelse – ingen rörelse alls, inga stillastående löv. */
+@media (prefers-reduced-motion: reduce) {
+  .sz-lager { display: none !important; }
+}
+
+/* Löven ligger ovanpå scenlagren men under scenens knappar (.varld-ui) och,
+   på inloggningen, under login-skylten (som ritas efter lagret). */
+.varld-stage .sz-lager { z-index: calc(var(--z-scen-ui) - 1); }
+
+/* På inloggningen läggs lagret direkt efter port-SVG:n i DOM:en (före
+   login-skylten), så skylten alltid ritas ovanpå löv och fladdermöss. */
+/* Port-övergången flyttar med lagret in i overlayt (port-overgang.js), så
+   löv och fladdermöss fortsätter genom zoomen och tonar ut i samma takt
+   som scenen – världen under har sina egna löv (#727). */
+.port-overgang .sz-lager { transition: opacity 0.4s ease 0.6s; }
+.port-overgang.port-zoom .sz-lager { opacity: 0; }
+
+/* --- Lärarspärren (#/larare) ----------------------------------------------
+   Panelen är OFÖRÄNDRAD (samma kontrast). Temat = bakgrunden + dekor i
+   hörnen runt panelen, bakom den (aldrig ovanpå text). */
+html[data-sasong="host"] body:has(.sz-gate),
+html[data-halloween] body:has(.sz-gate) {
+  background: linear-gradient(180deg, var(--sz-gate-bg2, #0f1419), var(--sz-gate-bg, #0f1419)) fixed;
+}
+.sz-gate-dekor {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  animation: sz-tona-in 0.4s ease-out both;
+}
+.sz-gate-dekor .sz-gate-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.sz-gate > * { position: relative; z-index: 1; }
+.sz-gate > .sz-gate-dekor { position: fixed; z-index: 0; }
+@keyframes sz-tona-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* "Lärare →"-länken på porten ligger direkt på marken: i höst/Halloween får
+   den en kräm-pastill så kontrasten aldrig sjunker (WCAG AA) på mörkt gräs. */
+html[data-sasong] .port-scen .port-larare-lank,
+html[data-halloween] .port-scen .port-larare-lank {
+  opacity: 1;
+  background: #FFF3DC;
+  border: 2px solid #3B3350;
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+/* Halloween-djuret på inloggningen vinkar: armen (hwd-flax-h, 33-halloween.css)
+   får ett större, snabbare vink – bara transform. */
+.sz-vinkdjur .hwd-flax-h { animation: sz-vinka 1.3s ease-in-out infinite; }
+@keyframes sz-vinka {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-32deg); }
+  60% { transform: rotate(-6deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sz-vinkdjur .hwd-flax-h { animation: none; }
+}

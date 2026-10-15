@@ -16,8 +16,10 @@
 //                                 (fran 0) eller evolution FÖRST i panelen –
 //                                 progressionen är redan sparad av servern (§9).
 //
-// o = { state, byt?(namn) → { name }, jakt?(yta, info), onStang?, fokusTillbaka? }
+// o = { state, byt?(namn) → { name }, jakt?(yta, info), onStang?, fokusTillbaka?, atgarder? }
 //   byt   – standard: data.js renameDragon (servern rensar texten)
+//   atgarder – extra knappar längst ner [{ text, gor }] (huset #714: "vila i
+//           Mina djur"); ett klick stänger panelen och kör sedan gor().
 //   jakt  – guldjaktens knapp/animation (J #715) ritas i `yta`; utan den
 //           visas status och historik men ingen knapp. Ägget har aldrig knapp.
 // ============================================================================
@@ -190,7 +192,7 @@ function jaktDel(info, jakt) {
  * Drakpanelen som dialog (Esc/Stäng, fokus tillbaka). Samma i Bråkresan och huset.
  * @returns {Promise<void>} när panelen stängts
  */
-export async function oppnaDrakpanel({ state, byt, jakt, forandring = null, onVisad, onNamn, fokusTillbaka = null, idag = null } = {}) {
+export async function oppnaDrakpanel({ state, byt, jakt, forandring = null, onVisad, onNamn, fokusTillbaka = null, idag = null, atgarder = [] } = {}) {
   await ensureDrakpanelCss();
   const info = drakInfo(state, { idag });
   byt ||= async (namn) => (await import("./data.js")).renameDragon(namn);
@@ -208,7 +210,9 @@ export async function oppnaDrakpanel({ state, byt, jakt, forandring = null, onVi
       namn.el,
       h("p", { class: "bdp-niva" }, h("strong", null, info.nivaText), " · ", info.starsText),
       progressNod(info),
-      jaktDel(info, jakt)));
+      jaktDel(info, jakt),
+      atgarder.length ? h("div", { class: "bdp-atgarder" }, ...atgarder.map((a) =>
+        h("button", { type: "button", class: "bdp-knapp", onclick: () => { dlg.close(); a.gor(); } }, a.text))) : null));
   document.body.append(dlg);
   const klar = new Promise((resolve) => {
     dlg.addEventListener("close", () => {

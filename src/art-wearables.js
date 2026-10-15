@@ -34,6 +34,11 @@ export const WEARABLES = {
   ...MYSTERY_WEARABLES,
 };
 
+/** Slå in fler plagg (samma form), t.ex. Halloween-kostymerna (lazy, hw-konst.js). */
+export function registerWearables(reg) {
+  Object.assign(WEARABLES, reg);
+}
+
 /**
  * Ankarnyckel för en klädsak, eller null om den använder slotens standardläge.
  * Ansiktssaker sitter som standard på ögonlinjen; `anchor: "mun"` flyttar saken

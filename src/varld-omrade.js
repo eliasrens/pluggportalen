@@ -24,6 +24,7 @@
 // klass (classes/{id}.hiddenVillages). pages-varld.js filtrerar klasslistan med
 // visibleVillageClasses INNAN den når mountOmradeScen/grannby-vyn – egna klassen
 // syns alltid, och en djuplänk till en dold by faller tillbaka till skolan.
+import { sz } from "./art-style.js";
 export { visibleVillageClasses } from "./gamemode-visibility.js";
 
 /** Kamerazoom skola → by (en klass-by fyller ~1/5 av skolan → zoom ≈ 5). */
@@ -113,8 +114,8 @@ export function byMiniSvg(antal, hue, max = 5) {
   if (rad2) radHus(rad2, 62);
   return `<svg viewBox="0 0 100 70" preserveAspectRatio="xMidYMid meet"
       aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
-    <ellipse cx="50" cy="62" rx="47" ry="11" fill="#8FCB74"/>
-    <ellipse cx="50" cy="60" rx="43" ry="9" fill="#A8DA8F"/>
+    <ellipse cx="50" cy="62" rx="47" ry="11" fill="${sz("grass", "#8FCB74")}"/>
+    <ellipse cx="50" cy="60" rx="43" ry="9" fill="${sz("hill", "#A8DA8F")}"/>
     ${husar.join("")}
   </svg>`;
 }
@@ -141,12 +142,12 @@ export function mountOmradeScen({ lager, meClassId, classes }) {
   // Klass-byarna behåller sina 0–100-koordinater → oförändrad storlek (#373).
   const mark = `<svg class="omrade-mark" viewBox="0 0 100 100" preserveAspectRatio="none"
       aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
-    <rect x="-60" y="-60" width="220" height="240" fill="#A8DA8F"/>
-    <ellipse cx="28" cy="30" rx="24" ry="10" fill="#B4E19B" opacity="0.55"/>
-    <ellipse cx="76" cy="66" rx="26" ry="11" fill="#B4E19B" opacity="0.5"/>
-    <ellipse cx="46" cy="90" rx="20" ry="8" fill="#9ED584" opacity="0.5"/>
-    <rect x="-60" y="-60" width="220" height="68" fill="#9AD3F0"/>
-    <path d="M-60 8 Q25 6 50 8 Q75 10 160 7.5 L160 11 L-60 11 Z" fill="#8FCB74"/>
+    <rect x="-60" y="-60" width="220" height="240" fill="${sz("hill", "#A8DA8F")}"/>
+    <ellipse cx="28" cy="30" rx="24" ry="10" fill="${sz("grass-light", "#B4E19B")}" opacity="0.55"/>
+    <ellipse cx="76" cy="66" rx="26" ry="11" fill="${sz("grass-light", "#B4E19B")}" opacity="0.5"/>
+    <ellipse cx="46" cy="90" rx="20" ry="8" fill="${sz("grass-mid", "#9ED584")}" opacity="0.5"/>
+    <rect x="-60" y="-60" width="220" height="68" fill="${sz("sky1", "#9AD3F0")}"/>
+    <path d="M-60 8 Q25 6 50 8 Q75 10 160 7.5 L160 11 L-60 11 Z" fill="${sz("grass", "#8FCB74")}"/>
   </svg>`;
 
   const byar = lista

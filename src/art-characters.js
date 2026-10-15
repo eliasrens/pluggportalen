@@ -57,6 +57,12 @@ export const CHARACTERS = Object.fromEntries(
   Object.entries(NAMES).map(([id, name]) => [id, { name, art: CHARACTER_ART[id] }])
 );
 
+/** Slå in fler figurer: { id: { name, art } }. Används av de köpbara avatarerna
+ * (#694), vars konst laddas lazy (avatars.js loadAvatarArt) – inte av väljaren. */
+export function registerCharacters(reg) {
+  Object.assign(CHARACTERS, reg);
+}
+
 // --- Evolution (Pokémon-stil) ----------------------------------------------
 // avatar-id → evolutionsdefinition { maxStage, branches, art(stage, branch) }.
 // Karaktärer som saknas här har bara sitt grundutseende (steg 1) – de renderas

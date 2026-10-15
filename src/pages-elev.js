@@ -5,7 +5,7 @@
 // ============================================================================
 
 import * as data from "./data.js";
-import { AVATARS, avatarSvg, avatarName, avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
+import { AVATARS, avatarSvg, avatarName, avatarMarkup, DEFAULT_AVATAR, buyableAvatars, canUseAvatar, loadAvatarArt } from "./avatars.js";
 import { app, el, go, loading, renderTopbar, getLockGate, escHtml } from "./ui.js";
 import { coinIcon } from "./icons.js";
 // isTeacher re-exporteras inte via data.js – auth.js ligger redan i bootgrafen.
@@ -98,10 +98,14 @@ export async function pageElevLogin() {
   });
 
   // Grind-scenen: dynamisk import med snäll fallback (se kommentaren ovan).
+  // Säsongstemat (#691) laddas PARALLELLT och sätts ur localStorage-cachen
+  // innan scenen ritas – rätt tema direkt, ingen blink, ingen extra väntan.
   let scenSvg = "";
+  const szP = import("./season-world.js").catch(() => null);
   try {
-    const mod = await import("./art-port-majestic.js");
-    scenSvg = mod.portScenMajestic();
+    const [mod, sz] = await Promise.all([import("./art-port-majestic.js"), szP]);
+    sz?.applyCachedTheme();
+    scenSvg = mod.portScenMajestic(sz ? sz.portDekor() : undefined);
   } catch (err) {
     console.error("Porten kunde inte laddas – visar enkel inloggning:", err);
   }
@@ -128,6 +132,7 @@ export async function pageElevLogin() {
       <div class="port-scen">${scenSvg}${larareRad}</div>
     </div>`);
     view.querySelector(".port-scen").appendChild(card);
+    szP.then((sz) => sz?.mountPortSasong(view.querySelector(".port-scen")));
   } else {
     view = el(`<div>
       <div class="panel port-fallback"></div>
@@ -149,16 +154,25 @@ export async function pageElevAvatar() {
   let firstTime = true;
   let sd = null;
   try {
-    sd = await data.getStudentData();
+    [sd] = await Promise.all([data.getStudentData(), loadAvatarArt()]);
     selected = sd.avatarId || DEFAULT_AVATAR;
     firstTime = !sd.avatarChosen;
   } catch {}
-  const buttons = Object.keys(AVATARS)
+  // Köpbara avatarer (#694): köpta först bredvid de fria, ej köpta låsta nedanför.
+  const owned = (sd && sd.ownedItems) || [];
+  const kopta = buyableAvatars().filter((it) => owned.includes(it.id)).map((it) => it.id);
+  const lasta = buyableAvatars().filter((it) => !owned.includes(it.id));
+  const buttons = [...kopta, ...Object.keys(AVATARS)]
     .map(
       (id) =>
         `<button class="avatar-opt${id === selected ? " selected" : ""}" data-id="${id}" title="${avatarName(id)}">${avatarSvg(id)}</button>`
     )
     .join("");
+  const lastaHtml = lasta.length
+    ? `<p class="hint avatar-last-hint">🔒 Finns i butiken under Halloween – köper du en är den din för alltid.</p>
+      <div class="avatar-pick avatar-pick-last">${lasta.map((it) =>
+        `<button class="avatar-opt last" data-last="${it.id}" title="${it.name} – finns i butiken under Halloween" aria-disabled="true">${avatarSvg(it.id)}</button>`).join("")}</div>`
+    : "";
 
   const view = el(`<div>
     ${firstTime ? "" : '<a class="back-link" id="back">← Till profilen</a>'}
@@ -169,6 +183,7 @@ export async function pageElevAvatar() {
         : "Välj en ny figur. Den syns överallt när du pluggar."}</p>
       <div class="preview" id="preview">${avatarSvg(selected)}</div>
       <div class="avatar-pick" id="grid">${buttons}</div>
+      ${lastaHtml}
       <div id="msg"></div>
       <button class="btn stor gron" id="save">${firstTime ? "Kör igång!" : "Spara"}</button>
     </div>
@@ -177,6 +192,11 @@ export async function pageElevAvatar() {
   const grid = view.querySelector("#grid");
   const preview = view.querySelector("#preview");
   const msg = view.querySelector("#msg");
+
+  view.querySelector(".avatar-pick-last")?.addEventListener("click", (e) => {
+    const b = e.target.closest(".avatar-opt");
+    if (b) msg.innerHTML = `<div class="msg">🔒 ${avatarName(b.dataset.last)} finns i butiken under Halloween.</div>`;
+  });
 
   grid.addEventListener("click", (e) => {
     const b = e.target.closest(".avatar-opt");
@@ -198,6 +218,7 @@ export async function pageElevAvatar() {
     btn.textContent = "Sparar…";
     msg.innerHTML = "";
     try {
+      if (!canUseAvatar(selected, owned)) throw new Error("den figuren har du inte köpt.");
       await data.setAvatar(selected);
       await renderTopbar();
       go(firstTime ? "#/elev/hus" : "#/elev/profil");

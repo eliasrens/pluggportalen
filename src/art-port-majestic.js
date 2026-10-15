@@ -22,7 +22,7 @@
 // Laddas (precis som A) alltid DYNAMISKT – aldrig in i bootgrafen (#271).
 // ============================================================================
 
-import { O, LINE, THIN, limb, stjarna } from "./art-style.js";
+import { O, LINE, THIN, limb, stjarna, sz } from "./art-style.js";
 
 // Sten ur paletten (stålblå/gråblå + ljus deriverad fog) – pelare och mur.
 const STEN = "#A9C2DE";
@@ -45,7 +45,7 @@ const skugga = (cx, cy, rx) =>
 function moln(x, y, s) {
   return `<g transform="translate(${x} ${y}) scale(${s})">
     <path d="M0 20 Q-2 8 10 8 Q14 -2 26 2 Q36 -2 40 8 Q52 6 50 18 Q46 26 34 24 Q24 30 14 24 Q2 28 0 20 Z"
-      fill="#FFF9EE" ${THIN} opacity="0.95"/></g>`;
+      fill="${sz("port-moln", "#FFF9EE")}" ${THIN} opacity="0.95"/></g>`;
 }
 
 function blomma(x, y, farg) {
@@ -226,8 +226,10 @@ function trappa() {
  * Hela den majestätiska port-scenen som SVG-sträng (viewBox 960×600, samma
  * konvention som portScen i art-port.js). Login-kortet är HTML och läggs
  * OVANPÅ scenen (.port-login i styles.css) – framför den stängda grinden.
+ * Färgerna följer säsongen via sz()-variablerna (#691); `dekor` = säsongens
+ * extra SVG (art-sasong.js): `bak` ritas bakom träden, `fram` sist.
  */
-export function portScenMajestic() {
+export function portScenMajestic(dekor = {}) {
   const sol = [0, 45, 90, 135]
     .map(
       (a) =>
@@ -239,8 +241,8 @@ export function portScenMajestic() {
   return `<svg viewBox="0 0 960 600" role="img" aria-label="Porten till Pluggporten"
       preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
     <defs><linearGradient id="portb-himmel" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#8FBEEA"/><stop offset="0.55" stop-color="#CDE6F6"/>
-      <stop offset="1" stop-color="#FCE8CC"/>
+      <stop offset="0" stop-color="${sz("port-sky1", "#8FBEEA")}"/><stop offset="0.55" stop-color="${sz("port-sky2", "#CDE6F6")}"/>
+      <stop offset="1" stop-color="${sz("port-sky3", "#FCE8CC")}"/>
     </linearGradient></defs>
     <!-- Vimpel-svaj: EGNA portb-klasser (aldrig .port-halva – #339:s
          grindhalvor styrs oförändrat från styles.css). Stilen bor i SVG:n så
@@ -306,32 +308,33 @@ export function portScenMajestic() {
     </style>
     <rect x="-2400" y="-1500" width="5760" height="3600" fill="url(#portb-himmel)"/>
 
-    <!-- Gryningssol med mjuk gloria -->
-    <circle cx="110" cy="106" r="52" fill="${GULD}" opacity="0.25" stroke="none"/>
+    <!-- Gryningssol med mjuk gloria (Halloween: månen i stället, art-sasong.js) -->
+    <g class="sz-dolj-halloween"><circle cx="110" cy="106" r="52" fill="${GULD}" opacity="0.25" stroke="none"/>
     <g class="portb-sol">${sol}</g>
-    <circle cx="110" cy="106" r="36" fill="${GULD}" ${LINE}/>
+    <circle cx="110" cy="106" r="36" fill="${GULD}" ${LINE}/></g>
 
     <g class="hus-moln" style="--t:64s">${moln(0, 60, 1.25)}</g>
     <g class="hus-moln" style="--t:47s;animation-delay:-16s">${moln(0, 156, 0.9)}</g>
     <g class="hus-moln" style="--t:78s;animation-delay:-42s">${moln(0, 30, 0.6)}</g>
-    ${fagel(292, 108, 1, 55, -18.5, 0)}${fagel(636, 76, 0.75, 42, -25, -1.4)}
+    <g class="sz-dolj-halloween">${fagel(292, 108, 1, 55, -18.5, 0)}${fagel(636, 76, 0.75, 42, -25, -1.4)}</g>
 
     <!-- Mjuka kullar i fjärran ger scenen djup -->
-    <path d="M-2400 468 Q-200 380 560 452 Q1100 400 3360 462 L3360 700 L-2400 700 Z" fill="#C9F0DC" ${LINE}/>
-    <path d="M-2400 480 L-480 486 Q240 402 520 478 Q780 408 1440 470 L3360 478 L3360 2100 L-2400 2100 Z" fill="#A8DA8F" ${LINE}/>
-    <path d="M-2400 526 L-480 526 Q300 478 620 530 Q820 506 1440 526 L3360 526 L3360 2100 L-2400 2100 Z" fill="#8FCB74" ${LINE}/>
+    <path d="M-2400 468 Q-200 380 560 452 Q1100 400 3360 462 L3360 700 L-2400 700 Z" fill="${sz("port-far", "#C9F0DC")}" ${LINE}/>
+    <path d="M-2400 480 L-480 486 Q240 402 520 478 Q780 408 1440 470 L3360 478 L3360 2100 L-2400 2100 Z" fill="${sz("hill", "#A8DA8F")}" ${LINE}/>
+    <path d="M-2400 526 L-480 526 Q300 478 620 530 Q820 506 1440 526 L3360 526 L3360 2100 L-2400 2100 Z" fill="${sz("grass", "#8FCB74")}" ${LINE}/>
+    ${dekor.bak || ""}
 
     <!-- Träd åt sidorna (samma stil som ute-scenen, lite frodigare) -->
     <g>${limb("M84 502 L84 424", WOOD, 15)}
-      <circle cx="84" cy="380" r="58" fill="#6FC66F" ${LINE}/>
-      <circle cx="44" cy="408" r="33" fill="#6FC66F" ${LINE}/>
-      <circle cx="124" cy="406" r="35" fill="#6FC66F" ${LINE}/>
+      <circle cx="84" cy="380" r="58" fill="${sz("tree-a", "#6FC66F")}" ${LINE}/>
+      <circle cx="44" cy="408" r="33" fill="${sz("tree-b", "#6FC66F")}" ${LINE}/>
+      <circle cx="124" cy="406" r="35" fill="${sz("tree-c", "#6FC66F")}" ${LINE}/>
       <circle cx="66" cy="370" r="6" fill="#EF6F6C" ${THIN}/>
       <circle cx="106" cy="394" r="6" fill="#EF6F6C" ${THIN}/></g>
     <g>${limb("M876 504 L876 434", WOOD, 13)}
-      <circle cx="876" cy="394" r="50" fill="#6FC66F" ${LINE}/>
-      <circle cx="842" cy="418" r="28" fill="#6FC66F" ${LINE}/>
-      <circle cx="910" cy="416" r="30" fill="#6FC66F" ${LINE}/>
+      <circle cx="876" cy="394" r="50" fill="${sz("tree-a", "#6FC66F")}" ${LINE}/>
+      <circle cx="842" cy="418" r="28" fill="${sz("tree-c", "#6FC66F")}" ${LINE}/>
+      <circle cx="910" cy="416" r="30" fill="${sz("tree-b", "#6FC66F")}" ${LINE}/>
       <circle cx="892" cy="386" r="6" fill="#EF6F6C" ${THIN}/></g>
 
     <!-- Stenmur ut mot kanterna (fyller letterboxen) -->
@@ -353,14 +356,15 @@ export function portScenMajestic() {
     ${skylt()}
 
     <!-- Buskar och blommor vid pelarnas socklar -->
-    <circle cx="266" cy="506" r="22" fill="#58C6A9" ${LINE}/>
-    <circle cx="296" cy="512" r="15" fill="#6FC66F" ${LINE}/>
-    <circle cx="694" cy="508" r="20" fill="#58C6A9" ${LINE}/>
-    <circle cx="666" cy="514" r="14" fill="#6FC66F" ${LINE}/>
+    <circle cx="266" cy="506" r="22" fill="${sz("port-bush", "#58C6A9")}" ${LINE}/>
+    <circle cx="296" cy="512" r="15" fill="${sz("tree-c", "#6FC66F")}" ${LINE}/>
+    <circle cx="694" cy="508" r="20" fill="${sz("port-bush", "#58C6A9")}" ${LINE}/>
+    <circle cx="666" cy="514" r="14" fill="${sz("tree-a", "#6FC66F")}" ${LINE}/>
     ${blomma(138, 512, "#F890B7")}${blomma(316, 520, "#F7C948")}
     ${blomma(644, 522, "#EF6F6C")}${blomma(822, 514, "#B79BE0")}
 
     <!-- Trappan upp till öppningen -->
     ${trappa()}
+    ${dekor.fram || ""}
   </svg>`;
 }

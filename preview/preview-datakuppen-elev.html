@@ -43,7 +43,7 @@
         <button data-act="svara">✔ Svara rätt nu</button>
         <button data-act="hack">💻 Nästa fil = Hack</button>
         <button data-act="igen">↺ Tillåt samma mål igen</button>
-        <button data-act="hackad">Bli hackad (notis + ny kod)</button>
+        <button data-act="hackad">Bli hackad (notis + skydd, koden kvar)</button>
         <button data-act="skydda">🛡️ Skydda de 3 rikaste</button>
         <b>Inställningar</b>
         <label>Serverns svarstid <select data-lat><option>50</option><option selected>150</option><option>600</option><option>2000</option><option>8000</option></select> ms</label>
@@ -195,10 +195,16 @@
             btns.find((x) => (code(x) === sim.secret[target.targetUid]) === right)?.click();
             return { shown: btns.length, struck: document.querySelectorAll(".dkk-borta").length };
           },
-          /** Bli hackad → välj en av de nya koderna. */
-          async hackedBy(uid, i = 2) {
+          /** Bli hackad → notis + skydd; koden ligger kvar (#719). */
+          async hackedBy(uid) {
             sim.hackMe(uid);
-            (await wait(".live-elev-play .dkv-kort", 12000)).parentElement.children[i]?.click();
+            await wait(".dk-notis:not([hidden])", 6000);
+          },
+          /** "Visa kod" i toppraden → { code } som syns (dold igen efter några sekunder). */
+          async revealCode() {
+            (await wait(".dk-minkod:not([hidden]) .dkr-knapp")).click();
+            await sleep(150);
+            return { code: document.querySelector(".dk-minkod .dkr-kod")?.textContent || "" };
           },
           stage,
         };

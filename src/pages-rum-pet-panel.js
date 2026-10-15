@@ -49,13 +49,15 @@ export function renderPetPanel(container, pet, opts) {
 
 function eggPanel(pet, opts) {
   const hatchAt = petData.hatchTimeFor(pet, opts.hasLamp);
+  // Valt djur (Halloween-pumpaägget, #695): eleven vet redan vem som bor där.
+  const valt = pet.eggSpecies ? getSpecies(pet.eggSpecies) : null;
   const view = el(`<div class="panel center rum-pet-panel">
-    <h2>Ett ägg ruvar… 🥚</h2>
+    <h2>${valt ? "Ett pumpaägg ruvar… 🎃" : "Ett ägg ruvar… 🥚"}</h2>
     <p class="pet-nedrakning" id="nedrakning">Ägget ${countdownText(hatchAt - Date.now())}</p>
     ${pet.hasHeatLamp || opts.hasLamp
       ? '<p class="hint">🔦 Din värmelampa värmer ägget – det kläcks dubbelt så snabbt!</p>'
       : ""}
-    <p class="hint">Ingen vet vilken varelse som bor där inne. Titta in igen snart! 💤</p>
+    <p class="hint">${valt ? `Där inne sover en liten <b>${valt.name}</b>. Titta in igen snart! 💤` : "Ingen vet vilken varelse som bor där inne. Titta in igen snart! 💤"}</p>
   </div>`);
   // Ticka nedräkningen så länge panelen är kvar i DOM:en.
   const label = view.querySelector("#nedrakning");
