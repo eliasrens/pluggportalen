@@ -9,9 +9,10 @@
 //     andra, allmän omdelning, likvärdiga (2/6 = 3/9 – lika med)
 //   • felresonemangen fångar "störst nämnare", "störst täljare", additiv
 //     omskrivning och "det går inte att jämföra olika stora delar"
-// Bilden (två lika långa stavar med verktyget "Dela varje bit i k") syns bara
-// medan hjälpen är öppen (view.stavar[].iHjalp): lika långa stavar avslöjar
-// annars svaret direkt (Elias, #709). Ingen korsmultiplikation som förklaring.
+// Vyn är E:s sammansatt (#710): relationsval (tecken + ord) och förklaringskort.
+// Bilden (två lika långa stavar) visas i hjälpen – lika långa stavar avslöjar
+// annars svaret direkt (Elias, #709) – och omdelningen visas där med andra tal.
+// Ingen korsmultiplikation som förklaring.
 // ============================================================================
 
 import { defineChallenge } from "../schema/kontrakt.js";
@@ -56,24 +57,24 @@ function resonemang({ a, n, b, m, sort }) {
   const x = (a * L) / n;
   const y = (b * L) / m;
   const rel = relation(q(a, n), q(b, m));
-  const ratt = sort === "halv"
-    ? `${a}/${n} är ${rel === "<" ? "mindre" : "mer"} än en halv och ${b}/${m} är ${rel === "<" ? "mer" : "mindre"} än en halv.`
-    : sort === "likvardig"
-      ? `Med lika stora bitar blir båda lika: ${a}/${n} = ${x}/${L} och ${b}/${m} = ${y}/${L}.`
-      : `Med lika stora bitar: ${a}/${n} = ${x}/${L} och ${b}/${m} = ${y}/${L}.`;
+  const halv = (r) => `${a}/${n} är ${r === "<" ? "mindre" : "mer"} än en halv och ${b}/${m} är ${r === "<" ? "mer" : "mindre"} än en halv.`;
+  const lika = (xx, yy) => `Med lika stora bitar: ${a}/${n} = ${xx}/${L} och ${b}/${m} = ${yy}/${L}.`;
+  const ratt = sort === "halv" ? halv(rel) : lika(x, y);
   const storstNamnare = n > m ? `${a}/${n}` : `${b}/${m}`;
   const storstTaljare = a > b ? `${a}/${n}` : `${b}/${m}`;
+  // Felresonemangen är byggda som det rätta (samma längd ungefär) – ingen längdledtråd (granskas i u25.mjs).
   const fel = [
-    { id: "namnare", text: `${storstNamnare} är störst, eftersom nämnaren är störst.`, tag: "storst-namnare" },
-    a !== b
-      ? { id: "taljare", text: `${storstTaljare} är störst, eftersom täljaren är störst.`, tag: "storst-taljare" }
-      : { id: "taljare", text: "De är lika stora, eftersom täljarna är lika.", tag: "storst-taljare" },
+    { id: "halvfel", text: halv(rel === "<" ? ">" : "<"), tag: "fel-mot-halv" },
     // Additiv omskrivning till samma nämnare: lägger till samma tal uppe och nere.
-    { id: "additiv", text: `Med samma nämnare: ${a}/${n} = ${a + L - n}/${L} och ${b}/${m} = ${b + L - m}/${L}.`, tag: "additiv-omskrivning" },
-    { id: "olika", text: "Det går inte att jämföra, eftersom bitarna är olika stora.", tag: "olika-helheter" },
+    { id: "additiv", text: lika(a + L - n, b + L - m), tag: "additiv-omskrivning" },
+    { id: "namnare", text: `${storstNamnare} är större, eftersom nämnaren där är större.`, tag: "storst-namnare" },
+    a !== b
+      ? { id: "taljare", text: `${storstTaljare} är större, eftersom täljaren där är större.`, tag: "storst-taljare" }
+      : { id: "taljare", text: "De är lika mycket, eftersom täljarna är lika stora.", tag: "storst-taljare" },
+    { id: "olika", text: "Bitarna är olika stora, så bråken går inte att jämföra.", tag: "olika-helheter" },
   ];
-  // Lika bråk: "går inte att jämföra" är den vanliga missen; annars additiv omskrivning.
-  const prio = sort === "likvardig" ? ["namnare", "taljare", "olika", "additiv"] : ["namnare", "taljare", "additiv", "olika"];
+  const prio = sort === "halv" ? ["halvfel", "namnare", "taljare", "additiv"]
+    : sort === "likvardig" ? ["additiv", "olika", "namnare", "taljare"] : ["additiv", "namnare", "taljare", "olika"];
   const valda = prio.map((id) => fel.find((f) => f.id === id)).filter((f) => f.text !== ratt);
   return { ratt: { id: "ratt", text: ratt }, fel: valda.slice(0, 3) };
 }
@@ -124,15 +125,16 @@ export default defineChallenge({
     const relSpec = { type: "relation" };
     const relKey = { type: "relation", correct: rel };
     const andra = ["<", "=", ">"].filter((r) => r !== rel);
+    // E:s sammansatt (#710): jämförelsen med tecken och ord, och i -r-uppgifter förklaringskorten.
     const view = {
-      component: "verkstad",
-      stavar: [
-        { id: "s1", parts: n, marked: a, namn: brak(a, n), helhet: "Hela staven = 1", verktyg: ["dela"], maxDela: Math.floor(MAX_L / n), iHjalp: true },
-        { id: "s2", parts: m, marked: b, namn: brak(b, m), helhet: "Hela staven = 1", verktyg: ["dela"], maxDela: Math.floor(MAX_L / m), iHjalp: true },
+      component: "sammansatt",
+      delar: [
+        { view: { component: "relationsval", vanster: brak(a, n), hoger: brak(b, m) }, svar: options ? "rel" : true, label: "Välj jämförelse" },
+        ...(options ? [{ view: { component: "kort", lista: true, cards: options.map(({ id, text }) => ({ id, face: { text } })) }, svar: "varfor", rubrik: "Varför? Välj det som stämmer." }] : []),
       ],
-      expr: [brak(a, n), { relation: "rel" }, brak(b, m)],
-      ...(options ? { fragor: [{ id: "varfor", text: "Varför? Välj det som stämmer.", options: options.map(({ id, text }) => ({ id, text })) }] } : {}),
     };
+    // Stavarna (lika långa, samma helhet) visas bara i hjälpen – de avslöjar annars svaret direkt.
+    const stavar = { component: "stav", bars: [{ parts: n, marked: a, label: `${a}/${n}` }, { parts: m, marked: b, label: `${b}/${m}` }], label: "Hela staven = 1" };
     const answer = options
       ? { type: "multi", parts: { rel: relSpec, varfor: { type: "choice", options: options.map((o) => o.id) } } }
       : relSpec;
@@ -167,16 +169,15 @@ export default defineChallenge({
         examples,
       },
       help: [
-        { step: "orientering", text: "Båda stavarna är lika långa: hela staven = 1. Bitarna är olika stora, så antalet bitar säger inte allt.", highlight: { whole: true, stavar: true } },
-        { step: "princip", text: "Kan vi beskriva båda med lika stora bitar? Dela varje bit i lika många nya bitar – då ändras inte hur mycket som är färgat. Du kan också jämföra med en halv.", highlight: { stavar: true } },
+        { step: "orientering", text: "Båda stavarna är lika långa: hela staven = 1. Bitarna är olika stora, så antalet bitar säger inte allt.", view: stavar },
+        { step: "princip", text: "Kan vi beskriva båda med lika stora bitar? Dela varje bit i lika många nya bitar – då ändras inte hur mycket som är färgat. Du kan också jämföra med en halv." },
         {
           step: "modellering",
           text: `Ett exempel med andra tal: ${ex.a}/${ex.n} och ${ex.b}/${ex.m}. Med ${exL}-delar blir det ${(ex.a * exL) / ex.n}/${exL} och ${(ex.b * exL) / ex.m}/${exL}. ` +
             "Nu är bitarna lika stora, och det går att räkna vilket som har flest.",
           view: { component: "stav", bars: [{ parts: exL, marked: (ex.a * exL) / ex.n }, { parts: exL, marked: (ex.b * exL) / ex.m }] },
-          highlight: { stavar: true },
         },
-        { step: "atergang", text: "Nu provar du själv: dela stavarna tills bitarna är lika stora, och jämför.", highlight: { stavar: true } },
+        { step: "atergang", text: "Nu provar du själv: tänk dig stavarna delade tills bitarna är lika stora, och jämför." },
       ],
       misconceptions: ["storst-namnare", "storst-taljare", "additiv-omskrivning", "olika-helheter"],
       feedback: {
@@ -198,8 +199,8 @@ export default defineChallenge({
     { slot: "likvardig", params: { a: 2, n: 4, b: 3, m: 6, sort: "likvardig" } },
     { slot: "omdelning", params: { a: 2, n: 3, b: 3, m: 5, sort: "omdelning" } },
     { slot: "omdelning", params: { a: 3, n: 4, b: 5, m: 6, sort: "omdelning" } },
-    { slot: "halv-r", params: { a: 2, n: 5, b: 4, m: 6, sort: "halv", ordning: ["namnare", "ratt", "additiv", "taljare"] } },
+    { slot: "halv-r", params: { a: 2, n: 5, b: 4, m: 6, sort: "halv", ordning: ["namnare", "ratt", "halvfel", "taljare"] } },
     { slot: "omdelning-r", params: { a: 3, n: 4, b: 2, m: 3, sort: "omdelning", ordning: ["taljare", "additiv", "namnare", "ratt"] } },
-    { slot: "likvardig-r", params: { a: 4, n: 6, b: 6, m: 9, sort: "likvardig", ordning: ["ratt", "olika", "taljare", "namnare"] } },
+    { slot: "likvardig-r", params: { a: 4, n: 6, b: 6, m: 9, sort: "likvardig", ordning: ["ratt", "olika", "additiv", "namnare"] } },
   ],
 });

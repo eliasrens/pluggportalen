@@ -281,18 +281,18 @@ ett delsvar i `answer.parts[id]` (multi) – eller hela svaret när svarstypen �
 
 | Del | `view`-data | Svar | Används av |
 | --- | --- | --- | --- |
-| `stavar` | `[{ id, parts, marked, monster: "a"\|"b", namn: form, helhet, verktyg, maxDela, ihop, etiketter, iHjalp }]` | `bort`/`mala` → paint (bara om `answer.parts[id]` är paint) | 21, 25, 29, 30, 31, 32, 35 |
-| verktyg `dela` | "Dela varje bit i k" (k ≤ maxDela) – helhet och färgad längd oförändrade | – | 25, 35 |
+| `stavar` | `[{ id, parts, marked, monster: "a"\|"b", namn: form, helhet, verktyg, maxDela, ihop, etiketter, iHjalp }]` | `bort`/`mala` → paint (bara om `answer.parts[id]` är paint) | 21, 29, 30, 31, 32, 35 |
+| verktyg `dela` | "Dela varje bit i k" (k ≤ maxDela) – helhet och färgad längd oförändrade | – | 35 |
 | verktyg `ihop` | "Slå ihop g bitar till en", g ∈ `ihop` (delare av n); delvis färgad grupp markeras och sägs ut | – | 21 |
 | verktyg `bort` | klicka bort färgade bitar (tonas + streckad kontur, ramen kvar) | paint (32), verktyg (35) | 32, 35 |
 | verktyg `flytta` + `mall` | `mall: { id, parts, kallor, helhet }` – bitarna flyttas (klick/drag) till en tom stav | paint, "flytta båda" = inmatningshjälp | 31 |
 | `mangd` | `{ id, count, item, maxGrupper, label }` – "Dela i g lika grupper" + markering per grupp | paint | 29 |
 | `modell` (+ `modellIHjalp`) | vanlig komponentvy som bild | – | 28 |
-| `fragor` | `[{ id, text, options: [{ id, text, etikett, stavar }], stil: "rader" }]` | choice | 25, 33 |
+| `fragor` | `[{ id, text, options: [{ id, text, etikett, stavar }], stil: "rader" }]` | choice | 33 |
 | `expr` | form, `{ op, pilar }`, `{ text }`, `{ input: id }`, `{ relation: id }`, `{ brak: { n, d } }` med `{ input }` inne i bråket | number, relation | alla |
 | `delsteg` | `{ text, enhet }` – frivilligt mellansteg, bedöms aldrig | – | 30 |
 
-**Stöd som avslöjar svaret syns bara i hjälpen** (Elias, #709): `iHjalp`-stavar (25), `modellIHjalp`
+**Stöd som avslöjar svaret syns bara i hjälpen** (Elias, #709): `modellIHjalp`
 (28), elevlösningens före/efter-stavar (33) och 22:s pilar ("× ?"/"÷ ?", aldrig faktorn) visas när ett
 hjälpsteg har `highlight: { stavar: true }` resp. `{ pilar: true }` och döljs när hjälpen stängs.
 Sorteringskort med `view.stavar` (26) får jämförelsestavar på samma sätt som 12.

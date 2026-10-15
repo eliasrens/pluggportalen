@@ -33,6 +33,16 @@ export function audit(task, { grade }) {
 
 export function plan(omgangar) {
   const p = [];
+  // Ingen längdledtråd: den rätta förklaringen får inte oftast vara den längsta.
+  let langst = 0;
+  let antal = 0;
+  for (const tasks of omgangar) for (const t of tasks) {
+    const opts = t.view.fragor[1].options;
+    const ratt = opts.find((o) => o.id === t.key.parts.varfor.correct);
+    antal++;
+    if (opts.every((o) => o === ratt || o.text.length < ratt.text.length)) langst++;
+  }
+  if (langst / antal > 0.4) p.push(`den rätta förklaringen är längst i ${Math.round((100 * langst) / antal)} % av uppgifterna`);
   for (const tasks of omgangar) {
     if (tasks.filter((t) => t.params.felRad === 0).length !== 2) p.push("inte två helt rätta lösningar");
     for (const m of ["add", "sub", "lik", "jamfor"]) if (!tasks.some((t) => t.params.mall === m)) p.push(`mallen ${m} saknas`);

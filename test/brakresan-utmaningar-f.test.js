@@ -77,13 +77,15 @@ test("25: 2/3 > 3/5 (10/15 > 9/15); med resonemang krävs båda delarna", async 
   assert.equal((await g("25", { a: 2, n: 3, b: 3, m: 5, sort: "omdelning" }, { value: "<" })).r.correct, false);
   const params = { a: 2, n: 3, b: 3, m: 5, sort: "omdelning", ordning: ["namnare", "ratt", "additiv", "taljare"] };
   const { t, ch } = await g("25", params, null);
-  assert.equal(t.view.fragor[0].options[1].text, "Med lika stora bitar: 2/3 = 10/15 och 3/5 = 9/15.");
+  assert.equal(t.view.component, "sammansatt");
+  assert.equal(t.view.delar[1].view.cards[1].face.text, "Med lika stora bitar: 2/3 = 10/15 och 3/5 = 9/15.");
   assert.equal(gradeTask(ch, t, { parts: { rel: { value: ">" }, varfor: { id: "r2" } } }).correct, true);
   const felSkal = gradeTask(ch, t, { parts: { rel: { value: ">" }, varfor: { id: "r1" } } });
   assert.equal(felSkal.correct, false);
   assert.equal(felSkal.reason, "fel-resonemang");
   assert.equal(gradeTask(ch, t, { parts: { rel: { value: ">" } } }).status, "invalid");
-  assert.ok(t.view.stavar.every((s) => s.iHjalp), "stavarna bara i hjälpen");
+  assert.ok(t.view.delar.every((d) => d.view.component !== "stav"), "stavarna bara i hjälpen");
+  assert.equal(t.help[0].view.component, "stav");
 });
 
 test("26: 1/4 < 1/3 < 1/2 < 3/4 – bara hela ordningen ger poäng", async () => {

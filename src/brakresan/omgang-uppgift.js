@@ -7,7 +7,7 @@
 //   • "omdelning" (34, och fler flerstegsuppgifter med stavar + uttryck):
 //     stavar med verktyget "Dela varje bit i k" och en uttrycksrad med flera
 //     bråkfält – svaret är multi { parts: { id: { fields } } }
-//   • "verkstad" (F #711: 21, 22, 25, 28–33, 35): omgang-verkstad.js, lat
+//   • "verkstad" (F #711: 21, 22, 28–33, 35): omgang-verkstad.js, lat
 //   • kort med bråk (12) och sorteringskort (26): en jämförelsestav under varje kort syns bara medan
 //     hjälpen visar ett steg med highlight { stavar: true } – aldrig från
 //     början och utan facitetikett
