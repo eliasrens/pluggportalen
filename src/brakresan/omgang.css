@@ -176,8 +176,9 @@
 }
 .br-tal--text { font-size: .92em; }
 
-/* Kortens jämförelsestavar (12, hjälpen). */
+/* Kortens jämförelsestavar (12): bara medan hjälpen är öppen. */
 .br-jamforelsestav { display: block; width: 100%; margin-top: 6px; }
+.br-jamforelsestav[hidden] { display: none; }
 .br-jamforelsestav .br-k--mini { max-width: 100%; }
 
 /* Omdelning (34): två stavar med delningsverktyg och en uttrycksrad. */

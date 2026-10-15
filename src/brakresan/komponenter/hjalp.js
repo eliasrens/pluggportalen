@@ -52,6 +52,9 @@ export function createHjalp(host, help = [], opts = {}) {
   host.append(el);
   const mini = [];
 
+  /** Vad stegets markering på elevens modell är (orienteringen pekar på helheten). */
+  const markering = (x) => x.highlight || (x.step === "orientering" ? { whole: true } : null);
+
   function visaSteg(i) {
     const x = steg[i];
     const li = h("li", { class: `br-hjalp-ett br-hjalp--${x.step}` },
@@ -64,7 +67,7 @@ export function createHjalp(host, help = [], opts = {}) {
     }
     lista.append(li);
     visade.push(x.step);
-    opts.model?.highlight?.(x.highlight || (x.step === "orientering" ? { whole: true } : null));
+    opts.model?.highlight?.(markering(x));
     opts.onStep?.(x.step);
     nasta.hidden = visade.length >= steg.length;
     li.setAttribute("tabindex", "-1");
@@ -82,7 +85,11 @@ export function createHjalp(host, help = [], opts = {}) {
       el.hidden = false;
       oppen = true;
       if (!visade.length && steg.length) visaSteg(0);
-      else rubrik.focus();
+      else {
+        // Öppnad igen: senaste stegets markering tillbaka på modellen (t.ex. 12:s jämförelsestavar).
+        if (visade.length) opts.model?.highlight?.(markering(steg[visade.length - 1]));
+        rubrik.focus();
+      }
       nasta.hidden = visade.length >= steg.length;
     },
     next() {

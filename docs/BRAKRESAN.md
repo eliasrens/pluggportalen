@@ -126,8 +126,10 @@ nämnare 2–8, mgn ≤ 24, summa ≤ 1 och förkortade äkta addender ger exakt
 **Flerstegsuppgift med stavar (`view.component: "omdelning"`, 34):** `bars: [{ parts, marked,
 label, maxDela }]` (verktyget "Dela varje bit i k", k ≤ maxDela), `expr` med `{ input: "id" }`
 per delsvar, `answer.type: "multi"`. Ritas av `omgang-uppgift.js`, inte av komponentbiblioteket.
-Kort med `view.stavar: true` (12) får jämförelsestavar under korten när hjälpen pekar
-`highlight: { stavar: true }`.
+Kort med `view.stavar: true` (12) får jämförelsestavar under korten bara medan hjälpen är
+öppen på ett steg med `highlight: { stavar: true }` – aldrig från början (lika långa
+markeringar avslöjar svaret) och utan facitetikett. Stängs hjälpen döljs de; öppnas den
+igen visas senaste stegets markering (`createHjalp`).
 
 Granskningen (`reviewChallenge`) körs automatiskt för varje byggd utmaning i
 `test/brakresan-generatorer.test.js`: 200 seeds, determinism, schema, rätt/fel-exempel,

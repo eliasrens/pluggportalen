@@ -7,8 +7,9 @@
 //   • "omdelning" (34, och fler flerstegsuppgifter med stavar + uttryck):
 //     stavar med verktyget "Dela varje bit i k" och en uttrycksrad med flera
 //     bråkfält – svaret är multi { parts: { id: { fields } } }
-//   • kort med bråk (12): hjälpen kan visa en jämförelsestav under varje kort
-//     (highlight { stavar: true }) – utan facitetikett
+//   • kort med bråk (12): en jämförelsestav under varje kort syns bara medan
+//     hjälpen visar ett steg med highlight { stavar: true } – aldrig från
+//     början och utan facitetikett
 //   • tallinjen: skärmläsarens värdetext säger "streck 3 av 8", inte
 //     bråknamnet, eftersom namnet skulle lösa placeringsuppgiften (§8 19)
 // promptNod(text) skriver "3/5" i en text med vågrätt bråkstreck (§4).
@@ -46,15 +47,20 @@ export async function monteraUppgift(host, task, opts = {}) {
   return t;
 }
 
-/** 12: jämförelsestavar under korten när hjälpen ber om dem. */
+/**
+ * 12: jämförelsestavar under korten – BARA medan hjälpen visar ett steg med
+ * highlight { stavar: true } (§8 12). Från början syns de aldrig: lika långa
+ * markeringar skulle avslöja vilka tre kort som hör ihop.
+ */
 function medJamforelsestavar(t, task) {
   const stavar = [];
-  const visa = async () => {
-    if (stavar.length) return;
+  let synliga = false;
+  let byggd = null;
+  const bygg = async () => {
     for (const c of task.view.cards) {
       const kort = t.el.querySelector(`[data-kort="${CSS.escape(String(c.id))}"]`);
       if (!kort || c.face?.kind !== "fraction") continue;
-      const yta = h("span", { class: "br-jamforelsestav", "aria-hidden": "true" });
+      const yta = h("span", { class: "br-jamforelsestav", "aria-hidden": "true", hidden: "" });
       kort.append(yta);
       stavar.push(yta);
       const k = await createComponent(yta, { component: "stav", parts: c.face.d, marked: c.face.n, label: " " },
@@ -62,11 +68,16 @@ function medJamforelsestavar(t, task) {
       k.el.removeAttribute("role");
     }
   };
+  const satt = async (visa) => {
+    synliga = visa;
+    if (visa) await (byggd ||= bygg());
+    for (const s of stavar) s.hidden = !synliga;
+  };
   const highlight = t.highlight;
   return {
     ...t,
     highlight(target) {
-      if (target?.stavar) visa();
+      satt(Boolean(target?.stavar));
       highlight({ ...target, stavar: undefined });
     },
     destroy() { stavar.forEach((s) => s.remove()); t.destroy(); },

@@ -11,8 +11,8 @@
 //   • korten blandas, id:n k1–k6 följer visningsordningen: id, ordning och
 //     utseende avslöjar aldrig vilka som hör ihop
 // Hjälp: "Dela samma helhet i fler delar …", ett exempel med andra tal och
-// jämförelsestavar under korten (omgångsvyn, highlight { stavar: true }) –
-// stavarna har ingen facitetikett.
+// jämförelsestavar under korten från steg 2 (highlight { stavar: true }). Stavarna
+// syns BARA medan hjälpen är öppen – aldrig från början – och utan facitetikett.
 // ============================================================================
 
 import { defineChallenge } from "../schema/kontrakt.js";
@@ -104,13 +104,14 @@ export default defineChallenge({
           step: "modellering",
           text: `Ett exempel med andra tal: ${ex[0]}/${ex[1]} = ${2 * ex[0]}/${2 * ex[1]} = ${3 * ex[0]}/${3 * ex[1]}. Varje del delas i 2 eller 3 nya delar.`,
           view: { component: "stav", bars: [1, 2, 3].map((k) => ({ parts: ex[1] * k, marked: ex[0] * k })) },
+          highlight: { stavar: true },
         },
-        { step: "atergang", text: "Nu provar du själv: ta ett kort i taget. Gå det att få de andra genom att dela delarna lika många gånger?" },
+        { step: "atergang", text: "Nu provar du själv: ta ett kort i taget. Gå det att få de andra genom att dela delarna lika många gånger?", highlight: { stavar: true } },
       ],
       misconceptions: [...new Set(kort.filter((c) => c.tag).map((c) => c.tag))],
       feedback: {
         correct: `Ja! ${rattText.join(", ")} är alla ${fractionWords(p, qq)}: samma helhet delad i fler delar.`,
-        wrong: `De tre som hör ihop är alla ${fractionWords(p, qq)}. Jämför med stavarna: är lika mycket markerat?`,
+        wrong: `De tre som hör ihop är alla ${fractionWords(p, qq)}. Öppna hjälpen och jämför stavarna: är lika mycket markerat?`,
       },
       review: `${rattText.join(" = ")}${faktorer.includes(1) ? "" : ` = ${p}/${qq}`}. ` +
         "Täljare och nämnare är förlängda med samma tal. De andra korten har andra värden.",
