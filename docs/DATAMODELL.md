@@ -1213,8 +1213,8 @@ hela minuter 60–3600, `questionCount?`, `rewards?`; `hasOnly`), men
 | `dkPlayers/{uid}` | `{ uid, classId, name, gold (= MB), correct, incorrect, chests, protectedUntil, lastVictimUid, pending, lastHit, hackAttempts, hackSuccess, nextQ?, joinedAt, lastAnswerAt, lastChestAt }` – **inga koder** | deltagare + lärare (`grReader`) | **bara servern** |
 | `dkEvents/{id}` | händelsen (som `grEvents`; lyckat hack = `type: "steal"`, `chest: "hack"`). Misslyckade hack skriver **ingen** händelse | deltagare + lärare | **bara servern** |
 | `dkMeta/leader` | `{ uid, gold, at }` | deltagare + lärare | **bara servern** |
-| `dkSelf/{uid}` | `{ code, codeVersion, offers[4] \| null, offersExpiresAt, hack { targetUid, targetName, options[3], expiresAt } \| null }` | **bara eleven själv** – inte andra elever, inte läraren | **bara servern** |
-| `dkSecret/{uid}` | `{ code, codeVersion, offers, hacks { [mål]: { codeVersion, decoys, struck, shown } }, hack }` | **ingen klient** (bara servern, Admin SDK) | **bara servern** |
+| `dkSelf/{uid}` | `{ code, codeVersion, offers[4] \| null (bara i lobbyn – koden väljs en gång och gäller hela matchen, #719), hack { targetUid, targetName, options[3], expiresAt } \| null }` | **bara eleven själv** – inte andra elever, inte läraren | **bara servern** |
+| `dkSecret/{uid}` | `{ code, codeVersion (1 när koden valts; ändras inte efter hack), offers, hacks { [mål]: { codeVersion, decoys, struck, shown } }, hack }` | **ingen klient** (bara servern, Admin SDK) | **bara servern** |
 
 Läraren får radera alla underdokument (lobbyn raderas med `privateDocs`).
 
