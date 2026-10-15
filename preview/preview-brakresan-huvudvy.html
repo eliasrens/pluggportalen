@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Bråkresan: huvudvyn + drakpanelen (#713)</title>
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      body { padding: 12px; background: var(--ljus); }
+      .val { max-width: 1040px; margin: 0 auto 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+      .val a { padding: 6px 12px; border-radius: 999px; background: #fff; border: 2px solid #d5deea; font-weight: 700; text-decoration: none; color: var(--text); }
+      .val a[aria-current="page"] { border-color: #13a39a; background: #dff5f2; }
+    </style>
+  </head>
+  <body>
+    <!-- Huvudvyn med påhittade elevlägen – inga anrop, inget sparas.
+         Namnbyte svarar lokalt. Riktiga kedjan: #/elev/brakresan mot emulatorn. -->
+    <nav class="val" aria-label="Elevläge">
+      <strong>Läge:</strong>
+      <a href="?s=ny">Ny elev (ägg)</a>
+      <a href="?s=agg">Ägg, 7 stjärnor</a>
+      <a href="?s=klack">Kläcks nu (10)</a>
+      <a href="?s=mitt">Mitt i (34)</a>
+      <a href="?s=evo">Ny nivå (40)</a>
+      <a href="?s=full">Fullt utvecklad (150)</a>
+    </nav>
+    <main id="yta" class="brv-rot"></main>
+    <script type="module">
+      import { ensureOmgangCss } from "../src/brakresan/omgang.js";
+      import { createHuvudvy } from "../src/brakresan/huvudvy.js";
+      import { rekommendationer } from "../src/brakresan/huvudvy-lista.js";
+      import { CHALLENGE_IDS } from "../src/brakresan/schema/katalog.js";
+      import { stockholmDate } from "../src/brakresan/schema/regler.js";
+
+      const s = new URLSearchParams(location.search).get("s") || "mitt";
+      document.querySelector(`.val a[href="?s=${s}"]`)?.setAttribute("aria-current", "page");
+      const idag = stockholmDate(Date.now());
+
+      function state(stars, extra = {}) {
+        const challenges = {};
+        let kvar = stars;
+        for (const id of CHALLENGE_IDS) {
+          if (kvar <= 0) break;
+          const n = Math.min(3, kvar);
+          challenges[id] = { stars: n, firstTotal: 10 * n, last: 8 + (n % 3), activeRoundId: null, activeAnswered: 0 };
+          kvar -= n;
+        }
+        const total = Object.values(challenges).reduce((a, c) => a + c.stars, 0);
+        return { totalStars: total, mastered: Object.values(challenges).filter((c) => c.stars === 3).length, challenges,
+          dragon: null, hunts: { count: 0, coins: 0, lastDate: null }, ...extra };
+      }
+      const drake = (levelShown, name = "Glöd") => ({ id: "drake-x", levelShown, name });
+      const LAGEN = {
+        ny: () => state(0),
+        agg: () => state(7),
+        klack: () => state(10, { dragon: drake(0, "Bråkis") }),
+        mitt: () => {
+          const st = state(34, { dragon: drake(3), hunts: { count: 6, coins: 97, lastDate: idag } });
+          st.challenges["14"] = { stars: 0, firstTotal: 4, activeRoundId: "x", activeAnswered: 4 };
+          st.challenges["19"] = { stars: 0, firstTotal: 10, last: 6 };
+          st.challenges["21"] = { stars: 1, firstTotal: 10, last: 8 };
+          st.challenges["12"] = { stars: 0, firstTotal: 0 };
+          st.totalStars = Object.values(st.challenges).reduce((a, c) => a + c.stars, 0);
+          return st;
+        },
+        evo: () => state(40, { dragon: drake(3), hunts: { count: 9, coins: 142, lastDate: "2026-01-01" } }),
+        full: () => state(150, { dragon: drake(15, "Stjärnfall"), hunts: { count: 120, coins: 9876, lastDate: idag } }),
+      };
+      const rek = s === "ny" || s === "mitt" ? rekommendationer([
+        { active: true, challengeIds: ["03", "19"], comment: "Vi jobbar med tallinjen den här veckan." },
+        { active: true, challengeIds: ["12"] },
+      ]) : new Map();
+
+      await ensureOmgangCss();
+      window.__brh = await createHuvudvy(document.getElementById("yta"), {
+        state: LAGEN[s](), rek,
+        href: (id) => `preview-brakresan-omgang.html?u=${id}`,
+        drakpanel: {
+          byt: async (namn) => { await new Promise((r) => setTimeout(r, 300)); return { name: namn }; },
+          onVisad: (niva) => console.log("ackDragon", niva),
+        },
+      });
+      document.body.dataset.klar = "1";
+    </script>
+  </body>
+</html>
