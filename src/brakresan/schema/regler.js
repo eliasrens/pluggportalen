@@ -5,7 +5,8 @@
 // delar, så att samma regel aldrig skrivs två gånger:
 //   §2/§5  stjärna vid 8–10 rätt (max 3/utmaning, 40 mynt), uppmuntran 6–7
 //          (10 mynt, en gång per utmaning, aldrig efter bemästring)
-//   §9     draknivå = 0 (ägg) vid 0–9 stjärnor, annars min(15, floor(S/10))
+//   §9     draknivå = 0 (ägg) vid 0–9 stjärnor, annars min(15, floor(S/10));
+//          drakens standardnamn och namnregler (cleanDragonName)
 //   §10    jaktens maxbelopp per nivå, svensk kalenderdag (Europe/Stockholm)
 //   §11    utmaningens status i listan
 //   §12    träffsäkerhet och "litet underlag"
@@ -77,6 +78,22 @@ export function dragonProgress(totalStars) {
   if (level >= DRAGON_MAX_LEVEL) return { level, egg: false, nextAt: null, starsToNext: null, fullyGrown: true };
   const nextAt = 10 * (level + 1);
   return { level, egg: level === 0, nextAt, starsToNext: nextAt - s, fullyGrown: false };
+}
+
+/**
+ * Drakens namn (§9 "Kläckning", §13 "hantera text säkert"). Servern sätter
+ * standardnamnet vid kläckningen – namnvalet blockerar aldrig skapandet – och
+ * eleven kan byta senare (brakresaRenameDragon). Samma regler som husdjurens
+ * cleanPetName (högst 16 tecken, inga HTML-tecken) + inga styrtecken och
+ * hopslagna mellanrum. Tomt/ogiltigt → null.
+ */
+export const DRAGON_DEFAULT_NAME = "Bråkis";
+export const DRAGON_NAME_MAX = 16;
+export function cleanDragonName(name) {
+  if (typeof name !== "string") return null;
+  const s = name.normalize("NFC").replace(/\s+/g, " ").replace(/[\p{Cc}\p{Cf}<>&"'`]/gu, "").trim();
+  const kort = Array.from(s).slice(0, DRAGON_NAME_MAX).join("").trim();
+  return kort || null;
 }
 
 // --- Guldjakten (§10) ----------------------------------------------------------
