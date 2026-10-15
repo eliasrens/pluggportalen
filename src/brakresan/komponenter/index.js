@@ -30,6 +30,8 @@ export const KOMPONENTER = Object.freeze({
   sammansatt: () => import("./sammansatt.js").then((m) => m.createSammansatt),
   figur: () => import("./figur.js").then((m) => m.createFigur),
   relationsval: () => import("./relationsval.js").then((m) => m.createRelationsval),
+  bygge: () => import("./bygge.js").then((m) => m.createBygge),
+  gruppering: () => import("./gruppering.js").then((m) => m.createGruppering),
 });
 
 /** Svarstyper varje komponent själv tar emot (resten läggs i en notation under). */
@@ -42,6 +44,8 @@ export const SVARSTYPER = Object.freeze({
   sammansatt: ["choice", "yesno", "relation", "select", "pairs", "categories", "order", "paint", "number", "point", "multi"],
   figur: [],
   relationsval: ["relation"],
+  bygge: ["number"],
+  gruppering: ["categories"],
 });
 
 export const createHjalp = (...a) => import("./hjalp.js").then((m) => m.createHjalp(...a));

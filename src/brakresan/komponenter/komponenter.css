@@ -379,3 +379,35 @@ span.br-relval { cursor: default; box-shadow: none; }
 .br-kortlek--stora .br-helhet { white-space: nowrap; }
 .br-fackankare { display: grid; place-items: center; min-height: 64px; padding: 4px; border-radius: 12px; background: var(--br-lila-ljus); }
 .br-fackankare .br-kortyta { font-size: 1.9rem; }
+
+/* --- E #710: bygge (05) ---------------------------------------------------- */
+.br-bygge { justify-items: stretch; }
+.br-bygge-verktyg { display: flex; justify-content: center; }
+.br-bygge-bitrad { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 16px; }
+.br-bygge-bit { margin: 0; padding: 8px; min-width: 88px; min-height: 88px; border: 3px solid var(--br-lila); border-radius: 16px; background: #fff; cursor: grab; touch-action: none; box-shadow: 0 4px 0 rgba(59, 51, 80, .18); }
+.br-bygge-bit svg { width: 120px; height: auto; display: block; }
+.br-bygge--mangd .br-bygge-bit svg { width: 150px; }
+.br-bygge-bit.br-pekad { box-shadow: 0 0 0 5px var(--br-guld); }
+.br-bygge-knappar { display: grid; gap: 8px; }
+.br-bygge-yta { display: grid; gap: 4px; padding: 8px 10px; border: 3px dashed #b9c5d6; border-radius: 16px; background: #fff; }
+.br-bygge-ytarubrik { font-weight: 800; color: var(--br-svag); font-size: .9rem; }
+.br-bygge-start { stroke: var(--br-lila); stroke-width: 5; stroke-linecap: round; }
+.br-byggbit .br-byggyta { cursor: default; }
+.br-bygge-spok { position: fixed; width: 110px; height: auto; }
+.br-byggram { stroke-dasharray: none; fill: #fff; }
+
+/* --- E #710: gruppering (20) ----------------------------------------------- */
+.br-gruppering { justify-items: stretch; }
+.br-grupp-hogram { display: grid; gap: 4px; padding: 8px; border: 3px solid var(--br-guld); border-radius: 16px; background: var(--br-guld-ljus); }
+.br-pekar-helhet .br-grupp-hogram { box-shadow: 0 0 0 4px var(--br-guld); }
+.br-grupp-hog { display: flex; flex-wrap: wrap; gap: 4px; min-height: 48px; }
+.br-foremal-knapp { width: 46px; height: 46px; margin: 0; padding: 3px; border: 2px solid transparent; border-radius: 10px; background: transparent; cursor: grab; touch-action: none; }
+.br-foremal-knapp:hover { border-color: var(--br-lila); }
+.br-grupp-ikon { width: 100%; height: 100%; display: block; }
+.br-grupp-knappar { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.br-grupp-rad { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 10px; }
+.br-grupp { display: grid; align-content: start; gap: 6px; min-height: 130px; padding: 8px; border: 3px dashed var(--br-lila); border-radius: 16px; background: #fff; }
+.br-pekar-grupper .br-grupp { border-color: var(--br-guld); border-style: solid; }
+.br-grupp-rubrik { font-weight: 800; color: var(--br-lila); }
+.br-grupp-innehall { display: flex; flex-wrap: wrap; gap: 2px; min-height: 48px; }
+.br-grupp-lagg { font-size: .95rem; }
