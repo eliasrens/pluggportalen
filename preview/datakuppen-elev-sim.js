@@ -15,7 +15,7 @@
 //   createSim({ codes, me, players, latency(), forced(), shared?, onAction? }) → {
 //     api,                    datakuppen-data.js-formen (answer, openFile, …)
 //     state,                  { me, players, self, secret }
-//     hackMe(byUid),          en klasskamrat knäcker min kod (notis + ny kod)
+//     hackMe(byUid),          en klasskamrat knäcker min kod (notis + skydd; koden kvar, #719)
 //     protect(uid, ms),       skydda en kamrat
 //     emit()                  skicka nya ögonblicksbilder
 //   }
@@ -95,10 +95,11 @@ export function createSim({
       await net();
       const s = state.self;
       if (index != null) {
+        if (s.code) throw err("failed-precondition", "Du har redan din kod – den gäller hela matchen.");
         const code = s.offers?.[index];
         if (!code) throw err("failed-precondition", "Det finns inga kodförslag att välja just nu.");
         writeCode(code);
-      } else if (phase() === "live" && (!s.code || (s.offers && s.offersExpiresAt && now() >= s.offersExpiresAt))) {
+      } else if (phase() === "live" && !s.code) {
         writeCode(s.offers?.length ? s.offers[Math.floor(Math.random() * s.offers.length)] : codeOffers(codes, [taken()], Math.random, 1)[0]);
         setTimeout(emit, 30);
         return { code: state.self.code, offers: null, expiresAtMs: null, auto: true };
@@ -164,9 +165,7 @@ export function createSim({
       const prev = state.me.gold;
       state.me.gold = res.thiefGold;
       v.gold = res.victimGold;
-      v.protectedUntil = hitProtectionUntil(v, now());
-      secret[v.uid] = codeOffers(codes, [taken()], Math.random, 1)[0];
-      versions[v.uid] = (versions[v.uid] || 0) + 1;
+      v.protectedUntil = hitProtectionUntil(v, now()); // koden ligger kvar (#719)
       done();
       onAction("hack", { targetUid: v.uid, amount: res.amount });
       return { result: "hacked", targetUid: v.uid, amount: res.amount, delta: res.thiefGold - prev, gold: res.thiefGold, victimGold: res.victimGold };
@@ -195,7 +194,7 @@ export function createSim({
       if (p) p.protectedUntil = now() + ms;
       emit();
     },
-    /** En klasskamrat knäcker min kod: 15 % flyttas, skydd 30 s, fyra nya kodförslag. */
+    /** En klasskamrat knäcker min kod: 15 % flyttas, skydd 30 s – koden ligger kvar (#719). */
     hackMe(byUid) {
       const by = state.players.find((x) => x.uid === byUid) || state.players[0];
       const res = resolveVictim("steal", by, state.me);
@@ -203,11 +202,6 @@ export function createSim({
       state.me.gold = res.victimGold;
       state.me.protectedUntil = hitProtectionUntil(state.me, now());
       state.me.lastHit = { kind: "steal", chest: "hack", byUid: by.uid, byName: by.name, amount: res.amount, at: now() };
-      state.self = {
-        ...state.self,
-        offers: codeOffers(codes, [taken()], Math.random, DK_RULES.codeOffers, state.self.code),
-        offersExpiresAt: now() + DK_RULES.codePickMs,
-      };
       emit();
       onAction("hackad", { byUid: by.uid, amount: res.amount });
     },

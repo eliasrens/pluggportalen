@@ -27,7 +27,7 @@
 //   createHackMemory(store?)     → { struck(target), strike(target, kod), seen(target, options) }
 //                                vilka koder JAG strukit per mål (bara för att
 //                                visa dem som borta – servern avgör alltid)
-//   codePickState(self, phase, now) → { show, offers, leftMs, code, lobby }
+//   codePickState(self, phase)   → { show, offers, code, lobby } (lobbyns kodval)
 //   hackState(self, me, now)     → steg 2 pågår (omladdning) | null
 //   tipAt(i)                     → säkerhetstipset nr i (roterar)
 //   formatMb(n)                  → "1 240" (= formatGold)
@@ -154,17 +154,14 @@ export function createHackMemory(store = null) {
 }
 
 /**
- * Kodvalet ur dkSelf: lobbyn (förslag, ingen kod än) eller "Välj ny kod" efter
- * ett hack (kod + förslag + nedräkning). leftMs null = ingen nedräkning (lobbyn).
+ * Lobbyns kodval ur dkSelf: förslagen visas tills eleven har en kod. Koden
+ * gäller sedan hela matchen (#719) – i spelet finns inget kodval.
  */
-export function codePickState(self, phase, now) {
+export function codePickState(self, phase = "lobby") {
   const offers = Array.isArray(self?.offers) ? self.offers.filter(Boolean) : [];
   const code = self?.code || null;
-  const end = toMs(self?.offersExpiresAt);
-  const leftMs = end == null ? null : Math.max(0, end - now);
   const lobby = phase !== "live";
-  const show = offers.length > 0 && (lobby ? !code : !!code);
-  return { show, offers, leftMs, code, lobby };
+  return { show: lobby && offers.length > 0 && !code, offers, code, lobby };
 }
 
 /** Ett påbörjat steg 2 (omladdning mitt i hacket): dkSelf.hack + dkPlayers.pending. */

@@ -2989,6 +2989,9 @@ code {
   white-space: nowrap;
 }
 .rum-dorr:hover .rum-dorr-svg { transform: translateY(-2px); }
+/* Ett djur som dras över en dörr (#698): dörren lyser – släpp = flytta dit. */
+.rum-dorr.dorr-mal { filter: drop-shadow(0 0 8px rgba(255, 196, 64, 0.95)); }
+.rum-dorr.dorr-mal .rum-dorr-svg { transform: translateY(-2px) scale(1.08); }
 .rum-dorr-svg { transition: transform 0.12s ease; }
 @media (prefers-reduced-motion: reduce) {
   .rum-dorr-svg { transition: none; }

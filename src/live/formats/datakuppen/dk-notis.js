@@ -2,8 +2,8 @@
 // Datakuppen 💾 (#653): NOTISEN till den som blev hackad (spec §1.5, §4.3):
 // "💻 Omar knäckte din kod och tog 45 MB!" med Omars avatar glider in från
 // kanten, syns ~2 s och blockerar aldrig spelet (pointer-events: none, ligger
-// utanför svarsytan). Texten kommer ur dk-elev.js createHitWatcher. Efter
-// notisen visar vyn "Välj ny kod".
+// utanför svarsytan). Texten kommer ur dk-elev.js createHitWatcher. Koden
+// ligger kvar efter hacket (#719) – inget nytt kodval, spelet fortsätter.
 //
 // API
 //   createDkNotice(box, { pool, roster, ms? }) → { show(hit, by?), destroy(), ms }

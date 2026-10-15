@@ -409,7 +409,7 @@ avstängning gäller därför direkt, utan ny token.
 | `readingLevel` | number | **Borttaget (#531).** Gamla läsnivån (1–3, #154). Skrivs inte längre i nya elevdokument; finns kvar i äldre dokument men ignoreras. Läsresans nivå är `lasresa.level`. |
 | `pets`       | array  | Kläckbara husdjuren (mystery eggs) – se nedan. Eleven kan ha **flera** samtidigt |
 | `appleCount` | number | Köpta men outlagda **äpplen** (matning). Se avsnittet om äpplen nedan |
-| `floorApples`| array  | Äpplen som ligger på golvet i rummet: `{ id, x, y }` (procent). Se nedan |
+| `floorApples`| array  | Äpplen som ligger på golvet i rummet: `{ id, x, y, room? }` (procent; `room` = rum-index ≥ 1, saknas = rum 1 – #698). Se nedan |
 | `pet`        | map    | **Utfasad** singular-föregångare till `pets` – migreras till `pets[0]` vid första inläsningen (fältet lämnas kvar men ignoreras när `pets` finns) |
 | `farm`       | map    | **Gården** (epic gård-expansion, #327): laggård, odlingsbädd, skörde-förråd och djurplaceringar – se avsnittet nedan. **Bakåtkompatibelt:** saknas fältet (alla äldre dokument) default-mergas det vid inläsning (`farmFromData` i `src/farm-core.js`) – ingen migrering behövs |
 | `lasresa`    | map    | **Läsresan** (#399): `{ level, highStreak, lowStreak, worldId, stepInWorld, completedWorlds[], totalTexts, totalQuestions, totalCorrect, totalIncorrect, moneyEarned, seenTextIds[], catStats{kategori:{q,correct}}, currentTextId, currentStartedAt, lastTextId, updatedAt, pendingLevel, levelSetAt, levelSetBy }`. Läsresans **dolda** nivå (1–10) – helt skild från `readingLevel` (1–3). **Skala 1–10 (#519):** nivån lagras i `level10` (1–10) och väntande lärarnivå i `pendingLevel10` (1–10 eller null); `level`/`pendingLevel` är en SPEGEL i gammal skala 1–7 (ny − 3, klampad) för gamla cachade klienter. Saknas `level10` är datat gammalt och nivåerna flyttas +3 vid läsning (lat migrering, `src/lasresan/level-scale.js`). **Lärarstyrd nivå (#505):** `pendingLevel10` = lärarvald nivå som gäller efter elevens påbörjade text; `levelSetAt` (ms) + `levelSetBy: "teacher"` = senaste lärarbyte (brygga `src/data-lasresan-niva.js`). **Bakåtkompatibelt:** saknas fältet = ny elev (Skogen, steg 0, klassens startnivå eller nivå 4) via `normalizeLasresa` i `src/lasresan/progress.js`. Brygga: `src/data-lasresan.js`. Se [LASRESAN.md](LASRESAN.md). |
@@ -484,7 +484,7 @@ gratis-matning finns kvar – tillväxten drivs helt av uppätna äpplen (10 per
 | Fält                    | Typ    | Beskrivning                                                     |
 | ----------------------- | ------ | -------------------------------------------------------------- |
 | `appleCount`            | number | Köpta men **outlagda** äpplen. `buyApple` ökar, `placeApple` minskar |
-| `floorApples[]`         | array  | Äpplen som ligger på golvet: `{ id, x, y }` (x/y i procent av rumsscenen) |
+| `floorApples[]`         | array  | Äpplen som ligger på golvet: `{ id, x, y, room? }` (x/y i procent av rumsscenen). `room` (#698) = rummets index när maten ligger i Rum 2 eller senare; saknas = rum 1 (som förut). Maten ritas och lockar **bara djur i samma rum** |
 
 Flöde (allt i transaktioner, `src/data-pet.js`): `buyApple(price)` drar mynt och
 ökar `appleCount`; `placeApple(x, y)` flyttar ett äpple → `floorApples`; när ett
@@ -508,7 +508,7 @@ Firestore-skrivningarna (transaktioner + dot-path-updates) i systermodulen
 | `gardenTier`       | number | Odlingsbäddens nivå (**1–3**). Styr antal odlings-slots: `FARM_SLOTS_PER_TIER` (2/4/8 per #333, tabell i `farm-core.js`) och bäddens utseende (enkel bädd → dubbel låda → växthus) |
 | `gardenSlots`      | array  | Planterade grödor: `{ slotIndex, cropId, growthStage, plantedAt }`. `slotIndex` 0-baserat `< slotCountForTier(gardenTier)`; `growthStage` **0–3** (0 = nysådd, 3 = `FARM_MAX_GROWTH_STAGE` = färdigvuxen → skördbar); `plantedAt` ms (`Date.now()`). Tomma slots har ingen post |
 | `inventoryHarvest` | map    | Skörde-förrådet: `{ [cropId]: antal }` (t.ex. `{ "crop_carrot": 3 }`). Alltid ≥ 1 – noll-poster städas bort vid skrivning |
-| `placedAnimals`    | array  | Djur placerade **utanför rummet**: `{ petId, location: "paddock"\|"barn" }`. `petId` = djurets instans-id (`pets[].id` eller `roomAnimals[].uid`). `"room"` är default-hemmet och **sparas aldrig** som post – ett djur utan post bor i rummet, precis som före gården (bakåtkompatibelt) |
+| `placedAnimals`    | array  | Djur placerade **utanför rum 1**: `{ petId, location: "paddock"\|"barn"\|"room:N" }`. `petId` = djurets instans-id (`pets[].id`, `roomAnimals[].uid` eller `farm.animals[].uid`). **Djur i alla rum (#698):** `"room:N"` = husets rum med index N (0-baserat som `getRooms`, alltså `"room:1"` = Rum 2, N ≤ 15). Rum 1 (`"room"`/`"room:0"`) är default-hemmet och **sparas aldrig** som post – ett djur utan post bor i rum 1, precis som förut (bakåtkompatibelt, ingen migrering). Har huset färre rum än det sparade visas djuret i rum 1 (`homeRoomFor`, `farm-core.js`). Mystery-djur och vanliga djur kan bara bo i rummen; hage/lada gäller bondgårdsdjuren. Flyttas i "Mina djur" (Rum 1/Rum 2 … i flerrums-hus) eller genom att dra djuret till en rums-dörr |
 | `animals`          | array  | **Bondgårdsdjuren** (häst/ko/gris, #330): `{ uid, id, name, pos, trivsel, lastFedAt, lastGiftAt }`. `id` = arten (shop-id `animal_horse` …), `uid` = unik instans. `trivsel` **0–100** (default 80); **effektiv** trivsel beräknas vid läsning (`trivselNow`: −10/helt dygn sedan `lastFedAt`, golv 0). Matning (#332): rätt gröda (`FODER_FOR`) ur `inventoryHarvest` ger **+25 trivsel dagens första matning** (`feedFarmAnimal`); `trivsel ≥ 60` → daglig gåva (+`FARM_GIFT_COINS` mynt, `claimFarmAnimalGift`, gate:ad per kalenderdag via `lastGiftAt`) |
 
 **Designbeslut – nivåer som fält, inte härledda:** rummen härleder antal rum ur
@@ -1213,8 +1213,8 @@ hela minuter 60–3600, `questionCount?`, `rewards?`; `hasOnly`), men
 | `dkPlayers/{uid}` | `{ uid, classId, name, gold (= MB), correct, incorrect, chests, protectedUntil, lastVictimUid, pending, lastHit, hackAttempts, hackSuccess, nextQ?, joinedAt, lastAnswerAt, lastChestAt }` – **inga koder** | deltagare + lärare (`grReader`) | **bara servern** |
 | `dkEvents/{id}` | händelsen (som `grEvents`; lyckat hack = `type: "steal"`, `chest: "hack"`). Misslyckade hack skriver **ingen** händelse | deltagare + lärare | **bara servern** |
 | `dkMeta/leader` | `{ uid, gold, at }` | deltagare + lärare | **bara servern** |
-| `dkSelf/{uid}` | `{ code, codeVersion, offers[4] \| null, offersExpiresAt, hack { targetUid, targetName, options[3], expiresAt } \| null }` | **bara eleven själv** – inte andra elever, inte läraren | **bara servern** |
-| `dkSecret/{uid}` | `{ code, codeVersion, offers, hacks { [mål]: { codeVersion, decoys, struck, shown } }, hack }` | **ingen klient** (bara servern, Admin SDK) | **bara servern** |
+| `dkSelf/{uid}` | `{ code, codeVersion, offers[4] \| null (bara i lobbyn – koden väljs en gång och gäller hela matchen, #719), hack { targetUid, targetName, options[3], expiresAt } \| null }` | **bara eleven själv** – inte andra elever, inte läraren | **bara servern** |
+| `dkSecret/{uid}` | `{ code, codeVersion (1 när koden valts; ändras inte efter hack), offers, hacks { [mål]: { codeVersion, decoys, struck, shown } }, hack }` | **ingen klient** (bara servern, Admin SDK) | **bara servern** |
 
 Läraren får radera alla underdokument (lobbyn raderas med `privateDocs`).
 
