@@ -54,6 +54,7 @@ export const HW_UTE = {
   // Buu!-skylt: träskylt på stolpe med ett litet spöke som tittar fram.
   "hw-buu-skylt": {
     viewBox: "0 -12 92 112",
+    text: true, // texten "Buu!" → ingen ↔ Vänd (#699)
     w: 3.6,
     art:
       skugga(46, 96, 24) +

@@ -16,7 +16,7 @@ import * as data from "./data.js";
 import { avatarMarkup, DEFAULT_AVATAR, avatarName } from "./avatars.js";
 import { app, el, go, loading, pageError, getParams, clamp } from "./ui.js";
 import { getItem, isWearable, isFlatItem, itemIdFromKey } from "./shop-items.js";
-import { itemSvg, itemSize, loadCollectionArt } from "./art-items.js";
+import { itemSvg, itemSize, itemRiktning, riktningsFalt, loadCollectionArt } from "./art-items.js";
 import { roomBackdropHtml, windowItemHtml, WINDOW_DEFAULT } from "./art-room.js";
 import { getPalette } from "./room-palettes.js";
 import { petsFromData } from "./data-pet.js";
@@ -211,7 +211,7 @@ export async function pageElevKlasskamrat() {
       if (hrPokaler.has(key) && pos) {
         placements[key] = { x: clamp(pos.x, 0, 100), y: clamp(pos.y, 0, 100) };
       } else if (owned.includes(id) && !isWearable(id) && getItem(id) && pos) {
-        placements[key] = { x: clamp(pos.x, 0, 100), y: clamp(pos.y, 0, 100) };
+        placements[key] = { x: clamp(pos.x, 0, 100), y: clamp(pos.y, 0, 100), ...riktningsFalt(pos) };
       }
     }
     // Platta golvsaker (mattor) ritas FÖRST så möbler/dekor staplas ovanpå dem.
@@ -222,9 +222,11 @@ export async function pageElevKlasskamrat() {
         const pos = placements[key];
         if (hrPokaler.has(key)) return hrPokalMod.pokalLasHtml(hrPokaler.get(key), pos);
         const item = getItem(id);
-        const size = itemSize(id);
+        // Kamratens vridna/vända möbler (#699) ritas som de ställts.
+        const { rot, spegel } = itemRiktning(id, pos);
+        const size = itemSize(id, rot);
         return `<div class="room-item readonly" style="left:${pos.x}%;top:${pos.y}%" title="${esc(item.name)}">
-          <span class="ri-emoji" style="width:${size.w}rem;height:${size.h}rem">${itemSvg(id) || item.emoji}</span>
+          <span class="ri-emoji${spegel ? " spegel" : ""}" style="width:${size.w}rem;height:${size.h}rem">${itemSvg(id, { rot }) || item.emoji}</span>
         </div>`;
       })
       .join("");

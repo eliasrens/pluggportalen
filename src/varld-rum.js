@@ -16,7 +16,7 @@ import { getItem, isWearable, isFlatItem, isAnimalItem, isHouseItem, isGardenIte
 import { getPalette } from "./room-palettes.js";
 import { mountRumDjur, djurMatSektion } from "./varld-rum-djur.js";
 import { farmFromData, roomIndexOf, roomLocation, isRoomLocation } from "./farm-core.js";
-import { itemSvg, itemSize } from "./art-items.js";
+import { itemSvg, itemSize, itemRiktning, kanRoteras, kanVandas, riktningsFalt, vridPlacering } from "./art-items.js";
 import { petStageNode, petBellyFlop, petPat, isPetBusy, petDisplayName, petArtThumb, setPetMood } from "./pages-rum-pets.js";
 import { renderPetPanel, animalNamePanel } from "./pages-rum-pet-panel.js";
 import { startPetPromenad } from "./rum-promenad.js";
@@ -28,7 +28,7 @@ import { mountRumMat } from "./varld-rum-mat.js";
 import { mountRumDjurTray } from "./varld-rum-djurtray.js";
 import { mountRumVaxlare } from "./varld-rum-vaxlare.js";
 // Inrednings-kärnan (drag/klamring/ritning) delas med Klasscentrets rum (#490).
-import { kopplaRumDrag, ordnaNycklar, nastaPlats, nyPlaceringsNyckel, rumSakHtml } from "./rum-promenad-golv.js";
+import { kopplaRumDrag, ordnaNycklar, nastaPlats, nyPlaceringsNyckel, rumSakHtml, sakVerktygHtml, kopplaVridTangenter } from "./rum-promenad-golv.js";
 
 // Kartmästare-pokaler (Hitta rätt! #610): ingen ägd sak – de ritas ur
 // hittaRattMeta/ledare (src/hitta-ratt/hr-pokal-rum.js, laddas dynamiskt) och
@@ -148,7 +148,8 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
       } else if (data.ownedCount(sd, id) > 0 && !isWearable(id) && !isAnimalItem(id) && !isHouseItem(id) && !isGardenItem(id) && id !== petData.EGG_ITEM_ID && pos) {
         // Golvsaker (möbler/husdjur) hålls nere i golvzonen även i gammal data.
         const minY = isFloorItem(id) ? FLOOR_TOP - 8 : 4;
-        out[key] = { x: clamp(pos.x, 3, 97), y: clamp(pos.y, minY, 96) };
+        // rot/flip (#699) följer med; saknas = framifrån och ovänd.
+        out[key] = { x: clamp(pos.x, 3, 97), y: clamp(pos.y, minY, 96), ...riktningsFalt(pos) };
       }
     }
     return out;
@@ -400,12 +401,18 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
       }
       const item = getItem(id);
       if (!item) continue;
-      const size = itemSize(id);
+      // Riktningen (#699): aktuell vys bild och mått – samma höjd i alla vyer,
+      // så golvpunkten står still när möbeln vrids.
+      const { rot, spegel } = itemRiktning(id, pos);
+      const size = itemSize(id, rot);
       stage.appendChild(el(rumSakHtml({
-        key, x: pos.x, y: pos.y, titel: item.name, art: itemSvg(id) || item.emoji,
-        w: size.w, h: size.h, vald: selectedId === key,
+        key, x: pos.x, y: pos.y, titel: item.name, art: itemSvg(id, { rot }) || item.emoji,
+        w: size.w, h: size.h, vald: selectedId === key, spegel,
       })));
     }
+    // ⟳/↔ vid den markerade saken (#699) – egen nod så ritordningen är orörd.
+    const verktyg = verktygFor(selectedId);
+    if (verktyg) stage.appendChild(el(verktyg));
     // Djuren och maten i DET HÄR rummet (#698). Äpplen på golvet ritas UNDER
     // husdjuren (så djuret syns ovanpå när det gnager). De är inga .room-item
     // (data-id) och räknas därför inte som hinder i promenad-AI:n – precis som
@@ -435,6 +442,33 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
       vaxlare.render();
     }
   }
+
+  // --- ⟳ Rotera / ↔ Vänd (#699) --------------------------------------------
+  // Gäller vanliga placerade saker (inte fönstret, inte Kartmästare-pokalerna).
+  function vridbar(key) {
+    return !!(key && key !== WINDOW_ID && !arHrPokal(key) && placements[key]);
+  }
+  function verktygFor(key) {
+    if (!vridbar(key)) return null;
+    const id = itemIdFromKey(key);
+    const pos = placements[key];
+    return sakVerktygHtml({
+      key, x: pos.x, y: pos.y, h: itemSize(id, itemRiktning(id, pos).rot).h,
+      rotera: kanRoteras(id), vand: kanVandas(id),
+    });
+  }
+  /** Rotera ("rot") eller vänd ("flip") en sak; ritar om och sparar. */
+  function vrid(key, typ) {
+    if (!vridbar(key) || !vridPlacering(itemIdFromKey(key), placements[key], typ)) return false;
+    renderStage();
+    scheduleSaveRoom();
+    return true;
+  }
+  // R/F på tangentbordet – bara när rummet är nivån som syns.
+  kopplaVridTangenter(stage, {
+    aktiv: () => stage.closest("[data-niva]")?.dataset.niva === "rum",
+    gor: (typ) => vrid(selectedId, typ),
+  });
 
   // --- Rita lådan (ägda, oplacerade rums-saker) ----------------------------
   // Hur många exemplar av `id` som står ute i HELA huset – summerat över ALLA
@@ -726,6 +760,11 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
       renderPets();
       return;
     }
+    const vridBtn = e.target.closest("[data-rotera],[data-vand]");
+    if (vridBtn) {
+      vrid(vridBtn.dataset.rotera || vridBtn.dataset.vand, vridBtn.dataset.rotera ? "rot" : "flip");
+      return;
+    }
     const removeBtn = e.target.closest("[data-remove]");
     if (!removeBtn) return;
     const id = removeBtn.dataset.remove;
@@ -770,7 +809,8 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
       } else if (drag.zon === "fonster") {
         fonster.setPos(x, y);
       } else {
-        placements[drag.id] = { x, y };
+        // Behåll rot/flip (#699) – bara platsen flyttas.
+        placements[drag.id] = { ...placements[drag.id], x, y };
       }
     },
     slapp: (drag) => {
@@ -780,7 +820,14 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
       if (drag.moved) {
         if (drag.petId) (djur.byId(drag.petId) ? djur.scheduleSave() : scheduleSavePets());
         else if (drag.zon === "fonster") fonster.scheduleSave();
-        else scheduleSaveRoom();
+        else {
+          scheduleSaveRoom();
+          // En dragen sak blir markerad → ⟳/↔ syns direkt vid den (#699).
+          selectedId = drag.id;
+          selectedPetId = null;
+          renderStage();
+          renderPets();
+        }
       } else if (drag.petId) {
         // Klick på ett djur → KLAPPA det (ingen inforuta): mystery-djur lägger sig
         // på rygg och sprattlar (petBellyFlop), vanliga fast-storleks-djur gör ett

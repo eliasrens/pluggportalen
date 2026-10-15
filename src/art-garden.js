@@ -80,6 +80,7 @@ export const GARDEN = {
   // --- Parkeringsruta (flat): asfalt med vit ram + stort P ------------------
   parkering: {
     viewBox: "0 0 120 96",
+    text: true, // P-skylten på asfalten → ingen ↔ Vänd (#699)
     w: 5.6,
     flat: true,
     art:
