@@ -41,6 +41,7 @@ test("moduleForRoute: modulens rutter (inkl. underrutter) → id, övrigt → nu
   assert.equal(moduleForRoute("/elev/spela"), "plugga");
   assert.equal(moduleForRoute("/elev/aventyr"), "plugga");
   assert.equal(moduleForRoute("/elev/shop"), "shop");
+  assert.equal(moduleForRoute("/elev/brakresan"), "brakresan"); // #713
   // Hem/världen och profilen kan aldrig döljas.
   assert.equal(moduleForRoute("/elev/hus"), null);
   assert.equal(moduleForRoute("/elev/profil"), null);

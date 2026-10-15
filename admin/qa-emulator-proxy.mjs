@@ -34,7 +34,7 @@ const FN_NAMES = new Set(["/updateStudentLogin", "/guldrushAnswer", "/guldrushOp
   "/hittaRattSparaPack", "/hittaRattRaderaPack", "/hittaRattSattTopplista",
   "/datakuppAnswer", "/datakuppOpenFile", "/datakuppPickCode", "/datakuppChooseTarget", "/datakuppGuessCode",
   "/adminCreateTeacher", "/adminUpdateTeacher", "/adminSetTeacherPassword", "/adminSetTeacherActive", "/adminDeleteTeacher",
-  "/brakresaStartRound", "/brakresaAnswer", "/brakresaRework", "/brakresaFinishRound", "/brakresaAbortRound", "/brakresaAckDragon",
+  "/brakresaStartRound", "/brakresaAnswer", "/brakresaRework", "/brakresaFinishRound", "/brakresaAbortRound", "/brakresaAckDragon", "/brakresaRenameDragon",
   "/brakresaHunt"]);
 const SDK = "https://www.gstatic.com/firebasejs/10.12.2";
 

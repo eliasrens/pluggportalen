@@ -478,7 +478,7 @@ frågor per elev). Servern uppdaterar det i samma transaktion som svaret/avslute
 | `challenges` | map | `{ "03": ChallengeProgress }` – bara utmaningar eleven rört |
 | `encouragementCoins` | int 0–500 | Utbetalda uppmuntransmynt totalt (10 per utmaning, högst en gång) |
 | `totals` | map | `{ roundsCompleted, roundsAborted, firstCorrect, firstTotal, helpBefore, helpAfter }` – samma räknare som per utmaning, summerade |
-| `dragon` | map/null | `null` som ägg (0–9 stjärnor). Vid kläckningen (första transaktionen som når 10): `{ id, hatchedAt, levelShown }`. `id` = personligt drak-id (`"drake-" + uid`), `levelShown` = högsta nivå vars kläcknings-/evolutionsanimation visats (H/I sätter den via servern, så en avbruten animation visas igen men ger aldrig ny drake) |
+| `dragon` | map/null | `null` som ägg (0–9 stjärnor). Vid kläckningen (första transaktionen som når 10): `{ id, hatchedAt, levelShown, name }`. `name` = standardnamnet "Bråkis" (eller ett namn som redan stod i `studentData.brakdrake.name`); byts med `brakresaRenameDragon` (#713) som skriver samma namn i `studentData.brakdrake.name`. `id` = personligt drak-id (`"drake-" + uid`), `levelShown` = högsta nivå vars kläcknings-/evolutionsanimation visats (H/I sätter den via servern, så en avbruten animation visas igen men ger aldrig ny drake) |
 | `hunts` | map | `{ count, coins, lastDate }` – summerat ur BEKRÄFTADE jaktposter (J) |
 | `lastActivityAt` | timestamp | Senaste sparade spelaktivitet (svar, avslut, avbrott, jakt) – inte en öppnad sida |
 | `updatedAt` | timestamp | |
@@ -578,7 +578,7 @@ försvinna. Eget fält i stället, med samma namnregler (`cleanPetName`) och pla
 `{ id, level, name, pos: { x, y }, stowed, room }`. Servern skapar fältet vid kläckningen (`id` =
 `state.dragon.id`) och uppdaterar `level` i samma transaktion som stjärnan som ändrar nivån
 (cachad nivå så att klasskamrater som besöker huset ser rätt stadium utan att läsa `state`).
-Eleven skriver `name`, `pos`, `stowed`, `room` (som övriga husdjur). En egen ändring av `level`
+Eleven skriver `pos`, `stowed`, `room` (som övriga husdjur); `name` sätts av servern vid kläckningen och byts via `brakresaRenameDragon` (servern rensar texten, #713). En egen ändring av `level`
 är bara kosmetisk i det egna huset – Bråkresan och jakten utgår alltid från `state`.
 
 #### `brakresaRecommendations/{recId}` – lärarens rekommendationer (K #716)
