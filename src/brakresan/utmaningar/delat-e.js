@@ -64,3 +64,45 @@ export function annatBrak(a, n, { namnare = [2, 3, 4, 5, 6, 8, 10], hel = false 
 
 /** Kort-id k1 … i visningsordning (avslöjar aldrig vilket kort som är rätt). */
 export const kortId = (i) => `k${i + 1}`;
+
+/** Två lika långa stavar under varandra (samma start), med bråket som rubrik – 16, 17. */
+export function tvaStavar(A, B) {
+  return [
+    { view: { component: "stav", parts: A[1], marked: A[0], label: "Hela staven = 1" }, rubrik: brakForm(A[0], A[1]) },
+    { view: { component: "stav", parts: B[1], marked: B[0], label: "Hela staven = 1" }, rubrik: brakForm(B[0], B[1]) },
+  ];
+}
+
+/**
+ * Jämförelse (relation) med valfri förklaring (16, 17). `forklaringar` = [{ text, ratt? }]
+ * i visningsordning; utan förklaring blir svaret en enkel relation.
+ * Svarar { view, answer, key } (key utan display/examples – utmaningen lägger dem).
+ */
+export function jamforelseUppgift({ A, B, rel, bild, forklaringar }) {
+  const relDel = { view: { component: "relationsval", vanster: brakForm(A[0], A[1]), hoger: brakForm(B[0], B[1]) } };
+  const delar = [...(bild ? tvaStavar(A, B) : [])];
+  if (!forklaringar) {
+    return {
+      view: { component: "sammansatt", delar: [...delar, { ...relDel, svar: true }] },
+      answer: { type: "relation" },
+      key: { type: "relation", correct: rel },
+      examples: { right: [{ value: rel }], wrong: ["<", "=", ">"].filter((r) => r !== rel).map((value) => ({ value })) },
+    };
+  }
+  const cards = forklaringar.map((f, i) => ({ id: `f${i + 1}`, face: { text: f.text } }));
+  const ratt = cards[forklaringar.findIndex((f) => f.ratt)].id;
+  const felRel = ["<", "=", ">"].find((r) => r !== rel);
+  const felF = cards.find((c) => c.id !== ratt).id;
+  return {
+    view: {
+      component: "sammansatt",
+      delar: [...delar, { ...relDel, svar: "rel" }, { view: { component: "kort", cards }, svar: "forkl", rubrik: "Varför?", label: "Välj förklaringen" }],
+    },
+    answer: { type: "multi", parts: { rel: { type: "relation" }, forkl: { type: "choice", options: cards.map((c) => c.id) } } },
+    key: { type: "multi", parts: { rel: { type: "relation", correct: rel }, forkl: { type: "choice", correct: ratt } } },
+    examples: {
+      right: [{ parts: { rel: { value: rel }, forkl: { id: ratt } } }],
+      wrong: [{ parts: { rel: { value: felRel }, forkl: { id: ratt } } }, { parts: { rel: { value: rel }, forkl: { id: felF } } }],
+    },
+  };
+}
