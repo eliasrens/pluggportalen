@@ -15,7 +15,7 @@ import { el, flash, clamp } from "./ui.js";
 import { getItem, isWearable, isFlatItem, isAnimalItem, isHouseItem, isGardenItem, itemIdFromKey } from "./shop-items.js";
 import { getPalette } from "./room-palettes.js";
 import { mountRumDjur, djurMatSektion } from "./varld-rum-djur.js";
-import { farmFromData } from "./farm-core.js";
+import { farmFromData, roomIndexOf, roomLocation, isRoomLocation } from "./farm-core.js";
 import { itemSvg, itemSize } from "./art-items.js";
 import { petStageNode, petBellyFlop, petPat, isPetBusy, petDisplayName, petArtThumb, setPetMood } from "./pages-rum-pets.js";
 import { renderPetPanel, animalNamePanel } from "./pages-rum-pet-panel.js";
@@ -78,14 +78,24 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   // storlek – egen modul (varld-rum-djur.js, data: studentData.roomAnimals).
   // walkers() = allt som promenerar (mystery-djur + vanliga djur): de delar
   // promenad-AI, drag-pipeline och selectedPetId men bor i skilda datamodeller.
-  const djur = mountRumDjur({ sd });
+  const djur = mountRumDjur({ sd, roomCount: data.getRoomCount(sd) });
+  const startFarm = farmFromData(sd);
   // Magiska bär i gårdens skörde-förråd (#332) – lokal räknare för panelens
   // bär-knapp, uppdateras ur varje feedPetBerry-svar (servern är sanningen).
-  let barKvar = farmFromData(sd).inventoryHarvest[petData.BERRY_CROP_ID] || 0;
-  // Bara djur som är I RUMMET promenerar/ritas; undanstuvade (stowed) mystery-
-  // djur hålls utanför precis som de vanliga djuren (djur.list() filtrerar dem).
-  const roomPets = () => pets.filter((p) => !p.stowed);
-  const walkers = () => [...roomPets(), ...djur.list()];
+  let barKvar = startFarm.inventoryHarvest[petData.BERRY_CROP_ID] || 0;
+  // Djur i alla rum (#698): mystery-djurens rum bor i farm.placedAnimals
+  // ("room:N"; ingen post = rum 1). Hålls i en egen karta (petId → plats) så
+  // den överlever att pets-listan byts ut (matning, kläckning).
+  const petPlats = new Map(startFarm.placedAnimals.map((p) => [p.petId, p.location]));
+  /** Rummet ett mystery-djur bor i – sparat rum som huset saknar → rum 1. */
+  function petRoom(p) {
+    const i = roomIndexOf(petPlats.get(p.id) || "room");
+    return i !== null && i < roomCount ? i : 0;
+  }
+  // Bara djur som är I DET AKTIVA RUMMET promenerar/ritas; undanstuvade (stowed)
+  // mystery-djur hålls utanför precis som de vanliga djuren (djur.list(rum)).
+  const roomPets = () => pets.filter((p) => !p.stowed && petRoom(p) === currentRoom);
+  const walkers = () => [...roomPets(), ...djur.list(currentRoom)];
 
   // "Mina djur"-lådan (undanstuvade djur) monteras längre ner; stow/return-
   // hjälparna refererar den vid klicktillfället (då är den satt).
@@ -95,6 +105,8 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   // resp. petData) + scenen + "Mina djur"-lådan. Djuret tappas aldrig, bara
   // flaggan flyttas. `kind` skiljer vanliga djur ("animal") från mystery ("pet").
   function setStowed(kind, id, stowed) {
+    // Ett djur som släpps ut igen kommer fram i rummet eleven står i (#698).
+    if (!stowed && roomCount > 1) flyttaTillRum(id, currentRoom);
     if (kind === "animal") {
       djur.setStowed(id, stowed);
     } else {
@@ -112,9 +124,10 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   // --- Flerrums-modell (issue #34) -----------------------------------------
   // Huset kan ha flera rum (getRooms → 0-indexerad lista, rum0 = det gamla
   // studentData.room). VARJE rum har egen möblering (placements), väggpalett och
-  // eget fönster; husdjur/vanliga djur/mat hör bara till GRUNDRUMMET (rum 0) –
-  // de bor i huset och promenerar i huvudrummet. Vi bygger en modell per rum och
-  // pekar `placements`/`fonster` mot det AKTIVA rummet (byts av goToRoom).
+  // eget fönster. Djuren bor i det rum de placerats i (#698, farm.placedAnimals
+  // "room:N" – ingen post = rum 1) och Mysterymaten ligger i det rum den lagts
+  // ut i. Vi bygger en modell per rum och pekar `placements`/`fonster` mot det
+  // AKTIVA rummet (byts av goToRoom).
   const roomsData = data.getRooms(sd); // längd = antal upplåsta rum (≥1)
   const roomCount = roomsData.length;
 
@@ -156,8 +169,6 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   let currentRoom = clamp(startRoom, 0, roomCount - 1);
   let placements = roomModels[currentRoom].placements;
   let fonster = roomModels[currentRoom].fonster;
-  // Husdjur/mat syns bara i grundrummet; extra rum är möbler + väggfärg + fönster.
-  const showPets = () => currentRoom === 0;
 
   // Vanliga djur hör INTE hemma i lådan/placements längre – de promenerar.
   // Husskal (köpta hus) hör INTE hemma i lådan – de väljs separat i "Nytt hus"-
@@ -354,7 +365,6 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   // omedelbart (bara den nya .room-apple-noden appendas, med sin egen pop-in).
   // Nya äpplen sätts FÖRE första djuret så de fortsatt ritas UNDER husdjuren.
   function syncApples() {
-    if (!showPets()) return; // äpplen visas bara i grundrummet (som renderStage)
     const wanted = new Map(mat.apples().map((a) => [a.id, a]));
     for (const node of stage.querySelectorAll(".room-apple")) {
       const id = node.dataset.appleId;
@@ -396,24 +406,22 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
         w: size.w, h: size.h, vald: selectedId === key,
       })));
     }
-    // Husdjur/mat hör bara till grundrummet (rum 0) – extra rum ritar bara
-    // möbler/dekor. Äpplen på golvet ritas UNDER husdjuren (så djuret syns
-    // ovanpå när det gnager). De är inga .room-item (data-id) och räknas därför
-    // inte som hinder i promenad-AI:n – precis som husdjuren själva (data-pet-id).
-    if (showPets()) {
-      for (const apple of mat.apples()) {
-        stage.appendChild(appleNode(apple));
-      }
-      for (const pet of roomPets()) {
-        if (!pet.pos) pet.pos = { x: 50, y: 70 };
-        stage.appendChild(petStageNode(pet, selectedPetId === pet.id));
-      }
-      // Vanliga djur (fast storlek) promenerar bland mystery-djuren.
-      for (const a of djur.list()) {
-        stage.appendChild(djur.stageNode(a, selectedPetId === a.id));
-      }
+    // Djuren och maten i DET HÄR rummet (#698). Äpplen på golvet ritas UNDER
+    // husdjuren (så djuret syns ovanpå när det gnager). De är inga .room-item
+    // (data-id) och räknas därför inte som hinder i promenad-AI:n – precis som
+    // husdjuren själva (data-pet-id).
+    for (const apple of mat.apples()) {
+      stage.appendChild(appleNode(apple));
     }
-    const petsHere = showPets() && (roomPets().length > 0 || djur.list().length > 0);
+    for (const pet of roomPets()) {
+      if (!pet.pos) pet.pos = { x: 50, y: 70 };
+      stage.appendChild(petStageNode(pet, selectedPetId === pet.id));
+    }
+    // Vanliga djur (fast storlek) promenerar bland mystery-djuren.
+    for (const a of djur.list(currentRoom)) {
+      stage.appendChild(djur.stageNode(a, selectedPetId === a.id));
+    }
+    const petsHere = walkers().length > 0;
     if (Object.keys(placements).length === 0 && !petsHere) {
       stage.appendChild(el(`<div class="room-empty">${roomCount > 1
         ? `Rum ${currentRoom + 1} är tomt – öppna Möbler 📦 och möblera det!`
@@ -507,38 +515,74 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     // uppdaterar datan (farm.placedAnimals) + rummet direkt; hagen/ladan ritas
     // av gårds-grenen vid nästa besök (den läser placeringen färskt).
     listFarm: listFarmDjur,
-    onPlace: placeraFarmDjur,
+    // Djur i alla rum (#698): i flerrums-hus får husets djur rumsval.
+    listHouse: listHusDjur,
+    roomCount,
+    onPlace: placeraDjur,
   });
 
-  /** Bondgårdsdjuren som placerings-rader ({ id, name, location, artHtml }) –
-   * delas av Mina djur (ovan) och laggårdens Verktyg-panel (#359). */
+  /** Bondgårdsdjuren som placerings-rader ({ id, name, location, room, artHtml })
+   * – delas av Mina djur (ovan) och laggårdens Verktyg-panel (#359). */
   function listFarmDjur() {
     return djur.farmList().map((a) => ({
-      id: a.id, name: djur.displayName(a), location: a.location,
+      id: a.id, name: djur.displayName(a), location: a.location, room: djur.roomOf(a),
       artHtml: itemSvg(a.art) || (getItem(a.art)?.emoji ?? "🐾"),
     }));
   }
 
+  /** Husets djur (kläckta mystery-djur + vanliga djur, ej undanstuvade) som
+   * placerings-rader med sitt rum ({ id, name, room, artHtml }) – #698. */
+  function listHusDjur() {
+    return [
+      ...pets.filter((p) => p.hatchedAt && !p.stowed).map((p) => ({
+        id: p.id, name: petDisplayName(p), room: petRoom(p), artHtml: petArtThumb(p),
+      })),
+      ...djur.houseList().map((a) => ({
+        id: a.id, name: djur.displayName(a), room: djur.roomOf(a),
+        artHtml: itemSvg(a.art) || (getItem(a.art)?.emoji ?? "🐾"),
+      })),
+    ];
+  }
+
   /**
-   * Flytta ett bondgårdsdjur (rum/hage/lada): uppdaterar rummet + Mina djur
-   * direkt och sparar i bakgrunden. Delas av Mina djur och laggårdens
-   * Verktyg (#359, via rum-gettern i pages-varld.js).
-   * @returns {false|Promise} false = ladan full (inget ändrat); annars spar-
-   *   löftet, så anroparen kan rita om gårds-scenen när skrivningen landat.
+   * Sätt platsen för ett djur i data + minne (ingen omritning). Mystery-djur
+   * kan bara bo i husets rum; övriga går via djur-modulen (som håller lad-taket).
+   * @returns {false|Promise} false = inget ändrat; annars spar-löftet
    */
-  function placeraFarmDjur(id, location) {
-    // Ladan kan vara full (#333: nivå-tak på laggårds-platserna) – då ändras
-    // inget och eleven pekas mot uppgraderingen i shoppen.
-    const sparat = djur.setLocation(id, location);
+  function sattPlats(id, location) {
+    if (!pets.some((p) => p.id === id)) return djur.setLocation(id, location);
+    if (!isRoomLocation(location)) return false;
+    petPlats.set(id, location);
+    return data.setAnimalPlacement(id, location).catch(() => {});
+  }
+
+  /** Flytta ett djur i huset till rum `index` tyst (ingen omritning/flash). */
+  function flyttaTillRum(id, index) {
+    const nu = pets.some((p) => p.id === id) ? petRoom({ id }) : djur.roomOf(djur.byId(id) || {});
+    if (nu !== index) sattPlats(id, roomLocation(index));
+  }
+
+  /**
+   * Flytta ett djur (rum N/hage/lada): uppdaterar rummet + Mina djur direkt och
+   * sparar i bakgrunden. Delas av Mina djur och laggårdens Verktyg (#359, via
+   * rum-gettern i pages-varld.js).
+   * @returns {false|Promise} false = inget ändrat (t.ex. ladan full); annars
+   *   spar-löftet, så anroparen kan rita om gårds-scenen när skrivningen landat.
+   */
+  function placeraDjur(id, location) {
+    const sparat = sattPlats(id, location);
     if (!sparat) {
-      flash("Ladan är full! Uppgradera laggården i shoppen så får fler djur plats. 🏠", true);
+      // Ladan kan vara full (#333: nivå-tak på laggårds-platserna) – då ändras
+      // inget och eleven pekas mot uppgraderingen i shoppen.
+      if (location === "barn") flash("Ladan är full! Uppgradera laggården i shoppen så får fler djur plats. 🏠", true);
       return false;
     }
     if (selectedPetId === id) selectedPetId = null;
     renderStage();
     renderPets();
     djurTrayCtl?.render();
-    flash(location === "room" ? "Djuret bor nu i ditt rum! 🛏️"
+    const rum = roomIndexOf(location);
+    flash(rum !== null ? (roomCount > 1 ? `Djuret bor nu i Rum ${rum + 1}! 🛏️` : "Djuret bor nu i ditt rum! 🛏️")
       : location === "paddock" ? "Djuret går nu ute i hagen! 🌾"
       : "Djuret bor nu i ladan! 🏠");
     return sparat;
@@ -549,6 +593,8 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   // äpplena via mat.apples(), så mat måste skapas före första ritningen.
   const mat = mountRumMat({
     matBtn, stage, sd,
+    getRoom: () => currentRoom,
+    roomCount,
     getPets: () => pets,
     renderScene: () => renderStage(),
     renderApples: () => syncApples(),
@@ -569,8 +615,8 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   applyWallPalette();
 
   // Byt aktivt rum: spara ev. väntande ändring i det gamla rummet, peka om
-  // placements/fonster, färga väggarna och rita om. onRoomChange låter husvärlden
-  // uppdatera palettväljaren och dölja rum-0-verktyg (mat/djur) i extra rum.
+  // placements/fonster, färga väggarna och rita om (rummets egna djur + mat).
+  // onRoomChange låter husvärlden uppdatera palettväljaren.
   function goToRoom(index) {
     index = clamp(index, 0, roomCount - 1);
     if (index === currentRoom) return;
@@ -585,6 +631,8 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     applyWallPalette();
     renderStage();
     renderTray();
+    mat.refresh(); // mat-knappen räknar bara det nya rummets golvmat (#698)
+    djurTrayCtl?.render();
     if (onRoomChange) onRoomChange(index, roomModels[index].paletteId);
   }
 
@@ -718,6 +766,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
       if (drag.petId) {
         const pet = walkers().find((p) => p.id === drag.petId);
         if (pet) pet.pos = { x, y };
+        markeraDorr(pet && pet.hatchedAt ? dorrUnder(drag) : null);
       } else if (drag.zon === "fonster") {
         fonster.setPos(x, y);
       } else {
@@ -725,6 +774,9 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
       }
     },
     slapp: (drag) => {
+      // Ett djur som släpps på en dörr flyttar in i grannrummet (#698).
+      markeraDorr(null);
+      if (drag.moved && drag.petId && slapptPaDorr(drag)) return;
       if (drag.moved) {
         if (drag.petId) (djur.byId(drag.petId) ? djur.scheduleSave() : scheduleSavePets());
         else if (drag.zon === "fonster") fonster.scheduleSave();
@@ -747,6 +799,42 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     },
   });
 
+  /** Rums-dörren under pekaren i ett pågående drag (null = ingen/enrums-hus). */
+  function dorrUnder(drag) {
+    if (!vaxlare || drag.lastX == null) return null;
+    return [...stage.querySelectorAll(".rum-dorr[data-door]")].find((b) => {
+      if (b.hidden) return false;
+      const r = b.getBoundingClientRect();
+      return drag.lastX >= r.left && drag.lastX <= r.right && drag.lastY >= r.top && drag.lastY <= r.bottom;
+    }) || null;
+  }
+
+  /** Låt dörren under ett draget djur lysa (släpp där = flytta dit). */
+  function markeraDorr(dorr) {
+    for (const b of stage.querySelectorAll(".rum-dorr.dorr-mal")) if (b !== dorr) b.classList.remove("dorr-mal");
+    dorr?.classList.add("dorr-mal");
+  }
+
+  /**
+   * Släpptes det dragna djuret på en av rums-dörrarna? Då flyttar det in i
+   * grannrummet bakom dörren (#698) och kommer in vid den dörr som leder
+   * tillbaka. Pekarens sista punkt avgör (djuret självt hålls på golvet).
+   * @returns {boolean} true = djuret flyttades (draget är hanterat)
+   */
+  function slapptPaDorr(drag) {
+    const dorr = dorrUnder(drag);
+    if (!dorr) return false;
+    const mal = currentRoom + (dorr.dataset.door === "next" ? 1 : -1);
+    if (mal < 0 || mal >= roomCount) return false;
+    const djuret = walkers().find((p) => p.id === drag.petId);
+    if (!djuret || !djuret.hatchedAt || !placeraDjur(drag.petId, roomLocation(mal))) return false;
+    // In genom grannrummets motsatta dörr: till vänster om man gick "framåt".
+    djuret.pos = { x: dorr.dataset.door === "next" ? 15 : 85, y: 80 };
+    if (djur.byId(drag.petId)) djur.scheduleSave();
+    else scheduleSavePets();
+    return true;
+  }
+
   // Promenad-AI: kläckta husdjur går själva omkring på golvet mellan möblerna
   // (rum-promenad.js). Finns äpplen på golvet styr hungriga djur dit och äter
   // (seek-läge, mat.onEat). Valda/dragna djur pausar; loopen stoppar sig själv
@@ -755,11 +843,11 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     stage,
     // Mystery-djur OCH vanliga djur promenerar; bara mystery-djuren är
     // hungriga (isHungry i data-pet.js) så maten träffar aldrig de vanliga.
-    // Djuren promenerar bara i grundrummet – i extra rum ritas de inte, så
-    // getPets ger tom lista där (AI:n har då inget att flytta).
-    getPets: () => (showPets() ? walkers() : []),
+    // Bara djuren och maten i AKTIVA rummet (#698) – mat lockar alltså bara
+    // djur i samma rum.
+    getPets: walkers,
     isPetPaused: (pet) => pet.id === selectedPetId || dragCtl.pagar()?.petId === pet.id || isPetBusy(pet.id),
-    getApples: () => (showPets() ? mat.apples() : []),
+    getApples: () => mat.apples(),
     onEat: mat.onEat,
     onSettled: () => {
       saveWalkPositions();
@@ -772,8 +860,8 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   // (utan Firestore-läsning) om något ägg PASSERAT sin kläcktid och persisterar
   // först då – nykläckta firas som vid init via justHatchedId. Timern städas när
   // scenen lämnar DOM:en (sidbyte) – samma självstädning som promenad-AI:n.
-  // (Ägg/husdjur hör bara till grundrummet; kläckningen visas nästa gång rum 0
-  // ritas, men firandet sker direkt.)
+  // (Ägg bor i rum 1; kläckningen visas nästa gång rum 1 ritas, men firandet
+  // sker direkt.)
   let hatching = false;
   function anyEggDue() {
     const now = Date.now();
@@ -829,7 +917,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     // placerings-mekanik – samma minne som Mina djur, så rummet och lådan
     // ritas om direkt när ett djur flyttas från laggårds-panelen.
     listFarmDjur,
-    placeraFarmDjur,
+    placeraFarmDjur: placeraDjur,
     farmBarnCap: () => djur.barnCap(),
   };
 }
