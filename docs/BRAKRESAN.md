@@ -21,8 +21,8 @@ Pluggportalen – kodbasen vinner, §13).
 | Omgångsplan (10 st, 3/4/3, inga dubbletter, reservbank) | `src/brakresan/schema/omgangsplan.js` | klar |
 | Regler i siffror (stjärnor, mynt, drake, jakt, datum, status) | `src/brakresan/schema/regler.js` | klara |
 | Generatorgranskning (200 exempel/utmaning) | `src/brakresan/schema/granskning.js`, `test/brakresan-generatorer.test.js` | klar – körs för varje byggd utmaning |
-| 50 utmaningsfiler | `src/brakresan/utmaningar/u01.js` … `u50.js` | **byggda: 01–20 (D #709: 03, 12, 19 · E #710: övriga), 34**; delade hjälpfunktioner för E i `utmaningar/delat-e.js`; övriga stubbar – fylls av F/G |
-| Granskningsskript per utmaning (D #709) | `admin/qa-brakresan-generatorer.mjs` + egna kontroller `admin/qa-brakresan/uNN.mjs` | klart, `test/brakresan-utmaningar-d.test.js`, `test/brakresan-utmaningar-e.test.js` (E #710) |
+| 50 utmaningsfiler | `src/brakresan/utmaningar/u01.js` … `u50.js` | **byggda: 01–20 (D #709: 03, 12, 19 · E #710: övriga), 34, 36–50 (G #712)**; delade hjälpfunktioner för E i `utmaningar/delat-e.js`, för G i `utmaningar/delat-g.js` (elevsvar, blandad form, decimal/procent ur exakta värden); 50:s familjer i `u50-familjer.js`, `u50-resonemang.js`, `u50-delat.js`; övriga stubbar – fylls av F |
+| Granskningsskript per utmaning (D #709) | `admin/qa-brakresan-generatorer.mjs` + egna kontroller `admin/qa-brakresan/uNN.mjs` | klart, `test/brakresan-utmaningar-d.test.js`, `test/brakresan-utmaningar-e.test.js` (E #710), `test/brakresan-utmaningar-g.test.js` (G #712) |
 | Utmaningsvy + omgångsflöde (D #709) | `src/brakresan/omgang*.js`, `omgang.css`, `page-brakresan.js`, route `#/elev/brakresan?u=NN` | klart, §5b nedan, `test/brakresan-omgang-backend.test.js` |
 | Synk till Cloud Functions | `admin/sync-brakresan-functions.mjs` → `functions/brakresan/` | klar, predeploy + `test/brakresan-delat.test.js` |
 | Datamodell | `docs/DATAMODELL.md` "Bråkresan" | dokumenterad |
@@ -120,8 +120,9 @@ cirklar", "minst tre finare indelningar") + tre omgångar i följd med `avoidCor
 en `uNN.mjs` per utmaning och en rad i sin testfil (mönster: `test/brakresan-utmaningar-d.test.js`).
 
 **`minVariants` (D #709):** när utmaningens EGNA talgränser i §8 ger färre än 60 kärnor får
-`defineChallenge` ange `minVariants` (30–59) + `minVariantsReason`. Bara 34 använder det:
-nämnare 2–8, mgn ≤ 24, summa ≤ 1 och förkortade äkta addender ger exakt 42 talpar.
+`defineChallenge` ange `minVariants` (30–59) + `minVariantsReason`. 34: nämnare 2–8, mgn ≤ 24,
+summa ≤ 1 och förkortade äkta addender ger exakt 42 talpar. 13 (E) och 48 (G): A ≤ 2 med
+stambråk 1/2–1/8 och 2–8 bitar ger 43 talpar.
 
 **Flerstegsuppgift med stavar (`view.component: "omdelning"`, 34):** `bars: [{ parts, marked,
 label, maxDela }]` (verktyget "Dela varje bit i k", k ≤ maxDela), `expr` med `{ input: "id" }`
@@ -279,6 +280,22 @@ stället för att bygga egna.**
   uppgift): `PORT=8710 node server.mjs` → `preview/preview-brakresan-uppgifter.html?u=NN`
   (`&facit=1`, `&i=3`, `&seed=…`).
 
+### Tillägg från G #712 (36–50, alla opt-in)
+
+- **`kort`**: `helhet: true` – bildkortens helhetsetikett ("Hela hundrarutan = 1") syns även i
+  `stora` kort (43: helheten ska alltid vara uttalad). Utan flaggan döljs den som förut.
+- **`areamodell`**: `horizontal: { n: 0, d: m }` = raderna som rutnät utan vågräta ränder i
+  legenden – eleven målar själv den andra andelen inuti den lodräta (38). Läget avgörs av
+  utmaningens `validate` (målningen ska ligga i den randiga delen).
+- Mönster som G återanvänder: **multi med målning + tal** i `sammansatt` (36 över en hel på tre
+  stavar, 37 en stavram per kopia, 48 måttbitar på samma skala som målsträckan), **`omdelning`**
+  med `bars[].svar` för jämn delning (47: a · j delbart med k), **`sortering` order + categories**
+  mot en tallinje med punkter A–D (46), **`kort` lista** för rimlighets-/strategival (44, 50).
+- Alternativkort i samma val har alltid SAMMA form (40: decimaltal som `decimal`-form, inte text –
+  annars avslöjar storleken det rätta). Granskningen (`admin/qa-brakresan/u40.mjs`) fäller det.
+- Förhandsvisning: samma sida som E, `preview/preview-brakresan-uppgifter.html?u=36` … `?u=50`.
+  Skärmdumpar: `design/brakresan-712/`.
+
 ## 5b. Utmaningsvyn och omgångsflödet (D #709 – byggt)
 
 | Fil | Innehåll |
@@ -378,7 +395,7 @@ Färdigt i `src/brakresan/demo.js`: `demoRound(id, seed)` (tio hela uppgifter me
 | B #707 | `src/brakresan/komponenter/`, `preview/preview-brakresan-komponenter.html` |
 | C #708 | `functions/brakresan-core.js`, callables i `functions/index.js`, regler/index vid behov, `src/brakresan/data.js` |
 | D #709 | `utmaningar/u03.js`, `u12.js`, `u19.js`, `u34.js`, omgångsvyn (`src/brakresan/omgang*.js`), route, `admin/qa-brakresan-generatorer.mjs` |
-| E #710 / F #711 / G #712 | `utmaningar/u01–u20.js` (+ `delat-e.js`, komponenterna `sammansatt`, `figur`, `relationsval`, `bygge`, `gruppering`) / `u21–u35.js` / `u36–u50.js` (utom D:s fyra) |
+| E #710 / F #711 / G #712 | `utmaningar/u01–u20.js` (+ `delat-e.js`, komponenterna `sammansatt`, `figur`, `relationsval`, `bygge`, `gruppering`) / `u21–u35.js` / `u36–u50.js` (utom D:s fyra; + `delat-g.js`, `u50-*.js`, opt-in `kort.helhet` och areamodellens `horizontal.n = 0`) |
 | H #713 | huvudvyn (`huvudvy*.js`, `miniatyr.js`), drakpanelen (`drakpanel.js`), navigationen (`ui.js`, `gamemode-visibility.js`), `brakresaRenameDragon` |
 | I0 #718 / I #714 | drakens grafik och animation, `studentData.brakdrake` i huset |
 | J #715 | guldjakten |

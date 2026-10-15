@@ -68,7 +68,7 @@ export default defineChallenge({
     const enDel = N / k;
     const sit = SITUATIONER[situation];
     const sak = sit?.sak ?? "st";
-    const bandVy = { component: "stav", parts: k, marked: (p * k) / 100, label: `Hela bandet = ${N} ${sak} = 100 %` };
+    const bandVy = { component: "stav", parts: k, marked: (p * k) / 100, label: `Hela bandet = ${N}${sit ? ` ${sak}` : ""} = 100 %` };
     const grupper = !sit && N <= 36 ? { component: "mangd", count: N, groups: k, item: "kula", label: `Hela samlingen = ${N} kulor = 100 %` } : null;
     const modell = grupper ?? bandVy;
     const expr = [{ text: `${p} % av ${N} =` }, { input: true }, ...(sit ? [{ text: sak }] : [])];
