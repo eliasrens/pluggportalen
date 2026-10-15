@@ -139,7 +139,8 @@ kistformat – byt tema, inte motor:
 **Hemligheter per elev** (Datakuppens koder) är ett mönster värt att
 återanvända: ett dokument bara eleven själv läser (`dkSelf/{uid}`) och ett
 bara servern läser (`dkSecret/{uid}`) – det publika spelardokumentet bär aldrig
-hemligheten. Händelser som inte flyttar saldo (misslyckat hack) skrivs inte
+hemligheten. Elevskärmen visar hemligheten dold ("Visa kod", #719) eftersom
+den gäller hela matchen. Händelser som inte flyttar saldo (misslyckat hack) skrivs inte
 som händelser utan räknas på spelardokumentet (`hackAttempts`).
 
 ---
@@ -444,7 +445,7 @@ i minnet – utan Firestore, Cloud Functions eller Pluggmynt.
   formatets specialhändelser, "tiden snart slut", final/pallplats och
   oavgjort om förstaplatsen.
 - **Moment som bara syns på elevskärmen** (Datakuppens koder, minnesmomentet,
-  byt kod) visas med en kopplad demo: `preview/preview-datakuppen-demolage.html`
+  koden kvar efter hack, dold kod bakom "Visa kod") visas med en kopplad demo: `preview/preview-datakuppen-demolage.html`
   lägger projektordemon och elevvyn (mot en låtsasserver med formatets delade
   regler) sida vid sida i samma match och spelar upp en guidad genomgång.
   Elevvyn delar projektordemons spelardokument (`shared: true`); utfallet

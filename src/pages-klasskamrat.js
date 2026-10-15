@@ -16,12 +16,13 @@ import * as data from "./data.js";
 import { avatarMarkup, DEFAULT_AVATAR, avatarName } from "./avatars.js";
 import { app, el, go, loading, pageError, getParams, clamp } from "./ui.js";
 import { getItem, isWearable, isFlatItem, itemIdFromKey } from "./shop-items.js";
-import { itemSvg, itemSize } from "./art-items.js";
+import { itemSvg, itemSize, itemRiktning, riktningsFalt, loadCollectionArt } from "./art-items.js";
 import { roomBackdropHtml, windowItemHtml, WINDOW_DEFAULT } from "./art-room.js";
 import { getPalette } from "./room-palettes.js";
 import { petsFromData } from "./data-pet.js";
 import { petReadonlyNode } from "./pages-rum-pets.js";
 import { animalsFromData } from "./data-animals.js";
+import { farmFromData, homeRoomFor } from "./farm-core.js";
 import { mountRumVaxlare } from "./varld-rum-vaxlare.js";
 import { possessiv } from "./text-format.js";
 
@@ -94,6 +95,7 @@ export async function pageElevKlasskamrat() {
     const [sdRes, studentRes] = await Promise.all([
       data.getStudentData(otherId),
       data.getStudent(otherId).catch(() => null),
+      loadCollectionArt(), // säsongssamlingarnas konst (#692, lazy)
     ]);
     sd = sdRes;
     student = studentRes;
@@ -147,12 +149,15 @@ export async function pageElevKlasskamrat() {
   const roomCount = rooms.length;
   let curRoom = 0;
 
-  // Kompisens djur (READ-ONLY): mystery-djuren + vanliga djuren. De bor bara i
-  // GRUNDRUMMET (rum 0), precis som i elevens eget rum. Byggs en gång och läggs
-  // in ovanpå möblerna när rum 0 visas.
-  const petNodes = petsFromData(sd).map((pet) => petReadonlyNode(pet)).filter(Boolean);
-  const djurNodes = animalsFromData(sd).map((a) => animalReadonlyNode(a)).filter(Boolean);
-  const hasDjurRum0 = petNodes.length > 0 || djurNodes.length > 0;
+  // Kompisens djur (READ-ONLY): mystery-djuren + vanliga djuren, var och ett i
+  // sitt rum (#698: farm.placedAnimals "room:N", ingen post = rum 1) – precis
+  // som i elevens eget rum. Byggs en gång och läggs in ovanpå möblerna.
+  const farm = farmFromData(sd);
+  const djurNodes = [
+    ...petsFromData(sd).map((pet) => [pet.id, petReadonlyNode(pet)]),
+    ...animalsFromData(sd).map((a) => [a.uid, animalReadonlyNode(a)]),
+  ].filter(([, node]) => node).map(([id, node]) => ({ node, room: homeRoomFor(farm, id, roomCount) ?? 0 }));
+  const djurI = (rum) => djurNodes.filter((d) => d.room === rum).map((d) => d.node);
 
   const view = el(`<div>
     <a class="back-link" id="back">← ${back.label}</a>
@@ -206,7 +211,7 @@ export async function pageElevKlasskamrat() {
       if (hrPokaler.has(key) && pos) {
         placements[key] = { x: clamp(pos.x, 0, 100), y: clamp(pos.y, 0, 100) };
       } else if (owned.includes(id) && !isWearable(id) && getItem(id) && pos) {
-        placements[key] = { x: clamp(pos.x, 0, 100), y: clamp(pos.y, 0, 100) };
+        placements[key] = { x: clamp(pos.x, 0, 100), y: clamp(pos.y, 0, 100), ...riktningsFalt(pos) };
       }
     }
     // Platta golvsaker (mattor) ritas FÖRST så möbler/dekor staplas ovanpå dem.
@@ -217,9 +222,11 @@ export async function pageElevKlasskamrat() {
         const pos = placements[key];
         if (hrPokaler.has(key)) return hrPokalMod.pokalLasHtml(hrPokaler.get(key), pos);
         const item = getItem(id);
-        const size = itemSize(id);
+        // Kamratens vridna/vända möbler (#699) ritas som de ställts.
+        const { rot, spegel } = itemRiktning(id, pos);
+        const size = itemSize(id, rot);
         return `<div class="room-item readonly" style="left:${pos.x}%;top:${pos.y}%" title="${esc(item.name)}">
-          <span class="ri-emoji" style="width:${size.w}rem;height:${size.h}rem">${itemSvg(id) || item.emoji}</span>
+          <span class="ri-emoji${spegel ? " spegel" : ""}" style="width:${size.w}rem;height:${size.h}rem">${itemSvg(id, { rot }) || item.emoji}</span>
         </div>`;
       })
       .join("");
@@ -235,18 +242,15 @@ export async function pageElevKlasskamrat() {
             interactive: false,
           });
 
-    const showPets = curRoom === 0;
-    const empty = Object.keys(placements).length === 0 && !(showPets && hasDjurRum0);
+    const djurHar = djurI(curRoom);
+    const empty = Object.keys(placements).length === 0 && djurHar.length === 0;
     const emptyHtml = empty
       ? `<div class="room-empty">${roomCount > 1 ? `Rum ${curRoom + 1} är fortfarande tomt. 🕸️` : "Det här rummet är fortfarande tomt. 🕸️"}</div>`
       : "";
     stage.innerHTML = roomBackdropHtml() + windowHtml + itemsHtml + emptyHtml;
 
-    // Djuren läggs in EFTER möblerna så de hamnar överst (bara i rum 0).
-    if (showPets) {
-      for (const node of petNodes) stage.appendChild(node);
-      for (const node of djurNodes) stage.appendChild(node);
-    }
+    // Djuren läggs in EFTER möblerna så de hamnar överst (rummets egna djur).
+    for (const node of djurHar) stage.appendChild(node);
     // Rums-växlaren överst (samma nod-objekt varje gång → lyssnare kvar).
     if (vaxlare) {
       stage.appendChild(vaxlare.listBar);
@@ -264,6 +268,18 @@ export async function pageElevKlasskamrat() {
       renderRoomStage();
     })
     .catch(() => {});
+
+  // Kamratens Bråkdrake (#714): lat, stilla, under djuren – bara när den finns.
+  if (sd.brakdrake?.id) {
+    import("./brakresan/rum-drake.js")
+      .then((m) => {
+        const d = m.drakeLasNod(sd, roomCount, stage);
+        if (!d || !stage.isConnected) return;
+        djurNodes.unshift(d);
+        renderRoomStage();
+      })
+      .catch(() => {});
+  }
 
   view.querySelector("#back").addEventListener("click", () => go(back.href));
   view.querySelector("#to-klass").addEventListener("click", () => go(back.href));

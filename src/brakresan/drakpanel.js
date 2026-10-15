@@ -24,6 +24,8 @@
 //   onJakt – efter en BEKRÄFTAD jakt (svaret från brakresaHunt): uppdatera saldo/state
 //   idag   – "ÅÅÅÅ-MM-DD" för visningen; standard = enhetens svenska datum. Bara
 //            visning: servern avgör jakten med sin klocka.
+//   atgarder – extra knappar längst ner [{ text, gor }] (huset #714: "vila i
+//            Mina djur"); ett klick stänger panelen och kör sedan gor().
 // ============================================================================
 
 import { h } from "./komponenter/bas.js";
@@ -196,7 +198,7 @@ function jaktDel(info, jakt) {
  * @returns {Promise<void>} när panelen stängts
  */
 export async function oppnaDrakpanel({
-  state, byt, jakt, onJakt, forandring = null, onVisad, onNamn, fokusTillbaka = null, idag = stockholmDate(Date.now()),
+  state, byt, jakt, onJakt, forandring = null, onVisad, onNamn, fokusTillbaka = null, idag = stockholmDate(Date.now()), atgarder = [],
 } = {}) {
   await ensureDrakpanelCss();
   const info = drakInfo(state, { idag });
@@ -219,7 +221,9 @@ export async function oppnaDrakpanel({
       namn.el,
       h("p", { class: "bdp-niva" }, h("strong", null, info.nivaText), " · ", info.starsText),
       progressNod(info),
-      jaktDel(info, jakt)));
+      jaktDel(info, jakt),
+      atgarder.length ? h("div", { class: "bdp-atgarder" }, ...atgarder.map((a) =>
+        h("button", { type: "button", class: "bdp-knapp", onclick: () => { dlg.close(); a.gor(); } }, a.text))) : null));
   document.body.append(dlg);
   const klar = new Promise((resolve) => {
     dlg.addEventListener("close", () => {

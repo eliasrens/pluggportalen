@@ -7,6 +7,7 @@
 //   • så/vattna/skörda-flödet inkl. felvägar (upptagen slot, för tidig skörd)
 //   • förrådet (adjustInventoryIn) klamrar mot 0 och städar noll-poster
 //   • djurplaceringar (setPlacementIn) – "room" = default, sparas aldrig
+//   • djur i alla rum (#698) – "room:N", rum 1 sparas aldrig, färre rum → rum 1
 // Körs browser-fritt:  node --test test/farm-core.test.js
 // ============================================================================
 
@@ -23,6 +24,10 @@ import {
   adjustInventoryIn,
   setPlacementIn,
   placementFor,
+  roomIndexOf,
+  roomLocation,
+  isRoomLocation,
+  homeRoomFor,
   cropInSlot,
   slotCountForTier,
   barnPlaceCountForLevel,
@@ -389,4 +394,69 @@ test("barnSkin är rent kosmetiskt: kapacitet/placering styrs bara av barnLevel"
   assert.equal(c.ok, false);
   assert.equal(c.error, "ladan är full");
   assert.equal(b.farm.barnSkin, "lada-rymd"); // skinnet följer med oförändrat
+});
+
+test("#698 rum-platser: roomIndexOf/roomLocation/isRoomLocation", () => {
+  assert.equal(roomIndexOf("room"), 0);
+  assert.equal(roomIndexOf("room:0"), 0);
+  assert.equal(roomIndexOf("room:2"), 2);
+  assert.equal(roomIndexOf("paddock"), null);
+  assert.equal(roomIndexOf("barn"), null);
+  for (const fel of ["room:", "room:-1", "room:1.5", "room:x", "room:99", "rum:1", null, 3]) {
+    assert.equal(roomIndexOf(fel), null, String(fel));
+  }
+  assert.equal(roomLocation(0), "room");
+  assert.equal(roomLocation(1), "room:1");
+  assert.equal(roomLocation(3), "room:3");
+  assert.equal(isRoomLocation("room:1"), true);
+  assert.equal(isRoomLocation("paddock"), false);
+});
+
+test("#698 setPlacementIn: room:N sparas, room:0 = rum 1 sparas aldrig", () => {
+  const r1 = setPlacementIn(defaultFarm(), "p1", "room:2");
+  assert.equal(r1.ok, true);
+  assert.deepEqual(r1.farm.placedAnimals, [{ petId: "p1", location: "room:2" }]);
+  assert.equal(placementFor(r1.farm, "p1"), "room:2");
+  // Flytt mellan rum ersätter posten.
+  const r2 = setPlacementIn(r1.farm, "p1", "room:1");
+  assert.deepEqual(r2.farm.placedAnimals, [{ petId: "p1", location: "room:1" }]);
+  // Rum 1 ("room:0" eller "room") → posten tas bort.
+  assert.deepEqual(setPlacementIn(r2.farm, "p1", "room:0").farm.placedAnimals, []);
+  assert.deepEqual(setPlacementIn(r2.farm, "p1", "room").farm.placedAnimals, []);
+  // Ogiltiga rum.
+  assert.equal(setPlacementIn(r2.farm, "p1", "room:x").ok, false);
+  assert.equal(setPlacementIn(r2.farm, "p1", "room:99").ok, false);
+  // Rum räknas inte mot lad-taket.
+  const full = { ...defaultFarm(), placedAnimals: [{ petId: "a", location: "barn" }, { petId: "b", location: "barn" }] };
+  assert.equal(setPlacementIn(full, "c", "room:3").ok, true);
+});
+
+test("#698 farmFromData: behåller room:N, städar room:0 och trasiga rum", () => {
+  const farm = farmFromData({
+    farm: {
+      placedAnimals: [
+        { petId: "a", location: "room:1" },
+        { petId: "b", location: "room:0" },
+        { petId: "c", location: "room:nej" },
+        { petId: "d", location: "paddock" },
+      ],
+    },
+  });
+  assert.deepEqual(farm.placedAnimals, [
+    { petId: "a", location: "room:1" },
+    { petId: "d", location: "paddock" },
+  ]);
+});
+
+test("#698 homeRoomFor: ingen post = rum 1, färre rum = rum 1, gården = null", () => {
+  const farm = farmFromData({
+    farm: { placedAnimals: [{ petId: "a", location: "room:2" }, { petId: "h", location: "paddock" }] },
+  });
+  assert.equal(homeRoomFor(farm, "a", 3), 2);
+  assert.equal(homeRoomFor(farm, "a", 2), 0); // huset har bara 2 rum → rum 1
+  assert.equal(homeRoomFor(farm, "a", 1), 0);
+  assert.equal(homeRoomFor(farm, "ny", 3), 0); // ingen post
+  assert.equal(homeRoomFor(farm, "h", 3), null); // i hagen
+  // Elev utan farm alls: alla djur i rum 1.
+  assert.equal(homeRoomFor(farmFromData({}), "x", 4), 0);
 });

@@ -56,6 +56,7 @@ export const DECOR = {
   // Världskarta: trälister upptill/nedtill, upphängningssnöre & kompassros.
   "poster-varld": {
     viewBox: "0 0 56 72",
+    text: true, // karta – spegelvänd blir världen fel → ingen ↔ Vänd (#699)
     w: 3.6,
     art:
       `<path d="M7 12 L28 3 L49 12" fill="none" ${THIN}/>` +
@@ -183,6 +184,7 @@ export const DECOR = {
   // Väggklocka: träring, timmarkeringar runt om & blank urtavla.
   vaggklocka: {
     viewBox: "0 0 56 56",
+    text: true, // urtavla – spegelvänd går klockan baklänges → ingen ↔ Vänd (#699)
     w: 3.0,
     art:
       `<circle cx="28" cy="28" r="24" fill="${WOOD}" ${LINE}/>` +

@@ -200,6 +200,9 @@
 .bdp-knapp--primar:hover { background: var(--bdp-turkos); }
 .bdp-knapp:disabled { opacity: .6; cursor: default; }
 
+/* Extra knappar längst ner (huset #714: "Låt draken vila i Mina djur"). */
+.bdp-atgarder { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+
 /* --- guldjakten (#715, guldjakt.js) ------------------------------------------ */
 .gj-knapp {
   justify-self: start;

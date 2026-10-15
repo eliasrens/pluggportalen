@@ -12,8 +12,9 @@
 //     matbit på golvet flyttar den tillbaka till förrådet (appleCount + 1),
 //     så läget går även att öppna med tomt förråd så länge det ligger mat ute.
 //   * floorApples: maten som ligger på golvet – ritas i scenen och söks upp av
-//     promenad-AI:n (rum-promenad.js seek-läge). BARA mystery-djuren (sprite-
-//     arterna Fjärlis/Flammis) dras mot och äter maten – se isHungry i
+//     promenad-AI:n. Varje bit ligger i ETT rum (#698: `room`, saknas = rum 1)
+//     och bara det aktiva rummets mat ritas/lockar – alltså bara djur i samma rum (rum-promenad.js seek-läge). BARA mystery-djuren (arter med
+//     mystery-flaggan: sprite-arterna + Halloween-djuren) dras mot och äter maten – se isHungry i
 //     data-pet.js.
 //   * onEat(): när ett mystery-djur nått fram och ätit → ta bort maten, öka
 //     djurets feedCount (transaktion i data-pet.js), räkna om steget (10/20
@@ -37,6 +38,8 @@ import { FLOOR_TOP } from "./art-room.js";
  * @param {HTMLElement} [o.matBtn]  "Mysterymat"-knappen (i husvärldens verktygsrad)
  * @param {HTMLElement} o.stage     rumsscenen (.room-stage) – klick placerar mat
  * @param {object} o.sd             studentData (läser appleCount + floorApples)
+ * @param {() => number} [o.getRoom]  aktivt rum-index (maten läggs/ses per rum, #698)
+ * @param {number} [o.roomCount=1]  antal rum (mat i ett rum huset saknar → rum 1)
  * @param {() => object[]} o.getPets  aktuell pets-lista (muteras vid matning)
  * @param {() => void} o.renderScene  rita om HELA rumsscenen (bara vid tillväxt –
  *   djuret byter storlek). Vardaglig mat-ritning går via renderApples (issue #60).
@@ -47,13 +50,19 @@ import { FLOOR_TOP } from "./art-room.js";
  * @param {(petId: string) => boolean} o.isSelected  är djurets panel öppen?
  * @param {() => void} [o.onActivate]  körs när placera-läget slås PÅ (så
  *   husvärlden kan stänga öppna paneler – lägena är ömsesidigt uteslutande)
- * @returns {{ apples: () => object[], onEat: (pet, apple) => void, exitPlacing: () => void }}
- *   apples() = mat på golvet (för scenritning + AI), onEat = ät-callback åt AI:n,
- *   exitPlacing() = gemensam väg att avsluta mat-läget (panel-/menystängning).
+ * @returns {{ apples: () => object[], onEat: (pet, apple) => void, exitPlacing: () => void,
+ *   refresh: () => void }}
+ *   apples() = mat på golvet I AKTIVA RUMMET (för scenritning + AI), onEat =
+ *   ät-callback åt AI:n, exitPlacing() = gemensam väg att avsluta mat-läget
+ *   (panel-/menystängning), refresh() = rita om knappen (efter rumsbyte).
  */
-export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderApples, renderPanel, isSelected, onActivate }) {
-  // Speglar studentData: floorApples (på golvet) + appleCount (outlagd mat).
+export function mountRumMat({ matBtn, stage, sd, getRoom = () => 0, roomCount = 1, getPets, renderScene, renderApples, renderPanel, isSelected, onActivate }) {
+  // Speglar studentData: floorApples (på golvet, alla rum) + appleCount (outlagd mat).
   let floorApples = Array.isArray(sd.floorApples) ? sd.floorApples.map((a) => ({ ...a })) : [];
+  /** Rummet en matbit ligger i – saknat/ogiltigt eller rum huset saknar → rum 1. */
+  const appleRoom = (a) => (Number.isInteger(a.room) && a.room > 0 && a.room < roomCount ? a.room : 0);
+  /** Maten i det aktiva rummet (det enda som ritas, kan plockas upp och lockar djur). */
+  const here = () => floorApples.filter((a) => appleRoom(a) === getRoom());
   let appleCount = sd.appleCount || 0;
   const eating = new Set(); // mat-id:n där en ät-transaktion redan pågår
   const placingPending = new Set(); // mat-id:n vars placeApple-skrivning är i luften
@@ -65,10 +74,10 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderApp
     matBtn.innerHTML = `🍎 <span>${label}${appleCount > 0 ? ` (${appleCount})` : ""}</span>`;
     // Knappen ska gå att använda även med tomt förråd om det ligger mat på
     // golvet – läget behövs då för att kunna plocka upp den (#347).
-    matBtn.disabled = appleCount <= 0 && floorApples.length === 0;
+    matBtn.disabled = appleCount <= 0 && here().length === 0;
     matBtn.classList.toggle("aktiv", placing);
     matBtn.setAttribute("aria-pressed", placing ? "true" : "false");
-    matBtn.title = appleCount > 0 || floorApples.length > 0
+    matBtn.title = appleCount > 0 || here().length > 0
       ? (placing
           ? "Klicka på golvet för att lägga ut Mysterymat, eller på en matbit för att plocka upp den (Esc för att avsluta)"
           : "Klicka ut Mysterymat på golvet – bara mystery-djuren går och äter. Utlagd mat kan plockas upp igen.")
@@ -80,7 +89,7 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderApp
   function setPlacing(on) {
     // Läget är meningsfullt både med mat i förrådet (lägga ut) och med mat på
     // golvet (plocka upp, #347) – därav dubbelvillkoret.
-    const next = on && (appleCount > 0 || floorApples.length > 0);
+    const next = on && (appleCount > 0 || here().length > 0);
     if (next === placing) {
       updateMatBtn();
       return;
@@ -134,7 +143,7 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderApp
       return;
     }
     if (appleCount <= 0) {
-      if (floorApples.length === 0) {
+      if (here().length === 0) {
         // Både förrådet och golvet tomt (djuren kan ha ätit upp allt medan
         // läget var öppet): inget kvar att göra – stäng läget.
         setPlacing(false);
@@ -168,20 +177,22 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderApp
   // id skickas till servern, så ät-flödet (onEat → eatApple) hittar rätt bit.
   function placeAt(x, y) {
     if (appleCount <= 0) {
-      if (floorApples.length === 0) setPlacing(false);
+      if (here().length === 0) setPlacing(false);
       flash("Du har ingen Mysterymat kvar – köp mer i shoppen! 🍎", true);
       return;
     }
-    const apple = { id: newAppleId(), x, y };
+    // Biten hamnar i det aktiva rummet; rum 1 sparas utan `room` (som förut).
+    const room = getRoom();
+    const apple = room > 0 ? { id: newAppleId(), x, y, room } : { id: newAppleId(), x, y };
     floorApples.push(apple);
     appleCount -= 1;
     placingPending.add(apple.id); // plocka-upp väntar tills skrivningen landat (#347)
     renderApples(); // appenda BARA den nya matnoden (ingen full scen-ombyggnad)
     // Slut på mat OCH inget kvar på golvet att plocka upp → lämna läget.
-    if (appleCount <= 0 && floorApples.length === 0) setPlacing(false);
+    if (appleCount <= 0 && here().length === 0) setPlacing(false);
     updateMatBtn();
 
-    placeApple(x, y, undefined, apple.id).then((res) => {
+    placeApple(x, y, undefined, apple.id, room).then((res) => {
       placingPending.delete(apple.id);
       if (!res.ok) {
         // Servern hade slut på mat: rulla tillbaka biten och korrigera räknaren.
@@ -278,7 +289,7 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderApp
   // Knappen togglar placera-läget (i stället för att slumpa ut ett äpple direkt).
   if (matBtn) {
     matBtn.addEventListener("click", () => {
-      if (appleCount <= 0 && floorApples.length === 0) {
+      if (appleCount <= 0 && here().length === 0) {
         flash("Du har ingen Mysterymat – köp i shoppen! 🍎", true);
         return;
       }
@@ -292,5 +303,5 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderApp
   // sväljer klick på dörrar/rumslistan), exitPlacing() av husvärldens panel-/
   // menystängning (mat och paneler är ömsesidigt uteslutande lägen).
   const stopPlacing = () => setPlacing(false);
-  return { apples: () => floorApples, onEat, cancelPlacing: stopPlacing, exitPlacing: stopPlacing };
+  return { apples: here, onEat, cancelPlacing: stopPlacing, exitPlacing: stopPlacing, refresh: updateMatBtn };
 }
