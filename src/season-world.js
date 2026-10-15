@@ -7,7 +7,8 @@
 //     säsongsdekor i konsten (.sz-bara-host m.fl., styles/32-sasong.css)
 //   • <style id="sz-palett"> – paletten (SEASONS[...].palette) som
 //     --sz-*-variabler, BARA på världen (.varld-stage, rumsfönstret) och
-//     inloggningen (.port-scen, lärarspärren). Sommar = tom = dagens färger.
+//     inloggningen (.port-scen, port-övergångens overlay .port-overgang,
+//     lärarspärren). Sommar = tom = dagens färger.
 //   • lövlager (≤16 löv, CSS transform/opacity) + fladdermöss (Halloween,
 //     bara inloggningen); pausas i dold flik, av vid reducerad rörelse.
 //
@@ -45,7 +46,9 @@ export function paletteCss(theme) {
   const l = decl(theme.login);
   return (
     (w ? `.varld-stage,.room-window{${w}}` : "") +
-    (l ? `.port-scen,body:has(.sz-gate){${l}}` : "")
+    // .port-overgang: port-overgang.js flyttar scenens SVG dit (utanför
+    // .port-scen) – utan den här blev zoomen sommargrön (#727).
+    (l ? `.port-scen,.port-overgang,body:has(.sz-gate){${l}}` : "")
   );
 }
 
