@@ -7,7 +7,11 @@
 // generatorns neutrala id och ordningen är generatorns (blandad där). Valt
 // kort syns med kraftig ram + bock + text för skärmläsare – inte bara färg.
 //
-// view = { component: "kort", cards: [{ id, face }] } där face är
+// view = { component: "kort", cards: [{ id, face }], stora? } där face är
+//   (stora: true = större kort och bilder i storleken "kort" – E #710, när bilden är uppgiften;
+//    lista: true = textkort under varandra i full bredd, t.ex. förklaringar;
+//    jamfor: true = knappen "Jämför två kort": två valfria kort visas stora sida vid sida,
+//    UTAN något likhetssvar – ett verktyg, inte ett val (spec §8 06))
 //   en form (form.js) · { text } · en mini-modell { component: "stav" | "cirkel" | … }
 // Läget följer opts.answer.type:
 //   choice  { id }          ett kort (t.ex. "Vilket kort är fel?")
@@ -23,13 +27,13 @@ import { formNod } from "./notation.js";
 const PARMARKEN = ["●", "▲", "■", "◆", "★", "✚", "⬟", "⬢"];
 
 /** Kortets framsida. Mini-modeller laddas lat (index.js) och fylls i när de är klara. */
-export function kortFramsida(face, vantan = []) {
+export function kortFramsida(face, vantan = [], storlek = "mini") {
   const yta = h("span", { class: "br-kortyta" });
   if (face?.kind) yta.append(formNod(face, { klass: "br-tal--kort" }));
   else if (face?.component) {
     yta.classList.add("br-kortyta--modell");
     vantan.push(import("./index.js").then(({ createComponent }) =>
-      createComponent(yta, face, { interactive: false, size: "mini" })));
+      createComponent(yta, face, { interactive: false, size: storlek })));
   } else yta.append(h("span", { class: "br-korttext" }, String(face?.text ?? face ?? "")));
   return yta;
 }
@@ -40,8 +44,13 @@ export function createKort(host, view, opts = {}) {
   const behov = opts.answer?.count || 0;
   const grid = h("div", { class: "br-kortgrid", role: "group" });
   const status = h("div", { class: "br-kortstatus", "aria-live": "polite" });
-  const rot = h("div", { class: `br-kortlek br-kortlek--${lage}` }, grid, status);
+  const jamforKnapp = view.jamfor && lage !== "visning"
+    ? h("button", { type: "button", class: "br-knapp br-verktygknapp br-jamforknapp", "aria-pressed": "false" }, "Jämför två kort") : null;
+  const jamforYta = jamforKnapp ? h("div", { class: "br-jamforyta", hidden: "", "aria-live": "polite" }) : null;
+  const rot = h("div", { class: `br-kortlek br-kortlek--${lage}${view.stora ? " br-kortlek--stora" : ""}${view.lista ? " br-kortlek--lista" : ""}` },
+    jamforKnapp, jamforYta, grid, status);
   const bas = skapaBas(host, rot, view, opts);
+  if (view.stora) grid.style.setProperty("--br-kol", String(view.cards.length === 4 ? 2 : Math.min(3, view.cards.length)));
   grid.setAttribute("aria-label", opts.label || (lage === "pairs" ? "Kort att para ihop" : lage === "select" ? `Välj ${behov} kort` : "Kort"));
   const vantan = [];
   const valda = new Set();
@@ -52,7 +61,7 @@ export function createKort(host, view, opts = {}) {
     const el = h(lage === "visning" ? "div" : "button", {
       class: "br-kort", "data-kort": String(c.id), type: lage === "visning" ? null : "button",
       "aria-label": null,
-    }, h("span", { class: "br-kortbock", "aria-hidden": "true" }), kortFramsida(c.face, vantan),
+    }, h("span", { class: "br-kortbock", "aria-hidden": "true" }), kortFramsida(c.face, vantan, view.stora ? "kort" : "mini"),
     h("span", { class: "br-kortnamn" }, `Kort ${i + 1}`));
     grid.append(el);
     return el;
@@ -77,8 +86,32 @@ export function createKort(host, view, opts = {}) {
     else if (lage === "pairs") status.textContent = `Par: ${par.length} av ${Math.floor(kort.length / 2)}${vantar ? " – välj kortet som hör ihop" : ""}`;
   }
 
+  // Jämförelseläget: klick väljer kort att visa sida vid sida (högst två), inte svar.
+  let jamfor = null;
+  const ritaJamfor = () => {
+    for (const el of kort) el.classList.toggle("br-jamfors", !!jamfor?.has(el.dataset.kort));
+    if (!jamfor) return;
+    const valda = view.cards.filter((c) => jamfor.has(String(c.id)));
+    jamforYta.replaceChildren(...(valda.length
+      ? valda.map((c) => h("div", { class: "br-jamfor-kort" }, h("div", { class: "br-jamfor-namn" }, `Kort ${view.cards.indexOf(c) + 1}`), kortFramsida(c.face, [], "kort")))
+      : [h("p", { class: "br-jamfor-tom" }, "Tryck på två kort för att se dem sida vid sida.")]));
+  };
+  jamforKnapp?.addEventListener("click", () => {
+    jamfor = jamfor ? null : new Set();
+    jamforYta.hidden = !jamfor;
+    jamforKnapp.setAttribute("aria-pressed", String(!!jamfor));
+    jamforKnapp.textContent = jamfor ? "Klar med jämförelsen" : "Jämför två kort";
+    ritaJamfor();
+  });
   grid.addEventListener("click", (e) => {
     const el = e.target.closest(".br-kort");
+    if (el && jamfor) {
+      const id = el.dataset.kort;
+      if (jamfor.has(id)) jamfor.delete(id);
+      else { if (jamfor.size >= 2) jamfor.delete([...jamfor][0]); jamfor.add(id); }
+      ritaJamfor();
+      return;
+    }
     if (!el || bas.last || !bas.interaktiv || lage === "visning") return;
     const id = el.dataset.kort;
     if (lage === "choice") {

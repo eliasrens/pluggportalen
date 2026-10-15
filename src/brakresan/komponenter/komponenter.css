@@ -332,3 +332,96 @@ div.br-kort { cursor: default; }
 }
 .br-hundra-svg .br-cell { stroke-width: 1; stroke-opacity: .55; }
 .br-area--steg .br-areacell:not(.br-vald) { stroke: none; }
+
+/* --- E #710: sammansatt, figur, relationsval -------------------------------- */
+.br-sammansatt { justify-items: stretch; }
+.br-sammansatt-delar { display: grid; gap: 12px; width: 100%; }
+.br-sammansatt-delar--rad { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); align-items: start; }
+.br-sammansatt-del { display: grid; gap: 4px; justify-items: center; min-width: 0; }
+.br-sammansatt-rubrik { font-weight: 800; font-size: 1.3rem; color: var(--br-lila); }
+.br-k.br-k--inbaddad { padding: 4px; border-width: 2px; background: transparent; max-width: none; }
+.br-k.br-k--inbaddad.br-kortlek, .br-k.br-k--inbaddad.br-sortering { max-width: none; }
+.br-figur-svg--cirkel { max-width: 260px; }
+.br-k--mini .br-figur-svg--cirkel { max-width: 120px; }
+.br-figur .br-figur-del { cursor: default; }
+.br-figur .br-yta.br-figur-del:not(.br-region) { stroke: var(--br-black); stroke-width: 2.5; stroke-linejoin: round; }
+.br-figur-overlagg { fill: var(--br-turkos); fill-opacity: .22; stroke: var(--br-black); stroke-width: 2.5; }
+.br-figur-skugga { fill: #fff; stroke: var(--br-black); stroke-opacity: .35; stroke-width: 2; stroke-dasharray: 6 5; }
+.br-figur-startlinje { stroke: var(--br-lila); stroke-width: 4; }
+.br-figur-ruta { stroke-opacity: .45; }
+.br-relationsval { grid-template-columns: 1fr auto 1fr; align-items: center; }
+.br-relsida { display: grid; place-items: center; font-size: 2rem; font-weight: 800; }
+.br-relsida-text { font-size: 1.8rem; color: var(--br-lila); }
+.br-relval-lista { display: grid; gap: 8px; }
+.br-relval {
+  display: flex; align-items: center; gap: 10px; min-height: 48px; margin: 0; padding: 6px 14px;
+  font: inherit; font-weight: 700; text-align: left; border-radius: 14px; cursor: pointer;
+  border: 3px solid var(--br-lila); background: #fff; color: var(--br-text); box-shadow: 0 4px 0 rgba(59, 51, 80, .18);
+}
+span.br-relval { cursor: default; box-shadow: none; }
+.br-relval-tecken { font-size: 1.8rem; line-height: 1; min-width: 1em; text-align: center; color: var(--br-lila); }
+.br-relval[aria-pressed="true"] { background: var(--br-lila); color: #fff; border-color: var(--br-black); box-shadow: 0 0 0 3px var(--br-guld); }
+.br-relval[aria-pressed="true"] .br-relval-tecken { color: #fff; }
+@media (max-width: 520px) {
+  .br-relationsval { grid-template-columns: 1fr 1fr; }
+  .br-relval-lista { grid-column: 1 / -1; grid-row: 2; }
+}
+.br-kortlek--stora .br-kortgrid { grid-template-columns: repeat(var(--br-kol, 3), minmax(0, 1fr)); }
+@media (max-width: 520px) { .br-kortlek--stora .br-kortgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.br-kortlek--stora .br-kortyta--modell .br-helhet { display: none; }
+.br-kortlek--stora .br-figur-svg--cirkel, .br-kortlek--stora .br-cirkel-svg { max-width: 170px; }
+.br-kortlek--stora .br-kortyta--modell .br-k { max-width: 100%; padding: 4px; background: transparent; }
+.br-kortlek--stora .br-kortyta--modell .br-helhet { font-size: .78rem; padding: 1px 8px; }
+.br-figur .br-grans, .br-figur .br-kontur, .br-figur .br-cellinje, .br-figur .br-yta.br-figur-del:not(.br-region),
+.br-figur .br-figur-overlagg { vector-effect: non-scaling-stroke; }
+.br-figur .br-grans--gammal { stroke-width: 3.5px; }
+.br-figur .br-kontur { stroke-width: 3px; }
+.br-figur .br-yta.br-figur-del:not(.br-region) { stroke-width: 2.5px; }
+.br-figur .br-cellinje { stroke-width: 1px; }
+.br-kortlek--stora .br-helhet { white-space: nowrap; }
+.br-fackankare { display: grid; place-items: center; min-height: 64px; padding: 4px; border-radius: 12px; background: var(--br-lila-ljus); }
+.br-fackankare .br-kortyta { font-size: 1.9rem; }
+
+/* --- E #710: bygge (05) ---------------------------------------------------- */
+.br-bygge { justify-items: stretch; }
+.br-bygge-verktyg { display: flex; justify-content: center; }
+.br-bygge-bitrad { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 16px; }
+.br-bygge-bit { margin: 0; padding: 8px; min-width: 88px; min-height: 88px; border: 3px solid var(--br-lila); border-radius: 16px; background: #fff; cursor: grab; touch-action: none; box-shadow: 0 4px 0 rgba(59, 51, 80, .18); }
+.br-bygge-bit svg { width: 120px; height: auto; display: block; }
+.br-bygge--mangd .br-bygge-bit svg { width: 150px; }
+.br-bygge-bit.br-pekad { box-shadow: 0 0 0 5px var(--br-guld); }
+.br-bygge-knappar { display: grid; gap: 8px; }
+.br-bygge-yta { display: grid; gap: 4px; padding: 8px 10px; border: 3px dashed #b9c5d6; border-radius: 16px; background: #fff; }
+.br-bygge-ytarubrik { font-weight: 800; color: var(--br-svag); font-size: .9rem; }
+.br-bygge-start { stroke: var(--br-lila); stroke-width: 5; stroke-linecap: round; }
+.br-byggbit .br-byggyta { cursor: default; }
+.br-bygge-spok { position: fixed; width: 110px; height: auto; }
+.br-byggram { stroke-dasharray: none; fill: #fff; }
+
+/* --- E #710: gruppering (20) ----------------------------------------------- */
+.br-gruppering { justify-items: stretch; }
+.br-grupp-hogram { display: grid; gap: 4px; padding: 8px; border: 3px solid var(--br-guld); border-radius: 16px; background: var(--br-guld-ljus); }
+.br-pekar-helhet .br-grupp-hogram { box-shadow: 0 0 0 4px var(--br-guld); }
+.br-grupp-hog { display: flex; flex-wrap: wrap; gap: 4px; min-height: 48px; }
+.br-foremal-knapp { width: 46px; height: 46px; margin: 0; padding: 3px; border: 2px solid transparent; border-radius: 10px; background: transparent; cursor: grab; touch-action: none; }
+.br-foremal-knapp:hover { border-color: var(--br-lila); }
+.br-grupp-ikon { width: 100%; height: 100%; display: block; }
+.br-grupp-knappar { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.br-grupp-rad { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 10px; }
+.br-grupp { display: grid; align-content: start; gap: 6px; min-height: 130px; padding: 8px; border: 3px dashed var(--br-lila); border-radius: 16px; background: #fff; }
+.br-pekar-grupper .br-grupp { border-color: var(--br-guld); border-style: solid; }
+.br-grupp-rubrik { font-weight: 800; color: var(--br-lila); }
+.br-grupp-innehall { display: flex; flex-wrap: wrap; gap: 2px; min-height: 48px; }
+.br-grupp-lagg { font-size: .95rem; }
+.br-kortlek--lista .br-kortgrid { grid-template-columns: 1fr; gap: 8px; }
+.br-kortlek--lista .br-kort { min-height: 56px; justify-items: start; padding: 10px 44px 10px 16px; }
+.br-kortlek--lista .br-korttext { text-align: left; }
+.br-omdelning-visa { justify-self: center; width: auto; margin: 0 auto; display: block; }
+.br-uttryck--multi .br-falt--text { width: 3.2em; }
+.br-jamforknapp { justify-self: center; }
+.br-jamforyta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 10px; border: 3px solid var(--br-guld); border-radius: 16px; background: var(--br-guld-ljus); }
+.br-jamforyta[hidden] { display: none; }
+.br-jamfor-kort { display: grid; gap: 4px; justify-items: center; padding: 8px; border-radius: 12px; background: #fff; }
+.br-jamfor-namn { font-weight: 800; color: var(--br-svag); }
+.br-jamfor-tom { grid-column: 1 / -1; margin: 0; text-align: center; font-weight: 700; }
+.br-kort.br-jamfors { outline: 4px dashed var(--br-guld); outline-offset: 2px; }

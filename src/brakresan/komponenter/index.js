@@ -26,6 +26,12 @@ export const KOMPONENTER = Object.freeze({
   kort: () => import("./kort.js").then((m) => m.createKort),
   sortering: () => import("./sortering.js").then((m) => m.createSortering),
   areamodell: () => import("./areamodell.js").then((m) => m.createAreamodell),
+  // E #710: sammansatta uppgifter, figurer med olika stora delar, jämförelse med ord.
+  sammansatt: () => import("./sammansatt.js").then((m) => m.createSammansatt),
+  figur: () => import("./figur.js").then((m) => m.createFigur),
+  relationsval: () => import("./relationsval.js").then((m) => m.createRelationsval),
+  bygge: () => import("./bygge.js").then((m) => m.createBygge),
+  gruppering: () => import("./gruppering.js").then((m) => m.createGruppering),
 });
 
 /** Svarstyper varje komponent själv tar emot (resten läggs i en notation under). */
@@ -35,6 +41,11 @@ export const SVARSTYPER = Object.freeze({
   tallinje: ["point", "choice"],
   kort: ["choice", "select", "pairs"],
   sortering: ["categories", "order"],
+  sammansatt: ["choice", "yesno", "relation", "select", "pairs", "categories", "order", "paint", "number", "point", "multi"],
+  figur: [],
+  relationsval: ["relation"],
+  bygge: ["number"],
+  gruppering: ["categories"],
 });
 
 export const createHjalp = (...a) => import("./hjalp.js").then((m) => m.createHjalp(...a));
