@@ -92,9 +92,10 @@ export function skalaFor(niva, pxPerHast) {
 // Rummets längdenhet är "rums-enheten" (RUM_ENHET, ~25 px på en laptop). Hästen
 // i huset är ~4,6 enheter hög; kroppsmåttet (enhet ovan) gör draken lite högre
 // än sin faktor eftersom halsen och huvudet sticker upp, så huset räknar med
-// 4 enheter per "häst". Nivå 1 lyfts till en klickbar minsta höjd.
+// 4 enheter per "häst". Nivå 1 lyfts lite mot en klickbar minsta höjd – men
+// aldrig förbi nivå 2 (storleken växer alltid med nivån).
 export const HUS_HAST = 4;
-export const HUS_MIN_H = 2.4;
+export const HUS_MIN_H = 2.1;
 
 /** Drakens storlek i huset i rums-enheter (bredd, höjd) – ägget visas inte där. */
 export function husMatt(niva) {

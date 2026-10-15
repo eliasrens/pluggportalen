@@ -100,7 +100,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   // finns): dras, flyttar mellan rum och vilar i Mina djur som ett djur, men
   // promenerar inte – därför inte bland walkers().
   let drake = null;
-  const harHar = () => [...walkers(), ...(drake?.list(currentRoom) || [])];
+  const djurHar = () => [...walkers(), ...(drake?.list(currentRoom) || [])];
 
   // "Mina djur"-lådan (undanstuvade djur) monteras längre ner; stow/return-
   // hjälparna refererar den vid klicktillfället (då är den satt).
@@ -427,6 +427,12 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     for (const apple of mat.apples()) {
       stage.appendChild(appleNode(apple));
     }
+    // Bråkdraken (#714) står still – den ritas UNDER djuren, så att en stor drake
+    // aldrig skymmer (eller stjäl klicken från) djuren som promenerar förbi.
+    if (drake) {
+      if (drake.list(currentRoom).length) stage.appendChild(drake.stageNode(false));
+      else drake.stopp();
+    }
     for (const pet of roomPets()) {
       if (!pet.pos) pet.pos = { x: 50, y: 70 };
       stage.appendChild(petStageNode(pet, selectedPetId === pet.id));
@@ -435,11 +441,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     for (const a of djur.list(currentRoom)) {
       stage.appendChild(djur.stageNode(a, selectedPetId === a.id));
     }
-    if (drake) {
-      if (drake.list(currentRoom).length) stage.appendChild(drake.stageNode(false));
-      else drake.stopp();
-    }
-    const petsHere = harHar().length > 0;
+    const petsHere = djurHar().length > 0;
     if (Object.keys(placements).length === 0 && !petsHere) {
       stage.appendChild(el(`<div class="room-empty">${roomCount > 1
         ? `Rum ${currentRoom + 1} är tomt – öppna Möbler 📦 och möblera det!`
@@ -825,7 +827,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     },
     flytt: (drag, x, y) => {
       if (drag.petId && drake?.byId(drag.petId)) {
-        drake.flytt(x, y, drag.halfH);
+        drake.flytt(x, y, drag.halfW, drag.halfH);
         markeraDorr(dorrUnder(drag));
       } else if (drag.petId) {
         const pet = walkers().find((p) => p.id === drag.petId);
@@ -900,7 +902,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     if (!dorr) return false;
     const mal = currentRoom + (dorr.dataset.door === "next" ? 1 : -1);
     if (mal < 0 || mal >= roomCount) return false;
-    const djuret = harHar().find((p) => p.id === drag.petId);
+    const djuret = djurHar().find((p) => p.id === drag.petId);
     if (!djuret || !djuret.hatchedAt || !placeraDjur(drag.petId, roomLocation(mal))) return false;
     // In genom grannrummets motsatta dörr: till vänster om man gick "framåt".
     djuret.pos = { x: dorr.dataset.door === "next" ? 15 : 85, y: djuret.drake ? 92 : 80 };

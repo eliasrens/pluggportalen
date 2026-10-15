@@ -578,7 +578,9 @@ försvinna. Eget fält i stället, med samma namnregler (`cleanPetName`) och pla
 `{ id, level, name, pos: { x, y }, stowed, room }`. Servern skapar fältet vid kläckningen (`id` =
 `state.dragon.id`) och uppdaterar `level` i samma transaktion som stjärnan som ändrar nivån
 (cachad nivå så att klasskamrater som besöker huset ser rätt stadium utan att läsa `state`).
-Eleven skriver `pos`, `stowed`, `room` (som övriga husdjur); `name` sätts av servern vid kläckningen och byts via `brakresaRenameDragon` (servern rensar texten, #713). En egen ändring av `level`
+Eleven skriver `pos`, `stowed`, `room` (som övriga husdjur): `pos` = fötternas punkt i procent av
+rummet, `room` = rummets index (0 = Rum 1, saknas/utanför huset = Rum 1), `stowed` = vilar i
+"Mina djur". Saknas `pos` står draken mitt på golvet (#714); `name` sätts av servern vid kläckningen och byts via `brakresaRenameDragon` (servern rensar texten, #713). En egen ändring av `level`
 är bara kosmetisk i det egna huset – Bråkresan och jakten utgår alltid från `state`.
 
 #### `brakresaRecommendations/{recId}` – lärarens rekommendationer (K #716)
