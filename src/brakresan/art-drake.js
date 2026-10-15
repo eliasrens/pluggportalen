@@ -10,7 +10,11 @@
 //        opts.stjarnor  – för ägget: 5–9 ger sprickor
 //        opts.klass     – extra klass på <svg>
 //        opts.titel     – tillgänglig titel (annars "Bråkdraken, nivå N")
+//        opts.hus       – huspose (#714): vuxna (10–15) med hopvikta vingar
+//   husMatt(niva) / husPassning(…) → storlek i elevhuset (#714), se nedan
 //   drakeMatt(niva)            → { faktor, vb, pivot } logisk storlek + fotpunkt
+//        (huseposens hopvikta vingar ryms i samma ruta – kroppen, halsen och
+//        svansen avgör den, mätt med preview-brakdraken.html?matt=1)
 //   STADIER                    → tabellen (art-drake-stadier.js)
 //
 // Rigg: delarna ligger i grupper som animationen (art-drake-anim.js) rör:
@@ -54,6 +58,16 @@ const VB = {
   15: [-90, -19, 297, 230],
 };
 
+/** Vuxna (10–15) har hopvikta vingar i huset (spec §9 "Draken i huset"). */
+export const arHusVikt = (niva) => niva >= 10;
+
+/** Stadiet i huspose: vingarna vikta längs ryggen, inget lyft. */
+function husPose(st) {
+  if (!arHusVikt(st.niva) || !st.vingar) return st;
+  const { nar, far } = st.vingar;
+  return { ...st, vingar: { nar: { ...nar, o: 0, lyft: 0 }, far: { ...far, o: 0.08, lyft: 0 } } };
+}
+
 /**
  * Mått för visning. enhet = kroppsmått i rityteenheter (kroppens längsta axel +
  * huvudets bredd – oberoende av pose), så att px per enhet = k · faktor / enhet
@@ -72,6 +86,34 @@ export function drakeMatt(niva) {
 export function skalaFor(niva, pxPerHast) {
   const m = drakeMatt(niva);
   return (pxPerHast * m.faktor) / m.enhet;
+}
+
+// --- Draken i elevhuset (#714) -------------------------------------------------
+// Rummets längdenhet är "rums-enheten" (RUM_ENHET, ~25 px på en laptop). Hästen
+// i huset är ~4,6 enheter hög; kroppsmåttet (enhet ovan) gör draken lite högre
+// än sin faktor eftersom halsen och huvudet sticker upp, så huset räknar med
+// 4 enheter per "häst". Nivå 1 lyfts till en klickbar minsta höjd.
+export const HUS_HAST = 4;
+export const HUS_MIN_H = 2.4;
+
+/** Drakens storlek i huset i rums-enheter (bredd, höjd) – ägget visas inte där. */
+export function husMatt(niva) {
+  const n = Math.max(1, Math.min(15, Math.floor(niva) || 1));
+  const vb = drakeMatt(n).vb, k = skalaFor(n, HUS_HAST);
+  const lyft = Math.max(1, HUS_MIN_H / (vb[3] * k));
+  return { w: r1(vb[2] * k * lyft), h: r1(vb[3] * k * lyft) };
+}
+
+/**
+ * Skalfaktor (≤ 1) så att draken ryms med fötterna vid `fotY` % av scenen:
+ * huvudet stannar under scenens överkant och kroppen inom bredden. Positionen
+ * ändras aldrig – bara renderingsstorleken (spec §9: "teleportera inte").
+ * enhetPx = rums-enheten i px, scenW/scenH = scenens mått i px (0 = okänt → 1).
+ */
+export function husPassning({ w, h }, fotY, { enhetPx, scenW, scenH }) {
+  if (!(enhetPx > 0 && scenW > 0 && scenH > 0)) return 1;
+  const plats = (fotY / 100) * scenH - 0.02 * scenH;
+  return Math.min(1, plats / (h * enhetPx), (0.96 * scenW) / (w * enhetPx));
 }
 
 let raknare = 0;
@@ -139,6 +181,7 @@ function kroppGuld(st, u, lw) {
 export function drakeSvg(niva, opts = {}) {
   const n = Math.max(0, Math.min(15, Math.floor(niva) || 0));
   const u = `bd${++raknare}x`;
+  const hus = !!opts.hus;
   const { vb, pivot } = drakeMatt(n);
   const titel = opts.titel || (n === 0 ? "Bråkdrakens ägg" : `Bråkdraken, nivå ${n}`);
   const klass = `bd-drake bd-niva-${n} bd-familj-${STADIER[n].familj}${opts.klass ? " " + opts.klass : ""}`;
@@ -150,10 +193,10 @@ export function drakeSvg(niva, opts = {}) {
       `<circle class="bd-aura" cx="50" cy="62" r="50" fill="${F(u, "a")}" opacity="0.7"/>` +
       `<g class="bd-andas bd-agg" ${pv}>${agg(u, spr)}</g>`;
   } else {
-    inner = drakeKropp(STADIER[n], u, pivot) ;
+    inner = drakeKropp(hus ? husPose(STADIER[n]) : STADIER[n], u, pivot);
   }
   return (
-    `<svg class="${klass}" viewBox="${vb.join(" ")}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${titel}" data-niva="${n}">` +
+    `<svg class="${klass}" viewBox="${vb.join(" ")}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${titel}" data-niva="${n}"${hus ? ' data-hus="1"' : ""}>` +
     `<title>${titel}</title>${defs(u)}${inner}</svg>`
   );
 }

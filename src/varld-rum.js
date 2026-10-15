@@ -96,6 +96,11 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   // mystery-djur hålls utanför precis som de vanliga djuren (djur.list(rum)).
   const roomPets = () => pets.filter((p) => !p.stowed && petRoom(p) === currentRoom);
   const walkers = () => [...roomPets(), ...djur.list(currentRoom)];
+  // Bråkdraken (#714) bor i studentData.brakdrake och laddas LAT (bara när den
+  // finns): dras, flyttar mellan rum och vilar i Mina djur som ett djur, men
+  // promenerar inte – därför inte bland walkers().
+  let drake = null;
+  const harHar = () => [...walkers(), ...(drake?.list(currentRoom) || [])];
 
   // "Mina djur"-lådan (undanstuvade djur) monteras längre ner; stow/return-
   // hjälparna refererar den vid klicktillfället (då är den satt).
@@ -109,6 +114,8 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     if (!stowed && roomCount > 1) flyttaTillRum(id, currentRoom);
     if (kind === "animal") {
       djur.setStowed(id, stowed);
+    } else if (kind === "drake") {
+      drake?.setStowed(stowed);
     } else {
       const p = pets.find((x) => x.id === id);
       if (p) p.stowed = stowed;
@@ -428,7 +435,11 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     for (const a of djur.list(currentRoom)) {
       stage.appendChild(djur.stageNode(a, selectedPetId === a.id));
     }
-    const petsHere = walkers().length > 0;
+    if (drake) {
+      if (drake.list(currentRoom).length) stage.appendChild(drake.stageNode(false));
+      else drake.stopp();
+    }
+    const petsHere = harHar().length > 0;
     if (Object.keys(placements).length === 0 && !petsHere) {
       stage.appendChild(el(`<div class="room-empty">${roomCount > 1
         ? `Rum ${currentRoom + 1} är tomt – öppna Möbler 📦 och möblera det!`
@@ -543,6 +554,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
       ...pets.filter((p) => p.stowed && p.hatchedAt).map((p) => ({
         kind: "pet", id: p.id, name: petDisplayName(p), artHtml: petArtThumb(p),
       })),
+      ...(drake?.stowedList() || []).map((d) => ({ kind: "drake", id: d.id, name: d.name, artHtml: drake.tumnagel() })),
     ],
     onReturn: (kind, id) => setStowed(kind, id, false),
     // Bondgårdsdjuren (#330): listas alltid i Mina djur med platsval. Ett byte
@@ -575,6 +587,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
         id: a.id, name: djur.displayName(a), room: djur.roomOf(a),
         artHtml: itemSvg(a.art) || (getItem(a.art)?.emoji ?? "🐾"),
       })),
+      ...(drake && !drake.drake.stowed ? [{ id: drake.drake.id, name: drake.drake.name, room: drake.roomOf(), artHtml: drake.tumnagel() }] : []),
     ];
   }
 
@@ -584,6 +597,11 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
    * @returns {false|Promise} false = inget ändrat; annars spar-löftet
    */
   function sattPlats(id, location) {
+    if (drake?.byId(id)) {
+      if (!isRoomLocation(location)) return false;
+      drake.setRoom(roomIndexOf(location));
+      return Promise.resolve();
+    }
     if (!pets.some((p) => p.id === id)) return djur.setLocation(id, location);
     if (!isRoomLocation(location)) return false;
     petPlats.set(id, location);
@@ -592,7 +610,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
 
   /** Flytta ett djur i huset till rum `index` tyst (ingen omritning/flash). */
   function flyttaTillRum(id, index) {
-    const nu = pets.some((p) => p.id === id) ? petRoom({ id }) : djur.roomOf(djur.byId(id) || {});
+    const nu = drake?.byId(id) ? drake.roomOf() : pets.some((p) => p.id === id) ? petRoom({ id }) : djur.roomOf(djur.byId(id) || {});
     if (nu !== index) sattPlats(id, roomLocation(index));
   }
 
@@ -752,6 +770,10 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     // ✏️-affordansen (namn-etiketten under ett djur): öppna namn-/matnings-vyn.
     // Gäller BÅDE mystery-djur och vanliga djur – döpningen känns likadan.
     const renameBtn = e.target.closest("[data-rename]");
+    if (renameBtn && drake?.byId(renameBtn.dataset.rename)) {
+      oppnaDrakpanel(renameBtn);
+      return;
+    }
     if (renameBtn) {
       openRenameForId = renameBtn.dataset.rename;
       selectedPetId = renameBtn.dataset.rename;
@@ -802,7 +824,10 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
       }
     },
     flytt: (drag, x, y) => {
-      if (drag.petId) {
+      if (drag.petId && drake?.byId(drag.petId)) {
+        drake.flytt(x, y, drag.halfH);
+        markeraDorr(dorrUnder(drag));
+      } else if (drag.petId) {
         const pet = walkers().find((p) => p.id === drag.petId);
         if (pet) pet.pos = { x, y };
         markeraDorr(pet && pet.hatchedAt ? dorrUnder(drag) : null);
@@ -818,7 +843,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
       markeraDorr(null);
       if (drag.moved && drag.petId && slapptPaDorr(drag)) return;
       if (drag.moved) {
-        if (drag.petId) (djur.byId(drag.petId) ? djur.scheduleSave() : scheduleSavePets());
+        if (drag.petId) sparaDjurPlats(drag.petId);
         else if (drag.zon === "fonster") fonster.scheduleSave();
         else {
           scheduleSaveRoom();
@@ -828,6 +853,8 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
           renderStage();
           renderPets();
         }
+      } else if (drag.petId && drake?.byId(drag.petId)) {
+        oppnaDrakpanel(drag.node); // klick på draken → samma drakpanel som i Bråkresan
       } else if (drag.petId) {
         // Klick på ett djur → KLAPPA det (ingen inforuta): mystery-djur lägger sig
         // på rygg och sprattlar (petBellyFlop), vanliga fast-storleks-djur gör ett
@@ -873,13 +900,37 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     if (!dorr) return false;
     const mal = currentRoom + (dorr.dataset.door === "next" ? 1 : -1);
     if (mal < 0 || mal >= roomCount) return false;
-    const djuret = walkers().find((p) => p.id === drag.petId);
+    const djuret = harHar().find((p) => p.id === drag.petId);
     if (!djuret || !djuret.hatchedAt || !placeraDjur(drag.petId, roomLocation(mal))) return false;
     // In genom grannrummets motsatta dörr: till vänster om man gick "framåt".
-    djuret.pos = { x: dorr.dataset.door === "next" ? 15 : 85, y: 80 };
-    if (djur.byId(drag.petId)) djur.scheduleSave();
-    else scheduleSavePets();
+    djuret.pos = { x: dorr.dataset.door === "next" ? 15 : 85, y: djuret.drake ? 92 : 80 };
+    sparaDjurPlats(drag.petId);
     return true;
+  }
+
+  /** Spara ett djurs plats i rätt datamodell (debounce i respektive modul). */
+  function sparaDjurPlats(id) {
+    if (drake?.byId(id)) drake.scheduleSave();
+    else if (djur.byId(id)) djur.scheduleSave();
+    else scheduleSavePets();
+  }
+
+  /** Drakpanelen (Bråkresans, drakpanel.js) från huset – stuva/namnbyte ritas om här. */
+  function oppnaDrakpanel(fokus) {
+    drake?.oppnaPanel({
+      fokus,
+      onStow: () => setStowed("drake", drake.drake.id, true),
+      onNamn: () => { renderStage(); djurTrayCtl?.render(); },
+    });
+  }
+
+  // Draken laddas lat (#714) – rummet ritas först, draken kommer in direkt efter.
+  if (sd.brakdrake?.id) {
+    import("./brakresan/rum-drake.js").then((m) => {
+      drake = m.mountRumDrake({ sd, roomCount, stage });
+      renderStage();
+      djurTrayCtl?.render();
+    }).catch(() => {});
   }
 
   // Promenad-AI: kläckta husdjur går själva omkring på golvet mellan möblerna
