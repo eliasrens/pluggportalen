@@ -50,19 +50,14 @@ export default defineChallenge({
     const den = sak.startsWith("ett ") ? "Det" : "Den";
     const kort = (x) => `${kr(x)} kr`;
     const svar = typ === "rabatt" ? del : nytt;
-    const vy = typ === "okning"
-      ? {
-        component: "stav",
-        bars: [{ parts: k, marked: k, label: "Förr" }, { parts: k, marked: (p * k) / 100, label: "Ökn." }],
-        label: `Hela det gamla priset = ${kort(pris)} = 100 %`,
-      }
-      : { component: "stav", parts: k, marked: (p * k) / 100, label: `Hela priset = ${kort(pris)} = 100 %` };
+    const band = { component: "stav", parts: k, marked: (p * k) / 100, label: `Hela priset = ${kort(pris)} = 100 %` };
     const prompt = {
       rabatt: `${sak.replace(/^./, (c) => c.toUpperCase())} kostar ${kort(pris)}. ${den} säljs med ${p} % rabatt. Hur många kronor är rabatten?`,
       nytt: `${sak.replace(/^./, (c) => c.toUpperCase())} kostar ${kort(pris)}. ${den} säljs med ${p} % rabatt. Vad kostar ${den.toLowerCase()} efter rabatten?`,
       okning: `${sak.replace(/^./, (c) => c.toUpperCase())} kostade ${kort(pris)}. Priset höjs med ${p} %. Vad kostar ${den.toLowerCase()} nu?`,
     }[typ];
     const fragar = typ === "rabatt" ? "rabatten" : typ === "nytt" ? "priset efter rabatt" : "det nya priset";
+    const svarRad = [{ text: `${fragar.replace(/^./, (c) => c.toUpperCase())}:` }, { input: true }, { text: "kr" }];
     const felV = typ === "rabatt" ? [nytt, p, pris + del] : typ === "nytt" ? [del, pris - p, pris + del] : [del, pris + p, pris - del];
     const fel = [...new Set(felV)].filter((x) => x !== svar && x >= 0).map(text);
     const rakna = p === 10 ? `10 % är en tiondel: ${kort(pris)} ÷ 10 = ${kort(del)}` : p === 20 ? `10 % är ${kort(pris / 10)}, och 20 % är dubbelt så mycket: ${kort(del)}` :
@@ -74,7 +69,17 @@ export default defineChallenge({
       core: kärna({ typ, pris, p }),
       prompt,
       values: { pris, p, rabatt: del, nytt },
-      view: { ...vy, expr: [{ text: `${fragar.replace(/^./, (c) => c.toUpperCase())}:` }, { input: true }, { text: "kr" }] },
+      view: typ === "okning"
+        ? {
+          // Ökningen: en tillagd del mätt med SAMMA ursprungsbas – två lika långa band.
+          component: "sammansatt",
+          delar: [
+            { view: { component: "stav", parts: k, marked: k, label: `Det gamla priset = ${kort(pris)} = 100 %` } },
+            { view: { component: "stav", parts: k, marked: (p * k) / 100, label: `Ökningen: ${p} % av samma pris` } },
+            { view: { component: "notation", expr: svarRad }, svar: true },
+          ],
+        }
+        : { ...band, expr: svarRad },
       answer: { type: "number", input: "integer" },
       key: {
         type: "number", value: svar, requirement: { kind: "integer" },

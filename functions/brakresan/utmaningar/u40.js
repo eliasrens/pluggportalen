@@ -13,7 +13,7 @@
 // ============================================================================
 
 import { defineChallenge } from "../schema/kontrakt.js";
-import { q, gcd, valueKey } from "../math/index.js";
+import { q, gcd, valueKey, parseDecimal, decimal } from "../math/index.js";
 import { kortId, falt, text, br, dec, decText, nd } from "./delat-g.js";
 
 const NAMNARE = [2, 4, 5, 10, 20, 25, 50, 100];
@@ -33,6 +33,12 @@ function valjBrak(rng, intro) {
 const vtext = (b) => decText(q(b.a, b.d));
 /** Nämnaren 10 eller 100 för värdet (hjälpens omdelning). */
 const tiotal = (b) => (10 % b.d === 0 ? 10 : 100);
+
+/** "0,10" → decimalformen med sina decimaler (slutnollan behålls). */
+function decimalForm(t) {
+  const r = parseDecimal(t);
+  return decimal(r.form.value, r.form.places);
+}
 
 /** Felalternativ för "Vilket decimaltal …": siffrorna ihop, med komma emellan, bara täljaren. */
 function felDecimaler(b) {
@@ -198,7 +204,8 @@ export default defineChallenge({
     const tillDec = p.riktning === "till-dec";
     const cards = p.alt.map((x, i) => ({
       id: kortId(i),
-      face: x.ratt ? (tillDec ? dec(v) : br(b.a, b.d)) : tillDec ? { text: x.t } : br(x.n, x.d),
+      // Alla alternativ i SAMMA form (decimaltal/bråk) – en textform skulle avslöja det rätta.
+      face: x.ratt ? (tillDec ? dec(v) : br(b.a, b.d)) : tillDec ? decimalForm(x.t) : br(x.n, x.d),
     }));
     const ratt = cards[p.alt.findIndex((x) => x.ratt)].id;
     return {

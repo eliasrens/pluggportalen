@@ -68,8 +68,8 @@ export default defineChallenge({
       view: {
         component: "sammansatt",
         delar: [
-          { view: malVy, rubrik: `Sträckan: ${at}${sit ? ` ${sit.enhet}` : ""}` },
-          { view: { component: "stav", wholes: W, parts: m, label: `Måttbitar: ${bt} – lika stor skala` }, svar: "bitar", rubrik: `Bitar ${bt}`, label: "Markera bitar tills sträckan är fylld" },
+          { view: malVy, rubrik: "Sträckan" },
+          { view: { component: "stav", wholes: W, parts: m, label: "Måttbitar – samma skala" }, svar: "bitar", rubrik: "Bitar att lägga", label: "Markera bitar tills sträckan är fylld" },
           { view: { component: "notation", expr: [aForm, { op: "÷" }, br(1, m), { op: "=" }, { input: true }, { text: sit ? sit.bit : "bitar" }] }, svar: "antal" },
         ],
       },

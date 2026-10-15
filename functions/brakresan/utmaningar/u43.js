@@ -97,7 +97,7 @@ export default defineChallenge({
       core: kärna({ p, udda, uddaP, bild }),
       prompt: "Tre kort är lika mycket. Vilket kort passar inte?",
       values: { value: nd(v), udda: nd(uv), form: udda },
-      view: { component: "kort", cards, stora: true },
+      view: { component: "kort", cards, stora: true, helhet: true },
       answer: { type: "choice", options: cards.map((c) => c.id) },
       key: {
         type: "choice", correct: ratt,

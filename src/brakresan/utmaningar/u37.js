@@ -79,7 +79,7 @@ export default defineChallenge({
       view: {
         component: "sammansatt",
         delar: [
-          { view: { component: "stav", parts: n, marked: a, label: sit ? `En portion: ${bråk} ${sit.enhet} (hela staven = 1 ${sit.enhet})` : "En portion – hela staven = 1" }, rubrik: br(a, n) },
+          { view: { component: "stav", parts: n, marked: a, label: sit ? `En portion (hela staven = 1 ${sit.enhet})` : "En portion – hela staven = 1" } },
           {
             view: { component: "stav", wholes: k, parts: n, label: sit ? `Varje stav = 1 ${sit.enhet}` : "Varje stav = 1 hel" },
             svar: "stav",

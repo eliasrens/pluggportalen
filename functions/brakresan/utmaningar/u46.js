@@ -4,7 +4,7 @@
 // Spec §8 46: jämföra tal oavsett skrivform. Sortera fyra kort (minst ett
 // bråk, ett decimaltal och ett procenttal) från minst till störst (order).
 // Två uppgifter per omgång placerar sedan hela ordningen på tallinjen: en
-// tallinje 0–1 med referenserna 0, 1/2 och 1 och fyra punkter A–D (bokstäverna
+// tallinje 0–1 med 0 och 1 utskrivna och fyra punkter A–D (bokstäverna
 // i slumpad ordning); eleven lägger varje kort vid sin punkt (categories).
 // Båda delarna krävs (multi, en poäng). Tallinjen omvandlar aldrig korten.
 // Generering: fyra OLIKA värden 0–1 (ingen strikt sortering med lika värden),
@@ -128,7 +128,7 @@ export default defineChallenge({
         component: "sammansatt",
         delar: [
           { view: sorteringVy, svar: "ordning", rubrik: "1. Ordna korten" },
-          { view: { component: "tallinje", min: 0, max: 1, ticks: 20, labels: [{ n: 0, d: 1 }, { n: 1, d: 2 }, { n: 1, d: 1 }], points: punkter, label: "Från 0 till 1 är en hel" } },
+          { view: { component: "tallinje", min: 0, max: 1, ticks: 20, labels: "hela", points: punkter, label: "Från 0 till 1 är en hel" } },
           { view: { component: "sortering", cards, bins }, svar: "placering", rubrik: "2. Lägg korten vid punkterna", label: "Lägg korten vid punkterna" },
         ],
       },

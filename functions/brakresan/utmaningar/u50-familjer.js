@@ -7,7 +7,7 @@
 // andras }. u50.js sätter ihop uppgiften (hjälp, återkoppling, genomgång).
 // ============================================================================
 
-import { q, add, sub, mul, lcm, gcd, eq, cmp, formatForm, fractionWords } from "../math/index.js";
+import { q, add, sub, mul, lcm, gcd, eq, cmp, formatForm, mixedFormOf, fractionWords } from "../math/index.js";
 import { falt, text, blandatSvar, nd, br, formAv, kr } from "./delat-g.js";
 import { NAMN, bt, tal, heltal, NUM, INT, valDel, svarDel, ettSvar } from "./u50-delat.js";
 
@@ -159,7 +159,7 @@ F.jamfor = {
 // 5. Procentdel + återstående antal.
 F.procentkvar = {
   gen(rng) {
-    const p = rng.pick([10, 20, 25, 50, 75]);
+    const p = rng.pick([10, 20, 25, 75]); // inte 50 %: då är resten lika stor som delen
     const steg = 100 / gcd(p, 100);
     const N = steg * rng.int(Math.max(2, Math.ceil(12 / steg)), Math.floor(120 / steg));
     return { p, N, sak: rng.int(0, 2) };
@@ -262,7 +262,7 @@ F.langd = {
         ? `En bräda är ${ta} m och en annan är ${tb} m. De läggs efter varandra. Hur lång blir sträckan?`
         : `Ett rep är ${ta} m. ${NAMN[(A.x + B.x) % 8]} klipper av ${tb} m. Hur långt är repet nu?`,
       values: { R: nd(R) },
-      delar: [{ view: { component: "stav", wholes: Math.min(5, Math.ceil(Math.max(a.n / a.d, R.n / R.d))), parts: L, label: "Varje stav = 1 m – du kan markera delar" }, verktyg: true }, svarDel([{ text: `${ta} ${op} ${tb} =` }, { input: true }, { text: "m" }])],
+      delar: [{ view: { component: "stav", wholes: Math.min(5, Math.ceil(Math.max(a.n / a.d, R.n / R.d))), parts: L, label: "Varje stav = 1 m – du kan markera delar" }, verktyg: true }, svarDel([formAv(A.W, A.x, A.n), { op }, formAv(B.W, B.x, B.n), { op: "=" }, { input: true }, { text: "m" }])],
       ...ettSvar(NUM, tal(R)),
       display: `${ta} ${op} ${tb} = ${bt(R)} m`,
       right: [{ parts: { svar: blandatSvar(R) } }, { parts: { svar: falt((R.n * L) / R.d, L) } }],
@@ -294,7 +294,7 @@ F.matt = {
     return {
       prompt: `Det finns ${ta} ${S[0]}. Hur många ${S[1]} om ${b}/${m} ${S[2]} vardera blir det?`,
       values: { A: nd(A), antal: c },
-      delar: [{ view: { component: "stav", wholes: Math.ceil(A.n / A.d), parts: m, label: `Varje stav = 1 ${S[2]} – du kan markera delar` }, verktyg: true }, svarDel([br(A.n, A.d), { op: "÷" }, br(b, m), { op: "=" }, { input: true }, { text: S[1] }])],
+      delar: [{ view: { component: "stav", wholes: Math.ceil(A.n / A.d), parts: m, label: `Varje stav = 1 ${S[2]} – du kan markera delar` }, verktyg: true }, svarDel([mixedFormOf(A), { op: "÷" }, br(b, m), { op: "=" }, { input: true }, { text: S[1] }])],
       ...ettSvar(INT, heltal(c)),
       display: `${ta} ÷ ${b}/${m} = ${c} ${S[1]}`,
       right: [{ parts: { svar: text(c) } }],

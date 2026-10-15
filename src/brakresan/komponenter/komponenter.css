@@ -379,6 +379,8 @@ span.br-relval { cursor: default; box-shadow: none; }
 .br-figur .br-yta.br-figur-del:not(.br-region) { stroke-width: 2.5px; }
 .br-figur .br-cellinje { stroke-width: 1px; }
 .br-kortlek--stora .br-helhet { white-space: nowrap; }
+/* G #712 (43): bildkortets helhet uttalad – "Hela hundrarutan = 1". */
+.br-kortlek--helhet .br-kortyta--modell .br-helhet { display: block; justify-self: center; white-space: normal; text-align: center; }
 .br-fackankare { display: grid; place-items: center; min-height: 64px; padding: 4px; border-radius: 12px; background: var(--br-lila-ljus); }
 .br-fackankare .br-kortyta { font-size: 1.9rem; }
 
