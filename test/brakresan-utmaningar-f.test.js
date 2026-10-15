@@ -181,3 +181,12 @@ test("F: publicTask avslöjar inget facit i vyn (svarets värde står inte i vie
     assert.doesNotMatch(JSON.stringify(pub.view), new RegExp(hemligt.replace("/", "\\/")));
   }
 });
+
+test("svarText (E:s) beskriver verkstadens val i 33 med radens och förklaringens text", async () => {
+  const { svarText } = await import("../src/brakresan/omgang-resultat.js");
+  const ch = await loadChallenge("33");
+  const t = buildTask(ch, { mall: "add", t: { a: 1, b: 2, n: 5 }, felRad: 1, forklaringar: ["inget-fel", "adderar-namnare", "additiv-forlangning", "storre-namnare-storre"] });
+  const text = svarText(t, { parts: { steg: { id: "s1" }, varfor: { id: "f2" } } });
+  assert.match(text, /Rad 1: 1\/5 \+ 2\/5 = 3\/10/);
+  assert.match(text, /nämnaren inte adderas/);
+});
