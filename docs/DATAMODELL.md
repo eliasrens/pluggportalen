@@ -404,7 +404,7 @@ avstängning gäller därför direkt, utan ny token.
 | `garden`     | map    | **Trädgården** – köpta utomhussaker placerade runt huset i ute-vyn: `{ placements: { [key]: { x, y, scen? } } }`, `x`/`y` i **procent** (0–100) av scenen. `key` = sak-id ("trad") eller `"<id>#<n>"` för **flera exemplar** (kategori `tradgard`, se `MULTI_CATEGORIES`). `scen: "gard"` (#356) = saken står i **gårds-scenen** (baksidan, placerad via gård-vyns 🧰 Verktyg-låda); saknas fältet = framsidans ute-scen (**bakåtkompatibelt**). Skilt från `room` (rör aldrig rummet). **Bakåtkompatibelt:** saknas fältet är trädgården tom. Ägande via `ownedItems`/`ownedCounts`; helpers `getGardenFrom`/`saveGarden` i `src/data-room.js`, rendering/placering i `src/varld-tradgard.js`. |
 | `husSkalId`  | string/null | Aktivt husskal (byter husets exteriör); `null` = default-stugan |
 | `husLast`    | bool   | `true` = huset är **låst**: en klasskamrats läs-vy (`src/pages-klasskamrat.js`) visar `🔒 Låst` i stället för rummet. Toggle i verktygsmenyn (`src/pages-varld.js`); delad hjälpare `isHouseLocked(studentData)` i `src/data-room.js`. Husets exteriör i byn påverkas inte. |
-| `avatarId`   | string | Vald avatar (spegel av `students`)                     |
+| `avatarId`   | string | Vald avatar (spegel av `students`). Köpbara avatarer (#694, `category: "avatar"`, katalogen i `src/avatars.js`) kräver att id:t finns i `ownedItems` – regeln `kopAvatarOk` |
 | `avatarChosen` | bool | `true` när eleven själv valt grundavatar (styr avatarvalet vid första inloggning) |
 | `readingLevel` | number | **Borttaget (#531).** Gamla läsnivån (1–3, #154). Skrivs inte längre i nya elevdokument; finns kvar i äldre dokument men ignoreras. Läsresans nivå är `lasresa.level`. |
 | `pets`       | array  | Kläckbara husdjuren (mystery eggs) – se nedan. Eleven kan ha **flera** samtidigt |
@@ -460,7 +460,8 @@ aldrig dö.
 | `pos`         | map         | `{ x, y }` – position i **procent** (0–100) av rumsscenen |
 | `eggBoughtAt` | number      | När ägget köptes (ms). Kläcks ~3 dagar senare            |
 | `hasHeatLamp` | bool        | Värmelampa köpt → ägget kläcks på **halva** tiden        |
-| `speciesId`   | string/null | Slumpad art vid kläckning (se `SPECIES` i `src/art-pets-creatures.js`) |
+| `eggSpecies`  | string      | *(valfri, #695)* Valt djur för Halloween-pumpaägget (`HW_SPECIES`, t.ex. `"spokis"`) – ägget kläcks till just den arten |
+| `speciesId`   | string/null | Art vid kläckning: `eggSpecies` om satt, annars slumpad sprite-art (se `src/art-pets-creatures.js`) |
 | `hatchedAt`   | number/null | När ägget kläcktes (ms); `null` = ruvar fortfarande      |
 | `stage`       | number      | Tillväxtsteg 1–3 (0 = okläckt ägg). Härleds ur `feedCount` |
 | `feedCount`   | number      | Antal **uppätna äpplen** totalt (styr steget: ≥10 → steg 2, ≥20 → steg 3) |

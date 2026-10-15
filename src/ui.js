@@ -6,7 +6,7 @@
 // ============================================================================
 
 import * as data from "./data.js";
-import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
+import { avatarMarkup, DEFAULT_AVATAR, avatarArtReady, loadAvatarArt } from "./avatars.js";
 import { coinIcon, starIcon } from "./icons.js";
 import { modulesHiddenForStudent, OPT_IN_MODULES } from "./gamemode-visibility.js";
 
@@ -297,6 +297,8 @@ export async function renderTopbar() {
     coins = sd.coins || 0;
     avatarId = sd.avatarId || DEFAULT_AVATAR;
     avatarItems = sd.avatarItems || [];
+    // Köpt avatar (#694): ladda konsten (lazy) innan sidan ritas – en gång per besök.
+    if (!avatarArtReady(avatarId)) await loadAvatarArt();
     stjarnor = (await data.getStats()).stars || 0;
   } catch {}
 

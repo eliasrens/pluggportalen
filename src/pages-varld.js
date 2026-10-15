@@ -39,6 +39,7 @@ import { app, el, go, loading, renderTopbar, pageError, flash, getParams } from 
 import { getPalette, paletteIdFromStudentData, renderPalettePicker } from "./room-palettes.js";
 import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
 import { husScen, husSkalMarkup, renderHusSkalPicker, navSkyltSvg } from "./art-hus-ute.js";
+import { loadCollectionArt } from "./art-items.js";
 import { mountRumScen } from "./varld-rum.js";
 import { mountTradgard } from "./varld-tradgard.js";
 import { createKamera } from "./varld-kamera.js";
@@ -118,6 +119,9 @@ export async function pageElevVarld(startNiva) {
     return;
   }
   liveScen = null;
+  // Säsongen (#691): laddas parallellt med elevdatan och sätts ur cachen INNAN
+  // scenen visas (ingen blink grönt → höst). Fel = sommar, världen går aldrig sönder.
+  const szP = import("./season-world.js").catch(() => null);
 
   loading();
   await renderTopbar();
@@ -131,9 +135,12 @@ export async function pageElevVarld(startNiva) {
     // Klasslistan behövs för skylten vid gårdskanten OCH för skol-nivån (andra
     // klassers byar). EN läsning av classes-kollektionen (alla inloggade får
     // läsa den) – vi härleder den egna klassen ur den, ingen extra runda.
+    // Säsongssamlingarnas konst (#692, lazy) före första ritningen, så köpta
+    // Halloween-saker/hus syns direkt i rum, trädgård och by.
     const [res, klassRes] = await Promise.all([
       petData.hatchReadyPets(),
       data.getClasses().catch(() => []),
+      loadCollectionArt(),
     ]);
     pets = res.pets;
     justHatchedIds = res.justHatchedIds;
@@ -1042,7 +1049,10 @@ export async function pageElevVarld(startNiva) {
     }
   }
 
+  const sz = await szP;
+  sz?.applyCachedTheme();
   app.replaceChildren(view);
+  sz?.mountVarldSasong(stage);
 
   // Djuplänk till en kompis: zooma in till deras hus när scenen står i DOM:en.
   if (startNiva === "kompis") kompisVy.visa(kompisId);
