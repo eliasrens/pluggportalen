@@ -332,3 +332,37 @@ div.br-kort { cursor: default; }
 }
 .br-hundra-svg .br-cell { stroke-width: 1; stroke-opacity: .55; }
 .br-area--steg .br-areacell:not(.br-vald) { stroke: none; }
+
+/* --- E #710: sammansatt, figur, relationsval -------------------------------- */
+.br-sammansatt { justify-items: stretch; }
+.br-sammansatt-delar { display: grid; gap: 12px; width: 100%; }
+.br-sammansatt-delar--rad { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); align-items: start; }
+.br-sammansatt-del { display: grid; gap: 4px; justify-items: center; min-width: 0; }
+.br-sammansatt-rubrik { font-weight: 800; font-size: 1.3rem; color: var(--br-lila); }
+.br-k.br-k--inbaddad { padding: 4px; border-width: 2px; background: transparent; max-width: none; }
+.br-k.br-k--inbaddad.br-kortlek, .br-k.br-k--inbaddad.br-sortering { max-width: none; }
+.br-figur-svg--cirkel { max-width: 260px; }
+.br-k--mini .br-figur-svg--cirkel { max-width: 120px; }
+.br-figur .br-figur-del { cursor: default; }
+.br-figur .br-yta.br-figur-del:not(.br-region) { stroke: var(--br-black); stroke-width: 2.5; stroke-linejoin: round; }
+.br-figur-overlagg { fill: var(--br-turkos); fill-opacity: .22; stroke: var(--br-black); stroke-width: 2.5; }
+.br-figur-skugga { fill: #fff; stroke: var(--br-black); stroke-opacity: .35; stroke-width: 2; stroke-dasharray: 6 5; }
+.br-figur-startlinje { stroke: var(--br-lila); stroke-width: 4; }
+.br-figur-ruta { stroke-opacity: .45; }
+.br-relationsval { grid-template-columns: 1fr auto 1fr; align-items: center; }
+.br-relsida { display: grid; place-items: center; font-size: 2rem; font-weight: 800; }
+.br-relsida-text { font-size: 1.8rem; color: var(--br-lila); }
+.br-relval-lista { display: grid; gap: 8px; }
+.br-relval {
+  display: flex; align-items: center; gap: 10px; min-height: 48px; margin: 0; padding: 6px 14px;
+  font: inherit; font-weight: 700; text-align: left; border-radius: 14px; cursor: pointer;
+  border: 3px solid var(--br-lila); background: #fff; color: var(--br-text); box-shadow: 0 4px 0 rgba(59, 51, 80, .18);
+}
+span.br-relval { cursor: default; box-shadow: none; }
+.br-relval-tecken { font-size: 1.8rem; line-height: 1; min-width: 1em; text-align: center; color: var(--br-lila); }
+.br-relval[aria-pressed="true"] { background: var(--br-lila); color: #fff; border-color: var(--br-black); box-shadow: 0 0 0 3px var(--br-guld); }
+.br-relval[aria-pressed="true"] .br-relval-tecken { color: #fff; }
+@media (max-width: 520px) {
+  .br-relationsval { grid-template-columns: 1fr 1fr; }
+  .br-relval-lista { grid-column: 1 / -1; grid-row: 2; }
+}

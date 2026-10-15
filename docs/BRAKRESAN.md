@@ -231,6 +231,28 @@ t.setLocked(true); t.showResult(serverSvar);           // { status: "graded", co
   helhet/n, omdelning bevarar markerad längd, tallinjens x(v) och snäppning, 100 celler,
   regioner med lika area, överlappningen = produkten, varje föremål en gång.
 
+### Tillägg från E #710: `sammansatt`, `figur`, `relationsval`
+
+Tre komponenter till (lata, registrerade i `KOMPONENTER`/`SVARSTYPER`). **F/G: återanvänd dem i
+stället för att bygga egna.**
+
+- **`sammansatt`** – flera delar i EN uppgift: bild + svarskort, bild + jämförelse, mängd att
+  markera + bråkfält, jämförelse + förklaringskort. `view = { component: "sammansatt", rad?: true,
+  delar: [{ view, svar?: true | "id", verktyg?: true, rubrik?, label? }] }`. Varje del är en vanlig
+  komponent (även `notation`). Enkel svarstyp: delen med `svar: true` tar `task.answer`.
+  `answer.type: "multi"`: delen med `svar: "id"` tar `answer.parts[id]` och svaret blir
+  `{ parts: { id: delsvar } }` (gradeWith per del). `verktyg: true` = interaktiv utan svar.
+  `highlight(target)` går till alla delar, eller bara `target.del` (index) – hjälpsteg kan alltså
+  peka på bilden men inte på korten: `highlight: { whole: true, del: 0 }`. Efter kontroll av multi
+  visas varje del rätt/fel (sparade delsvar, ingen delpoäng). Exempel: `utmaningar/u02.js`.
+- **`figur`** – visningsfigur med delar som får vara OLIKA stora (01): `{ form: "cirkel" | "stav",
+  sizes: [vikter] }` eller `{ form: "rektangel", rows, cols, regions: [{ cells }] }` (lika många
+  celler = lika area, även med olika form), `rutor?` (cellinjer), `marked?: [index]`, `jamfor?`
+  (hjälpens jämförelse: delarna isär – stav från samma startlinje, sektorer överlagda, regioner
+  bredvid varandra med rutor). Skärmläsaren får antalet delar, aldrig "lika stora".
+- **`relationsval`** – välj <, = eller > med tecken OCH text ("är större än", spec §8 09):
+  `{ vanster: form | { text }, hoger: form | { text } }`, svar `relation`.
+
 ## 5b. Utmaningsvyn och omgångsflödet (D #709 – byggt)
 
 | Fil | Innehåll |
