@@ -44,3 +44,6 @@ Höst + Halloween, 30 elever, mätt 10–21 gånger med 0,5 s mellanrum medan l�
 - Byns löv ligger i by-lagret (z 1050) och syns. Scenens lövlager är dolt på by- och grannby-nivå.
   På husnivå syns scenens löv, och by-lagret är dolt (opacity 0), så löven ritas inte dubbelt.
 - Enhetstester 2424 pass, 0 fail. Bootgraf 107. Bild: `efter-lov-halloween-30-1366.png`.
+- Övergång hus→by, samplad var 100:e ms: de första ~200 ms har staget fortfarande `data-niva="hus"`.
+  Då syns scenens löv (z 11) ovanpå byns skyltar, som zoomar in. Därefter är de dolda och mätningen
+  ger 0. Detta är kortvarigt och blockerar inte.
