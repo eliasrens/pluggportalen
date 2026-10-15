@@ -7,7 +7,8 @@
 // generatorns neutrala id och ordningen är generatorns (blandad där). Valt
 // kort syns med kraftig ram + bock + text för skärmläsare – inte bara färg.
 //
-// view = { component: "kort", cards: [{ id, face }] } där face är
+// view = { component: "kort", cards: [{ id, face }], stora? } där face är
+//   (stora: true = större kort och bilder i storleken "kort" – E #710, när bilden är uppgiften)
 //   en form (form.js) · { text } · en mini-modell { component: "stav" | "cirkel" | … }
 // Läget följer opts.answer.type:
 //   choice  { id }          ett kort (t.ex. "Vilket kort är fel?")
@@ -23,13 +24,13 @@ import { formNod } from "./notation.js";
 const PARMARKEN = ["●", "▲", "■", "◆", "★", "✚", "⬟", "⬢"];
 
 /** Kortets framsida. Mini-modeller laddas lat (index.js) och fylls i när de är klara. */
-export function kortFramsida(face, vantan = []) {
+export function kortFramsida(face, vantan = [], storlek = "mini") {
   const yta = h("span", { class: "br-kortyta" });
   if (face?.kind) yta.append(formNod(face, { klass: "br-tal--kort" }));
   else if (face?.component) {
     yta.classList.add("br-kortyta--modell");
     vantan.push(import("./index.js").then(({ createComponent }) =>
-      createComponent(yta, face, { interactive: false, size: "mini" })));
+      createComponent(yta, face, { interactive: false, size: storlek })));
   } else yta.append(h("span", { class: "br-korttext" }, String(face?.text ?? face ?? "")));
   return yta;
 }
@@ -40,7 +41,7 @@ export function createKort(host, view, opts = {}) {
   const behov = opts.answer?.count || 0;
   const grid = h("div", { class: "br-kortgrid", role: "group" });
   const status = h("div", { class: "br-kortstatus", "aria-live": "polite" });
-  const rot = h("div", { class: `br-kortlek br-kortlek--${lage}` }, grid, status);
+  const rot = h("div", { class: `br-kortlek br-kortlek--${lage}${view.stora ? " br-kortlek--stora" : ""}` }, grid, status);
   const bas = skapaBas(host, rot, view, opts);
   grid.setAttribute("aria-label", opts.label || (lage === "pairs" ? "Kort att para ihop" : lage === "select" ? `Välj ${behov} kort` : "Kort"));
   const vantan = [];
@@ -52,7 +53,7 @@ export function createKort(host, view, opts = {}) {
     const el = h(lage === "visning" ? "div" : "button", {
       class: "br-kort", "data-kort": String(c.id), type: lage === "visning" ? null : "button",
       "aria-label": null,
-    }, h("span", { class: "br-kortbock", "aria-hidden": "true" }), kortFramsida(c.face, vantan),
+    }, h("span", { class: "br-kortbock", "aria-hidden": "true" }), kortFramsida(c.face, vantan, view.stora ? "kort" : "mini"),
     h("span", { class: "br-kortnamn" }, `Kort ${i + 1}`));
     grid.append(el);
     return el;

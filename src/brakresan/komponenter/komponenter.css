@@ -366,3 +366,14 @@ span.br-relval { cursor: default; box-shadow: none; }
   .br-relationsval { grid-template-columns: 1fr 1fr; }
   .br-relval-lista { grid-column: 1 / -1; grid-row: 2; }
 }
+.br-kortlek--stora .br-kortgrid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 165px), 1fr)); }
+.br-kortlek--stora .br-figur-svg--cirkel, .br-kortlek--stora .br-cirkel-svg { max-width: 170px; }
+.br-kortlek--stora .br-kortyta--modell .br-k { max-width: 100%; padding: 4px; background: transparent; }
+.br-kortlek--stora .br-kortyta--modell .br-helhet { font-size: .78rem; padding: 1px 8px; }
+.br-figur .br-grans, .br-figur .br-kontur, .br-figur .br-cellinje, .br-figur .br-yta.br-figur-del:not(.br-region),
+.br-figur .br-figur-overlagg { vector-effect: non-scaling-stroke; }
+.br-figur .br-grans--gammal { stroke-width: 3.5px; }
+.br-figur .br-kontur { stroke-width: 3px; }
+.br-figur .br-yta.br-figur-del:not(.br-region) { stroke-width: 2.5px; }
+.br-figur .br-cellinje { stroke-width: 1px; }
+.br-kortlek--stora .br-helhet { white-space: nowrap; }

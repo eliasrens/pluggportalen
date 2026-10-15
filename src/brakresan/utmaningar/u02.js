@@ -29,6 +29,9 @@ function kandidater(a, n) {
   if (a > 1) ut.push({ n: a - 1, d: n, tag: "fel-antal-markerade" });
   if (a < n) ut.push({ n: a + 1, d: n, tag: "fel-antal-markerade" });
   if (a === n) ut.push({ n: 1, d: n, tag: "en-del" }, { n: n - 1, d: n, tag: "fel-antal-markerade" });
+  // Reserv när få av ovanstående ger nya värden (t.ex. 2/2).
+  ut.push({ n: 1, d: n + 1, tag: "fel-antal-delar" }, { n: a, d: n + 2, tag: "fel-antal-delar" });
+  if (n > 2) ut.push({ n: n - 1, d: n + 1, tag: "fel-antal-delar" });
   return ut;
 }
 
