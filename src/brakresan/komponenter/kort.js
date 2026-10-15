@@ -9,6 +9,7 @@
 //
 // view = { component: "kort", cards: [{ id, face }], stora? } där face är
 //   (stora: true = större kort och bilder i storleken "kort" – E #710, när bilden är uppgiften;
+//    helhet: true = bildkortens helhetsetikett ("Hela hundrarutan = 1") syns även i stora kort – G #712, 43;
 //    lista: true = textkort under varandra i full bredd, t.ex. förklaringar;
 //    jamfor: true = knappen "Jämför två kort": två valfria kort visas stora sida vid sida,
 //    UTAN något likhetssvar – ett verktyg, inte ett val (spec §8 06))
@@ -47,7 +48,7 @@ export function createKort(host, view, opts = {}) {
   const jamforKnapp = view.jamfor && lage !== "visning"
     ? h("button", { type: "button", class: "br-knapp br-verktygknapp br-jamforknapp", "aria-pressed": "false" }, "Jämför två kort") : null;
   const jamforYta = jamforKnapp ? h("div", { class: "br-jamforyta", hidden: "", "aria-live": "polite" }) : null;
-  const rot = h("div", { class: `br-kortlek br-kortlek--${lage}${view.stora ? " br-kortlek--stora" : ""}${view.lista ? " br-kortlek--lista" : ""}` },
+  const rot = h("div", { class: `br-kortlek br-kortlek--${lage}${view.stora ? " br-kortlek--stora" : ""}${view.lista ? " br-kortlek--lista" : ""}${view.helhet ? " br-kortlek--helhet" : ""}` },
     jamforKnapp, jamforYta, grid, status);
   const bas = skapaBas(host, rot, view, opts);
   if (view.stora) grid.style.setProperty("--br-kol", String(view.cards.length === 4 ? 2 : Math.min(3, view.cards.length)));

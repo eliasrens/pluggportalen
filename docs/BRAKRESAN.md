@@ -21,8 +21,8 @@ Pluggportalen – kodbasen vinner, §13).
 | Omgångsplan (10 st, 3/4/3, inga dubbletter, reservbank) | `src/brakresan/schema/omgangsplan.js` | klar |
 | Regler i siffror (stjärnor, mynt, drake, jakt, datum, status) | `src/brakresan/schema/regler.js` | klara |
 | Generatorgranskning (200 exempel/utmaning) | `src/brakresan/schema/granskning.js`, `test/brakresan-generatorer.test.js` | klar – körs för varje byggd utmaning |
-| 50 utmaningsfiler | `src/brakresan/utmaningar/u01.js` … `u50.js` | **byggda: 01–20 (D #709: 03, 12, 19 · E #710: övriga), 21–35 (D #709: 34 · F #711: övriga)**; delade hjälpfunktioner `utmaningar/delat-e.js` (E), `f-delat.js` (F); övriga stubbar – fylls av G |
-| Granskningsskript per utmaning (D #709) | `admin/qa-brakresan-generatorer.mjs` + egna kontroller `admin/qa-brakresan/uNN.mjs` | klart, `test/brakresan-utmaningar-d.test.js`, `test/brakresan-utmaningar-e.test.js` (E #710), `test/brakresan-utmaningar-f.test.js` (F #711) |
+| 50 utmaningsfiler | `src/brakresan/utmaningar/u01.js` … `u50.js` | **alla 50 byggda: 01–20 (D #709: 03, 12, 19 · E #710: övriga), 21–35 (D #709: 34 · F #711: övriga), 36–50 (G #712)**; delade hjälpfunktioner `utmaningar/delat-e.js` (E), `f-delat.js` (F), `delat-g.js` (G: elevsvar, blandad form, decimal/procent ur exakta värden); 50:s familjer i `u50-familjer.js`, `u50-resonemang.js`, `u50-delat.js` |
+| Granskningsskript per utmaning (D #709) | `admin/qa-brakresan-generatorer.mjs` + egna kontroller `admin/qa-brakresan/uNN.mjs` | klart, `test/brakresan-utmaningar-d.test.js`, `test/brakresan-utmaningar-e.test.js` (E #710), `test/brakresan-utmaningar-f.test.js` (F #711), `test/brakresan-utmaningar-g.test.js` (G #712) |
 | Verkstaden – flerdelade uppgifter (F #711) | `src/brakresan/omgang-verkstad.js` + `verkstad-stav.js`, `verkstad-delar.js`, `verkstad.css` | klart, §5d nedan, `preview/preview-brakresan-f.html` |
 | Utmaningsvy + omgångsflöde (D #709) | `src/brakresan/omgang*.js`, `omgang.css`, `page-brakresan.js`, route `#/elev/brakresan?u=NN` | klart, §5b nedan, `test/brakresan-omgang-backend.test.js` |
 | Synk till Cloud Functions | `admin/sync-brakresan-functions.mjs` → `functions/brakresan/` | klar, predeploy + `test/brakresan-delat.test.js` |
@@ -122,8 +122,9 @@ cirklar", "minst tre finare indelningar") + tre omgångar i följd med `avoidCor
 en `uNN.mjs` per utmaning och en rad i sin testfil (mönster: `test/brakresan-utmaningar-d.test.js`).
 
 **`minVariants` (D #709):** när utmaningens EGNA talgränser i §8 ger färre än 60 kärnor får
-`defineChallenge` ange `minVariants` (30–59) + `minVariantsReason`. Bara 34 använder det:
-nämnare 2–8, mgn ≤ 24, summa ≤ 1 och förkortade äkta addender ger exakt 42 talpar.
+`defineChallenge` ange `minVariants` (30–59) + `minVariantsReason`. 34: nämnare 2–8, mgn ≤ 24,
+summa ≤ 1 och förkortade äkta addender ger exakt 42 talpar. 13 (E) och 48 (G): A ≤ 2 med
+stambråk 1/2–1/8 och 2–8 bitar ger 43 talpar.
 
 **Flerstegsuppgift med stavar (`view.component: "omdelning"`, 34):** `bars: [{ parts, marked,
 label, maxDela }]` (verktyget "Dela varje bit i k", k ≤ maxDela), `expr` med `{ input: "id" }`
@@ -281,6 +282,22 @@ stället för att bygga egna.**
   uppgift): `PORT=8710 node server.mjs` → `preview/preview-brakresan-uppgifter.html?u=NN`
   (`&facit=1`, `&i=3`, `&seed=…`).
 
+### Tillägg från G #712 (36–50, alla opt-in)
+
+- **`kort`**: `helhet: true` – bildkortens helhetsetikett ("Hela hundrarutan = 1") syns även i
+  `stora` kort (43: helheten ska alltid vara uttalad). Utan flaggan döljs den som förut.
+- **`areamodell`**: `horizontal: { n: 0, d: m }` = raderna som rutnät utan vågräta ränder i
+  legenden – eleven målar själv den andra andelen inuti den lodräta (38). Läget avgörs av
+  utmaningens `validate` (målningen ska ligga i den randiga delen).
+- Mönster som G återanvänder: **multi med målning + tal** i `sammansatt` (36 över en hel på tre
+  stavar, 37 en stavram per kopia, 48 måttbitar på samma skala som målsträckan), **`omdelning`**
+  med `bars[].svar` för jämn delning (47: a · j delbart med k), **`sortering` order + categories**
+  mot en tallinje med punkter A–D (46), **`kort` lista** för rimlighets-/strategival (44, 50).
+- Alternativkort i samma val har alltid SAMMA form (40: decimaltal som `decimal`-form, inte text –
+  annars avslöjar storleken det rätta). Granskningen (`admin/qa-brakresan/u40.mjs`) fäller det.
+- Förhandsvisning: samma sida som E, `preview/preview-brakresan-uppgifter.html?u=36` … `?u=50`.
+  Skärmdumpar: `design/brakresan-712/`.
+
 ## 5b. Utmaningsvyn och omgångsflödet (D #709 – byggt)
 
 | Fil | Innehåll |
@@ -321,29 +338,6 @@ bara i panelen. Förhandsvisning: `preview-brakresan-713.html?s=jakt` (nivå 11)
 `&fel=1` = första försöket får nätfel. Texter: `test/brakresan-guldjakt.test.js`.
 Namnbytet går via `renameDragon` i data.js. `atgarder: [{ text, gor }]` = extra knappar längst ner
 (huset: "Låt draken vila i Mina djur") – ett klick stänger panelen och kör `gor()`.
-
-## 5d. Draken i elevhuset (I #714 – byggt)
-
-| Fil | Innehåll |
-| --- | --- |
-| `art-drake.js` | `drakeSvg(n, { hus: true })` = huspose: vuxna (10–15) med hopvikta vingar (`arHusVikt`), `data-hus="1"` på `<svg>`; samma viewBox som i Bråkresan. `husMatt(n)` = storlek i rums-enheter (`HUS_HAST` = 4 enheter per "häst"-faktor, nivå 1 lyft mot `HUS_MIN_H`), `husPassning(matt, fotY, scen)` = skalfaktor ≤ 1 när draken inte ryms ovanför fötterna/i bredd. Testat i `test/brakresan-drake-art.test.mjs`. |
-| `art-drake-anim.js` | `startaTomgang(svg, { vy })` pausar också när `vy` (rumslagret) blir `inert`/`.varld-dold` (MutationObserver). Huspose byter vinggesterna (svävning, vingöppning) mot huvudlyft. |
-| `rum-drake.js` (lat) | `mountRumDrake({ sd, roomCount, stage })` för Mitt rum: noden (`.room-item.room-pet.room-drake`, `data-pet-id` = drak-id) går i rummets drag-pipeline, dörrarna, "Mina djur" och rumsvalet – men inte i promenad-AI:n (draken står still). Klick/namnskylt → drakpanelen. Skriver `brakdrake.pos` (debounce), `.stowed`, `.room` med `updateDoc`. `drakeLasNod(sd, roomCount, stage)` = klasskamratens läsläge. |
-
-Regler i huset (spec §9): `pos` = **fötternas** punkt i procent (pivot), så ett nivåbyte växer
-draken uppåt från samma golvplats; sidled hålls hela draken inne med `clamp` utan att den sparade
-platsen ändras. Ryms den inte (lågt fönster, högt placerad) ritas den mindre och eleven får ett
-meddelande en gång per nivå – den teleporteras aldrig. Klickytan är bara figuren
-(`pointer-events` på `.bd-andas`). Draken ritas UNDER djuren, så att en stor drake aldrig skymmer
-dem. Prestanda: andningen går som kompositerad transform på HTML-rutan, aurans puls är av, och
-blinkningarna är glesare (6–12 s) än i Bråkresan; tomgången pausas när rummet inte syns.
-Bootgrafen orörd (107): `varld-rum.js` och `pages-klasskamrat.js` importerar `rum-drake.js`
-dynamiskt bara när `studentData.brakdrake` finns. Förhandsvisning:
-`preview/preview-drake-hus-714.html` (`?niva=N`, `?reset`, `#/elev/klasskamrat?id=elev2`).
-
-Navigation (H): `NAV_LANKAR` i `ui.js` (grupp `ova`, `modul: "brakresan"`) + `TOGGLABLE_MODULES`
-i `gamemode-visibility.js` – **synlig som standard, döljbar per klass** (`hiddenModules`, som
-Läsresan). Regelns modullistor validerar bara längden, så ingen regeländring behövs.
 
 ## 5d. Verkstaden – flerdelade uppgifter (F #711 – byggt)
 
@@ -402,6 +396,29 @@ elever efter senaste sparade spelaktivitet; i individvyn filtrerar perioden omg�
 Förhandsvisning utan Firebase: `PORT=8716 node server.mjs` →
 `preview/preview-brakresan-larare.html#/klass` (klassvyn, `?saknas=1`, `?tom=1`) och
 `#/larare/brakresan` (testläget). Stubben bygger omgångarna med den riktiga `demoRound`.
+
+## 5f. Draken i elevhuset (I #714 – byggt)
+
+| Fil | Innehåll |
+| --- | --- |
+| `art-drake.js` | `drakeSvg(n, { hus: true })` = huspose: vuxna (10–15) med hopvikta vingar (`arHusVikt`), `data-hus="1"` på `<svg>`; samma viewBox som i Bråkresan. `husMatt(n)` = storlek i rums-enheter (`HUS_HAST` = 4 enheter per "häst"-faktor, nivå 1 lyft mot `HUS_MIN_H`), `husPassning(matt, fotY, scen)` = skalfaktor ≤ 1 när draken inte ryms ovanför fötterna/i bredd. Testat i `test/brakresan-drake-art.test.mjs`. |
+| `art-drake-anim.js` | `startaTomgang(svg, { vy })` pausar också när `vy` (rumslagret) blir `inert`/`.varld-dold` (MutationObserver). Huspose byter vinggesterna (svävning, vingöppning) mot huvudlyft. |
+| `rum-drake.js` (lat) | `mountRumDrake({ sd, roomCount, stage })` för Mitt rum: noden (`.room-item.room-pet.room-drake`, `data-pet-id` = drak-id) går i rummets drag-pipeline, dörrarna, "Mina djur" och rumsvalet – men inte i promenad-AI:n (draken står still). Klick/namnskylt → drakpanelen. Skriver `brakdrake.pos` (debounce), `.stowed`, `.room` med `updateDoc`. `drakeLasNod(sd, roomCount, stage)` = klasskamratens läsläge. |
+
+Regler i huset (spec §9): `pos` = **fötternas** punkt i procent (pivot), så ett nivåbyte växer
+draken uppåt från samma golvplats; sidled hålls hela draken inne med `clamp` utan att den sparade
+platsen ändras. Ryms den inte (lågt fönster, högt placerad) ritas den mindre och eleven får ett
+meddelande en gång per nivå – den teleporteras aldrig. Klickytan är bara figuren
+(`pointer-events` på `.bd-andas`). Draken ritas UNDER djuren, så att en stor drake aldrig skymmer
+dem. Prestanda: andningen går som kompositerad transform på HTML-rutan, aurans puls är av, och
+blinkningarna är glesare (6–12 s) än i Bråkresan; tomgången pausas när rummet inte syns.
+Bootgrafen orörd (107): `varld-rum.js` och `pages-klasskamrat.js` importerar `rum-drake.js`
+dynamiskt bara när `studentData.brakdrake` finns. Förhandsvisning:
+`preview/preview-drake-hus-714.html` (`?niva=N`, `?reset`, `#/elev/klasskamrat?id=elev2`).
+
+Navigation (H): `NAV_LANKAR` i `ui.js` (grupp `ova`, `modul: "brakresan"`) + `TOGGLABLE_MODULES`
+i `gamemode-visibility.js` – **synlig som standard, döljbar per klass** (`hiddenModules`, som
+Läsresan). Regelns modullistor validerar bara längden, så ingen regeländring behövs.
 
 ## 6. Server-API – kontrakt för C (#708) och J (#715)
 
@@ -468,9 +485,9 @@ Färdigt i `src/brakresan/demo.js`: `demoRound(id, seed)` (tio hela uppgifter me
 | B #707 | `src/brakresan/komponenter/`, `preview/preview-brakresan-komponenter.html` |
 | C #708 | `functions/brakresan-core.js`, callables i `functions/index.js`, regler/index vid behov, `src/brakresan/data.js` |
 | D #709 | `utmaningar/u03.js`, `u12.js`, `u19.js`, `u34.js`, omgångsvyn (`src/brakresan/omgang*.js`), route, `admin/qa-brakresan-generatorer.mjs` |
-| E #710 / F #711 / G #712 | `utmaningar/u01–u20.js` (+ `delat-e.js`, komponenterna `sammansatt`, `figur`, `relationsval`, `bygge`, `gruppering`) / `u21–u35.js` (+ `f-delat.js`, verkstaden `omgang-verkstad.js`, `verkstad-*.js`, `preview-brakresan-f.html`) / `u36–u50.js` (utom D:s fyra) |
+| E #710 / F #711 / G #712 | `utmaningar/u01–u20.js` (+ `delat-e.js`, komponenterna `sammansatt`, `figur`, `relationsval`, `bygge`, `gruppering`) / `u21–u35.js` (+ `f-delat.js`, verkstaden `omgang-verkstad.js`, `verkstad-*.js`, `preview-brakresan-f.html`) / `u36–u50.js` (utom D:s fyra; + `delat-g.js`, `u50-*.js`, opt-in `kort.helhet` och areamodellens `horizontal.n = 0`) |
 | H #713 | huvudvyn (`huvudvy*.js`, `miniatyr.js`), drakpanelen (`drakpanel.js`), navigationen (`ui.js`, `gamemode-visibility.js`), `brakresaRenameDragon` |
-| I0 #718 / I #714 | drakens grafik och animation, `studentData.brakdrake` i huset |
+| I0 #718 / I #714 | drakens grafik och animation, `studentData.brakdrake` i huset (§5f) |
 | J #715 | guldjakten: `functions/brakresan-jakt.js`, callable `brakresaHunt`, `src/brakresan/guldjakt.js` (+ `gj-*` i `drakpanel.css`) |
 | K #716 | lärarvyn, rekommendationer, testläget: `src/brakresan/larare/`, raderna i `teacher-class.js` (STATS_TABS) och `teacher-shared.js` (TEACHER_TABS + ikonen `brak`) |
 
