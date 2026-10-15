@@ -33,7 +33,9 @@ const FN_BASE = `/${process.env.GCLOUD_PROJECT || "pluggportalen-so-2026"}/europ
 const FN_NAMES = new Set(["/updateStudentLogin", "/guldrushAnswer", "/guldrushOpenChest", "/guldrushChooseVictim", "/hittaRattSubmit",
   "/hittaRattSparaPack", "/hittaRattRaderaPack", "/hittaRattSattTopplista",
   "/datakuppAnswer", "/datakuppOpenFile", "/datakuppPickCode", "/datakuppChooseTarget", "/datakuppGuessCode",
-  "/adminCreateTeacher", "/adminUpdateTeacher", "/adminSetTeacherPassword", "/adminSetTeacherActive", "/adminDeleteTeacher"]);
+  "/adminCreateTeacher", "/adminUpdateTeacher", "/adminSetTeacherPassword", "/adminSetTeacherActive", "/adminDeleteTeacher",
+  "/brakresaStartRound", "/brakresaAnswer", "/brakresaRework", "/brakresaFinishRound", "/brakresaAbortRound", "/brakresaAckDragon",
+  "/brakresaHunt"]);
 const SDK = "https://www.gstatic.com/firebasejs/10.12.2";
 
 const TYPES = {
