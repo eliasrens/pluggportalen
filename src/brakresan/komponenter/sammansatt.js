@@ -12,7 +12,7 @@
 //   svar?: true | "id",    true = delen tar uppgiftens svar (enkel svarstyp);
 //                          "id" = delen tar answer.parts[id] (svarstypen multi)
 //   verktyg?: true,        interaktiv men utan svar (t.ex. grupperingen i 20)
-//   rubrik?: "A",          kort rubrik ovanför delen
+//   rubrik?: "A" | form,   kort rubrik ovanför delen (en form = riktig bråknotation)
 // }] }
 // Svar: delens svar (enkel), eller multi { parts: { id: svar } }.
 // highlight(target) går till alla delar, eller bara target.del (index).
@@ -20,6 +20,7 @@
 // ============================================================================
 
 import { h, skapaBas } from "./bas.js";
+import { formNod } from "./notation.js";
 
 export async function createSammansatt(host, view, opts = {}) {
   const { createComponent } = await import("./index.js");
@@ -34,7 +35,7 @@ export async function createSammansatt(host, view, opts = {}) {
     const spec = !typ ? null : multi ? (typeof d.svar === "string" ? opts.answer.parts?.[d.svar] ?? null : null)
       : d.svar === true ? opts.answer : null;
     const yta = h("div", { class: `br-sammansatt-del br-sammansatt-del--${d.view?.component}` });
-    if (d.rubrik) yta.append(h("div", { class: "br-sammansatt-rubrik" }, d.rubrik));
+    if (d.rubrik) yta.append(h("div", { class: "br-sammansatt-rubrik" }, d.rubrik.kind ? formNod(d.rubrik) : d.rubrik));
     lista.append(yta);
     const k = await createComponent(yta, d.view, {
       ...opts, answer: spec, label: d.label, size: d.size || opts.size,

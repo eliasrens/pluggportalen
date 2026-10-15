@@ -369,6 +369,7 @@ export const TOGGLABLE_MODULES = [
   { id: "plugga", label: "Plugga",
     routes: ["/elev/plugga", "/elev/omrade", "/elev/spela", "/elev/aventyr"] },
   { id: "lasresan", label: "Läsresan", routes: ["/elev/lasresan"] },
+  { id: "brakresan", label: "Bråkresan", routes: ["/elev/brakresan"] }, // #713, synlig som standard
   { id: "shop", label: "Shoppen", routes: ["/elev/shop"] },
   // Hitta rätt! (#605): OPT-IN – av tills läraren aktiverar den för klassen
   // (classes/{id}.enabledModules). Läraren kan alltså inte "dölja" den utan

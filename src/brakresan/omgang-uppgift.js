@@ -104,8 +104,12 @@ function doljVardenamn(t, task) {
 }
 
 /**
- * 34 m.fl.: view = { component: "omdelning", bars: [{ parts, marked, label, maxDela }], expr: [... { input: "id" } ...] }
+ * 34 m.fl.: view = { component: "omdelning", bars: [{ parts, marked, label, maxDela, svar? }], expr: [... { input: "id" } ...],
+ *                   visaStav? }
  * answer = { type: "multi", parts: { id: { type: "number", input } } }
+ * E #710: bars[i].svar = "id" lägger stavens delning k i svaret som heltalet parts[id] = { text: "k" }
+ * (13: omdelningen ingår i det som bedöms), { text } i expr skrivs som vanlig text (14),
+ * visaStav = "Visa staven" gör stavarna frivilliga: dolda tills eleven trycker (14).
  */
 async function monteraOmdelning(host, task, opts) {
   const view = task.view;
@@ -115,6 +119,16 @@ async function monteraOmdelning(host, task, opts) {
   const andrat = () => { for (const cb of lyssnare) cb(api.getAnswer()); };
   const rot = h("div", { class: "br-omdelning" });
   host.append(rot);
+  // 14: stavarna frivilliga men lätt tillgängliga – en knapp visar dem.
+  const stavYta = view.visaStav ? h("div", { class: "br-omdelning-stavar", hidden: "" }) : rot;
+  if (view.visaStav) {
+    const visa = h("button", { type: "button", class: "br-knapp br-verktygknapp br-omdelning-visa", "aria-expanded": "false" }, view.visaStav);
+    visa.addEventListener("click", () => {
+      stavYta.hidden = !stavYta.hidden;
+      visa.setAttribute("aria-expanded", String(!stavYta.hidden));
+    });
+    rot.append(visa, stavYta);
+  }
 
   // Stavarna: en komponent per stav, ritas om med view.regroup = k när eleven delar om.
   const stavar = [];
@@ -127,7 +141,7 @@ async function monteraOmdelning(host, task, opts) {
     const verktyg = h("div", { class: "br-omdelning-verktyg", role: "group", "aria-label": `Dela stav ${i + 1}` },
       h("span", null, "Dela varje bit i"), minus, status, plus);
     rad.append(h("div", { class: "br-omdelning-namn" }, formNod(fraction(bar.marked, bar.parts))), yta, interaktiv ? verktyg : null);
-    rot.append(rad);
+    stavYta.append(rad);
     const st = { bar, k: 1, yta, status, minus, plus, komp: null };
     stavar.push(st);
     const rita = async () => {
@@ -139,8 +153,8 @@ async function monteraOmdelning(host, task, opts) {
       plus.disabled = st.k >= (bar.maxDela || 1);
     };
     st.rita = rita;
-    minus.addEventListener("click", () => { if (!last && st.k > 1) { st.k--; rita(); } });
-    plus.addEventListener("click", () => { if (!last && st.k < (bar.maxDela || 1)) { st.k++; rita(); } });
+    minus.addEventListener("click", () => { if (!last && st.k > 1) { st.k--; rita(); if (bar.svar) andrat(); } });
+    plus.addEventListener("click", () => { if (!last && st.k < (bar.maxDela || 1)) { st.k++; rita(); if (bar.svar) andrat(); } });
     await rita();
   }
 
@@ -151,6 +165,7 @@ async function monteraOmdelning(host, task, opts) {
   for (const x of view.expr || []) {
     if (x?.kind) rad.append(formNod(x));
     else if (x?.op) rad.append(opNod(x.op));
+    else if (x?.text) rad.append(h("span", { class: "br-uttext" }, x.text));
     else if (x?.input && interaktiv) {
       const spec = task.answer.parts[x.input];
       const f = skapaInmatning(spec?.input || "fraction");
@@ -181,11 +196,24 @@ async function monteraOmdelning(host, task, opts) {
       for (const [id, f] of Object.entries(falt)) {
         const s = f.svar();
         if (s) nagot = true;
-        parts[id] = s || { fields: { n: "", d: "" } };
+        parts[id] = s || (f.falt.text ? { text: "" } : { fields: { n: "", d: "" } });
+      }
+      for (const st of stavar) {
+        if (!st.bar.svar) continue;
+        if (st.k > 1) nagot = true;
+        parts[st.bar.svar] = { text: String(st.k) };
       }
       return nagot ? { parts } : null;
     },
-    setAnswer(a) { for (const [id, f] of Object.entries(falt)) f.satt(a?.parts?.[id]); },
+    setAnswer(a) {
+      for (const [id, f] of Object.entries(falt)) f.satt(a?.parts?.[id]);
+      for (const st of stavar) {
+        if (!st.bar.svar) continue;
+        const k = Number(a?.parts?.[st.bar.svar]?.text);
+        st.k = Number.isSafeInteger(k) && k >= 1 && k <= (st.bar.maxDela || 1) ? k : 1;
+        st.rita();
+      }
+    },
     reset() {
       for (const f of Object.values(falt)) f.rensa();
       for (const st of stavar) { st.k = 1; st.rita(); }

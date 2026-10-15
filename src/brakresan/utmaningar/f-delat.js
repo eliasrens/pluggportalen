@@ -5,7 +5,7 @@
 // form (granskningens exempel), bråk i uttryck, nycklar och talpooler.
 // Ingen slump, inga webbläsar-API:er (synkas till Cloud Functions).
 // Vyn "verkstad" som flera av F:s utmaningar använder beskrivs i
-// src/brakresan/omgang-verkstad.js och docs/BRAKRESAN.md §5c.
+// src/brakresan/omgang-verkstad.js och docs/BRAKRESAN.md §5d.
 // ============================================================================
 
 import { gcd } from "../math/rational.js";

@@ -2,7 +2,7 @@
 // Bråkresan – verkstaden: arbetsytan för flerdelade uppgifter
 // (src/brakresan/omgang-verkstad.js) · #711 F
 // ----------------------------------------------------------------------------
-// view.component "verkstad" (docs/BRAKRESAN.md §5c). En uppgift byggs av
+// view.component "verkstad" (docs/BRAKRESAN.md §5d). En uppgift byggs av
 // delar som var och en ritas ur uppgiftens data och – om den har ett id –
 // lämnar ett delsvar (answer.type "multi") eller hela svaret (enkel svarstyp):
 //

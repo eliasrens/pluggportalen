@@ -8,14 +8,16 @@
 //   dubbla avslut (dubbelklick, omladdning, två flikar) → en utbetalning
 //   två omgångar tävlar om tredje stjärnan → transaktionen avgör ordinalen
 //   bokföringen finns redan → inget betalas igen
-//   draktrösklar 9→10 (kläckning), 19→20, 149→150; namn och drak-id bevaras
+//   draktrösklar 0, 9, 10, 19, 20, 149, 150 (kläckning, nivåbyten); namn och drak-id bevaras
+//   namnbyte (#713): servern rensar texten, ägget kan inte döpas, placeringen orörd
 //   full progression: exakt 150 stjärnor och 6 000 stjärnmynt
 // ============================================================================
 
 import assert from "node:assert/strict";
 import { after, beforeEach, describe, it } from "node:test";
-import { startRound, answerTask, finishRound, ackDragon, BrFel } from "../functions/brakresan-core.js";
+import { startRound, answerTask, finishRound, ackDragon, renameDragon, BrFel } from "../functions/brakresan-core.js";
 import { CHALLENGE_IDS } from "../functions/brakresan/schema/katalog.js";
+import { dragonLevel } from "../functions/brakresan/schema/regler.js";
 import { createBrRig } from "./helpers/brakresan-server-rig.js";
 
 const rig = createBrRig("br-avslut");
@@ -155,7 +157,8 @@ describe("Bråkdraken", () => {
     assert.equal(st.totalStars, 10);
     assert.equal(st.dragon.id, `drake-${U}`);
     assert.equal(st.dragon.levelShown, 0);
-    assert.deepEqual((await db.doc(`studentData/${U}`).get()).data().brakdrake, { id: `drake-${U}`, level: 1 });
+    assert.equal(st.dragon.name, "Bråkis", "standardnamnet sätts vid kläckningen (#713)");
+    assert.deepEqual((await db.doc(`studentData/${U}`).get()).data().brakdrake, { id: `drake-${U}`, level: 1, name: "Bråkis" });
     assert.deepEqual(await ackDragon(deps, U, { level: 5 }), { levelShown: 1 });
     assert.deepEqual(await ackDragon(deps, U, { level: 0 }), { levelShown: 1 }, "sjunker aldrig");
     assert.equal(await code(ackDragon(deps, U, { level: 16 })), "invalid-argument");
@@ -183,6 +186,58 @@ describe("Bråkdraken", () => {
     assert.deepEqual([b.reward.kind, b.totalStars], ["repetition", 150]);
     const st = await rig.state(U);
     assert.deepEqual([st.totalStars, st.mastered], [150, 50]);
+  });
+
+  it("trösklarna 0 och 9: inget ägg kläcks, ingen drakpost skapas (#713)", async () => {
+    const a = await spela("03", 7);
+    assert.deepEqual([a.totalStars, a.dragon.levelAfter, a.dragon.hatched], [0, 0, false]);
+    assert.equal((await rig.state(U)).dragon, null);
+    await seedState({ "01": 3, "02": 3, "05": 2 });
+    const b = await spela("03", 5);
+    assert.deepEqual([b.totalStars, b.dragon.levelAfter, b.dragon.hatched], [8, 0, false]);
+    const c = await spela("03", 9);
+    assert.deepEqual([c.totalStars, c.dragon.levelAfter, c.dragon.hatched], [9, 0, false]);
+    assert.equal((await rig.state(U)).dragon, null);
+    assert.equal((await db.doc(`studentData/${U}`).get()).data().brakdrake, undefined);
+    assert.equal(await code(renameDragon(deps, U, { name: "Glöd" })), "failed-precondition", "ägget kan inte döpas");
+  });
+
+  it("10 → 19: samma drake, nivå 1 hela vägen; kläckningen sker inte igen", async () => {
+    await seedState({ "01": 3, "02": 3, "05": 3 });
+    await spela("03", 8);
+    const id = (await rig.state(U)).dragon.id;
+    for (const ch of ["04", "06", "07"]) {
+      for (let k = 0; k < 3; k++) {
+        const r = await spela(ch, 8);
+        if (r.totalStars < 20) assert.deepEqual([r.dragon.levelAfter, r.dragon.hatched], [1, false]);
+      }
+    }
+    const st = await rig.state(U);
+    assert.deepEqual([st.totalStars, st.dragon.id, dragonLevel(st.totalStars)], [19, id, 1]);
+  });
+
+  it("ett namn som redan finns på husposten behålls vid kläckningen", async () => {
+    await seedState({ "01": 3, "02": 3, "05": 3 });
+    await db.doc(`studentData/${U}`).set({ coins: START, brakdrake: { name: "Nova" } });
+    await spela("03", 8);
+    assert.equal((await rig.state(U)).dragon.name, "Nova");
+    assert.equal((await db.doc(`studentData/${U}`).get()).data().brakdrake.name, "Nova");
+  });
+
+  it("namnbyte: rensad text i state och husposten, placering och nivå orörda", async () => {
+    await seedState({ "01": 3, "02": 3, "05": 3 });
+    await spela("03", 8);
+    await db.doc(`studentData/${U}`).set({ brakdrake: { pos: { x: 1, y: 2 }, room: "rum1" } }, { merge: true });
+    assert.deepEqual(await renameDragon(deps, U, { name: "  <b>Glöd</b>\n  den   store äventyraren " }), { name: "bGlöd/b den stor" });
+    const d = (await db.doc(`studentData/${U}`).get()).data().brakdrake;
+    assert.deepEqual(d, { id: `drake-${U}`, level: 1, name: "bGlöd/b den stor", pos: { x: 1, y: 2 }, room: "rum1" });
+    assert.equal((await rig.state(U)).dragon.name, "bGlöd/b den stor");
+    assert.equal(await code(renameDragon(deps, U, { name: "   " })), "invalid-argument");
+    assert.equal(await code(renameDragon(deps, U, { name: 42 })), "invalid-argument");
+    assert.equal(await code(renameDragon(deps, U, { name: "x".repeat(201) })), "invalid-argument");
+    const b = await spela("03", 8);
+    assert.equal(b.dragon.hatched, false);
+    assert.equal((await rig.state(U)).dragon.name, "bGlöd/b den stor", "nästa stjärna rör inte namnet");
   });
 
   it("full progression: exakt 150 stjärnor och 6 000 stjärnmynt", { timeout: 600_000 }, async () => {

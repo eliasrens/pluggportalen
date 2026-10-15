@@ -22,6 +22,9 @@
 //   abortRound   { roundId } → { status: "avbruten" } – ingen belöning, svaren
 //                finns kvar i statistiken.
 //   ackDragon    { level } → { levelShown } – kläckning/evolution visad.
+//   renameDragon { name } → { name } – #713. Servern rensar texten
+//                (cleanDragonName) och skriver state.dragon.name +
+//                studentData.brakdrake.name i samma transaktion. Ägget → fel.
 //   finishRound  brakresan-avslut.js (stjärna, uppmuntran, mynt, drake).
 //
 // deps = { db, FieldValue, Timestamp, now?(), randomId?(n), loadChallenge? }
@@ -35,7 +38,9 @@ import { isChallengeId } from "./brakresan/schema/katalog.js";
 import { buildTask, gradeTask, ROUND_SIZE } from "./brakresan/schema/kontrakt.js";
 import { planRound, PlanError } from "./brakresan/schema/omgangsplan.js";
 import { publicTask, revealTask } from "./brakresan/schema/uppgift.js";
-import { dragonLevel, DRAGON_MAX_LEVEL, MAX_STARS_PER_CHALLENGE } from "./brakresan/schema/regler.js";
+import {
+  dragonLevel, cleanDragonName, DRAGON_MAX_LEVEL, DRAGON_NAME_MAX, MAX_STARS_PER_CHALLENGE,
+} from "./brakresan/schema/regler.js";
 import {
   BrFel, ROUND_SCHEMA, brRefs, readState, challengeEntry, withChallenge, toPlain, cleanAnswer, helpSteps, mergeHelp,
   roundIdOf,
@@ -321,5 +326,22 @@ export async function ackDragon(deps, uid, data = {}) {
       tx.set(r.state, { ...state, dragon: { ...state.dragon, levelShown }, updatedAt: c.Timestamp.fromMillis(c.now()) });
     }
     return { levelShown };
+  });
+}
+
+export async function renameDragon(deps, uid, data = {}) {
+  const c = ctx(deps);
+  if (typeof data.name !== "string" || data.name.length > 200) throw new BrFel("invalid-argument", "Ogiltigt namn.");
+  const name = cleanDragonName(data.name);
+  if (!name) throw new BrFel("invalid-argument", `Skriv ett namn med 1–${DRAGON_NAME_MAX} tecken.`);
+  const r = brRefs(c.db, uid);
+  return c.db.runTransaction(async (tx) => {
+    const state = readState(await tx.get(r.state));
+    if (!state.dragon) throw new BrFel("failed-precondition", "Ägget har inte kläckts ännu.");
+    const at = c.Timestamp.fromMillis(c.now());
+    tx.set(r.state, { ...state, dragon: { ...state.dragon, name }, updatedAt: at });
+    // merge: placering (pos/room/stowed) och nivå i husposten lämnas orörda.
+    tx.set(r.data, { brakdrake: { id: state.dragon.id, name } }, { merge: true });
+    return { name };
   });
 }

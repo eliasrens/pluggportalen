@@ -254,6 +254,8 @@ const NAV_LANKAR = [
   { hash: "#/elev/hitta-ratt", ikon: "🗺️", label: "Hitta rätt!", grupp: "ova", modul: "hittaratt" },
   // Ekvationsresan (#618): opt-in per klass (enabledModules) – annars dold.
   { hash: "#/elev/ekvationsresan", ikon: "⚖️", label: "Ekvationsresan", grupp: "ova", modul: "ekvationsresan" },
+  // Bråkresan (#705/#713): synlig som standard, döljbar per klass (hiddenModules).
+  { hash: "#/elev/brakresan", ikon: "🐉", label: "Bråkresan", grupp: "ova", modul: "brakresan" },
   // Live (#460): bara när klassen har en lobby/pågående match – blir Live-rutan.
   { hash: "#/elev/live", ikon: "⚡", label: "Live", grupp: "live", villkor: "live" },
 ];

@@ -64,6 +64,15 @@ describe("Modul-synlighet (#412): hiddenModules läsbart för eleven, skrivbart 
     await assertSucceeds(updateDoc(doc(teacher(), "classes", "6a"), { hiddenModules: [] }));
   });
 
+  it("Bråkresan (#713): läraren FÅR dölja \"brakresan\", eleven får inte ta bort den", async () => {
+    await assertSucceeds(
+      setDoc(doc(teacher(), "classes", "6a"), { hiddenModules: ["lasresan", "brakresan"] }, { merge: true })
+    );
+    await assertFails(updateDoc(doc(elev("elev1"), "classes", "6a"), { hiddenModules: ["lasresan"] }));
+    const snap = await getDoc(doc(elev("elev1"), "classes", "6a"));
+    assert.deepEqual(snap.data().hiddenModules, ["lasresan", "brakresan"]);
+  });
+
   it("läraren får INTE spara hiddenModules som icke-lista eller orimligt lång lista", async () => {
     await assertFails(
       setDoc(doc(teacher(), "classes", "6a"), { hiddenModules: "lasresan" }, { merge: true })

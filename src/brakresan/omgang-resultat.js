@@ -31,26 +31,61 @@ const brak = (f) => (f?.n === undefined ? "?" : `${f.n || "?"}/${f.d || "?"}`);
 /** Elevens svar i ord – aldrig mer än det eleven själv lämnade in. */
 export function svarText(task, answer) {
   if (!answer) return "Inget svar";
-  const typ = task.answer?.type;
-  if (typ === "paint") return `Du markerade ${answer.selected?.length ?? 0} av ${task.answer.parts.length} delar.`;
+  return delText(task.answer, task.view, answer) ?? "Ditt svar är sparat.";
+}
+
+/** Kortets text (bråk, ord eller "Kort 3" för en bild). */
+function kortNamn(cards, id) {
+  const i = (cards || []).findIndex((c) => c.id === id);
+  const c = cards?.[i];
+  if (!c) return String(id);
+  if (c.face?.kind === "fraction") return `${c.face.n}/${c.face.d}`;
+  return c.face?.text !== undefined ? `"${String(c.face.text).replace(/\.$/, "")}"` : `kort ${i + 1}`;
+}
+
+/** Korten i vyn (även inne i en sammansatt vy). */
+function allaKort(view) {
+  if (view?.cards) return view.cards;
+  return (view?.delar || []).flatMap((d) => allaKort(d.view));
+}
+
+function delText(spec, view, answer) {
+  if (!answer) return null;
+  const typ = spec?.type;
+  if (typ === "paint") return `Du markerade ${answer.selected?.length ?? 0} av ${spec.parts.length} delar.`;
   if (typ === "select" || typ === "choice") {
     const ids = typ === "select" ? answer.ids || [] : [answer.id];
-    const kort = (task.view.cards || []).filter((c) => ids.includes(c.id))
-      .map((c) => (c.face?.kind === "fraction" ? `${c.face.n}/${c.face.d}` : c.face?.text ?? c.id));
-    return `Du valde ${kort.join(", ")}.`;
+    const cards = allaKort(view);
+    if (view?.component === "tallinje") return `Du valde punkt ${answer.id}.`;
+    return `Du valde ${ids.map((id) => kortNamn(cards, id)).join(", ")}.`;
   }
   if (typ === "point") {
     const v = answer.value;
-    const t = task.view.ticks;
+    const t = view.ticks;
     return v ? `Du placerade punkten på streck ${(v.n * t) / v.d} av ${t} från 0.` : "Ingen punkt";
   }
+  if (typ === "pairs") return `Du gjorde ${answer.pairs?.length ?? 0} par.`;
+  if (typ === "categories") {
+    const l = Object.values(answer.bins || {}).map((x) => x.length);
+    return `Du lade ${l.join(" + ")} i ${l.length} ${l.length === 1 ? "grupp" : "grupper"}.`;
+  }
+  if (typ === "order") return "Du ordnade korten.";
   if (typ === "multi") {
-    const ids = Object.keys(task.answer.parts);
-    return `Du skrev ${ids.map((id) => brak(answer.parts?.[id]?.fields)).join(", ")}.`;
+    // Varje del som ett verb + värde; bara tal → "Du skrev 2/4, 1/4, 3/4."
+    const delar = Object.entries(spec.parts).map(([id, s]) => {
+      const a = answer.parts?.[id];
+      if (!a) return null;
+      if (!s?.type || s.type === "number") return { verb: "skrev", text: a.fields ? brak(a.fields) : a.text ?? "" };
+      if (s.type === "relation") return { verb: "valde", text: a.value };
+      const t = delText(s, view, a)?.replace(/^Du (\S+) /, "").replace(/\.$/, "");
+      return t ? { verb: delText(s, view, a).split(" ")[1], text: t } : null;
+    }).filter(Boolean);
+    if (delar.every((d) => d.verb === "skrev")) return `Du skrev ${delar.map((d) => d.text).join(", ")}.`;
+    return `Du ${delar.map((d) => `${d.verb} ${d.text}`).join(" och ")}.`;
   }
   if (typ === "number") return `Du skrev ${answer.fields ? brak(answer.fields) : answer.text ?? ""}.`;
   if (typ === "relation" || typ === "yesno") return `Du svarade ${String(answer.value)}.`;
-  return "Ditt svar är sparat.";
+  return null;
 }
 
 /**

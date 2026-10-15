@@ -1,0 +1,201 @@
+/* ============================================================================
+   Bråkdraken – drakkortet och den gemensamma drakpanelen (drakpanel.css) · #713
+   Laddas LAT av drakpanel.js. Används i Bråkresan OCH huset (#714), därför
+   egna variabler – inget beror på omgang.css.
+   ========================================================================= */
+
+.bdp-kort, .bdp-dialog {
+  --bdp-turkos: #13a39a;
+  --bdp-turkos-mork: #0b7d76;
+  --bdp-lila: #9b51e0;
+  --bdp-lila-ljus: #efe4fb;
+  --bdp-guld: #e8a915;
+  --bdp-black: #3b3350;
+  --bdp-text: var(--text, #22314a);
+  --bdp-svag: var(--text-svag, #5b6578);
+  color: var(--bdp-text);
+}
+
+/* --- kompakt kort (huvudvyn) ------------------------------------------------- */
+.bdp-kort {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  height: 100%;
+  padding: 12px 14px;
+  border-radius: 20px;
+  background: linear-gradient(160deg, #e9fbf8 0%, #f3ecfd 100%);
+  border: 2px solid #d6eeea;
+}
+.bdp-kort-bild {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 120px;
+  height: 110px;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  background: radial-gradient(ellipse at 50% 92%, rgba(19, 163, 154, .22) 0 30%, transparent 62%);
+  cursor: pointer;
+}
+.bdp-kort-bild svg { width: 100%; height: 100%; }
+.bdp-kort-text { display: grid; gap: 4px; min-width: 0; }
+.bdp-kort-namn { margin: 0; font-size: 1.2rem; font-weight: 800; color: var(--bdp-black); overflow-wrap: anywhere; }
+.bdp-kort-niva { margin: 0; font-weight: 700; color: var(--bdp-turkos-mork); }
+.bdp-om {
+  justify-self: start;
+  min-height: 40px;
+  margin-top: 2px;
+  padding: 6px 12px;
+  border: 2px solid var(--bdp-lila);
+  border-radius: 999px;
+  background: #fff;
+  color: #5b2a8c;
+  font: inherit;
+  font-size: .92rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.bdp-om:hover { background: var(--bdp-lila-ljus); }
+.bdp-kort :is(button):focus-visible, .bdp-dialog :is(button, input):focus-visible { outline: 4px solid var(--bdp-guld); outline-offset: 3px; }
+
+@media (max-width: 760px) {
+  .bdp-kort { grid-template-columns: 92px minmax(0, 1fr); padding: 10px 12px; }
+  .bdp-kort-bild { width: 92px; height: 84px; }
+}
+
+/* --- progress ---------------------------------------------------------------- */
+.bdp-progress { display: grid; gap: 4px; }
+.bdp-stapel {
+  position: relative;
+  height: 12px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid #c9d2e3;
+  overflow: hidden;
+}
+.bdp-fyllnad {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: repeating-linear-gradient(135deg, var(--bdp-turkos) 0 6px, #25b8ae 6px 12px);
+}
+.bdp-nasta { margin: 0; font-size: .9rem; }
+
+/* --- panelen (dialog) -------------------------------------------------------- */
+.bdp-dialog {
+  width: min(560px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  padding: 0;
+  border: 0;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 18px 50px rgba(30, 20, 60, .3);
+  overflow: hidden auto;
+}
+.bdp-dialog::backdrop { background: rgba(30, 24, 60, .45); }
+.bdp-stang {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .85);
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+.bdp-bild {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: clamp(180px, 34vh, 260px);
+  padding: 12px 24px 6px;
+  background: linear-gradient(180deg, #e3f7f4 0%, #f2ebfd 70%, #fff 100%);
+  overflow: hidden; /* evolutionens skalning får inte ge en vågrät rullist */
+}
+.bdp-bild > svg { width: 100%; height: 100%; min-height: 0; }
+.bdp-bild--scen { padding: 0; }
+.bdp-bild .bd-hoppa {
+  min-height: 40px;
+  padding: 6px 14px;
+  border: 2px solid var(--bdp-black);
+  border-radius: 999px;
+  background: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  right: 64px !important; /* fri från Stäng-knappen */
+}
+.bdp-innehall { display: grid; gap: 12px; padding: 14px 22px 22px; }
+.bdp-namnrad { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+.bdp-namn { margin: 0; font-size: 1.5rem; color: var(--bdp-black); overflow-wrap: anywhere; }
+.bdp-namn--dold { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.bdp-lank {
+  min-height: 36px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--bla, #2f80ed);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.bdp-namnform { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; width: 100%; }
+.bdp-fraga { flex-basis: 100%; margin: 0; font-weight: 700; }
+.bdp-falt {
+  flex: 1 1 180px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 2px solid #c9d2e3;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 1.1rem;
+}
+.bdp-namnstatus { margin: 0; min-height: 1.2em; font-size: .92rem; color: var(--bdp-svag); }
+.bdp-niva { margin: 0; font-size: 1.05rem; }
+
+.bdp-jakt {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 2px solid #f3dd9b;
+  border-radius: 16px;
+  background: #fffaf0;
+}
+.bdp-jakt h3 { margin: 0; font-size: 1.05rem; color: #7a5600; }
+.bdp-jakt p { margin: 0; }
+.bdp-jakt-yta { display: grid; gap: 8px; }
+.bdp-fakta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; }
+.bdp-fakta div { padding: 6px 8px; border-radius: 10px; background: #fff; }
+.bdp-fakta dt { font-size: .8rem; color: var(--bdp-svag); }
+.bdp-fakta dd { margin: 0; font-weight: 800; }
+
+@media (max-width: 480px) {
+  .bdp-fakta { grid-template-columns: minmax(0, 1fr); }
+  .bdp-innehall { padding: 12px 14px 18px; }
+}
+
+/* Egna knappar – panelen visas även i huset där Bråkresans CSS inte finns. */
+.bdp-knapp {
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 2px solid #c9d2e3;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--bdp-text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.bdp-knapp:hover { border-color: var(--bdp-turkos); }
+.bdp-knapp--primar { border-color: var(--bdp-turkos-mork); background: var(--bdp-turkos-mork); color: #fff; }
+.bdp-knapp--primar:hover { background: var(--bdp-turkos); }
+.bdp-knapp:disabled { opacity: .6; cursor: default; }
