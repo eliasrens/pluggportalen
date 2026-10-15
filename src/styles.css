@@ -7995,7 +7995,10 @@ html[data-halloween] .sz-dolj-halloween { display: none; }
     background: var(--sz-hill, #a8da8f);
   }
 }
-.port-scen { background: var(--sz-port-bg, #bde3f5); }
+/* Port-övergångens overlay (port-overgang.js) visar samma scen – samma
+   bakgrund, annars blinkar sommarblått i kanterna under zoomen (#727). */
+.port-scen,
+.port-overgang { background: var(--sz-port-bg, #bde3f5); }
 
 /* --- Fallande löv ---------------------------------------------------------
    Högst 16 löv, BARA transform + opacity (kompositorn, ingen layout och
@@ -8077,6 +8080,11 @@ html.sz-paus .sz-fladder > i { animation-play-state: paused; }
 
 /* På inloggningen läggs lagret direkt efter port-SVG:n i DOM:en (före
    login-skylten), så skylten alltid ritas ovanpå löv och fladdermöss. */
+/* Port-övergången flyttar med lagret in i overlayt (port-overgang.js), så
+   löv och fladdermöss fortsätter genom zoomen och tonar ut i samma takt
+   som scenen – världen under har sina egna löv (#727). */
+.port-overgang .sz-lager { transition: opacity 0.4s ease 0.6s; }
+.port-overgang.port-zoom .sz-lager { opacity: 0; }
 
 /* --- Lärarspärren (#/larare) ----------------------------------------------
    Panelen är OFÖRÄNDRAD (samma kontrast). Temat = bakgrunden + dekor i

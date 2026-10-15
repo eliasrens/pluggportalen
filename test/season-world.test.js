@@ -51,7 +51,9 @@ test("höst: palett med varma kronor, löv på, bara på världen/inloggningen",
   assert.equal(t.world["tree-a"], SEASONS.host.palette["tree-a"]);
   const css = paletteCss(t);
   assert.match(css, /^\.varld-stage,\.room-window\{--sz-sky1:/);
-  assert.ok(css.includes(".port-scen,body:has(.sz-gate){"));
+  // Port-övergångens overlay (SVG:n flyttas ut ur .port-scen) får samma
+  // inloggningspalett – annars blir zoomen sommargrön (#727).
+  assert.ok(css.includes(".port-scen,.port-overgang,body:has(.sz-gate){"));
   // Ingen global :root/body-regel – Plugga/Live/lärarsidan rörs inte.
   assert.ok(!/(^|\})\s*(:root|html|body)\s*\{/.test(css));
   // Alla variabler som konsten läser och höstpaletten sätter är giltiga färger.
