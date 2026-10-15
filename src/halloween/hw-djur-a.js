@@ -1,6 +1,6 @@
 // ============================================================================
 // Pluggporten – Halloween-djuren 1–5 (#695): Spökis, Pumpis, Fladdis, Gruffe,
-// Svartis. Varje art = (steg 1–3, uttryck) => SVG-innehåll i viewBox 0 0 100 100.
+// Häxis (id svartis). Varje art = (steg 1–3, uttryck) => SVG-innehåll i viewBox 0 0 100 100.
 // Steg 1 litet och bebisaktigt, steg 2 med fler kännetecken, steg 3 ståtligt med
 // glöd/krona/accessoar. Delar + animationsklasser: hw-djur-delar.js.
 // Laddas bara via import() (#271).
@@ -242,7 +242,7 @@ function gruffe(stage, expr) {
     glimtar([[12, 16, 3], [88, 14, 3], [90, 84, 2.4]], SKEN);
 }
 
-// --- Svartis: Kattunge → Häxkatt → Månmagikern -----------------------------
+// --- Häxis (id svartis): Kattunge → Häxkatt → Månmagikern -----------------------------
 
 const SV_PALS = "#3F3A52";
 const SV_LJUS = "#5A5470";

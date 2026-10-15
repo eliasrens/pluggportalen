@@ -297,7 +297,7 @@ export const HW_SPECIES = [
   ["pumpis", "Pumpis", "Pumpafrö", "Pumpaknopp", "Lyktkungen"],
   ["fladdis", "Fladdis", "Fladderfjun", "Nattvinge", "Månfladdraren"],
   ["gruffe", "Gruffe", "Ägglöga", "Skymningsdrake", "Månskensdraken"],
-  ["svartis", "Svartis", "Kattunge", "Häxkatt", "Månmagikern"],
+  ["svartis", "Häxis", "Kattunge", "Häxkatt", "Månmagikern"],
   ["mumme", "Mumme", "Lindfjun", "Bindelbjörn", "Faraonallen"],
   ["spindis", "Spindis", "Trådfjun", "Nätvävaren", "Silkesdrottningen"],
   ["skelli", "Skelli", "Benvalp", "Benrasslaren", "Skelettriddaren"],
