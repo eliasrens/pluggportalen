@@ -597,11 +597,13 @@ ingen klass) ser eleverna **hela** biblioteket (bakåtkompatibelt – aldrig en 
 sida).
 
 **ClassLock** (#436, fokusläge): `{ mal: { typ, id?, namn? }, till, doljOvrigt }`.
-`mal.typ` är en utbyggbar enum (`"omrade"` | `"lasresan"`); för `"omrade"` är
+`mal.typ` är en utbyggbar enum: `"omrade"` eller en låsbar moduls id
+(`"lasresan"`, `"mattematchen"`, `"hittaratt"`, `"ekvationsresan"` – härledd ur
+modulregistret, #734, se `docs/FOKUSLAGE.md`); för `"omrade"` är
 `id` = `"<subjectId>/<areaId>"` och `namn` områdets visningsnamn. `till` = sluttid
 i epoch-ms (klockslaget läraren valde). Under låset når eleverna bara målet –
-övriga Plugga-områden och Läsresan (resp. Plugga om målet är Läsresan) är
-spärrade även via direktlänk. `doljOvrigt: true` döljer **allt** utom målet
+övriga Plugga-områden och alla andra inlärningsmoduler är spärrade även via
+direktlänk. `doljOvrigt: true` döljer **allt** utom målet
 (hus/värld, shop, profil). Saknat fält eller `till` passerad = inget lås. Elevens
 klient bevakar klass-dokumentet live (onSnapshot) och jämför `till` mot en
 server-korrigerad klocka, så "Lås upp nu" och klockslaget slår igenom utan

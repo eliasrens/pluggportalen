@@ -7,12 +7,18 @@
 //   • "Dölj allt annat": BARA målet (+ avatarvalet) nås
 //   • elev i flera klasser → första klassen med aktivt lås (klasslistans ordning)
 //   • klockslag → sluttid (framåt, högst 24 h)
+//   • #734: mål-typerna + inlärnings-rutterna härleds ur modulregistret
+//     (STUDENT_MODULES) – Ekvationsresan, Hitta rätt!, Mattematchen är mål, och
+//     firestore.rules validLockShape speglar exakt samma typer
 // ============================================================================
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { STUDENT_MODULES } from "../src/gamemode-visibility.js";
 import {
   LOCK_TARGET_TYPES,
+  lockTargetModule,
   normalizeLock,
   activeLock,
   lockForStudent,
@@ -37,8 +43,28 @@ const omrade = (over = {}) => ({
 });
 const lasresan = (over = {}) => ({ mal: { typ: "lasresan" }, till: NU + 30 * 60_000, doljOvrigt: false, ...over });
 
-test("mål-typerna är en utbyggbar enum med område + Läsresan", () => {
-  assert.deepEqual(LOCK_TARGET_TYPES, ["omrade", "lasresan"]);
+test("mål-typerna härleds ur modulregistret: område + de låsbara modulerna", () => {
+  assert.deepEqual(LOCK_TARGET_TYPES, ["omrade", "lasresan", "mattematchen", "hittaratt", "ekvationsresan"]);
+  assert.equal(lockTargetModule("omrade").id, "plugga");
+  assert.equal(lockTargetModule("ekvationsresan").label, "Ekvationsresan");
+  assert.equal(lockTargetModule("shop"), null, "shoppen är ingen inlärningsmodul");
+  assert.equal(lockTargetModule("plugga"), null, "Plugga låses per område (typen omrade)");
+});
+
+test("firestore.rules validLockShape speglar exakt registrets mål-typer", () => {
+  const rules = readFileSync(new URL("../firestore.rules", import.meta.url), "utf8");
+  const m = /l\.mal\.typ in \[([^\]]*)\]/.exec(rules);
+  assert.ok(m, "hittar mal.typ-enumen i validLockShape");
+  const iRegler = m[1].split(",").map((t) => t.trim().replace(/^'|'$/g, ""));
+  assert.deepEqual(iRegler, LOCK_TARGET_TYPES,
+    "ny låsbar modul i STUDENT_MODULES ⇒ lägg typen i validLockShape (+ rules-deploy)");
+});
+
+test("varje låsbar modul är en inlärningsmodul med egen route", () => {
+  for (const m of STUDENT_MODULES.filter((x) => x.lockable)) {
+    assert.ok(m.learning, m.id);
+    assert.ok(m.routes.length > 0 && m.routes.every((r) => r.startsWith("/elev/")), m.id);
+  }
 });
 
 test("saknat, trasigt eller utgånget lås = inget lås", () => {
@@ -134,4 +160,64 @@ test("buildLock: område kräver id, Läsresan inget", () => {
   assert.deepEqual(buildLock({ typ: "lasresan", till: NU + 1, doljOvrigt: 1 }), {
     mal: { typ: "lasresan" }, till: NU + 1, doljOvrigt: true,
   });
+});
+
+// --- #734: nya låsmål -----------------------------------------------------------
+
+const modulLas = (typ, over = {}) => normalizeLock({ mal: { typ }, till: NU + 30 * 60_000, doljOvrigt: false, ...over });
+const INLARNING = {
+  plugga: ["/elev/plugga", q("")],
+  omrade: ["/elev/omrade", q("subj=so&area=vikingatiden")],
+  spela: ["/elev/spela", q("subj=so&area=vikingatiden&mode=quiz")],
+  aventyr: ["/elev/aventyr", q("subj=so&area=vikingatiden&tema=gruvan")],
+  lasresan: ["/elev/lasresan", q("")],
+  mattematchen: ["/elev/mattematchen", q("")],
+  hittaratt: ["/elev/hitta-ratt", q("")],
+  ekvationsresan: ["/elev/ekvationsresan", q("")],
+};
+const MODUL_RUTT = {
+  lasresan: "/elev/lasresan",
+  mattematchen: "/elev/mattematchen",
+  hittaratt: "/elev/hitta-ratt",
+  ekvationsresan: "/elev/ekvationsresan",
+};
+
+test("varje modul-mål: målet nås, ALLA andra inlärningsmoduler spärras, resten öppet", () => {
+  for (const [typ, rutt] of Object.entries(MODUL_RUTT)) {
+    const l = modulLas(typ);
+    assert.ok(l, typ);
+    assert.ok(lockIsTarget(l, rutt, q("")), `${typ}: målet`);
+    assert.ok(lockAllowsRoute(l, rutt, q("vy=x")), `${typ}: målet med query`);
+    assert.equal(lockHomeHash(l), `#${rutt}`);
+    for (const [namn, [p, query]] of Object.entries(INLARNING)) {
+      if (p === rutt) continue;
+      assert.ok(!lockAllowsRoute(l, p, query), `${typ}-lås spärrar ${namn}`);
+    }
+    for (const p of ["/elev/hus", "/elev/shop", "/elev/profil", "/elev/by", "/elev/live"]) {
+      assert.ok(lockAllowsRoute(l, p, q("")), `${typ}: ${p} öppet utan Dölj allt annat`);
+      assert.ok(!lockAllowsRoute(modulLas(typ, { doljOvrigt: true }), p, q("")), `${typ}: ${p} dolt`);
+    }
+    assert.ok(lockAllowsRoute(modulLas(typ, { doljOvrigt: true }), "/elev/avatar", q("")));
+    assert.ok(!lockAllowsArea(l, "so", "vikingatiden"));
+  }
+});
+
+test("etiketter: modulens namn (namn-fältet ignoreras för moduler)", () => {
+  assert.equal(lockLabel(modulLas("ekvationsresan")), "Ekvationsresan");
+  assert.equal(lockLabel(modulLas("hittaratt")), "Hitta rätt!");
+  assert.equal(lockLabel(modulLas("mattematchen")), "Mattematchen");
+  assert.equal(lockLabel(modulLas("lasresan", { mal: { typ: "lasresan", namn: "X" } })), "Läsresan");
+});
+
+test("områdeslås spärrar de nya modulerna; modul-id utanför registret är inget lås", () => {
+  const l = normalizeLock(omrade());
+  for (const p of ["/elev/ekvationsresan", "/elev/hitta-ratt", "/elev/mattematchen"]) {
+    assert.ok(!lockAllowsRoute(l, p, q("")), p);
+  }
+  assert.equal(modulLas("shop"), null);
+  assert.equal(modulLas("live"), null);
+  assert.equal(modulLas("brakresan"), null, "inte registrerad än → inget lås (fail-open)");
+  assert.deepEqual(buildLock({ typ: "hittaratt", id: "x/y", till: NU + 1 }), {
+    mal: { typ: "hittaratt" }, till: NU + 1, doljOvrigt: false,
+  }, "id sparas bara för områden");
 });

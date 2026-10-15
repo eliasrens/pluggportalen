@@ -8,7 +8,7 @@
 import * as data from "./data.js";
 import { avatarMarkup, DEFAULT_AVATAR, avatarArtReady, loadAvatarArt } from "./avatars.js";
 import { coinIcon, starIcon } from "./icons.js";
-import { modulesHiddenForStudent, OPT_IN_MODULES } from "./gamemode-visibility.js";
+import { modulesHiddenForStudent, OPT_IN_MODULES, STUDENT_MODULES } from "./gamemode-visibility.js";
 
 export const app = document.getElementById("app");
 export const sidebar = document.getElementById("sidebar");
@@ -223,7 +223,7 @@ export async function getLiveVisible() {
 // Villkorade menylänkar (#458/#460): `villkor` i NAV_LANKAR = nyckel här. Länken
 // syns bara när villkoret (en dynamiskt laddad bevakare som själv ritar om
 // menyn vid ändring) svarar sant – eller när eleven redan står på sidan.
-// Nästa villkorade modul = en rad här + `villkor` på sin länk.
+// Nästa villkorade modul = en rad här + `villkor` på sin rad i STUDENT_MODULES.
 const NAV_VILLKOR = {
   mattematchen: async () => !!(await getMattematch()),
   live: getLiveVisible,
@@ -232,10 +232,13 @@ const NAV_VILLKOR = {
 // Elevens huvuddestinationer i sidomenyn. Menyn ritas grupp för grupp i
 // NAV_GRUPPER-ordning (#701), inom gruppen i listans ordning.
 // `grupp`: "mitt" = Hem/Shoppen (ingen rubrik), "ova" = övningsdelarna (rubrik
-// ÖVA). NYA MODULER läggs i "ova". En grupp utan synliga länkar ritar ingen rubrik.
+// ÖVA). En grupp utan synliga länkar ritar ingen rubrik.
+// Modul-länkarna HÄRLEDS ur modulregistret (STUDENT_MODULES, #734): en NY MODUL
+// läggs där (grupp "ova") – inte här.
 // "Min klass" är borta ur navet – klassen nås numera i spelvärlden via
 // klasskylten vid gården (#/elev/by, klassbyn).
-// `modul` = id i TOGGLABLE_MODULES (#412): länken döljs om klassen döljer modulen.
+// `modul` = id i TOGGLABLE_MODULES (#412): länken döljs om klassen döljer modulen
+// (opt-in-moduler (#605) är dolda tills klassen aktiverat dem).
 // `villkor` (#458/#460): länken syns bara när NAV_VILLKOR[villkor] svarar sant.
 // Live ritas inte som länk utan som Live-ruta överst (#701) – samma synlighet.
 const NAV_GRUPPER = [
@@ -244,16 +247,11 @@ const NAV_GRUPPER = [
 ];
 const NAV_LANKAR = [
   { hash: "#/elev/hus", ikon: "🏠", label: "Hem", grupp: "mitt" },
-  { hash: "#/elev/shop", ikon: "🛒", label: "Shoppen", grupp: "mitt", modul: "shop" },
-  { hash: "#/elev/plugga", ikon: "📚", label: "Plugga", grupp: "ova", modul: "plugga" },
-  // Läsresan (#398): egen huvudmodul, fristående från Plugga.
-  { hash: "#/elev/lasresan", ikon: "📖", label: "Läsresan", grupp: "ova", modul: "lasresan" },
-  // Mattematchen (#458): bara under en aktiv period för elevens klass.
-  { hash: "#/elev/mattematchen", ikon: "🧮", label: "Mattematchen", grupp: "ova", villkor: "mattematchen" },
-  // Hitta rätt! (#605): opt-in per klass (enabledModules) – annars dold.
-  { hash: "#/elev/hitta-ratt", ikon: "🗺️", label: "Hitta rätt!", grupp: "ova", modul: "hittaratt" },
-  // Ekvationsresan (#618): opt-in per klass (enabledModules) – annars dold.
-  { hash: "#/elev/ekvationsresan", ikon: "⚖️", label: "Ekvationsresan", grupp: "ova", modul: "ekvationsresan" },
+  // Shoppen, Plugga, Läsresan, Mattematchen (villkor), Hitta rätt!, Ekvationsresan …
+  ...STUDENT_MODULES.map((m) => ({
+    hash: `#${m.routes[0]}`, ikon: m.ikon, label: m.label, grupp: m.grupp,
+    modul: m.toggle === false ? undefined : m.id, villkor: m.villkor,
+  })),
   // Live (#460): bara när klassen har en lobby/pågående match – blir Live-rutan.
   { hash: "#/elev/live", ikon: "⚡", label: "Live", grupp: "live", villkor: "live" },
 ];
