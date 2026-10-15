@@ -105,7 +105,7 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `hittaRattSparaPack`, `hittaRattRaderaPack`, `hittaRattSattTopplista` | ja (som `updateStudentLogin`) | nej | FR test 19, FR H3 |
 | `adminCreateTeacher`, `adminUpdateTeacher`, `adminSetTeacherPassword`, `adminSetTeacherActive`, `adminDeleteTeacher` | ja (färska claims i Auth; inte sin egen roll eller det sista adminkontot) | nej | FT test 19–23, FR test 19 |
 | `guldrushAnswer`, `guldrushOpenChest`, `guldrushChooseVictim`, `datakuppAnswer`, `datakuppOpenFile`, `datakuppChooseTarget`, `datakuppGuessCode`, `datakuppPickCode`, `hittaRattSubmit` | elevfunktioner, inga lärarvägar | – | GR, DK, HR |
-| `brakresaStartRound`, `brakresaAnswer`, `brakresaRework`, `brakresaFinishRound`, `brakresaAbortRound`, `brakresaAckDragon`, `brakresaRenameDragon` | nej – elevfunktioner; lärarkonton nekas (testläget körs i klienten och skriver aldrig, #708) | nej | BF |
+| `brakresaStartRound`, `brakresaAnswer`, `brakresaRework`, `brakresaFinishRound`, `brakresaAbortRound`, `brakresaAckDragon`, `brakresaRenameDragon`, `brakresaHunt` | nej – elevfunktioner; lärarkonton nekas (testläget körs i klienten och skriver aldrig, #708) | nej | BF |
 
 Migreringsskriptet `admin/migrate-teacher-admins.mjs` (Admin SDK, förbi reglerna)
 bevisas av FM test 24.

@@ -479,7 +479,7 @@ frågor per elev). Servern uppdaterar det i samma transaktion som svaret/avslute
 | `encouragementCoins` | int 0–500 | Utbetalda uppmuntransmynt totalt (10 per utmaning, högst en gång) |
 | `totals` | map | `{ roundsCompleted, roundsAborted, firstCorrect, firstTotal, helpBefore, helpAfter }` – samma räknare som per utmaning, summerade |
 | `dragon` | map/null | `null` som ägg (0–9 stjärnor). Vid kläckningen (första transaktionen som når 10): `{ id, hatchedAt, levelShown, name }`. `name` = standardnamnet "Bråkis" (eller ett namn som redan stod i `studentData.brakdrake.name`); byts med `brakresaRenameDragon` (#713) som skriver samma namn i `studentData.brakdrake.name`. `id` = personligt drak-id (`"drake-" + uid`), `levelShown` = högsta nivå vars kläcknings-/evolutionsanimation visats (H/I sätter den via servern, så en avbruten animation visas igen men ger aldrig ny drake) |
-| `hunts` | map | `{ count, coins, lastDate }` – summerat ur BEKRÄFTADE jaktposter (J) |
+| `hunts` | map | `{ count, coins, lastDate, lastAmount }` – summerat ur BEKRÄFTADE jaktposter i samma transaktion som posten (J #715); `lastAmount` = fyndet `lastDate`, så panelen visar dagens fynd utan extra läsning |
 | `lastActivityAt` | timestamp | Senaste sparade spelaktivitet (svar, avslut, avbrott, jakt) – inte en öppnad sida |
 | `updatedAt` | timestamp | |
 

@@ -29,7 +29,7 @@ Pluggportalen – kodbasen vinner, §13).
 | Datamodell | `docs/DATAMODELL.md` "Bråkresan" | dokumenterad |
 | Regelskelett | `firestore.rules` (Bråkresan-blocken) | klart, `test/firestore-rules-brakresan.test.js` |
 | Komponentbibliotek (B #707) | `src/brakresan/komponenter/*` (+ `komponenter.css`), §5 nedan | klart, `test/brakresan-komponenter-geometri.test.js`, `preview/preview-brakresan-komponenter.html` |
-| Server-API (J) | §6 nedan | kontrakt |
+| Daglig guldjakt (J #715) | `functions/brakresan-jakt.js`, callable `brakresaHunt`, `src/brakresan/guldjakt.js` | klar, §5c + §6, `test/functions-brakresan-jakt.test.mjs` |
 | Betrodd server (C #708): omgångar, bedömning, stjärnor, mynt, uppmuntran, drake | `functions/brakresan-{core,avslut,state}.js`, callables `brakresa*` i `functions/index.js` | klar, `test/functions-brakresan-{core,avslut}.test.mjs` (kärnan, §15) + `functions-brakresan.test.mjs` (e2e) |
 | Klientens dataskikt + demoläge | `src/brakresan/data.js` (lat), `data-core.js`, `demo.js` | klart, `test/brakresan-data-core.test.js` |
 
@@ -306,9 +306,19 @@ elev1 / lilla123, proxy 8711) – proxyns vitlista har `brakresa*`.
 | `miniatyr.js` | `miniatyrSvg(id)` – en egen statisk SVG per utmaning (80 × 60, aria-hidden), utan komponentbiblioteket. |
 | `drakpanel.js` (+ `drakpanel.css`, lat) | **Gemensam panel för Bråkresan och huset (I #714):** `oppnaDrakpanel({ state, byt?, jakt?, forandring?, onVisad?, onNamn?, fokusTillbaka?, idag? })` = `<dialog>` med draken, namn + "Byt namn", nivå, stjärnor totalt, nästa tröskel, guldjaktens status/intervall/genomförda/funna mynt, "Fullt utvecklad" vid 150. Ägget: kläckningsmål, ingen jaktknapp. `forandring: { fran, till }` spelar `spelaKlackning` (fran 0, sedan namnfrågan) eller `spelaEvolution` först – "Hoppa över" finns, och stängd panel räknas som visad. `createDrakkort(host, { state, oppna })` = huvudvyns kompakta kort. `drakInfo(state)` = texterna (testad). Egen CSS och egna knappar (`bdp-*`) – beror inte på Bråkresans CSS. |
 
-**J #715** ritar jaktknappen och animationen via `jakt(yta, info)` (yta = panelens jaktruta,
-`info.jakt` = `{ max, intervallText, antal, mynt, klarIdag }`). **I #714** öppnar samma panel från
-huset med `oppnaDrakpanel({ state: await getState() })`; namnbytet går via `renameDragon` i data.js.
+**Guldjakten (J #715 – byggt)** ritas i panelens jaktruta av `guldjakt.js` (lat) – det är
+standard när `jakt` utelämnas, så **I #714** får samma jakt genom att öppna panelen från huset med
+`oppnaDrakpanel({ state: await getState(), onJakt })` (`onJakt(svar)` = efter bekräftad jakt, t.ex.
+`renderTopbar()` för saldot; `jakt: null` = ingen knapp). `info.jakt` = `{ max, intervallText, antal,
+mynt, klarIdag, idagFynd }`; `klarIdag`/`idagFynd` jämför `state.hunts.lastDate` med enhetens svenska
+datum – bara visning, servern avgör. Flödet (§10): knappen låses direkt → `data.hunt()` → först efter
+bekräftat svar ~4,5 s scen i panelens bild (lyfter, flyger iväg, tillbaka med kista, kistan öppnas,
+"+N") → "Dagens jakt är klar – tillbaka imorgon."; summor och saldo uppdateras när kistan öppnats.
+Reducerad rörelse och `already` (omladdning, annan flik, huset) → fyndet direkt. Fel → saklig text
+utan mynt + "Försök igen" (servern är idempotent per dag). Draken i huset rörs aldrig – scenen spelas
+bara i panelen. Förhandsvisning: `preview-brakresan-713.html?s=jakt` (nivå 11) / `?s=ny1` (nivå 1),
+`&fel=1` = första försöket får nätfel. Texter: `test/brakresan-guldjakt.test.js`.
+Namnbytet går via `renameDragon` i data.js.
 
 Navigation (H): `NAV_LANKAR` i `ui.js` (grupp `ova`, `modul: "brakresan"`) + `TOGGLABLE_MODULES`
 i `gamemode-visibility.js` – **synlig som standard, döljbar per klass** (`hiddenModules`, som
@@ -366,7 +376,7 @@ jaga, utmaningen inte byggd), `invalid-argument`.
 | `brakresaAbortRound` | `{ roundId }` | `{ status: "avbruten" }` | Ingen belöning; besvarade uppgifter finns kvar i statistiken. |
 | `brakresaAckDragon` | `{ level }` | `{ levelShown }` | Sätter `state.dragon.levelShown` = max(gammal, level ≤ aktuell nivå) – kläckning/evolution visas en gång, progressionen är redan sparad. |
 | `brakresaRenameDragon` (H #713) | `{ name }` | `{ name }` | `cleanDragonName` (regler.js: inga HTML-/styrtecken, 1–16 tecken) på servern; ägget → `failed-precondition`, tomt → `invalid-argument`. EN transaktion: `state.dragon.name` + `studentData.brakdrake.name` (merge – placering och nivå orörda). Kläckningen sätter standardnamnet `DRAGON_DEFAULT_NAME` ("Bråkis") direkt, så namnvalet blockerar aldrig. |
-| `brakresaHunt` (J) | `{}` | `{ date, level, max, amount, coinsAfter, already }` | Datum = `stockholmDate(serverns now)`. Ägg → `failed-precondition`. EN transaktion: finns `brakresaHunts/{datum}` → svara den (`already: true`); annars `amount = randomInt(1, max + 1)`, skapa jaktposten + `brakresaRewards/jakt-{datum}` + `coins += amount` + `state.hunts`. |
+| `brakresaHunt` (J #715 – byggt) | `{}` (allt annat ignoreras) | `{ huntId, date, level, max, amount, coinsAfter, already, hunts: { count, coins, lastDate, lastAmount } }` | `functions/brakresan-jakt.js`. Datum = `stockholmDate(serverns now)`, läst INNE i transaktionen. Ägg → `failed-precondition`. EN transaktion: finns `brakresaHunts/{datum}` → svara den (`already: true`, inget betalas); annars nivå = `dragonLevel(totalStars)` nu (låser dagens intervall), `amount = randomInt(1, max + 1)`, skapa jaktposten + `brakresaRewards/jakt-{datum}` + `coins += amount` + `state.hunts`. Finns bokföringen men inte posten återskapas posten utan ny utbetalning. Tester: `test/functions-brakresan-jakt.test.mjs` (alla nivåer min/max, midnatt, sommar-/vintertid, klientfält, 8 samtidiga anrop). |
 
 Invarianterna i §13 och var de garanteras:
 
@@ -390,9 +400,9 @@ ligger under ägarens `studentData` och svarar `not-found`. `rewardText` är
 sorterar på `finishedAt` → sammansatt index i `firestore.indexes.json`.
 
 **Klientens dataskikt (C, klart):** `src/brakresan/data.js` (lat) – API:t står i filhuvudet:
-`startRound`, `answer`, `rework`, `finishRound`, `abortRound`, `ackDragon`, `renameDragon`, `newAttemptId`,
+`startRound`, `answer`, `rework`, `finishRound`, `abortRound`, `ackDragon`, `renameDragon`, `hunt`, `newAttemptId`,
 `getState`, `getRound`, `getRecommendations(classIds)`, lärarens `getClassStates(studentIds)` / `listRounds(studentId, { challengeId })`.
-J lägger till `hunt` här. Nätfel och tillfälliga serverfel försöks igen automatiskt med
+`hunt()` (J #715) invaliderar studentData-cachen (saldot). Nätfel och tillfälliga serverfel försöks igen automatiskt med
 SAMMA data (`data-core.js` `callWithRetry`, 3 omförsök); ger det upp kastas `BrakresaFel`
 med `retryable: true` – vyn behåller elevens inmatning (`drafts.save/load/clear`) och
 visar "Försök igen". `saveStatus.subscribe(cb)` ger "sparar" / "sparat" / "offline" / "fel"
@@ -416,7 +426,7 @@ Färdigt i `src/brakresan/demo.js`: `demoRound(id, seed)` (tio hela uppgifter me
 | E #710 / F #711 / G #712 | `utmaningar/u01–u20.js` (+ `delat-e.js`, komponenterna `sammansatt`, `figur`, `relationsval`, `bygge`, `gruppering`) / `u21–u35.js` (+ `f-delat.js`, verkstaden `omgang-verkstad.js`, `verkstad-*.js`, `preview-brakresan-f.html`) / `u36–u50.js` (utom D:s fyra) |
 | H #713 | huvudvyn (`huvudvy*.js`, `miniatyr.js`), drakpanelen (`drakpanel.js`), navigationen (`ui.js`, `gamemode-visibility.js`), `brakresaRenameDragon` |
 | I0 #718 / I #714 | drakens grafik och animation, `studentData.brakdrake` i huset |
-| J #715 | guldjakten |
+| J #715 | guldjakten: `functions/brakresan-jakt.js`, callable `brakresaHunt`, `src/brakresan/guldjakt.js` (+ `gj-*` i `drakpanel.css`) |
 | K #716 | lärarvyn, rekommendationer, testläget |
 
 Ändras något i `math/`, `schema/` eller `utmaningar/`: kör `npm run sync:brakresan`
