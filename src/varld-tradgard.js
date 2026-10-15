@@ -33,8 +33,12 @@
 
 import { el, clamp } from "./ui.js";
 import { getItem, isGardenItem, isFlatItem, isSeedItem, itemIdFromKey } from "./shop-items.js";
-import { itemSvg, itemSize } from "./art-items.js";
+import { itemSvg, itemSize, itemRiktning, kanRoteras, kanVandas, riktningsFalt, vridPlacering } from "./art-items.js";
+import { sakVerktygHtml, kopplaVridTangenter } from "./rum-promenad-golv.js";
 import * as data from "./data.js";
+
+// Trädgårdens längdenhet: skalar med lagrets bredd (cqw), cap:ad per enhet.
+const GARD_ENHET = "min(var(--gard-koeff, 2.4) * 1cqw, var(--gard-cap, 34px))";
 
 // Spridningsmönster för nyplacerade saker: punkter på gräset (i % av scenen),
 // utspridda i gården nedanför/kring huset så de inte hamnar i en hög. Center-
@@ -83,6 +87,7 @@ export function mountTradgard({ uteLager, tray, trayHint, sd, gard }) {
       placements[key] = {
         x: clamp(pos.x, 3, 97), y: clamp(pos.y, 8, 96),
         ...(pos.scen === "gard" ? { scen: "gard" } : {}),
+        ...riktningsFalt(pos), // rot/flip (#699); saknas = ovänd
       };
     }
   }
@@ -145,15 +150,35 @@ export function mountTradgard({ uteLager, tray, trayHint, sd, gard }) {
       const item = getItem(id);
       if (!item) continue;
       const pos = placements[key];
-      const size = itemSize(id);
+      const { rot, spegel } = itemRiktning(id, pos);
+      const size = itemSize(id, rot);
       // Storleken skalar med scenBREDDEN (1cqw = 1 % av lagret), cap:ad per enhet
       // – skrivs DIREKT här (Chromium resolvar annars cqw mot fel container).
       scen.layer.appendChild(el(`<div class="garden-item${selectedKey === key ? " selected" : ""}"
         data-key="${key}" style="left:${pos.x}%;top:${pos.y}%" title="${item.name}">
-        <span class="gi-bild" style="width:calc(${size.w} * min(var(--gard-koeff, 2.4) * 1cqw, var(--gard-cap, 34px)));height:calc(${size.h} * min(var(--gard-koeff, 2.4) * 1cqw, var(--gard-cap, 34px)))">${itemSvg(id) || item.emoji}</span>
+        <span class="gi-bild${spegel ? " spegel" : ""}" style="width:calc(${size.w} * ${GARD_ENHET});height:calc(${size.h} * ${GARD_ENHET})">${itemSvg(id, { rot }) || item.emoji}</span>
         <button class="gi-remove" data-remove="${key}" title="Plocka bort">🗑️</button>
       </div>`));
     }
+    // ↔ Vänd (och ⟳ för saker med vyer) vid den markerade saken (#699).
+    if (selectedKey && placements[selectedKey] && scenFor(selectedKey) === scen.id) {
+      const id = itemIdFromKey(selectedKey);
+      const pos = placements[selectedKey];
+      const html = sakVerktygHtml({
+        key: selectedKey, x: pos.x, y: pos.y, h: itemSize(id, itemRiktning(id, pos).rot).h,
+        enhet: GARD_ENHET, rotera: kanRoteras(id), vand: kanVandas(id),
+      });
+      if (html) scen.layer.appendChild(el(html));
+    }
+  }
+
+  /** Rotera ("rot") eller vänd ("flip") en sak; ritar om och sparar (#699). */
+  function vrid(key, typ) {
+    const pos = key && placements[key];
+    if (!pos || !vridPlacering(itemIdFromKey(key), pos, typ)) return false;
+    renderLayer(scener[scenFor(key)]);
+    scheduleSave();
+    return true;
   }
 
   function renderTrayIn(trayEl, hintEl, scenId) {
@@ -227,6 +252,11 @@ export function mountTradgard({ uteLager, tray, trayHint, sd, gard }) {
   function bindLager(scen) {
     const layer = scen.layer;
     layer.addEventListener("click", (e) => {
+      const vridBtn = e.target.closest("[data-rotera],[data-vand]");
+      if (vridBtn) {
+        vrid(vridBtn.dataset.rotera || vridBtn.dataset.vand, vridBtn.dataset.rotera ? "rot" : "flip");
+        return;
+      }
       const rm = e.target.closest("[data-remove]");
       if (!rm) return;
       delete placements[rm.dataset.remove];
@@ -268,6 +298,9 @@ export function mountTradgard({ uteLager, tray, trayHint, sd, gard }) {
       drag.node.classList.remove("dragging");
       if (drag.moved) {
         scheduleSave();
+        // En dragen sak blir markerad → ↔/⟳ syns direkt vid den (#699).
+        selectedKey = drag.key;
+        renderLayer(scen);
       } else {
         // Klick (ingen förflyttning) → markera/avmarkera (visar 🗑️).
         selectedKey = selectedKey === drag.key ? null : drag.key;
@@ -320,6 +353,16 @@ export function mountTradgard({ uteLager, tray, trayHint, sd, gard }) {
     sakraLager(scener.gard);
     renderLayer(scener.gard);
   }
+
+  // R/F på tangentbordet (#699) – bara när den markerade sakens scen syns
+  // (framsidan = nivån "hus", gården = "gard").
+  kopplaVridTangenter(uteLager, {
+    aktiv: () => {
+      const niva = uteLager.closest("[data-niva]")?.dataset.niva;
+      return !!selectedKey && placements[selectedKey] && niva === (scenFor(selectedKey) === "gard" ? "gard" : "hus");
+    },
+    gor: (typ) => vrid(selectedKey, typ),
+  });
 
   sakraLager(scener.ute);
   render();

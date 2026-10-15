@@ -3054,6 +3054,54 @@ code {
 }
 
 
+/* --- ⟳ Rotera / ↔ Vänd (#699) ------------------------------------------------
+   Spegelvänd sak: bara bilden vänds (inte 🗑️ eller nodens translate). */
+.room-item .ri-emoji.spegel,
+.garden-item .gi-bild.spegel {
+  transform: scaleX(-1);
+}
+
+/* Knapparna vid den markerade saken – egen nod i scenen (rum-promenad-golv.js
+   sakVerktygHtml), ovanför saken på golvet (.upp) och under den på väggen.
+   Stora runda knappar (48 px) som går att träffa på Chromebook och surfplatta. */
+.sak-verktyg {
+  position: absolute;
+  transform: translate(-50%, 22px);
+  display: flex;
+  gap: 10px;
+  z-index: var(--z-scen-drag);
+  pointer-events: auto;
+}
+.sak-verktyg.upp {
+  transform: translate(-50%, calc(-100% - 22px));
+}
+.sak-verktyg-knapp {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 3px solid var(--lila);
+  background: #fff;
+  color: #3b3350;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 3px 6px rgba(59, 51, 80, 0.25);
+  touch-action: manipulation;
+}
+.sak-verktyg-knapp:hover,
+.sak-verktyg-knapp:focus-visible {
+  background: #f3ecff;
+}
+.sak-verktyg-knapp:active {
+  transform: scale(0.94);
+}
+/* Under en drag följer knapparna inte med – dölj dem tills saken släppts. */
+.room-stage:has(.room-item.dragging) .sak-verktyg,
+.tradgard-lager:has(.garden-item.dragging) .sak-verktyg {
+  visibility: hidden;
+}
+
 /* ── src/styles/11-tradgard.css ── */
 /* --- Trädgården: köpta utomhussaker placerade i ute-scenen (issue #132) -----
    Lagret ligger OVANPÅ husScen-SVG:n i #ute-lager. pointer-events:none så klick
