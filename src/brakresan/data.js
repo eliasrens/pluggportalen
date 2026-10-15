@@ -16,6 +16,7 @@
 //                            dragon: { levelBefore, levelAfter, hatched }, coinsAfter, already }
 //   abortRound(roundId)  → { status: "avbruten" }
 //   ackDragon(level)     → { levelShown }
+//   renameDragon(name)   → { name } – servern rensar texten (#713); ägget → BrakresaFel
 //   newAttemptId()       → id för ett bearbetningsförsök (skicka samma vid omförsök)
 //   saveStatus.subscribe(cb) → avregistrera; cb("vilar"|"sparar"|"sparat"|"offline"|"fel")
 //   drafts.save/load/clear(roundId, index[, answer]) – osparad inmatning lokalt
@@ -26,6 +27,7 @@
 //   getRound(roundId, studentId?) → omgångsdokumentet eller null
 //   getClassStates(studentIds)    → Map(studentId → state) – EN läsning per elev (#231)
 //   listRounds(studentId, { challengeId?, limit? }) → avslutade omgångar, nyast först
+//   getRecommendations(classIds) → elevens aktiva rekommendationer (egna + klassernas)
 //
 // Demonstrationsläget (Prova ett exempel, lärarens testläge) skriver aldrig: demo.js.
 // ============================================================================
@@ -77,6 +79,12 @@ export async function finishRound(roundId) {
 
 export const abortRound = (roundId) => call("brakresaAbortRound", { roundId });
 export const ackDragon = (level) => call("brakresaAckDragon", { level });
+
+export async function renameDragon(name) {
+  const res = await call("brakresaRenameDragon", { name });
+  invalidateStudentData(currentStudentId()); // husposten (brakdrake.name) ändrades
+  return res;
+}
 
 export function newAttemptId() {
   const a = new Uint32Array(3);
@@ -130,4 +138,19 @@ export async function listRounds(studentId, { challengeId = null, limit = 20 } =
     ? query(col, where("challengeId", "==", challengeId), where("status", "==", "avslutad"), orderBy("finishedAt", "desc"), qLimit(limit))
     : query(col, orderBy("startedAt", "desc"), qLimit(limit));
   return (await getDocs(q)).docs.map((d) => d.data());
+}
+
+/**
+ * Elevens aktiva rekommendationer (spec §11/§12, K #716): de som gäller eleven
+ * själv + de som gäller någon av elevens klasser. Frågorna filtrerar på
+ * studentId/classId så som firestore.rules kräver. Fel → tom lista (frivillig del).
+ */
+export async function getRecommendations(classIds = [], studentId = currentStudentId()) {
+  const col = collection(db, "brakresaRecommendations");
+  const fragor = [
+    query(col, where("studentId", "==", studentId), where("active", "==", true)),
+    ...classIds.slice(0, 10).map((id) => query(col, where("classId", "==", id), where("active", "==", true))),
+  ];
+  const svar = await Promise.all(fragor.map((q) => getDocs(q).then((s) => s.docs.map((d) => ({ id: d.id, ...d.data() }))).catch(() => [])));
+  return svar.flat();
 }

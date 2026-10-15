@@ -16,7 +16,7 @@ import { gradeWith } from "../src/brakresan/schema/bedomning.js";
 import { reviewChallenge } from "../src/brakresan/schema/granskning.js";
 import {
   roundReward, resultMessage, dragonLevel, dragonProgress, huntMax, stockholmDate, challengeStatus, accuracy,
-  isSmallSample, starEventId, MAX_TOTAL_STARS, COINS_PER_STAR, ENCOURAGE_COINS,
+  isSmallSample, starEventId, MAX_TOTAL_STARS, COINS_PER_STAR, ENCOURAGE_COINS, cleanDragonName, DRAGON_DEFAULT_NAME,
 } from "../src/brakresan/schema/regler.js";
 import { loadChallenge, loadAllChallenges } from "../src/brakresan/utmaningar/index.js";
 import { fixture, fixtureDef } from "./helpers/brakresan-fixtur.js";
@@ -296,11 +296,28 @@ describe("regler: stjärnor och mynt (§2, §5, §15 Belöningar)", () => {
 });
 
 describe("regler: draken och jakten (§9, §10)", () => {
+  test("drakens namn (#713): standardnamn, säker text, högst 16 tecken", () => {
+    assert.equal(cleanDragonName(DRAGON_DEFAULT_NAME), DRAGON_DEFAULT_NAME);
+    assert.equal(cleanDragonName("  Glöd  "), "Glöd");
+    assert.equal(cleanDragonName("<img src=x onerror=1>"), "img src=x onerro");
+    assert.equal(cleanDragonName("a\n\tb\u0000c\u200Bd"), "a bcd");
+    assert.equal(cleanDragonName("abcdefghijklmnopqrstuvwxyz"), "abcdefghijklmnop");
+    assert.equal(Array.from(cleanDragonName("🐉".repeat(30))).length, 16, "räknar tecken, inte UTF-16-enheter");
+    for (const tomt of ["", "   ", "<>&", null, undefined, 42, {}]) assert.equal(cleanDragonName(tomt), null);
+  });
   test("draktrösklar 0, 9, 10, 19, 20, 149, 150", () => {
     assert.deepEqual([0, 9, 10, 19, 20, 149, 150].map(dragonLevel), [0, 0, 1, 1, 2, 14, 15]);
     assert.deepEqual(dragonProgress(7), { level: 0, egg: true, nextAt: 10, starsToNext: 3, fullyGrown: false });
     assert.deepEqual(dragonProgress(23), { level: 2, egg: false, nextAt: 30, starsToNext: 7, fullyGrown: false });
     assert.deepEqual(dragonProgress(150), { level: 15, egg: false, nextAt: null, starsToNext: null, fullyGrown: true });
+    // #713: trösklarna 0, 9, 10, 19, 20, 149, 150 i panelens progress.
+    assert.deepEqual([0, 9, 10, 19, 20, 149, 150].map((s) => {
+      const p = dragonProgress(s);
+      return [p.level, p.egg, p.nextAt, p.starsToNext, p.fullyGrown];
+    }), [
+      [0, true, 10, 10, false], [0, true, 10, 1, false], [1, false, 20, 10, false], [1, false, 20, 1, false],
+      [2, false, 30, 10, false], [14, false, 150, 1, false], [15, false, null, null, true],
+    ]);
   });
 
   test("jaktintervall per nivå, även 11 och 15", () => {

@@ -1,23 +1,21 @@
 // ============================================================================
 // Bråkresan – route-skal (src/brakresan/page-brakresan.js) · #709 D
 // ----------------------------------------------------------------------------
-//   #/elev/brakresan                 huvudvyn (listan med de 50 utmaningarna)
+//   #/elev/brakresan                 huvudvyn (huvudvy.js, #713)
 //   #/elev/brakresan?u=03            utmaningsvyn: före/under/efter omgången (omgang.js)
 //   #/elev/brakresan?u=03&lage=test  testomgång helt i klienten (demoBackend) –
 //                                     inga anrop, inget sparas (förhandsvisning, K)
 // Routen ligger i app.js med DYNAMISK import (dynSida), så inget i
 // src/brakresan/ hamnar i bootgrafen (#271).
 //
-// Huvudvyn här är en ENKEL lista tills H (#713) bygger den riktiga (sök,
-// filter, drakpanel, miniatyrer, scrollposition) – H ersätter visaLista.
+// Huvudvyn (#713 H): huvudvy.js – lista, sök, filter, "Börja här",
+// drakkortet och drakpanelen (drakpanel.js), scrollposition vid återkomst.
 // ============================================================================
 
 import { app, go, getParams, loading, renderTopbar } from "../ui.js";
-import { currentStudentId } from "../data.js";
+import { currentStudentId, getClasses } from "../data.js";
 import { h } from "./komponenter/bas.js";
-import { CHALLENGES, SECTIONS, isChallengeId } from "./schema/katalog.js";
-import { challengeStatus } from "./schema/regler.js";
-import { loadAllChallenges } from "./utmaningar/index.js";
+import { isChallengeId } from "./schema/katalog.js";
 
 let aktiv = null;
 let lyssnar = false;
@@ -72,30 +70,23 @@ async function visaUtmaning(host, id, test) {
 }
 
 async function visaLista(host) {
-  const [alla, state] = await Promise.all([
-    loadAllChallenges(),
-    import("./data.js").then((d) => d.getState()).catch(() => null),
+  const sid = currentStudentId();
+  const [data, { createHuvudvy }, { rekommendationer }, klasser] = await Promise.all([
+    import("./data.js"), import("./huvudvy.js"), import("./huvudvy-lista.js"),
+    getClasses().catch(() => []),
   ]);
-  const byggd = new Set(alla.filter((c) => c.implemented).map((c) => c.id));
-  const total = state?.totalStars ?? 0;
-  const rot = h("section", { class: "brv brv-lista" },
-    h("header", { class: "brv-huvud" },
-      h("h1", { class: "brv-titel" }, "Bråkresan"),
-      h("p", { class: "brv-mal" }, "Träna bråk, decimaltal och procent i 50 utmaningar. Tio uppgifter per omgång – 8 rätt ger en stjärna."),
-      h("p", { class: "brv-meta" }, `Stjärnor: ${total} av 150`)));
-  for (const s of SECTIONS) {
-    const lista = h("ol", { class: "brv-utmaningar" });
-    rot.append(h("h2", { class: "brv-avsnitt" }, `${s.name} – ungefär årskurs ${s.grade}`), lista);
-    for (const c of CHALLENGES.filter((x) => x.section === s.id)) {
-      const e = state?.challenges?.[c.id] || {};
-      const st = challengeStatus(e);
-      const ok = byggd.has(c.id);
-      lista.append(h("li", { class: `brv-rad${ok ? "" : " brv-rad--snart"}` },
-        h(ok ? "a" : "span", { class: "brv-radlank", href: ok ? `${LISTA}?u=${c.id}` : null },
-          h("span", { class: "brv-nr" }, c.id),
-          h("span", { class: "brv-radnamn" }, c.name, h("small", null, c.goal)),
-          h("span", { class: "brv-radstatus" }, ok ? `${"★".repeat(e.stars || 0)}${"☆".repeat(3 - (e.stars || 0))} ${st.label}` : "Byggs just nu"))));
-    }
-  }
-  host.append(rot);
+  const klassIds = (klasser || []).filter((k) => (k.studentIds || []).includes(sid)).map((k) => k.id);
+  const [state, rek] = await Promise.all([
+    data.getState(),
+    data.getRecommendations(klassIds).then(rekommendationer).catch(() => new Map()),
+  ]);
+  aktiv = await createHuvudvy(host, {
+    state, rek,
+    href: (id) => `${LISTA}?u=${id}`,
+    drakpanel: {
+      byt: data.renameDragon,
+      // Kläckningen/evolutionen är visad – progressionen sparades redan av servern.
+      onVisad: (niva) => data.ackDragon(niva).catch(() => {}),
+    },
+  });
 }

@@ -35,7 +35,7 @@
 // Bråkresan (#708, epic #705) – servern avgör omgångar, bedömning, stjärnor,
 // mynt och drake (spec docs/BRAKRESAN-SPEC.md §13, docs/BRAKRESAN.md §6):
 //   brakresaStartRound / brakresaAnswer / brakresaRework /
-//   brakresaFinishRound / brakresaAbortRound / brakresaAckDragon
+//   brakresaFinishRound / brakresaAbortRound / brakresaAckDragon / brakresaRenameDragon
 // Bara inloggade elever – lärarkonton nekas (testläget körs i klienten och
 // skriver aldrig). Logiken: brakresan-core.js + brakresan-avslut.js.
 //
@@ -64,7 +64,7 @@ import {
 } from "./teacher-accounts-core.js";
 import {
   BrFel, startRound as brStart, answerTask as brAnswer, reworkTask as brRework, finishRound as brFinish,
-  abortRound as brAbort, ackDragon as brAckDragon,
+  abortRound as brAbort, ackDragon as brAckDragon, renameDragon as brRenameDragon,
 } from "./brakresan-core.js";
 
 initializeApp();
@@ -233,3 +233,4 @@ export const brakresaRework = brakresaCall("brakresaRework", brRework);
 export const brakresaFinishRound = brakresaCall("brakresaFinishRound", brFinish);
 export const brakresaAbortRound = brakresaCall("brakresaAbortRound", brAbort);
 export const brakresaAckDragon = brakresaCall("brakresaAckDragon", brAckDragon);
+export const brakresaRenameDragon = brakresaCall("brakresaRenameDragon", brRenameDragon); // #713

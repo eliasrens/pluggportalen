@@ -18,13 +18,14 @@
 //      dokumentet redan (state ur fas, t.ex. efter manuell korrigering) betalas
 //      inget – stjärnan/flaggan förs bara in i state.
 //   5. state: stjärnor, starRounds, mastered, totalStars, best/last, räknare,
-//      drake (kläckning vid 10 stjärnor: state.dragon + studentData.brakdrake,
-//      brakdrake.level hålls lika med dragonLevel(totalStars)).
+//      drake (kläckning vid 10 stjärnor: state.dragon + studentData.brakdrake
+//      med standardnamnet, brakdrake.level hålls lika med dragonLevel(totalStars)).
 //   6. Omgången → "avslutad" med reward (hela utfallet) och cores.
 // ============================================================================
 
 import {
   roundReward, resultMessage, starEventId, encouragementEventId, dragonLevel, DRAGON_HATCH_STARS, ROUND_SIZE,
+  DRAGON_DEFAULT_NAME, cleanDragonName,
 } from "./brakresan/schema/regler.js";
 import { BrFel, brRefs, readState, challengeEntry, withChallenge, toPlain, roundIdOf } from "./brakresan-state.js";
 
@@ -110,7 +111,10 @@ export async function finishRound(deps, uid, data = {}) {
     const levelBefore = dragonLevel(state.totalStars);
     const levelAfter = dragonLevel(next.totalStars);
     const hatched = !state.dragon && next.totalStars >= DRAGON_HATCH_STARS;
-    if (hatched) next.dragon = { id: `drake-${uid}`, hatchedAt: at, levelShown: 0 };
+    // Standardnamnet sätts direkt (§9: namnvalet får aldrig blockera skapandet);
+    // ett namn som redan finns på husposten behålls.
+    const name = cleanDragonName(student.brakdrake?.name) || DRAGON_DEFAULT_NAME;
+    if (hatched) next.dragon = { id: `drake-${uid}`, hatchedAt: at, levelShown: 0, name };
 
     // --- skrivningar (alla läsningar är gjorda) ---
     if (eventId && !booked) {
@@ -122,7 +126,9 @@ export async function finishRound(deps, uid, data = {}) {
     const patch = {};
     if (coins > 0) patch.coins = FieldValue.increment(coins);
     const drake = student.brakdrake;
-    if (next.dragon && (!drake || drake.level !== levelAfter)) patch.brakdrake = { id: next.dragon.id, level: levelAfter };
+    if (next.dragon && (!drake || drake.level !== levelAfter || !drake.name)) {
+      patch.brakdrake = { id: next.dragon.id, level: levelAfter, ...(drake?.name ? {} : { name: next.dragon.name || name }) };
+    }
     if (Object.keys(patch).length) tx.set(r.data, patch, { merge: true });
 
     const reward = {
