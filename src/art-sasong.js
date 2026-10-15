@@ -5,7 +5,7 @@
 // otäckt: stora ögon, runda former, inga tänder. Används av season-world.js
 // (lövlagret + fladdermöss) och inloggningsskärmarna (porten + lärarspärren).
 // Synligheten styrs av klasserna .sz-bara-host / .sz-bara-halloween /
-// .sz-dolj-halloween (styles/31-sasong.css) mot <html data-sasong
+// .sz-dolj-halloween (styles/32-sasong.css) mot <html data-sasong
 // data-halloween>, så ett säsongsbyte är bara ett attributbyte – ingen
 // omritning. Laddas BARA med import() (#271).
 // ============================================================================

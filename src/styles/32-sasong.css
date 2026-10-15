@@ -143,7 +143,7 @@ html[data-halloween] .port-scen .port-larare-lank {
   padding: 3px 10px;
 }
 
-/* Halloween-djuret på inloggningen vinkar: armen (hwd-flax-h, 32-halloween.css)
+/* Halloween-djuret på inloggningen vinkar: armen (hwd-flax-h, 33-halloween.css)
    får ett större, snabbare vink – bara transform. */
 .sz-vinkdjur .hwd-flax-h { animation: sz-vinka 1.3s ease-in-out infinite; }
 @keyframes sz-vinka {

@@ -9,7 +9,7 @@
 // husdjur, art-pets-creatures.js). Storleken per steg sätts av rummets CSS
 // (.pet-vuxen-1/2/3), så varje steg FYLLER rutan – skillnaden ligger i formen.
 //
-// Animationer (CSS i src/styles/32-halloween.css, bara transform/opacity, av vid
+// Animationer (CSS i src/styles/33-halloween.css, bara transform/opacity, av vid
 // prefers-reduced-motion): .hwd-andas (kroppen andas), .hwd-svav (svävar),
 // .hwd-studs (slem-studs), .hwd-flax-v/-h (vingar), .hwd-svans (viftar),
 // .hwd-mums (tuggar när uttrycket är "ater"), .hwd-fot-v/-h (går, bara när

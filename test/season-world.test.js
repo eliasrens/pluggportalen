@@ -19,7 +19,7 @@ import { sz } from "../src/art-style.js";
 import { husScen } from "../src/art-hus-ute.js";
 import { portScenMajestic } from "../src/art-port-majestic.js";
 
-const CSS = readFileSync(new URL("../src/styles/31-sasong.css", import.meta.url), "utf8");
+const CSS = readFileSync(new URL("../src/styles/32-sasong.css", import.meta.url), "utf8");
 
 test("sommar: tom palett, inga löv, ingen palett-CSS (test 1)", () => {
   const t = themeFor({ season: "sommar", halloweenActive: false });

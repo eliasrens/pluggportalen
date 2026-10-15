@@ -10,7 +10,7 @@ och `admin/qa-sasong-satt.mjs <sommar|host|bort> [halloween [sek]]` för att byt
   av `season-world.js` som `<style id="sz-palett">` – bara för `.varld-stage`, `.room-window`,
   `.port-scen` och lärarspärren. Sommar = ingen variabel = exakt dagens färger.
 - **Dekor i konsten** (lövhögar, pumpor, måne, spöke) ritas med klasserna `.sz-bara-host` /
-  `.sz-bara-halloween` och visas via `<html data-sasong data-halloween>` (styles/31-sasong.css).
+  `.sz-bara-halloween` och visas via `<html data-sasong data-halloween>` (styles/32-sasong.css).
 - **Ingen blink:** `applyCachedTheme()` läser `localStorage["pp:season"]` synkront innan porten/världen
   ritas; `season-world.js` laddas parallellt med port-SVG:n resp. elevdatan (ingen extra väntan).
 - **Rummet** följer inte säsongen; fönstrets himmel/kulle gör det. Löven döljs i rummet/laggården.

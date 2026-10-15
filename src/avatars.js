@@ -160,7 +160,7 @@ export function avatarSvg(id) {
  * så samma slot-koordinater träffar rätt på alla figurer.
  *
  * Säsongskostymer (`seasonal`, #693) ritas med klassen af-kostym och syns BARA
- * när <html data-<säsong>> är satt (styles/33-kostymer.css) – avgörs alltså vid
+ * när <html data-<säsong>> är satt (styles/34-kostymer.css) – avgörs alltså vid
  * ritningen, så ingen elevdata skrivs om och ett byte slår igenom direkt på
  * alla redan ritade avatarer. Katalogen, konsten och säsongstemat laddas lazy
  * (#271): ett buret "hw-"-id som inte laddats än blir en dold platshållare som

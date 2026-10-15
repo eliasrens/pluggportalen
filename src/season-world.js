@@ -4,7 +4,7 @@
 // Spec §1.3–1.5, §2.1. Kopplar säsongsläget (season.js, EN lyssnare på
 // config/season) till utseendet:
 //   • <html data-sasong data-halloween data-lov> – synligheten för
-//     säsongsdekor i konsten (.sz-bara-host m.fl., styles/31-sasong.css)
+//     säsongsdekor i konsten (.sz-bara-host m.fl., styles/32-sasong.css)
 //   • <style id="sz-palett"> – paletten (SEASONS[...].palette) som
 //     --sz-*-variabler, BARA på världen (.varld-stage, rumsfönstret) och
 //     inloggningen (.port-scen, lärarspärren). Sommar = tom = dagens färger.

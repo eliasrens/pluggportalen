@@ -7970,7 +7970,7 @@ body:has(.teacher-dark) .container {
   z-index: 1;
 }
 
-/* ── src/styles/31-sasong.css ── */
+/* ── src/styles/32-sasong.css ── */
 /* ==========================================================================
    Säsonger i världen + inloggningen (#691, epic #689)
    ==========================================================================
@@ -8116,7 +8116,7 @@ html[data-halloween] .port-scen .port-larare-lank {
   padding: 3px 10px;
 }
 
-/* Halloween-djuret på inloggningen vinkar: armen (hwd-flax-h, 32-halloween.css)
+/* Halloween-djuret på inloggningen vinkar: armen (hwd-flax-h, 33-halloween.css)
    får ett större, snabbare vink – bara transform. */
 .sz-vinkdjur .hwd-flax-h { animation: sz-vinka 1.3s ease-in-out infinite; }
 @keyframes sz-vinka {
@@ -8128,7 +8128,7 @@ html[data-halloween] .port-scen .port-larare-lank {
   .sz-vinkdjur .hwd-flax-h { animation: none; }
 }
 
-/* ── src/styles/32-halloween.css ── */
+/* ── src/styles/33-halloween.css ── */
 /* Halloween-samlingen (#692, epic #689): små stämningsanimationer i konsten
    (src/halloween/hw-art-*.js). Bara transform/opacity, få element per sak,
    av vid prefers-reduced-motion. Klassen sitter på ett <g> i SVG:n. */
@@ -8175,7 +8175,7 @@ html[data-halloween] .port-scen .port-larare-lank {
   .promenerar .hwd-fot-v, .promenerar .hwd-fot-h { animation: none; }
 }
 
-/* ── src/styles/33-kostymer.css ── */
+/* ── src/styles/34-kostymer.css ── */
 /* --- Halloween-kostymer (#693, epic #689) ----------------------------------- */
 
 /* avatarMarkup (avatars.js) ritar kostymerna alltid (af-kostym) men de syns

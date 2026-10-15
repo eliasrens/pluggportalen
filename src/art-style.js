@@ -171,7 +171,7 @@ export function stjarna(x, y, s, c) {
 /** Säsongsstyrd färg – sommarfärgen är fallbacken. */
 export const sz = (namn, sommar) => `var(--sz-${namn},${sommar})`;
 
-/** Lövhög på marken – syns bara på hösten (.sz-bara-host, styles/31-sasong.css). */
+/** Lövhög på marken – syns bara på hösten (.sz-bara-host, styles/32-sasong.css). */
 export function lovhog(x, y, s = 1) {
   return `<g class="sz-bara-host" transform="translate(${x} ${y}) scale(${s})">
     <path d="M-30 0 Q-26 -14 -10 -16 Q0 -24 12 -16 Q28 -14 30 0 Z" fill="#F28A2E" ${THIN}/>
