@@ -1,0 +1,98 @@
+/* ============================================================================
+   Bråkresan – verkstaden (src/brakresan/verkstad.css) · #711 F
+   Laddas LAT av omgang-verkstad.js – inte del av styles.css.
+   Stavar med verktyg (dela, slå ihop, ta bort, markera, flytta), mallen,
+   val och uttrycksraden. Färg kompletteras alltid av mönster eller kontur:
+   första addenden = prickar (turkos), andra = ränder (lila), borttaget =
+   tonat + streckad kontur, delvis färgad grupp = streckad guldram.
+   ========================================================================= */
+
+.bvk { display: grid; gap: 14px; justify-items: stretch; width: 100%; }
+.bvk.br-k--stor { max-width: 720px; }
+
+/* --- Stavar -------------------------------------------------------------- */
+.bvk-stav {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "namn yta" "verktyg verktyg";
+  align-items: center; gap: 6px 12px;
+}
+.bvk-stav[hidden] { display: none; }
+.bvk-namn { grid-area: namn; font-size: 1.5rem; font-weight: 700; min-width: 1.6em; text-align: center; }
+.bvk-mall-namn { color: var(--br-lila); font-size: 2rem; }
+.bvk-stav-yta { grid-area: yta; display: grid; gap: 4px; min-width: 0; }
+.bvk-stav-svg { max-height: 120px; }
+.bvk-verktyg { grid-area: verktyg; display: grid; gap: 6px; justify-items: start; }
+.bvk-verktyg:empty { display: none; }
+.bvk-verktyg-grupp { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-weight: 700; }
+.bvk-status { min-width: 6.5em; text-align: center; font-weight: 800; }
+.bvk-ihop-medd, .bvk-tips { margin: 0; font-size: .95rem; color: var(--br-svag); }
+.bvk-ihop-medd:empty { display: none; }
+.bvk-delvis-aktiv .bvk-ihop-medd { color: #9a3f07; font-weight: 700; }
+
+.bvk .bvk-del { cursor: default; stroke: none; }
+.br-k .bvk-del.bvk-a { fill: url(#br-prickar) var(--br-turkos); }
+.br-k .bvk-del.bvk-b { fill: url(#bvk-rander) var(--br-lila); }
+.bvk .bvk-del.bvk-flyttad { fill: #fff; stroke: var(--br-black); stroke-width: 2; stroke-dasharray: 6 5; stroke-opacity: .6; }
+.bvk .bvk-del[data-del] { cursor: pointer; }
+.bvk-grans--inre { stroke: var(--br-black); stroke-width: 1; stroke-opacity: .35; pointer-events: none; }
+.bvk-delvis { fill: none; stroke: var(--br-guld); stroke-width: 5; stroke-dasharray: 9 6; pointer-events: none; }
+.bvk-bortyta { fill: transparent; cursor: pointer; }
+.bvk-bortyta.br-vald { fill: #ffffff; fill-opacity: .78; stroke: var(--br-black); stroke-width: 3; stroke-dasharray: 7 5; }
+.bvk-bortyta:focus { outline: none; }
+.bvk-bortyta:focus-visible { stroke: var(--br-bla); stroke-width: 5; }
+.br-k--last .bvk-bortyta, .br-k--last .bvk .bvk-del[data-del] { cursor: default; }
+.bvk-klammer { fill: none; stroke: var(--br-black); stroke-width: 3; stroke-linejoin: round; }
+.bvk-etikett { font-size: 22px; font-weight: 800; fill: var(--br-text); }
+.bvk-flytta { justify-self: start; }
+
+/* --- Mängd och modell ----------------------------------------------------- */
+.bvk-mangd, .bvk-modell { display: grid; gap: 8px; }
+.bvk-mangd > .bvk-verktyg { grid-area: auto; }
+.bvk-modell[hidden] { display: none; }
+
+/* --- Val (resonemang, elevlösning) --------------------------------------- */
+.bvk-fraga { display: grid; gap: 8px; }
+.bvk-fragetext { margin: 0; font-weight: 800; }
+.bvk-val { display: grid; gap: 8px; }
+.bvk-valknapp {
+  display: grid; grid-template-columns: 1.6em minmax(0, 1fr); align-items: center; gap: 8px;
+  min-height: 48px; padding: 8px 12px; text-align: left; font: inherit; font-weight: 600;
+  border: 3px solid var(--br-lila); border-radius: 14px; background: #fff; color: var(--br-text); cursor: pointer;
+}
+div.bvk-valknapp { cursor: default; }
+.bvk-valknapp.bvk-vald { border-color: var(--br-black); background: var(--br-lila-ljus, #efe4fb); box-shadow: 0 0 0 3px var(--br-guld); }
+.bvk-valbock { display: inline-grid; place-items: center; width: 1.4em; height: 1.4em; border: 2px solid var(--br-black); border-radius: 50%; font-weight: 900; }
+.bvk-valtext { display: inline; line-height: 1.5; }
+.bvk-valrad .br-tal--text, .bvk-valtext .br-tal--text { font-size: 1.05em; vertical-align: middle; }
+.bvk-losning .bvk-val--rader { padding: 10px; border-radius: 16px; background: #fffdf4; border: 2px dashed var(--br-guld); }
+.bvk-valknapp--rad { font-size: 1.15rem; }
+.bvk-radnamn { white-space: nowrap; }
+.bvk-radstavar { grid-column: 1 / -1; }
+.bvk-radstavar[hidden] { display: none; }
+
+/* --- Uttryck: ruta i bråket, pilar ---------------------------------------- */
+.bvk-brakruta .br-brak { gap: 2px; }
+.bvk-ruta-falt { width: 2.4em; }
+.bvk-pilop { display: inline-grid; grid-template-rows: 1fr auto 1fr; align-items: center; justify-items: center; }
+.bvk-pil { font-size: .55em; font-weight: 800; color: var(--br-lila); white-space: nowrap; }
+.bvk-pil[hidden] { visibility: hidden; display: block; }
+.bvk-pil--ner { transform: scaleY(-1); }
+.bvk-pil--ner::selection { background: none; }
+
+/* --- Mellansteg (30) ------------------------------------------------------ */
+.bvk-delsteg { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; font-weight: 700; }
+.bvk-delsteg .br-falt { font-size: 1.2rem; min-height: 44px; width: 4em; }
+.bvk-svag { font-weight: 500; color: var(--br-svag); font-size: .9rem; }
+
+/* Delsvar efter kontroll (multi): vilka delar som stämde – kontur, inte bara färg. */
+.bvk .br-del-ratt { outline: 4px double var(--br-turkos-mork); outline-offset: 4px; border-radius: 8px; }
+.bvk .br-del-fel { outline: 3px dashed #b45309; outline-offset: 4px; border-radius: 8px; }
+
+@media (max-width: 560px) {
+  .bvk-stav { grid-template-columns: auto minmax(0, 1fr); }
+  .bvk-namn { font-size: 1.15rem; }
+  .bvk-verktyg-grupp { gap: 6px; font-size: .95rem; }
+  .bvk-status { min-width: 0; }
+  .bvk-valknapp--rad { font-size: 1rem; }
+}
+.br-k--kort.bvk .bvk-verktyg, .br-k--visning.bvk .bvk-verktyg { display: none; }
+.br-k--kort .bvk-namn { font-size: 1.1rem; }

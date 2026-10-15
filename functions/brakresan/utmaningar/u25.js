@@ -17,6 +17,7 @@
 import { defineChallenge } from "../schema/kontrakt.js";
 import { gradeWith } from "../schema/bedomning.js";
 import { q, gcd, lcm, relation, RELATION_WORDS } from "../math/index.js";
+import { partName } from "../math/words.js";
 import { brak, versal } from "./f-delat.js";
 
 const MAX_L = 24;
@@ -153,7 +154,7 @@ export default defineChallenge({
     const exL = lcm(ex.n, ex.m);
     const forklaring = rel === "="
       ? `${a}/${n} = ${x}/${L} och ${b}/${m} = ${y}/${L}: lika många lika stora bitar.`
-      : `${a}/${n} = ${x}/${L} och ${b}/${m} = ${y}/${L}. ${Math.max(x, y)} ${L}-delar är mer än ${Math.min(x, y)}.`;
+      : `${a}/${n} = ${x}/${L} och ${b}/${m} = ${y}/${L}. ${Math.max(x, y)} ${partName(L) ? `${partName(L)}ar` : `bitar av ${L}`} är mer än ${Math.min(x, y)}.`;
     return {
       core: `${a}/${n}?${b}/${m}${ordning ? "+r" : ""}`,
       prompt: options ? `Jämför ${a}/${n} och ${b}/${m}. Välj tecken och varför.` : `Jämför ${a}/${n} och ${b}/${m}. Välj <, = eller >.`,

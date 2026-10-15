@@ -4,7 +4,7 @@
 // Spec §8 30: del, andel, helhet och det som blir kvar, i två steg. Fyra
 // uppgifter beräknar delen, tre det som är kvar och tre hela antalet från en
 // känd del (SLOTS).
-//   • andelar med nämnare 2–6, små positiva heltal – parametrarna väljs
+//   • förkortade andelar med nämnare 2–6, små positiva heltal – parametrarna väljs
 //     baklänges (N = n·k) så att alla antal blir heltal
 //   • bandmodell: ett band med n lika delar, a markerade, märkt med känt och
 //     okänt ("Hela = 24 böcker" eller "Hela = ? kulor", "18 kulor" över de
@@ -14,6 +14,7 @@
 // ============================================================================
 
 import { defineChallenge } from "../schema/kontrakt.js";
+import { gcd } from "../math/rational.js";
 import { fractionWords, partName } from "../math/words.js";
 import { brak, heltal, NUMBER_INTEGER, talNyckel } from "./f-delat.js";
 
@@ -29,7 +30,7 @@ const SAKER = [
 ];
 
 const ALLA = [];
-for (let n = 2; n <= 6; n++) for (let a = 1; a < n; a++) for (let k = 2; k <= 12 && n * k <= MAX_N; k++) ALLA.push({ n, a, k });
+for (let n = 2; n <= 6; n++) for (let a = 1; a < n; a++) if (gcd(a, n) === 1) for (let k = 2; k <= 12 && n * k <= MAX_N; k++) ALLA.push({ n, a, k });
 
 export default defineChallenge({
   id: "30",
@@ -110,6 +111,6 @@ export default defineChallenge({
     { slot: "helhet", params: { typ: "helhet", n: 4, a: 3, k: 6, sak: "kulor" } },
     { slot: "helhet", params: { typ: "helhet", n: 5, a: 3, k: 4, sak: "kronor" } },
     { slot: "helhet", params: { typ: "helhet", n: 2, a: 1, k: 9, sak: "kakor" } },
-    { slot: "helhet", params: { typ: "helhet", n: 6, a: 4, k: 5, sak: "bocker" } },
+    { slot: "helhet", params: { typ: "helhet", n: 6, a: 5, k: 5, sak: "bocker" } },
   ],
 });

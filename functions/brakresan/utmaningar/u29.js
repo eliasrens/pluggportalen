@@ -5,7 +5,7 @@
 // (verktyget "Dela i g grupper" – ingen förifylld gruppering), markerar a
 // grupper och skriver antalet föremål. EN uppgift med två delar (multi, en
 // poäng): markeringen (a·k föremål) och antalet.
-//   • n = 3–8, 1 < a < n, N = n·k med k = 2–10, N ≤ 80
+//   • n = 3–8, 1 < a < n (förkortat a/n), N = n·k med k = 2–10, N ≤ 80
 //   • N ≤ 36: alla föremål ritas (mängdbild, grupper med verktyget)
 //   • N > 36: ett band med n lika delar ("Hela = 48 böcker") – eleven
 //     markerar a delar av bandet
@@ -15,6 +15,7 @@
 // ============================================================================
 
 import { defineChallenge } from "../schema/kontrakt.js";
+import { gcd } from "../math/rational.js";
 import { fractionWords, partName } from "../math/words.js";
 import { heltal, ids, NUMBER_INTEGER, talNyckel } from "./f-delat.js";
 
@@ -34,7 +35,7 @@ const BAND = {
 };
 
 const ALLA = [];
-for (let n = 3; n <= 8; n++) for (let a = 2; a < n; a++) for (let k = 2; k <= 10 && n * k <= MAX_N; k++) ALLA.push({ n, a, k });
+for (let n = 3; n <= 8; n++) for (let a = 2; a < n; a++) if (gcd(a, n) === 1) for (let k = 2; k <= 10 && n * k <= MAX_N; k++) ALLA.push({ n, a, k });
 
 export default defineChallenge({
   id: "29",
@@ -112,7 +113,7 @@ export default defineChallenge({
   reserve: [
     { slot: "intro", params: { n: 4, a: 3, k: 5, sak: "kula" } },
     { slot: "intro", params: { n: 3, a: 2, k: 6, sak: "knapp" } },
-    { slot: "intro", params: { n: 4, a: 2, k: 3, sak: "kloss" } },
+    { slot: "intro", params: { n: 4, a: 3, k: 3, sak: "kloss" } },
     { slot: "intro", params: { n: 3, a: 2, k: 4, sak: "stjarna" } },
     { params: { n: 5, a: 2, k: 6, sak: "kula" } },
     { params: { n: 6, a: 5, k: 4, sak: "knapp" } },

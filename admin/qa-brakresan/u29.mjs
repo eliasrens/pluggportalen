@@ -1,6 +1,7 @@
 // 29. Tre fjärdedelar av ett antal – egna kontroller · #711
 // n = 3–8, 1 < a < n, N = n·k ≤ 80; alla föremål ritas bara när N ≤ 36 (annars ett
 // band med n delar); markering + antal krävs båda; svaret är färre än helheten.
+import { gcd } from "../../src/brakresan/math/index.js";
 const tal = (v) => ({ text: String(v) });
 
 export function audit(task, { grade }) {
@@ -8,6 +9,7 @@ export function audit(task, { grade }) {
   const { n, a, k } = task.params;
   const N = n * k;
   if (n < 3 || n > 8 || a <= 1 || a >= n || k < 2 || k > 10 || N > 80) p.push("talen är utanför ramen");
+  if (gcd(a, n) !== 1) p.push(`andelen ${a}/${n} är inte förkortad`);
   const x = a * k;
   if (x >= N) p.push("delen är inte färre än helheten");
   const bild = !!task.view.mangd;
