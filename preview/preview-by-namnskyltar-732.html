@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Klassbyns namnskyltar – förhandsvisning (issue #732)</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      body { background: #0b0f14; margin: 0; }
+      .pv-ctrl { padding: 8px 12px; display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center;
+        color: #cfd8e3; font: 600 0.85rem system-ui, sans-serif; }
+      .pv-pick { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+      .pv-pick button { border-radius: 999px; padding: 4px 12px; border: 1px solid #39465a;
+        background: #141b24; color: #cfd8e3; cursor: pointer; font: 600 0.85rem system-ui, sans-serif; }
+      .pv-pick button[aria-pressed="true"] { background: #2f8f5b; border-color: #2f8f5b; color: #fff; }
+      .pv-status { color: #7ee0a6; }
+      .pv-status.fel { color: #ff8a8a; }
+      .pv-scen { position: relative; margin: 0 auto 30px; overflow: hidden; background: #a8da8f; }
+      .pv-scen > .varld-lager { inset: 0; width: 100% !important; height: 100% !important;
+        margin: 0 !important; transform: none !important; }
+    </style>
+  </head>
+  <body>
+    <div class="pv-ctrl">
+      <div class="pv-pick" id="pv-antal"><span>Elever:</span></div>
+      <div class="pv-pick" id="pv-skarm"><span>By-lager (skärm):</span></div>
+      <div class="pv-pick" id="pv-kc"><span>Klasscentrum:</span></div>
+      <span class="pv-status" id="pv-status"></span>
+    </div>
+    <div class="pv-scen" id="pv-scen"><div class="varld-lager varld-by" id="pv-lager"></div><div class="varld-ui" id="pv-ui"></div></div>
+
+    <script type="module">
+      // Riktiga mountByScen i ett by-lager med samma mått som husvärldens lager på
+      // respektive skärm (desktop: min(stage − 40, 1400) × clamp(420, 100dvh − 150, 900),
+      // stage = skärmbredd − sidomenyn). Statusraden räknar namnskyltar som täcks av
+      // något annat element (elementFromPoint i 9 punkter per skylt). ?elever=&skarm=&kc=
+      import { mountByScen } from "../src/varld-by-scen.js";
+      import { ROOM_PALETTES } from "../src/room-palettes.js";
+      import { AVATARS } from "../src/avatars.js";
+      import { mountNavSkyltar } from "../src/varld-navskylt.js";
+
+      const NAMN = ["Noah", "Alice", "Elsa", "Freja", "Hugo", "Ines", "Liam", "Oskar", "Stella", "Theo",
+        "Vincent", "Wilma", "Elias", "Ella", "Maja", "Leo", "Saga", "Ebbe", "Adam", "Siri",
+        "Melvin", "Tyra", "Sixten", "Ebba", "Love", "Nora", "Viggo", "Ida", "Otto", "Alexandra"];
+      const SKARMAR = {
+        "1920x1080": [1400, 900], "1366x768": [1062, 618], "1280x720": [976, 570], mobil: [358, 694],
+      };
+      const PAL = Object.keys(ROOM_PALETTES);
+      const AV = Object.keys(AVATARS);
+      const q = new URLSearchParams(location.search);
+      let antal = Number(q.get("elever") ?? 20);
+      let skarm = q.get("skarm") || "1366x768";
+      let kc = q.get("kc") !== "0";
+
+      const scen = document.getElementById("pv-scen");
+      const lager = document.getElementById("pv-lager");
+      const status = document.getElementById("pv-status");
+      const skylt = mountNavSkyltar({ ui: document.getElementById("pv-ui"), onAndraByar() {}, onTillGarden() {} });
+      skylt.visa("by", true);
+
+      function rita() {
+        const [w, h] = SKARMAR[skarm];
+        scen.style.width = w + "px";
+        scen.style.height = h + "px";
+        mountByScen({
+          lager, meId: "e0",
+          students: Array.from({ length: antal }, (_, i) => ({
+            id: "e" + i, namn: NAMN[i % NAMN.length], paletteId: PAL[i % PAL.length], avatarId: AV[(i * 7) % AV.length],
+          })),
+          klasscenter: kc ? { classId: "demo", klassNamn: "4A", kalla: (_id, cb) => { cb({ exp: 0, antalElever: antal }); return () => {}; } } : null,
+        });
+        setTimeout(matt, 400);
+      }
+
+      /** Namnskyltar som täcks (helt eller delvis) av något annat element. */
+      function matt() {
+        const tackta = [];
+        for (const n of lager.querySelectorAll(".by-namn")) {
+          const r = n.getBoundingClientRect();
+          let traff = 0;
+          for (const fx of [0.15, 0.5, 0.85]) for (const fy of [0.2, 0.5, 0.8]) {
+            const el = document.elementFromPoint(r.left + r.width * fx, r.top + r.height * fy);
+            if (el && el !== n && !n.contains(el)) traff++;
+          }
+          if (traff) tackta.push(`${n.textContent}(${traff}/9)`);
+        }
+        status.textContent = tackta.length ? `Täckta skyltar: ${tackta.join(", ")}` : "Inga täckta skyltar ✓";
+        status.classList.toggle("fel", tackta.length > 0);
+        window.__tackta = tackta;
+        return tackta;
+      }
+      window.matt = matt;
+
+      function knappar(wrap, val, aktiv, onVal) {
+        for (const [v, txt] of val) {
+          const b = document.createElement("button");
+          b.textContent = txt;
+          b.setAttribute("aria-pressed", String(v === aktiv));
+          b.onclick = () => {
+            wrap.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+            onVal(v);
+          };
+          wrap.appendChild(b);
+        }
+      }
+      knappar(document.getElementById("pv-antal"), [3, 6, 10, 15, 20, 25, 30].map((n) => [n, String(n)]), antal, (n) => { antal = n; rita(); });
+      knappar(document.getElementById("pv-skarm"), Object.keys(SKARMAR).map((k) => [k, k]), skarm, (k) => { skarm = k; rita(); });
+      knappar(document.getElementById("pv-kc"), [[true, "med"], [false, "utan"]], kc, (v) => { kc = v; skylt.visa("by", true); rita(); });
+      rita();
+    </script>
+  </body>
+</html>

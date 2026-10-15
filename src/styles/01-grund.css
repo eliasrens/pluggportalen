@@ -35,10 +35,11 @@
         Höga tal, ligger ovanpå allt scen-innehåll. */
 
   /* 1) Scen (lokalt i spelvyn) */
-  --z-scen-markor: 2;   /* små brickor i scenen: by-du, by-last-ikon, omrade-du */
+  --z-scen-markor: 2;   /* små brickor i scenen: omrade-du, trädgårdens markörer */
+  --z-by-skylt: 1100;   /* byns namnskylt, by-du, by-last-ikon/-bubbla: över alla hus+dekor (deras z = markpunkt-y·10 ≤ 1000) */
   --z-scen-drag: 5;     /* möbel som just dras (room-item.dragging) */
   --z-scen-objekt: 6;   /* objekt/dörrar/rumslista på scenen (rum-dorr, rum-lista) */
-  --z-bubbla: 6;        /* pratbubblor & tooltips (by-last-bubbla) */
+  --z-bubbla: 6;        /* pratbubblor & tooltips (kc-bubbla) */
   --z-scen-hint: 8;     /* hint-remsa nederst i scenen (hus-hint) */
   --z-scen-ui: 12;      /* scenens overlay-kontrollskikt (varld-ui) */
   --z-panel: 14;        /* flytande scen-paneler (varld-petpanel) */
