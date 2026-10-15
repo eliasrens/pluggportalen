@@ -57,22 +57,36 @@ export const F = (u, id) => `url(#${u}${id})`;
 
 // --- Ansikte ----------------------------------------------------------------
 
-/** Ett öga. far = bortre ögat (smalare). vuxen 0..1 gör ögat mindre/lugnare. */
+/**
+ * Ett öga. far = bortre ögat i trekvartsvyn: förkortat (smalare, lite lägre)
+ * och med högerkanten skymd bakom nosryggen, så att det sitter inne i huvudet
+ * i stället för ute på konturen. vuxen 0..1 gör ögat mindre/lugnare.
+ */
 export function oga(x, y, r, { u, far = false, vuxen = 0, lw = 3 }) {
-  const rx = r * 0.86 * (far ? 0.8 : 1), ry = r * (1.12 - 0.22 * vuxen);
+  const rx = r * 0.86 * (far ? 0.72 : 1), ry = r * (1.12 - 0.22 * vuxen) * (far ? 0.94 : 1);
+  // Bortre ögat tittar åt samma håll: pupillen förskjuts mot nosryggen.
+  const px = far ? 0.22 : 0.1;
   const brynY = y - ry * 1.05;
+  // Nosryggen (bara bortre ögat): ögat slutar här, en ljus glans markerar ryggen.
+  const kant = x + rx * 0.72;
+  const rygg = `M${r1(kant + 0.3)} ${r1(y - ry * 1.15)} Q${r1(kant - rx * 0.25)} ${r1(y)} ${r1(kant + 0.2)} ${r1(y + ry * 0.95)}`;
   const bryn = vuxen > 0.35
-    ? `<path d="M${r1(x - rx * 1.25)} ${r1(brynY + ry * 0.35)} Q${r1(x)} ${r1(brynY - ry * 0.45)} ${r1(x + rx * 1.3)} ${r1(brynY + ry * 0.05)}" fill="none" stroke="#1E6C92" stroke-width="${r1(lw * (0.6 + vuxen))}" stroke-linecap="round"/>`
+    ? `<path d="M${r1(x - rx * 1.25)} ${r1(brynY + ry * 0.35)} Q${r1(x)} ${r1(brynY - ry * 0.45)} ${r1(far ? kant + 0.5 : x + rx * 1.3)} ${r1(brynY + ry * (far ? 0.15 : 0.05))}" fill="none" stroke="#1E6C92" stroke-width="${r1(lw * (0.6 + vuxen) * (far ? 0.85 : 1))}" stroke-linecap="round"/>`
     : "";
-  return (
+  const oga =
     `<g class="bd-oga" style="transform-origin:${r1(x)}px ${r1(y)}px">` +
     `<ellipse cx="${r1(x)}" cy="${r1(y)}" rx="${r1(rx)}" ry="${r1(ry)}" fill="${O}"/>` +
     `<ellipse cx="${r1(x + rx * 0.06)}" cy="${r1(y + ry * 0.08)}" rx="${r1(rx * 0.76)}" ry="${r1(ry * 0.8)}" fill="${F(u, "i")}"/>` +
-    `<ellipse cx="${r1(x + rx * 0.1)}" cy="${r1(y + ry * 0.12)}" rx="${r1(rx * (0.42 - 0.1 * vuxen))}" ry="${r1(ry * 0.52)}" fill="${PAL.pupill}"/>` +
-    `<circle cx="${r1(x - rx * 0.28)}" cy="${r1(y - ry * 0.36)}" r="${r1(rx * 0.3)}" fill="#fff"/>` +
+    `<ellipse cx="${r1(x + rx * px)}" cy="${r1(y + ry * 0.12)}" rx="${r1(rx * (0.42 - 0.1 * vuxen) * (far ? 1.1 : 1))}" ry="${r1(ry * 0.52)}" fill="${PAL.pupill}"/>` +
+    `<circle cx="${r1(x - rx * 0.28)}" cy="${r1(y - ry * 0.36)}" r="${r1(rx * (far ? 0.34 : 0.3))}" fill="#fff"/>` +
     `<circle cx="${r1(x + rx * 0.34)}" cy="${r1(y + ry * 0.38)}" r="${r1(rx * 0.13)}" fill="#fff" opacity="0.9"/>` +
-    `</g>` + bryn
-  );
+    `</g>`;
+  if (!far) return oga + bryn;
+  const klipp = `M${r1(x - rx * 3)} ${r1(y - ry * 3)} L${r1(kant + 0.6)} ${r1(y - ry * 3)} L${r1(kant + 0.6)} ${r1(y - ry * 1.5)} ` +
+    `Q${r1(kant - rx * 0.3)} ${r1(y)} ${r1(kant + 0.4)} ${r1(y + ry * 1.3)} L${r1(kant + 0.4)} ${r1(y + ry * 3)} L${r1(x - rx * 3)} ${r1(y + ry * 3)}Z`;
+  return `<clipPath id="${u}of"><path d="${klipp}"/></clipPath>` +
+    `<g clip-path="url(#${u}of)">${oga}${bryn}</g>` +
+    `<path d="${rygg}" fill="none" stroke="#C9F6FF" stroke-width="${r1(lw * 0.6)}" stroke-linecap="round" opacity="0.35"/>`;
 }
 
 /** Bråkrunan ÷ (prick–streck–prick). */
@@ -185,8 +199,9 @@ export function huvud(h, u, lw) {
     })();
 
   const eR = 7.4 - 2.2 * v;
-  fram += oga(-6 + v, -3, eR, { u, far: true, vuxen: v, lw });
-  fram += oga(11 + 2.5 * v, -2.5, eR, { u, vuxen: v, lw });
+  // Närmre ögat till vänster, bortre ögat mot nosen (förkortat, delvis skymt).
+  fram += oga(-5 + v, -3, eR, { u, vuxen: v, lw });
+  fram += oga(10 + 1.5 * v, -3.2, eR, { u, far: true, vuxen: v, lw });
   if (h.kinder) fram += `<ellipse cx="${r1(15 + 3 * v)}" cy="${r1(6.5)}" rx="4.2" ry="2.6" fill="#FFB1B8" opacity="${h.kinder}"/>`;
   // Bråkrunan i pannan.
   const rs = 2.6 + 0.4 * v;
