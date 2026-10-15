@@ -104,6 +104,15 @@ html.sz-paus .sz-fladder > i { animation-play-state: paused; }
 /* Löven ligger ovanpå scenlagren men under scenens knappar (.varld-ui) och,
    på inloggningen, under login-skylten (som ritas efter lagret). */
 .varld-stage .sz-lager { z-index: calc(var(--z-scen-ui) - 1); }
+/* Byarna (#732): scenens löv döljs och byns egna löv (inne i by-lagret) faller
+   mellan husen och namnskyltarna, så inget löv täcker ett namn. Lagret sträcker
+   sig ut över hela det kant-i-kant-breddade staget (som klipper). */
+.varld-stage[data-niva="by"] > .sz-lager-wrap > .sz-lager,
+.varld-stage[data-niva="grannby"] > .sz-lager-wrap > .sz-lager { display: none; }
+.varld-lager .sz-lager {
+  z-index: var(--z-by-lov);
+  inset: 0 -50vw -50vh;
+}
 
 /* På inloggningen läggs lagret direkt efter port-SVG:n i DOM:en (före
    login-skylten), så skylten alltid ritas ovanpå löv och fladdermöss. */
