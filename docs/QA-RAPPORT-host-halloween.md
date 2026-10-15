@@ -99,7 +99,7 @@ hus-vyn med Höst, med och utan löv.
 | Hus (3) | Gulligt spökhus, Pumpahus och Snällt döskallehus, 4 000 var (Elias val) |
 | Kostymer (11) | Godispåse 50, Kattöron 60, Mumiebandage 70, Monsterhorn 80, Spökmask 90, Vampyrkrage 100, Häxstav 110, Häxhatt 120, Pumpahuvud 150, Fladdermusvingar 200, Vampyrmantel 250 |
 | Avatarer (6) | Litet spöke 400, Fladdermus 450, Pumpgubbe 500, Gullig mumie 600, Häxkatt 700, Liten vampyr 800 |
-| Djur (10) | Spökis, Pumpis, Fladdis, Gruffe, Svartis, Mumme, Spindis, Skelli, Uggli, Slemmis, 500 var |
+| Djur (10) | Spökis, Pumpis, Fladdis, Gruffe, Häxis, Mumme, Spindis, Skelli, Uggli, Slemmis, 500 var |
 
 ## Säkerhet
 
