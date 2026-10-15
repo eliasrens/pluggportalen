@@ -45,7 +45,7 @@ export default defineChallenge({
         component: "omdelning",
         visaStav: "Visa staven",
         bars: [{ parts: b, marked: a, maxDela: Math.min(5, Math.floor(40 / b)) }],
-        expr: [{ text: "Faktor" }, { input: "faktor" }, { text: "→" }, brakForm(a, b), { op: "=" }, { input: "svar" }],
+        expr: [brakForm(a, b), { op: "=" }, { input: "svar" }, { text: "Faktor:" }, { input: "faktor" }],
       },
       answer: { type: "multi", parts: { faktor: { type: "number", input: "integer" }, svar: { type: "number", input: "fraction" } } },
       key: {

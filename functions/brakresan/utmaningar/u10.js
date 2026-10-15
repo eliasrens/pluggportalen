@@ -28,8 +28,10 @@ const SIT = {
 
 function bild(sit, n, marked, extra = {}) {
   const s = SIT[sit];
-  if (s.shape === "mangd") return { component: "mangd", count: n, item: "kula", ...(marked ? { marked } : {}), label: `Alla kulorna = ${n} kulor`, ...extra };
-  return modell(s.shape, n, marked || 0, { label: s.hel, ...extra });
+  // Med markerade delar säger etiketten vad markeringen betyder (använt), resten finns kvar.
+  const tillagg = marked ? ` · markerat: ${s.anv}` : "";
+  if (s.shape === "mangd") return { component: "mangd", count: n, item: "kula", ...(marked ? { marked } : {}), label: `Alla kulorna = ${n} kulor${tillagg}`, ...extra };
+  return modell(s.shape, n, marked || 0, { label: `${s.hel}${tillagg}`, ...extra });
 }
 
 const falt = (a, b) => ({ fields: { n: String(a), d: String(b) } });

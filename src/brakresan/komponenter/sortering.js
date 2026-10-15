@@ -48,7 +48,7 @@ export function createSortering(host, view, opts = {}) {
     "aria-label": `Plats ${i + 1}${i === 0 ? ` – ${view.ends?.[0] || "minst"}` : i === n - 1 ? ` – ${view.ends?.[1] || "störst"}` : ""}`,
   }, h("span", { class: "br-platsnr", "aria-hidden": "true" }, String(i + 1)))) : [];
   const fackEl = lage === "fack" ? (view.bins || []).map((b) => h("div", { class: "br-fack", "data-fack": String(b.id) },
-    b.face ? h("div", { class: "br-fackankare" }, kortFramsida(b.face, vantan)) : null,
+    b.face ? h("div", { class: "br-fackankare" }, kortFramsida(b.face, vantan, "kort")) : null,
     h("button", { type: "button", class: "br-fackknapp", "data-fack": String(b.id) }, b.label),
     h("div", { class: "br-fackinnehall", role: "list", "aria-label": b.label }))) : [];
   if (lage === "ordning") {

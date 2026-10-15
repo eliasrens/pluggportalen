@@ -66,7 +66,7 @@ export default defineChallenge({
       core: `${a}/${n}-${typer.join("+")}`,
       prompt: "Välj de tre korten som visar lika mycket.",
       values: { target: { n: a, d: n }, cards: Object.fromEntries(cards.map((c, i) => [c.id, { n: kort[i].n, d: kort[i].d }])) },
-      view: { component: "kort", cards, stora: true },
+      view: { component: "kort", cards, stora: true, jamfor: true },
       answer: { type: "select", count: 3, options: cards.map((c) => c.id) },
       key: {
         type: "select",
@@ -79,7 +79,7 @@ export default defineChallenge({
       },
       help: [
         { step: "orientering", text: "Tre kort visar lika mycket, fast på olika sätt. Titta på helheten på varje kort.", highlight: { whole: true } },
-        { step: "princip", text: "Formen kan ändras, men hur stor del av helheten är markerad? Räkna alla delarna och de markerade delarna på varje bild." },
+        { step: "princip", text: "Formen kan ändras, men hur stor del av helheten är markerad? Räkna alla delarna och de markerade delarna på varje bild. Med \"Jämför två kort\" kan du lägga två kort sida vid sida." },
         {
           step: "modellering",
           text: `Ett exempel med andra tal: ${ex.b}/${ex.m}, "${ord(ex.b, ex.m)}" och en stav med ${ex.b} av ${ex.m} delar markerade visar lika mycket.`,
