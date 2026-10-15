@@ -30,7 +30,16 @@ export function plan(omgangar) {
     if (!tasks.some((t) => t.params.a === t.params.n)) p.push("ingen uppgift med 1");
   }
   const lagen = new Set();
-  for (const tasks of omgangar) for (const t of tasks) lagen.add(t.key.correct);
+  let klunga = 0;
+  let alla = 0;
+  for (const tasks of omgangar) for (const t of tasks) {
+    lagen.add(t.key.correct);
+    const s = t.params.streck;
+    const k = (t.params.a * t.params.ticks) / t.params.n;
+    alla++;
+    if (t.params.ticks >= 6 && s.includes(k - 1) && s.includes(k + 1)) klunga++; // kort linje: alla streck används ändå
+  }
+  if (klunga) p.push(`facit mitt i en klunga av tre i ${klunga}/${alla} uppgifter`);
   if (lagen.size !== 4) p.push(`rätt punkt bara på ${[...lagen]}`);
   return [...new Set(p)];
 }

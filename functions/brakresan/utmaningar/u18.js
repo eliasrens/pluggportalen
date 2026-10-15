@@ -46,10 +46,15 @@ export default defineChallenge({
       ticks = n;
     }
     const t = (a * ticks) / n;
-    // Felpunkter (streck från 0): missuppfattningar först, sedan grannar.
-    const kand = [t - 1, t + 1, ...(ticks !== n ? [a] : []), ticks - t, t + 2, t - 2, ...Array.from({ length: ticks + 1 }, (_, i) => i)];
+    // Felpunkter (streck från 0): högst EN granne (t ± 1) – annars ligger facit alltid
+    // mitt i en klunga av tre och mönstret avslöjar svaret. Sedan missuppfattningarna
+    // (täljaren som streck på finare gradering, fel ände) och övriga streck.
+    const granne = rng.pick([t - 1, t + 1].filter((k) => k >= 0 && k <= ticks));
+    const miss = rng.shuffle([...(ticks !== n ? [a] : []), ticks - t, t + 2, t - 2]).filter((k) => Math.abs(k - t) !== 1);
+    const ovriga = rng.shuffle(Array.from({ length: ticks + 1 }, (_, k) => k).filter((k) => Math.abs(k - t) > 1));
+    const andraGrannen = granne === t - 1 ? t + 1 : t - 1; // bara om linjen är för kort för annat
     const fel = [];
-    for (const k of rng.shuffle(kand.slice(0, 4)).concat(kand.slice(4))) {
+    for (const k of [granne, ...miss, ...ovriga, andraGrannen]) {
       if (k >= 0 && k <= ticks && k !== t && !fel.includes(k)) fel.push(k);
       if (fel.length === 3) break;
     }
@@ -101,7 +106,8 @@ export default defineChallenge({
     [0, 4, 4, "noll"], [0, 3, 6, "noll"], [5, 5, 5, "ett"], [2, 2, 8, "ett"], [1, 2, 8, "finare"], [2, 3, 6, "finare"], [3, 4, 12, "finare"],
   ].map(([a, n, ticks, slot]) => {
     const t = (a * ticks) / n;
-    const fel = [t - 1, t + 1, ticks - t, t + 2, t - 2, 0, 1, 2, 3].filter((k, i, l) => k >= 0 && k <= ticks && k !== t && l.indexOf(k) === i).slice(0, 3);
+    const fel = [t > 0 ? t - 1 : t + 1, ticks - t, t + 2, t - 2, 0, 1, 2, 3, ticks].filter((k, i, l) => k >= 0 && k <= ticks && k !== t && l.indexOf(k) === i)
+      .filter((k, i, l) => Math.abs(k - t) !== 1 || l.findIndex((x) => Math.abs(x - t) === 1) === i).slice(0, 3);
     return { slot, params: { n, a, ticks, streck: [t, ...fel].sort((x, y) => x - y) } };
   }),
 });

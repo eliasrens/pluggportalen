@@ -22,7 +22,7 @@
   <body>
     <!-- Alla tio uppgifter ur EN planerad omgång (demoRound: samma generator, plan och
          bedömning som servern) under varandra – för granskning och skärmdumpar.
-         ?u=NN&seed=… · &facit=1 visar facit · &i=3 bara uppgift 4. Inget sparas. -->
+         ?u=NN&seed=… · &facit=1 visar facit · &i=3 bara uppgift 4 · &ren=1 utan menyn. Inget sparas. -->
     <nav class="val" aria-label="Utmaning"></nav>
     <main class="lista" id="yta"></main>
     <script type="module">
@@ -34,6 +34,7 @@
       const p = new URLSearchParams(location.search);
       const u = p.get("u") || "01";
       const nav = document.querySelector(".val");
+      nav.hidden = p.has("ren"); // &ren=1: bara uppgiften (skärmdumpar)
       for (const id of CHALLENGE_IDS) {
         const ch = await loadChallenge(id);
         if (!ch.implemented) continue;

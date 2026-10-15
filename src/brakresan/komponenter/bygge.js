@@ -56,9 +56,9 @@ export function createBygge(host, view, opts = {}) {
   const [bn, bd] = String(view.bit || "").split("/").map(Number);
 
   // Biten för sig.
-  const bitSvg = s("svg", { class: "br-bygge-bit-svg", viewBox: `-6 -6 ${bitBredd(view) + 12} ${bitHojd(view) + 58}`, "aria-hidden": "true" });
+  const bitSvg = s("svg", { class: "br-bygge-bit-svg", viewBox: `-6 -6 ${bitBredd(view) + 12} ${bitHojd(view) + 66}`, "aria-hidden": "true" });
   bitSvg.append(bitNod(view, 0, 0));
-  if (bd) bitSvg.append(svgBrak(bitBredd(view) / 2, bitHojd(view) + 22, bn, bd, 22));
+  if (bd) bitSvg.append(svgBrak(bitBredd(view) / 2, bitHojd(view) + 32, bn, bd, 22));
   const bitKnapp = h("button", { type: "button", class: "br-bygge-bit", "aria-label": `Biten: ${view.bit || ""}. Lägg en kopia i byggområdet.` }, bitSvg);
   const plus = h("button", { type: "button", class: "br-knapp br-verktygknapp" }, `+ Lägg en ${namn} till`);
   const minus = h("button", { type: "button", class: "br-knapp br-verktygknapp" }, `− Ta bort en ${namn}`);
