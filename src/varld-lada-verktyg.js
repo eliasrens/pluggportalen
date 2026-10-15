@@ -23,6 +23,7 @@
 // ============================================================================
 
 import { el } from "./ui.js";
+import { isRoomLocation } from "./farm-core.js";
 
 /** Platsvalen (samma ordning/etiketter som Mina djur, varld-rum-djurtray.js). */
 const PLATSER = [
@@ -83,10 +84,14 @@ export function mountLadaVerktyg({ stage, rum, oppnaFoder, onPlaced }) {
     tray.replaceChildren(...djur.map((d) => {
       // Samma rad-UI som Mina djur (#330): konst + namn + tre platsval, aktivt
       // val ifylld/disabled. Djur i ladan får dessutom en "🧺 Mata"-knapp.
-      const knappar = PLATSER.map((p) => `<button class="btn liten${p.id === d.location ? "" : " ghost"}"
+      // "Rummet" gäller vilket rum som helst i huset (#698: "room:N") – vilket
+      // rum väljs i Mina djur; härifrån flyttas djuret till rum 1.
+      const knappar = PLATSER.map((p) => {
+        const aktiv = p.id === "room" ? isRoomLocation(d.location) : p.id === d.location;
+        return `<button class="btn liten${aktiv ? "" : " ghost"}"
           data-plats-id="${d.id}" data-plats-loc="${p.id}" type="button"
-          ${p.id === d.location ? 'aria-pressed="true" disabled' : 'aria-pressed="false"'}>${p.label}</button>`)
-        .join("");
+          ${aktiv ? 'aria-pressed="true" disabled' : 'aria-pressed="false"'}>${p.label}</button>`;
+      }).join("");
       const mata = d.location === "barn"
         ? `<button class="btn liten gron" data-mata-id="${d.id}" data-mata-namn="${d.name}"
             type="button" title="Mata ${d.name}">🧺 Mata</button>`

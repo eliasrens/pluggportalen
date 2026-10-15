@@ -996,10 +996,9 @@ export async function pageElevVarld(startNiva) {
   });
 
   // --- Rummet: hela inne-vyn monteras i sitt lager (varld-rum.js) -----------
-  // Rum-0-verktygen (Mysterymat + Mina djur) hör bara till grundrummet – i extra
-  // rum finns inga husdjur att mata/stuva, så de döljs där.
+  // Mysterymat + Mina djur finns i alla rum – djuren kan bo i vilket rum som
+  // helst (#698).
   const matBtnEl = view.querySelector("#mat-btn");
-  const djurBtnEl = view.querySelector('[data-panel="djur"]');
   rumCtl = mountRumScen({
     stage: rumLager,
     petPanel: view.querySelector("#pet-panel"),
@@ -1017,11 +1016,7 @@ export async function pageElevVarld(startNiva) {
       const holder = uteLager.querySelector("#ute-avatar");
       if (holder) holder.innerHTML = avatarMarkup(avatarId, equipped);
     },
-    onRoomChange(index) {
-      // Bara grundrummet (0) har husdjur/mat → dölj de verktygen i extra rum.
-      const rum0 = index === 0;
-      if (matBtnEl) matBtnEl.style.display = rum0 ? "" : "none";
-      if (djurBtnEl) djurBtnEl.style.display = rum0 ? "" : "none";
+    onRoomChange() {
       renderPalett(); // palettväljaren markerar det nya rummets väggfärg
     },
   });

@@ -14,11 +14,14 @@
 // ett runtime-flagg (AI:n hoppar över ruvande ägg) och sparas aldrig.
 // Rummet (varld-rum.js) äger scenen; den här modulen ger noder, panel och
 // positionssparning för just de vanliga djuren.
+//
+// Djur i alla rum (#698): varje djur bor i ETT rum i huset – farm.placedAnimals
+// ("room:N", ingen post = rum 1) – och list(rum) ger bara djuren i det rummet.
 // ============================================================================
 
 import * as animalData from "./data-animals.js";
 import { getFarm, setAnimalPlacement, saveFarmAnimalPositions, saveFarmAnimalName } from "./data-farm.js";
-import { farmFromData, placementFor, moodForTrivsel, barnPlaceCountForLevel, trivselNow, giftReadyIn } from "./farm-core.js";
+import { farmFromData, placementFor, roomIndexOf, isRoomLocation, moodForTrivsel, barnPlaceCountForLevel, trivselNow, giftReadyIn } from "./farm-core.js";
 import { el, flash } from "./ui.js";
 import { getItem } from "./shop-items.js";
 import { itemSvg, itemSize } from "./art-items.js";
@@ -29,14 +32,16 @@ import { CROPS } from "./art-garden.js";
  * Montera de vanliga djuren för rumsscenen.
  * @param {object} o
  * @param {object} o.sd  studentData (roomAnimals + ev. legacy ownedItems-djur)
- * @returns {{ list: () => object[], stowedList: () => object[],
+ * @param {number} [o.roomCount=1]  antal rum i huset (sparat rum utanför → rum 1)
+ * @returns {{ list: (room: number) => object[], stowedList: () => object[],
  *   byId: (id: string) => object|undefined, displayName: (a: object) => string,
  *   stageNode: (a: object, selected: boolean) => HTMLElement,
  *   saveName: (id: string, name: string) => Promise<object>,
  *   setStowed: (id: string, stowed: boolean) => void,
  *   scheduleSave: () => void, saveWalkPositions: () => void }}
  */
-export function mountRumDjur({ sd }) {
+export function mountRumDjur({ sd, roomCount = 1 }) {
+  const farm = farmFromData(sd);
   // Runtime-objekt: `id` = INSTANSENS uid (unikt, matchar DOM:ens data-pet-id och
   // delas med promenad-AI:n/drag-pipen som nyckel), `art` = shop-sakens id (styr
   // emoji/storlek/artnamn). Flera exemplar av samma art får därför olika id.
@@ -45,6 +50,7 @@ export function mountRumDjur({ sd }) {
     art: a.id,
     pos: a.pos,
     name: a.name,
+    location: placementFor(farm, a.uid), // rummet djuret bor i (#698)
     stowed: !!a.stowed,
     hatchedAt: true,
   }));
@@ -53,7 +59,6 @@ export function mountRumDjur({ sd }) {
   // – helt skilda från roomAnimals ovan. `location` styr var djuret vistas:
   // "room" promenerar här bland de andra, "paddock"/"barn" ritas av gårds-
   // grenen (gard-djur.js). Placeringen väljs i "Mina djur" (farmList/setLocation).
-  const farm = farmFromData(sd);
   const farmAnimals = farm.animals.map((a) => ({
     id: a.uid,
     art: a.id,
@@ -67,6 +72,17 @@ export function mountRumDjur({ sd }) {
     stowed: false,
     hatchedAt: true,
   }));
+
+  /**
+   * Rummet djuret bor i (index), eller null om det är ute på gården. Sparat rum
+   * som huset inte (längre) har → rum 1. Ett vanligt djur hör alltid hemma i
+   * huset (det har ingen gårdsplats), så en udda post ger rum 1 även där.
+   */
+  function roomOf(a) {
+    const i = roomIndexOf(a.location);
+    if (i === null) return a.farmAnimal ? null : 0;
+    return i < roomCount ? i : 0;
+  }
 
   /** Visningsnamn: elevens eget namn om satt, annars artnamnet. */
   function displayName(a) {
@@ -87,7 +103,7 @@ export function mountRumDjur({ sd }) {
       for (const a of animals) positions[a.id] = { x: a.pos.x, y: a.pos.y };
       forst = animalData.saveAnimalPositions(positions).catch(() => {});
     }
-    const inRoom = farmAnimals.filter((a) => a.location === "room");
+    const inRoom = farmAnimals.filter((a) => roomOf(a) !== null);
     if (inRoom.length > 0) {
       const positions = {};
       for (const a of inRoom) positions[a.id] = { x: a.pos.x, y: a.pos.y };
@@ -170,7 +186,8 @@ export function mountRumDjur({ sd }) {
   }
 
   /**
-   * Flytta ett bondgårdsdjur: "room" | "paddock" | "barn". Uppdaterar in-memory
+   * Flytta ett djur: "room" | "room:N" | "paddock" | "barn" (hage/lada bara för
+   * bondgårdsdjur; vanliga djur flyttas mellan rummen, #698). Uppdaterar in-memory
    * direkt (rummet kan ritas om utan väntan) och sparar i bakgrunden
    * (farm.placedAnimals via setAnimalPlacement). Gårds-grenen läser placeringen
    * färskt vid varje besök, så hagen/ladan ser flytten nästa gång man går dit.
@@ -182,8 +199,8 @@ export function mountRumDjur({ sd }) {
    *   landat och cachen invaliderats, t.ex. laggårdens Verktyg #359).
    */
   function setLocation(id, location) {
-    const a = farmAnimals.find((x) => x.id === id);
-    if (!a) return false;
+    const a = farmAnimals.find((x) => x.id === id) || animals.find((x) => x.id === id);
+    if (!a || (!a.farmAnimal && !isRoomLocation(location))) return false;
     if (location === "barn" && a.location !== "barn") {
       const inne = farmAnimals.filter((x) => x.location === "barn").length;
       if (inne >= barnPlaceCountForLevel(farm.barnLevel)) return false;
@@ -193,12 +210,15 @@ export function mountRumDjur({ sd }) {
   }
 
   return {
-    // list() = djur som är I RUMMET (promenerar/ritas): icke-undanstuvade
-    // vanliga djur + bondgårdsdjur placerade i rummet. stowedList() = de
-    // undanstuvade (visas i "Mina djur"). byId() hittar oavsett – rummet ritar
-    // ändå bara de icke-undanstuvade, så drag/klick träffar aldrig ett stuvat.
-    list: () => [...animals.filter((a) => !a.stowed), ...farmAnimals.filter((a) => a.location === "room")],
+    // list(rum) = djur som är I DET RUMMET (promenerar/ritas): icke-undanstuvade
+    // vanliga djur + bondgårdsdjur som bor där. stowedList() = de undanstuvade
+    // (visas i "Mina djur"). byId() hittar oavsett – rummet ritar ändå bara de
+    // icke-undanstuvade, så drag/klick träffar aldrig ett stuvat.
+    list: (room) => [...animals.filter((a) => !a.stowed), ...farmAnimals].filter((a) => roomOf(a) === room),
     stowedList: () => animals.filter((a) => a.stowed),
+    // Vanliga djur i huset (ej undanstuvade, alla rum) – för rumsvalen i Mina djur.
+    houseList: () => animals.filter((a) => !a.stowed),
+    roomOf,
     // Bondgårdsdjuren (alla, oavsett plats) – för placerings-väljaren i Mina djur.
     farmList: () => farmAnimals,
     // Laggårdens spiltor (#333-taket) – för "X av Y platser" i Verktyg (#359).
