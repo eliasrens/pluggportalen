@@ -411,3 +411,6 @@ span.br-relval { cursor: default; box-shadow: none; }
 .br-grupp-rubrik { font-weight: 800; color: var(--br-lila); }
 .br-grupp-innehall { display: flex; flex-wrap: wrap; gap: 2px; min-height: 48px; }
 .br-grupp-lagg { font-size: .95rem; }
+.br-kortlek--lista .br-kortgrid { grid-template-columns: 1fr; gap: 8px; }
+.br-kortlek--lista .br-kort { min-height: 56px; justify-items: start; padding: 10px 44px 10px 16px; }
+.br-kortlek--lista .br-korttext { text-align: left; }

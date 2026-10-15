@@ -96,7 +96,7 @@ export function jamforelseUppgift({ A, B, rel, bild, forklaringar }) {
   return {
     view: {
       component: "sammansatt",
-      delar: [...delar, { ...relDel, svar: "rel" }, { view: { component: "kort", cards }, svar: "forkl", rubrik: "Varför?", label: "Välj förklaringen" }],
+      delar: [...delar, { ...relDel, svar: "rel" }, { view: { component: "kort", cards, lista: true }, svar: "forkl", rubrik: "Varför?", label: "Välj förklaringen" }],
     },
     answer: { type: "multi", parts: { rel: { type: "relation" }, forkl: { type: "choice", options: cards.map((c) => c.id) } } },
     key: { type: "multi", parts: { rel: { type: "relation", correct: rel }, forkl: { type: "choice", correct: ratt } } },

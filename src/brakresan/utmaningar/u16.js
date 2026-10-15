@@ -19,17 +19,18 @@ const SLOTS = ["bild", "bild", "bild-lika", "rel", "rel-forkl", "rel-lika", "rel
 
 /** Förklaringar: en rätt och två vanliga felresonemang, i en fast ordning ur params. */
 function forklaringar(a, b, n, rel, ordning) {
-  const stor_ = rel === ">" ? [a, b] : [b, a];
+  // Lika långa texter: längden får inte avslöja den rätta förklaringen.
+  const [x, y] = rel === ">" ? [a, b] : [b, a];
   const lista = rel === "="
     ? [
-      { text: `Det är lika många lika stora delar: ${ord(a, n)} båda gångerna.`, ratt: true },
+      { text: "Lika många delar, och delarna är lika stora.", ratt: true },
       { text: "Den ena har större nämnare, så den är större.", tag: "storre-namnare" },
       { text: "Delarna i den ena är större, så den är större.", tag: "olika-delstorlek" },
     ]
     : [
-      { text: `${stor(ord(stor_[0], n))} är fler lika stora delar än ${ord(stor_[1], n)}.`, ratt: true },
-      { text: `${stor(ord(stor_[0], n))} har större nämnare.`, tag: "storre-namnare" },
-      { text: `Delarna i ${ord(stor_[0], n)} är större än delarna i ${ord(stor_[1], n)}.`, tag: "olika-delstorlek" },
+      { text: `${stor(ord(x, n))} är fler lika stora delar än ${ord(y, n)}.`, ratt: true },
+      { text: `${stor(ord(x, n))} har en större nämnare än ${ord(y, n)}.`, tag: "storre-namnare" },
+      { text: `${stor(ord(x, n))} har större och färre delar än ${ord(y, n)}.`, tag: "olika-delstorlek" },
     ];
   return ordning.map((i) => lista[i]);
 }

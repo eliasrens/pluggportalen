@@ -32,6 +32,20 @@ export function auditJamforelse(task, grade) {
 
 export function planJamforelse(omgangar, { lika = 2, forkl = 3, bildForst = 0 }) {
   const p = [];
+  // Längdledtråd: den rätta förklaringen får inte systematiskt vara längst (eller kortast).
+  let langst = 0;
+  let kortast = 0;
+  let antal = 0;
+  for (const tasks of omgangar) for (const t of tasks) {
+    if (t.answer.type !== "multi") continue;
+    const cards = t.view.delar.find((d) => d.svar === "forkl").view.cards;
+    const len = (c) => c.face.text.length;
+    const r = cards.find((c) => c.id === t.key.parts.forkl.correct);
+    antal++;
+    if (cards.every((c) => c === r || len(r) > len(c))) langst++;
+    if (cards.every((c) => c === r || len(r) < len(c))) kortast++;
+  }
+  if (antal && (langst / antal > 0.5 || kortast / antal > 0.5)) p.push(`längdledtråd: rätt förklaring längst i ${langst}/${antal}, kortast i ${kortast}/${antal}`);
   for (const tasks of omgangar) {
     if (tasks.filter((t) => t.values.relation === "=").length < lika) p.push(`färre än ${lika} likheter`);
     if (tasks.filter((t) => t.answer.type === "multi").length !== forkl) p.push(`inte ${forkl} förklaringsuppgifter`);

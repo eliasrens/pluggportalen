@@ -8,7 +8,8 @@
 // kort syns med kraftig ram + bock + text för skärmläsare – inte bara färg.
 //
 // view = { component: "kort", cards: [{ id, face }], stora? } där face är
-//   (stora: true = större kort och bilder i storleken "kort" – E #710, när bilden är uppgiften)
+//   (stora: true = större kort och bilder i storleken "kort" – E #710, när bilden är uppgiften;
+//    lista: true = textkort under varandra i full bredd, t.ex. förklaringar)
 //   en form (form.js) · { text } · en mini-modell { component: "stav" | "cirkel" | … }
 // Läget följer opts.answer.type:
 //   choice  { id }          ett kort (t.ex. "Vilket kort är fel?")
@@ -41,7 +42,7 @@ export function createKort(host, view, opts = {}) {
   const behov = opts.answer?.count || 0;
   const grid = h("div", { class: "br-kortgrid", role: "group" });
   const status = h("div", { class: "br-kortstatus", "aria-live": "polite" });
-  const rot = h("div", { class: `br-kortlek br-kortlek--${lage}${view.stora ? " br-kortlek--stora" : ""}` }, grid, status);
+  const rot = h("div", { class: `br-kortlek br-kortlek--${lage}${view.stora ? " br-kortlek--stora" : ""}${view.lista ? " br-kortlek--lista" : ""}` }, grid, status);
   const bas = skapaBas(host, rot, view, opts);
   grid.setAttribute("aria-label", opts.label || (lage === "pairs" ? "Kort att para ihop" : lage === "select" ? `Välj ${behov} kort` : "Kort"));
   const vantan = [];

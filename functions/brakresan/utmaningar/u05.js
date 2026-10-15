@@ -43,11 +43,11 @@ export default defineChallenge({
     const ex = n === 3 ? 5 : 3;
     const fler = FOREMAL[item];
     const prompt = mangd
-      ? `Den här gruppen med ${k} ${fler} är 1/${n} av alla ${fler}. Bygg hela samlingen. Hur många ${fler} blir det?`
+      ? `Den här gruppen med ${k} ${fler} är 1/${n} av alla ${fler}. Bygg hela samlingen av sådana grupper.`
       : `Den här biten är 1/${n} av ${FORM[form].hel}. ${FORM[form].bygg}`;
     return {
       core: `${form}-1/${n}${mangd ? `×${k}` : ""}`,
-      prompt: mangd && k === 1 ? `Det här föremålet är 1/${n} av alla ${fler}. Bygg hela samlingen. Hur många ${fler} blir det?` : prompt,
+      prompt: mangd && k === 1 ? `Det här föremålet är 1/${n} av alla ${fler}. Bygg hela samlingen av sådana föremål.` : prompt,
       values: { bit: { n: 1, d: n }, bitar: n, total },
       view: { component: "bygge", form, bit: `1/${n}`, ...(mangd ? { enhet: k, item } : {}), max: 8 },
       answer: { type: "number", input: "integer" },

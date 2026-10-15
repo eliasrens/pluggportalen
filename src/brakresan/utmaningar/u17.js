@@ -19,18 +19,19 @@ const SLOTS = ["bild", "bild", "bild-forkl", "rel", "rel", "rel-lika", "bild-for
 const delnamn = (d) => ord(2, d).split(" ")[1]; // "femtedelar"
 
 function forklaringar(a, n, m, rel, ordning) {
+  // Lika långa texter: längden får inte avslöja den rätta förklaringen.
   if (rel === "=") {
     return ordning.map((i) => [
-      { text: `Samma helhet, lika stora delar och ${a === 1 ? "en del" : `${tal(a)} delar`} var – lika mycket.`, ratt: true },
+      { text: "Samma helhet och lika stora delar – lika mycket.", ratt: true },
       { text: "Den ena nämnaren är större, så det bråket är större.", tag: "storre-namnare-storre-brak" },
-      { text: "Bråken har olika många delar markerade.", tag: "fel-antal" },
+      { text: "Täljarna är lika, men det ena är ändå större.", tag: "fel-antal" },
     ][i]);
   }
   const [s, l] = n < m ? [n, m] : [m, n]; // s = färre delar = större bitar
   return ordning.map((i) => [
-    { text: `${stor(delnamn(s))} är större bitar än ${delnamn(l)} av samma helhet, och båda har ${a === 1 ? "en bit" : `${tal(a)} bitar`}.`, ratt: true },
-    { text: `${l} är större än ${s}, så ${a}/${l} är störst.`, tag: "storre-namnare-storre-brak" },
-    { text: `Båda har ${a === 1 ? "en bit" : `${tal(a)} bitar`}, så de är lika stora.`, tag: "bara-taljaren" },
+    { text: `${stor(delnamn(s))} är större bitar än ${delnamn(l)}.`, ratt: true },
+    { text: `${stor(delnamn(l))} är större bitar än ${delnamn(s)}.`, tag: "storre-namnare-storre-brak" },
+    { text: `${stor(delnamn(s))} och ${delnamn(l)} är lika stora bitar.`, tag: "bara-taljaren" },
   ][i]);
 }
 
