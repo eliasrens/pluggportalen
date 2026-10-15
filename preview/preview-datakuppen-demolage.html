@@ -16,7 +16,8 @@
       demo:true, live-rewards betalar aldrig för den) – räknaren nere till vänster.
       Genomgången: 30 elever med avatarer, hemlig kod, varje filtyp, ett
       misslyckat och ett lyckat hack, minnesmomentet (andra försöket mot samma
-      mål med en struken kod), bli hackad → byt kod, brandvägg och skydd,
+      mål med en struken kod), bli hackad → skydd, koden kvar (dold tills
+      "Visa kod", #719), brandvägg och skydd,
       milstolpe, tid snart slut och pallen.
     -->
     <style>
@@ -139,7 +140,7 @@
           await D.pickLobbyCode(1);
           await waitFor(() => D.sim.state.self.code);
           await sleep(1500);
-          return "koden syns bara för Alma";
+          return "koden syns kort för Alma, sedan dold bakom 👁 Visa kod";
         } },
         { id: "start", text: "STARTA – matchen har pågått en stund", async run() {
           P.playHistory(150);
@@ -176,7 +177,7 @@
           await D.pickTarget(mal.ratt);
           await D.guess(true);
           await sleep(3500);
-          return `${namn(mal.ratt)} hackad – skyddad 30 s, nya koder åt hen`;
+          return `${namn(mal.ratt)} hackad – skyddad 30 s, koden ligger kvar`;
         } },
         { id: "minne", text: "Minnesmomentet – samma mål igen, en kod struken", async run() {
           await D.openFile("hack");
@@ -186,13 +187,15 @@
           await sleep(3500);
           return `mot ${namn(mal.fel)}: ${r.shown} koder kvar + ${r.struck} struken → rätt`;
         } },
-        { id: "byt", text: "Alma blir hackad → byter kod", async run() {
+        { id: "byt", text: "Alma blir hackad → skydd, koden kvar (Visa kod)", async run() {
           const by = P.state().grPlayers.filter((g) => g.uid !== ME && g.gold > 0).sort((a, b) => b.gold - a.gold)[2]?.uid || "e5";
           const fore = D.sim.state.self.code;
-          await D.hackedBy(by, 2);
-          await waitFor(() => D.sim.state.self.code && D.sim.state.self.code !== fore);
+          await D.hackedBy(by);
           await sleep(2500);
-          return `${namn(by)} knäckte koden – ny kod vald`;
+          const { code } = await D.revealCode();
+          await sleep(2500);
+          if (D.sim.state.self.code !== fore || code !== fore) throw new Error("koden ändrades efter hacket");
+          return `${namn(by)} knäckte koden – skyddad 30 s, samma kod (visad med 👁 Visa kod)`;
         } },
         { id: "skydd", text: "Brandvägg och skydd", async run() {
           await D.openFile("brandvagg");

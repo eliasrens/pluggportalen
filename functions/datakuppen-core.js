@@ -20,10 +20,10 @@
 // eleven skriver: pickCode tar BARA ett index i elevens förslag.
 //   pickCode        { sid, index? } – lobbyn: index null → 4 förslag (helst
 //                   inte tagna/föreslagna/lockkoder i matchen); index 0–3 →
-//                   välj. Matchen igång och ingen kod → servern väljer. Efter
-//                   ett hack: 4 nya förslag, inget val inom codePickMs →
-//                   servern väljer (vid elevens nästa anrop ELLER när någon
-//                   försöker hacka eleven – ensureCode). Ny kod → codeVersion+1.
+//                   välj. Matchen igång och ingen kod → servern väljer (vid
+//                   elevens nästa anrop ELLER när någon försöker hacka eleven –
+//                   ensureCode). Har eleven en kod avvisas ett nytt val: koden
+//                   gäller HELA matchen, även efter ett hack (#719).
 //
 // HACKET (§1.4) i två steg, båda med trygghetsreglerna i valets ögonblick:
 //   chooseTarget    { sid, targetUid? } – målet (skyddad / samma två gånger i
@@ -33,14 +33,14 @@
 //                   slumpad ordning – inget fält avslöjar vilken som är rätt.
 //   guessCode       { sid, index?, targetUid? } – EN gissning per hackförsök.
 //                   Rätt → 15 % flyttas i EN transaktion (båda eleverna +
-//                   händelsen), målet får 30 s skydd och 4 nya kodförslag.
+//                   händelsen), målet får 30 s skydd – koden ligger kvar.
 //                   Fel → inget flyttas, koden stryks för just det paret.
 //                   index null / för sent → misslyckas utan påföljd.
 //
 // MINNESMOMENTET: dkSecret/{hackare}.hacks[mål] = { codeVersion, decoys,
 // struck, shown }. Samma lockkoder vid varje försök mot samma mål, minus de
-// strukna, i ny ordning – tills målet byter kod (codeVersion ändras → nya
-// lockkoder, inga strukna). En lockkod är ALDRIG någon spelares aktuella kod
+// strukna, i ny ordning, hela matchen (målets kod byts aldrig; codeVersion
+// ändras bara när koden väljs första gången). En lockkod är ALDRIG någon spelares aktuella kod
 // (prövas vid varje visning; en krock byts ut).
 //
 // DATAMODELL (under liveSessions/{sid}, se src/live/formats/datakuppen/

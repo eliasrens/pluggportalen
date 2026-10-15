@@ -111,8 +111,7 @@ export const DK_RULES = Object.freeze({
   victimPickMs: 10_000, // tid att välja mål innan servern slumpar (§1.4 steg 1)
   victimGraceMs: 5_000, // nätverksmarginal efter varje nedräkning
   codeGuessMs: 10_000, // tid att välja kod; ute = hacket misslyckas (§1.4 steg 2)
-  codePickMs: 10_000, // tid att välja ny kod efter hack innan servern väljer (§1.5)
-  codeOffers: 4, // kodförslag att välja bland (lobbyn + efter hack)
+  codeOffers: 4, // kodförslag att välja bland i lobbyn (koden gäller sedan hela matchen, #719)
   codeOptions: 3, // koder i ett hackförsök (1 rätt + 2 lockkoder)
   minChestGapMs: 1_000, // minsta tid mellan två filer per elev (skript-spärr)
   maxGold: 1_000_000, // tak för data

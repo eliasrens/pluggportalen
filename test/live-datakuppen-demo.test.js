@@ -68,7 +68,7 @@ describe("#655 projektordemon", () => {
   });
 });
 
-describe("#655 elevskärmen kopplad till projektorn (minnesmomentet, byt kod)", () => {
+describe("#655 elevskärmen kopplad till projektorn (minnesmomentet, koden kvar)", () => {
   it("delar spelardokument, skriver händelser via onAction och visar en struken kod andra gången", async () => {
     const d = mk();
     d.join(30, 0);
@@ -107,7 +107,9 @@ describe("#655 elevskärmen kopplad till projektorn (minnesmomentet, byt kod)", 
     assert.equal(first.t.options.length, 3);
     assert.equal(first.r.result, "wrong");
     assert.equal(d.state().events.filter((e) => e.type !== "lead").length, n, "fel kod = ingen händelse");
+    const e7kod = sim.secret.e7;
     await hack("e7", true); // inte samma mål direkt efter
+    assert.equal(sim.secret.e7, e7kod, "#719: målets kod ligger kvar efter ett lyckat hack");
     assert.deepEqual([senaste().type, senaste().victimUid], ["steal", "e7"]);
     assert.ok(gp("e7").protectedUntil > Date.now(), "målet skyddas");
     const again = await hack("e5", true);
@@ -115,11 +117,13 @@ describe("#655 elevskärmen kopplad till projektorn (minnesmomentet, byt kod)", 
     assert.ok(!again.t.options.includes(first.r.code));
     assert.equal(again.r.result, "hacked");
 
+    // #719: koden behålls hela matchen – bli hackad = skydd, ingen ny kod.
     const kod = (await sim.api.pickCode({})).code;
     sim.hackMe("e9");
-    assert.equal(sim.state.self.offers.length, 4, "fyra nya kodförslag");
-    await sim.api.pickCode({ index: 0 });
-    assert.notEqual(sim.state.self.code, kod);
+    assert.ok(!sim.state.self.offers?.length, "inga nya kodförslag efter hack");
+    assert.ok(me.protectedUntil > Date.now(), "skyddad efter hacket");
+    await assert.rejects(sim.api.pickCode({ index: 0 }), /hela matchen|kodförslag/);
+    assert.equal(sim.state.self.code, kod, "samma kod");
     assert.equal(senaste().victimUid, "e1");
     assert.deepEqual(d.hackStats().attempts - d.hackStats().success >= 1, true);
   });
