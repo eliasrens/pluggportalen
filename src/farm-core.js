@@ -16,7 +16,8 @@
 //     gardenTier: 1,         // odlingsbäddens nivå (1–3) – SPARAT FÄLT
 //     gardenSlots: [],       // [{ slotIndex, cropId, growthStage, plantedAt }]
 //     inventoryHarvest: {},  // { [cropId]: antal } skördad gröda
-//     placedAnimals: [],     // [{ petId, location: "room"|"paddock"|"barn" }]
+//     placedAnimals: [],     // [{ petId, location: "paddock"|"barn"|"room:N" }]
+//                            //   (#698: "room:N" = rum N+1; rum 1 sparas aldrig)
 //     animals: []            // BONDGÅRDSDJUREN (#330/#332): { uid (unik instans),
 //   }                        //   id (arten, shop-id), name, pos, trivsel (0–100,
 //                            //   default 80), lastFedAt, lastGiftAt } – hålls HELT
@@ -48,6 +49,57 @@ export const FARM_MAX_GROWTH_STAGE = 3;
 
 /** Giltiga platser ett djur kan placeras på (rummet är default-hemmet). */
 export const FARM_LOCATIONS = ["room", "paddock", "barn"];
+
+// Djur i alla rum (#698): utöver "room" (= rum 1, husets grundrum) kan ett djur
+// bo i ett extra rum, sparat som "room:N" där N är rum-indexet (0-baserat som
+// getRooms – "room:1" = Rum 2). "room:0" är samma sak som "room" och sparas
+// därför aldrig som post. Taket är generöst (huset har i dag högst 4 rum) –
+// fler rum än huset har hanteras vid ritningen: djuret visas då i rum 1.
+const ROOM_PREFIX = "room:";
+export const FARM_MAX_ROOM_INDEX = 15;
+
+/**
+ * Rum-index för en plats: "room" → 0, "room:N" → N, annars (hage/lada/okänt)
+ * null.
+ * @param {string} location @returns {number|null}
+ */
+export function roomIndexOf(location) {
+  if (location === "room") return 0;
+  if (typeof location !== "string" || !location.startsWith(ROOM_PREFIX)) return null;
+  const rest = location.slice(ROOM_PREFIX.length);
+  if (!/^\d{1,2}$/.test(rest)) return null;
+  const n = Number(rest);
+  return n <= FARM_MAX_ROOM_INDEX ? n : null;
+}
+
+/** Platsen för rum-index `i`: 0 → "room" (default-hemmet), annars "room:i". */
+export function roomLocation(i) {
+  const n = Math.round(Number(i));
+  return Number.isFinite(n) && n > 0 ? ROOM_PREFIX + Math.min(n, FARM_MAX_ROOM_INDEX) : "room";
+}
+
+/** Är platsen ett rum (vilket som helst) i huset? */
+export function isRoomLocation(location) {
+  return roomIndexOf(location) !== null;
+}
+
+/** Giltig plats: hage, lada eller ett rum ("room" / "room:N"). */
+function isValidLocation(location) {
+  return FARM_LOCATIONS.includes(location) || isRoomLocation(location);
+}
+
+/**
+ * Vilket rum ett djur visas i, givet hur många rum huset har nu: sparat rum
+ * om det finns, annars rum 1 (index 0) – även när huset har FÄRRE rum än det
+ * sparade. Djur på gården (hage/lada) ger null.
+ * @param {object} farm @param {string} petId @param {number} roomCount
+ * @returns {number|null}
+ */
+export function homeRoomFor(farm, petId, roomCount) {
+  const i = roomIndexOf(placementFor(farm, petId));
+  if (i === null) return null;
+  return i < Math.max(1, roomCount) ? i : 0;
+}
 
 /** Tomt gårds-tillstånd för en ny elev (och default-merge för gamla dokument). */
 export function defaultFarm() {
@@ -111,7 +163,7 @@ export function farmFromData(data) {
         .filter(([, n]) => n > 0)
     ),
     placedAnimals: placed
-      .filter((p) => p && typeof p.petId === "string" && p.petId && FARM_LOCATIONS.includes(p.location))
+      .filter((p) => p && typeof p.petId === "string" && p.petId && isValidLocation(p.location) && roomIndexOf(p.location) !== 0)
       .map((p) => ({ petId: p.petId, location: p.location })),
     animals: animals
       .filter((a) => a && typeof a.uid === "string" && a.uid && typeof a.id === "string" && a.id)
@@ -221,15 +273,17 @@ export function adjustInventoryIn(farm, cropId, delta) {
 }
 
 /**
- * Sätt var ett djur är placerat ("room" | "paddock" | "barn"). Upsert per
- * petId: "room" är djurets default-hem, så den posten TAS BORT i stället för
- * att sparas (håller placedAnimals som en lista över avvikelser från rummet –
- * bakåtkompatibelt: djur utan post bor i rummet precis som idag).
+ * Sätt var ett djur är placerat ("room" | "room:N" | "paddock" | "barn").
+ * Upsert per petId: "room" (= "room:0", rum 1) är djurets default-hem, så den
+ * posten TAS BORT i stället för att sparas (håller placedAnimals som en lista
+ * över avvikelser från rum 1 – bakåtkompatibelt: djur utan post bor i rum 1
+ * precis som idag).
  * @returns {{ok: boolean, farm: object, error?: string}}
  */
 export function setPlacementIn(farm, petId, location) {
   if (typeof petId !== "string" || !petId) return { ok: false, farm, error: "ogiltigt djur-id" };
-  if (!FARM_LOCATIONS.includes(location)) return { ok: false, farm, error: "ogiltig plats" };
+  if (!isValidLocation(location)) return { ok: false, farm, error: "ogiltig plats" };
+  if (isRoomLocation(location)) location = roomLocation(roomIndexOf(location)); // "room:0" → "room"
   // Laggården har ett nivå-tak (#333): fler djur än barnLevel:ns spiltor får
   // inte bo i ladan. Djurets EGEN eventuella barn-post räknas inte (en flytt
   // barn → barn är en no-op, inte "fullt"). Rummet/hagen har inga tak.
@@ -244,7 +298,7 @@ export function setPlacementIn(farm, petId, location) {
   return { ok: true, farm: { ...farm, placedAnimals } };
 }
 
-/** Var ett djur är placerat just nu ("room" om ingen post finns). */
+/** Var ett djur är placerat just nu ("room" = rum 1 om ingen post finns). */
 export function placementFor(farm, petId) {
   const p = (farm.placedAnimals || []).find((x) => x.petId === petId);
   return p ? p.location : "room";

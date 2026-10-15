@@ -171,6 +171,9 @@ export function kopplaRumDrag(stage, { zon, tomYta, flytt, slapp, golvTopp = FLO
     if (Math.abs(e.clientX - drag.startX) > 3 || Math.abs(e.clientY - drag.startY) > 3) {
       drag.moved = true;
     }
+    // Pekarens sista punkt (px) – t.ex. "släppt på en dörr" (#698).
+    drag.lastX = e.clientX;
+    drag.lastY = e.clientY;
     const { x, y } = dragPos({
       px: ((e.clientX - drag.rect.left) / drag.rect.width) * 100,
       py: ((e.clientY - drag.rect.top) / drag.rect.height) * 100,
