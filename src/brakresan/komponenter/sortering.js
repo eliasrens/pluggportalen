@@ -7,7 +7,8 @@
 // svar före kontroll – de är bara etiketter.
 //
 // view = { component: "sortering", cards: [{ id, face }],
-//          bins?: [{ id, label }],                   kategorier (answer.type "categories")
+//          bins?: [{ id, label, face? }],            kategorier (answer.type "categories");
+//                                                    face = ankarkort i facket (E #710, 15)
 //          order?: true, ends?: ["Minst", "Störst"] } ordning (answer.type "order")
 // Ordning:    klick på ett kort i högen lägger det på första lediga plats; ett
 //             lagt kort väljs med klick och flyttas med knapparna ◀ ▶ (eller
@@ -47,6 +48,7 @@ export function createSortering(host, view, opts = {}) {
     "aria-label": `Plats ${i + 1}${i === 0 ? ` – ${view.ends?.[0] || "minst"}` : i === n - 1 ? ` – ${view.ends?.[1] || "störst"}` : ""}`,
   }, h("span", { class: "br-platsnr", "aria-hidden": "true" }, String(i + 1)))) : [];
   const fackEl = lage === "fack" ? (view.bins || []).map((b) => h("div", { class: "br-fack", "data-fack": String(b.id) },
+    b.face ? h("div", { class: "br-fackankare" }, kortFramsida(b.face, vantan)) : null,
     h("button", { type: "button", class: "br-fackknapp", "data-fack": String(b.id) }, b.label),
     h("div", { class: "br-fackinnehall", role: "list", "aria-label": b.label }))) : [];
   if (lage === "ordning") {
