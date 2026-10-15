@@ -17,6 +17,9 @@
 //   abortRound(roundId)  → { status: "avbruten" }
 //   ackDragon(level)     → { levelShown }
 //   renameDragon(name)   → { name } – servern rensar texten (#713); ägget → BrakresaFel
+//   hunt()               → { huntId, date, level, max, amount, coinsAfter, already, hunts } (#715)
+//                          dagens guldjakt; servern avgör dag (Europe/Stockholm), nivå och fynd.
+//                          Samma dag igen → samma fynd (already: true), aldrig nya mynt.
 //   newAttemptId()       → id för ett bearbetningsförsök (skicka samma vid omförsök)
 //   saveStatus.subscribe(cb) → avregistrera; cb("vilar"|"sparar"|"sparat"|"offline"|"fel")
 //   drafts.save/load/clear(roundId, index[, answer]) – osparad inmatning lokalt
@@ -83,6 +86,12 @@ export const ackDragon = (level) => call("brakresaAckDragon", { level });
 export async function renameDragon(name) {
   const res = await call("brakresaRenameDragon", { name });
   invalidateStudentData(currentStudentId()); // husposten (brakdrake.name) ändrades
+  return res;
+}
+
+export async function hunt() {
+  const res = await call("brakresaHunt", {});
+  invalidateStudentData(currentStudentId()); // saldot ändrades på servern (sidomenyn läser om)
   return res;
 }
 
