@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Prov – fördjupad statistik + utskrift (#747)</title>
+    <link rel="stylesheet" href="../src/styles.css" />
+    <!--
+      #747: den fördjupade statistiken och utskriften, ovanpå #742:s preview
+      (samma stubbar + prov-jamfor-data.js som ger 4A och 4C för "Jämför klasser").
+      Översikt: Exportera CSV, Skriv ut provet, Skriv ut resultat, staplar per
+      fråga, fördelningen, nivåerna och jämförelsen. Elevvyn: "Skriv ut".
+      Läsningsräknaren i raden överst ändras bara av jämförelsen.
+
+      #742: STUBBAD preview – den RIKTIGA rättningsvyn med fliken Översikt
+      (src/prov/prov-stat-vy.js) och fliken "Prov" i klassens statistik
+      (src/prov/prov-klass-statistik.js), Firebase-delarna utbytta via importmap.
+      4B: 25 påhittade elever, 12 frågor, ett stängt prov. 2 elever har bara
+      förslag (ej rättade), 1 är halvrättad. Tre äldre prov för "över tid".
+        #/larare/prov/ratta?t=tf-s&lage=oversikt   hela klassen i grönt/gult/rött
+        #/larare/prov/ratta?t=tf-s&lage=oversikt&e=e2   elevvyn (Cleo)
+        #/statistik                                 klassens statistik, fliken Prov
+      ?pv=prov / ?pv=facit / ?pv=resultat öppnar utskriften direkt (för --print-to-pdf).
+      ?nollstall i adressen = börja om (rättningen sparas i localStorage).
+    -->
+    <script type="importmap">
+      {
+        "imports": {
+          "/src/auth.js": "/preview/prov-tillfalle-stubs/auth.js",
+          "/src/teacher-role.js": "/preview/prov-tillfalle-stubs/teacher-role.js",
+          "/src/data-class-lock.js": "/preview/prov-tillfalle-stubs/data-class-lock.js",
+          "/src/data-classes.js": "/preview/prov-statistik-stubs/data-classes.js",
+          "/src/data-content.js": "/preview/prov-statistik-stubs/data-content.js",
+          "/src/prov/prov-tillfalle-data.js": "/preview/prov-statistik-stubs/prov-tillfalle-data.js",
+          "/src/prov/prov-rattning-data.js": "/preview/prov-statistik-stubs/prov-rattning-data.js",
+          "/src/prov/prov-statistik-data.js": "/preview/prov-statistik-stubs/prov-statistik-data.js",
+          "/src/prov/prov-jamfor-data.js": "/preview/prov-fordjupad-stubs/prov-jamfor-data.js"
+        }
+      }
+    </script>
+    <style>
+      .pv-rad { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; padding: 8px 12px; background: #000; color: #cfd8e3; font: 13px system-ui, sans-serif; }
+      .pv-rad a { color: #7ee2a8; }
+    </style>
+  </head>
+  <body class="larare-lage">
+    <div class="pv-rad"><b>Preview #747</b>
+      <a href="#/larare/prov/ratta?t=tf-s&lage=oversikt">Översikt (hela klassen)</a>
+      <a href="#/larare/prov/ratta?t=tf-s&lage=oversikt&e=e2">Elevvy (Cleo)</a>
+      <a href="#/larare/prov/ratta?t=tf-s">Rätta</a>
+      <a href="#/larare/prov/tillfallen">Provtillfällen</a>
+      <a href="#/statistik">Klassens statistik → Prov</a>
+      <label><input type="checkbox" id="pv-natfel" /> nätfel</label>
+      <a href="?nollstall#/larare/prov/ratta?t=tf-s&lage=oversikt">Börja om</a>
+      <span id="pv-info"></span>
+    </div>
+    <div class="layout"><main id="app" class="container"></main></div>
+    <script type="module">
+      import { S } from "/preview/prov-statistik-stubs/state.js";
+      import { pageProvRatta } from "/src/prov/prov-ratta-sida.js";
+      import { pageProvTillfallen } from "/src/prov/prov-tillfallen-sida.js";
+
+      const app = document.getElementById("app");
+      const ctx = { app, go: (h) => (location.hash = h), renderTopbar: () => {} };
+      // Klassens statistik som i teacher-class.js: flikraden + fliken "Prov" (lat import, som STATS_TABS).
+      async function statistik() {
+        app.innerHTML = `<div class="teacher-page teacher-dark"><div class="panel">
+          <h2>📊 4B – statistik</h2>
+          <div class="stats-tabs-wrap"><div class="stats-tabs" role="tablist">
+            <button type="button" class="stats-tab" disabled>Ämnen</button>
+            <button type="button" class="stats-tab active" aria-selected="true">Prov</button>
+          </div><div class="stats-pane"><div class="spinner">Laddar proven…</div></div></div></div></div>`;
+        const pane = app.querySelector(".stats-pane");
+        const students = S.klasser[0].studentIds.map((id) => ({ id, namn: S.namn[id] }));
+        (await import("/src/prov/prov-klass-statistik.js")).renderClassProv(ctx, pane, { classId: "4b", students });
+      }
+      const router = () => {
+        const path = (location.hash || "").slice(1).split("?")[0];
+        if (path === "/statistik") return statistik();
+        (path === "/larare/prov/tillfallen" ? pageProvTillfallen : pageProvRatta)(ctx);
+      };
+      window.addEventListener("hashchange", router);
+      if (!location.hash) location.hash = "#/larare/prov/ratta?t=tf-s&lage=oversikt";
+      else router();
+
+      // ?pv=prov|facit|resultat: öppna utskriften direkt (QA: chromium --print-to-pdf).
+      const pv = new URLSearchParams(location.search).get("pv");
+      if (pv) {
+        const knapp = () => document.querySelectorAll(".provl-st-utverktyg button")[pv === "resultat" ? 2 : 1];
+        const t = setInterval(() => {
+          if (!knapp()) return;
+          clearInterval(t);
+          knapp().click();
+          if (pv === "facit") setTimeout(() => document.querySelector(".provl-ut-kryssval input")?.click(), 800);
+        }, 100);
+      }
+      document.getElementById("pv-natfel").addEventListener("change", (e) => (S.natfel = e.target.checked));
+      const info = document.getElementById("pv-info");
+      window.addEventListener("pv-logg", (e) => {
+        info.textContent = `${e.detail} · läsningar ${S.lasningar} · skrivningar ${S.skrivningar} · frågor mot databasen (statistik) ${S.fragorMotDb}`;
+      });
+    </script>
+  </body>
+</html>
