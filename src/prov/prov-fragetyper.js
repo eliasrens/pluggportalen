@@ -18,7 +18,10 @@
 //   rensaSvar(svar, elevFraga)  → svaret i giltig form (klippt, okända val bort)
 //   forslag(svar, facit, elevFraga) → { poang, maxPoang, ratt: true|false|"delvis" } | null
 //   renderElev(elevFraga, svar, { onChange, lasLage }) → HTMLElement, elevens svarsruta (#740, prov-vy.js)
-// renderRattning/renderResultat (§2) läggs till av rättningen (D) – samma fil per typ.
+//   renderRattning(elevFraga, svar, { facit, facitRad }) → lärarens bild av svaret (#741, prov-svar-vy.js)
+//   renderResultat(elevFraga, svar, { facit })           → elevens bild efter tillbakalämningen (#741)
+//   facitText(elevFraga, facit) → facit på en rad för rättningsvyns rubrik (#741)
+//   gruppNyckel?(svar, elevFraga, facit) → identiska svar grupperas i rättningen (kortsvar, lucktext)
 //
 // Hela src/prov/ laddas med import() – aldrig statiskt från bootgrafen (#271).
 // ============================================================================

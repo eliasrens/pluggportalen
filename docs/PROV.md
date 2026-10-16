@@ -67,6 +67,10 @@ gemensamma fält, stabil blandning) i `typer/delat.js`.
 | `rensaSvar(svar, elevFraga)` | svaret i giltig form innan det sparas (klippt, okända val bort) |
 | `forslag(svar, facit, elevFraga)` | `{ poang, maxPoang, ratt: true \| false \| "delvis" }` eller `null` |
 | `renderElev(elevFraga, svar, { onChange, lasLage })` | elevens svarsruta → HTMLElement (#740) – kontraktet i `prov-vy.js` |
+| `renderRattning(elevFraga, svar, { facit, facitRad })` | lärarens bild av svaret med ✓/½/✗ per del (#741) – `prov-svar-vy.js` |
+| `renderResultat(elevFraga, svar, { facit })` | samma bild för eleven efter tillbakalämningen; `facit: null` = inget facit (#741) |
+| `facitText(elevFraga, facit)` | facit på en rad överst i rättningen per fråga (#741) |
+| `gruppNyckel?(svar, elevFraga, facit)` | finns den grupperas identiska svar i rättningen (kortsvar, lucktext, #741) |
 
 **Typerna och svarens form:**
 
@@ -99,8 +103,9 @@ Blandningen (`para`, `ordna`) är stabil per fråge-id och aldrig facit-ordninge
    `EXEMPEL_TYP` (`prov-prompt.js`). `test/prov-redigera.test.js` fäller om
    något av dem saknas.
 
-Vyerna ligger i samma typfil: `renderElev` (C, #740, se nedan); `renderRattning`
-och `renderResultat` läggs till av D (rättningen/resultatet). Inga listor i listor
+Vyerna ligger i samma typfil: `renderElev` (C, #740) och en visningsfunktion
+`visa(f, svar, o)` som sprids med `...svarsVyer(visa)` (`prov-svar-vy.js`) till
+`renderRattning` och `renderResultat` (D, #741). Inga listor i listor
 (Firestore) – använd en map per post.
 
 ## Rättningen (`src/prov/prov-rattning.js`)
@@ -215,9 +220,9 @@ nätfel, offline, "läraren stänger", `?kvar=4`) och `preview/preview-prov-till
   själv). `onAndrat(svarMap)` får hela svar-mapen; utan den sparas inget.
   Returnerar vyn (`svar()`, `las()`, `satTid()`).
 
-**För D (#741):** rättningsräknaren ("18 av 24 rättade") och Rätta-knappen hör
-hemma i `ritaLista` (`prov-tillfallen-sida.js`, kommentaren vid raden);
-resultatvyn ersätter `pageProvResultat` i `prov-elev-sida.js`.
+**Rättningen (D, #741)** visar "18 av 24 rättade" och knappen **Rätta** i
+`ritaLista` och översikten (ur tillfällets `rattStatus`, ingen extra läsning);
+resultatvyn är `pageProvResultat` i `prov-elev-sida.js`.
 
 **Typernas `renderElev(elevFraga, svar, { onChange, lasLage })` → HTMLElement**
 (en per typfil, låst signatur, kommentaren i `prov-vy.js`): `onChange(nyttSvar)`
@@ -241,6 +246,62 @@ sidan läser läget en gång och visar "Provet är stängt. Dina sparade svar g�
 
 **Fokusläget:** `typ: "prov"` + `id` = tillfället, se [`FOKUSLAGE.md`](FOKUSLAGE.md).
 
+## Rättningen och tillbakalämningen (D, #741)
+
+`#/larare/prov/ratta?t=<tillfälle>` (gruppen Prov, fliken Provtillfällen, knappen
+**Rätta**). Bara **inlämnade** prov rättas; är provet fortfarande öppet syns de
+som skriver som "skriver fortfarande" och kommer med när vyn laddas om.
+
+| Fil | Gör |
+| --- | --- |
+| `prov-rattning-logik.js` | ren logik: förslagen (`nyRattning`, `forslagFor`, `kompletteraForslag`), `bedom` (en elev), `svarsGrupper` + `bedomGrupp` (grupp), `godkannFraga`/`godkannAlla`, `elevStatus`, `summera`, `rattStatusSumma`, `aterlamnaPlan`, `aterlamnadDok`/`angratDok`, `sparDok`, `resultatModell` |
+| `prov-rattning-data.js` | `laddaRattning` (en gång), `sparaRattningar`, `lamnaTillbaka`, `angraTillbaka` – batchar med hela dokument |
+| `prov-ratta-lager.js` | vyns tillstånd + autosparningen (`skapaSparare` med `LARARENS_SPARNING`) |
+| `prov-ratta-sida.js` | route, skalet (räknaren, Lämna tillbaka till alla rättade, flikarna, Dölj namn), rutan, tangentbordet |
+| `prov-ratta-lagen.js` | `perFraga(v)` och `perElev(v)` |
+| `prov-ratta-kort.js` | ett kort: Rätt/Delvis/Fel, poäng (fält + snabbknappar 0 … max), kommentar |
+| `prov-svar-vy.js` | typernas svarsbild (alternativ, text, ✓/½/✗) |
+| `prov-resultat-vy.js` | elevens resultatvy utan Firebase (`renderaResultat(resultatModell(…))`) |
+| `prov-ratta.css`, `prov-resultat.css` | `.provl-r-` (lärare), `.provv-sv-`/`.provv-res-` (svaren, eleven) |
+
+- **Förslag**: när vyn öppnas får varje inlämnat prov utan rättning en med
+  typernas förslag (`auto: true`) – obesvarade frågor som typen inte rättar själv
+  (fritext) får förslaget *fel*. De sparas direkt. Ett förslag räknas **inte** som
+  rättat förrän läraren godkänner det ("Godkänn alla förslag på den här frågan",
+  "Godkänn elevens förslag", eller trycker samma bedömning). En kommentar ensam
+  ändrar inte förslaget.
+- **Bedömning**: rätt = max, fel = 0, delvis = halva (eller den delpoäng som
+  redan stod). Skriver läraren poäng följer bedömningen (max = rätt, 0 = fel).
+  Prov utan poäng visar bara Rätt/Delvis/Fel.
+- **Grupper** (§6.1): typer med `gruppNyckel` (kortsvar, lucktext) grupperas
+  efter `normSvar` – "Birka", "birka." och " BIRKA" blir en grupp. Bedömningen och
+  kommentaren gäller alla i gruppen; tillbakalämnade hoppas över. En grupp där alla
+  har samma bedömning men några bara som förslag visas som förslag.
+- **Status per elev** (§6.3): Ej rättad (bara förslag) → Delvis rättad → Rättad
+  (alla frågor bedömda) → Tillbakalämnad.
+- **Tangenter**: 1 rätt · 2 delvis · 3 fel på kortet i fokus, Tab nästa kort
+  (Shift+Tab föregående), Enter till poäng/kommentar, N nästa fråga.
+  **Dölj namn** visar Elev 1, Elev 2 … i en blandad ordning (sparas i `localStorage`).
+- **Lämna tillbaka** (§7): per elev (Per elev) eller "Lämna tillbaka till alla
+  rättade" – de som inte är färdigrättade hoppas över och rutan säger hur många.
+  Rutan har "Visa facit" med provets `visaFacit` som förval; facit
+  (`privat/facit.facit`, hela) kopieras in bara då. En tillbakalämnad rättning är
+  låst i vyn tills läraren trycker **Ångra tillbakalämning** (`aterlamnad: false`,
+  `facit` och `aterlamnadAt` bort).
+- **Reglerna** (`provAterlamningOk`, `validRattning`): bara kända fält;
+  `facit`/`aterlamnadAt` bara när `aterlamnad == true`; att lämna tillbaka kräver
+  `aterlamnadAt == request.time`. Batcharna gör en `get()` (tillfället, samma för
+  alla) – testat med 25 elever i en batch (`test/firestore-rules-prov-rattning.test.js`).
+- **Elevens resultatvy** `#/elev/prov/resultat?t=`: tillfället + eget svar + egen
+  rättning (tre läsningar). Före tillbakalämningen nekar reglerna rättningen →
+  "Inte tillbakalämnat än". Namn och datum, "18 av 24 poäng" (utan poäng: antal
+  rätt/delvis/fel), nivån, helhetskommentaren, varje fråga med svaret, ✓/½/✗ med
+  text och poäng, lärarens kommentar och facit om det visas.
+
+Förhandsvisning utan Firebase: `preview/preview-prov-rattning.html` (8 elever,
+stubbar i `preview/prov-ratta-stubs/`, `?nollstall` börjar om). Skärmdumpar:
+`docs/qa-prov-741/`.
+
 ## Budget (§9) – 25 elever, 12 frågor, 40 minuter
 
 Autosparningen (`prov-sparning.js`): första sparningen 4 s efter en ändring,
@@ -261,8 +322,16 @@ en sparning som hänger > 8 s visar felraden.
 Översikten läser inte medan fliken är dold och inte när provet är stängt (bara
 "Uppdatera nu"). En vanlig elev ändrar inte något var 24:e sekund i 40 minuter –
 i praktiken blir det några hundra skrivningar för klassen. Uträkningen finns
-som test i `test/prov-tillfalle.test.js` ("budgeten"). Rättningens läsningar
-(52) räknar D.
+som test i `test/prov-tillfalle.test.js` ("budgeten").
+
+**Rättningen (#741)**, en gång när vyn öppnas: tillfället 1 + facit 1 + 25 svar +
+25 rättningar + 25 namn = **77 läsningar** (ingen lyssnare; att byta fråga, elev
+eller läge läser inget). Skrivningar: förslagen 25 (en batch) + autosparningen –
+en batch med de ändrade eleverna högst var 10:e sekund (`LARARENS_SPARNING`).
+Per fråga rör varje fråga alla elever en gång: 12 × 25 = 300; tillbakalämningen 25,
+räkneverket ett par. **≈ 350 skrivningar** för en hel rättning. Med elevernas
+realistiska några hundra skrivningar och ≈ 1 300 läsningar stannar provet + rättningen
+långt under 3 000/3 000.
 
 ## Deploy
 

@@ -5,6 +5,11 @@
 
 import { elevFalt, valideraGemensamt } from "./delat.js";
 import { elevKontext, valLista } from "../prov-vy.js";
+import { alternativ, svarsVyer } from "../prov-svar-vy.js";
+
+const index = (v) => (v === true ? [0] : v === false ? [1] : []);
+// Svaret efter provet (#741).
+const visa = (f, svar, o) => alternativ(["Sant", "Falskt"], new Set(index(svar)), o.facit ? new Set(index(o.facit.ratt)) : null, o);
 
 const SANT = ["sant", "true", "ja"];
 const FALSKT = ["falskt", "false", "nej"];
@@ -39,6 +44,9 @@ export default {
       ? { poang: max, maxPoang: max, ratt: true }
       : { poang: 0, maxPoang: max, ratt: false };
   },
+
+  facitText: (f, facit) => (facit?.ratt === true ? "Sant" : facit?.ratt === false ? "Falskt" : ""),
+  ...svarsVyer(visa),
 
   /** Elevens svarsruta (#740): Sant eller Falskt. */
   renderElev(f, svar, o) {

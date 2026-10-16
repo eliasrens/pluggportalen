@@ -9,6 +9,24 @@
 import { forslagAv } from "../prov-rattning.js";
 import { GRANS, blanda, elevFalt, strangLista, textLista, trimmad, valideraGemensamt } from "./delat.js";
 import { elevKontext, h } from "../prov-vy.js";
+import { ingetSvar, mark, svarsVyer } from "../prov-svar-vy.js";
+
+// Svaret efter provet (#741): elevens par, ✓/✗ per par och det rätta vid fel.
+function visa(f, svar, o) {
+  const lista = Array.isArray(svar) ? svar : [];
+  if (!lista.some((s) => s)) return ingetSvar(o);
+  return h("ul", { class: "provv-sv-par" }, f.vanster.map((v, i) => {
+    const valt = lista[i] || "";
+    const ratt = o.facit?.par?.[i]?.hoger;
+    const ok = o.facit ? valt === ratt : null;
+    return h("li", { class: `provv-sv-par-rad${o.facit ? (ok ? " provv-sv-ok" : " provv-sv-nej") : ""}` },
+      h("span", { class: "provv-sv-par-v", text: v }),
+      h("span", { class: "provv-sv-pil", "aria-hidden": "true", text: "→" }),
+      valt ? h("span", { text: valt }) : h("span", { class: "provv-sv-inget", text: "inget valt" }),
+      o.facit ? mark(ok) : null,
+      o.facit && !ok && o.facitRad !== false ? h("span", { class: "provv-sv-luckfacit", text: `(${ratt})` }) : null);
+  }));
+}
 
 export default {
   id: "para",
@@ -49,6 +67,9 @@ export default {
     const ratt = facit.par.filter((p, i) => lista[i] === p.hoger).length;
     return forslagAv(ratt / facit.par.length, f.poang);
   },
+
+  facitText: (f, facit) => (facit?.par || []).map((p) => `${p.vanster} → ${p.hoger}`).join(" · "),
+  ...svarsVyer(visa),
 
   /** Elevens svarsruta (#740): välj det som hör ihop med varje begrepp. */
   renderElev(f, svar, o) {

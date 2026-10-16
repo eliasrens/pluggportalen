@@ -6,6 +6,7 @@
 
 import { GRANS, tecken, trimmad, valideraGemensamt } from "./delat.js";
 import { h, stycken } from "../prov-vy.js";
+import { svarsVyer } from "../prov-svar-vy.js";
 
 export default {
   id: "text",
@@ -32,10 +33,18 @@ export default {
   rensaSvar: () => null,
   forslag: () => null,
 
+  facitText: () => "",
+  // Efter provet (#741): samma textblock (rättnings- och resultatvyn fäller ihop det).
+  ...svarsVyer((f) => textBlock(f)),
+
   /** Textblocket som eleven läser (#740) – inget nummer, inget svar. */
   renderElev(f) {
-    return h("div", { class: "provv-textblock-inre" },
-    f.titel ? h("h3", { class: "provv-textblock-titel", text: f.titel }) : null,
-    stycken(f.brodtext, "provv-brodtext"));
+    return textBlock(f);
   },
 };
+
+function textBlock(f) {
+  return h("div", { class: "provv-textblock-inre" },
+    f.titel ? h("h3", { class: "provv-textblock-titel", text: f.titel }) : null,
+    stycken(f.brodtext, "provv-brodtext"));
+}

@@ -3,7 +3,7 @@
 //   #/elev/prov                      pågående prov + tillbakalämnade prov
 //   #/elev/prov/skriv?t=<tillfälle>  själva provet: autosparning, tidsgräns,
 //                                    inlämning (fokuslåset skickar eleven hit)
-//   #/elev/prov/resultat?t=<…>       resultatvyn – byggs av D (#741)
+//   #/elev/prov/resultat?t=<…>       resultatvyn efter tillbakalämningen (#741)
 // Routerna ligger i app.js med DYNAMISK import (#271). Inga mynt, stjärnor,
 // XP eller ljud – provet är lugnt och seriöst.
 // ============================================================================
@@ -13,7 +13,8 @@ import { currentStudentId } from "../auth.js";
 import { serverNow } from "../data-class-lock.js";
 import { arFraga } from "./prov-fragetyper.js";
 import { renderaProv } from "./prov-elev-vy.js";
-import { hamtaMittSvar, hamtaTillfalle, lamnaIn, sparaSvar, startaProv } from "./prov-elev-data.js";
+import { hamtaMinRattning, hamtaMittSvar, hamtaTillfalle, lamnaIn, sparaSvar, startaProv } from "./prov-elev-data.js";
+import { resultatModell } from "./prov-rattning-logik.js";
 import { arSlutgiltigtFel, skapaSparare } from "./prov-sparning.js";
 import {
   elevLage, kvarNiva, kvarText, lokalNyckel, slutTid, tillMs, valjStartSvar,
@@ -313,9 +314,38 @@ function skriv(tf, svarDok, meId) {
 
 // --- #/elev/prov/resultat -----------------------------------------------------------
 
-/** Platshållare tills D (#741) bygger resultatvyn (§7). */
+/**
+ * Resultatvyn (#741, §7): syns först när läraren lämnat tillbaka provet.
+ * Läser tillfället, elevens svar och rättningen – tre läsningar, en gång.
+ */
 export async function pageProvResultat() {
   stada();
+  loading();
+  const t = new URLSearchParams(location.hash.split("?")[1] || "").get("t") || "";
+  const meId = currentStudentId();
+  const route = location.hash;
   await Promise.all([renderTopbar(), laddaCss("prov-elev.css")]);
-  meddelande("Resultat", "Här ser du ditt rättade prov när läraren har lämnat tillbaka det.");
+  let tf;
+  let svarDok;
+  let r;
+  try {
+    [tf, svarDok, r] = await Promise.all([
+      hamtaTillfalle(t).catch(() => null),
+      hamtaMittSvar(t, meId).catch(() => null),
+      hamtaMinRattning(t, meId),
+    ]);
+  } catch (err) {
+    console.warn("Prov: resultatet kunde inte läsas", err);
+    if (location.hash === route) meddelande("Resultat", "Kunde inte hämta resultatet – kontrollera internet och försök igen.");
+    return;
+  }
+  if (location.hash !== route) return;
+  // Tillfället kan ha öppnats igen eller raderats – rättningen bär provets namn.
+  const m = resultatModell(tf || { provNamn: r?.provNamn, fragor: [] }, svarDok, r);
+  if (!m) return meddelande("Inte tillbakalämnat än", "Här ser du ditt rättade prov när läraren har lämnat tillbaka det.");
+  const nar = tillMs(tf?.oppnad) ?? tillMs(svarDok?.startad) ?? tillMs(r.aterlamnadAt);
+  const { renderaResultat } = await import("./prov-resultat-vy.js");
+  if (location.hash !== route) return;
+  app.replaceChildren(renderaResultat(m, { datum: nar ? `Skrivet ${datum(nar)}` : "", tillbakaHref: LISTA }));
+  window.scrollTo?.(0, 0);
 }

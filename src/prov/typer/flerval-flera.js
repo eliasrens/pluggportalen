@@ -8,9 +8,13 @@
 import { forslagAv } from "../prov-rattning.js";
 import { elevFalt, textLista, valideraGemensamt } from "./delat.js";
 import { elevKontext, h, valLista } from "../prov-vy.js";
+import { alternativ, svarsVyer } from "../prov-svar-vy.js";
 
 const kryss = (svar, n) =>
   [...new Set((Array.isArray(svar) ? svar : []).filter((i) => Number.isInteger(i) && i >= 0 && i < n))].sort((a, b) => a - b);
+
+// Svaret efter provet (#741): elevens kryss, och med facit alla rätta.
+const visa = (f, svar, o) => alternativ(f.alternativ, new Set(kryss(svar, f.alternativ.length)), o.facit ? new Set(o.facit.ratt) : null, o);
 
 export default {
   id: "flerval-flera",
@@ -49,6 +53,9 @@ export default {
     const fel = valda.length - r;
     return forslagAv(Math.max(0, r - fel) / ratta.size, f.poang);
   },
+
+  facitText: (f, facit) => (facit?.ratt || []).map((i) => f.alternativ[i]).filter(Boolean).join(", "),
+  ...svarsVyer(visa),
 
   /** Elevens svarsruta (#740): kryssa i alla rätta alternativ. */
   renderElev(f, svar, o) {

@@ -9,6 +9,21 @@
 import { forslagAv } from "../prov-rattning.js";
 import { blanda, elevFalt, textLista, valideraGemensamt } from "./delat.js";
 import { elevKontext, h } from "../prov-vy.js";
+import { facitRad, ingetSvar, mark, svarsVyer } from "../prov-svar-vy.js";
+
+const ordningText = (facit) => (facit?.ordning || []).map((s, i) => `${i + 1}. ${s}`).join("  ");
+
+// Svaret efter provet (#741): elevens ordning, ✓/✗ per plats och rätt ordning.
+function visa(f, svar, o) {
+  const lista = Array.isArray(svar) ? svar : [];
+  if (!lista.length) return h("div", {}, ingetSvar(o), facitRad(o, "Rätt ordning", ordningText(o.facit)));
+  return h("div", {},
+    h("ol", { class: "provv-sv-ordna" }, lista.map((s, i) => {
+      const ok = o.facit ? o.facit.ordning?.[i] === s : null;
+      return h("li", { class: o.facit ? (ok ? "provv-sv-ok" : "provv-sv-nej") : "" }, h("span", { text: s }), o.facit ? mark(ok) : null);
+    })),
+    facitRad(o, "Rätt ordning", ordningText(o.facit)));
+}
 
 export default {
   id: "ordna",
@@ -40,6 +55,9 @@ export default {
     const ratt = facit.ordning.filter((s, i) => lista[i] === s).length;
     return forslagAv(ratt / facit.ordning.length, f.poang);
   },
+
+  facitText: (f, facit) => ordningText(facit),
+  ...svarsVyer(visa),
 
   /**
    * Elevens svarsruta (#740): flytta upp/ner med knappar (tangentbord och

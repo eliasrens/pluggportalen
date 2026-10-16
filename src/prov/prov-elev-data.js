@@ -10,7 +10,7 @@ import { db } from "../firebase-config.js";
 import {
   doc, getDoc, serverTimestamp, setDoc, updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { SAMLING_TILLFALLEN, SVAR } from "./prov-modell.js";
+import { RATTNING, SAMLING_TILLFALLEN, SVAR } from "./prov-modell.js";
 
 const svarRef = (t, uid) => doc(db, SAMLING_TILLFALLEN, t, SVAR, uid);
 
@@ -47,4 +47,18 @@ export function lamnaIn(t, uid, svar, nar) {
   return updateDoc(svarRef(t, uid), {
     svar, uppdaterad: serverTimestamp(), inlamnad: true, inlamnadNar: nar, inlamnadAt: serverTimestamp(),
   });
+}
+
+/**
+ * Elevens egen rättning (#741, resultatvyn). Reglerna släpper den först när
+ * den lämnats tillbaka; innan dess (nekad) eller utan rättning → null.
+ */
+export async function hamtaMinRattning(t, uid) {
+  try {
+    const snap = await getDoc(doc(db, SAMLING_TILLFALLEN, t, RATTNING, uid));
+    return snap.exists() ? snap.data() : null;
+  } catch (err) {
+    if (err?.code === "permission-denied") return null;
+    throw err;
+  }
 }

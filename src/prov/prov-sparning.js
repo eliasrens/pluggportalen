@@ -22,6 +22,11 @@ export const SPARNING = Object.freeze({
   omforsokMs: [5_000, 10_000, 20_000, 30_000],
 });
 
+// Lärarens rättning (#741, prov-ratta-lager.js): samma avvägning, tätare tak –
+// läraren rättar i korta stötar och väntar inte gärna (§6.3). En batch med de
+// ändrade eleverna högst var 10:e sekund.
+export const LARARENS_SPARNING = Object.freeze({ ...SPARNING, forstaMs: 3_000, mellanrumMs: 10_000 });
+
 /** Ett fel som aldrig blir bättre av att försöka igen (reglerna nekar). */
 export function arSlutgiltigtFel(err) {
   return err?.code === "permission-denied" || err?.code === "firestore/permission-denied" || err?.code === "not-found";

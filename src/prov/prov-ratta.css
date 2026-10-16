@@ -1,0 +1,138 @@
+/* ==========================================================================
+   Prov (#741) – lärarens rättningsvy (.provl-r-). Laddas DYNAMISKT av
+   prov-ratta-sida.js, ligger inte i styles.css (#271). Mörk lärarsida;
+   elevens svar visas på ett ljust "papper" (.provv-rot.provl-r-papper,
+   prov-resultat.css). Rätt/delvis/fel: grön/gul/mjuk röd + ikon och text.
+   ========================================================================== */
+
+.teacher-dark .provl-r-lankar { display: flex; gap: 16px; flex-wrap: wrap; }
+.teacher-dark .provl-r-verktyg { display: flex; align-items: center; gap: 8px 16px; flex-wrap: wrap; }
+.teacher-dark .provl-r-raknare { font-weight: 700; }
+.teacher-dark .provl-r-spar { color: var(--t-muted); font-size: 0.9rem; margin-right: auto; }
+.teacher-dark .provl-r-spar[data-lage="fel"],
+.teacher-dark .provl-r-spar[data-lage="nekad"] { color: #ff9b8f; font-weight: 600; }
+.teacher-dark .provl-r-oppet { margin: 0 0 10px; }
+
+.teacher-dark .provl-r-flikrad { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 0 0 12px; }
+.teacher-dark .provl-r-flikar { display: inline-flex; border: 1px solid var(--t-border); border-radius: 10px; overflow: hidden; }
+.teacher-dark .provl-r-flik {
+  background: transparent; color: var(--t-muted); border: 0; padding: 8px 18px; font: inherit; font-weight: 600; cursor: pointer;
+}
+.teacher-dark .provl-r-flik + .provl-r-flik { border-left: 1px solid var(--t-border); }
+.teacher-dark .provl-r-flik-vald { background: var(--t-accent-soft, rgba(46, 193, 110, 0.14)); color: var(--t-text); }
+.teacher-dark .provl-r-dolj { margin: 0; }
+
+/* Frågeknapparna överst (per fråga) */
+.teacher-dark .provl-r-nrrad { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.teacher-dark .provl-r-nr {
+  min-width: 38px; height: 36px; border-radius: 8px; font: inherit; font-weight: 700; cursor: pointer;
+  background: transparent; color: var(--t-text); border: 1px dashed rgba(255, 255, 255, 0.28);
+}
+.teacher-dark .provl-r-nr-klar { border-style: solid; border-color: rgba(46, 193, 110, 0.6); color: #7ee2a8; }
+.teacher-dark .provl-r-nr-klar::after { content: " ✓"; font-size: 0.8em; }
+.teacher-dark .provl-r-nr-aktiv { background: var(--t-accent); color: #0b1a10; border-color: var(--t-accent); }
+
+.teacher-dark .provl-r-fraga { margin-bottom: 12px; }
+.teacher-dark .provl-r-fraga-topp { display: flex; align-items: center; gap: 6px 14px; flex-wrap: wrap; }
+.teacher-dark .provl-r-fraga-topp .hint { margin: 0; }
+.teacher-dark .provl-r-fraga-nr { font-weight: 700; }
+.teacher-dark .provl-r-pilar { margin-left: auto; display: flex; gap: 6px; }
+.teacher-dark .provl-r-fragetext { font-size: 1.1rem; font-weight: 600; margin: 10px 0 6px; }
+.teacher-dark .provl-r-fragetext p { margin: 0 0 6px; }
+.teacher-dark .provl-r-facit { margin: 6px 0; padding: 8px 12px; border-radius: 8px; background: rgba(46, 193, 110, 0.1); }
+.teacher-dark .provl-r-stod { margin: 6px 0; padding: 8px 12px; border-radius: 8px; background: rgba(255, 255, 255, 0.05); }
+.teacher-dark .provl-r-stod p { margin: 4px 0 0; white-space: pre-wrap; }
+.teacher-dark details.provl-r-stod summary { cursor: pointer; font-weight: 600; }
+.teacher-dark .provl-r-godkann { display: flex; align-items: center; gap: 8px 14px; flex-wrap: wrap; margin-top: 10px; }
+.teacher-dark .provl-r-godkann .hint { margin: 0; font-size: 0.85rem; }
+
+/* Korten */
+.teacher-dark .provl-r-kortlista { display: grid; gap: 10px; }
+.teacher-dark .provl-r-kort {
+  background: var(--t-surface); border: 1px solid var(--t-border); border-left: 4px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px; padding: 12px 14px; outline: none; scroll-margin: 90px;
+}
+.teacher-dark .provl-r-kort:focus-visible, .teacher-dark .provl-r-kort:focus { box-shadow: 0 0 0 3px rgba(126, 226, 168, 0.55); }
+.teacher-dark .provl-r-kort.provl-r-forslag { border-left-color: #6aa7f0; }
+.teacher-dark .provl-r-kort.provl-r-bedomd { border-left-color: var(--t-accent); }
+.teacher-dark .provl-r-kort.provl-r-last-kort { opacity: 0.75; }
+.teacher-dark .provl-r-kort-huvud { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; }
+.teacher-dark .provl-r-vem { display: grid; gap: 2px; min-width: 0; }
+.teacher-dark .provl-r-under { color: var(--t-muted); font-size: 0.85rem; overflow-wrap: anywhere; }
+.teacher-dark .provl-r-tagg { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.82rem; font-weight: 700; white-space: nowrap; }
+.provl-r-tagg-auto { background: rgba(106, 167, 240, 0.18); color: #a9cdf7; }
+.provl-r-tagg-ratt { background: rgba(46, 193, 110, 0.18); color: #7ee2a8; }
+.provl-r-tagg-delvis { background: rgba(240, 194, 90, 0.18); color: #f3d38a; }
+.provl-r-tagg-fel { background: rgba(229, 120, 105, 0.18); color: #f2a99f; }
+.provl-r-tagg-ej, .provl-r-tagg-blandat { background: rgba(255, 255, 255, 0.07); color: #c7d2de; }
+.teacher-dark .provl-r-kortfraga { margin: 8px 0 0; font-weight: 600; }
+.teacher-dark .provl-r-kortfraga p { margin: 0 0 6px; }
+
+/* Elevens svar på ett ljust papper */
+.teacher-dark .provl-r-papper {
+  margin: 10px 0; padding: 12px 14px; border-radius: 10px; background: #fff; font-size: 1rem;
+}
+
+.teacher-dark .provl-r-kontroller { display: flex; align-items: center; gap: 10px 18px; flex-wrap: wrap; }
+.teacher-dark .provl-r-bedom { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.teacher-dark .provl-r-b {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 42px; padding: 6px 14px; border-radius: 10px;
+  font: inherit; font-weight: 700; cursor: pointer; color: var(--t-text);
+  background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.18);
+}
+.teacher-dark .provl-r-b kbd { font: 0.72rem ui-monospace, monospace; opacity: 0.6; border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; }
+.teacher-dark .provl-r-b-ikon { font-size: 1.1rem; }
+.teacher-dark .provl-r-b:disabled { cursor: default; opacity: 0.5; }
+.teacher-dark .provl-r-b-ratt[aria-pressed="true"] { background: #2f855a; border-color: #2f855a; color: #fff; }
+.teacher-dark .provl-r-b-delvis[aria-pressed="true"] { background: #b8860b; border-color: #b8860b; color: #fff; }
+.teacher-dark .provl-r-b-fel[aria-pressed="true"] { background: #a8473b; border-color: #a8473b; color: #fff; }
+.teacher-dark .provl-r-b.provl-r-b-forslag { border-style: dashed; border-color: #6aa7f0; }
+
+.teacher-dark .provl-r-poang { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.teacher-dark .provl-r-poang-etikett { margin: 0; white-space: nowrap; }
+.teacher-dark .provl-r-poang-falt,
+.teacher-dark .provl-r-kommentar-falt,
+.teacher-dark .provl-r-helhet,
+.teacher-dark .provl-r-elevval {
+  background: #0f1419; color: var(--t-text); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 8px; padding: 6px 8px; font: inherit;
+}
+.teacher-dark .provl-r-poang-falt { width: 3.6em; text-align: center; }
+.teacher-dark .provl-r-snabbar { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+.teacher-dark .provl-r-snabb {
+  min-width: 34px; height: 32px; border-radius: 8px; font: inherit; cursor: pointer;
+  background: transparent; color: var(--t-text); border: 1px solid rgba(255, 255, 255, 0.18);
+}
+.teacher-dark .provl-r-snabb-vald { background: rgba(46, 193, 110, 0.2); border-color: var(--t-accent); }
+.teacher-dark .provl-r-kommentar { flex: 1 1 240px; margin: 0; }
+.teacher-dark .provl-r-kommentar-falt { width: 100%; box-sizing: border-box; }
+.teacher-dark .provl-r-last { margin: 8px 0 0; }
+
+/* Per elev */
+.teacher-dark .provl-r-elevnav { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.teacher-dark .provl-r-elevval { flex: 1 1 220px; max-width: 420px; }
+.teacher-dark .provl-r-elevtopp { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 4px 0 10px; }
+.teacher-dark .provl-r-elevnamn { margin: 0; font-size: 1.2rem; }
+.teacher-dark .provl-r-textblock { display: block; margin: 0; padding: 10px 14px; text-align: left; }
+.teacher-dark .provl-r-textblock summary { cursor: pointer; font-weight: 600; }
+.teacher-dark .provl-r .btn:disabled { opacity: 0.45; cursor: default; }
+.teacher-dark .provl-r-summa { margin-top: 12px; display: grid; gap: 12px; }
+.teacher-dark .provl-r-total { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0; font-size: 1.1rem; }
+.teacher-dark .provl-r-niva { border: 1px solid var(--t-border); border-radius: 10px; padding: 8px 14px; display: flex; gap: 4px 18px; flex-wrap: wrap; }
+.teacher-dark .provl-r-niva legend { font-weight: 700; padding: 0 4px; }
+.teacher-dark .provl-r-helhet-etikett { display: grid; gap: 6px; margin: 0; }
+.teacher-dark .provl-r-helhet { width: 100%; box-sizing: border-box; resize: vertical; }
+.teacher-dark .provl-r-tillbaka { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; }
+.teacher-dark .provl-r-tillbaka .hint { margin: 0; }
+.teacher-dark .provl-r-tillbaka-info { margin: 0; color: #7ee2a8; font-weight: 600; }
+.provl-r-elevstatus { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.85rem; font-weight: 600; }
+.provl-r-elevstatus-ej { color: #c7d2de; background: rgba(255, 255, 255, 0.07); }
+.provl-r-elevstatus-delvis { color: #f3d38a; background: rgba(240, 194, 90, 0.16); }
+.provl-r-elevstatus-rattad { color: #7ee2a8; background: rgba(46, 193, 110, 0.16); }
+.provl-r-elevstatus-tillbaka { color: #9cc7ff; background: rgba(47, 128, 237, 0.18); }
+.provl-ruta .provl-r-ejklara { margin: 8px 0; }
+
+@media (max-width: 560px) {
+  .teacher-dark .provl-r-pilar { margin-left: 0; }
+  .teacher-dark .provl-r-b { padding: 6px 10px; }
+  .teacher-dark .provl-r-b kbd { display: none; }
+}

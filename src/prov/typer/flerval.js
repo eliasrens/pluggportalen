@@ -5,6 +5,10 @@
 
 import { elevFalt, textLista, valideraGemensamt } from "./delat.js";
 import { elevKontext, valLista } from "../prov-vy.js";
+import { alternativ, svarsVyer } from "../prov-svar-vy.js";
+
+// Svaret efter provet (#741): elevens val, och med facit det rätta.
+const visa = (f, svar, o) => alternativ(f.alternativ, new Set(Number.isInteger(svar) ? [svar] : []), o.facit ? new Set([o.facit.ratt]) : null, o);
 
 export default {
   id: "flerval",
@@ -38,6 +42,9 @@ export default {
       ? { poang: max, maxPoang: max, ratt: true }
       : { poang: 0, maxPoang: max, ratt: false };
   },
+
+  facitText: (f, facit) => f.alternativ[facit?.ratt] ?? "",
+  ...svarsVyer(visa),
 
   /** Elevens svarsruta (#740): ett val bland alternativen. */
   renderElev(f, svar, o) {
