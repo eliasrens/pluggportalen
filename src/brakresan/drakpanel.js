@@ -133,8 +133,9 @@ function namnRad(info, { byt, onNytt, fraga = false }) {
   const status = h("p", { class: "bdp-namnstatus", role: "status" });
   const visa = () => {
     // Ägget har inget namn att byta – draken döps först när den kläckts.
-    rad.replaceChildren(h("h2", { class: "bdp-namn", id: "bdp-titel" }, info.namn),
-      info.egg ? null : h("button", { type: "button", class: "bdp-lank", onclick: redigera }, "Byt namn"));
+    // DOM:ens replaceChildren gör om null till texten "null" – filtrera bort (#751).
+    rad.replaceChildren(...[h("h2", { class: "bdp-namn", id: "bdp-titel" }, info.namn),
+      info.egg ? null : h("button", { type: "button", class: "bdp-lank", onclick: redigera }, "Byt namn")].filter(Boolean));
   };
   function redigera() {
     const falt = h("input", {
