@@ -28,6 +28,8 @@ liveSessions/{sid}/…                     ← Live-matcher (#457), se "Mattemat
 liveClock/{uid}                          ← Live: klocksynk per inloggad (#460)
 classCenters/{classId}/…                 ← Klasscentret (#476–): Klass-EXP, crowdfunding, layout, pokaler
 teacherAccounts/{uid}                    ← lärarkonto: admin eller årskurskonto (#677)
+prov/{provId}                            ← Prov (#738): provet MED facit – bara lärare
+provTillfallen/{t}/…                     ← Prov: ett prov i en klass, elevernas svar och rättningen
 ```
 
 Vem som får läsa och skriva varje samling (admin respektive årskurskonto) står i
@@ -1728,6 +1730,31 @@ nekade redan ett rum med alla 8 föremål (#497 fixade, mätt i emulatorn). Att 
 fuskande elev kan som mest ställa en ej köpt möbel i rummet. Radera = lärare.
 Tester: `test/kc-layout-plan.test.js`, `test/firestore-rules-klasscenter-layout.test.js`.
 ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` (layout + klassprofilen).
+
+---
+
+## Prov (#738–, epic #737)
+
+Spec: [`docs/UTVECKLINGSUPPDRAG_PROV.md`](UTVECKLINGSUPPDRAG_PROV.md) §3. API,
+statusflöde och frågetypsregistret: [`docs/PROV.md`](PROV.md). Logiken bor i
+`src/prov/` (laddas bara med `import()`).
+
+| Dokument | Fält | Skriver |
+| --- | --- | --- |
+| `prov/{provId}` | `namn` (1–80), `beskrivning?`, `amne?`, `arskurs?` (`"ak1".."ak9"`), `fragor` (≤ 60, **med facit**), `installningar` `{ poang, nivaer, visaFacit, stavningskontroll, tidsgransMin, granser: { gul, gron } }`, `createdBy`, `createdByName`, `skapad`, `uppdaterad` | ägaren (admin: alla) |
+| `provTillfallen/{t}` | `provId`, `provNamn`, `classId`, `createdBy`, `createdByName`, `status` (`forberett`/`oppet`/`stangt`), `fragor` (**utan facit**, `utanFacit`), `installningar` (kopia), `tidsgransMin` (null eller 5–240), `oppnad?`, `stangd?` | lärare med klassen |
+| `provTillfallen/{t}/privat/facit` | `facit: { [fragaId]: … }`, `bedomningsstod: { [fragaId]: "…" }` | lärare med klassen |
+| `provTillfallen/{t}/svar/{elevUid}` | `elevId`, `classId`, `startad` (serverns tid), `uppdaterad` (serverns tid vid varje elevskrivning), `svar: { [fragaId]: … }` (≤ 60), `inlamnad`, `inlamnadAt?`, `inlamnadNar?` (`elev`/`tid`/`stangt`) | eleven (läraren: bara inlämnad-fälten vid stängning) |
+| `provTillfallen/{t}/rattning/{elevUid}` | `elevId`, `classId`, `provNamn`, `fragor: { [fragaId]: { poang?, ratt?, kommentar?, auto } }`, `totalPoang?`, `maxPoang?`, `niva?` (`EG`/`G`/`MG`/null), `helhetskommentar?`, `aterlamnad`, `aterlamnadAt?`, `facit?` (kopieras in vid tillbakalämning om visaFacit) | lärare med klassen |
+
+- Svarens form per frågetyp (flerval = index, flerval-flera = lista med index,
+  santfalskt = bool, kortsvar/fritext = text, lucktext/para = lista med texter,
+  ordna = elevens ordning) står i `src/prov/typer/<typ>.js`.
+- Inga listor i listor (Firestore): lucktextens facit är `luckor: [{ godkanda: […] }]`.
+- Collection group-frågor på `rattning`: eleven `elevId == uid, aterlamnad == true,
+  orderBy aterlamnadAt desc, limit 10` (sammansatt index) och läraren
+  `classId == klassen` (fältundantag) – båda i `firestore.indexes.json`.
+- ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules,firestore:indexes`.
 
 ---
 
