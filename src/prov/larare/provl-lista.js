@@ -5,7 +5,8 @@
 // Förhandsvisa, Kopiera, Radera. Kollegors prov (hopfällda) går att
 // förhandsvisa och kopiera – inte ändra (samma regler som områdena, #680).
 // Radera frågar i en ruta på sidan (inte confirm()).
-// "Kör i klass" (§5.2) läggs till av provtillfället (#740) via RAD_KNAPPAR.
+// "Kör i klass" (§5.2) öppnar provtillfällets ruta (#740, korIKlass i
+// src/prov/prov-tillfalle-larare.js) – laddas först vid klick.
 // ============================================================================
 
 import { el, emptyState, esc, icon } from "../../teacher-shared.js";
@@ -15,14 +16,20 @@ import { felText, hamtaProv, listaProv, raderaProv } from "./provl-data.js";
 import { HASH } from "./page-larare-prov.js";
 
 /**
- * Extra knappar på varje rad – (rad, role) → html eller "". Provtillfället
- * (#740) registrerar "Kör i klass" här; klicket hanteras av `onKlick(ctx, rad)`.
- * @type {{ act: string, html: (rad: object) => string, onKlick: (ctx: object, rad: object) => void }[]}
+ * "Kör i klass" (§5.2): rutan ägs av provtillfället (#740). Laddas först vid
+ * klick; saknas modulen (än) visas ett vänligt besked i `msg`.
  */
-export const RAD_KNAPPAR = [];
+export async function korIKlass(ctx, provId, msg) {
+  try {
+    const { korIKlass: kor } = await import("../prov-tillfalle-larare.js");
+    return await kor(ctx, provId);
+  } catch (err) {
+    console.warn("Kör i klass", err);
+    if (msg) msg.innerHTML = `<div class="msg warn">Det går inte att köra provet i en klass just nu. Ladda om sidan och försök igen.</div>`;
+  }
+}
 
 function radHtml(r, { kollega = false } = {}) {
-  const extra = RAD_KNAPPAR.map((k) => k.html(r)).join("");
   return `<tr data-prov="${esc(r.id)}">
     <td><b class="provl-rad-namn">${esc(r.namn)}</b>${r.amne ? `<span class="hint provl-rad-amne">${esc(r.amne)}</span>` : ""}</td>
     <td class="provl-tal">${r.antal}${r.textblock ? `<span class="hint"> + ${r.textblock} text</span>` : ""}</td>
@@ -30,7 +37,7 @@ function radHtml(r, { kollega = false } = {}) {
     ${kollega ? `<td>${esc(r.agare)}</td>` : ""}
     <td class="provl-atgarder">
       ${r.kanAndra ? `<button type="button" class="btn small" data-act="redigera">${icon("pencil", 16)}<span>Redigera</span></button>` : ""}
-      ${extra}
+      <button type="button" class="btn small ghost" data-act="kor">${icon("users", 16)}<span>Kör i klass</span></button>
       <button type="button" class="btn small ghost" data-act="forhand" title="Förhandsvisa som elev" aria-label="Förhandsvisa ${esc(r.namn)} som elev">${icon("eye", 16)}</button>
       <button type="button" class="btn small ghost" data-act="kopia" title="Kopiera" aria-label="Kopiera ${esc(r.namn)}">${icon("copy", 16)}${kollega ? "<span>Kopiera</span>" : ""}</button>
       ${r.kanAndra ? `<button type="button" class="btn small ghost danger" data-act="radera" title="Radera" aria-label="Radera ${esc(r.namn)}">${icon("trash", 16)}</button>` : ""}
@@ -62,7 +69,7 @@ export async function renderLista(ctx, host, { meddelande = "" } = {}) {
     </div>
     <div class="provl-mina"></div>
     ${andras.length ? `<details class="panel provl-kollegor"${mina.length ? "" : " open"}>
-      <summary><b>Kollegors prov</b> <span class="hint">(${andras.length}) – förhandsvisa eller kopiera</span></summary>
+      <summary><b>Kollegors prov</b> <span class="hint">(${andras.length}) – kör i klass, förhandsvisa eller kopiera</span></summary>
       ${tabell(andras, { kollega: true })}
     </details>` : ""}
   </div>`);
@@ -89,7 +96,7 @@ export async function renderLista(ctx, host, { meddelande = "" } = {}) {
       const { visaForhandsvisning } = await import("./provl-forhandsvisa.js");
       visaForhandsvisning(dok);
     });
-    for (const k of RAD_KNAPPAR) knapp(k.act)?.addEventListener("click", () => k.onKlick(ctx, rad));
+    knapp("kor").addEventListener("click", () => korIKlass(ctx, id, msg));
     knapp("radera")?.addEventListener("click", () => fragaRadera(tr, rad, async () => {
       try {
         await raderaProv(id);

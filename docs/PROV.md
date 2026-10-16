@@ -138,7 +138,7 @@ Lärarsidans grupp **Prov** (`TEACHER_GROUPS`) med fliken **Mina prov**
 | Fil | Gör |
 | --- | --- |
 | `page-larare-prov.js` | route: `?vy=mina` (standard), `?vy=ny`, `&id=` (redigera), `&kopia=` (kopiera → osparat utkast); laddar `prov-larare.css` |
-| `provl-lista.js` | Mina prov + kollegors (hopfällda): namn, frågor, senast ändrat, ägare. Redigera/Radera bara med `canEditArea`; Förhandsvisa och Kopiera för alla. Radera bekräftas i en ruta på sidan. **`RAD_KNAPPAR`** = krok för "Kör i klass" (C) |
+| `provl-lista.js` | Mina prov + kollegors (hopfällda): namn, frågor, senast ändrat, ägare. Redigera/Radera bara med `canEditArea`; Kör i klass, Förhandsvisa och Kopiera för alla. Radera bekräftas i en ruta på sidan |
 | `provl-redigera.js` | uppgifter + inställningar (§3), frågekort (↑ ↓ Redigera Duplicera Ta bort + Ångra), "Lägg till fråga" (typväljaren → formuläret), Spara (`tillDokument` → `setDoc`), lämna-vakt vid osparat |
 | `provl-fragaform.js` | ett formulär per typ, `onSubmit(falt) → { ok, errors }` |
 | `provl-ai.js` | "Skapa med AI" (§8.2): val → `buildProvPrompt` → klistra in → Granska (`tolkaAiJson` = `validateProv`) → frågorna läggs sist |
@@ -150,10 +150,15 @@ DOM-fri logik (testad i `test/prov-redigera.test.js`): `prov-redigera-ops.js`
 `withOwner`, kopiera, AI-JSON med/utan kodstaket, frågor sist med nya id vid
 krock), `prov-lista-ops.js` (listan per ägare) och `prov-prompt.js`.
 
-**`renderElev` (C):** förhandsvisningen anropar
-`typ.renderElev(elevFraga, svar, { onChange(nyttSvar), nummer, installningar, forhandsvisning: true })`
-→ element (eller html) när typen har den, annars en enkel reservvy (`RESERV`
-i `provl-forhandsvisa.js`) som tas bort när alla typer har `renderElev`.
+**Gränssnittet mot C (#740), låst av leaden:**
+- Förhandsvisningen laddar `renderaFragor(container, fragor, { svar, installningar, onAndrad, lasLage })`
+  ur `src/prov/prov-elev-fragor.js` (C) med `import()`. Saknas den används
+  reservvyerna (`RESERV` i `provl-forhandsvisa.js`), som kan tas bort sedan.
+- "Kör i klass" (listan och redigeraren) anropar
+  `korIKlass(ctx, provId)` ur `src/prov/prov-tillfalle-larare.js` (C). Ett
+  osparat prov måste sparas först.
+- Gruppen `prov` (ikon `pencil`): "Mina prov" `#/larare/prov` först, C:s
+  "Provtillfällen" `#/larare/prov/tillfallen` efter.
 
 Förhandsvisning utan Firebase: `preview/preview-prov-larare.html`
 (`?roll=admin` = admin; proven i `localStorage`, stubbar i `preview/prov-larare-stubs/`).

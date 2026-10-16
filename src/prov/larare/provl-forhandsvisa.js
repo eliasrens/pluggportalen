@@ -3,12 +3,11 @@
 // det öppnas (delaUppProv → elevens frågor UTAN facit), numreras som eleven ser
 // det (fragaNummer) och kan besvaras på prov – men INGET sparas och inget skickas.
 //
-// Varje fråga ritas av registrets typ.renderElev (provsidan, #740) när den
-// finns – kontraktet som förhandsvisningen anropar:
-//   typ.renderElev(elevFraga, svar, { onChange(nyttSvar), nummer, installningar, forhandsvisning: true })
-//     → HTMLElement (eller html-sträng)
-// Tills dess (och för en typ som saknar renderElev) används RESERV nedan: en
-// enkel, fungerande elevvy per typ. Den ska tas bort när alla typer har renderElev.
+// Frågorna ritas av ELEVSIDANS egen kod (provsidan, #740 äger den):
+//   renderaFragor(container, fragor, { svar, installningar, onAndrad, lasLage })
+// ur src/prov/prov-elev-fragor.js, laddad med import(). Saknas modulen (innan
+// #740 landat, eller mitt i en utrullning) används RESERV nedan: en enkel,
+// fungerande elevvy per typ. Den kan tas bort när prov-elev-fragor.js finns.
 // ============================================================================
 
 import { el, esc, icon } from "../../teacher-shared.js";
@@ -102,16 +101,37 @@ function fragaVy(f, nummer, st, ins, poangPa, uppdatera) {
     st.svar[f.id] = typ.rensaSvar(v, f);
     uppdatera();
   };
-  if (typeof typ.renderElev === "function") {
-    const ut = typ.renderElev(f, hamta(), { onChange: satt, nummer, installningar: ins, forhandsvisning: true });
-    if (typeof ut === "string") box.innerHTML = ut;
-    else if (ut) box.appendChild(ut);
-    return kort;
-  }
   const rita = () => { box.innerHTML = RESERV[f.typ]?.(f, hamta(), ins) ?? `<p class="hint">(${esc(typ.namn)} kan inte förhandsvisas än)</p>`; };
   rita();
   koppla(box, f, hamta, satt, rita);
   return kort;
+}
+
+/**
+ * Elevsidans renderaFragor (#740) om den finns, annars reservvyerna.
+ * onAndrad får antingen hela svar-mapen eller (fragaId, svar).
+ */
+async function ritaFragor(lista, fragor, st, ins, reserv, uppdatera) {
+  let m = null;
+  try {
+    m = await import("../prov-elev-fragor.js");
+  } catch {
+    m = null;
+  }
+  if (typeof m?.renderaFragor !== "function") {
+    for (const f of fragor) lista.appendChild(reserv(f));
+    return;
+  }
+  m.renderaFragor(lista, fragor, {
+    svar: st.svar,
+    installningar: ins,
+    lasLage: false,
+    onAndrad: (a, b) => {
+      if (typeof a === "string" && b !== undefined) st.svar = { ...st.svar, [a]: b };
+      else if (a && typeof a === "object") st.svar = { ...st.svar, ...a };
+      uppdatera();
+    },
+  });
 }
 
 /**
@@ -149,7 +169,7 @@ export function visaForhandsvisning(prov) {
   };
   const lista = dlg.querySelector(".provl-fh-fragor");
   if (!fragor.length) lista.appendChild(el(`<p class="hint">Provet har inga frågor än.</p>`));
-  for (const f of fragor) lista.appendChild(fragaVy(f, nr[f.id], st, ins, poangPa, uppdatera));
+  else ritaFragor(lista, fragor, st, ins, (f) => fragaVy(f, nr[f.id], st, ins, poangPa, uppdatera), uppdatera);
   uppdatera();
   const stang = () => {
     dlg.close();

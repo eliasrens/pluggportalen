@@ -7,7 +7,8 @@
 //   #/larare/prov?vy=ny&kopia=<id>   kopia → osparat utkast med "(kopia)"
 // Provets uppgifter + inställningar, frågekorten (flytta, duplicera, ta bort,
 // redigera i kortet), "Lägg till fråga" (typväljaren → typens formulär),
-// "Skapa med AI" (provl-ai.js) och "Förhandsvisa som elev" (provl-forhandsvisa.js).
+// "Skapa med AI" (provl-ai.js), "Förhandsvisa som elev" (provl-forhandsvisa.js)
+// och "Kör i klass" (provtillfället, #740).
 // Arbetskopian ändras bara via prov-redigera-ops.js. Spara = validateProv +
 // ägarfälten (tillDokument) → setDoc. Osparade ändringar → lämna-vakten frågar.
 // ============================================================================
@@ -27,7 +28,7 @@ import {
 import { byggFragaForm } from "./provl-fragaform.js";
 import { felText, hamtaProv, raderaProv, sparaProv } from "./provl-data.js";
 import { HASH } from "./page-larare-prov.js";
-import { raderaRuta } from "./provl-lista.js";
+import { korIKlass, raderaRuta } from "./provl-lista.js";
 
 const LAMNA_TEXT = "Du har ändringar i provet som inte är sparade. Vill du lämna utan att spara?";
 let flash = null; // { id, html } – meddelande efter sparning, visas en gång
@@ -106,6 +107,7 @@ function ritaRedigerare(ctx, host, st) {
       <button type="submit" class="btn gron" data-act="spara">${icon("save", 16)}<span>Spara provet</span></button>
       <button type="button" class="btn ghost" data-act="tillbaka">Tillbaka</button>
       ${st.id ? `<span class="provl-spacer"></span>
+        <button type="button" class="btn small" data-act="kor">${icon("users", 16)}<span>Kör i klass</span></button>
         <button type="button" class="btn small ghost" data-act="kopia">${icon("copy", 16)}<span>Kopiera</span></button>
         <button type="button" class="btn small ghost danger" data-act="radera">${icon("trash", 16)}<span>Radera</span></button>` : ""}
     </div>
@@ -295,6 +297,11 @@ function ritaRedigerare(ctx, host, st) {
   });
 
   $('[data-act="tillbaka"]').addEventListener("click", () => ctx.go(HASH)); // vakten frågar om osparat
+  $('[data-act="kor"]')?.addEventListener("click", () => {
+    // Provtillfället kopierar det SPARADE provet – osparade ändringar följer inte med.
+    if (bild(st.prov) !== sparadBild) return visaFel(["Spara provet först – annars körs den sparade versionen utan dina senaste ändringar."]);
+    korIKlass(ctx, st.id, $(".provl-msg"));
+  });
   $('[data-act="kopia"]')?.addEventListener("click", () => ctx.go(`${HASH}?vy=ny&kopia=${encodeURIComponent(st.id)}`));
   $('[data-act="radera"]')?.addEventListener("click", () => {
     vy.querySelector(".provl-bekrafta-ruta")?.remove();

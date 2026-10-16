@@ -214,7 +214,7 @@ export const TEACHER_GROUPS = [
   { key: "oversikt", label: "Översikt", icon: "home" },
   { key: "klasser", label: "Klasser", icon: "users" },
   { key: "material", label: "Material", icon: "book" },
-  { key: "prov", label: "Prov", icon: "clipboard" },
+  { key: "prov", label: "Prov", icon: "pencil" },
   { key: "live", label: "Live och tävlingar", icon: "bolt" },
   { key: "statistik", label: "Statistik", icon: "chart" },
   { key: "admin", label: "Admin", icon: "key" },
