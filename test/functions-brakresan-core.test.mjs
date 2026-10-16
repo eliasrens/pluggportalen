@@ -239,3 +239,29 @@ describe("versioner", () => {
     assert.equal((await rig.round(U, roundId)).version, 1);
   });
 });
+
+describe("fokusläge och dold modul (#735)", () => {
+  const MIN = 60_000;
+  const klass = (id, falt) => db.doc(`classes/${id}`).set({ name: id, studentIds: [U, "brk-annan"], ...falt });
+
+  it("låst till annat → nekas; låst till Bråkresan → öppet även om dold; utgånget lås → öppet", async () => {
+    await klass("brk-6a", { lock: { mal: { typ: "lasresan" }, till: rig.ctl.clock + 30 * MIN, doljOvrigt: false } });
+    assert.equal(await code(startRound(deps, U, { challengeId: "03" })), "permission-denied");
+    await klass("brk-6a", { lock: { mal: { typ: "omrade", id: "ma/brak" }, till: rig.ctl.clock + 30 * MIN, doljOvrigt: false } });
+    assert.equal(await code(startRound(deps, U, { challengeId: "03" })), "permission-denied");
+    await klass("brk-6a", { lock: { mal: { typ: "lasresan" }, till: rig.ctl.clock - MIN, doljOvrigt: false } });
+    assert.equal(await code(startRound(deps, U, { challengeId: "03" })), "ok");
+    await klass("brk-6a", {
+      hiddenModules: ["brakresan"],
+      lock: { mal: { typ: "brakresan" }, till: rig.ctl.clock + 30 * MIN, doljOvrigt: true },
+    });
+    assert.equal((await startRound(deps, U, { challengeId: "03" })).resumed, true);
+  });
+
+  it("dold i någon av elevens klasser → nekas; andra elever påverkas inte", async () => {
+    await klass("brk-6a", {});
+    await db.doc("classes/brk-6b").set({ name: "6B", studentIds: [U], hiddenModules: ["brakresan"] });
+    assert.equal(await code(startRound(deps, U, { challengeId: "03" })), "permission-denied");
+    assert.equal(await code(startRound(deps, "brk-annan", { challengeId: "03" })), "ok");
+  });
+});

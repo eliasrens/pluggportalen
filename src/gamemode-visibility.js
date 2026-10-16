@@ -357,26 +357,58 @@ export function visibleVillageClasses(classes, meId) {
 }
 
 // ---------------------------------------------------------------------------
-// Modul-synlighet per klass (issue #412): läraren kryssar vilka TOP-NIVÅ-moduler
-// (sidomenyns sektioner) klassens elever ser. Lagras som classes/{id}.
-// hiddenModules = string[] (modul-id som DÖLJS). Tom/saknad = allt synligt.
-// `routes` = elev-routerna modulen äger; en dold modul nås inte ens via direktlänk.
-// Hem (huset) är elevens startsida och går därför inte att dölja.
+// MODULREGISTRET (#412/#605/#734): elevens TOP-NIVÅ-moduler med egen route.
+//
+//   Ny modul = en rad här, så följer fokusläget, modul-av/på och menyn med.
+//   (Ett nytt LÅSMÅL kräver dessutom typen i firestore.rules validLockShape –
+//   testet test/class-lock.test.js fångar en glömd typ. Se docs/FOKUSLAGE.md.)
+//
+// Ordning = lärar-UI:ts ordning och, inom varje menygrupp, sidomenyns ordning.
+// Fält:
+//   id, label, ikon   – modul-id (= låstypen i fokusläget), namn och menyikon
+//   routes            – elev-routerna modulen äger (första = modulens startsida);
+//                       en dold modul nås inte ens via direktlänk
+//   grupp             – sidomenyns grupp (ui.js NAV_GRUPPER: "mitt" | "ova")
+//   toggle:false      – INTE av/på-bar för läraren (styrs av annat, t.ex. en period)
+//   optIn             – av tills läraren aktiverar den (classes/{id}.enabledModules)
+//   villkor           – menylänken syns bara när ui.js NAV_VILLKOR[villkor] svarar sant
+//   learning          – inlärningsmodul: fokuslåset spärrar den när den inte är målet
+//   lockable          – kan väljas som mål i fokusläget (låstypen = id)
+//   lockAreas         – låsmålet är ETT område i modulen (Plugga → typen "omrade")
+//   lockGrupp         – rubrik i lärarens målväljare (standard "Moduler")
+//
+// Hem (huset) är elevens startsida och går inte att dölja – den står inte här.
+// Live (#460) är ingen inlärningsmodul: syns som Live-rutan när klassen bjudits in.
 // ---------------------------------------------------------------------------
 
-/** Registret över moduler läraren kan dölja (ordning = visningsordning). */
-export const TOGGLABLE_MODULES = [
-  { id: "plugga", label: "Plugga",
+export const STUDENT_MODULES = [
+  { id: "plugga", label: "Plugga", ikon: "📚", grupp: "ova", learning: true, lockable: true, lockAreas: true,
     routes: ["/elev/plugga", "/elev/omrade", "/elev/spela", "/elev/aventyr"] },
-  { id: "lasresan", label: "Läsresan", routes: ["/elev/lasresan"] },
-  { id: "brakresan", label: "Bråkresan", routes: ["/elev/brakresan"] }, // #713, synlig som standard
-  { id: "shop", label: "Shoppen", routes: ["/elev/shop"] },
-  // Hitta rätt! (#605): OPT-IN – av tills läraren aktiverar den för klassen
-  // (classes/{id}.enabledModules). Läraren kan alltså inte "dölja" den utan
-  // bara slå på/av; en dold opt-in-modul syns inte ens via direktlänk.
-  { id: "hittaratt", label: "Hitta rätt!", routes: ["/elev/hitta-ratt"], optIn: true },
-  { id: "ekvationsresan", label: "Ekvationsresan", routes: ["/elev/ekvationsresan"], optIn: true }, // #618, E1.11
+  // Läsresan (#398): egen huvudmodul, fristående från Plugga.
+  { id: "lasresan", label: "Läsresan", ikon: "📖", grupp: "ova", learning: true, lockable: true,
+    lockGrupp: "Läsning", routes: ["/elev/lasresan"] },
+  { id: "shop", label: "Shoppen", ikon: "🛒", grupp: "mitt", routes: ["/elev/shop"] },
+  // Mattematchen (#458): bara under en aktiv period för elevens klass – inte av/på-bar.
+  { id: "mattematchen", label: "Mattematchen", ikon: "🧮", grupp: "ova", learning: true, lockable: true,
+    toggle: false, villkor: "mattematchen", routes: ["/elev/mattematchen"] },
+  // Hitta rätt! (#605) och Ekvationsresan (#618, E1.11): OPT-IN – av tills läraren
+  // aktiverar dem för klassen. Läraren kan alltså inte "dölja" dem utan bara slå på/av.
+  { id: "hittaratt", label: "Hitta rätt!", ikon: "🗺️", grupp: "ova", learning: true, lockable: true,
+    optIn: true, routes: ["/elev/hitta-ratt"] },
+  { id: "ekvationsresan", label: "Ekvationsresan", ikon: "⚖️", grupp: "ova", learning: true, lockable: true,
+    optIn: true, routes: ["/elev/ekvationsresan"] },
+  // Bråkresan (#705/#713/#735): synlig som standard, döljbar per klass (hiddenModules).
+  { id: "brakresan", label: "Bråkresan", ikon: "🐉", grupp: "ova", learning: true, lockable: true,
+    routes: ["/elev/brakresan"] },
 ];
+
+/** Moduler läraren kan slå av/på per klass (#412, ordning = lärar-UI:ts ordning). */
+export const TOGGLABLE_MODULES = STUDENT_MODULES.filter((m) => m.toggle !== false);
+
+/** Modulen (ur hela registret) som äger elev-routen `path`, annars null. */
+export function studentModuleForRoute(path) {
+  return STUDENT_MODULES.find((m) => m.routes.includes(path)) || null;
+}
 
 /** Normalisera hiddenModules: bara kända modul-id, samma regler som lägen. */
 export function normalizeHiddenModules(v) {

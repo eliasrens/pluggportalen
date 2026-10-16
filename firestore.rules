@@ -404,7 +404,9 @@ service cloud.firestore {
     // valideras mot SERVERNS klocka: `till` ligger framåt och högst 24 h bort,
     // så ingen klient (med fel klocka) kan spara ett evigt lås. Ett oförändrat
     // (ev. redan utgånget) lås stoppar inte andra klass-skrivningar. Borttaget
-    // fält = olåst (bakåtkompatibelt). mal.typ är en utbyggbar enum.
+    // fält = olåst (bakåtkompatibelt). mal.typ är en utbyggbar enum (#734):
+    // "omrade" + de låsbara modulerna i modulregistret (STUDENT_MODULES i
+    // src/gamemode-visibility.js) – SPEGLAS här; test/class-lock.test.js jämför.
     // ⚠️ DEPLOY: `firebase deploy --only firestore:rules` (separat från Pages).
     function validLockShape(l) {
       return l is map &&
@@ -412,7 +414,7 @@ service cloud.firestore {
         l.keys().hasOnly(['mal', 'till', 'doljOvrigt']) &&
         l.mal is map &&
         l.mal.keys().hasOnly(['typ', 'id', 'namn']) &&
-        l.mal.typ in ['omrade', 'lasresan'] &&
+        l.mal.typ in ['omrade', 'lasresan', 'mattematchen', 'hittaratt', 'ekvationsresan', 'brakresan'] &&
         (l.mal.typ != 'omrade' || (l.mal.get('id', null) is string &&
                                    l.mal.id.size() > 2 && l.mal.id.size() <= 200)) &&
         (!('id' in l.mal) || (l.mal.id is string && l.mal.id.size() <= 200)) &&

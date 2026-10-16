@@ -37,7 +37,7 @@ export function createBrRig(name) {
   }
 
   async function rensa(prefix) {
-    for (const coll of ["studentData"]) {
+    for (const coll of ["studentData", "classes"]) {
       const s = await db.collection(coll).get();
       for (const d of s.docs.filter((x) => x.id.startsWith(prefix))) await db.recursiveDelete(d.ref);
     }

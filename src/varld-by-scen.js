@@ -105,9 +105,12 @@ export function mountByScen({ lager, meId, students, klasscenter = null }) {
         : last
           ? `${possessiv(namn)} hus – låst just nu`
           : `${possessiv(namn)} hus – titta in i deras rum`;
-      return `<div class="by-tomt${me ? " du" : ""}${last ? " last" : ""}" role="button" tabindex="0"
+      // Tomten är INGEN staplingskontext (#732: varken z-index eller transform –
+      // left/top är hörnet): bara huset staplas efter markpunkten (--by-z), så
+      // skylten/"Du!" kan ligga över nästa rads hus och dekor (19-varld-by.css).
+      return `<div class="by-tomt${me ? " du" : ""}${last ? " last" : ""}${t.kol % 2 ? " udda" : ""}" role="button" tabindex="0"
         data-id="${esc(s.id)}"${me ? ` data-me="1"` : ""}${last ? ` data-locked="1"` : ""} aria-label="${aria}"
-        style="left:${t.x.toFixed(2)}%;top:${t.y.toFixed(2)}%;width:${layout.cellW.toFixed(2)}%;height:${layout.radHojd.toFixed(2)}%;z-index:${Math.round((t.y + layout.radHojd / 2) * 10)};--hus-house:${pal.house};--hus-roof:${pal.roof};--hus-wall:${pal.wall};--hus-wall2:${pal.wall2}">
+        style="left:${(t.x - layout.cellW / 2).toFixed(2)}%;top:${(t.y - layout.radHojd / 2).toFixed(2)}%;width:${layout.cellW.toFixed(2)}%;height:${layout.radHojd.toFixed(2)}%;--by-z:${Math.round((t.y + layout.radHojd / 2) * 10)};--hus-house:${pal.house};--hus-roof:${pal.roof};--hus-wall:${pal.wall};--hus-wall2:${pal.wall2}">
         ${me ? '<span class="by-du">Du!</span>' : ""}
         ${last ? '<span class="by-last-ikon" aria-hidden="true">🔒</span>' : ""}
         ${husMini({
@@ -128,7 +131,10 @@ export function mountByScen({ lager, meId, students, klasscenter = null }) {
         style="left:${c.x.toFixed(2)}%;top:${c.topp.toFixed(2)}%;width:${c.bredd.toFixed(2)}%;height:${c.hojd.toFixed(2)}%;z-index:${Math.round(c.botten * 10)}"></div>`
     : "";
 
+  // Byns säsongslöv (season-world.js mountVarldSasong) överlever omritningen.
+  const lov = lager.querySelector(":scope > .sz-lager-wrap");
   lager.innerHTML = mark + dekorHtml + kcHtml + tomter;
+  if (lov) lager.append(lov);
 
   if (c) {
     const slot = lager.querySelector(".by-klasscenter");

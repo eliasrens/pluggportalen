@@ -107,3 +107,24 @@ test("modulesHiddenForStudent: hiddenModules gäller fortfarande (union)", () =>
   const k2 = [{ id: "6a", studentIds: ["elev1"], hiddenModules: ["lasresan"] }];
   assert.deepEqual(modulesHiddenForStudent(k2, "elev1").sort(), ["ekvationsresan", "hittaratt", "lasresan"]);
 });
+
+// --- #734: modulregistret (STUDENT_MODULES) -------------------------------------
+import { STUDENT_MODULES, studentModuleForRoute } from "../src/gamemode-visibility.js";
+
+test("STUDENT_MODULES: unika id/rutter; TOGGLABLE = registret utan toggle:false", () => {
+  const ids = STUDENT_MODULES.map((m) => m.id);
+  assert.equal(new Set(ids).size, ids.length);
+  const routes = STUDENT_MODULES.flatMap((m) => m.routes);
+  assert.equal(new Set(routes).size, routes.length, "en route får bara ägas av en modul");
+  assert.deepEqual(TOGGLABLE_MODULES.map((m) => m.id), ["plugga", "lasresan", "shop", "hittaratt", "ekvationsresan", "brakresan"]);
+  assert.ok(!TOGGLABLE_MODULES.some((m) => m.id === "mattematchen"), "Mattematchen styrs av perioden");
+  for (const m of STUDENT_MODULES) assert.ok(m.label && m.ikon && ["mitt", "ova"].includes(m.grupp), m.id);
+});
+
+test("studentModuleForRoute: hela registret, även Mattematchen; Hem/Live → null", () => {
+  assert.equal(studentModuleForRoute("/elev/mattematchen").id, "mattematchen");
+  assert.equal(studentModuleForRoute("/elev/spela").id, "plugga");
+  assert.equal(moduleForRoute("/elev/mattematchen"), null, "inte av/på-bar");
+  assert.equal(studentModuleForRoute("/elev/hus"), null);
+  assert.equal(studentModuleForRoute("/elev/live"), null);
+});

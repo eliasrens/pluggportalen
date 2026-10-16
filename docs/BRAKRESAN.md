@@ -416,9 +416,27 @@ Bootgrafen orörd (107): `varld-rum.js` och `pages-klasskamrat.js` importerar `r
 dynamiskt bara när `studentData.brakdrake` finns. Förhandsvisning:
 `preview/preview-drake-hus-714.html` (`?niva=N`, `?reset`, `#/elev/klasskamrat?id=elev2`).
 
-Navigation (H): `NAV_LANKAR` i `ui.js` (grupp `ova`, `modul: "brakresan"`) + `TOGGLABLE_MODULES`
-i `gamemode-visibility.js` – **synlig som standard, döljbar per klass** (`hiddenModules`, som
-Läsresan). Regelns modullistor validerar bara längden, så ingen regeländring behövs.
+Navigation och fokusläge (H #713, M #735): EN rad i modulregistret `STUDENT_MODULES`
+(`src/gamemode-visibility.js`, #734 – se `docs/FOKUSLAGE.md`): `{ id: "brakresan", ikon: "🐉",
+grupp: "ova", learning: true, lockable: true, routes: ["/elev/brakresan"] }`. Menylänken i
+`ui.js` härleds ur raden. Bråkresan är därmed:
+
+- **synlig som standard, döljbar per klass** (`hiddenModules`, som Läsresan; ingen `optIn`).
+  Regelns modullistor validerar bara längden, så döljandet kräver ingen regeländring.
+- **ett låsmål i fokusläget** (grupp "Moduler" i lärarens målväljare, låstypen `"brakresan"`).
+  Låst till Bråkresan → eleven landar i `#/elev/brakresan` (även `?u=NN` är öppet), alla andra
+  inlärningsmoduler är spärrade. Har klassen dolt Bråkresan är den gråad i målväljaren
+  ("dold för klassen") – gäller alla moduler sedan #735.
+- **spärrad** när klassen är låst till något annat (område, Läsresan, annan modul): menylänken
+  syns inte och direktlänken skickas till låsets mål. Utmaningsvyn är samma route med `?u=NN`,
+  så den följer med.
+- **på servern:** `brakresaStartRound` nekar (`permission-denied`) när någon av elevens klasser
+  har ett aktivt lås till något annat eller döljer Bråkresan och inget aktivt lås pekar på
+  Bråkresan (`assertModuleOpen` i `functions/brakresan-core.js`, en klassfråga per start).
+  Svar/avslut i en redan startad omgång nekas inte – grinden i klienten hindrar eleven att
+  komma dit.
+
+Låstypen kräver `'brakresan'` i `firestore.rules` `validLockShape` (ingår i #735).
 
 ## 6. Server-API – kontrakt för C (#708) och J (#715)
 
@@ -496,9 +514,12 @@ Färdigt i `src/brakresan/demo.js`: `demoRound(id, seed)` (tio hela uppgifter me
 
 ## 8. Beslut och risker för leaden
 
-1. **Synlighet (H #713):** synlig som standard och döljbar per klass (som Läsresan) –
-   specen säger "nås naturligt från befintlig elevnavigation". Servern kontrollerar inte
-   modulsynligheten (en dold modul nås inte via menyn eller routen).
+1. **Synlighet och fokusläge (H #713, M #735):** synlig som standard och döljbar per klass (som
+   Läsresan) – specen säger "nås naturligt från befintlig elevnavigation". Låsbar i fokusläget
+   (§5f). Servern nekar START av en omgång när modulen är dold eller klassen låst till annat;
+   känd begränsning: en omgång som redan pågår när läraren låser kan i teorin besvaras/avslutas
+   via direkta callable-anrop (klientens grind stänger vyn). Ett lås till Bråkresan kräver
+   rules-deploy (`validLockShape`) – annars nekas lärarens skrivning.
 2. **`studentData.coins` är elevskrivbart** i hela appen sedan tidigare (`addCoins` i klienten).
    Bråkresan skapar aldrig mynt från klienten och kan inte manipuleras via sina egna samlingar,
    men saldot som sådant går inte att låsa utan en migrering av hela appens myntflöde – utanför

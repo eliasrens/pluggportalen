@@ -197,10 +197,15 @@ export function fyllVinkdjur(root) {
     .catch(() => {}); // ren dekor – inloggningen påverkas aldrig
 }
 
-/** Världen (pages-varld.js): löv i scenen, temat live. */
+/**
+ * Världen (pages-varld.js): löv i scenen, temat live. Byarna (egen + grannby)
+ * får egna löv INNE i by-lagret, mellan husen och namnskyltarna (#732) – scenens
+ * löv ligger över hela lagret och döljs där (32-sasong.css).
+ */
 export function mountVarldSasong(stage) {
   const ui = stage.querySelector(".varld-ui");
   mountLager(stage, { before: ui });
+  for (const by of stage.querySelectorAll(".varld-lager.varld-by, .varld-lager.varld-grannby")) mountLager(by);
   startLive();
 }
 
