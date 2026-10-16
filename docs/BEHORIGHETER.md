@@ -149,6 +149,10 @@ bevisas av FM test 24.
 - `studentData` och `studentCredentials` saknar `classId`. De läses per dokument
   (`getDoc`), inte som en hel samling.
 - `setStudentLevel` (`src/data-lasresan-niva.js`) skriver nu nivåfälten som fältvägar.
+- Elevens egen `studentData`-skrivning (#750, BR): fältet `brakdrake` (Bråkdraken i huset)
+  skapas, tas bort och får `id`/`level`/`name`/`stage` bara av Cloud Functions. Eleven får
+  bara ändra `brakdrake.pos`, `.room` och `.stowed` (`brakdrakeOk` i `firestore.rules`,
+  skrivs som fältvägar av `src/brakresan/rum-drake.js`). Årskurskontot skriver aldrig fältet.
 - `payLiveRewards` (`src/live/live-rewards-pay.js`) skriver nu `lastLiveReceipt` = sessionen.
 - Live-sidan (`teacher-live*.js`) visar årskurskontot bara matcher med egna klasser,
   inget kassapris, och bara egna klasser i andra format än Klassmatchen

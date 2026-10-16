@@ -206,8 +206,8 @@ service cloud.firestore {
     match /studentData/{studentId} {
       allow read:  if isSelf(studentId) || hasStudent(studentId) ||
         (signedIn() && !isTeacher() && resource.data.get('husLast', false) != true);
-      allow create: if (isSelf(studentId) && kopAvatarOk()) || isAdmin();
-      allow update: if (isSelf(studentId) && kopAvatarOk()) || isAdmin() ||
+      allow create: if (isSelf(studentId) && kopAvatarOk() && brakdrakeOk()) || isAdmin();
+      allow update: if (isSelf(studentId) && kopAvatarOk() && brakdrakeOk()) || isAdmin() ||
         (gradeStudent(studentId) && gradeStudentDataOk(studentId));
       allow delete: if isSelf(studentId) || isAdmin();
 
@@ -286,6 +286,19 @@ service cloud.firestore {
       return (resource != null && av == resource.data.get('avatarId', 'fox')) ||
         !(av in ['hw-av-spoke', 'hw-av-fladdermus', 'hw-av-pumpgubbe', 'hw-av-mumie', 'hw-av-haxkatt', 'hw-av-vampyr']) ||
         av in n.get('ownedItems', []);
+    }
+
+    // Bråkdraken i huset (#714/#750, docs/BRAKRESAN.md §8.3): studentData.brakdrake
+    // är husets spegel av draken i brakresa/state. Bara servern (Admin SDK)
+    // skapar den och skriver id/level/name/stage. Eleven får aldrig skapa eller
+    // ta bort fältet – bara flytta draken (pos), byta rum (room) och lägga den
+    // i lådan (stowed), jfr src/brakresan/rum-drake.js.
+    function brakdrakeOk() {
+      let n = request.resource.data;
+      let o = resource == null ? {} : resource.data;
+      return !('brakdrake' in o) ? !('brakdrake' in n) :
+        ('brakdrake' in n && n.brakdrake is map &&
+          n.brakdrake.diff(o.brakdrake).affectedKeys().hasOnly(['pos', 'room', 'stowed']));
     }
 
     // Årskurskontots skrivning i studentData (#678, §2.1) – bara ETT av:
