@@ -12,7 +12,7 @@ import { serverNow, syncServerClock } from "../data-class-lock.js";
 import { filterClasses, myRole } from "../teacher-role.js";
 import { arFraga } from "./prov-fragetyper.js";
 import { STATUS } from "./prov-modell.js";
-import { oppnaTillfalle, raderaTillfalle, skapaTillfalle, stangTillfalle } from "./prov-tillfalle-data.js";
+import { hamtaProv, oppnaTillfalle, raderaTillfalle, skapaTillfalle, stangTillfalle } from "./prov-tillfalle-data.js";
 import { standardLasMinuter } from "./prov-tillfalle-logik.js";
 import { TIDSGRANS_MAX, TIDSGRANS_MIN, tolkaTidsgrans } from "./prov-validera.js";
 import { laddaCss } from "./prov-vy.js";
@@ -74,12 +74,19 @@ function kopplaLas(box) {
 /**
  * "Kör i klass" (§5.2): klass, tidsgräns, lås, Öppna nu / Spara och öppna senare.
  * @param {object} ctx  lärarsidans ctx
- * @param {{ id, namn, fragor?, installningar? }} prov
+ * @param {string | { id, namn, fragor?, installningar? }} provEllerId  provets id (B) eller provet
  * @param {{ onKlar?: (tillfalleId: string, oppnat: boolean) => void }} [o]
  */
-export async function korIKlass(ctx, prov, { onKlar } = {}) {
+export async function korIKlass(ctx, provEllerId, { onKlar } = {}) {
   laddaCss("prov-tillfalle.css");
   await syncServerClock();
+  // B (#739) anropar med provets id – läs då provet (en läsning).
+  const prov = typeof provEllerId === "string" ? await hamtaProv(provEllerId).catch(() => null) : provEllerId;
+  if (!prov) {
+    ruta(`<div class="msg error">Provet finns inte längre – det kan ha raderats.</div>
+      <div class="provl-knappar"><button class="btn ghost" data-avbryt>Stäng</button></div>`, { etikett: "Fel" });
+    return;
+  }
   const [role, klasser] = await Promise.all([myRole(), getClasses()]);
   const mina = filterClasses(klasser, role);
   const std = tolkaTidsgrans(prov.installningar?.tidsgransMin) ?? null;

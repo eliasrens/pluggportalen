@@ -17,7 +17,7 @@
 //   arBesvarad(svar, elevFraga) → true/false ("3 obesvarade")
 //   rensaSvar(svar, elevFraga)  → svaret i giltig form (klippt, okända val bort)
 //   forslag(svar, facit, elevFraga) → { poang, maxPoang, ratt: true|false|"delvis" } | null
-//   renderElev(elevFraga, k) → elevens svarsruta (#740, kontraktet i prov-vy.js)
+//   renderElev(elevFraga, svar, { onChange, lasLage }) → HTMLElement, elevens svarsruta (#740, prov-vy.js)
 // renderRattning/renderResultat (§2) läggs till av rättningen (D) – samma fil per typ.
 //
 // Hela src/prov/ laddas med import() – aldrig statiskt från bootgrafen (#271).

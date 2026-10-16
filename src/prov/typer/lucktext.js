@@ -9,7 +9,7 @@
 
 import { DELVIS_STAVFEL_ANDEL, forslagAv, matchaText } from "../prov-rattning.js";
 import { GRANS, elevFalt, strangLista, tecken, valideraGemensamt } from "./delat.js";
-import { h, textFalt } from "../prov-vy.js";
+import { elevKontext, h, textFalt } from "../prov-vy.js";
 
 const LUCKA = /\[\[([^\]]*)\]\]/g;
 
@@ -86,15 +86,16 @@ export default {
   },
 
   /** Elevens svarsruta (#740): texten med en ruta i varje lucka. */
-  renderElev(f, k) {
-    const svar = Array.isArray(k.svar) ? [...k.svar] : Array(f.antalLuckor).fill("");
+  renderElev(f, svar, o) {
+    const k = elevKontext(svar, o);
+    const lista = Array.isArray(k.svar) ? [...k.svar] : Array(f.antalLuckor).fill("");
     return h("p", { class: "provv-lucktext" }, f.delar.map((d) => {
       if (typeof d.t === "string") return d.t;
       const n = d.lucka;
       return textFalt("input", {
-        type: "text", class: "provv-lucka", varde: svar[n] || "", max: GRANS.kortsvar, size: "10",
+        type: "text", class: "provv-lucka", varde: lista[n] || "", max: GRANS.kortsvar, size: "10",
         "aria-label": `Lucka ${n + 1}`,
-        k: { ...k, andra: (v) => { svar[n] = v; k.andra([...svar]); } },
+        k: { ...k, andra: (v) => { lista[n] = v; k.andra([...lista]); } },
       });
     }));
   },

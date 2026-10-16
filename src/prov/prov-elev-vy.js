@@ -12,6 +12,7 @@
 //   vy.satSparstatus(s)   { lage: "sparat"|"sparar"|"fel", tid }
 //   vy.las(true)          bara läsa (inlämnat, stängt, tiden slut)
 //   vy.visaInlamning()    rutan "Du har svarat på 10 av 12 frågor …"
+//   renderaFragor(container, fragor, o)  samma vy insatt i ett element (B:s förhandsvisning)
 // ============================================================================
 
 import { arFraga, fragetyp } from "./prov-fragetyper.js";
@@ -90,17 +91,17 @@ export function renderaProv(o) {
       const typ = fragetyp(f.typ);
       if (!typ) return null;
       if (!arFraga(f)) {
-        const s = h("section", { class: "provv-textblock", "data-fraga": f.id }, typ.renderElev(f, { uid, attr, las: last }));
+        const s = h("section", { class: "provv-textblock", "data-fraga": f.id }, typ.renderElev(f, null, { uid, attr, lasLage: last }));
         return s;
       }
       const k = {
-        uid, attr, las: last, svar: svar[f.id],
-        andra: (v) => {
+        uid, attr, lasLage: last,
+        onChange: (v) => {
           svar[f.id] = v;
           markera(f);
           o.onAndrat?.(rensaSvar(svar, fragor));
         },
-        lamna: () => o.onLamnat?.(),
+        onLamna: () => o.onLamnat?.(),
       };
       const s = h("section", { class: "provv-fraga", "data-fraga": f.id, "aria-labelledby": `${uid}-${f.id}-rubrik` },
         h("div", { class: "provv-fraga-huvud" },
@@ -108,7 +109,7 @@ export function renderaProv(o) {
           h("div", { class: "provv-fragetext", id: `${uid}-${f.id}-rubrik` }, stycken(f.fraga)),
           visaPoang && f.poang ? h("span", { class: "provv-poang", text: `${f.poang} p` }) : null),
         f.hjalptext ? h("p", { class: "provv-hjalp", text: f.hjalptext }) : null,
-        h("div", { class: "provv-svar" }, typ.renderElev(f, k)));
+        h("div", { class: "provv-svar" }, typ.renderElev(f, svar[f.id], k)));
       // Byter eleven fråga (fokus lämnar sektionen) sparas det direkt (§5.5).
       s.addEventListener("focusout", (e) => { if (!s.contains(e.relatedTarget)) o.onLamnat?.(); });
       sektioner.push(s);
@@ -173,4 +174,19 @@ export function renderaProv(o) {
       ruta.append(h("p", { class: "provv-fel", role: "alert", text }));
     },
   };
+}
+
+/**
+ * Provet i ett element (B:s "Förhandsvisa som elev", #739): samma vy som
+ * eleven ser, men utan Firebase – utan onAndrat sparas ingenting.
+ * @param {HTMLElement} container  töms och får provet
+ * @param {object[]} fragor        elevens frågor (delaUppProv(prov).fragor)
+ * @param {{ namn?, svar?, installningar?, onAndrat?, lasLage?, lamnaInText?, onLamnaIn? }} [o]
+ * @returns vyn från renderaProv (svar(), las() …)
+ */
+export function renderaFragor(container, fragor, o = {}) {
+  const vy = renderaProv({ ...o, fragor, namn: o.namn || "Förhandsvisning" });
+  if (o.lasLage) vy.las(true);
+  container.replaceChildren(vy.el);
+  return vy;
 }

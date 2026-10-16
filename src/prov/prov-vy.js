@@ -3,15 +3,29 @@
 // Typfilerna importerar den här – men anropar den bara när en vy ritas, så
 // registret går fortfarande att ladda i Node (testerna) utan DOM.
 //
-// renderElev(fraga, k) – kontraktet för elevens svarsruta (§2, §5.5):
-//   k.svar      nuvarande svar (typens form, docs/PROV.md)
-//   k.andra(v)  eleven ändrade svaret → nytt värde (sparas automatiskt)
-//   k.lamna()   eleven lämnade rutan / gjorde ett färdigt val → spara snart
-//   k.attr      stavningsattributen för textfält (stavAttr)
-//   k.las       true = bara läsa (inlämnat, stängt)
-//   k.uid       unikt prefix för id/name i sidan
-// → ett element. Tangentbord och skärmläsare fungerar med vanliga kontroller.
+// renderElev(elevFraga, svar, { onChange, lasLage, onLamna?, attr?, uid? }) – kontraktet
+// för elevens svarsruta (§2, §5.5; signaturen låst av leaden för B och C):
+//   svar        nuvarande svar (typens form, docs/PROV.md)
+//   onChange(v) eleven ändrade svaret → nytt värde i samma form (sparas automatiskt)
+//   lasLage     true = bara visning, inga kontroller som ändrar något
+//   onLamna()   (valfri) eleven lämnade rutan / gjorde ett färdigt val → spara snart
+//   attr        (valfri) stavningsattributen för textfält (stavAttr, standard: av)
+//   uid         (valfri) unikt prefix för id/name när flera prov ritas på en sida
+// → ett HTMLElement. Tangentbord och skärmläsare fungerar med vanliga kontroller.
 // ============================================================================
+
+let nastaUid = 0;
+/** Typfilernas interna kontext ur den låsta signaturen (se ovan). */
+export function elevKontext(svar, o = {}) {
+  return {
+    svar,
+    andra: o.onChange || (() => {}),
+    lamna: o.onLamna || (() => {}),
+    las: o.lasLage === true,
+    attr: o.attr || stavAttr(false),
+    uid: o.uid || `provv-f${++nastaUid}`,
+  };
+}
 
 /** Skapa ett element: h("div", { class: "x", text: "…", on: { click } }, ...barn). */
 export function h(tag, attrs = {}, ...barn) {

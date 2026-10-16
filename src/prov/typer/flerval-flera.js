@@ -7,7 +7,7 @@
 
 import { forslagAv } from "../prov-rattning.js";
 import { elevFalt, textLista, valideraGemensamt } from "./delat.js";
-import { h, valLista } from "../prov-vy.js";
+import { elevKontext, h, valLista } from "../prov-vy.js";
 
 const kryss = (svar, n) =>
   [...new Set((Array.isArray(svar) ? svar : []).filter((i) => Number.isInteger(i) && i >= 0 && i < n))].sort((a, b) => a - b);
@@ -51,10 +51,13 @@ export default {
   },
 
   /** Elevens svarsruta (#740): kryssa i alla rätta alternativ. */
-  renderElev: (f, k) => h("div", {},
+  renderElev(f, svar, o) {
+    const k = elevKontext(svar, o);
+    return h("div", {},
     h("p", { class: "provv-instruktion", text: "Kryssa i alla alternativ som stämmer." }),
     valLista(f.alternativ, {
       flera: true, namn: `${k.uid}-${f.id}`, etikett: "Kryssa i alla rätta alternativ", las: k.las,
       valda: Array.isArray(k.svar) ? k.svar : [], andra: (v) => k.andra(v), lamna: k.lamna,
-    })),
+    }));
+  },
 };

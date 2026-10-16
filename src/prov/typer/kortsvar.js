@@ -7,7 +7,7 @@
 
 import { DELVIS_STAVFEL_ANDEL, delpoang, matchaText } from "../prov-rattning.js";
 import { GRANS, elevFalt, klipp, tecken, trimmad, valideraGemensamt } from "./delat.js";
-import { textFalt } from "../prov-vy.js";
+import { elevKontext, textFalt } from "../prov-vy.js";
 
 export const MAX_GODKANDA = 20;
 
@@ -54,8 +54,11 @@ export default {
   },
 
   /** Elevens svarsruta (#740): ett ord, tal eller kort fras. */
-  renderElev: (f, k) => textFalt("input", {
+  renderElev(f, svar, o) {
+    const k = elevKontext(svar, o);
+    return textFalt("input", {
     type: "text", class: "provv-kortsvar", varde: typeof k.svar === "string" ? k.svar : "", max: GRANS.kortsvar, k,
     "aria-label": "Ditt svar",
-  }),
+  });
+  },
 };

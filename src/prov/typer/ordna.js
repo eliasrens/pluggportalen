@@ -8,7 +8,7 @@
 
 import { forslagAv } from "../prov-rattning.js";
 import { blanda, elevFalt, textLista, valideraGemensamt } from "./delat.js";
-import { h } from "../prov-vy.js";
+import { elevKontext, h } from "../prov-vy.js";
 
 export default {
   id: "ordna",
@@ -46,7 +46,8 @@ export default {
    * pekskärm). Orörd ([]) = obesvarad – är ordningen redan rätt trycker
    * eleven "Behåll den här ordningen".
    */
-  renderElev(f, k) {
+  renderElev(f, svar, o) {
+    const k = elevKontext(svar, o);
     let ordning = Array.isArray(k.svar) && k.svar.length ? [...k.svar] : [...f.saker];
     let rord = Array.isArray(k.svar) && k.svar.length > 0;
     const lista = h("ol", { class: "provv-ordna" });

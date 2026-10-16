@@ -66,7 +66,7 @@ gemensamma fält, stabil blandning) i `typer/delat.js`.
 | `arBesvarad(svar, elevFraga)` | för "Fråga 4 och 9 är obesvarade" |
 | `rensaSvar(svar, elevFraga)` | svaret i giltig form innan det sparas (klippt, okända val bort) |
 | `forslag(svar, facit, elevFraga)` | `{ poang, maxPoang, ratt: true \| false \| "delvis" }` eller `null` |
-| `renderElev(elevFraga, k)` | elevens svarsruta (#740) – kontraktet i `prov-vy.js` |
+| `renderElev(elevFraga, svar, { onChange, lasLage })` | elevens svarsruta → HTMLElement (#740) – kontraktet i `prov-vy.js` |
 
 **Typerna och svarens form:**
 
@@ -167,20 +167,26 @@ Förhandsvisning utan Firebase: `preview/preview-prov-elev.html` (alla frågetyp
 nätfel, offline, "läraren stänger", `?kvar=4`) och `preview/preview-prov-tillfallen.html`
 (25 elever skriver). Skärmdumpar: `docs/qa-prov-740/`.
 
-**För B (#739):** "Kör i klass" =
-`(await import("./prov/prov-tillfallen-sida.js")).korIKlass(ctx, prov, { onKlar })`
-(`prov` = `{ id, namn, fragor, installningar }`). "Förhandsvisa som elev" =
-`renderaProv({ namn, fragor: delaUppProv(prov).fragor, installningar, lamnaInText: "…" })`
-ur `prov-elev-vy.js` + `laddaCss("prov-elev.css")` – utan `onAndrat` sparas inget.
+**För B (#739)** (gränssnittet låst av leaden):
+
+- **Kör i klass:** `(await import("./prov-tillfallen-sida.js")).korIKlass(ctx, provId, { onKlar })`
+  – `provId` (sträng) eller provobjektet `{ id, namn, fragor, installningar }`.
+  Öppnar rutan klass/tidsgräns/lås → "Öppna nu" eller "Spara och öppna senare";
+  `onKlar(tillfalleId, oppnat)` efteråt. Fliken Provtillfällen är C:s.
+- **Förhandsvisa som elev:** `renderaFragor(container, fragor, { namn, svar, installningar, lasLage, onAndrat })`
+  ur `prov-elev-vy.js` (`fragor` = `delaUppProv(prov).fragor`) + `laddaCss("prov-elev.css")`
+  ur `prov-vy.js`. Utan `onAndrat` sparas inget. Returnerar vyn (`svar()`, `las()`).
 
 **För D (#741):** rättningsräknaren ("18 av 24 rättade") och Rätta-knappen hör
 hemma i `ritaLista` (`prov-tillfallen-sida.js`, kommentaren vid raden);
 resultatvyn ersätter `pageProvResultat` i `prov-elev-sida.js`.
 
-**Typernas `renderElev(fraga, k)`** (en per typfil, kontraktet i `prov-vy.js`):
-`k.svar`, `k.andra(v)` (varje ändring), `k.lamna()` (lämnade rutan/färdigt val),
-`k.attr` (stavningsattributen), `k.las` (bara läsa), `k.uid` → ett element.
-`ordna` är obesvarad tills eleven flyttat något eller tryckt "Behåll den här ordningen".
+**Typernas `renderElev(elevFraga, svar, { onChange, lasLage })` → HTMLElement**
+(en per typfil, låst signatur, kommentaren i `prov-vy.js`): `onChange(nyttSvar)`
+ger svaret i formen ovan; `lasLage: true` = visning utan kontroller som ändrar
+något. Valfritt även `onLamna()` (lämnade rutan → spara snart), `attr`
+(stavningsattributen) och `uid` (id-prefix). `ordna` är obesvarad tills eleven
+flyttat något eller tryckt "Behåll den här ordningen".
 
 **Flödet** (statusflödet ovan): "Kör i klass" skapar `forberett` (+ `fokus`,
 `skapad`); Öppna kopierar provets **senaste** version; Stäng sätter status först

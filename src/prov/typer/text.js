@@ -33,7 +33,9 @@ export default {
   forslag: () => null,
 
   /** Textblocket som eleven läser (#740) – inget nummer, inget svar. */
-  renderElev: (f) => h("div", { class: "provv-textblock-inre" },
+  renderElev(f) {
+    return h("div", { class: "provv-textblock-inre" },
     f.titel ? h("h3", { class: "provv-textblock-titel", text: f.titel }) : null,
-    stycken(f.brodtext, "provv-brodtext")),
+    stycken(f.brodtext, "provv-brodtext"));
+  },
 };
