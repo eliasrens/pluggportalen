@@ -7,7 +7,8 @@
 //   #/larare/prov?vy=ny&kopia=<id>   kopia → osparat utkast med "(kopia)"
 // Provets uppgifter + inställningar, frågekorten (flytta, duplicera, ta bort,
 // redigera i kortet), "Lägg till fråga" (typväljaren → typens formulär),
-// "Skapa med AI" (provl-ai.js), "Förhandsvisa som elev" (provl-forhandsvisa.js)
+// "Skapa med AI" (provl-ai.js), "Förhandsvisa som elev" (provl-forhandsvisa.js),
+// "Skriv ut" (prov-utskrift.js, #747)
 // och "Kör i klass" (provtillfället, #740).
 // Arbetskopian ändras bara via prov-redigera-ops.js. Spara = validateProv +
 // ägarfälten (tillDokument) → setDoc. Osparade ändringar → lämna-vakten frågar.
@@ -76,6 +77,7 @@ function ritaRedigerare(ctx, host, st) {
         <button type="button" class="btn small ghost" data-act="omrade">${icon("book", 16)}<span>Hämta från område</span></button>
         <button type="button" class="btn small ghost" data-act="ai">${icon("sparkle", 16)}<span>Skapa med AI</span></button>
         <button type="button" class="btn small" data-act="forhand">${icon("eye", 16)}<span>Förhandsvisa som elev</span></button>
+        <button type="button" class="btn small ghost" data-act="skrivut">${icon("printer", 16)}<span>Skriv ut</span></button>
       </span>
     </div>
     ${st.kopiaAv ? `<p class="hint">Kopian är inte sparad än. Ändra det du vill och spara – originalet påverkas inte.</p>` : ""}
@@ -260,6 +262,10 @@ function ritaRedigerare(ctx, host, st) {
   $('[data-act="forhand"]').addEventListener("click", async () => {
     const { visaForhandsvisning } = await import("./provl-forhandsvisa.js");
     visaForhandsvisning(st.prov);
+  });
+  $('[data-act="skrivut"]').addEventListener("click", async () => {
+    const { skrivUtProvDok } = await import("../prov-utskrift.js");
+    skrivUtProvDok(st.prov);
   });
   const lagtTill = (ny, text) => {
     andra(ny);

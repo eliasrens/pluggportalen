@@ -379,6 +379,73 @@ Saker som inte kan bli en provfråga är gråade i listan med orsaken och hoppas
 likadana) alternativ, texter över 6000 tecken. Gamla nivåtexter (#152) under
 `readingTexts` syns aldrig.
 
+## Fördjupad statistik och utskrift (Etapp 2, #747, §12–§13)
+
+Under rutnätet i fliken **Översikt** (rättningsvyn) – laddas med `import()` när
+fliken ritas, inga nya filer i bootgrafen. Färg har alltid symbol och text.
+
+| Fil | Gör |
+| --- | --- |
+| `prov-statistik-fordjupad.js` | ren logik: `perFragaStaplar`, `poangFordelning`, `nivaFordelning`, `jamforKlasser`, `resultatCsv`/`csvFalt`/`csvFilnamn` (test: `test/prov-statistik-fordjupad.test.js`) |
+| `prov-fordjupad-vy.js` | verktygsraden (CSV, Skriv ut provet, Skriv ut resultat) och sektionerna under rutnätet; `skrivUtElever(v, uids)` |
+| `prov-jamfor-data.js` | jämförelsens läsningar (först på knapptryck) |
+| `prov-utskrift.js` / `prov-utskrift-papper.js` / `prov-utskrift.css` | utskriften (`.provl-ut-`) |
+
+- **Per fråga – svårast först**: en staplad stapel per fråga med antal ✓ rätt,
+  ½ delvis, ✗ fel, – obesvarade och ? ej rättade (siffran i segmentet) och
+  andelen av poängen (samma tal som i rutnätets sista rad). Lägst andel överst,
+  frågor utan något bedömt sist. Klick → frågan i Per fråga.
+- **Fördelning**: tio staplar à 10 % (0–9 … 90–100 %, samma flyttalsregel som
+  färgen) i provets gränsfärger med ✗/½/✓ under; ej rättade räknas för sig.
+  Nivåerna (EG/G/MG/ingen) visas om provet har nivåer eller någon nivå är satt.
+- **Jämför klasser**: knappen läser lärarens tillfällen (`listaTillfallen` med
+  `filterClasses` – bara egna klasser, som Provtillfällen), behåller öppnade
+  tillfällen av samma `provId` och läser `rattning` för vart och ett. Tabell:
+  elever (rättade), snitt, fördelning och andel per fråga, med **det här**
+  provets gränser i alla kolumner. En fråga som saknas i en äldre version → `–`.
+  Inga nya regler eller index (`provId` filtreras i klienten för att slippa ett
+  sammansatt index).
+- **Exportera CSV**: en rad per elev (A–Ö), poäng per fråga (utan poäng:
+  rätt/delvis/fel), Poäng, Av (rättade), Procent, Färg, Nivå, Status. Orättat =
+  tomt. Semikolon, decimalkomma, BOM (åäö i Excel), CRLF; fält med `;` `"`
+  radbrytning eller kantblanksteg citeras, text som börjar med `= + - @` får en
+  apostrof (formelskydd). Filnamn "Prov – Klass.csv". Riktiga namn även med
+  "Dölj namn" på (`v.riktigtNamn`) – det är lärarens egna anteckningar.
+- **Skriv ut provet** (Översikten, Mina prov 🖨 och redigeraren): rubrik,
+  namnrad (Namn/Klass/Datum), "Provet ger högst N p", frågorna med svarsyta per
+  typ – ○/☐ att kryssa, linjer för kortsvar och luckor (numrerade), bokstäver
+  för para, rutor för ordna, 6–16 linjer för fritext efter poängen, textblocken
+  inramade. En okänd typ får skrivlinjer. Kryssrutan **Skriv ut facit på ett
+  eget blad** (av som standard) lägger facit (para med bokstäverna, fritext med
+  bedömningsstödet) efter en sidbrytning.
+- **Skriv ut resultat** (Översikten = alla inlämnade, elevvyn 🖨 = en elev): en
+  elev per sida – totalen "✓ 18 av 24 p · 75 % · Grön", nivån, helhetskommentaren,
+  varje fråga med elevens svar (typens `renderRattning`), bedömningen ✓/½/✗ med
+  text och poäng, kommentaren; **Med facit** (förvalt enligt `visaFacit`).
+  Orättade frågor står som "? Inte rättad".
+- Utskriften följer `teacher-login-print.js`: helskärmsvy med verktygsrad och
+  vita A4-blad, `@media print` med `@page { size: A4 portrait }` som döljer allt
+  annat. ⚠️ Inloggningskortens print-regel i `styles.css` döljer alla andra barn
+  till `body` – `prov-utskrift.css` vinner med `html body > div.provl-utskrift`.
+
+**Läsningar**: allt utom jämförelsen räknas ur rättningsvyns laddning (0 extra).
+
+⚠️ **Avvikelse från spec §12 ("inga extra läsningar")** – godkänd av epic-leaden:
+jämförelsen behöver de ANDRA klassernas rättningar, och de är inte inlästa i
+rättningsvyn (den läser bara sin egen klass). Därför läser den **bara på knapptryck**
+("Jämför med mina andra klasser") och lägger **aldrig** till läsningar när
+Översikten ritas normalt. Inga lyssnare. Kostnad per klick: **1 fråga**
+`listaTillfallen` (en läsning per tillfälle i lärarens klasser, som listan
+Provtillfällen; en fråga per 30 klasser) **+ ett `rattning`-dokument per elev i
+varje jämfört tillfälle** – t.ex. 3 andra klasser × 25 elever ≈ 75 läsningar.
+Resultatet cachas (`v.stat.jamfor`) resten av vyn: gränsreglagen och omritningar
+läser inte igen.
+
+Förhandsvisning: `preview/preview-prov-fordjupad.html` (#742:s stubbar +
+`preview/prov-fordjupad-stubs/prov-jamfor-data.js` med 4A och 4C; `?pv=prov`,
+`?pv=facit`, `?pv=resultat` öppnar utskriften direkt, t.ex. för
+`chromium --headless --print-to-pdf`).
+
 ## Budget (§9) – 25 elever, 12 frågor, 40 minuter
 
 Autosparningen (`prov-sparning.js`): första sparningen 4 s efter en ändring,

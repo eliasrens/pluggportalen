@@ -174,6 +174,8 @@ function rattningsVy(ctx, body, data, elever, q) {
     poangsatt, nivaer: tf.installningar?.nivaer === true, index,
     svarAv: (uid, fid) => svar[uid]?.svar?.[fid],
     visNamn: (uid) => (doljNamn ? anonym[uid] : namn[uid]),
+    // CSV och utskrift (#747) har alltid det riktiga namnet – de är lärarens egna papper.
+    riktigtNamn: (uid) => namn[uid] || "Okänd elev",
     ga({ fraga, elev, fokus = false }) {
       if (fraga != null) index.fraga = Math.min(rf.length - 1, Math.max(0, fraga));
       if (elev != null) index.elev = Math.min(med.length - 1, Math.max(0, elev));

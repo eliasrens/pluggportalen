@@ -2,7 +2,7 @@
 // Prov (#739, spec §5.1): listan "Mina prov" (src/prov/larare/provl-lista.js)
 // ----------------------------------------------------------------------------
 // Namn, antal frågor, senast ändrat och ägare. Knappar: Nytt prov, Redigera,
-// Förhandsvisa, Kopiera, Radera. Kollegors prov (hopfällda) går att
+// Förhandsvisa, Skriv ut (#747), Kopiera, Radera. Kollegors prov (hopfällda) går att
 // förhandsvisa och kopiera – inte ändra (samma regler som områdena, #680).
 // Radera frågar i en ruta på sidan (inte confirm()).
 // "Kör i klass" (§5.2) öppnar provtillfällets ruta (#740, korIKlass i
@@ -42,6 +42,7 @@ function radHtml(r, { kollega = false } = {}) {
       ${r.kanAndra ? `<button type="button" class="btn small" data-act="redigera">${icon("pencil", 16)}<span>Redigera</span></button>` : ""}
       <button type="button" class="btn small ghost" data-act="kor">${icon("users", 16)}<span>Kör i klass</span></button>
       <button type="button" class="btn small ghost" data-act="forhand" title="Förhandsvisa som elev" aria-label="Förhandsvisa ${esc(r.namn)} som elev">${icon("eye", 16)}</button>
+      <button type="button" class="btn small ghost" data-act="skrivut" title="Skriv ut" aria-label="Skriv ut ${esc(r.namn)}">${icon("printer", 16)}</button>
       <button type="button" class="btn small ghost" data-act="kopia" title="Kopiera" aria-label="Kopiera ${esc(r.namn)}">${icon("copy", 16)}${kollega ? "<span>Kopiera</span>" : ""}</button>
       ${r.kanAndra ? `<button type="button" class="btn small ghost danger" data-act="radera" title="Radera" aria-label="Radera ${esc(r.namn)}">${icon("trash", 16)}</button>` : ""}
     </td>
@@ -98,6 +99,11 @@ export async function renderLista(ctx, host, { meddelande = "" } = {}) {
       const dok = doks.find((d) => d.id === id) || (await hamtaProv(id));
       const { visaForhandsvisning } = await import("./provl-forhandsvisa.js");
       visaForhandsvisning(dok);
+    });
+    knapp("skrivut").addEventListener("click", async () => {
+      const dok = doks.find((d) => d.id === id) || (await hamtaProv(id));
+      const { skrivUtProvDok } = await import("../prov-utskrift.js");
+      skrivUtProvDok(dok);
     });
     knapp("kor").addEventListener("click", () => korIKlass(ctx, id, msg));
     knapp("radera")?.addEventListener("click", () => fragaRadera(tr, rad, async () => {
