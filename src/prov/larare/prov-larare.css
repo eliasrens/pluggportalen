@@ -145,3 +145,12 @@
   .provl-kort-knappar { margin-left: 0; }
   .provl-atgarder { justify-content: flex-start; }
 }
+
+/* --- Hämta från område (#745) ------------------------------------------------------ */
+.provl-fo-saker { display: grid; gap: 12px; max-height: 46vh; overflow-y: auto; padding-right: 4px; }
+.provl-fo-saker:empty, .provl-fo-resultat:empty { display: none; }
+.provl-fo-lista { list-style: none; margin: 0; padding: 0 0 0 4px; display: grid; gap: 6px; }
+.provl-fo-del { margin-top: 6px; color: var(--t-muted); font-size: 0.85rem; font-weight: 700; }
+.provl-fo-alla { padding-bottom: 4px; border-bottom: 1px solid var(--t-border); }
+.provl-fo-ej { cursor: default; opacity: 0.6; }
+.provl-fo-orsak { color: var(--t-muted); font-style: italic; }
