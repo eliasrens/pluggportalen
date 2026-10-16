@@ -51,6 +51,8 @@ tabellerna, om en rad saknar test, eller om en testfil inte körs av
 | GR | `test/functions-guldrush.test.mjs` |
 | DK | `test/functions-datakuppen.test.mjs` |
 | HR | `test/functions-hitta-ratt.test.mjs` |
+| BR | `test/firestore-rules-brakresan.test.js` |
+| BF | `test/functions-brakresan.test.mjs` |
 | SA | `test/firestore-rules-season.test.js` |
 | PV | `test/firestore-rules-prov.test.js` |
 | PD | `test/firestore-rules-prov-rattning.test.js` |
@@ -76,6 +78,7 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `studentData/{id}/lasresaAttempts` | L/S | L: egna elever. S: aldrig. | SM test 1–2 |
 | `studentData/{id}/ekvationsresa` (bara `progress`) | L/S (validerat), radera | L: egna elever. S: lärarens nivåbyte (`ekvTeacherLevelOk`) för egna elever. | SM test 1–2, KE test 14 |
 | `studentData/{id}/ekvationsresaAttempts` | L/radera | L: egna elever | SM test 1–2 |
+| `studentData/{id}/brakresa`, `brakresaRounds`, `brakresaRewards`, `brakresaHunts` (Bråkresan, #706) | L (Cloud Functions skriver) | L: egna elever. S: aldrig. | BR |
 | `classes` | L/S | L. Ändra egna klasser, bara fälten `assignedAreas`, `hiddenModes`, `areaModes`, `hiddenModules`, `enabledModules`, `lock`, `lasresaStartLevel10` och `lasresaStartLevel`. Skapa och radera: aldrig. | KE test 9–12 |
 | `classProjections`, `classProjects` | L/S | L. S: aldrig. | RO klassprojektioner |
 | `mathCompetitions` (tävlingen) | L/S | L (som alla inloggade). Skapa, styra, nollställa och radera: aldrig. | LE test 17 |
@@ -98,6 +101,8 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `provTillfallen/{t}/privat` (bara `facit`) | L/S | L/S: egna klasser. Eleven aldrig. | PV privat/facit |
 | `provTillfallen/{t}/svar` | L/radera. S: bara inlämnad-fälten när provet stängs (eller öppnas igen) – aldrig svaren. | Som admin, egna klasser. Eleven skapar och sparar sitt eget (öppet prov, i klassen, inom tidsgränsen + 2 min, inte efter inlämning). | PV svar |
 | `provTillfallen/{t}/rattning`, `{**}/rattning` (collection group) | L/S | L/S: egna klasser (collection group: filtrerat på `classId`). Eleven läser sin egen först när `aterlamnad == true`. Bara kända fält; `facit` och `aterlamnadAt` bara i en tillbakalämnad rättning, och att lämna tillbaka kräver `aterlamnadAt` = serverns tid. | PV rattning, PV collection group, PD |
+| `brakresaSecrets` (Bråkresans facit) | nekas (bara Cloud Functions) | nekas | BR |
+| `brakresaRecommendations` | L/S | L/S: rekommendationer till egna klasser och elever, med `teacherId` = sig själv och exakt ett av `classId`/`studentId`. Ändra bara `active`, `endedAt`, `comment` och `challengeIds`. | BR |
 | `config/season` (bara det dokumentet; läses av alla, även utloggade) | L/S (fälten valideras) | L. S: aldrig. | SA test 3 |
 | allt annat (`{document=**}`) | nekas | nekas | RO allt annat |
 
@@ -109,6 +114,7 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `hittaRattSparaPack`, `hittaRattRaderaPack`, `hittaRattSattTopplista` | ja (som `updateStudentLogin`) | nej | FR test 19, FR H3 |
 | `adminCreateTeacher`, `adminUpdateTeacher`, `adminSetTeacherPassword`, `adminSetTeacherActive`, `adminDeleteTeacher` | ja (färska claims i Auth; inte sin egen roll eller det sista adminkontot) | nej | FT test 19–23, FR test 19 |
 | `guldrushAnswer`, `guldrushOpenChest`, `guldrushChooseVictim`, `datakuppAnswer`, `datakuppOpenFile`, `datakuppChooseTarget`, `datakuppGuessCode`, `datakuppPickCode`, `hittaRattSubmit` | elevfunktioner, inga lärarvägar | – | GR, DK, HR |
+| `brakresaStartRound`, `brakresaAnswer`, `brakresaRework`, `brakresaFinishRound`, `brakresaAbortRound`, `brakresaAckDragon`, `brakresaRenameDragon`, `brakresaHunt` | nej – elevfunktioner; lärarkonton nekas (testläget körs i klienten och skriver aldrig, #708) | nej | BF |
 
 Migreringsskriptet `admin/migrate-teacher-admins.mjs` (Admin SDK, förbi reglerna)
 bevisas av FM test 24.
@@ -150,6 +156,10 @@ bevisas av FM test 24.
 - `studentData` och `studentCredentials` saknar `classId`. De läses per dokument
   (`getDoc`), inte som en hel samling.
 - `setStudentLevel` (`src/data-lasresan-niva.js`) skriver nu nivåfälten som fältvägar.
+- Elevens egen `studentData`-skrivning (#750, BR): fältet `brakdrake` (Bråkdraken i huset)
+  skapas, tas bort och får `id`/`level`/`name`/`stage` bara av Cloud Functions. Eleven får
+  bara ändra `brakdrake.pos`, `.room` och `.stowed` (`brakdrakeOk` i `firestore.rules`,
+  skrivs som fältvägar av `src/brakresan/rum-drake.js`). Årskurskontot skriver aldrig fältet.
 - `payLiveRewards` (`src/live/live-rewards-pay.js`) skriver nu `lastLiveReceipt` = sessionen.
 - Live-sidan (`teacher-live*.js`) visar årskurskontot bara matcher med egna klasser,
   inget kassapris, och bara egna klasser i andra format än Klassmatchen

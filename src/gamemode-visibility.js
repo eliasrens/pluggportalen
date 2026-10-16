@@ -406,6 +406,9 @@ export const STUDENT_MODULES = [
     optIn: true, routes: ["/elev/hitta-ratt"] },
   { id: "ekvationsresan", label: "Ekvationsresan", ikon: "⚖️", grupp: "ova", learning: true, lockable: true,
     optIn: true, routes: ["/elev/ekvationsresan"] },
+  // Bråkresan (#705/#713/#735): synlig som standard, döljbar per klass (hiddenModules).
+  { id: "brakresan", label: "Bråkresan", ikon: "🐉", grupp: "ova", learning: true, lockable: true,
+    routes: ["/elev/brakresan"] },
 ];
 
 /** Moduler läraren kan slå av/på per klass (#412, ordning = lärar-UI:ts ordning). */

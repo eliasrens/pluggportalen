@@ -44,7 +44,7 @@ const omrade = (over = {}) => ({
 const lasresan = (over = {}) => ({ mal: { typ: "lasresan" }, till: NU + 30 * 60_000, doljOvrigt: false, ...over });
 
 test("mål-typerna härleds ur modulregistret: område + de låsbara modulerna", () => {
-  assert.deepEqual(LOCK_TARGET_TYPES, ["prov", "omrade", "lasresan", "mattematchen", "hittaratt", "ekvationsresan"]);
+  assert.deepEqual(LOCK_TARGET_TYPES, ["prov", "omrade", "lasresan", "mattematchen", "hittaratt", "ekvationsresan", "brakresan"]);
   assert.equal(lockTargetModule("omrade").id, "plugga");
   assert.equal(lockTargetModule("ekvationsresan").label, "Ekvationsresan");
   assert.equal(lockTargetModule("shop"), null, "shoppen är ingen inlärningsmodul");
@@ -175,12 +175,14 @@ const INLARNING = {
   hittaratt: ["/elev/hitta-ratt", q("")],
   ekvationsresan: ["/elev/ekvationsresan", q("")],
   prov: ["/elev/prov/skriv", q("t=annat")],
+  brakresan: ["/elev/brakresan", q("u=12")], // #735
 };
 const MODUL_RUTT = {
   lasresan: "/elev/lasresan",
   mattematchen: "/elev/mattematchen",
   hittaratt: "/elev/hitta-ratt",
   ekvationsresan: "/elev/ekvationsresan",
+  brakresan: "/elev/brakresan", // #735
 };
 
 test("varje modul-mål: målet nås, ALLA andra inlärningsmoduler spärras, resten öppet", () => {
@@ -207,17 +209,18 @@ test("etiketter: modulens namn (namn-fältet ignoreras för moduler)", () => {
   assert.equal(lockLabel(modulLas("ekvationsresan")), "Ekvationsresan");
   assert.equal(lockLabel(modulLas("hittaratt")), "Hitta rätt!");
   assert.equal(lockLabel(modulLas("mattematchen")), "Mattematchen");
+  assert.equal(lockLabel(modulLas("brakresan")), "Bråkresan"); // #735
   assert.equal(lockLabel(modulLas("lasresan", { mal: { typ: "lasresan", namn: "X" } })), "Läsresan");
 });
 
 test("områdeslås spärrar de nya modulerna; modul-id utanför registret är inget lås", () => {
   const l = normalizeLock(omrade());
-  for (const p of ["/elev/ekvationsresan", "/elev/hitta-ratt", "/elev/mattematchen"]) {
+  for (const p of ["/elev/ekvationsresan", "/elev/hitta-ratt", "/elev/mattematchen", "/elev/brakresan"]) {
     assert.ok(!lockAllowsRoute(l, p, q("")), p);
   }
   assert.equal(modulLas("shop"), null);
   assert.equal(modulLas("live"), null);
-  assert.equal(modulLas("brakresan"), null, "inte registrerad än → inget lås (fail-open)");
+  assert.equal(modulLas("okandmodul"), null, "inte registrerad → inget lås (fail-open)");
   assert.deepEqual(buildLock({ typ: "hittaratt", id: "x/y", till: NU + 1 }), {
     mal: { typ: "hittaratt" }, till: NU + 1, doljOvrigt: false,
   }, "id sparas bara för områden och tillfällen");

@@ -206,8 +206,8 @@ service cloud.firestore {
     match /studentData/{studentId} {
       allow read:  if isSelf(studentId) || hasStudent(studentId) ||
         (signedIn() && !isTeacher() && resource.data.get('husLast', false) != true);
-      allow create: if (isSelf(studentId) && kopAvatarOk()) || isAdmin();
-      allow update: if (isSelf(studentId) && kopAvatarOk()) || isAdmin() ||
+      allow create: if (isSelf(studentId) && kopAvatarOk() && brakdrakeOk()) || isAdmin();
+      allow update: if (isSelf(studentId) && kopAvatarOk() && brakdrakeOk()) || isAdmin() ||
         (gradeStudent(studentId) && gradeStudentDataOk(studentId));
       allow delete: if isSelf(studentId) || isAdmin();
 
@@ -246,6 +246,34 @@ service cloud.firestore {
         allow update: if false;
         allow delete: if isAdmin();
       }
+
+      // Bråkresan (#706, docs/BRAKRESAN.md §4, docs/DATAMODELL.md "Bråkresan"):
+      // ALLT här skrivs av Cloud Functions (Admin SDK, förbi reglerna) –
+      // omgångar, första svar, resultat, stjärnor, belöningshändelser, drake och
+      // jakt avgörs bara där (spec §13: klienten skickar bara svar). Klienten
+      // LÄSER: eleven sitt eget, läraren egna elever (hasStudent). Inga
+      // klasskamrater (omgångarna bär resultat per uppgift).
+      //   brakresa/state            progress per utmaning, totaler, drake, jaktsumma
+      //   brakresaRounds/{roundId}  omgång: tio offentliga uppgifter + svar
+      //   brakresaRewards/{eventId} belöningsbokföring (unikt händelse-id = dok-id)
+      //   brakresaHunts/{datum}     guldjakt, ett dok per svensk kalenderdag
+      // ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` (+ functions, #708).
+      match /brakresa/{docId} {
+        allow read: if isSelf(studentId) || hasStudent(studentId);
+        allow write: if false;
+      }
+      match /brakresaRounds/{roundId} {
+        allow read: if isSelf(studentId) || hasStudent(studentId);
+        allow write: if false;
+      }
+      match /brakresaRewards/{eventId} {
+        allow read: if isSelf(studentId) || hasStudent(studentId);
+        allow write: if false;
+      }
+      match /brakresaHunts/{dateId} {
+        allow read: if isSelf(studentId) || hasStudent(studentId);
+        allow write: if false;
+      }
     }
 
     // Köpbara avatarer (#694): eleven får bara BYTA TILL en köpbar avatar som
@@ -258,6 +286,19 @@ service cloud.firestore {
       return (resource != null && av == resource.data.get('avatarId', 'fox')) ||
         !(av in ['hw-av-spoke', 'hw-av-fladdermus', 'hw-av-pumpgubbe', 'hw-av-mumie', 'hw-av-haxkatt', 'hw-av-vampyr']) ||
         av in n.get('ownedItems', []);
+    }
+
+    // Bråkdraken i huset (#714/#750, docs/BRAKRESAN.md §8.3): studentData.brakdrake
+    // är husets spegel av draken i brakresa/state. Bara servern (Admin SDK)
+    // skapar den och skriver id/level/name/stage. Eleven får aldrig skapa eller
+    // ta bort fältet – bara flytta draken (pos), byta rum (room) och lägga den
+    // i lådan (stowed), jfr src/brakresan/rum-drake.js.
+    function brakdrakeOk() {
+      let n = request.resource.data;
+      let o = resource == null ? {} : resource.data;
+      return !('brakdrake' in o) ? !('brakdrake' in n) :
+        ('brakdrake' in n && n.brakdrake is map &&
+          n.brakdrake.diff(o.brakdrake).affectedKeys().hasOnly(['pos', 'room', 'stowed']));
     }
 
     // Årskurskontots skrivning i studentData (#678, §2.1) – bara ETT av:
@@ -386,7 +427,7 @@ service cloud.firestore {
         l.keys().hasOnly(['mal', 'till', 'doljOvrigt']) &&
         l.mal is map &&
         l.mal.keys().hasOnly(['typ', 'id', 'namn']) &&
-        l.mal.typ in ['prov', 'omrade', 'lasresan', 'mattematchen', 'hittaratt', 'ekvationsresan'] &&
+        l.mal.typ in ['prov', 'omrade', 'lasresan', 'mattematchen', 'hittaratt', 'ekvationsresan', 'brakresan'] &&
         // Ett område ("subj/area") eller ett provtillfälle (#740) kräver mal.id.
         (!(l.mal.typ in ['omrade', 'prov']) || (l.mal.get('id', null) is string &&
                                    l.mal.id.size() > 2 && l.mal.id.size() <= 200)) &&
@@ -2098,6 +2139,54 @@ service cloud.firestore {
     match /{path=**}/rattning/{elevUid} {
       allow read: if (signedIn() && resource.data.elevId == request.auth.uid && resource.data.aterlamnad == true) ||
         hasClass(resource.data.classId);
+    }
+
+    // Bråkresan (#706): omgångarnas seeds, params och FACIT (spec §6, §13) –
+    // bara Cloud Functions läser och skriver. Ingen klient, inte ens admin
+    // (lärarens testläge bygger uppgifter lokalt och skriver aldrig).
+    match /brakresaSecrets/{roundId} {
+      allow read, write: if false;
+    }
+
+    // Bråkresan – lärarens rekommendationer (spec §12, #716). Ett dokument per
+    // rekommendation, till EN elev (studentId) eller EN klass (classId) – exakt
+    // ett av dem. Klassrekommendationen gäller klassens elever enligt
+    // classes/{id}.studentIds, även elever som kommer till senare.
+    // Läsning: eleven själv / medlem i klassen (frågan måste filtrera på
+    // studentId == uid respektive classId == klassen), läraren med eleven/klassen.
+    // Skrivning: admin, eller årskurskonto med eleven/klassen (hasStudent/
+    // hasClass). teacherId = skaparen, createdAt = serverns tid. Ändring bara
+    // av active/endedAt/comment/challengeIds. Ingen låsning, ingen belöning.
+    function brRecTarget(d) {
+      return (d.get('classId', null) is string && d.get('studentId', null) == null) ||
+        (d.get('studentId', null) is string && d.get('classId', null) == null);
+    }
+    function brRecShapeOk(d) {
+      return d.keys().hasOnly(['teacherId', 'classId', 'studentId', 'challengeIds', 'comment', 'active',
+          'createdAt', 'endedAt']) &&
+        brRecTarget(d) && d.teacherId is string && d.active is bool &&
+        d.challengeIds is list && d.challengeIds.size() >= 1 && d.challengeIds.size() <= 50 &&
+        d.challengeIds.hasOnly(['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13',
+          '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30',
+          '31', '32', '33', '34', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47',
+          '48', '49', '50']) &&
+        (d.get('comment', null) == null || (d.comment is string && d.comment.size() <= 200));
+    }
+    function brRecTeacher(d) {
+      return (d.get('classId', null) is string && hasClass(d.classId)) ||
+        (d.get('studentId', null) is string && hasStudent(d.studentId));
+    }
+    match /brakresaRecommendations/{recId} {
+      allow read: if signedIn() && (
+        resource.data.get('studentId', null) == request.auth.uid ||
+        (resource.data.get('classId', null) is string && isClassMember(resource.data.classId)) ||
+        brRecTeacher(resource.data));
+      allow create: if brRecShapeOk(request.resource.data) && brRecTeacher(request.resource.data) &&
+        request.resource.data.teacherId == request.auth.uid &&
+        request.resource.data.active == true && request.resource.data.createdAt == request.time;
+      allow update: if brRecTeacher(resource.data) && brRecShapeOk(request.resource.data) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['active', 'endedAt', 'comment', 'challengeIds']);
+      allow delete: if brRecTeacher(resource.data);
     }
 
     // Allt annat nekas.

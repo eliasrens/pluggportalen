@@ -116,6 +116,7 @@ const ICONS = {
   check: '<path d="M5 12.5 10 17.5 19 6.5"/>',
   sparkle:
     '<path d="M12 4l1.6 4.4L18 10l-4.4 1.6L12 16l-1.6-4.4L6 10l4.4-1.6z"/><path d="M18.5 14.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/>',
+  brak: '<circle cx="12" cy="12" r="8"/><path d="M12 4v8h8"/>',
   home: '<path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10v9.5h11V10"/><path d="M10 19.5v-5h4v5"/>',
   upload:
     '<path d="M12 15V4"/><path d="M8 8l4-4 4 4"/><path d="M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/>',
@@ -234,6 +235,8 @@ export const TEACHER_TABS = [
   tab("oversikt", "#/larare/oversikt", "oversikt", "Översikt", "Översikt", "home", () => import("./teacher-overview.js"), "pageLarareOversikt"),
   tab("klasser", "#/larare/klasser", "klasser", "Klasser", "Klasser", "users", () => import("./teacher-classes.js"), "pageLarareKlasser"),
   tab("innehall", "#/larare/innehall", "material", "Plugga-material", "Material", "book", () => import("./teacher-content.js"), "pageLarareInnehall"),
+  // Bråkresan (#716): testläget – alla 50 utmaningar med facit, inget sparas. Statistiken finns under Statistik.
+  tab("brakresan", "#/larare/brakresan", "material", "Bråkresan", "Bråkresan – testläge", "brak", () => import("./brakresan/larare/testlage.js"), "pageLarareBrakresan"),
   tab("hittaratt", "#/larare/hitta-ratt", "material", "Hitta rätt!", "Hitta rätt!", "pin", () => import("./hitta-ratt/larare/page-larare-hitta-ratt.js"), "pageLarareHittaRatt", true),
   // Prov (epic #737): Mina prov (#739, skapa/redigera) + Provtillfällen (#740, öppna/stäng/översikt). Lat.
   tab("prov", "#/larare/prov", "prov", "Mina prov", "Mina prov", "clipboard", () => import("./prov/larare/page-larare-prov.js"), "pageLarareProv"),
