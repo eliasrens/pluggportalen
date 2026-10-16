@@ -92,9 +92,11 @@ await rad("klientfält ignoreras i jakten (amount: 9999)", call("brakresaHunt", 
 await rad("byta drakens namn till HTML", call("brakresaRenameDragon", { name: "<img src=x onerror=alert(1)>" }).then((r) => {
   if (/[<>"']/.test(r.name)) throw Object.assign(new Error(r.name), { code: "FEL-OSANERAT" });
 }), ["ok", "failed-precondition"]);
-// Kända, dokumenterade öppningar (BRAKRESAN.md §8 punkt 2–3) – rapporteras, fäller inte körningen.
-const mirror = await code(updateDoc(doc(db, s), { brakdrake: { id: "drake-falsk", level: 15, name: "Fejk" } }));
-console.log(`ℹ studentData.brakdrake (husets spegel) skrivbart av eleven: ${mirror}`);
+// Husets spegel (F1 i #717, rättad i #750): bara pos/room/stowed är elevskrivbara.
+await rad("skapa/uppgradera studentData.brakdrake (nivå 15)", updateDoc(doc(db, s), { brakdrake: { id: "drake-falsk", level: 15, name: "Fejk" } }), NEKAD);
+await rad("ändra brakdrake.level", updateDoc(doc(db, s), { "brakdrake.level": 3, "brakdrake.id": "drake-annan" }), NEKAD);
+await rad("flytta draken (brakdrake.pos)", updateDoc(doc(db, s), { "brakdrake.pos": { x: 40, y: 80 } }), ["ok", NEKAD]);
+// Känd, dokumenterad öppning (BRAKRESAN.md §8 punkt 2) – rapporteras, fäller inte körningen.
 const mynt = await code(updateDoc(doc(db, s), { coins: increment(1) }));
 console.log(`ℹ studentData.coins skrivbart av eleven (appbrett sedan tidigare): ${mynt}`);
 
