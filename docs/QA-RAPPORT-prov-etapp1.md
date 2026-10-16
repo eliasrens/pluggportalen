@@ -13,10 +13,11 @@ webbläsare (lärare + tre samtidiga elever i egna inloggningar). Inget skrevs m
   stänger, rättning per fråga (grupperade kortsvar/luckor, fritext, tangentbord) och
   per elev (nivå, helhetskommentar), lämna tillbaka (en, alla rättade, med/utan
   facit, ångra), elevens resultatvy och statistiken (Översikt + klassens Prov-flik).
-- **Säkerheten håller.** 30 direktanrop från konsolen (elev, annan elev, annat
+- **Säkerheten håller.** Över 40 direktanrop från konsolen (elev, lärare, annat
   årskurskonto) nekades som de ska. Inget facit i elevens tillfälle.
-- **Två buggar (texten "null") och ett integritetsfel vid "Öppna igen"** – se F1, F2, F4.
-  Övriga fynd är kosmetiska eller förslag.
+- **Två buggar (texten "null") – rättade här** (F1, F2, verifierade i webbläsaren).
+  **Ett integritetsfel vid "Öppna igen" är kvar** (F4, medel) – listat, inte rättat.
+  Övriga fynd är kosmetiska, info eller förslag.
 - **Kvoten håller:** ≈ 1 500 läsningar och ≈ 1 300 skrivningar för ett realistiskt prov
   (25 elever, 12 frågor, 40 min) inklusive rättning och statistik. Värsta fallet för
   skrivningar ≈ 2 950 – under 3 000, men med liten marginal.
@@ -28,17 +29,29 @@ webbläsare (lärare + tre samtidiga elever i egna inloggningar). Inget skrevs m
 
 | # | Allvar | Var | Vad |
 | --- | --- | --- | --- |
-| F1 | 🐞 bugg | `src/prov/prov-elev-vy.js:131` | Lämna in-rutan visar texten **"null"** när alla frågor är besvarade. `replaceChildren()` skriver ut `null` (det gör inte `h()`). Bild: `qa-prov-743/F-null-lamna-in.png` |
-| F2 | 🐞 bugg | `src/prov/prov-stat-vy.js:131` | Översikten visar **"null"** under klassens snitt när inget är rättat än (`svarast = null`). Bild: `qa-prov-743/F-null-oversikt.png` |
+| F1 | låg (bugg) – ✅ rättad | `src/prov/prov-elev-vy.js:133` | Lämna in-rutan visade texten **"null"** när alla frågor var besvarade. `replaceChildren()` skriver ut `null` (det gör inte `h()`). Rättad: raden sprids bara in när den finns. Före: `qa-prov-743/F-null-lamna-in.png`; efter: "Du har svarat på 16 av 16 frågor." utan null (Dante). |
+| F2 | låg (bugg) – ✅ rättad | `src/prov/prov-stat-vy.js:137` | Översikten visade **"null"** under klassens snitt när inget var rättat än (`svarast = null`). Rättad på samma sätt. Före: `qa-prov-743/F-null-oversikt.png`; efter: ingen null (nytt tillfälle i 4B, en inlämnad, inget rättat). |
 | F3 | kosmetisk | elevens provsida, 390 px | Den klistrade provrubriken glider in under den fasta ☰-knappen när man scrollar – början av namnet täcks. Bild: `qa-prov-743/elev-mobil-390.png` |
-| F4 | ⚠️ integritet | Öppna igen (`attOppnaIgen`) | Stäng → rätta → lämna tillbaka → **Öppna igen**: elever som fick `inlamnadNar: "stangt"` får `inlamnad: false` och kan skriva om sina svar (verifierat: `updateDoc` tillåten, listan visar "Fortsätt provet") – samtidigt som deras tillbakalämnade rättning, ev. med facit, syns. Rättningen speglar inte de nya svaren. Förslag: hoppa över elever vars rättning är tillbakalämnad (och/eller neka i regeln), och varna i rutan. |
+| F4 | ⚠️ medel (integritet) – kvar | Öppna igen (`attOppnaIgen`) | Stäng → rätta → lämna tillbaka → **Öppna igen**: elever som fick `inlamnadNar: "stangt"` får `inlamnad: false` och kan skriva om sina svar (verifierat: `updateDoc` tillåten, listan visar "Fortsätt provet") – samtidigt som deras tillbakalämnade rättning, ev. med facit, syns. Rättningen speglar inte de nya svaren. Förslag: hoppa över elever vars rättning är tillbakalämnad (och/eller neka i regeln), och varna i rutan. |
 | F5 | kosmetisk | `src/prov/typer/delat.js:47` | Formuläret visar fältnamnet: *Frågetexten ("fraga") saknas eller är tom.* Namnet hjälper vid AI-granskningen men inte i formuläret. |
 | F6 | kosmetisk | `src/prov/prov-redigera-ops.js:254` | Frågekortet visar "1 luckor" (ska vara "1 lucka"). |
 | F7 | känd begränsning | `prov-watch.js` | Ett tillbakalämnat prov syns i elevens lista först efter omladdning/ny inloggning (ett `getDocs` per inloggning enligt §5.5). Eleven som sitter inloggad ser "Just nu finns inget prov att skriva" tills hen laddar om. |
 | F8 | förslag | `prov-sparning.js` | Under taket (en skrivning per 24 s) står det "Sparar…" i upp till 24 s fast svaret redan ligger lokalt. Kan oroa en elev; t.ex. "Sparat på datorn – skickas snart". |
 | F9 | förslag | fokusläget | Med klassen låst till provet visade Alvas sida ändå "⚡ En Live-match väntar på din klass – tryck på Live pågår! i menyn!" (en öppen Live-lobby för 4A i testdatan). Under ett prov borde Live-uppmaningen döljas. |
+| F10 | info | `provTillfallen/{t}/svar` (regeln) | Läraren kan markera ett svar `inlamnad: true, inlamnadNar: "stangt"` medan provet fortfarande är **öppet** (konsolen, tillåtet). Eleven kan då inte spara mer och ser "Provet är stängt. Dina sparade svar gäller." fast provet är öppet. Ändrar inga svar – men regeln kunde kräva status `stangt`. |
+| F11 | info | elevens provsida | Är eleven offline förbi tidsgränsen + 2 min nekas både sparningen och inlämningen (regeln, verifierat). Sidan visar ändå "Tiden är slut – ditt prov är inlämnat." Dokumentet förblir `inlamnad: false` tills läraren stänger (då markeras det). Senast sparade svar gäller – som avsett. |
 
-F1, F2 och F4 är rapporterade till leaden.
+**Rapporteras men åtgärdas inte (leadens uppdrag):**
+
+- **Halva poäng vid ett stavfel** (`DELVIS_STAVFEL_ANDEL = 0.5`): Bilals "Birca" på
+  kortsvaret (2 p, "ett stavfel = delvis") fick förslaget Delvis · 1 av 2 p, och
+  "långsklepp" i en lucka med exakt stavning blev ✗. Fungerar som dokumenterat; frågan
+  till Elias om halva poängen är rätt nivå står kvar.
+- **Gränsreglaget saknas i Mina prov-redigeraren**: inställningarna har poäng, nivåer,
+  visa facit, stavningskontroll och tidsgräns – men inte färggränserna. De går bara att
+  ändra per tillfälle i Översikt (`installningar.granser`); provets standard är 40/70.
+
+F1, F2 och F4 är rapporterade till leaden. F1 och F2 är rättade på tester-grenen (två rader).
 
 ## Vad som testades
 
@@ -107,6 +120,10 @@ fördelning, Bilal över tid 55 % gul. Fliken läste **exakt en fråga** (3 rät
 | Elev i 4B | lista 4B utan statusfilter, förberett tillfälle, stängt i 4A | nekad (3/3) |
 | Årskurs 5 (5A) | läsa/lista tillfälle i 4A, facit, svar, rättning, CG rättning 4A, skriva rättning, stänga 4B, skapa tillfälle i 4A, redigera/radera kollegans prov | nekad (11/11) |
 | Årskurs 5 | läsa kollegans prov | tillåten (avsiktligt – för Kopiera, §4) |
+| Elev (efter tidsgräns + 2 min, ej inlämnad) | spara svar, lämna in (`inlamnadNar: "tid"`) | nekad (2/2) – startad flyttad bakåt 43 min med admin |
+| Lärare (egen klass) | ändra elevens svartext, ändra ett inlämnat svar, sätta `inlamnadNar: "elev"`, skapa svar åt elev | nekad (4/4) |
+| Lärare (egen klass) | CG `rattning` för 5A, CG `rattning` utan klassfilter | nekad (2/2) |
+| Lärare (egen klass) | markera `inlamnadNar: "stangt"` på öppet prov | tillåten – se F10 |
 
 ## Kvot (§9)
 
@@ -117,7 +134,7 @@ till webbläsaren (= debiterade läsningar) och dokument i skrivanropen, per inl
 | --- | --- | --- |
 | Elevens autosparning | taket syns: ändringar 22:25:55 → nästa skrivning 22:26:19 (24 s); 5-min-prov: 3–4 skrivningar per elev (start + 1–2 sparningar + inlämning) | högst 1 + 101 + 1 = 103 per elev → **≤ 2 575**; realistiskt ~1 per aktiv minut → ~1 000 |
 | Elevens läsningar | lyssnaren + tillfället + eget svar + tillbakalämnade (CG, ≤ 10) | ~6 per elev → **~150** |
-| Lärarens översikt | Uppdatera = ett dokument per elev som börjat (3) + namn | 25 × 40 + 25 + 1 = **1 026** |
+| Lärarens översikt | polling mätt: synlig flik 2 uppdateringar på ~2 min × 4 svar = 8 läsningar, inget annat (ingen lyssnare på svaren); dold flik 2 min = **0** läsningar | 25 × 40 + 25 + 1 = **1 026** |
 | Öppna/stäng | tillfälle + facit + lås, stängningens markeringar | **~30** skrivningar |
 | Rättningen, laddning | tillfälle 1 + facit 1 + svar N + rättning N + namn N (mätt 1+1+2+1+3) | 1 + 1 + 25 + 25 + 25 = **77** (+ ~8 för lärarsidans skal) |
 | Rättningen, skrivningar | 3 elever × 16 frågor: 28 rättningsskrivningar + 6 på tillfället (`rattStatus`) | förslag 25 + 12 × 25 + 25 tillbaka ≈ **350** |

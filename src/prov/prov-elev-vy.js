@@ -130,7 +130,7 @@ export function renderaProv(o) {
     const ok = h("button", { type: "button", class: "provv-lamna-in", text: o.lamnaInText || "Lämna in" });
     ruta.replaceChildren(
       h("p", { class: "provv-ruta-rubrik", id: `${uid}-ruta`, text: `Du har svarat på ${besvarade} av ${antal} frågor.` }),
-      obesvarade.length ? h("p", { text: `${fragaLista(obesvarade)} ${obesvarade.length === 1 ? "är obesvarad" : "är obesvarade"}.` }) : null,
+      ...(obesvarade.length ? [h("p", { text: `${fragaLista(obesvarade)} ${obesvarade.length === 1 ? "är obesvarad" : "är obesvarade"}.` })] : []),
       h("p", { class: "provv-ruta-hint", text: "När du har lämnat in kan du inte ändra dina svar." }),
       h("div", { class: "provv-ruta-knappar" }, tillbaka, ok));
     ruta.hidden = false;

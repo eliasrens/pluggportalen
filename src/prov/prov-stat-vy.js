@@ -134,7 +134,7 @@ export function oversiktVy(v) {
         m.snitt == null ? h("span", { class: "hint", text: "inget rättat än" })
           : h("span", { class: `provl-st-bricka provl-st-${snittFarg}` },
             h("span", { class: "provl-st-ikon", "aria-hidden": "true", text: FARG_INFO[snittFarg].ikon }), h("span", { text: procent(m.snitt) }))),
-      svarast,
+      ...(svarast ? [svarast] : []),
       h("div", { class: "provl-st-verktyg" }, sortVal, reglage),
       h("p", { class: "hint", text: "Bara bedömda frågor räknas – obesvarade och orättade blir inte fel förrän du har rättat dem. Förslag räknas när du har godkänt dem." }));
 
