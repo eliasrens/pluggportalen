@@ -30,6 +30,22 @@ Mätdata: `docs/qa-brakresan-753/matt-efter.txt`, `matt-fore.txt`. Skärmdumpar 
   sedan Fortsätt hamnar under vecket (y 962 / 1220 i 844-fönster) – scroll krävs (15, 34 @390×844,
   `F3-15-390-forsok-igen.png`).
 
+## Efter #754 (F1–F3 rättade)
+Mätt 2026-10-16 med samma rigg, 7 utmaningar × 4 skärmar (`docs/qa-brakresan-753/matt-754.txt`).
+- Fortsätt under musen **56/56** (dy −1…+1 px i alla fall), Enter till nästa uppgift **56/56**,
+  "Kontrollera igen" och Fortsätt efter "Försök igen" på samma plats i alla 28 fel-fall. Fokus på
+  Fortsätt 56/56, knappen synlig 56/56, ingen vågrät scroll, inga JS-fel.
+- F1: från första kontrollen är huvudknappens plats låst (`omgang-passa.js` `las()`). Växer modellen
+  (resultatram, ombrutet korthuvud), återkopplingen eller knappraden tar modellens ram upp skillnaden –
+  modellen skalas inom ramen (`F1-24-1920-754.png`). Ingen `scrollBy` längre.
+- F2/F3: smal skärm har huvudknappen ensam i hel bredd längst ner i raden, övriga knappar ovanför;
+  desktop-raden är bottenjusterad. I trängt läge fylls ramen så raden sitter fastnålad redan före
+  kontrollen, och trängt läge byts inte medan låset gäller – raden försvinner inte efter "Försök igen"
+  (`F2-15-390-754.png`, `F3-15-390-754.png`, `F1-34-1280-754.png`).
+- `node --test test/brakresan-*` grönt, bootgrafen 107 (inga nya filer).
+- Kvar att veta: i trängt läge täcker den fastnålade raden modellens nederkant (som förut) – eleven
+  scrollar för att se den; lång återkoppling täcker mer.
+
 ## Inte testat
 - Riktig server-/emulatorkedja (demoBackend räcker för UI:t; samma vy), skärmläsare (bara
   aria-live-attributet granskat), övriga 43 utmaningar.
