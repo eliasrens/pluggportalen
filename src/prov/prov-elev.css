@@ -253,3 +253,15 @@ input.provv-kortsvar {
   .provv-para-rad { grid-template-columns: 1fr; gap: 6px; }
   .provv-lista-forklaring { display: none; }
 }
+
+/* Inuti lärarsidan (B:s "Förhandsvisa som elev", .teacher-dark): lärarens mörka
+   standardstilar för rubriker, etiketter och fält ska inte nå elevens vy. */
+.teacher-dark .provv-rot :is(h1, h2, h3, label, legend, p, li) { color: var(--provv-text); }
+.teacher-dark .provv-rot :is(input.provv-kortsvar, textarea, select) {
+  background: #fff; color: var(--provv-text); border: 1px solid #9aa6b4; border-radius: 10px; box-shadow: none;
+}
+.teacher-dark .provv-rot input.provv-lucka {
+  background: #f2f5f9; color: var(--provv-text); border: 0; border-bottom: 2px solid #7b8796; border-radius: 4px 4px 0 0; box-shadow: none;
+}
+.teacher-dark .provv-rot :is(.provv-hjalp, .provv-instruktion, .provv-ruta-hint, .provv-raknare) { color: var(--provv-svag); }
+.teacher-dark .provv-rot .provv-fel { color: var(--provv-rod); }

@@ -7,7 +7,15 @@ import { attOppnaIgen, attStangaIn } from "../../src/prov/prov-tillfalle-logik.j
 const vanta = () => new Promise((r) => setTimeout(r, 250));
 const kopia = (x) => structuredClone(x);
 export async function listaProv() { await vanta(); return kopia(S.prov); }
-export async function hamtaProv(id) { return kopia(S.prov.find((p) => p.id === id) || null); }
+export async function hamtaProv(id) {
+  const eget = S.prov.find((p) => p.id === id);
+  if (eget) return kopia(eget);
+  // I B:s preview ligger proven i dess stubb (localStorage).
+  const b = await import("/src/prov/larare/provl-data.js");
+  const p = await b.hamtaProv(id);
+  if (p) S.prov.push({ id, ...p });
+  return p ? { id, ...p } : null;
+}
 export async function hamtaTillfalle(t) { await vanta(); S.lasningar++; return S.tillfallen[t] ? kopia(S.tillfallen[t]) : null; }
 export async function listaTillfallen(classIds) { await vanta(); return kopia(Object.values(S.tillfallen).filter((t) => classIds.includes(t.classId))); }
 export async function hamtaSvar(t) {

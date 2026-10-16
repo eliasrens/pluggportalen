@@ -1,3 +1,7 @@
-// Stubb för src/teacher-role.js (#740-preview).
-export const myRole = async () => ({ admin: false, uid: "ak4", name: "Årskurs 4", classIds: new Set(["4a", "4b"]) });
-export const filterClasses = (classes, role) => (role?.classIds ? classes.filter((c) => role.classIds.has(c.id)) : classes);
+// Preview-stub för src/teacher-role.js (#739): rollen utan Firebase.
+export * from "../../src/teacher-role-core.js";
+const admin = new URLSearchParams(location.search).get("roll") === "admin";
+export const myRole = async () =>
+  admin
+    ? { admin: true, uid: "admin1", name: "Admin", classIds: null }
+    : { admin: false, uid: "anna", name: "Årskurs 4 (Anna)", classIds: new Set(["k4a"]) };

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Prov – Mina prov (#739)</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <!-- Ingen Firebase: proven lever i localStorage (stubbarna nedan). -->
+    <script type="importmap">
+      { "imports": {
+        "/src/auth.js": "/preview/prov-larare-stubs/auth.js",
+        "/src/ui.js": "/preview/prov-larare-stubs/ui.js",
+        "/src/teacher-role.js": "/preview/prov-larare-stubs/teacher-role.js",
+        "/src/prov/larare/provl-data.js": "/preview/prov-larare-stubs/provl-data.js",
+        "/src/data-classes.js": "/preview/prov-tillfalle-stubs/data-classes.js",
+        "/src/data-content.js": "/preview/prov-tillfalle-stubs/data-content.js",
+        "/src/data-class-lock.js": "/preview/prov-tillfalle-stubs/data-class-lock.js",
+        "/src/prov/prov-tillfalle-data.js": "/preview/prov-tillfalle-stubs/prov-tillfalle-data.js"
+      } }
+    </script>
+    <style>
+      .pv-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; max-width: 1000px; margin: 10px auto 0; padding: 8px 14px;
+        background: #202a36; border: 1px dashed rgba(255,255,255,.25); border-radius: 10px; color: #e7edf3; font: 14px system-ui, sans-serif; box-sizing: border-box; }
+      .pv-bar button, .pv-bar a { font: inherit; padding: 4px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,.2); background: #161d26; color: #e7edf3; cursor: pointer; text-decoration: none; }
+    </style>
+  </head>
+  <body class="larare-lage">
+    <div class="pv-bar">Förhandsvisning (inte en del av appen) – proven sparas i webbläsaren.
+      <a href="?#/larare/prov">Som årskurskonto</a>
+      <a href="?roll=admin#/larare/prov">Som admin</a>
+      <button type="button" data-pv="reset">Återställ proven</button>
+    </div>
+    <div class="layout">
+      <main id="app" class="container"></main>
+    </div>
+
+    <script type="module">
+      // Issue #739: den RIKTIGA lärarfliken "Mina prov" (src/prov/larare/) med
+      // en minimal router (som app.js: lämna-vakten frågas vid hash-byte).
+      import { pageLarareProv } from "/src/prov/larare/page-larare-prov.js";
+      import { aterstall } from "/preview/prov-larare-stubs/provl-data.js";
+      // #740: "Kör i klass" + Provtillfällen (stubbar i prov-tillfalle-stubs/).
+      import { pageProvTillfallen, pageProvTillfalle } from "/src/prov/prov-tillfallen-sida.js";
+
+      const app = document.getElementById("app");
+      const go = (hash) => { location.hash = hash; };
+      const ctx = { app, go, renderTopbar: () => {} };
+      const route = (e) => {
+        if (e?.oldURL && window.__ppLamnaVakt?.(e)) return;
+        if (!location.hash.startsWith("#/larare/prov")) return void history.replaceState(null, "", "#/larare/prov") || pageLarareProv(ctx);
+        const path = location.hash.slice(1).split("?")[0];
+        if (path === "/larare/prov/tillfallen") return pageProvTillfallen(ctx);
+        if (path === "/larare/prov/tillfalle") return pageProvTillfalle(ctx);
+        pageLarareProv(ctx);
+      };
+      window.addEventListener("hashchange", route);
+      route();
+      document.querySelector('[data-pv="reset"]').addEventListener("click", () => {
+        aterstall();
+        location.hash = "#/larare/prov";
+        pageLarareProv(ctx);
+      });
+    </script>
+  </body>
+</html>

@@ -103,14 +103,14 @@ function ritaLista(ctx, body, klasser, tillfallen) {
     const ul = sek.querySelector("ul");
     for (const tf of lista) {
       const n = (c.studentIds || []).length;
-      const li = el(`<li class="provl-rad">
-        <div class="provl-rad-info">
-          <span class="provl-rad-namn">${esc(tf.provNamn || "Prov")}</span>
+      const li = el(`<li class="provl-tf-rad">
+        <div class="provl-tf-rad-info">
+          <span class="provl-tf-rad-namn">${esc(tf.provNamn || "Prov")}</span>
           ${statusEtikett(tf.status)}
           <span class="hint">${tf.status === STATUS.FORBERETT ? "Inte öppnat än" : `${antalFragor(tf.fragor)} frågor`}${
             tf.tidsgransMin ? ` · ${tf.tidsgransMin} min` : ""} · ${n} elever · ${esc(datum(tillMs(tf.oppnad) ?? tillMs(tf.skapad)))}</span>
         </div>
-        <div class="provl-rad-knappar">${knappar(tf)}</div>
+        <div class="provl-tf-rad-knappar">${knappar(tf)}</div>
       </li>`);
       // Rättningen (#741) lägger "18 av 24 rättade" och Rätta-knappen här.
       kopplaKnappar(ctx, li, tf, omRita);
@@ -132,15 +132,15 @@ async function valjProv(ctx, klar) {
     prov = (await listaProv()).sort((a, b) => String(a.namn).localeCompare(String(b.namn), "sv"));
   } catch (err) {
     return ruta(`<div class="msg error">Kunde inte läsa proven: ${esc(errText(err))}</div>
-      <div class="provl-knappar"><button class="btn ghost" data-avbryt>Stäng</button></div>`, { etikett: "Fel" });
+      <div class="provl-tf-knappar"><button class="btn ghost" data-avbryt>Stäng</button></div>`, { etikett: "Fel" });
   }
   const { box, stang } = ruta(`
     <h2 class="provl-ruta-rubrik">Vilket prov?</h2>
-    ${prov.length ? `<label class="provl-falt">Prov
+    ${prov.length ? `<label class="provl-tf-falt">Prov
       <select class="select" data-f="prov" autofocus>${prov.map((p) =>
         `<option value="${esc(p.id)}">${esc(p.namn)} (${antalFragor(p.fragor)} frågor)</option>`).join("")}</select></label>`
       : `<p class="hint">Det finns inga prov än – skapa ett under Mina prov.</p>`}
-    <div class="provl-knappar">
+    <div class="provl-tf-knappar">
       <button class="btn gron" data-act="vidare" ${prov.length ? "" : "disabled"}>Vidare</button>
       <button class="btn ghost" data-avbryt>Avbryt</button>
     </div>`, { etikett: "Välj prov" });
@@ -188,7 +188,7 @@ export async function pageProvTillfalle(ctx) {
         <span class="provl-huvud-status"></span>
       </div>
       <p class="hint provl-fakta"></p>
-      <div class="provl-rad-knappar provl-huvud-knappar"></div>
+      <div class="provl-tf-rad-knappar provl-huvud-knappar"></div>
     </div>
     <div class="panel">
       <div class="provl-summa" role="status"></div>

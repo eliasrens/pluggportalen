@@ -47,7 +47,7 @@ export function ruta(html, { etikett }) {
 
 /** Låsfälten: "Lås klassen till provet" + klockslag + "Dölj allt annat". */
 function lasFalt(standardMin, { pa = true, doljOvrigt = true } = {}) {
-  return `<fieldset class="provl-grupp provl-las">
+  return `<fieldset class="provl-tf-grupp provl-las">
     <legend>Fokusläge</legend>
     <label class="provl-kryss"><input type="checkbox" data-f="las" ${pa ? "checked" : ""} /> Lås klassen till provet</label>
     <div class="provl-las-detalj">
@@ -84,7 +84,7 @@ export async function korIKlass(ctx, provEllerId, { onKlar } = {}) {
   const prov = typeof provEllerId === "string" ? await hamtaProv(provEllerId).catch(() => null) : provEllerId;
   if (!prov) {
     ruta(`<div class="msg error">Provet finns inte längre – det kan ha raderats.</div>
-      <div class="provl-knappar"><button class="btn ghost" data-avbryt>Stäng</button></div>`, { etikett: "Fel" });
+      <div class="provl-tf-knappar"><button class="btn ghost" data-avbryt>Stäng</button></div>`, { etikett: "Fel" });
     return;
   }
   const [role, klasser] = await Promise.all([myRole(), getClasses()]);
@@ -94,24 +94,24 @@ export async function korIKlass(ctx, provEllerId, { onKlar } = {}) {
     <h2 class="provl-ruta-rubrik">Kör i klass: ${esc(prov.namn)}</h2>
     <p class="hint">${antalFragor(prov.fragor)} frågor. Eleverna ser provet först när du öppnar det.</p>
     ${mina.length ? "" : `<div class="msg warn">Du har inga klasser än.</div>`}
-    <label class="provl-falt">Klass
+    <label class="provl-tf-falt">Klass
       <select class="select" data-f="klass" autofocus>${mina.map((c) => `<option value="${esc(c.id)}">${esc(c.name || c.id)}</option>`).join("")}</select>
     </label>
-    <fieldset class="provl-grupp">
+    <fieldset class="provl-tf-grupp">
       <legend>Tidsgräns</legend>
       <label class="provl-kryss"><input type="radio" name="provl-tid" value="ingen" ${std ? "" : "checked"} /> Ingen</label>
       <label class="provl-kryss"><input type="radio" name="provl-tid" value="min" ${std ? "checked" : ""} />
         <input type="number" class="cell provl-min" data-f="min" min="${TIDSGRANS_MIN}" max="${TIDSGRANS_MAX}" value="${std || 40}" aria-label="Minuter" /> minuter</label>
     </fieldset>
     ${lasFalt(standardLasMinuter(std))}
-    <p class="provl-fel msg error" role="alert" hidden></p>
-    <div class="provl-knappar">
+    <p class="provl-tf-fel msg error" role="alert" hidden></p>
+    <div class="provl-tf-knappar">
       <button class="btn gron" data-act="nu" ${mina.length ? "" : "disabled"}>Öppna nu</button>
       <button class="btn ghost" data-act="senare" ${mina.length ? "" : "disabled"}>Spara och öppna senare</button>
       <button class="btn ghost" data-avbryt>Avbryt</button>
     </div>`, { etikett: `Kör i klass: ${prov.namn}` });
   kopplaLas(box);
-  const fel = box.querySelector(".provl-fel");
+  const fel = box.querySelector(".provl-tf-fel");
   const minEl = box.querySelector('[data-f="min"]');
   const tidsgrans = () => (box.querySelector('input[name="provl-tid"]:checked').value === "min" ? tolkaTidsgrans(minEl.value) : null);
   // Låsets förval följer tidsgränsen (+10 min) tills läraren rört klockslaget.
@@ -163,13 +163,13 @@ export function oppnaRuta(tf, klar) {
       ? "Elever som inte hann lämna in kan fortsätta (inom sin tidsgräns). De som själva lämnat in är klara."
       : `${tf.tidsgransMin ? `Tidsgräns ${tf.tidsgransMin} minuter per elev, från att eleven startar.` : "Ingen tidsgräns."}`}</p>
     ${lasFalt(std, { pa: igen ? false : tf.fokus?.pa !== false, doljOvrigt: tf.fokus?.doljOvrigt !== false })}
-    <p class="provl-fel msg error" role="alert" hidden></p>
-    <div class="provl-knappar">
+    <p class="provl-tf-fel msg error" role="alert" hidden></p>
+    <div class="provl-tf-knappar">
       <button class="btn gron" data-act="oppna" autofocus>${igen ? "Öppna igen" : "Öppna nu"}</button>
       <button class="btn ghost" data-avbryt>Avbryt</button>
     </div>`, { etikett: `Öppna ${tf.provNamn}` });
   kopplaLas(box);
-  const fel = box.querySelector(".provl-fel");
+  const fel = box.querySelector(".provl-tf-fel");
   const knapp = box.querySelector('[data-act="oppna"]');
   knapp.addEventListener("click", async () => {
     const { las, fel: lasFel } = lasVal(box);
@@ -199,8 +199,8 @@ export function stangRuta(tf, klar) {
     <h2 class="provl-ruta-rubrik">Stäng provet: ${esc(tf.provNamn)}</h2>
     <p>Alla som inte har lämnat in får sitt prov inlämnat nu. Elevernas senast sparade svar gäller.</p>
     <p class="hint">Fokusläget som provet satte tas bort. Du kan öppna provet igen om det behövs.</p>
-    <p class="provl-fel msg error" role="alert" hidden></p>
-    <div class="provl-knappar">
+    <p class="provl-tf-fel msg error" role="alert" hidden></p>
+    <div class="provl-tf-knappar">
       <button class="btn danger" data-act="stang" autofocus>Stäng provet</button>
       <button class="btn ghost" data-avbryt>Avbryt</button>
     </div>`, { etikett: `Stäng ${tf.provNamn}` });
@@ -215,7 +215,7 @@ export function stangRuta(tf, klar) {
     } catch (err) {
       knapp.disabled = false;
       knapp.textContent = "Stäng provet";
-      const fel = box.querySelector(".provl-fel");
+      const fel = box.querySelector(".provl-tf-fel");
       fel.textContent = `Kunde inte stänga: ${errText(err)}`;
       fel.hidden = false;
     }
@@ -227,8 +227,8 @@ export function raderaRuta(tf, klar) {
   const { box, stang } = ruta(`
     <h2 class="provl-ruta-rubrik">Radera provtillfället och alla elevsvar? Det går inte att ångra.</h2>
     <p class="hint">${esc(tf.provNamn)} – själva provet finns kvar under Mina prov.</p>
-    <p class="provl-fel msg error" role="alert" hidden></p>
-    <div class="provl-knappar">
+    <p class="provl-tf-fel msg error" role="alert" hidden></p>
+    <div class="provl-tf-knappar">
       <button class="btn danger" data-act="radera">Radera</button>
       <button class="btn ghost" data-avbryt autofocus>Avbryt</button>
     </div>`, { etikett: "Radera provtillfället" });
@@ -243,7 +243,7 @@ export function raderaRuta(tf, klar) {
     } catch (err) {
       knapp.disabled = false;
       knapp.textContent = "Radera";
-      const fel = box.querySelector(".provl-fel");
+      const fel = box.querySelector(".provl-tf-fel");
       fel.textContent = `Kunde inte radera: ${errText(err)}`;
       fel.hidden = false;
     }

@@ -17,7 +17,7 @@
 
 import { arFraga, fragetyp } from "./prov-fragetyper.js";
 import { besvarat, fragaLista, fragaNummer, rensaSvar, tomtSvar } from "./prov-modell.js";
-import { h, stavAttr, stycken } from "./prov-vy.js";
+import { h, laddaCss, stavAttr, stycken } from "./prov-vy.js";
 
 let raknare = 0;
 
@@ -182,11 +182,14 @@ export function renderaProv(o) {
  * @param {HTMLElement} container  töms och får provet
  * @param {object[]} fragor        elevens frågor (delaUppProv(prov).fragor)
  * @param {{ namn?, svar?, installningar?, onAndrat?, lasLage?, lamnaInText?, onLamnaIn? }} [o]
+ *   onAndrat(svarMap) – hela elevens svar-map (rensad) vid varje ändring
  * @returns vyn från renderaProv (svar(), las() …)
  */
 export function renderaFragor(container, fragor, o = {}) {
+  laddaCss("prov-elev.css");
   const vy = renderaProv({ ...o, fragor, namn: o.namn || "Förhandsvisning" });
   if (o.lasLage) vy.las(true);
-  container.replaceChildren(vy.el);
+  const rot = h("div", { class: "provv-rot" }, vy.el);
+  container.replaceChildren(rot);
   return vy;
 }

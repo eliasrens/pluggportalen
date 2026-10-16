@@ -20,6 +20,8 @@ export const S = {
   klasser: [
     { id: "4a", name: "4A", studentIds: NAMN.map((_, i) => `e${i}`) },
     { id: "4b", name: "4B", studentIds: ["e100", "e101"] },
+    // B:s preview (preview-prov-larare.html): årskurskontot "Anna" har klassen k4a.
+    { id: "k4a", name: "4A (Anna)", studentIds: NAMN.slice(0, 22).map((_, i) => `e${i}`) },
   ],
   namn: Object.fromEntries([...NAMN.map((n, i) => [`e${i}`, n]), ["e100", "Ada"], ["e101", "Bea"]]),
   tillfallen: {},

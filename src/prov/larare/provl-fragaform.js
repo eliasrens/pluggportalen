@@ -1,0 +1,252 @@
+// ============================================================================
+// Prov (#739, spec §8.1): formuläret för EN fråga, ett per frågetyp – samma
+// mönster som teacher-area-items-forms.js: formuläret samlar fälten och anropar
+// onSubmit(falt) → { ok, errors }; logiken (fält → fråga, validering) bor i
+// prov-redigera-ops.js (fragaFranFalt/sparaFraga). Fel visas under formuläret.
+//
+//   byggFragaForm(fraga, { poangPa, onSubmit, onCancel }) → <form>
+//
+// Ny frågetyp ⇒ en post i KROPP nedan (typens egna fält) – de gemensamma
+// fälten (fråga, poäng, hjälptext) ritas för alla typer med arFraga.
+// ============================================================================
+
+import { el, esc, icon } from "../../teacher-shared.js";
+import { fragetyp } from "../prov-fragetyper.js";
+import { GRANS } from "../typer/delat.js";
+import { tolkaLucktext } from "../typer/lucktext.js";
+
+let uid = 0;
+const nyttId = () => `provl-f${++uid}`;
+
+function falt(label, name, value, { textarea = false, rows = 3, max = 0, hint = "", typ = "text", placeholder = "" } = {}) {
+  const id = nyttId();
+  const attr = `id="${id}" name="${name}"${max ? ` maxlength="${max}"` : ""}${placeholder ? ` placeholder="${esc(placeholder)}"` : ""}`;
+  const ctl = textarea
+    ? `<textarea ${attr} rows="${rows}">${esc(value ?? "")}</textarea>`
+    : `<input ${attr} type="${typ}" autocomplete="off" value="${esc(value ?? "")}" />`;
+  return `<div class="provl-falt provl-falt-${name}"><label for="${id}">${label}</label>${ctl}${hint ? `<span class="hint">${hint}</span>` : ""}</div>`;
+}
+
+const kryss = (name, on, text) =>
+  `<label class="provl-check"><input type="checkbox" name="${name}" ${on ? "checked" : ""} /><span>${text}</span></label>`;
+
+const normalisering = (f) => `<fieldset class="provl-grupp"><legend>Rättning</legend>
+  ${kryss("exaktStavning", f.exaktStavning !== false, "<b>Exakt stavning krävs</b> <span class=\"hint\">– av: ett svar med en bokstav fel blir \"delvis\"</span>")}
+  ${kryss("skiftlage", f.skiftlage === true, "<b>Stor och liten bokstav spelar roll</b> <span class=\"hint\">– t.ex. egennamn</span>")}
+  <span class="hint">Mellanslag, en punkt sist och decimalkomma/-punkt ("7" = "7,0") jämförs alltid snällt.</span>
+</fieldset>`;
+
+/**
+ * En lista med rader som kan läggas till och tas bort (alternativ, par, saker).
+ * `rad(v, i)` ritar en rad; `tom()` ger en ny rad.
+ */
+function radlista(namn, varden, { min, max, rad, tom, laggTill }) {
+  const id = nyttId();
+  return {
+    html: `<div class="provl-rader" data-rader="${namn}" data-min="${min}" data-max="${max}" id="${id}">
+      <div class="provl-rader-lista">${varden.map(rad).join("")}</div>
+      <button type="button" class="btn small ghost provl-ny-rad" data-ny-rad>${icon("plus", 15)}<span>${laggTill}</span></button>
+    </div>`,
+    koppla(form) {
+      const box = form.querySelector(`#${id}`);
+      const lista = box.querySelector(".provl-rader-lista");
+      const knapp = box.querySelector("[data-ny-rad]");
+      const uppdatera = () => {
+        const n = lista.children.length;
+        knapp.hidden = n >= max;
+        lista.querySelectorAll("[data-bort]").forEach((b) => (b.disabled = n <= min));
+        lista.querySelectorAll("[data-radnr]").forEach((s, i) => (s.textContent = String.fromCharCode(65 + i)));
+        lista.querySelectorAll("input[type=radio], input[type=checkbox][data-ratt]").forEach((x, i) => (x.value = String(i)));
+      };
+      lista.addEventListener("click", (e) => {
+        const b = e.target.closest("[data-bort]");
+        if (!b || b.disabled) return;
+        b.closest(".provl-rad").remove();
+        uppdatera();
+      });
+      knapp.addEventListener("click", () => {
+        const ny = el(rad(tom(), lista.children.length));
+        lista.appendChild(ny);
+        uppdatera();
+        ny.querySelector("input[type=text]")?.focus();
+      });
+      uppdatera();
+    },
+  };
+}
+
+const bortKnapp = `<button type="button" class="btn small ghost provl-bort" data-bort title="Ta bort raden" aria-label="Ta bort raden">${icon("x", 14)}</button>`;
+
+function alternativRader(f, { flera }) {
+  const max = flera ? 8 : 6;
+  const ratt = new Set(flera ? f.ratt || [] : [f.ratt]);
+  const grupp = nyttId();
+  return radlista("alternativ", f.alternativ?.length ? f.alternativ : ["", ""], {
+    min: 2, max, laggTill: "Lägg till alternativ", tom: () => "",
+    rad: (v, i) => `<div class="provl-rad">
+      <label class="provl-ratt" title="Rätt svar">
+        <input type="${flera ? "checkbox" : "radio"}" ${flera ? "data-ratt" : `name="${grupp}"`} value="${i}" ${ratt.has(i) ? "checked" : ""} aria-label="Rätt svar" />
+        <span class="provl-radnr" data-radnr>${String.fromCharCode(65 + i)}</span></label>
+      <input type="text" data-alt maxlength="${GRANS.alternativ}" value="${esc(v)}" placeholder="Alternativ" aria-label="Alternativ" />
+      ${bortKnapp}</div>`,
+  });
+}
+
+// Typens egna fält: { html, koppla?(form), samla(form) → del av falt }.
+const KROPP = {
+  flerval: (f) => {
+    const r = alternativRader(f, { flera: false });
+    return {
+      html: `<div class="provl-falt"><span class="provl-etikett">Alternativ <span class="hint">– markera det rätta</span></span>${r.html}</div>`,
+      koppla: r.koppla,
+      samla: (form) => {
+        const rader = [...form.querySelectorAll("[data-rader=alternativ] .provl-rad")];
+        return {
+          alternativ: rader.map((x) => x.querySelector("[data-alt]").value),
+          ratt: rader.findIndex((x) => x.querySelector("input[type=radio]").checked),
+        };
+      },
+    };
+  },
+  "flerval-flera": (f) => {
+    const r = alternativRader(f, { flera: true });
+    return {
+      html: `<div class="provl-falt"><span class="provl-etikett">Alternativ <span class="hint">– kryssa ALLA rätta</span></span>${r.html}</div>`,
+      koppla: r.koppla,
+      samla: (form) => {
+        const rader = [...form.querySelectorAll("[data-rader=alternativ] .provl-rad")];
+        return {
+          alternativ: rader.map((x) => x.querySelector("[data-alt]").value),
+          ratt: rader.map((x, i) => (x.querySelector("[data-ratt]").checked ? i : -1)).filter((i) => i >= 0),
+        };
+      },
+    };
+  },
+  santfalskt: (f) => {
+    const g = nyttId();
+    return {
+      html: `<fieldset class="provl-grupp"><legend>Rätt svar</legend><div class="provl-val">
+        <label class="provl-check"><input type="radio" name="${g}" value="true" ${f.ratt !== false ? "checked" : ""} /><span>Sant</span></label>
+        <label class="provl-check"><input type="radio" name="${g}" value="false" ${f.ratt === false ? "checked" : ""} /><span>Falskt</span></label>
+      </div></fieldset>`,
+      samla: (form) => ({ ratt: form.querySelector(`[name="${g}"]:checked`)?.value }),
+    };
+  },
+  kortsvar: (f) => ({
+    html: falt("Godkända svar <span class=\"hint\">– ett per rad</span>", "godkanda", (f.godkanda || []).join("\n"), {
+      textarea: true, rows: 3, placeholder: "Birka\nBjörkö", hint: "Skriv alla svar som ska räknas som rätt, t.ex. stavningsvarianter och synonymer.",
+    }) + normalisering(f),
+    samla: (form) => ({
+      godkanda: form.elements.godkanda.value,
+      exaktStavning: form.elements.exaktStavning.checked,
+      skiftlage: form.elements.skiftlage.checked,
+    }),
+  }),
+  lucktext: (f) => ({
+    html: falt("Texten med luckor", "lucktext", f.lucktext, {
+      textarea: true, rows: 5, max: GRANS.lucktext, placeholder: "Sveriges huvudstad heter [[Stockholm]].",
+      hint: "Skriv varje lucka som <code>[[svar]]</code>. Fler godkända svar: <code>[[Miklagård|Konstantinopel]]</code>. <span data-luckor></span>",
+    }) + normalisering(f),
+    koppla: (form) => {
+      const visa = () => {
+        const n = tolkaLucktext(form.elements.lucktext.value).luckor.length;
+        form.querySelector("[data-luckor]").textContent = n ? `Nu: ${n} ${n === 1 ? "lucka" : "luckor"}.` : "";
+      };
+      form.elements.lucktext.addEventListener("input", visa);
+      visa();
+    },
+    samla: (form) => ({
+      lucktext: form.elements.lucktext.value,
+      exaktStavning: form.elements.exaktStavning.checked,
+      skiftlage: form.elements.skiftlage.checked,
+    }),
+  }),
+  para: (f) => {
+    const tom = { vanster: "", hoger: "" };
+    const r = radlista("par", f.par?.length ? f.par : [tom, tom, tom], {
+      min: 3, max: 10, laggTill: "Lägg till par", tom: () => tom,
+      rad: (p) => `<div class="provl-rad provl-par">
+        <input type="text" data-v maxlength="${GRANS.alternativ}" value="${esc(p.vanster)}" placeholder="Begrepp" aria-label="Vänster led" />
+        <span class="provl-pil" aria-hidden="true">↔</span>
+        <input type="text" data-h maxlength="${GRANS.alternativ}" value="${esc(p.hoger)}" placeholder="Förklaring" aria-label="Höger led" />
+        ${bortKnapp}</div>`,
+    });
+    return {
+      html: `<div class="provl-falt"><span class="provl-etikett">Paren <span class="hint">– eleven får högerleden blandade</span></span>${r.html}</div>`,
+      koppla: r.koppla,
+      samla: (form) => ({
+        par: [...form.querySelectorAll("[data-rader=par] .provl-rad")].map((x) => ({ vanster: x.querySelector("[data-v]").value, hoger: x.querySelector("[data-h]").value })),
+      }),
+    };
+  },
+  ordna: (f) => {
+    const r = radlista("saker", f.saker?.length ? f.saker : ["", "", ""], {
+      min: 3, max: 10, laggTill: "Lägg till sak", tom: () => "",
+      rad: (v, i) => `<div class="provl-rad"><span class="provl-radnr" data-radnr>${String.fromCharCode(65 + i)}</span>
+        <input type="text" data-sak maxlength="${GRANS.alternativ}" value="${esc(v)}" placeholder="Sak" aria-label="Sak" />${bortKnapp}</div>`,
+    });
+    return {
+      html: `<div class="provl-falt"><span class="provl-etikett">Sakerna i RÄTT ordning <span class="hint">– eleven får dem blandade</span></span>${r.html}</div>`,
+      koppla: r.koppla,
+      samla: (form) => ({ saker: [...form.querySelectorAll("[data-sak]")].map((x) => x.value) }),
+    };
+  },
+  fritext: (f) => ({
+    html: falt("Bedömningsstöd <span class=\"hint\">(valfritt – bara du ser det)</span>", "bedomningsstod", f.bedomningsstod, {
+      textarea: true, rows: 3, max: GRANS.bedomningsstod, hint: `Exempelsvar eller vad som krävs. Eleven skriver högst ${GRANS.fritext} tecken.`,
+    }),
+    samla: (form) => ({ bedomningsstod: form.elements.bedomningsstod.value }),
+  }),
+  text: (f) => ({
+    html: falt("Titel <span class=\"hint\">(valfri)</span>", "titel", f.titel, { max: GRANS.titel })
+      + falt("Text", "brodtext", f.brodtext, { textarea: true, rows: 7, max: GRANS.textblock, hint: "Frågorna efter textblocket kan handla om texten." }),
+    samla: (form) => ({ titel: form.elements.titel.value, brodtext: form.elements.brodtext.value }),
+  }),
+};
+
+/**
+ * Formuläret för en fråga.
+ * @param {object} fraga befintlig eller tomFraga(typ)
+ * @param {{ ny?: boolean, poangPa?: boolean, onSubmit: (falt: object) => {ok: boolean, errors: string[]}, onCancel: () => void }} o
+ */
+export function byggFragaForm(fraga, { ny = false, poangPa = true, onSubmit, onCancel }) {
+  const typ = fragetyp(fraga.typ);
+  const kropp = KROPP[fraga.typ](fraga);
+  const gemensamt = typ.arFraga === false ? "" : `
+    ${falt(fraga.typ === "santfalskt" ? "Påstående" : "Fråga", "fraga", fraga.fraga, { textarea: true, rows: 2, max: GRANS.fragetext })}
+    <div class="provl-falt-rad">
+      ${falt("Poäng", "poang", fraga.poang ?? 1, { typ: "number", hint: poangPa ? "" : "Provet poängsätts inte – poängen används inte." })}
+      ${falt("Hjälptext <span class=\"hint\">(valfri – eleven ser den under frågan)</span>", "hjalptext", fraga.hjalptext, { max: GRANS.hjalptext })}
+    </div>`;
+  const form = el(`<form class="provl-form" novalidate>
+    <div class="provl-form-titel"><span aria-hidden="true">${typ.ikon}</span> ${ny ? "Ny fråga" : "Redigera"}: ${esc(typ.namn)}</div>
+    ${gemensamt}
+    ${kropp.html}
+    <div class="provl-form-fel" role="alert" aria-live="polite"></div>
+    <div class="provl-knappar">
+      <button type="submit" class="btn gron small">${icon("check", 15)}<span>${ny ? "Lägg till" : "Klar"}</span></button>
+      <button type="button" class="btn ghost small" data-avbryt>Avbryt</button>
+    </div>
+  </form>`);
+  const poang = form.elements.poang;
+  if (poang) Object.assign(poang, { min: 0, max: GRANS.poang, step: 1 });
+  kropp.koppla?.(form);
+  const felBox = form.querySelector(".provl-form-fel");
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const f = { ...kropp.samla(form) };
+    if (typ.arFraga !== false) Object.assign(f, { fraga: form.elements.fraga.value, poang: poang.value, hjalptext: form.elements.hjalptext.value });
+    const res = onSubmit(f);
+    felBox.innerHTML = res?.ok ? "" : `<div class="msg error"><div>Rätta det här:</div>
+      <ul class="error-list">${(res?.errors || ["Okänt fel."]).map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div>`;
+  });
+  form.querySelector("[data-avbryt]").addEventListener("click", onCancel);
+  form.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      e.stopPropagation();
+      onCancel();
+    }
+  });
+  queueMicrotask(() => form.querySelector("textarea, input[type=text]")?.focus());
+  return form;
+}

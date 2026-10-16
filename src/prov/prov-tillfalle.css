@@ -9,15 +9,15 @@
 .teacher-dark .provl-klass { margin-bottom: 14px; }
 .teacher-dark .provl-klass-namn { font-size: 1.05rem; margin: 0 0 8px; }
 .teacher-dark .provl-lista { list-style: none; margin: 0; padding: 0; }
-.teacher-dark .provl-rad {
+.teacher-dark .provl-tf-rad {
   display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap;
   padding: 10px 0; border-top: 1px solid var(--t-border);
 }
-.teacher-dark .provl-rad:first-child { border-top: 0; }
-.teacher-dark .provl-rad-info { display: flex; align-items: center; gap: 6px 10px; flex-wrap: wrap; min-width: 0; }
-.teacher-dark .provl-rad-info .hint { margin: 0; flex-basis: 100%; }
-.teacher-dark .provl-rad-namn { font-weight: 700; }
-.teacher-dark .provl-rad-knappar { display: flex; gap: 6px; flex-wrap: wrap; }
+.teacher-dark .provl-tf-rad:first-child { border-top: 0; }
+.teacher-dark .provl-tf-rad-info { display: flex; align-items: center; gap: 6px 10px; flex-wrap: wrap; min-width: 0; }
+.teacher-dark .provl-tf-rad-info .hint { margin: 0; flex-basis: 100%; }
+.teacher-dark .provl-tf-rad-namn { font-weight: 700; }
+.teacher-dark .provl-tf-rad-knappar { display: flex; gap: 6px; flex-wrap: wrap; }
 
 .provl-status {
   display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.82rem; font-weight: 700;
@@ -63,20 +63,20 @@
 }
 .provl-ruta-rubrik { margin: 0 0 6px; font-size: 1.15rem; }
 .provl-ruta .hint { color: var(--t-muted); }
-.provl-falt { display: grid; gap: 4px; margin: 12px 0; font-weight: 600; }
-.provl-grupp { border: 1px solid var(--t-border); border-radius: 10px; padding: 10px 14px; margin: 12px 0; }
-.provl-grupp legend { font-weight: 700; padding: 0 4px; }
-.provl-grupp .hint { margin: 6px 0 0; font-size: 0.9rem; }
+.provl-tf-falt { display: grid; gap: 4px; margin: 12px 0; font-weight: 600; }
+.provl-tf-grupp { border: 1px solid var(--t-border); border-radius: 10px; padding: 10px 14px; margin: 12px 0; }
+.provl-tf-grupp legend { font-weight: 700; padding: 0 4px; }
+.provl-tf-grupp .hint { margin: 6px 0 0; font-size: 0.9rem; }
 .provl-kryss { display: flex; align-items: center; gap: 8px; margin: 6px 0; cursor: pointer; }
 .provl-min { width: 5.5em; }
 .provl-las-detalj { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; }
 .provl-las-detalj.provl-av { opacity: 0.45; pointer-events: none; }
-.provl-knappar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
-.provl-ruta .provl-fel { margin: 10px 0 0; }
+.provl-tf-knappar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.provl-ruta .provl-tf-fel { margin: 10px 0 0; }
 .provl-ruta select, .provl-ruta input[type="time"], .provl-ruta input[type="number"] {
   background: #0f1419; color: var(--t-text); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 8px; padding: 6px 8px; font: inherit;
 }
 @media (max-width: 560px) {
-  .teacher-dark .provl-rad { align-items: flex-start; }
+  .teacher-dark .provl-tf-rad { align-items: flex-start; }
   .provl-bakgrund { place-items: end center; padding: 8px; }
 }
