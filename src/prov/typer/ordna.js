@@ -8,6 +8,7 @@
 
 import { forslagAv } from "../prov-rattning.js";
 import { blanda, elevFalt, textLista, valideraGemensamt } from "./delat.js";
+import { elevKontext, h } from "../prov-vy.js";
 
 export default {
   id: "ordna",
@@ -38,5 +39,42 @@ export default {
     const lista = Array.isArray(svar) ? svar : [];
     const ratt = facit.ordning.filter((s, i) => lista[i] === s).length;
     return forslagAv(ratt / facit.ordning.length, f.poang);
+  },
+
+  /**
+   * Elevens svarsruta (#740): flytta upp/ner med knappar (tangentbord och
+   * pekskärm). Orörd ([]) = obesvarad – är ordningen redan rätt trycker
+   * eleven "Behåll den här ordningen".
+   */
+  renderElev(f, svar, o) {
+    const k = elevKontext(svar, o);
+    let ordning = Array.isArray(k.svar) && k.svar.length ? [...k.svar] : [...f.saker];
+    let rord = Array.isArray(k.svar) && k.svar.length > 0;
+    const lista = h("ol", { class: "provv-ordna" });
+    const behall = h("button", { type: "button", class: "provv-knapp-liten", text: "Behåll den här ordningen", disabled: !!k.las });
+    const status = h("span", { class: "provv-ordna-status", "aria-live": "polite" });
+    const valj = (ny, fokus) => {
+      ordning = ny;
+      rord = true;
+      k.andra([...ordning]);
+      k.lamna();
+      rita(fokus);
+    };
+    const rita = (fokus) => {
+      lista.replaceChildren(...ordning.map((s, i) => h("li", { class: "provv-ordna-sak" },
+        h("span", { class: "provv-ordna-nr", text: `${i + 1}.` }),
+        h("span", { class: "provv-ordna-text", text: s }),
+        h("span", { class: "provv-ordna-knappar" },
+          h("button", { type: "button", class: "provv-pil", "data-pil": `upp-${i}`, "aria-label": `Flytta upp: ${s}`, text: "▲", disabled: !!k.las || i === 0,
+            on: { click: () => { const n = [...ordning]; [n[i - 1], n[i]] = [n[i], n[i - 1]]; valj(n, `upp-${i - 1}`); } } }),
+          h("button", { type: "button", class: "provv-pil", "data-pil": `ner-${i}`, "aria-label": `Flytta ner: ${s}`, text: "▼", disabled: !!k.las || i === ordning.length - 1,
+            on: { click: () => { const n = [...ordning]; [n[i + 1], n[i]] = [n[i], n[i + 1]]; valj(n, `ner-${i + 1}`); } } })))));
+      behall.hidden = rord;
+      status.textContent = rord ? "" : "Inte ordnad än";
+      if (fokus) (lista.querySelector(`[data-pil="${fokus}"]:not(:disabled)`) || lista.querySelector(`[data-pil]:not(:disabled)`))?.focus();
+    };
+    behall.addEventListener("click", () => valj([...ordning], null));
+    rita();
+    return h("div", {}, lista, h("div", { class: "provv-ordna-fot" }, behall, status));
   },
 };

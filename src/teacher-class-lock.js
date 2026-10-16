@@ -73,7 +73,8 @@ const MAL_VILLKOR = {
  */
 async function malModuler(cls) {
   const pa = new Set(normalizeEnabledModules(cls.enabledModules));
-  const moduler = LOCK_TARGET_TYPES.map(lockTargetModule).filter((m) => !m.lockAreas);
+  // Prov (lockId, #740) låses till ett tillfälle från "Kör i klass" – inte härifrån.
+  const moduler = LOCK_TARGET_TYPES.map(lockTargetModule).filter((m) => !m.lockAreas && !m.lockId);
   return Promise.all(moduler.map(async (m) => {
     const villkor = MAL_VILLKOR[m.villkor];
     let skal = null;
@@ -125,6 +126,13 @@ export async function renderClassLock(ctx, cls, host, library, { onChange } = {}
         m.skal ? ` (${esc(m.skal)})` : ""}</option>`)
       .join("")))
     .join("");
+  // Låst till ett provtillfälle (#740): målet går inte att välja här, men det
+  // aktiva låset ska kunna flyttas (sluttid) utan att tappa sitt tillfälle.
+  const tillfalleMal = start && lockTargetModule(start.mal.typ)?.lockId ? start.mal : null;
+  const tillfalleOpt = tillfalleMal
+    ? optgroup(lockTargetModule(tillfalleMal.typ).label,
+      `<option value="${esc(tillfalleMal.typ)}">${esc(lockTargetModule(tillfalleMal.typ).ikon)} ${esc(lockLabel(start))}</option>`)
+    : "";
 
   const box = el(`<div>
     <p class="hint">Lås <b>${esc(cls.name || cls.id)}</b> till <b>ett</b> område eller en modul
@@ -135,6 +143,7 @@ export async function renderClassLock(ctx, cls, host, library, { onChange } = {}
     <div class="row-inline" style="margin-top:10px;flex-wrap:wrap;gap:8px">
       <label>Mål
         <select class="select lock-mal" aria-label="Mål för fokusläget">
+          ${tillfalleOpt}
           ${omradeOpts}
           ${modulOpts}
         </select>
@@ -228,6 +237,8 @@ export async function renderClassLock(ctx, cls, host, library, { onChange } = {}
       const lock = buildLock(
         omrade
           ? { typ: "omrade", id: omrade.id, namn: omrade.namn, till, doljOvrigt: doljEl.checked }
+          : tillfalleMal && val === tillfalleMal.typ
+          ? { ...tillfalleMal, till, doljOvrigt: doljEl.checked }
           : { typ: modul?.typ, till, doljOvrigt: doljEl.checked }
       );
       if (!lock) {

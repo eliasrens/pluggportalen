@@ -376,12 +376,21 @@ export function visibleVillageClasses(classes, meId) {
 //   lockable          – kan väljas som mål i fokusläget (låstypen = id)
 //   lockAreas         – låsmålet är ETT område i modulen (Plugga → typen "omrade")
 //   lockGrupp         – rubrik i lärarens målväljare (standard "Moduler")
+//   lockId            – låsmålet är ETT tillfälle i modulen: mal.id krävs och
+//                       eleven skickas till `lockRoute?<lockId>=<mal.id>` (Prov:
+//                       provtillfället, #740). Sätts av modulens eget flöde
+//                       ("Kör i klass"), inte i lärarens målväljare
 //
 // Hem (huset) är elevens startsida och går inte att dölja – den står inte här.
 // Live (#460) är ingen inlärningsmodul: syns som Live-rutan när klassen bjudits in.
 // ---------------------------------------------------------------------------
 
 export const STUDENT_MODULES = [
+  // Prov (#740, docs/PROV.md): överst i "Öva" – länken syns bara när ett prov är
+  // öppet för klassen eller ett rättat prov lämnats tillbaka (NAV_VILLKOR.prov).
+  // Låses bara via "Kör i klass" (mal.id = provtillfället, lockHomeHash → provet).
+  { id: "prov", label: "Prov", ikon: "📝", grupp: "ova", learning: true, lockable: true, lockId: "t",
+    lockRoute: "/elev/prov/skriv", toggle: false, villkor: "prov", routes: ["/elev/prov", "/elev/prov/skriv", "/elev/prov/resultat"] },
   { id: "plugga", label: "Plugga", ikon: "📚", grupp: "ova", learning: true, lockable: true, lockAreas: true,
     routes: ["/elev/plugga", "/elev/omrade", "/elev/spela", "/elev/aventyr"] },
   // Läsresan (#398): egen huvudmodul, fristående från Plugga.

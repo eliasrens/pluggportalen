@@ -66,6 +66,7 @@ gemensamma fält, stabil blandning) i `typer/delat.js`.
 | `arBesvarad(svar, elevFraga)` | för "Fråga 4 och 9 är obesvarade" |
 | `rensaSvar(svar, elevFraga)` | svaret i giltig form innan det sparas (klippt, okända val bort) |
 | `forslag(svar, facit, elevFraga)` | `{ poang, maxPoang, ratt: true \| false \| "delvis" }` eller `null` |
+| `renderElev(elevFraga, svar, { onChange, lasLage })` | elevens svarsruta → HTMLElement (#740) – kontraktet i `prov-vy.js` |
 
 **Typerna och svarens form:**
 
@@ -98,8 +99,8 @@ Blandningen (`para`, `ordna`) är stabil per fråge-id och aldrig facit-ordninge
    `EXEMPEL_TYP` (`prov-prompt.js`). `test/prov-redigera.test.js` fäller om
    något av dem saknas.
 
-Vyerna (`renderElev`, `renderRattning`, `renderResultat`, §2) läggs i samma
-typfil av C (provsidan) och D (rättningen/resultatet). Inga listor i listor
+Vyerna ligger i samma typfil: `renderElev` (C, #740, se nedan); `renderRattning`
+och `renderResultat` läggs till av D (rättningen/resultatet). Inga listor i listor
 (Firestore) – använd en map per post.
 
 ## Rättningen (`src/prov/prov-rattning.js`)
@@ -142,7 +143,7 @@ Lärarsidans grupp **Prov** (`TEACHER_GROUPS`) med fliken **Mina prov**
 | `provl-redigera.js` | uppgifter + inställningar (§3), frågekort (↑ ↓ Redigera Duplicera Ta bort + Ångra), "Lägg till fråga" (typväljaren → formuläret), Spara (`tillDokument` → `setDoc`), lämna-vakt vid osparat |
 | `provl-fragaform.js` | ett formulär per typ, `onSubmit(falt) → { ok, errors }` |
 | `provl-ai.js` | "Skapa med AI" (§8.2): val → `buildProvPrompt` → klistra in → Granska (`tolkaAiJson` = `validateProv`) → frågorna läggs sist |
-| `provl-forhandsvisa.js` | "Förhandsvisa som elev": `delaUppProv` (inget facit) + `fragaNummer` + "obesvarade", inget sparas |
+| `provl-forhandsvisa.js` | "Förhandsvisa som elev": `delaUppProv` (inget facit) + C:s `renderaFragor`, inget sparas |
 | `provl-data.js` | `listaProv`, `hamtaProv`, `sparaProv` (hela dokumentet, `skapad` behålls, `uppdaterad` = servertid), `raderaProv` |
 
 DOM-fri logik (testad i `test/prov-redigera.test.js`): `prov-redigera-ops.js`
@@ -150,13 +151,12 @@ DOM-fri logik (testad i `test/prov-redigera.test.js`): `prov-redigera-ops.js`
 `withOwner`, kopiera, AI-JSON med/utan kodstaket, frågor sist med nya id vid
 krock), `prov-lista-ops.js` (listan per ägare) och `prov-prompt.js`.
 
-**Gränssnittet mot C (#740), låst av leaden:**
-- Förhandsvisningen laddar `renderaFragor(container, fragor, { svar, installningar, onAndrad, lasLage })`
-  ur `src/prov/prov-elev-fragor.js` (C) med `import()`. Saknas den används
-  reservvyerna (`RESERV` i `provl-forhandsvisa.js`), som kan tas bort sedan.
+**Gränssnittet mot C (#740)** – en implementation, i C:s moduler:
+- Förhandsvisningen anropar `renderaFragor(container, fragor, { namn, installningar, onLamnaIn })`
+  ur `src/prov/prov-elev-vy.js` – elevens egen provvy med typernas `renderElev`.
 - "Kör i klass" (listan och redigeraren) anropar
-  `korIKlass(ctx, provId)` ur `src/prov/prov-tillfalle-larare.js` (C). Ett
-  osparat prov måste sparas först.
+  `korIKlass(ctx, provId, { onKlar })` ur `src/prov/prov-tillfallen-sida.js`
+  (hämtar provet själv). Ett osparat prov måste sparas först.
 - Gruppen `prov` (ikon `pencil`): "Mina prov" `#/larare/prov` först, C:s
   "Provtillfällen" `#/larare/prov/tillfallen` efter.
 
@@ -185,31 +185,84 @@ Förhandsvisning utan Firebase: `preview/preview-prov-larare.html`
 - **Lärarens listor**: `where("classId", "in", egnaKlasser)` på `provTillfallen`;
   `svar`/`rattning` under ett tillfälle listas utan filter.
 
-### Kvar för C: fokusläget `typ: "prov"`
+## Provtillfället (C, #740)
 
-`validLockShape` i `firestore.rules` måste spegla `STUDENT_MODULES` exakt
-(`test/class-lock.test.js`), så `'prov'` läggs in **tillsammans med** modulraden
-`prov` (`villkor: "prov"`, `toggle: false`, `lockable: true`, route `/elev/prov`)
-och kravet på `mal.id` (> 2 tecken, som `omrade`) i både reglerna och
-`normalizeLock` (`src/class-lock.js`). Uppdatera `docs/FOKUSLAGE.md` och
-ClassLock-listan i `DATAMODELL.md`.
+| Fil | Gör |
+| --- | --- |
+| `prov-tillfalle-logik.js` | ren logik: `slutTid`, `kvarText`/`kvarNiva` (gul ≤ 5 min, röd ≤ 1 min), `elevLage`, `valjStartSvar` (localStorage mot servern), `oversiktRader`, `standardLasMinuter`, `attStangaIn`/`attOppnaIgen`, `provSynligt` |
+| `prov-sparning.js` | `skapaSparare({ spara, onStatus, onSlutgiltigt })` – autosparningen (se Budget) |
+| `prov-vy.js` | DOM-hjälpare för typvyerna: `h`, `stavAttr`, `valLista`, `textFalt`, `laddaCss` |
+| `prov-elev-vy.js` | `renderaProv({ namn, fragor, installningar, svar, onAndrat, onLamnat, onLamnaIn })` – hela provet utan Firebase |
+| `prov-elev-sida.js` | `#/elev/prov` (lista), `#/elev/prov/skriv?t=`, `#/elev/prov/resultat?t=` (platshållare för D) |
+| `prov-elev-data.js` | elevens skrivningar: `startaProv`, `sparaSvar`, `lamnaIn` |
+| `prov-watch.js` | menylänken + elevens lista: EN `onSnapshot` på öppna tillfällen, ETT `getDocs` på tillbakalämnade |
+| `prov-tillfalle-data.js` | lärarens skrivningar: `skapaTillfalle`, `oppnaTillfalle`, `stangTillfalle`, `raderaTillfalle`, `hamtaSvar` |
+| `prov-tillfalle-rutor.js` | rutorna Kör i klass / Öppna / Stäng / Radera (aldrig `confirm()`) |
+| `prov-tillfallen-sida.js` | fliken `#/larare/prov/tillfallen` och översikten `#/larare/prov/tillfalle?t=` |
 
-## Budget (§9) – grundens uppskattning, C/D mäter och justerar
+Förhandsvisning utan Firebase: `preview/preview-prov-elev.html` (alla frågetyper,
+nätfel, offline, "läraren stänger", `?kvar=4`) och `preview/preview-prov-tillfallen.html`
+(25 elever skriver). Skärmdumpar: `docs/qa-prov-740/`.
 
-25 elever, 12 frågor, 40 minuter:
+**För B (#739)** (gränssnittet låst av leaden):
+
+- **Kör i klass:** `(await import("./prov-tillfallen-sida.js")).korIKlass(ctx, provId, { onKlar })`
+  – `provId` (sträng) eller provobjektet `{ id, namn, fragor, installningar }`.
+  Öppnar rutan klass/tidsgräns/lås → "Öppna nu" eller "Spara och öppna senare";
+  `onKlar(tillfalleId, oppnat)` efteråt. Fliken Provtillfällen är C:s.
+- **Förhandsvisa som elev:** `renderaFragor(container, fragor, { namn, svar, installningar, lasLage, onAndrat, onLamnaIn })`
+  ur `prov-elev-vy.js` (`fragor` = `delaUppProv(prov).fragor`; laddar `prov-elev.css`
+  själv). `onAndrat(svarMap)` får hela svar-mapen; utan den sparas inget.
+  Returnerar vyn (`svar()`, `las()`, `satTid()`).
+
+**För D (#741):** rättningsräknaren ("18 av 24 rättade") och Rätta-knappen hör
+hemma i `ritaLista` (`prov-tillfallen-sida.js`, kommentaren vid raden);
+resultatvyn ersätter `pageProvResultat` i `prov-elev-sida.js`.
+
+**Typernas `renderElev(elevFraga, svar, { onChange, lasLage })` → HTMLElement**
+(en per typfil, låst signatur, kommentaren i `prov-vy.js`): `onChange(nyttSvar)`
+ger svaret i formen ovan; `lasLage: true` = visning utan kontroller som ändrar
+något. Valfritt även `onLamna()` (lämnade rutan → spara snart), `attr`
+(stavningsattributen) och `uid` (id-prefix). `ordna` är obesvarad tills eleven
+flyttat något eller tryckt "Behåll den här ordningen".
+
+**Flödet** (statusflödet ovan): "Kör i klass" skapar `forberett` (+ `fokus`,
+`skapad`); Öppna kopierar provets **senaste** version; Stäng sätter status först
+(då nekar reglerna eleverna) och markerar sedan svaren; Öppna igen tar tillbaka
+stängningens markeringar. Läraren väljer låset i rutan: standard tidsgränsen +
+10 min, annars 60 min, "Dölj allt annat" ikryssat.
+
+**Eleven:** sparar till `localStorage` vid varje ändring (`pp:prov:<t>:<uid>`);
+omladdning väljer den lokala kopian om den är minst lika ny som serverns
+`uppdaterad`. Nedräkningen räknas från serverns `startad` mot `serverNow()`;
+vid noll lämnas provet in (`inlamnadNar: "tid"`, nya försök var 5–20 s inom
+reglernas 2 minuter). Läraren stänger → elevens lista tappar tillfället →
+sidan läser läget en gång och visar "Provet är stängt. Dina sparade svar gäller."
+
+**Fokusläget:** `typ: "prov"` + `id` = tillfället, se [`FOKUSLAGE.md`](FOKUSLAGE.md).
+
+## Budget (§9) – 25 elever, 12 frågor, 40 minuter
+
+Autosparningen (`prov-sparning.js`): första sparningen 4 s efter en ändring,
+direkt när eleven lämnar en ruta – men **högst en skrivning per 24 s**. Utan
+tak skulle en elev som skriver hela tiden ge 600 skrivningar (15 000 för
+klassen). Inlämning, "eleven lämnar sidan/fliken" och "nätet tillbaka" sparar
+direkt. Misslyckade försök (nätfel) kostar inget och görs om efter 5/10/20/30 s;
+en sparning som hänger > 8 s visar felraden.
 
 | Del | Räkning | Läsningar | Skrivningar |
 | --- | --- | --- | --- |
-| Elev: tillfället + eget svar + lyssnaren | ~4 per elev | 100 | – |
-| Elev: autosparning | högst 1 per 20 s i snitt → ≤ 120 per elev | – | ≤ 3 000 (tak), i praktiken några hundra |
-| Lärarens översikt | 25 svar var 60:e s × 40 | 1 000 | – |
-| Öppna/stänga | tillfälle + facit + ≤ 25 svar | – | ~30 |
-| Rättning | tillfälle + facit + 25 svar + 25 rättningar | 52 | ≤ 25 per sparvarv |
+| Elev: lyssnaren (1 + ändringar) + tillbakalämnade (≥ 1) + eget svar + start | ~6 per elev | 150 | – |
+| Elev: start + autosparning + inlämning | ≤ 1 + 101 + 1 per elev (tak) | – | ≤ 2 575 (värsta fall) |
+| Lärarens översikt | namn 25 + tillfället 1 + 25 svar var 60:e s × 40 | 1 026 | – |
+| Öppna/stänga | tillfälle + facit + lås + stäng + 25 markeringar + lås av | 25 (svaren vid stäng) | ~30 |
+| **Summa** | | **≈ 1 200** | **≤ 2 605** |
 
-Med "högst var 4:e sekund" utan tak skulle en elev som skriver hela tiden ge
-600 skrivningar (15 000 för klassen) – **sparningen behöver alltså ett tak**,
-t.ex. högst en bakgrundssparning per 20 s (plus direkt vid inlämning/när eleven
-lämnar sidan). C bestämmer och redovisar.
+Översikten läser inte medan fliken är dold och inte när provet är stängt (bara
+"Uppdatera nu"). En vanlig elev ändrar inte något var 24:e sekund i 40 minuter –
+i praktiken blir det några hundra skrivningar för klassen. Uträkningen finns
+som test i `test/prov-tillfalle.test.js` ("budgeten"). Rättningens läsningar
+(52) räknar D.
 
 ## Deploy
 

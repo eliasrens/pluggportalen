@@ -29,7 +29,7 @@ describe("registret", () => {
     for (const t of FRAGETYPER) {
       for (const k of ["id", "namn", "ikon", "beskrivning"]) assert.equal(typeof t[k], "string", `${t.id}.${k}`);
       assert.equal(typeof t.autoratt, "boolean", t.id);
-      for (const k of ["validera", "facit", "utanFacit", "tomtSvar", "arBesvarad", "rensaSvar", "forslag"]) {
+      for (const k of ["validera", "facit", "utanFacit", "tomtSvar", "arBesvarad", "rensaSvar", "forslag", "renderElev"]) {
         assert.equal(typeof t[k], "function", `${t.id}.${k}`);
       }
       assert.ok(EXEMPEL[t.id], `exempel saknas för ${t.id}`);

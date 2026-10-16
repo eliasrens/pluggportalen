@@ -15,7 +15,11 @@
         "/src/auth.js": "/preview/prov-larare-stubs/auth.js",
         "/src/ui.js": "/preview/prov-larare-stubs/ui.js",
         "/src/teacher-role.js": "/preview/prov-larare-stubs/teacher-role.js",
-        "/src/prov/larare/provl-data.js": "/preview/prov-larare-stubs/provl-data.js"
+        "/src/prov/larare/provl-data.js": "/preview/prov-larare-stubs/provl-data.js",
+        "/src/data-classes.js": "/preview/prov-tillfalle-stubs/data-classes.js",
+        "/src/data-content.js": "/preview/prov-tillfalle-stubs/data-content.js",
+        "/src/data-class-lock.js": "/preview/prov-tillfalle-stubs/data-class-lock.js",
+        "/src/prov/prov-tillfalle-data.js": "/preview/prov-tillfalle-stubs/prov-tillfalle-data.js"
       } }
     </script>
     <style>
@@ -39,6 +43,8 @@
       // en minimal router (som app.js: lämna-vakten frågas vid hash-byte).
       import { pageLarareProv } from "/src/prov/larare/page-larare-prov.js";
       import { aterstall } from "/preview/prov-larare-stubs/provl-data.js";
+      // #740: "Kör i klass" + Provtillfällen (stubbar i prov-tillfalle-stubs/).
+      import { pageProvTillfallen, pageProvTillfalle } from "/src/prov/prov-tillfallen-sida.js";
 
       const app = document.getElementById("app");
       const go = (hash) => { location.hash = hash; };
@@ -46,6 +52,9 @@
       const route = (e) => {
         if (e?.oldURL && window.__ppLamnaVakt?.(e)) return;
         if (!location.hash.startsWith("#/larare/prov")) return void history.replaceState(null, "", "#/larare/prov") || pageLarareProv(ctx);
+        const path = location.hash.slice(1).split("?")[0];
+        if (path === "/larare/prov/tillfallen") return pageProvTillfallen(ctx);
+        if (path === "/larare/prov/tillfalle") return pageProvTillfalle(ctx);
         pageLarareProv(ctx);
       };
       window.addEventListener("hashchange", route);

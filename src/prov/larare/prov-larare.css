@@ -136,67 +136,12 @@
 .provl-ai-resultat:empty { display: none; }
 .provl-ai-resultat { display: grid; gap: 8px; }
 
-/* Förhandsvisningen: ett lugnt, ljust "papper" som elevens provsida. */
-.provl-fh-dialog { width: min(780px, calc(100vw - 24px)); }
-.provl-fh-papper {
-  background: #fbfaf6;
-  color: #1d2733;
-  border-radius: 12px;
-  padding: 22px clamp(14px, 4vw, 34px) 18px;
-  display: grid;
-  gap: 18px;
-  font-size: 1.05rem;
-  line-height: 1.5;
-}
-.provl-fh-rubrik { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: baseline; justify-content: space-between; border-bottom: 2px solid #e4e0d6; padding-bottom: 10px; }
-.provl-fh-rubrik h1 { margin: 0; font-size: 1.5rem; color: #1d2733; }
-.provl-fh-tid { color: #5b6878; font-size: 0.95rem; }
-.provl-fh-fragor { display: grid; gap: 16px; }
-.provl-fh-fraga, .provl-fh-text { background: #fff; border: 1px solid #e4e0d6; border-radius: 12px; padding: 14px 16px; }
-.provl-fh-text { background: #f3f1ea; }
-.provl-fh-text h3 { margin: 0 0 6px; color: #1d2733; }
-.provl-fh-text p { margin: 0 0 8px; white-space: pre-wrap; }
-.provl-fh-huvud { display: flex; justify-content: space-between; color: #5b6878; font-size: 0.9rem; font-weight: 700; }
-.provl-fh-fragetext { margin: 4px 0 6px; font-weight: 650; white-space: pre-wrap; }
-.provl-fh-hjalp { margin: 0 0 8px; color: #5b6878; font-size: 0.92rem; font-style: italic; }
-.provl-fh-hint { color: #5b6878; font-size: 0.9rem; }
-.provl-fh-val { display: grid; gap: 6px; }
-.provl-fh-rad { grid-auto-flow: column; justify-content: start; gap: 16px; }
-.provl-fh-papper label { color: #1d2733; }
-.provl-fh-alt { display: flex; gap: 10px; align-items: center; padding: 7px 10px; border: 1px solid #e4e0d6; border-radius: 9px; cursor: pointer; }
-.provl-fh-alt:has(input:checked) { border-color: #2f6fb3; background: #eef4fb; }
-.provl-fh-alt input { width: 18px; height: 18px; accent-color: #2f6fb3; }
-.teacher-dark .provl-fh-papper input[type="text"],
-.teacher-dark .provl-fh-papper textarea,
-.teacher-dark .provl-fh-papper select {
-  background: #fff;
-  color: #1d2733;
-  border: 1.5px solid #c9c3b6;
-  border-radius: 8px;
-  padding: 7px 9px;
-  font: inherit;
-}
-.teacher-dark .provl-fh-papper input:focus,
-.teacher-dark .provl-fh-papper textarea:focus,
-.teacher-dark .provl-fh-papper select:focus { border-color: #2f6fb3; box-shadow: 0 0 0 3px rgba(47, 111, 179, 0.18); }
-.provl-fh-input { width: min(100%, 360px); }
-.provl-fh-fritext { width: 100%; box-sizing: border-box; resize: vertical; }
-.provl-fh-raknare { display: block; text-align: right; color: #5b6878; font-size: 0.85rem; }
-.provl-fh-lucktext { margin: 0; line-height: 2.1; white-space: pre-wrap; }
-.provl-fh-lucka { width: 9em; padding: 2px 6px !important; line-height: 1.4; vertical-align: baseline; }
-.provl-fh-par { display: grid; gap: 8px; }
-.provl-fh-par-rad { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 10px; align-items: center; }
-.provl-fh-ordna { margin: 0; padding-left: 22px; display: grid; gap: 6px; }
-.provl-fh-ordna li { display: flex; gap: 8px; align-items: center; }
-.provl-fh-ordna li span { flex: 1; padding: 6px 10px; border: 1px solid #e4e0d6; border-radius: 8px; background: #fff; }
-.provl-fh-flytt { width: 34px; height: 34px; border-radius: 8px; border: 1px solid #c9c3b6; background: #fff; color: #1d2733; cursor: pointer; }
-.provl-fh-flytt:disabled { opacity: 0.35; cursor: default; }
-.provl-fh-fot { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; border-top: 2px solid #e4e0d6; padding-top: 12px; color: #5b6878; }
-.provl-fh-fot .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+/* Förhandsvisningen: elevens egen provvy (prov-elev.css, #740) i en dialog. */
+.provl-fh-dialog { width: min(1040px, calc(100vw - 24px)); }
+.provl-fh-papper { border-radius: 12px; }
 
 @media (max-width: 640px) {
   .provl-falt-rad { grid-template-columns: 1fr; }
   .provl-kort-knappar { margin-left: 0; }
-  .provl-fh-par-rad { grid-template-columns: 1fr; }
   .provl-atgarder { justify-content: flex-start; }
 }

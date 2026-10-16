@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Prov – elevens provsida (#740)</title>
+    <link rel="stylesheet" href="../src/styles.css" />
+    <!--
+      #740: STUBBAD preview – den RIKTIGA provsidan (src/prov/prov-elev-sida.js)
+      med alla frågetyper, men Firebase-delarna utbytta via importmap:
+      ui/auth/serverklockan, prov-watch (ett öppet tillfälle) och
+      prov-elev-data (svaren i minnet, påhittade nätfel).
+        ?kvar=4      eleven har redan startat, 4 min kvar (gul); ?kvar=0.8 → röd
+        ?tid=ingen   provet saknar tidsgräns
+        #/elev/prov  listan, #/elev/prov/skriv?t=tf-demo själva provet
+    -->
+    <script type="importmap">
+      {
+        "imports": {
+          "/src/ui.js": "/preview/prov-elev-stubs/ui.js",
+          "/src/auth.js": "/preview/prov-elev-stubs/auth.js",
+          "/src/data-class-lock.js": "/preview/prov-elev-stubs/data-class-lock.js",
+          "/src/prov/prov-watch.js": "/preview/prov-elev-stubs/prov-watch.js",
+          "/src/prov/prov-elev-data.js": "/preview/prov-elev-stubs/prov-elev-data.js"
+        }
+      }
+    </script>
+    <style>
+      body { background: #eef2f6; }
+      .pv-rad {
+        display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center;
+        padding: 8px 12px; background: #1f2a3a; color: #fff; font: 14px system-ui, sans-serif;
+      }
+      .pv-rad b { margin-right: 4px; }
+      .pv-rad button, .pv-rad a { font: inherit; padding: 4px 10px; border-radius: 6px; border: 1px solid #50607a; background: #2b3a50; color: #fff; cursor: pointer; text-decoration: none; }
+      .pv-rad button[aria-pressed="true"] { background: #b42318; border-color: #b42318; }
+      .pv-rad .pv-info { opacity: 0.8; }
+      #app { max-width: 1000px; margin: 16px auto; padding: 0 12px; }
+    </style>
+  </head>
+  <body>
+    <div class="pv-rad">
+      <b>Preview #740</b>
+      <a href="#/elev/prov">Listan</a>
+      <a href="#/elev/prov/skriv?t=tf-demo">Provet</a>
+      <button data-pv="natfel" aria-pressed="false">Nätfel</button>
+      <button data-pv="hanger" aria-pressed="false">Offline (hänger)</button>
+      <button data-pv="stang">Läraren stänger provet</button>
+      <a href="?kvar=4#/elev/prov/skriv?t=tf-demo">4 min kvar</a>
+      <a href="?kvar=0.8#/elev/prov/skriv?t=tf-demo">48 s kvar</a>
+      <button data-pv="nollstall">Nollställ</button>
+      <span class="pv-info" id="pv-info"></span>
+    </div>
+    <main id="app"></main>
+
+    <script type="module">
+      import { S } from "/preview/prov-elev-stubs/state.js";
+      import { laraStanger } from "/src/prov/prov-watch.js";
+      import { pageProvLista, pageProvSkriv, pageProvResultat } from "/src/prov/prov-elev-sida.js";
+
+      const routes = { "/elev/prov": pageProvLista, "/elev/prov/skriv": pageProvSkriv, "/elev/prov/resultat": pageProvResultat };
+      const router = () => {
+        const path = (location.hash || "#/elev/prov").slice(1).split("?")[0];
+        (routes[path] || pageProvLista)();
+      };
+      window.addEventListener("hashchange", router);
+      if (!location.hash) location.hash = "#/elev/prov";
+      else router();
+
+      const info = document.getElementById("pv-info");
+      const visaInfo = () => {
+        const s = S.svar;
+        info.textContent = `Skrivningar: ${S.skrivningar}` + (s ? ` · sparat ${Object.keys(s.svar || {}).length} svar${s.inlamnad ? ` · inlämnat (${s.inlamnadNar})` : ""}` : " · inte startat");
+      };
+      window.addEventListener("prov-stub", visaInfo);
+      visaInfo();
+      document.querySelectorAll("[data-pv]").forEach((b) => b.addEventListener("click", () => {
+        const k = b.dataset.pv;
+        if (k === "natfel" || k === "hanger") {
+          S[k] = !S[k];
+          b.setAttribute("aria-pressed", String(S[k]));
+        } else if (k === "stang") laraStanger();
+        else if (k === "nollstall") {
+          localStorage.removeItem("pp:prov:tf-demo:elev1");
+          sessionStorage.removeItem("pv740:svar");
+          location.href = location.pathname + "#/elev/prov";
+          location.reload();
+        }
+      }));
+    </script>
+  </body>
+</html>

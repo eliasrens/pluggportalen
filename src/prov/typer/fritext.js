@@ -6,6 +6,7 @@
 // ============================================================================
 
 import { GRANS, elevFalt, klipp, tecken, valideraGemensamt } from "./delat.js";
+import { elevKontext, h, textFalt } from "../prov-vy.js";
 
 export default {
   id: "fritext",
@@ -33,4 +34,22 @@ export default {
   arBesvarad: (svar) => typeof svar === "string" && svar.trim() !== "",
   rensaSvar: (svar) => klipp(typeof svar === "string" ? svar : "", GRANS.fritext),
   forslag: () => null,
+
+  /** Elevens svarsruta (#740): ett längre svar med teckenräknare. */
+  renderElev(f, svar, o) {
+    const k = elevKontext(svar, o);
+    const max = f.maxTecken || GRANS.fritext;
+    const raknare = h("div", { class: "provv-raknare", "aria-live": "off" });
+    const visa = (v) => {
+      const n = tecken(v);
+      raknare.textContent = `${n} / ${max} tecken`;
+      raknare.classList.toggle("provv-raknare-nara", n > max * 0.9);
+    };
+    const falt = textFalt("textarea", {
+      class: "provv-fritext", rows: "8", varde: typeof k.svar === "string" ? k.svar : "", max, "aria-label": "Ditt svar",
+      k: { ...k, andra: (v) => { visa(v); k.andra(v); } },
+    });
+    visa(falt.value);
+    return h("div", {}, falt, raknare);
+  },
 };

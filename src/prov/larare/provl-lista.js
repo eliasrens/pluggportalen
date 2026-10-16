@@ -6,7 +6,7 @@
 // förhandsvisa och kopiera – inte ändra (samma regler som områdena, #680).
 // Radera frågar i en ruta på sidan (inte confirm()).
 // "Kör i klass" (§5.2) öppnar provtillfällets ruta (#740, korIKlass i
-// src/prov/prov-tillfalle-larare.js) – laddas först vid klick.
+// src/prov/prov-tillfallen-sida.js) – laddas först vid klick.
 // ============================================================================
 
 import { el, emptyState, esc, icon } from "../../teacher-shared.js";
@@ -21,8 +21,11 @@ import { HASH } from "./page-larare-prov.js";
  */
 export async function korIKlass(ctx, provId, msg) {
   try {
-    const { korIKlass: kor } = await import("../prov-tillfalle-larare.js");
-    return await kor(ctx, provId);
+    const { korIKlass: kor } = await import("../prov-tillfallen-sida.js");
+    // Efteråt: öppnat → översikten under provet, sparat → listan Provtillfällen.
+    return await kor(ctx, provId, {
+      onKlar: (t, oppnat) => ctx.go(oppnat ? `#/larare/prov/tillfalle?t=${encodeURIComponent(t)}` : "#/larare/prov/tillfallen"),
+    });
   } catch (err) {
     console.warn("Kör i klass", err);
     if (msg) msg.innerHTML = `<div class="msg warn">Det går inte att köra provet i en klass just nu. Ladda om sidan och försök igen.</div>`;

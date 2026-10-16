@@ -4,6 +4,7 @@
 // ============================================================================
 
 import { elevFalt, textLista, valideraGemensamt } from "./delat.js";
+import { elevKontext, valLista } from "../prov-vy.js";
 
 export default {
   id: "flerval",
@@ -36,5 +37,14 @@ export default {
     return Number.isInteger(svar) && svar === facit.ratt
       ? { poang: max, maxPoang: max, ratt: true }
       : { poang: 0, maxPoang: max, ratt: false };
+  },
+
+  /** Elevens svarsruta (#740): ett val bland alternativen. */
+  renderElev(f, svar, o) {
+    const k = elevKontext(svar, o);
+    return valLista(f.alternativ, {
+    namn: `${k.uid}-${f.id}`, etikett: "Välj ett alternativ", las: k.las,
+    valda: Number.isInteger(k.svar) ? [k.svar] : [], andra: (v) => k.andra(v[0] ?? null), lamna: k.lamna,
+  });
   },
 };

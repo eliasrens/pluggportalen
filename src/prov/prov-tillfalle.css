@@ -1,0 +1,82 @@
+/* ==========================================================================
+   Prov (#740) – lärarens provtillfällen (.provl-). Laddas DYNAMISKT av
+   prov-tillfallen-sida.js / prov-tillfalle-rutor.js, ligger inte i styles.css.
+   Scopat under .teacher-dark (rutorna ligger i body → egen .provl-bakgrund).
+   ========================================================================== */
+
+.teacher-dark .provl-verktyg { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 4px 0 14px; }
+.teacher-dark .provl-verktyg .hint { margin: 0; }
+.teacher-dark .provl-klass { margin-bottom: 14px; }
+.teacher-dark .provl-klass-namn { font-size: 1.05rem; margin: 0 0 8px; }
+.teacher-dark .provl-lista { list-style: none; margin: 0; padding: 0; }
+.teacher-dark .provl-tf-rad {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap;
+  padding: 10px 0; border-top: 1px solid var(--t-border);
+}
+.teacher-dark .provl-tf-rad:first-child { border-top: 0; }
+.teacher-dark .provl-tf-rad-info { display: flex; align-items: center; gap: 6px 10px; flex-wrap: wrap; min-width: 0; }
+.teacher-dark .provl-tf-rad-info .hint { margin: 0; flex-basis: 100%; }
+.teacher-dark .provl-tf-rad-namn { font-weight: 700; }
+.teacher-dark .provl-tf-rad-knappar { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.provl-status {
+  display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.82rem; font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+.provl-status-forberett { color: #c7d2de; background: rgba(255, 255, 255, 0.06); }
+.provl-status-oppet { color: #7ee2a8; background: rgba(46, 193, 110, 0.16); border-color: transparent; }
+.provl-status-stangt { color: #f0c27a; background: rgba(242, 153, 74, 0.14); border-color: transparent; }
+
+/* Översikten under provet */
+.teacher-dark .provl-oversikt .panel { margin-bottom: 14px; }
+.teacher-dark .provl-lank { color: var(--t-accent); cursor: pointer; font-weight: 600; }
+.teacher-dark .provl-huvud-rad { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+.teacher-dark .provl-huvud-namn { margin: 0; font-size: 1.25rem; }
+.teacher-dark .provl-klassnamn { color: var(--t-muted); font-weight: 500; }
+.teacher-dark .provl-fakta { margin: 4px 0 10px; }
+.teacher-dark .provl-summa { margin-bottom: 6px; }
+.teacher-dark .provl-uppdatera { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.teacher-dark .provl-uppdatera .hint { margin: 0; }
+.teacher-dark .provl-tabell-wrap { overflow-x: auto; }
+.teacher-dark .provl-tabell { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.teacher-dark .provl-tabell th,
+.teacher-dark .provl-tabell td { text-align: left; padding: 8px 10px; border-top: 1px solid var(--t-border); white-space: nowrap; }
+.teacher-dark .provl-tabell thead th { color: var(--t-muted); font-weight: 600; font-size: 0.9rem; border-top: 0; }
+.teacher-dark .provl-tabell tbody th { font-weight: 600; white-space: normal; }
+.provl-elevstatus { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.85rem; }
+.provl-elevstatus-ej { color: #c7d2de; background: rgba(255, 255, 255, 0.06); }
+.provl-elevstatus-skriver { color: #9cc7ff; background: rgba(47, 128, 237, 0.18); }
+.provl-elevstatus-inlamnat { color: #7ee2a8; background: rgba(46, 193, 110, 0.16); }
+
+/* Rutorna (Kör i klass, Öppna, Stäng, Radera) */
+.provl-bakgrund {
+  position: fixed; inset: 0; z-index: var(--z-modal, 1000);
+  display: grid; place-items: center; padding: 16px;
+  background: rgba(5, 8, 12, 0.6);
+}
+.provl-bakgrund .provl-ruta {
+  /* Rutan ligger utanför .teacher-page – samma mörka tokens här. */
+  --t-surface: #161d26; --t-border: rgba(255, 255, 255, 0.09); --t-text: #e7edf3; --t-muted: #93a2b3; --t-accent: #2ec16e;
+  width: min(520px, 100%); max-height: calc(100vh - 32px); overflow: auto; box-sizing: border-box;
+  background: var(--t-surface); color: var(--t-text); border: 1px solid var(--t-border); border-radius: 14px; padding: 20px 22px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+.provl-ruta-rubrik { margin: 0 0 6px; font-size: 1.15rem; }
+.provl-ruta .hint { color: var(--t-muted); }
+.provl-tf-falt { display: grid; gap: 4px; margin: 12px 0; font-weight: 600; }
+.provl-tf-grupp { border: 1px solid var(--t-border); border-radius: 10px; padding: 10px 14px; margin: 12px 0; }
+.provl-tf-grupp legend { font-weight: 700; padding: 0 4px; }
+.provl-tf-grupp .hint { margin: 6px 0 0; font-size: 0.9rem; }
+.provl-kryss { display: flex; align-items: center; gap: 8px; margin: 6px 0; cursor: pointer; }
+.provl-min { width: 5.5em; }
+.provl-las-detalj { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; }
+.provl-las-detalj.provl-av { opacity: 0.45; pointer-events: none; }
+.provl-tf-knappar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.provl-ruta .provl-tf-fel { margin: 10px 0 0; }
+.provl-ruta select, .provl-ruta input[type="time"], .provl-ruta input[type="number"] {
+  background: #0f1419; color: var(--t-text); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 8px; padding: 6px 8px; font: inherit;
+}
+@media (max-width: 560px) {
+  .teacher-dark .provl-tf-rad { align-items: flex-start; }
+  .provl-bakgrund { place-items: end center; padding: 8px; }
+}

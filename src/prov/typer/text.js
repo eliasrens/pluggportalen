@@ -5,6 +5,7 @@
 // ============================================================================
 
 import { GRANS, tecken, trimmad, valideraGemensamt } from "./delat.js";
+import { h, stycken } from "../prov-vy.js";
 
 export default {
   id: "text",
@@ -30,4 +31,11 @@ export default {
   arBesvarad: () => true,
   rensaSvar: () => null,
   forslag: () => null,
+
+  /** Textblocket som eleven läser (#740) – inget nummer, inget svar. */
+  renderElev(f) {
+    return h("div", { class: "provv-textblock-inre" },
+    f.titel ? h("h3", { class: "provv-textblock-titel", text: f.titel }) : null,
+    stycken(f.brodtext, "provv-brodtext"));
+  },
 };

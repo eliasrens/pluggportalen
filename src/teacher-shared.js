@@ -235,8 +235,9 @@ export const TEACHER_TABS = [
   tab("klasser", "#/larare/klasser", "klasser", "Klasser", "Klasser", "users", () => import("./teacher-classes.js"), "pageLarareKlasser"),
   tab("innehall", "#/larare/innehall", "material", "Plugga-material", "Material", "book", () => import("./teacher-content.js"), "pageLarareInnehall"),
   tab("hittaratt", "#/larare/hitta-ratt", "material", "Hitta rätt!", "Hitta rätt!", "pin", () => import("./hitta-ratt/larare/page-larare-hitta-ratt.js"), "pageLarareHittaRatt", true),
-  // Prov (#739, epic #737): skapa och redigera prov. Allt i src/prov/ laddas lat.
+  // Prov (epic #737): Mina prov (#739, skapa/redigera) + Provtillfällen (#740, öppna/stäng/översikt). Lat.
   tab("prov", "#/larare/prov", "prov", "Mina prov", "Mina prov", "clipboard", () => import("./prov/larare/page-larare-prov.js"), "pageLarareProv"),
+  tab("provtillfallen", "#/larare/prov/tillfallen", "prov", "Provtillfällen", "Provtillfällen", "inbox", () => import("./prov/prov-tillfallen-sida.js"), "pageProvTillfallen"),
   // Live (#460): realtidsmatch klass mot klass. ?id=<sid> = projektorvyn.
   tab("live", "#/larare/live", "live", "Live", "Live", "bolt", () => import("./live/teacher-live.js"), "pageLarareLive"),
   // Mattematchen (#459): skapa/styr tävlingsperioder – bara admin (§2.2). Statistiken finns under Statistik.
