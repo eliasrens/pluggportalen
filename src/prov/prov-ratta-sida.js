@@ -28,6 +28,7 @@ import { elevStatVy, oversiktVy } from "./prov-stat-vy.js";
 import { granserFor } from "./prov-statistik.js";
 import { sparaGranser } from "./prov-rattning-data.js";
 import { ruta } from "./prov-tillfalle-rutor.js";
+import { harMynt, myntRegelText } from "./prov-mynt.js";
 import { blanda } from "./typer/delat.js";
 import { h, laddaCss } from "./prov-vy.js";
 
@@ -264,6 +265,7 @@ function rattningsVy(ctx, body, data, elever, q) {
       <h2 class="provl-ruta-rubrik">Lämna tillbaka till ${en ? esc(v.visNamn(uids[0])) : `${uids.length} elever`}?</h2>
       <p>${en ? "Eleven" : "Eleverna"} ser rättningen och dina kommentarer${poangsatt ? " och poängen" : ""} direkt under Prov.</p>
       ${ejKlara ? `<p class="msg provl-r-ejklara">${esc(ejKlaraText(ejKlara))}</p>` : ""}
+      ${harMynt(tf.installningar) ? `<p>Pluggmynt: ${esc(myntRegelText(tf.installningar.mynt))}. Har ${en ? "eleven" : "en elev"} redan fått mynt för provet betalas bara skillnaden ut.</p>` : ""}
       <label class="provl-kryss"><input type="checkbox" data-f="facit" ${tf.installningar?.visaFacit !== false ? "checked" : ""} /> Visa facit för ${en ? "eleven" : "eleverna"}</label>
       <p class="hint">Förvalt enligt provets inställning. Du kan ångra tillbakalämningen för en elev i taget under Per elev.</p>
       <div class="provl-tf-knappar">
@@ -276,7 +278,7 @@ function rattningsVy(ctx, body, data, elever, q) {
       ok.disabled = true;
       ok.textContent = "Lämnar tillbaka…";
       try {
-        await lager.lamnaTillbaka(uids, box.querySelector('[data-f="facit"]').checked);
+        visaMynt(await lager.lamnaTillbaka(uids, box.querySelector('[data-f="facit"]').checked));
         stang();
         ritaInnehall();
       } catch (err) {
@@ -287,6 +289,17 @@ function rattningsVy(ctx, body, data, elever, q) {
         fel.textContent = `Kunde inte lämna tillbaka: ${errText(err)}`;
       }
     });
+  }
+
+  // Pluggmyntens utfall (#746) i sparraden – nekade betalas nästa gång vyn öppnas.
+  function visaMynt(ut) {
+    const nekade = ut.filter((b) => b.status === "nekad").length;
+    const betalda = ut.filter((b) => b.status === "betald").length;
+    if (!nekade && !betalda) return;
+    sparStatus.textContent = nekade
+      ? `Pluggmynten kunde inte betalas ut till ${nekade} ${nekade === 1 ? "elev" : "elever"} – det görs nästa gång du öppnar rättningen.`
+      : `Pluggmynt utbetalda till ${betalda} ${betalda === 1 ? "elev" : "elever"}.`;
+    sparStatus.dataset.lage = nekade ? "fel" : "sparat";
   }
 
   // --- tangentbordet (§6.1) -----------------------------------------------------------
@@ -334,4 +347,6 @@ function rattningsVy(ctx, body, data, elever, q) {
   document.addEventListener("visibilitychange", synlighet);
 
   ritaInnehall();
+  // Mynt som inte hann betalas ut förra gången (avbrott, nekad) – som Live-historiken.
+  lager.betalaKvar().then((ut) => { if (ut.length && vy.isConnected) { visaMynt(ut); aktiv?.uppdatera(); } });
 }

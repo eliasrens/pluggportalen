@@ -353,6 +353,60 @@ Förhandsvisning utan Firebase: `preview/preview-prov-statistik.html` (25 elever
 `?nollstall` börjar om). Skärmdumpar: `docs/qa-prov-742/`. Tester:
 `test/prov-statistik.test.js`, regler `test/firestore-rules-prov-statistik.test.js`.
 
+## Pluggmynt (#746, §11)
+
+Provets inställning `installningar.mynt` (kopieras till tillfället som de andra
+inställningarna): `{ typ: "inga" }` (standard, även prov utan fältet),
+`{ typ: "fast", antal: 1–200 }` för ett inlämnat prov eller
+`{ typ: "poang", antal: 1–20 }` per poäng (kräver `poang: true`; per poäng
+avrundas nedåt). Väljs under **Pluggmynt** i redigeraren (`larare/provl-mynt.js`).
+Beloppet räknas först vid tillbakalämningen, ur rättningens `totalPoang`, och är
+**högst 200 per prov och elev** (`src/prov/prov-mynt.js`).
+
+| Fil | Vad |
+| --- | --- |
+| `prov-mynt.js` | DOM-fri: `valideraMynt`, `provMyntBelopp`, texterna (`test/prov-mynt.test.js`) |
+| `prov-mynt-pay.js` | utbetalningen, SDK:t injicerat (samma kod i `test/firestore-rules-prov-mynt.test.js`) |
+| `prov-mynt-data.js` | Firebase-sidan, laddas dynamiskt av rättningslagret bara när tillfället har mynt |
+
+**Samma mekanism som Live-mynten** (`src/live/live-rewards-pay.js`): ingen Cloud
+Function, utan en transaktion per elev från lärarens klient där saldot
+(`studentData.coins`) och ett **kvitto** skrivs tillsammans, och reglerna godkänner
+bara kvittot om saldot ökar med exakt beloppet. Krockar (två flikar, två lärare)
+körs om med `medKrockOmforsok` (`kc-omforsok.js`), och årskurskontots
+coins-skrivning knyts till kvittot på samma sätt (`lastProvMynt` som Live:s
+`lastLiveReceipt`, `gradeStudentDataOk`). Skillnaden: ett prov kan lämnas tillbaka
+flera gånger, så kvittot är en **löpande summa** i stället för create-only:
+
+- `studentData/{elev}/provMynt/{t}` `{ total, tillfalleId, classId, at, by }` –
+  `total` får bara öka, högst 200 och högst vad tillfällets inställning ger.
+  Kvittot ligger hos eleven, så att radera rättningen eller tillfället nollställer
+  ingenting. Läraren raderar det aldrig.
+- `rattning.myntUtbetalt` speglar `total` (det eleven ser: **"+36 mynt"** i
+  resultatvyn). Bara utbetalningen ändrar det, ensamt och till exakt kvittots
+  total; en vanlig sparning (hela dokumentet) får behålla eller utelämna det
+  (ingen extra `get()` i batcharna).
+- **Ångra tillbakalämning** rör varken kvittot eller `myntUtbetalt`. En ny
+  tillbakalämning betalar `nytt belopp − total` om summan ökat, annars inget.
+- **När**: rättningslagret betalar direkt efter tillbakalämningsbatchen
+  (`lager.lamnaTillbaka` → `betalaMynt`), och igen när rättningsvyn öppnas för
+  tillbakalämnade elever som inte fått allt (`lager.betalaKvar`, avbrott/nekad).
+  Utfallet syns i sparraden; Per elev visar "N pluggmynt utbetalda".
+- Reglerna (`provMyntKvittoOk`, `provMyntTakOk`, `provMyntFaltOk`,
+  `provMyntBetalt`) kräver dessutom att rättningen är tillbakalämnad, att elevens
+  `svar` är inlämnat (svar skapas bara av eleven själv i klassen) och att den som
+  skriver har klassen – även admin. Eleven kan inte skriva kvittot.
+- Precis som Live: årskurskontot får inte skapa `studentData`, så en elev utan
+  dokument får mynten först när hen loggat in en gång (utbetalningen nekas och
+  görs om nästa gång rättningen öppnas).
+
+Förhandsvisning: `preview/preview-prov-rattning.html` (2 mynt per poäng; stubben
+`prov-ratta-stubs/prov-mynt-data.js` kör den riktiga `betalaProvMynt` mot ett
+minnes-SDK, saldot syns i kontrollraden). Skärmdumpar: `docs/qa-prov-746/`.
+
+Läsningar/skrivningar per elev och utbetalning: 4 läsningar (kvitto, rättning,
+svar, saldo) + 3 skrivningar i en transaktion. 25 elever = 100 + 75.
+
 ## Budget (§9) – 25 elever, 12 frågor, 40 minuter
 
 Autosparningen (`prov-sparning.js`): första sparningen 4 s efter en ändring,
@@ -393,3 +447,5 @@ klassen har rättningar (25 elever × 10 prov = 250), en gång när fliken öppn
 
 `firebase deploy --only firestore:rules,firestore:indexes` (regler + det
 sammansatta indexet och fältundantaget för `rattning`). Inga functions.
+Pluggmynten (#746) kräver bara regel-deployen – innan dess nekas utbetalningen
+och görs om när rättningen öppnas efter deployen.

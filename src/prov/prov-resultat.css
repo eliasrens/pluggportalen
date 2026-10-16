@@ -78,6 +78,11 @@
 .provv-res-niva {
   padding: 4px 14px; border-radius: 999px; border: 1px solid var(--provv-kant); background: var(--provv-ljus); font-weight: 600;
 }
+.provv-res-mynt {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 14px; border-radius: 999px;
+  border: 1px solid var(--provv-kant); background: var(--provv-ljus);
+}
+.provv-res-mynt-ikon { display: inline-flex; }
 .provv-res-ton { color: var(--provv-svag); margin: 10px 0 0; }
 .provv-res-hint { color: var(--provv-svag); font-size: 0.95rem; margin: 8px 0 0; }
 .provv-res-helhet {

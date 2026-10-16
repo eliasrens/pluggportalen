@@ -27,6 +27,7 @@ studentData/{studentId}/brakresa/state             ← Bråkresan: progress, tot
 studentData/{studentId}/brakresaRounds/{roundId}   ← Bråkresan: omgång med tio uppgifter + svar
 studentData/{studentId}/brakresaRewards/{eventId}  ← Bråkresan: belöningsbokföring (unikt händelse-id)
 studentData/{studentId}/brakresaHunts/{datum}      ← Bråkresan: daglig guldjakt
+studentData/{studentId}/provMynt/{tillfalleId}     ← Prov: pluggmynt-kvitto per prov (#746, löpande summa)
 brakresaSecrets/{roundId}                ← Bråkresan: omgångens facit – bara Cloud Functions
 brakresaRecommendations/{recId}          ← Bråkresan: lärarens rekommendationer
 mathCompetitions/{cid}/…                 ← Mattematchen (#457), se "Mattematchen & Live"
@@ -1896,11 +1897,11 @@ statusflöde och frågetypsregistret: [`docs/PROV.md`](PROV.md). Logiken bor i
 
 | Dokument | Fält | Skriver |
 | --- | --- | --- |
-| `prov/{provId}` | `namn` (1–80), `beskrivning?`, `amne?`, `arskurs?` (`"ak1".."ak9"`), `fragor` (≤ 60, **med facit**), `installningar` `{ poang, nivaer, visaFacit, stavningskontroll, tidsgransMin, granser: { gul, gron } }`, `createdBy`, `createdByName`, `skapad`, `uppdaterad` | ägaren (admin: alla) |
+| `prov/{provId}` | `namn` (1–80), `beskrivning?`, `amne?`, `arskurs?` (`"ak1".."ak9"`), `fragor` (≤ 60, **med facit**), `installningar` `{ poang, nivaer, visaFacit, stavningskontroll, tidsgransMin, granser: { gul, gron }, mynt }` (#746: `mynt` = `{ typ: "inga" }` (standard) / `{ typ: "fast", antal: 1–200 }` / `{ typ: "poang", antal: 1–20 }`), `createdBy`, `createdByName`, `skapad`, `uppdaterad` | ägaren (admin: alla) |
 | `provTillfallen/{t}` | `provId`, `provNamn`, `classId`, `createdBy`, `createdByName`, `status` (`forberett`/`oppet`/`stangt`), `fragor` (**utan facit**, `utanFacit`), `installningar` (kopia), `tidsgransMin` (null eller 5–240), `oppnad?`, `stangd?`, `skapad` (#740), `fokus: { pa, doljOvrigt }` (#740: lås klassen när provet öppnas), `rattStatus?: { antal, rattade, tillbaka }` (#741: räkneverket "18 av 24 rättade" för listan Provtillfällen, skrivs med rättningens sparningar) | lärare med klassen |
 | `provTillfallen/{t}/privat/facit` | `facit: { [fragaId]: … }`, `bedomningsstod: { [fragaId]: "…" }` | lärare med klassen |
 | `provTillfallen/{t}/svar/{elevUid}` | `elevId`, `classId`, `startad` (serverns tid), `uppdaterad` (serverns tid vid varje elevskrivning), `svar: { [fragaId]: … }` (≤ 60), `inlamnad`, `inlamnadAt?`, `inlamnadNar?` (`elev`/`tid`/`stangt`) | eleven (läraren: bara inlämnad-fälten vid stängning) |
-| `provTillfallen/{t}/rattning/{elevUid}` | `elevId`, `classId`, `provNamn`, `fragor: { [fragaId]: { poang?, ratt?, kommentar?, auto } }`, `totalPoang?`, `maxPoang?`, `niva?` (`EG`/`G`/`MG`/null), `helhetskommentar?` (≤ 4000), `aterlamnad`, `aterlamnadAt?`, `facit?` (kopieras in vid tillbakalämning om visaFacit), `provInfo?: { datum, granser: { gul, gron }, andel }` (#742: tillfällets datum i ms, färggränserna och elevens andel 0–1 av de bedömda frågorna, `null` = inget bedömt – för statistikfliken "Prov"). Inga andra fält. `auto: true` = automatiskt förslag som läraren inte godkänt än. `facit` och `aterlamnadAt` finns **bara** när `aterlamnad == true` (reglerna, #741) | lärare med klassen |
+| `provTillfallen/{t}/rattning/{elevUid}` | `elevId`, `classId`, `provNamn`, `fragor: { [fragaId]: { poang?, ratt?, kommentar?, auto } }`, `totalPoang?`, `maxPoang?`, `niva?` (`EG`/`G`/`MG`/null), `helhetskommentar?` (≤ 4000), `aterlamnad`, `aterlamnadAt?`, `facit?` (kopieras in vid tillbakalämning om visaFacit), `provInfo?: { datum, granser: { gul, gron }, andel }` (#742: tillfällets datum i ms, färggränserna och elevens andel 0–1 av de bedömda frågorna, `null` = inget bedömt – för statistikfliken "Prov"), `myntUtbetalt?` (#746: heltal 0–200, spegel av kvittot nedan – bara utbetalningen ändrar det, ångra rör det inte). Inga andra fält. `auto: true` = automatiskt förslag som läraren inte godkänt än. `facit` och `aterlamnadAt` finns **bara** när `aterlamnad == true` (reglerna, #741) | lärare med klassen |
 
 - Svarens form per frågetyp (flerval = index, flerval-flera = lista med index,
   santfalskt = bool, kortsvar/fritext = text, lucktext/para = lista med texter,
@@ -1909,6 +1910,12 @@ statusflöde och frågetypsregistret: [`docs/PROV.md`](PROV.md). Logiken bor i
 - Collection group-frågor på `rattning`: eleven `elevId == uid, aterlamnad == true,
   orderBy aterlamnadAt desc, limit 10` (sammansatt index) och läraren
   `classId == klassen` (fältundantag) – båda i `firestore.indexes.json`.
+- **Pluggmynt per prov (#746)**: kvittot `studentData/{elevUid}/provMynt/{t}` =
+  `{ total, tillfalleId, classId, at, by }` – den löpande summan som betalats ut för
+  tillfället (bara uppåt, högst 200), skrivs av läraren med klassen i samma
+  transaktion som `studentData.coins` (+ `lastProvMynt` = tillfället) och
+  `rattning.myntUtbetalt` (`src/prov/prov-mynt-pay.js`). Eleven och läraren läser;
+  bara admin raderar. Se docs/PROV.md "Pluggmynt".
 - ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules,firestore:indexes`.
 
 ---

@@ -3,15 +3,18 @@
 // stängt prov med alla frågetyper. Alva är redan tillbakalämnad, Bo är
 // färdigrättad – de andra rättas från förslagen. Allt i minnet + localStorage
 // (pp:preview741), så att en omladdning behåller rättningen. ?nollstall = börja om.
+// #746: provet ger 2 pluggmynt per poäng; saldon och kvitton i S.mynt
+// (prov-mynt-data.js kör den riktiga utbetalningen mot dem). Alva lämnades
+// tillbaka "före" mynten – hon får sina när rättningen öppnas (betalaKvar).
 // ============================================================================
 import { validateProv } from "../../src/prov/prov-validera.js";
 import { delaUppProv } from "../../src/prov/prov-modell.js";
 import { nyRattning, bedom, godkannAlla, aterlamnadDok, sparDok } from "../../src/prov/prov-rattning-logik.js";
 
-const NYCKEL = "pp:preview741";
+const NYCKEL = "pp:preview741-746";
 export const PROV = validateProv({
   namn: "Vikingatiden – prov",
-  installningar: { poang: true, nivaer: true, visaFacit: true },
+  installningar: { poang: true, nivaer: true, visaFacit: true, mynt: { typ: "poang", antal: 2 } },
   fragor: [
     { id: "t1", typ: "text", titel: "Birka", brodtext: "Birka var en handelsstad på Björkö i Mälaren. Dit kom köpmän från många länder." },
     { id: "q1", typ: "flerval", fraga: "Var låg Birka?", alternativ: ["Björkö", "Gotland", "Öland"], ratt: 0 },
@@ -57,7 +60,8 @@ function start() {
   alva = { ...alva, niva: "MG", helhetskommentar: "Mycket bra jobbat, Alva! Du kan vikingatiden väl." };
   rattning.e0 = { ...aterlamnadDok(sparDok(alva, fragor), { visaFacit: true, facit }), aterlamnadAt: nu - 3_600_000 };
   rattning.e1 = sparDok(bedom(godkannAlla(ny("e1"), fragor), q8, { poang: 2, kommentar: "Berätta mer om arbetet på gården." }, fragor), fragor);
-  return { tf, facit, bedomningsstod, svar, rattning, rattStatus: null };
+  const mynt = { saldo: Object.fromEntries(IDS.map((id) => [id, 100])), kvitton: {} };
+  return { tf, facit, bedomningsstod, svar, rattning, rattStatus: null, mynt };
 }
 
 function las() {
@@ -81,8 +85,8 @@ export const S = {
   skrivningar: 0,
   natfel: false,
   spara() {
-    const { tf, facit, bedomningsstod, svar, rattning } = S;
-    localStorage.setItem(NYCKEL, JSON.stringify({ tf, facit, bedomningsstod, svar, rattning }));
+    const { tf, facit, bedomningsstod, svar, rattning, mynt } = S;
+    localStorage.setItem(NYCKEL, JSON.stringify({ tf, facit, bedomningsstod, svar, rattning, mynt }));
   },
   logg: (t) => window.dispatchEvent(new CustomEvent("pv-logg", { detail: t })),
 };

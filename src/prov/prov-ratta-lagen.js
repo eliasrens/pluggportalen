@@ -181,7 +181,7 @@ export function perElev(v) {
       const nar = tillMs(r().aterlamnadAt);
       const dag = nar ? ` ${new Date(nar).toLocaleDateString("sv-SE", { day: "numeric", month: "short" })} ${formatKlockslag(nar)}` : "";
       knapp.replaceChildren(
-        h("p", { class: "provl-r-tillbaka-info", text: `✓ Tillbakalämnat${dag} · ${r().facit ? "med facit" : "utan facit"}.` }),
+        h("p", { class: "provl-r-tillbaka-info", text: `✓ Tillbakalämnat${dag} · ${r().facit ? "med facit" : "utan facit"}${r().myntUtbetalt ? ` · ${r().myntUtbetalt} pluggmynt utbetalda` : ""}.` }),
         h("button", { type: "button", class: "btn ghost small", text: "Ångra tillbakalämning", on: { click: () => v.angra(uid) } }));
     } else {
       const kvar = rf.filter((f) => !arBedomd(r().fragor?.[f.id])).length;

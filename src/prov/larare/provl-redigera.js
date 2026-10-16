@@ -26,6 +26,7 @@ import {
   sparaFraga, taBortFraga, tillDokument, tomFraga,
 } from "../prov-redigera-ops.js";
 import { byggFragaForm } from "./provl-fragaform.js";
+import { myntFalt } from "./provl-mynt.js";
 import { felText, hamtaProv, raderaProv, sparaProv } from "./provl-data.js";
 import { HASH } from "./page-larare-prov.js";
 import { korIKlass, raderaRuta } from "./provl-lista.js";
@@ -140,8 +141,17 @@ function ritaRedigerare(ctx, host, st) {
     const k = inp.dataset.ins;
     const v = inp.type === "checkbox" ? inp.checked : tolkaTidsgrans(inp.value);
     andra({ ...st.prov, installningar: { ...st.prov.installningar, [k]: v === undefined ? inp.value : v } });
-    if (k === "poang") ritaFragor();
+    if (k === "poang") {
+      mynt.sattPoang(inp.checked);
+      ritaFragor();
+    }
   }));
+  // Pluggmynt (#746) – eget fält under inställningarna.
+  const mynt = myntFalt({
+    mynt: ins.mynt, poang: ins.poang,
+    onAndra: (m) => andra({ ...st.prov, installningar: { ...st.prov.installningar, mynt: m } }),
+  });
+  $(".provl-installningar").after(mynt.el);
 
   // --- Frågekorten --------------------------------------------------------------
   const lista = $(".provl-fragelista");

@@ -18,6 +18,7 @@
 import { normalizeGrade } from "../grades.js";
 import { FRAGETYPER, fragetyp, TYP_IDS } from "./prov-fragetyper.js";
 import { GRANS, ID_RE, arText, tecken, trimmad } from "./typer/delat.js";
+import { STANDARD_MYNT, valideraMynt } from "./prov-mynt.js";
 
 export const NAMN_MAX = 80;
 export const BESKRIVNING_MAX = 1000;
@@ -33,6 +34,7 @@ export const STANDARD_INSTALLNINGAR = Object.freeze({
   stavningskontroll: false,
   tidsgransMin: null,
   granser: Object.freeze({ gul: 40, gron: 70 }),
+  mynt: STANDARD_MYNT, // #746 – prov-mynt.js
 });
 
 /** Tidsgräns i minuter: null (ingen) eller heltal 5–240. undefined = ogiltig. */
@@ -43,7 +45,7 @@ export function tolkaTidsgrans(v) {
 }
 
 function valideraInstallningar(raw, errors) {
-  const ut = { ...STANDARD_INSTALLNINGAR, granser: { ...STANDARD_INSTALLNINGAR.granser } };
+  const ut = { ...STANDARD_INSTALLNINGAR, granser: { ...STANDARD_INSTALLNINGAR.granser }, mynt: { ...STANDARD_MYNT } };
   if (raw === undefined || raw === null) return ut;
   if (typeof raw !== "object" || Array.isArray(raw)) {
     errors.push('Inställningar: "installningar" måste vara ett objekt { … }.');
@@ -64,6 +66,9 @@ function valideraInstallningar(raw, errors) {
       errors.push("Inställningar: färggränserna måste vara heltal i procent där gul (1–99) är lägre än grön (högst 100).");
     } else ut.granser = { gul, gron };
   }
+  const mynt = valideraMynt(raw.mynt, ut.poang);
+  errors.push(...mynt.fel);
+  ut.mynt = mynt.value;
   return ut;
 }
 
