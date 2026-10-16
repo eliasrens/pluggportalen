@@ -39,10 +39,12 @@
         Höga tal, ligger ovanpå allt scen-innehåll. */
 
   /* 1) Scen (lokalt i spelvyn) */
-  --z-scen-markor: 2;   /* små brickor i scenen: by-du, by-last-ikon, omrade-du */
+  --z-scen-markor: 2;   /* små brickor i scenen: omrade-du, trädgårdens markörer */
+  --z-by-lov: 1050;     /* byns säsongslöv: över hus+dekor, under namnskyltarna (#732) */
+  --z-by-skylt: 1100;   /* byns namnskylt, by-du, by-last-ikon/-bubbla: över alla hus+dekor (deras z = markpunkt-y·10 ≤ 1000) */
   --z-scen-drag: 5;     /* möbel som just dras (room-item.dragging) */
   --z-scen-objekt: 6;   /* objekt/dörrar/rumslista på scenen (rum-dorr, rum-lista) */
-  --z-bubbla: 6;        /* pratbubblor & tooltips (by-last-bubbla) */
+  --z-bubbla: 6;        /* pratbubblor & tooltips (kc-bubbla) */
   --z-scen-hint: 8;     /* hint-remsa nederst i scenen (hus-hint) */
   --z-scen-ui: 12;      /* scenens overlay-kontrollskikt (varld-ui) */
   --z-panel: 14;        /* flytande scen-paneler (varld-petpanel) */
@@ -4508,14 +4510,19 @@ body.varld-lage .container {
 
 /* En tomt = ett minihus + elevens avatar (husMini) med namnskylt under.
    left/top/width/height sätts inline av varld-by-scen.js utifrån byLayout
-   (procent av lagret – samma koordinater som kamerans fokuspunkter). */
+   (procent av lagret – samma koordinater som kamerans fokuspunkter).
+   #732: tomten är ingen staplingskontext (ingen z-index/transform). Huset
+   staplas efter sin markpunkt (--by-z, inline), medan skylt/"Du!"/🔒/bubbla
+   ligger på --z-by-skylt över ALLA hus och all dekor i byn, så nästa rads tak
+   aldrig täcker namnet ovanför. */
 .by-tomt {
   position: absolute;
-  transform: translate(-50%, -50%);
   cursor: pointer;
   outline: none;
 }
 .by-tomt > svg {
+  position: relative;
+  z-index: var(--by-z, auto);
   width: 100%;
   height: 100%;
   display: block;
@@ -4542,11 +4549,27 @@ body.varld-lage .container {
   font-weight: 800;
   font-size: 0.78rem;
   color: #3b3350;
+  z-index: var(--z-by-skylt);
 }
 .by-tomt.du .by-namn {
   background: var(--gron, #34a853);
   border-color: rgba(59, 51, 80, 0.55);
   color: #fff;
+}
+/* Smal by (mobil, smal laptop): cellerna blir smalare än namnen → grannskyltar
+   krockade i sidled (#732). Mindre skylt, och varannan tomts skylt (.udda, varje
+   udda kolumn) hänger ett skylt-steg lägre så varje skylt får ~2 cellers bredd. */
+.varld-by,
+.varld-grannby { container-type: inline-size; }
+@container (max-width: 760px) {
+  .by-namn {
+    max-width: 190%;
+    padding: 0 6px;
+    border-width: 1.5px;
+    font-size: max(0.56rem, 1.6cqw);
+    line-height: 1.35;
+  }
+  .by-tomt.udda .by-namn { top: calc(100% + 1.35em + 2px); }
 }
 
 .by-du {
@@ -4561,7 +4584,7 @@ body.varld-lage .container {
   border-radius: 999px;
   box-shadow: var(--skugga);
   transform: rotate(6deg);
-  z-index: var(--z-scen-markor);
+  z-index: var(--z-by-skylt);
   pointer-events: none;
 }
 
@@ -4573,7 +4596,7 @@ body.varld-lage .container {
   top: -2px;
   left: 68%;
   font-size: 0.95rem;
-  z-index: var(--z-scen-markor);
+  z-index: var(--z-by-skylt);
   pointer-events: none;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
 }
@@ -4596,7 +4619,7 @@ body.varld-lage .container {
   box-shadow: var(--skugga-mjuk);
   opacity: 0;
   transition: opacity 0.2s ease, transform 0.2s ease;
-  z-index: var(--z-bubbla);
+  z-index: calc(var(--z-by-skylt) + 1);
   pointer-events: none;
 }
 .by-last-bubbla::after {
@@ -8128,6 +8151,15 @@ html.sz-paus .sz-fladder > i { animation-play-state: paused; }
 /* Löven ligger ovanpå scenlagren men under scenens knappar (.varld-ui) och,
    på inloggningen, under login-skylten (som ritas efter lagret). */
 .varld-stage .sz-lager { z-index: calc(var(--z-scen-ui) - 1); }
+/* Byarna (#732): scenens löv döljs och byns egna löv (inne i by-lagret) faller
+   mellan husen och namnskyltarna, så inget löv täcker ett namn. Lagret sträcker
+   sig ut över hela det kant-i-kant-breddade staget (som klipper). */
+.varld-stage[data-niva="by"] > .sz-lager-wrap > .sz-lager,
+.varld-stage[data-niva="grannby"] > .sz-lager-wrap > .sz-lager { display: none; }
+.varld-lager .sz-lager {
+  z-index: var(--z-by-lov);
+  inset: 0 -50vw -50vh;
+}
 
 /* På inloggningen läggs lagret direkt efter port-SVG:n i DOM:en (före
    login-skylten), så skylten alltid ritas ovanpå löv och fladdermöss. */

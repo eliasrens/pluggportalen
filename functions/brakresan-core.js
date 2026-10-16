@@ -13,6 +13,8 @@
 //                skapas i SAMMA transaktion. replaceRoundId (valfri) = byt bara
 //                om den aktiva fortfarande är just den – ett dubbelklick eller en
 //                andra flik startar då inte om en gång till.
+//                Nekas (permission-denied) när klassen dolt Bråkresan eller är
+//                låst till något annat i fokusläget (#735, assertModuleOpen).
 //   answerTask   { roundId, index, answer, helpBefore? } → graded | invalid
 //                Första GILTIGA svaret låser rätt/fel. Omförsök/dubbelklick →
 //                det sparade utfallet (already: true). Inmatningsfel sparas inte.
@@ -113,6 +115,28 @@ async function planFresh(c, r, challenge) {
   return { roundId, seed, plan, tasks };
 }
 
+/** Modul-id i registret och låstypen i fokusläget (src/gamemode-visibility.js). */
+export const MODUL_ID = "brakresan";
+
+/**
+ * Speglar elevens grind (#412/#436, src/class-lock.js) på servern (#735): en
+ * omgång startar inte när någon av elevens klasser döljer Bråkresan eller har
+ * ett aktivt fokuslås till något annat. Ett aktivt lås TILL Bråkresan öppnar
+ * den även om den är dold (samma regel som klienten). Reglerna tillåter bara
+ * kända låstyper, så varje typ med `till` i framtiden räknas som ett lås.
+ */
+export async function assertModuleOpen(db, uid, nowMs) {
+  const klasser = (await db.collection("classes").where("studentIds", "array-contains", uid).get())
+    .docs.map((d) => d.data());
+  const las = klasser.map((k) => k.lock)
+    .filter((l) => typeof l?.mal?.typ === "string" && Number(l.till) > nowMs);
+  if (las.some((l) => l.mal.typ === MODUL_ID)) return;
+  if (las.length) throw new BrFel("permission-denied", "Din klass har fokusläge på något annat just nu.");
+  if (klasser.some((k) => Array.isArray(k.hiddenModules) && k.hiddenModules.includes(MODUL_ID))) {
+    throw new BrFel("permission-denied", "Bråkresan är stängd för din klass just nu.");
+  }
+}
+
 const NEED_PLAN = Symbol("need-plan");
 
 export async function startRound(deps, uid, data = {}) {
@@ -121,6 +145,7 @@ export async function startRound(deps, uid, data = {}) {
   if (!isChallengeId(challengeId)) throw new BrFel("invalid-argument", "Okänd utmaning.");
   const restart = data.restart === true;
   const replace = data.replaceRoundId == null ? null : roundIdOf({ roundId: data.replaceRoundId });
+  await assertModuleOpen(c.db, uid, c.now());
   const challenge = await loadBuilt(c.load, challengeId);
   const r = brRefs(c.db, uid);
   let fresh = null;

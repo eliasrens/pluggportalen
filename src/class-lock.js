@@ -1,31 +1,51 @@
 // ============================================================================
 // Pluggporten – klass-lås / fokusläge (issue #436), REN logik (ingen Firebase/DOM)
 // ----------------------------------------------------------------------------
-// Läraren kan LÅSA en klass till ETT mål (ett pluggområde ELLER Läsresan) fram
-// till ett klockslag. Lagras på klass-dokumentet:
+// Läraren kan LÅSA en klass till ETT mål (ett pluggområde ELLER en låsbar
+// modul: Läsresan, Ekvationsresan, Hitta rätt!, Mattematchen …) fram till ett
+// klockslag. Lagras på klass-dokumentet:
 //
 //   classes/{id}.lock = {
-//     mal:  { typ: "omrade" | "lasresan", id?: "<subjectId>/<areaId>", namn?: string },
+//     mal:  { typ: "omrade" | <modul-id>, id?: "<subjectId>/<areaId>", namn?: string },
 //     till: <epoch-ms>,          // sluttiden (klockslaget läraren valde)
 //     doljOvrigt: <bool>,        // "Dölj allt annat": även shop/värld/profil döljs
 //   }
 //
 // Saknat fält, okänd form eller `till <= now` = INGET lås (bakåtkompatibelt).
-// Grundlåset döljer alltid övriga INLÄRNINGS-områden (andra Plugga-områden +
-// Läsresan om den inte är målet). Med doljOvrigt nås BARA målet.
+// Grundlåset spärrar alltid övriga INLÄRNINGS-moduler (andra Plugga-områden +
+// alla `learning`-moduler som inte är målet). Med doljOvrigt nås BARA målet.
+//
+// Mål-typerna och inlärnings-rutterna HÄRLEDS ur modulregistret
+// (STUDENT_MODULES i gamemode-visibility.js, #734): ny modul = en rad där.
 //
 // Laddas ALLTID dynamiskt (via class-lock-watch.js / lärarpanelen) – filen får
 // aldrig hamna i den statiska bootgrafen (incident #271).
 // ============================================================================
 
-/** Mål-typerna (utbyggbar enum – nya typer läggs till här + i reglerna). */
-export const LOCK_TARGET_TYPES = ["omrade", "lasresan"];
+import { STUDENT_MODULES, studentModuleForRoute } from "./gamemode-visibility.js";
+
+/** Låstypen för ett Plugga-område (modulen med `lockAreas`). */
+const OMRADE = "omrade";
+
+// Låsbara moduler ur registret. Typen = modul-id, utom område-modulen (Plugga),
+// vars mål är ETT område: typen "omrade" + mal.id "subj/area".
+const LASBARA = STUDENT_MODULES.filter((m) => m.lockable);
+const typAv = (m) => (m.lockAreas ? OMRADE : m.id);
+
+/** Mål-typerna (ur registret; speglas i firestore.rules validLockShape). */
+export const LOCK_TARGET_TYPES = LASBARA.map(typAv);
+
+/** Registrets modul för låsets mål-typ (null om okänd). */
+export function lockTargetModule(typ) {
+  return LASBARA.find((m) => typAv(m) === typ) || null;
+}
 
 /** Längsta tillåtna lås (speglas i firestore.rules): en skoldag räcker gott. */
 export const MAX_LOCK_MS = 24 * 60 * 60 * 1000;
 
-// Plugga-modulens rutter: listan + område/spel/äventyr (de tre bär ?subj=&area=).
-const OMRADE_RUTTER = ["/elev/omrade", "/elev/spela", "/elev/aventyr"];
+// Område-modulens rutter (Plugga): första = listan (visar bara målområdet under
+// låset), övriga = område/spel/äventyr som bär ?subj=&area=.
+const [OMRADE_LISTA, ...OMRADE_RUTTER] = lockTargetModule(OMRADE)?.routes || [];
 
 /** "subjectId/areaId" → { subjectId, areaId } (null om ogiltigt). */
 export function parseAreaKey(id) {
@@ -51,7 +71,7 @@ export function normalizeLock(v) {
   const till = Math.round(Number(v.till));
   if (!Number.isFinite(till) || till <= 0) return null;
   const mal = { typ };
-  if (typ === "omrade") {
+  if (typ === OMRADE) {
     if (!parseAreaKey(v.mal.id)) return null;
     mal.id = String(v.mal.id);
   }
@@ -82,21 +102,21 @@ export function lockForStudent(classes, meId, now) {
 
 /** Hash-länken till låsets mål (dit eleven skickas när något annat är låst). */
 export function lockHomeHash(lock) {
-  if (lock.mal.typ === "lasresan") return "#/elev/lasresan";
+  if (lock.mal.typ !== OMRADE) return `#${lockTargetModule(lock.mal.typ).routes[0]}`;
   const a = parseAreaKey(lock.mal.id);
   const enc = encodeURIComponent;
-  return `#/elev/omrade?subj=${enc(a.subjectId)}&area=${enc(a.areaId)}`;
+  return `#${OMRADE_RUTTER[0]}?subj=${enc(a.subjectId)}&area=${enc(a.areaId)}`;
 }
 
-/** Visningsnamn för målet ("Läsresan" eller områdets namn). */
+/** Visningsnamn för målet (modulens namn, t.ex. "Läsresan", eller områdets namn). */
 export function lockLabel(lock) {
-  if (lock.mal.typ === "lasresan") return "Läsresan";
+  if (lock.mal.typ !== OMRADE) return lockTargetModule(lock.mal.typ).label;
   return lock.mal.namn || parseAreaKey(lock.mal.id)?.areaId || "ett område";
 }
 
 /** Är (ämne, område) låsets mål-område? */
 export function lockAllowsArea(lock, subjectId, areaId) {
-  return lock.mal.typ === "omrade" && lock.mal.id === areaKey(subjectId, areaId);
+  return lock.mal.typ === OMRADE && lock.mal.id === areaKey(subjectId, areaId);
 }
 
 /**
@@ -106,21 +126,21 @@ export function lockAllowsArea(lock, subjectId, areaId) {
  * @param {URLSearchParams|{get:function}} query
  */
 export function lockIsTarget(lock, path, query) {
-  if (lock.mal.typ === "lasresan") return path === "/elev/lasresan";
-  if (path === "/elev/plugga") return true; // listan visar bara målområdet
+  if (lock.mal.typ !== OMRADE) return lockTargetModule(lock.mal.typ).routes.includes(path);
+  if (path === OMRADE_LISTA) return true; // listan visar bara målområdet
   if (!OMRADE_RUTTER.includes(path)) return false;
   return lockAllowsArea(lock, query?.get?.("subj") || "", query?.get?.("area") || "");
 }
 
-/** Inlärnings-rutter (Plugga + Läsresan) – det grundlåset alltid styr. */
+/** Inlärnings-rutter (registrets `learning`-moduler) – det grundlåset alltid styr. */
 function arInlarning(path) {
-  return path === "/elev/plugga" || path === "/elev/lasresan" || OMRADE_RUTTER.includes(path);
+  return !!studentModuleForRoute(path)?.learning;
 }
 
 /**
  * Får eleven öppna `path` under låset?
  *  - målet: alltid
- *  - övriga inlärnings-rutter (andra områden, Läsresan/Plugga): aldrig
+ *  - övriga inlärnings-rutter (andra områden + alla andra `learning`-moduler): aldrig
  *  - allt annat (hus/värld/shop/profil…): bara om läraren INTE valt "Dölj allt annat"
  *  - avatarvalet (första inloggningen) blockeras aldrig
  */

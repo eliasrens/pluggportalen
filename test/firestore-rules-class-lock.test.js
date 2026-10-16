@@ -84,10 +84,48 @@ describe("Fokusläge (#436): lock läsbart för eleven, skrivbart för lärare",
     await assertSucceeds(updateDoc(doc(teacher(), "classes", "6a"), { lock: deleteField() }));
   });
 
+  it("#734: läraren FÅR låsa till Ekvationsresan, Hitta rätt! och Mattematchen", async () => {
+    for (const typ of ["ekvationsresan", "hittaratt", "mattematchen"]) {
+      await assertSucceeds(
+        updateDoc(doc(teacher(), "classes", "6b"), {
+          lock: { mal: { typ }, till: Date.now() + 30 * MIN, doljOvrigt: false },
+        })
+      );
+      const snap = await getDoc(doc(elev("elev2"), "classes", "6b"));
+      assert.equal(snap.data().lock.mal.typ, typ, "klassens elev läser det nya låset");
+    }
+  });
+
+  it("#734: eleven får INTE byta mål till en ny modul", async () => {
+    await assertFails(
+      updateDoc(doc(elev("elev1"), "classes", "6a"), {
+        lock: { mal: { typ: "hittaratt" }, till: Date.now() + 30 * MIN, doljOvrigt: false },
+      })
+    );
+  });
+
+  it("#735: läraren FÅR låsa till Bråkresan, eleven får INTE ändra eller ta bort låset", async () => {
+    const brak = { mal: { typ: "brakresan" }, till: Date.now() + 30 * MIN, doljOvrigt: false };
+    await assertSucceeds(updateDoc(doc(teacher(), "classes", "6a"), { lock: brak }));
+    const snap = await getDoc(doc(elev("elev1"), "classes", "6a"));
+    assert.equal(snap.data().lock.mal.typ, "brakresan", "klassens elev läser låset");
+    await assertFails(updateDoc(doc(elev("elev1"), "classes", "6a"), { lock: { ...brak, doljOvrigt: true } }));
+    await assertFails(updateDoc(doc(elev("elev1"), "classes", "6a"), { lock: deleteField() }));
+    await assertFails(
+      updateDoc(doc(elev("elev1"), "classes", "6b"), { lock: brak }),
+      "eleven kan inte heller låsa en klass till Bråkresan"
+    );
+  });
+
   it("läraren får INTE spara en okänd mål-typ eller ett område utan id", async () => {
     await assertFails(
       updateDoc(doc(teacher(), "classes", "6a"), { lock: omLock({ mal: { typ: "shop" } }) })
     );
+    for (const typ of ["live", "plugga", "okandmodul", ""]) {
+      await assertFails(
+        updateDoc(doc(teacher(), "classes", "6a"), { lock: omLock({ mal: { typ } }) })
+      );
+    }
     await assertFails(
       updateDoc(doc(teacher(), "classes", "6a"), { lock: omLock({ mal: { typ: "omrade" } }) })
     );
