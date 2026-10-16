@@ -9,6 +9,8 @@
 //   elevStatVy(v, uid)  en elev: fråga för fråga i färg, svaren, kommentarerna,
 //                       totalen och nivån
 // Båda returnerar { el, uppdatera() } som lägena i prov-ratta-lagen.js.
+// Den fördjupade statistiken och utskriften (#747) laddas lat från
+// prov-fordjupad-vy.js: verktygsraden ovanför rutnätet, sektionerna under.
 //
 // v utöver lägenas kontext (prov-ratta-sida.js):
 //   stat           { sort: "namn"|"resultat" }
@@ -102,13 +104,23 @@ export function oversiktVy(v) {
   const wrap = h("div", { class: "provl-st" });
   const topp = h("div", { class: "panel provl-st-topp" });
   const tabellHost = h("div", { class: "panel provl-st-rutnat-panel" });
+  // Den fördjupade statistiken (#747): CSV, utskrift, staplar, fördelning, jämförelse – lat.
+  const verktygHost = h("div", { class: "provl-st-utverktyg-host" });
+  const fordjupadHost = h("div", { class: "provl-st-fordjupad" });
+  let fordjupad = null;
+  let senast = null;
   let tid = null;
   const reglage = granssReglage(v, (g) => {
     clearTimeout(tid);
     tid = setTimeout(() => v.sattGranser(g), 400);
     rita(g);
   });
-  wrap.append(topp, tabellHost);
+  wrap.append(topp, verktygHost, tabellHost, fordjupadHost);
+  import("./prov-fordjupad-vy.js").then((mod) => {
+    fordjupad = mod;
+    verktygHost.replaceChildren(mod.verktyg(v));
+    if (senast) fordjupadHost.replaceChildren(...mod.sektioner(v, senast));
+  }).catch(() => fordjupadHost.replaceChildren(h("p", { class: "msg error", text: "Den fördjupade statistiken kunde inte laddas – ladda om sidan." })));
 
   function rita(granser) {
     const m = klassOversikt({
@@ -162,6 +174,8 @@ export function oversiktVy(v) {
       h("div", { class: "provl-st-scroll", tabindex: "0", "aria-label": "Klassens resultat per fråga – scrolla i sidled" },
         h("table", { class: "provl-st-tabell" }, thead, tbody, tfoot)),
       teckenforklaring());
+    senast = m;
+    if (fordjupad) fordjupadHost.replaceChildren(...fordjupad.sektioner(v, m));
   }
   rita();
   return { el: wrap, uppdatera: () => {} };
@@ -185,7 +199,9 @@ export function elevStatVy(v, uid) {
       h("button", { type: "button", class: "btn ghost small", text: "← Hela klassen", on: { click: () => v.tillKlassen() } }),
       h("button", { type: "button", class: "btn ghost small", text: "‹ Föregående", disabled: i <= 0, on: { click: () => v.oppnaElev(v.med[i - 1]) } }),
       h("button", { type: "button", class: "btn ghost small", text: "Nästa ›", disabled: i >= v.med.length - 1, on: { click: () => v.oppnaElev(v.med[i + 1]) } }),
-      h("button", { type: "button", class: "btn small", text: "Rätta eleven", on: { click: () => v.oppnaSvar(uid, null) } })),
+      h("button", { type: "button", class: "btn small", text: "Rätta eleven", on: { click: () => v.oppnaSvar(uid, null) } }),
+      h("button", { type: "button", class: "btn ghost small", text: "🖨 Skriv ut", title: "Skriv ut elevens rättade prov (#747)",
+        on: { click: () => import("./prov-fordjupad-vy.js").then((mod) => mod.skrivUtElever(v, [uid])) } })),
     h("h3", { class: "provl-st-elev-namn", text: v.visNamn(uid) }),
     h("p", { class: "provl-st-elev-summa" }, totalBricka(rad, poangsatt),
       nivaText ? h("span", { class: "provl-st-niva-text", text: ` Nivå: ${nivaText}` }) : null,

@@ -115,10 +115,65 @@
 .provl-st-linje-p.provl-st-gul { fill: var(--st-gul); }
 .provl-st-linje-p.provl-st-rod { fill: var(--st-rod); }
 
+/* Fördjupad statistik (#747): verktygen, staplar per fråga, fördelningen, jämförelsen */
+.provl-st-utverktyg { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+.provl-st-fordjupad { display: grid; gap: 12px; margin-top: 12px; }
+.provl-st-sektion { margin: 0; }
+.provl-st-underrubrik { margin: 14px 0 6px; font-size: 0.95rem; }
+.provl-st-staplar { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.provl-st-stapelrad { display: grid; grid-template-columns: minmax(140px, 260px) 1fr auto; gap: 4px 12px; align-items: center; }
+.provl-st-stapel-namn {
+  display: flex; gap: 6px; align-items: baseline; min-width: 0; background: none; border: 0; padding: 4px 0;
+  color: var(--t-text, #e7edf3); font: inherit; text-align: left; cursor: pointer;
+}
+.provl-st-stapel-namn b { white-space: nowrap; flex: none; }
+.provl-st-stapel-namn:hover b { text-decoration: underline; color: #7ee2a8; }
+.provl-st-stapel-text { color: var(--t-muted, #93a2b3); font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Segmenten: 2px mellanrum (yta mellan fälten), rundade ändar, siffra + symbol i segmentet. */
+.provl-st-stapel { display: flex; gap: 2px; height: 24px; min-width: 0; }
+.provl-st-seg {
+  display: flex; align-items: center; justify-content: center; min-width: 0; overflow: hidden; flex-basis: 0;
+  font-size: 0.75rem; font-weight: 800; white-space: nowrap;
+}
+.provl-st-seg:first-child { border-radius: 4px 0 0 4px; }
+.provl-st-seg:last-child { border-radius: 0 4px 4px 0; }
+.provl-st-seg:only-child { border-radius: 4px; }
+.provl-st-seg-ratt { background: var(--st-gron); color: #06210f; }
+.provl-st-seg-delvis { background: var(--st-gul); color: #2a1f00; }
+.provl-st-seg-fel { background: var(--st-rod); color: #2b0b08; }
+.provl-st-seg-obesvarad { background: transparent; color: var(--st-gra-text); box-shadow: inset 0 0 0 1.5px var(--st-gra); }
+.provl-st-seg-ej { background: rgba(255, 255, 255, 0.1); color: var(--st-gra-text); }
+.provl-st-seg-prov { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 16px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; }
+/* Histogrammet: tio staplar, antalet ovanför, procent + färgsymbol under. */
+.provl-st-histogram { display: grid; grid-template-columns: repeat(10, minmax(24px, 1fr)); gap: 2px; align-items: end; max-width: 640px; margin-top: 8px; }
+.provl-st-hkol { display: grid; grid-template-rows: auto 120px auto; justify-items: center; gap: 4px; }
+.provl-st-hantal { font-size: 0.8rem; font-weight: 700; min-height: 1.1em; font-variant-numeric: tabular-nums; }
+.provl-st-hyta { display: flex; align-items: flex-end; width: 100%; height: 120px; border-bottom: 1px solid var(--t-border-strong, rgba(255, 255, 255, 0.25)); }
+.provl-st-hstapel { display: block; width: 100%; border-radius: 4px 4px 0 0; padding: 0; border-width: 0; }
+.provl-st-hstapel.provl-st-gron { background: var(--st-gron); }
+.provl-st-hstapel.provl-st-gul { background: var(--st-gul); }
+.provl-st-hstapel.provl-st-rod { background: var(--st-rod); }
+.provl-st-hetikett { font-size: 0.75rem; color: var(--t-muted, #93a2b3); white-space: nowrap; }
+.provl-st-nivalista { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-width: 520px; }
+.provl-st-nivalista li { display: grid; grid-template-columns: 190px 1fr 2.5em; gap: 10px; align-items: center; }
+.provl-st-nivanamn { font-size: 0.9rem; }
+.provl-st-nivastapel { height: 14px; background: rgba(255, 255, 255, 0.06); border-radius: 4px; overflow: hidden; }
+.provl-st-nivafyll { display: block; height: 100%; background: #6f9fd8; border-radius: 4px; }
+.provl-st-nivafyll-ingen { background: var(--st-gra); }
+.provl-st-nivaantal { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.provl-st-jamfor { min-width: 0; width: auto; }
+.provl-st-jamfor td, .provl-st-jamfor th { white-space: nowrap; }
+.provl-st-jamfor tbody th { font-size: 0.9rem; font-weight: 600; }
+.provl-st-jamfor-host { margin-top: 8px; }
+
 @media (max-width: 640px) {
+  .provl-st-stapelrad { grid-template-columns: 1fr auto; }
+  .provl-st-stapel { grid-column: 1 / -1; grid-row: 2; }
+  .provl-st-nivalista li { grid-template-columns: 120px 1fr 2.5em; }
   .provl-st-namnkol { min-width: 96px; max-width: 120px; }
   .provl-st-namn { max-width: 110px; }
 }
 @media print {
-  .provl-st-c-ratt, .provl-st-c-delvis, .provl-st-c-fel { color: #000; }
+  .provl-st-c-ratt, .provl-st-c-delvis, .provl-st-c-fel,
+  .provl-st-seg-ratt, .provl-st-seg-delvis, .provl-st-seg-fel { color: #000; }
 }

@@ -7,7 +7,8 @@
 //   #/larare/prov?vy=ny&kopia=<id>   kopia → osparat utkast med "(kopia)"
 // Provets uppgifter + inställningar, frågekorten (flytta, duplicera, ta bort,
 // redigera i kortet), "Lägg till fråga" (typväljaren → typens formulär),
-// "Skapa med AI" (provl-ai.js), "Förhandsvisa som elev" (provl-forhandsvisa.js)
+// "Skapa med AI" (provl-ai.js), "Förhandsvisa som elev" (provl-forhandsvisa.js),
+// "Skriv ut" (prov-utskrift.js, #747)
 // och "Kör i klass" (provtillfället, #740).
 // Arbetskopian ändras bara via prov-redigera-ops.js. Spara = validateProv +
 // ägarfälten (tillDokument) → setDoc. Osparade ändringar → lämna-vakten frågar.
@@ -74,8 +75,10 @@ function ritaRedigerare(ctx, host, st) {
     <div class="provl-redigera-topp">
       <h2 class="subhead">${titel}</h2>
       <span class="provl-knappar">
+        <button type="button" class="btn small ghost" data-act="omrade">${icon("book", 16)}<span>Hämta från område</span></button>
         <button type="button" class="btn small ghost" data-act="ai">${icon("sparkle", 16)}<span>Skapa med AI</span></button>
         <button type="button" class="btn small" data-act="forhand">${icon("eye", 16)}<span>Förhandsvisa som elev</span></button>
+        <button type="button" class="btn small ghost" data-act="skrivut">${icon("printer", 16)}<span>Skriv ut</span></button>
       </span>
     </div>
     ${st.kopiaAv ? `<p class="hint">Kopian är inte sparad än. Ändra det du vill och spara – originalet påverkas inte.</p>` : ""}
@@ -270,6 +273,20 @@ function ritaRedigerare(ctx, host, st) {
     const { visaForhandsvisning } = await import("./provl-forhandsvisa.js");
     visaForhandsvisning(st.prov);
   });
+  $('[data-act="skrivut"]').addEventListener("click", async () => {
+    const { skrivUtProvDok } = await import("../prov-utskrift.js");
+    skrivUtProvDok(st.prov);
+  });
+  const lagtTill = (ny, text) => {
+    andra(ny);
+    st.oppen = null;
+    ritaFragor();
+    visaMsg(`<div class="msg ok">${esc(text)} Granska frågorna och spara provet.</div>`);
+  };
+  $('[data-act="omrade"]').addEventListener("click", async () => {
+    const { oppnaFranOmrade } = await import("./provl-fran-omrade.js");
+    oppnaFranOmrade(st.prov, st.role, lagtTill);
+  });
   $('[data-act="ai"]').addEventListener("click", async () => {
     const { oppnaAiRuta } = await import("./provl-ai.js");
     oppnaAiRuta(st.prov, (ny, text) => {
@@ -277,9 +294,7 @@ function ritaRedigerare(ctx, host, st) {
       // Uppgifterna AI:n fyllde i (bara tomma fält) och poängvalet syns direkt.
       vy.querySelectorAll("[data-k]").forEach((inp) => { inp.value = st.prov[inp.dataset.k] ?? ""; });
       $('[data-ins="poang"]').checked = st.prov.installningar.poang !== false;
-      st.oppen = null;
-      ritaFragor();
-      visaMsg(`<div class="msg ok">${esc(text)} Granska frågorna och spara provet.</div>`);
+      lagtTill(st.prov, text);
     });
   });
 
