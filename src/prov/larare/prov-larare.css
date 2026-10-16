@@ -1,0 +1,202 @@
+/* ==========================================================================
+   Prov – lärarfliken "Mina prov" (#739). Laddas lat av page-larare-prov.js.
+   Mörk lärardesign (.teacher-dark, variablerna --t-* i 05-larare-mork.css).
+   Prefix provl- (elevens provsida har provv-; Hitta rätt!:s lhr-prov krockar inte).
+   ========================================================================== */
+
+.provl-sida { padding-bottom: 48px; }
+.provl-msg:empty { display: none; }
+.provl-msg { margin-bottom: 12px; }
+.provl-knappar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.provl-knappar .btn, .provl-atgarder .btn, .provl-kort-knappar .btn { display: inline-flex; align-items: center; gap: 6px; }
+.provl-spacer { flex: 1; }
+.provl-fel { max-width: 640px; }
+
+/* --- Listan ------------------------------------------------------------------ */
+.provl-topp { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+.provl-ingress { max-width: 70ch; margin: 0; }
+.provl-tbl td { vertical-align: middle; }
+.provl-rad-namn { display: block; }
+.provl-rad-amne { display: block; font-size: 0.85rem; }
+.provl-tal { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.provl-datum { white-space: nowrap; color: var(--t-muted); }
+.provl-atgarder { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.provl-kollegor { margin-top: 18px; }
+.provl-kollegor summary { cursor: pointer; padding: 4px 0; }
+.provl-kollegor .panel { margin: 12px 0 0; padding: 0; background: none; border: 0; }
+.provl-bekrafta td { padding-top: 0; }
+.provl-bekrafta-ruta { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; margin: 6px 0; }
+
+/* --- Redigeraren --------------------------------------------------------------- */
+.provl-redigera { display: grid; gap: 16px; }
+.provl-redigera-topp { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; }
+.provl-redigera-topp .subhead { margin: 0; }
+.provl-uppgifter { display: grid; gap: 14px; margin: 0; }
+.provl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px 16px; align-items: start; }
+.provl-falt { display: grid; gap: 6px; font-weight: 650; }
+.provl-falt .hint { font-weight: 400; }
+.provl-falt-namn, .provl-falt-bred { grid-column: 1 / -1; }
+.provl-falt input, .provl-falt select, .provl-falt textarea { width: 100%; padding: 9px 11px; font: inherit; font-weight: 400; box-sizing: border-box; }
+.provl-falt textarea { resize: vertical; }
+.provl-falt-rad { display: grid; grid-template-columns: 110px 1fr; gap: 12px; }
+.provl-tid input { max-width: 140px; }
+.provl-grupp { border: 1px solid var(--t-border); border-radius: 12px; padding: 10px 14px 12px; display: grid; gap: 8px; margin: 0; }
+.provl-grupp legend { padding: 0 6px; color: var(--t-muted); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.provl-check { display: flex; gap: 9px; align-items: flex-start; font-weight: 400; cursor: pointer; }
+.provl-check input { margin-top: 3px; accent-color: var(--t-accent); width: 17px; height: 17px; flex: none; }
+.provl-val { display: flex; gap: 18px; flex-wrap: wrap; }
+.provl-fel-rad[hidden] { display: none; }
+.provl-spara-rad { padding-top: 4px; }
+
+/* Frågekorten */
+.provl-fragor-rubrik { margin: 4px 0 10px; font-size: 1.05rem; }
+.provl-fragelista { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.provl-kort {
+  background: var(--t-surface);
+  border: 1px solid var(--t-border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: grid;
+  gap: 6px;
+}
+.provl-kort-text { border-style: dashed; }
+.provl-kort-ny { margin-top: 10px; border-color: var(--t-accent); }
+.provl-kort-huvud { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
+.provl-kort-nr { font-weight: 800; color: var(--t-accent); min-width: 64px; }
+.provl-kort-typ { color: var(--t-muted); font-size: 0.9rem; }
+.provl-kort-knappar { margin-left: auto; display: flex; flex-wrap: wrap; gap: 5px; }
+.provl-kort-knappar .btn.small { padding: 6px 10px; }
+.provl-kort-text-rad { font-weight: 600; white-space: pre-wrap; overflow-wrap: anywhere; }
+.provl-kort-rubrik, .provl-kort-hjalp { font-size: 0.86rem; overflow-wrap: anywhere; }
+.provl-tom { padding: 14px; border: 1px dashed var(--t-border-strong); border-radius: 12px; text-align: center; }
+.provl-lagg-till-host { margin-top: 12px; }
+.provl-angra { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+/* Typväljaren */
+.provl-typvaljare { margin: 0; }
+.provl-typvaljare-topp { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.provl-typ-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
+.provl-typ {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  text-align: left;
+  padding: 10px 12px;
+  background: var(--t-surface-2);
+  border: 1px solid var(--t-border-strong);
+  border-radius: 11px;
+  color: var(--t-text);
+  font: inherit;
+  cursor: pointer;
+}
+.provl-typ:hover, .provl-typ:focus-visible { border-color: var(--t-accent); background: var(--t-raised); outline: none; }
+.provl-typ-ikon { grid-row: span 2; font-size: 1.4rem; line-height: 1.2; }
+.provl-typ .hint { font-size: 0.82rem; }
+
+/* Formuläret för en fråga */
+.provl-form { display: grid; gap: 12px; }
+.provl-form-titel { font-weight: 800; }
+.provl-etikett { font-weight: 650; }
+.provl-rader { display: grid; gap: 8px; }
+.provl-rader-lista { display: grid; gap: 6px; }
+.provl-rad { display: flex; gap: 8px; align-items: center; }
+.provl-rad input[type="text"] { flex: 1; min-width: 0; padding: 8px 10px; font: inherit; font-weight: 400; }
+.provl-ratt { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+.provl-ratt input { accent-color: var(--t-accent); width: 18px; height: 18px; }
+.provl-radnr { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--t-raised); color: var(--t-muted); font-size: 0.8rem; font-weight: 800; flex: none; }
+.provl-pil { color: var(--t-muted); }
+.provl-bort { padding: 6px 8px !important; }
+.provl-ny-rad { justify-self: start; }
+.provl-ny-rad[hidden] { display: none; }
+.provl-form-fel:empty { display: none; }
+.provl-form code { background: var(--t-raised); padding: 1px 5px; border-radius: 5px; }
+
+/* --- Dialogerna (AI + förhandsvisning) ------------------------------------------ */
+.provl-dialog {
+  width: min(860px, calc(100vw - 24px));
+  max-height: calc(100vh - 32px);
+  padding: 0;
+  border: 1px solid var(--t-border-strong);
+  border-radius: 16px;
+  background: var(--t-bg);
+  box-shadow: var(--t-shadow);
+}
+.provl-dialog::backdrop { background: rgba(4, 7, 11, 0.72); }
+.provl-dialog-inre { display: grid; gap: 14px; padding: 18px 20px 20px; }
+.provl-dialog-topp { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; }
+.provl-dialog-topp .subhead { margin: 0; }
+.provl-dialog-topp .hint { margin: 4px 0 0; }
+.provl-dialog-fot { justify-content: flex-end; }
+.provl-ai-steg { margin: 0; padding: 0; list-style: none; display: grid; gap: 18px; }
+.provl-ai-steg > li { display: grid; gap: 10px; }
+.provl-ai-steg textarea { width: 100%; box-sizing: border-box; padding: 9px 11px; font: inherit; }
+.provl-ai-prompt { font-family: ui-monospace, monospace; font-size: 0.8rem; }
+.provl-ai-typer { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px 14px; }
+.provl-ai-poang { align-self: end; padding-bottom: 10px; }
+.provl-ai-resultat:empty { display: none; }
+.provl-ai-resultat { display: grid; gap: 8px; }
+
+/* Förhandsvisningen: ett lugnt, ljust "papper" som elevens provsida. */
+.provl-fh-dialog { width: min(780px, calc(100vw - 24px)); }
+.provl-fh-papper {
+  background: #fbfaf6;
+  color: #1d2733;
+  border-radius: 12px;
+  padding: 22px clamp(14px, 4vw, 34px) 18px;
+  display: grid;
+  gap: 18px;
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+.provl-fh-rubrik { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: baseline; justify-content: space-between; border-bottom: 2px solid #e4e0d6; padding-bottom: 10px; }
+.provl-fh-rubrik h1 { margin: 0; font-size: 1.5rem; color: #1d2733; }
+.provl-fh-tid { color: #5b6878; font-size: 0.95rem; }
+.provl-fh-fragor { display: grid; gap: 16px; }
+.provl-fh-fraga, .provl-fh-text { background: #fff; border: 1px solid #e4e0d6; border-radius: 12px; padding: 14px 16px; }
+.provl-fh-text { background: #f3f1ea; }
+.provl-fh-text h3 { margin: 0 0 6px; color: #1d2733; }
+.provl-fh-text p { margin: 0 0 8px; white-space: pre-wrap; }
+.provl-fh-huvud { display: flex; justify-content: space-between; color: #5b6878; font-size: 0.9rem; font-weight: 700; }
+.provl-fh-fragetext { margin: 4px 0 6px; font-weight: 650; white-space: pre-wrap; }
+.provl-fh-hjalp { margin: 0 0 8px; color: #5b6878; font-size: 0.92rem; font-style: italic; }
+.provl-fh-hint { color: #5b6878; font-size: 0.9rem; }
+.provl-fh-val { display: grid; gap: 6px; }
+.provl-fh-rad { grid-auto-flow: column; justify-content: start; gap: 16px; }
+.provl-fh-papper label { color: #1d2733; }
+.provl-fh-alt { display: flex; gap: 10px; align-items: center; padding: 7px 10px; border: 1px solid #e4e0d6; border-radius: 9px; cursor: pointer; }
+.provl-fh-alt:has(input:checked) { border-color: #2f6fb3; background: #eef4fb; }
+.provl-fh-alt input { width: 18px; height: 18px; accent-color: #2f6fb3; }
+.teacher-dark .provl-fh-papper input[type="text"],
+.teacher-dark .provl-fh-papper textarea,
+.teacher-dark .provl-fh-papper select {
+  background: #fff;
+  color: #1d2733;
+  border: 1.5px solid #c9c3b6;
+  border-radius: 8px;
+  padding: 7px 9px;
+  font: inherit;
+}
+.teacher-dark .provl-fh-papper input:focus,
+.teacher-dark .provl-fh-papper textarea:focus,
+.teacher-dark .provl-fh-papper select:focus { border-color: #2f6fb3; box-shadow: 0 0 0 3px rgba(47, 111, 179, 0.18); }
+.provl-fh-input { width: min(100%, 360px); }
+.provl-fh-fritext { width: 100%; box-sizing: border-box; resize: vertical; }
+.provl-fh-raknare { display: block; text-align: right; color: #5b6878; font-size: 0.85rem; }
+.provl-fh-lucktext { margin: 0; line-height: 2.1; white-space: pre-wrap; }
+.provl-fh-lucka { width: 9em; padding: 2px 6px !important; line-height: 1.4; vertical-align: baseline; }
+.provl-fh-par { display: grid; gap: 8px; }
+.provl-fh-par-rad { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 10px; align-items: center; }
+.provl-fh-ordna { margin: 0; padding-left: 22px; display: grid; gap: 6px; }
+.provl-fh-ordna li { display: flex; gap: 8px; align-items: center; }
+.provl-fh-ordna li span { flex: 1; padding: 6px 10px; border: 1px solid #e4e0d6; border-radius: 8px; background: #fff; }
+.provl-fh-flytt { width: 34px; height: 34px; border-radius: 8px; border: 1px solid #c9c3b6; background: #fff; color: #1d2733; cursor: pointer; }
+.provl-fh-flytt:disabled { opacity: 0.35; cursor: default; }
+.provl-fh-fot { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; border-top: 2px solid #e4e0d6; padding-top: 12px; color: #5b6878; }
+.provl-fh-fot .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@media (max-width: 640px) {
+  .provl-falt-rad { grid-template-columns: 1fr; }
+  .provl-kort-knappar { margin-left: 0; }
+  .provl-fh-par-rad { grid-template-columns: 1fr; }
+  .provl-atgarder { justify-content: flex-start; }
+}

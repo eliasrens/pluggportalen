@@ -92,6 +92,11 @@ Blandningen (`para`, `ordna`) är stabil per fråge-id och aldrig facit-ordninge
 2. En rad i `FRAGETYPER` (+ dess import) i `prov-fragetyper.js`.
 3. Ett exempel i `test/helpers/prov-exempel.js` – testerna i
    `test/prov-fragetyper.test.js` går då igenom typen automatiskt.
+4. Lärarsidan (#739): formuläret – en post i `KROPP` i
+   `src/prov/larare/provl-fragaform.js` och ett fall i `fragaFranFalt`
+   (`prov-redigera-ops.js`); AI-prompten – en rad i `SCHEMA_TYP` och
+   `EXEMPEL_TYP` (`prov-prompt.js`). `test/prov-redigera.test.js` fäller om
+   något av dem saknas.
 
 Vyerna (`renderElev`, `renderRattning`, `renderResultat`, §2) läggs i samma
 typfil av C (provsidan) och D (rättningen/resultatet). Inga listor i listor
@@ -124,6 +129,34 @@ typfil av C (provsidan) och D (rättningen/resultatet). Inga listor i listor
 (`value` = `null` vid fel, som `validateArea`). Standardinställningar:
 `STANDARD_INSTALLNINGAR` (inkl. färggränserna `granser: { gul: 40, gron: 70 }`
 för §7.5). `tolkaTidsgrans(v)` → `null` | 5–240 | `undefined` (ogiltig).
+
+## Skapa och redigera (B, #739)
+
+Lärarsidans grupp **Prov** (`TEACHER_GROUPS`) med fliken **Mina prov**
+(`TEACHER_TABS`, `#/larare/prov`). Allt i `src/prov/larare/`, laddat lat:
+
+| Fil | Gör |
+| --- | --- |
+| `page-larare-prov.js` | route: `?vy=mina` (standard), `?vy=ny`, `&id=` (redigera), `&kopia=` (kopiera → osparat utkast); laddar `prov-larare.css` |
+| `provl-lista.js` | Mina prov + kollegors (hopfällda): namn, frågor, senast ändrat, ägare. Redigera/Radera bara med `canEditArea`; Förhandsvisa och Kopiera för alla. Radera bekräftas i en ruta på sidan. **`RAD_KNAPPAR`** = krok för "Kör i klass" (C) |
+| `provl-redigera.js` | uppgifter + inställningar (§3), frågekort (↑ ↓ Redigera Duplicera Ta bort + Ångra), "Lägg till fråga" (typväljaren → formuläret), Spara (`tillDokument` → `setDoc`), lämna-vakt vid osparat |
+| `provl-fragaform.js` | ett formulär per typ, `onSubmit(falt) → { ok, errors }` |
+| `provl-ai.js` | "Skapa med AI" (§8.2): val → `buildProvPrompt` → klistra in → Granska (`tolkaAiJson` = `validateProv`) → frågorna läggs sist |
+| `provl-forhandsvisa.js` | "Förhandsvisa som elev": `delaUppProv` (inget facit) + `fragaNummer` + "obesvarade", inget sparas |
+| `provl-data.js` | `listaProv`, `hamtaProv`, `sparaProv` (hela dokumentet, `skapad` behålls, `uppdaterad` = servertid), `raderaProv` |
+
+DOM-fri logik (testad i `test/prov-redigera.test.js`): `prov-redigera-ops.js`
+(fält → fråga, spara/flytta/duplicera/ta bort, `tillDokument` med
+`withOwner`, kopiera, AI-JSON med/utan kodstaket, frågor sist med nya id vid
+krock), `prov-lista-ops.js` (listan per ägare) och `prov-prompt.js`.
+
+**`renderElev` (C):** förhandsvisningen anropar
+`typ.renderElev(elevFraga, svar, { onChange(nyttSvar), nummer, installningar, forhandsvisning: true })`
+→ element (eller html) när typen har den, annars en enkel reservvy (`RESERV`
+i `provl-forhandsvisa.js`) som tas bort när alla typer har `renderElev`.
+
+Förhandsvisning utan Firebase: `preview/preview-prov-larare.html`
+(`?roll=admin` = admin; proven i `localStorage`, stubbar i `preview/prov-larare-stubs/`).
 
 ## Vad reglerna kräver av klienten (B–E)
 
