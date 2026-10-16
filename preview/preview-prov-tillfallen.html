@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Prov – lärarens provtillfällen (#740)</title>
+    <link rel="stylesheet" href="../src/styles.css" />
+    <!--
+      #740: STUBBAD preview – de RIKTIGA lärarsidorna (src/prov/prov-tillfallen-sida.js
+      + prov-tillfalle-rutor.js) med Firebase-delarna utbytta via importmap.
+      4A har 25 påhittade elever som skriver ett öppet prov (40 min).
+        #/larare/prov/tillfallen         fliken Provtillfällen
+        #/larare/prov/tillfalle?t=tf-oppet  översikten under provet
+    -->
+    <script type="importmap">
+      {
+        "imports": {
+          "/src/auth.js": "/preview/prov-larare-stubs/auth.js",
+          "/src/teacher-role.js": "/preview/prov-larare-stubs/teacher-role.js",
+          "/src/data-classes.js": "/preview/prov-larare-stubs/data-classes.js",
+          "/src/data-content.js": "/preview/prov-larare-stubs/data-content.js",
+          "/src/data-class-lock.js": "/preview/prov-larare-stubs/data-class-lock.js",
+          "/src/prov/prov-tillfalle-data.js": "/preview/prov-larare-stubs/prov-tillfalle-data.js"
+        }
+      }
+    </script>
+    <style>
+      .pv-rad { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; padding: 8px 12px; background: #000; color: #cfd8e3; font: 13px system-ui, sans-serif; }
+      .pv-rad a { color: #7ee2a8; }
+    </style>
+  </head>
+  <body class="larare-lage">
+    <div class="pv-rad"><b>Preview #740 (lärare)</b>
+      <a href="#/larare/prov/tillfallen">Provtillfällen</a>
+      <a href="#/larare/prov/tillfalle?t=tf-oppet">Översikten (4A skriver)</a>
+      <span id="pv-info"></span>
+    </div>
+    <div class="layout"><main id="app" class="container"></main></div>
+    <script type="module">
+      import { S } from "/preview/prov-larare-stubs/state.js";
+      import { pageProvTillfallen, pageProvTillfalle } from "/src/prov/prov-tillfallen-sida.js";
+
+      const app = document.getElementById("app");
+      const ctx = { app, go: (h) => (location.hash = h), renderTopbar: () => {} };
+      const router = () => {
+        const path = (location.hash || "").slice(1).split("?")[0];
+        (path === "/larare/prov/tillfalle" ? pageProvTillfalle : pageProvTillfallen)(ctx);
+      };
+      window.addEventListener("hashchange", router);
+      if (!location.hash) location.hash = "#/larare/prov/tillfallen";
+      else router();
+      const info = document.getElementById("pv-info");
+      window.addEventListener("pv-logg", (e) => {
+        const las = Object.entries(S.las).map(([k, l]) => `${k}: ${l.mal.namn}`).join(", ") || "inga";
+        info.textContent = `${e.detail} · läsningar ${S.lasningar} · fokuslås: ${las}`;
+      });
+    </script>
+  </body>
+</html>

@@ -2,7 +2,8 @@
 
 Läraren kan låsa en klass till **ett mål** fram till ett klockslag (lärarsidan →
 Klasser → Fokusläge). Målet är antingen ett Plugga-område eller en låsbar modul
-(Läsresan, Mattematchen, Hitta rätt!, Ekvationsresan). Datamodellen står i
+(Läsresan, Mattematchen, Hitta rätt!, Ekvationsresan) – eller ett **provtillfälle**
+(#740), som bara sätts från provets "Kör i klass"/"Öppna". Datamodellen står i
 `docs/DATAMODELL.md` (ClassLock), logiken i `src/class-lock.js`.
 
 ## Under låset
@@ -57,3 +58,20 @@ Fälten beskrivs i kommentaren ovanför registret.
 
 Ett lås till en typ som klienten inte känner igen (t.ex. en gammal cachad klient)
 räknas som **inget lås** – eleven låses aldrig ute.
+
+## Prov: låset till ett tillfälle (#740)
+
+Modulen `prov` har `lockId: "t"` och `lockRoute: "/elev/prov/skriv"` i registret.
+Det betyder:
+
+- `mal.id` **krävs** (provtillfällets id, 3–200 tecken) – i `normalizeLock` och i
+  `validLockShape` (`l.mal.typ in ['omrade', 'prov']` ⇒ id). Utan id = inget lås.
+- `lockHomeHash` = `#/elev/prov/skriv?t=<id>`: eleven hamnar **direkt i provet**.
+- `lockLabel` = provets namn (`mal.namn`) i Fokus-rutan.
+- Målet sätts inte i lärarens målväljare (Klasser → Fokusläge) utan från
+  "Kör i klass" (§5.2): standardtid = tidsgränsen + 10 min, annars 60 min,
+  "Dölj allt annat" ikryssat. Målväljaren visar ett aktivt provlås och kan flytta
+  sluttiden. **Stäng provet** och **Radera** tar bort låset om det är just det
+  tillfällets (`arProvetsLas`).
+- ⚠️ Kräver `firebase deploy --only firestore:rules` innan "Lås klassen till provet"
+  fungerar (annars nekas låset – provet öppnas ändå, läraren ser ett fel).

@@ -218,6 +218,8 @@ export const TEACHER_GROUPS = [
   { key: "oversikt", label: "Översikt", icon: "home" },
   { key: "klasser", label: "Klasser", icon: "users" },
   { key: "material", label: "Material", icon: "book" },
+  // Prov (epic #737): "Mina prov" (B, #739) + "Provtillfällen" (C, #740).
+  { key: "prov", label: "Prov", icon: "pencil" },
   { key: "live", label: "Live och tävlingar", icon: "bolt" },
   { key: "statistik", label: "Statistik", icon: "chart" },
   { key: "admin", label: "Admin", icon: "key" },
@@ -238,6 +240,8 @@ export const TEACHER_TABS = [
   tab("klasser", "#/larare/klasser", "klasser", "Klasser", "Klasser", "users", () => import("./teacher-classes.js"), "pageLarareKlasser"),
   tab("innehall", "#/larare/innehall", "material", "Plugga-material", "Material", "book", () => import("./teacher-content.js"), "pageLarareInnehall"),
   tab("hittaratt", "#/larare/hitta-ratt", "material", "Hitta rätt!", "Hitta rätt!", "pin", () => import("./hitta-ratt/larare/page-larare-hitta-ratt.js"), "pageLarareHittaRatt", true),
+  // Prov (#740): provtillfällena per klass – öppna/stäng, översikten under provet.
+  tab("provtillfallen", "#/larare/prov/tillfallen", "prov", "Provtillfällen", "Provtillfällen", "inbox", () => import("./prov/prov-tillfallen-sida.js"), "pageProvTillfallen"),
   // Live (#460): realtidsmatch klass mot klass. ?id=<sid> = projektorvyn.
   tab("live", "#/larare/live", "live", "Live", "Live", "bolt", () => import("./live/teacher-live.js"), "pageLarareLive"),
   // Mattematchen (#459): skapa/styr tävlingsperioder – bara admin (§2.2). Statistiken finns under Statistik.

@@ -386,8 +386,9 @@ service cloud.firestore {
         l.keys().hasOnly(['mal', 'till', 'doljOvrigt']) &&
         l.mal is map &&
         l.mal.keys().hasOnly(['typ', 'id', 'namn']) &&
-        l.mal.typ in ['omrade', 'lasresan', 'mattematchen', 'hittaratt', 'ekvationsresan'] &&
-        (l.mal.typ != 'omrade' || (l.mal.get('id', null) is string &&
+        l.mal.typ in ['prov', 'omrade', 'lasresan', 'mattematchen', 'hittaratt', 'ekvationsresan'] &&
+        // Ett område ("subj/area") eller ett provtillfälle (#740) kräver mal.id.
+        (!(l.mal.typ in ['omrade', 'prov']) || (l.mal.get('id', null) is string &&
                                    l.mal.id.size() > 2 && l.mal.id.size() <= 200)) &&
         (!('id' in l.mal) || (l.mal.id is string && l.mal.id.size() <= 200)) &&
         (!('namn' in l.mal) || (l.mal.namn is string && l.mal.namn.size() <= 100)) &&

@@ -8,6 +8,7 @@
 
 import { forslagAv } from "../prov-rattning.js";
 import { GRANS, blanda, elevFalt, strangLista, textLista, trimmad, valideraGemensamt } from "./delat.js";
+import { h } from "../prov-vy.js";
 
 export default {
   id: "para",
@@ -47,5 +48,19 @@ export default {
     const lista = Array.isArray(svar) ? svar : [];
     const ratt = facit.par.filter((p, i) => lista[i] === p.hoger).length;
     return forslagAv(ratt / facit.par.length, f.poang);
+  },
+
+  /** Elevens svarsruta (#740): välj det som hör ihop med varje begrepp. */
+  renderElev(f, k) {
+    const svar = Array.isArray(k.svar) ? [...k.svar] : Array(f.vanster.length).fill("");
+    return h("div", { class: "provv-para" }, f.vanster.map((v, i) => {
+      const id = `${k.uid}-${f.id}-${i}`;
+      const val = h("select", { id, class: "provv-para-val", disabled: !!k.las },
+        h("option", { value: "", text: "Välj …" }),
+        f.hoger.map((x) => h("option", { value: x, text: x })));
+      val.value = svar[i] || "";
+      val.addEventListener("change", () => { svar[i] = val.value; k.andra([...svar]); k.lamna(); });
+      return h("div", { class: "provv-para-rad" }, h("label", { for: id, class: "provv-para-vanster", text: v }), val);
+    }));
   },
 };

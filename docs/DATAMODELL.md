@@ -600,9 +600,11 @@ sida).
 
 **ClassLock** (#436, fokusläge): `{ mal: { typ, id?, namn? }, till, doljOvrigt }`.
 `mal.typ` är en utbyggbar enum: `"omrade"` eller en låsbar moduls id
-(`"lasresan"`, `"mattematchen"`, `"hittaratt"`, `"ekvationsresan"` – härledd ur
+(`"prov"`, `"lasresan"`, `"mattematchen"`, `"hittaratt"`, `"ekvationsresan"` – härledd ur
 modulregistret, #734, se `docs/FOKUSLAGE.md`); för `"omrade"` är
-`id` = `"<subjectId>/<areaId>"` och `namn` områdets visningsnamn. `till` = sluttid
+`id` = `"<subjectId>/<areaId>"` och `namn` områdets visningsnamn; för `"prov"`
+(#740) är `id` provtillfällets id (krävs, > 2 tecken) och `namn` provets namn –
+sätts bara av "Kör i klass"/"Öppna" och tas bort när provet stängs. `till` = sluttid
 i epoch-ms (klockslaget läraren valde). Under låset når eleverna bara målet –
 övriga Plugga-områden och alla andra inlärningsmoduler är spärrade även via
 direktlänk. `doljOvrigt: true` döljer **allt** utom målet
@@ -1742,7 +1744,7 @@ statusflöde och frågetypsregistret: [`docs/PROV.md`](PROV.md). Logiken bor i
 | Dokument | Fält | Skriver |
 | --- | --- | --- |
 | `prov/{provId}` | `namn` (1–80), `beskrivning?`, `amne?`, `arskurs?` (`"ak1".."ak9"`), `fragor` (≤ 60, **med facit**), `installningar` `{ poang, nivaer, visaFacit, stavningskontroll, tidsgransMin, granser: { gul, gron } }`, `createdBy`, `createdByName`, `skapad`, `uppdaterad` | ägaren (admin: alla) |
-| `provTillfallen/{t}` | `provId`, `provNamn`, `classId`, `createdBy`, `createdByName`, `status` (`forberett`/`oppet`/`stangt`), `fragor` (**utan facit**, `utanFacit`), `installningar` (kopia), `tidsgransMin` (null eller 5–240), `oppnad?`, `stangd?` | lärare med klassen |
+| `provTillfallen/{t}` | `provId`, `provNamn`, `classId`, `createdBy`, `createdByName`, `status` (`forberett`/`oppet`/`stangt`), `fragor` (**utan facit**, `utanFacit`), `installningar` (kopia), `tidsgransMin` (null eller 5–240), `oppnad?`, `stangd?`, `skapad` (#740), `fokus: { pa, doljOvrigt }` (#740: lås klassen när provet öppnas) | lärare med klassen |
 | `provTillfallen/{t}/privat/facit` | `facit: { [fragaId]: … }`, `bedomningsstod: { [fragaId]: "…" }` | lärare med klassen |
 | `provTillfallen/{t}/svar/{elevUid}` | `elevId`, `classId`, `startad` (serverns tid), `uppdaterad` (serverns tid vid varje elevskrivning), `svar: { [fragaId]: … }` (≤ 60), `inlamnad`, `inlamnadAt?`, `inlamnadNar?` (`elev`/`tid`/`stangt`) | eleven (läraren: bara inlämnad-fälten vid stängning) |
 | `provTillfallen/{t}/rattning/{elevUid}` | `elevId`, `classId`, `provNamn`, `fragor: { [fragaId]: { poang?, ratt?, kommentar?, auto } }`, `totalPoang?`, `maxPoang?`, `niva?` (`EG`/`G`/`MG`/null), `helhetskommentar?`, `aterlamnad`, `aterlamnadAt?`, `facit?` (kopieras in vid tillbakalämning om visaFacit) | lärare med klassen |

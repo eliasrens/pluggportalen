@@ -4,6 +4,7 @@
 // ============================================================================
 
 import { elevFalt, valideraGemensamt } from "./delat.js";
+import { valLista } from "../prov-vy.js";
 
 const SANT = ["sant", "true", "ja"];
 const FALSKT = ["falskt", "false", "nej"];
@@ -38,4 +39,10 @@ export default {
       ? { poang: max, maxPoang: max, ratt: true }
       : { poang: 0, maxPoang: max, ratt: false };
   },
+
+  /** Elevens svarsruta (#740): Sant eller Falskt. */
+  renderElev: (f, k) => valLista(["Sant", "Falskt"], {
+    namn: `${k.uid}-${f.id}`, etikett: "Sant eller falskt", las: k.las,
+    valda: k.svar === true ? [0] : k.svar === false ? [1] : [], andra: (v) => k.andra(v[0] === 0 ? true : v[0] === 1 ? false : null), lamna: k.lamna,
+  }),
 };

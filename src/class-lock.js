@@ -6,7 +6,7 @@
 // klockslag. Lagras på klass-dokumentet:
 //
 //   classes/{id}.lock = {
-//     mal:  { typ: "omrade" | <modul-id>, id?: "<subjectId>/<areaId>", namn?: string },
+//     mal:  { typ: "omrade" | <modul-id>, id?: "<subjectId>/<areaId>" | <tillfälle>, namn?: string },
 //     till: <epoch-ms>,          // sluttiden (klockslaget läraren valde)
 //     doljOvrigt: <bool>,        // "Dölj allt annat": även shop/värld/profil döljs
 //   }
@@ -28,7 +28,8 @@ import { STUDENT_MODULES, studentModuleForRoute } from "./gamemode-visibility.js
 const OMRADE = "omrade";
 
 // Låsbara moduler ur registret. Typen = modul-id, utom område-modulen (Plugga),
-// vars mål är ETT område: typen "omrade" + mal.id "subj/area".
+// vars mål är ETT område: typen "omrade" + mal.id "subj/area". En modul med
+// `lockId` (Prov, #740) låses till ETT tillfälle: typen = modul-id + mal.id.
 const LASBARA = STUDENT_MODULES.filter((m) => m.lockable);
 const typAv = (m) => (m.lockAreas ? OMRADE : m.id);
 
@@ -74,6 +75,11 @@ export function normalizeLock(v) {
   if (typ === OMRADE) {
     if (!parseAreaKey(v.mal.id)) return null;
     mal.id = String(v.mal.id);
+  } else if (lockTargetModule(typ).lockId) {
+    // Speglar reglerna: id krävs, 3–200 tecken (ett tillfälles dokument-id).
+    const id = typeof v.mal.id === "string" ? v.mal.id : "";
+    if (id.length <= 2 || id.length > 200) return null;
+    mal.id = id;
   }
   if (typeof v.mal.namn === "string" && v.mal.namn.trim()) mal.namn = v.mal.namn.trim().slice(0, 100);
   return { mal, till, doljOvrigt: v.doljOvrigt === true };
@@ -102,15 +108,22 @@ export function lockForStudent(classes, meId, now) {
 
 /** Hash-länken till låsets mål (dit eleven skickas när något annat är låst). */
 export function lockHomeHash(lock) {
-  if (lock.mal.typ !== OMRADE) return `#${lockTargetModule(lock.mal.typ).routes[0]}`;
+  if (lock.mal.typ !== OMRADE) {
+    const m = lockTargetModule(lock.mal.typ);
+    if (m.lockId && lock.mal.id) return `#${m.lockRoute || m.routes[0]}?${m.lockId}=${encodeURIComponent(lock.mal.id)}`;
+    return `#${m.routes[0]}`;
+  }
   const a = parseAreaKey(lock.mal.id);
   const enc = encodeURIComponent;
   return `#${OMRADE_RUTTER[0]}?subj=${enc(a.subjectId)}&area=${enc(a.areaId)}`;
 }
 
-/** Visningsnamn för målet (modulens namn, t.ex. "Läsresan", eller områdets namn). */
+/** Visningsnamn för målet (modulens namn, t.ex. "Läsresan", eller områdets/provets namn). */
 export function lockLabel(lock) {
-  if (lock.mal.typ !== OMRADE) return lockTargetModule(lock.mal.typ).label;
+  if (lock.mal.typ !== OMRADE) {
+    const m = lockTargetModule(lock.mal.typ);
+    return m.lockId && lock.mal.namn ? lock.mal.namn : m.label;
+  }
   return lock.mal.namn || parseAreaKey(lock.mal.id)?.areaId || "ett område";
 }
 

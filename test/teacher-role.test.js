@@ -41,14 +41,14 @@ test("createdByLabel tål saknade fält (före #680)", () => {
   assert.equal(createdByLabel({ createdBy: "u4", createdByName: "Årskurs 4" }), "Årskurs 4");
 });
 
-test("toppnaven: sex huvuddelar, admin-flikar markerade", () => {
+test("toppnaven: sju huvuddelar (Prov sedan #740), admin-flikar markerade", () => {
   const src = readFileSync(join(SRC, "teacher-shared.js"), "utf8");
   const groups = [...src.matchAll(/\{ key: "(\w+)", label: "([^"]+)", icon:/g)].map((m) => m[2]);
-  assert.deepEqual(groups, ["Översikt", "Klasser", "Material", "Live och tävlingar", "Statistik", "Admin"]);
+  assert.deepEqual(groups, ["Översikt", "Klasser", "Material", "Prov", "Live och tävlingar", "Statistik", "Admin"]);
   for (const key of ["hittaratt", "mattematchen", "adminklasser", "konton"]) {
     assert.match(src, new RegExp(`tab\\("${key}",[^\\n]*, true\\),`), `${key} är bara för admin`);
   }
-  for (const key of ["oversikt", "klasser", "innehall", "live", "statistik"]) {
+  for (const key of ["oversikt", "klasser", "innehall", "provtillfallen", "live", "statistik"]) {
     assert.doesNotMatch(src, new RegExp(`tab\\("${key}",[^\\n]*, true\\),`), `${key} syns för alla`);
   }
 });
