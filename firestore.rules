@@ -2065,7 +2065,7 @@ service cloud.firestore {
     }
     function validRattning(d, elevUid, classId) {
       return d.keys().hasOnly(['elevId', 'classId', 'provNamn', 'fragor', 'totalPoang', 'maxPoang', 'niva',
-          'helhetskommentar', 'aterlamnad', 'aterlamnadAt', 'facit']) &&
+          'helhetskommentar', 'aterlamnad', 'aterlamnadAt', 'facit', 'provInfo']) &&
         d.elevId == elevUid && d.classId == classId &&
         d.fragor is map && d.fragor.size() <= 60 &&
         d.aterlamnad is bool &&
@@ -2073,7 +2073,9 @@ service cloud.firestore {
         (!('totalPoang' in d) || d.totalPoang is number) &&
         (!('maxPoang' in d) || d.maxPoang is number) &&
         (!('helhetskommentar' in d) || (d.helhetskommentar is string && d.helhetskommentar.size() <= 4000)) &&
-        (!('facit' in d) || d.facit is map);
+        (!('facit' in d) || d.facit is map) &&
+        // #742: { datum, granser, andel } för statistikfliken "Prov" (en fråga, §7.5).
+        (!('provInfo' in d) || (d.provInfo is map && d.provInfo.keys().hasOnly(['datum', 'granser', 'andel'])));
     }
     // Tillbakalämningen (#741, §7): facit och aterlamnadAt finns BARA i en
     // tillbakalämnad rättning (ångra tar bort båda). Att lämna tillbaka sätter

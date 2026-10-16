@@ -303,8 +303,11 @@ export function angratDok(r) {
   return { ...rest, aterlamnad: false };
 }
 
-/** Rättningen i sparbar form: bara reglernas fält, summerad. */
-export function sparDok(r, fragor) {
+/**
+ * Rättningen i sparbar form: bara reglernas fält, summerad. `provInfo`
+ * (#742, provInfoDok i prov-statistik.js) följer med för statistikfliken "Prov".
+ */
+export function sparDok(r, fragor, provInfo = null) {
   const s = summera(r, fragor);
   const ut = {
     elevId: s.elevId, classId: s.classId, provNamn: s.provNamn || "",
@@ -315,6 +318,7 @@ export function sparDok(r, fragor) {
   const helhet = String(s.helhetskommentar || "").trim().slice(0, HELHET_MAX);
   if (helhet) ut.helhetskommentar = helhet;
   if (ut.aterlamnad && s.facit) ut.facit = s.facit;
+  if (provInfo) ut.provInfo = provInfo;
   return ut;
 }
 

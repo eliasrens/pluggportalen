@@ -42,3 +42,11 @@ export async function angraTillbaka(t, uid, rattStatus) {
   S.spara();
   S.logg(`ångrade tillbakalämningen för ${S.namn[uid]}`);
 }
+// #742: färggränserna i fliken Översikt.
+export async function sparaGranser(t, granser) {
+  await natet();
+  S.tf.installningar = { ...S.tf.installningar, granser: kopia(granser) };
+  S.skrivningar++;
+  S.spara();
+  S.logg(`sparade färggränserna gul ${granser.gul} % / grön ${granser.gron} %`);
+}

@@ -1,0 +1,124 @@
+/* ==========================================================================
+   Prov (#742, §7.5) – den enkla statistiken (.provl-st-): rättningsvyns flik
+   Översikt, elevvyn och fliken "Prov" i klassens statistik. Laddas DYNAMISKT
+   (laddaCss), ligger inte i styles.css (#271). Mörk lärarsida. Grön/gul/mjuk
+   röd – aldrig skrikigt – och alltid symbol + text (✓ ½ ✗ – ?).
+   ========================================================================== */
+
+.provl-st {
+  --st-gron: #2fa866; --st-gron-bg: rgba(47, 168, 102, 0.2); --st-gron-text: #9fe8bf;
+  --st-gul: #d9a521; --st-gul-bg: rgba(217, 165, 33, 0.2); --st-gul-text: #f3d37f;
+  --st-rod: #d06a62; --st-rod-bg: rgba(208, 106, 98, 0.2); --st-rod-text: #f4aaa3;
+  --st-gra: rgba(255, 255, 255, 0.28); --st-gra-text: #a9b5c2;
+}
+.provl-st .hint { margin: 6px 0; }
+
+/* Brickor: totalen, snittet, summan per fråga */
+.provl-st-bricka, .provl-st-fsum {
+  display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: 999px;
+  font-weight: 700; font-size: 0.9rem; white-space: nowrap; border: 1px solid transparent;
+}
+.provl-st-fsum { padding: 2px 6px; font-size: 0.78rem; gap: 3px; }
+.provl-st-gron { background: var(--st-gron-bg); color: var(--st-gron-text); border-color: rgba(47, 168, 102, 0.45); }
+.provl-st-gul { background: var(--st-gul-bg); color: var(--st-gul-text); border-color: rgba(217, 165, 33, 0.45); }
+.provl-st-rod { background: var(--st-rod-bg); color: var(--st-rod-text); border-color: rgba(208, 106, 98, 0.45); }
+.provl-st-ej { background: transparent; color: var(--st-gra-text); border: 1px dashed var(--st-gra); }
+.provl-st-ikon { font-weight: 800; }
+.provl-st-fordelning { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.provl-st-delvis-rattad { font-size: 0.75rem; color: var(--t-muted, #93a2b3); }
+.provl-st-total { display: inline-flex; align-items: center; gap: 6px; }
+.provl-st-niva {
+  font-size: 0.75rem; font-weight: 700; padding: 1px 6px; border-radius: 6px;
+  border: 1px solid var(--t-border-strong, rgba(255, 255, 255, 0.2)); color: var(--t-text, #e7edf3);
+}
+
+/* Toppen */
+.provl-st-topp { display: grid; gap: 4px; margin-bottom: 12px; }
+.provl-st-topp p { margin: 0; }
+.provl-st-raknare { font-size: 1.15rem; }
+.provl-st-snitt { display: flex; align-items: center; gap: 8px; }
+.provl-st-verktyg { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: flex-start; margin-top: 6px; }
+.provl-st-sort { width: auto; }
+.provl-st-granser summary { cursor: pointer; color: var(--t-muted, #93a2b3); padding: 6px 0; }
+.provl-st-grans-rad { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.provl-st-grans { display: inline-flex; align-items: center; gap: 8px; }
+.provl-st-grans input { width: 150px; accent-color: var(--t-accent, #2ec16e); }
+.provl-st-gv { min-width: 3.2em; font-variant-numeric: tabular-nums; font-weight: 700; }
+
+/* Rutnätet: scrollar i sidled i sin egen ruta, namnkolumnen fast */
+.provl-st-scroll { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }
+.provl-st-scroll:focus-visible { outline: 2px solid var(--t-accent, #2ec16e); outline-offset: 2px; }
+.provl-st-tabell { border-collapse: separate; border-spacing: 0; min-width: 100%; }
+.provl-st-tabell th, .provl-st-tabell td { padding: 4px 3px; text-align: center; border-bottom: 1px solid var(--t-border, rgba(255, 255, 255, 0.09)); }
+.provl-st-tabell thead th { font-size: 0.8rem; color: var(--t-muted, #93a2b3); font-weight: 600; }
+.provl-st-tabell tfoot th, .provl-st-tabell tfoot td { border-bottom: 0; padding-top: 8px; font-size: 0.85rem; }
+.provl-st-namnkol {
+  position: sticky; left: 0; z-index: 1; text-align: left !important; min-width: 120px; max-width: 180px;
+  background: var(--t-surface, #161d26); padding-left: 6px !important; padding-right: 10px !important;
+}
+.provl-st-totkol { text-align: left !important; padding-right: 10px !important; white-space: nowrap; }
+.provl-st-namn, .provl-st-fnr {
+  background: none; border: 0; color: var(--t-text, #e7edf3); font: inherit; cursor: pointer; padding: 4px 2px; text-align: left;
+}
+.provl-st-namn { font-weight: 600; overflow: hidden; text-overflow: ellipsis; max-width: 170px; white-space: nowrap; }
+.provl-st-namn:hover, .provl-st-fnr:hover { text-decoration: underline; color: #7ee2a8; }
+.provl-st-fnr { font-weight: 700; min-width: 28px; text-align: center; }
+
+/* En cell */
+.provl-st-c {
+  display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 7px;
+  font-weight: 800; font-size: 0.9rem; cursor: pointer; border: 1px solid transparent; padding: 0; font-family: inherit;
+}
+.provl-st-c:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+.provl-st-c-liten { width: 20px; height: 20px; font-size: 0.75rem; cursor: default; vertical-align: middle; }
+.provl-st-c-ratt { background: var(--st-gron); color: #06210f; }
+.provl-st-c-delvis { background: var(--st-gul); color: #2a1f00; }
+.provl-st-c-fel { background: var(--st-rod); color: #2b0b08; }
+.provl-st-c-obesvarad { background: transparent; color: var(--st-gra-text); border: 1.5px dashed var(--st-gra); }
+.provl-st-c-ej { background: rgba(255, 255, 255, 0.1); color: var(--st-gra-text); border-color: rgba(255, 255, 255, 0.14); }
+.provl-st-forklaring { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; }
+.provl-st-forkl { display: inline-flex; align-items: center; gap: 2px; }
+
+/* Elevvyn */
+.provl-st-elev-topp { margin-bottom: 12px; }
+.provl-st-elev-nav { display: flex; flex-wrap: wrap; gap: 6px; }
+.provl-st-elev-nav .btn:last-child { margin-left: auto; }
+.provl-st-elev-namn { margin: 12px 0 4px; font-size: 1.35rem; }
+.provl-st-elev-summa { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 0 0 10px; }
+.provl-st-elev-rad { display: flex; flex-wrap: wrap; gap: 6px; }
+.provl-st-elev-cell { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; font-size: 0.75rem; color: var(--t-muted, #93a2b3); }
+.provl-st-elev-cell .provl-st-c { width: 38px; height: 38px; font-size: 1.05rem; }
+.provl-st-helhet { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: var(--t-surface-2, #1b232e); }
+.provl-st-helhet p { margin: 4px 0 0; }
+.provl-st-fraga { margin-bottom: 10px; border-left: 4px solid var(--st-gra); scroll-margin-top: 80px; }
+.provl-st-fraga-ratt { border-left-color: var(--st-gron); }
+.provl-st-fraga-delvis { border-left-color: var(--st-gul); }
+.provl-st-fraga-fel { border-left-color: var(--st-rod); }
+.provl-st-fraga-topp { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; }
+.provl-st-ejbedomd { display: inline-flex; width: auto; height: auto; padding: 2px 10px; border-radius: 999px; font-size: 0.85rem; cursor: default; }
+.provl-st-kommentar { margin: 8px 0 0; }
+
+/* Fliken "Prov" i klassens statistik */
+.provl-st-klass { display: grid; gap: 18px; }
+.provl-st-rubrik { margin: 0 0 8px; font-size: 1.05rem; }
+.provl-st-lista { border-collapse: collapse; width: 100%; min-width: 520px; }
+.provl-st-lista th, .provl-st-lista td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--t-border, rgba(255, 255, 255, 0.09)); }
+.provl-st-lista thead th { font-size: 0.8rem; color: var(--t-muted, #93a2b3); font-weight: 600; }
+.provl-st-ford { white-space: nowrap; }
+.provl-st-elevval { max-width: 320px; margin-bottom: 10px; }
+.provl-st-linje-rad { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.provl-st-linje { background: var(--t-surface-2, #1b232e); border-radius: 8px; }
+.provl-st-linje-mitt { stroke: rgba(255, 255, 255, 0.15); stroke-dasharray: 3 3; }
+.provl-st-linje-v { fill: none; stroke: #9fb3c8; stroke-width: 2; }
+.provl-st-linje-p { stroke: #0f1419; stroke-width: 1; }
+.provl-st-linje-p.provl-st-gron { fill: var(--st-gron); }
+.provl-st-linje-p.provl-st-gul { fill: var(--st-gul); }
+.provl-st-linje-p.provl-st-rod { fill: var(--st-rod); }
+
+@media (max-width: 640px) {
+  .provl-st-namnkol { min-width: 96px; max-width: 120px; }
+  .provl-st-namn { max-width: 110px; }
+}
+@media print {
+  .provl-st-c-ratt, .provl-st-c-delvis, .provl-st-c-fel { color: #000; }
+}

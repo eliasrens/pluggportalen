@@ -9,7 +9,7 @@
 
 import { db } from "../firebase-config.js";
 import {
-  collection, deleteField, doc, getDoc, getDocs, serverTimestamp, writeBatch,
+  collection, deleteField, doc, getDoc, getDocs, serverTimestamp, updateDoc, writeBatch,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { FACIT_DOK, RATTNING, SAMLING_TILLFALLEN } from "./prov-modell.js";
 import { hamtaSvar, hamtaTillfalle } from "./prov-tillfalle-data.js";
@@ -78,4 +78,9 @@ export async function angraTillbaka(t, uid, rattStatus = null) {
   batch.update(rattRef(t, uid), { aterlamnad: false, aterlamnadAt: deleteField(), facit: deleteField() });
   if (rattStatus) batch.update(doc(db, SAMLING_TILLFALLEN, t), { rattStatus });
   await batch.commit();
+}
+
+/** Färggränserna för tillfället (#742, §7.5: två reglage i översikten). */
+export async function sparaGranser(t, granser) {
+  await updateDoc(doc(db, SAMLING_TILLFALLEN, t), { "installningar.granser": { gul: granser.gul, gron: granser.gron } });
 }
