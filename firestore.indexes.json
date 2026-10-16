@@ -7,6 +7,15 @@
         { "fieldPath": "uid", "order": "ASCENDING" },
         { "fieldPath": "isCorrect", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "brakresaRounds",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "challengeId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "finishedAt", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": [

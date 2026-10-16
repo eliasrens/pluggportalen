@@ -1,0 +1,255 @@
+/* ============================================================================
+   Bråkresan – utmaningsvyn och omgången (src/brakresan/omgang.css) · #709 D
+   Laddas LAT av omgang.js (ensureOmgangCss) – inte del av styles.css.
+   Spec §4/§11: lugn arbetsyta, kort instruktion direkt ovanför en stor
+   modell, svar/kontroll under. På smal skärm i en tydlig följd – inget
+   verktyg flyter ovanpå figuren. Status och rätt/fel läses utan färg.
+   ========================================================================= */
+
+.brv-rot, .brv {
+  --brv-turkos: #13a39a;
+  --brv-turkos-mork: #0b7d76;
+  --brv-turkos-ljus: #dff5f2;
+  --brv-bla: var(--bla, #2f80ed);
+  --brv-lila: var(--lila, #9b51e0);
+  --brv-lila-ljus: #efe4fb;
+  --brv-guld: #e8a915;
+  --brv-guld-ljus: #fff4d1;
+  --brv-black: #3b3350;
+  --brv-text: var(--text, #22314a);
+  --brv-svag: var(--text-svag, #5b6578);
+  /* Komponenternas knappar (br-knapp) används även utanför komponenterna. */
+  --br-turkos: #13a39a;
+  --br-turkos-mork: #0b7d76;
+  --br-bla: var(--bla, #2f80ed);
+  --br-lila: var(--lila, #9b51e0);
+  --br-guld: #e8a915;
+  --br-black: #3b3350;
+  --br-text: var(--text, #22314a);
+}
+
+.brv {
+  display: grid;
+  gap: 16px;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 8px 4px 40px;
+  color: var(--brv-text);
+}
+
+/* --- huvud ------------------------------------------------------------------ */
+.brv-huvud { display: grid; gap: 6px; }
+.brv-tillbaka {
+  justify-self: start;
+  min-height: 44px;
+  padding: 6px 14px;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--brv-bla);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.brv-tillbaka:hover { background: #eef4ff; }
+.brv-tillbaka:focus-visible, .brv :is(a, button):focus-visible { outline: 4px solid var(--brv-guld); outline-offset: 3px; }
+.brv-titel { margin: 0; font-size: clamp(1.5rem, 3.6vw, 2.1rem); line-height: 1.15; color: var(--brv-black); }
+.brv-nr {
+  display: inline-grid;
+  place-items: center;
+  min-width: 2.2em;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--brv-turkos), var(--brv-lila));
+  color: #fff;
+  font-size: .8em;
+  vertical-align: .08em;
+}
+.brv-meta { margin: 0; color: var(--brv-svag); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.brv-extra { padding: 2px 10px; border-radius: 999px; border: 2px solid var(--brv-lila); color: #6b2fa8; font-weight: 700; font-size: .9rem; }
+.brv-demo, .brv-exempelband {
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 2px dashed var(--brv-lila);
+  background: var(--brv-lila-ljus);
+  font-weight: 700;
+}
+.brv-svag { color: var(--brv-svag); margin: 0; }
+
+/* --- före omgången ------------------------------------------------------------ */
+.brv-start {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+  padding: 22px;
+  border-radius: 24px;
+  background: linear-gradient(160deg, #f1fbf9, #f3f6ff 60%, #f8f1ff);
+  border: 3px solid var(--brv-turkos-ljus);
+  box-shadow: var(--skugga-mjuk, 0 8px 24px rgba(31, 45, 74, .1));
+}
+.brv-start-text { display: grid; gap: 14px; }
+.brv-mal { margin: 0; font-size: 1.15rem; line-height: 1.45; }
+.brv-status { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-weight: 700; }
+.brv-stjarnor { display: inline-flex; gap: 4px; font-size: 1.8rem; line-height: 1; }
+.brv-stjarna { color: #b9b2c9; }
+.brv-stjarna--fylld { color: var(--brv-guld); text-shadow: 0 1px 0 #a87406; }
+.brv-exempelbild {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 18px;
+  background: #fff;
+  border: 2px solid #e3e8f2;
+}
+.brv-exempel-prompt { margin: 0; font-weight: 700; color: var(--brv-svag); }
+.brv-knappar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.brv .br-knapp { min-height: 44px; }
+.brv .br-knapp:disabled { opacity: .55; cursor: not-allowed; }
+.brv-fraga {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 3px solid var(--brv-guld);
+  background: var(--brv-guld-ljus);
+}
+.brv-fraga p { margin: 0; }
+.brv-laddar { padding: 30px; text-align: center; color: var(--brv-svag); }
+.brv-fel { padding: 16px; border-radius: 16px; border: 3px dashed #b45309; background: #fff7ed; display: grid; gap: 10px; justify-items: start; }
+.brv-fel p { margin: 0; }
+
+/* --- under omgången ------------------------------------------------------------ */
+.brv-omgangrad { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin-top: 4px; }
+.brv-uppgiftnr { margin: 0; font-size: 1.25rem; color: var(--brv-lila); }
+.brv-uppgiftnr:focus { outline: none; }
+.brv-prickar { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.brv-prick {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #c9cfdd;
+  background: #fff;
+  color: var(--brv-svag);
+  font-size: .85rem;
+  font-weight: 800;
+}
+.brv-prick--nu { border: 3px solid var(--brv-lila); color: var(--brv-lila); }
+.brv-prick--ratt { border: 4px double var(--brv-turkos-mork); color: var(--brv-turkos-mork); background: var(--brv-turkos-ljus); }
+.brv-prick--fel { border: 2px dashed #b45309; color: #9a3f07; background: #fff7ed; }
+
+.brv-yta {
+  display: grid;
+  gap: 14px;
+  padding: clamp(12px, 2.4vw, 24px);
+  border-radius: 24px;
+  background: #fbfdff;
+  border: 2px solid #e3e8f2;
+  box-shadow: var(--skugga-mjuk, 0 8px 24px rgba(31, 45, 74, .08));
+}
+.brv-instruktion { margin: 0; font-size: clamp(1.2rem, 2.6vw, 1.5rem); font-weight: 700; line-height: 1.4; text-align: center; }
+.brv-modell { display: grid; gap: 12px; justify-items: center; }
+.brv-inmatningshjalp { margin: 0; min-height: 1.4em; text-align: center; font-weight: 700; color: #7c3a06; }
+.brv-knappar--uppgift { justify-content: center; }
+.brv-kontrollera { font-size: 1.1rem; padding-inline: 26px; }
+.brv-hjalp:empty { display: none; }
+.brv-svar:empty { display: none; }
+.brv-bearbeta { margin: 0 0 8px; font-weight: 700; }
+.brv-fot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+}
+.brv-spar { margin-right: auto; color: var(--brv-svag); font-size: .95rem; min-height: 1.2em; }
+.brv-avsluta { border-color: #b45309; }
+
+/* Bråk i löptext: vågrätt bråkstreck i samma rad. */
+.br-prompt .br-tal, .brv-instruktion .br-tal, .brv-review .br-tal, .brv-exempel-prompt .br-tal, .br-aterkoppling-text .br-tal {
+  vertical-align: middle;
+  margin: 0 .12em;
+}
+.br-tal--text { font-size: .92em; }
+
+/* Kortens jämförelsestavar (12): bara medan hjälpen är öppen. */
+.br-jamforelsestav { display: block; width: 100%; margin-top: 6px; }
+.br-jamforelsestav[hidden] { display: none; }
+.br-jamforelsestav .br-k--mini { max-width: 100%; }
+
+/* Omdelning (34): två stavar med delningsverktyg och en uttrycksrad. */
+.br-omdelning { display: grid; gap: 14px; width: 100%; max-width: 680px; }
+.br-omdelning-rad {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: "namn stav" ". verktyg";
+  gap: 6px 12px;
+  align-items: center;
+}
+.br-omdelning-namn { grid-area: namn; font-size: 1.4rem; }
+.br-omdelning-stav { grid-area: stav; min-width: 0; }
+.br-omdelning-verktyg { grid-area: verktyg; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-weight: 700; }
+.br-omdelning-k { min-width: 7.5em; text-align: center; }
+.br-uttryck--multi { flex-wrap: wrap; row-gap: 10px; }
+.br-del-ratt { outline: 4px double var(--brv-turkos-mork); outline-offset: 4px; border-radius: 8px; }
+.br-del-fel { outline: 3px dashed #b45309; outline-offset: 4px; border-radius: 8px; }
+
+/* --- efter omgången ------------------------------------------------------------ */
+.brv-slut { display: grid; gap: 20px; }
+.brv-belopp { margin: 0; font-weight: 800; color: #7a5200; }
+.brv-genomgang { display: grid; gap: 10px; }
+.brv-genomgang h3 { margin: 0; }
+.brv-genomgang-lista { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.brv-genomgang-uppgift {
+  display: grid;
+  gap: 8px;
+  padding: 14px 18px;
+  border-radius: 18px;
+  border: 2px dashed #e0b48a;
+  background: #fffdf9;
+}
+.brv-genomgang-uppgift h4, .brv-genomgang-uppgift p { margin: 0; }
+.brv-genomgang-modell { max-width: 420px; }
+
+/* --- enkel lista (tills huvudvyn #713) ----------------------------------------- */
+.brv-avsnitt { margin: 18px 0 4px; font-size: 1.1rem; color: var(--brv-lila); border-bottom: 2px solid var(--brv-lila-ljus); padding-bottom: 4px; }
+.brv-utmaningar { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.brv-radlank {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  min-height: 52px;
+  padding: 8px 14px;
+  border-radius: 16px;
+  background: #fff;
+  border: 2px solid #e3e8f2;
+  color: inherit;
+  text-decoration: none;
+}
+a.brv-radlank:hover { border-color: var(--brv-turkos); }
+.brv-radnamn { display: grid; font-weight: 700; }
+.brv-radnamn small { font-weight: 400; color: var(--brv-svag); }
+.brv-radstatus { color: var(--brv-svag); white-space: nowrap; }
+.brv-rad--snart .brv-radlank { opacity: .6; }
+
+@media (max-width: 720px) {
+  .brv-start { grid-template-columns: 1fr; padding: 16px; }
+  .brv-exempelbild { order: -1; }
+  .brv-radlank { grid-template-columns: auto minmax(0, 1fr); }
+  .brv-radstatus { grid-column: 2; white-space: normal; }
+  .br-omdelning-rad { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "namn stav" "verktyg verktyg"; }
+  .br-omdelning-namn { font-size: 1.1rem; }
+  .br-omdelning-verktyg { flex-wrap: nowrap; gap: 6px; font-size: .95rem; }
+  .br-omdelning-k { min-width: 0; white-space: nowrap; }
+}
+
+/* Modellen stor men så att "Kontrollera" ryms på en laptopskärm. */
+.brv-modell .br-cirkel-svg { max-width: min(330px, 46vh); }
+.brv-modell .br-rutnat-svg { max-height: 46vh; }
+.br-omdelning .br-stav-svg { max-height: 92px; }
+.br-omdelning .br-k { padding: 8px 12px; }

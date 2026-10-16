@@ -17,7 +17,7 @@
 // Laddas DYNAMISKT från teacher-classes.js – aldrig i den statiska bootgrafen (#271).
 // ============================================================================
 
-import { visibleGamemodesForClassArea, normalizeEnabledModules } from "./gamemode-visibility.js";
+import { visibleGamemodesForClassArea, normalizeEnabledModules, normalizeHiddenModules } from "./gamemode-visibility.js";
 import { el, esc, icon } from "./teacher-shared.js";
 import {
   activeLock,
@@ -73,11 +73,13 @@ const MAL_VILLKOR = {
  */
 async function malModuler(cls) {
   const pa = new Set(normalizeEnabledModules(cls.enabledModules));
+  const dolda = new Set(normalizeHiddenModules(cls.hiddenModules)); // #735
   const moduler = LOCK_TARGET_TYPES.map(lockTargetModule).filter((m) => !m.lockAreas);
   return Promise.all(moduler.map(async (m) => {
     const villkor = MAL_VILLKOR[m.villkor];
     let skal = null;
     if (m.optIn && !pa.has(m.id)) skal = "inte påslagen för klassen";
+    else if (dolda.has(m.id)) skal = "dold för klassen";
     else if (villkor && !(await villkor.ok(cls).catch(() => false))) skal = villkor.skal;
     return { typ: m.id, namn: m.label, ikon: m.ikon, grupp: m.lockGrupp || "Moduler", skal };
   }));

@@ -1,0 +1,534 @@
+# Bråkresan 🐉 – integration, kontrakt och delade API:er
+
+Epic #705. Specen (bindande, läs hela): [`docs/BRAKRESAN-SPEC.md`](BRAKRESAN-SPEC.md).
+Den här filen är **det gemensamma kontraktet** för sub-issuerna: vad som finns i kodbasen,
+vad Bråkresan återanvänder, och de API:er som parallella agenter delar
+(matematik, uppgiftsschema, komponenter, server). Datamodellen står i
+[`docs/DATAMODELL.md`](DATAMODELL.md) under "Bråkresan", behörigheterna i
+[`docs/BEHORIGHETER.md`](BEHORIGHETER.md).
+
+Appen heter **Pluggporten** i koden och i texterna (specen säger både Pluggporten och
+Pluggportalen – kodbasen vinner, §13).
+
+## 1. Läget efter #706 (grunden)
+
+| Del | Fil(er) | Status |
+| --- | --- | --- |
+| Spec i repot | `docs/BRAKRESAN-SPEC.md` | ordagrann kopia av byggprompten |
+| Matematikmotor | `src/brakresan/math/*` | klar, `test/brakresan-math.test.js` (alla exempel i §15) |
+| Katalog (50 id/namn, avsnitt, taggar) | `src/brakresan/schema/katalog.js` | klar, namnen kontrolleras mot specen |
+| Uppgiftsschema + generatorkontrakt | `src/brakresan/schema/{uppgift,kontrakt,bedomning,prng}.js` | klart |
+| Omgångsplan (10 st, 3/4/3, inga dubbletter, reservbank) | `src/brakresan/schema/omgangsplan.js` | klar |
+| Regler i siffror (stjärnor, mynt, drake, jakt, datum, status) | `src/brakresan/schema/regler.js` | klara |
+| Generatorgranskning (200 exempel/utmaning) | `src/brakresan/schema/granskning.js`, `test/brakresan-generatorer.test.js` | klar – körs för varje byggd utmaning |
+| 50 utmaningsfiler | `src/brakresan/utmaningar/u01.js` … `u50.js` | **alla 50 byggda: 01–20 (D #709: 03, 12, 19 · E #710: övriga), 21–35 (D #709: 34 · F #711: övriga), 36–50 (G #712)**; delade hjälpfunktioner `utmaningar/delat-e.js` (E), `f-delat.js` (F), `delat-g.js` (G: elevsvar, blandad form, decimal/procent ur exakta värden); 50:s familjer i `u50-familjer.js`, `u50-resonemang.js`, `u50-delat.js` |
+| Granskningsskript per utmaning (D #709) | `admin/qa-brakresan-generatorer.mjs` + egna kontroller `admin/qa-brakresan/uNN.mjs` | klart, `test/brakresan-utmaningar-d.test.js`, `test/brakresan-utmaningar-e.test.js` (E #710), `test/brakresan-utmaningar-f.test.js` (F #711), `test/brakresan-utmaningar-g.test.js` (G #712) |
+| Verkstaden – flerdelade uppgifter (F #711) | `src/brakresan/omgang-verkstad.js` + `verkstad-stav.js`, `verkstad-delar.js`, `verkstad.css` | klart, §5d nedan, `preview/preview-brakresan-f.html` |
+| Utmaningsvy + omgångsflöde (D #709) | `src/brakresan/omgang*.js`, `omgang.css`, `page-brakresan.js`, route `#/elev/brakresan?u=NN` | klart, §5b nedan, `test/brakresan-omgang-backend.test.js` |
+| Synk till Cloud Functions | `admin/sync-brakresan-functions.mjs` → `functions/brakresan/` | klar, predeploy + `test/brakresan-delat.test.js` |
+| Datamodell | `docs/DATAMODELL.md` "Bråkresan" | dokumenterad |
+| Regelskelett | `firestore.rules` (Bråkresan-blocken) | klart, `test/firestore-rules-brakresan.test.js` |
+| Komponentbibliotek (B #707) | `src/brakresan/komponenter/*` (+ `komponenter.css`), §5 nedan | klart, `test/brakresan-komponenter-geometri.test.js`, `preview/preview-brakresan-komponenter.html` |
+| Daglig guldjakt (J #715) | `functions/brakresan-jakt.js`, callable `brakresaHunt`, `src/brakresan/guldjakt.js` | klar, §5c + §6, `test/functions-brakresan-jakt.test.mjs` |
+| Betrodd server (C #708): omgångar, bedömning, stjärnor, mynt, uppmuntran, drake | `functions/brakresan-{core,avslut,state}.js`, callables `brakresa*` i `functions/index.js` | klar, `test/functions-brakresan-{core,avslut}.test.mjs` (kärnan, §15) + `functions-brakresan.test.mjs` (e2e) |
+| Klientens dataskikt + demoläge | `src/brakresan/data.js` (lat), `data-core.js`, `demo.js` | klart, `test/brakresan-data-core.test.js` |
+| Lärarvyn (K #716): klassöversikt, matris, individvy/historik, rekommendationer, testläge | `src/brakresan/larare/*` (lat), §5e nedan | klart, `test/brakresan-larare-statistik.test.js`, `preview/preview-brakresan-larare.html` |
+
+Inget i `src/brakresan/` importeras statiskt från bootgrafen (107 filer, `admin/qa-bootgraf-bfs.mjs`).
+
+## 2. Kartläggning – vad som finns och vad Bråkresan använder (§13 "Undersök först")
+
+| Område | I kodbasen | Bråkresan |
+| --- | --- | --- |
+| **Router** | Hash-router i `src/app.js` (`routes`-objektet). Moduler laddas med `dynSida(async () => (await import(...)).page…(), ikon, titel)` – aldrig statiskt (#271, incidenten 2026-09-10). | Ny route `#/elev/brakresan` (huvudvy, `?u=03` = utmaningsvy) via `dynSida` → `src/brakresan/page-brakresan.js` (D/H). Lämna-vakten i `app.js` (`router(e)`-kroken, #605) kan användas för "Tillbaka sparar". |
+| **Elevnavigation** | `src/ui.js` `NAV_LANKAR`, grupp `"ova"` (Plugga-design #701). `modul:`-id styr synligheten via `src/gamemode-visibility.js` `TOGGLABLE_MODULES` (`optIn: true` = av tills läraren slår på). Reglerna validerar listorna (`validHiddenModules`/`validEnabledModules` i `firestore.rules`). | En rad `{ hash: "#/elev/brakresan", ikon: "🐉", label: "Bråkresan", grupp: "ova", modul: "brakresan" }` + rad i `TOGGLABLE_MODULES` + id:t i regelns listor (H). **Beslut för leaden: opt-in eller synlig som standard**, se §8. |
+| **Lärarnavigation** | `src/teacher-shared.js` `TEACHER_TABS` (lazy `import()`), klassvyns flikar i `src/teacher-class.js` (Läsresan/Ekvationsresan-mönstret: `{ key, label, icon, lazy: true, render: async … import(…) }`). | Fliken "Bråkresan" i `teacher-class.js` (klassöversikt, matris, individvy) + testläget som egen sida i gruppen `material` eller `statistik` (K). |
+| **Auth / elevidentitet** | Firebase Auth; elevens `uid` = dokument-id i `students` och `studentData`. Klient: `currentStudentId()` (`src/data.js`). Server: `request.auth.uid`. | Samma. Callables tar aldrig ett elev-id som argument – alltid `request.auth.uid`. |
+| **Lärarroller** | Admin / årskurskonto (#676). Regler: `isAdmin()`, `hasClass(classId)`, `hasStudent(studentId)`. Server: `functions/teacher-role.js` `callerRole(db, auth)`. Klient: `src/teacher-role.js`, `teacher-role-core.js`. | Läsning av elevdata via `hasStudent`, rekommendationer via `hasClass`/`hasStudent` (regelskelettet). Årskurskontot ser bara egna klasser i lärarvyn (filtrera listor på egna klasser, `BEHORIGHETER.md` "Att tänka på"). |
+| **Valuta** | `studentData.coins`. Klienten lägger mynt med `addCoins` (`src/data.js`) – fältet är elevskrivbart sedan tidigare (shoppen, Läsresan …). Servermönster: `hitta-ratt-core.js` ökar `coins` med `FieldValue.increment` i samma transaktion som resultatet. Ingen gemensam myntlogg finns. | Bråkresan betalar **bara från servern**: belöningsdokument `brakresaRewards/{eventId}` + `increment` i EN transaktion (§13). Händelse-id = dokument-id ⇒ aldrig dubbel utbetalning. Klienten gör `invalidateStudentData` efter en belöning så att sidomenyns saldo uppdateras. Se §8 om det elevskrivbara saldot. |
+| **Inventory / hus / djurnamn** | `studentData.roomAnimals` (`src/data-animals.js`), mystery-djur `pets` (`src/data-pet.js`), rendering `src/varld-rum-djur.js`, "Mina djur" `src/varld-rum-djurtray.js`, namn `cleanPetName` (`data-pet.js`, max 16 tecken, utan HTML). | Draken i eget fält `studentData.brakdrake` (DATAMODELL.md) – **inte** i `roomAnimals`, eftersom `saveAnimalPositions`/`saveAnimalName` skriver om listan ur `animalsFromData`, som hoppar över arter som inte är shop-djur (en drakpost skulle tyst försvinna). Återanvänd `cleanPetName`, namnrutan, placeringen och lådan (I). |
+| **Grafik** | Egenritad parametrisk SVG i `src/art-*.js`; sprite-djur `art-pet-sprites.js`; designspråket i `docs/DESIGNSYSTEM.md`. CSS: `src/styles/NN-*.css` → `npm run build:css` (styles.css genereras). Moduler laddar egen CSS lat (`page-ekvationsresan.js` `ensureStyles`). | Matematikbilder = parametrisk SVG/DOM ur uppgiftens data (B). Draken = egen SVG per stadium, lat laddad (I0/I). Egen CSS i `src/brakresan/*.css`, laddad lat – inte i `styles.css`. Inga Emoji 13+ (#590). |
+| **Ljud, rörelse** | `src/fx.js`: `sound`, `isMuted()` (localStorage `pluggportalen.muted`), `confetti`. Reducerad rörelse via `@media (prefers-reduced-motion: reduce)`. | Samma ljudinställning; alla animationer har reducerad variant (§14). |
+| **Uppläsning** | Ingen TTS/uppläsningsfunktion i appen. | Ingen ny tjänst (§11). Strukturerad text + `aria-label` ur `math/words.js` ("tre fjärdedelar"). |
+| **Callables** | `functions/index.js`: `onCall({ region: "europe-west1", … })`, logiken i en kärnfil med deps-injektion (`{ db, FieldValue, Timestamp, now, rng }`), egen felklass → `HttpsError`. Klient: `httpsCallable(getFunctions(app, globalThis.__PP_FUNCTIONS_URL || REGION), namn)` (`src/hitta-ratt/hr-data.js`). Slump: `node:crypto` `randomInt`. | Samma mönster: `functions/brakresan-core.js` + `brakresan*`-callables (§6). Delad kod via `functions/brakresan/` (synk). |
+| **Lärarstatistik / läskvot** | #231: inga läsningar per elev i onödan; lärarvyerna läser ett denormaliserat dokument per elev (Ekvationsresan `ekvationsresa/progress`, Läsresan `studentData.lasresa`). | `studentData/{id}/brakresa/state` bär allt matrisen och klassöversikten behöver – EN läsning per elev, aldrig 50. Omgångshistoriken läses först när läraren öppnar en elev. |
+| **Testverktyg** | `node --test` (enhetstester: alla `test/*.test.js` utom `firestore-rules-*`, `functions-*`, `e2e-*`); `npm run test:rules` / `test:functions` (emulatorn, kräver java + firebase-tools); bootgraf `admin/qa-bootgraf-bfs.mjs`; förhandsvisning `node server.mjs` + `preview/*.html`; full app mot emulatorn `admin/qa-emulator-proxy.mjs`. | Samma. Generatorgranskningen körs i enhetstesterna. Callable-tester behöver `FUNCTIONS_EMULATOR_HOST`. **En Firestore-emulator åt gången**: kör den med `flock /tmp/pp-emulator.lock …` och egen port-config. |
+
+## 3. Matematikmotorn (`src/brakresan/math/`)
+
+Ren JS utan beroenden, samma kod i webbläsaren och i Cloud Functions. Allt exakt – inga flyttal.
+
+| Modul | Viktigast |
+| --- | --- |
+| `rational.js` | `q(n, d)` → fryst `{ n, d }` (gcd-normaliserad, positiv nämnare; d = 0 kastar), `add sub mul div sum`, `eq cmp lt gt`, `toMixedParts`, `fromMixed`, `numeratorFor(v, d)`, `commonDenominator`, `gcd lcm`. Osäkra heltal kastar `RangeError`. |
+| `form.js` | **Presentationsform skild från värdet**: `fraction(2, 4)` visas "2/4" men `valueOf` = 1/2. Former: `integer`, `fraction`, `mixed`, `decimal(value, places)`, `percent(p)`. `formatForm` (svensk decimalkomma, hårt mellanslag före %), `isSimplest`, `simplify`, `fractionFormOf`, `mixedFormOf`. |
+| `decimal.js` | `isTerminating` (bara 2/5-nämnare), `decimalPlaces`, `decimalText(v, places)` → "0,75" eller `null` (1/3 är aldrig 0,33), `fitsDecimals(v, 2)`, `placeValues` (tiondelar/hundradelar). |
+| `percent.js` | `fromPercent(25)` = 1/4, `integerPercent`, `percentOf(25, 80)` = 20, `percentOfWhole(6, 24)` = 25, `discount`, `increase`. |
+| `compare.js` | `relation(a, b)` → "<" "=" ">", `sortAscending`, `isAscending` (lika värden i valfri ordning), `allDistinct`, `valueKey`. |
+| `input.js` | Elevens fält → `{ ok: true, form }` eller **inmatningsfel** `{ ok: false, error, message }` (`tom`, `ofullstandig`, `ogiltig`, `namnare-noll`) som INTE låser uppgiften. `parseFraction({ n, d })`, `parseMixed({ whole, n, d })`, `parseDecimal` (komma/punkt, slutnollor), `parsePercent`, `parseInteger`, `parseText` ("2 3/4", "75 %"). |
+| `requirements.js` | `checkForm(form, expected, requirement)` → `{ correct, valueOk, formOk, reason, message }`. Krav: `value` (alla likvärdiga), `denominator` (utm. 14), `simplest` (21), `mixed` (28, 36), `fraction`, `decimal`, `percent`, `integer`. Rätt värde i fel form = fel, men med egen förklaring. |
+| `words.js` | `fractionWords(3, 4)` = "tre fjärdedelar", `speakForm`, `numberWords`, `partName`. |
+
+## 4. Uppgiftsschema och generatorkontrakt (`src/brakresan/schema/`)
+
+### Så skriver du en utmaning (D, E, F, G)
+
+Ersätt stubben i `src/brakresan/utmaningar/uNN.js` med `export default defineChallenge({...})`.
+Rör bara dina egna `uNN.js` (+ egna testfiler) – då krockar parallella agenter aldrig.
+
+```js
+import { defineChallenge } from "../schema/kontrakt.js";
+import { q, formatForm, fraction } from "../math/index.js";
+
+export default defineChallenge({
+  id: "03",
+  version: 1,                       // HÖJ när uppgifterna ändras
+  slots: undefined,                 // standard: 3 intro, 4 normal, 3 overforing – eller tio egna namn
+  generate(rng, { slot, index }) {  // bara rng (prng.js) – aldrig Math.random
+    return { a, n, form: "cirkel" };// ren JSON
+  },
+  core: (p) => `${p.a}/${p.n}`,     // semantisk kärna (dubblettkontroll)
+  build(p) {                        // REN funktion av params
+    return { core, prompt, values, view, answer, key, help, misconceptions, feedback, review };
+  },
+  validate: undefined,              // valfri egen bedömning; standard gradeAnswer
+  reserve: [{ slot: "intro", params: {...} }, ...], // ≥ 10 validerade
+});
+```
+
+Fälten i `build` (detaljer i `schema/uppgift.js`):
+
+- `prompt` kort instruktion. `view` = representationen till komponenten (§5) – får inte
+  avslöja facit (ingen "3/5 markerat"-etikett före kontroll i målningsuppgifter).
+- `answer` = svarsytan, `key` = hemlig regel. Svarstyperna och deras regler står i
+  `schema/bedomning.js`: `choice`, `yesno`, `relation`, `select` (välj N kort, valfri ordning),
+  `pairs`, `categories`, `order`, `paint` (antal, vilka delar som helst), `number` (+ formkrav),
+  `point` (tallinjen, exakt snäppvärde), `multi` (flera delsteg = EN poäng).
+- `key.display` = facit som text (visas efter kontroll). `key.examples = { right: [...], wrong: [...] }`
+  = elevsvar som granskningen kör: alla `right` ska bedömas rätt, alla `wrong` fel (inte
+  inmatningsfel). Lägg de vanliga missuppfattningarna i `wrong`.
+- `help` = 1–4 steg i ordningen `orientering → princip → modellering → atergang`, utan aktuellt
+  facit (granskningen fäller hjälptext som innehåller `key.display`). Genomräknade exempel har
+  andra tal.
+- `feedback = { correct, wrong }` kopplar till modellen ("Ja! Tre av fyra lika stora delar …").
+  `review` = genomgången efter omgången.
+- Inga arrayer direkt i arrayer (Firestore) – använd `{ ids: [...] }`, `{ a, b }`.
+
+**Granskningsskriptet (D #709):** `node admin/qa-brakresan-generatorer.mjs [NN …] [--visa 3]` kör
+`reviewChallenge` + utmaningens EGNA kontroller i `admin/qa-brakresan/uNN.mjs`
+(`audit(task, { grade })` per uppgift: tillåtna tal, facit, alla alternativa rätta svar,
+unikhet, missuppfattningsalternativ; `plan(omgångar)` över 100 omgångar: t.ex. "minst fyra
+cirklar", "minst tre finare indelningar") + tre omgångar i följd med `avoidCores`. E/F/G lägger
+en `uNN.mjs` per utmaning och en rad i sin testfil (mönster: `test/brakresan-utmaningar-d.test.js`).
+
+**`minVariants` (D #709):** när utmaningens EGNA talgränser i §8 ger färre än 60 kärnor får
+`defineChallenge` ange `minVariants` (30–59) + `minVariantsReason`. 34: nämnare 2–8, mgn ≤ 24,
+summa ≤ 1 och förkortade äkta addender ger exakt 42 talpar. 13 (E) och 48 (G): A ≤ 2 med
+stambråk 1/2–1/8 och 2–8 bitar ger 43 talpar.
+
+**Flerstegsuppgift med stavar (`view.component: "omdelning"`, 34):** `bars: [{ parts, marked,
+label, maxDela }]` (verktyget "Dela varje bit i k", k ≤ maxDela), `expr` med `{ input: "id" }`
+per delsvar, `answer.type: "multi"`. Ritas av `omgang-uppgift.js`, inte av komponentbiblioteket.
+Kort med `view.stavar: true` (12) får jämförelsestavar under korten bara medan hjälpen är
+öppen på ett steg med `highlight: { stavar: true }` – aldrig från början (lika långa
+markeringar avslöjar svaret) och utan facitetikett. Stängs hjälpen döljs de; öppnas den
+igen visas senaste stegets markering (`createHjalp`).
+
+Granskningen (`reviewChallenge`) körs automatiskt för varje byggd utmaning i
+`test/brakresan-generatorer.test.js`: 200 seeds, determinism, schema, rätt/fel-exempel,
+facitläckor, ≥ 60 olika kärnor, reservbanken, 20 omgångsplaner utan dubbletter. Lägg
+utmaningens egna matematikkontroller (tillåtna tal, unik trippel, sektorvinklar …) i en egen
+testfil `test/brakresan-uNN.test.js`.
+
+### Omgången
+
+`planRound(challenge, { seed, avoidCores })` (servern) → tio `{ index, role, params, core, source }`.
+Tio olika kärnor alltid; tidigare kärnor undviks i de första 30 försöken per slot, sedan
+släpps de; efter 60 försök tar reservbanken över; annars `PlanError`. `buildTask` bygger
+uppgiften, `publicTask` tar bort facit, `revealTask` ger det som visas efter kontroll.
+
+## 5. Komponent-API (B #707 – byggt)
+
+Alla tolv komponenter (§4) bor i `src/brakresan/komponenter/` och laddas lat. De ritar
+**bara ur data** (uppgiftens `view`) och vet ingenting om facit. Gemensamt gränssnitt:
+
+```js
+// src/brakresan/komponenter/<namn>.js
+export function create<Namn>(host, view, opts) → {
+  el,                      // rotnoden komponenten äger (SVG eller DOM)
+  getAnswer(),             // elevens aktuella svar i bedomning.js-form, eller null
+  setAnswer(answer),       // återställ (återupptagning, bearbetning efter fel)
+  reset(),                 // tillbaka till utgångsläget
+  setLocked(locked),       // efter "Kontrollera": inga ändringar (bearbetning låser upp igen)
+  showResult(result),      // efter bedömning: kontur/mönster + text, aldrig bara färg
+  highlight(target),       // hjälpen pekar ut helheten/delarna, t.ex. { whole: true } – inget facit
+  onChange(cb),            // vid varje ändring – sidan aktiverar "Kontrollera"
+  destroy(),               // släpp lyssnare, stoppa animationer
+}
+// opts = { interactive: true, size: "stor"|"kort"|"mini", label, reducedMotion, sound }
+```
+
+Gemensamma regler: klickytor ≥ 44×44 px, tangentbord (pilar/mellanslag/Enter), pekplatta och
+touch; dragmål har klickalternativ; helheten märks ("Hela staven = 1"); etiketter, andelar och
+delningar ur datan; `aria-label` ur `math/words.js` utan att ge facit.
+
+| # | Komponent (`view.component`) | `view`-data (skiss) | Svarstyper |
+| --- | --- | --- | --- |
+| 1 | `notation` | `{ expr: [form \| { op: "+"\|"−"\|"·"\|"÷"\|"=" } …], input?: "fraction"\|"mixed"\|… }` – bråkstreck, blandad form, relationstecken | `number`, `relation` |
+| 2 | `stav` | `{ wholes, parts, marked, regroup?: k, pieces?: [...], label }` – omdelning behåller helhetslängd | `paint`, `number` (via notation) |
+| 3 | `cirkel` | `{ wholes, parts (≤ 12), marked }` – exakt 360°/n | `paint` |
+| 4 | `rutnat` | `{ rows, cols, marked, regions?: [{ cells }] }` – olika form, lika area | `paint` |
+| 5 | `hundraruta` | `{ wholes: 1\|2, marked }` – 10×10, rader och celler, tangentbord | `paint` |
+| 6 | `tallinje` | `{ min, max, ticks, labels, points?: [{ id, value }], snap }` – x(v) linjär | `point`, `choice` |
+| 7 | `mangd` | `{ count, marked, groups?, item }` – identiska föremål | `paint`, `number` |
+| 8 | `kort` | `{ cards: [{ id, face: view \| form \| text }] }` – neutrala kort | `select`, `choice`, `pairs` |
+| 9 | `sortering` | `{ cards, bins?: [{ id, label }], order?: true }` | `categories`, `order` |
+| 10 | `areamodell` | `{ vertical: {n,d}, horizontal: {n,d} }` – överlappning mot ursprunglig helhet | `paint`, `number` |
+| 11 | hjälppanel | `task.help` – steg för steg, "Nu provar du själv" | – |
+| 12 | resultat/belöning | `{ correct, reward, message }` (`resultMessage`, `regler.js`) | – |
+
+**Delarnas id**: `paint`-svar listar delarnas id. Konvention: `"p0"` … `"p{N−1}"` i läsordning
+(helhet för helhet; stav vänster→höger; cirkel medurs från klockan 12; rutnät rad för rad).
+Generatorn lägger samma lista i `answer.parts`.
+
+### Så används biblioteket (D, K och utmaningarna)
+
+```js
+const { mountTask, createHjalp, createAterkoppling, createResultat } =
+  await import("./komponenter/index.js");             // lat – aldrig statiskt
+const t = await mountTask(yta, publicTask, { size: "stor" });
+t.onChange(() => kontrollera.disabled = !t.getAnswer());
+t.onSubmit(kontrollera);                               // Enter i ett giltigt svarsfält
+const r = t.validate();                                // inmatningshjälp före anrop: { ok, message }
+t.setLocked(true); t.showResult(serverSvar);           // { status: "graded", correct }
+```
+
+- `mountTask(host, task, opts)` ritar `task.view` och, när svaret är `number`/`relation` och
+  modellen inte själv tar det, en notationsrad under (`view.expr` + svarsfälten). Svaret kommer
+  alltid från rätt del. `multi` sätts ihop av sidan med `createComponent` per del.
+- `createComponent(host, view, opts)` – en enskild komponent. `opts.answer` = uppgiftens
+  offentliga `task.answer` avgör läget (målning, punkt, val, par …); utan `answer` = visning.
+  `interactive: false` + `size: "mini" | "kort"` = bild i kort, hjälp, lista. Visningsläget får
+  en beskrivning för skärmläsare ("Cirkel delad i 4 lika delar, 3 markerade"); svarsläget
+  beskriver aldrig facit ("Del 2 av 5").
+- `highlight(target)`: `{ whole: true }` (helhetens ram + etikett), `{ count: true }` (delarna
+  numreras; på tallinjen delsträckorna, inte strecken), `{ marked: true }`, `{ ids: [...] }`,
+  `{ overlap: true }` (areamodellen), `{ groups: true }` (mängden), `null` rensar.
+- Extra: stav `regroup(k)` (omdelning i hjälpen, samma markerade längd), areamodell
+  `steg("lodratt" | "bada")`, stav `pieces()` (flyttbara delar), notation `focus()`.
+- `view`-fälten utöver skissen ovan: stav `bars: [{ parts, marked, label }]` (jämförelse,
+  samma längd) och `pieces: [{ id, d }]`; rutnät `regions: [{ cells }]` (olika form, lika area –
+  delarna är då regionerna) och `second: [cell]` (andra färgen); tallinje `labels: "alla" |
+  "hela" | [värden]`, `points[].label`; mängd `item: "kula" | "stjarna" | "knapp" | "kloss"`;
+  sortering `ends: ["Minst", "Störst"]`; areamodell `show`; notation `expr` med `{ input }`,
+  `{ relation }`, `{ okand }`, `{ text }`.
+- Hjälppanelens steg kan ha `highlight` (pekar på elevens modell) och `view` (en egen liten
+  modell med andra tal). `onStep(steg)` anropas när ett steg visas – sidan registrerar hjälp
+  före/efter fel. "Tillbaka till uppgiften" lämnar fokus till `returnFocus`. Ordlistan finns i panelen.
+- Resultatet tar `roundReward`-utfallet + `starsBefore` + `results` (tio booleans) + `suggestions`
+  (0–5 rätt) och skriver texten med `resultMessage` (regler.js). Mynt visas bara när `coins > 0`.
+- Rätt/fel visas med kontur + ikon + text: rätt = dubbel heldragen ram + ✓ "Rätt!", fel =
+  streckad ram + ↻ "Inte riktigt ännu". Valda delar = turkos + prickmönster. Ljud spelar
+  komponenterna aldrig – sidan använder `fx.js` (användarens ljudval).
+- Geometrin (`komponenter/geometri.js`) är ren och testad: sektorer exakt 360°/n, stav exakt
+  helhet/n, omdelning bevarar markerad längd, tallinjens x(v) och snäppning, 100 celler,
+  regioner med lika area, överlappningen = produkten, varje föremål en gång.
+
+### Tillägg från E #710: `sammansatt`, `figur`, `relationsval`
+
+Tre komponenter till (lata, registrerade i `KOMPONENTER`/`SVARSTYPER`). **F/G: återanvänd dem i
+stället för att bygga egna.**
+
+- **`sammansatt`** – flera delar i EN uppgift: bild + svarskort, bild + jämförelse, mängd att
+  markera + bråkfält, jämförelse + förklaringskort. `view = { component: "sammansatt", rad?: true,
+  delar: [{ view, svar?: true | "id", verktyg?: true, rubrik?, label? }] }`. Varje del är en vanlig
+  komponent (även `notation`). Enkel svarstyp: delen med `svar: true` tar `task.answer`.
+  `answer.type: "multi"`: delen med `svar: "id"` tar `answer.parts[id]` och svaret blir
+  `{ parts: { id: delsvar } }` (gradeWith per del). `verktyg: true` = interaktiv utan svar.
+  `highlight(target)` går till alla delar, eller bara `target.del` (index) – hjälpsteg kan alltså
+  peka på bilden men inte på korten: `highlight: { whole: true, del: 0 }`. Efter kontroll av multi
+  visas varje del rätt/fel (sparade delsvar, ingen delpoäng). Exempel: `utmaningar/u02.js`.
+- **`figur`** – visningsfigur med delar som får vara OLIKA stora (01): `{ form: "cirkel" | "stav",
+  sizes: [vikter] }` eller `{ form: "rektangel", rows, cols, regions: [{ cells }] }` (lika många
+  celler = lika area, även med olika form), `rutor?` (cellinjer), `marked?: [index]`, `jamfor?`
+  (hjälpens jämförelse: delarna isär – stav från samma startlinje, sektorer överlagda, regioner
+  bredvid varandra med rutor). Skärmläsaren får antalet delar, aldrig "lika stora".
+- **`relationsval`** – välj <, = eller > med tecken OCH text ("är större än", spec §8 09):
+  `{ vanster: form | { text }, hoger: form | { text } }`, svar `relation`.
+
+### Fler tillägg från E #710 (alla opt-in, befintliga vyer oförändrade)
+
+- **`bygge`** (05) – en given bit (1/n av stav/rektangel, eller en grupp med `enhet` föremål)
+  kopieras till ett byggområde med klick, knapp eller drag. Biten ritas alltid lika stor och
+  byggområdet saknar platser/slutmarkering – helheten avslöjas inte. `{ form, bit: "1/4",
+  enhet?, item?, max }`, svar `number` (heltal: bitar, eller föremål = bitar · enhet).
+- **`gruppering`** (20) – N föremål i en hög och n tomma grupper ("Lägg en här", "En till
+  varje grupp", drag, klick tillbaka). `{ count, groups, item }`, svar `categories`
+  `{ bins: { g1: [id …] } }`; som `verktyg` i en sammansatt vy ger den inget svar.
+  Jämn fördelning bedöms i utmaningens egen `validate` (u20.js).
+- **`kort`**: `stora: true` (större kort, bilder i storleken "kort", 2×2 för fyra kort),
+  `lista: true` (textkort under varandra, t.ex. förklaringar), `jamfor: true` ("Jämför två
+  kort": två valfria kort stora sida vid sida, utan likhetssvar – 06).
+- **`sortering`**: `bins[].face` = ankarkort i facket (15).
+- **`sammansatt`**: `rubrik` får vara en form (bråk med riktigt bråkstreck).
+- **`omdelning`** (`omgang-uppgift.js`): `bars[].svar: "id"` lägger stavens delning k i svaret
+  som `parts[id] = { text: "k" }` (13 – omdelningen bedöms), `{ text }` i `expr` (14),
+  `visaStav: "Visa staven"` = frivilliga stavar bakom en knapp (14).
+- **`svarText`** (`omgang-resultat.js`) beskriver alla svarstyper, även `multi` med blandade
+  delar ("Du lade 3 + 3 i 2 grupper och skrev 3.").
+- Förklaringskort (16, 17) skrivs så att den rätta inte systematiskt är längst/kortast –
+  `admin/qa-brakresan/_jamforelse.mjs` fäller en längdledtråd.
+- Förhandsvisning av en hel planerad omgång (alla tio uppgifter, kontrollera + hjälp per
+  uppgift): `PORT=8710 node server.mjs` → `preview/preview-brakresan-uppgifter.html?u=NN`
+  (`&facit=1`, `&i=3`, `&seed=…`).
+
+### Tillägg från G #712 (36–50, alla opt-in)
+
+- **`kort`**: `helhet: true` – bildkortens helhetsetikett ("Hela hundrarutan = 1") syns även i
+  `stora` kort (43: helheten ska alltid vara uttalad). Utan flaggan döljs den som förut.
+- **`areamodell`**: `horizontal: { n: 0, d: m }` = raderna som rutnät utan vågräta ränder i
+  legenden – eleven målar själv den andra andelen inuti den lodräta (38). Läget avgörs av
+  utmaningens `validate` (målningen ska ligga i den randiga delen).
+- Mönster som G återanvänder: **multi med målning + tal** i `sammansatt` (36 över en hel på tre
+  stavar, 37 en stavram per kopia, 48 måttbitar på samma skala som målsträckan), **`omdelning`**
+  med `bars[].svar` för jämn delning (47: a · j delbart med k), **`sortering` order + categories**
+  mot en tallinje med punkter A–D (46), **`kort` lista** för rimlighets-/strategival (44, 50).
+- Alternativkort i samma val har alltid SAMMA form (40: decimaltal som `decimal`-form, inte text –
+  annars avslöjar storleken det rätta). Granskningen (`admin/qa-brakresan/u40.mjs`) fäller det.
+- Förhandsvisning: samma sida som E, `preview/preview-brakresan-uppgifter.html?u=36` … `?u=50`.
+  Skärmdumpar: `design/brakresan-712/`.
+
+## 5b. Utmaningsvyn och omgångsflödet (D #709 – byggt)
+
+| Fil | Innehåll |
+| --- | --- |
+| `page-brakresan.js` | route-skalet: `#/elev/brakresan` huvudvyn (H #713, §5c), `?u=NN` utmaningsvyn, `?u=NN&lage=test` testomgång utan server |
+| `omgang.js` | `createUtmaningsvy(host, { challengeId, backend, onBack, onOpen, onReward })`: före (mål, stjärnor, exempelbild, Starta/Fortsätt + uttryckligt val för ny, Prova ett exempel, Tillbaka), under (Uppgift X av 10, Kontrollera, hjälp i fyra steg, Försök igen/Fortsätt, Sparar …/Sparat, Avsluta omgången), efter |
+| `omgang-uppgift.js` | `monteraUppgift(host, publicTask, opts)` – mountTask + `omdelning` + jämförelsestavar + tallinjens värdetext utan bråknamn; `promptNod(text)` skriver "3/5" med vågrätt bråkstreck |
+| `omgang-backend.js` | `serverBackend(id)` (data.js, lat) och `demoBackend(id, { seed })` – samma regler helt i klienten, `fullTask(i)` ger facit (lärarens testläge K) |
+| `omgang-resultat.js` | `visaResultat` (createResultat + kläckning/nivå + genomgång av felen), `forslag(id)` (0–5 rätt), `svarText(task, answer)` (genomgång, K:s historik) |
+
+Utmaningsvyn öppnas med `#/elev/brakresan?u=NN` (huvudvyn, §5c). **K #716** kan återanvända `createUtmaningsvy` med
+`demoBackend` (testläget) och `monteraUppgift`/`svarText` i historiken.
+
+Förhandsvisning: `PORT=8709 node server.mjs` → `preview/preview-brakresan-omgang.html?u=03` (testomgång).
+Riktiga kedjan mot emulatorn: `bash admin/qa-brakresan-preview.sh` (Auth + Firestore + Functions,
+elev1 / lilla123, proxy 8711) – proxyns vitlista har `brakresa*`.
+
+## 5c. Huvudvyn och drakpanelen (H #713 – byggt)
+
+| Fil | Innehåll |
+| --- | --- |
+| `huvudvy.js` (+ `huvudvy.css`, lat) | `createHuvudvy(host, { state, rek, href, drakpanel })`: rubrik + intro, X/150 stjärnor och Y/50 bemästrade, drakkortet (vid sidan ≥ 760 px, annars ovanför listan), ankarlänkar till de fem ämnesrubrikerna, "Börja här" (lärarens rekommendationer, länkar till ordinarie kort), sök + filter (Alla / Inte bemästrade / Bemästrade / Rekommenderade), alla 50 kort. Listans läge (filter, sök, scroll, fokus) sparas i sessionStorage när ett kort öppnas och återställs. Spelar kläckning/evolution som inte visats (`state.dragon.levelShown` < nivån) och kvitterar med `ackDragon`. |
+| `huvudvy-lista.js` | Ren logik: `filtrera`, `matcharSok` (namn, mål, taggar, nummer; å/ä/ö-okänslig), `kortStatus` (status + ikon + stjärnor + "Senast 8 av 10"), `sammanfattning`, `rekommendationer(docs)`, `listlage`. `test/brakresan-huvudvy.test.js`. |
+| `miniatyr.js` | `miniatyrSvg(id)` – en egen statisk SVG per utmaning (80 × 60, aria-hidden), utan komponentbiblioteket. |
+| `drakpanel.js` (+ `drakpanel.css`, lat) | **Gemensam panel för Bråkresan och huset (I #714):** `oppnaDrakpanel({ state, byt?, jakt?, forandring?, onVisad?, onNamn?, fokusTillbaka?, idag?, atgarder? })` = `<dialog>` med draken, namn + "Byt namn", nivå, stjärnor totalt, nästa tröskel, guldjaktens status/intervall/genomförda/funna mynt, "Fullt utvecklad" vid 150. Ägget: kläckningsmål, ingen jaktknapp. `forandring: { fran, till }` spelar `spelaKlackning` (fran 0, sedan namnfrågan) eller `spelaEvolution` först – "Hoppa över" finns, och stängd panel räknas som visad. `createDrakkort(host, { state, oppna })` = huvudvyns kompakta kort. `drakInfo(state)` = texterna (testad). Egen CSS och egna knappar (`bdp-*`) – beror inte på Bråkresans CSS. |
+
+**Guldjakten (J #715 – byggt)** ritas i panelens jaktruta av `guldjakt.js` (lat) – det är
+standard när `jakt` utelämnas, så **I #714** får samma jakt genom att öppna panelen från huset med
+`oppnaDrakpanel({ state: await getState(), atgarder, onJakt })` (`onJakt(svar)` = efter bekräftad jakt, t.ex.
+`renderTopbar()` för saldot; `jakt: null` = ingen knapp). `info.jakt` = `{ max, intervallText, antal,
+mynt, klarIdag, idagFynd }`; `klarIdag`/`idagFynd` jämför `state.hunts.lastDate` med enhetens svenska
+datum – bara visning, servern avgör. Flödet (§10): knappen låses direkt → `data.hunt()` → först efter
+bekräftat svar ~4,5 s scen i panelens bild (lyfter, flyger iväg, tillbaka med kista, kistan öppnas,
+"+N") → "Dagens jakt är klar – tillbaka imorgon."; summor och saldo uppdateras när kistan öppnats.
+Reducerad rörelse och `already` (omladdning, annan flik, huset) → fyndet direkt. Fel → saklig text
+utan mynt + "Försök igen" (servern är idempotent per dag). Draken i huset rörs aldrig – scenen spelas
+bara i panelen. Förhandsvisning: `preview-brakresan-713.html?s=jakt` (nivå 11) / `?s=ny1` (nivå 1),
+`&fel=1` = första försöket får nätfel. Texter: `test/brakresan-guldjakt.test.js`.
+Namnbytet går via `renameDragon` i data.js. `atgarder: [{ text, gor }]` = extra knappar längst ner
+(huset: "Låt draken vila i Mina djur") – ett klick stänger panelen och kör `gor()`.
+
+## 5d. Verkstaden – flerdelade uppgifter (F #711 – byggt)
+
+`view.component: "verkstad"` ritas av `omgang-verkstad.js` (laddas lat från `monteraUppgift`) och
+används av 21, 22, 25, 28–33 och 35. En uppgift byggs av delar; varje del med ett `id` lämnar
+ett delsvar i `answer.parts[id]` (multi) – eller hela svaret när svarstypen är enkel. Samma API som
+`mountTask` (§5). Delarna (alla ritas ur uppgiftens data, ingen vet facit):
+
+| Del | `view`-data | Svar | Används av |
+| --- | --- | --- | --- |
+| `stavar` | `[{ id, parts, marked, monster: "a"\|"b", namn: form, helhet, verktyg, maxDela, ihop, etiketter, iHjalp }]` | `bort`/`mala` → paint (bara om `answer.parts[id]` är paint) | 21, 29, 30, 31, 32, 35 |
+| verktyg `dela` | "Dela varje bit i k" (k ≤ maxDela) – helhet och färgad längd oförändrade | – | 35 |
+| verktyg `ihop` | "Slå ihop g bitar till en", g ∈ `ihop` (delare av n); delvis färgad grupp markeras och sägs ut | – | 21 |
+| verktyg `bort` | klicka bort färgade bitar (tonas + streckad kontur, ramen kvar) | paint (32), verktyg (35) | 32, 35 |
+| verktyg `flytta` + `mall` | `mall: { id, parts, kallor, helhet }` – bitarna flyttas (klick/drag) till en tom stav | paint, "flytta båda" = inmatningshjälp | 31 |
+| `mangd` | `{ id, count, item, maxGrupper, label }` – "Dela i g lika grupper" + markering per grupp | paint | 29 |
+| `modell` (+ `modellIHjalp`) | vanlig komponentvy som bild | – | 28 |
+| `fragor` | `[{ id, text, options: [{ id, text, etikett, stavar }], stil: "rader" }]` | choice | 33 |
+| `expr` | form, `{ op, pilar }`, `{ text }`, `{ input: id }`, `{ relation: id }`, `{ brak: { n, d } }` med `{ input }` inne i bråket | number, relation | alla |
+| `delsteg` | `{ text, enhet }` – frivilligt mellansteg, bedöms aldrig | – | 30 |
+
+**29 använder inte E:s `gruppering`** (leadens beslut): specen kräver "gruppera hela mängden i n lika
+grupper, **markera a grupper** och skriv antal". `gruppering` fördelar föremål i grupper men har inget
+markeringssteg; verkstadens `mangd` (B:s mängdbild + "Dela i g lika grupper" + markering per grupp)
+täcker hela mekaniken.
+
+**Stöd som avslöjar svaret syns bara i hjälpen** (Elias, #709): `modellIHjalp`
+(28), elevlösningens före/efter-stavar (33) och 22:s pilar ("× ?"/"÷ ?", aldrig faktorn) visas när ett
+hjälpsteg har `highlight: { stavar: true }` resp. `{ pilar: true }` och döljs när hjälpen stängs.
+Sorteringskort med `view.stavar` (26) får jämförelsestavar på samma sätt som 12.
+
+Förhandsvisning: `PORT=8711 node server.mjs` → `preview/preview-brakresan-f.html?u=21` (testomgång,
+alla 15 i 21–35). Granskning: `node admin/qa-brakresan-generatorer.mjs 21 … 35`, egna kontroller i
+`admin/qa-brakresan/u21.mjs` … `u35.mjs`. Skärmdumpar: `design/brakresan-711/`.
+
+## 5e. Lärarvyn (K #716 – byggt)
+
+Allt i `src/brakresan/larare/` laddas lat; bootgrafen är orörd (107).
+
+| Fil | Innehåll |
+| --- | --- |
+| `statistik.js` | REN logik (Node-testad) ur state-dokumenten: `elevRad`, `klassSumma` (klassens träffsäkerhet = summan av rätt / summan av bedömda, antal elever bakom summan), `utmaningsAggregat` + `svaraOchLatta` (svåra < 65 %, lätta ≥ 85 %, bara med ≥ 3 elever och ≥ 20 svar – annars "Litet underlag"; "Inte tränat" egen status), `momentOversikt` (per `TAGS`), `matrisCell` (stjärnor + symbol – ↻ ◔ ✓), `elevUtmaningar`, `forslagElev` ("Öva likvärdiga bråk: 5 av 12 första svar rätt i 12 och 14"), `stjarnkurva`, `omgangRad`, `aktivSedan`, `recDokument` (reglernas form). |
+| `data-larare.js` | Firestore: `loadClass` (= `data.getClassStates`, ett state per elev), `listRounds(sid, { challengeId?, fran?, limit? })` (med `challengeId` bara likhetsfilter – inget nytt index), `listStarEvents` (stjärnhändelserna, progression), `listRecs`/`createRec`/`endRec`/`deleteRec`. Lärarens ENDA skrivningar är rekommendationerna. |
+| `klass.js` | Statistik → klasskort → fliken **Bråkresan** (`teacher-class.js` STATS_TABS): Översikt (summakort, elevlista sorterbar + periodfilter på senaste aktivitet, momenttabell, Behöver mer träning / Går bra med underlag, Litet underlag, Inte tränat) · Matris · Rekommendationer. |
+| `matris.js` | Elever × 50, sticky namnkolumn, ämnesgrupper i rubriken, horisontell scroll, ämnesfilter. Cellen = knapp (≥ 44 px) med 0–3 stjärnor + symbol; klick → individvyn fokuserad på utmaningen. |
+| `elev.js` | Individvyn (modal): alla mått i §12 "Exakta definitioner", förslag, stjärnkurva, omgångar per period, alla 50 (kategori, senaste/bästa, utfällbara omgångar), rekommendera till eleven. Läser omgångar/stjärnhändelser bara för EN elev. |
+| `omgang-vy.js` | En historisk omgång: de tio uppgifterna ritade ur omgångens SPARADE uppgifter (`round.tasks`, generatorversionen står i rubriken) med `monteraUppgift`, första svar (`svarText`), rätt svar (`reveal`), stöd före kontroll, stöd efter fel och bearbetning. |
+| `rek-vy.js` | Rekommendera en eller flera utmaningar till klassen (gäller även senare tillkomna elever) eller en elev, valfri kommentar ≤ 200. Klass → "Avsluta" (`active: false`), elev → "Ta bort". Eleven ser dem i H:s "Börja här". |
+| `testlage.js` | `#/larare/brakresan` (TEACHER_TABS, gruppen Material): alla 50 (ej byggda = "Byggs"), **Granska** (tio uppgifter ur `demoRound` med Kontrollera, hjälp, facit, hjälpsteg och genomgång) och **Spela som elev** (`createUtmaningsvy` + `demoBackend`). "Ny variant"/egen variant = seed i URL:en. Inga anrop, inga skrivningar; callables nekar dessutom lärarkonton. |
+| `vy-delat.js`, `larare.css` | Delade småbitar och lärarvyns lata stilark (mörk lärardesign, ljusa uppgiftskort). |
+
+**Datumintervall:** klassöversikten och matrisen visar totaler ur state (hela tiden) – det finns
+ingen datumuppdelning där utan att läsa omgångar per elev (#231). Periodvalet i översikten väljer
+elever efter senaste sparade spelaktivitet; i individvyn filtrerar perioden omgångarna (`startedAt`).
+
+Förhandsvisning utan Firebase: `PORT=8716 node server.mjs` →
+`preview/preview-brakresan-larare.html#/klass` (klassvyn, `?saknas=1`, `?tom=1`) och
+`#/larare/brakresan` (testläget). Stubben bygger omgångarna med den riktiga `demoRound`.
+
+## 5f. Draken i elevhuset (I #714 – byggt)
+
+| Fil | Innehåll |
+| --- | --- |
+| `art-drake.js` | `drakeSvg(n, { hus: true })` = huspose: vuxna (10–15) med hopvikta vingar (`arHusVikt`), `data-hus="1"` på `<svg>`; samma viewBox som i Bråkresan. `husMatt(n)` = storlek i rums-enheter (`HUS_HAST` = 4 enheter per "häst"-faktor, nivå 1 lyft mot `HUS_MIN_H`), `husPassning(matt, fotY, scen)` = skalfaktor ≤ 1 när draken inte ryms ovanför fötterna/i bredd. Testat i `test/brakresan-drake-art.test.mjs`. |
+| `art-drake-anim.js` | `startaTomgang(svg, { vy })` pausar också när `vy` (rumslagret) blir `inert`/`.varld-dold` (MutationObserver). Huspose byter vinggesterna (svävning, vingöppning) mot huvudlyft. |
+| `rum-drake.js` (lat) | `mountRumDrake({ sd, roomCount, stage })` för Mitt rum: noden (`.room-item.room-pet.room-drake`, `data-pet-id` = drak-id) går i rummets drag-pipeline, dörrarna, "Mina djur" och rumsvalet – men inte i promenad-AI:n (draken står still). Klick/namnskylt → drakpanelen. Skriver `brakdrake.pos` (debounce), `.stowed`, `.room` med `updateDoc`. `drakeLasNod(sd, roomCount, stage)` = klasskamratens läsläge. |
+
+Regler i huset (spec §9): `pos` = **fötternas** punkt i procent (pivot), så ett nivåbyte växer
+draken uppåt från samma golvplats; sidled hålls hela draken inne med `clamp` utan att den sparade
+platsen ändras. Ryms den inte (lågt fönster, högt placerad) ritas den mindre och eleven får ett
+meddelande en gång per nivå – den teleporteras aldrig. Klickytan är bara figuren
+(`pointer-events` på `.bd-andas`). Draken ritas UNDER djuren, så att en stor drake aldrig skymmer
+dem. Prestanda: andningen går som kompositerad transform på HTML-rutan, aurans puls är av, och
+blinkningarna är glesare (6–12 s) än i Bråkresan; tomgången pausas när rummet inte syns.
+Bootgrafen orörd (107): `varld-rum.js` och `pages-klasskamrat.js` importerar `rum-drake.js`
+dynamiskt bara när `studentData.brakdrake` finns. Förhandsvisning:
+`preview/preview-drake-hus-714.html` (`?niva=N`, `?reset`, `#/elev/klasskamrat?id=elev2`).
+
+Navigation och fokusläge (H #713, M #735): EN rad i modulregistret `STUDENT_MODULES`
+(`src/gamemode-visibility.js`, #734 – se `docs/FOKUSLAGE.md`): `{ id: "brakresan", ikon: "🐉",
+grupp: "ova", learning: true, lockable: true, routes: ["/elev/brakresan"] }`. Menylänken i
+`ui.js` härleds ur raden. Bråkresan är därmed:
+
+- **synlig som standard, döljbar per klass** (`hiddenModules`, som Läsresan; ingen `optIn`).
+  Regelns modullistor validerar bara längden, så döljandet kräver ingen regeländring.
+- **ett låsmål i fokusläget** (grupp "Moduler" i lärarens målväljare, låstypen `"brakresan"`).
+  Låst till Bråkresan → eleven landar i `#/elev/brakresan` (även `?u=NN` är öppet), alla andra
+  inlärningsmoduler är spärrade. Har klassen dolt Bråkresan är den gråad i målväljaren
+  ("dold för klassen") – gäller alla moduler sedan #735.
+- **spärrad** när klassen är låst till något annat (område, Läsresan, annan modul): menylänken
+  syns inte och direktlänken skickas till låsets mål. Utmaningsvyn är samma route med `?u=NN`,
+  så den följer med.
+- **på servern:** `brakresaStartRound` nekar (`permission-denied`) när någon av elevens klasser
+  har ett aktivt lås till något annat eller döljer Bråkresan och inget aktivt lås pekar på
+  Bråkresan (`assertModuleOpen` i `functions/brakresan-core.js`, en klassfråga per start).
+  Svar/avslut i en redan startad omgång nekas inte – grinden i klienten hindrar eleven att
+  komma dit.
+
+Låstypen kräver `'brakresan'` i `firestore.rules` `validLockShape` (ingår i #735).
+
+## 6. Server-API – kontrakt för C (#708) och J (#715)
+
+Callables i `functions/index.js` (region `europe-west1`), kärnan i `functions/brakresan-core.js`
+med deps-injektion som `hitta-ratt-core.js`. Delad kod ur `functions/brakresan/` (synk).
+Bara inloggade **elever** (`request.auth.uid`); ingen lärarväg muterar elevdata. Fel →
+`HttpsError` med svensk text: `unauthenticated`, `permission-denied` (annans omgång, lärare),
+`not-found`, `failed-precondition` (omgången inte aktiv, alla tio inte bedömda, ägg kan inte
+jaga, utmaningen inte byggd), `invalid-argument`.
+
+| Callable | In | Ut | Transaktion och idempotens |
+| --- | --- | --- | --- |
+| `brakresaStartRound` | `{ challengeId, restart?: bool, replaceRoundId? }` | `{ roundId, resumed, round }` (round = dokumentet: publika uppgifter + svar) | Finns `state.challenges[id].activeRoundId` och `restart` saknas: returnera den (återupptagning). `restart: true`: gamla → `avbruten` (ingen belöning) och ny skapas – i samma transaktion. `replaceRoundId` (rekommenderas): byt bara om den aktiva fortfarande är just den – annars återupptas den aktiva (dubbelklick, två flikar). Seed med `node:crypto`; `planRound(ch, { seed, avoidCores })` med kärnorna från de senaste tre avslutade omgångarna; `brakresaSecrets/{roundId}` + `brakresaRounds/{roundId}` + `state` skrivs tillsammans. |
+| `brakresaAnswer` | `{ roundId, index, answer, helpBefore: [steg] }` | `{ status: "graded", correct, reason, message, reveal, answeredCount, correctCount }` eller `{ status: "invalid", error, message }` | Bedöms mot `brakresaSecrets` (sparade uppgifter, inte en ombyggd). Har `answers[index].first` redan satts svaras det SPARADE utfallet (`already: true`) – första giltiga svaret är låst. `invalid` sparas inte. Uppdaterar `state` (firstCorrect/firstTotal/helpBefore/activeAnswered/lastActivityAt). |
+| `brakresaRework` | `{ roundId, index, answer?, helpAfter?: [steg], attemptId? }` | `{ status: "graded"\|"invalid"\|"ok", correct, message, reworkCount }` | Bara efter ett fel; ≤ 5 försök sparas; ändrar ALDRIG `first`/poängen. `attemptId` (`data.newAttemptId()`) gör omförsöket idempotent. |
+| `brakresaFinishRound` | `{ roundId }` | `{ correctCount, reward: { kind, eventId, coins, starOrdinal }, message, rewardText, stars, totalStars, dragon: { levelBefore, levelAfter, hatched }, coinsAfter, already }` | Kräver tio `first`. EN transaktion: läs färska `state.challenges[id].stars` → `roundReward` → skapa `brakresaRewards/{stjarna-NN-ordinal \| uppmuntran-NN}` om det inte finns → `coins += amount` → `state` (stars, totalStars, mastered, best/last, kläckning: `dragon` + `studentData.brakdrake`, `brakdrake.level`) → omgången `avslutad` med `reward` och `cores`. Omförsök: svara `round.reward` (`already: true`). Finns belöningsdokumentet redan (state ur fas) betalas inget igen. Två omgångar som tävlar om tredje stjärnan: transaktionen avgör ordinalen; den andra blir `repetition`. |
+| `brakresaAbortRound` | `{ roundId }` | `{ status: "avbruten" }` | Ingen belöning; besvarade uppgifter finns kvar i statistiken. |
+| `brakresaAckDragon` | `{ level }` | `{ levelShown }` | Sätter `state.dragon.levelShown` = max(gammal, level ≤ aktuell nivå) – kläckning/evolution visas en gång, progressionen är redan sparad. |
+| `brakresaRenameDragon` (H #713) | `{ name }` | `{ name }` | `cleanDragonName` (regler.js: inga HTML-/styrtecken, 1–16 tecken) på servern; ägget → `failed-precondition`, tomt → `invalid-argument`. EN transaktion: `state.dragon.name` + `studentData.brakdrake.name` (merge – placering och nivå orörda). Kläckningen sätter standardnamnet `DRAGON_DEFAULT_NAME` ("Bråkis") direkt, så namnvalet blockerar aldrig. |
+| `brakresaHunt` (J #715 – byggt) | `{}` (allt annat ignoreras) | `{ huntId, date, level, max, amount, coinsAfter, already, hunts: { count, coins, lastDate, lastAmount } }` | `functions/brakresan-jakt.js`. Datum = `stockholmDate(serverns now)`, läst INNE i transaktionen. Ägg → `failed-precondition`. EN transaktion: finns `brakresaHunts/{datum}` → svara den (`already: true`, inget betalas); annars nivå = `dragonLevel(totalStars)` nu (låser dagens intervall), `amount = randomInt(1, max + 1)`, skapa jaktposten + `brakresaRewards/jakt-{datum}` + `coins += amount` + `state.hunts`. Finns bokföringen men inte posten återskapas posten utan ny utbetalning. Tester: `test/functions-brakresan-jakt.test.mjs` (alla nivåer min/max, midnatt, sommar-/vintertid, klientfält, 8 samtidiga anrop). |
+
+Invarianterna i §13 och var de garanteras:
+
+| Invariant | Mekanism |
+| --- | --- |
+| Unik första bedömning per omgång och uppgift | `answers[i].first` sätts bara om den är `null`, i transaktion |
+| Högst tre stjärnor per elev/utmaning, unik ordinal | Dokument-id `stjarna-NN-1..3` + `roundReward` med färska stjärnor |
+| Högst en stjärna per omgång | `round.reward` sätts en gång; omförsök returnerar den |
+| Högst en uppmuntran per utmaning, ingen efter bemästring | Dokument-id `uppmuntran-NN` + `encouragementPaid` + `roundReward` |
+| Unik jakt per elev/datum | Dokument-id `brakresaHunts/{ÅÅÅÅ-MM-DD}` |
+| Unik valutahändelse per belöning | Belöningsdokumentet och `increment` i samma transaktion |
+| En Bråkdrake per elev | `state.dragon` skapas bara när den är `null` |
+| 0 ≤ totalStars ≤ 150, nivåformeln | `totalStars` = summan i samma transaktion; nivå ur `dragonLevel` |
+
+**Vem får anropa (C):** bara inloggade elever. Lärarkonton (`token.teacher`) får
+`permission-denied` i alla `brakresa*` – testläget behöver inga anrop. En annans omgång
+ligger under ägarens `studentData` och svarar `not-found`. `rewardText` är
+"Ny stjärna! +40 mynt" / "10 mynt för ditt arbete" (§2: aldrig "tröstpris"), `null` utan mynt.
+
+**Index (C, inlagt i `firestore.indexes.json`):** omgångshistoriken frågar `brakresaRounds` med `challengeId ==`, `status ==` och
+sorterar på `finishedAt` → sammansatt index i `firestore.indexes.json`.
+
+**Klientens dataskikt (C, klart):** `src/brakresan/data.js` (lat) – API:t står i filhuvudet:
+`startRound`, `answer`, `rework`, `finishRound`, `abortRound`, `ackDragon`, `renameDragon`, `hunt`, `newAttemptId`,
+`getState`, `getRound`, `getRecommendations(classIds)`, lärarens `getClassStates(studentIds)` / `listRounds(studentId, { challengeId })`.
+`hunt()` (J #715) invaliderar studentData-cachen (saldot). Nätfel och tillfälliga serverfel försöks igen automatiskt med
+SAMMA data (`data-core.js` `callWithRetry`, 3 omförsök); ger det upp kastas `BrakresaFel`
+med `retryable: true` – vyn behåller elevens inmatning (`drafts.save/load/clear`) och
+visar "Försök igen". `saveStatus.subscribe(cb)` ger "sparar" / "sparat" / "offline" / "fel"
+för "Sparar …/Sparat" (§13). Bekräfta aldrig en belöning förrän `finishRound` svarat.
+`finishRound` invaliderar studentData-cachen så att sidomenyns saldo uppdateras.
+
+**Lärarens testläge och "Prova ett exempel"** körs helt i klienten: `loadChallenge(id)` →
+`planRound`/`buildTask` med en lokal seed → `gradeTask` lokalt, facit (`key.display`) synligt för
+läraren. Inga skrivningar alls – därför kan testläget aldrig röra elevdata (§12).
+Färdigt i `src/brakresan/demo.js`: `demoRound(id, seed)` (tio hela uppgifter med facit),
+`exampleTask(id, seed)`, `gradeDemo(challenge, task, answer)` (+ `reveal`), `publicTask`.
+
+## 7. Ägarskap och filkarta
+
+| Sub-issue | Äger |
+| --- | --- |
+| A #706 | `src/brakresan/{math,schema}/`, `utmaningar/index.js`, docs här, regelskelettet |
+| B #707 | `src/brakresan/komponenter/`, `preview/preview-brakresan-komponenter.html` |
+| C #708 | `functions/brakresan-core.js`, callables i `functions/index.js`, regler/index vid behov, `src/brakresan/data.js` |
+| D #709 | `utmaningar/u03.js`, `u12.js`, `u19.js`, `u34.js`, omgångsvyn (`src/brakresan/omgang*.js`), route, `admin/qa-brakresan-generatorer.mjs` |
+| E #710 / F #711 / G #712 | `utmaningar/u01–u20.js` (+ `delat-e.js`, komponenterna `sammansatt`, `figur`, `relationsval`, `bygge`, `gruppering`) / `u21–u35.js` (+ `f-delat.js`, verkstaden `omgang-verkstad.js`, `verkstad-*.js`, `preview-brakresan-f.html`) / `u36–u50.js` (utom D:s fyra; + `delat-g.js`, `u50-*.js`, opt-in `kort.helhet` och areamodellens `horizontal.n = 0`) |
+| H #713 | huvudvyn (`huvudvy*.js`, `miniatyr.js`), drakpanelen (`drakpanel.js`), navigationen (`ui.js`, `gamemode-visibility.js`), `brakresaRenameDragon` |
+| I0 #718 / I #714 | drakens grafik och animation, `studentData.brakdrake` i huset (§5f) |
+| J #715 | guldjakten: `functions/brakresan-jakt.js`, callable `brakresaHunt`, `src/brakresan/guldjakt.js` (+ `gj-*` i `drakpanel.css`) |
+| K #716 | lärarvyn, rekommendationer, testläget: `src/brakresan/larare/`, raderna i `teacher-class.js` (STATS_TABS) och `teacher-shared.js` (TEACHER_TABS + ikonen `brak`) |
+
+Ändras något i `math/`, `schema/` eller `utmaningar/`: kör `npm run sync:brakresan`
+(annars fäller `test/brakresan-delat.test.js`).
+
+## 8. Beslut och risker för leaden
+
+1. **Synlighet och fokusläge (H #713, M #735):** synlig som standard och döljbar per klass (som
+   Läsresan) – specen säger "nås naturligt från befintlig elevnavigation". Låsbar i fokusläget
+   (§5f). Servern nekar START av en omgång när modulen är dold eller klassen låst till annat;
+   känd begränsning: en omgång som redan pågår när läraren låser kan i teorin besvaras/avslutas
+   via direkta callable-anrop (klientens grind stänger vyn). Ett lås till Bråkresan kräver
+   rules-deploy (`validLockShape`) – annars nekas lärarens skrivning.
+2. **`studentData.coins` är elevskrivbart** i hela appen sedan tidigare (`addCoins` i klienten).
+   Bråkresan skapar aldrig mynt från klienten och kan inte manipuleras via sina egna samlingar,
+   men saldot som sådant går inte att låsa utan en migrering av hela appens myntflöde – utanför
+   modulen (§13: "Påbörja inte en godtycklig migrering").
+3. **Draken i `studentData.brakdrake`**, inte `roomAnimals` (§2 ovan). Cachad `level` där är
+   kosmetisk; allt som ger mynt utgår från `state`. Spegeln är skyddad (#750): `studentData` är
+   elevskrivbart, men `brakdrakeOk` i `firestore.rules` nekar eleven att skapa eller ta bort
+   `brakdrake` och att ändra något i den utom `pos`, `room` och `stowed` (huset). `id`, `level`,
+   `name` och `stage` skriver bara Cloud Functions (kläckning, nivå, namnbyte). Kräver
+   rules-deploy; test i `test/firestore-rules-brakresan.test.js`.
+4. **Deploy:** reglerna och functions måste deployas tillsammans när modulen släpps
+   (`firebase deploy --only firestore:rules,firestore:indexes,functions`).

@@ -41,6 +41,7 @@ test("moduleForRoute: modulens rutter (inkl. underrutter) → id, övrigt → nu
   assert.equal(moduleForRoute("/elev/spela"), "plugga");
   assert.equal(moduleForRoute("/elev/aventyr"), "plugga");
   assert.equal(moduleForRoute("/elev/shop"), "shop");
+  assert.equal(moduleForRoute("/elev/brakresan"), "brakresan"); // #713
   // Hem/världen och profilen kan aldrig döljas.
   assert.equal(moduleForRoute("/elev/hus"), null);
   assert.equal(moduleForRoute("/elev/profil"), null);
@@ -115,7 +116,7 @@ test("STUDENT_MODULES: unika id/rutter; TOGGLABLE = registret utan toggle:false"
   assert.equal(new Set(ids).size, ids.length);
   const routes = STUDENT_MODULES.flatMap((m) => m.routes);
   assert.equal(new Set(routes).size, routes.length, "en route får bara ägas av en modul");
-  assert.deepEqual(TOGGLABLE_MODULES.map((m) => m.id), ["plugga", "lasresan", "shop", "hittaratt", "ekvationsresan"]);
+  assert.deepEqual(TOGGLABLE_MODULES.map((m) => m.id), ["plugga", "lasresan", "shop", "hittaratt", "ekvationsresan", "brakresan"]);
   assert.ok(!TOGGLABLE_MODULES.some((m) => m.id === "mattematchen"), "Mattematchen styrs av perioden");
   for (const m of STUDENT_MODULES) assert.ok(m.label && m.ikon && ["mitt", "ova"].includes(m.grupp), m.id);
 });
