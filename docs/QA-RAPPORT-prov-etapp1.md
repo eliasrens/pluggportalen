@@ -15,14 +15,16 @@ webbläsare (lärare + tre samtidiga elever i egna inloggningar). Inget skrevs m
   facit, ångra), elevens resultatvy och statistiken (Översikt + klassens Prov-flik).
 - **Säkerheten håller.** Över 40 direktanrop från konsolen (elev, lärare, annat
   årskurskonto) nekades som de ska. Inget facit i elevens tillfälle.
-- **Två buggar (texten "null") – rättade här** (F1, F2, verifierade i webbläsaren).
-  **Ett integritetsfel vid "Öppna igen" är kvar** (F4, medel) – listat, inte rättat.
+- **Alla fyra fynd som leaden beställde är rättade här och verifierade i webbläsaren:**
+  F1/F2 (texten "null"), F3 (☰ över provrubriken på mobil) och F4 (integritetsfel vid
+  "Öppna igen", medel – rättat i både regeln och klienten, ⚠️ kräver rules-deploy).
   Övriga fynd är kosmetiska, info eller förslag.
 - **Kvoten håller:** ≈ 1 500 läsningar och ≈ 1 300 skrivningar för ett realistiskt prov
   (25 elever, 12 frågor, 40 min) inklusive rättning och statistik. Värsta fallet för
   skrivningar ≈ 2 950 – under 3 000, men med liten marginal.
-- **Regression grön:** `node --test` 2597/2597 (inkl. `behorigheter-doc` och
-  `prov-grund` med bootgrafen), `test:rules` 647/647 (52 filer, en emulator),
+- **Regression grön:** `node --test` 2599/2599 (inkl. `behorigheter-doc`,
+  `prov-grund` med bootgrafen och nya `prov-dom-null`), `test:rules` 648/648 (52 filer,
+  en emulator, inkl. nytt F4-test),
   BFS från `app.js` = 107 filer, ingen från `src/prov/`.
 
 ## Fynd
@@ -30,9 +32,9 @@ webbläsare (lärare + tre samtidiga elever i egna inloggningar). Inget skrevs m
 | # | Allvar | Var | Vad |
 | --- | --- | --- | --- |
 | F1 | låg (bugg) – ✅ rättad | `src/prov/prov-elev-vy.js:133` | Lämna in-rutan visade texten **"null"** när alla frågor var besvarade. `replaceChildren()` skriver ut `null` (det gör inte `h()`). Rättad: raden sprids bara in när den finns. Före: `qa-prov-743/F-null-lamna-in.png`; efter: "Du har svarat på 16 av 16 frågor." utan null (Dante). |
-| F2 | låg (bugg) – ✅ rättad | `src/prov/prov-stat-vy.js:137` | Översikten visade **"null"** under klassens snitt när inget var rättat än (`svarast = null`). Rättad på samma sätt. Före: `qa-prov-743/F-null-oversikt.png`; efter: ingen null (nytt tillfälle i 4B, en inlämnad, inget rättat). |
-| F3 | kosmetisk | elevens provsida, 390 px | Den klistrade provrubriken glider in under den fasta ☰-knappen när man scrollar – början av namnet täcks. Bild: `qa-prov-743/elev-mobil-390.png` |
-| F4 | ⚠️ medel (integritet) – kvar | Öppna igen (`attOppnaIgen`) | Stäng → rätta → lämna tillbaka → **Öppna igen**: elever som fick `inlamnadNar: "stangt"` får `inlamnad: false` och kan skriva om sina svar (verifierat: `updateDoc` tillåten, listan visar "Fortsätt provet") – samtidigt som deras tillbakalämnade rättning, ev. med facit, syns. Rättningen speglar inte de nya svaren. Förslag: hoppa över elever vars rättning är tillbakalämnad (och/eller neka i regeln), och varna i rutan. |
+| F2 | låg (bugg) – ✅ rättad | `src/prov/prov-stat-vy.js:137` | Översikten visade **"null"** under klassens snitt när inget var rättat än (`svarast = null`). Rättad på samma sätt. Före: `qa-prov-743/F-null-oversikt.png`; efter: ingen null (nytt tillfälle i 4B, en inlämnad, inget rättat). Nytt test `test/prov-dom-null.test.js` skannar `src/prov/` efter `null`-argument till `replaceChildren`/`append`/… (fångar båda de gamla formerna). |
+| F3 | kosmetisk – ✅ rättad | `src/prov/prov-elev.css` (≤ 820 px) | Den klistrade provrubriken gled in under den fasta ☰-knappen när man scrollar – början av namnet täcktes. Rättad: `body.med-sidomeny .provv-topp { padding-left: 72px; min-height: 72px }`. Före: `qa-prov-743/elev-mobil-390.png`; efter: `qa-prov-743/f3-mobil-390-klistrad-rubrik.png` (namnet börjar på 93 px, ☰ slutar på 60 px). |
+| F4 | ⚠️ medel (integritet) – ✅ rättad, ⚠️ rules-deploy | Öppna igen | Stäng → rätta → lämna tillbaka → **Öppna igen**: elever som fick `inlamnadNar: "stangt"` fick `inlamnad: false` och kunde skriva om sina svar – samtidigt som deras tillbakalämnade rättning, ev. med facit, syntes. **Rättad i båda lagren:** regeln `provSvarStangOk` nekar öppna igen när `rattning/{uid}.aterlamnad == true` (ny `provEjTillbakalamnad`, en `exists()`/`get()` per elev); klienten (`attOppnaIgen(svar, tillbaka)`) läser rättningarna, hoppar över tillbakalämnade och skriver i batchar om 15 (`OPPNA_IGEN_BATCH`, gränsen 20 dokumentåtkomster); rutan varnar "N elever har redan fått tillbaka provet och kan inte skriva mer." Verifierat i emulatorn: varningen "3 elever …", Cleo förblev inlämnad (ingen "Fortsätt provet"), Dante (ingen rättning) öppnades igen, lärarens `updateDoc` på Cleos svar → `permission-denied`. Rules-test i `firestore-rules-prov-tillfalle.test.js`. Att ångra tillbakalämningen gör eleven öppningsbar igen. |
 | F5 | kosmetisk | `src/prov/typer/delat.js:47` | Formuläret visar fältnamnet: *Frågetexten ("fraga") saknas eller är tom.* Namnet hjälper vid AI-granskningen men inte i formuläret. |
 | F6 | kosmetisk | `src/prov/prov-redigera-ops.js:254` | Frågekortet visar "1 luckor" (ska vara "1 lucka"). |
 | F7 | känd begränsning | `prov-watch.js` | Ett tillbakalämnat prov syns i elevens lista först efter omladdning/ny inloggning (ett `getDocs` per inloggning enligt §5.5). Eleven som sitter inloggad ser "Just nu finns inget prov att skriva" tills hen laddar om. |
@@ -51,7 +53,7 @@ webbläsare (lärare + tre samtidiga elever i egna inloggningar). Inget skrevs m
   visa facit, stavningskontroll och tidsgräns – men inte färggränserna. De går bara att
   ändra per tillfälle i Översikt (`installningar.granser`); provets standard är 40/70.
 
-F1, F2 och F4 är rapporterade till leaden. F1 och F2 är rättade på tester-grenen (två rader).
+F1–F4 är rättade på tester-grenen (leadens uppdrag; ingen Coder). F5–F11 står kvar som listade.
 
 ## Vad som testades
 
@@ -152,7 +154,10 @@ provets siffror.
    `rattning (elevId, aterlamnad, aterlamnadAt desc)` och fältundantaget
    `rattning.classId` (collection group). Vänta tills indexet är byggt (konsolen).
 2. `firebase deploy --only firestore:rules` – `prov`, `provTillfallen` med
-   undersamlingar, CG-regeln för `rattning`, `validLockShape` med `"prov"`.
+   undersamlingar, CG-regeln för `rattning`, `validLockShape` med `"prov"`, och
+   F4: `provSvarStangOk`/`provEjTillbakalamnad` (öppna igen nekas för tillbakalämnade).
+   Webben med batch 15 och reglerna hör ihop: den gamla klienten (en batch på 450)
+   nekas mot de nya reglerna över ~19 elever – deploya reglerna och webben samtidigt.
 3. Därefter webben (merge till main → GitHub Pages). Inga functions.
 
 Ordningen spelar roll: utan reglerna nekas lärarens första "Kör i klass" och låset
@@ -172,13 +177,14 @@ Ordningen spelar roll: utan reglerna nekas lärarens första "Kör i klass" och 
 | --- | --- |
 | `elev-provsida-1920.png`, `-1366.png`, `-surfplatta.png`, `-390.png` | elevens provsida (frågelistan till höger / överst) |
 | `elev-rod-nedrakning.png` | nedräkningen röd (43 s kvar) |
-| `elev-mobil-390.png` | F3 – rubriken under ☰ |
+| `elev-mobil-390.png` | F3 före – rubriken under ☰ |
 | `elev-resultat-1920.png`, `-surfplatta.png`, `-390.png` | resultatvyn med nivå, kommentar och facit |
 | `larare-redigera-1920.png` | redigera prov |
 | `larare-oversikt-1366.png`, `-1920.png` | lärarens översikt under provet |
 | `rattning-perfraga-1366.png` | rättning per fråga, grupperade kortsvar |
 | `oversikt-1366.png`, `oversikt-1920.png` | statistikens Översikt |
 | `F-null-lamna-in.png`, `F-null-oversikt.png` | F1, F2 |
+| `f3-mobil-390-klistrad-rubrik.png` | F3 rättad – rubriken fri från ☰ |
 
 ## Rigg och verktyg
 
