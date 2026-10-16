@@ -13,7 +13,7 @@ import { filterClasses, myRole } from "../teacher-role.js";
 import { arFraga } from "./prov-fragetyper.js";
 import { STATUS } from "./prov-modell.js";
 import { hamtaProv, oppnaTillfalle, raderaTillfalle, skapaTillfalle, stangTillfalle } from "./prov-tillfalle-data.js";
-import { standardLasMinuter } from "./prov-tillfalle-logik.js";
+import { standardLasMinuter, tillbakaVarning } from "./prov-tillfalle-logik.js";
 import { TIDSGRANS_MAX, TIDSGRANS_MIN, tolkaTidsgrans } from "./prov-validera.js";
 import { laddaCss } from "./prov-vy.js";
 
@@ -162,6 +162,7 @@ export function oppnaRuta(tf, klar) {
     <p class="hint">${igen
       ? "Elever som inte hann lämna in kan fortsätta (inom sin tidsgräns). De som själva lämnat in är klara."
       : `${tf.tidsgransMin ? `Tidsgräns ${tf.tidsgransMin} minuter per elev, från att eleven startar.` : "Ingen tidsgräns."}`}</p>
+    ${igen && tillbakaVarning(tf.rattStatus) ? `<p class="msg provl-tf-varning" role="status">${esc(tillbakaVarning(tf.rattStatus))}</p>` : ""}
     ${lasFalt(std, { pa: igen ? false : tf.fokus?.pa !== false, doljOvrigt: tf.fokus?.doljOvrigt !== false })}
     <p class="provl-tf-fel msg error" role="alert" hidden></p>
     <div class="provl-tf-knappar">

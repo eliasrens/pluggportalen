@@ -53,11 +53,45 @@ async function emulatorConfig() {
       `export const auth = getAuth(app);\n__cae(auth, location.origin, { disableWarnings: true });\nglobalThis.__PP_FUNCTIONS_URL = location.origin;\nconsole.info("[QA] Firebase → emulatorer via", location.origin);`);
 }
 
+// QA_RAKNA=1 (#743): räkna dokument som Firestore levererar (Listen = debiterade
+// läsningar) och skrivna dokument (Write) för just den här porten/originet.
+// GET /__qa/rakna visar summan per samlingsmönster, /__qa/rakna?nollstall nollar.
+const RAKNA = !!process.env.QA_RAKNA;
+const rakning = { lasningar: {}, skrivningar: {} };
+const monster = (namn) => namn.split("/").map((d, i) => (i % 2 ? "*" : d)).join("/");
+function raknaIn(typ, text, re) {
+  for (const m of text.matchAll(re)) {
+    const k = monster(m[1]);
+    rakning[typ][k] = (rakning[typ][k] || 0) + 1;
+  }
+}
+const LAS_RE = /"documentChange":\s*\{\s*"document":\s*\{\s*"name":\s*"projects\/[^/]+\/databases\/[^/]+\/documents\/([^"]+)"/g;
+const SKRIV_RE = /"(?:update|delete)":\s*(?:\{\s*"name":\s*)?"projects\/[^/]+\/databases\/[^/]+\/documents\/([^"]+)"/g;
+
 function proxy(req, res, [host, port], path = req.url) {
   const up = request({ agent: false, host, port: Number(port), method: req.method, path, headers: { ...req.headers, host: `${host}:${port}` } }, (r) => {
     res.writeHead(r.statusCode || 502, r.headers);
+    if (RAKNA && path.includes("/Listen/channel")) {
+      let rest = "";
+      r.on("data", (c) => {
+        const t = rest + c.toString("utf8");
+        const sista = t.lastIndexOf('"documentChange"');
+        raknaIn("lasningar", sista > 0 ? t.slice(0, sista) : t, LAS_RE);
+        rest = sista > 0 ? t.slice(sista) : "";
+      });
+      r.on("end", () => raknaIn("lasningar", rest, LAS_RE));
+    }
     r.pipe(res);
   });
+  if (RAKNA && path.includes("/Write/channel") && req.method === "POST") {
+    const delar = [];
+    req.on("data", (c) => delar.push(c));
+    req.on("end", () => {
+      let t = Buffer.concat(delar).toString("utf8");
+      try { t = decodeURIComponent(t.replace(/\+/g, " ")); } catch { /* inte url-kodat */ }
+      raknaIn("skrivningar", t, SKRIV_RE);
+    });
+  }
   up.on("error", (e) => {
     console.warn("proxy-fel", req.method, req.url.slice(0, 80), e.message);
     if (!res.headersSent) res.writeHead(502);
@@ -70,6 +104,12 @@ function proxy(req, res, [host, port], path = req.url) {
 
 createServer(async (req, res) => {
   const url = req.url || "/";
+  if (RAKNA && url.startsWith("/__qa/rakna")) {
+    if (url.includes("nollstall")) { rakning.lasningar = {}; rakning.skrivningar = {}; }
+    const summa = (o) => Object.values(o).reduce((a, b) => a + b, 0);
+    res.writeHead(200, { "Content-Type": TYPES[".json"], "Access-Control-Allow-Origin": "*" });
+    return res.end(JSON.stringify({ summaLasningar: summa(rakning.lasningar), summaSkrivningar: summa(rakning.skrivningar), ...rakning }, null, 1));
+  }
   // Strömmar (Listen/Write) + REST-anrop (transaktioner, getDocFromServer …).
   if (url.startsWith("/google.firestore") || url.startsWith("/v1/projects/")) return proxy(req, res, FS);
   if (url.startsWith("/identitytoolkit.googleapis.com") || url.startsWith("/securetoken.googleapis.com") || url.startsWith("/emulator/")) {

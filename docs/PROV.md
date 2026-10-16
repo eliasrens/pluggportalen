@@ -40,7 +40,12 @@ forberett ──Öppna──▶ oppet ──Stäng──▶ stangt
   (det enda läraren får skriva i ett svar).
 - **Öppna igen**: läraren får ta tillbaka just stängningens markering
   (`inlamnad: false` + `deleteField()` på `inlamnadNar`/`inlamnadAt`). En elevs
-  egen inlämning (`elev`/`tid`) är slutgiltig.
+  egen inlämning (`elev`/`tid`) är slutgiltig, och den som redan **fått tillbaka**
+  provet (`rattning/{uid}.aterlamnad == true`) öppnas inte igen (#743 F4: regeln
+  `provEjTillbakalamnad`, en `exists()`/`get()` per elev). Klienten läser därför
+  rättningarna, hoppar över de tillbakalämnade (`attOppnaIgen(svar, tillbaka)`),
+  skriver i batchar om `OPPNA_IGEN_BATCH` = 15 (gränsen 20 dokumentåtkomster per
+  batch) och varnar i rutan: "N elever har redan fått tillbaka provet …".
 - **Radera** (§3): **klientbatch** – alla `svar`, alla `rattning`,
   `privat/facit` och tillfället i en `writeBatch` (högst 500 skrivningar räcker
   för en klass). Ingen callable, så ingen functions-deploy. Svar och rättning

@@ -126,6 +126,27 @@ describe("Stäng och öppna igen (§5.4)", () => {
     await assertSucceeds(spara(elev(), t, { q4: "Birka" }));
   });
 
+  it("öppna igen hoppar över den som redan fått tillbaka provet (#743 F4)", async () => {
+    const t = (await korIKlass(env.ak4())).id;
+    await oppna(env.ak4(), t);
+    await starta(elev(), t);
+    await updateDoc(tfRef(env.ak4(), t), { status: "stangt", stangd: serverTimestamp() });
+    await updateDoc(svarRef(env.ak4(), t), { inlamnad: true, inlamnadNar: "stangt", inlamnadAt: serverTimestamp() });
+    const rattRef = (db) => doc(db, "provTillfallen", t, "rattning", "e4a");
+    await env.seed((db) => setDoc(rattRef(db), { elevId: "e4a", classId: "4a", fragor: {}, aterlamnad: true }));
+    await updateDoc(tfRef(env.ak4(), t), { status: "oppet", oppnad: serverTimestamp(), stangd: deleteField() });
+    const oppnaIgen = () => updateDoc(svarRef(env.ak4(), t), { inlamnad: false, inlamnadNar: deleteField(), inlamnadAt: deleteField() });
+    await assertFails(oppnaIgen(), "tillbakalämnad = slutgiltig");
+    await assertFails(spara(elev(), t, { q4: "Birka" }));
+    // Ångrad tillbakalämning (aterlamnad false) eller ingen rättning alls → öppna igen går.
+    await env.seed((db) => updateDoc(rattRef(db), { aterlamnad: false }));
+    await assertSucceeds(oppnaIgen());
+    await updateDoc(svarRef(env.ak4(), t), { inlamnad: true, inlamnadNar: "stangt", inlamnadAt: serverTimestamp() });
+    await env.seed((db) => deleteDoc(rattRef(db)));
+    await assertSucceeds(oppnaIgen());
+    await assertSucceeds(spara(elev(), t, { q4: "Birka" }));
+  });
+
   it("en annan årskurs kan inte stänga, öppna eller låsa klassen till provet", async () => {
     const t = (await korIKlass(env.ak4())).id;
     await assertFails(oppna(env.ak5(), t));

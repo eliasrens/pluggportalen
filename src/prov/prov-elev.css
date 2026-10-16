@@ -245,6 +245,8 @@ input.provv-kortsvar {
   .provv-lista { position: static; margin-top: 12px; }
   .provv-lista-knappar { grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); }
   .provv-topp { padding: 12px 16px; }
+  /* Den fasta ☰-knappen (48 px vid 12 px) ligger över den klistrade rubriken (#743 F3). */
+  body.med-sidomeny .provv-topp { padding-left: 72px; min-height: 72px; }
 }
 @media (max-width: 560px) {
   .provv-rot { font-size: 1.05rem; }

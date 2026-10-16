@@ -132,9 +132,26 @@ export function attStangaIn(svarDok) {
   return svarDok.filter((d) => d && d.inlamnad !== true).map((d) => d.id);
 }
 
-/** Svar som ska få tillbaka sin markering när provet öppnas igen (bara stängningens). */
-export function attOppnaIgen(svarDok) {
-  return svarDok.filter((d) => d?.inlamnad === true && d.inlamnadNar === "stangt").map((d) => d.id);
+/**
+ * Svar som ska få tillbaka sin markering när provet öppnas igen (bara stängningens).
+ * Elever som redan har fått tillbaka provet hoppas över (#743 F4) – de har sett
+ * rättningen (kanske facit) och får inte skriva om. Reglerna nekar dem också.
+ * @param {object[]} svarDok
+ * @param {Set<string>|string[]} [tillbaka] elev-id med tillbakalämnad rättning
+ */
+export function attOppnaIgen(svarDok, tillbaka = []) {
+  const klara = new Set(tillbaka);
+  return svarDok.filter((d) => d?.inlamnad === true && d.inlamnadNar === "stangt" && !klara.has(d.id)).map((d) => d.id);
+}
+
+/** Batchstorlek när provet öppnas igen: reglerna gör en exists()/get() per elev (högst 20 per batch). */
+export const OPPNA_IGEN_BATCH = 15;
+
+/** Varningen i rutan "Öppna igen" (ur tillfällets rattStatus – ingen extra läsning). */
+export function tillbakaVarning(rattStatus) {
+  const n = Number(rattStatus?.tillbaka) || 0;
+  if (!n) return "";
+  return `${n === 1 ? "1 elev har" : `${n} elever har`} redan fått tillbaka provet och kan inte skriva mer.`;
 }
 
 /** Ett tillfälles fokuslås (från classes/{id}.lock) – gäller det just det här tillfället? */

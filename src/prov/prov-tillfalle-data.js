@@ -12,7 +12,7 @@ import {
 import { buildLock } from "../class-lock.js";
 import { clearClassLock, getClassLock, setClassLock } from "../data-class-lock.js";
 import { FACIT_DOK, RATTNING, SAMLING_PROV, SAMLING_TILLFALLEN, STATUS, SVAR, delaUppProv } from "./prov-modell.js";
-import { arProvetsLas, attOppnaIgen, attStangaIn } from "./prov-tillfalle-logik.js";
+import { OPPNA_IGEN_BATCH, arProvetsLas, attOppnaIgen, attStangaIn } from "./prov-tillfalle-logik.js";
 import { STANDARD_INSTALLNINGAR } from "./prov-validera.js";
 
 const tfRef = (t) => doc(db, SAMLING_TILLFALLEN, t);
@@ -99,10 +99,13 @@ export async function oppnaTillfalle(tf, las) {
   } else if (tf.status === STATUS.STANGT) {
     await updateDoc(tfRef(tf.id), { status: STATUS.OPPET, oppnad: serverTimestamp(), stangd: deleteField() });
     const svar = Object.values(await hamtaSvar(tf.id));
-    const igen = attOppnaIgen(svar);
-    for (let i = 0; i < igen.length; i += 450) {
+    // #743 F4: tillbakalämnade elever får inte skriva om (en läsning per rättning, bara vid Öppna igen).
+    const tillbaka = (await getDocs(collection(db, SAMLING_TILLFALLEN, tf.id, RATTNING))).docs
+      .filter((d) => d.data().aterlamnad === true).map((d) => d.id);
+    const igen = attOppnaIgen(svar, tillbaka);
+    for (let i = 0; i < igen.length; i += OPPNA_IGEN_BATCH) {
       const batch = writeBatch(db);
-      for (const uid of igen.slice(i, i + 450)) {
+      for (const uid of igen.slice(i, i + OPPNA_IGEN_BATCH)) {
         batch.update(doc(db, SAMLING_TILLFALLEN, tf.id, SVAR, uid), { inlamnad: false, inlamnadNar: deleteField(), inlamnadAt: deleteField() });
       }
       await batch.commit();
