@@ -17,6 +17,7 @@
 //   #/elev/live       Live: lobby → 3-2-1 → realtidsmatch (#460) – laddas DYNAMISKT
 //   #/elev/hitta-ratt Hitta rätt!: geografi på karta (#605) – opt-in per klass, DYNAMISK
 //   #/elev/ekvationsresan  Ekvationsresan: adaptiva ekvationer (#618) – opt-in per klass, DYNAMISK
+//   #/elev/prov       Prov (#740): pågående/tillbakalämnade prov, /skriv?t= själva provet – DYNAMISK
 //   #/elev/brakresan       Bråkresan (#705): 50 bråkutmaningar, ?u=NN = utmaningsvyn – DYNAMISK
 //   #/elev/shop       shoppen (köp saker för pluggcoins) – pages-shop.js
 //   #/elev/by         husvärlden, by-nivån (klassbyn: alla elevers hus) – pages-varld.js
@@ -193,6 +194,8 @@ const dynSida = (ladda, ikon, namn) => async () => {
 };
 const pageElevHittaRatt = dynSida(async () => (await import("./hitta-ratt/page-hitta-ratt.js")).pageHittaRatt(), "🗺️", "Hitta rätt!");
 const pageElevEkvationsresan = dynSida(async () => (await import("./ekvationsresan/page-ekvationsresan.js")).pageEkvationsresan(), "⚖️", "Ekvationsresan");
+// Prov (#740): elevens provsidor – dynamisk import (#271), länken syns bara när ett prov pågår.
+const provSida = (fn) => dynSida(async () => (await import("./prov/prov-elev-sida.js"))[fn](), "📝", "Provet");
 
 // --- Router -----------------------------------------------------------------
 
@@ -220,6 +223,10 @@ const routes = {
   // Hitta rätt! (#605): opt-in per klass (enabledModules) – grinden nedan.
   "/elev/hitta-ratt": pageElevHittaRatt,
   "/elev/ekvationsresan": pageElevEkvationsresan, // #618, opt-in som Hitta rätt!
+  // Prov (#740): lista, själva provet (?t=<tillfälle>) och resultatet (D, #741).
+  "/elev/prov": provSida("pageProvLista"),
+  "/elev/prov/skriv": provSida("pageProvSkriv"),
+  "/elev/prov/resultat": provSida("pageProvResultat"),
   "/elev/brakresan": dynSida(async () => (await import("./brakresan/page-brakresan.js")).pageBrakresan(), "🐉", "Bråkresan"), // #709
   // Husvärlden – samma scen för alla tre routes: "by" startar i klassbyn,
   // "hus" ute och "rum" inne. Är scenen redan uppe byter route-bytet bara
@@ -266,6 +273,12 @@ const routes = {
   // Elevkontohanteringen är sammanslagen med klass-sidan (klass-centrerad). Gamla
   // länkar/bokmärken skickas dit (samma mönster som /larare/prompter).
   "/larare/elever": () => go("#/larare/klasser"),
+  // Prov (#740): lärarens översikt över ett provtillfälle (?t=<tillfälle>).
+  "/larare/prov/tillfalle": async () =>
+    (await import("./prov/prov-tillfallen-sida.js")).pageProvTillfalle(teacherCtx),
+  // Prov (#741): rättningen av ett tillfälle (?t=, per fråga / per elev).
+  "/larare/prov/ratta": async () =>
+    (await import("./prov/prov-ratta-sida.js")).pageProvRatta(teacherCtx),
 };
 // Lärarflikarna ur registryn (#440): en ny lärarmodul = en rad i TEACHER_TABS.
 for (const tab of TEACHER_TABS) routes[tab.hash.slice(1)] = () => tab.page(teacherCtx);

@@ -79,25 +79,20 @@ const ICONS = {
     '<path d="M16 19v-1.4a3.4 3.4 0 0 0-3.4-3.4H7.4A3.4 3.4 0 0 0 4 17.6V19"/><circle cx="10" cy="8" r="3.1"/><path d="M16.8 6.8a3.3 3.3 0 0 1 0 6.4"/><path d="M20 19v-1.3a3.3 3.3 0 0 0-2.4-3.2"/>',
   book:
     '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15.5H6a2 2 0 0 0-2 2z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v15.5h5a2 2 0 0 1 2 2z"/>',
-  lock:
-    '<rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/><circle cx="12" cy="15" r="1.1"/>',
+  lock: '<rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/><circle cx="12" cy="15" r="1.1"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
   key: '<circle cx="8" cy="15" r="4"/><path d="M10.8 12.2 20 3M16 7l3 3M14 9l2 2"/>',
   pencil: '<path d="M4 16.4V20h3.6L18.2 9.4l-3.6-3.6L4 16.4z"/><path d="M12.8 7.2l3.6 3.6"/>',
   grad:
     '<path d="M12 4 2.5 9 12 14l9.5-5L12 4z"/><path d="M6 11.2v4c0 1 2.7 2.3 6 2.3s6-1.3 6-2.3v-4"/><path d="M21.5 9v4.5"/>',
-  pin:
-    '<path d="M12 21s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10z"/><circle cx="12" cy="11" r="2.3"/>',
-  sliders:
-    '<path d="M4 8h8M16 8h4M4 16h4M12 16h8"/><circle cx="14" cy="8" r="2.2"/><circle cx="10" cy="16" r="2.2"/>',
-  chart:
-    '<path d="M4 4v16h16"/><path d="M8 16v-4"/><path d="M12 16V8"/><path d="M16 16v-6"/>',
+  pin: '<path d="M12 21s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10z"/><circle cx="12" cy="11" r="2.3"/>',
+  sliders: '<path d="M4 8h8M16 8h4M4 16h4M12 16h8"/><circle cx="14" cy="8" r="2.2"/><circle cx="10" cy="16" r="2.2"/>',
+  chart: '<path d="M4 4v16h16"/><path d="M8 16v-4"/><path d="M12 16V8"/><path d="M16 16v-6"/>',
   trash:
     '<path d="M4 7h16"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7"/><path d="M6.2 7l.8 12.6A1.5 1.5 0 0 0 8.5 21h7a1.5 1.5 0 0 0 1.5-1.4L17.8 7"/><path d="M10 11v6M14 11v6"/>',
   school:
     '<path d="M3 21h18"/><path d="M5 21V9.5L12 5l7 4.5V21"/><path d="M9.5 21v-4.5h5V21"/>',
-  inbox:
-    '<path d="M4 13l2.1-7A2 2 0 0 1 8 4.5h8a2 2 0 0 1 1.9 1.5L20 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M4 13h5l1.1 2h3.8l1.1-2h5"/>',
+  inbox: '<path d="M4 13l2.1-7A2 2 0 0 1 8 4.5h8a2 2 0 0 1 1.9 1.5L20 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M4 13h5l1.1 2h3.8l1.1-2h5"/>',
   logout:
     '<path d="M14 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8"/><path d="M18 15l3-3-3-3"/><path d="M21 12H9"/>',
   eye:
@@ -113,6 +108,7 @@ const ICONS = {
   shuffle:
     '<path d="M4 7h3l10 10h3"/><path d="M4 17h3L17 7h3"/><path d="M18 4l3 3-3 3"/><path d="M18 14l3 3-3 3"/>',
   minus: '<path d="M5 12h14"/>',
+  clipboard: '<rect x="5" y="4.5" width="14" height="16.5" rx="2"/><path d="M9 3h6v3H9z"/><path d="M8.5 11h7M8.5 15h5"/>',
   trophy:
     '<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4.5M16 6h3a3 3 0 0 1-3 4.5"/><path d="M12 13v4"/><path d="M8.5 20h7l-.8-3H9.3z"/>',
   bolt: '<path d="M13 3 5 13.5h6L10 21l8-10.5h-6L13 3z"/>',
@@ -219,6 +215,7 @@ export const TEACHER_GROUPS = [
   { key: "oversikt", label: "Översikt", icon: "home" },
   { key: "klasser", label: "Klasser", icon: "users" },
   { key: "material", label: "Material", icon: "book" },
+  { key: "prov", label: "Prov", icon: "pencil" },
   { key: "live", label: "Live och tävlingar", icon: "bolt" },
   { key: "statistik", label: "Statistik", icon: "chart" },
   { key: "admin", label: "Admin", icon: "key" },
@@ -241,6 +238,9 @@ export const TEACHER_TABS = [
   // Bråkresan (#716): testläget – alla 50 utmaningar med facit, inget sparas. Statistiken finns under Statistik.
   tab("brakresan", "#/larare/brakresan", "material", "Bråkresan", "Bråkresan – testläge", "brak", () => import("./brakresan/larare/testlage.js"), "pageLarareBrakresan"),
   tab("hittaratt", "#/larare/hitta-ratt", "material", "Hitta rätt!", "Hitta rätt!", "pin", () => import("./hitta-ratt/larare/page-larare-hitta-ratt.js"), "pageLarareHittaRatt", true),
+  // Prov (epic #737): Mina prov (#739, skapa/redigera) + Provtillfällen (#740, öppna/stäng/översikt). Lat.
+  tab("prov", "#/larare/prov", "prov", "Mina prov", "Mina prov", "clipboard", () => import("./prov/larare/page-larare-prov.js"), "pageLarareProv"),
+  tab("provtillfallen", "#/larare/prov/tillfallen", "prov", "Provtillfällen", "Provtillfällen", "inbox", () => import("./prov/prov-tillfallen-sida.js"), "pageProvTillfallen"),
   // Live (#460): realtidsmatch klass mot klass. ?id=<sid> = projektorvyn.
   tab("live", "#/larare/live", "live", "Live", "Live", "bolt", () => import("./live/teacher-live.js"), "pageLarareLive"),
   // Mattematchen (#459): skapa/styr tävlingsperioder – bara admin (§2.2). Statistiken finns under Statistik.

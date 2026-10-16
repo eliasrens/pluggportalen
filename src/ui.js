@@ -220,6 +220,37 @@ export async function getLiveVisible() {
   }
 }
 
+// --- Prov (#740) ----------------------------------------------------------------
+// "Prov" syns i menyn bara när elevens klass har ett ÖPPET provtillfälle (EN
+// onSnapshot, som Live) eller eleven fått ett rättat prov tillbaka de senaste
+// 14 dagarna (ETT getDocs per inloggning). Bevakaren laddas DYNAMISKT (#271).
+let provModP = null;
+
+/** Ska Prov synas i elevens meny? */
+export async function getProvVisible() {
+  const meId = data.currentStudentId();
+  try {
+    if (!meId) {
+      if (provModP) (await provModP).stopProvWatch();
+      return false;
+    }
+    provModP ||= import("./prov/prov-watch.js").then((mod) => {
+      mod.onProvChange(({ nyttOppet, andrat }) => {
+        const path = (window.location.hash || "#/").slice(1).split("?")[0];
+        if (!path.startsWith("/elev/") || (!nyttOppet && !andrat)) return;
+        if (nyttOppet && !path.startsWith("/elev/prov")) flash("📝 Din lärare har öppnat ett prov – tryck på <b>Prov</b> i menyn.");
+        renderTopbar();
+      });
+      return mod;
+    });
+    return await (await provModP).provVisibleFor(meId);
+  } catch (err) {
+    console.warn("Prov-synligheten kunde inte läsas:", err);
+    provModP = null;
+    return false;
+  }
+}
+
 // Villkorade menylänkar (#458/#460): `villkor` i NAV_LANKAR = nyckel här. Länken
 // syns bara när villkoret (en dynamiskt laddad bevakare som själv ritar om
 // menyn vid ändring) svarar sant – eller när eleven redan står på sidan.
@@ -227,6 +258,7 @@ export async function getLiveVisible() {
 const NAV_VILLKOR = {
   mattematchen: async () => !!(await getMattematch()),
   live: getLiveVisible,
+  prov: getProvVisible,
 };
 
 // Elevens huvuddestinationer i sidomenyn. Menyn ritas grupp för grupp i

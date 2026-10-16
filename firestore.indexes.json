@@ -9,6 +9,15 @@
       ]
     },
     {
+      "collectionGroup": "rattning",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "elevId", "order": "ASCENDING" },
+        { "fieldPath": "aterlamnad", "order": "ASCENDING" },
+        { "fieldPath": "aterlamnadAt", "order": "DESCENDING" }
+        ]
+      },
+      {
       "collectionGroup": "brakresaRounds",
       "queryScope": "COLLECTION",
       "fields": [
@@ -22,6 +31,16 @@
     {
       "collectionGroup": "answers",
       "fieldPath": "uid",
+      "indexes": [
+        { "order": "ASCENDING", "queryScope": "COLLECTION" },
+        { "order": "DESCENDING", "queryScope": "COLLECTION" },
+        { "arrayConfig": "CONTAINS", "queryScope": "COLLECTION" },
+        { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }
+      ]
+    },
+    {
+      "collectionGroup": "rattning",
+      "fieldPath": "classId",
       "indexes": [
         { "order": "ASCENDING", "queryScope": "COLLECTION" },
         { "order": "DESCENDING", "queryScope": "COLLECTION" },

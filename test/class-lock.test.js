@@ -44,7 +44,7 @@ const omrade = (over = {}) => ({
 const lasresan = (over = {}) => ({ mal: { typ: "lasresan" }, till: NU + 30 * 60_000, doljOvrigt: false, ...over });
 
 test("mål-typerna härleds ur modulregistret: område + de låsbara modulerna", () => {
-  assert.deepEqual(LOCK_TARGET_TYPES, ["omrade", "lasresan", "mattematchen", "hittaratt", "ekvationsresan", "brakresan"]);
+  assert.deepEqual(LOCK_TARGET_TYPES, ["prov", "omrade", "lasresan", "mattematchen", "hittaratt", "ekvationsresan", "brakresan"]);
   assert.equal(lockTargetModule("omrade").id, "plugga");
   assert.equal(lockTargetModule("ekvationsresan").label, "Ekvationsresan");
   assert.equal(lockTargetModule("shop"), null, "shoppen är ingen inlärningsmodul");
@@ -174,6 +174,7 @@ const INLARNING = {
   mattematchen: ["/elev/mattematchen", q("")],
   hittaratt: ["/elev/hitta-ratt", q("")],
   ekvationsresan: ["/elev/ekvationsresan", q("")],
+  prov: ["/elev/prov/skriv", q("t=annat")],
   brakresan: ["/elev/brakresan", q("u=12")], // #735
 };
 const MODUL_RUTT = {
@@ -222,5 +223,35 @@ test("områdeslås spärrar de nya modulerna; modul-id utanför registret är in
   assert.equal(modulLas("okandmodul"), null, "inte registrerad → inget lås (fail-open)");
   assert.deepEqual(buildLock({ typ: "hittaratt", id: "x/y", till: NU + 1 }), {
     mal: { typ: "hittaratt" }, till: NU + 1, doljOvrigt: false,
-  }, "id sparas bara för områden");
+  }, "id sparas bara för områden och tillfällen");
+});
+
+// --- #740: Prov – låset gäller ETT provtillfälle (mal.id) -------------------------
+
+const provLas = (over = {}) =>
+  normalizeLock({ mal: { typ: "prov", id: "tf-123", namn: "Vikingaprovet" }, till: NU + 50 * 60_000, doljOvrigt: true, ...over });
+
+test("provlåset: id krävs (> 2 tecken), som i reglerna", () => {
+  assert.ok(provLas());
+  assert.equal(provLas({ mal: { typ: "prov" } }), null, "utan id = inget lås");
+  assert.equal(provLas({ mal: { typ: "prov", id: "ab" } }), null);
+  assert.equal(provLas({ mal: { typ: "prov", id: 123 } }), null);
+  assert.deepEqual(buildLock({ typ: "prov", id: "tf-123", namn: "Vikingaprovet", till: NU + 1, doljOvrigt: true }), {
+    mal: { typ: "prov", id: "tf-123", namn: "Vikingaprovet" }, till: NU + 1, doljOvrigt: true,
+  });
+});
+
+test("provlåset skickar eleven direkt till provet (lockHomeHash) och spärrar allt annat", () => {
+  const l = provLas();
+  assert.equal(lockHomeHash(l), "#/elev/prov/skriv?t=tf-123");
+  assert.equal(lockLabel(l), "Vikingaprovet", "provets namn i Fokus-rutan");
+  assert.equal(lockLabel(provLas({ mal: { typ: "prov", id: "tf-123" } })), "Prov");
+  for (const p of ["/elev/prov", "/elev/prov/skriv", "/elev/prov/resultat"]) assert.ok(lockAllowsRoute(l, p, q("t=tf-123")), p);
+  for (const [namn, [p, query]] of Object.entries(INLARNING)) {
+    if (namn === "prov") continue;
+    assert.ok(!lockAllowsRoute(l, p, query), `provlåset spärrar ${namn}`);
+  }
+  for (const p of ["/elev/hus", "/elev/shop", "/elev/by", "/elev/live"]) assert.ok(!lockAllowsRoute(l, p, q("")), `${p} dolt`);
+  assert.ok(lockAllowsRoute(l, "/elev/avatar", q("")));
+  assert.ok(!lockAllowsRoute(normalizeLock(lasresan()), "/elev/prov/skriv", q("t=tf-123")), "annat lås spärrar provet");
 });

@@ -98,7 +98,7 @@ export async function renderClassStats(ctx, host, opts) {
       });
   };
   view.querySelectorAll(".stats-tab").forEach((b) => b.addEventListener("click", () => show(b.dataset.tab)));
-  await show((lastStatsTab === "live" || lastStatsTab === "mattematchen") && !opts.classId ? "amnen" : lastStatsTab);
+  await show(["live", "mattematchen", "prov"].includes(lastStatsTab) && !opts.classId ? "amnen" : lastStatsTab);
 }
 
 /** Elev-id → progress för klassens elever (en läsning per elev; fel → {}). */
@@ -131,6 +131,13 @@ const STATS_TABS = [
       (await import("./teacher-ekvationsresan.js")).renderClassEkvationsresan(ctx, pane, {
         students: o.students, cls: o.cls, classes: o.classes, studentById: o.studentById,
       }),
+  },
+  {
+    key: "prov", label: "Prov", icon: "pencil", what: "proven", lazy: true,
+    when: (o) => !!o.classId,
+    // #742: klassens provtillfällen + varje elevs prov över tid – EN collection group-fråga.
+    render: async (ctx, pane, o) =>
+      (await import("./prov/prov-klass-statistik.js")).renderClassProv(ctx, pane, { classId: o.classId, students: o.students }),
   },
   {
     key: "brakresan", label: "Bråkresan", icon: "brak", what: "Bråkresan", lazy: true,

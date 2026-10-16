@@ -104,6 +104,22 @@ describe("Fokusläge (#436): lock läsbart för eleven, skrivbart för lärare",
     );
   });
 
+  it("#740: läraren FÅR låsa till ett provtillfälle – men bara med mal.id (> 2 tecken)", async () => {
+    const prov = (mal) => ({ lock: { mal, till: Date.now() + 50 * MIN, doljOvrigt: true } });
+    await assertSucceeds(
+      updateDoc(doc(teacher(), "classes", "6b"), prov({ typ: "prov", id: "tillfalle-abc", namn: "Vikingaprovet" }))
+    );
+    const snap = await getDoc(doc(elev("elev2"), "classes", "6b"));
+    assert.equal(snap.data().lock.mal.id, "tillfalle-abc", "klassens elev läser provlåset");
+    await assertFails(updateDoc(doc(teacher(), "classes", "6a"), prov({ typ: "prov" })));
+    await assertFails(updateDoc(doc(teacher(), "classes", "6a"), prov({ typ: "prov", id: "ab" })));
+    await assertFails(updateDoc(doc(teacher(), "classes", "6a"), prov({ typ: "prov", id: 42 })));
+    await assertFails(
+      updateDoc(doc(elev("elev1"), "classes", "6a"), prov({ typ: "prov", id: "tillfalle-abc" })),
+      "eleven sätter inget provlås"
+    );
+  });
+
   it("#735: läraren FÅR låsa till Bråkresan, eleven får INTE ändra eller ta bort låset", async () => {
     const brak = { mal: { typ: "brakresan" }, till: Date.now() + 30 * MIN, doljOvrigt: false };
     await assertSucceeds(updateDoc(doc(teacher(), "classes", "6a"), { lock: brak }));

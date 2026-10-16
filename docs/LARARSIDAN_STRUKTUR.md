@@ -17,8 +17,9 @@ Fokusläge · Klasscentret · Statistik. Döp om, Ta bort och Skapa klass låg i
 | **Översikt** `#/larare/oversikt` | Mina klasser (elevantal, fokusläge på/av, snabbval Fokusläge · Inloggning · Statistik), Pågående Live | ✓ | ✓ bara egna klasser och matcher där en egen klass deltar |
 | **Klasser** `#/larare/klasser` | Områden · Lägen per område · Synlighet (moduler; byar bara admin) · Fokusläge · Inloggning (lösenord + inloggningskort) | ✓ | ✓ bara egna klasser |
 | **Material** | Plugga-material `#/larare/innehall` (Allt material / Mitt material, "Skapat av …", Använd, Duplicera) · Bråkresan `#/larare/brakresan` (testläge, #716) · Hitta rätt! | ✓ | Plugga-material ✓, Bråkresan ✓, Hitta rätt! dold |
+| **Prov** (#737) | Mina prov `#/larare/prov` (Nytt prov, Redigera, Förhandsvisa, Kopiera, Radera; kollegors prov att kopiera) – [`PROV.md`](PROV.md) | ✓ ändrar alla prov | ✓ ändrar bara egna, kopierar andras |
 | **Live och tävlingar** | Live `#/larare/live` · Mattematchen | ✓ | Live ✓, Mattematchen dold |
-| **Statistik** `#/larare/statistik` | Per klass: Ämnen · Per område · Läsresan · Ekvationsresan · Bråkresan (översikt, matris, rekommendationer, #716) · Mattematchen · Live (+ nivåstyrning) | ✓ | ✓ bara egna klasser |
+| **Statistik** `#/larare/statistik` | Per klass: Ämnen · Per område · Läsresan · Ekvationsresan · Prov (#742) · Bråkresan (översikt, matris, rekommendationer, #716) · Mattematchen · Live (+ nivåstyrning) | ✓ | ✓ bara egna klasser |
 | **Admin** | Klasser & elevkonton `#/larare/admin/klasser` (skapa/döp om/ta bort klass, elevkonton, mynt, Klasscentret) · Lärarkonton | ✓ | hela delen dold |
 
 - Gamla länkar: `#/larare` → Översikt, `#/larare/klass` → Statistik, `#/larare/elever` → Klasser.

@@ -427,8 +427,9 @@ service cloud.firestore {
         l.keys().hasOnly(['mal', 'till', 'doljOvrigt']) &&
         l.mal is map &&
         l.mal.keys().hasOnly(['typ', 'id', 'namn']) &&
-        l.mal.typ in ['omrade', 'lasresan', 'mattematchen', 'hittaratt', 'ekvationsresan', 'brakresan'] &&
-        (l.mal.typ != 'omrade' || (l.mal.get('id', null) is string &&
+        l.mal.typ in ['prov', 'omrade', 'lasresan', 'mattematchen', 'hittaratt', 'ekvationsresan', 'brakresan'] &&
+        // Ett område ("subj/area") eller ett provtillfälle (#740) kräver mal.id.
+        (!(l.mal.typ in ['omrade', 'prov']) || (l.mal.get('id', null) is string &&
                                    l.mal.id.size() > 2 && l.mal.id.size() <= 200)) &&
         (!('id' in l.mal) || (l.mal.id is string && l.mal.id.size() <= 200)) &&
         (!('namn' in l.mal) || (l.mal.namn is string && l.mal.namn.size() <= 100)) &&
@@ -1966,6 +1967,178 @@ service cloud.firestore {
         request.resource.data.skapad == request.time;
       allow update: if false;
       allow delete: if isAdmin() && resource.data.ownerUid == request.auth.uid;
+    }
+
+    // ------------------------------------------------------------------
+    // PROV (#738, epic #737, spec docs/UTVECKLINGSUPPDRAG_PROV.md §3–§4,
+    // docs/PROV.md). Facit lämnar aldrig lärarens dokument förrän provet
+    // lämnats tillbaka:
+    //   prov/{id}                            provet MED facit – bara lärare
+    //   provTillfallen/{t}                   ett prov i en klass, UTAN facit
+    //   provTillfallen/{t}/privat/facit      facit + bedömningsstöd – lärare
+    //   provTillfallen/{t}/svar/{elevUid}    elevens svar
+    //   provTillfallen/{t}/rattning/{elevUid} rättningen – eleven läser den
+    //                                         först när aterlamnad == true
+    // Underdokumenten slår upp klassen på tillfället (en get()), så att
+    // läraren kan lista en klass svar/rättningar utan filter. Radering sker
+    // med en klientbatch (svar + rättningar + facit + tillfället) – därför
+    // får den som har klassen radera allt under tillfället, och svar/rättning
+    // bär classId så att raderingen fungerar även om tillfället redan är borta.
+    // ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules,firestore:indexes`.
+    // ------------------------------------------------------------------
+    function provLarare() { return isAdmin() || isGradeTeacher(); }
+    function validProvDoc(d) {
+      return d.namn is string && d.namn.size() >= 1 && d.namn.size() <= 80 &&
+        d.fragor is list && d.fragor.size() <= 60 &&
+        (!('installningar' in d) || d.installningar is map);
+    }
+    // Årskurskonton läser ALLA prov (kopiera kollegors, som områdena);
+    // ändrar och raderar bara sina egna. Elever läser aldrig provet.
+    match /prov/{provId} {
+      allow read: if provLarare();
+      allow create: if provLarare() && validProvDoc(request.resource.data) &&
+        request.resource.data.createdBy == request.auth.uid;
+      allow update: if validProvDoc(request.resource.data) &&
+        request.resource.data.get('createdBy', null) == resource.data.get('createdBy', null) &&
+        (isAdmin() || (isGradeTeacher() && resource.data.get('createdBy', null) == request.auth.uid));
+      allow delete: if isAdmin() || (isGradeTeacher() && resource.data.get('createdBy', null) == request.auth.uid);
+    }
+
+    // Statusflödet forberett → oppet → stangt, och stangt → oppet (öppna igen).
+    function provStatusOk(fore, efter) {
+      return fore == efter || (fore == 'forberett' && efter == 'oppet') ||
+        (fore == 'oppet' && efter == 'stangt') || (fore == 'stangt' && efter == 'oppet');
+    }
+    function validTillfalle(d) {
+      return d.classId is string && d.provId is string &&
+        d.status in ['forberett', 'oppet', 'stangt'] &&
+        d.fragor is list && d.fragor.size() <= 60 &&
+        (!('tidsgransMin' in d) || d.tidsgransMin == null ||
+          (d.tidsgransMin is int && d.tidsgransMin >= 5 && d.tidsgransMin <= 240));
+    }
+    function tillfalle(t) {
+      return get(/databases/$(database)/documents/provTillfallen/$(t)).data;
+    }
+    match /provTillfallen/{t} {
+      // Läraren med klassen. Eleven i klassen – men inte ett förberett prov.
+      allow read: if hasClass(resource.data.classId) ||
+        (resource.data.status in ['oppet', 'stangt'] && isClassMember(resource.data.classId));
+      allow create: if hasClass(request.resource.data.classId) &&
+        validTillfalle(request.resource.data) &&
+        request.resource.data.status == 'forberett' &&
+        request.resource.data.createdBy == request.auth.uid;
+      allow update: if hasClass(resource.data.classId) &&
+        validTillfalle(request.resource.data) &&
+        request.resource.data.classId == resource.data.classId &&
+        request.resource.data.provId == resource.data.provId &&
+        request.resource.data.get('createdBy', null) == resource.data.get('createdBy', null) &&
+        provStatusOk(resource.data.status, request.resource.data.status);
+      allow delete: if hasClass(resource.data.classId);
+
+      // Facit + bedömningsstöd: bara lärare med klassen (aldrig eleven).
+      match /privat/{docId} {
+        allow read, write: if docId == 'facit' && hasClass(tillfalle(t).classId);
+      }
+
+      // Elevens svar. Eleven skapar sitt eget när provet är öppet och hen går
+      // i klassen; sparar så länge provet är öppet, inte inlämnat och inom
+      // tidsgränsen + 2 min. elevId/classId/startad ändras aldrig och
+      // inlämnat är slutgiltigt för eleven. Läraren läser, får markera
+      // "inlämnad när provet stängdes" (och ta tillbaka just den markeringen
+      // om provet öppnas igen) – men aldrig ändra själva svaren.
+      match /svar/{elevUid} {
+        allow read: if isSelf(elevUid) || hasClass(tillfalle(t).classId);
+        allow create: if isSelf(elevUid) && provSvarCreateOk(t, elevUid, request.resource.data);
+        allow update: if (isSelf(elevUid) && provSvarUpdateOk(t, request.resource.data, resource.data)) ||
+          (hasClass(resource.data.classId) && provSvarStangOk(t, elevUid, request.resource.data, resource.data));
+        allow delete: if hasClass(resource.data.classId);
+      }
+
+      // Rättningen: läraren skriver; eleven läser sin egen först efter
+      // tillbakalämningen (aterlamnad == true).
+      match /rattning/{elevUid} {
+        allow read: if hasClass(tillfalle(t).classId) ||
+          (isSelf(elevUid) && (resource == null || resource.data.aterlamnad == true));
+        allow create, update: if hasClass(tillfalle(t).classId) &&
+          validRattning(request.resource.data, elevUid, tillfalle(t).classId) &&
+          provAterlamningOk(request.resource.data, resource);
+        allow delete: if hasClass(resource.data.classId);
+      }
+    }
+    function validSvarFalt(d) {
+      return d.keys().hasOnly(['elevId', 'classId', 'startad', 'uppdaterad', 'svar', 'inlamnad', 'inlamnadAt', 'inlamnadNar']) &&
+        d.svar is map && d.svar.size() <= 60 &&
+        d.inlamnad is bool &&
+        (!('inlamnadNar' in d) || d.inlamnadNar in ['elev', 'tid', 'stangt']);
+    }
+    // Elevens inlämning (elev eller tid) får serverns tid i inlamnadAt.
+    function provElevInlamningOk(d) {
+      return d.inlamnad == false ||
+        (d.get('inlamnadNar', '') in ['elev', 'tid'] && d.get('inlamnadAt', null) == request.time);
+    }
+    function provSvarCreateOk(t, elevUid, d) {
+      let tf = tillfalle(t);
+      return tf.status == 'oppet' && isClassMember(tf.classId) &&
+        validSvarFalt(d) && d.elevId == elevUid && d.classId == tf.classId &&
+        d.startad == request.time && d.uppdaterad == request.time &&
+        provElevInlamningOk(d);
+    }
+    function provSvarUpdateOk(t, d, fore) {
+      let tf = tillfalle(t);
+      return tf.status == 'oppet' && fore.inlamnad == false &&
+        validSvarFalt(d) &&
+        d.elevId == fore.elevId && d.classId == fore.classId && d.startad == fore.startad &&
+        d.uppdaterad == request.time &&
+        provElevInlamningOk(d) &&
+        (tf.get('tidsgransMin', null) == null ||
+          request.time <= fore.startad + duration.value(tf.tidsgransMin + 2, 'm'));
+    }
+    // Läraren: bara inlämnad-fälten. Stänga (false → true, "stangt", serverns
+    // tid) eller öppna igen (true → false, bara om det var stängningen som
+    // lämnade in – elevens egen inlämning är slutgiltig – och eleven inte
+    // redan har fått tillbaka provet, #743 F4).
+    function provSvarStangOk(t, elevUid, d, fore) {
+      let andrat = d.diff(fore).affectedKeys();
+      return andrat.hasOnly(['inlamnad', 'inlamnadNar', 'inlamnadAt']) &&
+        ((fore.inlamnad == false && d.inlamnad == true && d.get('inlamnadNar', '') == 'stangt' &&
+            d.get('inlamnadAt', null) == request.time) ||
+         (fore.inlamnad == true && fore.get('inlamnadNar', '') == 'stangt' && d.inlamnad == false &&
+            !('inlamnadNar' in d) && !('inlamnadAt' in d) && provEjTillbakalamnad(t, elevUid)));
+    }
+    // En exists()/get() per elev: öppna igen i batchar om högst 15 elever
+    // (gränsen är 20 dokumentåtkomster per batch, se OPPNA_IGEN_BATCH).
+    function provEjTillbakalamnad(t, elevUid) {
+      let r = /databases/$(database)/documents/provTillfallen/$(t)/rattning/$(elevUid);
+      return !exists(r) || get(r).data.get('aterlamnad', false) != true;
+    }
+    function validRattning(d, elevUid, classId) {
+      return d.keys().hasOnly(['elevId', 'classId', 'provNamn', 'fragor', 'totalPoang', 'maxPoang', 'niva',
+          'helhetskommentar', 'aterlamnad', 'aterlamnadAt', 'facit', 'provInfo']) &&
+        d.elevId == elevUid && d.classId == classId &&
+        d.fragor is map && d.fragor.size() <= 60 &&
+        d.aterlamnad is bool &&
+        (!('niva' in d) || d.niva == null || d.niva in ['EG', 'G', 'MG']) &&
+        (!('totalPoang' in d) || d.totalPoang is number) &&
+        (!('maxPoang' in d) || d.maxPoang is number) &&
+        (!('helhetskommentar' in d) || (d.helhetskommentar is string && d.helhetskommentar.size() <= 4000)) &&
+        (!('facit' in d) || d.facit is map) &&
+        // #742: { datum, granser, andel } för statistikfliken "Prov" (en fråga, §7.5).
+        (!('provInfo' in d) || (d.provInfo is map && d.provInfo.keys().hasOnly(['datum', 'granser', 'andel'])));
+    }
+    // Tillbakalämningen (#741, §7): facit och aterlamnadAt finns BARA i en
+    // tillbakalämnad rättning (ångra tar bort båda). Att lämna tillbaka sätter
+    // aterlamnadAt = serverns tid; en redan tillbakalämnad behåller sin tid.
+    function provAterlamningOk(d, fore) {
+      return d.aterlamnad == false ? (!('facit' in d) && !('aterlamnadAt' in d)) :
+        (d.get('aterlamnadAt', null) == request.time ||
+          (fore != null && fore.data.aterlamnad == true && d.get('aterlamnadAt', null) == fore.data.get('aterlamnadAt', null)));
+    }
+    // Collection group-frågorna på rattning (§5.5 och §7.5):
+    //   eleven: where elevId == uid, aterlamnad == true (menylänken)
+    //   läraren: where classId == klassen (statistikfliken "Prov")
+    match /{path=**}/rattning/{elevUid} {
+      allow read: if (signedIn() && resource.data.elevId == request.auth.uid && resource.data.aterlamnad == true) ||
+        hasClass(resource.data.classId);
     }
 
     // Bråkresan (#706): omgångarnas seeds, params och FACIT (spec §6, §13) –

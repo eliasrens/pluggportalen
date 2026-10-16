@@ -1,0 +1,112 @@
+/* ==========================================================================
+   Prov (#741) – svaren efter provet (.provv-sv-, typernas renderRattning/
+   renderResultat) och elevens resultatvy (.provv-res-). Laddas DYNAMISKT av
+   prov-resultat-vy.js och rättningsvyn – ligger inte i styles.css (#271).
+   Färgerna (§7): grönt rätt, gult delvis, MJUK röd fel – alltid med ikon och
+   text (✓ ½ ✗), aldrig bara färg. Kräver prov-elev.css (.provv-rot-tokens).
+   ========================================================================== */
+
+.provv-rot {
+  --provv-ok: #2f855a;
+  --provv-ok-bg: #e6f4ec;
+  --provv-delvis: #8a6100;
+  --provv-delvis-bg: #fff4d6;
+  --provv-nej: #a8473b;
+  --provv-nej-bg: #fbeeec;
+}
+
+/* --- Svaret (rättning + resultat) --------------------------------------- */
+.provv-sv-inget { color: var(--provv-svag); font-style: italic; }
+.provv-sv-text {
+  padding: 10px 14px; border: 1px solid var(--provv-kant); border-radius: 10px; background: var(--provv-ljus);
+  overflow-wrap: anywhere;
+}
+.provv-sv-lang { white-space: pre-wrap; }
+.provv-sv-facit { margin: 8px 0 0; color: var(--provv-text); font-size: 0.98rem; }
+
+.provv-sv-mark {
+  display: inline-grid; place-items: center; min-width: 1.5em; height: 1.5em; margin-left: 6px; padding: 0 4px;
+  border-radius: 999px; font-size: 0.85em; font-weight: 700; line-height: 1;
+}
+.provv-sv-mark-ratt { background: var(--provv-ok-bg); color: var(--provv-ok); }
+.provv-sv-mark-delvis { background: var(--provv-delvis-bg); color: var(--provv-delvis); }
+.provv-sv-mark-fel { background: var(--provv-nej-bg); color: var(--provv-nej); }
+
+.provv-sv-alt { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.provv-sv-alt-rad {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 8px 12px; border: 1px solid var(--provv-kant); border-radius: 10px; background: var(--provv-yta);
+}
+.provv-sv-ruta { color: var(--provv-svag); width: 1.1em; }
+.provv-sv-alt-text { flex: 1; min-width: 8em; }
+.provv-sv-vald { border-color: var(--provv-accent); background: #eef4fc; }
+.provv-sv-vald .provv-sv-ruta { color: var(--provv-accent); }
+.provv-sv-alt-rad.provv-sv-ok { border-color: #9fd3b4; background: var(--provv-ok-bg); }
+.provv-sv-alt-rad.provv-sv-nej { border-color: #ecc3bd; background: var(--provv-nej-bg); }
+.provv-sv-alt-rad.provv-sv-missad { border-style: dashed; border-color: #9fd3b4; }
+.provv-sv-tagg { font-size: 0.82rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: var(--provv-ljus); color: var(--provv-svag); }
+.provv-sv-tagg-ratt { background: var(--provv-ok-bg); color: var(--provv-ok); }
+
+.provv-sv-lucktext { margin: 0; line-height: 2.1; }
+.provv-sv-lucka {
+  display: inline-flex; align-items: center; gap: 2px; padding: 0 8px; margin: 0 2px;
+  border-bottom: 2px solid #7b8796; background: var(--provv-ljus); border-radius: 4px 4px 0 0; font-weight: 600;
+}
+.provv-sv-lucka-ok { border-bottom-color: var(--provv-ok); }
+.provv-sv-lucka-delvis { border-bottom-color: #c99a1e; }
+.provv-sv-lucka-nej { border-bottom-color: var(--provv-nej); }
+.provv-sv-luckfacit { color: var(--provv-ok); font-weight: 600; font-size: 0.92em; margin-left: 4px; }
+
+.provv-sv-par { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.provv-sv-par-rad {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 12px; border: 1px solid var(--provv-kant); border-radius: 10px;
+}
+.provv-sv-par-v { font-weight: 600; }
+.provv-sv-pil { color: var(--provv-svag); }
+.provv-sv-ordna { margin: 0; padding-left: 1.6em; display: grid; gap: 4px; }
+.provv-sv-ordna li { padding: 2px 0; }
+.provv-sv-par-rad.provv-sv-ok { border-color: #9fd3b4; }
+.provv-sv-par-rad.provv-sv-nej { border-color: #ecc3bd; }
+
+/* --- Elevens resultatvy (§7) -------------------------------------------- */
+.provv-res { max-width: 860px; margin: 0 auto; }
+.provv-res-topp { border-bottom: 1px solid var(--provv-kant); padding-bottom: 14px; }
+.provv-res-datum { margin: -4px 0 10px; color: var(--provv-svag); }
+.provv-res-summa { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.provv-res-total { margin: 0; font-size: 1.35rem; }
+.provv-res-niva {
+  padding: 4px 14px; border-radius: 999px; border: 1px solid var(--provv-kant); background: var(--provv-ljus); font-weight: 600;
+}
+.provv-res-ton { color: var(--provv-svag); margin: 10px 0 0; }
+.provv-res-hint { color: var(--provv-svag); font-size: 0.95rem; margin: 8px 0 0; }
+.provv-res-helhet {
+  margin-top: 14px; padding: 14px 18px; border-radius: 12px; background: #f4f8fd; border: 1px solid #cfe0f5;
+}
+.provv-res-helhet-rubrik { font-size: 1rem; margin: 0 0 6px; color: var(--provv-accent); }
+.provv-res-helhet p { margin: 0 0 6px; white-space: pre-wrap; }
+
+.provv-res-fraga { padding: 20px 0; border-bottom: 1px solid var(--provv-kant); }
+.provv-res-etikett {
+  flex: none; display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 12px; border-radius: 999px; font-weight: 600; font-size: 0.95rem; white-space: nowrap;
+}
+.provv-res-ikon { font-weight: 800; }
+.provv-res-p { font-weight: 500; }
+.provv-res-ratt { background: var(--provv-ok-bg); color: var(--provv-ok); }
+.provv-res-delvis { background: var(--provv-delvis-bg); color: var(--provv-delvis); }
+.provv-res-fel { background: var(--provv-nej-bg); color: var(--provv-nej); }
+.provv-res-svar { margin: 12px 0 0 50px; }
+.provv-res-kommentar {
+  margin: 10px 0 0 50px; padding: 8px 12px; border-left: 3px solid var(--provv-accent); background: #f4f8fd; border-radius: 0 8px 8px 0;
+}
+.provv-res-textblock { margin: 14px 0; padding: 10px 14px; border: 1px solid var(--provv-kant); border-radius: 10px; background: var(--provv-ljus); }
+.provv-res-textblock summary { cursor: pointer; font-weight: 600; }
+
+@media (max-width: 560px) {
+  .provv-res-svar, .provv-res-kommentar { margin-left: 0; }
+  .provv-res-fraga .provv-fraga-huvud { flex-wrap: wrap; }
+}
+
+/* Inuti lärarsidan (rättningens "papper"): lärarens mörka standardstilar ska inte nå svaret. */
+.teacher-dark .provv-rot :is(.provv-sv-facit, .provv-sv-alt-text, .provv-sv-text, .provv-sv-par-v) { color: var(--provv-text); }

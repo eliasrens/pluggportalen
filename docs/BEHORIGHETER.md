@@ -54,6 +54,8 @@ tabellerna, om en rad saknar test, eller om en testfil inte körs av
 | BR | `test/firestore-rules-brakresan.test.js` |
 | BF | `test/functions-brakresan.test.mjs` |
 | SA | `test/firestore-rules-season.test.js` |
+| PV | `test/firestore-rules-prov.test.js` |
+| PD | `test/firestore-rules-prov-rattning.test.js` |
 
 Admin-kolumnen bevisas dessutom av OG test 25 (lärare utan roll gör allt som
 admin) och av alla äldre regeltester, som kör sina lärare som admin (§7 test 26).
@@ -94,6 +96,11 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `hittaRattAttempts`, `hittaRattBest` | L | L: egna elever (per dokument) | SM test 1–2 |
 | `hittaRattBoards`, `hittaRattMeta`, `hittaRattPacks` | L (servern skriver) | L | RO Hitta rätt! |
 | `hittaRattBilder` | L. Skapa och radera egna bilder. | L. S: aldrig. | RO egna bilder |
+| `prov` (provet med facit, #738) | L/S | L: alla prov (kopiera kollegors). Skapa: `createdBy` = sig själv. Ändra och radera: bara egna; `createdBy` får inte bytas. Elever läser aldrig. | PV prov/{id} |
+| `provTillfallen` | L/S (status bara `forberett → oppet → stangt`, `stangt → oppet`) | L/S: egna klasser. Skapa bara som `forberett` med `createdBy` = sig själv; klass och prov byts aldrig. Eleven i klassen läser öppna och stängda, aldrig förberedda. | PV provTillfallen |
+| `provTillfallen/{t}/privat` (bara `facit`) | L/S | L/S: egna klasser. Eleven aldrig. | PV privat/facit |
+| `provTillfallen/{t}/svar` | L/radera. S: bara inlämnad-fälten när provet stängs (eller öppnas igen) – aldrig svaren. | Som admin, egna klasser. Eleven skapar och sparar sitt eget (öppet prov, i klassen, inom tidsgränsen + 2 min, inte efter inlämning). | PV svar |
+| `provTillfallen/{t}/rattning`, `{**}/rattning` (collection group) | L/S | L/S: egna klasser (collection group: filtrerat på `classId`). Eleven läser sin egen först när `aterlamnad == true`. Bara kända fält; `facit` och `aterlamnadAt` bara i en tillbakalämnad rättning, och att lämna tillbaka kräver `aterlamnadAt` = serverns tid. | PV rattning, PV collection group, PD |
 | `brakresaSecrets` (Bråkresans facit) | nekas (bara Cloud Functions) | nekas | BR |
 | `brakresaRecommendations` | L/S | L/S: rekommendationer till egna klasser och elever, med `teacherId` = sig själv och exakt ett av `classId`/`studentId`. Ändra bara `active`, `endedAt`, `comment` och `challengeIds`. | BR |
 | `config/season` (bara det dokumentet; läses av alla, även utloggade) | L/S (fälten valideras) | L. S: aldrig. | SA test 3 |
