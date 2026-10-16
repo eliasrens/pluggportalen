@@ -7,7 +7,8 @@
 //
 // rattning/{elevUid} (docs/DATAMODELL.md "Prov"):
 //   { elevId, classId, provNamn, fragor: { [fragaId]: { poang, ratt, kommentar?, auto } },
-//     totalPoang, maxPoang, niva, helhetskommentar?, aterlamnad, aterlamnadAt?, facit? }
+//     totalPoang, maxPoang, niva, helhetskommentar?, aterlamnad, aterlamnadAt?, facit?,
+//     myntUtbetalt? (#746: pluggmynten som betalats ut, skrivs bara av prov-mynt-pay.js) }
 // En post med auto: true är ett FÖRSLAG – det räknas inte som rättat förrän
 // läraren godkänner eller ändrar det (§6.3).
 // ============================================================================
@@ -319,6 +320,8 @@ export function sparDok(r, fragor, provInfo = null) {
   if (helhet) ut.helhetskommentar = helhet;
   if (ut.aterlamnad && s.facit) ut.facit = s.facit;
   if (provInfo) ut.provInfo = provInfo;
+  // Pluggmyntens spegel (#746) följer med – reglerna nekar att den sänks.
+  if (Number.isInteger(s.myntUtbetalt) && s.myntUtbetalt > 0) ut.myntUtbetalt = s.myntUtbetalt;
   return ut;
 }
 
@@ -346,6 +349,7 @@ export function resultatModell(tf, svarDok, r) {
     niva: r.niva || null,
     nivaNamn: nivaNamn(r.niva),
     helhetskommentar: r.helhetskommentar || "",
+    mynt: Number.isInteger(r.myntUtbetalt) && r.myntUtbetalt > 0 ? r.myntUtbetalt : 0,
     visaFacit,
     poster: fragor.map((f) => ({
       fraga: f,

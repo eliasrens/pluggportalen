@@ -45,6 +45,9 @@
 .provl-check { display: flex; gap: 9px; align-items: flex-start; font-weight: 400; cursor: pointer; }
 .provl-check input { margin-top: 3px; accent-color: var(--t-accent); width: 17px; height: 17px; flex: none; }
 .provl-val { display: flex; gap: 18px; flex-wrap: wrap; }
+/* Pluggmynt (#746, provl-mynt.js): sifferfälten sitter i radioknapparnas text. */
+.provl-check input.provl-mynt-antal { width: 5em; height: auto; margin: -3px 4px 0; padding: 3px 6px; font: inherit; }
+.provl-mynt-krav[hidden] { display: none; }
 .provl-fel-rad[hidden] { display: none; }
 .provl-spara-rad { padding-top: 4px; }
 
