@@ -7,12 +7,31 @@
         { "fieldPath": "uid", "order": "ASCENDING" },
         { "fieldPath": "isCorrect", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "rattning",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "elevId", "order": "ASCENDING" },
+        { "fieldPath": "aterlamnad", "order": "ASCENDING" },
+        { "fieldPath": "aterlamnadAt", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": [
     {
       "collectionGroup": "answers",
       "fieldPath": "uid",
+      "indexes": [
+        { "order": "ASCENDING", "queryScope": "COLLECTION" },
+        { "order": "DESCENDING", "queryScope": "COLLECTION" },
+        { "arrayConfig": "CONTAINS", "queryScope": "COLLECTION" },
+        { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }
+      ]
+    },
+    {
+      "collectionGroup": "rattning",
+      "fieldPath": "classId",
       "indexes": [
         { "order": "ASCENDING", "queryScope": "COLLECTION" },
         { "order": "DESCENDING", "queryScope": "COLLECTION" },
