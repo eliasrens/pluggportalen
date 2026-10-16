@@ -108,6 +108,7 @@ export function oppnaFranOmrade(prov, role, onKlar) {
     }
     host.innerHTML = grupper.map((g, gi) => {
       const ok = g.saker.filter((s) => !s.problem).length;
+      const bild = g.saker.filter((s) => /^bara bild/.test(s.problem || "")).length;
       let del = null;
       const rader = g.saker.map((s) => {
         const rubrik = s.del && s.del !== del ? `<li class="provl-fo-del">${esc((del = s.del))}</li>` : "";
@@ -117,6 +118,7 @@ export function oppnaFranOmrade(prov, role, onKlar) {
       }).join("");
       return `<fieldset class="provl-grupp provl-fo-grupp"><legend>${esc(g.rubrik)} (${g.saker.length})</legend>
         <label class="provl-check provl-fo-alla"><input type="checkbox" data-alla="${gi}" ${ok ? "" : "disabled"} /><span><b>Välj alla</b>${ok < g.saker.length ? ` <span class="hint">(${ok} går att ta med)</span>` : ""}</span></label>
+        ${bild ? `<div class="msg warn">${bild} par har bara en bild och hoppas över – ett prov visar bara text.</div>` : ""}
         <ul class="provl-fo-lista">${rader}</ul></fieldset>`;
     }).join("");
     uppdatera();
