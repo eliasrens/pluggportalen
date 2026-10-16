@@ -525,6 +525,10 @@ Färdigt i `src/brakresan/demo.js`: `demoRound(id, seed)` (tio hela uppgifter me
    men saldot som sådant går inte att låsa utan en migrering av hela appens myntflöde – utanför
    modulen (§13: "Påbörja inte en godtycklig migrering").
 3. **Draken i `studentData.brakdrake`**, inte `roomAnimals` (§2 ovan). Cachad `level` där är
-   kosmetisk; allt som ger mynt utgår från `state`.
+   kosmetisk; allt som ger mynt utgår från `state`. Spegeln är skyddad (#750): `studentData` är
+   elevskrivbart, men `brakdrakeOk` i `firestore.rules` nekar eleven att skapa eller ta bort
+   `brakdrake` och att ändra något i den utom `pos`, `room` och `stowed` (huset). `id`, `level`,
+   `name` och `stage` skriver bara Cloud Functions (kläckning, nivå, namnbyte). Kräver
+   rules-deploy; test i `test/firestore-rules-brakresan.test.js`.
 4. **Deploy:** reglerna och functions måste deployas tillsammans när modulen släpps
    (`firebase deploy --only firestore:rules,firestore:indexes,functions`).
