@@ -353,6 +353,32 @@ Förhandsvisning utan Firebase: `preview/preview-prov-statistik.html` (25 elever
 `?nollstall` börjar om). Skärmdumpar: `docs/qa-prov-742/`. Tester:
 `test/prov-statistik.test.js`, regler `test/firestore-rules-prov-statistik.test.js`.
 
+## Hämta från område (Etapp 2, #745, §10)
+
+Knappen **Hämta från område** i redigeraren öppnar `provl-fran-omrade.js`
+(lat): ämne → område (alla områden läraren får läsa, "Visa: Mina områden" som i
+Innehållsstudion, ägaren via `createdByLabel`) → kryssrutor per sort →
+"Lägg till i provet" (`laggTillFragor`: sist, nya id vid krock). Läser
+`getSubjects`/`getAreas` (session-cachen i `data-content.js`) – inga nya
+samlingar, inga regler.
+
+Omvandlingen är DOM-fri i `prov-fran-omrade.js` (`omradetsSaker`,
+`fragorFranOmrade`, testad i `test/prov-fran-omrade.test.js`); allt som kommer ut
+har gått genom `validateProv`.
+
+| I området | Blir i provet |
+| --- | --- |
+| Quizfråga | `flerval`, 1 poäng |
+| Quizfråga med `passage` | ett `text`-block per text (en gång, utan titel) + `flerval` under |
+| Par (`pairs`) | `para` med de valda paren, 1 poäng per par; fler än 10 delas jämnt (11 → 6 + 5), färre än 3 hoppas över |
+| Tidslinje (`timeline`) | `ordna` sorterad efter år ("Sätt händelserna i rätt ordning."), 1 poäng per händelse; samma år två gånger → bara den första; delas som paren |
+| Ämnesläsningstext (`readingTextsOf`) | `text`-block med titeln + frågorna som `flerval` |
+
+Saker som inte kan bli en provfråga är gråade i listan med orsaken och hoppas
+över med en varning: par med bara en bild, quizfrågor med fler än 6 (eller
+likadana) alternativ, texter över 6000 tecken. Gamla nivåtexter (#152) under
+`readingTexts` syns aldrig.
+
 ## Budget (§9) – 25 elever, 12 frågor, 40 minuter
 
 Autosparningen (`prov-sparning.js`): första sparningen 4 s efter en ändring,
