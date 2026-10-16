@@ -302,6 +302,52 @@ Förhandsvisning utan Firebase: `preview/preview-prov-rattning.html` (8 elever,
 stubbar i `preview/prov-ratta-stubs/`, `?nollstall` börjar om). Skärmdumpar:
 `docs/qa-prov-741/`.
 
+## Statistiken (E, #742, §7.5)
+
+Grönt/gult/rött – **alltid** med symbol och text (✓ ½ ✗, obesvarad `–` streckad,
+inte rättad `?`), så att det fungerar för färgblinda och vid utskrift.
+
+| Fil | Gör |
+| --- | --- |
+| `prov-statistik.js` | ren logik: `cellLage`, `andelFor`, `fargFor`, `granserFor`, `klassOversikt`, `sorteraRader`, `fordelning`/`fordelningText`, `provInfoDok`, `historik`, `linjePunkter` |
+| `prov-stat-vy.js` | rättningsvyns flik **Översikt** (`oversiktVy`) och elevvyn (`elevStatVy`, bara att läsa) |
+| `prov-klass-statistik.js` | fliken **Prov** i klassens statistik (`renderClassProv`, rad i `STATS_TABS`, `when: classId`) |
+| `prov-statistik-data.js` | statistikflikens enda läsning: `hamtaKlassensRattningar(classId)` |
+| `prov-statistik.css` | `.provl-st-` |
+
+- **Andelen** räknas bara över **bedömda** frågor (ett förslag med `auto: true` är
+  inte bedömt). Obesvarade och orättade blir alltså inte fel förrän läraren rättat
+  dem; en elev utan bedömda frågor är "ej rättad". Med poäng: poäng av max för de
+  bedömda frågorna. Utan poäng: andelen rätt, "delvis" = ½.
+- **Färgen**: grön ≥ `granser.gron` (70), gul ≥ `granser.gul` (40), annars röd –
+  räknat på hela procent med flyttalsbruset bort (7 av 10 = 70 % = grön).
+  Nivån (EG/G/MG) visas **bredvid** och ändrar aldrig färgen.
+- **Översikt** `#/larare/prov/ratta?t=…&lage=oversikt` (knappen **Resultat** i
+  Provtillfällen när något är rättat): räknaren "✓ 12 gröna · ½ 7 gula · ✗ 4 röda ·
+  ? 1 ej rättade", klassens snitt, de tre svåraste frågorna (länk till Per fråga),
+  sortering namn/resultat, två reglage för gränserna (sparas på tillfället:
+  `installningar.granser`, `sparaGranser`) och rutnätet elev × fråga med
+  totalbricka "18/24 · 75 %" + nivå och "64 %" per fråga längst ner. Rutnätet
+  scrollar i sidled i sin egen ruta med namnkolumnen fast. Klick på en elev →
+  elevvyn (`&e=<uid>`), på en cell → just det svaret i Per elev (`&lage=elev&e=&f=`).
+  **Inga extra läsningar** – allt kommer ur rättningsvyns laddning.
+- **Över tid** (klassens statistik → Prov): klassens tillfällen (datum, prov,
+  snitt, fördelning, länk till Resultat) och per vald elev alla prov (datum,
+  procent, färg, nivå) + en liten linje. **EN** collection group-fråga
+  `collectionGroup("rattning")` + `where("classId", "==", klassen)` när fliken
+  öppnas (fältundantaget i `firestore.indexes.json`, regeln
+  `match /{path=**}/rattning`). Tillfällets id = `ref.parent.parent.id`.
+- För att klara sig med den enda frågan sparar rättningsvyn `provInfo:
+  { datum, granser, andel }` (`provInfoDok`) i varje rättning vid varje sparning.
+  Ändras gränserna markeras alla ej tillbakalämnade rättningar för sparning; de
+  redan tillbakalämnade behåller sina gamla gränser i historiken. Rättningar utan `provInfo` (äldre) använder
+  `totalPoang/maxPoang` om de är tillbakalämnade.
+
+Förhandsvisning utan Firebase: `preview/preview-prov-statistik.html` (25 elever,
+12 frågor, tre äldre prov; stubbar i `preview/prov-statistik-stubs/`,
+`?nollstall` börjar om). Skärmdumpar: `docs/qa-prov-742/`. Tester:
+`test/prov-statistik.test.js`, regler `test/firestore-rules-prov-statistik.test.js`.
+
 ## Budget (§9) – 25 elever, 12 frågor, 40 minuter
 
 Autosparningen (`prov-sparning.js`): första sparningen 4 s efter en ändring,
@@ -332,6 +378,11 @@ Per fråga rör varje fråga alla elever en gång: 12 × 25 = 300; tillbakalämn
 räkneverket ett par. **≈ 350 skrivningar** för en hel rättning. Med elevernas
 realistiska några hundra skrivningar och ≈ 1 300 läsningar stannar provet + rättningen
 långt under 3 000/3 000.
+
+**Statistiken (#742)**: Översikten läser inget (rättningsvyns data). Att ändra
+gränserna = 1 skrivning + en sparning av klassens ej tillbakalämnade rättningar
+(≤ 25). Fliken Prov i klassens statistik = **en** fråga: lika många läsningar som
+klassen har rättningar (25 elever × 10 prov = 250), en gång när fliken öppnas.
 
 ## Deploy
 

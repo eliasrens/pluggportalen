@@ -17,6 +17,7 @@ import {
   angratDok, aterlamnadDok, kompletteraForslag, nyRattning, rattStatusSumma, sparDok,
 } from "./prov-rattning-logik.js";
 import { LARARENS_SPARNING, skapaSparare } from "./prov-sparning.js";
+import { provInfoDok } from "./prov-statistik.js";
 
 /**
  * @param {object} o
@@ -44,6 +45,8 @@ export function skapaRattningsLager({ data, med, onStatus = () => {} }) {
   }
 
   const status = () => rattStatusSumma(med, rattningar, fragor);
+  // Hela dokumentet + provInfo (datum, gränser, andel) för statistikfliken "Prov" (#742).
+  const dokFor = (uid) => sparDok(rattningar[uid], fragor, provInfoDok(rattningar[uid], fragor, tf));
   async function spara() {
     const uids = [...smutsiga].filter((uid) => !rattningar[uid]?.aterlamnad);
     smutsiga.clear();
@@ -51,7 +54,7 @@ export function skapaRattningsLager({ data, med, onStatus = () => {} }) {
     const nyStatus = JSON.stringify(st) !== JSON.stringify(tf.rattStatus || null) ? st : null;
     if (!uids.length && !nyStatus) return;
     try {
-      await sparaRattningar(t, Object.fromEntries(uids.map((uid) => [uid, sparDok(rattningar[uid], fragor)])), nyStatus);
+      await sparaRattningar(t, Object.fromEntries(uids.map((uid) => [uid, dokFor(uid)])), nyStatus);
       if (nyStatus) tf.rattStatus = nyStatus;
     } catch (err) {
       uids.forEach((uid) => smutsiga.add(uid));
@@ -80,7 +83,7 @@ export function skapaRattningsLager({ data, med, onStatus = () => {} }) {
     /** Lämna tillbaka (§7) – osparat sparas först; facit bara om valt. */
     async lamnaTillbaka(uids, visaFacit) {
       await sparare.spolaNu().catch(() => {});
-      const dok = Object.fromEntries(uids.map((uid) => [uid, aterlamnadDok(sparDok(rattningar[uid], fragor), { visaFacit, facit })]));
+      const dok = Object.fromEntries(uids.map((uid) => [uid, aterlamnadDok(dokFor(uid), { visaFacit, facit })]));
       const efter = { ...rattningar, ...Object.fromEntries(Object.entries(dok).map(([uid, d]) => [uid, { ...d, aterlamnadAt: Date.now() }])) };
       const st = rattStatusSumma(med, efter, fragor);
       await lamnaTillbaka(t, dok, st);

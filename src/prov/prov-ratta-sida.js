@@ -24,6 +24,9 @@ import { TANGENT_RATT, aterlamnaPlan, ejKlaraText, rattFragor, rattStatusText } 
 import { laddaRattning } from "./prov-rattning-data.js";
 import { skapaRattningsLager } from "./prov-ratta-lager.js";
 import { perElev, perFraga } from "./prov-ratta-lagen.js";
+import { elevStatVy, oversiktVy } from "./prov-stat-vy.js";
+import { granserFor } from "./prov-statistik.js";
+import { sparaGranser } from "./prov-rattning-data.js";
 import { ruta } from "./prov-tillfalle-rutor.js";
 import { blanda } from "./typer/delat.js";
 import { h, laddaCss } from "./prov-vy.js";
@@ -49,6 +52,7 @@ export async function pageProvRatta(ctx) {
   laddaCss("prov-elev.css");
   laddaCss("prov-resultat.css");
   laddaCss("prov-ratta.css");
+  laddaCss("prov-statistik.css");
   const page = el(`<div class="teacher-page teacher-dark provl-sida provl-r-sida"></div>`);
   page.append(teacherNav(ctx, "provtillfallen"), teacherHead(ctx, "provtillfallen"));
   const body = el(`<div class="provl-kropp"><div class="spinner">Laddar rättningen…</div></div>`);
@@ -101,7 +105,10 @@ function rattningsVy(ctx, body, data, elever, q) {
     },
   });
 
-  let lage = q.get("lage") === "elev" ? "elev" : "fraga";
+  let lage = ["elev", "oversikt"].includes(q.get("lage")) ? q.get("lage") : "fraga";
+  // Översikten (#742): en elev i elevvyn (&e=) eller hela klassen; svaret att visa efter klick på en cell.
+  let statElev = lage === "oversikt" && med.includes(q.get("e")) ? q.get("e") : null;
+  let fokusFraga = lage === "elev" ? q.get("f") : null;
   const index = { fraga: Math.max(0, rf.findIndex((f) => f.id === q.get("f"))), elev: Math.max(0, med.indexOf(q.get("e"))) };
   let aktiv = null; // { el, uppdatera } för läget som visas
 
@@ -114,9 +121,10 @@ function rattningsVy(ctx, body, data, elever, q) {
     try { localStorage.setItem(DOLJ_NYCKEL, doljNamn ? "1" : "0"); } catch {}
     ritaInnehall();
   });
-  const flikar = ["fraga", "elev"].map((id) => h("button", {
-    type: "button", role: "tab", class: "provl-r-flik", "data-lage": id, text: id === "fraga" ? "Per fråga" : "Per elev",
-    on: { click: () => { lage = id; ritaInnehall(); } },
+  const FLIKAR = { fraga: "Per fråga", elev: "Per elev", oversikt: "Översikt" };
+  const flikar = Object.keys(FLIKAR).map((id) => h("button", {
+    type: "button", role: "tab", class: "provl-r-flik", "data-lage": id, text: FLIKAR[id],
+    on: { click: () => { lage = id; statElev = null; ritaInnehall(); } },
   }));
   const innehall = h("div", { class: "provl-r-innehall" });
   const vy = h("div", { class: "provl-r" },
@@ -176,6 +184,33 @@ function rattningsVy(ctx, body, data, elever, q) {
       ritaStatus();
     },
     lamnaTillbaka: (uids) => lamnaRuta(uids, 0),
+    // Översikten och elevvyn (#742, prov-stat-vy.js).
+    stat: { sort: "namn" },
+    granser: () => granserFor(tf.installningar),
+    async sattGranser(g) {
+      tf.installningar = { ...tf.installningar, granser: g };
+      // Rättningarnas provInfo (statistikfliken "Prov") får de nya gränserna vid nästa sparning.
+      v.andrat(med.filter((uid) => !lager.rattningar[uid]?.aterlamnad));
+      try {
+        await sparaGranser(t, g);
+      } catch (err) {
+        sparStatus.textContent = `Kunde inte spara färggränserna: ${errText(err)}`;
+        sparStatus.dataset.lage = "fel";
+      }
+    },
+    oppnaElev: (uid) => { lage = "oversikt"; statElev = uid; ritaInnehall({ topp: true }); },
+    tillKlassen: () => { lage = "oversikt"; statElev = null; ritaInnehall({ topp: true }); },
+    oppnaSvar(uid, fid) {
+      lage = "elev";
+      index.elev = Math.max(0, med.indexOf(uid));
+      fokusFraga = fid;
+      ritaInnehall({ topp: !fid });
+    },
+    oppnaFraga(fid) {
+      lage = "fraga";
+      index.fraga = Math.max(0, rf.findIndex((f) => f.id === fid));
+      ritaInnehall({ topp: true });
+    },
     angra: async (uid) => {
       try {
         await lager.angra(uid);
@@ -188,23 +223,32 @@ function rattningsVy(ctx, body, data, elever, q) {
   };
 
   let route = window.location.hash;
-  function ritaInnehall({ fokus = false } = {}) {
+  function ritaInnehall({ fokus = false, topp = false } = {}) {
     flikar.forEach((f) => {
       const valt = f.dataset.lage === lage;
       f.setAttribute("aria-selected", valt ? "true" : "false");
       f.classList.toggle("provl-r-flik-vald", valt);
     });
     const scroll = window.scrollY;
-    aktiv = lage === "fraga" ? perFraga(v) : perElev(v);
+    aktiv = lage === "fraga" ? perFraga(v) : lage === "elev" ? perElev(v) : statElev ? elevStatVy(v, statElev) : oversiktVy(v);
     innehall.replaceChildren(aktiv.el);
-    const extra = lage === "elev" ? `&lage=elev&e=${encodeURIComponent(med[index.elev])}` : `&f=${encodeURIComponent(rf[index.fraga]?.id || "")}`;
+    const extra = lage === "elev" ? `&lage=elev&e=${encodeURIComponent(med[index.elev])}`
+      : lage === "oversikt" ? `&lage=oversikt${statElev ? `&e=${encodeURIComponent(statElev)}` : ""}`
+        : `&f=${encodeURIComponent(rf[index.fraga]?.id || "")}`;
     route = rattaHash(t, extra);
     if (window.location.hash !== route) history.replaceState(null, "", route);
     ritaStatus();
-    if (fokus) {
+    // Klick på en cell i översikten (#742): just det svaret i Per elev.
+    const malKort = fokusFraga && lage === "elev" ? innehall.querySelector(`.provl-r-kort[data-f="${CSS.escape(fokusFraga)}"]`) : null;
+    fokusFraga = null;
+    if (malKort) {
+      malKort.focus({ preventScroll: true });
+      malKort.scrollIntoView({ block: "center" });
+    } else if (fokus) {
       innehall.querySelector(".provl-r-kort")?.focus({ preventScroll: true });
       innehall.scrollIntoView({ block: "start", behavior: "smooth" });
-    } else window.scrollTo?.(0, scroll);
+    } else if (topp) innehall.scrollIntoView({ block: "start" });
+    else window.scrollTo?.(0, scroll);
   }
 
   // --- Lämna tillbaka (§7) -------------------------------------------------------

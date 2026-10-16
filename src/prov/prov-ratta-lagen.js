@@ -136,13 +136,15 @@ export function perElev(v) {
         h("div", { class: "provv-rot provl-r-papper" }, typ.renderRattning(f, null, {})));
     }
     const stod = v.bedomningsstod[f.id];
-    return rattaKort({
+    const k = rattaKort({
       titel: `Fråga ${nr[f.id]}`, fraga: f, svar: v.svarAv(uid, f.id), facit: v.facit[f.id], facitRad: true, poangsatt,
       huvud: h("div", { class: "provl-r-kortfraga" }, stycken(f.fraga),
         stod ? h("details", { class: "provl-r-stod" }, h("summary", { text: "Bedömningsstöd" }), stycken(stod)) : null),
       lage: () => ({ post: r().fragor?.[f.id] || null, blandat: false, last: last() }),
       onAndring: (a) => { lager.rattningar[uid] = bedom(r(), f, a, fragor); andrat(); },
     }).el;
+    k.dataset.f = f.id; // översiktens cell hoppar hit (#742)
+    return k;
   }).filter(Boolean);
 
   // Nivå (frivillig, bara om provet använder nivåer) och helhetskommentar.
