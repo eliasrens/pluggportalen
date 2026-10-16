@@ -264,14 +264,9 @@ export async function createUtmaningsvy(host, { challengeId, backend, onBack, on
     const sekundara = (...k) => sekundar.replaceChildren(...k, hjalpKnapp, ...ovriga());
 
     // Hög modell skalas ner / knappraden nålas fast så att allt ryms utan scroll (#753).
-    const passning = bevakaPassning({ yta: el, modellRam, modellYta, besked, knapprad });
+    // Från första kontrollen står huvudknappen still: modellens ram tar upp skillnaden (#754).
+    const passning = bevakaPassning({ yta: el, modellRam, modellYta, besked, knapprad, huvudKnapp });
     levande.add(passning);
-
-    /** Knappraden står still när återkopplingen byts: kompensera om den ändå växte. */
-    const behallPlats = (fore) => {
-      const d = knapprad.getBoundingClientRect().top - fore;
-      if (Math.abs(d) > 1) window.scrollBy(0, d);
-    };
 
     huvudKnapp.addEventListener("click", () => {
       if (lage !== "bedomd") return skicka();
@@ -318,6 +313,7 @@ export async function createUtmaningsvy(host, { challengeId, backend, onBack, on
       const v = t.validate();
       if (v && v.ok === false) { medd.textContent = v.message || "Svaret är inte färdigt än."; return; }
       const svar = t.getAnswer();
+      passning.las();
       huvudKnapp.disabled = true;
       huvudKnapp.textContent = "Kontrollerar …";
       let res;
@@ -346,13 +342,12 @@ export async function createUtmaningsvy(host, { challengeId, backend, onBack, on
       const text = forsta
         ? [res.correct ? fb.correct : fb.wrong, byggt(svar)].filter(Boolean).join(" ")
         : res.correct ? "Nu stämmer det! Bra jobbat. (Poängen för uppgiften ändras inte.)" : "Titta på hjälpen och jämför med modellen. Du kan försöka igen eller gå vidare.";
-      const fore = knapprad.getBoundingClientRect().top;
       medd.textContent = "";
       svarYta.replaceChildren();
       await createAterkoppling(svarYta, { correct: res.correct, feedback: text, message: res.correct ? null : res.message }, { kompakt: true });
       huvudKnapp.textContent = efter[0].label;
       sekundara(...(res.correct ? [] : [knapp("Försök igen", () => bearbeta(), " br-knapp--hjalp")]));
-      behallPlats(fore);
+      passning.passa();
       bedomdVid = performance.now();
       huvudKnapp.disabled = false;
       huvudKnapp.focus();
@@ -362,12 +357,11 @@ export async function createUtmaningsvy(host, { challengeId, backend, onBack, on
       lage = "bearbeta";
       t.setLocked(false);
       t.showResult(null);
-      const fore = knapprad.getBoundingClientRect().top;
       svarYta.replaceChildren(h("p", { class: "brv-bearbeta" }, "Ändra och kontrollera igen. Poängen för uppgiften är redan satt – nu tränar du."));
       huvudKnapp.textContent = kontrollText();
       huvudKnapp.disabled = !t.getAnswer();
       sekundara(knapp(efter[0].label, () => efter[0].fn()));
-      behallPlats(fore);
+      passning.passa();
       t.focus?.();
     }
 

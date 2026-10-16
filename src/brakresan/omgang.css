@@ -163,7 +163,7 @@
 .brv-instruktion { margin: 0; font-size: clamp(1.2rem, 2.6vw, 1.5rem); font-weight: 700; line-height: 1.4; text-align: center; }
 .brv-modell { display: grid; gap: 12px; justify-items: center; transform-origin: top center; }
 /* Hög modell: omgang.js skalar ner .brv-modell och sätter ramens höjd (#753). */
-.brv-modellram { display: grid; }
+.brv-modellram { display: grid; align-items: start; }
 .brv-handling { display: grid; gap: 10px; }
 /* Räcker inte skalningen står återkopplingen och knapparna kvar längst ner i fönstret. */
 .brv-yta--trang .brv-handling {
@@ -187,7 +187,9 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   gap: 10px;
-  align-items: start;
+  /* Huvudknappen i nederkant: radbryts de andra knapparna växer raden uppåt,
+     så den fastnålade raden inte flyttar Fortsätt (#754). */
+  align-items: end;
 }
 .brv-kontrollera { grid-column: 2; min-width: 11.5em; font-size: 1.1rem; padding-inline: 26px; }
 .brv-knappar-sekundar { grid-column: 3; display: flex; flex-wrap: wrap; gap: 10px; }
@@ -274,9 +276,12 @@ a.brv-radlank:hover { border-color: var(--brv-turkos); }
 .brv-rad--snart .brv-radlank { opacity: .6; }
 
 @media (max-width: 720px) {
+  /* Smal skärm: de andra knapparna på rad ovanför, huvudknappen ensam och hel
+     bredd längst ner – där står den kvar hur många knappar som än tillkommer (#754). */
   .brv-knapprad { display: flex; flex-wrap: wrap; }
   .brv-knappar-sekundar { display: contents; }
-  .brv-kontrollera { min-width: 10em; }
+  .brv-knappar-sekundar > .br-knapp { flex: 1 1 auto; }
+  .brv-kontrollera { order: 1; flex: 1 0 100%; min-width: 0; }
   .brv-start { grid-template-columns: 1fr; padding: 16px; }
   .brv-exempelbild { order: -1; }
   .brv-radlank { grid-template-columns: auto minmax(0, 1fr); }
