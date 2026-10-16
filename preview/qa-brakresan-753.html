@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>QA #753 – Bråkresan: Fortsätt på Kontrollera-platsen</title>
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>body { padding: 12px; background: var(--ljus); }</style>
+  </head>
+  <body>
+    <!-- QA #753: testomgång (demoBackend) där varje uppgift förifylls som utkast
+         med key.examples – ?u=NN&svar=rfr… (r = rätt, f = fel, upprepas). -->
+    <main id="yta"></main>
+    <script type="module">
+      import { createUtmaningsvy } from "../src/brakresan/omgang.js";
+      import { demoBackend } from "../src/brakresan/omgang-backend.js";
+      import { demoRound } from "../src/brakresan/demo.js";
+      const q = new URLSearchParams(location.search);
+      const u = q.get("u") || "03";
+      const svar = q.get("svar") || "rf";
+      const backend = demoBackend(u, { seed: "qa753" });
+      const start = backend.start;
+      let n = 0;
+      backend.start = async (o) => {
+        const res = await start(o);
+        if (!res.resumed) {
+          const { tasks } = await demoRound(u, `qa753-${++n}`);
+          tasks.forEach((t, i) => {
+            const ex = t.key.examples[svar[i % svar.length] === "r" ? "right" : "wrong"];
+            backend.drafts.save(res.roundId, i, ex[0]);
+          });
+        }
+        return res;
+      };
+      window.__brBackend = backend;
+      await createUtmaningsvy(document.getElementById("yta"), { challengeId: u, backend,
+        onBack: () => { location.search = ""; }, onOpen: (id) => { location.search = `?u=${id}`; } });
+      document.body.dataset.klar = "1";
+    </script>
+  </body>
+</html>

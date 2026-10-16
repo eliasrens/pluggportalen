@@ -1,0 +1,56 @@
+01-1920x1080  ratt K.y=560 F.y=783 dy=223 musträff=NEJ fokus=nej synlig=ja Enter=NEJ  trang=false Rätt×2
+01-1920x1080  fel  K.y=undefined F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=NEJ igen.y=undefined F2.y=undefined F2träff=NEJ trang=undefined Rätt×undefined
+03-1920x1080  ratt K.y=800 F.y=1024 dy=224 musträff=NEJ fokus=nej synlig=ja Enter=NEJ  trang=false Rätt×2
+03-1920x1080  fel  K.y=undefined F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=NEJ igen.y=undefined F2.y=undefined F2träff=NEJ trang=undefined Rätt×undefined
+12-1920x1080  ratt K.y=668 F.y=918 dy=250 musträff=NEJ fokus=nej synlig=ja Enter=NEJ  trang=false Rätt×2
+12-1920x1080  fel  K.y=undefined F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=NEJ igen.y=undefined F2.y=undefined F2träff=NEJ trang=undefined Rätt×undefined
+15-1920x1080  ratt K.y=893 F.y=1116 dy=223 musträff=NEJ fokus=nej synlig=NEJ Enter=NEJ  trang=false Rätt×2
+15-1920x1080  fel  K.y=undefined F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=NEJ igen.y=undefined F2.y=undefined F2träff=NEJ trang=undefined Rätt×undefined
+19-1920x1080  ratt K.y=641 F.y=862 dy=221 musträff=NEJ fokus=nej synlig=ja Enter=NEJ  trang=false Rätt×2
+19-1920x1080  fel  K.y=undefined F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=NEJ igen.y=undefined F2.y=undefined F2träff=NEJ trang=undefined Rätt×undefined
+24-1920x1080  ratt K.y=902 F.y=1122 dy=220 musträff=NEJ fokus=nej synlig=NEJ Enter=NEJ  trang=false Rätt×2
+24-1920x1080  fel  K.y=undefined F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=NEJ igen.y=undefined F2.y=undefined F2träff=NEJ trang=undefined Rätt×undefined
+34-1920x1080  ratt K.y=974 F.y=876 dy=-98 musträff=NEJ fokus=nej synlig=ja Enter=NEJ  trang=false Rätt×2
+34-1920x1080  fel  K.y=undefined F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=NEJ igen.y=undefined F2.y=undefined F2träff=NEJ trang=undefined Rätt×undefined
+01-1366x768   ratt K.y=560 F.y=783 dy=223 musträff=NEJ fokus=nej synlig=NEJ Enter=NEJ  trang=false Rätt×2
+01-1366x768   fel  K.y=undefined F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=NEJ igen.y=undefined F2.y=undefined F2träff=NEJ trang=undefined Rätt×undefined
+03-1366x768   ratt K.y=800 F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=ja  trang=false Rätt×0
+03-1366x768   fel  K.y=800 F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=ja igen.y=800 F2.y=undefined F2träff=NEJ trang=false Rätt×0
+12-1366x768   ratt K.y=668 F.y=564 dy=-104 musträff=NEJ fokus=nej synlig=ja Enter=NEJ  trang=false Rätt×2
+12-1366x768   fel  K.y=undefined F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=NEJ igen.y=undefined F2.y=undefined F2träff=NEJ trang=undefined Rätt×undefined
+15-1366x768   ratt K.y=893 F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=ja  trang=false Rätt×0
+15-1366x768   fel  K.y=893 F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=ja igen.y=893 F2.y=undefined F2träff=NEJ trang=false Rätt×0
+19-1366x768   ratt K.y=641 F.y=564 dy=-77 musträff=NEJ fokus=nej synlig=ja Enter=NEJ  trang=false Rätt×2
+19-1366x768   fel  K.y=undefined F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=NEJ igen.y=undefined F2.y=undefined F2träff=NEJ trang=undefined Rätt×undefined
+24-1366x768   ratt K.y=902 F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=ja  trang=false Rätt×0
+24-1366x768   fel  K.y=902 F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=ja igen.y=902 F2.y=undefined F2träff=NEJ trang=false Rätt×0
+34-1366x768   ratt K.y=974 F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=ja  trang=false Rätt×0
+34-1366x768   fel  K.y=974 F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=ja igen.y=974 F2.y=undefined F2träff=NEJ trang=false Rätt×0
+01-1280x720   ratt K.y=560 F.y=762 dy=202 musträff=NEJ fokus=nej synlig=NEJ Enter=NEJ  trang=false Rätt×2
+01-1280x720   fel  K.y=undefined F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=NEJ igen.y=undefined F2.y=undefined F2träff=NEJ trang=undefined Rätt×undefined
+03-1280x720   ratt K.y=800 F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=ja  trang=false Rätt×0
+03-1280x720   fel  K.y=800 F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=ja igen.y=800 F2.y=undefined F2träff=NEJ trang=false Rätt×0
+12-1280x720   ratt K.y=668 F.y=516 dy=-152 musträff=NEJ fokus=nej synlig=ja Enter=NEJ  trang=false Rätt×2
+12-1280x720   fel  K.y=undefined F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=NEJ igen.y=undefined F2.y=undefined F2träff=NEJ trang=undefined Rätt×undefined
+15-1280x720   ratt K.y=893 F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=ja  trang=false Rätt×0
+15-1280x720   fel  K.y=893 F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=ja igen.y=893 F2.y=undefined F2träff=NEJ trang=false Rätt×0
+19-1280x720   ratt K.y=641 F.y=516 dy=-125 musträff=NEJ fokus=nej synlig=ja Enter=NEJ  trang=false Rätt×2
+19-1280x720   fel  K.y=undefined F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=NEJ igen.y=undefined F2.y=undefined F2träff=NEJ trang=undefined Rätt×undefined
+24-1280x720   ratt K.y=902 F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=ja  trang=false Rätt×0
+24-1280x720   fel  K.y=902 F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=ja igen.y=902 F2.y=undefined F2träff=NEJ trang=false Rätt×0
+34-1280x720   ratt K.y=974 F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=ja  trang=false Rätt×0
+34-1280x720   fel  K.y=974 F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=ja igen.y=974 F2.y=undefined F2träff=NEJ trang=false Rätt×0
+01-390x844    ratt K.y=702 F.y=597 dy=-105 musträff=NEJ fokus=nej synlig=ja Enter=NEJ  trang=false Rätt×2
+01-390x844    fel  K.y=undefined F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=NEJ igen.y=undefined F2.y=undefined F2träff=NEJ trang=undefined Rätt×undefined
+03-390x844    ratt K.y=798 F.y=597 dy=-201 musträff=NEJ fokus=nej synlig=ja Enter=NEJ  trang=false Rätt×2
+03-390x844    fel  K.y=undefined F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=NEJ igen.y=undefined F2.y=undefined F2träff=NEJ trang=undefined Rätt×undefined
+12-390x844    ratt K.y=835 F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=ja  trang=false Rätt×0
+12-390x844    fel  K.y=835 F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=ja igen.y=835 F2.y=undefined F2träff=NEJ trang=false Rätt×0
+15-390x844    ratt K.y=1387 F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=ja  trang=false Rätt×0
+15-390x844    fel  K.y=1387 F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=ja igen.y=1387 F2.y=undefined F2träff=NEJ trang=false Rätt×0
+19-390x844    ratt K.y=577 F.y=825 dy=248 musträff=NEJ fokus=nej synlig=NEJ Enter=NEJ  trang=false Rätt×2
+19-390x844    fel  K.y=undefined F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=NEJ igen.y=undefined F2.y=undefined F2träff=NEJ trang=undefined Rätt×undefined
+24-390x844    ratt K.y=1227 F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=ja  trang=false Rätt×0
+24-390x844    fel  K.y=1227 F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=ja igen.y=1227 F2.y=undefined F2träff=NEJ trang=false Rätt×0
+34-390x844    ratt K.y=1087 F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=ja  trang=false Rätt×0
+34-390x844    fel  K.y=1087 F.y=– dy=– musträff=NEJ fokus=nej synlig=NEJ Enter=ja igen.y=1087 F2.y=undefined F2träff=NEJ trang=false Rätt×0
