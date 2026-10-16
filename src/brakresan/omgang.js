@@ -10,7 +10,8 @@
 //           "Visa hjälp" (fyra steg + ordlista). Ofullständigt svar = hjälptext,
 //           ingen låsning. Första giltiga svaret låser rätt/fel (servern).
 //           Efter fel: "Försök igen" (bearbetning, ändrar aldrig poängen) och
-//           "Fortsätt" – alltid ett medvetet klick. "Sparar …/Sparat",
+//           "Fortsätt" – alltid ett medvetet klick/Enter, på samma plats som
+//           "Kontrollera" (#753). "Sparar …/Sparat",
 //           "Avsluta omgången" (ingen belöning), "Tillbaka" sparar.
 //   EFTER   finishRound → resultat (8–10 / 6–7 / 0–5 / repetition) +
 //           genomgång av felen (omgang-resultat.js)
@@ -30,6 +31,7 @@ import { challengeMeta } from "./schema/katalog.js";
 import { ROUND_SIZE, MAX_STARS_PER_CHALLENGE } from "./schema/regler.js";
 import { monteraUppgift, promptNod } from "./omgang-uppgift.js";
 import { visaResultat } from "./omgang-resultat.js";
+import { bevakaPassning } from "./omgang-passa.js";
 import { sound } from "../fx.js";
 
 let cssLaddad = null;
@@ -63,10 +65,11 @@ export async function createUtmaningsvy(host, { challengeId, backend, onBack, on
   let sparEl = null;
   const avSpar = backend.saveStatus.subscribe((s) => { if (sparEl) sparEl.textContent = SPARSTATUS[s] ?? ""; });
 
-  const rubrik = (extra) => h("header", { class: "brv-huvud" },
+  // Under omgången (kompakt) står allt på en rad så att uppgiften och knapparna ryms utan scroll (#753).
+  const rubrik = (extra, kompakt = false) => h("header", { class: `brv-huvud${kompakt ? " brv-huvud--omgang" : ""}` },
     h("button", { type: "button", class: "brv-tillbaka", onclick: () => onBack() }, "← Bråkresan"),
     h("h1", { id: "brv-titel", class: "brv-titel" }, h("span", { class: "brv-nr" }, meta.id), " ", meta.name),
-    h("p", { class: "brv-meta" }, `Årskurs ${meta.grade}`, meta.extra ? h("span", { class: "brv-extra" }, meta.extra === "extra-blandade" ? "Extra utmaning – blandade kluringar" : "Extra utmaning") : null),
+    kompakt ? null : h("p", { class: "brv-meta" }, `Årskurs ${meta.grade}`, meta.extra ? h("span", { class: "brv-extra" }, meta.extra === "extra-blandade" ? "Extra utmaning – blandade kluringar" : "Extra utmaning") : null),
     backend.demo ? h("p", { class: "brv-demo", role: "note" }, "Testläge – inga svar, stjärnor eller mynt sparas.") : null,
     extra || null);
 
@@ -147,7 +150,7 @@ export async function createUtmaningsvy(host, { challengeId, backend, onBack, on
       rework: async (svar) => gradeDemo(challenge, task, svar),
       efter: [{ label: "Prova ett till", primary: true, fn: () => visaExempel() }, { label: "Tillbaka", fn: () => visaStart() }],
     });
-    rot.replaceChildren(rubrik(), yta.el);
+    rot.replaceChildren(rubrik(null, true), yta.el);
     await yta.klar;
   }
 
@@ -187,7 +190,7 @@ export async function createUtmaningsvy(host, { challengeId, backend, onBack, on
       sparEl,
       h("button", { type: "button", class: "br-knapp", onclick: () => onBack() }, "Tillbaka (omgången sparas)"),
       h("button", { type: "button", class: "br-knapp brv-avsluta", onclick: () => fragaAvsluta(round) }, "Avsluta omgången"));
-    rot.replaceChildren(rubrik(h("div", { class: "brv-omgangrad" }, titel, prickar)), ytan.el, fot);
+    rot.replaceChildren(rubrik(h("div", { class: "brv-omgangrad" }, titel, prickar), true), ytan.el, fot);
     await ytan.klar;
     titel.focus({ preventScroll: true });
   }
@@ -231,22 +234,48 @@ export async function createUtmaningsvy(host, { challengeId, backend, onBack, on
   /**
    * Arbetsytan för EN uppgift (omgång eller exempel): instruktion, modell,
    * Kontrollera, hjälp, återkoppling, bearbetning. Svarar { el, klar }.
+   * Huvudknappen står på samma plats hela uppgiften (#753): Kontrollera →
+   * Fortsätt (efter[0]) → vid bearbetning "Kontrollera igen". Återkopplingen
+   * visas kompakt i en reserverad plats direkt ovanför knappraden.
    */
   function uppgiftsYta({ overrad = null, task, roundId = null, index = 0, kontrollera, rework, hjalpEfter = null, efter }) {
     const prompt = promptNod(task.prompt, "p", "brv-instruktion");
     const modellYta = h("div", { class: "brv-modell" });
     const medd = h("p", { class: "brv-inmatningshjalp", role: "status", "aria-live": "polite" });
-    const kontrollKnapp = h("button", { type: "button", class: "br-knapp br-knapp--fortsatt brv-kontrollera", disabled: true }, "Kontrollera");
-    const hjalpKnapp = h("button", { type: "button", class: "br-knapp br-knapp--hjalp" }, "Visa hjälp");
-    const hjalpYta = h("div", { class: "brv-hjalp" });
     const svarYta = h("div", { class: "brv-svar", "aria-live": "polite" });
-    const el = h("div", { class: "brv-yta" }, overrad, prompt, modellYta, medd,
-      h("div", { class: "brv-knappar brv-knappar--uppgift" }, kontrollKnapp, hjalpKnapp), hjalpYta, svarYta);
-    let lage = "svara"; // svara → bedomd → bearbeta
+    const huvudKnapp = h("button", { type: "button", class: "br-knapp br-knapp--fortsatt brv-kontrollera", disabled: true }, "Kontrollera");
+    const hjalpKnapp = h("button", { type: "button", class: "br-knapp br-knapp--hjalp" }, "Visa hjälp");
+    const sekundar = h("div", { class: "brv-knappar-sekundar" }, hjalpKnapp);
+    const knapprad = h("div", { class: "brv-knapprad" }, huvudKnapp, sekundar);
+    const hjalpYta = h("div", { class: "brv-hjalp" });
+    const modellRam = h("div", { class: "brv-modellram" }, modellYta);
+    const besked = h("div", { class: "brv-besked" }, medd, svarYta);
+    const handling = h("div", { class: "brv-handling" }, besked, knapprad);
+    const el = h("div", { class: "brv-yta" }, overrad, prompt, modellRam, handling, hjalpYta);
+    let lage = "svara"; // svara → bedomd → bearbeta → bedomd …
     let forstaFel = false; // hjälp efter ett fel registreras separat (helpAfter)
+    let bedomdVid = 0;
     let t = null;
     const helpBefore = [];
     const drafts = backend.drafts;
+    const kontrollText = () => (lage === "bearbeta" ? "Kontrollera igen" : "Kontrollera");
+    const knapp = (text, fn, klass = "") => h("button", { type: "button", class: `br-knapp${klass}`, onclick: fn }, text);
+    const ovriga = () => efter.slice(1).map((e) => knapp(e.label, e.fn));
+    const sekundara = (...k) => sekundar.replaceChildren(...k, hjalpKnapp, ...ovriga());
+
+    // Hög modell skalas ner / knappraden nålas fast så att allt ryms utan scroll (#753).
+    // Från första kontrollen står huvudknappen still: modellens ram tar upp skillnaden (#754).
+    const passning = bevakaPassning({ yta: el, modellRam, modellYta, besked, knapprad, huvudKnapp });
+    levande.add(passning);
+
+    huvudKnapp.addEventListener("click", () => {
+      if (lage !== "bedomd") return skicka();
+      if (performance.now() - bedomdVid < 350) return; // dubbelklick på Kontrollera hoppar inte över återkopplingen
+      huvudKnapp.disabled = true;
+      efter[0].fn();
+    });
+    // Nedhållen Enter fortsätter inte direkt efter kontrollen – Fortsätt är ett medvetet tryck (§5).
+    huvudKnapp.addEventListener("keydown", (e) => { if (e.repeat && e.key === "Enter") e.preventDefault(); });
 
     const klar = (async () => {
       t = await monteraUppgift(modellYta, task, { size: "stor" });
@@ -254,13 +283,15 @@ export async function createUtmaningsvy(host, { challengeId, backend, onBack, on
       const utkast = roundId ? drafts.load(roundId, index) : null;
       if (utkast) t.setAnswer(utkast);
       const uppdatera = () => {
+        if (lage === "bedomd") return;
         const a = t.getAnswer();
-        kontrollKnapp.disabled = !a || lage === "bedomd";
+        huvudKnapp.disabled = !a;
         medd.textContent = "";
         if (roundId && lage === "svara") a ? drafts.save(roundId, index, a) : drafts.clear(roundId, index);
       };
       t.onChange(uppdatera);
       uppdatera();
+      passning.passa();
       const hjalp = await createHjalp(hjalpYta, task.help || [], {
         model: t, returnFocus: hjalpKnapp,
         onStep: (steg) => {
@@ -270,7 +301,6 @@ export async function createUtmaningsvy(host, { challengeId, backend, onBack, on
       });
       levande.add(hjalp);
       hjalpKnapp.addEventListener("click", () => (hjalp.isOpen() ? hjalp.next() : hjalp.open()));
-      kontrollKnapp.addEventListener("click", () => skicka());
       t.onSubmit(() => skicka());
     })();
 
@@ -279,24 +309,25 @@ export async function createUtmaningsvy(host, { challengeId, backend, onBack, on
       ? `Du målade ${svar.selected.length}/${task.answer.parts.length}.` : null);
 
     async function skicka() {
-      if (kontrollKnapp.disabled || lage === "bedomd") return;
+      if (huvudKnapp.disabled || lage === "bedomd") return;
       const v = t.validate();
       if (v && v.ok === false) { medd.textContent = v.message || "Svaret är inte färdigt än."; return; }
       const svar = t.getAnswer();
-      kontrollKnapp.disabled = true;
-      kontrollKnapp.textContent = "Kontrollerar …";
+      passning.las();
+      huvudKnapp.disabled = true;
+      huvudKnapp.textContent = "Kontrollerar …";
       let res;
       try {
         res = lage === "bearbeta" ? await rework(svar) : await kontrollera(svar, [...helpBefore]);
       } catch (err) {
-        kontrollKnapp.textContent = lage === "bearbeta" ? "Kontrollera igen" : "Kontrollera";
-        kontrollKnapp.disabled = false;
+        huvudKnapp.textContent = kontrollText();
+        huvudKnapp.disabled = false;
         medd.textContent = err?.message || "Det gick inte just nu. Ditt svar finns kvar – försök igen.";
         return;
       }
-      kontrollKnapp.textContent = lage === "bearbeta" ? "Kontrollera igen" : "Kontrollera";
       if (res.status === "invalid") {
-        kontrollKnapp.disabled = false;
+        huvudKnapp.textContent = kontrollText();
+        huvudKnapp.disabled = false;
         medd.textContent = res.message;
         return;
       }
@@ -308,29 +339,29 @@ export async function createUtmaningsvy(host, { challengeId, backend, onBack, on
       t.showResult(res);
       if (res.correct) sound.correct();
       const fb = res.reveal?.feedback || task.feedback || {};
-      svarYta.replaceChildren();
       const text = forsta
         ? [res.correct ? fb.correct : fb.wrong, byggt(svar)].filter(Boolean).join(" ")
         : res.correct ? "Nu stämmer det! Bra jobbat. (Poängen för uppgiften ändras inte.)" : "Titta på hjälpen och jämför med modellen. Du kan försöka igen eller gå vidare.";
-      const knappar = efter.map((e) => ({ ...e }));
-      await createAterkoppling(svarYta, { correct: res.correct, feedback: text, message: res.correct ? null : res.message }, {
-        onRework: res.correct ? null : () => bearbeta(),
-        onContinue: knappar[0].fn,
-        continueLabel: knappar[0].label,
-      });
-      for (const e of knappar.slice(1)) {
-        svarYta.querySelector(".br-aterkoppling-knappar")?.append(h("button", { type: "button", class: "br-knapp", onclick: e.fn }, e.label));
-      }
+      medd.textContent = "";
+      svarYta.replaceChildren();
+      await createAterkoppling(svarYta, { correct: res.correct, feedback: text, message: res.correct ? null : res.message }, { kompakt: true });
+      huvudKnapp.textContent = efter[0].label;
+      sekundara(...(res.correct ? [] : [knapp("Försök igen", () => bearbeta(), " br-knapp--hjalp")]));
+      passning.passa();
+      bedomdVid = performance.now();
+      huvudKnapp.disabled = false;
+      huvudKnapp.focus();
     }
 
     function bearbeta() {
       lage = "bearbeta";
       t.setLocked(false);
       t.showResult(null);
-      svarYta.replaceChildren(h("p", { class: "brv-bearbeta" }, "Ändra och kontrollera igen. Poängen för uppgiften är redan satt – nu tränar du."),
-        h("button", { type: "button", class: "br-knapp", onclick: efter[0].fn }, efter[0].label));
-      kontrollKnapp.textContent = "Kontrollera igen";
-      kontrollKnapp.disabled = !t.getAnswer();
+      svarYta.replaceChildren(h("p", { class: "brv-bearbeta" }, "Ändra och kontrollera igen. Poängen för uppgiften är redan satt – nu tränar du."));
+      huvudKnapp.textContent = kontrollText();
+      huvudKnapp.disabled = !t.getAnswer();
+      sekundara(knapp(efter[0].label, () => efter[0].fn()));
+      passning.passa();
       t.focus?.();
     }
 

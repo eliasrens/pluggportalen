@@ -298,6 +298,14 @@ div.br-kort { cursor: default; }
 .br-aterkoppling--ratt .br-aterkoppling-rubrik { color: var(--br-turkos-mork); }
 .br-aterkoppling--fel .br-aterkoppling-rubrik { color: #9a3f07; }
 .br-aterkoppling p { margin: 0; font-size: 1.08rem; }
+/* Kompakt (omgången, #753): rubrik och text i ett stycke, knapparna bor i sidans knapprad. */
+.br-aterkoppling--kompakt { display: block; max-width: 720px; padding: 8px 14px; line-height: 1.4; text-align: left; }
+.br-aterkoppling--kompakt.br-aterkoppling--ratt { border-width: 4px; }
+.br-aterkoppling--kompakt.br-aterkoppling--fel { border-width: 3px; }
+.br-aterkoppling--kompakt :is(.br-aterkoppling-rubrik, p) { display: inline; font-size: 1.02rem; }
+.br-aterkoppling--kompakt .br-aterkoppling-rubrik { font-size: 1.08rem; margin-right: .35em; }
+.br-aterkoppling--kompakt .br-utfall-ikon { font-size: 1em; margin-right: .25em; }
+.br-aterkoppling--kompakt p + p::before { content: " "; }
 .br-resultat { display: grid; gap: 12px; justify-items: center; text-align: center; max-width: 560px; margin: 0 auto; padding: 22px; border-radius: 24px; background: linear-gradient(160deg, #e9fbf8, #eef3ff 55%, #f5ecff); border: 3px solid var(--br-turkos); }
 .br-resultat-rubrik { margin: 0; font-size: 1.8rem; color: var(--br-lila); }
 .br-resultat-rubrik:focus { outline: none; }

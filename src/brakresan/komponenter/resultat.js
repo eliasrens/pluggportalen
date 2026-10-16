@@ -10,7 +10,9 @@
 //   och text (aldrig bara färg), kopplingen till modellen och – efter fel –
 //   "Försök igen" (bearbetning) och "Fortsätt". Ingen automatisk växling:
 //   "Fortsätt" är ett medvetet klick. Fokus flyttas till rubriken.
-//   opts = { onContinue, onRework, continueLabel }
+//   opts = { onContinue, onRework, continueLabel, kompakt }
+//   kompakt: en rad-text utan egna knappar och utan fokusflytt – sidan har
+//   knapparna i sin knapprad och en aria-live-plats runt (omgången, #753).
 //
 // createResultat(host, { correct, reward, starsBefore, results?, suggestions? }, opts)
 //   Omgångens slut: "X av 10 rätt", tio markeringar (✓ / ↻), tre stjärnplatser
@@ -32,14 +34,15 @@ export function createAterkoppling(host, res, opts = {}) {
   const knappar = h("div", { class: "br-aterkoppling-knappar" });
   if (!ratt && opts.onRework) knappar.append(h("button", { type: "button", class: "br-knapp br-knapp--hjalp", onclick: opts.onRework }, "Försök igen"));
   if (opts.onContinue) knappar.append(h("button", { type: "button", class: "br-knapp br-knapp--fortsatt", onclick: opts.onContinue }, opts.continueLabel || "Fortsätt"));
-  const el = h("section", { class: `br-aterkoppling br-aterkoppling--${ratt ? "ratt" : "fel"}`, "aria-live": "polite" },
+  const kompakt = !!opts.kompakt;
+  const el = h("section", { class: `br-aterkoppling br-aterkoppling--${ratt ? "ratt" : "fel"}${kompakt ? " br-aterkoppling--kompakt" : ""}`, "aria-live": kompakt ? null : "polite" },
     rubrik,
     res.feedback ? h("p", { class: "br-aterkoppling-text" }, res.feedback) : null,
     !ratt && res.message ? h("p", { class: "br-aterkoppling-forklaring" }, res.message) : null,
     !ratt && res.display ? h("p", { class: "br-aterkoppling-facit" }, "Rätt svar: ", h("strong", null, res.display)) : null,
-    knappar);
+    knappar.childElementCount ? knappar : null);
   host.append(el);
-  rubrik.focus({ preventScroll: false });
+  if (!kompakt) rubrik.focus({ preventScroll: false });
   return { el, destroy: () => el.remove() };
 }
 
