@@ -122,6 +122,15 @@
 .brv-fel p { margin: 0; }
 
 /* --- under omgången ------------------------------------------------------------ */
+/* Kompakt huvud under omgången (#753): tillbaka, namn och uppgiftsraden på
+   så få rader som möjligt – uppgiften och knapparna ska rymmas utan scroll. */
+.brv-huvud--omgang { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 12px; }
+.brv-huvud--omgang .brv-tillbaka { padding-inline: 8px; }
+.brv-huvud--omgang .brv-titel { font-size: clamp(1.15rem, 2.4vw, 1.4rem); }
+.brv-huvud--omgang .brv-demo { order: 1; flex-basis: 100%; padding: 4px 12px; font-size: .95rem; }
+.brv-huvud--omgang .brv-omgangrad { margin-top: 0; }
+.brv-huvud--omgang .brv-uppgiftnr { font-size: 1.1rem; }
+.brv-huvud--omgang .brv-prick { width: 26px; height: 26px; }
 .brv-omgangrad { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin-top: 4px; }
 .brv-uppgiftnr { margin: 0; font-size: 1.25rem; color: var(--brv-lila); }
 .brv-uppgiftnr:focus { outline: none; }
@@ -144,21 +153,48 @@
 
 .brv-yta {
   display: grid;
-  gap: 14px;
-  padding: clamp(12px, 2.4vw, 24px);
+  gap: 10px;
+  padding: 12px clamp(12px, 2.4vw, 24px) 14px;
   border-radius: 24px;
   background: #fbfdff;
   border: 2px solid #e3e8f2;
   box-shadow: var(--skugga-mjuk, 0 8px 24px rgba(31, 45, 74, .08));
 }
 .brv-instruktion { margin: 0; font-size: clamp(1.2rem, 2.6vw, 1.5rem); font-weight: 700; line-height: 1.4; text-align: center; }
-.brv-modell { display: grid; gap: 12px; justify-items: center; }
-.brv-inmatningshjalp { margin: 0; min-height: 1.4em; text-align: center; font-weight: 700; color: #7c3a06; }
-.brv-knappar--uppgift { justify-content: center; }
-.brv-kontrollera { font-size: 1.1rem; padding-inline: 26px; }
+.brv-modell { display: grid; gap: 12px; justify-items: center; transform-origin: top center; }
+/* Hög modell: omgang.js skalar ner .brv-modell och sätter ramens höjd (#753). */
+.brv-modellram { display: grid; }
+.brv-handling { display: grid; gap: 10px; }
+/* Räcker inte skalningen står återkopplingen och knapparna kvar längst ner i fönstret. */
+.brv-yta--trang .brv-handling {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin-inline: calc(-1 * clamp(12px, 2.4vw, 24px));
+  padding: 8px clamp(12px, 2.4vw, 24px) 10px;
+  background: #fbfdff;
+  box-shadow: 0 -10px 14px -12px rgba(31, 45, 74, .35);
+}
+/* Fastnålad mot fönstrets underkant växer raden uppåt – ingen tom reserv behövs. */
+.brv-yta--trang .brv-besked { min-height: 0; }
+/* Besked + knapprad (#753): återkopplingen visas i en reserverad plats direkt
+   ovanför knappraden, så raden (och Kontrollera → Fortsätt) står still. */
+.brv-besked { display: grid; align-content: end; gap: 6px; min-height: 4.6rem; }
+.brv-inmatningshjalp { margin: 0; text-align: center; font-weight: 700; color: #7c3a06; }
+.brv-inmatningshjalp:empty, .brv-svar:empty { display: none; }
+.brv-svar .br-aterkoppling { margin: 0 auto; }
+.brv-knapprad {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+.brv-kontrollera { grid-column: 2; min-width: 11.5em; font-size: 1.1rem; padding-inline: 26px; }
+.brv-knappar-sekundar { grid-column: 3; display: flex; flex-wrap: wrap; gap: 10px; }
+/* Modellen döljer sin egen "Rätt!"-markör här – återkopplingen ovanför knapparna säger det. */
+.brv-modell .br-utfall { display: none; }
 .brv-hjalp:empty { display: none; }
-.brv-svar:empty { display: none; }
-.brv-bearbeta { margin: 0 0 8px; font-weight: 700; }
+.brv-bearbeta { margin: 0; font-weight: 700; text-align: center; }
 .brv-fot {
   display: flex;
   flex-wrap: wrap;
@@ -238,6 +274,9 @@ a.brv-radlank:hover { border-color: var(--brv-turkos); }
 .brv-rad--snart .brv-radlank { opacity: .6; }
 
 @media (max-width: 720px) {
+  .brv-knapprad { display: flex; flex-wrap: wrap; }
+  .brv-knappar-sekundar { display: contents; }
+  .brv-kontrollera { min-width: 10em; }
   .brv-start { grid-template-columns: 1fr; padding: 16px; }
   .brv-exempelbild { order: -1; }
   .brv-radlank { grid-template-columns: auto minmax(0, 1fr); }
