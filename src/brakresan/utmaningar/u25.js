@@ -1,0 +1,205 @@
+// ============================================================================
+// 25. Olika nämnare (src/brakresan/utmaningar/u25.js) · #711 F
+// ----------------------------------------------------------------------------
+// Spec §8 25: jämför a/n och b/m med olika delstorlek. Eleven väljer <, = eller
+// >; i tre uppgifter (slots "…-r") väljer eleven dessutom det korrekta
+// resonemanget – båda delarna krävs (multi, en poäng, inga dolda delpoäng).
+//   • äkta bråk med nämnare 2–10, n ≠ m, gemensam nämnare ≤ 24
+//   • sorterna: via en halv (ena < 1/2 < andra), en nämnare multipel av den
+//     andra, allmän omdelning, likvärdiga (2/6 = 3/9 – lika med)
+//   • felresonemangen fångar "störst nämnare", "störst täljare", additiv
+//     omskrivning och "det går inte att jämföra olika stora delar"
+// Vyn är E:s sammansatt (#710): relationsval (tecken + ord) och förklaringskort.
+// Bilden (två lika långa stavar) visas i hjälpen – lika långa stavar avslöjar
+// annars svaret direkt (Elias, #709) – och omdelningen visas där med andra tal.
+// Ingen korsmultiplikation som förklaring.
+// ============================================================================
+
+import { defineChallenge } from "../schema/kontrakt.js";
+import { gradeWith } from "../schema/bedomning.js";
+import { q, gcd, lcm, relation, RELATION_WORDS } from "../math/index.js";
+import { brak, versal } from "./f-delat.js";
+
+const MAX_L = 24;
+const SLOTS = ["halv", "multipel", "likvardig", "omdelning", "multipel", "halv-r", "omdelning-r", "omdelning", "likvardig-r", "halv"];
+
+const ALLA = [];
+for (let n = 2; n <= 10; n++) {
+  for (let m = 2; m <= 10; m++) {
+    if (n === m || lcm(n, m) > MAX_L) continue;
+    for (let a = 1; a < n; a++) {
+      for (let b = 1; b < m; b++) {
+        const A = q(a, n);
+        const B = q(b, m);
+        const rel = relation(A, B);
+        const red = gcd(a, n) === 1 && gcd(b, m) === 1;
+        const halv = relation(A, q(1, 2)) !== "=" && relation(B, q(1, 2)) !== "=" && relation(A, q(1, 2)) !== relation(B, q(1, 2));
+        const multipel = n % m === 0 || m % n === 0;
+        let sort = null;
+        if (rel === "=") sort = a !== b ? "likvardig" : null;
+        else if (!red) sort = null;
+        else if (halv) sort = "halv";
+        else if (multipel) sort = "multipel";
+        else sort = "omdelning";
+        if (sort) ALLA.push({ a, n, b, m, sort });
+      }
+    }
+  }
+}
+export { ALLA as PAR25 };
+
+const OP = { "<": "<", "=": "=", ">": ">" };
+
+/** Resonemangen: ett korrekt och tre felaktiga, i en ordning som generatorn blandar. */
+function resonemang({ a, n, b, m, sort }) {
+  const L = lcm(n, m);
+  const x = (a * L) / n;
+  const y = (b * L) / m;
+  const rel = relation(q(a, n), q(b, m));
+  const halv = (r) => `${a}/${n} är ${r === "<" ? "mindre" : "mer"} än en halv och ${b}/${m} är ${r === "<" ? "mer" : "mindre"} än en halv.`;
+  const lika = (xx, yy) => `Med lika stora bitar: ${a}/${n} = ${xx}/${L} och ${b}/${m} = ${yy}/${L}.`;
+  const ratt = sort === "halv" ? halv(rel) : lika(x, y);
+  const storstNamnare = n > m ? `${a}/${n}` : `${b}/${m}`;
+  const storstTaljare = a > b ? `${a}/${n}` : `${b}/${m}`;
+  // Felresonemangen är byggda som det rätta (samma längd ungefär) – ingen längdledtråd (granskas i u25.mjs).
+  const fel = [
+    { id: "halvfel", text: halv(rel === "<" ? ">" : "<"), tag: "fel-mot-halv" },
+    // Additiv omskrivning till samma nämnare: lägger till samma tal uppe och nere.
+    { id: "additiv", text: lika(a + L - n, b + L - m), tag: "additiv-omskrivning" },
+    { id: "namnare", text: `${storstNamnare} är större, eftersom nämnaren där är större.`, tag: "storst-namnare" },
+    a !== b
+      ? { id: "taljare", text: `${storstTaljare} är större, eftersom täljaren där är större.`, tag: "storst-taljare" }
+      : { id: "taljare", text: "De är lika mycket, eftersom täljarna är lika stora.", tag: "storst-taljare" },
+    { id: "olika", text: "Bitarna är olika stora, så bråken går inte att jämföra.", tag: "olika-helheter" },
+  ];
+  const prio = sort === "halv" ? ["halvfel", "namnare", "taljare", "additiv"]
+    : sort === "likvardig" ? ["additiv", "olika", "namnare", "taljare"] : ["additiv", "namnare", "taljare", "olika"];
+  const valda = prio.map((id) => fel.find((f) => f.id === id)).filter((f) => f.text !== ratt);
+  return { ratt: { id: "ratt", text: ratt }, fel: valda.slice(0, 3) };
+}
+
+/** Egen bedömning: relationen (och resonemanget i -r-uppgifter) – multi utan dolda delpoäng. */
+function validate(task, answer) {
+  if (task.answer.type !== "multi") return gradeWith(task.answer, task.key, answer);
+  const rel = gradeWith(task.answer.parts.rel, task.key.parts.rel, answer?.parts?.rel);
+  if (rel.status === "invalid") return { ...rel, part: "rel" };
+  const varfor = gradeWith(task.answer.parts.varfor, task.key.parts.varfor, answer?.parts?.varfor);
+  if (varfor.status === "invalid") return { ...varfor, part: "varfor", message: "Välj också varför." };
+  const correct = rel.correct && varfor.correct;
+  return {
+    status: "graded", correct, reason: correct ? null : !rel.correct ? "fel-relation" : "fel-resonemang",
+    message: correct ? null : !rel.correct ? null : "Tecknet stämmer, men resonemanget gör det inte. Vilket påstående är sant?",
+    parts: { rel: rel.correct, varfor: varfor.correct },
+  };
+}
+
+export default defineChallenge({
+  id: "25",
+  version: 1,
+  slots: SLOTS,
+
+  generate(rng, { slot }) {
+    const [sort, r] = slot.split("-");
+    const par = rng.pick(ALLA.filter((p) => p.sort === sort));
+    const vand = rng.chance(0.5); // vilket bråk står först
+    const p = vand ? { a: par.b, n: par.m, b: par.a, m: par.n, sort } : { a: par.a, n: par.n, b: par.b, m: par.m, sort };
+    if (!r) return p;
+    const { fel } = resonemang(p);
+    return { ...p, ordning: rng.shuffle(["ratt", ...fel.map((f) => f.id)]) };
+  },
+
+  core: ({ a, n, b, m, ordning }) => `${a}/${n}?${b}/${m}${ordning ? "+r" : ""}`,
+
+  build(params) {
+    const { a, n, b, m, ordning = null } = params;
+    const L = lcm(n, m);
+    const x = (a * L) / n;
+    const y = (b * L) / m;
+    const rel = relation(q(a, n), q(b, m));
+    const relText = `${a}/${n} ${OP[rel]} ${b}/${m}`;
+    const rs = ordning ? resonemang(params) : null;
+    const alt = rs ? Object.fromEntries([rs.ratt, ...rs.fel].map((o) => [o.id, o])) : null;
+    const options = rs ? ordning.map((id, i) => ({ id: `r${i + 1}`, text: alt[id].text, kalla: id })) : null;
+    const rattId = options?.find((o) => o.kalla === "ratt").id;
+    const relSpec = { type: "relation" };
+    const relKey = { type: "relation", correct: rel };
+    const andra = ["<", "=", ">"].filter((r) => r !== rel);
+    // E:s sammansatt (#710): jämförelsen med tecken och ord, och i -r-uppgifter förklaringskorten.
+    const view = {
+      component: "sammansatt",
+      delar: [
+        { view: { component: "relationsval", vanster: brak(a, n), hoger: brak(b, m) }, svar: options ? "rel" : true, label: "Välj jämförelse" },
+        ...(options ? [{ view: { component: "kort", lista: true, cards: options.map(({ id, text }) => ({ id, face: { text } })) }, svar: "varfor", rubrik: "Varför? Välj det som stämmer." }] : []),
+      ],
+    };
+    // Stavarna (lika långa, samma helhet) visas bara i hjälpen – de avslöjar annars svaret direkt.
+    const stavar = { component: "stav", bars: [{ parts: n, marked: a, label: `${a}/${n}` }, { parts: m, marked: b, label: `${b}/${m}` }], label: "Hela staven = 1" };
+    const answer = options
+      ? { type: "multi", parts: { rel: relSpec, varfor: { type: "choice", options: options.map((o) => o.id) } } }
+      : relSpec;
+    const key = options
+      ? { type: "multi", parts: { rel: relKey, varfor: { type: "choice", correct: rattId } } }
+      : relKey;
+    const felId = options?.find((o) => o.kalla !== "ratt").id;
+    const examples = options
+      ? {
+        right: [{ parts: { rel: { value: rel }, varfor: { id: rattId } } }],
+        wrong: [
+          { parts: { rel: { value: andra[0] }, varfor: { id: rattId } } },
+          { parts: { rel: { value: rel }, varfor: { id: felId } } },
+          { parts: { rel: { value: andra[1] }, varfor: { id: felId } } },
+        ],
+      }
+      : { right: [{ value: rel }], wrong: andra.map((v) => ({ value: v })) };
+    const ex = [n, m].includes(3) && [n, m].includes(4) ? { a: 1, n: 2, b: 3, m: 5 } : { a: 2, n: 3, b: 3, m: 4 };
+    const exL = lcm(ex.n, ex.m);
+    const forklaring = rel === "="
+      ? `${a}/${n} = ${x}/${L} och ${b}/${m} = ${y}/${L}: lika många lika stora bitar.`
+      : `${a}/${n} = ${x}/${L} och ${b}/${m} = ${y}/${L}. ${Math.max(x, y)}/${L} är mer än ${Math.min(x, y)}/${L}: fler lika stora bitar.`;
+    return {
+      core: `${a}/${n}?${b}/${m}${ordning ? "+r" : ""}`,
+      prompt: options ? `Jämför ${a}/${n} och ${b}/${m}. Välj tecken och varför.` : `Jämför ${a}/${n} och ${b}/${m}. Välj <, = eller >.`,
+      values: { A: q(a, n), B: q(b, m), lcd: L },
+      view,
+      answer,
+      key: {
+        ...key,
+        display: options ? `${relText}. ${alt.ratt.text}` : relText,
+        examples,
+      },
+      help: [
+        { step: "orientering", text: "Båda stavarna är lika långa: hela staven = 1. Bitarna är olika stora, så antalet bitar säger inte allt.", view: stavar },
+        { step: "princip", text: "Kan vi beskriva båda med lika stora bitar? Dela varje bit i lika många nya bitar – då ändras inte hur mycket som är färgat. Du kan också jämföra med en halv." },
+        {
+          step: "modellering",
+          text: `Ett exempel med andra tal: ${ex.a}/${ex.n} och ${ex.b}/${ex.m}. Med ${exL}-delar blir det ${(ex.a * exL) / ex.n}/${exL} och ${(ex.b * exL) / ex.m}/${exL}. ` +
+            "Nu är bitarna lika stora, och det går att räkna vilket som har flest.",
+          view: { component: "stav", bars: [{ parts: exL, marked: (ex.a * exL) / ex.n }, { parts: exL, marked: (ex.b * exL) / ex.m }] },
+        },
+        { step: "atergang", text: "Nu provar du själv: tänk dig stavarna delade tills bitarna är lika stora, och jämför." },
+      ],
+      misconceptions: ["storst-namnare", "storst-taljare", "additiv-omskrivning", "olika-helheter"],
+      feedback: {
+        correct: `Ja! ${versal(`${a}/${n} ${RELATION_WORDS[rel]} ${b}/${m}`)}. ${forklaring}`,
+        wrong: `Gör bitarna lika stora först: ${forklaring}`,
+      },
+      review: `${relText}. ${forklaring}`,
+    };
+  },
+
+  validate,
+
+  reserve: [
+    { slot: "halv", params: { a: 1, n: 3, b: 3, m: 4, sort: "halv" } },
+    { slot: "halv", params: { a: 5, n: 8, b: 2, m: 6, sort: "halv" } },
+    { slot: "multipel", params: { a: 3, n: 4, b: 5, m: 8, sort: "multipel" } },
+    { slot: "multipel", params: { a: 2, n: 3, b: 5, m: 6, sort: "multipel" } },
+    { slot: "likvardig", params: { a: 2, n: 6, b: 3, m: 9, sort: "likvardig" } },
+    { slot: "likvardig", params: { a: 2, n: 4, b: 3, m: 6, sort: "likvardig" } },
+    { slot: "omdelning", params: { a: 2, n: 3, b: 3, m: 5, sort: "omdelning" } },
+    { slot: "omdelning", params: { a: 3, n: 4, b: 5, m: 6, sort: "omdelning" } },
+    { slot: "halv-r", params: { a: 2, n: 5, b: 4, m: 6, sort: "halv", ordning: ["namnare", "ratt", "halvfel", "taljare"] } },
+    { slot: "omdelning-r", params: { a: 3, n: 4, b: 2, m: 3, sort: "omdelning", ordning: ["taljare", "additiv", "namnare", "ratt"] } },
+    { slot: "likvardig-r", params: { a: 4, n: 6, b: 6, m: 9, sort: "likvardig", ordning: ["ratt", "olika", "additiv", "namnare"] } },
+  ],
+});

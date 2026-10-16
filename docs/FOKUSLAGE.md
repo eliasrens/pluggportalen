@@ -2,7 +2,7 @@
 
 Läraren kan låsa en klass till **ett mål** fram till ett klockslag (lärarsidan →
 Klasser → Fokusläge). Målet är antingen ett Plugga-område eller en låsbar modul
-(Läsresan, Mattematchen, Hitta rätt!, Ekvationsresan) – eller ett **provtillfälle**
+(Läsresan, Mattematchen, Hitta rätt!, Ekvationsresan, Bråkresan) – eller ett **provtillfälle**
 (#740), som bara sätts från provets "Kör i klass"/"Öppna". Datamodellen står i
 `docs/DATAMODELL.md` (ClassLock), logiken i `src/class-lock.js`.
 
@@ -33,14 +33,17 @@ top-nivå-moduler. **Ny modul = en rad där**, så följer:
 
 Fälten beskrivs i kommentaren ovanför registret.
 
-## Så registreras en ny modul (exempel: Bråkresan, epic #705)
+En modul som klassen har **dolt** (`hiddenModules`) eller inte slagit på (opt-in) är
+gråad i målväljaren (#735) – utom om den redan är målet, så läraren kan flytta sluttiden.
+
+## Så registreras en ny modul (Bråkresan, #735, är gjord så här)
 
 1. Routen i `src/app.js` (`"/elev/brakresan": pageElevBrakresan`, dynamisk import – #271).
 2. En rad i `STUDENT_MODULES`, t.ex.
 
    ```js
-   { id: "brakresan", label: "Bråkresan", ikon: "🍰", grupp: "ova", learning: true, lockable: true,
-     optIn: true, routes: ["/elev/brakresan"] },
+   { id: "brakresan", label: "Bråkresan", ikon: "🐉", grupp: "ova", learning: true, lockable: true,
+     routes: ["/elev/brakresan"] },
    ```
 
 3. Låsmål (`lockable: true`): lägg `'brakresan'` i `l.mal.typ in [...]` i

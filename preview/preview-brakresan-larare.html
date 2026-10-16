@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bråkresan #716 – lärarvyn (klassöversikt, matris, individvy, rekommendationer, testläge)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <!-- Testrigg för issue #716 utan Firebase. Den RIKTIGA lärarvyn (src/brakresan/larare/*)
+         med stubbade datakällor (brakresan-716/data-larare.js: tio elever, omgångar byggda med
+         demoRound, rekommendationer i sessionStorage) och en inloggad admin-lärare.
+           #/klass               klasskortets Statistik → Bråkresan  (?saknas=1: en elev kan inte läsas)
+           #/larare/brakresan    testläget (alla 50, granska/spela, byt variant) -->
+    <script type="importmap">
+      { "imports": {
+        "../src/auth.js": "./brakresan-716/auth.js",
+        "../src/data.js": "./sidomeny-701/data.js",
+        "../src/data-xp.js": "./kategori-stubs/data-xp.js",
+        "../src/fx.js": "./kategori-stubs/fx.js",
+        "../src/firebase-config.js": "./kategori-stubs/firebase-config.js",
+        "../src/brakresan/larare/data-larare.js": "./brakresan-716/data-larare.js",
+        "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js": "./kategori-stubs/firestore.js"
+      } }
+    </script>
+  </head>
+  <body>
+    <div class="layout"><main id="app" class="container"></main></div>
+    <script type="module">
+      import { el, icon, teacherNav, teacherHead } from "../src/teacher-shared.js";
+      import { renderClassBrakresan } from "../src/brakresan/larare/klass.js";
+      import { pageLarareBrakresan } from "../src/brakresan/larare/testlage.js";
+      import { API, ELEVER } from "./brakresan-716/data-larare.js";
+
+      const app = document.getElementById("app");
+      const ctx = { app, go: (h) => (location.hash = h), renderTopbar: () => {} };
+      const cls = { id: "6a", name: "6A", studentIds: ELEVER.map((e) => e.id), hiddenModules: [] };
+
+      async function klass() {
+        const sida = el(`<div class="teacher-page teacher-dark"></div>`);
+        sida.append(teacherNav(ctx, "statistik"), teacherHead(ctx, { icon: "chart", title: "Statistik" }));
+        const kort = el(`<div class="panel class-card"><div class="class-head"><div class="class-title">
+          <span class="class-emoji" aria-hidden="true">${icon("school", 22)}</span><span class="class-name">6A</span>
+          <span class="class-count">${ELEVER.length} elever</span></div></div>
+          <div class="class-stats"><div class="stats-tabs" role="tablist"><button type="button" class="stats-tab active" role="tab" aria-selected="true">${icon("brak", 16)}<span>Bråkresan</span></button></div>
+          <div class="stats-pane"></div></div></div>`);
+        sida.append(kort);
+        app.replaceChildren(sida);
+        const tom = new URLSearchParams(location.search).has("tom");
+        await renderClassBrakresan(ctx, kort.querySelector(".stats-pane"), { students: tom ? [] : ELEVER, cls, api: API });
+      }
+      async function route() {
+        if (location.hash.startsWith("#/larare/brakresan")) await pageLarareBrakresan(ctx);
+        else await klass();
+        document.body.dataset.klar = "1";
+      }
+      if (!location.hash) location.hash = "#/klass";
+      window.addEventListener("hashchange", route);
+      await route();
+    </script>
+  </body>
+</html>

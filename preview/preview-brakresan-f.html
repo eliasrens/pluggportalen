@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Bråkresan: utmaningarna 21–35 (#711)</title>
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      body { padding: 12px; background: var(--ljus); }
+      .val { max-width: 1100px; margin: 0 auto 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+      .val a { padding: 6px 12px; border-radius: 999px; background: #fff; border: 2px solid #d5deea; font-weight: 700; text-decoration: none; color: var(--text); }
+      .val a[aria-current="page"] { border-color: #13a39a; background: #dff5f2; }
+    </style>
+  </head>
+  <body>
+    <!-- Testomgång helt i klienten (demoBackend): samma generatorer, plan och
+         bedömning som servern, inget sparas. Riktiga omgångar: #/elev/brakresan?u=NN. -->
+    <nav class="val" aria-label="Utmaning">
+      <strong>Testomgång:</strong>
+      <a href="?u=21">21 Förkorta</a>
+      <a href="?u=22">22 Saknade talet</a>
+      <a href="?u=23">23 Bråkkompisar</a>
+      <a href="?u=24">24 En halv?</a>
+      <a href="?u=25">25 Olika nämnare</a>
+      <a href="?u=26">26 Sortera</a>
+      <a href="?u=27">27 Mer än en hel</a>
+      <a href="?u=28">28 Blandad form</a>
+      <a href="?u=29">29 Av ett antal</a>
+      <a href="?u=30">30 Kluriga andelar</a>
+      <a href="?u=31">31 Addera lika</a>
+      <a href="?u=32">32 Subtrahera lika</a>
+      <a href="?u=33">33 Räknefelet</a>
+      <a href="?u=34">34 Addera olika</a>
+      <a href="?u=35">35 Subtrahera olika</a>
+    </nav>
+    <main id="yta"></main>
+    <script type="module">
+      import { createUtmaningsvy } from "../src/brakresan/omgang.js";
+      import { demoBackend } from "../src/brakresan/omgang-backend.js";
+      const u = new URLSearchParams(location.search).get("u") || "21";
+      document.querySelector(`.val a[href="?u=${u}"]`)?.setAttribute("aria-current", "page");
+      await createUtmaningsvy(document.getElementById("yta"), {
+        challengeId: u,
+        backend: (window.__brBackend = demoBackend(u)),
+        onBack: () => { location.search = ""; },
+        onOpen: (id) => { location.search = `?u=${id}`; },
+      });
+      document.body.dataset.klar = "1";
+    </script>
+  </body>
+</html>

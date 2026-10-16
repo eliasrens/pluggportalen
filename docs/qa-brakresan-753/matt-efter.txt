@@ -1,0 +1,56 @@
+01-1920x1080  ratt K.y=451 F.y=456 dy=5 musträff=ja fokus=ja synlig=ja Enter=ja  trang=false Rätt×1
+01-1920x1080  fel  K.y=508 F.y=509 dy=1 musträff=ja fokus=ja synlig=ja Enter=ja igen.y=508 F2.y=509 F2träff=ja trang=false Rätt×0
+03-1920x1080  ratt K.y=691 F.y=697 dy=6 musträff=ja fokus=ja synlig=ja Enter=ja  trang=false Rätt×1
+03-1920x1080  fel  K.y=745 F.y=746 dy=1 musträff=ja fokus=ja synlig=ja Enter=ja igen.y=745 F2.y=746 F2träff=ja trang=false Rätt×0
+12-1920x1080  ratt K.y=587 F.y=593 dy=6 musträff=ja fokus=ja synlig=ja Enter=ja  trang=false Rätt×1
+12-1920x1080  fel  K.y=587 F.y=589 dy=2 musträff=ja fokus=ja synlig=ja Enter=ja igen.y=587 F2.y=589 F2träff=ja trang=false Rätt×0
+15-1920x1080  ratt K.y=812 F.y=818 dy=6 musträff=ja fokus=ja synlig=ja Enter=ja  trang=false Rätt×1
+15-1920x1080  fel  K.y=812 F.y=814 dy=2 musträff=ja fokus=ja synlig=ja Enter=ja igen.y=812 F2.y=814 F2träff=ja trang=false Rätt×0
+19-1920x1080  ratt K.y=560 F.y=564 dy=4 musträff=ja fokus=ja synlig=ja Enter=ja  trang=false Rätt×1
+19-1920x1080  fel  K.y=560 F.y=561 dy=1 musträff=ja fokus=ja synlig=ja Enter=ja igen.y=560 F2.y=561 F2träff=ja trang=false Rätt×0
+24-1920x1080  ratt K.y=821 F.y=851 dy=30 musträff=NEJ fokus=ja synlig=ja Enter=ja  trang=false Rätt×1
+24-1920x1080  fel  K.y=821 F.y=823 dy=2 musträff=ja fokus=ja synlig=ja Enter=ja igen.y=821 F2.y=823 F2träff=ja trang=false Rätt×0
+34-1920x1080  ratt K.y=893 F.y=899 dy=6 musträff=ja fokus=ja synlig=ja Enter=ja  trang=false Rätt×1
+34-1920x1080  fel  K.y=893 F.y=896 dy=3 musträff=ja fokus=ja synlig=ja Enter=ja igen.y=893 F2.y=896 F2träff=ja trang=false Rätt×0
+01-1366x768   ratt K.y=451 F.y=456 dy=5 musträff=ja fokus=ja synlig=ja Enter=ja  trang=false Rätt×1
+01-1366x768   fel  K.y=508 F.y=509 dy=1 musträff=ja fokus=ja synlig=ja Enter=ja igen.y=508 F2.y=509 F2träff=ja trang=false Rätt×0
+03-1366x768   ratt K.y=691 F.y=697 dy=6 musträff=ja fokus=ja synlig=ja Enter=ja  trang=false Rätt×1
+03-1366x768   fel  K.y=711 F.y=711 dy=0 musträff=ja fokus=ja synlig=ja Enter=ja igen.y=711 F2.y=711 F2träff=ja trang=false Rätt×0
+12-1366x768   ratt K.y=587 F.y=593 dy=6 musträff=ja fokus=ja synlig=ja Enter=ja  trang=false Rätt×1
+12-1366x768   fel  K.y=587 F.y=589 dy=2 musträff=ja fokus=ja synlig=ja Enter=ja igen.y=587 F2.y=589 F2träff=ja trang=false Rätt×0
+15-1366x768   ratt K.y=711 F.y=711 dy=0 musträff=ja fokus=ja synlig=ja Enter=ja  trang=false Rätt×1
+15-1366x768   fel  K.y=711 F.y=711 dy=0 musträff=ja fokus=ja synlig=ja Enter=ja igen.y=711 F2.y=711 F2träff=ja trang=false Rätt×0
+19-1366x768   ratt K.y=560 F.y=564 dy=4 musträff=ja fokus=ja synlig=ja Enter=ja  trang=false Rätt×1
+19-1366x768   fel  K.y=560 F.y=561 dy=1 musträff=ja fokus=ja synlig=ja Enter=ja igen.y=560 F2.y=561 F2träff=ja trang=false Rätt×0
+24-1366x768   ratt K.y=711 F.y=711 dy=0 musträff=ja fokus=ja synlig=ja Enter=ja  trang=false Rätt×1
+24-1366x768   fel  K.y=711 F.y=711 dy=0 musträff=ja fokus=ja synlig=ja Enter=ja igen.y=711 F2.y=711 F2träff=ja trang=false Rätt×0
+34-1366x768   ratt K.y=711 F.y=709 dy=-2 musträff=ja fokus=ja synlig=ja Enter=ja  trang=false Rätt×1
+34-1366x768   fel  K.y=711 F.y=685 dy=-26 musträff=NEJ fokus=ja synlig=ja Enter=ja igen.y=711 F2.y=685 F2träff=NEJ trang=false Rätt×0
+01-1280x720   ratt K.y=451 F.y=456 dy=5 musträff=ja fokus=ja synlig=ja Enter=ja  trang=false Rätt×1
+01-1280x720   fel  K.y=508 F.y=509 dy=1 musträff=ja fokus=ja synlig=ja Enter=ja igen.y=508 F2.y=509 F2träff=ja trang=false Rätt×0
+03-1280x720   ratt K.y=663 F.y=663 dy=0 musträff=ja fokus=ja synlig=ja Enter=ja  trang=false Rätt×1
+03-1280x720   fel  K.y=663 F.y=663 dy=0 musträff=ja fokus=ja synlig=ja Enter=ja igen.y=663 F2.y=663 F2träff=ja trang=false Rätt×0
+12-1280x720   ratt K.y=587 F.y=593 dy=6 musträff=ja fokus=ja synlig=ja Enter=ja  trang=false Rätt×1
+12-1280x720   fel  K.y=587 F.y=589 dy=2 musträff=ja fokus=ja synlig=ja Enter=ja igen.y=587 F2.y=589 F2träff=ja trang=false Rätt×0
+15-1280x720   ratt K.y=663 F.y=663 dy=0 musträff=ja fokus=ja synlig=ja Enter=ja  trang=false Rätt×1
+15-1280x720   fel  K.y=663 F.y=663 dy=0 musträff=ja fokus=ja synlig=ja Enter=ja igen.y=663 F2.y=663 F2träff=ja trang=false Rätt×0
+19-1280x720   ratt K.y=560 F.y=564 dy=4 musträff=ja fokus=ja synlig=ja Enter=ja  trang=false Rätt×1
+19-1280x720   fel  K.y=560 F.y=561 dy=1 musträff=ja fokus=ja synlig=ja Enter=ja igen.y=560 F2.y=561 F2träff=ja trang=false Rätt×0
+24-1280x720   ratt K.y=663 F.y=663 dy=0 musträff=ja fokus=ja synlig=ja Enter=ja  trang=false Rätt×1
+24-1280x720   fel  K.y=663 F.y=663 dy=0 musträff=ja fokus=ja synlig=ja Enter=ja igen.y=663 F2.y=663 F2träff=ja trang=false Rätt×0
+34-1280x720   ratt K.y=607 F.y=627 dy=20 musträff=ja fokus=ja synlig=ja Enter=ja  trang=true Rätt×1
+34-1280x720   fel  K.y=607 F.y=649 dy=42 musträff=NEJ fokus=ja synlig=ja Enter=ja igen.y=634 F2.y=665 F2träff=NEJ trang=true Rätt×0
+01-390x844    ratt K.y=662 F.y=664 dy=2 musträff=ja fokus=ja synlig=ja Enter=ja  trang=false Rätt×1
+01-390x844    fel  K.y=743 F.y=743 dy=0 musträff=ja fokus=ja synlig=ja Enter=ja igen.y=742 F2.y=743 F2träff=ja trang=false Rätt×0
+03-390x844    ratt K.y=734 F.y=734 dy=0 musträff=ja fokus=ja synlig=ja Enter=ja  trang=false Rätt×1
+03-390x844    fel  K.y=622 F.y=622 dy=0 musträff=ja fokus=ja synlig=ja Enter=ja igen.y=621 F2.y=622 F2träff=ja trang=false Rätt×0
+12-390x844    ratt K.y=787 F.y=759 dy=-28 musträff=NEJ fokus=ja synlig=ja Enter=ja  trang=false Rätt×1
+12-390x844    fel  K.y=787 F.y=734 dy=-53 musträff=NEJ fokus=ja synlig=ja Enter=ja igen.y=733 F2.y=734 F2träff=NEJ trang=true Rätt×0
+15-390x844    ratt K.y=789 F.y=789 dy=0 musträff=ja fokus=ja synlig=ja Enter=ja  trang=true Rätt×1
+15-390x844    fel  K.y=789 F.y=734 dy=-55 musträff=NEJ fokus=ja synlig=ja Enter=NEJ igen.y=1220 F2.y=1220 F2träff=NEJ trang=true Rätt×0
+19-390x844    ratt K.y=537 F.y=543 dy=6 musträff=ja fokus=ja synlig=ja Enter=ja  trang=false Rätt×1
+19-390x844    fel  K.y=537 F.y=550 dy=13 musträff=ja fokus=ja synlig=ja Enter=ja igen.y=544 F2.y=550 F2träff=NEJ trang=false Rätt×0
+24-390x844    ratt K.y=789 F.y=789 dy=0 musträff=ja fokus=ja synlig=ja Enter=ja  trang=true Rätt×1
+24-390x844    fel  K.y=789 F.y=734 dy=-55 musträff=NEJ fokus=ja synlig=ja Enter=ja igen.y=734 F2.y=734 F2träff=NEJ trang=true Rätt×0
+34-390x844    ratt K.y=789 F.y=789 dy=0 musträff=ja fokus=ja synlig=ja Enter=ja  trang=true Rätt×1
+34-390x844    fel  K.y=789 F.y=734 dy=-55 musträff=NEJ fokus=ja synlig=ja Enter=NEJ igen.y=962 F2.y=962 F2träff=NEJ trang=true Rätt×0

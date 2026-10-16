@@ -15,6 +15,15 @@
         { "fieldPath": "elevId", "order": "ASCENDING" },
         { "fieldPath": "aterlamnad", "order": "ASCENDING" },
         { "fieldPath": "aterlamnadAt", "order": "DESCENDING" }
+        ]
+      },
+      {
+      "collectionGroup": "brakresaRounds",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "challengeId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "finishedAt", "order": "DESCENDING" }
       ]
     }
   ],

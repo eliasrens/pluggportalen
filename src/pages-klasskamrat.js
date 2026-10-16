@@ -269,6 +269,18 @@ export async function pageElevKlasskamrat() {
     })
     .catch(() => {});
 
+  // Kamratens Bråkdrake (#714): lat, stilla, under djuren – bara när den finns.
+  if (sd.brakdrake?.id) {
+    import("./brakresan/rum-drake.js")
+      .then((m) => {
+        const d = m.drakeLasNod(sd, roomCount, stage);
+        if (!d || !stage.isConnected) return;
+        djurNodes.unshift(d);
+        renderRoomStage();
+      })
+      .catch(() => {});
+  }
+
   view.querySelector("#back").addEventListener("click", () => go(back.href));
   view.querySelector("#to-klass").addEventListener("click", () => go(back.href));
 

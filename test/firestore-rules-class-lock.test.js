@@ -120,11 +120,24 @@ describe("Fokusläge (#436): lock läsbart för eleven, skrivbart för lärare",
     );
   });
 
+  it("#735: läraren FÅR låsa till Bråkresan, eleven får INTE ändra eller ta bort låset", async () => {
+    const brak = { mal: { typ: "brakresan" }, till: Date.now() + 30 * MIN, doljOvrigt: false };
+    await assertSucceeds(updateDoc(doc(teacher(), "classes", "6a"), { lock: brak }));
+    const snap = await getDoc(doc(elev("elev1"), "classes", "6a"));
+    assert.equal(snap.data().lock.mal.typ, "brakresan", "klassens elev läser låset");
+    await assertFails(updateDoc(doc(elev("elev1"), "classes", "6a"), { lock: { ...brak, doljOvrigt: true } }));
+    await assertFails(updateDoc(doc(elev("elev1"), "classes", "6a"), { lock: deleteField() }));
+    await assertFails(
+      updateDoc(doc(elev("elev1"), "classes", "6b"), { lock: brak }),
+      "eleven kan inte heller låsa en klass till Bråkresan"
+    );
+  });
+
   it("läraren får INTE spara en okänd mål-typ eller ett område utan id", async () => {
     await assertFails(
       updateDoc(doc(teacher(), "classes", "6a"), { lock: omLock({ mal: { typ: "shop" } }) })
     );
-    for (const typ of ["live", "plugga", "brakresan", ""]) {
+    for (const typ of ["live", "plugga", "okandmodul", ""]) {
       await assertFails(
         updateDoc(doc(teacher(), "classes", "6a"), { lock: omLock({ mal: { typ } }) })
       );

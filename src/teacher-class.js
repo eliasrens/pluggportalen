@@ -140,6 +140,14 @@ const STATS_TABS = [
       (await import("./prov/prov-klass-statistik.js")).renderClassProv(ctx, pane, { classId: o.classId, students: o.students }),
   },
   {
+    key: "brakresan", label: "Bråkresan", icon: "brak", what: "Bråkresan", lazy: true,
+    // #716: klassöversikt, matris, individvy och rekommendationer (src/brakresan/larare/).
+    render: async (ctx, pane, o) =>
+      (await import("./brakresan/larare/klass.js")).renderClassBrakresan(ctx, pane, {
+        students: o.students, cls: o.cls, studentById: o.studentById,
+      }),
+  },
+  {
     key: "mattematchen", label: "Mattematchen", icon: "trophy", what: "Mattematchen", lazy: true,
     when: (o) => !!o.classId,
     // #459: välj period → klassens tabell.

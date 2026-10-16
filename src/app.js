@@ -18,6 +18,7 @@
 //   #/elev/hitta-ratt Hitta rätt!: geografi på karta (#605) – opt-in per klass, DYNAMISK
 //   #/elev/ekvationsresan  Ekvationsresan: adaptiva ekvationer (#618) – opt-in per klass, DYNAMISK
 //   #/elev/prov       Prov (#740): pågående/tillbakalämnade prov, /skriv?t= själva provet – DYNAMISK
+//   #/elev/brakresan       Bråkresan (#705): 50 bråkutmaningar, ?u=NN = utmaningsvyn – DYNAMISK
 //   #/elev/shop       shoppen (köp saker för pluggcoins) – pages-shop.js
 //   #/elev/by         husvärlden, by-nivån (klassbyn: alla elevers hus) – pages-varld.js
 //   #/elev/hus        husvärlden, ute-nivån (huset utifrån) – pages-varld.js
@@ -226,6 +227,7 @@ const routes = {
   "/elev/prov": provSida("pageProvLista"),
   "/elev/prov/skriv": provSida("pageProvSkriv"),
   "/elev/prov/resultat": provSida("pageProvResultat"),
+  "/elev/brakresan": dynSida(async () => (await import("./brakresan/page-brakresan.js")).pageBrakresan(), "🐉", "Bråkresan"), // #709
   // Husvärlden – samma scen för alla tre routes: "by" startar i klassbyn,
   // "hus" ute och "rum" inne. Är scenen redan uppe byter route-bytet bara
   // zoomnivå (sömlöst, ingen omrendering) – se pages-varld.js.
