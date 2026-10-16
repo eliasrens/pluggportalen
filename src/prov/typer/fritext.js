@@ -7,6 +7,7 @@
 
 import { GRANS, elevFalt, klipp, tecken, valideraGemensamt } from "./delat.js";
 import { elevKontext, h, textFalt } from "../prov-vy.js";
+import { svarsVyer, textSvar } from "../prov-svar-vy.js";
 
 export default {
   id: "fritext",
@@ -34,6 +35,10 @@ export default {
   arBesvarad: (svar) => typeof svar === "string" && svar.trim() !== "",
   rensaSvar: (svar) => klipp(typeof svar === "string" ? svar : "", GRANS.fritext),
   forslag: () => null,
+
+  facitText: () => "",
+  // Svaret efter provet (#741): elevens text med radbrytningarna kvar.
+  ...svarsVyer((f, svar, o) => textSvar(svar, o, { lang: true })),
 
   /** Elevens svarsruta (#740): ett längre svar med teckenräknare. */
   renderElev(f, svar, o) {

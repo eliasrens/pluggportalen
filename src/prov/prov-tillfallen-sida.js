@@ -19,6 +19,7 @@ import { serverNow, syncServerClock } from "../data-class-lock.js";
 import { filterClasses, myRole } from "../teacher-role.js";
 import { arFraga } from "./prov-fragetyper.js";
 import { STATUS, STATUS_NAMN } from "./prov-modell.js";
+import { rattStatusText } from "./prov-rattning-logik.js";
 import { hamtaSvar, hamtaTillfalle, listaProv, listaTillfallen } from "./prov-tillfalle-data.js";
 import { OVERSIKT_INTERVALL_MS, kvarText, oversiktRader, oversiktSumma, tillMs } from "./prov-tillfalle-logik.js";
 import { korIKlass, oppnaRuta, raderaRuta, ruta, stangRuta } from "./prov-tillfalle-rutor.js";
@@ -29,6 +30,7 @@ export { korIKlass };
 
 const LISTA = "#/larare/prov/tillfallen";
 const oversiktHash = (t) => `#/larare/prov/tillfalle?t=${encodeURIComponent(t)}`;
+const rattaHash = (t) => `#/larare/prov/ratta?t=${encodeURIComponent(t)}`;
 const datum = (ms) => (ms ? new Date(ms).toLocaleDateString("sv-SE", { day: "numeric", month: "short" }) : "");
 const antalFragor = (fragor) => (fragor || []).filter(arFraga).length;
 const statusEtikett = (s) => `<span class="provl-status provl-status-${esc(s)}">${esc(STATUS_NAMN[s] || s)}</span>`;
@@ -55,6 +57,8 @@ function knappar(tf, { oversikt = true } = {}) {
   if (tf.status === STATUS.OPPET) k.push(`<button class="btn small" data-act="stang">Stäng</button>`);
   if (tf.status === STATUS.STANGT) k.push(`<button class="btn ghost small" data-act="oppna">Öppna igen</button>`);
   if (oversikt && tf.status !== STATUS.FORBERETT) k.push(`<button class="btn ghost small" data-hash="${esc(oversiktHash(tf.id))}">Översikt</button>`);
+  // Rättningen (#741): när provet är stängt (eller medan de inlämnade väntar).
+  if (tf.status !== STATUS.FORBERETT) k.push(`<button class="btn ${tf.status === STATUS.STANGT ? "gron" : "ghost"} small" data-hash="${esc(rattaHash(tf.id))}">Rätta</button>`);
   k.push(`<button class="btn ghost small danger" data-act="radera" aria-label="Radera ${esc(tf.provNamn)}">${icon("trash", 16)}</button>`);
   return k.join("");
 }
@@ -108,11 +112,12 @@ function ritaLista(ctx, body, klasser, tillfallen) {
           <span class="provl-tf-rad-namn">${esc(tf.provNamn || "Prov")}</span>
           ${statusEtikett(tf.status)}
           <span class="hint">${tf.status === STATUS.FORBERETT ? "Inte öppnat än" : `${antalFragor(tf.fragor)} frågor`}${
-            tf.tidsgransMin ? ` · ${tf.tidsgransMin} min` : ""} · ${n} elever · ${esc(datum(tillMs(tf.oppnad) ?? tillMs(tf.skapad)))}</span>
+            tf.tidsgransMin ? ` · ${tf.tidsgransMin} min` : ""} · ${n} elever · ${esc(datum(tillMs(tf.oppnad) ?? tillMs(tf.skapad)))}${
+            tf.rattStatus?.antal ? ` · <b>${esc(rattStatusText(tf.rattStatus))}</b>` : ""}</span>
         </div>
         <div class="provl-tf-rad-knappar">${knappar(tf)}</div>
       </li>`);
-      // Rättningen (#741) lägger "18 av 24 rättade" och Rätta-knappen här.
+      // Rättningen (#741): "18 av 24 rättade" ur tillfällets räkneverk (rattStatus, ingen extra läsning).
       kopplaKnappar(ctx, li, tf, omRita);
       ul.append(li);
     }

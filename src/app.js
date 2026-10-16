@@ -274,6 +274,9 @@ const routes = {
   // Prov (#740): lärarens översikt över ett provtillfälle (?t=<tillfälle>).
   "/larare/prov/tillfalle": async () =>
     (await import("./prov/prov-tillfallen-sida.js")).pageProvTillfalle(teacherCtx),
+  // Prov (#741): rättningen av ett tillfälle (?t=, per fråga / per elev).
+  "/larare/prov/ratta": async () =>
+    (await import("./prov/prov-ratta-sida.js")).pageProvRatta(teacherCtx),
 };
 // Lärarflikarna ur registryn (#440): en ny lärarmodul = en rad i TEACHER_TABS.
 for (const tab of TEACHER_TABS) routes[tab.hash.slice(1)] = () => tab.page(teacherCtx);

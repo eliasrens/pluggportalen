@@ -7,9 +7,10 @@
 // Förslaget rättar varje lucka som ett kortsvar; delpoäng per lucka.
 // ============================================================================
 
-import { DELVIS_STAVFEL_ANDEL, forslagAv, matchaText } from "../prov-rattning.js";
+import { DELVIS_STAVFEL_ANDEL, forslagAv, gruppNyckel, matchaText } from "../prov-rattning.js";
 import { GRANS, elevFalt, strangLista, tecken, valideraGemensamt } from "./delat.js";
 import { elevKontext, h, textFalt } from "../prov-vy.js";
+import { ingetSvar, mark, svarsVyer } from "../prov-svar-vy.js";
 
 const LUCKA = /\[\[([^\]]*)\]\]/g;
 
@@ -27,6 +28,32 @@ export function tolkaLucktext(lucktext) {
   }
   if (sist < text.length) delar.push({ t: text.slice(sist) });
   return { delar, luckor };
+}
+
+const luckFacit = (facit) => (facit?.luckor || []).map((l, i) => `${i + 1}: ${l.godkanda.join(" / ")}`).join(" · ");
+
+// Svaret efter provet (#741): texten med elevens ord i luckorna, ✓/½/✗ per lucka.
+function visa(f, svar, o) {
+  const lista = Array.isArray(svar) ? svar : [];
+  const res = o.facit ? luckResultat(lista, o.facit) : [];
+  const delar = (f.delar || []).map((d) => {
+    if (typeof d.t === "string") return d.t;
+    const n = d.lucka;
+    const text = String(lista[n] ?? "").trim();
+    const fel = o.facit && res[n] !== true;
+    return h("span", { class: `provv-sv-lucka${o.facit ? ` provv-sv-lucka-${res[n] === true ? "ok" : res[n] === "delvis" ? "delvis" : "nej"}` : ""}` },
+      text ? h("span", { text }) : h("span", { class: "provv-sv-inget", text: "…" }),
+      o.facit ? mark(res[n]) : null,
+      fel && o.facitRad !== false ? h("span", { class: "provv-sv-luckfacit", text: `(${o.facit.luckor[n]?.godkanda.join(" / ")})` }) : null);
+  });
+  return h("div", {},
+    h("p", { class: "provv-sv-lucktext" }, delar),
+    lista.some((s) => String(s ?? "").trim()) ? null : ingetSvar(o));
+}
+
+function luckResultat(svar, facit) {
+  const lista = Array.isArray(svar) ? svar : [];
+  return facit.luckor.map(({ godkanda }, i) => matchaText(lista[i], godkanda, facit));
 }
 
 export default {
@@ -80,10 +107,11 @@ export default {
   },
 
   /** Rättningsvyn (D): förslaget per lucka – true | "delvis" | false. */
-  luckResultat(svar, facit) {
-    const lista = Array.isArray(svar) ? svar : [];
-    return facit.luckor.map(({ godkanda }, i) => matchaText(lista[i], godkanda, facit));
-  },
+  luckResultat,
+  /** Rättningen (#741, §6.1): samma ord i alla luckor (efter normaliseringen) = samma grupp. */
+  gruppNyckel: (svar, f, facit) => (Array.isArray(svar) ? svar : []).map((s) => gruppNyckel(s, { skiftlage: facit?.skiftlage === true })).join(" \u241f "),
+  facitText: (f, facit) => luckFacit(facit),
+  ...svarsVyer(visa),
 
   /** Elevens svarsruta (#740): texten med en ruta i varje lucka. */
   renderElev(f, svar, o) {

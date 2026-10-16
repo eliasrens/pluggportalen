@@ -2019,7 +2019,8 @@ service cloud.firestore {
         allow read: if hasClass(tillfalle(t).classId) ||
           (isSelf(elevUid) && (resource == null || resource.data.aterlamnad == true));
         allow create, update: if hasClass(tillfalle(t).classId) &&
-          validRattning(request.resource.data, elevUid, tillfalle(t).classId);
+          validRattning(request.resource.data, elevUid, tillfalle(t).classId) &&
+          provAterlamningOk(request.resource.data, resource);
         allow delete: if hasClass(resource.data.classId);
       }
     }
@@ -2063,10 +2064,24 @@ service cloud.firestore {
             !('inlamnadNar' in d) && !('inlamnadAt' in d)));
     }
     function validRattning(d, elevUid, classId) {
-      return d.elevId == elevUid && d.classId == classId &&
+      return d.keys().hasOnly(['elevId', 'classId', 'provNamn', 'fragor', 'totalPoang', 'maxPoang', 'niva',
+          'helhetskommentar', 'aterlamnad', 'aterlamnadAt', 'facit']) &&
+        d.elevId == elevUid && d.classId == classId &&
         d.fragor is map && d.fragor.size() <= 60 &&
         d.aterlamnad is bool &&
-        (!('niva' in d) || d.niva == null || d.niva in ['EG', 'G', 'MG']);
+        (!('niva' in d) || d.niva == null || d.niva in ['EG', 'G', 'MG']) &&
+        (!('totalPoang' in d) || d.totalPoang is number) &&
+        (!('maxPoang' in d) || d.maxPoang is number) &&
+        (!('helhetskommentar' in d) || (d.helhetskommentar is string && d.helhetskommentar.size() <= 4000)) &&
+        (!('facit' in d) || d.facit is map);
+    }
+    // Tillbakalämningen (#741, §7): facit och aterlamnadAt finns BARA i en
+    // tillbakalämnad rättning (ångra tar bort båda). Att lämna tillbaka sätter
+    // aterlamnadAt = serverns tid; en redan tillbakalämnad behåller sin tid.
+    function provAterlamningOk(d, fore) {
+      return d.aterlamnad == false ? (!('facit' in d) && !('aterlamnadAt' in d)) :
+        (d.get('aterlamnadAt', null) == request.time ||
+          (fore != null && fore.data.aterlamnad == true && d.get('aterlamnadAt', null) == fore.data.get('aterlamnadAt', null)));
     }
     // Collection group-frågorna på rattning (§5.5 och §7.5):
     //   eleven: where elevId == uid, aterlamnad == true (menylänken)

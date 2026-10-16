@@ -5,11 +5,16 @@
 // roll" (standard av). Jämförelsen efter normalisering: prov-rattning.js.
 // ============================================================================
 
-import { DELVIS_STAVFEL_ANDEL, delpoang, matchaText } from "../prov-rattning.js";
+import { DELVIS_STAVFEL_ANDEL, delpoang, gruppNyckel, matchaText } from "../prov-rattning.js";
 import { GRANS, elevFalt, klipp, tecken, trimmad, valideraGemensamt } from "./delat.js";
-import { elevKontext, textFalt } from "../prov-vy.js";
+import { elevKontext, h, textFalt } from "../prov-vy.js";
+import { facitRad, svarsVyer, textSvar } from "../prov-svar-vy.js";
 
 export const MAX_GODKANDA = 20;
+
+const godkandaText = (facit) => (facit?.godkanda || []).join(" · ");
+// Svaret efter provet (#741): elevens text och de godkända svaren.
+const visa = (f, svar, o) => h("div", {}, textSvar(svar, o), facitRad(o, "Godkända svar", godkandaText(o.facit)));
 
 export default {
   id: "kortsvar",
@@ -52,6 +57,11 @@ export default {
     if (m === "delvis") return { poang: delpoang(DELVIS_STAVFEL_ANDEL, max), maxPoang: max, ratt: "delvis" };
     return { poang: 0, maxPoang: max, ratt: false };
   },
+
+  /** Rättningen (#741, §6.1): identiska svar efter normaliseringen hamnar i samma grupp. */
+  gruppNyckel: (svar, f, facit) => gruppNyckel(svar, { skiftlage: facit?.skiftlage === true }),
+  facitText: (f, facit) => godkandaText(facit),
+  ...svarsVyer(visa),
 
   /** Elevens svarsruta (#740): ett ord, tal eller kort fras. */
   renderElev(f, svar, o) {

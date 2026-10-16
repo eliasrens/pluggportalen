@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Prov – rättningen och resultatet (#741)</title>
+    <link rel="stylesheet" href="../src/styles.css" />
+    <!--
+      #741: STUBBAD preview – den RIKTIGA rättningsvyn (src/prov/prov-ratta-sida.js)
+      och elevens resultatvy (prov-resultat-vy.js) med Firebase-delarna utbytta
+      via importmap. 4A: 8 påhittade elever har skrivit ett stängt prov med alla
+      frågetyper. Alva är tillbakalämnad, Bo färdigrättad, resten väntar.
+        #/larare/prov/ratta?t=tf-r              per fråga
+        #/larare/prov/ratta?t=tf-r&lage=elev    per elev
+        #/larare/prov/tillfallen                räknaren "x av 8 rättade" + Rätta
+        #/elev/resultat?e=e0                    elevens resultatvy (Alva)
+      ?nollstall i adressen = börja om (rättningen sparas i localStorage).
+    -->
+    <script type="importmap">
+      {
+        "imports": {
+          "/src/auth.js": "/preview/prov-tillfalle-stubs/auth.js",
+          "/src/teacher-role.js": "/preview/prov-tillfalle-stubs/teacher-role.js",
+          "/src/data-class-lock.js": "/preview/prov-tillfalle-stubs/data-class-lock.js",
+          "/src/data-classes.js": "/preview/prov-ratta-stubs/data-classes.js",
+          "/src/data-content.js": "/preview/prov-ratta-stubs/data-content.js",
+          "/src/prov/prov-tillfalle-data.js": "/preview/prov-ratta-stubs/prov-tillfalle-data.js",
+          "/src/prov/prov-rattning-data.js": "/preview/prov-ratta-stubs/prov-rattning-data.js"
+        }
+      }
+    </script>
+    <style>
+      .pv-rad { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; padding: 8px 12px; background: #000; color: #cfd8e3; font: 13px system-ui, sans-serif; }
+      .pv-rad a { color: #7ee2a8; }
+      .pv-rad select { font: inherit; }
+      body.pv-elev { background: #eef2f6; }
+      body.pv-elev #app { padding: 16px; }
+    </style>
+  </head>
+  <body class="larare-lage">
+    <div class="pv-rad"><b>Preview #741</b>
+      <a href="#/larare/prov/ratta?t=tf-r">Rätta per fråga</a>
+      <a href="#/larare/prov/ratta?t=tf-r&lage=elev">Rätta per elev</a>
+      <a href="#/larare/prov/tillfallen">Provtillfällen</a>
+      <label>Elevens resultat: <select id="pv-elev"></select></label>
+      <label><input type="checkbox" id="pv-natfel" /> nätfel</label>
+      <a href="?nollstall#/larare/prov/ratta?t=tf-r">Börja om</a>
+      <span id="pv-info"></span>
+    </div>
+    <div class="layout"><main id="app" class="container"></main></div>
+    <script type="module">
+      import { S } from "/preview/prov-ratta-stubs/state.js";
+      import { pageProvRatta } from "/src/prov/prov-ratta-sida.js";
+      import { pageProvTillfallen } from "/src/prov/prov-tillfallen-sida.js";
+      import { resultatModell } from "/src/prov/prov-rattning-logik.js";
+      import { renderaResultat } from "/src/prov/prov-resultat-vy.js";
+
+      const app = document.getElementById("app");
+      const ctx = { app, go: (h) => (location.hash = h), renderTopbar: () => {} };
+      // Elevens resultatvy med reglernas villkor: bara en tillbakalämnad rättning (som hamtaMinRattning).
+      function elevResultat() {
+        const e = new URLSearchParams(location.hash.split("?")[1] || "").get("e") || "e0";
+        const r = S.rattning[e]?.aterlamnad ? S.rattning[e] : null;
+        const m = resultatModell(S.tf, S.svar[e], r);
+        if (!m) {
+          app.innerHTML = `<div class="provv-rot"><div class="provv-panel"><h1 class="provv-sidrubrik">Inte tillbakalämnat än</h1>
+            <p>Här ser du ditt rättade prov när läraren har lämnat tillbaka det.</p></div></div>`;
+          return;
+        }
+        const d = new Date(S.tf.oppnad).toLocaleDateString("sv-SE", { day: "numeric", month: "long" });
+        app.replaceChildren(renderaResultat(m, { datum: `Skrivet ${d}`, tillbakaHref: "#/larare/prov/ratta?t=tf-r&lage=elev" }));
+      }
+      const router = () => {
+        const path = (location.hash || "").slice(1).split("?")[0];
+        document.body.classList.toggle("pv-elev", path === "/elev/resultat");
+        document.body.classList.toggle("larare-lage", path !== "/elev/resultat");
+        if (path === "/elev/resultat") return elevResultat();
+        (path === "/larare/prov/tillfallen" ? pageProvTillfallen : pageProvRatta)(ctx);
+      };
+      window.addEventListener("hashchange", router);
+      if (!location.hash) location.hash = "#/larare/prov/ratta?t=tf-r";
+      else router();
+
+      const val = document.getElementById("pv-elev");
+      val.innerHTML = Object.entries(S.namn).map(([id, n]) => `<option value="${id}">${n}</option>`).join("");
+      val.addEventListener("change", () => (location.hash = `#/elev/resultat?e=${val.value}`));
+      document.getElementById("pv-natfel").addEventListener("change", (e) => (S.natfel = e.target.checked));
+      const info = document.getElementById("pv-info");
+      window.addEventListener("pv-logg", (e) => {
+        info.textContent = `${e.detail} · läsningar ${S.lasningar} · skrivningar ${S.skrivningar}`;
+      });
+    </script>
+  </body>
+</html>

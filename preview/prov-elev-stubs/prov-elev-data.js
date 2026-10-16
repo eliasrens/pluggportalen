@@ -32,3 +32,5 @@ export async function lamnaIn(t, uid, svar, nar) {
   Object.assign(S.svar, { svar, uppdaterad: Date.now(), inlamnad: true, inlamnadNar: nar, inlamnadAt: Date.now() });
   visa();
 }
+// #741: elevens rättning (resultatvyn) – bara när den är tillbakalämnad, som reglerna.
+export async function hamtaMinRattning() { return S.rattning?.aterlamnad ? structuredClone(S.rattning) : null; }
