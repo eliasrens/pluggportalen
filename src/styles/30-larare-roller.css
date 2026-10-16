@@ -48,6 +48,12 @@
 @media (max-width: 900px) {
   .teacher-dark .teacher-nav-who { display: none; }
 }
+/* Sju huvuddelar sedan Prov (#739): lite tätare flikar så att raden (med
+   "Inloggad som …" och Logga ut) får plats på en vanlig laptopskärm. */
+@media (min-width: 901px) and (max-width: 1320px) {
+  .teacher-dark .teacher-nav-tabs { gap: 3px; }
+  .teacher-dark .tnav { padding: 9px 10px; gap: 7px; }
+}
 
 /* --- Översikt -------------------------------------------------------------- */
 .teacher-dark .ov-block { margin-bottom: 18px; }
