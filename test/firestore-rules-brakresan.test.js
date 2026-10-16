@@ -11,7 +11,7 @@
 import { after, before, beforeEach, describe, it } from "node:test";
 import { assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
 import {
-  doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, collection, query, where, serverTimestamp, Timestamp,
+  doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, deleteField, collection, query, where, serverTimestamp, Timestamp,
 } from "firebase/firestore";
 import { createRollerEnv, seedRoller } from "./helpers/roller-env.js";
 
@@ -178,5 +178,74 @@ describe("lärarvyns läsningar (K #716)", () => {
     await assertSucceeds(getDocs(query(collection(ak4, "studentData", "e4a", "brakresaRewards"), where("type", "==", "stjarna"))));
     await assertFails(getDocs(query(rounds(ak4, "e5a"), where("challengeId", "==", "03"))));
     await assertFails(getDocs(query(collection(ak4, "studentData", "e5a", "brakresaRewards"), where("type", "==", "stjarna"))));
+  });
+});
+
+describe("studentData.brakdrake – husets spegel av draken (#750, BRAKRESAN.md §8.3)", () => {
+  const DRAKE = { id: "drake-e4a", level: 4, name: "Bråkis", pos: { x: 40, y: 80 }, room: 0, stowed: false };
+  const sd = (db, uid) => doc(db, "studentData", uid);
+
+  beforeEach(async () => {
+    await env.seed(async (db) => {
+      await updateDoc(sd(db, "e4a"), { brakdrake: DRAKE, room: { placements: {} }, farm: { placedAnimals: {} } });
+      await deleteDoc(sd(db, "e6a")); // e6a har inget studentData-dokument än
+    });
+  });
+
+  it("eleven kan inte skapa en drake – varken i ett nytt dokument eller ett befintligt", async () => {
+    const drake = { id: "fusk", level: 15, name: "Fusk" };
+    await assertFails(updateDoc(sd(env.as("e4b"), "e4b"), { brakdrake: drake }));
+    await assertFails(setDoc(sd(env.as("e4b"), "e4b"), { brakdrake: drake }, { merge: true }));
+    await assertFails(updateDoc(sd(env.as("e4b"), "e4b"), { "brakdrake.pos": { x: 50, y: 80 } }));
+    await assertFails(setDoc(sd(env.as("e6a"), "e6a"), { coins: 0, brakdrake: drake }));
+    await assertSucceeds(setDoc(sd(env.as("e6a"), "e6a"), { coins: 0, xp: 0 }));
+  });
+
+  it("eleven kan inte ändra id, level, name eller stage", async () => {
+    const elev = sd(env.as("e4a"), "e4a");
+    await assertFails(updateDoc(elev, { "brakdrake.level": 15 }));
+    await assertFails(updateDoc(elev, { "brakdrake.id": "annan" }));
+    await assertFails(updateDoc(elev, { "brakdrake.name": "Nytt namn" }));
+    await assertFails(updateDoc(elev, { "brakdrake.stage": 3 }));
+    await assertFails(updateDoc(elev, { brakdrake: { ...DRAKE, level: 15 } }));
+    await assertFails(updateDoc(elev, { "brakdrake.pos": { x: 10, y: 80 }, "brakdrake.level": 15 }));
+  });
+
+  it("eleven kan inte ta bort draken eller byta ut den mot något annat", async () => {
+    const elev = sd(env.as("e4a"), "e4a");
+    await assertFails(updateDoc(elev, { brakdrake: deleteField() }));
+    await assertFails(updateDoc(elev, { brakdrake: null }));
+    await assertFails(updateDoc(elev, { brakdrake: "drake" }));
+    await assertFails(setDoc(elev, { coins: 100, xp: 0 })); // hela dokumentet utan draken
+  });
+
+  it("eleven flyttar draken, byter rum och lägger den i lådan (rum-drake.js)", async () => {
+    const elev = sd(env.as("e4a"), "e4a");
+    await assertSucceeds(updateDoc(elev, { "brakdrake.pos": { x: 55.5, y: 82 } }));
+    await assertSucceeds(updateDoc(elev, { "brakdrake.stowed": true }));
+    await assertSucceeds(updateDoc(elev, { "brakdrake.room": 2, "brakdrake.pos": { x: 20, y: 75 } }));
+    await assertSucceeds(updateDoc(elev, { brakdrake: { ...DRAKE, room: 1, stowed: true } }));
+  });
+
+  it("andra studentData-skrivningar fungerar som förut – med och utan drake", async () => {
+    for (const uid of ["e4a", "e4b"]) {
+      const elev = sd(env.as(uid), uid);
+      await assertSucceeds(updateDoc(elev, { coins: 60, ownedItems: ["soffa"] }));
+      await assertSucceeds(updateDoc(elev, { "room.placements.soffa": { x: 10, y: 20 } }));
+      await assertSucceeds(updateDoc(elev, { "farm.placedAnimals.ko1": { x: 30, y: 40, room: 1 } }));
+      await assertSucceeds(setDoc(elev, { husLast: true }, { merge: true }));
+    }
+    // Hela dokumentet skrivet med oförändrad drake (diffen rör inte brakdrake).
+    let hela;
+    await env.seed(async (db) => { hela = (await getDoc(sd(db, "e4a"))).data(); });
+    await assertSucceeds(setDoc(sd(env.as("e4a"), "e4a"), { ...hela, coins: 1 }));
+  });
+
+  it("en klasskamrat skriver aldrig; admin och servern skriver draken, årskurskontot inte", async () => {
+    await assertFails(updateDoc(sd(env.as("e4b"), "e4a"), { "brakdrake.pos": { x: 1, y: 80 } }));
+    await assertSucceeds(updateDoc(sd(env.admin(), "e4a"), { "brakdrake.level": 5 }));
+    await assertSucceeds(updateDoc(sd(env.admin(), "e4b"), { brakdrake: { id: "d2", level: 1, name: "Bråkis" } }));
+    await assertFails(updateDoc(sd(env.ak4(), "e4a"), { "brakdrake.level": 6 }));
+    await assertFails(updateDoc(sd(env.ak4(), "e4a"), { "brakdrake.pos": { x: 1, y: 80 } }));
   });
 });

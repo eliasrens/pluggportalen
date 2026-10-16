@@ -422,7 +422,7 @@ avstängning gäller därför direkt, utan ny token.
 | `lasresaAttemptsFallback` | array | Läsresan: de senaste (max 30) försöken när skrivning till `lasresaAttempts` nekas (regeln ännu ej deployad). Samma form som ett försöksdokument. Läses av `listAttempts`. |
 | `amneslasning` | map | **Ämnesläsning** (#671, `docs/UTVECKLINGSUPPDRAG_AMNESLASNING.md`): `{ areas: { [areaId]: { subjectId, read: { [textId]: { count, lastAt } }, currentTextId, currentStartedAt, totals } }, totals, updatedAt }` – läst-lista med tidpunkt (`count` = antal läsningar, styr omläsningstrappan för mynten) och påbörjad text per område. Ämnesläsningen har INGEN egen nivå: den läser och uppdaterar `lasresa`s dolda nivå + streaks (tak 7 uppåt, fritt nedåt) men rör aldrig resan (`worldId`, `stepInWorld`, `seenTextIds`, `currentTextId`, totaler). `totals` (#674, per område + för all ämnesläsning) = `{ totalTexts, totalQuestions, totalCorrect, totalIncorrect, moneyEarned, catStats }` (samma namn som `lasresa`), denormaliserade i textavslutets transaktion så att lärarvyerna (Läsresans källfilter, Per område) klarar sig med detta dokument. Kärna `src/amneslasning/`, brygga `src/data-amneslasning.js`. |
 | `kcDonation` | string | Klasscentret (#500): `"<classId>/<donationId>"` för elevens senaste donation – skrivs i samma batch som myntavdraget så att ett avdrag bara kan betala EN donationspost (se Crowdfunding). Läses inte av appen. |
-| `brakdrake` | map | **Bråkresans drake i huset** (#706/#714): `{ id, level, name, pos, stowed, room }` – servern skapar den vid kläckningen och håller `level` aktuell; eleven skriver namn och placering. Se "Bråkresan" nedan. Saknas = ingen kläckt drake. |
+| `brakdrake` | map | **Bråkresans drake i huset** (#706/#714): `{ id, level, name, pos, stowed, room }` – servern skapar den vid kläckningen och håller `level`/`name` aktuella; eleven skriver bara placeringen (`pos`, `room`, `stowed` – reglerna nekar resten, #750). Se "Bråkresan" nedan. Saknas = ingen kläckt drake. |
 
 ### `studentData/{studentId}/lasresaAttempts/{autoId}` – Läsresan-försök (#399)
 
@@ -580,8 +580,9 @@ försvinna. Eget fält i stället, med samma namnregler (`cleanPetName`) och pla
 (cachad nivå så att klasskamrater som besöker huset ser rätt stadium utan att läsa `state`).
 Eleven skriver `pos`, `stowed`, `room` (som övriga husdjur): `pos` = fötternas punkt i procent av
 rummet, `room` = rummets index (0 = Rum 1, saknas/utanför huset = Rum 1), `stowed` = vilar i
-"Mina djur". Saknas `pos` står draken mitt på golvet (#714); `name` sätts av servern vid kläckningen och byts via `brakresaRenameDragon` (servern rensar texten, #713). En egen ändring av `level`
-är bara kosmetisk i det egna huset – Bråkresan och jakten utgår alltid från `state`.
+"Mina djur". Saknas `pos` står draken mitt på golvet (#714); `name` sätts av servern vid kläckningen och byts via `brakresaRenameDragon` (servern rensar texten, #713). Reglerna (`brakdrakeOk`, #750)
+nekar eleven att skapa eller ta bort fältet och att ändra något utom `pos`, `stowed`, `room` –
+Bråkresan och jakten utgår ändå alltid från `state`.
 
 #### `brakresaRecommendations/{recId}` – lärarens rekommendationer (K #716)
 
