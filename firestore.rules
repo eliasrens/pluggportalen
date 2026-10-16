@@ -2009,7 +2009,7 @@ service cloud.firestore {
         allow read: if isSelf(elevUid) || hasClass(tillfalle(t).classId);
         allow create: if isSelf(elevUid) && provSvarCreateOk(t, elevUid, request.resource.data);
         allow update: if (isSelf(elevUid) && provSvarUpdateOk(t, request.resource.data, resource.data)) ||
-          (hasClass(resource.data.classId) && provSvarStangOk(request.resource.data, resource.data));
+          (hasClass(resource.data.classId) && provSvarStangOk(t, elevUid, request.resource.data, resource.data));
         allow delete: if hasClass(resource.data.classId);
       }
 
@@ -2054,14 +2054,21 @@ service cloud.firestore {
     }
     // Läraren: bara inlämnad-fälten. Stänga (false → true, "stangt", serverns
     // tid) eller öppna igen (true → false, bara om det var stängningen som
-    // lämnade in – elevens egen inlämning är slutgiltig).
-    function provSvarStangOk(d, fore) {
+    // lämnade in – elevens egen inlämning är slutgiltig – och eleven inte
+    // redan har fått tillbaka provet, #743 F4).
+    function provSvarStangOk(t, elevUid, d, fore) {
       let andrat = d.diff(fore).affectedKeys();
       return andrat.hasOnly(['inlamnad', 'inlamnadNar', 'inlamnadAt']) &&
         ((fore.inlamnad == false && d.inlamnad == true && d.get('inlamnadNar', '') == 'stangt' &&
             d.get('inlamnadAt', null) == request.time) ||
          (fore.inlamnad == true && fore.get('inlamnadNar', '') == 'stangt' && d.inlamnad == false &&
-            !('inlamnadNar' in d) && !('inlamnadAt' in d)));
+            !('inlamnadNar' in d) && !('inlamnadAt' in d) && provEjTillbakalamnad(t, elevUid)));
+    }
+    // En exists()/get() per elev: öppna igen i batchar om högst 15 elever
+    // (gränsen är 20 dokumentåtkomster per batch, se OPPNA_IGEN_BATCH).
+    function provEjTillbakalamnad(t, elevUid) {
+      let r = /databases/$(database)/documents/provTillfallen/$(t)/rattning/$(elevUid);
+      return !exists(r) || get(r).data.get('aterlamnad', false) != true;
     }
     function validRattning(d, elevUid, classId) {
       return d.keys().hasOnly(['elevId', 'classId', 'provNamn', 'fragor', 'totalPoang', 'maxPoang', 'niva',
