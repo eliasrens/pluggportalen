@@ -429,8 +429,17 @@ fliken ritas, inga nya filer i bootgrafen. Färg har alltid symbol och text.
   till `body` – `prov-utskrift.css` vinner med `html body > div.provl-utskrift`.
 
 **Läsningar**: allt utom jämförelsen räknas ur rättningsvyns laddning (0 extra).
-Jämförelsen: lärarens tillfällen (som listan Provtillfällen) + rättningarna i
-varje annat tillfälle av provet (t.ex. 2 klasser × 25 = 50), bara på knapptryck.
+
+⚠️ **Avvikelse från spec §12 ("inga extra läsningar")** – godkänd av epic-leaden:
+jämförelsen behöver de ANDRA klassernas rättningar, och de är inte inlästa i
+rättningsvyn (den läser bara sin egen klass). Därför läser den **bara på knapptryck**
+("Jämför med mina andra klasser") och lägger **aldrig** till läsningar när
+Översikten ritas normalt. Inga lyssnare. Kostnad per klick: **1 fråga**
+`listaTillfallen` (en läsning per tillfälle i lärarens klasser, som listan
+Provtillfällen; en fråga per 30 klasser) **+ ett `rattning`-dokument per elev i
+varje jämfört tillfälle** – t.ex. 3 andra klasser × 25 elever ≈ 75 läsningar.
+Resultatet cachas (`v.stat.jamfor`) resten av vyn: gränsreglagen och omritningar
+läser inte igen.
 
 Förhandsvisning: `preview/preview-prov-fordjupad.html` (#742:s stubbar +
 `preview/prov-fordjupad-stubs/prov-jamfor-data.js` med 4A och 4C; `?pv=prov`,
