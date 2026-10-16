@@ -140,7 +140,8 @@ async function monteraOmdelning(host, task, opts) {
     const plus = h("button", { type: "button", class: "br-knapp br-verktygknapp", "aria-label": "Fler nya bitar" }, "+");
     const verktyg = h("div", { class: "br-omdelning-verktyg", role: "group", "aria-label": `Dela stav ${i + 1}` },
       h("span", null, "Dela varje bit i"), minus, status, plus);
-    rad.append(h("div", { class: "br-omdelning-namn" }, formNod(fraction(bar.marked, bar.parts))), yta, interaktiv ? verktyg : null);
+    rad.append(h("div", { class: "br-omdelning-namn" }, formNod(fraction(bar.marked, bar.parts))), yta);
+    if (interaktiv) rad.append(verktyg);
     stavYta.append(rad);
     const st = { bar, k: 1, yta, status, minus, plus, komp: null };
     stavar.push(st);
