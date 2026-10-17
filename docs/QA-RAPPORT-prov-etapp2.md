@@ -1,6 +1,6 @@
 # QA-rapport – Prov Etapp 2 (#749)
 
-Slut-QA av epicen Prov Etapp 2 (#745–#748) på epic-grenen `6ca546f`. Spec:
+Slut-QA av epicen Prov Etapp 2 (#745–#748) på epic-grenen `6ca546f`, plus en kort om-QA av #759 (inställningar per prov) efter att den landat (`b841a09`). Spec:
 `docs/UTVECKLINGSUPPDRAG_PROV.md` §10–15 + "Dokumentation och rapport". Kontraktet:
 `docs/PROV.md`. Allt kördes mot Firebase-emulatorerna i en riktig webbläsare (lärare
 + upp till sex samtidiga elever i egna inloggningar). Inget skrevs mot live.
@@ -23,16 +23,19 @@ Slut-QA av epicen Prov Etapp 2 (#745–#748) på epic-grenen `6ca546f`. Spec:
 - **Inga buggar som blockerar.** F1–F5 (en låg, fyra kosmetiska) är **rättade på
   tester-grenen och verifierade i webbläsaren** (epic-leadens beslut). F6–F9 är info
   och står kvar som kända begränsningar.
-- **Sviterna gröna:** unit 2968/2968 efter rättningarna (2966 före, +2 nya tester),
-  `test:rules` 703/703 och `test:functions` 232/232 (reglerna och functions rördes
-  inte av rättningarna), bootgrafen 107 filer (ingen `src/prov/`).
+- **#759 (stavfel per prov, färggränser 60/85) fungerar** – kort om-QA i webbläsaren,
+  grön; de två kvarvarande detaljerna (tipset i frågeformuläret, "gul 99–99 %") är
+  rättade här. Se avsnittet "#759" nedan.
+- **Sviterna gröna efter #759 + rättningarna:** unit **2996/2996**, `test:rules`
+  **711/711** (57 filer), `test:functions` 232/232 (functions rördes inte efter
+  första körningen), bootgrafen **107** filer (ingen `src/prov/`).
 
 ## Automatiska sviter
 
 | Svit | Resultat | Hur |
 | --- | --- | --- |
-| Unit | **2966 pass, 0 fail** (1 skip); efter F1–F5 **2968 pass** | `node --test $(ls test/*.test.js \| grep -v firestore-rules) test/admin-credential.test.mjs test/brakresan-drake-art.test.mjs` (filerna `firestore-rules*.test.js` kräver emulatorn och körs i nästa rad) |
-| `test:rules` (56 filer) | **703/703** | en Firestore-emulator på slumpport, `-Xmx1200m`, `FIRESTORE_EMULATOR_HOST=… node --test <listan i package.json>` |
+| Unit | **2966 pass, 0 fail** (1 skip); efter F1–F5 **2968**; efter #759 + resterna **2996 pass** | `node --test $(ls test/*.test.js \| grep -v firestore-rules) test/admin-credential.test.mjs test/brakresan-drake-art.test.mjs` (filerna `firestore-rules*.test.js` kräver emulatorn och körs i nästa rad) |
+| `test:rules` (56 filer; 57 efter #759) | **703/703**; efter #759 **711/711** | en Firestore-emulator på slumpport, `-Xmx1200m`, `FIRESTORE_EMULATOR_HOST=… node --test <listan i package.json>` |
 | `test:functions` (22 filer) | **232/232** | `firebase emulators:exec --only functions,auth,firestore` med egen `.qa-*.firebase.json` (slumpportar) och `FUNCTIONS_EMULATOR_HOST` hämtad ur hubben (functions-emulatorn tar inte alltid den port man ger den) |
 | Bootgrafen | **107 filer**, ingen `src/prov/` | `node admin/qa-bootgraf-bfs.mjs` |
 
@@ -56,6 +59,35 @@ Från Etapp 1 (kvar, sågs igen): F7 – tillbakalämnade prov syns först efter
 omladdning; F8 – "Sparar…" står kvar upp till 24 s.
 
 Rättelserna ändrar inte reglerna, indexen eller functions. Bootgrafen är oförändrad (107).
+
+## #759 – inställningar per prov (kort om-QA)
+
+Epic-grenen `b841a09` (med #759) mergad in i tester-grenen (`eed1920`, en konflikt i
+`prov-ratta-lager.js`: omprovets namn + stavfel-valet, båda behållna). Provet
+"Stavfelsprovet" (kortsvar och lucktext med "Exakt stavning krävs" av, två flerval)
+skapat via "Skapa med AI", "Rätta stavfel själv", färggränser 50/75; 4A skrev det
+(Alva "Birca" / "långskep", Bilal rätt, Cleo fel).
+
+| # | Kontroll | Resultat |
+| --- | --- | --- |
+| a | "Rätta stavfel själv" → stavfel till manuell rättning | ✅ Rättningen: "Facit: Birka · stavfel rättar du själv"; Alva **"? Inte rättad"** på både kortsvaret ("Birca") och lucktexten ("långskep" ½ markerad), Bilal "Auto · ✓ Rätt", Cleo "Auto · ✗ Fel". "Godkänn alla förslag" rör inte Alva. |
+| b | Gränser 50/75 → Översiktens och statistikens färger följer | ✅ "Färggränser: röd under 50 %, gul 50–74 %, grön 75 % eller mer"; Alva 50 % **gul**, Bilal 83 % **grön**, Cleo 0 % röd, klassens snitt 44 % röd (`759-oversikt-50-75.png`). Klassens Prov-flik (efter tillbakalämning): "1 grön, 1 gul, 1 röd", Alva över tid 50 % ½. |
+| c | Prov utan gränser → 60/85 | ✅ Gränserna (och `stavfel`) borttagna ur både provet och tillfället: Översikten "röd under 60 %, gul 60–84 %, grön 85 % eller mer", reglaget 60/85, Alva 50 % röd, Bilal 83 % gul; redigeraren 60/85 och "Ett stavfel ger halva poängen". |
+| d | Etapp 1-prov med sparade 40/70 behåller 40/70 (avsiktligt) | ✅ Prov och tillfälle med `granser: 40/70`: redigeraren 40/70, Översikten "röd under 40 %, gul 40–69 %, grön 70 %", Alva 50 % gul, Bilal 83 % grön. |
+| e | Reglaget ändrar bara det tillfället | ✅ Reglaget 50/75 → 60/85 i Översikten: tillfällets `installningar.granser` = 60/85, provets oförändrat 50/75; färgerna byttes direkt (Alva röd, Bilal gul). |
+| – | F2-formuleringen "– omprov" | ✅ Omprov för Cleo: elevens lista "Stavfelsprovet – omprov", resultatet "Stavfelsprovet – omprov", jämförelsen "4A – omprov". |
+
+**Två rester från #759 – rättade här:**
+
+- **Frågeformulärets tips** (`src/prov/larare/provl-fragaform.js`): "Exakt stavning
+  krävs – av: ett svar med en bokstav fel blir "delvis"" stod kvar när provet är
+  inställt på "Rätta stavfel själv". Nu följer tipset provets val: "… rättar du själv"
+  (`byggFragaForm(…, { stavfel })` från redigeraren). Verifierat i kortsvarets
+  formulär. Commit `6d7812f`.
+- **`granserText` vid kantfallen** (`src/prov/prov-validera.js`): gul = grön−1 gav
+  "gul 99–99 %". Nu "röd under 99 %, gul 99 %, grön 100 %" (grön 100 läses inte heller
+  "100 % eller mer"). Test i `test/prov-installningar.test.js`; verifierat i
+  redigerarens text. Commit `47a25ef`.
 
 ## Vad som testades
 
@@ -164,13 +196,18 @@ statistik): läsningar ≈ 1 500 + 100 ≈ **1 600**; skrivningar realistiskt
 
 ## Deploy
 
-1. `firebase deploy --only firestore:rules` – **före webben.** Nya: `provMynt`
+1. `firebase deploy --only firestore:rules` – **före webben.** #759 lägger till
+   `provInstOk`/`provGranserOk` (stavfel och färggränser på prov och tillfälle). Nya från #745–#748: `provMynt`
    (kvittot), `provMyntBetalt`/`provMyntKvittoOk`/`provMyntFaltOk`,
    `myntUtbetalt` i rättningen, `extraTid`/`elevIds`/`omprovAv` på tillfället,
    `provGallerElev`/`provElevMinuter`, `flikbyten` i svaret. Den gamla regeln känner
    inte `flikbyten` → med ny webb och gamla regler nekas elevens autosparning.
 2. Webben (merge till main → GitHub Pages).
 3. Inga nya index (bara Etapp 1:s, redan i main via PR #758), inga functions.
+
+Ordningen: **regler först, sedan webben.** Ny webb mot gamla regler: `flikbyten`
+nekas (autosparningen stannar), `stavfel`/`granser` nekas när läraren sparar ett prov
+eller kör det i klass. Gamla webben mot nya regler fungerar (fälten är frivilliga).
 
 Före regel-deployen nekas utbetalningen tyst och görs om när rättningen öppnas igen.
 
@@ -201,6 +238,7 @@ Före regel-deployen nekas utbetalningen tyst och görs om när rättningen öpp
 | `f1-las-extra-tid-1366.png` | F1 rättad: låset förvalt till 11:00 med Dante +30 (40 min) |
 | `f2-elev-resultat-omprov.png` | F2 rättad: omprovet namngivet, "Totalt 16 mynt för provet" (tagen med den första formen "(omprov)"; nu "– omprov") |
 | `f5-hamta-1366x900.png` | F5 rättad: bara listan scrollar, knappen syns |
+| `759-oversikt-50-75.png` | #759: Översikten med egna gränser 50/75 |
 
 ## Rigg och verktyg
 
