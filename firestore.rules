@@ -2044,6 +2044,13 @@ service cloud.firestore {
     function tillfalle(t) {
       return get(/databases/$(database)/documents/provTillfallen/$(t)).data;
     }
+    // Omprovets ursprung (#748): samma prov och klass, och självt inget omprov –
+    // pluggmynten för ett omprov delar ursprungets kvitto (provMyntKvittoOk).
+    function provOmprovAvOk(d) {
+      return !('omprovAv' in d) || (d.omprovAv is string && d.omprovAv.size() > 0 &&
+        tillfalle(d.omprovAv).provId == d.provId && tillfalle(d.omprovAv).classId == d.classId &&
+        !('omprovAv' in tillfalle(d.omprovAv)));
+    }
     match /provTillfallen/{t} {
       // Läraren med klassen. Eleven i klassen – men inte ett förberett prov.
       // Ett omprov (elevIds, #748) läses också av hela klassen: elevens lyssnare
@@ -2054,14 +2061,17 @@ service cloud.firestore {
       allow create: if hasClass(request.resource.data.classId) &&
         validTillfalle(request.resource.data) &&
         request.resource.data.status == 'forberett' &&
-        request.resource.data.createdBy == request.auth.uid;
+        request.resource.data.createdBy == request.auth.uid &&
+        provOmprovAvOk(request.resource.data);
       allow update: if hasClass(resource.data.classId) &&
         validTillfalle(request.resource.data) &&
         request.resource.data.classId == resource.data.classId &&
         request.resource.data.provId == resource.data.provId &&
         request.resource.data.get('createdBy', null) == resource.data.get('createdBy', null) &&
-        // Ett omprov förblir ett omprov för samma elever (och ett vanligt prov vanligt).
+        // Ett omprov förblir ett omprov för samma elever och samma ursprung
+        // (och ett vanligt prov vanligt).
         request.resource.data.get('elevIds', null) == resource.data.get('elevIds', null) &&
+        request.resource.data.get('omprovAv', null) == resource.data.get('omprovAv', null) &&
         provStatusOk(resource.data.status, request.resource.data.status);
       allow delete: if hasClass(resource.data.classId);
 
@@ -2182,27 +2192,35 @@ service cloud.firestore {
     // (hela dokumentet, batchar med många elever) får bara behålla värdet
     // eller utelämna det – ingen get(). Bara utbetalningen ändrar det, ensamt,
     // och då till exakt kvittots nya total.
+    // Ett omprov (#748) speglar ursprungets kvitto: provets SAMMANLAGDA mynt.
     function provMyntFaltOk(t, elevUid, d, fore) {
       let f = fore == null ? 0 : fore.data.get('myntUtbetalt', 0);
       return !('myntUtbetalt' in d) || d.myntUtbetalt == f ||
         (fore != null && d.myntUtbetalt is int && d.myntUtbetalt >= 0 && d.myntUtbetalt <= 200 &&
           d.diff(fore.data).affectedKeys().hasOnly(['myntUtbetalt']) &&
-          getAfter(/databases/$(database)/documents/studentData/$(elevUid)/provMynt/$(t)).data.total == d.myntUtbetalt);
+          getAfter(/databases/$(database)/documents/studentData/$(elevUid)/provMynt/$(tillfalle(t).get('omprovAv', t))).data.total == d.myntUtbetalt);
     }
     // Kvittot (läraren med klassen, även admin): total får bara öka, högst
     // 200 och högst vad tillfällets inställning ger (fast summa, eller mynt
     // per poäng × rättningens totalPoang). Rättningen är tillbakalämnad och
     // speglar total i samma skrivning, eleven har lämnat in (svar skapas bara
     // av eleven själv i klassen) och saldot ökar med exakt skillnaden.
+    // Omprov (#748): kvittot är URSPRUNGETS (provMynt/{omprovAv}) och `senast`
+    // = omprovet som betalar nu – rättning, svar och inställning läses därifrån.
+    // Taket 200 gäller alltså provet som helhet, och omprovet betalar bara det
+    // som överstiger det ursprunget redan gett.
     function provMyntKvittoOk(studentId, t) {
       let d = request.resource.data;
       let fore = resource == null ? 0 : resource.data.total;
-      let tf = tillfalle(t);
-      let r = getAfter(/databases/$(database)/documents/provTillfallen/$(t)/rattning/$(studentId)).data;
-      let s = /databases/$(database)/documents/provTillfallen/$(t)/svar/$(studentId);
+      let src = d.get('senast', t);
+      let tf = tillfalle(src);
+      let r = getAfter(/databases/$(database)/documents/provTillfallen/$(src)/rattning/$(studentId)).data;
+      let s = /databases/$(database)/documents/provTillfallen/$(src)/svar/$(studentId);
       let sd = /databases/$(database)/documents/studentData/$(studentId);
-      return hasClass(tf.classId) &&
-        d.keys().hasOnly(['total', 'tillfalleId', 'classId', 'at', 'by']) &&
+      // Ett omprov har aldrig ett eget kvitto – bara ursprungets.
+      return src is string && hasClass(tf.classId) &&
+        (src == t ? !('omprovAv' in tf) : tf.get('omprovAv', null) == t) &&
+        d.keys().hasOnly(['total', 'tillfalleId', 'classId', 'at', 'by', 'senast']) &&
         d.tillfalleId == t && d.classId == tf.classId && d.at == request.time && d.by == request.auth.uid &&
         d.total is int && d.total > fore && d.total <= 200 &&
         provMyntTakOk(tf, r, d.total) &&

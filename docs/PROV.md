@@ -180,7 +180,8 @@ Förhandsvisning utan Firebase: `preview/preview-prov-larare.html`
   får vara tom som förberett), `tidsgransMin` null eller heltal 5–240;
   `createdBy` = egen uid vid skapande. `classId`, `provId`, `createdBy` byts aldrig.
   #748: `extraTid` en map (≤ 100 elever), `elevIds` en lista med 1–100 elever
-  som aldrig byts (inte heller läggs till eller tas bort efter skapandet).
+  som aldrig byts (inte heller läggs till eller tas bort efter skapandet);
+  `omprovAv` likaså, och vid skapandet samma prov och klass som ursprunget.
 - **svar** (eleven): nycklar bara `elevId, classId, startad, uppdaterad, svar,
   inlamnad, inlamnadAt, inlamnadNar, flikbyten` (#748: heltal 0–10 000). Skapa med `startad` och `uppdaterad` =
   `serverTimestamp()`; **varje** sparning sätter `uppdaterad: serverTimestamp()`.
@@ -433,6 +434,20 @@ Förhandsvisning: `preview/preview-prov-rattning.html` (2 mynt per poäng; stubb
 `prov-ratta-stubs/prov-mynt-data.js` kör den riktiga `betalaProvMynt` mot ett
 minnes-SDK, saldot syns i kontrollraden). Skärmdumpar: `docs/qa-prov-746/`.
 
+**Omprov (#748)**: ett omprov delar ursprungets kvitto. `betalaProvMynt` skriver
+`provMynt/{omprovAv}` (inte `provMynt/{omprovet}`) med `senast` = omprovet, och
+betalar bara det omprovets belopp överstiger kvittots `total` – ursprunget gav 20,
+ett omprov värt 30 betalar 10, ett värt 15 betalar 0. Taket 200 gäller provet som
+helhet. Reglerna (`provMyntKvittoOk`) läser rättning, svar och inställning från
+`senast` och kräver att det är ett omprov av just kvittots tillfälle; ett kvitto
+med ett omprovs eget id nekas alltid. `lastProvMynt` = ursprunget.
+Omprovets `rattning.myntUtbetalt` speglar **provets sammanlagda** mynt (kvittots
+total), även när omprovet självt betalade 0 – Per elev visar alltså "20
+pluggmynt utbetalda" för provet, och `betalaKvar` försöker inte igen.
+`omprovAv` sätts alltid till roten (omprov av ett omprov pekar på ursprunget) och
+reglerna nekar ett `omprovAv` med annat prov, annan klass eller som självt är ett
+omprov (`provOmprovAvOk`); det byts aldrig. Tester: `test/firestore-rules-prov-mynt-omprov.test.js`.
+
 Läsningar/skrivningar per elev och utbetalning: 4 läsningar (kvitto, rättning,
 svar, saldo) + 3 skrivningar i en transaktion. 25 elever = 100 + 75.
 
@@ -467,7 +482,8 @@ Ger läraren mer tid under provet når den eleven via lyssnaren
 
 **Omprov för valda elever.** Knappen **Omprov** på ett öppnat eller stängt
 tillfälle skapar ett NYTT tillfälle av samma prov i samma klass med
-`elevIds` (och `omprovAv` = ursprunget, bara information). Förvalda är de som
+`elevIds` och `omprovAv` = ursprunget (alltid roten, även för omprov av ett
+omprov; pluggmynten delar ursprungets kvitto, se "Pluggmynt"). Förvalda är de som
 inte skrev provet (`omprovForval`: inget svar, eller inlämnat av stängningen
 utan ett enda svar); extra tid väljs på samma rad. Omprovet låser aldrig klassen
 (fokusläget gäller hela klassen) – rutan har inget låsval. Listan och rubrikerna

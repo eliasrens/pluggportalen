@@ -96,7 +96,9 @@ export async function omprovRuta(tf, onKlar) {
     try {
       t = await skapaTillfalle({
         prov: { id: tf.provId, namn: tf.provNamn, installningar: tf.installningar }, classId: tf.classId, tidsgransMin: tid,
-        fokus: { pa: false }, larare: role, extraTid: rensaExtraTid(lista.varde(), elevIds), elevIds, omprovAv: tf.id,
+        fokus: { pa: false }, larare: role, extraTid: rensaExtraTid(lista.varde(), elevIds), elevIds,
+        // Alltid det ursprungliga tillfället (även omprov av ett omprov): pluggmynten delar dess kvitto.
+        omprovAv: tf.omprovAv || tf.id,
       });
       if (oppnaNu) await oppnaTillfalle({ id: t, status: STATUS.FORBERETT, provId: tf.provId, provNamn: tf.provNamn, classId: tf.classId }, null);
       stang();
