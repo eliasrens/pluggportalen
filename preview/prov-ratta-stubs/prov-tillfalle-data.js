@@ -14,3 +14,4 @@ export const skapaTillfalle = nej;
 export const oppnaTillfalle = nej;
 export const stangTillfalle = nej;
 export const raderaTillfalle = nej;
+export const sparaExtraTid = nej; // #748

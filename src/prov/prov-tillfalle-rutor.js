@@ -3,21 +3,53 @@
 // klass", Öppna / Öppna igen (med fokuslåset), Stäng och Radera. Rutor på
 // sidan, aldrig confirm() (§3). Används av prov-tillfallen-sida.js; B:s knapp
 // "Kör i klass" i Mina prov (#739) anropar korIKlass via import().
+// Anpassningarna (#748): extra tid per elev i Kör i klass och Öppna; omprovet
+// och lärarens extra tid under provet bor i prov-anpassningar-rutor.js.
 // ============================================================================
 
 import { el, errText, esc } from "../teacher-shared.js";
 import { getClasses } from "../data-classes.js";
+import { getStudentsByIds } from "../data-content.js";
 import { formatKlockslag, tillFromKlockslag } from "../class-lock.js";
 import { serverNow, syncServerClock } from "../data-class-lock.js";
 import { filterClasses, myRole } from "../teacher-role.js";
 import { arFraga } from "./prov-fragetyper.js";
 import { STATUS } from "./prov-modell.js";
-import { hamtaProv, oppnaTillfalle, raderaTillfalle, skapaTillfalle, stangTillfalle } from "./prov-tillfalle-data.js";
+import { arOmprov, rensaExtraTid, tillfalleNamn } from "./prov-anpassningar.js";
+import { extraTidFalt } from "./prov-anpassningar-falt.js";
+import { hamtaProv, oppnaTillfalle, raderaTillfalle, sparaExtraTid, skapaTillfalle, stangTillfalle } from "./prov-tillfalle-data.js";
 import { standardLasMinuter, tillbakaVarning } from "./prov-tillfalle-logik.js";
 import { TIDSGRANS_MAX, TIDSGRANS_MIN, tolkaTidsgrans } from "./prov-validera.js";
 import { laddaCss } from "./prov-vy.js";
 
 const antalFragor = (fragor) => (fragor || []).filter(arFraga).length;
+
+/** Elevernas namn (en läsning per elev) – först när läraren vill ge extra tid. */
+export async function elevNamn(ids) {
+  return (await getStudentsByIds(ids || []))
+    .map((e) => ({ id: e.id, namn: e.namn || e.username || e.id }))
+    .sort((a, b) => a.namn.localeCompare(b.namn, "sv"));
+}
+
+/** Tidsgränsen: "Ingen" eller ett antal minuter. Läs med tidsgransVal(box). */
+export function tidsgransFalt(std) {
+  return `<fieldset class="provl-tf-grupp">
+      <legend>Tidsgräns</legend>
+      <label class="provl-kryss"><input type="radio" name="provl-tid" value="ingen" ${std ? "" : "checked"} /> Ingen</label>
+      <label class="provl-kryss"><input type="radio" name="provl-tid" value="min" ${std ? "checked" : ""} />
+        <input type="number" class="cell provl-min" data-f="min" min="${TIDSGRANS_MIN}" max="${TIDSGRANS_MAX}" value="${std || 40}" aria-label="Minuter" /> minuter</label>
+    </fieldset>`;
+}
+/** null = ingen, undefined = ogiltig, annars minuter. */
+export function tidsgransVal(box) {
+  return box.querySelector('input[name="provl-tid"]:checked').value === "min" ? tolkaTidsgrans(box.querySelector('[data-f="min"]').value) : null;
+}
+/** Skriver läraren minuter väljs "minuter"; onAndrat efter varje ändring. */
+export function kopplaTidsgrans(box, onAndrat = () => {}) {
+  box.querySelector('[data-f="min"]').addEventListener("input", () => { box.querySelector('input[name="provl-tid"][value="min"]').checked = true; onAndrat(); });
+  box.querySelectorAll('input[name="provl-tid"]').forEach((r) => r.addEventListener("change", onAndrat));
+}
+export const TIDSGRANS_FEL = `Tidsgränsen ska vara ${TIDSGRANS_MIN}–${TIDSGRANS_MAX} minuter.`;
 
 /** "HH:MM" om `min` minuter, avrundat uppåt till hela 5 minuter. */
 function klockslagOm(min) {
@@ -97,12 +129,8 @@ export async function korIKlass(ctx, provEllerId, { onKlar } = {}) {
     <label class="provl-tf-falt">Klass
       <select class="select" data-f="klass" autofocus>${mina.map((c) => `<option value="${esc(c.id)}">${esc(c.name || c.id)}</option>`).join("")}</select>
     </label>
-    <fieldset class="provl-tf-grupp">
-      <legend>Tidsgräns</legend>
-      <label class="provl-kryss"><input type="radio" name="provl-tid" value="ingen" ${std ? "" : "checked"} /> Ingen</label>
-      <label class="provl-kryss"><input type="radio" name="provl-tid" value="min" ${std ? "checked" : ""} />
-        <input type="number" class="cell provl-min" data-f="min" min="${TIDSGRANS_MIN}" max="${TIDSGRANS_MAX}" value="${std || 40}" aria-label="Minuter" /> minuter</label>
-    </fieldset>
+    ${tidsgransFalt(std)}
+    <div data-plats="extra"></div>
     ${lasFalt(standardLasMinuter(std))}
     <p class="provl-tf-fel msg error" role="alert" hidden></p>
     <div class="provl-tf-knappar">
@@ -112,29 +140,32 @@ export async function korIKlass(ctx, provEllerId, { onKlar } = {}) {
     </div>`, { etikett: `Kör i klass: ${prov.namn}` });
   kopplaLas(box);
   const fel = box.querySelector(".provl-tf-fel");
-  const minEl = box.querySelector('[data-f="min"]');
-  const tidsgrans = () => (box.querySelector('input[name="provl-tid"]:checked').value === "min" ? tolkaTidsgrans(minEl.value) : null);
+  const klassEl = box.querySelector('[data-f="klass"]');
+  const klassens = () => mina.find((c) => c.id === klassEl.value)?.studentIds || [];
+  // #748: extra tid per elev – namnen läses först när läraren fäller ut listan.
+  const extra = extraTidFalt({ hamta: () => elevNamn(klassens()) });
+  box.querySelector('[data-plats="extra"]').replaceWith(extra.el);
+  klassEl.addEventListener("change", () => extra.laddaOm(klassens()));
   // Låsets förval följer tidsgränsen (+10 min) tills läraren rört klockslaget.
   const lasTill = box.querySelector('[data-f="lasTill"]');
   let rortTill = false;
   lasTill.addEventListener("input", () => (rortTill = true));
-  const foljTid = () => { if (!rortTill) lasTill.value = klockslagOm(standardLasMinuter(tidsgrans() || null)); };
-  minEl.addEventListener("input", () => { box.querySelector('input[value="min"]').checked = true; foljTid(); });
-  box.querySelectorAll('input[name="provl-tid"]').forEach((r) => r.addEventListener("change", foljTid));
+  kopplaTidsgrans(box, () => { if (!rortTill) lasTill.value = klockslagOm(standardLasMinuter(tidsgransVal(box) || null)); });
 
   const kor = async (oppnaNu, knapp) => {
     fel.hidden = true;
-    const tid = tidsgrans();
-    if (tid === undefined) return visaFel(`Tidsgränsen ska vara ${TIDSGRANS_MIN}–${TIDSGRANS_MAX} minuter.`);
+    const tid = tidsgransVal(box);
+    if (tid === undefined) return visaFel(TIDSGRANS_FEL);
     const { las, fel: lasFel } = lasVal(box);
     if (lasFel && oppnaNu) return visaFel(lasFel);
-    const classId = box.querySelector('[data-f="klass"]').value;
+    const classId = klassEl.value;
     box.querySelectorAll("button").forEach((b) => (b.disabled = true));
     knapp.textContent = oppnaNu ? "Öppnar…" : "Sparar…";
     let t = null;
     try {
       const fokus = { pa: box.querySelector('[data-f="las"]').checked, doljOvrigt: box.querySelector('[data-f="dolj"]').checked };
-      t = await skapaTillfalle({ prov, classId, tidsgransMin: tid, fokus, larare: role });
+      const extraTid = rensaExtraTid(extra.varde(), klassens());
+      t = await skapaTillfalle({ prov, classId, tidsgransMin: tid, fokus, larare: role, extraTid });
       if (oppnaNu) await oppnaTillfalle({ id: t, status: STATUS.FORBERETT, provId: prov.id, provNamn: prov.namn, classId }, las);
       stang();
       onKlar?.(t, oppnaNu);
@@ -157,23 +188,31 @@ export async function korIKlass(ctx, provEllerId, { onKlar } = {}) {
 export function oppnaRuta(tf, klar) {
   const igen = tf.status === STATUS.STANGT;
   const std = standardLasMinuter(tf.tidsgransMin);
+  // Ett omprov (#748) låser aldrig klassen – låset gäller hela klassen.
+  const omprov = arOmprov(tf);
   const { box, stang } = ruta(`
-    <h2 class="provl-ruta-rubrik">${igen ? "Öppna igen" : "Öppna"}: ${esc(tf.provNamn)}</h2>
+    <h2 class="provl-ruta-rubrik">${igen ? "Öppna igen" : "Öppna"}: ${esc(tillfalleNamn(tf))}</h2>
     <p class="hint">${igen
       ? "Elever som inte hann lämna in kan fortsätta (inom sin tidsgräns). De som själva lämnat in är klara."
       : `${tf.tidsgransMin ? `Tidsgräns ${tf.tidsgransMin} minuter per elev, från att eleven startar.` : "Ingen tidsgräns."}`}</p>
     ${igen && tillbakaVarning(tf.rattStatus) ? `<p class="msg provl-tf-varning" role="status">${esc(tillbakaVarning(tf.rattStatus))}</p>` : ""}
-    ${lasFalt(std, { pa: igen ? false : tf.fokus?.pa !== false, doljOvrigt: tf.fokus?.doljOvrigt !== false })}
+    <div data-plats="extra"></div>
+    ${omprov ? `<p class="hint">Fokusläget låser hela klassen och används inte för omprov.</p>`
+      : lasFalt(std, { pa: igen ? false : tf.fokus?.pa !== false, doljOvrigt: tf.fokus?.doljOvrigt !== false })}
     <p class="provl-tf-fel msg error" role="alert" hidden></p>
     <div class="provl-tf-knappar">
       <button class="btn gron" data-act="oppna" autofocus>${igen ? "Öppna igen" : "Öppna nu"}</button>
       <button class="btn ghost" data-avbryt>Avbryt</button>
     </div>`, { etikett: `Öppna ${tf.provNamn}` });
-  kopplaLas(box);
+  if (!omprov) kopplaLas(box);
+  // #748: extra tid per elev (i ett omprov bara de valda eleverna).
+  const elevIds = async () => (omprov ? tf.elevIds : (await getClasses()).find((c) => c.id === tf.classId)?.studentIds || []);
+  const extra = extraTidFalt({ hamta: async () => elevNamn(await elevIds()), extraTid: tf.extraTid });
+  box.querySelector('[data-plats="extra"]').replaceWith(extra.el);
   const fel = box.querySelector(".provl-tf-fel");
   const knapp = box.querySelector('[data-act="oppna"]');
   knapp.addEventListener("click", async () => {
-    const { las, fel: lasFel } = lasVal(box);
+    const { las, fel: lasFel } = omprov ? { las: null } : lasVal(box);
     if (lasFel) {
       fel.textContent = lasFel;
       fel.hidden = false;
@@ -182,6 +221,7 @@ export function oppnaRuta(tf, klar) {
     knapp.disabled = true;
     knapp.textContent = "Öppnar…";
     try {
+      if (extra.andrat()) await sparaExtraTid(tf.id, rensaExtraTid(extra.varde(), await elevIds()));
       await oppnaTillfalle(tf, las);
       stang();
       klar();
@@ -197,7 +237,7 @@ export function oppnaRuta(tf, klar) {
 /** Stäng: rutan på sidan (§5.4). */
 export function stangRuta(tf, klar) {
   const { box, stang } = ruta(`
-    <h2 class="provl-ruta-rubrik">Stäng provet: ${esc(tf.provNamn)}</h2>
+    <h2 class="provl-ruta-rubrik">Stäng provet: ${esc(tillfalleNamn(tf))}</h2>
     <p>Alla som inte har lämnat in får sitt prov inlämnat nu. Elevernas senast sparade svar gäller.</p>
     <p class="hint">Fokusläget som provet satte tas bort. Du kan öppna provet igen om det behövs.</p>
     <p class="provl-tf-fel msg error" role="alert" hidden></p>
@@ -227,7 +267,7 @@ export function stangRuta(tf, klar) {
 export function raderaRuta(tf, klar) {
   const { box, stang } = ruta(`
     <h2 class="provl-ruta-rubrik">Radera provtillfället och alla elevsvar? Det går inte att ångra.</h2>
-    <p class="hint">${esc(tf.provNamn)} – själva provet finns kvar under Mina prov.</p>
+    <p class="hint">${esc(tillfalleNamn(tf))} – själva provet finns kvar under Mina prov.</p>
     <p class="provl-tf-fel msg error" role="alert" hidden></p>
     <div class="provl-tf-knappar">
       <button class="btn danger" data-act="radera">Radera</button>

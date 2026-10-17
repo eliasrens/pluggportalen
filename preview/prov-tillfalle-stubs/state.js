@@ -32,7 +32,11 @@ export const S = {
 };
 const nu = Date.now();
 const fr = delaUppProv(P1).fragor;
-S.tillfallen["tf-oppet"] = { id: "tf-oppet", provId: "p1", provNamn: P1.namn, classId: "4a", status: "oppet", fragor: fr, tidsgransMin: 40, oppnad: nu - 12 * 60_000, skapad: nu - 15 * 60_000 };
+S.tillfallen["tf-oppet"] = { id: "tf-oppet", provId: "p1", provNamn: P1.namn, classId: "4a", status: "oppet", fragor: fr, tidsgransMin: 40, oppnad: nu - 12 * 60_000, skapad: nu - 15 * 60_000,
+  extraTid: { e3: 15, e10: 10 } }; // #748: Dante +15, Klara +10
+// #748: ett omprov för tre elever (stängt, i förra veckan) – "Vikingatiden – prov – omprov (3 elever)".
+S.tillfallen["tf-omprov"] = { id: "tf-omprov", provId: "p1", provNamn: P1.namn, classId: "4a", status: "stangt", fragor: fr, tidsgransMin: 40,
+  oppnad: nu - 6 * 86_400_000, skapad: nu - 6 * 86_400_000, elevIds: ["e7", "e15", "e23"], omprovAv: "tf-oppet", extraTid: { e15: 15 } };
 S.tillfallen["tf-forb"] = { id: "tf-forb", provId: "p2", provNamn: P2.namn, classId: "4a", status: "forberett", fragor: [], tidsgransMin: null, skapad: nu - 3_600_000, fokus: { pa: true, doljOvrigt: true } };
 S.tillfallen["tf-stangt"] = { id: "tf-stangt", provId: "p2", provNamn: P2.namn, classId: "4b", status: "stangt", fragor: delaUppProv(P2).fragor, tidsgransMin: 20, oppnad: nu - 7 * 86_400_000 };
 S.las["4a"] = { mal: { typ: "prov", id: "tf-oppet", namn: P1.namn }, till: nu + 38 * 60_000, doljOvrigt: true };
@@ -46,4 +50,5 @@ NAMN.forEach((_, i) => {
   svar[`e${i}`] = { id: `e${i}`, elevId: `e${i}`, classId: "4a", startad: nu - (12 - (i % 5)) * 60_000, svar: s, inlamnad: i % 6 === 0, inlamnadNar: i % 6 === 0 ? "elev" : undefined };
 });
 S.svar["tf-oppet"] = svar;
+S.svar["tf-omprov"] = { e7: { id: "e7", elevId: "e7", classId: "4a", startad: nu - 6 * 86_400_000, svar: { [fr[0].id]: 0 }, inlamnad: true, inlamnadNar: "elev" } };
 window.__prov = S;

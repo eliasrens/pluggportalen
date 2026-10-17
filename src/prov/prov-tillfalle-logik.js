@@ -7,6 +7,7 @@
 // ============================================================================
 
 import { besvarat } from "./prov-modell.js";
+import { extraMin, tidsgransFor } from "./prov-anpassningar.js";
 
 // Menylänken (§5.5): ett rättat prov som lämnats tillbaka syns i 14 dagar.
 export const TILLBAKA_DAGAR = 14;
@@ -63,12 +64,13 @@ export function kvarNiva(ms) {
  *   "ny"         öppet, inte startat → "Starta provet"
  *   "tiden-slut" startat, tidsgränsen har passerat men inte inlämnat
  *   "pagar"      startat → "Fortsätt provet"
+ * Tidsgränsen är elevens egen: tidsgränsen + eventuell extra tid (#748).
  */
-export function elevLage(tillfalle, svarDok, nu) {
+export function elevLage(tillfalle, svarDok, nu, uid = svarDok?.elevId) {
   if (svarDok?.inlamnad) return "inlamnat";
   if (tillfalle?.status !== "oppet") return "stangt";
   if (!svarDok) return "ny";
-  const slut = slutTid(svarDok.startad, tillfalle.tidsgransMin);
+  const slut = slutTid(svarDok.startad, tidsgransFor(tillfalle, uid));
   return slut != null && nu >= slut ? "tiden-slut" : "pagar";
 }
 
@@ -97,19 +99,21 @@ export function valjStartSvar(server, lokal) {
  * Lärarens översikt (§5.3): en rad per elev i klassen.
  * @param {{ id: string, namn: string }[]} elever  klassens elever
  * @param {Record<string, object>} svarPerElev     svar-dokumenten (id = elevens uid)
- * @param {object} tillfalle                       { fragor, tidsgransMin }
- * @returns {{ id, namn, status: "ej"|"skriver"|"inlamnat", statusText, besvarade, antal, kvarMs: number|null, inlamnadNar?: string }[]}
+ * @param {object} tillfalle                       { fragor, tidsgransMin, extraTid? }
+ * @returns {{ id, namn, status: "ej"|"skriver"|"inlamnat", statusText, besvarade, antal, kvarMs: number|null, extraMin: number, inlamnadNar?: string }[]}
  */
 export function oversiktRader(elever, svarPerElev, tillfalle, nu) {
   return elever.map((e) => {
     const d = svarPerElev[e.id];
     const { besvarade, antal } = besvarat(tillfalle.fragor, d?.svar || {});
-    if (!d) return { id: e.id, namn: e.namn, status: "ej", statusText: "Inte börjat", besvarade: 0, antal, kvarMs: null };
-    const slut = slutTid(d.startad, tillfalle.tidsgransMin);
+    // #748: elevens extra tid (bara med en tidsgräns) räknas in i "tid kvar".
+    const extra = tillfalle.tidsgransMin ? extraMin(tillfalle, e.id) : 0;
+    if (!d) return { id: e.id, namn: e.namn, status: "ej", statusText: "Inte börjat", besvarade: 0, antal, kvarMs: null, extraMin: extra };
+    const slut = slutTid(d.startad, tidsgransFor(tillfalle, e.id));
     if (d.inlamnad) {
-      return { id: e.id, namn: e.namn, status: "inlamnat", statusText: "Inlämnat", besvarade, antal, kvarMs: null, inlamnadNar: d.inlamnadNar || "elev" };
+      return { id: e.id, namn: e.namn, status: "inlamnat", statusText: "Inlämnat", besvarade, antal, kvarMs: null, extraMin: extra, inlamnadNar: d.inlamnadNar || "elev" };
     }
-    return { id: e.id, namn: e.namn, status: "skriver", statusText: "Skriver", besvarade, antal, kvarMs: slut == null ? null : Math.max(0, slut - nu) };
+    return { id: e.id, namn: e.namn, status: "skriver", statusText: "Skriver", besvarade, antal, kvarMs: slut == null ? null : Math.max(0, slut - nu), extraMin: extra };
   });
 }
 

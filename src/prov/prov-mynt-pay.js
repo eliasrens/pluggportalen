@@ -16,6 +16,11 @@
 // Rättningen speglar total i myntUtbetalt (det eleven ser, "+36 mynt"),
 // i samma transaktion. Ångra rör varken kvittot eller myntUtbetalt.
 //
+// Omprov (#748): ett omprov (tf.omprovAv) delar URSPRUNGETS kvitto
+// provMynt/{omprovAv} – med `senast` = omprovet som betalar – och betalar bara
+// det som överstiger vad provet redan gett (taket 200 gäller provet som helhet).
+// Omprovets myntUtbetalt speglar då provets sammanlagda mynt.
+//
 // Två flikar, dubbelklick eller en omladdning som betalar igen: den som
 // kommer sist läser kvittot (eller nekas av reglerna mot det nya saldot och
 // läser om) → "redan".
@@ -24,7 +29,7 @@
 //   betalaProvMynt(sdk, db, { t, tf, elever, by, defaults?, parallel?, forsok?, vanta? })
 //       → Promise<[{ uid, total, status: "betald" | "redan" | "ingen" | "nekad", fel? }]>
 //       sdk = { doc, getDoc, runTransaction, serverTimestamp }; tf = tillfället
-//       (installningar, classId); elever = uid:n. Aldrig kastande.
+//       (installningar, classId, omprovAv?); elever = uid:n. Aldrig kastande.
 //   KVITTON, KROCK_FORSOK
 // ============================================================================
 
@@ -39,7 +44,8 @@ export const KROCK_FORSOK = 8;
 const int = (v) => Math.max(0, Math.floor(Number(v) || 0));
 
 async function betalaEn(sdk, db, { t, tf, uid, by, defaults, forsok, vanta }) {
-  const kvitto = sdk.doc(db, "studentData", uid, KVITTON, t);
+  const kvittoId = tf.omprovAv || t; // provets ursprungliga tillfälle
+  const kvitto = sdk.doc(db, "studentData", uid, KVITTON, kvittoId);
   const elev = sdk.doc(db, "studentData", uid);
   const ratt = sdk.doc(db, SAMLING_TILLFALLEN, t, RATTNING, uid);
   const svar = sdk.doc(db, SAMLING_TILLFALLEN, t, SVAR, uid);
@@ -62,9 +68,9 @@ async function betalaEn(sdk, db, { t, tf, uid, by, defaults, forsok, vanta }) {
     const diff = belopp - redan;
     // lastProvMynt = tillfället: reglerna knyter årskurskontots coins-ökning
     // till just det här kvittot (som lastLiveReceipt för Live).
-    if (snap.exists()) tx.update(elev, { coins: cur + diff, lastProvMynt: t });
+    if (snap.exists()) tx.update(elev, { coins: cur + diff, lastProvMynt: kvittoId });
     else tx.set(elev, { ...(defaults ? defaults() : {}), coins: diff });
-    tx.set(kvitto, { total: belopp, tillfalleId: t, classId: tf.classId, at: sdk.serverTimestamp(), by });
+    tx.set(kvitto, { total: belopp, tillfalleId: kvittoId, classId: tf.classId, at: sdk.serverTimestamp(), by, ...(kvittoId !== t ? { senast: t } : {}) });
     tx.update(ratt, { myntUtbetalt: belopp });
     return { status: "betald", total: belopp };
   }), { forsok, ...(vanta ? { vanta } : {}) });

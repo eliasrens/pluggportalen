@@ -51,6 +51,8 @@ function start() {
   };
   const svar = Object.fromEntries(IDS.map((id, i) => [id, {
     id, elevId: id, classId: "4a", startad: tf.oppnad + 60_000, svar: SVAR[i], inlamnad: true, inlamnadNar: i === 7 ? "stangt" : "elev",
+    // #748: två elever lämnade provfliken – syns diskret under Per elev.
+    ...(i === 1 ? { flikbyten: 2 } : i === 4 ? { flikbyten: 1 } : {}),
   }]));
   // Alva: rättad och tillbakalämnad (med facit). Bo: färdigrättad, inte tillbakalämnad.
   const rattning = {};

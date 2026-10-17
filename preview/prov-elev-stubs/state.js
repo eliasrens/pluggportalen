@@ -31,7 +31,9 @@ const p = new URLSearchParams(location.search);
 
 export const S = {
   tf: { id: "tf-demo", classId: "4a", provNamn: PROV.namn, status: "oppet", fragor, installningar: PROV.installningar,
-    tidsgransMin: p.get("tid") === "ingen" ? null : 40 },
+    tidsgransMin: p.get("tid") === "ingen" ? null : 40,
+    // #748: ?extra=15 → eleven har 15 minuter extra.
+    ...(p.get("extra") ? { extraTid: { elev1: Number(p.get("extra")) } } : {}) },
   svar: null,
   natfel: false,
   hanger: false,

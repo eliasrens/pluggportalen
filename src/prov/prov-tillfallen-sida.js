@@ -7,6 +7,7 @@
 //                                   (ALDRIG onSnapshot på svaren, §5.3)
 //   korIKlass(ctx, prov)            rutan "Kör i klass" (§5.2, prov-tillfalle-rutor.js)
 //                                   – B:s knapp i "Mina prov" (#739) anropar den
+//   Omprov / Extra tid (#748)       prov-anpassningar-rutor.js
 // Läraren ser bara sina egna klasser (filterClasses). Laddas DYNAMISKT (#271).
 // CSS: prov-tillfalle.css (.provl-).
 // ============================================================================
@@ -19,6 +20,8 @@ import { serverNow, syncServerClock } from "../data-class-lock.js";
 import { filterClasses, myRole } from "../teacher-role.js";
 import { arFraga } from "./prov-fragetyper.js";
 import { STATUS, STATUS_NAMN } from "./prov-modell.js";
+import { arOmprov, extraTidText, gallerElev, tillfalleNamn } from "./prov-anpassningar.js";
+import { extraTidRuta, omprovRuta } from "./prov-anpassningar-rutor.js";
 import { rattStatusText } from "./prov-rattning-logik.js";
 import { hamtaSvar, hamtaTillfalle, listaProv, listaTillfallen } from "./prov-tillfalle-data.js";
 import { OVERSIKT_INTERVALL_MS, kvarText, oversiktRader, oversiktSumma, tillMs } from "./prov-tillfalle-logik.js";
@@ -61,11 +64,15 @@ function knappar(tf, { oversikt = true } = {}) {
   if (tf.status !== STATUS.FORBERETT) k.push(`<button class="btn ${tf.status === STATUS.STANGT ? "gron" : "ghost"} small" data-hash="${esc(rattaHash(tf.id))}">Rätta</button>`);
   // Resultatet i grönt/gult/rött (#742): rättningsvyns flik Översikt.
   if (tf.status !== STATUS.FORBERETT && tf.rattStatus?.antal) k.push(`<button class="btn ghost small" data-hash="${esc(rattaHash(tf.id))}&amp;lage=oversikt">Resultat</button>`);
+  // Anpassningar (#748): extra tid medan provet pågår (översikten), omprov för valda elever.
+  if (!oversikt && tf.status === STATUS.OPPET) k.push(`<button class="btn ghost small" data-act="extra">Extra tid</button>`);
+  if (tf.status !== STATUS.FORBERETT) k.push(`<button class="btn ghost small" data-act="omprov" title="Ett nytt tillfälle för bara de elever du väljer">Omprov</button>`);
   k.push(`<button class="btn ghost small danger" data-act="radera" aria-label="Radera ${esc(tf.provNamn)}">${icon("trash", 16)}</button>`);
   return k.join("");
 }
 function kopplaKnappar(ctx, root, tf, klar, raderad = klar) {
   wireHashLinks(ctx, root);
+  root.querySelector('[data-act="omprov"]')?.addEventListener("click", () => omprovRuta(tf, (t, oppnat) => (oppnat ? ctx.go(oversiktHash(t)) : ctx.go(LISTA))));
   root.querySelector('[data-act="oppna"]')?.addEventListener("click", () => oppnaRuta(tf, klar));
   root.querySelector('[data-act="stang"]')?.addEventListener("click", () => stangRuta(tf, klar));
   root.querySelector('[data-act="radera"]')?.addEventListener("click", () => raderaRuta(tf, raderad));
@@ -108,13 +115,15 @@ function ritaLista(ctx, body, klasser, tillfallen) {
     </section>`);
     const ul = sek.querySelector("ul");
     for (const tf of lista) {
-      const n = (c.studentIds || []).length;
+      // Ett omprov (#748) gäller bara sina elever: "Vikingaprovet – omprov (3 elever)".
+      const n = arOmprov(tf) ? tf.elevIds.length : (c.studentIds || []).length;
       const li = el(`<li class="provl-tf-rad">
         <div class="provl-tf-rad-info">
-          <span class="provl-tf-rad-namn">${esc(tf.provNamn || "Prov")}</span>
+          <span class="provl-tf-rad-namn">${esc(tillfalleNamn(tf))}</span>
           ${statusEtikett(tf.status)}
           <span class="hint">${tf.status === STATUS.FORBERETT ? "Inte öppnat än" : `${antalFragor(tf.fragor)} frågor`}${
-            tf.tidsgransMin ? ` · ${tf.tidsgransMin} min` : ""} · ${n} elever · ${esc(datum(tillMs(tf.oppnad) ?? tillMs(tf.skapad)))}${
+            tf.tidsgransMin ? ` · ${tf.tidsgransMin} min` : ""}${
+            tf.tidsgransMin && Object.keys(tf.extraTid || {}).length ? ` (${Object.keys(tf.extraTid).length} med extra tid)` : ""} · ${n} elever · ${esc(datum(tillMs(tf.oppnad) ?? tillMs(tf.skapad)))}${
             tf.rattStatus?.antal ? ` · <b>${esc(rattStatusText(tf.rattStatus))}</b>` : ""}</span>
         </div>
         <div class="provl-tf-rad-knappar">${knappar(tf)}</div>
@@ -174,8 +183,8 @@ export async function pageProvTillfalle(ctx) {
     tf = await hamtaTillfalle(t);
     if (!tf) throw new Error("Provtillfället finns inte (det kan ha raderats).");
     const klass = (await getClasses()).find((c) => c.id === tf.classId);
-    // Elevernas namn – en gång när vyn öppnas (§9.2: en klass i taget).
-    elever = (await getStudentsByIds(klass?.studentIds || []))
+    // Elevernas namn – en gång när vyn öppnas (§9.2: en klass i taget). Ett omprov: bara de valda (#748).
+    elever = (await getStudentsByIds((klass?.studentIds || []).filter((id) => gallerElev(tf, id))))
       .map((e) => ({ id: e.id, namn: e.namn || e.username || e.id }))
       .sort((a, b) => a.namn.localeCompare(b.namn, "sv"));
     tf.klassNamn = klass?.name || tf.classId;
@@ -191,7 +200,7 @@ export async function pageProvTillfalle(ctx) {
     <div class="panel provl-huvud">
       <a data-hash="${LISTA}" class="provl-lank">← Provtillfällen</a>
       <div class="provl-huvud-rad">
-        <h2 class="provl-huvud-namn">${esc(tf.provNamn)} <span class="provl-klassnamn">· ${esc(tf.klassNamn)}</span></h2>
+        <h2 class="provl-huvud-namn">${esc(tillfalleNamn(tf))} <span class="provl-klassnamn">· ${esc(tf.klassNamn)}</span></h2>
         <span class="provl-huvud-status"></span>
       </div>
       <p class="hint provl-fakta"></p>
@@ -220,17 +229,21 @@ export async function pageProvTillfalle(ctx) {
   const tbody = vy.querySelector("tbody");
   const ritaHuvud = () => {
     vy.querySelector(".provl-huvud-status").innerHTML = statusEtikett(tf.status);
-    vy.querySelector(".provl-fakta").textContent = `${antalFragor(tf.fragor)} frågor · ${tf.tidsgransMin ? `${tf.tidsgransMin} minuter per elev` : "ingen tidsgräns"} · ${elever.length} elever`;
+    const namn = Object.fromEntries(elever.map((e) => [e.id, e.namn]));
+    vy.querySelector(".provl-fakta").textContent = [`${antalFragor(tf.fragor)} frågor`,
+      tf.tidsgransMin ? `${tf.tidsgransMin} minuter per elev` : "ingen tidsgräns", `${elever.length} elever`,
+      tf.tidsgransMin ? extraTidText(tf.extraTid, namn) : ""].filter(Boolean).join(" · ");
     const k = vy.querySelector(".provl-huvud-knappar");
     k.innerHTML = knappar(tf, { oversikt: false });
     kopplaKnappar(ctx, k, tf, () => uppdatera(true), () => ctx.go(LISTA));
+    k.querySelector('[data-act="extra"]')?.addEventListener("click", () => extraTidRuta(tf, elever, () => { ritaHuvud(); ritaTabell(); }));
   };
   const ritaTabell = () => {
     const rader = oversiktRader(elever, svar, tf, serverNow());
     const sum = oversiktSumma(rader);
     vy.querySelector(".provl-summa").innerHTML = `<b>${sum.antal} elever:</b> ${sum.ej} inte börjat · ${sum.skriver} skriver · ${sum.inlamnat} inlämnat`;
     tbody.innerHTML = rader.map((r) => `<tr class="provl-elev provl-elev-${r.status}">
-      <th scope="row">${esc(r.namn)}</th>
+      <th scope="row">${esc(r.namn)}${r.extraMin ? ` <span class="provl-ap-tag" title="Extra tid">+${r.extraMin} min</span>` : ""}</th>
       <td><span class="provl-elevstatus provl-elevstatus-${r.status}">${esc(r.statusText)}${r.inlamnadNar === "tid" ? " (tiden)" : r.inlamnadNar === "stangt" ? " (stängt)" : ""}</span></td>
       <td>${r.status === "ej" ? "–" : `${r.besvarade} av ${r.antal}`}</td>
       ${tf.tidsgransMin ? `<td>${r.kvarMs == null ? "–" : esc(kvarText(r.kvarMs).replace(/ kvar$/, ""))}</td>` : ""}

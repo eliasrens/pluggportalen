@@ -14,6 +14,7 @@
 //   facit, bedomningsstod privat/facit
 //   med                   eleverna som rättas
 //   svarAv(uid, fid), visNamn(uid), poangsatt, nivaer
+//   flikbyteText(uid)     #748: "Lämnade provet 2 gånger" eller ""
 //   index                 { fraga, elev } – nuvarande
 //   ga({ fraga?, elev?, fokus? })  byt fråga/elev och rita om
 //   andrat(uids)          spara + uppdatera räknaren
@@ -193,7 +194,9 @@ export function perElev(v) {
   uppdatera();
   return {
     el: h("div", {}, nav,
-      h("div", { class: "provl-r-elevtopp" }, h("h3", { class: "provl-r-elevnamn", text: v.visNamn(uid) }), godkannKnapp),
+      h("div", { class: "provl-r-elevtopp" }, h("h3", { class: "provl-r-elevnamn", text: v.visNamn(uid) }),
+        v.flikbyteText?.(uid) ? h("span", { class: "hint provl-r-flikbyte", title: "Hur många gånger eleven lämnade provfliken. Bara information – det påverkar inget.", text: v.flikbyteText(uid) }) : null,
+        godkannKnapp),
       h("div", { class: "provl-r-kortlista" }, kort),
       h("div", { class: "panel provl-r-summa" }, totalEl, nivaRad,
         h("label", { class: "provl-r-helhet-etikett" }, h("b", { text: "Helhetskommentar" }), helhet), knapp)),
