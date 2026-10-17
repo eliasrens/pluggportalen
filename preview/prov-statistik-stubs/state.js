@@ -5,12 +5,14 @@
 // Klassen har också tre äldre prov – fliken "Prov" i klassens statistik visar
 // dem över tid. Allt i minnet + localStorage (pp:preview742). ?nollstall = börja om.
 // ============================================================================
-import { validateProv } from "../../src/prov/prov-validera.js";
+import { stavfelFor, validateProv } from "../../src/prov/prov-validera.js";
+import { pvInstallningar, pvNollstall, pvNyckel } from "../prov-installningar-pv.js";
 import { delaUppProv } from "../../src/prov/prov-modell.js";
 import { aterlamnadDok, bedom, godkann, godkannAlla, nyRattning, sparDok } from "../../src/prov/prov-rattning-logik.js";
 import { provInfoDok } from "../../src/prov/prov-statistik.js";
 
-const NYCKEL = "pp:preview742";
+// #759: ?stavfel=sjalv, ?granser=50-75, ?gammalt (prov-installningar-pv.js) – egen nyckel per val.
+const NYCKEL = pvNyckel("pp:preview742");
 export const PROV = validateProv({
   namn: "Vikingatiden – kapitelprov",
   installningar: { poang: true, nivaer: true, visaFacit: true },
@@ -66,7 +68,7 @@ function start() {
   const { fragor, facit, bedomningsstod } = delaUppProv(PROV);
   const tf = {
     id: "tf-s", provId: "p1", provNamn: PROV.namn, classId: "4b", status: "stangt", fragor,
-    installningar: PROV.installningar, tidsgransMin: 40, oppnad: nu - 86_400_000, stangd: nu - 86_400_000 + 45 * 60_000,
+    installningar: pvInstallningar(PROV.installningar), tidsgransMin: 40, oppnad: nu - 86_400_000, stangd: nu - 86_400_000 + 45 * 60_000,
   };
   const r = slump(742);
   const svar = {};
@@ -82,7 +84,7 @@ function start() {
   const fritext = fragor.filter((f) => f.typ === "fritext");
   const dok = (x) => sparDok(x, fragor, provInfoDok(x, fragor, tf));
   IDS.forEach((uid, i) => {
-    let x = nyRattning({ elevId: uid, classId: "4b", provNamn: tf.provNamn, fragor, svar: svar[uid].svar, facit });
+    let x = nyRattning({ elevId: uid, classId: "4b", provNamn: tf.provNamn, fragor, svar: svar[uid].svar, facit, stavfel: stavfelFor(tf.installningar) });
     if (uid === "e7" || uid === "e17") { rattning[uid] = dok(x); return; } // bara förslag = ej rättade
     if (uid === "e13") { // halvrättad: fyra frågor godkända
       for (const id of ["q1", "q2", "q3", "q4"]) x = godkann(x, id);
@@ -126,10 +128,7 @@ function aldre() {
 }
 
 function las() {
-  if (new URLSearchParams(location.search).has("nollstall")) {
-    localStorage.removeItem(NYCKEL);
-    history.replaceState(null, "", location.pathname + location.hash);
-  }
+  pvNollstall(NYCKEL);
   try {
     const s = JSON.parse(localStorage.getItem(NYCKEL) || "null");
     if (s?.tf?.id === "tf-s") return s;

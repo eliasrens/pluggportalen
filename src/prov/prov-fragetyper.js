@@ -16,7 +16,8 @@
 //   tomtSvar(elevFraga)   → startvärdet för elevens svar
 //   arBesvarad(svar, elevFraga) → true/false ("3 obesvarade")
 //   rensaSvar(svar, elevFraga)  → svaret i giltig form (klippt, okända val bort)
-//   forslag(svar, facit, elevFraga) → { poang, maxPoang, ratt: true|false|"delvis" } | null
+//   forslag(svar, facit, elevFraga, { stavfel }) → { poang, maxPoang, ratt: true|false|"delvis" } | null
+//                           (stavfel "sjalv", #759: ett stavfelssvar får inget förslag)
 //   renderElev(elevFraga, svar, { onChange, lasLage }) → HTMLElement, elevens svarsruta (#740, prov-vy.js)
 //   renderRattning(elevFraga, svar, { facit, facitRad }) → lärarens bild av svaret (#741, prov-svar-vy.js)
 //   renderResultat(elevFraga, svar, { facit })           → elevens bild efter tillbakalämningen (#741)

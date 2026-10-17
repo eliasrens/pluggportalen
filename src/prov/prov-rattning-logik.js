@@ -66,9 +66,11 @@ export function summera(r, fragor) {
 /**
  * Förslagen för en elev (§6.1): typernas automatik, och "fel" för en
  * obesvarad fråga som typen inte rättar själv (fritext). Allt med auto: true.
+ * stavfel "sjalv" (#759, stavfelFor(tf.installningar)): stavfelssvar får inget
+ * förslag och står kvar som "Inte rättad" tills läraren bedömt dem.
  */
-export function forslagFor(fragor, svar, facit) {
-  const ut = autoForslag(fragor, svar, facit);
+export function forslagFor(fragor, svar, facit, stavfel) {
+  const ut = autoForslag(fragor, svar, facit, { stavfel });
   for (const f of rattFragor(fragor)) {
     const typ = fragetyp(f.typ);
     if (ut[f.id] || !typ) continue;
@@ -78,9 +80,9 @@ export function forslagFor(fragor, svar, facit) {
 }
 
 /** En ny rättning med förslagen ifyllda (sparas direkt, §6.3). */
-export function nyRattning({ elevId, classId, provNamn, fragor, svar, facit }) {
+export function nyRattning({ elevId, classId, provNamn, fragor, svar, facit, stavfel }) {
   return summera({
-    elevId, classId, provNamn: provNamn || "", fragor: forslagFor(fragor, svar, facit),
+    elevId, classId, provNamn: provNamn || "", fragor: forslagFor(fragor, svar, facit, stavfel),
     niva: null, aterlamnad: false,
   }, fragor);
 }
@@ -90,8 +92,8 @@ export function nyRattning({ elevId, classId, provNamn, fragor, svar, facit }) {
  * om den skapades innan eleven lämnade in). Rör aldrig lärarens bedömningar.
  * @returns {{ r: object, andrad: boolean }}
  */
-export function kompletteraForslag(r, fragor, svar, facit) {
-  const forslag = forslagFor(fragor, svar, facit);
+export function kompletteraForslag(r, fragor, svar, facit, stavfel) {
+  const forslag = forslagFor(fragor, svar, facit, stavfel);
   const fr = { ...(r.fragor || {}) };
   let andrad = false;
   for (const [id, p] of Object.entries(forslag)) {

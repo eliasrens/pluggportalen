@@ -162,13 +162,14 @@ describe("CSV-exporten (§12)", () => {
     assert.equal(rader[1], "'=SUMMA(A1);;;;;;;;;Ej rättad", "bara förslag = tomt");
   });
   it("semikolon och citattecken i ett namn citeras; delvis rättad elev", () => {
-    assert.equal(rader[3], "\"Cia; \"\"Cissi\"\"\";1;0;;1;2;50;Gul;;Delvis rättad");
+    // 50 % är röd med standardgränserna 60/85 (#759).
+    assert.equal(rader[3], "\"Cia; \"\"Cissi\"\"\";1;0;;1;2;50;Röd;;Delvis rättad");
   });
   it("utan poäng: rätt/delvis/fel per fråga, inga poängkolumner", () => {
     const r = { ...RATT, a: bedom(RATT.a, q3, { ratt: "delvis" }, fragor) };
     const ut = resultatCsv({ fragor, med: ["a"], namn: NAMN, rattningar: r, installningar: { poang: false } }).replace(/^﻿/, "").split("\r\n");
     assert.equal(ut[0], "Elev;Fråga 1;Fråga 2;Fråga 3;Procent;Färg;Nivå;Status");
-    assert.equal(ut[1], "Åsa Öberg;rätt;rätt;delvis;83;Grön;MG;Rättad");
+    assert.equal(ut[1], "Åsa Öberg;rätt;rätt;delvis;83;Gul;MG;Rättad", "83 % < 85 % (standard, #759)");
   });
   it("halva poäng med decimalkomma", () => {
     const r = { a: bedom(RATT.a, q3, { poang: 1.5 }, fragor) };

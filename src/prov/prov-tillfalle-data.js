@@ -13,7 +13,7 @@ import { buildLock } from "../class-lock.js";
 import { clearClassLock, getClassLock, setClassLock } from "../data-class-lock.js";
 import { FACIT_DOK, RATTNING, SAMLING_PROV, SAMLING_TILLFALLEN, STATUS, SVAR, delaUppProv } from "./prov-modell.js";
 import { OPPNA_IGEN_BATCH, arProvetsLas, attOppnaIgen, attStangaIn } from "./prov-tillfalle-logik.js";
-import { STANDARD_INSTALLNINGAR } from "./prov-validera.js";
+import { tillfalleInstallningar } from "./prov-validera.js";
 
 const tfRef = (t) => doc(db, SAMLING_TILLFALLEN, t);
 const facitRef = (t) => doc(db, SAMLING_TILLFALLEN, t, ...FACIT_DOK);
@@ -68,7 +68,7 @@ export async function skapaTillfalle({ prov, classId, tidsgransMin, fokus, larar
     provId: prov.id, provNamn: prov.namn, classId,
     createdBy: larare.uid, createdByName: larare.name || "",
     status: STATUS.FORBERETT, fragor: [],
-    installningar: { ...STANDARD_INSTALLNINGAR, ...(prov.installningar || {}) },
+    installningar: tillfalleInstallningar(prov.installningar),
     tidsgransMin: tidsgransMin ?? null,
     fokus: { pa: !!fokus?.pa, doljOvrigt: fokus?.doljOvrigt !== false },
     ...(extraTid && Object.keys(extraTid).length ? { extraTid } : {}),
@@ -101,7 +101,7 @@ export async function oppnaTillfalle(tf, las) {
     const batch = writeBatch(db);
     batch.update(tfRef(tf.id), {
       fragor, provNamn: prov.namn,
-      installningar: { ...STANDARD_INSTALLNINGAR, ...(prov.installningar || {}) },
+      installningar: tillfalleInstallningar(prov.installningar),
       status: STATUS.OPPET, oppnad: serverTimestamp(),
     });
     batch.set(facitRef(tf.id), { facit, bedomningsstod });

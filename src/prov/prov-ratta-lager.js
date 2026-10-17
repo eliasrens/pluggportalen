@@ -22,6 +22,7 @@ import { LARARENS_SPARNING, skapaSparare } from "./prov-sparning.js";
 import { provInfoDok } from "./prov-statistik.js";
 import { harMynt, provMyntBelopp } from "./prov-mynt.js";
 import { elevProvNamn } from "./prov-anpassningar.js";
+import { stavfelFor } from "./prov-validera.js";
 
 /**
  * @param {object} o
@@ -35,14 +36,15 @@ export function skapaRattningsLager({ data, med, onStatus = () => {} }) {
   const fragor = tf.fragor || [];
   const rattningar = data.rattningar;
   const smutsiga = new Set();
+  const stavfel = stavfelFor(tf.installningar); // #759: "sjalv" → stavfel utan förslag
 
   for (const uid of med) {
     const r = rattningar[uid];
     if (!r) {
-      rattningar[uid] = nyRattning({ elevId: uid, classId: tf.classId, provNamn: elevProvNamn(tf), fragor, svar: svar[uid]?.svar, facit });
+      rattningar[uid] = nyRattning({ elevId: uid, classId: tf.classId, provNamn: elevProvNamn(tf), fragor, svar: svar[uid]?.svar, facit, stavfel });
       smutsiga.add(uid);
     } else if (!r.aterlamnad) {
-      const k = kompletteraForslag(r, fragor, svar[uid]?.svar, facit);
+      const k = kompletteraForslag(r, fragor, svar[uid]?.svar, facit, stavfel);
       rattningar[uid] = k.r;
       if (k.andrad) smutsiga.add(uid);
     }

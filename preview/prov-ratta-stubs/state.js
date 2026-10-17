@@ -7,11 +7,13 @@
 // (prov-mynt-data.js kör den riktiga utbetalningen mot dem). Alva lämnades
 // tillbaka "före" mynten – hon får sina när rättningen öppnas (betalaKvar).
 // ============================================================================
-import { validateProv } from "../../src/prov/prov-validera.js";
+import { stavfelFor, validateProv } from "../../src/prov/prov-validera.js";
+import { pvInstallningar, pvNollstall, pvNyckel } from "../prov-installningar-pv.js";
 import { delaUppProv } from "../../src/prov/prov-modell.js";
 import { nyRattning, bedom, godkannAlla, aterlamnadDok, sparDok } from "../../src/prov/prov-rattning-logik.js";
 
-const NYCKEL = "pp:preview741-746";
+// #759: ?stavfel=sjalv, ?granser=50-75, ?gammalt (prov-installningar-pv.js) – egen nyckel per val.
+const NYCKEL = pvNyckel("pp:preview741-746");
 export const PROV = validateProv({
   namn: "Vikingatiden – prov",
   installningar: { poang: true, nivaer: true, visaFacit: true, mynt: { typ: "poang", antal: 2 } },
@@ -47,7 +49,7 @@ function start() {
   const { fragor, facit, bedomningsstod } = delaUppProv(PROV);
   const tf = {
     id: "tf-r", provId: "p1", provNamn: PROV.namn, classId: "4a", status: "stangt", fragor,
-    installningar: PROV.installningar, tidsgransMin: 40, oppnad: nu - 2 * 86_400_000, stangd: nu - 2 * 86_400_000 + 45 * 60_000,
+    installningar: pvInstallningar(PROV.installningar), tidsgransMin: 40, oppnad: nu - 2 * 86_400_000, stangd: nu - 2 * 86_400_000 + 45 * 60_000,
   };
   const svar = Object.fromEntries(IDS.map((id, i) => [id, {
     id, elevId: id, classId: "4a", startad: tf.oppnad + 60_000, svar: SVAR[i], inlamnad: true, inlamnadNar: i === 7 ? "stangt" : "elev",
@@ -56,7 +58,7 @@ function start() {
   }]));
   // Alva: rättad och tillbakalämnad (med facit). Bo: färdigrättad, inte tillbakalämnad.
   const rattning = {};
-  const ny = (uid) => nyRattning({ elevId: uid, classId: "4a", provNamn: tf.provNamn, fragor, svar: svar[uid].svar, facit });
+  const ny = (uid) => nyRattning({ elevId: uid, classId: "4a", provNamn: tf.provNamn, fragor, svar: svar[uid].svar, facit, stavfel: stavfelFor(tf.installningar) });
   const q8 = fragor.find((f) => f.id === "q8");
   let alva = bedom(godkannAlla(ny("e0"), fragor), q8, { poang: 4, kommentar: "Tydligt och med bra exempel!" }, fragor);
   alva = { ...alva, niva: "MG", helhetskommentar: "Mycket bra jobbat, Alva! Du kan vikingatiden väl." };
@@ -67,10 +69,7 @@ function start() {
 }
 
 function las() {
-  if (new URLSearchParams(location.search).has("nollstall")) {
-    localStorage.removeItem(NYCKEL);
-    history.replaceState(null, "", location.pathname + location.hash); // en omladdning ska inte börja om igen
-  }
+  pvNollstall(NYCKEL);
   try {
     const s = JSON.parse(localStorage.getItem(NYCKEL) || "null");
     if (s?.tf?.id === "tf-r") return s;

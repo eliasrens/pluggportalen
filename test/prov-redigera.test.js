@@ -202,7 +202,7 @@ describe("kortens sammanfattning", () => {
   it("en rad per typ", () => {
     for (const t of FRAGETYPER) assert.ok(fragaRubrik(validateProv({ namn: "x", fragor: [EXEMPEL.kortsvar.f, EXEMPEL[t.id].f] }).value.fragor[1]));
     assert.equal(fragaRubrik({ ...EXEMPEL.flerval.f, poang: 1 }), "3 alternativ · rätt: Björkö · 1 p");
-    assert.match(fragaRubrik({ ...EXEMPEL.kortsvar.f, exaktStavning: false, poang: 2 }), /Birka \/ Björkö · ett stavfel = delvis · 2 p/);
+    assert.match(fragaRubrik({ ...EXEMPEL.kortsvar.f, exaktStavning: false, poang: 2 }), /Birka \/ Björkö · ej exakt stavning · 2 p/);
   });
 });
 

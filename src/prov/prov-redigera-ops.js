@@ -37,12 +37,16 @@ export function nyttProv() {
   };
 }
 
+// Firestore lämnar mapens nycklar i bokstavsordning ({ gron, gul }) men fältet
+// skriver { gul, gron } – samma ordning, annars ser ett oförändrat prov ändrat ut (bild).
+const ordnaGranser = (ins) => (ins.granser ? { ...ins, granser: { gul: ins.granser.gul, gron: ins.granser.gron } } : ins);
+
 /** Redigerarens arbetskopia av ett sparat prov (bara innehållet – ägarfälten stannar i dokumentet). */
 export function provFranDok(dok) {
   const bas = nyttProv();
   return {
     namn: str(dok?.namn), amne: str(dok?.amne), arskurs: dok?.arskurs || null, beskrivning: str(dok?.beskrivning),
-    installningar: { ...bas.installningar, ...kopia(dok?.installningar || {}) },
+    installningar: ordnaGranser({ ...bas.installningar, ...kopia(dok?.installningar || {}) }),
     fragor: kopia(Array.isArray(dok?.fragor) ? dok.fragor : []),
   };
 }
@@ -247,12 +251,12 @@ export function fragaRubrik(f) {
       break;
     case "kortsvar":
       delar.push(`godkänt: ${(f.godkanda || []).join(" / ") || "?"}`);
-      if (f.exaktStavning === false) delar.push("ett stavfel = delvis");
+      if (f.exaktStavning === false) delar.push("ej exakt stavning"); // vad ett stavfel ger väljs per prov (#759)
       if (f.skiftlage) delar.push("stor/liten bokstav spelar roll");
       break;
     case "lucktext":
       delar.push(`${tolkaLucktext(f.lucktext).luckor.length} luckor`);
-      if (f.exaktStavning === false) delar.push("ett stavfel = delvis");
+      if (f.exaktStavning === false) delar.push("ej exakt stavning"); // vad ett stavfel ger väljs per prov (#759)
       break;
     case "para":
       delar.push(`${f.par?.length || 0} par`);

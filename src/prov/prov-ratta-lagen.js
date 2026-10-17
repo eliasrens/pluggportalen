@@ -29,6 +29,7 @@ import {
   godkannAlla, godkannFraga, gruppPost, summera, svarsGrupper,
 } from "./prov-rattning-logik.js";
 import { rattaKort } from "./prov-ratta-kort.js";
+import { STAVFEL, stavfelFor } from "./prov-validera.js";
 import { tillMs } from "./prov-tillfalle-logik.js";
 import { h, stycken } from "./prov-vy.js";
 
@@ -71,7 +72,7 @@ export function perFraga(v) {
         h("button", { type: "button", class: "btn ghost small", text: "Nästa fråga ›", disabled: v.index.fraga >= rf.length - 1, on: { click: () => v.ga({ fraga: v.index.fraga + 1, fokus: true }) } }))),
     h("div", { class: "provl-r-fragetext" }, stycken(f.fraga)),
     facitText ? h("p", { class: "provl-r-facit" }, h("b", { text: "Facit: " }), facitText,
-      fa?.exaktStavning === false ? h("span", { class: "hint", text: " · ett stavfel ger delvis" }) : null) : null,
+      fa?.exaktStavning === false ? h("span", { class: "hint", text: stavfelFor(v.tf.installningar) === STAVFEL.SJALV ? " · stavfel rättar du själv" : " · ett stavfel ger delvis" }) : null) : null,
     stod ? h("div", { class: "provl-r-stod" }, h("b", { text: "Bedömningsstöd" }), stycken(stod)) : null,
     typ.autoratt ? null : h("p", { class: "hint", text: "Den här frågan rättar du själv – bara obesvarade svar får ett förslag." }),
     h("div", { class: "provl-r-godkann" }, godkannKnapp, h("span", { class: "hint provl-r-tangenter", text: TANGENTER })));

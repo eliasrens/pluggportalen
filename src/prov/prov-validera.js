@@ -26,16 +26,44 @@ export const AMNE_MAX = 60;
 export const TIDSGRANS_MIN = 5;
 export const TIDSGRANS_MAX = 240;
 
-/** Standardinställningarna (§3). granser = färggränserna i statistiken (§7.5). */
+/**
+ * Stavfel (#759): "auto" = ett stavfel ger halva poängen som förslag (frågor
+ * där "Exakt stavning krävs" är av), "sjalv" = inget förslag – läraren rättar.
+ */
+export const STAVFEL = Object.freeze({ AUTO: "auto", SJALV: "sjalv" });
+
+/** Standardinställningarna (§3). granser = färggränserna i procent (§7.5, #759). */
 export const STANDARD_INSTALLNINGAR = Object.freeze({
   poang: true,
   nivaer: false,
   visaFacit: true,
   stavningskontroll: false,
+  stavfel: STAVFEL.AUTO,
   tidsgransMin: null,
-  granser: Object.freeze({ gul: 40, gron: 70 }),
+  granser: Object.freeze({ gul: 60, gron: 85 }),
   mynt: STANDARD_MYNT, // #746 – prov-mynt.js
 });
+
+/** Provets stavfelsval – allt utom "sjalv" (även saknat, gamla prov) = auto. */
+export const stavfelFor = (installningar) => (installningar?.stavfel === STAVFEL.SJALV ? STAVFEL.SJALV : STAVFEL.AUTO);
+
+/** Giltiga färggränser (#759): heltal i procent, 0 < gul < grön ≤ 100 – som firestore.rules provGranserOk. */
+export function granserOk(g) {
+  return !!g && Number.isInteger(g.gul) && Number.isInteger(g.gron) && g.gul > 0 && g.gul < g.gron && g.gron <= 100;
+}
+
+/**
+ * Inställningarna som de kopieras till ett tillfälle (#759): standarden för
+ * det som saknas, och ogiltiga gränser (ett äldre tillfälle) → standarden –
+ * så att reglerna (provInstOk) godtar kopian, t.ex. ett omprov.
+ */
+export function tillfalleInstallningar(ins) {
+  const ut = { ...STANDARD_INSTALLNINGAR, ...(ins || {}) };
+  return { ...ut, stavfel: stavfelFor(ut), granser: granserOk(ut.granser) ? { gul: ut.granser.gul, gron: ut.granser.gron } : { ...STANDARD_INSTALLNINGAR.granser } };
+}
+
+/** "röd under 60 %, gul 60–84 %, grön 85 % eller mer" – gränserna i klartext. */
+export const granserText = (g) => `röd under ${g.gul} %, gul ${g.gul}–${g.gron - 1} %, grön ${g.gron} % eller mer`;
 
 /** Tidsgräns i minuter: null (ingen) eller heltal 5–240. undefined = ogiltig. */
 export function tolkaTidsgrans(v) {
@@ -59,12 +87,19 @@ function valideraInstallningar(raw, errors) {
   const tid = tolkaTidsgrans(raw.tidsgransMin);
   if (tid === undefined) errors.push(`Inställningar: tidsgränsen måste vara ett helt antal minuter ${TIDSGRANS_MIN}–${TIDSGRANS_MAX} (eller ingen).`);
   else ut.tidsgransMin = tid;
+  if (raw.stavfel !== undefined && raw.stavfel !== null) {
+    if (!Object.values(STAVFEL).includes(raw.stavfel)) errors.push('Inställningar: "stavfel" måste vara "auto" (halva poängen) eller "sjalv" (du rättar).');
+    else ut.stavfel = raw.stavfel;
+  }
   if (raw.granser !== undefined && raw.granser !== null) {
-    const gul = Number(raw.granser?.gul ?? ut.granser.gul);
-    const gron = Number(raw.granser?.gron ?? ut.granser.gron);
-    if (!Number.isInteger(gul) || !Number.isInteger(gron) || gul < 1 || gron > 100 || gul >= gron) {
-      errors.push("Inställningar: färggränserna måste vara heltal i procent där gul (1–99) är lägre än grön (högst 100).");
-    } else ut.granser = { gul, gron };
+    // Tal, eller sifferfältens text ("50"); allt annat (tomt, true, [60]) är fel.
+    const tal = (v, std) => (v === undefined || v === null ? std : typeof v === "number" ? v
+      : typeof v === "string" && v.trim() !== "" ? Number(v) : NaN);
+    const g = typeof raw.granser === "object" && !Array.isArray(raw.granser)
+      ? { gul: tal(raw.granser.gul, ut.granser.gul), gron: tal(raw.granser.gron, ut.granser.gron) } : null;
+    if (!granserOk(g)) {
+      errors.push("Inställningar: färggränserna måste vara hela procent där gul (1–99) är lägre än grön (högst 100).");
+    } else ut.granser = g;
   }
   const mynt = valideraMynt(raw.mynt, ut.poang);
   errors.push(...mynt.fel);
