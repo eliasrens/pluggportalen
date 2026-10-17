@@ -134,6 +134,24 @@ describe("färggränser – standard, validering och färgerna", () => {
     const src = readFileSync(new URL("../src/prov/prov-tillfalle-data.js", import.meta.url), "utf8");
     assert.equal((src.match(/installningar: tillfalleInstallningar\(prov\.installningar\)/g) || []).length, 2, "skapa och öppna");
   });
+  it("kedjan: tillfällets gränser (reglaget) → provets → 60/85", () => {
+    const prov = { granser: { gul: 50, gron: 75 } };
+    assert.deepEqual(granserFor({ granser: { gul: 40, gron: 90 } }, prov), { gul: 40, gron: 90 }, "reglaget på tillfället vinner");
+    assert.deepEqual(granserFor({ poang: true }, prov), { gul: 50, gron: 75 }, "tillfället utan gränser → provets");
+    assert.deepEqual(granserFor({ granser: { gul: 0, gron: 5 } }, prov), { gul: 50, gron: 75 }, "ogiltiga på tillfället → provets");
+    assert.deepEqual(granserFor({}, {}), { gul: 60, gron: 85 });
+    assert.deepEqual(granserFor(), { gul: 60, gron: 85 });
+    // Kopian till ett nytt tillfälle bär provets gränser; reglaget ändrar bara tillfället.
+    const tf = tillfalleInstallningar(prov);
+    assert.deepEqual(granserFor(tf), { gul: 50, gron: 75 });
+    assert.deepEqual(granserFor({ ...tf, granser: { gul: 30, gron: 60 } }, prov), { gul: 30, gron: 60 });
+    assert.deepEqual(prov.granser, { gul: 50, gron: 75 }, "provet orört");
+  });
+  it("provInfo i rättningen bär tillfällets gränser; äldre provInfo.granser ritas som förut", () => {
+    const src = readFileSync(new URL("../src/prov/prov-statistik.js", import.meta.url), "utf8");
+    assert.match(src, /granser: granserFor\(tf\?\.installningar\)/, "provInfoDok");
+    assert.match(src, /granserFor\(\{ granser: r\.provInfo\?\.granser \}\)/, "historiken");
+  });
   it("granserFor: provets gränser, ogiltiga → standard", () => {
     assert.deepEqual(granserFor({ granser: { gul: 50, gron: 75 } }), { gul: 50, gron: 75 });
     assert.deepEqual(granserFor({ granser: { gul: 40, gron: 70 } }), { gul: 40, gron: 70 }, "ett äldre provs sparade gränser gäller");

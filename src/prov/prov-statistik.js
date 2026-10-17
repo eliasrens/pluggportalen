@@ -45,14 +45,20 @@ export const FARG_INFO = Object.freeze({
 });
 
 /**
- * Gränserna { gul, gron } i procent (#759) – provets/tillfällets, eller
- * standarden 60/85 för gamla prov utan gränser och för ogiltiga värden.
- * Alla vyer (översikten, elevvyn, statistiken, utskriften) går via den här.
+ * Gränserna { gul, gron } i procent (#759) – den enda upplösaren, alla vyer
+ * (översikten, elevvyn, statistiken, utskriften) går via den här. Kedjan:
+ * tillfällets gränser (provets kopia, eller reglaget i Översikten) → provets
+ * → standarden 60/85. Ogiltiga eller saknade gränser hoppas över.
+ *   granserFor(tf.installningar)                   tillfället (kopian bär provets)
+ *   granserFor(tf.installningar, prov.installningar) med provet som reserv
  */
-export function granserFor(installningar) {
-  const g = installningar?.granser;
-  const tal = { gul: Number(g?.gul), gron: Number(g?.gron) };
-  return granserOk(tal) ? tal : { ...STANDARD_INSTALLNINGAR.granser };
+export function granserFor(...installningar) {
+  for (const ins of installningar) {
+    const g = ins?.granser;
+    const tal = { gul: Number(g?.gul), gron: Number(g?.gron) };
+    if (granserOk(tal)) return tal;
+  }
+  return { ...STANDARD_INSTALLNINGAR.granser };
 }
 
 /**

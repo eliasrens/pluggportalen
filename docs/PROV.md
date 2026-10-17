@@ -172,7 +172,12 @@ tillfälle → 60/85, så att reglerna godtar t.ex. ett omprov av det).
   som sparats med Etapp 1:s standard (40/70 lagrat i dokumentet) behåller sina
   40/70 tills läraren ändrar dem. **En** hjälpare för alla vyer:
   `granserFor(installningar)` (prov-statistik.js) → giltiga gränser eller
-  standarden, och `fargFor(andel, granser)` – översikten, elevvyn, CSV,
+  standarden, och `fargFor(andel, granser)` (avrundningsregeln från Etapp 1
+  står kvar). **Kedjan**: tillfällets gränser → provets → 60/85
+  (`granserFor(tf.installningar, prov.installningar)`, första giltiga vinner).
+  Provets gränser är standard och kopieras till tillfället när det skapas och
+  öppnas; reglaget i Översikten sparar på **tillfället** och gäller bara den
+  körningen (provet ändras inte). Används i översikten, elevvyn, CSV,
   fördelningen, klassjämförelsen, utskriften och historiken (via
   `provInfo.granser`). Översiktens reglage ändrar tillfällets kopia (1–99 / 2–100).
 - Reglerna (`provInstOk`): `stavfel` bara `"auto"`/`"sjalv"`, `granser` bara
