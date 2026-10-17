@@ -244,7 +244,7 @@ flyttat något eller tryckt "Behåll den här ordningen".
 `skapad`); Öppna kopierar provets **senaste** version; Stäng sätter status först
 (då nekar reglerna eleverna) och markerar sedan svaren; Öppna igen tar tillbaka
 stängningens markeringar. Läraren väljer låset i rutan: standard tidsgränsen +
-10 min, annars 60 min, "Dölj allt annat" ikryssat.
+den längsta extra tiden (#749) + 10 min, annars 60 min, "Dölj allt annat" ikryssat.
 
 **Eleven:** sparar till `localStorage` vid varje ändring (`pp:prov:<t>:<uid>`);
 omladdning väljer den lokala kopian om den är minst lika ny som serverns
@@ -455,7 +455,7 @@ svar, saldo) + 3 skrivningar i en transaktion. 25 elever = 100 + 75.
 
 | Fil | Vad |
 | --- | --- |
-| `prov-anpassningar.js` | DOM-fri: `extraMin`, `tidsgransFor`, `gallerElev`, `tillfalleNamn`, `rensaExtraTid`, `omprovForval`, `flikbyteText` (`test/prov-anpassningar.test.js`) |
+| `prov-anpassningar.js` | DOM-fri: `extraMin`, `tidsgransFor`, `gallerElev`, `tillfalleNamn`, `elevProvNamn`, `rensaExtraTid`, `omprovForval`, `flikbyteText` (`test/prov-anpassningar.test.js`) |
 | `prov-anpassningar-falt.js` | lärarens fält: `extraTidFalt` (utfällbar, läser namnen först när den fälls ut) och `elevLista` (kryssruta + extra tid per elev) |
 | `prov-anpassningar-rutor.js` | rutorna **Omprov** och **Extra tid** (översikten under provet) |
 
@@ -488,7 +488,9 @@ inte skrev provet (`omprovForval`: inget svar, eller inlämnat av stängningen
 utan ett enda svar); extra tid väljs på samma rad. Omprovet låser aldrig klassen
 (fokusläget gäller hela klassen) – rutan har inget låsval. Listan och rubrikerna
 visar **"Vikingaprovet – omprov (3 elever)"** (`tillfalleNamn`); översikten och
-rättningen visar bara de valda eleverna. Frågorna kopieras när omprovet öppnas,
+rättningen visar bara de valda eleverna. Eleven och statistiken ser
+**"Vikingaprovet (omprov)"** (`elevProvNamn`, även rättningens `provNamn`),
+jämförelsen "4A omprov", och omprovets resultat "Totalt N mynt för provet" (#749). Frågorna kopieras när omprovet öppnas,
 precis som förut (provets senaste version).
 
 - **Reglerna**: `provGallerElev` – med `elevIds` får bara eleverna i listan skapa
