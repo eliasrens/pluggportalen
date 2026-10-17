@@ -142,15 +142,20 @@ export async function korIKlass(ctx, provEllerId, { onKlar } = {}) {
   const fel = box.querySelector(".provl-tf-fel");
   const klassEl = box.querySelector('[data-f="klass"]');
   const klassens = () => mina.find((c) => c.id === klassEl.value)?.studentIds || [];
-  // #748: extra tid per elev – namnen läses först när läraren fäller ut listan.
-  const extra = extraTidFalt({ hamta: () => elevNamn(klassens()) });
-  box.querySelector('[data-plats="extra"]').replaceWith(extra.el);
-  klassEl.addEventListener("change", () => extra.laddaOm(klassens()));
-  // Låsets förval följer tidsgränsen (+10 min) tills läraren rört klockslaget.
+  // Låsets förval följer tidsgränsen + den längsta extra tiden (+10 min) tills
+  // läraren rört klockslaget (#749 F1).
   const lasTill = box.querySelector('[data-f="lasTill"]');
   let rortTill = false;
   lasTill.addEventListener("input", () => (rortTill = true));
-  kopplaTidsgrans(box, () => { if (!rortTill) lasTill.value = klockslagOm(standardLasMinuter(tidsgransVal(box) || null)); });
+  let extra = null;
+  const lasForval = () => {
+    if (!rortTill) lasTill.value = klockslagOm(standardLasMinuter(tidsgransVal(box) || null, extra?.varde()));
+  };
+  // #748: extra tid per elev – namnen läses först när läraren fäller ut listan.
+  extra = extraTidFalt({ hamta: () => elevNamn(klassens()), onAndrat: lasForval });
+  box.querySelector('[data-plats="extra"]').replaceWith(extra.el);
+  klassEl.addEventListener("change", () => extra.laddaOm(klassens()));
+  kopplaTidsgrans(box, lasForval);
 
   const kor = async (oppnaNu, knapp) => {
     fel.hidden = true;
@@ -187,7 +192,7 @@ export async function korIKlass(ctx, provEllerId, { onKlar } = {}) {
 /** Öppna ett förberett/stängt tillfälle: rutan med låsvalet (§5.2, §5.4 "öppna igen"). */
 export function oppnaRuta(tf, klar) {
   const igen = tf.status === STATUS.STANGT;
-  const std = standardLasMinuter(tf.tidsgransMin);
+  const std = standardLasMinuter(tf.tidsgransMin, tf.extraTid);
   // Ett omprov (#748) låser aldrig klassen – låset gäller hela klassen.
   const omprov = arOmprov(tf);
   const { box, stang } = ruta(`
@@ -207,7 +212,15 @@ export function oppnaRuta(tf, klar) {
   if (!omprov) kopplaLas(box);
   // #748: extra tid per elev (i ett omprov bara de valda eleverna).
   const elevIds = async () => (omprov ? tf.elevIds : (await getClasses()).find((c) => c.id === tf.classId)?.studentIds || []);
-  const extra = extraTidFalt({ hamta: async () => elevNamn(await elevIds()), extraTid: tf.extraTid });
+  // Låsets förval följer den extra tiden tills läraren rört klockslaget (#749 F1).
+  const lasTill = box.querySelector('[data-f="lasTill"]');
+  let rortTill = false;
+  lasTill?.addEventListener("input", () => (rortTill = true));
+  let extra = null;
+  const lasForval = () => {
+    if (lasTill && !rortTill && extra) lasTill.value = klockslagOm(standardLasMinuter(tf.tidsgransMin, extra.varde()));
+  };
+  extra = extraTidFalt({ hamta: async () => elevNamn(await elevIds()), extraTid: tf.extraTid, onAndrat: lasForval });
   box.querySelector('[data-plats="extra"]').replaceWith(extra.el);
   const fel = box.querySelector(".provl-tf-fel");
   const knapp = box.querySelector('[data-act="oppna"]');

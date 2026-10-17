@@ -124,11 +124,17 @@ export function oversiktSumma(rader) {
 }
 
 /**
- * Fokuslåsets standardtid (§5.2): tidsgränsen + 10 minuter, annars 60 minuter.
+ * Fokuslåsets standardtid (§5.2): tidsgränsen + den längsta extra tiden (#748,
+ * #749 F1 – annars släpper låset före elevens egen tid) + 10 minuter, annars 60.
+ * @param {number|null} tidsgransMin
+ * @param {Record<string, number>} [extraTid]  { [elevUid]: minuter }
  * @returns {number} minuter från nu
  */
-export function standardLasMinuter(tidsgransMin) {
-  return Number.isInteger(tidsgransMin) && tidsgransMin > 0 ? tidsgransMin + 10 : 60;
+export function standardLasMinuter(tidsgransMin, extraTid = null) {
+  if (!(Number.isInteger(tidsgransMin) && tidsgransMin > 0)) return 60;
+  const tf = { extraTid };
+  const mest = Math.max(0, ...Object.keys(extraTid || {}).map((uid) => extraMin(tf, uid)));
+  return tidsgransMin + mest + 10;
 }
 
 /** Svar-dokument som ska markeras inlämnade när provet stängs (§5.4). */
