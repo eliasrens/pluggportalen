@@ -206,8 +206,10 @@ statistik): läsningar ≈ 1 500 + 100 ≈ **1 600**; skrivningar realistiskt
 3. Inga nya index (bara Etapp 1:s, redan i main via PR #758), inga functions.
 
 Ordningen: **regler först, sedan webben.** Ny webb mot gamla regler: `flikbyten`
-nekas (autosparningen stannar), `stavfel`/`granser` nekas när läraren sparar ett prov
-eller kör det i klass. Gamla webben mot nya regler fungerar (fälten är frivilliga).
+nekas (elevens autosparning stannar) och pluggmynten nekas. #759:s regler skärper
+bara valideringen (de gamla godtog vilken `installningar`-map som helst), så
+`stavfel`/`granser` går igenom åt båda hållen. Gamla webben mot nya regler fungerar
+(alla nya fält är frivilliga).
 
 Före regel-deployen nekas utbetalningen tyst och görs om när rättningen öppnas igen.
 
