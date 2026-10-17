@@ -4,7 +4,8 @@
 //
 //   cellLage(post, svar, fraga)     en fråga hos en elev: ratt/delvis/fel/obesvarad/ej
 //   andelFor(r, fragor, poangsatt)  elevens andel av de BEDÖMDA frågorna
-//   fargFor(andel, granser)         gron (≥ 70 %) / gul (40–69 %) / rod (< 40 %)
+//   granserFor(installningar)       provets/tillfällets färggränser, annars 60/85 (#759)
+//   fargFor(andel, granser)         gron (≥ 85 %) / gul (60–84 %) / rod (< 60 %)
 //   klassOversikt({ … })            fliken Översikt: rutnätet, räknaren, snittet,
 //                                   de tre svåraste frågorna
 //   provInfoDok(r, fragor, tf)      det som sparas i rättningen för statistik-
@@ -18,7 +19,9 @@
 // ============================================================================
 
 import { fragetyp } from "./prov-fragetyper.js";
-import { STANDARD_INSTALLNINGAR } from "./prov-validera.js";
+import { STANDARD_INSTALLNINGAR, granserOk } from "./prov-validera.js";
+
+export { granserText } from "./prov-validera.js";
 import { arBedomd, bedomning, elevStatus, nivaNamn, rattFragor } from "./prov-rattning-logik.js";
 import { fragaNummer } from "./prov-modell.js";
 import { tillMs } from "./prov-tillfalle-logik.js";
@@ -41,18 +44,20 @@ export const FARG_INFO = Object.freeze({
   rod: { ikon: "✗", emoji: "🔴", namn: "Röd" },
 });
 
-/** Gränserna { gul, gron } i procent – provets eller standarden (40/70). */
+/**
+ * Gränserna { gul, gron } i procent (#759) – provets/tillfällets, eller
+ * standarden 60/85 för gamla prov utan gränser och för ogiltiga värden.
+ * Alla vyer (översikten, elevvyn, statistiken, utskriften) går via den här.
+ */
 export function granserFor(installningar) {
-  const s = STANDARD_INSTALLNINGAR.granser;
-  const g = installningar?.granser || {};
-  const gul = Number.isFinite(Number(g.gul)) ? Number(g.gul) : s.gul;
-  const gron = Number.isFinite(Number(g.gron)) ? Number(g.gron) : s.gron;
-  return gul >= 0 && gron <= 100 && gul < gron ? { gul, gron } : { gul: s.gul, gron: s.gron };
+  const g = installningar?.granser;
+  const tal = { gul: Number(g?.gul), gron: Number(g?.gron) };
+  return granserOk(tal) ? tal : { ...STANDARD_INSTALLNINGAR.granser };
 }
 
 /**
  * Färgen för en andel (0–1). null = inget att färga (ingen bedömd fråga).
- * Gränserna gäller hela procent: 39 % röd, 40 % gul, 69 % gul, 70 % grön.
+ * Gränserna gäller hela procent: med 60/85 är 59 % röd, 60 % gul, 84 % gul, 85 % grön.
  */
 export function fargFor(andel, granser = STANDARD_INSTALLNINGAR.granser) {
   if (andel == null || !Number.isFinite(andel)) return null;

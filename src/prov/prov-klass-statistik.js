@@ -9,7 +9,7 @@
 // CSS: prov-statistik.css (.provl-st-).
 // ============================================================================
 
-import { FARG_INFO, historik, linjePunkter, procent } from "./prov-statistik.js";
+import { FARG_INFO, granserFor, historik, linjePunkter, procent } from "./prov-statistik.js";
 import { fordelningEl } from "./prov-stat-vy.js";
 import { hamtaKlassensRattningar } from "./prov-statistik-data.js";
 import { h, laddaCss } from "./prov-vy.js";
@@ -105,5 +105,5 @@ export async function renderClassProv(ctx, pane, { classId, students = [], hamta
     h("section", {}, h("h3", { class: "provl-st-rubrik", text: "Klassens provtillfällen" }),
       h("div", { class: "provl-st-scroll" }, tabell)),
     h("section", {}, h("h3", { class: "provl-st-rubrik", text: "En elev över tid" }), val, elevHost),
-    h("p", { class: "hint", text: "Färgen räknas på de bedömda frågorna: grön ≥ gränsen för grön (standard 70 %), gul ≥ gränsen för gul (40 %), annars röd. Nivån är lärarens bedömning och visas bredvid." })));
+    h("p", { class: "hint", text: `Färgen räknas på de bedömda frågorna med varje provs egna färggränser (standard grön från ${granserFor().gron} %, gul från ${granserFor().gul} %, annars röd). Nivån är lärarens bedömning och visas bredvid.` })));
 }

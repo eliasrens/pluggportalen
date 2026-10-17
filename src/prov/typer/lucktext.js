@@ -96,13 +96,11 @@ export default {
   arBesvarad: (svar) => Array.isArray(svar) && svar.some((s) => typeof s === "string" && s.trim() !== ""),
   rensaSvar: (svar, f) => strangLista(svar, f.antalLuckor, GRANS.kortsvar),
 
-  forslag(svar, facit, f) {
-    const lista = Array.isArray(svar) ? svar : [];
-    let summa = 0;
-    facit.luckor.forEach(({ godkanda }, i) => {
-      const m = matchaText(lista[i], godkanda, facit);
-      summa += m === true ? 1 : m === "delvis" ? DELVIS_STAVFEL_ANDEL : 0;
-    });
+  forslag(svar, facit, f, opt) {
+    const res = luckResultat(svar, facit);
+    // Ett stavfel i någon lucka och läraren rättar stavfel själv (#759) → hela frågan till läraren.
+    if (opt?.stavfel === "sjalv" && res.includes("delvis")) return null;
+    const summa = res.reduce((s, m) => s + (m === true ? 1 : m === "delvis" ? DELVIS_STAVFEL_ANDEL : 0), 0);
     return forslagAv(facit.luckor.length ? summa / facit.luckor.length : 0, f.poang);
   },
 

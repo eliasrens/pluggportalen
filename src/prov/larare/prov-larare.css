@@ -48,6 +48,15 @@
 /* Pluggmynt (#746, provl-mynt.js): sifferfälten sitter i radioknapparnas text. */
 .provl-check input.provl-mynt-antal { width: 5em; height: auto; margin: -3px 4px 0; padding: 3px 6px; font: inherit; }
 .provl-mynt-krav[hidden] { display: none; }
+/* Stavfel och färggränser (#759, provl-bedomning.js). */
+.provl-granser { display: flex; flex-wrap: wrap; gap: 10px 22px; }
+.provl-grans-in { display: inline-flex; align-items: center; gap: 6px; font-weight: 400; }
+.provl-falt .provl-grans-in input { width: 5.5em; padding: 6px 9px; }
+.provl-grans-text { margin: 0; }
+.provl-grans-fel { color: #f08a80; }
+.provl-prick { display: inline-block; width: 0.75em; height: 0.75em; border-radius: 50%; vertical-align: -0.05em; }
+.provl-prick-gul { background: #e3b341; }
+.provl-prick-gron { background: #2fa866; }
 .provl-fel-rad[hidden] { display: none; }
 .provl-spara-rad { padding-top: 4px; }
 
