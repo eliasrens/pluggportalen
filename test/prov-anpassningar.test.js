@@ -7,7 +7,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
-  arOmprov, extraMin, extraTidText, flikbyteText, gallerElev, omprovForval, rensaExtraTid, tidsgransFor, tillfalleNamn,
+  arOmprov, elevProvNamn, extraMin, extraTidText, flikbyteText, gallerElev, omprovForval, rensaExtraTid, tidsgransFor, tillfalleNamn,
   tolkaFlikbyten,
 } from "../src/prov/prov-anpassningar.js";
 import { elevLage, oversiktRader, slutTid } from "../src/prov/prov-tillfalle-logik.js";
@@ -66,6 +66,10 @@ describe("omprov för valda elever", () => {
     assert.equal(tillfalleNamn({ provNamn: "Vikingaprovet", elevIds: ["alva"] }), "Vikingaprovet – omprov (1 elev)");
     assert.equal(tillfalleNamn({ provNamn: "Vikingaprovet" }), "Vikingaprovet");
     assert.equal(tillfalleNamn({}), "Prov");
+    // Eleven och statistiken (#749 F2): utan antal, med "(omprov)".
+    assert.equal(elevProvNamn(omprov), "Vikingaprovet (omprov)");
+    assert.equal(elevProvNamn({ provNamn: "Vikingaprovet" }), "Vikingaprovet");
+    assert.equal(elevProvNamn(null), "Prov");
   });
   it("gäller bara de valda; ett vanligt tillfälle gäller alla", () => {
     assert.equal(arOmprov(omprov), true);

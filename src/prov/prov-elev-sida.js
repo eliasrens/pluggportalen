@@ -20,7 +20,7 @@ import {
   elevLage, kvarNiva, kvarText, lokalNyckel, slutTid, tillMs, valjStartSvar,
 } from "./prov-tillfalle-logik.js";
 import { onProvChange, provForMe } from "./prov-watch.js";
-import { gallerElev, tidsgransFor, tolkaFlikbyten } from "./prov-anpassningar.js";
+import { elevProvNamn, gallerElev, tidsgransFor, tolkaFlikbyten } from "./prov-anpassningar.js";
 import { laddaCss } from "./prov-vy.js";
 
 const LISTA = "#/elev/prov";
@@ -89,7 +89,7 @@ export async function pageProvLista() {
       ? `<span class="provv-etikett provv-etikett-klar">✓ Inlämnat</span>`
       : `<button class="provv-lamna-in" data-t="${escHtml(tf.id)}">${lage === "ny" ? "Starta provet" : "Fortsätt provet"}</button>`;
     return `<article class="provv-kort">
-      <h2>${escHtml(tf.provNamn || "Prov")}</h2>
+      <h2>${escHtml(elevProvNamn(tf))}</h2>
       <p class="provv-kort-fakta">${antalFragor(tf)} frågor${min ? ` · ${min} minuter` : " · ingen tidsgräns"}</p>
       ${knapp}
     </article>`;
@@ -158,7 +158,7 @@ export async function pageProvSkriv() {
 function startRuta(tf, meId, route) {
   const min = tidsgransFor(tf, meId);
   const ruta = el(`<div class="provv-panel provv-start">
-    <h1 class="provv-sidrubrik">${escHtml(tf.provNamn || "Prov")}</h1>
+    <h1 class="provv-sidrubrik">${escHtml(elevProvNamn(tf))}</h1>
     <ul class="provv-start-fakta">
       <li>${antalFragor(tf)} frågor</li>
       <li>${min ? `Du har ${min} minuter. Tiden börjar när du startar.` : "Ingen tidsgräns."}</li>

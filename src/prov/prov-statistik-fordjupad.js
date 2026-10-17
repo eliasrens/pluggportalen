@@ -16,6 +16,7 @@
 import { NIVAER, fragaNummer } from "./prov-modell.js";
 import { arBedomd, bedomning, ELEV_STATUS_NAMN, rattFragor } from "./prov-rattning-logik.js";
 import { CELL, FARG_INFO, fargFor, granserFor, klassOversikt } from "./prov-statistik.js";
+import { arOmprov } from "./prov-anpassningar.js";
 
 /** Kort text för en etikett: första raden, högst n tecken (kodpunkter). */
 export function kortText(s, n = 60) {
@@ -88,7 +89,8 @@ function klassKolumn({ tf, klassNamn, rattningar, med }, granser) {
     installningar: { ...(tf.installningar || {}), granser },
   });
   return {
-    t: tf.id, klassNamn: klassNamn || tf.classId || "", antal: uids.length,
+    // Omprovet (#748) heter "4A omprov" (#749 F2), inte "4A (2)".
+    t: tf.id, klassNamn: `${klassNamn || tf.classId || ""}${arOmprov(tf) ? " omprov" : ""}`, antal: uids.length,
     rattade: m.rader.filter((r) => r.andel != null).length,
     snitt: m.snitt, farg: fargFor(m.snitt, granser), fordelning: m.raknare,
     perFraga: new Map(m.fragaSumma.map((s) => [s.fid, s.andel])),
@@ -108,7 +110,7 @@ export function jamforKlasser(nu, andra = []) {
     .map((a) => klassKolumn(a, granser))
     .sort((a, b) => a.klassNamn.localeCompare(b.klassNamn, "sv", { numeric: true }));
   const kolumner = [klassKolumn(nu, granser), ...ovriga];
-  // Samma klass två gånger (omprov): skilj dem åt med en siffra.
+  // Samma klass två gånger (provet kört igen): skilj dem åt med en siffra.
   const sett = new Map();
   for (const k of kolumner) {
     const n = (sett.get(k.klassNamn) || 0) + 1;

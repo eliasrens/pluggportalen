@@ -16,6 +16,7 @@
 import { arFraga, fragetyp } from "./prov-fragetyper.js";
 import { NIVAER, autoForslag, fragaNummer, maxPoang } from "./prov-modell.js";
 import { delpoang } from "./prov-rattning.js";
+import { arOmprov, elevProvNamn } from "./prov-anpassningar.js";
 
 /** Status per elev (§6.3) – i den ordningen. */
 export const ELEV_STATUS = Object.freeze({ EJ: "ej", DELVIS: "delvis", RATTAD: "rattad", TILLBAKA: "tillbaka" });
@@ -342,7 +343,8 @@ export function resultatModell(tf, svarDok, r) {
   const visaFacit = !!r.facit && Object.keys(r.facit).length > 0;
   const summa = summera(r, fragor);
   return {
-    namn: tf?.provNamn || r.provNamn || "Prov",
+    namn: tf ? elevProvNamn(tf) : r.provNamn || "Prov",
+    omprov: arOmprov(tf),
     poangsatt,
     totalPoang: summa.totalPoang,
     maxPoang: summa.maxPoang,
