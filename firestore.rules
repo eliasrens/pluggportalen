@@ -2012,7 +2012,19 @@ service cloud.firestore {
     function validProvDoc(d) {
       return d.namn is string && d.namn.size() >= 1 && d.namn.size() <= 80 &&
         d.fragor is list && d.fragor.size() <= 60 &&
-        (!('installningar' in d) || d.installningar is map);
+        (!('installningar' in d) || provInstOk(d.installningar));
+    }
+    // Provets inställningar (#759) – samma på provet och tillfället (kopian).
+    // Saknas stavfel/granser (gamla prov) gäller standarden: auto, 60/85.
+    function provInstOk(ins) {
+      return ins is map &&
+        (!('stavfel' in ins) || ins.stavfel in ['auto', 'sjalv']) &&
+        (!('granser' in ins) || provGranserOk(ins.granser));
+    }
+    // Färggränserna i hela procent: 0 < gul < grön <= 100 (prov-validera.js granserOk).
+    function provGranserOk(g) {
+      return g is map && g.keys().hasOnly(['gul', 'gron']) &&
+        g.gul is int && g.gron is int && g.gul > 0 && g.gul < g.gron && g.gron <= 100;
     }
     // Årskurskonton läser ALLA prov (kopiera kollegors, som områdena);
     // ändrar och raderar bara sina egna. Elever läser aldrig provet.
@@ -2060,11 +2072,16 @@ service cloud.firestore {
         (resource.data.status in ['oppet', 'stangt'] && isClassMember(resource.data.classId));
       allow create: if hasClass(request.resource.data.classId) &&
         validTillfalle(request.resource.data) &&
+        (!('installningar' in request.resource.data) || provInstOk(request.resource.data.installningar)) &&
         request.resource.data.status == 'forberett' &&
         request.resource.data.createdBy == request.auth.uid &&
         provOmprovAvOk(request.resource.data);
       allow update: if hasClass(resource.data.classId) &&
         validTillfalle(request.resource.data) &&
+        // Inställningarna (#759) prövas när de ändras – ett äldre tillfälle med
+        // gränser som inte längre godtas kan ändå stängas och öppnas.
+        (request.resource.data.get('installningar', null) == resource.data.get('installningar', null) ||
+          provInstOk(request.resource.data.get('installningar', null))) &&
         request.resource.data.classId == resource.data.classId &&
         request.resource.data.provId == resource.data.provId &&
         request.resource.data.get('createdBy', null) == resource.data.get('createdBy', null) &&

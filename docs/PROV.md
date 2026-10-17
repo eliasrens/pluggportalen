@@ -124,6 +124,8 @@ Vyerna ligger i samma typfil: `renderElev` (C, #740) och en visningsfunktion
   godkända svar kortare än 4 tecken (`ek`/`ok`).
 - Delpoäng (`delpoang`) avrundas till **närmaste halva poäng**. Ett stavfel ger
   halva poängen (`DELVIS_STAVFEL_ANDEL = 0.5`) – läraren justerar i rättningen.
+  Med provets val **Rätta stavfel själv** (`installningar.stavfel: "sjalv"`, #759)
+  får stavfelssvaret inget förslag alls – se "Inställningar per prov" nedan.
 - `gruppNyckel(svar, { skiftlage })` grupperar identiska kortsvar/luckor (§6.1).
 - `fragetyp("lucktext").luckResultat(svar, facit)` → förslaget per lucka.
 
@@ -133,13 +135,65 @@ Vyerna ligger i samma typfil: `renderElev` (C, #740) och en visningsfunktion
 `NIVAER`, `delaUppProv(prov)`, `fragaNummer(fragor)`, `tomtSvar(fragor)`,
 `rensaSvar(svar, fragor)`, `besvarat(fragor, svar)` →
 `{ besvarade, antal, obesvarade: [nr] }`, `fragaLista([4, 9])` → "Fråga 4 och 9",
-`maxPoang(fragor)`, `autoForslag(fragor, svar, facit)` →
-`{ [fragaId]: { poang, ratt, auto: true } }` (inte fritext).
+`maxPoang(fragor)`, `autoForslag(fragor, svar, facit, { stavfel })` →
+`{ [fragaId]: { poang, ratt, auto: true } }` (inte fritext, inte stavfel med "sjalv").
 
 `validateProv(obj)` i `prov-validera.js` → `{ ok, errors, warnings, value }`
 (`value` = `null` vid fel, som `validateArea`). Standardinställningar:
-`STANDARD_INSTALLNINGAR` (inkl. färggränserna `granser: { gul: 40, gron: 70 }`
-för §7.5). `tolkaTidsgrans(v)` → `null` | 5–240 | `undefined` (ogiltig).
+`STANDARD_INSTALLNINGAR` (inkl. `stavfel: "auto"` och färggränserna
+`granser: { gul: 60, gron: 85 }`, #759). `tolkaTidsgrans(v)` → `null` | 5–240 |
+`undefined` (ogiltig). `stavfelFor(installningar)`, `granserOk(g)` och
+`granserText(g)` – se "Inställningar per prov".
+
+## Inställningar per prov (Etapp 2, #759)
+
+Två val i redigeraren (`src/prov/larare/provl-bedomning.js`, fältet **Stavfel
+och färggränser** under Pluggmynt). De sparas i `prov.installningar` och följer
+med till tillfället när det skapas och öppnas (`tillfalleInstallningar` i
+prov-validera.js: standarden för det som saknas, ogiltiga gränser från ett äldre
+tillfälle → 60/85, så att reglerna godtar t.ex. ett omprov av det).
+
+- **Stavfel** `stavfel: "auto" | "sjalv"` (standard `"auto"`; saknat = auto, så
+  gamla prov fungerar som förut). Gäller frågor där **Exakt stavning krävs** är
+  av (kortsvar och lucktext). `"auto"`: ett stavfel ger halva poängen som förslag
+  (`auto: true`). `"sjalv"`: typens `forslag(svar, facit, f, { stavfel })` ger
+  `null` för ett svar med stavfel – kortsvaret, eller hela lucktexten om någon
+  lucka har ett stavfel – så frågan står som **? Inte rättad** hos eleven tills
+  läraren bedömt den (Godkänn alla förslag räcker inte). Rätt stavat och helt
+  fel får förslag som vanligt; med exakt stavning är ett stavfel fortfarande fel.
+  Rättningsvyn läser valet ur **tillfällets** inställningar
+  (`stavfelFor(tf.installningar)` → `nyRattning`/`kompletteraForslag`) och
+  facitraden säger "stavfel rättar du själv" i stället för "ett stavfel ger delvis".
+  Förslag som redan sparats ändras inte om valet ändras efteråt.
+- **Färggränser** `granser: { gul, gron }` i hela procent av maxpoängen (utan
+  poäng: andelen rätt), standard **60/85**: röd under gul, gul från gul, grön
+  från grön. Validering: `0 < gul < grön ≤ 100` (`granserOk`, samma i reglerna
+  `provGranserOk`). Gamla prov och tillfällen **utan** gränser får 60/85; ett prov
+  som sparats med Etapp 1:s standard (40/70 lagrat i dokumentet) behåller sina
+  40/70 tills läraren ändrar dem. **En** hjälpare för alla vyer:
+  `granserFor(installningar)` (prov-statistik.js) → giltiga gränser eller
+  standarden, och `fargFor(andel, granser)` (avrundningsregeln från Etapp 1
+  står kvar). **Kedjan**: tillfällets gränser → provets → 60/85
+  (`granserFor(tf.installningar, prov.installningar)`, första giltiga vinner).
+  Prov sparade före #759 behåller sina sparade gränser (40/70); bara prov utan gränser får 60/85.
+  Provets gränser är standard och kopieras till tillfället när det skapas och
+  öppnas; reglaget i Översikten sparar på **tillfället** och gäller bara den
+  körningen (provet ändras inte). Används i översikten, elevvyn, CSV,
+  fördelningen, klassjämförelsen, utskriften och historiken (via
+  `provInfo.granser`). Översiktens reglage ändrar tillfällets kopia (1–99 / 2–100).
+- Reglerna (`provInstOk`): `stavfel` bara `"auto"`/`"sjalv"`, `granser` bara
+  `{ gul, gron }` heltal enligt ovan – på provet, när ett tillfälle skapas och när
+  ett tillfälles inställningar **ändras** (ett äldre tillfälle med gränser som inte
+  längre godtas kan ändå stängas/öppnas).
+
+Tester: `test/prov-installningar.test.js`, regler
+`test/firestore-rules-prov-installningar.test.js`. Förhandsvisning utan Firebase:
+fältet i `preview/preview-prov-larare.html` (Redigera ett prov); rättningen och
+statistiken i `preview/preview-prov-rattning.html` och
+`preview/preview-prov-statistik.html` med `?stavfel=sjalv`, `?granser=50-75`
+eller `?gammalt` (tillfälle utan fälten) – länkar i kontrollraden,
+`preview/prov-installningar-pv.js`. I rättningspreviewn har Cleo stavfelet
+"Birkka" på fråga 4.
 
 ## Skapa och redigera (B, #739)
 
@@ -175,7 +229,9 @@ Förhandsvisning utan Firebase: `preview/preview-prov-larare.html`
 
 ## Vad reglerna kräver av klienten (B–E)
 
-- **prov**: `createdBy` = egen uid vid skapande, `namn` 1–80, `fragor` ≤ 60.
+- **prov**: `createdBy` = egen uid vid skapande, `namn` 1–80, `fragor` ≤ 60;
+  #759: `installningar.stavfel` `"auto"`/`"sjalv"`, `installningar.granser`
+  `{ gul, gron }` heltal med `0 < gul < gron ≤ 100` (samma på tillfället).
 - **provTillfallen**: `classId`, `provId` (text), `status`, `fragor` (lista,
   får vara tom som förberett), `tidsgransMin` null eller heltal 5–240;
   `createdBy` = egen uid vid skapande. `classId`, `provId`, `createdBy` byts aldrig.
@@ -328,8 +384,9 @@ inte rättad `?`), så att det fungerar för färgblinda och vid utskrift.
   inte bedömt). Obesvarade och orättade blir alltså inte fel förrän läraren rättat
   dem; en elev utan bedömda frågor är "ej rättad". Med poäng: poäng av max för de
   bedömda frågorna. Utan poäng: andelen rätt, "delvis" = ½.
-- **Färgen**: grön ≥ `granser.gron` (70), gul ≥ `granser.gul` (40), annars röd –
-  räknat på hela procent med flyttalsbruset bort (7 av 10 = 70 % = grön).
+- **Färgen**: grön ≥ `granser.gron`, gul ≥ `granser.gul`, annars röd – provets
+  gränser (#759, standard 60/85) – räknat på hela procent med flyttalsbruset bort
+  (7 av 10 = 70 % = grön med gränsen 70).
   Nivån (EG/G/MG) visas **bredvid** och ändrar aldrig färgen.
 - **Översikt** `#/larare/prov/ratta?t=…&lage=oversikt` (knappen **Resultat** i
   Provtillfällen när något är rättat): räknaren "✓ 12 gröna · ½ 7 gula · ✗ 4 röda ·
@@ -633,6 +690,11 @@ klassen har rättningar (25 elever × 10 prov = 250), en gång när fliken öppn
 sammansatta indexet och fältundantaget för `rattning`). Inga functions.
 Pluggmynten (#746) kräver bara regel-deployen – innan dess nekas utbetalningen
 och görs om när rättningen öppnas efter deployen.
+Inställningarna per prov (#759) kräver regel-deployen för valideringen av
+`stavfel`/`granser` (`provInstOk`). Ordningen spelar ingen roll: de gamla
+reglerna godtar vilken `installningar`-map som helst, och de nya godtar allt
+den nya och den gamla webben skriver (utom ett gammalt reglage som drogs till
+gul 0 – det nekas och visas som sparfel).
 Anpassningarna (#748) kräver regel-deployen: innan den nekas varje sparning med
 `flikbyten` (den gamla `validSvarFalt` känner inte fältet) och extra tid
 förlänger inte reglernas gräns. Deploya reglerna FÖRE webben.

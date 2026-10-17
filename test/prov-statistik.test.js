@@ -23,36 +23,37 @@ const R = (poster) => ({ fragor: poster });
 const post = (ratt, poang) => ({ ratt, poang, auto: false });
 
 describe("färgerna (§7.5)", () => {
-  it("gränserna 39/40 % och 69/70 % (standard 40/70)", () => {
-    assert.equal(fargFor(0.39), "rod");
-    assert.equal(fargFor(0.3999), "rod");
-    assert.equal(fargFor(0.4), "gul");
-    assert.equal(fargFor(0.69), "gul");
-    assert.equal(fargFor(0.6999), "gul");
-    assert.equal(fargFor(0.7), "gron");
+  it("gränserna 59/60 % och 84/85 % (standard 60/85, #759)", () => {
+    assert.equal(fargFor(0.59), "rod");
+    assert.equal(fargFor(0.5999), "rod");
+    assert.equal(fargFor(0.6), "gul");
+    assert.equal(fargFor(0.84), "gul");
+    assert.equal(fargFor(0.8499), "gul");
+    assert.equal(fargFor(0.85), "gron");
     assert.equal(fargFor(1), "gron");
     assert.equal(fargFor(0), "rod");
     assert.equal(fargFor(null), null, "inget bedömt = ingen färg");
   });
-  it("poängen räknas exakt vid gränserna: 39/100 röd, 40/100 gul, 69/100 gul, 70/100 grön", () => {
+  it("poängen räknas exakt vid gränserna: 59/100 röd, 60/100 gul, 84/100 gul, 85/100 grön", () => {
     // En fråga à 100 poäng – andelen = poängen.
     const f = [{ id: "a", typ: "flerval", fraga: "?", alternativ: ["x", "y"], ratt: 0, poang: 100 }];
     const farg = (p) => fargFor(andelFor(R({ a: post("delvis", p) }), f, true).andel);
-    assert.deepEqual([39, 40, 69, 70].map(farg), ["rod", "gul", "gul", "gron"]);
-    // 7 av 10 rätt (0.7 * 100 = 70.00000000000001 i flyttal) blir grön, 4 av 10 gul.
+    assert.deepEqual([59, 60, 84, 85].map(farg), ["rod", "gul", "gul", "gron"]);
+    // 7 av 10 rätt (0.7 * 100 = 70.00000000000001 i flyttal) blir grön med 40/70, 4 av 10 gul.
     const tio = fragorN(10);
     const k = (n) => R(Object.fromEntries(tio.map((x, i) => [x.id, i < n ? post(true, 10) : post(false, 0)])));
-    assert.equal(fargFor(andelFor(k(7), tio, true).andel), "gron");
-    assert.equal(fargFor(andelFor(k(4), tio, true).andel), "gul");
-    assert.equal(fargFor(andelFor(k(3), tio, true).andel), "rod");
+    const g = { gul: 40, gron: 70 };
+    assert.equal(fargFor(andelFor(k(7), tio, true).andel, g), "gron");
+    assert.equal(fargFor(andelFor(k(4), tio, true).andel, g), "gul");
+    assert.equal(fargFor(andelFor(k(3), tio, true).andel, g), "rod");
   });
   it("läraren ändrar gränserna per prov", () => {
     assert.equal(fargFor(0.55, { gul: 50, gron: 60 }), "gul");
     assert.equal(fargFor(0.6, { gul: 50, gron: 60 }), "gron");
     assert.equal(fargFor(0.49, { gul: 50, gron: 60 }), "rod");
     assert.deepEqual(granserFor({ granser: { gul: 30, gron: 80 } }), { gul: 30, gron: 80 });
-    assert.deepEqual(granserFor({}), { gul: 40, gron: 70 });
-    assert.deepEqual(granserFor({ granser: { gul: 80, gron: 70 } }), { gul: 40, gron: 70 }, "ogiltiga gränser → standard");
+    assert.deepEqual(granserFor({}), { gul: 60, gron: 85 }, "gamla prov utan gränser → standard 60/85");
+    assert.deepEqual(granserFor({ granser: { gul: 80, gron: 70 } }), { gul: 60, gron: 85 }, "ogiltiga gränser → standard");
   });
 });
 
@@ -101,7 +102,7 @@ describe("andelen", () => {
 
 describe("klassöversikten (§7.5 Hela klassen)", () => {
   const PROV = validateProv({
-    namn: "P", installningar: { poang: true },
+    namn: "P", installningar: { poang: true, granser: { gul: 40, gron: 70 } },
     fragor: [
       { id: "t1", typ: "text", titel: "Läs", brodtext: "Text" },
       { id: "q1", typ: "flerval", fraga: "1?", alternativ: ["a", "b"], ratt: 0 },
@@ -193,7 +194,8 @@ describe("historiken (§7.5 Över tid)", () => {
     const a = perElev.get("a");
     assert.deepEqual(a.map((p) => p.t), ["t0", "t1", "t2"]);
     assert.deepEqual(a.map((p) => p.andel), [0.75, 0.9, 0.8]);
-    assert.deepEqual(a.map((p) => p.farg), ["gron", "gron", "gul"]);
+    // t0 saknar provInfo → standardgränserna 60/85 (#759): 75 % är gul.
+    assert.deepEqual(a.map((p) => p.farg), ["gul", "gron", "gul"]);
     assert.equal(a[1].nivaNamn, "Mer än godtagbart");
     assert.equal(perElev.get("c")[0].farg, null);
   });
@@ -205,7 +207,8 @@ describe("historiken (§7.5 Över tid)", () => {
   it("snitt och fördelning", () => {
     assert.equal(snitt([null, 0.5, 1]), 0.75);
     assert.equal(snitt([null]), null);
-    assert.deepEqual(fordelning([0.39, 0.4, 0.7, null]), { gron: 1, gul: 1, rod: 1, ej: 1 });
+    assert.deepEqual(fordelning([0.59, 0.6, 0.85, null]), { gron: 1, gul: 1, rod: 1, ej: 1 });
+    assert.deepEqual(fordelning([0.39, 0.4, 0.7, null], { gul: 40, gron: 70 }), { gron: 1, gul: 1, rod: 1, ej: 1 });
   });
 });
 

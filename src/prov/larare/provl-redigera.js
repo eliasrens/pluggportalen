@@ -28,6 +28,7 @@ import {
 } from "../prov-redigera-ops.js";
 import { byggFragaForm } from "./provl-fragaform.js";
 import { myntFalt } from "./provl-mynt.js";
+import { bedomningFalt } from "./provl-bedomning.js";
 import { felText, hamtaProv, raderaProv, sparaProv } from "./provl-data.js";
 import { HASH } from "./page-larare-prov.js";
 import { korIKlass, raderaRuta } from "./provl-lista.js";
@@ -155,6 +156,12 @@ function ritaRedigerare(ctx, host, st) {
     onAndra: (m) => andra({ ...st.prov, installningar: { ...st.prov.installningar, mynt: m } }),
   });
   $(".provl-installningar").after(mynt.el);
+  // Stavfel och färggränser (#759) – under pluggmynten.
+  const bedomning = bedomningFalt({
+    installningar: ins,
+    onAndra: (andring) => andra({ ...st.prov, installningar: { ...st.prov.installningar, ...andring } }),
+  });
+  mynt.el.after(bedomning.el);
 
   // --- Frågekorten --------------------------------------------------------------
   const lista = $(".provl-fragelista");

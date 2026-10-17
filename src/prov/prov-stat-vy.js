@@ -23,7 +23,8 @@ import { fragetyp } from "./prov-fragetyper.js";
 import { ELEV_STATUS_NAMN, elevStatus, nivaNamn } from "./prov-rattning-logik.js";
 import { bedomningsEtikett } from "./prov-resultat-vy.js";
 import {
-  CELL_INFO, FARG_INFO, andelFor, cellLage, fargFor, fordelningText, klassOversikt, procent, sorteraRader, totalText,
+  CELL_INFO, FARG_INFO, andelFor, cellLage, fargFor, fordelningText, granserText, klassOversikt, procent, sorteraRader,
+  totalText,
 } from "./prov-statistik.js";
 import { h, stycken } from "./prov-vy.js";
 
@@ -64,25 +65,28 @@ function teckenforklaring() {
       h("span", { class: `provl-st-c provl-st-c-${l} provl-st-c-liten`, "aria-hidden": "true", text: CELL_INFO[l].ikon }), ` ${CELL_INFO[l].namn}`)));
 }
 
-const granssText = (g) => `Färggränser: röd under ${g.gul} %, gul ${g.gul}–${g.gron - 1} %, grön ${g.gron} % eller mer`;
+const granssText = (g) => `Färggränser: ${granserText(g)}`;
 
-/** Två reglage för färggränserna (§7.5) – gul från, grön från. */
+/**
+ * Två reglage för färggränserna (§7.5) – gul från, grön från. Startar på
+ * tillfällets gränser (provets från Mina prov, #759); hela procent som där.
+ */
 function granssReglage(v, onAndrat) {
   const g = v.granser();
-  const falt = (id, namn, varde) => {
+  const falt = (id, namn, varde, min, max) => {
     const ut = h("output", { class: "provl-st-gv", text: `${varde} %` });
-    const inp = h("input", { type: "range", min: "5", max: "95", step: "5", value: String(varde), "data-g": id, "aria-label": namn });
+    const inp = h("input", { type: "range", min: String(min), max: String(max), step: "1", value: String(varde), "data-g": id, "aria-label": namn });
     return { inp, ut, el: h("label", { class: "provl-st-grans" }, h("span", { text: namn }), inp, ut) };
   };
   const sammanfattning = h("summary", { text: granssText(g) });
-  const gul = falt("gul", "Gul från", g.gul);
-  const gron = falt("gron", "Grön från", g.gron);
+  const gul = falt("gul", "Gul från", g.gul, 1, 99);
+  const gron = falt("gron", "Grön från", g.gron, 2, 100);
   const andra = (vem) => {
     let a = Number(gul.inp.value);
     let b = Number(gron.inp.value);
     if (a >= b) {
       if (vem === "gul") b = Math.min(100, a + 5);
-      else a = Math.max(0, b - 5);
+      else a = Math.max(1, b - 5);
       gul.inp.value = String(a);
       gron.inp.value = String(b);
     }
@@ -95,7 +99,7 @@ function granssReglage(v, onAndrat) {
   gron.inp.addEventListener("input", () => andra("gron"));
   return h("details", { class: "provl-st-granser" }, sammanfattning,
     h("div", { class: "provl-st-grans-rad" }, gul.el, gron.el),
-    h("p", { class: "hint", text: "Gäller det här provet i klassen. Nivån (EG/G/MG) är din bedömning och ändrar inte färgen." }));
+    h("p", { class: "hint", text: "Gäller det här provet i klassen – provets egna gränser ställer du in i Mina prov. Nivån (EG/G/MG) är din bedömning och ändrar inte färgen." }));
 }
 
 // --- Hela klassen ---------------------------------------------------------------
