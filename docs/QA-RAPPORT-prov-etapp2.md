@@ -20,16 +20,18 @@ Slut-QA av epicen Prov Etapp 2 (#745–#748) på epic-grenen `6ca546f`. Spec:
   `myntUtbetalt`, ändra flikbyten efter inlämning, radera kvittot, läsa en annan
   klass tillfälle och starta ett omprov hen inte är vald till → alla
   `permission-denied`.
-- **Inga buggar som blockerar.** Fynden är låga/kosmetiska eller info (F1–F9);
-  inga är rättade här (leadens beslut).
-- **Sviterna gröna:** unit 2966/2966, `test:rules` 703/703, `test:functions`
-  232/232, bootgrafen 107 filer (ingen `src/prov/`).
+- **Inga buggar som blockerar.** F1–F5 (en låg, fyra kosmetiska) är **rättade på
+  tester-grenen och verifierade i webbläsaren** (epic-leadens beslut). F6–F9 är info
+  och står kvar som kända begränsningar.
+- **Sviterna gröna:** unit 2968/2968 efter rättningarna (2966 före, +2 nya tester),
+  `test:rules` 703/703 och `test:functions` 232/232 (reglerna och functions rördes
+  inte av rättningarna), bootgrafen 107 filer (ingen `src/prov/`).
 
 ## Automatiska sviter
 
 | Svit | Resultat | Hur |
 | --- | --- | --- |
-| Unit | **2966 pass, 0 fail** (1 skip) | `node --test $(ls test/*.test.js \| grep -v firestore-rules) test/admin-credential.test.mjs test/brakresan-drake-art.test.mjs` (filerna `firestore-rules*.test.js` kräver emulatorn och körs i nästa rad) |
+| Unit | **2966 pass, 0 fail** (1 skip); efter F1–F5 **2968 pass** | `node --test $(ls test/*.test.js \| grep -v firestore-rules) test/admin-credential.test.mjs test/brakresan-drake-art.test.mjs` (filerna `firestore-rules*.test.js` kräver emulatorn och körs i nästa rad) |
 | `test:rules` (56 filer) | **703/703** | en Firestore-emulator på slumpport, `-Xmx1200m`, `FIRESTORE_EMULATOR_HOST=… node --test <listan i package.json>` |
 | `test:functions` (22 filer) | **232/232** | `firebase emulators:exec --only functions,auth,firestore` med egen `.qa-*.firebase.json` (slumpportar) och `FUNCTIONS_EMULATOR_HOST` hämtad ur hubben (functions-emulatorn tar inte alltid den port man ger den) |
 | Bootgrafen | **107 filer**, ingen `src/prov/` | `node admin/qa-bootgraf-bfs.mjs` |
@@ -40,11 +42,11 @@ En emulator åt gången. Etapp 2 rör inga functions.
 
 | # | Allvar | Var | Vad |
 | --- | --- | --- | --- |
-| F1 | låg (UX) | `src/prov/prov-tillfalle-rutor.js:149–153`, `prov-tillfalle-logik.js:130` | **Fokuslåsets förval räknar inte med extra tid.** Tidsgräns 40 min → låset förvalt till +50 min. Dante fick +15 (sedan +30) men låset släpper ändå vid +50 – han kan skriva klart men är olåst de sista 5–20 minuterna. Lärarens "Extra tid" under provet förlänger inte heller låset. Förslag: förval = tidsgräns + största extra tid + 10. |
-| F2 | kosmetisk | `prov-elev-sida.js:111`, `prov-resultat-vy.js:31`, `prov-klass-statistik.js`, `prov-statistik-fordjupad.js:116` | **Omprovet ser ut som ett eget prov utanför lärarens lista.** Elevens lista visar två "Vikingaprovet QA2"; resultatet visar "+12 mynt" på ursprunget och "+50 mynt" på omprovet – Cleo fick 50 totalt, men det ser ut som 62 (omprovets `myntUtbetalt` speglar provets sammanlagda mynt, som avsett i #748). Klassens Prov-flik har två rader med samma namn, och jämförelsen kallar omprovet "4A (2)". Lärarens tillfällelista säger rätt "– omprov (2 elever)". Förslag: `tillfalleNamn` även hos eleven/i statistiken, och "+38 mynt (50 för provet)" på omprovet. |
-| F3 | kosmetisk | `src/prov/larare/provl-mynt.js:52` | Med "Mynt per poäng" valt: stäng av "Poängsätt frågorna" → valet byts tyst till "Inga mynt" (radioknappen blir grå med "– kräver att frågorna poängsätts"). Slår man på poängsättningen igen kommer valet inte tillbaka och provet sparas med inga mynt. |
-| F4 | kosmetisk | `src/prov/prov-utskrift.js:32–56` | Utskriftsvyn (helskärm) stängs bara med Stäng/Esc – inte när sidan byts (webbläsarens Bakåt eller hash-byte). Den låg kvar över statistiksidan. Samma mönster som inloggningskorten (`teacher-login-print.js`). |
-| F5 | kosmetisk | "Hämta från område"-rutan | Två scrollnivåer (listan scrollar i rutan som också scrollar). På 1366×900 med ett stort område hamnar "Lägg till i provet" under kanten tills man scrollar rutan (`docs/qa-prov-749/hamta-fran-omrade-1366.png`). |
+| F1 | låg (UX) – ✅ rättad `f5e8f71` | `src/prov/prov-tillfalle-rutor.js:149–153`, `prov-tillfalle-logik.js:130` | **Fokuslåsets förval räknade inte med extra tid.** Tidsgräns 40 min → låset förvalt till +50 min. Dante fick +15 (sedan +30) men låset släpper ändå vid +50 – han kan skriva klart men är olåst de sista 5–20 minuterna. Lärarens "Extra tid" under provet förlänger inte heller låset. **Rättat:** `standardLasMinuter(tidsgräns, extraTid)` = tidsgräns + längsta giltiga extra tid + 10; Kör i klass och Öppna räknar om förvalet när extra tid ändras (tills läraren själv rört klockslaget). Verifierat 09:39: 40 min → 10:30, Dante +30 → 11:00, bara Alva +15 → 10:45; låset sparades till 11:00 (`f1-las-extra-tid-1366.png`). Nytt test i `test/prov-tillfalle.test.js`. Kvar: "Extra tid" under ett pågående prov förlänger inte ett redan satt lås – läraren ändrar låset under Klasser. |
+| F2 | kosmetisk – ✅ rättad `c9decee` | `prov-elev-sida.js:111`, `prov-resultat-vy.js:31`, `prov-klass-statistik.js`, `prov-statistik-fordjupad.js:116` | **Omprovet såg ut som ett eget prov utanför lärarens lista.** Elevens lista visar två "Vikingaprovet QA2"; resultatet visar "+12 mynt" på ursprunget och "+50 mynt" på omprovet – Cleo fick 50 totalt, men det ser ut som 62 (omprovets `myntUtbetalt` speglar provets sammanlagda mynt, som avsett i #748). Klassens Prov-flik har två rader med samma namn, och jämförelsen kallar omprovet "4A (2)". Lärarens tillfällelista säger rätt "– omprov (2 elever)". **Rättat (ingen ändring i datamodellen):** `elevProvNamn(tf)` = "Vikingaprovet F (omprov)" – elevens listor och provsida, resultatet och rättningens `provNamn` (som klassens Prov-flik läser); jämförelsen säger "4A omprov"; omprovets resultat visar "Totalt 16 mynt för provet" i stället för "+16" (ursprunget "+4"). Verifierat i webbläsaren (`f2-elev-resultat-omprov.png`); tester i `prov-anpassningar`, `prov-mynt` och `prov-statistik-fordjupad`. Rättningar som skapades före rättelsen behåller sitt gamla namn. |
+| F3 | kosmetisk – ✅ rättad `6c13bf2` | `src/prov/larare/provl-mynt.js:52` | Med "Mynt per poäng" valt: stäng av "Poängsätt frågorna" → valet byts tyst till "Inga mynt" (radioknappen blir grå med "– kräver att frågorna poängsätts"). Slog man på poängsättningen igen kom valet inte tillbaka. **Rättat:** "per poäng" kommer tillbaka när poängsättningen slås på igen, om läraren inte valt något annat under tiden. Verifierat: per poäng → av (Inga, grå) → på (per poäng igen); av → välj Fast → på (Fast kvar). |
+| F4 | kosmetisk – ✅ rättad `e1d2d4b` | `src/prov/prov-utskrift.js:32–56` | Utskriftsvyn (helskärm) stängs bara med Stäng/Esc – inte när sidan byts (webbläsarens Bakåt eller hash-byte). Den låg kvar över statistiksidan. **Rättat:** vyn stängs vid `hashchange`. Verifierat: Skriv ut resultat → Bakåt → ingen `.provl-utskrift` kvar. (Inloggningskorten har samma mönster kvar.) |
+| F5 | kosmetisk – ✅ rättad `5603118` + `67710cb` | "Hämta från område"-rutan | Två scrollnivåer (listan scrollar i rutan som också scrollar). På 1366×900 med ett stort område hamnade "Lägg till i provet" under kanten tills man scrollade rutan (före: `hamta-fran-omrade-1366.png`). **Rättat:** rutan är en kolumn där bara listan scrollar; sammanfattningen, varningarna och knapparna ligger alltid synliga. Verifierat med alla 29 saker valda: 1366×900 knappen slutar på 862 px, 1366×768 på 730 px, enda scrollytan är listan (`f5-hamta-1366x900.png`). Bara på mycket låga skärmar (≈ 700 px) scrollar rutan som reserv. |
 | F6 | info | `firestore.rules` `provMyntKvittoOk` | Taket 200 och kvittot gäller **per tillfälle** (plus dess omprov). Kör läraren samma prov som ett nytt vanligt tillfälle i samma klass börjar ett nytt kvitto – eleven kan få upp till 200 till. Spec: "per prov och elev". Läraren styr det själv; omprov är rätt väg. |
 | F7 | info (känd avvikelse #748) | `provTillfallen/{omprov}` | Omprovets tillfälle är läsbart för hela klassen, med `extraTid`. Bilal (inte vald) läste `{ <Dantes uid>: 30 }` från konsolen. Inget facit, inga namn, och han kan inte starta eller skriva (nekad). Dokumenterat i PROV.md. |
 | F8 | info | statistiken | Omprovets resultat räknas inte in i ursprungets Översikt, CSV eller utskrift – de syns i omprovets egen Översikt och som en kolumn i jämförelsen. |
@@ -52,6 +54,8 @@ En emulator åt gången. Etapp 2 rör inga functions.
 
 Från Etapp 1 (kvar, sågs igen): F7 – tillbakalämnade prov syns först efter
 omladdning; F8 – "Sparar…" står kvar upp till 24 s.
+
+Rättelserna ändrar inte reglerna, indexen eller functions. Bootgrafen är oförändrad (107).
 
 ## Vad som testades
 
@@ -172,7 +176,7 @@ Före regel-deployen nekas utbetalningen tyst och görs om när rättningen öpp
 
 ## Kända begränsningar
 
-- F1–F9 ovan.
+- F6–F9 ovan, och resten av F1 (extra tid under provet förlänger inte låset).
 - Taket 200 är per tillfälle + omprov, inte per prov över flera tillfällen (F6).
 - Omprovets tillfälle läses av hela klassen (F7) – reglerna kan inte filtrera
   elevens lyssnare på `elevIds`.
@@ -194,6 +198,9 @@ Före regel-deployen nekas utbetalningen tyst och görs om när rättningen öpp
 | `jamfor-klasser-1920.png` | jämförelsen 4A / 4A (2) / 4B / 4B (2) |
 | `provtillfallen-omprov-1366.png` | tillfällelistan med "– omprov (2 elever)" |
 | `utskrift-prov.png`, `utskrift-resultat-bilal.png` | utskrifterna i print-media (A4-bredd) |
+| `f1-las-extra-tid-1366.png` | F1 rättad: låset förvalt till 11:00 med Dante +30 (40 min) |
+| `f2-elev-resultat-omprov.png` | F2 rättad: "Vikingaprovet F (omprov)", "Totalt 16 mynt för provet" |
+| `f5-hamta-1366x900.png` | F5 rättad: bara listan scrollar, knappen syns |
 
 ## Rigg och verktyg
 
