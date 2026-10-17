@@ -34,6 +34,7 @@ function utskriftsvy({ titel, hint, val = [], rita }) {
   const stang = () => {
     vy.remove();
     document.removeEventListener("keydown", tangent);
+    window.removeEventListener("hashchange", stang);
     tillbaka?.focus?.();
   };
   const tangent = (e) => { if (e.key === "Escape") stang(); };
@@ -50,6 +51,8 @@ function utskriftsvy({ titel, hint, val = [], rita }) {
   const ritaOm = () => blad.replaceChildren(...rita());
   ritaOm();
   document.addEventListener("keydown", tangent);
+  // Byts sidan (Bakåt, menyn) stängs vyn – annars ligger den kvar över nästa sida (#749 F4).
+  window.addEventListener("hashchange", stang);
   document.body.append(vy);
   vy.scrollTop = 0;
   skrivUt.focus();
