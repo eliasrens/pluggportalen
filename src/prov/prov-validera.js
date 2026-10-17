@@ -62,8 +62,16 @@ export function tillfalleInstallningar(ins) {
   return { ...ut, stavfel: stavfelFor(ut), granser: granserOk(ut.granser) ? { gul: ut.granser.gul, gron: ut.granser.gron } : { ...STANDARD_INSTALLNINGAR.granser } };
 }
 
-/** "röd under 60 %, gul 60–84 %, grön 85 % eller mer" – gränserna i klartext. */
-export const granserText = (g) => `röd under ${g.gul} %, gul ${g.gul}–${g.gron - 1} %, grön ${g.gron} % eller mer`;
+/**
+ * "röd under 60 %, gul 60–84 %, grön 85 % eller mer" – gränserna i klartext.
+ * Kantfallen (#749): gul ett enda steg ("gul 99 %", inte "99–99 %") och grön
+ * från 100 ("grön 100 %", inte "100 % eller mer").
+ */
+export function granserText(g) {
+  const gul = g.gron - 1 > g.gul ? `${g.gul}–${g.gron - 1} %` : `${g.gul} %`;
+  const gron = g.gron >= 100 ? "100 %" : `${g.gron} % eller mer`;
+  return `röd under ${g.gul} %, gul ${gul}, grön ${gron}`;
+}
 
 /** Tidsgräns i minuter: null (ingen) eller heltal 5–240. undefined = ogiltig. */
 export function tolkaTidsgrans(v) {

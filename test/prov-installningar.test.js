@@ -102,6 +102,10 @@ describe("färggränser – standard, validering och färgerna", () => {
     assert.deepEqual(granserFor(undefined), { gul: 60, gron: 85 });
     assert.deepEqual(granserFor({ poang: true }), { gul: 60, gron: 85 });
     assert.equal(granserText({ gul: 60, gron: 85 }), "röd under 60 %, gul 60–84 %, grön 85 % eller mer");
+    // Kantfallen (#749): gul ett steg, grön först vid 100.
+    assert.equal(granserText({ gul: 99, gron: 100 }), "röd under 99 %, gul 99 %, grön 100 %");
+    assert.equal(granserText({ gul: 50, gron: 51 }), "röd under 50 %, gul 50 %, grön 51 % eller mer");
+    assert.equal(granserText({ gul: 1, gron: 100 }), "röd under 1 %, gul 1–99 %, grön 100 %");
   });
   it("egna gränser sparas som heltal (sifferfältens text tolkas)", () => {
     assert.deepEqual(prov({ granser: { gul: 50, gron: 75 } }).value.installningar.granser, { gul: 50, gron: 75 });
