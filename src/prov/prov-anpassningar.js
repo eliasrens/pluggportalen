@@ -42,10 +42,10 @@ export function tillfalleNamn(tf) {
   return `${namn} – omprov (${n} ${n === 1 ? "elev" : "elever"})`;
 }
 
-/** "Vikingaprovet (omprov)" – namnet eleven och statistiken ser (#749 F2), eller bara provets namn. */
+/** "Vikingaprovet – omprov" – namnet eleven och statistiken ser (#749 F2), eller bara provets namn. */
 export function elevProvNamn(tf) {
   const namn = tf?.provNamn || "Prov";
-  return arOmprov(tf) ? `${namn} (omprov)` : namn;
+  return arOmprov(tf) ? `${namn} – omprov` : namn;
 }
 
 /**

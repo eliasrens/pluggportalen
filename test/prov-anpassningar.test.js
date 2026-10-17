@@ -66,8 +66,8 @@ describe("omprov för valda elever", () => {
     assert.equal(tillfalleNamn({ provNamn: "Vikingaprovet", elevIds: ["alva"] }), "Vikingaprovet – omprov (1 elev)");
     assert.equal(tillfalleNamn({ provNamn: "Vikingaprovet" }), "Vikingaprovet");
     assert.equal(tillfalleNamn({}), "Prov");
-    // Eleven och statistiken (#749 F2): utan antal, med "(omprov)".
-    assert.equal(elevProvNamn(omprov), "Vikingaprovet (omprov)");
+    // Eleven och statistiken (#749 F2): utan antal, "– omprov".
+    assert.equal(elevProvNamn(omprov), "Vikingaprovet – omprov");
     assert.equal(elevProvNamn({ provNamn: "Vikingaprovet" }), "Vikingaprovet");
     assert.equal(elevProvNamn(null), "Prov");
   });

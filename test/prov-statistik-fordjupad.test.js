@@ -136,10 +136,10 @@ describe("jämförelse mellan klasser (§12)", () => {
     assert.deepEqual(k.map((x) => x.klassNamn), ["4A", "4A (2)"]);
     assert.equal(k[1].snitt, null);
   });
-  it("omprovet heter \"4A omprov\", inte \"4A (2)\" (#749 F2)", () => {
+  it("omprovet heter \"4A – omprov\", inte \"4A (2)\" (#749 F2)", () => {
     const omprov = { ...tfA, id: "tA3", elevIds: ["a"], omprovAv: tfA.id };
     const k = jamforKlasser({ tf: tfA, klassNamn: "4A", rattningar: RATT, med: MED }, [{ tf: omprov, klassNamn: "4A", rattningar: {} }]).kolumner;
-    assert.deepEqual(k.map((x) => x.klassNamn), ["4A", "4A omprov"]);
+    assert.deepEqual(k.map((x) => x.klassNamn), ["4A", "4A – omprov"]);
   });
 });
 

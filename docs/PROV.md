@@ -489,8 +489,8 @@ utan ett enda svar); extra tid väljs på samma rad. Omprovet låser aldrig klas
 (fokusläget gäller hela klassen) – rutan har inget låsval. Listan och rubrikerna
 visar **"Vikingaprovet – omprov (3 elever)"** (`tillfalleNamn`); översikten och
 rättningen visar bara de valda eleverna. Eleven och statistiken ser
-**"Vikingaprovet (omprov)"** (`elevProvNamn`, även rättningens `provNamn`),
-jämförelsen "4A omprov", och omprovets resultat "Totalt N mynt för provet" (#749). Frågorna kopieras när omprovet öppnas,
+**"Vikingaprovet – omprov"** (`elevProvNamn`, även rättningens `provNamn`),
+jämförelsen "4A – omprov", och omprovets resultat "Totalt N mynt för provet" (#749). Frågorna kopieras när omprovet öppnas,
 precis som förut (provets senaste version).
 
 - **Reglerna**: `provGallerElev` – med `elevIds` får bara eleverna i listan skapa

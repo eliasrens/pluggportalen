@@ -89,8 +89,8 @@ function klassKolumn({ tf, klassNamn, rattningar, med }, granser) {
     installningar: { ...(tf.installningar || {}), granser },
   });
   return {
-    // Omprovet (#748) heter "4A omprov" (#749 F2), inte "4A (2)".
-    t: tf.id, klassNamn: `${klassNamn || tf.classId || ""}${arOmprov(tf) ? " omprov" : ""}`, antal: uids.length,
+    // Omprovet (#748) heter "4A – omprov" (#749 F2), inte "4A (2)".
+    t: tf.id, klassNamn: `${klassNamn || tf.classId || ""}${arOmprov(tf) ? " – omprov" : ""}`, antal: uids.length,
     rattade: m.rader.filter((r) => r.andel != null).length,
     snitt: m.snitt, farg: fargFor(m.snitt, granser), fordelning: m.raknare,
     perFraga: new Map(m.fragaSumma.map((s) => [s.fid, s.andel])),
