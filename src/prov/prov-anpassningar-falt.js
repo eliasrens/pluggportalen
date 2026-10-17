@@ -54,7 +54,7 @@ export function elevLista({ elever, extraTid = {}, valda = [], valbar = false, o
  * @param {object} o
  * @param {() => Promise<{ id, namn }[]>} o.hamta
  * @param {Record<string, number>} [o.extraTid]  det som redan är sparat
- * @returns {{ el, varde: () => Record<string, number>, andrat: () => boolean, laddaOm: () => void }}
+ * @returns {{ el, varde: () => Record<string, number>, andrat: () => boolean, laddaOm: (giltiga: string[]) => void }}
  */
 export function extraTidFalt({ hamta, extraTid = {} }) {
   const fore = rensaExtraTid(extraTid);
@@ -96,10 +96,12 @@ export function extraTidFalt({ hamta, extraTid = {} }) {
       const v = varde();
       return Object.keys(v).length !== Object.keys(fore).length || Object.keys(v).some((uid) => v[uid] !== fore[uid]);
     },
-    /** Klassen byttes: läs om namnen (om listan är utfälld). */
-    laddaOm() {
+    /** Klassen byttes: bara den nya klassens elever behåller sin tid; läs om namnen (om listan är utfälld). */
+    laddaOm(giltiga) {
+      val = rensaExtraTid(lista ? lista.varde() : val, giltiga);
+      lista = null;
       if (el.open) ladda();
-      else if (lista) { val = lista.varde(); lista = null; }
+      else raknaUt();
     },
   };
 }

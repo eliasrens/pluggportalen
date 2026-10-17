@@ -452,7 +452,14 @@ tidsgräns är `tidsgransMin + extraTid[uid]` – i reglerna (`provElevMinuter`:
 `startad + egen gräns + 2 min`), i elevens läge och nedräkning (`elevLage`,
 `tidsgransFor`) och i lärarens "tid kvar". Utan tidsgräns gör extra tid
 ingenting. Ett ogiltigt värde (text, > 240) räknas som 0, också i reglerna.
-Eleven ser bara sin egen tid ("Du har 55 minuter"), aldrig att den är förlängd.
+Eleven ser bara sin egen tid ("Du har 55 minuter") i gränssnittet. ⚠️ Känd
+begränsning: `extraTid` (och omprovets `elevIds`) ligger på tillfället, som hela
+klassen läser – en elev som öppnar utvecklarverktygen kan se vilka klasskamrater
+som har extra tid. Spec §14 anger just den platsen; vill man dölja det flyttas
+`extraTid` till ett dokument per elev (en `get()` till i `provSvarUpdateOk`).
+Tar läraren bort extra tid från en elev som redan skrivit längre än den nya
+gränsen + 2 min nekas elevens "tid"-inlämning en gång; provsidan visar då
+"Tiden är slut" och det senast sparade gäller (inget nytt försök).
 Ger läraren mer tid under provet når den eleven via lyssnaren
 (`onProvChange`) – nedräkningen räknas om utan omladdning. Översikten visar
 "+15 min" vid namnet och "Extra tid: Alva +15 min" i faktaraden; listan

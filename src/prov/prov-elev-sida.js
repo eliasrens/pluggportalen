@@ -222,6 +222,10 @@ function skriv(tf, svarDok, meId) {
   let sparare = nySparare();
   vy.satSparstatus({ lage: "sparat", tid: tillMs(svarDok.uppdaterad) });
   if (franLokal) sparare.andrat(); // osparade ändringar från förra gången
+  else if (flikbyten > tolkaFlikbyten(svarDok.flikbyten)) { // bara flikbyten osparade (#748)
+    baraFlik = true;
+    sparare.andrat();
+  }
 
   const avsluta = (rubrik, text) => {
     klar = true;
@@ -244,12 +248,18 @@ function skriv(tf, svarDok, meId) {
       rensaLokal(t, meId);
       avsluta("Inlämnat.", nyttSvar.inlamnadNar === "tid" ? TID_SLUT : nyttSvar.inlamnadNar === "stangt" ? STANGT : KLART);
     } else if (l === "stangt") avsluta("Provet är stängt.", "Dina sparade svar gäller.");
-    else if (l === "tiden-slut") lamna("tid");
+    else if (l === "tiden-slut") {
+      // Reglerna nekade redan "tid"-inlämningen (gränsen + 2 min har passerat,
+      // t.ex. när läraren tog bort extra tid) – sluta försöka, det senast sparade gäller.
+      if (tidNekad) avsluta("Tiden är slut.", "Dina senast sparade svar gäller.");
+      else lamna("tid");
+    }
   }
 
   // Inlämningen: sista svaren + inlämnad i en skrivning. "tid" försöker igen
   // tills det går (inom reglernas 2 minuters marginal); "elev" visar felet.
   let lamnar = false;
+  let tidNekad = false;
   async function lamna(nar) {
     if (klar || lamnar) return;
     lamnar = true;
@@ -275,6 +285,7 @@ function skriv(tf, svarDok, meId) {
         // Nekad: kanske redan inlämnad (en köad skrivning gick igenom) eller stängd.
         if (arSlutgiltigtFel(err)) {
           lamnar = false;
+          if (nar === "tid") tidNekad = true;
           return kollaLage();
         }
         if (nar === "elev") {

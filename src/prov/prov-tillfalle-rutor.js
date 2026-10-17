@@ -145,7 +145,7 @@ export async function korIKlass(ctx, provEllerId, { onKlar } = {}) {
   // #748: extra tid per elev – namnen läses först när läraren fäller ut listan.
   const extra = extraTidFalt({ hamta: () => elevNamn(klassens()) });
   box.querySelector('[data-plats="extra"]').replaceWith(extra.el);
-  klassEl.addEventListener("change", () => extra.laddaOm());
+  klassEl.addEventListener("change", () => extra.laddaOm(klassens()));
   // Låsets förval följer tidsgränsen (+10 min) tills läraren rört klockslaget.
   const lasTill = box.querySelector('[data-f="lasTill"]');
   let rortTill = false;

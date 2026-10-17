@@ -123,7 +123,7 @@ export function extraTidRuta(tf, elever, klar) {
   const { box, stang } = ruta(`
     <h2 class="provl-ruta-rubrik">Extra tid: ${esc(tillfalleNamn(tf))}</h2>
     <p class="hint">${tf.tidsgransMin
-      ? `Tidsgränsen är ${tf.tidsgransMin} minuter. Den extra tiden läggs till för just de eleverna – även för den som redan skriver.`
+      ? `Tidsgränsen är ${tf.tidsgransMin} minuter. Den extra tiden läggs till för just de eleverna – även för den som redan skriver. Tar du bort tid från någon som redan skrivit längre än så lämnas provet in med det senast sparade.`
       : "Provet har ingen tidsgräns – extra tid spelar ingen roll förrän det får en."}</p>
     <div data-plats="elever"></div>
     <p class="provl-tf-fel msg error" role="alert" hidden></p>
