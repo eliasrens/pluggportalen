@@ -274,6 +274,19 @@ service cloud.firestore {
         allow read: if isSelf(studentId) || hasStudent(studentId);
         allow write: if false;
       }
+
+      // Prov – pluggmynt per prov (#746, docs/PROV.md "Pluggmynt"): kvittot
+      // provMynt/{tillfälle} är den LÖPANDE summan som betalats ut för provet.
+      // Det ligger hos eleven (inte under tillfället), så att radera rättningen
+      // eller tillfället aldrig nollställer det. Skrivs bara av
+      // src/prov/prov-mynt-pay.js i samma transaktion som saldot och
+      // rättningens myntUtbetalt (provMyntKvittoOk). Läsning: eleven och läraren.
+      // ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules`.
+      match /provMynt/{t} {
+        allow read: if isSelf(studentId) || hasStudent(studentId);
+        allow create, update: if provMyntKvittoOk(studentId, t);
+        allow delete: if isAdmin();
+      }
     }
 
     // Köpbara avatarer (#694): eleven får bara BYTA TILL en köpbar avatar som
@@ -308,12 +321,15 @@ service cloud.firestore {
     //  • Pluggmynt efter en Live-match (#557): coins ökar exakt med kvittot
     //    liveSessions/{lastLiveReceipt}/coinReceipts/{elev} som skapas i SAMMA
     //    skrivning (src/live/live-rewards-pay.js) – aldrig coins annars.
+    //  • Pluggmynt för ett prov (#746): coins ökar exakt med hur mycket kvittot
+    //    provMynt/{lastProvMynt} ökar i SAMMA skrivning (src/prov/prov-mynt-pay.js).
     // Ekvationsresans nivå bor i underdokumentet ekvationsresa/progress.
     function gradeStudentDataOk(studentId) {
       let n = request.resource.data;
       let keys = n.diff(resource.data).affectedKeys();
       return (keys.hasOnly(['lasresa']) && lasresaLevelOnly(resource.data.get('lasresa', null), n.lasresa)) ||
-        (keys.hasOnly(['coins', 'lastLiveReceipt']) && liveReceiptPaid(studentId));
+        (keys.hasOnly(['coins', 'lastLiveReceipt']) && liveReceiptPaid(studentId)) ||
+        (keys.hasOnly(['coins', 'lastProvMynt']) && provMyntBetalt(studentId));
     }
     function lasresaLevelOnly(o, n) {
       return n is map && (
@@ -328,6 +344,12 @@ service cloud.firestore {
       let r = /databases/$(database)/documents/liveSessions/$(n.lastLiveReceipt)/coinReceipts/$(studentId);
       return n.lastLiveReceipt is string && !exists(r) && existsAfter(r) &&
         n.coins == resource.data.get('coins', 0) + getAfter(r).data.total;
+    }
+    function provMyntBetalt(studentId) {
+      let n = request.resource.data;
+      let k = /databases/$(database)/documents/studentData/$(studentId)/provMynt/$(n.lastProvMynt);
+      return n.lastProvMynt is string && existsAfter(k) &&
+        n.coins == resource.data.get('coins', 0) + getAfter(k).data.total - (exists(k) ? get(k).data.total : 0);
     }
 
     // Ekvationsresan (#618): formen på progress och försök. Nivå 1–12 (Etapp 2
@@ -1990,7 +2012,19 @@ service cloud.firestore {
     function validProvDoc(d) {
       return d.namn is string && d.namn.size() >= 1 && d.namn.size() <= 80 &&
         d.fragor is list && d.fragor.size() <= 60 &&
-        (!('installningar' in d) || d.installningar is map);
+        (!('installningar' in d) || provInstOk(d.installningar));
+    }
+    // Provets inställningar (#759) – samma på provet och tillfället (kopian).
+    // Saknas stavfel/granser (gamla prov) gäller standarden: auto, 60/85.
+    function provInstOk(ins) {
+      return ins is map &&
+        (!('stavfel' in ins) || ins.stavfel in ['auto', 'sjalv']) &&
+        (!('granser' in ins) || provGranserOk(ins.granser));
+    }
+    // Färggränserna i hela procent: 0 < gul < grön <= 100 (prov-validera.js granserOk).
+    function provGranserOk(g) {
+      return g is map && g.keys().hasOnly(['gul', 'gron']) &&
+        g.gul is int && g.gron is int && g.gul > 0 && g.gul < g.gron && g.gron <= 100;
     }
     // Årskurskonton läser ALLA prov (kopiera kollegors, som områdena);
     // ändrar och raderar bara sina egna. Elever läser aldrig provet.
@@ -2014,24 +2048,47 @@ service cloud.firestore {
         d.status in ['forberett', 'oppet', 'stangt'] &&
         d.fragor is list && d.fragor.size() <= 60 &&
         (!('tidsgransMin' in d) || d.tidsgransMin == null ||
-          (d.tidsgransMin is int && d.tidsgransMin >= 5 && d.tidsgransMin <= 240));
+          (d.tidsgransMin is int && d.tidsgransMin >= 5 && d.tidsgransMin <= 240)) &&
+        // Anpassningar (#748, §14): extra minuter per elev och omprov för valda elever.
+        (!('extraTid' in d) || (d.extraTid is map && d.extraTid.size() <= 100)) &&
+        (!('elevIds' in d) || (d.elevIds is list && d.elevIds.size() >= 1 && d.elevIds.size() <= 100));
     }
     function tillfalle(t) {
       return get(/databases/$(database)/documents/provTillfallen/$(t)).data;
     }
+    // Omprovets ursprung (#748): samma prov och klass, och självt inget omprov –
+    // pluggmynten för ett omprov delar ursprungets kvitto (provMyntKvittoOk).
+    function provOmprovAvOk(d) {
+      return !('omprovAv' in d) || (d.omprovAv is string && d.omprovAv.size() > 0 &&
+        tillfalle(d.omprovAv).provId == d.provId && tillfalle(d.omprovAv).classId == d.classId &&
+        !('omprovAv' in tillfalle(d.omprovAv)));
+    }
     match /provTillfallen/{t} {
       // Läraren med klassen. Eleven i klassen – men inte ett förberett prov.
+      // Ett omprov (elevIds, #748) läses också av hela klassen: elevens lyssnare
+      // (where classId in … + status) kan inte filtrera på elevIds, och
+      // tillfället saknar facit. Att starta och skriva kräver elevIds (svar).
       allow read: if hasClass(resource.data.classId) ||
         (resource.data.status in ['oppet', 'stangt'] && isClassMember(resource.data.classId));
       allow create: if hasClass(request.resource.data.classId) &&
         validTillfalle(request.resource.data) &&
+        (!('installningar' in request.resource.data) || provInstOk(request.resource.data.installningar)) &&
         request.resource.data.status == 'forberett' &&
-        request.resource.data.createdBy == request.auth.uid;
+        request.resource.data.createdBy == request.auth.uid &&
+        provOmprovAvOk(request.resource.data);
       allow update: if hasClass(resource.data.classId) &&
         validTillfalle(request.resource.data) &&
+        // Inställningarna (#759) prövas när de ändras – ett äldre tillfälle med
+        // gränser som inte längre godtas kan ändå stängas och öppnas.
+        (request.resource.data.get('installningar', null) == resource.data.get('installningar', null) ||
+          provInstOk(request.resource.data.get('installningar', null))) &&
         request.resource.data.classId == resource.data.classId &&
         request.resource.data.provId == resource.data.provId &&
         request.resource.data.get('createdBy', null) == resource.data.get('createdBy', null) &&
+        // Ett omprov förblir ett omprov för samma elever och samma ursprung
+        // (och ett vanligt prov vanligt).
+        request.resource.data.get('elevIds', null) == resource.data.get('elevIds', null) &&
+        request.resource.data.get('omprovAv', null) == resource.data.get('omprovAv', null) &&
         provStatusOk(resource.data.status, request.resource.data.status);
       allow delete: if hasClass(resource.data.classId);
 
@@ -2042,7 +2099,8 @@ service cloud.firestore {
 
       // Elevens svar. Eleven skapar sitt eget när provet är öppet och hen går
       // i klassen; sparar så länge provet är öppet, inte inlämnat och inom
-      // tidsgränsen + 2 min. elevId/classId/startad ändras aldrig och
+      // tidsgränsen (+ elevens extra tid, #748) + 2 min. Ett omprov (elevIds)
+      // gäller bara de valda eleverna. elevId/classId/startad ändras aldrig och
       // inlämnat är slutgiltigt för eleven. Läraren läser, får markera
       // "inlämnad när provet stängdes" (och ta tillbaka just den markeringen
       // om provet öppnas igen) – men aldrig ändra själva svaren.
@@ -2061,15 +2119,27 @@ service cloud.firestore {
           (isSelf(elevUid) && (resource == null || resource.data.aterlamnad == true));
         allow create, update: if hasClass(tillfalle(t).classId) &&
           validRattning(request.resource.data, elevUid, tillfalle(t).classId) &&
-          provAterlamningOk(request.resource.data, resource);
+          provAterlamningOk(request.resource.data, resource) &&
+          provMyntFaltOk(t, elevUid, request.resource.data, resource);
         allow delete: if hasClass(resource.data.classId);
       }
     }
     function validSvarFalt(d) {
-      return d.keys().hasOnly(['elevId', 'classId', 'startad', 'uppdaterad', 'svar', 'inlamnad', 'inlamnadAt', 'inlamnadNar']) &&
+      return d.keys().hasOnly(['elevId', 'classId', 'startad', 'uppdaterad', 'svar', 'inlamnad', 'inlamnadAt', 'inlamnadNar', 'flikbyten']) &&
         d.svar is map && d.svar.size() <= 60 &&
         d.inlamnad is bool &&
-        (!('inlamnadNar' in d) || d.inlamnadNar in ['elev', 'tid', 'stangt']);
+        (!('inlamnadNar' in d) || d.inlamnadNar in ['elev', 'tid', 'stangt']) &&
+        // #748: hur många gånger eleven lämnade provfliken – bara information.
+        (!('flikbyten' in d) || (d.flikbyten is int && d.flikbyten >= 0 && d.flikbyten <= 10000));
+    }
+    // Omprov (#748): finns elevIds på tillfället får bara de eleverna starta och skriva.
+    function provGallerElev(tf) {
+      return tf.get('elevIds', null) == null || request.auth.uid in tf.elevIds;
+    }
+    // Elevens egen tidsgräns i minuter: tidsgränsen + extraTid[uid] (#748, 1–240).
+    function provElevMinuter(tf) {
+      let x = tf.get('extraTid', {}).get(request.auth.uid, 0);
+      return tf.tidsgransMin + (x is int && x > 0 && x <= 240 ? x : 0);
     }
     // Elevens inlämning (elev eller tid) får serverns tid i inlamnadAt.
     function provElevInlamningOk(d) {
@@ -2078,20 +2148,20 @@ service cloud.firestore {
     }
     function provSvarCreateOk(t, elevUid, d) {
       let tf = tillfalle(t);
-      return tf.status == 'oppet' && isClassMember(tf.classId) &&
+      return tf.status == 'oppet' && isClassMember(tf.classId) && provGallerElev(tf) &&
         validSvarFalt(d) && d.elevId == elevUid && d.classId == tf.classId &&
         d.startad == request.time && d.uppdaterad == request.time &&
         provElevInlamningOk(d);
     }
     function provSvarUpdateOk(t, d, fore) {
       let tf = tillfalle(t);
-      return tf.status == 'oppet' && fore.inlamnad == false &&
+      return tf.status == 'oppet' && fore.inlamnad == false && provGallerElev(tf) &&
         validSvarFalt(d) &&
         d.elevId == fore.elevId && d.classId == fore.classId && d.startad == fore.startad &&
         d.uppdaterad == request.time &&
         provElevInlamningOk(d) &&
         (tf.get('tidsgransMin', null) == null ||
-          request.time <= fore.startad + duration.value(tf.tidsgransMin + 2, 'm'));
+          request.time <= fore.startad + duration.value(provElevMinuter(tf) + 2, 'm'));
     }
     // Läraren: bara inlämnad-fälten. Stänga (false → true, "stangt", serverns
     // tid) eller öppna igen (true → false, bara om det var stängningen som
@@ -2113,7 +2183,7 @@ service cloud.firestore {
     }
     function validRattning(d, elevUid, classId) {
       return d.keys().hasOnly(['elevId', 'classId', 'provNamn', 'fragor', 'totalPoang', 'maxPoang', 'niva',
-          'helhetskommentar', 'aterlamnad', 'aterlamnadAt', 'facit', 'provInfo']) &&
+          'helhetskommentar', 'aterlamnad', 'aterlamnadAt', 'facit', 'provInfo', 'myntUtbetalt']) &&
         d.elevId == elevUid && d.classId == classId &&
         d.fragor is map && d.fragor.size() <= 60 &&
         d.aterlamnad is bool &&
@@ -2122,6 +2192,7 @@ service cloud.firestore {
         (!('maxPoang' in d) || d.maxPoang is number) &&
         (!('helhetskommentar' in d) || (d.helhetskommentar is string && d.helhetskommentar.size() <= 4000)) &&
         (!('facit' in d) || d.facit is map) &&
+        (!('myntUtbetalt' in d) || (d.myntUtbetalt is int && d.myntUtbetalt >= 0 && d.myntUtbetalt <= 200)) &&
         // #742: { datum, granser, andel } för statistikfliken "Prov" (en fråga, §7.5).
         (!('provInfo' in d) || (d.provInfo is map && d.provInfo.keys().hasOnly(['datum', 'granser', 'andel'])));
     }
@@ -2132,6 +2203,54 @@ service cloud.firestore {
       return d.aterlamnad == false ? (!('facit' in d) && !('aterlamnadAt' in d)) :
         (d.get('aterlamnadAt', null) == request.time ||
           (fore != null && fore.data.aterlamnad == true && d.get('aterlamnadAt', null) == fore.data.get('aterlamnadAt', null)));
+    }
+    // Pluggmynt per prov (#746, spec §11). rattning.myntUtbetalt är elevens
+    // spegel av kvittot studentData/{elev}/provMynt/{t}: en vanlig sparning
+    // (hela dokumentet, batchar med många elever) får bara behålla värdet
+    // eller utelämna det – ingen get(). Bara utbetalningen ändrar det, ensamt,
+    // och då till exakt kvittots nya total.
+    // Ett omprov (#748) speglar ursprungets kvitto: provets SAMMANLAGDA mynt.
+    function provMyntFaltOk(t, elevUid, d, fore) {
+      let f = fore == null ? 0 : fore.data.get('myntUtbetalt', 0);
+      return !('myntUtbetalt' in d) || d.myntUtbetalt == f ||
+        (fore != null && d.myntUtbetalt is int && d.myntUtbetalt >= 0 && d.myntUtbetalt <= 200 &&
+          d.diff(fore.data).affectedKeys().hasOnly(['myntUtbetalt']) &&
+          getAfter(/databases/$(database)/documents/studentData/$(elevUid)/provMynt/$(tillfalle(t).get('omprovAv', t))).data.total == d.myntUtbetalt);
+    }
+    // Kvittot (läraren med klassen, även admin): total får bara öka, högst
+    // 200 och högst vad tillfällets inställning ger (fast summa, eller mynt
+    // per poäng × rättningens totalPoang). Rättningen är tillbakalämnad och
+    // speglar total i samma skrivning, eleven har lämnat in (svar skapas bara
+    // av eleven själv i klassen) och saldot ökar med exakt skillnaden.
+    // Omprov (#748): kvittot är URSPRUNGETS (provMynt/{omprovAv}) och `senast`
+    // = omprovet som betalar nu – rättning, svar och inställning läses därifrån.
+    // Taket 200 gäller alltså provet som helhet, och omprovet betalar bara det
+    // som överstiger det ursprunget redan gett.
+    function provMyntKvittoOk(studentId, t) {
+      let d = request.resource.data;
+      let fore = resource == null ? 0 : resource.data.total;
+      let src = d.get('senast', t);
+      let tf = tillfalle(src);
+      let r = getAfter(/databases/$(database)/documents/provTillfallen/$(src)/rattning/$(studentId)).data;
+      let s = /databases/$(database)/documents/provTillfallen/$(src)/svar/$(studentId);
+      let sd = /databases/$(database)/documents/studentData/$(studentId);
+      // Ett omprov har aldrig ett eget kvitto – bara ursprungets.
+      return src is string && hasClass(tf.classId) &&
+        (src == t ? !('omprovAv' in tf) : tf.get('omprovAv', null) == t) &&
+        d.keys().hasOnly(['total', 'tillfalleId', 'classId', 'at', 'by', 'senast']) &&
+        d.tillfalleId == t && d.classId == tf.classId && d.at == request.time && d.by == request.auth.uid &&
+        d.total is int && d.total > fore && d.total <= 200 &&
+        provMyntTakOk(tf, r, d.total) &&
+        r.aterlamnad == true && r.get('myntUtbetalt', -1) == d.total &&
+        exists(s) && get(s).data.inlamnad == true &&
+        getAfter(sd).data.get('coins', 0) == (exists(sd) ? get(sd).data.get('coins', 0) : 0) + d.total - fore;
+    }
+    function provMyntTakOk(tf, r, total) {
+      let ins = tf.get('installningar', {});
+      let m = ins.get('mynt', {});
+      return (m.get('typ', '') == 'fast' && total <= m.get('antal', 0)) ||
+        (m.get('typ', '') == 'poang' && ins.get('poang', true) != false &&
+          total <= m.get('antal', 0) * r.get('totalPoang', 0));
     }
     // Collection group-frågorna på rattning (§5.5 och §7.5):
     //   eleven: where elevId == uid, aterlamnad == true (menylänken)

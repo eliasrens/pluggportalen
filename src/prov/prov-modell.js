@@ -129,17 +129,19 @@ export function maxPoang(fragor) {
 /**
  * Automatiska rättningsförslag för en elev (§6.1): en post per fråga som kan
  * rättas automatiskt, i rattning.fragor-form med auto: true. Frågor utan
- * förslag (fritext) saknas – dem rättar läraren.
+ * förslag (fritext, och stavfel när läraren rättar dem själv) saknas – dem
+ * rättar läraren.
  * @param {object[]} fragor tillfällets frågor (utan facit)
  * @param {Record<string, any>} svar elevens svar-map
  * @param {Record<string, any>} facit privat/facit.facit
+ * @param {{ stavfel?: "auto"|"sjalv" }} [opt] provets stavfelsval (#759, standard auto)
  */
-export function autoForslag(fragor, svar, facit) {
+export function autoForslag(fragor, svar, facit, opt = {}) {
   const ut = {};
   for (const f of fragor || []) {
     const typ = fragetyp(f.typ);
     if (!typ?.autoratt || !(f.id in (facit || {}))) continue;
-    const r = typ.forslag(svar?.[f.id] ?? typ.tomtSvar(f), facit[f.id], f);
+    const r = typ.forslag(svar?.[f.id] ?? typ.tomtSvar(f), facit[f.id], f, opt);
     if (r) ut[f.id] = { poang: r.poang, ratt: r.ratt, auto: true };
   }
   return ut;

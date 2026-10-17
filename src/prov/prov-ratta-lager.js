@@ -8,7 +8,9 @@
 //   const lager = skapaRattningsLager({ data, med, onStatus, spara? })
 //   lager.rattningar[uid]     elevens rättning (ändras av vyerna, sedan andrat([uid]))
 //   lager.andrat(uids)        de här eleverna ska sparas
-//   lager.lamnaTillbaka(uids, visaFacit) / lager.angra(uid)
+//   lager.lamnaTillbaka(uids, visaFacit) → pluggmyntens utfall [{ uid, total, status }]
+//   lager.angra(uid)          (mynten står kvar, #746)
+//   lager.betalaKvar()        pluggmynt som inte hann betalas ut (avbrott) – när vyn öppnas
 //   lager.spola()             spara direkt (läraren lämnar vyn)
 // ============================================================================
 
@@ -18,6 +20,9 @@ import {
 } from "./prov-rattning-logik.js";
 import { LARARENS_SPARNING, skapaSparare } from "./prov-sparning.js";
 import { provInfoDok } from "./prov-statistik.js";
+import { harMynt, provMyntBelopp } from "./prov-mynt.js";
+import { elevProvNamn } from "./prov-anpassningar.js";
+import { stavfelFor } from "./prov-validera.js";
 
 /**
  * @param {object} o
@@ -31,14 +36,15 @@ export function skapaRattningsLager({ data, med, onStatus = () => {} }) {
   const fragor = tf.fragor || [];
   const rattningar = data.rattningar;
   const smutsiga = new Set();
+  const stavfel = stavfelFor(tf.installningar); // #759: "sjalv" → stavfel utan förslag
 
   for (const uid of med) {
     const r = rattningar[uid];
     if (!r) {
-      rattningar[uid] = nyRattning({ elevId: uid, classId: tf.classId, provNamn: tf.provNamn, fragor, svar: svar[uid]?.svar, facit });
+      rattningar[uid] = nyRattning({ elevId: uid, classId: tf.classId, provNamn: elevProvNamn(tf), fragor, svar: svar[uid]?.svar, facit, stavfel });
       smutsiga.add(uid);
     } else if (!r.aterlamnad) {
-      const k = kompletteraForslag(r, fragor, svar[uid]?.svar, facit);
+      const k = kompletteraForslag(r, fragor, svar[uid]?.svar, facit, stavfel);
       rattningar[uid] = k.r;
       if (k.andrad) smutsiga.add(uid);
     }
@@ -70,6 +76,18 @@ export function skapaRattningsLager({ data, med, onStatus = () => {} }) {
   });
   if (smutsiga.size) sparare.andrat();
 
+  // Pluggmynt (#746, §11): efter tillbakalämningen, en transaktion per elev
+  // med kvitto (prov-mynt-pay.js, Live-mönstret). Aldrig kastande.
+  async function betala(uids) {
+    if (!uids.length || !harMynt(tf.installningar)) return [];
+    const { betalaMynt } = await import("./prov-mynt-data.js");
+    const ut = await betalaMynt(tf, uids);
+    for (const b of ut) {
+      if (b.total && rattningar[b.uid]) rattningar[b.uid] = { ...rattningar[b.uid], myntUtbetalt: b.total };
+    }
+    return ut;
+  }
+
   return {
     rattningar,
     status,
@@ -90,9 +108,18 @@ export function skapaRattningsLager({ data, med, onStatus = () => {} }) {
       Object.assign(rattningar, efter);
       uids.forEach((uid) => smutsiga.delete(uid));
       tf.rattStatus = st;
+      return betala(uids);
     },
 
-    /** Ångra tillbakalämningen (§7): aterlamnad false, facit bort. */
+    /** Tillbakalämnade elever vars mynt inte (helt) betalats ut, t.ex. efter ett avbrott. */
+    betalaKvar() {
+      return betala(med.filter((uid) => {
+        const r = rattningar[uid];
+        return r?.aterlamnad && provMyntBelopp(tf.installningar, r, svar[uid]) > (r.myntUtbetalt || 0);
+      }));
+    },
+
+    /** Ångra tillbakalämningen (§7): aterlamnad false, facit bort – mynten står kvar (§11). */
     async angra(uid) {
       const efter = { ...rattningar, [uid]: angratDok(rattningar[uid]) };
       const st = rattStatusSumma(med, efter, fragor);

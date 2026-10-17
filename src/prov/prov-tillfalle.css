@@ -76,6 +76,19 @@
 .provl-ruta select, .provl-ruta input[type="time"], .provl-ruta input[type="number"] {
   background: #0f1419; color: var(--t-text); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 8px; padding: 6px 8px; font: inherit;
 }
+/* Anpassningar (#748): extra tid per elev och omprovets elever */
+.provl-ap summary { cursor: pointer; }
+.provl-ap .hint { margin: 6px 0 8px; }
+.provl-ap-lista { list-style: none; margin: 0; padding: 0; max-height: 260px; overflow-y: auto; }
+.provl-ap-rad { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 3px 0; border-top: 1px solid var(--t-border); }
+.provl-ap-rad:first-child { border-top: 0; }
+.provl-ap-rad:has(input:checked) { background: rgba(46, 193, 110, 0.08); }
+.provl-ap-namn { flex: 1; min-width: 0; margin: 0; }
+.provl-ruta select.provl-ap-extra { padding: 3px 6px; min-width: 6.5em; }
+.provl-ap-knappar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.provl-ap-knappar .hint { margin: 0; }
+.provl-ap-antal { font-weight: 500; }
+.provl-ap-tag { display: inline-block; margin-left: 6px; padding: 0 7px; border-radius: 999px; font-size: 0.8rem; font-weight: 500; color: #9cc7ff; background: rgba(47, 128, 237, 0.18); }
 @media (max-width: 560px) {
   .teacher-dark .provl-tf-rad { align-items: flex-start; }
   .provl-bakgrund { place-items: end center; padding: 8px; }

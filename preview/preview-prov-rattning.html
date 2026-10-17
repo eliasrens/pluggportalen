@@ -15,6 +15,10 @@
         #/larare/prov/tillfallen                räknaren "x av 8 rättade" + Rätta
         #/elev/resultat?e=e0                    elevens resultatvy (Alva)
       ?nollstall i adressen = börja om (rättningen sparas i localStorage).
+      #759: ?stavfel=sjalv (Rätta stavfel själv), ?granser=50-75 (egna färggränser),
+      ?gammalt (tillfälle utan fälten → standarden auto, 60/85) – länkar i kontrollraden.
+      #746: 2 pluggmynt per poäng – utbetalningen (riktig prov-mynt-pay.js) mot
+      ett minnes-SDK; utfallet och saldot syns i kontrollraden.
     -->
     <script type="importmap">
       {
@@ -25,7 +29,8 @@
           "/src/data-classes.js": "/preview/prov-ratta-stubs/data-classes.js",
           "/src/data-content.js": "/preview/prov-ratta-stubs/data-content.js",
           "/src/prov/prov-tillfalle-data.js": "/preview/prov-ratta-stubs/prov-tillfalle-data.js",
-          "/src/prov/prov-rattning-data.js": "/preview/prov-ratta-stubs/prov-rattning-data.js"
+          "/src/prov/prov-rattning-data.js": "/preview/prov-ratta-stubs/prov-rattning-data.js",
+          "/src/prov/prov-mynt-data.js": "/preview/prov-ratta-stubs/prov-mynt-data.js"
         }
       }
     </script>
@@ -44,12 +49,22 @@
       <a href="#/larare/prov/tillfallen">Provtillfällen</a>
       <label>Elevens resultat: <select id="pv-elev"></select></label>
       <label><input type="checkbox" id="pv-natfel" /> nätfel</label>
-      <a href="?nollstall#/larare/prov/ratta?t=tf-r">Börja om</a>
+      <a href="?nollstall#/larare/prov/ratta?t=tf-r" id="pv-borja-om">Börja om</a>
+      <span id="pv-759"></span>
       <span id="pv-info"></span>
     </div>
     <div class="layout"><main id="app" class="container"></main></div>
     <script type="module">
       import { S } from "/preview/prov-ratta-stubs/state.js";
+      import { pvLankar } from "/preview/prov-installningar-pv.js";
+      // #759: valen för stavfel och färggränser; Börja om behåller dem.
+      pvLankar(document.getElementById("pv-759"));
+      document.getElementById("pv-borja-om").addEventListener("click", (e) => {
+        e.preventDefault();
+        const q = new URLSearchParams(location.search);
+        q.set("nollstall", "");
+        location.href = `${location.pathname}?${q.toString().replace("nollstall=", "nollstall")}${e.currentTarget.getAttribute("href").replace(/^[^#]*/, "")}`;
+      });
       import { pageProvRatta } from "/src/prov/prov-ratta-sida.js";
       import { pageProvTillfallen } from "/src/prov/prov-tillfallen-sida.js";
       import { resultatModell } from "/src/prov/prov-rattning-logik.js";

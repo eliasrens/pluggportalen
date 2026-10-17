@@ -20,6 +20,7 @@ import {
   elevLage, kvarNiva, kvarText, lokalNyckel, slutTid, tillMs, valjStartSvar,
 } from "./prov-tillfalle-logik.js";
 import { onProvChange, provForMe } from "./prov-watch.js";
+import { elevProvNamn, gallerElev, tidsgransFor, tolkaFlikbyten } from "./prov-anpassningar.js";
 import { laddaCss } from "./prov-vy.js";
 
 const LISTA = "#/elev/prov";
@@ -57,9 +58,9 @@ function lasLokal(t, uid) {
     return null;
   }
 }
-function skrivLokal(t, uid, svar) {
+function skrivLokal(t, uid, svar, flikbyten = 0) {
   try {
-    localStorage.setItem(lokalNyckel(t, uid), JSON.stringify({ svar, at: serverNow() }));
+    localStorage.setItem(lokalNyckel(t, uid), JSON.stringify({ svar, at: serverNow(), flikbyten }));
   } catch {}
 }
 function rensaLokal(t, uid) {
@@ -82,13 +83,14 @@ export async function pageProvLista() {
   if (location.hash.split("?")[0] !== LISTA) return;
 
   const kort = info.oppna.map((tf, i) => {
-    const lage = elevLage(tf, mina[i], serverNow());
+    const lage = elevLage(tf, mina[i], serverNow(), meId);
+    const min = tidsgransFor(tf, meId); // med elevens extra tid (#748)
     const knapp = lage === "inlamnat"
       ? `<span class="provv-etikett provv-etikett-klar">✓ Inlämnat</span>`
       : `<button class="provv-lamna-in" data-t="${escHtml(tf.id)}">${lage === "ny" ? "Starta provet" : "Fortsätt provet"}</button>`;
     return `<article class="provv-kort">
-      <h2>${escHtml(tf.provNamn || "Prov")}</h2>
-      <p class="provv-kort-fakta">${antalFragor(tf)} frågor${tf.tidsgransMin ? ` · ${tf.tidsgransMin} minuter` : " · ingen tidsgräns"}</p>
+      <h2>${escHtml(elevProvNamn(tf))}</h2>
+      <p class="provv-kort-fakta">${antalFragor(tf)} frågor${min ? ` · ${min} minuter` : " · ingen tidsgräns"}</p>
       ${knapp}
     </article>`;
   }).join("");
@@ -141,10 +143,12 @@ export async function pageProvSkriv() {
   if (!tf && t) tf = await hamtaTillfalle(t).catch(() => null);
   if (location.hash !== route) return;
   if (!tf) return meddelande("Provet finns inte", "Det här provet är inte öppet för din klass.");
+  // Ett omprov för valda elever (#748) – reglerna nekar de andra ändå.
+  if (!gallerElev(tf, meId)) return meddelande("Provet finns inte", "Det här provet är inte öppet för dig.");
   let svarDok = await hamtaMittSvar(t, meId).catch(() => null);
   if (location.hash !== route) return;
 
-  const lage = elevLage(tf, svarDok, serverNow());
+  const lage = elevLage(tf, svarDok, serverNow(), meId);
   if (lage === "inlamnat") return meddelande("Inlämnat", svarDok.inlamnadNar === "tid" ? TID_SLUT : KLART);
   if (lage === "stangt") return meddelande("Provet är stängt", svarDok ? STANGT : "Din lärare har stängt provet.");
   if (lage === "ny") return startRuta(tf, meId, route);
@@ -152,11 +156,12 @@ export async function pageProvSkriv() {
 }
 
 function startRuta(tf, meId, route) {
+  const min = tidsgransFor(tf, meId);
   const ruta = el(`<div class="provv-panel provv-start">
-    <h1 class="provv-sidrubrik">${escHtml(tf.provNamn || "Prov")}</h1>
+    <h1 class="provv-sidrubrik">${escHtml(elevProvNamn(tf))}</h1>
     <ul class="provv-start-fakta">
       <li>${antalFragor(tf)} frågor</li>
-      <li>${tf.tidsgransMin ? `Du har ${tf.tidsgransMin} minuter. Tiden börjar när du startar.` : "Ingen tidsgräns."}</li>
+      <li>${min ? `Du har ${min} minuter. Tiden börjar när du startar.` : "Ingen tidsgräns."}</li>
       <li>Dina svar sparas automatiskt medan du skriver.</li>
     </ul>
     <button class="provv-lamna-in" type="button">Starta provet</button>
@@ -187,14 +192,19 @@ function startRuta(tf, meId, route) {
 
 function skriv(tf, svarDok, meId) {
   const t = tf.id;
-  const { svar, franLokal } = valjStartSvar(svarDok, lasLokal(t, meId));
+  const lokal = lasLokal(t, meId);
+  const { svar, franLokal } = valjStartSvar(svarDok, lokal);
   let klar = false;
   let tick = null;
+  // #748: hur många gånger eleven lämnat provfliken – bara information till läraren.
+  let flikbyten = Math.max(tolkaFlikbyten(svarDok.flikbyten), tolkaFlikbyten(lokal?.flikbyten));
+  let baraFlik = false; // det osparade är bara flikbytena (inga svar) – spara inom taket, aldrig direkt
 
   const vy = renderaProv({
     namn: tf.provNamn, fragor: tf.fragor, installningar: tf.installningar, svar,
     onAndrat: (s) => {
-      skrivLokal(t, meId, s);
+      baraFlik = false;
+      skrivLokal(t, meId, s, flikbyten);
       sparare.andrat();
     },
     onLamnat: () => sparare.lamnatRuta(),
@@ -205,13 +215,17 @@ function skriv(tf, svarDok, meId) {
   sida(vy.el);
 
   const nySparare = () => skapaSparare({
-    spara: () => sparaSvar(t, meId, vy.svar()),
+    spara: () => sparaSvar(t, meId, vy.svar(), flikbyten),
     onStatus: (s) => vy.satSparstatus(s),
     onSlutgiltigt: () => kollaLage(),
   });
   let sparare = nySparare();
   vy.satSparstatus({ lage: "sparat", tid: tillMs(svarDok.uppdaterad) });
   if (franLokal) sparare.andrat(); // osparade ändringar från förra gången
+  else if (flikbyten > tolkaFlikbyten(svarDok.flikbyten)) { // bara flikbyten osparade (#748)
+    baraFlik = true;
+    sparare.andrat();
+  }
 
   const avsluta = (rubrik, text) => {
     klar = true;
@@ -234,12 +248,18 @@ function skriv(tf, svarDok, meId) {
       rensaLokal(t, meId);
       avsluta("Inlämnat.", nyttSvar.inlamnadNar === "tid" ? TID_SLUT : nyttSvar.inlamnadNar === "stangt" ? STANGT : KLART);
     } else if (l === "stangt") avsluta("Provet är stängt.", "Dina sparade svar gäller.");
-    else if (l === "tiden-slut") lamna("tid");
+    else if (l === "tiden-slut") {
+      // Reglerna nekade redan "tid"-inlämningen (gränsen + 2 min har passerat,
+      // t.ex. när läraren tog bort extra tid) – sluta försöka, det senast sparade gäller.
+      if (tidNekad) avsluta("Tiden är slut.", "Dina senast sparade svar gäller.");
+      else lamna("tid");
+    }
   }
 
   // Inlämningen: sista svaren + inlämnad i en skrivning. "tid" försöker igen
   // tills det går (inom reglernas 2 minuters marginal); "elev" visar felet.
   let lamnar = false;
+  let tidNekad = false;
   async function lamna(nar) {
     if (klar || lamnar) return;
     lamnar = true;
@@ -250,12 +270,12 @@ function skriv(tf, svarDok, meId) {
       vy.satSparstatus({ lage: "sparar" });
     }
     const svarNu = vy.svar();
-    skrivLokal(t, meId, svarNu);
+    skrivLokal(t, meId, svarNu, flikbyten);
     for (let forsok = 0; ; forsok++) {
       try {
         // Offline hänger skrivningen (SDK:t köar den) – vänta högst 10 s per försök.
         await Promise.race([
-          lamnaIn(t, meId, svarNu, nar),
+          lamnaIn(t, meId, svarNu, nar, flikbyten),
           new Promise((_, nej) => setTimeout(() => nej(Object.assign(new Error("timeout"), { code: "deadline-exceeded" })), 10_000)),
         ]);
         rensaLokal(t, meId);
@@ -265,6 +285,7 @@ function skriv(tf, svarDok, meId) {
         // Nekad: kanske redan inlämnad (en köad skrivning gick igenom) eller stängd.
         if (arSlutgiltigtFel(err)) {
           lamnar = false;
+          if (nar === "tid") tidNekad = true;
           return kollaLage();
         }
         if (nar === "elev") {
@@ -282,23 +303,41 @@ function skriv(tf, svarDok, meId) {
   }
 
   // Nedräkningen mot serverns klocka (§5.5): gul vid 5 min, röd vid 1 min.
-  const slut = slutTid(svarDok.startad, tf.tidsgransMin);
+  // Elevens egen tidsgräns: tidsgränsen + extra tid (#748) – läraren kan ge mer under provet.
+  let slut = null;
   const ritaTid = () => {
     if (slut == null || klar) return;
     const kvar = slut - serverNow();
     vy.satTid(kvarText(kvar), kvarNiva(kvar));
     if (kvar <= 0) lamna("tid");
   };
-  if (slut != null) {
+  const satSlut = (x) => {
+    slut = slutTid(svarDok.startad, tidsgransFor(x, meId));
+    if (slut != null && !tick) tick = setInterval(ritaTid, 1000);
     ritaTid();
-    tick = setInterval(ritaTid, 1000);
-  }
+  };
+  satSlut(tf);
 
   // Läraren stänger provet → tillfället försvinner ur elevens öppna lista.
-  const avProv = onProvChange(({ oppna }) => { if (!oppna.some((x) => x.id === t)) kollaLage(); });
+  const avProv = onProvChange(({ oppna }) => {
+    const ny = oppna.find((x) => x.id === t);
+    if (!ny) kollaLage();
+    else if (!klar && !lamnar) satSlut(ny);
+  });
   // Eleven lämnar sidan eller fliken: spara direkt (utan tak).
   const spola = () => { if (!klar && sparare.osparat) sparare.spolaNu(); };
-  const synlighet = () => { if (document.hidden) spola(); };
+  // #748: varje gång fliken döljs under provet räknas ett flikbyte. Osparade
+  // svar sparas direkt som förut (och tar med bytet); annars följer bytet med
+  // nästa sparning inom taket – flikbyten ger aldrig fler skrivningar än taket.
+  const synlighet = () => {
+    if (!document.hidden || klar || lamnar) return;
+    const svarOsparade = sparare.osparat && !baraFlik;
+    flikbyten = Math.min(flikbyten + 1, 10_000);
+    skrivLokal(t, meId, vy.svar(), flikbyten);
+    if (svarOsparade) return void spola();
+    if (!sparare.osparat) baraFlik = true;
+    sparare.andrat();
+  };
   window.addEventListener("pagehide", spola);
   window.addEventListener("online", spola); // nätet tillbaka → försök direkt
   document.addEventListener("visibilitychange", synlighet);

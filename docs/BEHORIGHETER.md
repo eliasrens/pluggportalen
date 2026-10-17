@@ -56,6 +56,9 @@ tabellerna, om en rad saknar test, eller om en testfil inte körs av
 | SA | `test/firestore-rules-season.test.js` |
 | PV | `test/firestore-rules-prov.test.js` |
 | PD | `test/firestore-rules-prov-rattning.test.js` |
+| PM | `test/firestore-rules-prov-mynt.test.js` |
+| PA | `test/firestore-rules-prov-anpassningar.test.js` |
+| PO | `test/firestore-rules-prov-mynt-omprov.test.js` |
 
 Admin-kolumnen bevisas dessutom av OG test 25 (lärare utan roll gör allt som
 admin) och av alla äldre regeltester, som kör sina lärare som admin (§7 test 26).
@@ -74,7 +77,7 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `subjects/{s}/areas` | L/S | L: allt. Skapa: i ett befintligt ämne, med `createdBy` = sig själv. Ändra: bara områden med `createdBy` = sig själv, och `createdBy` får inte bytas. Radera: bara egna. Område utan `createdBy` är admins. | SM test 4–7 |
 | `students` | L/S | L (som alla inloggade). S: aldrig. | KE test 12, RO elevkonton |
 | `studentCredentials` | L/radera. S: bara fälten `username`, `password` (minst 6 tecken) och `updatedAt`. | L: egna elever. S: aldrig (lösenordsbyte via `updateStudentLogin`). | SM test 1–3, KE test 13, SC |
-| `studentData` | L/S | L: egna elever. S: bara `lasresa` och där bara nivåfälten (`level`, `level10`, `pendingLevel`, `pendingLevel10`, `highStreak`, `lowStreak`, `levelSetAt`, `levelSetBy`, `updatedAt`). En elev utan `lasresa` får ett nytt tillstånd utan resultat. `coins` + `lastLiveReceipt` bara i samma skrivning som Live-kvittot. Skapa och radera: aldrig. | SM test 1–2, KE test 12 och 14, LE test 16 och 18 |
+| `studentData` | L/S | L: egna elever. S: bara `lasresa` och där bara nivåfälten (`level`, `level10`, `pendingLevel`, `pendingLevel10`, `highStreak`, `lowStreak`, `levelSetAt`, `levelSetBy`, `updatedAt`). En elev utan `lasresa` får ett nytt tillstånd utan resultat. `coins` + `lastLiveReceipt` bara i samma skrivning som Live-kvittot, och `coins` + `lastProvMynt` bara med exakt kvittots ökning i samma skrivning som provets kvitto (#746). Skapa och radera: aldrig. | SM test 1–2, KE test 12 och 14, LE test 16 och 18, PM |
 | `studentData/{id}/lasresaAttempts` | L/S | L: egna elever. S: aldrig. | SM test 1–2 |
 | `studentData/{id}/ekvationsresa` (bara `progress`) | L/S (validerat), radera | L: egna elever. S: lärarens nivåbyte (`ekvTeacherLevelOk`) för egna elever. | SM test 1–2, KE test 14 |
 | `studentData/{id}/ekvationsresaAttempts` | L/radera | L: egna elever | SM test 1–2 |
@@ -97,10 +100,11 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `hittaRattBoards`, `hittaRattMeta`, `hittaRattPacks` | L (servern skriver) | L | RO Hitta rätt! |
 | `hittaRattBilder` | L. Skapa och radera egna bilder. | L. S: aldrig. | RO egna bilder |
 | `prov` (provet med facit, #738) | L/S | L: alla prov (kopiera kollegors). Skapa: `createdBy` = sig själv. Ändra och radera: bara egna; `createdBy` får inte bytas. Elever läser aldrig. | PV prov/{id} |
-| `provTillfallen` | L/S (status bara `forberett → oppet → stangt`, `stangt → oppet`) | L/S: egna klasser. Skapa bara som `forberett` med `createdBy` = sig själv; klass och prov byts aldrig. Eleven i klassen läser öppna och stängda, aldrig förberedda. | PV provTillfallen |
+| `provTillfallen` | L/S (status bara `forberett → oppet → stangt`, `stangt → oppet`) | L/S: egna klasser. Skapa bara som `forberett` med `createdBy` = sig själv; klass och prov byts aldrig. `extraTid` en map, `elevIds` (omprov, #748) en lista med 1–100 elever som aldrig byts; `omprovAv` (skapas bara med ett ursprung med samma prov och klass som självt inte är ett omprov) byts aldrig. Eleven i klassen läser öppna och stängda, aldrig förberedda – även ett omprov hen inte är vald till (lyssnarens fråga kan inte filtrera på `elevIds`; inget facit i tillfället). | PV provTillfallen, PA, PO |
 | `provTillfallen/{t}/privat` (bara `facit`) | L/S | L/S: egna klasser. Eleven aldrig. | PV privat/facit |
-| `provTillfallen/{t}/svar` | L/radera. S: bara inlämnad-fälten när provet stängs (eller öppnas igen) – aldrig svaren. | Som admin, egna klasser. Eleven skapar och sparar sitt eget (öppet prov, i klassen, inom tidsgränsen + 2 min, inte efter inlämning). | PV svar |
-| `provTillfallen/{t}/rattning`, `{**}/rattning` (collection group) | L/S | L/S: egna klasser (collection group: filtrerat på `classId`). Eleven läser sin egen först när `aterlamnad == true`. Bara kända fält; `facit` och `aterlamnadAt` bara i en tillbakalämnad rättning, och att lämna tillbaka kräver `aterlamnadAt` = serverns tid. | PV rattning, PV collection group, PD |
+| `provTillfallen/{t}/svar` | L/radera. S: bara inlämnad-fälten när provet stängs (eller öppnas igen) – aldrig svaren. | Som admin, egna klasser. Eleven skapar och sparar sitt eget (öppet prov, i klassen, i `elevIds` om tillfället är ett omprov, inom tidsgränsen + elevens `extraTid` + 2 min, inte efter inlämning; `flikbyten` heltal 0–10 000). | PV svar, PA |
+| `provTillfallen/{t}/rattning`, `{**}/rattning` (collection group) | L/S | L/S: egna klasser (collection group: filtrerat på `classId`). Eleven läser sin egen först när `aterlamnad == true`. Bara kända fält; `facit` och `aterlamnadAt` bara i en tillbakalämnad rättning, och att lämna tillbaka kräver `aterlamnadAt` = serverns tid. `myntUtbetalt` (#746) ändras bara ensamt och till kvittots total; annars behålls eller utelämnas det. | PV rattning, PV collection group, PD, PM |
+| `studentData/{uid}/provMynt` (pluggmynt per prov, #746) | L/S (som årskurskontot; S kontrolleras även för admin) | L: egna elever (eleven läser sitt eget). Skapa/ändra: bara läraren med tillfällets klass, `total` bara uppåt, högst 200 och högst vad tillfällets `installningar.mynt` ger; rättningen tillbakalämnad med `myntUtbetalt` = `total`, elevens `svar` inlämnat och `coins` ökar med exakt skillnaden – allt i samma skrivning. Omprov (#748): kvittot är alltid ursprungets (`provMynt/{omprovAv}`) med `senast` = omprovet, vars rättning, svar och inställning då gäller; ett omprov får aldrig ett eget kvitto, så taket 200 gäller provet som helhet. Radera: bara admin. Eleven skriver aldrig. | PM, PO |
 | `brakresaSecrets` (Bråkresans facit) | nekas (bara Cloud Functions) | nekas | BR |
 | `brakresaRecommendations` | L/S | L/S: rekommendationer till egna klasser och elever, med `teacherId` = sig själv och exakt ett av `classId`/`studentId`. Ändra bara `active`, `endedAt`, `comment` och `challengeIds`. | BR |
 | `config/season` (bara det dokumentet; läses av alla, även utloggade) | L/S (fälten valideras) | L. S: aldrig. | SA test 3 |
@@ -161,6 +165,9 @@ bevisas av FM test 24.
   bara ändra `brakdrake.pos`, `.room` och `.stowed` (`brakdrakeOk` i `firestore.rules`,
   skrivs som fältvägar av `src/brakresan/rum-drake.js`). Årskurskontot skriver aldrig fältet.
 - `payLiveRewards` (`src/live/live-rewards-pay.js`) skriver nu `lastLiveReceipt` = sessionen.
+- Provets pluggmynt (#746, PM) betalas av `betalaProvMynt` (`src/prov/prov-mynt-pay.js`) med samma
+  mönster: en transaktion per elev, `lastProvMynt` = tillfället. Ingen callable. Precis som Live
+  nekas eleven som saknar `studentData` (val 6); rättningsvyn försöker igen nästa gång den öppnas.
 - Live-sidan (`teacher-live*.js`) visar årskurskontot bara matcher med egna klasser,
   inget kassapris, och bara egna klasser i andra format än Klassmatchen
   (`teacher-role-core.js`: `canSeeLiveSession`, `liveFieldsFor`, `liveClassChoices`).

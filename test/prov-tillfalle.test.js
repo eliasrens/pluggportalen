@@ -295,6 +295,12 @@ describe("lärarens översikt (§5.3) och Kör i klass (§5.2)", () => {
     assert.equal(standardLasMinuter(40), 50);
     assert.equal(standardLasMinuter(null), 60);
   });
+  it("fokuslåset räcker för den med mest extra tid (#749 F1); ogiltig extra tid räknas inte", () => {
+    assert.equal(standardLasMinuter(40, {}), 50);
+    assert.equal(standardLasMinuter(40, { a: 15, b: 30 }), 80);
+    assert.equal(standardLasMinuter(40, { a: "60", b: -5, c: 999 }), 50);
+    assert.equal(standardLasMinuter(null, { a: 30 }), 60);
+  });
   it("menylänken: öppet prov, eller tillbakalämnat de senaste 14 dagarna", () => {
     const DAG = 86_400_000;
     const nu = 100 * DAG;

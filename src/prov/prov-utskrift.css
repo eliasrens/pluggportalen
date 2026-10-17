@@ -1,0 +1,112 @@
+/* ==========================================================================
+   Prov (#747, §13) – utskrift (.provl-ut-): provet på papper och elevernas
+   resultat. Samma mönster som inloggningskorten (22-larare-inloggning.css):
+   skärm = helskärmsvy med vita A4-blad, utskrift = A4 stående, allt annat
+   dolt. Laddas DYNAMISKT (laddaCss), ligger inte i styles.css (#271).
+   Bedömningen har alltid symbol + text (✓ ½ ✗ ?), så den syns i svartvitt.
+   ========================================================================== */
+
+.provl-utskrift {
+  position: fixed; inset: 0; z-index: var(--z-modal, 1000); overflow: auto;
+  background: var(--t-bg, #10161f); padding: 16px clamp(12px, 4vw, 40px) 48px;
+}
+.provl-ut-verktyg { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
+.provl-ut-rubrik { margin: 0; font-size: 1.2rem; flex: 1 1 260px; }
+.provl-ut-val { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.provl-ut-knappar { display: flex; gap: 8px; }
+.provl-ut-hint { color: var(--t-muted, #93a2b3); margin: 6px 0 16px; max-width: 70ch; }
+
+/* Bladen: A4-bredd på skärmen. */
+.provl-ut-blad { display: grid; gap: 24px; justify-items: center; }
+.provl-ut-sida {
+  box-sizing: border-box; width: min(210mm, 100%); min-height: 120mm; padding: 16mm 15mm;
+  background: #fff; color: #1f2a3a; border-radius: 4px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  font-size: 11.5pt; line-height: 1.45;
+}
+.provl-ut-sida p { margin: 0 0 4px; }
+
+.provl-ut-huvud { border-bottom: 2px solid #1f2a3a; padding-bottom: 8px; margin-bottom: 14px; }
+.provl-ut-titel { font-size: 18pt; margin: 0 0 8px; line-height: 1.2; }
+.provl-ut-overrad { color: #5b6878; font-size: 10pt; }
+.provl-ut-max { color: #5b6878; font-size: 10pt; margin-top: 6px !important; }
+
+.provl-ut-namnrad { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: flex-end; }
+.provl-ut-falt { display: inline-flex; align-items: flex-end; gap: 6px; flex: 1 1 22%; min-width: 120px; }
+.provl-ut-falt-namn-lang { flex: 3 1 45%; }
+.provl-ut-falt-namn { font-weight: 700; }
+.provl-ut-falt-linje { flex: 1; border-bottom: 1.5px solid #1f2a3a; min-height: 1.3em; }
+.provl-ut-falt-varde { flex: 1; border-bottom: 1.5px solid #1f2a3a; padding: 0 4px; }
+
+/* Frågorna */
+.provl-ut-fragor { display: grid; gap: 12px; }
+.provl-ut-fraga, .provl-ut-textblock { break-inside: avoid; page-break-inside: avoid; }
+.provl-ut-fraga-huvud { display: flex; gap: 10px; align-items: flex-start; }
+.provl-ut-nr {
+  flex: none; display: inline-grid; place-items: center; width: 1.7em; height: 1.7em; border-radius: 50%;
+  border: 1.5px solid #1f2a3a; font-weight: 700; font-size: 10.5pt;
+}
+.provl-ut-fragetext { flex: 1; font-weight: 600; }
+.provl-ut-fragetext p { margin: 0 0 4px; }
+.provl-ut-p { flex: none; color: #5b6878; font-size: 10pt; white-space: nowrap; }
+.provl-ut-hjalp { font-style: italic; color: #5b6878; margin-left: 2.4em !important; font-size: 10pt; }
+.provl-ut-yta, .provl-ut-svar { margin: 6px 0 0 2.4em; }
+.provl-ut-instr { color: #5b6878; font-size: 10pt; font-style: italic; }
+
+.provl-ut-linjer { display: grid; gap: 0; }
+.provl-ut-linje { display: block; height: 9mm; border-bottom: 1px solid #8a96a6; }
+.provl-ut-kryss { list-style: none; margin: 2px 0 0; padding: 0; display: grid; gap: 5px; }
+.provl-ut-kryss li { display: flex; gap: 8px; align-items: center; }
+.provl-ut-ruta { font-size: 13pt; line-height: 1; width: 1.1em; }
+.provl-ut-nrruta { display: inline-block; width: 8mm; height: 6mm; border: 1.2px solid #1f2a3a; border-radius: 2px; flex: none; }
+.provl-ut-santfalskt { display: flex; gap: 32px; }
+.provl-ut-lucktext { line-height: 2.2; }
+.provl-ut-lucka { display: inline-block; min-width: 32mm; border-bottom: 1.2px solid #1f2a3a; margin: 0 3px; vertical-align: baseline; line-height: 1.2; }
+.provl-ut-luckanr { font-size: 8pt; color: #5b6878; }
+.provl-ut-para { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 24px; }
+.provl-ut-para-v, .provl-ut-para-h { margin: 0; padding-left: 1.4em; display: grid; gap: 6px; }
+.provl-ut-para-h { list-style: none; padding-left: 0; }
+.provl-ut-para-v li { display: flex; justify-content: space-between; gap: 8px; }
+.provl-ut-bokstavslinje { display: inline-block; width: 12mm; border-bottom: 1.2px solid #1f2a3a; flex: none; }
+
+.provl-ut-textblock { border: 1px solid #c9d2dd; border-radius: 6px; padding: 8px 12px; background: #f7f9fb; }
+.provl-ut-textblock-titel { margin: 0 0 4px; font-size: 13pt; }
+.provl-ut-textblock-ref { color: #5b6878; font-style: italic; font-size: 10pt; }
+
+/* Facit */
+.provl-ut-facitsida { break-before: page; page-break-before: always; }
+.provl-ut-facit { display: grid; gap: 8px; padding-left: 2em; margin: 0; }
+.provl-ut-facit li { break-inside: avoid; }
+.provl-ut-facit-fraga { color: #5b6878; }
+.provl-ut-facit-svar { display: block; font-weight: 700; }
+
+/* Resultatet (en elev per sida) */
+.provl-ut-summa { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+.provl-ut-total { font-weight: 700; padding: 2px 10px; border-radius: 999px; border: 1.5px solid currentColor; }
+.provl-ut-total-gron { color: #1f6b44; background: #e6f4ec; }
+.provl-ut-total-gul { color: #7a5600; background: #fff4d6; }
+.provl-ut-total-rod { color: #9a3d33; background: #fbeeec; }
+.provl-ut-total-ej { color: #5b6878; border-style: dashed; }
+.provl-ut-niva { font-weight: 700; }
+.provl-ut-status { color: #5b6878; font-size: 10pt; }
+.provl-ut-helhet { margin-top: 8px; padding: 6px 10px; border-left: 3px solid #2463b8; background: #f3f7fc; }
+.provl-ut-helhet p { margin: 2px 0 0; }
+.provl-ut-ejbedomd { flex: none; color: #5b6878; font-size: 10pt; border: 1px dashed #8a96a6; border-radius: 999px; padding: 1px 8px; }
+.provl-ut-kommentar { margin: 6px 0 0 2.4em !important; padding: 4px 8px; background: #f7f9fb; border-radius: 4px; }
+.provl-ut-svar .provv-sv-text { padding: 4px 8px; }
+.provl-ut-svar .provv-sv-alt-rad { padding: 3px 8px; }
+
+@media print {
+  @page { size: A4 portrait; margin: 12mm; }
+  body > *:not(.provl-utskrift) { display: none !important; }
+  /* Inloggningskortens regel (styles.css) döljer alla andra barn till body – vinn över den. */
+  html body > div.provl-utskrift { display: block !important; }
+  .provl-utskrift, .teacher-dark.provl-utskrift { position: static; padding: 0; background: #fff; overflow: visible; }
+  .provl-ut-verktyg, .provl-ut-hint { display: none !important; }
+  .provl-ut-blad { display: block; justify-items: normal; }
+  .provl-ut-sida {
+    width: auto; min-height: 0; padding: 0; box-shadow: none; border-radius: 0;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  /* Resultat: en elev per sida. */
+  .provl-ut-resultat + .provl-ut-resultat { break-before: page; page-break-before: always; }
+}

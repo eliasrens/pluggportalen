@@ -13,7 +13,7 @@ import { buildLock } from "../class-lock.js";
 import { clearClassLock, getClassLock, setClassLock } from "../data-class-lock.js";
 import { FACIT_DOK, RATTNING, SAMLING_PROV, SAMLING_TILLFALLEN, STATUS, SVAR, delaUppProv } from "./prov-modell.js";
 import { OPPNA_IGEN_BATCH, arProvetsLas, attOppnaIgen, attStangaIn } from "./prov-tillfalle-logik.js";
-import { STANDARD_INSTALLNINGAR } from "./prov-validera.js";
+import { tillfalleInstallningar } from "./prov-validera.js";
 
 const tfRef = (t) => doc(db, SAMLING_TILLFALLEN, t);
 const facitRef = (t) => doc(db, SAMLING_TILLFALLEN, t, ...FACIT_DOK);
@@ -58,19 +58,29 @@ export async function hamtaSvar(t) {
  * @param {number|null} o.tidsgransMin
  * @param {{ pa: boolean, doljOvrigt: boolean }} o.fokus  lås klassen när provet öppnas
  * @param {{ uid, name }} o.larare
+ * @param {Record<string, number>} [o.extraTid]  #748: extra minuter per elev
+ * @param {string[]} [o.elevIds]   #748: omprov – bara de här eleverna
+ * @param {string} [o.omprovAv]    #748: tillfället omprovet gäller
  * @returns {Promise<string>} tillfällets id
  */
-export async function skapaTillfalle({ prov, classId, tidsgransMin, fokus, larare }) {
+export async function skapaTillfalle({ prov, classId, tidsgransMin, fokus, larare, extraTid, elevIds, omprovAv }) {
   const ref = await addDoc(collection(db, SAMLING_TILLFALLEN), {
     provId: prov.id, provNamn: prov.namn, classId,
     createdBy: larare.uid, createdByName: larare.name || "",
     status: STATUS.FORBERETT, fragor: [],
-    installningar: { ...STANDARD_INSTALLNINGAR, ...(prov.installningar || {}) },
+    installningar: tillfalleInstallningar(prov.installningar),
     tidsgransMin: tidsgransMin ?? null,
     fokus: { pa: !!fokus?.pa, doljOvrigt: fokus?.doljOvrigt !== false },
+    ...(extraTid && Object.keys(extraTid).length ? { extraTid } : {}),
+    ...(elevIds ? { elevIds, ...(omprovAv ? { omprovAv } : {}) } : {}),
     skapad: serverTimestamp(),
   });
   return ref.id;
+}
+
+/** Extra tid per elev (#748): hela mapen ersätts ({} = ingen). Går även medan provet pågår. */
+export async function sparaExtraTid(t, extraTid) {
+  await updateDoc(tfRef(t), { extraTid });
 }
 
 /**
@@ -91,7 +101,7 @@ export async function oppnaTillfalle(tf, las) {
     const batch = writeBatch(db);
     batch.update(tfRef(tf.id), {
       fragor, provNamn: prov.namn,
-      installningar: { ...STANDARD_INSTALLNINGAR, ...(prov.installningar || {}) },
+      installningar: tillfalleInstallningar(prov.installningar),
       status: STATUS.OPPET, oppnad: serverTimestamp(),
     });
     batch.set(facitRef(tf.id), { facit, bedomningsstod });

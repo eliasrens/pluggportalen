@@ -50,11 +50,12 @@ export default {
   arBesvarad: (svar) => typeof svar === "string" && svar.trim() !== "",
   rensaSvar: (svar) => klipp(typeof svar === "string" ? svar : "", GRANS.kortsvar),
 
-  forslag(svar, facit, f) {
+  forslag(svar, facit, f, opt) {
     const max = f.poang;
     const m = matchaText(svar, facit.godkanda, facit);
     if (m === true) return { poang: max, maxPoang: max, ratt: true };
-    if (m === "delvis") return { poang: delpoang(DELVIS_STAVFEL_ANDEL, max), maxPoang: max, ratt: "delvis" };
+    // Ett stavfel: halva poängen – eller inget förslag när läraren rättar stavfel själv (#759).
+    if (m === "delvis") return opt?.stavfel === "sjalv" ? null : { poang: delpoang(DELVIS_STAVFEL_ANDEL, max), maxPoang: max, ratt: "delvis" };
     return { poang: 0, maxPoang: max, ratt: false };
   },
 

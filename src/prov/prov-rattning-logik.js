@@ -7,7 +7,8 @@
 //
 // rattning/{elevUid} (docs/DATAMODELL.md "Prov"):
 //   { elevId, classId, provNamn, fragor: { [fragaId]: { poang, ratt, kommentar?, auto } },
-//     totalPoang, maxPoang, niva, helhetskommentar?, aterlamnad, aterlamnadAt?, facit? }
+//     totalPoang, maxPoang, niva, helhetskommentar?, aterlamnad, aterlamnadAt?, facit?,
+//     myntUtbetalt? (#746: pluggmynten som betalats ut, skrivs bara av prov-mynt-pay.js) }
 // En post med auto: true är ett FÖRSLAG – det räknas inte som rättat förrän
 // läraren godkänner eller ändrar det (§6.3).
 // ============================================================================
@@ -15,6 +16,7 @@
 import { arFraga, fragetyp } from "./prov-fragetyper.js";
 import { NIVAER, autoForslag, fragaNummer, maxPoang } from "./prov-modell.js";
 import { delpoang } from "./prov-rattning.js";
+import { arOmprov, elevProvNamn } from "./prov-anpassningar.js";
 
 /** Status per elev (§6.3) – i den ordningen. */
 export const ELEV_STATUS = Object.freeze({ EJ: "ej", DELVIS: "delvis", RATTAD: "rattad", TILLBAKA: "tillbaka" });
@@ -64,9 +66,11 @@ export function summera(r, fragor) {
 /**
  * Förslagen för en elev (§6.1): typernas automatik, och "fel" för en
  * obesvarad fråga som typen inte rättar själv (fritext). Allt med auto: true.
+ * stavfel "sjalv" (#759, stavfelFor(tf.installningar)): stavfelssvar får inget
+ * förslag och står kvar som "Inte rättad" tills läraren bedömt dem.
  */
-export function forslagFor(fragor, svar, facit) {
-  const ut = autoForslag(fragor, svar, facit);
+export function forslagFor(fragor, svar, facit, stavfel) {
+  const ut = autoForslag(fragor, svar, facit, { stavfel });
   for (const f of rattFragor(fragor)) {
     const typ = fragetyp(f.typ);
     if (ut[f.id] || !typ) continue;
@@ -76,9 +80,9 @@ export function forslagFor(fragor, svar, facit) {
 }
 
 /** En ny rättning med förslagen ifyllda (sparas direkt, §6.3). */
-export function nyRattning({ elevId, classId, provNamn, fragor, svar, facit }) {
+export function nyRattning({ elevId, classId, provNamn, fragor, svar, facit, stavfel }) {
   return summera({
-    elevId, classId, provNamn: provNamn || "", fragor: forslagFor(fragor, svar, facit),
+    elevId, classId, provNamn: provNamn || "", fragor: forslagFor(fragor, svar, facit, stavfel),
     niva: null, aterlamnad: false,
   }, fragor);
 }
@@ -88,8 +92,8 @@ export function nyRattning({ elevId, classId, provNamn, fragor, svar, facit }) {
  * om den skapades innan eleven lämnade in). Rör aldrig lärarens bedömningar.
  * @returns {{ r: object, andrad: boolean }}
  */
-export function kompletteraForslag(r, fragor, svar, facit) {
-  const forslag = forslagFor(fragor, svar, facit);
+export function kompletteraForslag(r, fragor, svar, facit, stavfel) {
+  const forslag = forslagFor(fragor, svar, facit, stavfel);
   const fr = { ...(r.fragor || {}) };
   let andrad = false;
   for (const [id, p] of Object.entries(forslag)) {
@@ -319,6 +323,8 @@ export function sparDok(r, fragor, provInfo = null) {
   if (helhet) ut.helhetskommentar = helhet;
   if (ut.aterlamnad && s.facit) ut.facit = s.facit;
   if (provInfo) ut.provInfo = provInfo;
+  // Pluggmyntens spegel (#746) följer med – reglerna nekar att den sänks.
+  if (Number.isInteger(s.myntUtbetalt) && s.myntUtbetalt > 0) ut.myntUtbetalt = s.myntUtbetalt;
   return ut;
 }
 
@@ -339,13 +345,15 @@ export function resultatModell(tf, svarDok, r) {
   const visaFacit = !!r.facit && Object.keys(r.facit).length > 0;
   const summa = summera(r, fragor);
   return {
-    namn: tf?.provNamn || r.provNamn || "Prov",
+    namn: tf ? elevProvNamn(tf) : r.provNamn || "Prov",
+    omprov: arOmprov(tf),
     poangsatt,
     totalPoang: summa.totalPoang,
     maxPoang: summa.maxPoang,
     niva: r.niva || null,
     nivaNamn: nivaNamn(r.niva),
     helhetskommentar: r.helhetskommentar || "",
+    mynt: Number.isInteger(r.myntUtbetalt) && r.myntUtbetalt > 0 ? r.myntUtbetalt : 0,
     visaFacit,
     poster: fragor.map((f) => ({
       fraga: f,

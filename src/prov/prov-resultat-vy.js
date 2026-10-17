@@ -1,13 +1,16 @@
 // ============================================================================
 // Prov (#741, spec §7 "Elevens resultatvy"): det rättade provet som eleven
 // ser det efter tillbakalämningen – utan Firebase (prov-elev-sida.js hämtar,
-// previewn stubbar). Namn och datum överst, totalen och nivån, lärarens
-// helhetskommentar, sedan varje fråga med elevens svar, ✓/½/✗ med text,
-// poängen, lärarens kommentar och facit om läraren valt att visa det.
+// previewn stubbar). Namn och datum överst, totalen, nivån och pluggmynten
+// ("+36 mynt", #746), lärarens helhetskommentar, sedan varje fråga med
+// elevens svar, ✓/½/✗ med text, poängen, lärarens kommentar och facit om
+// läraren valt att visa det.
 // Lugn och uppmuntrande: inga fyrverkerier, ingen skam. CSS: prov-resultat.css.
 // ============================================================================
 
+import { coinIcon } from "../icons.js";
 import { fragetyp } from "./prov-fragetyper.js";
+import { myntText } from "./prov-mynt.js";
 import { bedomning } from "./prov-rattning-logik.js";
 import { h, laddaCss, stycken } from "./prov-vy.js";
 
@@ -21,6 +24,19 @@ export function bedomningsEtikett(ratt, { poang, max, poangsatt } = {}) {
     h("span", { class: "provv-res-ikon", "aria-hidden": "true", text: b.ikon }),
     h("span", { text: b.namn }),
     poangsatt && max ? h("span", { class: "provv-res-p", text: ` · ${poangText(poang ?? 0)} av ${poangText(max)} p` }) : null);
+}
+
+/**
+ * "+36 mynt" med myntikonen (#746) – det eleven faktiskt fick, null om inga.
+ * Ett omprov speglar provets SAMMANLAGDA mynt (#748) – "Totalt 50 mynt för
+ * provet", inte "+50" som ser ut att komma utöver ursprunget (#749 F2).
+ */
+function myntEtikett(n, omprov = false) {
+  const text = omprov && myntText(n) ? `Totalt ${Math.floor(n)} mynt för provet` : myntText(n);
+  if (!text) return null;
+  const ikon = h("span", { class: "provv-res-mynt-ikon", "aria-hidden": "true" });
+  ikon.innerHTML = coinIcon("1.1em");
+  return h("span", { class: "provv-res-mynt" }, ikon, h("b", { text }));
 }
 
 /** Antal rätt/delvis/fel – summan när provet inte poängsätts. */
@@ -50,7 +66,8 @@ export function renderaResultat(m, o = {}) {
     h("h1", { class: "provv-sidrubrik", text: m.namn }),
     o.datum ? h("p", { class: "provv-res-datum", text: o.datum }) : null,
     h("div", { class: "provv-res-summa" }, summa,
-      m.nivaNamn ? h("span", { class: "provv-res-niva", text: m.nivaNamn }) : null),
+      m.nivaNamn ? h("span", { class: "provv-res-niva", text: m.nivaNamn }) : null,
+      myntEtikett(m.mynt, m.omprov)),
     h("p", { class: "provv-res-ton", text: "Här är ditt rättade prov. Läs lärarens kommentarer – de hjälper dig att lära dig ännu mer." }),
     m.helhetskommentar ? h("div", { class: "provv-res-helhet" },
       h("h2", { class: "provv-res-helhet-rubrik", text: "Från din lärare" }), stycken(m.helhetskommentar)) : null,

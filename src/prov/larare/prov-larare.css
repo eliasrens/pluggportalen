@@ -45,6 +45,18 @@
 .provl-check { display: flex; gap: 9px; align-items: flex-start; font-weight: 400; cursor: pointer; }
 .provl-check input { margin-top: 3px; accent-color: var(--t-accent); width: 17px; height: 17px; flex: none; }
 .provl-val { display: flex; gap: 18px; flex-wrap: wrap; }
+/* Pluggmynt (#746, provl-mynt.js): sifferfälten sitter i radioknapparnas text. */
+.provl-check input.provl-mynt-antal { width: 5em; height: auto; margin: -3px 4px 0; padding: 3px 6px; font: inherit; }
+.provl-mynt-krav[hidden] { display: none; }
+/* Stavfel och färggränser (#759, provl-bedomning.js). */
+.provl-granser { display: flex; flex-wrap: wrap; gap: 10px 22px; }
+.provl-grans-in { display: inline-flex; align-items: center; gap: 6px; font-weight: 400; }
+.provl-falt .provl-grans-in input { width: 5.5em; padding: 6px 9px; }
+.provl-grans-text { margin: 0; }
+.provl-grans-fel { color: #f08a80; }
+.provl-prick { display: inline-block; width: 0.75em; height: 0.75em; border-radius: 50%; vertical-align: -0.05em; }
+.provl-prick-gul { background: #e3b341; }
+.provl-prick-gron { background: #2fa866; }
 .provl-fel-rad[hidden] { display: none; }
 .provl-spara-rad { padding-top: 4px; }
 
@@ -145,3 +157,18 @@
   .provl-kort-knappar { margin-left: 0; }
   .provl-atgarder { justify-content: flex-start; }
 }
+
+/* --- Hämta från område (#745) ------------------------------------------------------ */
+/* En enda scrollyta (#749 F5): listan tar höjden som blir över, så sammanfattningen
+   och "Lägg till i provet" syns utan att rutan scrollar (rutan scrollar bara på
+   mycket låga skärmar, när listans minsta höjd inte får plats). */
+.provl-fo-dialog { overflow-y: auto; }
+.provl-fo { display: flex; flex-direction: column; max-height: calc(100vh - 34px); box-sizing: border-box; }
+.provl-fo > * { flex: 0 0 auto; }
+.provl-fo-saker { display: grid; align-content: start; gap: 12px; flex: 1 1 auto; min-height: 96px; overflow-y: auto; padding-right: 4px; }
+.provl-fo-saker:empty, .provl-fo-resultat:empty { display: none; }
+.provl-fo-lista { list-style: none; margin: 0; padding: 0 0 0 4px; display: grid; gap: 6px; }
+.provl-fo-del { margin-top: 6px; color: var(--t-muted); font-size: 0.85rem; font-weight: 700; }
+.provl-fo-alla { padding-bottom: 4px; border-bottom: 1px solid var(--t-border); }
+.provl-fo-ej { cursor: default; opacity: 0.6; }
+.provl-fo-orsak { color: var(--t-muted); font-style: italic; }

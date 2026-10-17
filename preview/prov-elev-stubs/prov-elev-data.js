@@ -18,18 +18,18 @@ export async function startaProv(t, uid, classId, svar = {}) {
   visa();
   return structuredClone(S.svar);
 }
-export async function sparaSvar(t, uid, svar) {
+export async function sparaSvar(t, uid, svar, flikbyten = 0) {
   await natet();
   if (S.tf.status !== "oppet" || S.svar?.inlamnad) throw Object.assign(new Error("nekad"), { code: "permission-denied" });
   S.skrivningar++;
-  Object.assign(S.svar, { svar, uppdaterad: Date.now() });
+  Object.assign(S.svar, { svar, uppdaterad: Date.now(), ...(flikbyten ? { flikbyten } : {}) });
   visa();
 }
-export async function lamnaIn(t, uid, svar, nar) {
+export async function lamnaIn(t, uid, svar, nar, flikbyten = 0) {
   await natet();
   if (S.tf.status !== "oppet" || S.svar?.inlamnad) throw Object.assign(new Error("nekad"), { code: "permission-denied" });
   S.skrivningar++;
-  Object.assign(S.svar, { svar, uppdaterad: Date.now(), inlamnad: true, inlamnadNar: nar, inlamnadAt: Date.now() });
+  Object.assign(S.svar, { svar, uppdaterad: Date.now(), inlamnad: true, inlamnadNar: nar, inlamnadAt: Date.now(), ...(flikbyten ? { flikbyten } : {}) });
   visa();
 }
 // #741: elevens rättning (resultatvyn) – bara när den är tillbakalämnad, som reglerna.

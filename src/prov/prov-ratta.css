@@ -112,6 +112,8 @@
 .teacher-dark .provl-r-elevval { flex: 1 1 220px; max-width: 420px; }
 .teacher-dark .provl-r-elevtopp { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 4px 0 10px; }
 .teacher-dark .provl-r-elevnamn { margin: 0; font-size: 1.2rem; }
+/* #748: flikbyten – diskret, bara information */
+.teacher-dark .provl-r-flikbyte { margin: 0 auto 0 0; font-size: 0.85rem; }
 .teacher-dark .provl-r-textblock { display: block; margin: 0; padding: 10px 14px; text-align: left; }
 .teacher-dark .provl-r-textblock summary { cursor: pointer; font-weight: 600; }
 .teacher-dark .provl-r .btn:disabled { opacity: 0.45; cursor: default; }

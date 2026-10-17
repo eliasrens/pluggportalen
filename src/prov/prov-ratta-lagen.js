@@ -14,6 +14,7 @@
 //   facit, bedomningsstod privat/facit
 //   med                   eleverna som rättas
 //   svarAv(uid, fid), visNamn(uid), poangsatt, nivaer
+//   flikbyteText(uid)     #748: "Lämnade provet 2 gånger" eller ""
 //   index                 { fraga, elev } – nuvarande
 //   ga({ fraga?, elev?, fokus? })  byt fråga/elev och rita om
 //   andrat(uids)          spara + uppdatera räknaren
@@ -28,6 +29,7 @@ import {
   godkannAlla, godkannFraga, gruppPost, summera, svarsGrupper,
 } from "./prov-rattning-logik.js";
 import { rattaKort } from "./prov-ratta-kort.js";
+import { STAVFEL, stavfelFor } from "./prov-validera.js";
 import { tillMs } from "./prov-tillfalle-logik.js";
 import { h, stycken } from "./prov-vy.js";
 
@@ -70,7 +72,7 @@ export function perFraga(v) {
         h("button", { type: "button", class: "btn ghost small", text: "Nästa fråga ›", disabled: v.index.fraga >= rf.length - 1, on: { click: () => v.ga({ fraga: v.index.fraga + 1, fokus: true }) } }))),
     h("div", { class: "provl-r-fragetext" }, stycken(f.fraga)),
     facitText ? h("p", { class: "provl-r-facit" }, h("b", { text: "Facit: " }), facitText,
-      fa?.exaktStavning === false ? h("span", { class: "hint", text: " · ett stavfel ger delvis" }) : null) : null,
+      fa?.exaktStavning === false ? h("span", { class: "hint", text: stavfelFor(v.tf.installningar) === STAVFEL.SJALV ? " · stavfel rättar du själv" : " · ett stavfel ger delvis" }) : null) : null,
     stod ? h("div", { class: "provl-r-stod" }, h("b", { text: "Bedömningsstöd" }), stycken(stod)) : null,
     typ.autoratt ? null : h("p", { class: "hint", text: "Den här frågan rättar du själv – bara obesvarade svar får ett förslag." }),
     h("div", { class: "provl-r-godkann" }, godkannKnapp, h("span", { class: "hint provl-r-tangenter", text: TANGENTER })));
@@ -181,7 +183,7 @@ export function perElev(v) {
       const nar = tillMs(r().aterlamnadAt);
       const dag = nar ? ` ${new Date(nar).toLocaleDateString("sv-SE", { day: "numeric", month: "short" })} ${formatKlockslag(nar)}` : "";
       knapp.replaceChildren(
-        h("p", { class: "provl-r-tillbaka-info", text: `✓ Tillbakalämnat${dag} · ${r().facit ? "med facit" : "utan facit"}.` }),
+        h("p", { class: "provl-r-tillbaka-info", text: `✓ Tillbakalämnat${dag} · ${r().facit ? "med facit" : "utan facit"}${r().myntUtbetalt ? ` · ${r().myntUtbetalt} pluggmynt utbetalda` : ""}.` }),
         h("button", { type: "button", class: "btn ghost small", text: "Ångra tillbakalämning", on: { click: () => v.angra(uid) } }));
     } else {
       const kvar = rf.filter((f) => !arBedomd(r().fragor?.[f.id])).length;
@@ -193,7 +195,9 @@ export function perElev(v) {
   uppdatera();
   return {
     el: h("div", {}, nav,
-      h("div", { class: "provl-r-elevtopp" }, h("h3", { class: "provl-r-elevnamn", text: v.visNamn(uid) }), godkannKnapp),
+      h("div", { class: "provl-r-elevtopp" }, h("h3", { class: "provl-r-elevnamn", text: v.visNamn(uid) }),
+        v.flikbyteText?.(uid) ? h("span", { class: "hint provl-r-flikbyte", title: "Hur många gånger eleven lämnade provfliken. Bara information – det påverkar inget.", text: v.flikbyteText(uid) }) : null,
+        godkannKnapp),
       h("div", { class: "provl-r-kortlista" }, kort),
       h("div", { class: "panel provl-r-summa" }, totalEl, nivaRad,
         h("label", { class: "provl-r-helhet-etikett" }, h("b", { text: "Helhetskommentar" }), helhet), knapp)),

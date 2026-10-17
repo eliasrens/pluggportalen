@@ -7,7 +7,8 @@
 //   #/larare/prov?vy=ny&kopia=<id>   kopia → osparat utkast med "(kopia)"
 // Provets uppgifter + inställningar, frågekorten (flytta, duplicera, ta bort,
 // redigera i kortet), "Lägg till fråga" (typväljaren → typens formulär),
-// "Skapa med AI" (provl-ai.js), "Förhandsvisa som elev" (provl-forhandsvisa.js)
+// "Skapa med AI" (provl-ai.js), "Förhandsvisa som elev" (provl-forhandsvisa.js),
+// "Skriv ut" (prov-utskrift.js, #747)
 // och "Kör i klass" (provtillfället, #740).
 // Arbetskopian ändras bara via prov-redigera-ops.js. Spara = validateProv +
 // ägarfälten (tillDokument) → setDoc. Osparade ändringar → lämna-vakten frågar.
@@ -19,13 +20,15 @@ import { GRADES } from "../../grades.js";
 import { armeraLamnaVakt } from "../../hitta-ratt/hr-lamna-vakt.js";
 import { fragetyp } from "../prov-fragetyper.js";
 import { fragaNummer, maxPoang } from "../prov-modell.js";
-import { TIDSGRANS_MAX, TIDSGRANS_MIN, tolkaTidsgrans, typValjare } from "../prov-validera.js";
+import { TIDSGRANS_MAX, TIDSGRANS_MIN, stavfelFor, tolkaTidsgrans, typValjare } from "../prov-validera.js";
 import { kanAndra } from "../prov-lista-ops.js";
 import {
   bild, dupliceraFraga, flyttaFraga, fragaRubrik, fragaText, kopieraProv, nyttProv, provFranDok,
   sparaFraga, taBortFraga, tillDokument, tomFraga,
 } from "../prov-redigera-ops.js";
 import { byggFragaForm } from "./provl-fragaform.js";
+import { myntFalt } from "./provl-mynt.js";
+import { bedomningFalt } from "./provl-bedomning.js";
 import { felText, hamtaProv, raderaProv, sparaProv } from "./provl-data.js";
 import { HASH } from "./page-larare-prov.js";
 import { korIKlass, raderaRuta } from "./provl-lista.js";
@@ -73,8 +76,10 @@ function ritaRedigerare(ctx, host, st) {
     <div class="provl-redigera-topp">
       <h2 class="subhead">${titel}</h2>
       <span class="provl-knappar">
+        <button type="button" class="btn small ghost" data-act="omrade">${icon("book", 16)}<span>Hämta från område</span></button>
         <button type="button" class="btn small ghost" data-act="ai">${icon("sparkle", 16)}<span>Skapa med AI</span></button>
         <button type="button" class="btn small" data-act="forhand">${icon("eye", 16)}<span>Förhandsvisa som elev</span></button>
+        <button type="button" class="btn small ghost" data-act="skrivut">${icon("printer", 16)}<span>Skriv ut</span></button>
       </span>
     </div>
     ${st.kopiaAv ? `<p class="hint">Kopian är inte sparad än. Ändra det du vill och spara – originalet påverkas inte.</p>` : ""}
@@ -140,8 +145,23 @@ function ritaRedigerare(ctx, host, st) {
     const k = inp.dataset.ins;
     const v = inp.type === "checkbox" ? inp.checked : tolkaTidsgrans(inp.value);
     andra({ ...st.prov, installningar: { ...st.prov.installningar, [k]: v === undefined ? inp.value : v } });
-    if (k === "poang") ritaFragor();
+    if (k === "poang") {
+      mynt.sattPoang(inp.checked);
+      ritaFragor();
+    }
   }));
+  // Pluggmynt (#746) – eget fält under inställningarna.
+  const mynt = myntFalt({
+    mynt: ins.mynt, poang: ins.poang,
+    onAndra: (m) => andra({ ...st.prov, installningar: { ...st.prov.installningar, mynt: m } }),
+  });
+  $(".provl-installningar").after(mynt.el);
+  // Stavfel och färggränser (#759) – under pluggmynten.
+  const bedomning = bedomningFalt({
+    installningar: ins,
+    onAndra: (andring) => andra({ ...st.prov, installningar: { ...st.prov.installningar, ...andring } }),
+  });
+  mynt.el.after(bedomning.el);
 
   // --- Frågekorten --------------------------------------------------------------
   const lista = $(".provl-fragelista");
@@ -162,6 +182,7 @@ function ritaRedigerare(ctx, host, st) {
     if (st.oppen === i) {
       li.appendChild(byggFragaForm(f, {
         poangPa,
+        stavfel: stavfelFor(st.prov.installningar),
         onSubmit: (falt) => {
           const r = sparaFraga(st.prov, i, f.typ, falt);
           if (r.ok) {
@@ -228,6 +249,7 @@ function ritaRedigerare(ctx, host, st) {
       h.firstElementChild.appendChild(byggFragaForm(tomFraga(typ, st.prov.fragor), {
         ny: true,
         poangPa: st.prov.installningar.poang !== false,
+        stavfel: stavfelFor(st.prov.installningar),
         onSubmit: (falt) => {
           const r = sparaFraga(st.prov, null, typ, falt);
           if (r.ok) {
@@ -260,6 +282,20 @@ function ritaRedigerare(ctx, host, st) {
     const { visaForhandsvisning } = await import("./provl-forhandsvisa.js");
     visaForhandsvisning(st.prov);
   });
+  $('[data-act="skrivut"]').addEventListener("click", async () => {
+    const { skrivUtProvDok } = await import("../prov-utskrift.js");
+    skrivUtProvDok(st.prov);
+  });
+  const lagtTill = (ny, text) => {
+    andra(ny);
+    st.oppen = null;
+    ritaFragor();
+    visaMsg(`<div class="msg ok">${esc(text)} Granska frågorna och spara provet.</div>`);
+  };
+  $('[data-act="omrade"]').addEventListener("click", async () => {
+    const { oppnaFranOmrade } = await import("./provl-fran-omrade.js");
+    oppnaFranOmrade(st.prov, st.role, lagtTill);
+  });
   $('[data-act="ai"]').addEventListener("click", async () => {
     const { oppnaAiRuta } = await import("./provl-ai.js");
     oppnaAiRuta(st.prov, (ny, text) => {
@@ -267,9 +303,7 @@ function ritaRedigerare(ctx, host, st) {
       // Uppgifterna AI:n fyllde i (bara tomma fält) och poängvalet syns direkt.
       vy.querySelectorAll("[data-k]").forEach((inp) => { inp.value = st.prov[inp.dataset.k] ?? ""; });
       $('[data-ins="poang"]').checked = st.prov.installningar.poang !== false;
-      st.oppen = null;
-      ritaFragor();
-      visaMsg(`<div class="msg ok">${esc(text)} Granska frågorna och spara provet.</div>`);
+      lagtTill(st.prov, text);
     });
   });
 

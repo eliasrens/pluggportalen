@@ -25,12 +25,21 @@ export async function hamtaSvar(t) {
   window.dispatchEvent(new CustomEvent("pv-logg", { detail: `läste ${Object.keys(s).length} svar` }));
   return kopia(s);
 }
-export async function skapaTillfalle({ prov, classId, tidsgransMin, fokus }) {
+export async function skapaTillfalle({ prov, classId, tidsgransMin, fokus, extraTid, elevIds, omprovAv }) {
   await vanta();
   const id = `tf-${Date.now()}`;
-  S.tillfallen[id] = { id, provId: prov.id, provNamn: prov.namn, classId, status: "forberett", fragor: [], tidsgransMin, fokus, skapad: Date.now() };
-  S.logg(`Skapade ${id} (förberett)`);
+  S.tillfallen[id] = {
+    id, provId: prov.id, provNamn: prov.namn, classId, status: "forberett", fragor: [], tidsgransMin, fokus, skapad: Date.now(),
+    ...(extraTid && Object.keys(extraTid).length ? { extraTid } : {}), ...(elevIds ? { elevIds, omprovAv } : {}),
+  };
+  S.logg(`Skapade ${id} (förberett${elevIds ? `, omprov för ${elevIds.length}` : ""}${extraTid && Object.keys(extraTid).length ? `, extra tid ${JSON.stringify(extraTid)}` : ""})`);
   return id;
+}
+// #748: extra tid per elev (hela mapen).
+export async function sparaExtraTid(t, extraTid) {
+  await vanta();
+  S.tillfallen[t].extraTid = extraTid;
+  S.logg(`Extra tid sparad: ${JSON.stringify(extraTid)}`);
 }
 export async function oppnaTillfalle(tf, las) {
   await vanta();

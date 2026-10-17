@@ -15,6 +15,8 @@
         #/larare/prov/ratta?t=tf-s&lage=oversikt&e=e2   elevvyn (Cleo)
         #/statistik                                 klassens statistik, fliken Prov
       ?nollstall i adressen = börja om (rättningen sparas i localStorage).
+      #759: ?stavfel=sjalv (Rätta stavfel själv), ?granser=50-75 (egna färggränser),
+      ?gammalt (tillfälle utan fälten → standarden auto, 60/85) – länkar i kontrollraden.
     -->
     <script type="importmap">
       {
@@ -43,12 +45,22 @@
       <a href="#/larare/prov/tillfallen">Provtillfällen</a>
       <a href="#/statistik">Klassens statistik → Prov</a>
       <label><input type="checkbox" id="pv-natfel" /> nätfel</label>
-      <a href="?nollstall#/larare/prov/ratta?t=tf-s&lage=oversikt">Börja om</a>
+      <a href="?nollstall#/larare/prov/ratta?t=tf-s&lage=oversikt" id="pv-borja-om">Börja om</a>
+      <span id="pv-759"></span>
       <span id="pv-info"></span>
     </div>
     <div class="layout"><main id="app" class="container"></main></div>
     <script type="module">
       import { S } from "/preview/prov-statistik-stubs/state.js";
+      import { pvLankar } from "/preview/prov-installningar-pv.js";
+      // #759: valen för stavfel och färggränser; Börja om behåller dem.
+      pvLankar(document.getElementById("pv-759"));
+      document.getElementById("pv-borja-om").addEventListener("click", (e) => {
+        e.preventDefault();
+        const q = new URLSearchParams(location.search);
+        q.set("nollstall", "");
+        location.href = `${location.pathname}?${q.toString().replace("nollstall=", "nollstall")}${e.currentTarget.getAttribute("href").replace(/^[^#]*/, "")}`;
+      });
       import { pageProvRatta } from "/src/prov/prov-ratta-sida.js";
       import { pageProvTillfallen } from "/src/prov/prov-tillfallen-sida.js";
 

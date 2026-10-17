@@ -28,6 +28,8 @@ import { elevStatVy, oversiktVy } from "./prov-stat-vy.js";
 import { granserFor } from "./prov-statistik.js";
 import { sparaGranser } from "./prov-rattning-data.js";
 import { ruta } from "./prov-tillfalle-rutor.js";
+import { harMynt, myntRegelText } from "./prov-mynt.js";
+import { flikbyteText, gallerElev, tillfalleNamn } from "./prov-anpassningar.js";
 import { blanda } from "./typer/delat.js";
 import { h, laddaCss } from "./prov-vy.js";
 
@@ -66,7 +68,8 @@ export async function pageProvRatta(ctx) {
     if (!data) throw new Error("Provtillfället finns inte (det kan ha raderats).");
     if (data.tf.status === STATUS.FORBERETT) throw new Error("Provet har inte öppnats än – det finns inget att rätta.");
     const klass = (await getClasses()).find((c) => c.id === data.tf.classId);
-    const ids = [...new Set([...(klass?.studentIds || []), ...Object.keys(data.svar)])];
+    // Ett omprov (#748): bara de valda eleverna (och den som ändå har ett svar).
+    const ids = [...new Set([...(klass?.studentIds || []).filter((id) => gallerElev(data.tf, id)), ...Object.keys(data.svar)])];
     // Elevernas namn – en gång (§9.2: en klass i taget).
     const namn = Object.fromEntries((await getStudentsByIds(ids)).map((e) => [e.id, e.namn || e.username || e.id]));
     elever = ids.map((id) => ({ id, namn: namn[id] || "Okänd elev" })).sort((a, b) => a.namn.localeCompare(b.namn, "sv"));
@@ -133,7 +136,7 @@ function rattningsVy(ctx, body, data, elever, q) {
         h("a", { "data-hash": LISTA, class: "provl-lank", text: "← Provtillfällen" }),
         h("a", { "data-hash": oversiktHash(t), class: "provl-lank", text: "Översikten" })),
       h("div", { class: "provl-huvud-rad" },
-        h("h2", { class: "provl-huvud-namn" }, tf.provNamn || "Prov", h("span", { class: "provl-klassnamn", text: ` · ${tf.klassNamn}` })),
+        h("h2", { class: "provl-huvud-namn" }, tillfalleNamn(tf), h("span", { class: "provl-klassnamn", text: ` · ${tf.klassNamn}` })),
         h("span", { class: `provl-status provl-status-${tf.status}`, text: STATUS_NAMN[tf.status] || tf.status })),
       h("p", { class: "hint provl-fakta", text: [
         `${rf.length} frågor`, `${med.length} inlämnade prov`,
@@ -173,7 +176,11 @@ function rattningsVy(ctx, body, data, elever, q) {
     lager, tf, fragor, rf, nr: fragaNummer(fragor), facit: data.facit, bedomningsstod: data.bedomningsstod, med,
     poangsatt, nivaer: tf.installningar?.nivaer === true, index,
     svarAv: (uid, fid) => svar[uid]?.svar?.[fid],
+    // #748: "Lämnade provet 2 gånger" – diskret, bara information.
+    flikbyteText: (uid) => flikbyteText(svar[uid]?.flikbyten),
     visNamn: (uid) => (doljNamn ? anonym[uid] : namn[uid]),
+    // CSV och utskrift (#747) har alltid det riktiga namnet – de är lärarens egna papper.
+    riktigtNamn: (uid) => namn[uid] || "Okänd elev",
     ga({ fraga, elev, fokus = false }) {
       if (fraga != null) index.fraga = Math.min(rf.length - 1, Math.max(0, fraga));
       if (elev != null) index.elev = Math.min(med.length - 1, Math.max(0, elev));
@@ -264,6 +271,7 @@ function rattningsVy(ctx, body, data, elever, q) {
       <h2 class="provl-ruta-rubrik">Lämna tillbaka till ${en ? esc(v.visNamn(uids[0])) : `${uids.length} elever`}?</h2>
       <p>${en ? "Eleven" : "Eleverna"} ser rättningen och dina kommentarer${poangsatt ? " och poängen" : ""} direkt under Prov.</p>
       ${ejKlara ? `<p class="msg provl-r-ejklara">${esc(ejKlaraText(ejKlara))}</p>` : ""}
+      ${harMynt(tf.installningar) ? `<p>Pluggmynt: ${esc(myntRegelText(tf.installningar.mynt))}. Har ${en ? "eleven" : "en elev"} redan fått mynt för provet betalas bara skillnaden ut.</p>` : ""}
       <label class="provl-kryss"><input type="checkbox" data-f="facit" ${tf.installningar?.visaFacit !== false ? "checked" : ""} /> Visa facit för ${en ? "eleven" : "eleverna"}</label>
       <p class="hint">Förvalt enligt provets inställning. Du kan ångra tillbakalämningen för en elev i taget under Per elev.</p>
       <div class="provl-tf-knappar">
@@ -276,7 +284,7 @@ function rattningsVy(ctx, body, data, elever, q) {
       ok.disabled = true;
       ok.textContent = "Lämnar tillbaka…";
       try {
-        await lager.lamnaTillbaka(uids, box.querySelector('[data-f="facit"]').checked);
+        visaMynt(await lager.lamnaTillbaka(uids, box.querySelector('[data-f="facit"]').checked));
         stang();
         ritaInnehall();
       } catch (err) {
@@ -287,6 +295,17 @@ function rattningsVy(ctx, body, data, elever, q) {
         fel.textContent = `Kunde inte lämna tillbaka: ${errText(err)}`;
       }
     });
+  }
+
+  // Pluggmyntens utfall (#746) i sparraden – nekade betalas nästa gång vyn öppnas.
+  function visaMynt(ut) {
+    const nekade = ut.filter((b) => b.status === "nekad").length;
+    const betalda = ut.filter((b) => b.status === "betald").length;
+    if (!nekade && !betalda) return;
+    sparStatus.textContent = nekade
+      ? `Pluggmynten kunde inte betalas ut till ${nekade} ${nekade === 1 ? "elev" : "elever"} – det görs nästa gång du öppnar rättningen.`
+      : `Pluggmynt utbetalda till ${betalda} ${betalda === 1 ? "elev" : "elever"}.`;
+    sparStatus.dataset.lage = nekade ? "fel" : "sparat";
   }
 
   // --- tangentbordet (§6.1) -----------------------------------------------------------
@@ -334,4 +353,6 @@ function rattningsVy(ctx, body, data, elever, q) {
   document.addEventListener("visibilitychange", synlighet);
 
   ritaInnehall();
+  // Mynt som inte hann betalas ut förra gången (avbrott, nekad) – som Live-historiken.
+  lager.betalaKvar().then((ut) => { if (ut.length && vy.isConnected) { visaMynt(ut); aktiv?.uppdatera(); } });
 }

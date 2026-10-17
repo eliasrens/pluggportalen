@@ -76,7 +76,7 @@ describe("validateProv (§2.3)", () => {
     assert.equal(r.value.fragor.length, 9);
     assert.equal(r.value.arskurs, "ak5");
     assert.equal(r.value.amne, "SO");
-    assert.deepEqual(r.value.installningar, { ...STANDARD_INSTALLNINGAR, tidsgransMin: 40, granser: { gul: 40, gron: 70 } });
+    assert.deepEqual(r.value.installningar, { ...STANDARD_INSTALLNINGAR, tidsgransMin: 40, granser: { gul: 60, gron: 85 }, stavfel: "auto" });
   });
   it("svenska fel med plats; textblock numreras för sig", () => {
     const r = validateProv({

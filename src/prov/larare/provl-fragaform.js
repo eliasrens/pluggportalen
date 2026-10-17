@@ -4,7 +4,7 @@
 // onSubmit(falt) → { ok, errors }; logiken (fält → fråga, validering) bor i
 // prov-redigera-ops.js (fragaFranFalt/sparaFraga). Fel visas under formuläret.
 //
-//   byggFragaForm(fraga, { poangPa, onSubmit, onCancel }) → <form>
+//   byggFragaForm(fraga, { poangPa, stavfel, onSubmit, onCancel }) → <form>
 //
 // Ny frågetyp ⇒ en post i KROPP nedan (typens egna fält) – de gemensamma
 // fälten (fråga, poäng, hjälptext) ritas för alla typer med arFraga.
@@ -12,6 +12,7 @@
 
 import { el, esc, icon } from "../../teacher-shared.js";
 import { fragetyp } from "../prov-fragetyper.js";
+import { STAVFEL } from "../prov-validera.js";
 import { GRANS } from "../typer/delat.js";
 import { tolkaLucktext } from "../typer/lucktext.js";
 
@@ -30,8 +31,13 @@ function falt(label, name, value, { textarea = false, rows = 3, max = 0, hint = 
 const kryss = (name, on, text) =>
   `<label class="provl-check"><input type="checkbox" name="${name}" ${on ? "checked" : ""} /><span>${text}</span></label>`;
 
-const normalisering = (f) => `<fieldset class="provl-grupp"><legend>Rättning</legend>
-  ${kryss("exaktStavning", f.exaktStavning !== false, "<b>Exakt stavning krävs</b> <span class=\"hint\">– av: ett svar med en bokstav fel blir \"delvis\"</span>")}
+// Vad ett stavfel ger väljs per prov (#759) – tipset följer valet (#749).
+const STAVFEL_TIPS = {
+  [STAVFEL.AUTO]: "– av: ett svar med en bokstav fel blir \"delvis\"",
+  [STAVFEL.SJALV]: "– av: ett svar med en bokstav fel rättar du själv",
+};
+const normalisering = (f, o = {}) => `<fieldset class="provl-grupp"><legend>Rättning</legend>
+  ${kryss("exaktStavning", f.exaktStavning !== false, `<b>Exakt stavning krävs</b> <span class="hint">${STAVFEL_TIPS[o.stavfel] || STAVFEL_TIPS[STAVFEL.AUTO]}</span>`)}
   ${kryss("skiftlage", f.skiftlage === true, "<b>Stor och liten bokstav spelar roll</b> <span class=\"hint\">– t.ex. egennamn</span>")}
   <span class="hint">Mellanslag, en punkt sist och decimalkomma/-punkt ("7" = "7,0") jämförs alltid snällt.</span>
 </fieldset>`;
@@ -132,21 +138,21 @@ const KROPP = {
       samla: (form) => ({ ratt: form.querySelector(`[name="${g}"]:checked`)?.value }),
     };
   },
-  kortsvar: (f) => ({
+  kortsvar: (f, o) => ({
     html: falt("Godkända svar <span class=\"hint\">– ett per rad</span>", "godkanda", (f.godkanda || []).join("\n"), {
       textarea: true, rows: 3, placeholder: "Birka\nBjörkö", hint: "Skriv alla svar som ska räknas som rätt, t.ex. stavningsvarianter och synonymer.",
-    }) + normalisering(f),
+    }) + normalisering(f, o),
     samla: (form) => ({
       godkanda: form.elements.godkanda.value,
       exaktStavning: form.elements.exaktStavning.checked,
       skiftlage: form.elements.skiftlage.checked,
     }),
   }),
-  lucktext: (f) => ({
+  lucktext: (f, o) => ({
     html: falt("Texten med luckor", "lucktext", f.lucktext, {
       textarea: true, rows: 5, max: GRANS.lucktext, placeholder: "Sveriges huvudstad heter [[Stockholm]].",
       hint: "Skriv varje lucka som <code>[[svar]]</code>. Fler godkända svar: <code>[[Miklagård|Konstantinopel]]</code>. <span data-luckor></span>",
-    }) + normalisering(f),
+    }) + normalisering(f, o),
     koppla: (form) => {
       const visa = () => {
         const n = tolkaLucktext(form.elements.lucktext.value).luckor.length;
@@ -207,11 +213,11 @@ const KROPP = {
 /**
  * Formuläret för en fråga.
  * @param {object} fraga befintlig eller tomFraga(typ)
- * @param {{ ny?: boolean, poangPa?: boolean, onSubmit: (falt: object) => {ok: boolean, errors: string[]}, onCancel: () => void }} o
+ * @param {{ ny?: boolean, poangPa?: boolean, stavfel?: string, onSubmit: (falt: object) => {ok: boolean, errors: string[]}, onCancel: () => void }} o
  */
-export function byggFragaForm(fraga, { ny = false, poangPa = true, onSubmit, onCancel }) {
+export function byggFragaForm(fraga, { ny = false, poangPa = true, stavfel = STAVFEL.AUTO, onSubmit, onCancel }) {
   const typ = fragetyp(fraga.typ);
-  const kropp = KROPP[fraga.typ](fraga);
+  const kropp = KROPP[fraga.typ](fraga, { stavfel });
   const gemensamt = typ.arFraga === false ? "" : `
     ${falt(fraga.typ === "santfalskt" ? "Påstående" : "Fråga", "fraga", fraga.fraga, { textarea: true, rows: 2, max: GRANS.fragetext })}
     <div class="provl-falt-rad">
