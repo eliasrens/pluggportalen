@@ -175,6 +175,7 @@ tillfälle → 60/85, så att reglerna godtar t.ex. ett omprov av det).
   standarden, och `fargFor(andel, granser)` (avrundningsregeln från Etapp 1
   står kvar). **Kedjan**: tillfällets gränser → provets → 60/85
   (`granserFor(tf.installningar, prov.installningar)`, första giltiga vinner).
+  Prov sparade före #759 behåller sina sparade gränser (40/70); bara prov utan gränser får 60/85.
   Provets gränser är standard och kopieras till tillfället när det skapas och
   öppnas; reglaget i Översikten sparar på **tillfället** och gäller bara den
   körningen (provet ändras inte). Används i översikten, elevvyn, CSV,
