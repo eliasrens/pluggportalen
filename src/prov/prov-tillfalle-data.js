@@ -58,9 +58,12 @@ export async function hamtaSvar(t) {
  * @param {number|null} o.tidsgransMin
  * @param {{ pa: boolean, doljOvrigt: boolean }} o.fokus  lås klassen när provet öppnas
  * @param {{ uid, name }} o.larare
+ * @param {Record<string, number>} [o.extraTid]  #748: extra minuter per elev
+ * @param {string[]} [o.elevIds]   #748: omprov – bara de här eleverna
+ * @param {string} [o.omprovAv]    #748: tillfället omprovet gäller
  * @returns {Promise<string>} tillfällets id
  */
-export async function skapaTillfalle({ prov, classId, tidsgransMin, fokus, larare }) {
+export async function skapaTillfalle({ prov, classId, tidsgransMin, fokus, larare, extraTid, elevIds, omprovAv }) {
   const ref = await addDoc(collection(db, SAMLING_TILLFALLEN), {
     provId: prov.id, provNamn: prov.namn, classId,
     createdBy: larare.uid, createdByName: larare.name || "",
@@ -68,9 +71,16 @@ export async function skapaTillfalle({ prov, classId, tidsgransMin, fokus, larar
     installningar: { ...STANDARD_INSTALLNINGAR, ...(prov.installningar || {}) },
     tidsgransMin: tidsgransMin ?? null,
     fokus: { pa: !!fokus?.pa, doljOvrigt: fokus?.doljOvrigt !== false },
+    ...(extraTid && Object.keys(extraTid).length ? { extraTid } : {}),
+    ...(elevIds ? { elevIds, ...(omprovAv ? { omprovAv } : {}) } : {}),
     skapad: serverTimestamp(),
   });
   return ref.id;
+}
+
+/** Extra tid per elev (#748): hela mapen ersätts ({} = ingen). Går även medan provet pågår. */
+export async function sparaExtraTid(t, extraTid) {
+  await updateDoc(tfRef(t), { extraTid });
 }
 
 /**

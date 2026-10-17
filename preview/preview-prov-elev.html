@@ -12,6 +12,7 @@
       prov-elev-data (svaren i minnet, påhittade nätfel).
         ?kvar=4      eleven har redan startat, 4 min kvar (gul); ?kvar=0.8 → röd
         ?tid=ingen   provet saknar tidsgräns
+        ?extra=15    eleven har 15 minuter extra (#748); byt flik → flikbyten i raden
         #/elev/prov  listan, #/elev/prov/skriv?t=tf-demo själva provet
     -->
     <script type="importmap">
@@ -48,6 +49,7 @@
       <button data-pv="stang">Läraren stänger provet</button>
       <a href="?kvar=4#/elev/prov/skriv?t=tf-demo">4 min kvar</a>
       <a href="?kvar=0.8#/elev/prov/skriv?t=tf-demo">48 s kvar</a>
+      <a href="?extra=15#/elev/prov">+15 min extra (#748)</a>
       <button data-pv="nollstall">Nollställ</button>
       <span class="pv-info" id="pv-info"></span>
     </div>
@@ -70,7 +72,7 @@
       const info = document.getElementById("pv-info");
       const visaInfo = () => {
         const s = S.svar;
-        info.textContent = `Skrivningar: ${S.skrivningar}` + (s ? ` · sparat ${Object.keys(s.svar || {}).length} svar${s.inlamnad ? ` · inlämnat (${s.inlamnadNar})` : ""}` : " · inte startat");
+        info.textContent = `Skrivningar: ${S.skrivningar}` + (s ? ` · sparat ${Object.keys(s.svar || {}).length} svar · flikbyten ${s.flikbyten || 0}${s.inlamnad ? ` · inlämnat (${s.inlamnadNar})` : ""}` : " · inte startat");
       };
       window.addEventListener("prov-stub", visaInfo);
       visaInfo();

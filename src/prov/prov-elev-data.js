@@ -37,15 +37,18 @@ export async function startaProv(t, uid, classId, svar = {}) {
   return hamtaMittSvar(t, uid);
 }
 
-/** Bakgrundssparningen: hela svar-mapen (rensad) + uppdaterad. */
-export function sparaSvar(t, uid, svar) {
-  return updateDoc(svarRef(t, uid), { svar, uppdaterad: serverTimestamp() });
+// #748: flikbytena följer med sparningarna (ingen egen skrivning), först när de finns.
+const flik = (n) => (n > 0 ? { flikbyten: n } : {});
+
+/** Bakgrundssparningen: hela svar-mapen (rensad) + uppdaterad (+ flikbyten). */
+export function sparaSvar(t, uid, svar, flikbyten = 0) {
+  return updateDoc(svarRef(t, uid), { svar, uppdaterad: serverTimestamp(), ...flik(flikbyten) });
 }
 
 /** Lämna in: sista svaren + inlämnad i EN skrivning. nar = "elev" | "tid". */
-export function lamnaIn(t, uid, svar, nar) {
+export function lamnaIn(t, uid, svar, nar, flikbyten = 0) {
   return updateDoc(svarRef(t, uid), {
-    svar, uppdaterad: serverTimestamp(), inlamnad: true, inlamnadNar: nar, inlamnadAt: serverTimestamp(),
+    svar, uppdaterad: serverTimestamp(), inlamnad: true, inlamnadNar: nar, inlamnadAt: serverTimestamp(), ...flik(flikbyten),
   });
 }
 

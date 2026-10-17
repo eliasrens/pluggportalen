@@ -6,7 +6,9 @@
 //     (reglerna kräver statusfiltret), eller
 //   • eleven fått ett rättat prov tillbaka de senaste 14 dagarna: ETT getDocs
 //     per inloggning (collection group rattning, elevId + aterlamnad, limit 10).
-// Provsidan läser tillfällena härifrån – ingen egen läsning av listan.
+// Provsidan läser tillfällena härifrån – ingen egen läsning av listan. Ett
+// omprov (elevIds, #748) som inte gäller eleven filtreras bort här: frågan kan
+// inte filtrera på det, och reglerna låter bara de valda starta och skriva.
 // Laddas DYNAMISKT av ui.js (getProvVisible) – aldrig i bootgrafen (#271).
 //
 // API
@@ -24,6 +26,7 @@ import { getClasses } from "../data-classes.js";
 import { serverNow, syncServerClock } from "../data-class-lock.js";
 import { SAMLING_TILLFALLEN, RATTNING, STATUS } from "./prov-modell.js";
 import { provSynligt } from "./prov-tillfalle-logik.js";
+import { gallerElev } from "./prov-anpassningar.js";
 
 let watch = null; // { meId, myClassIds, oppna, tillbaka, unsub, ready }
 let synligt = false;
@@ -83,7 +86,7 @@ export async function provForMe(meId) {
         w.unsub = onSnapshot(q, (snap) => {
           if (watch !== w) return;
           const fore = new Set(w.oppna.map((t) => t.id));
-          w.oppna = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          w.oppna = snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((t) => gallerElev(t, meId));
           const nytt = !forsta && w.oppna.some((t) => !fore.has(t.id));
           forsta = false;
           meddela(nytt);

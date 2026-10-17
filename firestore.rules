@@ -2036,13 +2036,19 @@ service cloud.firestore {
         d.status in ['forberett', 'oppet', 'stangt'] &&
         d.fragor is list && d.fragor.size() <= 60 &&
         (!('tidsgransMin' in d) || d.tidsgransMin == null ||
-          (d.tidsgransMin is int && d.tidsgransMin >= 5 && d.tidsgransMin <= 240));
+          (d.tidsgransMin is int && d.tidsgransMin >= 5 && d.tidsgransMin <= 240)) &&
+        // Anpassningar (#748, §14): extra minuter per elev och omprov för valda elever.
+        (!('extraTid' in d) || (d.extraTid is map && d.extraTid.size() <= 100)) &&
+        (!('elevIds' in d) || (d.elevIds is list && d.elevIds.size() >= 1 && d.elevIds.size() <= 100));
     }
     function tillfalle(t) {
       return get(/databases/$(database)/documents/provTillfallen/$(t)).data;
     }
     match /provTillfallen/{t} {
       // Läraren med klassen. Eleven i klassen – men inte ett förberett prov.
+      // Ett omprov (elevIds, #748) läses också av hela klassen: elevens lyssnare
+      // (where classId in … + status) kan inte filtrera på elevIds, och
+      // tillfället saknar facit. Att starta och skriva kräver elevIds (svar).
       allow read: if hasClass(resource.data.classId) ||
         (resource.data.status in ['oppet', 'stangt'] && isClassMember(resource.data.classId));
       allow create: if hasClass(request.resource.data.classId) &&
@@ -2054,6 +2060,8 @@ service cloud.firestore {
         request.resource.data.classId == resource.data.classId &&
         request.resource.data.provId == resource.data.provId &&
         request.resource.data.get('createdBy', null) == resource.data.get('createdBy', null) &&
+        // Ett omprov förblir ett omprov för samma elever (och ett vanligt prov vanligt).
+        request.resource.data.get('elevIds', null) == resource.data.get('elevIds', null) &&
         provStatusOk(resource.data.status, request.resource.data.status);
       allow delete: if hasClass(resource.data.classId);
 
@@ -2064,7 +2072,8 @@ service cloud.firestore {
 
       // Elevens svar. Eleven skapar sitt eget när provet är öppet och hen går
       // i klassen; sparar så länge provet är öppet, inte inlämnat och inom
-      // tidsgränsen + 2 min. elevId/classId/startad ändras aldrig och
+      // tidsgränsen (+ elevens extra tid, #748) + 2 min. Ett omprov (elevIds)
+      // gäller bara de valda eleverna. elevId/classId/startad ändras aldrig och
       // inlämnat är slutgiltigt för eleven. Läraren läser, får markera
       // "inlämnad när provet stängdes" (och ta tillbaka just den markeringen
       // om provet öppnas igen) – men aldrig ändra själva svaren.
@@ -2089,10 +2098,21 @@ service cloud.firestore {
       }
     }
     function validSvarFalt(d) {
-      return d.keys().hasOnly(['elevId', 'classId', 'startad', 'uppdaterad', 'svar', 'inlamnad', 'inlamnadAt', 'inlamnadNar']) &&
+      return d.keys().hasOnly(['elevId', 'classId', 'startad', 'uppdaterad', 'svar', 'inlamnad', 'inlamnadAt', 'inlamnadNar', 'flikbyten']) &&
         d.svar is map && d.svar.size() <= 60 &&
         d.inlamnad is bool &&
-        (!('inlamnadNar' in d) || d.inlamnadNar in ['elev', 'tid', 'stangt']);
+        (!('inlamnadNar' in d) || d.inlamnadNar in ['elev', 'tid', 'stangt']) &&
+        // #748: hur många gånger eleven lämnade provfliken – bara information.
+        (!('flikbyten' in d) || (d.flikbyten is int && d.flikbyten >= 0 && d.flikbyten <= 10000));
+    }
+    // Omprov (#748): finns elevIds på tillfället får bara de eleverna starta och skriva.
+    function provGallerElev(tf) {
+      return tf.get('elevIds', null) == null || request.auth.uid in tf.elevIds;
+    }
+    // Elevens egen tidsgräns i minuter: tidsgränsen + extraTid[uid] (#748, 1–240).
+    function provElevMinuter(tf) {
+      let x = tf.get('extraTid', {}).get(request.auth.uid, 0);
+      return tf.tidsgransMin + (x is int && x > 0 && x <= 240 ? x : 0);
     }
     // Elevens inlämning (elev eller tid) får serverns tid i inlamnadAt.
     function provElevInlamningOk(d) {
@@ -2101,20 +2121,20 @@ service cloud.firestore {
     }
     function provSvarCreateOk(t, elevUid, d) {
       let tf = tillfalle(t);
-      return tf.status == 'oppet' && isClassMember(tf.classId) &&
+      return tf.status == 'oppet' && isClassMember(tf.classId) && provGallerElev(tf) &&
         validSvarFalt(d) && d.elevId == elevUid && d.classId == tf.classId &&
         d.startad == request.time && d.uppdaterad == request.time &&
         provElevInlamningOk(d);
     }
     function provSvarUpdateOk(t, d, fore) {
       let tf = tillfalle(t);
-      return tf.status == 'oppet' && fore.inlamnad == false &&
+      return tf.status == 'oppet' && fore.inlamnad == false && provGallerElev(tf) &&
         validSvarFalt(d) &&
         d.elevId == fore.elevId && d.classId == fore.classId && d.startad == fore.startad &&
         d.uppdaterad == request.time &&
         provElevInlamningOk(d) &&
         (tf.get('tidsgransMin', null) == null ||
-          request.time <= fore.startad + duration.value(tf.tidsgransMin + 2, 'm'));
+          request.time <= fore.startad + duration.value(provElevMinuter(tf) + 2, 'm'));
     }
     // Läraren: bara inlämnad-fälten. Stänga (false → true, "stangt", serverns
     // tid) eller öppna igen (true → false, bara om det var stängningen som

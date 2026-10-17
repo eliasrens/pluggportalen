@@ -179,11 +179,14 @@ Förhandsvisning utan Firebase: `preview/preview-prov-larare.html`
 - **provTillfallen**: `classId`, `provId` (text), `status`, `fragor` (lista,
   får vara tom som förberett), `tidsgransMin` null eller heltal 5–240;
   `createdBy` = egen uid vid skapande. `classId`, `provId`, `createdBy` byts aldrig.
+  #748: `extraTid` en map (≤ 100 elever), `elevIds` en lista med 1–100 elever
+  som aldrig byts (inte heller läggs till eller tas bort efter skapandet).
 - **svar** (eleven): nycklar bara `elevId, classId, startad, uppdaterad, svar,
-  inlamnad, inlamnadAt, inlamnadNar`. Skapa med `startad` och `uppdaterad` =
+  inlamnad, inlamnadAt, inlamnadNar, flikbyten` (#748: heltal 0–10 000). Skapa med `startad` och `uppdaterad` =
   `serverTimestamp()`; **varje** sparning sätter `uppdaterad: serverTimestamp()`.
   Inlämning: `inlamnad: true, inlamnadNar: "elev" | "tid", inlamnadAt: serverTimestamp()`.
-  Efter `startad + tidsgransMin + 2 min` nekas allt – lämna in i tid.
+  Efter `startad + tidsgransMin + extraTid[uid] + 2 min` nekas allt – lämna in i tid.
+  Ett omprov (`elevIds`): bara eleverna i listan får skapa och spara.
   Fritextens 4000 tecken och kortsvarens 100 kontrolleras bara i klienten
   (`rensaSvar`) – reglerna kan inte gå igenom en map.
 - **rattning**: `elevId` = dokument-id, `classId` = tillfällets, `fragor` (map,
@@ -433,6 +436,71 @@ minnes-SDK, saldot syns i kontrollraden). Skärmdumpar: `docs/qa-prov-746/`.
 Läsningar/skrivningar per elev och utbetalning: 4 läsningar (kvitto, rättning,
 svar, saldo) + 3 skrivningar i en transaktion. 25 elever = 100 + 75.
 
+## Anpassningar (Etapp 2, #748, §14)
+
+| Fil | Vad |
+| --- | --- |
+| `prov-anpassningar.js` | DOM-fri: `extraMin`, `tidsgransFor`, `gallerElev`, `tillfalleNamn`, `rensaExtraTid`, `omprovForval`, `flikbyteText` (`test/prov-anpassningar.test.js`) |
+| `prov-anpassningar-falt.js` | lärarens fält: `extraTidFalt` (utfällbar, läser namnen först när den fälls ut) och `elevLista` (kryssruta + extra tid per elev) |
+| `prov-anpassningar-rutor.js` | rutorna **Omprov** och **Extra tid** (översikten under provet) |
+
+**Extra tid per elev.** `provTillfallen/{t}.extraTid: { [elevUid]: minuter }`
+(heltal 1–240; +5 … +60 i listan). Sätts i **Kör i klass** och **Öppna**
+("Extra tid för enskilda elever") och med knappen **Extra tid** i översikten
+medan provet pågår (`sparaExtraTid` ersätter hela mapen). Elevens egen
+tidsgräns är `tidsgransMin + extraTid[uid]` – i reglerna (`provElevMinuter`:
+`startad + egen gräns + 2 min`), i elevens läge och nedräkning (`elevLage`,
+`tidsgransFor`) och i lärarens "tid kvar". Utan tidsgräns gör extra tid
+ingenting. Ett ogiltigt värde (text, > 240) räknas som 0, också i reglerna.
+Eleven ser bara sin egen tid ("Du har 55 minuter"), aldrig att den är förlängd.
+Ger läraren mer tid under provet når den eleven via lyssnaren
+(`onProvChange`) – nedräkningen räknas om utan omladdning. Översikten visar
+"+15 min" vid namnet och "Extra tid: Alva +15 min" i faktaraden; listan
+"(2 med extra tid)".
+
+**Omprov för valda elever.** Knappen **Omprov** på ett öppnat eller stängt
+tillfälle skapar ett NYTT tillfälle av samma prov i samma klass med
+`elevIds` (och `omprovAv` = ursprunget, bara information). Förvalda är de som
+inte skrev provet (`omprovForval`: inget svar, eller inlämnat av stängningen
+utan ett enda svar); extra tid väljs på samma rad. Omprovet låser aldrig klassen
+(fokusläget gäller hela klassen) – rutan har inget låsval. Listan och rubrikerna
+visar **"Vikingaprovet – omprov (3 elever)"** (`tillfalleNamn`); översikten och
+rättningen visar bara de valda eleverna. Frågorna kopieras när omprovet öppnas,
+precis som förut (provets senaste version).
+
+- **Reglerna**: `provGallerElev` – med `elevIds` får bara eleverna i listan skapa
+  och spara `svar` (dessutom som förut: medlem i klassen). `elevIds` byts aldrig.
+- **Läsning – avsiktlig avvikelse från "reglerna kräver att eleven finns i
+  listan"**: hela klassen kan fortfarande *läsa* omprovets tillfälle.
+  Elevens lyssnare (`where classId in … + status == "oppet"`) kan inte filtrera
+  på `elevIds`, och regler är inga filter – en läsregel på `elevIds` skulle
+  neka hela frågan för alla elever. Tillfället saknar facit (det ligger i
+  `privat/facit`), och eleverna utanför listan har redan skrivit samma prov.
+  `prov-watch.js` filtrerar bort omprov som inte gäller eleven, så det syns
+  varken i menyn eller på provsidan, och en direktlänk säger "Det här provet
+  är inte öppet för dig".
+
+**Flikbyten (bara information).** Provsidan räknar varje gång fliken döljs
+(`visibilitychange` → `document.hidden`) medan provet pågår, också en omladdning.
+Räknaren (`svar.flikbyten`) ligger i `localStorage` med svaren och följer med
+**nästa vanliga sparning** och inlämningen – aldrig en egen skrivning per byte:
+har eleven osparade svar sparas de direkt som förut, annars schemaläggs en
+sparning inom 24 s-taket. Rättningen visar diskret "Lämnade provet 2 gånger"
+under **Per elev** (med en förklaring vid hovring). Inget straffas, inget
+påverkar poängen. Reglerna godtar ett heltal 0–10 000 och kräver inte att det
+ökar (två flikar får inte få sparningen nekad).
+
+Kostnad: extra tid 0 läsningar för eleven (fältet finns redan på tillfället),
+läraren 1 skrivning per ändring och namnen (≤ 25 läsningar) bara om listan
+fälls ut. Omprovet: klassens namn + ursprungets svar (≤ 50 läsningar) en gång.
+Flikbyten: 0 extra skrivningar utöver autosparningens tak.
+
+Förhandsvisning: `preview/preview-prov-tillfallen.html` (tf-oppet har Dante
++15 och Klara +10, ett stängt omprov för tre elever; Omprov och Extra tid
+fungerar mot minnet), `preview/preview-prov-elev.html?extra=15` (55 minuter;
+byt flik → "flikbyten" i kontrollraden), `preview/preview-prov-rattning.html?nollstall`
+(Bo lämnade provet 2 gånger, under Per elev).
+
 ## Fördjupad statistik och utskrift (Etapp 2, #747, §12–§13)
 
 Under rutnätet i fliken **Översikt** (rättningsvyn) – laddas med `import()` när
@@ -542,3 +610,6 @@ klassen har rättningar (25 elever × 10 prov = 250), en gång när fliken öppn
 sammansatta indexet och fältundantaget för `rattning`). Inga functions.
 Pluggmynten (#746) kräver bara regel-deployen – innan dess nekas utbetalningen
 och görs om när rättningen öppnas efter deployen.
+Anpassningarna (#748) kräver regel-deployen: innan den nekas varje sparning med
+`flikbyten` (den gamla `validSvarFalt` känner inte fältet) och extra tid
+förlänger inte reglernas gräns. Deploya reglerna FÖRE webben.
