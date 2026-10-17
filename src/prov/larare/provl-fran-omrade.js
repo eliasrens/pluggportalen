@@ -26,7 +26,7 @@ const lista = (xs) => `<ul class="error-list">${xs.map((x) => `<li>${esc(x)}</li
  * @param {(nyttProv: object, text: string) => void} onKlar
  */
 export function oppnaFranOmrade(prov, role, onKlar) {
-  const dlg = el(`<dialog class="provl-dialog teacher-dark" aria-label="Hämta från område">
+  const dlg = el(`<dialog class="provl-dialog provl-fo-dialog teacher-dark" aria-label="Hämta från område">
     <form method="dialog" class="provl-dialog-inre provl-fo" novalidate>
       <div class="provl-dialog-topp"><div><h2 class="subhead">${icon("book", 20)} Hämta från område</h2>
         <p class="hint">Välj ett Plugga-område och kryssa i det som ska bli frågor. ${prov.fragor.length ? `De läggs sist i provet (${prov.fragor.length} finns redan).` : ""}</p></div>

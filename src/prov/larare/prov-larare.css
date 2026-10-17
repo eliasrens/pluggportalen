@@ -150,7 +150,13 @@
 }
 
 /* --- Hämta från område (#745) ------------------------------------------------------ */
-.provl-fo-saker { display: grid; gap: 12px; max-height: 46vh; overflow-y: auto; padding-right: 4px; }
+/* En enda scrollyta (#749 F5): rutan själv scrollar inte – listan tar höjden som
+   blir över, så sammanfattningen och "Lägg till i provet" alltid syns. */
+.provl-fo-dialog { overflow: hidden; }
+.provl-fo { display: flex; flex-direction: column; max-height: calc(100vh - 34px); box-sizing: border-box; }
+.provl-fo > * { flex: 0 0 auto; }
+.provl-fo-saker { display: grid; align-content: start; gap: 12px; flex: 1 1 auto; min-height: 120px; overflow-y: auto; padding-right: 4px; }
+.provl-fo-resultat { flex: 0 1 auto; min-height: 0; max-height: 30vh; overflow-y: auto; }
 .provl-fo-saker:empty, .provl-fo-resultat:empty { display: none; }
 .provl-fo-lista { list-style: none; margin: 0; padding: 0 0 0 4px; display: grid; gap: 6px; }
 .provl-fo-del { margin-top: 6px; color: var(--t-muted); font-size: 0.85rem; font-weight: 700; }
