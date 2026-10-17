@@ -20,7 +20,7 @@ import { GRADES } from "../../grades.js";
 import { armeraLamnaVakt } from "../../hitta-ratt/hr-lamna-vakt.js";
 import { fragetyp } from "../prov-fragetyper.js";
 import { fragaNummer, maxPoang } from "../prov-modell.js";
-import { TIDSGRANS_MAX, TIDSGRANS_MIN, tolkaTidsgrans, typValjare } from "../prov-validera.js";
+import { TIDSGRANS_MAX, TIDSGRANS_MIN, stavfelFor, tolkaTidsgrans, typValjare } from "../prov-validera.js";
 import { kanAndra } from "../prov-lista-ops.js";
 import {
   bild, dupliceraFraga, flyttaFraga, fragaRubrik, fragaText, kopieraProv, nyttProv, provFranDok,
@@ -182,6 +182,7 @@ function ritaRedigerare(ctx, host, st) {
     if (st.oppen === i) {
       li.appendChild(byggFragaForm(f, {
         poangPa,
+        stavfel: stavfelFor(st.prov.installningar),
         onSubmit: (falt) => {
           const r = sparaFraga(st.prov, i, f.typ, falt);
           if (r.ok) {
@@ -248,6 +249,7 @@ function ritaRedigerare(ctx, host, st) {
       h.firstElementChild.appendChild(byggFragaForm(tomFraga(typ, st.prov.fragor), {
         ny: true,
         poangPa: st.prov.installningar.poang !== false,
+        stavfel: stavfelFor(st.prov.installningar),
         onSubmit: (falt) => {
           const r = sparaFraga(st.prov, null, typ, falt);
           if (r.ok) {
