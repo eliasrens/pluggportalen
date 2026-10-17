@@ -2,7 +2,7 @@
 // Prov (#748, spec §14): lärarens fält för anpassningarna – rena DOM-delar
 // som rutorna bygger in (prov-tillfalle-rutor.js: Kör i klass och Öppna;
 // prov-anpassningar-rutor.js: omprovet och extra tid under provet).
-//   extraTidFalt({ hamta, extraTid })  utfällbar lista "Extra tid för
+//   extraTidFalt({ hamta, extraTid, onAndrat })  utfällbar lista "Extra tid för
 //       enskilda elever" – namnen läses först när läraren fäller ut den
 //   elevLista({ elever, valda, extraTid, valbar })  en rad per elev:
 //       (kryssruta) namn, extra tid
@@ -54,9 +54,10 @@ export function elevLista({ elever, extraTid = {}, valda = [], valbar = false, o
  * @param {object} o
  * @param {() => Promise<{ id, namn }[]>} o.hamta
  * @param {Record<string, number>} [o.extraTid]  det som redan är sparat
+ * @param {() => void} [o.onAndrat]  efter varje ändring (fokuslåsets förval, #749 F1)
  * @returns {{ el, varde: () => Record<string, number>, andrat: () => boolean, laddaOm: (giltiga: string[]) => void }}
  */
-export function extraTidFalt({ hamta, extraTid = {} }) {
+export function extraTidFalt({ hamta, extraTid = {}, onAndrat = () => {} }) {
   const fore = rensaExtraTid(extraTid);
   let val = { ...fore };
   let lista = null;
@@ -70,6 +71,7 @@ export function extraTidFalt({ hamta, extraTid = {} }) {
   const raknaUt = () => {
     const n = Object.keys(lista ? lista.varde() : val).length;
     antal.textContent = n ? ` · ${n} ${n === 1 ? "elev" : "elever"}` : "";
+    onAndrat();
   };
   async function ladda() {
     const nr = ++laddning;

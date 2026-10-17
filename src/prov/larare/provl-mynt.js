@@ -6,7 +6,8 @@
 //
 //   const f = myntFalt({ mynt, poang, onAndra })   onAndra({ typ, antal? })
 //   f.el                 fieldset att lägga in
-//   f.sattPoang(pa)      poängsättningen slogs av/på (av → "per poäng" går inte)
+//   f.sattPoang(pa)      poängsättningen slogs av/på (av → "per poäng" går inte;
+//                        på igen → "per poäng" tillbaka om läraren inte valt annat, #749 F3)
 // ============================================================================
 
 import { el } from "../../teacher-shared.js";
@@ -29,6 +30,8 @@ export function myntFalt({ mynt, poang, onAndra }) {
   const radio = (typ) => vy.querySelector(`input[type="radio"][value="${typ}"]`);
   const falt = (typ) => vy.querySelector(`.provl-mynt-antal[data-typ="${typ}"]`);
   let typ = m.typ;
+  // "Per poäng" byttes mot "Inga mynt" bara för att poängsättningen slogs av.
+  let poangVilar = false;
   radio(typ).checked = true;
   for (const t of ["fast", "poang"]) falt(t).value = String(antal[t]);
 
@@ -36,6 +39,7 @@ export function myntFalt({ mynt, poang, onAndra }) {
   vy.querySelectorAll('input[type="radio"]').forEach((r) => r.addEventListener("change", () => {
     if (!r.checked) return;
     typ = r.value;
+    poangVilar = false;
     skicka();
   }));
   for (const t of ["fast", "poang"]) {
@@ -49,7 +53,12 @@ export function myntFalt({ mynt, poang, onAndra }) {
     radio("poang").disabled = !pa;
     falt("poang").disabled = !pa;
     vy.querySelector(".provl-mynt-krav").hidden = pa;
-    if (!pa && typ === "poang") radio("inga").click();
+    if (!pa && typ === "poang") {
+      radio("inga").click();
+      poangVilar = true;
+    } else if (pa && poangVilar && typ === "inga") {
+      radio("poang").click();
+    }
   }
   sattPoang(poang !== false);
   return { el: vy, sattPoang };

@@ -26,9 +26,13 @@ export function bedomningsEtikett(ratt, { poang, max, poangsatt } = {}) {
     poangsatt && max ? h("span", { class: "provv-res-p", text: ` · ${poangText(poang ?? 0)} av ${poangText(max)} p` }) : null);
 }
 
-/** "+36 mynt" med myntikonen (#746) – det eleven faktiskt fick, null om inga. */
-function myntEtikett(n) {
-  const text = myntText(n);
+/**
+ * "+36 mynt" med myntikonen (#746) – det eleven faktiskt fick, null om inga.
+ * Ett omprov speglar provets SAMMANLAGDA mynt (#748) – "Totalt 50 mynt för
+ * provet", inte "+50" som ser ut att komma utöver ursprunget (#749 F2).
+ */
+function myntEtikett(n, omprov = false) {
+  const text = omprov && myntText(n) ? `Totalt ${Math.floor(n)} mynt för provet` : myntText(n);
   if (!text) return null;
   const ikon = h("span", { class: "provv-res-mynt-ikon", "aria-hidden": "true" });
   ikon.innerHTML = coinIcon("1.1em");
@@ -63,7 +67,7 @@ export function renderaResultat(m, o = {}) {
     o.datum ? h("p", { class: "provv-res-datum", text: o.datum }) : null,
     h("div", { class: "provv-res-summa" }, summa,
       m.nivaNamn ? h("span", { class: "provv-res-niva", text: m.nivaNamn }) : null,
-      myntEtikett(m.mynt)),
+      myntEtikett(m.mynt, m.omprov)),
     h("p", { class: "provv-res-ton", text: "Här är ditt rättade prov. Läs lärarens kommentarer – de hjälper dig att lära dig ännu mer." }),
     m.helhetskommentar ? h("div", { class: "provv-res-helhet" },
       h("h2", { class: "provv-res-helhet-rubrik", text: "Från din lärare" }), stycken(m.helhetskommentar)) : null,

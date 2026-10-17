@@ -21,6 +21,7 @@ import {
 import { LARARENS_SPARNING, skapaSparare } from "./prov-sparning.js";
 import { provInfoDok } from "./prov-statistik.js";
 import { harMynt, provMyntBelopp } from "./prov-mynt.js";
+import { elevProvNamn } from "./prov-anpassningar.js";
 import { stavfelFor } from "./prov-validera.js";
 
 /**
@@ -40,7 +41,7 @@ export function skapaRattningsLager({ data, med, onStatus = () => {} }) {
   for (const uid of med) {
     const r = rattningar[uid];
     if (!r) {
-      rattningar[uid] = nyRattning({ elevId: uid, classId: tf.classId, provNamn: tf.provNamn, fragor, svar: svar[uid]?.svar, facit, stavfel });
+      rattningar[uid] = nyRattning({ elevId: uid, classId: tf.classId, provNamn: elevProvNamn(tf), fragor, svar: svar[uid]?.svar, facit, stavfel });
       smutsiga.add(uid);
     } else if (!r.aterlamnad) {
       const k = kompletteraForslag(r, fragor, svar[uid]?.svar, facit, stavfel);

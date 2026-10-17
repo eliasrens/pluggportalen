@@ -84,4 +84,9 @@ test("myntUtbetalt följer med sparningen, tillbakalämningen och ångra – och
   const m = resultatModell({ fragor, installningar: { poang: true } }, { svar: { f1: 0 } }, r);
   assert.equal(m.mynt, 36);
   assert.equal(resultatModell({ fragor }, null, { ...r, myntUtbetalt: undefined }).mynt, 0);
+  // Omprovet (#749 F2): namnet "– omprov" och flaggan för "Totalt N mynt för provet".
+  const om = resultatModell({ provNamn: "Vikingaprovet", fragor, elevIds: ["e"] }, null, r);
+  assert.equal(om.namn, "Vikingaprovet – omprov");
+  assert.equal(om.omprov, true);
+  assert.equal(m.omprov, false);
 });
