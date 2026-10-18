@@ -7,7 +7,7 @@ dokumentet beskriver det som är byggt. Etapp 1 byggs i tre delar:
 | --- | --- | --- |
 | A | #775 | chess.js, brädet, pjäserna, förhandsvisningen (§1–§2) – **klar** |
 | B | #776 | motorn, nivåerna, hjälpen mot datorn och elevens schacksida (§3–§4) – **klar** |
-| C | – | slut-QA och rapport (§5) |
+| C | #777 | slut-QA och rapport (§5) – **klar**, se [`RAPPORT-schack-etapp-1.md`](RAPPORT-schack-etapp-1.md) |
 
 Avsnitten om callables, datamodellen och kvotbudgeten fylls i av Etapp 2.
 
@@ -185,6 +185,10 @@ och slutrutorna).
   `window.brade` är det spelbara brädet (för test i konsolen).
 - `node --test test/schack-kontroll.test.js test/schack-grund.test.js` – logiken via
   API:t, bootgrafen, licensen, pjäserna, texterna och geometrin.
+- Slut-QA i riktiga appen (#777): `admin/qa-schack-app.mjs <origin> <steg>` driver en elev mot
+  emulatorerna (`admin/qa-emulator-proxy.mjs`) med riktiga mus-, touch- och tangenthändelser via
+  CDP – stegen `nivaer`, `bradet`, `hjalp`, `layout` och `kvot` (Firestore-räkning med
+  `QA_RAKNA=1`). `admin/qa-schack-strypt.mjs <origin>` mäter tiden per drag med CPU-strypning.
 
 ## 7. Motorn (§3.1) – `schack-motor.js`
 

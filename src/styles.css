@@ -8632,6 +8632,9 @@ html:not([data-halloween]) .af-kostym[data-seasonal="halloween"] { display: none
 }
 @media (max-width: 820px) {
   .schack-parti { grid-template-columns: minmax(0, 1fr); }
+  /* Under 360 px räcker inte sidans marginal till ett 320 px-bräde (§2.1): brädet
+     går då ut i marginalen, centrerat, i stället för att sidan skrollar i sidled (#777). */
+  .schack-parti-brade { margin-inline: min(0px, (100% - 320px) / 2); }
 }
 .schack-panel { display: grid; gap: 10px; min-width: 0; }
 .schack-panel-niva {
@@ -8670,7 +8673,7 @@ html:not([data-halloween]) .af-kostym[data-seasonal="halloween"] { display: none
 .schack-tips-text:empty { display: none; }
 
 /* Rutorna på sidan (aldrig confirm()): varningen och "ge upp"-frågan. */
-.schack-ruta {
+.schack-fraga {
   display: grid;
   gap: 8px;
   padding: 12px 14px;
@@ -8678,9 +8681,9 @@ html:not([data-halloween]) .af-kostym[data-seasonal="halloween"] { display: none
   background: #fff8df;
   border: 3px solid var(--gul);
 }
-.schack-ruta-text { margin: 0; font-weight: 800; line-height: 1.3; }
-.schack-ruta-knappar { display: flex; flex-wrap: wrap; gap: 8px; }
-.schack-ruta-knappar .btn { margin: 0; }
+.schack-fraga-text { margin: 0; font-weight: 800; line-height: 1.3; }
+.schack-fraga-knappar { display: flex; flex-wrap: wrap; gap: 8px; }
+.schack-fraga-knappar .btn { margin: 0; }
 .schack-geupp-ruta { background: #fdeeee; border-color: #e07777; }
 
 /* Smal skärm (mobil, stående surfplatta): panelen ligger UNDER brädet och rutan
@@ -8696,7 +8699,7 @@ html:not([data-halloween]) .af-kostym[data-seasonal="halloween"] { display: none
     z-index: calc(var(--z-toast, 900) - 1);
     background: rgba(34, 49, 74, 0.35);
   }
-  .schack-ruta:not([hidden]) {
+  .schack-fraga:not([hidden]) {
     position: fixed;
     left: 12px;
     right: 12px;

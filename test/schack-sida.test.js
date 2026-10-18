@@ -73,7 +73,21 @@ describe("routen och bootgrafen (#271)", () => {
   });
   it("sidans CSS är inbyggd i styles.css", () => {
     assert.match(las("src/styles.css"), /src\/styles\/36-schack-sida\.css/);
-    assert.match(las("src/styles.css"), /\.schack-ruta \{/);
+    assert.match(las("src/styles.css"), /\.schack-fraga \{/);
+  });
+  // #777 F2: rutorna på sidan hette .schack-ruta – samma klass som brädets 64 rutor –
+  // så varje ruta fick ram, padding och (≤ 820 px) position: fixed: brädet blev tomt på mobil.
+  it("sidans CSS rör inte brädets rutor (.schack-ruta) och panelens rutor använder inte klassen", () => {
+    const sidCss = las("src/styles/36-schack-sida.css").replace(/\/\*[\s\S]*?\*\//g, "");
+    assert.doesNotMatch(sidCss, /\.schack-ruta(?![-\w])/);
+    assert.doesNotMatch(kod("src/schack/schack-dator-vy.js"), /class="[^"]*\bschack-ruta(?![-\w])/);
+    assert.doesNotMatch(kod("src/schack/schack-sida-delar.js"), /class="[^"]*\bschack-ruta(?![-\w])/);
+  });
+  // #777: på en 320 px-mobil ger sidans marginal (2 × 20 px) bara 280 px – brädet (minst 320 px)
+  // går då ut i marginalen i stället för att sidan skrollar i sidled.
+  it("brädet får gå ut i sidans marginal på smal skärm", () => {
+    const sidCss = las("src/styles/36-schack-sida.css");
+    assert.match(sidCss, /\.schack-parti-brade \{ margin-inline: min\(0px, \(100% - 320px\) \/ 2\); \}/);
   });
   it("ingen Firestore-skrivning och inga mynt i schackmodulen (Etapp 1)", () => {
     for (const f of readdirSync(join(ROOT, "src/schack")).filter((f) => f.endsWith(".js"))) {
