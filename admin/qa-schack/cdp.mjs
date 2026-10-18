@@ -19,7 +19,9 @@ export async function startaChromium({ extra = [] } = {}) {
   const dir = mkdtempSync(join(tmpdir(), "qa-schack-"));
   const proc = spawn(process.env.CHROMIUM || "/usr/bin/chromium", ["--headless=new", "--no-sandbox", "--disable-gpu",
     "--remote-debugging-port=0", `--user-data-dir=${dir}`, "--no-first-run", "--disable-dev-shm-usage", ...extra, "about:blank"],
-  { stdio: "ignore" });
+  { stdio: "ignore", detached: true }); // egen processgrupp – stang() dödar hela trädet (zygote, renderare)
+  const doda = () => { try { process.kill(-proc.pid, "SIGKILL"); } catch { /* redan borta */ } };
+  process.once("exit", doda); // även om skriptet avslutas med process.exit() eller ett fel
   const fil = join(dir, "DevToolsActivePort");
   for (let i = 0; i < 100 && !existsSync(fil); i++) await vila(100);
   const [port, path] = readFileSync(fil, "utf8").trim().split("\n");
@@ -81,9 +83,13 @@ export async function startaChromium({ extra = [] } = {}) {
   return {
     send,
     nySida,
+    /** Stäng webbläsaren (hela processgruppen) och ta bort profilmappen – synkront, så process.exit() direkt efteråt är ok. */
     stang() {
-      try { ws.close(); proc.kill(); } catch { /* redan stängd */ }
-      setTimeout(() => rmSync(dir, { recursive: true, force: true }), 500);
+      try { ws.close(); } catch { /* redan stängd */ }
+      doda();
+      for (let i = 0; i < 20; i++) {
+        try { rmSync(dir, { recursive: true, force: true }); break; } catch { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 100); }
+      }
     },
   };
 }
