@@ -427,7 +427,7 @@ avstängning gäller därför direkt, utan ny token.
 | `lasresaAttemptsFallback` | array | Läsresan: de senaste (max 30) försöken när skrivning till `lasresaAttempts` nekas (regeln ännu ej deployad). Samma form som ett försöksdokument. Läses av `listAttempts`. |
 | `amneslasning` | map | **Ämnesläsning** (#671, `docs/UTVECKLINGSUPPDRAG_AMNESLASNING.md`): `{ areas: { [areaId]: { subjectId, read: { [textId]: { count, lastAt } }, currentTextId, currentStartedAt, totals } }, totals, updatedAt }` – läst-lista med tidpunkt (`count` = antal läsningar, styr omläsningstrappan för mynten) och påbörjad text per område. Ämnesläsningen har INGEN egen nivå: den läser och uppdaterar `lasresa`s dolda nivå + streaks (tak 7 uppåt, fritt nedåt) men rör aldrig resan (`worldId`, `stepInWorld`, `seenTextIds`, `currentTextId`, totaler). `totals` (#674, per område + för all ämnesläsning) = `{ totalTexts, totalQuestions, totalCorrect, totalIncorrect, moneyEarned, catStats }` (samma namn som `lasresa`), denormaliserade i textavslutets transaktion så att lärarvyerna (Läsresans källfilter, Per område) klarar sig med detta dokument. Kärna `src/amneslasning/`, brygga `src/data-amneslasning.js`. |
 | `kcDonation` | string | Klasscentret (#500): `"<classId>/<donationId>"` för elevens senaste donation – skrivs i samma batch som myntavdraget så att ett avdrag bara kan betala EN donationspost (se Crowdfunding). Läses inte av appen. |
-| `schack` | map | **Schack** (#779, `docs/SCHACK.md` §12.5): `{ datorPartier }` – antal avslutade partier mot datorn. Eleven ökar räknaren själv med en skrivning (`schack-moln.js` `datorPartiKlart`); regeln `schackOk` tillåter bara nyckeln `datorPartier`, heltal, aldrig nedåt och högst +1 per skrivning. Lärare skriver det aldrig. Kompispartier räknas i `schackKlass.tabell`. Etapp 3 lägger `lektioner`/`pussel` här. |
+| `schack` | map | **Schack** (#779, `docs/SCHACK.md` §12.5): `{ datorPartier, aktivtParti }`. `datorPartier` = antal avslutade partier mot datorn – eleven ökar räknaren själv med en skrivning (`schack-moln.js` `datorPartiKlart`, fältväg + `increment(1)`). `aktivtParti` = serverns spärr "ett parti mot kompis åt gången" (partiId medan partiet pågår, `null` annars) – sätts och nollas av Cloud Functions i samma transaktion som partiet skapas/avslutas. Regeln `schackOk` tillåter bara nycklarna `datorPartier` (heltal, aldrig nedåt, högst +1 per skrivning) och `aktivtParti` (oförändrad). Lärare (årskurskonto) skriver det aldrig. Kompispartier räknas i `schackKlass.tabell`. Etapp 3 lägger `lektioner`/`pussel` här. |
 | `brakdrake` | map | **Bråkresans drake i huset** (#706/#714): `{ id, level, name, pos, stowed, room }` – servern skapar den vid kläckningen och håller `level`/`name` aktuella; eleven skriver bara placeringen (`pos`, `room`, `stowed` – reglerna nekar resten, #750). Se "Bråkresan" nedan. Saknas = ingen kläckt drake. |
 
 ### `studentData/{studentId}/lasresaAttempts/{autoId}` – Läsresan-försök (#399)
@@ -862,14 +862,15 @@ EN doc per klass som klassens elever (`isClassMember`) och läraren med klassen
 | --- | --- | --- |
 | `vantar` | map | `{ [uid]: { namn, klocka: null\|5\|10\|15, sedan } }` – elever som väntar på motståndare. Utgången efter 10 min (`sedan`); servern filtrerar vid varje skrivning, klienten vid visning. |
 | `utmaningar` | map | `{ [utmaningId]: { fran, franNamn, till, klocka, sedan } }` – utgången efter 2 min. En utmaning per utmanare. |
-| `partier` | map | `{ [partiId]: { vit, svart, vitNamn, svartNamn, klocka, start } }` – **bara pågående**; posten tas bort i samma transaktion som partiet avslutas. En elev finns i högst en post. |
+| `partier` | map | `{ [partiId]: { vit, svart, vitNamn, svartNamn, klocka, start } }` – **bara pågående**; posten tas bort i samma transaktion som partiet avslutas. En elev finns i högst en post – och i högst ett parti över alla klasser (`studentData.schack.aktivtParti`). |
 | `tabell` | map | `{ [uid]: { poang, vinster, forluster, remier, partier } }` – topplistan (§8): start 1000, Elo-lik med låg K, golv 800. Bara kompispartier; avbrutna partier räknas inte. Läraren nollställer via `schackLarareTopplista`. |
 | `dold` | bool | `true` = läraren har dolt topplistan för eleverna (2B visar den inte). |
 
 ### `schackPartier/{partiId}` – ett parti
 
 Läses av de två spelarna och läraren med klassen (`hasClass(classId)`; lärarens fråga
-filtrerar på `classId`). Andra elever i klassen läser det **inte**.
+filtrerar på `classId`). Andra elever i klassen läser det **inte**. Ett saknat dokument får
+varje inloggad hämta (tomt svar – lyssnaren ger `null`).
 
 | Fält | Typ | Beskrivning |
 | --- | --- | --- |

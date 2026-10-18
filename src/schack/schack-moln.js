@@ -99,7 +99,10 @@ export function lyssnaKlass(classId, cb, onError = () => {}) {
   return onSnapshot(doc(db, "schackKlass", classId), (snap) => cb(normaliseraKlass(snap.exists() ? snap.data() : null)), onError);
 }
 
-/** EN onSnapshot på schackPartier/{partiId}; cb(null) om partiet inte finns. */
+/**
+ * EN onSnapshot på schackPartier/{partiId}; cb(null) om partiet inte finns (reglerna
+ * släpper igenom ett saknat dokument). onError = nekad läsning (inte din match).
+ */
 export function lyssnaParti(partiId, cb, onError = () => {}) {
   syncServerClock();
   return onSnapshot(doc(db, "schackPartier", partiId), (snap) => cb(snap.exists() ? { id: snap.id, ...snap.data() } : null), onError);

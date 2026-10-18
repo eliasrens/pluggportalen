@@ -43,9 +43,17 @@ export const ctx = (deps) => ({
   rng: deps.rng || (() => randomInt(0, 2 ** 32) / 2 ** 32),
 });
 
+/**
+ * Uppslag i en map med en KLIENTSTYRD nyckel (uid, partiId, utmaningId …):
+ * bara egna nycklar – "constructor"/"__proto__" träffar aldrig prototypen (F1).
+ */
+export const post = (map, key) => (map && typeof map === "object" && Object.hasOwn(map, key) ? map[key] : undefined);
+
 export const ID_OK = /^[A-Za-z0-9_-]{1,64}$/;
+/** Firestore reserverar dokument-id:n på formen __x__ ("__proto__" är dessutom en prototypnyckel). */
+const RESERVERAT = /^__.*__$/;
 export function idEller(v, vad) {
-  if (typeof v !== "string" || !ID_OK.test(v)) throw new SchackFel("invalid-argument", `Ogiltigt ${vad}.`);
+  if (typeof v !== "string" || !ID_OK.test(v) || RESERVERAT.test(v)) throw new SchackFel("invalid-argument", `Ogiltigt ${vad}.`);
   return v;
 }
 
@@ -55,7 +63,8 @@ export function tomKlass() {
 }
 export function klassData(snap) {
   const d = snap?.exists ? snap.data() : {};
-  const map = (v) => (v && typeof v === "object" && !Array.isArray(v) ? v : {});
+  // Egna nycklar utan prototyp: nycklarna är uid:n och id:n som klienter en gång skickat in.
+  const map = (v) => (v && typeof v === "object" && !Array.isArray(v) ? Object.assign(Object.create(null), v) : Object.create(null));
   return { vantar: map(d.vantar), utmaningar: map(d.utmaningar), partier: map(d.partier), tabell: map(d.tabell), dold: d.dold === true };
 }
 
@@ -78,6 +87,20 @@ export async function hamtaKlassForElev(db, uid, classId, nu, get = (ref) => ref
   if (!pa || dold) throw new SchackFel("failed-precondition", "Schack är inte påslaget för din klass.");
   if (activeLockMal(k.lock, nu)) throw new SchackFel("failed-precondition", "Din klass har fokusläge just nu – schacket är stängt.");
   return k;
+}
+
+/**
+ * Elevens spärr "ett parti åt gången" ÖVER klasser (F2): studentData/{uid}.schack.aktivtParti
+ * sätts av servern när ett parti startar och tas bort när det slutar (även avbrutet/24 h).
+ * Står ett id där som inte längre pågår räknas det som fritt (självläkande).
+ * @returns {Promise<string|null>} partiId som pågår, annars null
+ */
+export async function aktivtPartiFor(db, uid, get = (ref) => ref.get()) {
+  const sd = await get(db.collection("studentData").doc(uid));
+  const id = sd.exists ? sd.data().schack?.aktivtParti : null;
+  if (typeof id !== "string" || !ID_OK.test(id)) return null;
+  const p = await get(db.collection(PARTI_COLL).doc(id));
+  return p.exists && p.data().status === "pagar" ? id : null;
 }
 
 /** Elevens klasser (för anrop utan classId: schackSlutaVanta, schackSvara). */
@@ -108,7 +131,7 @@ export async function namnFor(db, classId, uids) {
   const proj = await db.collection("classProjections").doc(classId).get();
   const members = proj.exists ? proj.data().members || {} : {};
   for (const uid of uids) {
-    const n = members[uid]?.namn;
+    const n = post(members, uid)?.namn;
     if (typeof n === "string" && n.trim()) {
       namn[uid] = n.trim().slice(0, 60);
       continue;

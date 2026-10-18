@@ -221,11 +221,11 @@ test("lärarcallables med prototypnycklar som id: aldrig ok och aldrig internal"
   assert.deepEqual(ut, []);
 });
 
-// F7 (låg): admin kan skapa schackKlass/{vilket-id-som-helst} för klasser som inte finns (schackLarareTopplista kontrollerar inte classes/{id}).
-test("admin skapar inte schackKlass-dokument för klasser som inte finns", { todo: "F7: ingen classes-kontroll" }, async () => {
+// F7: schackLarareTopplista kräver att classes/{classId} finns (not-found) – inga skräpdokument i schackKlass.
+test("admin skapar inte schackKlass-dokument för klasser som inte finns (F7)", async () => {
   await reset();
   const adm = await who(ADMIN);
-  await code(adm.call("schackLarareTopplista", { classId: "scf-finns-inte-alls", dold: true }));
+  assert.equal(await code(adm.call("schackLarareTopplista", { classId: "scf-finns-inte-alls", dold: true })), "not-found");
   assert.equal((await adb.doc("schackKlass/scf-finns-inte-alls").get()).exists, false);
 });
 

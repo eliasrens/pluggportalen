@@ -19,7 +19,7 @@ import { vanta, slutaVanta, gaMed, utmana, svara, SchackFel } from "../functions
 import { drag, geUpp } from "../functions/schack-parti.js";
 import { larareAvsluta, larareTopplista } from "../functions/schack-larare.js";
 import { GAMMALT_MS, UTMANING_MS, VANTAN_MS } from "../functions/schack/schack-server-delat.js";
-import { createScRig, kod, KLASS, KLASS_AV, ANNA, BO, CIA, DAN } from "./helpers/schack-server-rig.js";
+import { createScRig, kod, KLASS, KLASS_AV, KLASS_B, ANNA, BO, CIA, DAN } from "./helpers/schack-server-rig.js";
 
 const rig = createScRig("sccore");
 const { deps, db, ctl, tick } = rig;
@@ -160,6 +160,52 @@ describe("ett parti åt gången per elev (§7.1)", () => {
   });
 });
 
+describe("klientstyrda nycklar (F1) och spärren över klasser (F2)", () => {
+  it("gaMed/svara med prototypnycklar ('constructor', '__proto__' …) ger inget fantomparti", async () => {
+    for (const m of ["constructor", "toString", "valueOf", "hasOwnProperty"]) {
+      assert.equal(await code(gaMed(deps, ANNA, { classId: KLASS, motstandare: m })), "failed-precondition", m);
+      assert.equal(await code(svara(deps, ANNA, { utmaningId: m, ja: true, classId: KLASS })), "not-found", m);
+    }
+    assert.equal(await code(gaMed(deps, ANNA, { classId: KLASS, motstandare: "__proto__" })), "invalid-argument", "reserverat id");
+    assert.equal(await code(svara(deps, ANNA, { utmaningId: "__proto__", ja: true, classId: KLASS })), "invalid-argument");
+    assert.equal(await code(gaMed(deps, ANNA, { classId: KLASS, motstandare: DAN })), "failed-precondition", "utanför klassen");
+    assert.equal(Object.keys((await rig.klass())?.partier || {}).length, 0);
+    assert.equal((await db.collection("schackPartier").get()).docs.filter((d) => d.id.startsWith("sccore")).length, 0);
+  });
+  it("en elev i två klasser med schack har bara ETT parti åt gången: aktivtParti sätts vid start och tas bort vid slut", async () => {
+    await vanta(deps, BO, { classId: KLASS, klocka: null });
+    const { partiId } = await gaMed(deps, ANNA, { classId: KLASS, motstandare: BO });
+    assert.equal(await rig.aktivt(ANNA), partiId);
+    assert.equal(await rig.aktivt(BO), partiId);
+    await vanta(deps, DAN, { classId: KLASS_B, klocka: null });
+    assert.equal(await code(gaMed(deps, ANNA, { classId: KLASS_B, motstandare: DAN })), "failed-precondition");
+    assert.equal(await code(vanta(deps, ANNA, { classId: KLASS_B, klocka: null })), "failed-precondition");
+    assert.equal(await code(utmana(deps, DAN, { classId: KLASS_B, till: ANNA, klocka: null })), "failed-precondition", "den utmanade spelar");
+    await geUpp(deps, BO, { partiId });
+    assert.equal(await rig.aktivt(ANNA), null);
+    assert.equal(await rig.aktivt(BO), null);
+    assert.equal(await code(gaMed(deps, ANNA, { classId: KLASS_B, motstandare: DAN })), "ok");
+    assert.equal((await db.doc(`studentData/${ANNA}`).get()).data().coins, undefined, "studentData skapas med merge (inga andra fält rörs)");
+  });
+  it("en kvarglömd aktivtParti som pekar på ett slutat eller saknat parti spärrar inte", async () => {
+    await db.doc(`studentData/${ANNA}`).set({ coins: 5, schack: { datorPartier: 3, aktivtParti: "sccore-finns-inte" } });
+    await vanta(deps, BO, { classId: KLASS, klocka: null });
+    const { partiId } = await gaMed(deps, ANNA, { classId: KLASS, motstandare: BO });
+    const sd = (await db.doc(`studentData/${ANNA}`).get()).data();
+    assert.deepEqual(sd, { coins: 5, schack: { datorPartier: 3, aktivtParti: partiId } }, "datorPartier och coins orörda");
+    await geUpp(deps, ANNA, { partiId });
+    assert.equal(await rig.aktivt(ANNA), null);
+  });
+  it("kvot: ett lobbyanrop som inte ändrar något skriver inte klassdokumentet", async () => {
+    await vanta(deps, BO, { classId: KLASS, klocka: null });
+    const fore = (await db.doc(`schackKlass/${KLASS}`).get()).updateTime.toMillis();
+    await new Promise((r) => setTimeout(r, 30));
+    await slutaVanta(deps, ANNA, { classId: KLASS });
+    await slutaVanta(deps, ANNA, {});
+    assert.equal((await db.doc(`schackKlass/${KLASS}`).get()).updateTime.toMillis(), fore);
+  });
+});
+
 describe("utmana och svara", () => {
   it("utmana skriver utmaningen (en i taget, egen gammal ersätts); svara ja startar partiet med rätt klocka", async () => {
     const u1 = await utmana(deps, ANNA, { classId: KLASS, till: BO, klocka: 15 });
@@ -255,5 +301,7 @@ describe("24 h-städningen (§7.3) och läraren (§10)", () => {
     assert.deepEqual(await larareTopplista(deps, rig.auth.ak, { classId: KLASS, dold: false }), { dold: false, nollstalld: false });
     assert.equal(await code(larareTopplista(deps, rig.auth.ak5, { classId: KLASS_AV, dold: true })), "ok", "en klass utan schackdokument får ett");
     assert.equal((await rig.klass(KLASS_AV)).dold, true);
+    assert.equal(await code(larareTopplista(deps, rig.auth.admin, { classId: "sc-finns-inte", dold: true })), "not-found", "F7: ingen skräpdoc");
+    assert.equal(await rig.klass("sc-finns-inte"), undefined);
   });
 });

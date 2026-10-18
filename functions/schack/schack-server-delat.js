@@ -162,7 +162,7 @@ export function nyPoang(egen, motstandare, utfall) {
 
 /** En tabellrad med alla fält (saknad rad = nybörjare på 1000). */
 export function tabellRad(tabell, uid) {
-  const r = tabell?.[uid] || {};
+  const r = (tabell && Object.hasOwn(tabell, uid) && tabell[uid]) || {};
   const n = (v) => (Number.isFinite(v) ? v : 0);
   return {
     poang: Number.isFinite(r.poang) ? r.poang : START_POANG,

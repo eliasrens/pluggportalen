@@ -117,6 +117,16 @@ describe("klockan med serverns tid (§7.2)", () => {
     assert.deepEqual((await rig.parti(P)).drag, []);
     assert.equal((await rig.klass()).tabell[BO].vinster, 2);
   });
+  it("F5: remi (erbjud/acceptera/neka) när den på turs tid är slut avgör partiet på tid", async () => {
+    await remi(deps, BO, { partiId: P, handling: "erbjud" });
+    tick(300_000);
+    const r = await remi(deps, ANNA, { partiId: P, handling: "acceptera" });
+    assert.deepEqual(r, { remiErbjudenAv: null, slut: { resultat: "0-1", orsak: "tid" } });
+    assert.equal((await rig.klass()).tabell[BO].vinster, 1);
+    P = await nyttParti(5);
+    tick(300_000);
+    assert.deepEqual((await remi(deps, BO, { partiId: P, handling: "erbjud" })).slut, { resultat: "0-1", orsak: "tid" }, "även motståndarens erbjudande");
+  });
   it("kravaVinst med klocka följer klockan, inte 5-minutersregeln", async () => {
     await rig.rensa();
     await rig.seed();

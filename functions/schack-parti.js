@@ -4,13 +4,18 @@
 // Servern avgör ALLT: tur, laglighet (chess.js via schack/schack-server-parti.js),
 // FEN, draglistan, klockan med serverns tid och partiets slut. Varje anrop är
 // EN transaktion på schackPartier/{partiId}; tar partiet slut uppdateras även
-// schackKlass/{classId} (partiet bort ur `partier`, `tabell` för båda) i SAMMA
-// transaktion (avslutaParti). Avbrutet (lärare, 24 h) rör aldrig tabellen.
+// schackKlass/{classId} (partiet bort ur `partier`, `tabell` för båda) och
+// spelarnas spärr studentData.schack.aktivtParti i SAMMA transaktion
+// (avslutaParti). Avbrutet (lärare, 24 h) rör aldrig tabellen.
+//
+// Läsningar per anrop: partiet + classes/{classId} (grinden); klassdokumentet
+// läses BARA när partiet tar slut (laddaKlass – före första skrivningen).
 //
 //   drag        { partiId, from, to, promotion? } → { san, fen, tur, drag, klocka, slut }
 //               tid slut hos den som drar → partiet slutar "tid" i stället (gjort: false)
 //   geUpp       { partiId } → { slut }                     orsak "gav-upp"
 //   remi        { partiId, handling: "erbjud"|"acceptera"|"neka" } → { remiErbjudenAv, slut }
+//               är den på turs tid slut avgörs partiet på tid i stället (F5)
 //   kravaVinst  { partiId } → { slut }                     §7.3: motståndarens tid slut
 //               (klocka) eller inget drag på 5 min (utan klocka); orsak "tid"/"lamnade"
 //   Ett parti utan drag på 24 h avbryts i stället (status slut, orsak "avbrutet",
@@ -31,14 +36,16 @@ const motstandareTill = (parti, uid) => (parti.vit === uid ? parti.svart : parti
 const fargFor = (parti, uid) => (parti.vit === uid ? "w" : "b");
 const paTur = (parti) => (parti.tur === "w" ? parti.vit : parti.svart);
 const vinstFor = (farg) => (farg === "w" ? "1-0" : "0-1");
+const motsatt = (farg) => (farg === "w" ? "b" : "w");
 
 /**
  * Avsluta partiet i en pågående transaktion: partidokumentet får status/
  * resultat/orsak, klassdokumentet tappar posten i `partier` och – utom vid
- * "avbrutet" – får nya tabellrader för båda. Klassdokumentet MÅSTE vara läst
+ * "avbrutet" – får nya tabellrader för båda; båda spelarnas
+ * studentData.schack.aktivtParti tas bort (F2). Klassdokumentet MÅSTE vara läst
  * med tx.get innan (Firestore: alla läsningar före skrivningarna).
  */
-export function avslutaParti(tx, { partiRef, parti, klassRef, klass, resultat, orsak, nu }) {
+export function avslutaParti(tx, { db, partiRef, parti, klassRef, klass, resultat, orsak, nu }) {
   const klockaKvar = parti.klocka ? { ...parti.klocka, ...klockaFrys(parti, nu) } : null;
   tx.update(partiRef, { status: "slut", resultat, orsak, remiErbjudenAv: null, klocka: klockaKvar, uppdaterad: nu });
   const partier = { ...klass.partier };
@@ -47,6 +54,9 @@ export function avslutaParti(tx, { partiRef, parti, klassRef, klass, resultat, o
     ? klass.tabell
     : { ...klass.tabell, ...uppdateraTabell(klass.tabell, { vit: parti.vit, svart: parti.svart, resultat }) };
   tx.set(klassRef, { ...klass, partier, tabell });
+  for (const uid of [parti.vit, parti.svart]) {
+    tx.set(db.collection("studentData").doc(uid), { schack: { aktivtParti: null } }, { merge: true });
+  }
   return { resultat, orsak };
 }
 
@@ -57,9 +67,10 @@ function klockaFrys(parti, nu) {
 }
 
 /**
- * Transaktionen runt ett partianrop. Läser partiet, elevens grind (klassen) och
- * klassdokumentet, kontrollerar att partiet pågår och att uid spelar i det, och
- * avbryter ett parti utan drag på 24 h. `fn(tx, st)` gör skrivningarna.
+ * Transaktionen runt ett partianrop. Läser partiet och elevens grind (klassen),
+ * kontrollerar att partiet pågår och att uid spelar i det, och avbryter ett parti
+ * utan drag på 24 h. `fn(st)` gör skrivningarna; den anropar `await st.laddaKlass()`
+ * FÖRE första skrivningen när partiet ska avslutas (st.slut gör båda).
  */
 async function partiTx(c, uid, data, fn) {
   const partiId = idEller(data?.partiId, "parti-id");
@@ -73,10 +84,17 @@ async function partiTx(c, uid, data, fn) {
     await hamtaKlassForElev(c.db, uid, parti.classId, nu, (ref) => tx.get(ref));
     if (parti.status !== "pagar") throw new SchackFel("failed-precondition", "Partiet är redan slut.");
     const klassRef = c.db.collection(KLASS_COLL).doc(parti.classId);
-    const klass = klassData(await tx.get(klassRef));
-    const st = { tx, partiRef, parti, klassRef, klass, nu, uid, farg: fargFor(parti, uid) };
+    const st = { tx, partiRef, parti, klassRef, klass: null, nu, uid, farg: fargFor(parti, uid) };
+    st.laddaKlass = async () => {
+      if (!st.klass) st.klass = klassData(await tx.get(klassRef));
+      return st.klass;
+    };
+    st.slut = async ({ parti: p = parti, resultat, orsak }) => {
+      await st.laddaKlass();
+      return avslutaParti(tx, { db: c.db, partiRef, parti: p, klassRef, klass: st.klass, resultat, orsak, nu });
+    };
     if (arGammalt(parti.senastDragAt, nu)) {
-      avslutaParti(tx, { ...st, resultat: null, orsak: "avbrutet" });
+      await st.slut({ resultat: null, orsak: "avbrutet" });
       return { fel: new SchackFel("failed-precondition", "Partiet avbröts – ingen hade dragit på 24 timmar.") };
     }
     return fn(st);
@@ -85,34 +103,33 @@ async function partiTx(c, uid, data, fn) {
   return utfall;
 }
 
+/** Den på tur har fått slut på tid (klocka, servertid) → partiet slutar "tid" för motståndaren. */
+const slutPaTid = (st) => st.slut({ resultat: vinstFor(motsatt(st.parti.tur)), orsak: "tid" });
+
 export async function drag(deps, uid, data = {}) {
   const c = ctx(deps);
-  return partiTx(c, uid, data, ({ tx, partiRef, parti, klassRef, klass, nu, farg }) => {
+  return partiTx(c, uid, data, async (st) => {
+    const { tx, partiRef, parti, nu } = st;
     if (paTur(parti) !== uid) throw new SchackFel("failed-precondition", "Det är inte din tur.");
-    if (tidSlut(parti.klocka, parti.tur, nu)) {
-      // Den som drar har redan fått slut på tid: draget görs inte, partiet slutar på tid.
-      const slut = avslutaParti(tx, { partiRef, parti, klassRef, klass, resultat: vinstFor(farg === "w" ? "b" : "w"), orsak: "tid", nu });
-      return { gjort: false, slut };
-    }
+    // Den som drar har redan fått slut på tid: draget görs inte, partiet slutar på tid.
+    if (tidSlut(parti.klocka, parti.tur, nu)) return { gjort: false, slut: await slutPaTid(st) };
     const r = provaDrag(parti.drag || [], { from: data.from, to: data.to, promotion: data.promotion });
     if (!r) throw new SchackFel("invalid-argument", "Olagligt drag.");
     const klocka = parti.klocka ? klockaEfterDrag(parti.klocka, parti.tur, nu) : null;
+    const efter = { ...parti, fen: r.fen, drag: r.drag, tur: r.tur, klocka };
+    if (r.slut) await st.laddaKlass(); // läsningen före första skrivningen
     tx.update(partiRef, {
       fen: r.fen, drag: r.drag, tur: r.tur, klocka, remiErbjudenAv: null, senastDragAt: nu, uppdaterad: nu,
     });
-    let slut = null;
-    if (r.slut) {
-      const efter = { ...parti, fen: r.fen, drag: r.drag, tur: r.tur, klocka };
-      slut = avslutaParti(tx, { partiRef, parti: efter, klassRef, klass, resultat: r.slut.resultat, orsak: r.slut.orsak, nu });
-    }
+    const slut = r.slut ? await st.slut({ parti: efter, resultat: r.slut.resultat, orsak: r.slut.orsak }) : null;
     return { gjort: true, san: r.san, fen: r.fen, tur: r.tur, drag: r.drag, klocka, slut };
   });
 }
 
 export async function geUpp(deps, uid, data = {}) {
   const c = ctx(deps);
-  return partiTx(c, uid, data, ({ tx, partiRef, parti, klassRef, klass, nu, farg }) => ({
-    slut: avslutaParti(tx, { partiRef, parti, klassRef, klass, resultat: vinstFor(farg === "w" ? "b" : "w"), orsak: "gav-upp", nu }),
+  return partiTx(c, uid, data, async (st) => ({
+    slut: await st.slut({ resultat: vinstFor(motsatt(st.farg)), orsak: "gav-upp" }),
   }));
 }
 
@@ -122,7 +139,10 @@ export async function remi(deps, uid, data = {}) {
   const c = ctx(deps);
   const handling = data.handling;
   if (!HANDLINGAR.includes(handling)) throw new SchackFel("invalid-argument", "Okänd handling.");
-  return partiTx(c, uid, data, ({ tx, partiRef, parti, klassRef, klass, nu }) => {
+  return partiTx(c, uid, data, async (st) => {
+    const { tx, partiRef, parti, nu } = st;
+    // F5: är den på turs tid slut avgörs partiet på tid – ingen remi räddar det.
+    if (tidSlut(parti.klocka, parti.tur, nu)) return { remiErbjudenAv: null, slut: await slutPaTid(st) };
     const motst = motstandareTill(parti, uid);
     const erbjudenAvMotst = parti.remiErbjudenAv === motst;
     if (handling === "erbjud" && !erbjudenAvMotst) {
@@ -135,13 +155,14 @@ export async function remi(deps, uid, data = {}) {
       return { remiErbjudenAv: null, slut: null };
     }
     // acceptera – eller ett eget erbjudande när motståndaren redan erbjudit
-    return { remiErbjudenAv: null, slut: avslutaParti(tx, { partiRef, parti, klassRef, klass, resultat: "½-½", orsak: "remi", nu }) };
+    return { remiErbjudenAv: null, slut: await st.slut({ resultat: "½-½", orsak: "remi" }) };
   });
 }
 
 export async function kravaVinst(deps, uid, data = {}) {
   const c = ctx(deps);
-  return partiTx(c, uid, data, ({ tx, partiRef, parti, klassRef, klass, nu, farg }) => {
+  return partiTx(c, uid, data, async (st) => {
+    const { parti, nu, farg } = st;
     if (paTur(parti) === uid) throw new SchackFel("failed-precondition", "Det är din tur – du kan inte kräva vinst.");
     let orsak;
     if (parti.klocka) {
@@ -151,6 +172,6 @@ export async function kravaVinst(deps, uid, data = {}) {
       if (!harLamnat(parti.senastDragAt, nu)) throw new SchackFel("failed-precondition", "Motståndaren har inte varit borta i fem minuter.");
       orsak = "lamnade";
     }
-    return { slut: avslutaParti(tx, { partiRef, parti, klassRef, klass, resultat: vinstFor(farg), orsak, nu }) };
+    return { slut: await st.slut({ resultat: vinstFor(farg), orsak }) };
   });
 }

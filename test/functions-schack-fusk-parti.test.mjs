@@ -284,8 +284,8 @@ test("patt (Sam Loyd, 10 drag) avgörs av servern som remi/patt", async () => {
   assert.equal((await getK()).tabell[svart].remier, 1);
 });
 
-// F5 (låg): schackRemi/schackGeUpp kontrollerar inte tidSlut (bara schackDrag gör det).
-test("klocka: den på tur vars tid tagit slut kan inte rädda sig med remi (acceptera ett gammalt erbjudande)", { todo: "F5: remi ser inte tidSlut" }, async () => {
+// F5: schackRemi avgör partiet på tid när den på turs tid är slut (geUpp = förlust ändå).
+test("klocka: den på tur vars tid tagit slut kan inte rädda sig med remi – partiet avgörs på tid (F5)", async () => {
   await reset();
   const { partiId, vit, svart } = await nytt(ANNA, BO, { klocka: 5 });
   const v = await who(vit);

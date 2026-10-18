@@ -10,6 +10,7 @@ import admin from "firebase-admin";
 
 export const KLASS = "sc-4a";
 export const KLASS_AV = "sc-5a";
+export const KLASS_B = "sc-4b"; // Anna + Dan, schack på (F2: ett parti åt gången ÖVER klasser)
 export const ANNA = "sc-anna";
 export const BO = "sc-bo";
 export const CIA = "sc-cia";
@@ -33,6 +34,7 @@ export function createScRig(name) {
 
   const klass = async (classId = KLASS) => (await db.doc(`schackKlass/${classId}`).get()).data();
   const parti = async (id) => (await db.doc(`schackPartier/${id}`).get()).data();
+  const aktivt = async (uid) => (await db.doc(`studentData/${uid}`).get()).data()?.schack?.aktivtParti ?? null;
 
   /** Grunddata: klasserna, projektionen med namn, läraren ak med sc-4a. */
   async function seed({ enabled = true, lock = null, hidden = false } = {}) {
@@ -43,6 +45,7 @@ export function createScRig(name) {
       ...(lock ? { lock } : {}),
     });
     await db.doc(`classes/${KLASS_AV}`).set({ name: "5A", studentIds: [DAN] });
+    await db.doc(`classes/${KLASS_B}`).set({ name: "4B", studentIds: [ANNA, DAN], enabledModules: ["schack"] });
     await db.doc(`classProjections/${KLASS}`).set({ members: { [ANNA]: { namn: "Anna" }, [BO]: { namn: "Bo" } } });
     await db.doc(`students/${CIA}`).set({ namn: "Cia", classIds: [KLASS] });
     await db.doc("teacherAccounts/sc-ak").set({ role: "arskurs", classIds: [KLASS], active: true });
@@ -64,7 +67,7 @@ export function createScRig(name) {
     elev: { uid: ANNA, token: {} },
   };
 
-  return { app, db, FieldValue, ctl, deps, tick, klass, parti, seed, rensa, auth };
+  return { app, db, FieldValue, ctl, deps, tick, klass, parti, aktivt, seed, rensa, auth };
 }
 
 /** Felkoden ur ett löfte som ska avvisas med SchackFel – "ok" om det lyckades. */

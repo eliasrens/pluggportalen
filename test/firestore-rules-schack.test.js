@@ -50,6 +50,7 @@ beforeEach(async () => {
     await setDoc(doc(db, "schackPartier", "p1"), PARTI("4a", "e4a", E4A2));
     await setDoc(doc(db, "schackPartier", "p2"), PARTI("5a", "e5a", "e5a"));
     await setDoc(doc(db, "studentData", "e5a"), { coins: 0, schack: { datorPartier: 2 } });
+    await setDoc(doc(db, "studentData", "e6a"), { coins: 0, schack: { datorPartier: 1, aktivtParti: "p9" } });
   });
 });
 
@@ -93,6 +94,13 @@ describe("schackPartier/{partiId} – bara de två spelarna och läraren med kla
     await assertFails(getDoc(parti(env.unauth())));
     await assertFails(getDoc(parti(env.elev("e4a"), "p2")));
   });
+  it("ett SAKNAT parti får varje inloggad hämta (lyssnaParti → null), inte utloggad", async () => {
+    await assertSucceeds(getDoc(parti(env.elev(E4A3), "finns-inte")));
+    await assertSucceeds(getDoc(parti(env.elev("e5a"), "finns-inte")));
+    await assertSucceeds(getDoc(parti(env.ak5(), "finns-inte")));
+    await assertFails(getDoc(parti(env.unauth(), "finns-inte")));
+    await assertFails(setDoc(parti(env.elev(E4A3), "finns-inte"), PARTI("4a", E4A3, "e4a")), "men inte skapa det");
+  });
   it("läraren med klassen läser (även med fråga på classId), årskurs 5 nekas; en elev kan inte lista", async () => {
     await assertSucceeds(getDoc(parti(env.admin())));
     await assertSucceeds(getDoc(parti(env.ak4())));
@@ -133,6 +141,16 @@ describe("studentData.schack.datorPartier – elevens egen räknare (§10)", () 
     await assertFails(setDoc(sd(env.elev("e5a"), "e5a"), { coins: 0 }), "fältet kan inte tas bort");
     await assertSucceeds(setDoc(sd(env.elev(E4A2), E4A2), { coins: 0, xp: 0, schack: { datorPartier: 1 } }));
     await assertSucceeds(updateDoc(sd(env.elev("e4a"), "e4a"), { coins: 5 }), "andra skrivningar påverkas inte");
+  });
+  it("aktivtParti (serverns spärr, F2) kan klienten aldrig sätta, byta eller ta bort – men räkna datorPartier bredvid", async () => {
+    await assertFails(updateDoc(sd(env.elev("e4a"), "e4a"), { "schack.aktivtParti": "p1" }));
+    await assertFails(updateDoc(sd(env.elev("e4a"), "e4a"), { schack: { datorPartier: 1, aktivtParti: "p1" } }));
+    await assertFails(updateDoc(sd(env.elev("e6a"), "e6a"), { "schack.aktivtParti": null }));
+    await assertFails(updateDoc(sd(env.elev("e6a"), "e6a"), { "schack.aktivtParti": "p1" }));
+    await assertFails(updateDoc(sd(env.elev("e6a"), "e6a"), { schack: { datorPartier: 2 } }), "hela mappen utan aktivtParti = tar bort spärren");
+    await assertSucceeds(updateDoc(sd(env.elev("e6a"), "e6a"), { "schack.datorPartier": increment(1) }));
+    await assertSucceeds(updateDoc(sd(env.elev("e6a"), "e6a"), { schack: { datorPartier: 3, aktivtParti: "p9" } }), "oförändrad spärr går");
+    await assertSucceeds(updateDoc(sd(env.elev("e4a"), "e4a"), { schack: { datorPartier: 1, aktivtParti: null } }), "null = ingen spärr");
   });
   it("årskurskontot skriver aldrig schack; admin får", async () => {
     await assertFails(updateDoc(sd(env.ak4(), "e4a"), { schack: { datorPartier: 1 } }));

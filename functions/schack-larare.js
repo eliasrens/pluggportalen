@@ -8,7 +8,8 @@
 //   larareAvsluta    { partiId } → { slut: { resultat: null, orsak: "avbrutet" } }
 //                    partiet slutar som avbrutet; tabellen rörs inte (§10)
 //   larareTopplista  { classId, dold?: bool, nollstall?: bool } → { dold, nollstalld }
-//                    dölj/visa topplistan för klassen och/eller nollställ `tabell`
+//                    dölj/visa topplistan för klassen och/eller nollställ `tabell`;
+//                    klassen måste finnas (not-found), så inga skräpdokument skapas
 // ============================================================================
 
 import { SchackFel, KLASS_COLL, PARTI_COLL, ctx, idEller, klassData, assertLarare } from "./schack-state.js";
@@ -30,7 +31,7 @@ export async function larareAvsluta(deps, auth, data = {}) {
     const klassRef = c.db.collection(KLASS_COLL).doc(parti.classId);
     const klass = klassData(await tx.get(klassRef));
     const nu = c.now();
-    return { slut: avslutaParti(tx, { partiRef, parti, klassRef, klass, resultat: null, orsak: "avbrutet", nu }) };
+    return { slut: avslutaParti(tx, { db: c.db, partiRef, parti, klassRef, klass, resultat: null, orsak: "avbrutet", nu }) };
   });
 }
 
@@ -42,6 +43,8 @@ export async function larareTopplista(deps, auth, data = {}) {
   if (satt && typeof data.dold !== "boolean") throw new SchackFel("invalid-argument", "dold måste vara true eller false.");
   if (!satt && !nollstall) throw new SchackFel("invalid-argument", "Ange dold och/eller nollstall.");
   await assertLarare(c.db, auth, classId);
+  // F7: aldrig ett schackKlass-dokument för en klass som inte finns.
+  if (!(await c.db.collection("classes").doc(classId).get()).exists) throw new SchackFel("not-found", "Klassen finns inte.");
   const ref = c.db.collection(KLASS_COLL).doc(classId);
   return c.db.runTransaction(async (tx) => {
     const klass = klassData(await tx.get(ref));

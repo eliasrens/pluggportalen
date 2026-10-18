@@ -419,11 +419,20 @@ schackPartier/{partiId}
 - `resultat` är `null` vid `orsak: "avbrutet"` (läraren eller 24 h) – tabellen rörs inte.
 - Ett remierbjudande ändrar `uppdaterad` men inte `senastDragAt`; ett drag tar bort
   erbjudandet.
+- **Ett parti åt gången per elev – även över klasser:** `studentData/{uid}.schack.aktivtParti`
+  (partiId) sätts av servern när partiet skapas och tas bort (`null`) när det slutar, i
+  samma transaktion. Lobbyn läser den för båda spelarna innan ett parti skapas; pekar
+  den på ett parti som inte längre pågår räknas den som fri. Klienten kan aldrig ändra
+  den (`schackOk`).
+- Alla uppslag med en nyckel som en klient skickat in (`motstandare`, `utmaningId`, uid:n)
+  görs bara på egna nycklar (`Object.hasOwn`), och id:n på formen `__x__` nekas – ingen
+  "constructor"-motståndare kan ge ett fantomparti.
 
 **Regler** (`firestore.rules`, test `test/firestore-rules-schack.test.js`): `schackKlass`
 läses av `isClassMember(classId) || hasClass(classId)`; `schackPartier` av de två
-spelarna och `hasClass(classId)` (lärarens fråga filtrerar på `classId`); ingen klient
-skriver. ⚠️ Kräver `firebase deploy --only firestore:rules`.
+spelarna och `hasClass(classId)` (lärarens fråga filtrerar på `classId`) – och ett
+**saknat** parti får varje inloggad hämta (tomt svar, så `lyssnaParti` ger `null` för ett
+gammalt id i stället för ett fel); ingen klient skriver. ⚠️ Kräver `firebase deploy --only firestore:rules`.
 
 ### 12.2 Callables (`functions/index.js`, region europe-west1)
 
@@ -444,20 +453,22 @@ trasiga id:n → `invalid-argument`.
 | `schackSvara` | `{ utmaningId, ja, classId? }` | `{ partiId, farg }` eller `{ partiId: null, farg: null }` | `not-found` utmaningen finns inte/har gått ut/inte till dig; `failed-precondition` någon spelar redan |
 | `schackDrag` | `{ partiId, from, to, promotion? }` | `{ gjort: true, san, fen, tur, drag, klocka, slut }` – eller `{ gjort: false, slut }` när din tid redan var slut | `not-found`; `permission-denied` inte din match; `failed-precondition` inte din tur / partiet slut / avbrutet (24 h); `invalid-argument` olagligt drag |
 | `schackGeUpp` | `{ partiId }` | `{ slut }` | när som helst under partiet |
-| `schackRemi` | `{ partiId, handling: "erbjud"\|"acceptera"\|"neka" }` | `{ remiErbjudenAv, slut }` | `failed-precondition` acceptera/neka utan motståndarens erbjudande. Erbjud när motståndaren redan erbjudit = remi. |
+| `schackRemi` | `{ partiId, handling: "erbjud"\|"acceptera"\|"neka" }` | `{ remiErbjudenAv, slut }` | `failed-precondition` acceptera/neka utan motståndarens erbjudande. Erbjud när motståndaren redan erbjudit = remi. Är den på turs tid slut (klocka, servertid) avgörs partiet på tid i stället, oavsett handling. |
 | `schackKravaVinst` | `{ partiId }` | `{ slut }` | `failed-precondition` det är din tur / tiden inte slut (klocka) / < 5 min utan drag (utan klocka) |
 | `schackLarareAvsluta` | `{ partiId }` | `{ slut: { resultat: null, orsak: "avbrutet" } }` | lärare med klassen (`hasClass`): admin eller årskurskonto med klassen, annars `permission-denied`; `failed-precondition` redan slut |
-| `schackLarareTopplista` | `{ classId, dold?: bool, nollstall?: bool }` | `{ dold, nollstalld }` | som ovan; `invalid-argument` utan något av fälten |
+| `schackLarareTopplista` | `{ classId, dold?: bool, nollstall?: bool }` | `{ dold, nollstalld }` | som ovan; `invalid-argument` utan något av fälten; `not-found` om klassen inte finns |
 
 `slut` är `null` eller `{ resultat, orsak }`. **Partiets slut sker i EN transaktion**
 (`avslutaParti` i `schack-parti.js`): partidokumentet får status/resultat/orsak, posten
-försvinner ur `schackKlass.partier` och `tabell` får båda spelarnas nya rader – utom
-vid `avbrutet`. Färgen slumpas med `node:crypto`. Namnen tas ur
+försvinner ur `schackKlass.partier`, `tabell` får båda spelarnas nya rader – utom
+vid `avbrutet` – och båda spelarnas `studentData.schack.aktivtParti` nollas. Färgen slumpas med `node:crypto`. Namnen tas ur
 `classProjections/{classId}.members[uid].namn` (en läsning), reserv `students/{uid}.namn`.
 
-**Lobbyregler (§7.1).** Ett parti åt gången per elev i klassen: varje lobbyanrop är en
-transaktion på klassdokumentet, så två samtidiga `schackGaMed`/`schackSvara` kan
-aldrig ge två partier (det andra nekas). Utmaningar lever 2 min och väntan 10 min
+**Lobbyregler (§7.1).** Ett parti åt gången per elev: varje lobbyanrop är en
+transaktion på klassdokumentet (och läser `aktivtParti` för båda spelarna), så två
+samtidiga `schackGaMed`/`schackSvara` kan aldrig ge två partier (det andra nekas), inte
+heller i två olika klasser. Ett anrop som inte ändrar något (t.ex. `schackSlutaVanta`
+utan väntan) skriver inte klassdokumentet. Utmaningar lever 2 min och väntan 10 min
 via tidsstämpeln `sedan`: servern filtrerar bort utgångna poster i varje skrivning av
 klassdokumentet (`rensaLobby`), klienten vid varje visning – inga skrivningar per
 sekund och ingen närvaro-ping.
@@ -509,11 +520,14 @@ moln.datorPartiKlart()         // studentData.schack.datorPartier + 1 (EN skrivn
 
 ### 12.5 `studentData.schack` (§10)
 
-`{ datorPartier: int }` – antal avslutade partier mot datorn. Klienten (2B, vid
-datorpartiets slut) ökar räknaren med `datorPartiKlart()`; regeln `schackOk` tillåter
-bara nyckeln `datorPartier`, heltal, aldrig nedåt och högst +1 per skrivning; lärare
-skriver den aldrig (admin får). Kompispartier räknas i `schackKlass.tabell[uid].partier`.
-Etapp 3 lägger `lektioner` och `pussel` här (regeln utökas då).
+`{ datorPartier: int, aktivtParti: partiId|null }`. `datorPartier` = antal avslutade
+partier mot datorn: klienten (2B, vid datorpartiets slut) ökar räknaren med
+`datorPartiKlart()` (fältväg `schack.datorPartier` + `increment(1)`, så spärren bredvid
+behålls). `aktivtParti` = serverns spärr "ett parti åt gången" (12.1). Regeln `schackOk`
+tillåter bara nycklarna `datorPartier` (heltal, aldrig nedåt, högst +1 per skrivning) och
+`aktivtParti` (måste vara oförändrad); lärare (årskurskonto) skriver fältet aldrig, admin
+får. Kompispartier räknas i `schackKlass.tabell[uid].partier`. Etapp 3 lägger `lektioner`
+och `pussel` här (regeln utökas då).
 
 ### 12.6 Gamla partier – valet (§7.3)
 
@@ -532,14 +546,19 @@ klassen (bara information i listan "Pågående partier").
 
 Per halvdrag: callable **2 läsningar** (partiet + `classes/{classId}` för grinden) och
 **1 skrivning** (partiet); de två spelarnas lyssnare **2 läsningar**. Klassdokumentet
-skrivs inte per drag.
+läses och skrivs **inte** per drag – bara när partiet tar slut (transaktionen läser det
+först då, före första skrivningen).
 
 | | Skrivningar | Läsningar |
 | --- | --- | --- |
-| Start (lobbyanrop: classes + projektion + klassdoc; parti + klassdoc skrivs) | 2 | 3 + lobbylyssnarna |
+| Start (lobbyanrop: classes + projektion + klassdoc + 2 × studentData/aktivtParti; parti + klassdoc + 2 × studentData skrivs) | 4 | 5 + lobbylyssnarna |
 | 40 drag per spelare = 80 halvdrag med klocka | 80 | 160 (lyssnare) + 160 (servern) |
-| Slut (klassdoc läses och skrivs i samma transaktion) | +1 | +1 + lobbylyssnarna |
-| **Ett parti** | **≈ 83** | **≈ 165 i klienten + ≈ 165 på servern** |
+| Slut (klassdoc läses och skrivs; 2 × studentData nollas, i samma transaktion) | +3 | +1 + lobbylyssnarna |
+| **Ett parti** | **≈ 87** | **≈ 165 i klienten + ≈ 166 på servern** |
+
+Räknat utan lobbylyssnare: ett parti ≈ 87 skrivningar och ≈ 330 läsningar (varav de 160
+hos spelarna är de "≈ 160" spec §9 räknar med). Det som avgör fakturan är lyssnarna: en
+lobby med 25 öppna sidor lägger 25 läsningar på varje klassdoc-skrivning (start och slut).
 
 Lärarens åskådarläge (2C) lägger 1 läsning per halvdrag. **Lobbyn:** med 25 elever på
 schacksidan kostar varje skrivning av klassdokumentet 25 läsningar; dokumentet skrivs
