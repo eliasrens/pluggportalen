@@ -264,6 +264,85 @@ Förhandsvisning (port 8762 i #762): `preview/preview-prov-elev.html#/elev/prov/
 → "Prov med avsnitt (#762)" (`?#/larare/prov?vy=ny&id=avsnitt`; "Återställ proven" om
 det saknas), och `preview/preview-prov-rattning.html` (avsnitt + kriterier i provet).
 
+## Rätta alla automatiska frågor och halvpoäng i rättningen (Etapp 3, #764, §6.0–§6.2)
+
+**Knappen "Rätta alla automatiska frågor"** överst i rättningsvyn (alla tre
+flikarna) och i tillfällets översikt (`#/larare/prov/tillfalle?t=` – den öppnar
+rättningen med `&rattaAlla=1`, som kör knappen direkt och skrivs bort ur
+hashen). Den rättar alla automatiska frågor för alla inlämnade elever på en gång.
+
+| Fil | Gör |
+| --- | --- |
+| `prov-ratta-alla.js` | ren logik (test: `test/prov-ratta-alla.test.js`): `autoBedom` (säkert/osäkert/fritext), `rattaAllaElev`, `rattaAlla`, `sammanfattning`, `facitMedTillagg` + `godkannbara` (facit i efterhand), `delaIBatchar` |
+| `prov-ratta-alla-vy.js` | knappen + sammanfattningen (DOM) |
+| `prov-ratta-lager.js` | `lager.rattaAlla()` (kör + sparar direkt), `lager.godkannAven(f, text, lucka)` |
+| `prov-rattning-data.js` | `sparaFacitTillagg(t, fragaId, facit)` (en `update` av `facit.<fråga>`), batcharna via `delaIBatchar` |
+
+- **Säkert → rättas** (`auto: true, autoRattad: true`): flerval, flera rätt,
+  sant/falskt, para och ordna (delpoäng **nedåt** till 0,5 via `delpoangNed`),
+  obesvarade frågor (fel), kortsvar och luckor som stämmer **exakt** med facit
+  efter normaliseringen. Med **"Fel svar på kortsvar rättas som fel"**
+  (`installningar.felKortsvarFel`, standard på, kryssruta under "Rättning och
+  färggränser" i redigeraren; saknat = på) blir ett kortsvar/en ifylld lucka som
+  inte stämmer alls *fel*.
+- **Osäkert → lämnas åt läraren**: nästan rätt (ett stavfel när exakt stavning
+  inte krävs) och – med `felKortsvarFel: false` – svar som inte stämmer.
+  **Samspelet med #759:** med stavfel `"sjalv"` får nästan-rätt ingen post alls
+  (står som "? Inte rättad"); med `"auto"` står halva poängen kvar som *förslag*
+  (`auto: true` utan `autoRattad`) som läraren godkänner. En lucktext med något
+  stavfel lämnas hel.
+- **Fritext rörs aldrig** (inte heller det obesvarade förslaget). **Lärarens
+  bedömningar** (`auto !== true` med ratt – även gamla poster utan `auto`) skrivs
+  aldrig över; tillbakalämnade prov rörs inte. Lärarens kommentar på ett förslag
+  följer med.
+- **`autoRattad`** räknas som bedömt (`arBedomd`: status, "Lämna tillbaka till
+  alla rättade", statistiken, färgerna, utskriften) men är inte lärarens egen
+  (`arManuell`). Kortet visar bedömningen + en liten etikett **Auto**. Ändrar
+  läraren bedömningen eller poängen blir posten manuell (`auto: false`,
+  `autoRattad` bort); en kommentar ensam ändrar inget. "Godkänn alla förslag"
+  rör inte autorättade.
+- **Omkörbar:** nästa tryck räknar om allt som inte är manuellt – en elev vars
+  rättning inte ändras skrivs inte igen.
+- **Sammanfattningen**: "312 svar rättades automatiskt." (bara nya/ändrade; noll
+  = "Inga nya svar att rätta automatiskt.") · "9 kortsvar behöver din bedömning."
+  (eller "lucktexter" / "kortsvar och lucktexter") med länk till första frågan och
+  "Fråga 4 (6)" per fråga · "24 fritextsvar väntar på rättning." (länk) ·
+  "2 tillbakalämnade prov rördes inte."
+- **Facit i efterhand:** kort med ett kortsvar/en lucka som inte stämmer exakt
+  har knappen **Godkänn även ”Björkö”** (”… i lucka 2”). Den lägger svaret i
+  `privat/facit.facit[fråga].godkanda` (lucktext: `luckor[i].godkanda`) –
+  högst 30 per lista, inte en dubblett efter normaliseringen. Provet (`prov/{id}`)
+  ändras inte; tillägget gäller tillfället och används nästa gång knappen trycks.
+- **Sparningen:** EN skrivning per ändrad elev (hela rättningsdokumentet) +
+  räkneverket, högst 450 rättningar per batch (`RATTNING_PER_BATCH`, under
+  Firestores 500). 25 elever = 1 batch, 26 skrivningar.
+
+**Halvpoäng i rättningen (§6.1–6.2)** – `prov-ratta-kort.js`:
+- Sifferfältet tar decimalkomma/-punkt och kläms till 0 … max i steg om 0,5
+  (`tolkaPoang` → `klamPoang`).
+- Snabbknappar `snabbPoang(max)`: 0, ½, 1, 1½ … max (`halvText`) för frågor upp
+  till 6 p; **över 6 p** knapparna **−** och **+** (`stegaPoang`, ±0,5, aldrig
+  under 0 eller över max).
+- Tangenter: **+** och **−** ±0,5 på kortet i fokus (utöver 1/2/3/Tab/Enter/N).
+- Poäng ↔ markering (`bedom`/`rattFor`): max = rätt, 0 = fel, annars delvis;
+  markeringen kan ändras för sig. Prov utan poäng: bara markeringen.
+- Fritext: poängkriterierna (`privat/facit.kriterier`, #762) i en ruta bredvid
+  svaret (under på smal skärm).
+- Avsnitten (#762) som grupper: Per fråga grupperar frågeknapparna under
+  avsnittens namn och visar avsnittet över frågan; Per elev har rubrikerna.
+- Färgerna (`andelFor`) räknas i halva poäng som heltal – 8,5 + 8,5 av 20 är
+  exakt 85 % (grön).
+
+**Regler** (`test/firestore-rules-prov-ratta-alla.test.js`): `provInstOk` –
+`felKortsvarFel` bara true/false; `validRattning` – `totalPoang`/`maxPoang` 0 …
+1200 i steg om 0,5 (`provHalvpoang`) och total ≤ max; `privat/facit` – skapa/
+ändra bara med fälten `facit` (map), `bedomningsstod`, `kriterier` (maps).
+Frågornas poster (`poang`, `ratt`, `auto`, `autoRattad`) kan reglerna inte gå
+igenom – klienten klämmer dem.
+
+Förhandsvisning: `preview/preview-prov-rattning.html` (knappen, sammanfattningen,
+Auto-etiketten, halvpoängen; q7 ordna är värd 8 p → − och +).
+
 ## Skapa och redigera (B, #739)
 
 Lärarsidans grupp **Prov** (`TEACHER_GROUPS`) med fliken **Mina prov**
@@ -394,7 +473,7 @@ som skriver som "skriver fortfarande" och kommer med när vyn laddas om.
 | `prov-ratta-lager.js` | vyns tillstånd + autosparningen (`skapaSparare` med `LARARENS_SPARNING`) |
 | `prov-ratta-sida.js` | route, skalet (räknaren, Lämna tillbaka till alla rättade, flikarna, Dölj namn), rutan, tangentbordet |
 | `prov-ratta-lagen.js` | `perFraga(v)` och `perElev(v)` |
-| `prov-ratta-kort.js` | ett kort: Rätt/Delvis/Fel, poäng (fält + snabbknappar 0 … max), kommentar |
+| `prov-ratta-kort.js` | ett kort: Rätt/Delvis/Fel, poäng (fält + snabbknappar 0, ½ … max, över 6 p − och +, #764), kommentar, Auto-etiketten, kriterierna, "Godkänn även" |
 | `prov-svar-vy.js` | typernas svarsbild (alternativ, text, ✓/½/✗) |
 | `prov-resultat-vy.js` | elevens resultatvy utan Firebase (`renderaResultat(resultatModell(…))`) |
 | `prov-ratta.css`, `prov-resultat.css` | `.provl-r-` (lärare), `.provv-sv-`/`.provv-res-` (svaren, eleven) |
@@ -747,7 +826,10 @@ som test i `test/prov-tillfalle.test.js` ("budgeten").
 eller läge läser inget). Skrivningar: förslagen 25 (en batch) + autosparningen –
 en batch med de ändrade eleverna högst var 10:e sekund (`LARARENS_SPARNING`).
 Per fråga rör varje fråga alla elever en gång: 12 × 25 = 300; tillbakalämningen 25,
-räkneverket ett par. **≈ 350 skrivningar** för en hel rättning. Med elevernas
+räkneverket ett par. **≈ 350 skrivningar** för en hel rättning. "Rätta alla
+automatiska frågor" (#764) läser inget extra (vyns data) och skriver en gång per
+elev vars rättning ändras: ≤ 25 + räkneverket per tryck; facit i efterhand = 1
+skrivning per tillägg. Med elevernas
 realistiska några hundra skrivningar och ≈ 1 300 läsningar stannar provet + rättningen
 långt under 3 000/3 000.
 
@@ -771,6 +853,11 @@ Halvpoäng/avsnitt/kriterier (#762) kräver regel-deployen för `rattning.kriter
 (de gamla reglerna nekar fältet – en tillbakalämning med "Visa poängkriterierna"
 skulle nekas) och valideringen av `visaPoangForElev`/`visaKriterier`. Deploya
 reglerna FÖRE webben; de nya reglerna godtar allt den gamla webben skriver.
+"Rätta alla" och halvpoängen i rättningen (#764) kräver regel-deployen för
+valideringen (`felKortsvarFel`, halva poäng och total ≤ max i rättningen,
+fälten i `privat/facit`). Ordningen spelar ingen roll: de gamla reglerna godtar
+allt den nya webben skriver (`autoRattad` ligger i `fragor`-mapen), och de nya
+godtar allt den gamla webben skriver.
 Anpassningarna (#748) kräver regel-deployen: innan den nekas varje sparning med
 `flikbyten` (den gamla `validSvarFalt` känner inte fältet) och extra tid
 förlänger inte reglernas gräns. Deploya reglerna FÖRE webben.

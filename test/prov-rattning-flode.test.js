@@ -90,8 +90,9 @@ describe("bedömningen", () => {
     assert.equal(tolkaPoang("7", 2), 2);
     assert.equal(tolkaPoang("", 2), null);
     assert.equal(tolkaPoang("x", 2), null);
-    assert.deepEqual(snabbPoang(3), [0, 1, 2, 3]);
-    assert.deepEqual(snabbPoang(10), [0, 5, 10]);
+    // #764: halva poäng (0, ½, 1 … max); över 6 p − och + i stället för snabbknappar.
+    assert.deepEqual(snabbPoang(3), [0, 0.5, 1, 1.5, 2, 2.5, 3]);
+    assert.deepEqual(snabbPoang(10), []);
     assert.deepEqual(snabbPoang(0), []);
   });
 });

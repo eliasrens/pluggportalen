@@ -15,7 +15,7 @@
 // ============================================================================
 
 import { fragetyp } from "./prov-fragetyper.js";
-import { ELEV_STATUS_NAMN, elevStatus, nivaNamn } from "./prov-rattning-logik.js";
+import { ELEV_STATUS_NAMN, arBedomd, elevStatus, nivaNamn } from "./prov-rattning-logik.js";
 import { bedomningsEtikett } from "./prov-resultat-vy.js";
 import { FARG_INFO, andelFor, fargFor, granserFor, procent } from "./prov-statistik.js";
 import { facitSida, provSidor } from "./prov-utskrift-papper.js";
@@ -124,7 +124,7 @@ function resultatSida(e, o) {
       if (f.typ === "avsnitt") return h("h2", { class: "provl-ut-avsnitt provl-ut-avsnitt-titel", text: f.titel || "" });
       if (nr[f.id] == null) return f.titel ? h("p", { class: "provl-ut-textblock-ref", text: `Text: ${f.titel}` }) : null;
       const post = r?.fragor?.[f.id];
-      const bedomd = post && post.auto !== true;
+      const bedomd = arBedomd(post); // #764: autorättade räknas, förslag inte
       return h("section", { class: "provl-ut-fraga" },
         h("div", { class: "provl-ut-fraga-huvud" },
           h("span", { class: "provl-ut-nr", text: String(nr[f.id]) }),

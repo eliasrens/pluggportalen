@@ -12,9 +12,13 @@
 //   lager.angra(uid)          (mynten står kvar, #746)
 //   lager.betalaKvar()        pluggmynt som inte hann betalas ut (avbrott) – när vyn öppnas
 //   lager.spola()             spara direkt (läraren lämnar vyn)
+//   lager.rattaAlla()         "Rätta alla automatiska frågor" (#764) → sammanställningen
+//                             (prov-ratta-alla.js), sparad direkt: en skrivning per ändrad elev
+//   lager.godkannAven(f, text, lucka) facit i efterhand (#764) → true om det sparades
 // ============================================================================
 
-import { angraTillbaka, lamnaTillbaka, sparaRattningar } from "./prov-rattning-data.js";
+import { angraTillbaka, lamnaTillbaka, sparaFacitTillagg, sparaRattningar } from "./prov-rattning-data.js";
+import { facitMedTillagg, rattaAlla, rattaAllaVal } from "./prov-ratta-alla.js";
 import {
   angratDok, aterlamnadDok, kompletteraForslag, nyRattning, rattStatusSumma, sparDok,
 } from "./prov-rattning-logik.js";
@@ -96,6 +100,30 @@ export function skapaRattningsLager({ data, med, onStatus = () => {} }) {
       if (uids.length) sparare.andrat();
     },
     get osparat() { return sparare.osparat; },
+
+    /**
+     * "Rätta alla automatiska frågor" (#764, §6.0): säkra fall rättas, osäkra och
+     * fritext lämnas, lärarens bedömningar rörs inte. Sparas direkt (spolaNu):
+     * de ändrade eleverna – EN skrivning var – i batchar om högst 450.
+     */
+    async rattaAlla() {
+      const res = rattaAlla({ med, rattningar, fragor, svarAv: (uid) => svar[uid]?.svar, facit, opt: rattaAllaVal(tf.installningar) });
+      res.andrade.forEach((uid) => smutsiga.add(uid));
+      if (res.andrade.length) {
+        sparare.andrat();
+        await sparare.spolaNu();
+      }
+      return res;
+    },
+
+    /** Facit i efterhand (#764): "Godkänn även 'Björkö'" – sparas i privat/facit. false = fanns redan. */
+    async godkannAven(fraga, text, lucka = null) {
+      const ny = facitMedTillagg(fraga, facit[fraga.id], text, lucka);
+      if (!ny) return false;
+      await sparaFacitTillagg(t, fraga.id, ny);
+      facit[fraga.id] = ny;
+      return true;
+    },
     spola() { if (sparare.osparat) return sparare.spolaNu(); },
 
     /** Lämna tillbaka (§7) – osparat sparas först; facit bara om valt. */

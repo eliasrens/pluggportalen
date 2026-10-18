@@ -143,3 +143,34 @@
   .teacher-dark .provl-r-b { padding: 6px 10px; }
   .teacher-dark .provl-r-b kbd { display: none; }
 }
+
+/* #764: "Rätta alla automatiska frågor" + sammanfattningen */
+.teacher-dark .provl-r-alla { font-weight: 700; }
+.teacher-dark .provl-r-sammanfattning { margin-bottom: 12px; border-left: 4px solid #6aa7f0; }
+.teacher-dark .provl-r-sf-topp { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.teacher-dark .provl-r-sf-rader { margin: 8px 0; padding-left: 1.2em; display: grid; gap: 6px; }
+.teacher-dark .provl-r-sf-rader li > span:first-child { font-weight: 600; margin-right: 8px; }
+.teacher-dark .provl-r-sf-lank { background: none; border: 0; padding: 0 4px; font: inherit; cursor: pointer; text-decoration: underline; min-height: 32px; }
+.teacher-dark .provl-r-sf-fragor { display: inline-flex; flex-wrap: wrap; gap: 0 6px; }
+.teacher-dark .provl-r-sammanfattning .hint { margin: 0; }
+/* Rättat av "Rätta alla": bedömningen + en liten etikett "Auto" */
+.teacher-dark .provl-r-taggar { display: inline-flex; align-items: center; gap: 6px; }
+.provl-r-auto { display: inline-block; padding: 1px 7px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.03em;
+  color: #a9cdf7; border: 1px solid rgba(106, 167, 240, 0.55); }
+/* Halvpoäng (§6.1): − och + för frågor över 6 p */
+.teacher-dark .provl-r-steg {
+  min-width: 44px; height: 36px; border-radius: 8px; font: inherit; font-size: 1.2rem; font-weight: 700; cursor: pointer;
+  background: transparent; color: var(--t-text); border: 1px solid rgba(255, 255, 255, 0.18);
+}
+.teacher-dark .provl-r-steg:disabled, .teacher-dark .provl-r-snabb:disabled { opacity: 0.45; cursor: default; }
+/* Fritext: poängkriterierna bredvid svaret (en kolumn på smal skärm) */
+.teacher-dark .provl-r-svarrad { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 12px; }
+@media (min-width: 760px) { .teacher-dark .provl-r-svarrad { grid-template-columns: minmax(0, 1fr) minmax(180px, 32%); } }
+.teacher-dark .provl-r-kriterier { margin: 10px 0; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--t-border); font-size: 0.92rem; }
+.teacher-dark .provl-r-kriterier ul { margin: 6px 0 0; padding-left: 1.1em; display: grid; gap: 3px; }
+/* Facit i efterhand */
+.teacher-dark .provl-r-tillagg { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+/* Avsnitten som grupper i frågeraden */
+.teacher-dark .provl-r-nrgrupp { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-right: 10px; }
+.teacher-dark .provl-r-nrgrupp-namn { font-size: 0.8rem; font-weight: 700; color: var(--t-muted); width: 100%; }
+.teacher-dark .provl-r-fraga-avsnitt { margin: 0 0 6px; font-size: 0.85rem; font-weight: 700; color: var(--t-muted); text-transform: none; }

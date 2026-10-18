@@ -6,11 +6,13 @@
 // och resultatvyn (prov-resultat-vy.js) bygger på den.
 //
 // rattning/{elevUid} (docs/DATAMODELL.md "Prov"):
-//   { elevId, classId, provNamn, fragor: { [fragaId]: { poang, ratt, kommentar?, auto } },
+//   { elevId, classId, provNamn, fragor: { [fragaId]: { poang, ratt, kommentar?, auto, autoRattad? } },
 //     totalPoang, maxPoang, niva, helhetskommentar?, aterlamnad, aterlamnadAt?, facit?,
 //     myntUtbetalt? (#746: pluggmynten som betalats ut, skrivs bara av prov-mynt-pay.js) }
 // En post med auto: true är ett FÖRSLAG – det räknas inte som rättat förrän
-// läraren godkänner eller ändrar det (§6.3).
+// läraren godkänner eller ändrar det (§6.3). "Rätta alla automatiska frågor"
+// (#764, prov-ratta-alla.js) rättar de säkra fallen: auto: true + autoRattad:
+// true räknas som bedömt (etiketten "Auto") men är inte lärarens egen bedömning.
 // ============================================================================
 
 import { arFraga, fragetyp } from "./prov-fragetyper.js";
@@ -37,10 +39,17 @@ export const TANGENT_RATT = Object.freeze({ 1: true, 2: "delvis", 3: false });
 const arRatt = (v) => v === true || v === false || v === "delvis";
 export const bedomning = (ratt) => BEDOMNINGAR.find((b) => b.ratt === ratt) || null;
 
-/** Har läraren bedömt posten (inte bara ett automatiskt förslag)? */
-export const arBedomd = (post) => !!post && post.auto !== true && arRatt(post.ratt);
+/**
+ * Är posten bedömd – av läraren, eller av "Rätta alla automatiska frågor"
+ * (#764: auto: true + autoRattad: true) – och inte bara ett förslag?
+ */
+export const arBedomd = (post) => !!post && arRatt(post.ratt) && (post.auto !== true || post.autoRattad === true);
 /** Är posten ett förslag som väntar på läraren? */
-export const arForslag = (post) => !!post && post.auto === true && arRatt(post.ratt);
+export const arForslag = (post) => !!post && post.auto === true && post.autoRattad !== true && arRatt(post.ratt);
+/** Är posten rättad automatiskt av "Rätta alla" (#764, etiketten "Auto")? */
+export const arAutoRattad = (post) => !!post && post.auto === true && post.autoRattad === true && arRatt(post.ratt);
+/** Har läraren själv bedömt posten (#764: skrivs aldrig över av "Rätta alla")? Gamla poster utan auto = lärarens. */
+export const arManuell = (post) => !!post && post.auto !== true && arRatt(post.ratt);
 
 /** Frågorna som rättas (inte textblocken). */
 export const rattFragor = (fragor) => (fragor || []).filter(arFraga);
@@ -129,8 +138,9 @@ export const HELHET_MAX = 4000;
 
 /**
  * Lärarens bedömning av en fråga hos en elev. `andring` = { ratt?, poang?, kommentar? }.
- * Ny bedömning eller poäng → auto: false (läraren har bestämt). En kommentar
- * ensam ändrar inte bedömningen (ett förslag förblir ett förslag).
+ * Ny bedömning eller poäng → auto: false (läraren har bestämt – en autorättad
+ * post, #764, blir då manuell). En kommentar ensam ändrar inte bedömningen
+ * (ett förslag förblir ett förslag, en autorättad post autorättad).
  * @returns ny rättning (summerad)
  */
 export function bedom(r, fraga, andring, fragor) {
@@ -141,10 +151,12 @@ export function bedom(r, fraga, andring, fragor) {
     post.ratt = andring.ratt;
     post.poang = "poang" in andring && andring.poang != null ? andring.poang : poangFor(andring.ratt, max, fore.ratt === "delvis" ? fore.poang : null);
     post.auto = false;
+    delete post.autoRattad;
   } else if ("poang" in andring && andring.poang != null) {
     post.poang = klamPoang(andring.poang, max);
     post.ratt = rattFor(post.poang, max);
     post.auto = false;
+    delete post.autoRattad;
   }
   if ("kommentar" in andring) {
     const k = String(andring.kommentar ?? "").trim().slice(0, KOMMENTAR_MAX);
@@ -222,7 +234,8 @@ export function godkannFraga(rattningar, elevIds, fragaId) {
 /**
  * Gruppens gemensamma post, eller null om eleverna bedömts olika ("blandat").
  * Samma bedömning där några är godkända och några förslag = ett förslag
- * (auto: true) – läraren behöver bara bekräfta.
+ * (auto: true) – läraren behöver bara bekräfta. Inga förslag men någon
+ * autorättad (#764) = autorättad (etiketten "Auto").
  */
 export function gruppPost(rattningar, elevIds, fragaId) {
   const poster = elevIds.map((uid) => rattningar[uid]?.fragor?.[fragaId] || null);
@@ -230,7 +243,9 @@ export function gruppPost(rattningar, elevIds, fragaId) {
   const lika = (a, b) => (a?.ratt ?? null) === (b?.ratt ?? null) && (a?.poang ?? null) === (b?.poang ?? null) &&
     (a?.kommentar || "") === (b?.kommentar || "");
   if (!poster.every((p) => lika(p, forsta))) return null;
-  return forsta && poster.some((p) => p?.auto === true) ? { ...forsta, auto: true } : forsta;
+  if (!forsta) return forsta;
+  if (poster.some(arForslag)) return { ...forsta, auto: true, autoRattad: false };
+  return poster.some(arAutoRattad) ? { ...forsta, auto: true, autoRattad: true } : forsta;
 }
 
 /** Hur många förslag väntar på frågan? */

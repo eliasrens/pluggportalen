@@ -235,14 +235,15 @@ describe("gamla prov: delpoängen nedåt är den enda ändringen (#762)", () => 
 });
 
 describe("rättningsvyns snabbknappar med halvpoängsmax (#764 §6.1)", () => {
-  it("heltalsmax som förr", () => {
+  it("halvsteg upp till max, inga knappar över 6 p", () => {
     assert.deepEqual(snabbPoang(0), []);
-    assert.deepEqual(snabbPoang(3), [0, 1, 2, 3]);
-    assert.deepEqual(snabbPoang(8), [0, 4, 8]);
+    // #764: halva poäng; över 6 p − och + i stället (prov-ratta-alla.test.js).
+    assert.deepEqual(snabbPoang(3), [0, 0.5, 1, 1.5, 2, 2.5, 3]);
+    assert.deepEqual(snabbPoang(8), []);
   });
   it("maxpoängen finns alltid som knapp (0,5 → [0, 0,5]; 3,5 → … 3,5)", () => {
-    for (const max of [0.5, 1.5, 3.5, 5.5, 7.5]) assert.equal(snabbPoang(max).at(-1), max, `max ${max}`);
+    for (const max of [0.5, 1.5, 3.5, 5.5, 6]) assert.equal(snabbPoang(max).at(-1), max, `max ${max}`);
     assert.deepEqual(snabbPoang(0.5), [0, 0.5]);
-    assert.deepEqual(snabbPoang(3.5), [0, 1, 2, 3, 3.5]);
+    assert.deepEqual(snabbPoang(3.5), [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5]);
   });
 });

@@ -17,6 +17,11 @@
       ?nollstall i adressen = börja om (rättningen sparas i localStorage).
       #759: ?stavfel=sjalv (Rätta stavfel själv), ?granser=50-75 (egna färggränser),
       ?gammalt (tillfälle utan fälten → standarden auto, 60/85) – länkar i kontrollraden.
+      #764: "Rätta alla automatiska frågor" överst (sammanfattning, Auto-etiketten),
+      halvpoängen (½-knappar, q7 ordna = 8 p → − och +), kriterierna bredvid
+      fritexten, "Godkänn även …" på kortsvar/luckor. ?felkortsvar=av = inställningen
+      "Fel svar på kortsvar rättas som fel" av. Översiktens knapp:
+      #/larare/prov/tillfalle?t=tf-r.
       #746: 2 pluggmynt per poäng – utbetalningen (riktig prov-mynt-pay.js) mot
       ett minnes-SDK; utfallet och saldot syns i kontrollraden.
     -->
@@ -47,6 +52,7 @@
       <a href="#/larare/prov/ratta?t=tf-r">Rätta per fråga</a>
       <a href="#/larare/prov/ratta?t=tf-r&lage=elev">Rätta per elev</a>
       <a href="#/larare/prov/tillfallen">Provtillfällen</a>
+      <a href="#/larare/prov/tillfalle?t=tf-r">Översikten (#764)</a>
       <label>Elevens resultat: <select id="pv-elev"></select></label>
       <label><input type="checkbox" id="pv-natfel" /> nätfel</label>
       <a href="?nollstall#/larare/prov/ratta?t=tf-r" id="pv-borja-om">Börja om</a>
@@ -66,7 +72,7 @@
         location.href = `${location.pathname}?${q.toString().replace("nollstall=", "nollstall")}${e.currentTarget.getAttribute("href").replace(/^[^#]*/, "")}`;
       });
       import { pageProvRatta } from "/src/prov/prov-ratta-sida.js";
-      import { pageProvTillfallen } from "/src/prov/prov-tillfallen-sida.js";
+      import { pageProvTillfallen, pageProvTillfalle } from "/src/prov/prov-tillfallen-sida.js";
       import { resultatModell } from "/src/prov/prov-rattning-logik.js";
       import { renderaResultat } from "/src/prov/prov-resultat-vy.js";
 
@@ -90,7 +96,7 @@
         document.body.classList.toggle("pv-elev", path === "/elev/resultat");
         document.body.classList.toggle("larare-lage", path !== "/elev/resultat");
         if (path === "/elev/resultat") return elevResultat();
-        (path === "/larare/prov/tillfallen" ? pageProvTillfallen : pageProvRatta)(ctx);
+        (path === "/larare/prov/tillfallen" ? pageProvTillfallen : path === "/larare/prov/tillfalle" ? pageProvTillfalle : pageProvRatta)(ctx);
       };
       window.addEventListener("hashchange", router);
       if (!location.hash) location.hash = "#/larare/prov/ratta?t=tf-r";
