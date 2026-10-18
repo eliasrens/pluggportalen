@@ -5,7 +5,7 @@
 // att något sparas. Lugn design: vit panel, stor text, inga spelinslag,
 // inga ljud och inga belöningar. CSS: prov-elev.css (.provv-).
 //
-//   const vy = renderaProv({ namn, fragor, installningar, svar, onAndrat, onLamnat, onLamnaIn })
+//   const vy = renderaProv({ namn, fragor, installningar, svar, elevId, onAndrat, onLamnat, onLamnaIn })
 //   vy.el                 elementet att sätta in
 //   vy.svar()             elevens svar just nu (rensade, som de sparas)
 //   vy.satTid(text, niva) nedräkningen överst ("23 min kvar", "gul"/"rod")
@@ -41,6 +41,7 @@ export function sparText(s) {
  * @param {object[]} o.fragor             tillfällets frågor (utan facit)
  * @param {object} [o.installningar]      { poang, visaPoangForElev, stavningskontroll }
  * @param {object} [o.svar]               startsvaren
+ * @param {string} [o.elevId]             elevens uid – ordna/para blandas per elev (#763)
  * @param {(svar: object) => void} [o.onAndrat]  varje ändring
  * @param {() => void} [o.onLamnat]       eleven lämnade en ruta / bytte fråga
  * @param {() => void} [o.onLamnaIn]      eleven bekräftade "Lämna in"
@@ -105,7 +106,7 @@ export function renderaProv(o) {
         return s;
       }
       const k = {
-        uid, attr, lasLage: last,
+        uid, attr, lasLage: last, elevId: o.elevId,
         onChange: (v) => {
           svar[f.id] = v;
           markera(f);

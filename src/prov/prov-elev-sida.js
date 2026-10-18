@@ -202,7 +202,7 @@ function skriv(tf, svarDok, meId) {
   let baraFlik = false; // det osparade är bara flikbytena (inga svar) – spara inom taket, aldrig direkt
 
   const vy = renderaProv({
-    namn: tf.provNamn, fragor: tf.fragor, installningar: tf.installningar, svar,
+    namn: tf.provNamn, fragor: tf.fragor, installningar: tf.installningar, svar, elevId: meId,
     onAndrat: (s) => {
       baraFlik = false;
       skrivLokal(t, meId, s, flikbyten);
