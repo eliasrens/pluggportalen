@@ -60,7 +60,7 @@ export function skapaSchackbrade(rot, opt = {}) {
     `<span class="schack-status-orsak"></span></p>` +
     `<div class="schack-drag">` +
     `<button type="button" class="btn ghost liten schack-drag-knapp" aria-expanded="false">Visa drag</button>` +
-    `<p class="schack-draglista" hidden></p></div>`;
+    `<p class="schack-draglista" tabindex="0" aria-label="Dragen" hidden></p></div>`;
 
   const $ = (s) => rot.querySelector(s);
   const bradet = $(".schack-bradet");
@@ -204,6 +204,7 @@ export function skapaSchackbrade(rot, opt = {}) {
     statusEl.children[1].textContent = s.status.orsak ? ` ${s.status.orsak}` : "";
     // Ett dragpar i taget får inte brytas ("6. Lc4 e6" på samma rad).
     dragListaEl.innerHTML = s.dragRader.length ? s.dragRader.map((r) => `<span>${esc(r)}</span>`).join(" ") : "Inga drag än.";
+    dragListaEl.scrollTop = dragListaEl.scrollHeight; // senaste dragen syns
     if (h.typ === "vantar") ingenGlid = true;
     if (h.typ === "drag") {
       if (!ingenGlid && !stilla()) {
@@ -213,7 +214,8 @@ export function skapaSchackbrade(rot, opt = {}) {
       }
       ingenGlid = false;
     }
-    if (h.typ === "nekad") ingenGlid = false;
+    // Nekat, eller väntan avbruten av ny ställning/ångra/slut: nästa drag glider igen.
+    if (["nekad", "position", "angra", "slut"].includes(h.typ)) ingenGlid = false;
   }
 
   const avregistrera = k.subscribe(rita);
@@ -244,6 +246,7 @@ export function skapaSchackbrade(rot, opt = {}) {
     else {
       slutStangd = true;
       slutEl.hidden = true;
+      fokusera(fokusRuta || "e2"); // fokus tillbaka till brädet, inte till body
     }
   });
   dragKnapp.addEventListener("click", () => {

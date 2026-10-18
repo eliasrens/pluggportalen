@@ -70,7 +70,7 @@ describe("perft genom elevens väg (tryck/markera/mål/väljare)", () => {
 });
 
 describe("ordning och race", () => {
-  it("avsluta medan beforeMove väntar: draget görs inte efter att partiet avslutats", { todo: "F1: öppen bugg, utfor() kontrollerar inte externtSlut efter väntan" }, async () => {
+  it("avsluta medan beforeMove väntar: draget görs inte efter att partiet avslutats", async () => {
     let ok;
     const k = skapaSchackKontroll({ beforeMove: () => new Promise((r) => (ok = r)) });
     k.tryck("e2");
@@ -93,7 +93,7 @@ describe("ordning och race", () => {
     assert.equal(k.getFen(), "4k3/8/8/8/8/8/4P3/4K3 w - - 0 1");
   });
 
-  it("ny väntan startar medan gammal inte är klar: gamla svaret nollar inte nya väntan", { todo: "F2: öppen bugg, klart-then nollar pagaende utan token" }, async () => {
+  it("ny väntan startar medan gammal inte är klar: gamla svaret nollar inte nya väntan", async () => {
     const resolvers = [];
     const k = skapaSchackKontroll({ beforeMove: () => new Promise((r) => resolvers.push(r)) });
     k.tryck("e2");

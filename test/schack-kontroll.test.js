@@ -140,6 +140,50 @@ describe("fånga ett drag innan det görs (beforeMove)", () => {
     svara(true);
     assert.equal((await r2.klart).san, "e4");
   });
+  it("avsluta under väntan tar bort spökpjäsen direkt; svaret gör inget drag (F1)", async () => {
+    let svara;
+    const drag = [];
+    const k = skapaSchackKontroll({ beforeMove: () => new Promise((r) => { svara = r; }), onMove: (d) => drag.push(d) });
+    const r = k.slapp("e2", "e4");
+    k.avsluta({ resultat: "0-1", orsak: "gav-upp", vinnare: "b" });
+    assert.equal(k.getState().pagaende, null);
+    svara(true);
+    assert.equal(await r.klart, null);
+    assert.deepEqual(drag, []);
+  });
+  it("ett gammalt svar rör inte en nyare väntan efter undo (F2)", async () => {
+    const svar = [];
+    const k = skapaSchackKontroll({ beforeMove: () => new Promise((r) => svar.push(r)) });
+    k.move("e4");
+    const a = k.slapp("e7", "e5");
+    k.undo(1);
+    const b = k.slapp("e2", "e4");
+    svar[0](true);
+    assert.equal(await a.klart, null);
+    assert.deepEqual(k.getState().pagaende?.to, "e4", "den nya väntan står kvar");
+    assert.equal(k.tryck("d2").typ, "ingen", "och brädet är fortfarande låst");
+    svar[1](true);
+    assert.equal((await b.klart).san, "e4");
+  });
+  it("en callback som kastar stoppar inte brädet, och onGameOver kommer ändå (F3)", () => {
+    const slut = [];
+    const fel = console.error;
+    console.error = () => {};
+    try {
+      const k = skapaSchackKontroll({
+        fen: "6k1/5ppp/8/8/8/8/8/R5K1 w - - 0 1",
+        onMove: () => { throw new Error("sidans fel"); },
+        onGameOver: (s) => slut.push(s.orsak),
+      });
+      k.subscribe(() => { throw new Error("lyssnarens fel"); });
+      k.tryck("a1");
+      assert.equal(k.tryck("a8").typ, "drag");
+      assert.deepEqual(slut, ["matt"]);
+      assert.equal(k.getState().slut.orsak, "matt");
+    } finally {
+      console.error = fel;
+    }
+  });
   it("drag från koden (datorn) passerar inte beforeMove", () => {
     const k = skapaSchackKontroll({ beforeMove: () => false });
     assert.equal(k.move("e4").san, "e4");

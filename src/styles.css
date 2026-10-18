@@ -8532,5 +8532,7 @@ html:not([data-halloween]) .af-kostym[data-seasonal="halloween"] { display: none
   font-weight: 600;
   word-spacing: 2px;
   line-height: 1.6;
+  max-height: 9.6em; /* sex rader – långa partier skrollar i stället för att trycka ned sidan */
+  overflow-y: auto;
 }
 .schack-draglista span { white-space: nowrap; }

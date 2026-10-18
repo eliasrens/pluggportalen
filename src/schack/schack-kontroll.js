@@ -14,6 +14,16 @@
 import { Chess } from "./vendor/chess.js";
 import { START_FEN, statusFor, slutFor, schackRuta, tagnaPjaser, dragLista, svenskSan } from "./schack-text.js";
 
+/** Anropa sidans callback utan att ett fel i den stoppar brädet (draget är redan gjort). */
+function sakert(fn, ...args) {
+  if (!fn) return;
+  try {
+    fn(...args);
+  } catch (e) {
+    console.error("schack: fel i callback", e);
+  }
+}
+
 /** Ett drag som det lämnas till onMove / beforeMove (vanliga data, ingen chess.js-klass). */
 function dragInfo(m) {
   return {
@@ -113,7 +123,7 @@ export function skapaSchackKontroll(opt = {}) {
   function emit(handelse) {
     if (!lyssnare.size) return;
     const state = getState();
-    for (const fn of lyssnare) fn(state, handelse);
+    for (const fn of lyssnare) sakert(fn, state, handelse);
   }
 
   function utfor(m, kalla) {
@@ -125,9 +135,9 @@ export function skapaSchackKontroll(opt = {}) {
     statusText = null;
     const info = dragInfo(gjort);
     emit({ typ: "drag", drag: info, kalla });
-    cb.onMove?.(info, getState());
+    sakert(cb.onMove, info, getState());
     const s = slut();
-    if (s) cb.onGameOver?.(s, getState());
+    if (s) sakert(cb.onGameOver, s, getState());
     return info;
   }
 
@@ -144,11 +154,15 @@ export function skapaSchackKontroll(opt = {}) {
     }
     if (svar && typeof svar.then === "function") {
       const fenFore = chess.fen();
-      pagaende = { from: m.from, to: m.to, pjas: { color: m.color, type: m.promotion || m.piece } };
+      // Objektet är också väntans "token": har något annat (setPosition, undo,
+      // loadGame, en nyare väntan) ersatt det är svaret inaktuellt och rör inget.
+      const min = { from: m.from, to: m.to, pjas: { color: m.color, type: m.promotion || m.piece } };
+      pagaende = min;
       emit({ typ: "vantar", drag: dragInfo(m) });
       const klart = Promise.resolve(svar).catch(() => false).then((ok) => {
+        if (pagaende !== min) return null;
         pagaende = null;
-        if (ok === false || chess.fen() !== fenFore) {
+        if (ok === false || externtSlut || chess.fen() !== fenFore) {
           emit({ typ: "nekad", drag: dragInfo(m) });
           return null;
         }
@@ -331,8 +345,9 @@ export function skapaSchackKontroll(opt = {}) {
       externtSlut = { resultat: s.resultat || "½-½", orsak: s.orsak || "avbrutet", vinnare: s.vinnare || null, titel: s.titel, text: s.text };
       vald = null;
       forvandling = null;
+      pagaende = null; // ett väntande drag görs inte efter slutet
       emit({ typ: "slut" });
-      cb.onGameOver?.(externtSlut, getState());
+      sakert(cb.onGameOver, externtSlut, getState());
     },
   };
 }
