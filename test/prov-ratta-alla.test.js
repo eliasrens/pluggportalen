@@ -92,6 +92,28 @@ describe("autoBedom – säkert eller osäkert (§6.0)", () => {
     assert.equal(autoBedom(F.q5, ["Miklagård", "Rom"], facit.q5, { felKortsvarFel: false }).lage, LAGE.OSAKER);
     assert.equal(autoBedom(F.q5, ["Miklagård", "Rom"], facit.q5).lage, LAGE.SAKER);
   });
+  it("poäng ↔ markering: avrundning nedåt till 0 p ger fel, aldrig 'delvis' med 0 p", () => {
+    const P = validateProv({ namn: "x", fragor: [
+      { id: "l1", typ: "lucktext", fraga: "?", lucktext: "[[a1]] [[b1]] [[c1]]", poang: 1 },
+      { id: "k1", typ: "kortsvar", fraga: "?", godkanda: ["Birka"], exaktStavning: false, poang: 0.5 },
+      { id: "p1", typ: "para", fraga: "?", poang: 1, par: [{ vanster: "A", hoger: "1" }, { vanster: "B", hoger: "2" }, { vanster: "C", hoger: "3" }] },
+    ] }).value;
+    const d = delaUppProv(P);
+    const G = Object.fromEntries(d.fragor.map((f) => [f.id, f]));
+    // 1 p lucktext, 1 av 3 rätt: 1/3 → 0,33 → 0 p → fel (säkert).
+    const l = autoBedom(G.l1, ["a1", "x", "y"], d.facit.l1);
+    assert.deepEqual([l.lage, l.post.poang, l.post.ratt], [LAGE.SAKER, 0, false]);
+    // 2 av 3 → 0,67 → 0,5 p → delvis.
+    assert.deepEqual([autoBedom(G.l1, ["a1", "b1", "y"], d.facit.l1).post.poang, autoBedom(G.l1, ["a1", "b1", "y"], d.facit.l1).post.ratt], [0.5, "delvis"]);
+    // para 1 p, 1 av 3 → 0 p → fel.
+    assert.equal(autoBedom(G.p1, ["1", "x", "y"], d.facit.p1).post.ratt, false);
+    // kortsvar 0,5 p med ett stavfel: halva poängen avrundas till 0 → förslaget är fel (fortfarande åt läraren).
+    const k = autoBedom(G.k1, "Birkka", d.facit.k1);
+    assert.deepEqual([k.lage, k.post.poang, k.post.ratt], [LAGE.OSAKER, 0, false]);
+    // Vanliga förslag när vyn öppnas följer samma regel.
+    const r = nyRattning({ elevId: "e", classId: "4a", provNamn: "x", fragor: d.fragor, svar: { l1: ["a1", "x", "y"] }, facit: d.facit });
+    assert.deepEqual([r.fragor.l1.poang, r.fragor.l1.ratt], [0, false]);
+  });
   it("fritext rörs aldrig", () => {
     assert.deepEqual(autoBedom(F.q8, "Text", undefined), { lage: LAGE.FRITEXT, post: null });
     assert.deepEqual(autoBedom(F.q8, "", undefined), { lage: LAGE.FRITEXT, post: null });

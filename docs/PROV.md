@@ -295,6 +295,11 @@ hashen). Den rättar alla automatiska frågor för alla inlämnade elever på en
   bedömningar** (`auto !== true` med ratt – även gamla poster utan `auto`) skrivs
   aldrig över; tillbakalämnade prov rörs inte. Lärarens kommentar på ett förslag
   följer med.
+- **Fältmodellen** (bakåtkompatibel): förslag = `auto: true` (som förr, knappen
+  inte tryckt – beter sig som i §6.1/§6.3); rättat av knappen = `auto: true,
+  autoRattad: true` (trycket ÄR lärarens godkännande av de säkra fallen);
+  lärarens egna = `auto: false` (eller gamla poster utan `auto`) och får aldrig
+  `autoRattad`.
 - **`autoRattad`** räknas som bedömt (`arBedomd`: status, "Lämna tillbaka till
   alla rättade", statistiken, färgerna, utskriften) men är inte lärarens egen
   (`arManuell`). Kortet visar bedömningen + en liten etikett **Auto**. Ändrar
@@ -325,7 +330,10 @@ hashen). Den rättar alla automatiska frågor för alla inlämnade elever på en
   under 0 eller över max).
 - Tangenter: **+** och **−** ±0,5 på kortet i fokus (utöver 1/2/3/Tab/Enter/N).
 - Poäng ↔ markering (`bedom`/`rattFor`): max = rätt, 0 = fel, annars delvis;
-  markeringen kan ändras för sig. Prov utan poäng: bara markeringen.
+  markeringen kan ändras för sig. Prov utan poäng: bara markeringen. Samma regel
+  gäller automatikens förslag (`forslagAv`, också kortsvarets stavfel): en andel
+  som avrundas nedåt till 0 p blir **fel**, aldrig "delvis" med 0 p (1 p lucktext,
+  1 av 3 luckor rätt → 0 p → fel). Frågor med max 0 följer andelen som förr.
 - Fritext: poängkriterierna (`privat/facit.kriterier`, #762) i en ruta bredvid
   svaret (under på smal skärm).
 - Avsnitten (#762) som grupper: Per fråga grupperar frågeknapparna under
