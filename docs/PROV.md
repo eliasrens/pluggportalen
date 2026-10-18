@@ -87,8 +87,8 @@ gemensamma fält, stabil blandning) i `typer/delat.js`.
 | `santfalskt` | `ratt` (bool) | – | `true`/`false`/`null` |
 | `kortsvar` | `godkanda` (1–20), `exaktStavning` (true), `skiftlage` (false) | – | text ≤ 100 |
 | `lucktext` | `lucktext` med `[[svar]]`/`[[svar\|annat]]`, `exaktStavning`, `skiftlage` | `delar: [{ t } \| { lucka: n }]`, `antalLuckor` | lista med text per lucka |
-| `para` | `par: [{ vanster, hoger }]` (3–10) | `vanster`, `hoger` (blandade) | valt högerled per vänsterled (`""` = inget) |
-| `ordna` | `saker` (3–10, i rätt ordning) | `saker` (blandade) | elevens ordning, `[]` = inte rörd |
+| `para` | `par: [{ vanster, hoger }]` (3–10) | `vanster`, `hoger` (blandade), `blandningar` (#763) | valt högerled per vänsterled (`""` = inget) |
+| `ordna` | `saker` (3–10, i rätt ordning) | `saker` (blandade), `blandningar` (#763) | elevens ordning, `[]` = inte rörd; påbörjad = de placerade först (#763) |
 | `fritext` | `bedomningsstod?`, `kriterier?` (≤ 20 rader à ≤ 300 tecken, #762) | `maxTecken` (4000) | text ≤ 4000 |
 | `text` | `titel`, `brodtext` (≤ 6000) | `titel`, `brodtext` | – |
 | `avsnitt` (#762) | `titel` (1–200), `instruktion?` (≤ 1000) | `titel`, `instruktion?` | – |
@@ -97,6 +97,63 @@ Alla frågor har `id` (a–z, 0–9, `-`, `_`; fylls i som `f1, f2 …`), `typ`,
 `fraga` (≤ 1000), `poang` (0,5–20 i steg om 0,5, standard 1, lagras som tal `3.5` – #762;
 gamla heltal 1–20 är giltiga) och kan ha `hjalptext`.
 Blandningen (`para`, `ordna`) är stabil per fråge-id och aldrig facit-ordningen.
+Sedan #763 blandas den dessutom **per elev** – se "Ordna och para med få tryck" nedan.
+
+### Ordna och para med få tryck (#763, §2.3.1)
+
+**Sparformatet är oförändrat** – rättningen, "Rätta alla" (#764), statistiken
+och utskriften läser samma svar som förr. Två skillnader:
+
+- **`ordna`:** en *påbörjad* ordning sparas också (de placerade sakerna i
+  ordning, t.ex. 3 av 5 – `rensaSvar` godtar provets saker högst en gång var).
+  `arBesvarad` är sann först när **alla** platser är fyllda; en påbörjad
+  ordning räknas alltså som obesvarad (inlämningsrutan, statistiken och
+  "Rätta alla" → 0 p, som ett tomt svar). Gamla svar var alltid hela eller `[]`.
+- **`para`:** listrutorna kunde välja samma förklaring två gånger; den nya
+  rutan visar ett gammalt sådant svar med bara den första (det sparade svaret
+  ändras inte förrän eleven trycker, och rättningen av det är som förut).
+
+**Blandning per elev.** `utanFacit` ger `blandningar`: upp till 12 olika
+ordningar som strängar med index i elevlistan (`"2031"` – Firestore tål inte
+listor i listor), ingen av dem facit, och högst hälften av alla ordningar
+minus en (3 saker → 2) så att listan inte pekar ut facit. Eleven får
+`blandningar[fnv(elevId:frågeId) % antal]` (`elevBlandning` i `typer/delat.js`)
+– samma efter omladdning, olika mellan eleverna. Utan elev-id
+(förhandsvisningen) eller utan `blandningar` (tillfällen öppnade före #763)
+= `saker`/`hoger` som förr. `renderElev` får elev-id som `o.elevId`
+(provsidan skickar elevens uid via `renderaProv({ elevId })`).
+
+**Elevens rutor** (logiken DOM-fri i `prov-ordna-para.js`, dra och släpp i
+`prov-dra.js`, testat i `test/prov-ordna-para.test.js` med
+`test/helpers/prov-mini-dom.js`):
+
+- `ordna`: "Ditt svar" (n platser) och "Kvar". Ett tryck i Kvar → nästa
+  lediga plats (n saker = n tryck); ett tryck i svaret → tillbaka, sakerna
+  under flyttar upp; "Börja om"; "3 av 5 placerade". Dra en sak till en plats
+  i svaret (eller tillbaka till Kvar) är ett extra sätt. Vanliga knappar:
+  Tab + Enter. Tryckytor ≥ 48 px.
+- `para`: tryck på ett begrepp och sedan en förklaring (eller tvärtom) → paret
+  får samma färg (`provv-par-f0…9`), samma siffra och en tunn SVG-linje.
+  Ett tryck på ett par tar isär det; finns ett val på andra sidan kopplas
+  saken om i stället. Dra begrepp → förklaring fungerar också. Inga menyer.
+- Dra: mus/penna efter 6 px; finger efter ett långtryck (250 ms) så att ett
+  svep fortfarande rullar sidan. Klicket efter ett släpp sväljs.
+
+**Redigeraren** (`larare/provl-flytta.js`, logiken i `prov-flytta-ops.js`,
+upp/ned-pilarna borttagna enligt §8.1):
+
+- **⋮⋮** först i kortet: dra kortet (mus och finger, `touch-action: none`),
+  en linje visar var det hamnar.
+- **"Flytta till…"**: ett litet fält, skriv frågenumret (som på korten –
+  avsnitt och textblock räknas inte, `fragaNummer`). En fråga *blir* fråga N
+  och hamnar bredvid frågan som har numret nu, i dess avsnitt (uppåt före,
+  nedåt efter). Ett avsnitt/textblock hamnar direkt före fråga N (avsnittet
+  börjar där); antalet frågor + 1 = sist. Fel nummer → "Skriv en plats från 1 till N."
+- **Alt + pil upp/ned** (fokus var som helst i kortet utom i ett fält) flyttar ett steg.
+- En öppen fråga följer med sitt id när andra kort flyttas.
+- Formuläret: ordna-raderna numreras 1, 2, 3 … (de är facit-ordningen);
+  klistrar läraren in flera rader blir det en rad var – för para delas
+  "Tor – åska" / "Tor - åska" / "Tor: åska" / tab i begrepp och förklaring.
 
 ### Lägga till en ny frågetyp
 
@@ -364,7 +421,7 @@ Lärarsidans grupp **Prov** (`TEACHER_GROUPS`) med fliken **Mina prov**
 | --- | --- |
 | `page-larare-prov.js` | route: `?vy=mina` (standard), `?vy=ny`, `&id=` (redigera), `&kopia=` (kopiera → osparat utkast); laddar `prov-larare.css` |
 | `provl-lista.js` | Mina prov + kollegors (hopfällda): namn, frågor, senast ändrat, ägare. Redigera/Radera bara med `canEditArea`; Kör i klass, Förhandsvisa och Kopiera för alla. Radera bekräftas i en ruta på sidan |
-| `provl-redigera.js` | uppgifter + inställningar (§3), frågekort (↑ ↓ Redigera Duplicera Ta bort + Ångra), "Lägg till fråga" (typväljaren → formuläret), Spara (`tillDokument` → `setDoc`), lämna-vakt vid osparat |
+| `provl-redigera.js` | uppgifter + inställningar (§3), frågekort (⋮⋮ / Flytta till… / Alt + pil via `provl-flytta.js` (#763), Redigera Duplicera Ta bort + Ångra), "Lägg till fråga" (typväljaren → formuläret), Spara (`tillDokument` → `setDoc`), lämna-vakt vid osparat |
 | `provl-fragaform.js` | ett formulär per typ, `onSubmit(falt) → { ok, errors }` |
 | `provl-ai.js` | "Skapa med AI" (§8.2): val → `buildProvPrompt` → klistra in → Granska (`tolkaAiJson` = `validateProv`) → frågorna läggs sist |
 | `provl-forhandsvisa.js` | "Förhandsvisa som elev": `delaUppProv` (inget facit) + C:s `renderaFragor`, inget sparas |
@@ -454,8 +511,8 @@ resultatvyn är `pageProvResultat` i `prov-elev-sida.js`.
 (en per typfil, låst signatur, kommentaren i `prov-vy.js`): `onChange(nyttSvar)`
 ger svaret i formen ovan; `lasLage: true` = visning utan kontroller som ändrar
 något. Valfritt även `onLamna()` (lämnade rutan → spara snart), `attr`
-(stavningsattributen) och `uid` (id-prefix). `ordna` är obesvarad tills eleven
-flyttat något eller tryckt "Behåll den här ordningen".
+(stavningsattributen), `uid` (id-prefix) och `elevId` (blandning per elev, #763).
+`ordna` är obesvarad tills alla platser är fyllda (#763).
 
 **Flödet** (statusflödet ovan): "Kör i klass" skapar `forberett` (+ `fokus`,
 `skapad`); Öppna kopierar provets **senaste** version; Stäng sätter status först

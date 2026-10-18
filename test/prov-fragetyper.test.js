@@ -198,7 +198,8 @@ describe("arBesvarad och rensaSvar", () => {
     kortsvar: [["", false], ["  ", false], ["Birka", true]],
     lucktext: [[["", ""], false], [["", "Bagdad"], true]],
     para: [[["", "", ""], false], [["Åska", "", ""], true]],
-    ordna: [[[], false], [["a", "b", "c"], true]],
+    // #763: besvarad först när alla platser är fyllda (exemplet har 4 saker) – "3 av 4 placerade" räknas inte.
+    ordna: [[[], false], [["a", "b", "c"], false], [["a", "b", "c", "d"], true]],
     fritext: [["", false], ["Svar", true]],
   };
   for (const [id, lista] of Object.entries(fall)) {

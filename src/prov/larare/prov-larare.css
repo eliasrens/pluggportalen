@@ -89,6 +89,21 @@
 .provl-tom { padding: 14px; border: 1px dashed var(--t-border-strong); border-radius: 12px; text-align: center; }
 .provl-lagg-till-host { margin-top: 12px; }
 .provl-angra { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+/* #763: flytta korten – handtaget ⋮⋮ (dra), "Flytta till…" och var släppet hamnar */
+.provl-handtag {
+  display: inline-grid; place-items: center; width: 36px; min-height: 40px; margin: -4px 0 -4px -6px; padding: 0;
+  border: 0; border-radius: 8px; background: transparent; color: var(--t-muted); font-size: 1.1rem; letter-spacing: -3px;
+  cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
+}
+.provl-handtag:hover, .provl-handtag:focus-visible { background: color-mix(in srgb, var(--t-accent) 14%, transparent); color: var(--t-accent); }
+.provl-kort.provv-drar { opacity: 0.45; }
+.provl-redigera .provv-dra-kopia { opacity: 0.95; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35); cursor: grabbing; }
+.provl-slapp-fore { box-shadow: 0 -4px 0 -1px var(--t-accent); }
+.provl-slapp-efter { box-shadow: 0 4px 0 -1px var(--t-accent); }
+.provl-flytta-till { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; padding: 8px 10px; border-radius: 10px; background: color-mix(in srgb, var(--t-accent) 8%, var(--t-surface)); }
+.provl-flytta-till input { width: 5em; margin-left: 6px; }
+.provl-flytta-fel { color: var(--t-danger, #e5534b); font-size: 0.9rem; }
+.provl-flytta-fel:empty { display: none; }
 
 /* Typväljaren */
 .provl-typvaljare { margin: 0; }

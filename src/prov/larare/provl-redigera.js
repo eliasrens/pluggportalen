@@ -5,8 +5,8 @@
 //   #/larare/prov?vy=ny              nytt prov
 //   #/larare/prov?vy=ny&id=<id>      redigera (bara ägaren/admin – andra kopierar)
 //   #/larare/prov?vy=ny&kopia=<id>   kopia → osparat utkast med "(kopia)"
-// Provets uppgifter + inställningar, frågekorten (flytta, duplicera, ta bort,
-// redigera i kortet), "Lägg till fråga" (typväljaren → typens formulär),
+// Provets uppgifter + inställningar, frågekorten (flytta med ⋮⋮/"Flytta till…"/
+// Alt + pil – provl-flytta.js, #763 –, duplicera, ta bort, redigera i kortet), "Lägg till fråga" (typväljaren → typens formulär),
 // "Skapa med AI" (provl-ai.js), "Förhandsvisa som elev" (provl-forhandsvisa.js),
 // "Skriv ut" (prov-utskrift.js, #747)
 // och "Kör i klass" (provtillfället, #740).
@@ -24,10 +24,12 @@ import { poangP } from "../prov-poang.js";
 import { TIDSGRANS_MAX, TIDSGRANS_MIN, stavfelFor, tolkaTidsgrans, typValjare } from "../prov-validera.js";
 import { kanAndra } from "../prov-lista-ops.js";
 import {
-  avsnittSummor, bild, dupliceraFraga, flyttaFraga, fragaRubrik, fragaText, kopieraProv, nyttProv, provFranDok,
+  avsnittSummor, bild, dupliceraFraga, fragaRubrik, fragaText, kopieraProv, nyttProv, provFranDok,
   provSumma, sparaFraga, taBortFraga, tillDokument, tomFraga,
 } from "../prov-redigera-ops.js";
+import { flyttaTillIndex } from "../prov-flytta-ops.js";
 import { byggFragaForm } from "./provl-fragaform.js";
+import { flyttaTillHtml, handtagHtml, kopplaFlytt } from "./provl-flytta.js";
 import { myntFalt } from "./provl-mynt.js";
 import { bedomningFalt } from "./provl-bedomning.js";
 import { felText, hamtaProv, raderaProv, sparaProv } from "./provl-data.js";
@@ -177,12 +179,12 @@ function ritaRedigerare(ctx, host, st) {
     const poangPa = st.prov.installningar.poang !== false;
     $(".provl-fragor-rubrik").textContent = `Frågor: ${provSumma(fragor, poangPa)}`; // "12 frågor · 32 p" (#762)
     const summor = avsnittSummor(fragor);
-    lista.replaceChildren(...fragor.map((f, i) => kort(f, i, nr[f.id], fragor.length, poangPa, summor[f.id])));
+    lista.replaceChildren(...fragor.map((f, i) => kort(f, i, nr[f.id], poangPa, summor[f.id])));
     if (!fragor.length) lista.appendChild(el(`<li class="provl-tom hint">Inga frågor än. Lägg till en fråga nedan eller skapa frågor med AI.</li>`));
     ritaLaggTill();
   }
 
-  function kort(f, i, nummer, antal, poangPa, summa) {
+  function kort(f, i, nummer, poangPa, summa) {
     const typ = fragetyp(f.typ);
     const li = el(`<li class="provl-kort${f.typ === "avsnitt" ? " provl-kort-avsnitt" : typ?.arFraga === false ? " provl-kort-text" : ""}" data-i="${i}"></li>`);
     if (st.oppen === i) {
@@ -203,12 +205,13 @@ function ritaRedigerare(ctx, host, st) {
       return li;
     }
     const rubrik = fragaRubrik(f);
+    const namn = nummer ? `Fråga ${nummer}` : summa ? "Avsnittet" : "Textblocket";
     li.innerHTML = `<div class="provl-kort-huvud">
+        ${handtagHtml(namn)}
         <span class="provl-kort-nr">${nummer ? `Fråga ${nummer}` : summa ? "Avsnitt" : "Text"}</span>
         <span class="provl-kort-typ"><span aria-hidden="true">${typ?.ikon || "❔"}</span> ${esc(typ?.namn || f.typ)}</span>
         <span class="provl-kort-knappar">
-          <button type="button" class="btn small ghost" data-k="upp" title="Flytta upp" aria-label="Flytta upp" ${i === 0 ? "disabled" : ""}>↑</button>
-          <button type="button" class="btn small ghost" data-k="ned" title="Flytta ned" aria-label="Flytta ned" ${i === antal - 1 ? "disabled" : ""}>↓</button>
+          ${flyttaTillHtml}
           <button type="button" class="btn small" data-k="redigera">${icon("pencil", 15)}<span>Redigera</span></button>
           <button type="button" class="btn small ghost" data-k="dup" title="Duplicera" aria-label="Duplicera">${icon("copy", 15)}</button>
           <button type="button" class="btn small ghost danger" data-k="bort" title="Ta bort" aria-label="Ta bort">${icon("trash", 15)}</button>
@@ -219,21 +222,31 @@ function ritaRedigerare(ctx, host, st) {
       ${summa ? `<div class="provl-kort-summa">${summa.antal} ${summa.antal === 1 ? "fråga" : "frågor"}${poangPa && summa.antal ? ` · ${poangP(summa.poang)}` : ""}</div>` : ""}
       ${f.hjalptext ? `<div class="hint provl-kort-hjalp">Hjälptext: ${esc(f.hjalptext)}</div>` : ""}`;
     const knapp = (k) => li.querySelector(`[data-k="${k}"]`);
-    knapp("upp").addEventListener("click", () => { andra(flyttaFraga(st.prov, i, -1)); ritaFragor(); fokus(i - 1, "upp"); });
-    knapp("ned").addEventListener("click", () => { andra(flyttaFraga(st.prov, i, 1)); ritaFragor(); fokus(i + 1, "ned"); });
+    kopplaFlytt(li, { i, fragor: st.prov.fragor, lista, onFlytta: (till, k) => flytta(i, till, k) });
     knapp("dup").addEventListener("click", () => { andra(dupliceraFraga(st.prov, i)); ritaFragor(); });
     knapp("redigera").addEventListener("click", () => { st.oppen = i; ritaFragor(); });
     knapp("bort").addEventListener("click", () => {
       const fore = st.prov;
       andra(taBortFraga(st.prov, i));
       ritaFragor();
-      visaMsg(`<div class="msg ok provl-angra">${nummer ? `Fråga ${nummer}` : summa ? "Avsnittet" : "Textblocket"} togs bort.
+      visaMsg(`<div class="msg ok provl-angra">${namn} togs bort.
         <button type="button" class="btn small ghost" data-angra>Ångra</button></div>`);
       $("[data-angra]").addEventListener("click", () => { andra(fore); ritaFragor(); visaMsg(""); });
     });
     return li;
   }
-  const fokus = (i, k) => lista.querySelector(`[data-i="${i}"] [data-k="${k}"]:not(:disabled)`)?.focus();
+  // Flytta ett kort (#763); en öppen fråga följer med sitt id, fokus följer kortet.
+  function flytta(fran, till, k) {
+    const ny = flyttaTillIndex(st.prov, fran, till);
+    if (ny === st.prov) return;
+    if (typeof st.oppen === "number") st.oppen = ny.fragor.indexOf(st.prov.fragor[st.oppen]);
+    const plats = ny.fragor.indexOf(st.prov.fragor[fran]);
+    andra(ny);
+    ritaFragor();
+    const kortEl = lista.querySelector(`[data-i="${plats}"]`);
+    kortEl?.querySelector(`[data-k="${k}"]`)?.focus({ preventScroll: true });
+    kortEl?.scrollIntoView({ block: "nearest" });
+  }
   const visaMsg = (html) => { $(".provl-msg").innerHTML = html; };
 
   // --- Lägg till fråga: typväljaren → typens formulär ------------------------------

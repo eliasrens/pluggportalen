@@ -1,6 +1,7 @@
 // ============================================================================
 // Prov (#738): det som alla frågetyper delar – gränserna (§2.3), de gemensamma
-// fälten (id, typ, fraga, poang, hjalptext) och en stabil blandning.
+// fälten (id, typ, fraga, poang, hjalptext) och en stabil blandning (+ en per
+// elev, #763).
 // Varje typfil (src/prov/typer/<typ>.js) anropar valideraGemensamt först och
 // lägger sina egna fält ovanpå; utanFacit utgår från elevFalt.
 // ============================================================================
@@ -130,6 +131,39 @@ export function blanda(lista, frö) {
   }
   if (ut.length > 1 && ut.every((x, i) => x === lista[i])) ut.push(ut.shift());
   return ut;
+}
+
+const fakultet = (n) => (n <= 1 ? 1 : n * fakultet(n - 1));
+
+/**
+ * Blandningar per elev (#763, §2.3.1) för `ordna`/`para`: upp till 12 olika
+ * ordningar av listan, ingen av dem facit-ordningen (`lista` = facit). Varje
+ * ordning är index (0–9) i elevens lista `blanda(lista, frö)` som en sträng
+ * ("2031") – Firestore tål inte listor i listor. Högst hälften av alla
+ * ordningar minus en, så att listan aldrig pekar ut facit (3 saker → 2).
+ */
+export function blandningar(lista, frö) {
+  const elev = blanda(lista, frö);
+  const max = Math.min(12, Math.floor(fakultet(lista.length) / 2) - 1);
+  const koder = new Set();
+  for (let k = 1; k <= 40 && koder.size < max; k++) {
+    koder.add(blanda(lista, `${frö}:${k}`).map((x) => elev.indexOf(x)).join(""));
+  }
+  return [...koder];
+}
+
+/**
+ * Elevens egen ordning (#763): en av frågans `blandningar`, vald av elev-id +
+ * fråge-id – samma efter omladdning, olika mellan eleverna. Utan elev-id
+ * (förhandsvisningen) eller utan blandningar (tillfällen öppnade före #763)
+ * = listan som den är, som förr.
+ */
+export function elevBlandning(lista, koder, elevId, fragaId) {
+  if (!elevId || !Array.isArray(koder) || !koder.length) return [...lista];
+  const kod = koder[fro(`${elevId}:${fragaId}`) % koder.length];
+  const index = typeof kod === "string" ? [...kod].map(Number) : [];
+  const giltig = index.length === lista.length && new Set(index).size === lista.length && index.every((i) => i >= 0 && i < lista.length);
+  return giltig ? index.map((i) => lista[i]) : [...lista];
 }
 
 /** Svaret som en lista med strängar (klippta), för luckor/par/ordna. */
