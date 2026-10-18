@@ -59,6 +59,8 @@ export default {
 
   forslag(svar, facit, f) {
     const lista = Array.isArray(svar) ? svar : [];
+    // En påbörjad ordning är obesvarad (#763) – 0 p överallt, som i "Rätta alla".
+    if (lista.length !== facit.ordning.length) return forslagAv(0, f.poang);
     const ratt = facit.ordning.filter((s, i) => lista[i] === s).length;
     return forslagAv(ratt / facit.ordning.length, f.poang);
   },

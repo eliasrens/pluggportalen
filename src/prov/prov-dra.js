@@ -10,7 +10,8 @@
 //     (handtag med CSS touch-action: none).
 //     onRor({ x, y, mal })   under dragningen – mal = elementet under pekaren
 //     onSlapp({ x, y, mal }) vid släppet; klicket efteråt sväljs, så ett
-//                            släpp aldrig räknas som ett tryck
+//                            släpp aldrig räknas som ett tryck. Ett långtryck
+//                            som släpps på stället (< 6 px) är ett tryck: el.click()
 //     onSlut()               efter släpp eller avbrott (Esc, pointercancel)
 //   Under dragningen har kopiaAv (standard el – redigeraren: hela kortet)
 //   klassen "provv-drar" och en kopia av det följer pekaren ("provv-dra-kopia").
@@ -68,6 +69,7 @@ export function dragbar(el, { onRor, onSlapp, onSlut, kopiaAv = el, vantaMs = 25
   function ror(e) {
     if (!start || e.pointerId !== start.id) return;
     const avst = Math.hypot(e.clientX - start.x, e.clientY - start.y);
+    start.langst = Math.max(start.langst, avst);
     if (!drar) {
       if (start.finger && vantaMs > 0) {
         if (avst > SVEP_PX) stada(); // ett svep: låt sidan rulla
@@ -84,13 +86,17 @@ export function dragbar(el, { onRor, onSlapp, onSlut, kopiaAv = el, vantaMs = 25
     if (!start || e.pointerId !== start.id) return;
     if (drar) {
       const p = punkt(e);
-      // Webbläsarens klick efter släppet ska inte bli ett tryck på saken.
+      // Ett långt tryck som släpps på stället (fingret rörde sig < 6 px) är ett
+      // TRYCK (#763 F2) – annars gör ett långsamt tryck ingenting.
+      const tryck = Math.max(start.langst, Math.hypot(e.clientX - start.x, e.clientY - start.y)) < ROR_PX;
+      stada();
+      if (tryck) el.click();
+      // Webbläsarens eget klick efter släppet ska inte bli ett (till) tryck på saken.
       const svalj = (ev) => { ev.stopPropagation(); ev.preventDefault(); };
       const w = window;
       w.addEventListener("click", svalj, true);
       setTimeout(() => w.removeEventListener("click", svalj, true), 100);
-      stada();
-      onSlapp?.(p);
+      if (!tryck) onSlapp?.(p);
       return;
     }
     stada();
@@ -109,7 +115,7 @@ export function dragbar(el, { onRor, onSlapp, onSlut, kopiaAv = el, vantaMs = 25
 
   el.addEventListener("pointerdown", (e) => {
     if (e.button !== 0 || start || el.disabled) return;
-    start = { x: e.clientX, y: e.clientY, id: e.pointerId, finger: e.pointerType === "touch" };
+    start = { x: e.clientX, y: e.clientY, id: e.pointerId, finger: e.pointerType === "touch", langst: 0 };
     if (start.finger && vantaMs > 0) timer = setTimeout(() => start && borja(start.x, start.y), vantaMs);
     else if (vantaMs === 0 && start.finger) borja(start.x, start.y);
     document.addEventListener("pointermove", ror, true);

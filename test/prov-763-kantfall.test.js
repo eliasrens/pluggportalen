@@ -356,11 +356,14 @@ describe("rättning av en påbörjad ordning: förslag vid inlämning ↔ Rätta
     }
   });
 
-  it("påbörjad ordning (2 av 4 rätt placerade) ger samma poäng i förslagen som i Rätta alla", { todo: "F1: forslagFor ger delpoäng (2 p), autoBedom ger 0 p" }, () => {
+  it("påbörjad ordning (2 av 4 rätt placerade) ger samma poäng i förslagen som i Rätta alla – 0 p (F1)", () => {
     const svar = ["Sak 1", "Sak 2"];
     assert.equal(ordna.arBesvarad(svar, fragor[0]), false);
     const vidInlamning = forslagFor(fragor, { o: svar }, facit).o;
     const rattaAlla = autoBedom(fragor[0], svar, facit.o).post;
     assert.equal(vidInlamning.poang, rattaAlla.poang, `förslag ${vidInlamning.poang} p ≠ Rätta alla ${rattaAlla.poang} p`);
+    assert.equal(vidInlamning.poang, 0);
+    assert.equal(vidInlamning.ratt, false);
+    assert.deepEqual(ordna.forslag(svar, facit.o, fragor[0]), { poang: 0, maxPoang: fragor[0].poang, ratt: false }, "typens forslag direkt (prov-ratta-lager)");
   });
 });

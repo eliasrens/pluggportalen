@@ -91,7 +91,7 @@
 .provl-angra { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 /* #763: flytta korten – handtaget ⋮⋮ (dra), "Flytta till…" och var släppet hamnar */
 .provl-handtag {
-  display: inline-grid; place-items: center; width: 36px; min-height: 40px; margin: -4px 0 -4px -6px; padding: 0;
+  display: inline-grid; place-items: center; width: 44px; height: 44px; margin: -6px 0 -6px -8px; padding: 0;
   border: 0; border-radius: 8px; background: transparent; color: var(--t-muted); font-size: 1.1rem; letter-spacing: -3px;
   cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
 }
@@ -104,6 +104,8 @@
 .provl-flytta-till input { width: 5em; margin-left: 6px; }
 .provl-flytta-fel { color: var(--t-danger, #e5534b); font-size: 0.9rem; }
 .provl-flytta-fel:empty { display: none; }
+.provl-rader-meddelande { margin: 4px 0 0; color: var(--t-warn, #e3b341); }
+.provl-rader-meddelande:empty { display: none; }
 
 /* Typväljaren */
 .provl-typvaljare { margin: 0; }

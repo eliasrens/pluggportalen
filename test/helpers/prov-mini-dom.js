@@ -1,7 +1,7 @@
 // ============================================================================
 // Minimal DOM för provtypernas renderElev (#763) – ingen jsdom i projektet.
 // Bara det h() (prov-vy.js), ordna/para och prov-dra.js rör: attribut,
-// dataset, classList, träd, enkla väljare ("button", "[data-x]", "[data-x="v"]",
+// dataset, classList, träd, enkla väljare ("button", "[data-x]", "[data-x="v"]", "input[type=text]",
 // ".klass", kommaseparerade), händelser med bubbling, click() (inte på
 // disabled), fokus och document.elementFromPoint (testet sätter målet).
 //   const dom = installeraDom();  … dom.mal = element;  dom.avinstallera();
@@ -62,12 +62,12 @@ class Text extends Nod {
 /** En väljare (utan kombinatorer): tag, .klass, [attr], [attr="v"]. */
 function matchar(el, sel) {
   return sel.split(",").map((s) => s.trim()).some((s) => {
-    const m = /^([a-z]*)((?:\.[\w-]+)*)((?:\[[\w-]+(?:="[^"]*")?\])*)$/i.exec(s);
+    const m = /^([a-z]*)((?:\.[\w-]+)*)((?:\[[\w-]+(?:="?[^"\]]*"?)?\])*)$/i.exec(s);
     if (!m) throw new Error(`mini-dom: väljaren stöds inte: ${s}`);
     if (m[1] && el.tagName !== m[1].toUpperCase()) return false;
     for (const c of m[2].split(".").filter(Boolean)) if (!el.classList.contains(c)) return false;
     for (const a of m[3].match(/\[[^\]]+\]/g) || []) {
-      const [, k, v] = /^\[([\w-]+)(?:="([^"]*)")?\]$/.exec(a);
+      const [, k, v] = /^\[([\w-]+)(?:="?([^"\]]*)"?)?\]$/.exec(a);
       if (!el.hasAttribute(k) || (v !== undefined && el.getAttribute(k) !== v)) return false;
     }
     return true;
@@ -109,6 +109,7 @@ class El extends Nod {
     return ut;
   }
   querySelector(sel) { return this.querySelectorAll(sel)[0] || null; }
+  matches(sel) { return matchar(this, sel); }
   closest(sel) { for (let x = this; x instanceof El; x = x.parentNode) if (matchar(x, sel)) return x; return null; }
   cloneNode() { const c = new El(this.ownerDocument, this.tagName); c.className = this.className; return c; }
   getBoundingClientRect() { return { left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 }; }

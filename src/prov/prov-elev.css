@@ -254,7 +254,7 @@ input.provv-kortsvar {
 .provv-ordna-tom { color: #9aa6b4; letter-spacing: 2px; }
 .provv-ordna-plats .provv-ordna-sak { flex: 1; border-color: var(--provv-accent); background: #f4f8fd; font-weight: 600; }
 .provv-ordna-kvar { display: flex; flex-wrap: wrap; gap: 8px; min-height: 52px; padding: 8px; border-radius: 12px; background: var(--provv-ljus); }
-.provv-ordna-kvar .provv-ordna-sak { width: auto; max-width: 100%; }
+.provv-ordna-kvar .provv-ordna-sak { width: auto; max-width: 100%; min-width: 48px; justify-content: center; }
 .provv-ordna-klart { align-self: center; color: var(--provv-svag); padding: 0 6px; }
 .provv-ordna-fot { display: flex; align-items: center; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
 .provv-ordna-fot .provv-knapp-liten { min-height: 44px; }

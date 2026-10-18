@@ -16,6 +16,7 @@ import { STAVFEL } from "../prov-validera.js";
 import { GRANS } from "../typer/delat.js";
 import { POANG_MAX, POANG_MIN, POANG_STEG } from "../prov-poang.js";
 import { tolkaLucktext } from "../typer/lucktext.js";
+import { kopplaKlistra, meddelandeHtml } from "./provl-klistra.js";
 
 let uid = 0;
 const nyttId = () => `provl-f${++uid}`;
@@ -46,16 +47,17 @@ const normalisering = (f, o = {}) => `<fieldset class="provl-grupp"><legend>Rät
 /**
  * En lista med rader som kan läggas till och tas bort (alternativ, par, saker).
  * `rad(v, i)` ritar en rad; `tom()` ger en ny rad. Klistrar läraren in flera
- * rader i ett fält blir det en rad var (#763) – `fyll(radEl, text)` lägger en
- * inklistrad rad i en rad (par: "begrepp – förklaring"). `nummer` = 1, 2, 3 …
+ * rader i ett fält blir det en rad var (#763, provl-klistra.js; `par` = para-
+ * listan: "begrepp – förklaring"). `nummer` = 1, 2, 3 …
  * i stället för A, B, C (ordna: raderna ÄR facit-ordningen).
  */
-function radlista(namn, varden, { min, max, rad, tom, laggTill, nummer = false, fyll = (r, t) => { r.querySelector("input[type=text]").value = t; } }) {
+function radlista(namn, varden, { min, max, rad, tom, laggTill, nummer = false, par = false }) {
   const id = nyttId();
   return {
     html: `<div class="provl-rader" data-rader="${namn}" data-min="${min}" data-max="${max}" id="${id}">
       <div class="provl-rader-lista">${varden.map(rad).join("")}</div>
       <button type="button" class="btn small ghost provl-ny-rad" data-ny-rad>${icon("plus", 15)}<span>${laggTill}</span></button>
+      ${meddelandeHtml}
     </div>`,
     koppla(form) {
       const box = form.querySelector(`#${id}`);
@@ -80,28 +82,10 @@ function radlista(namn, varden, { min, max, rad, tom, laggTill, nummer = false, 
         uppdatera();
         ny.querySelector("input[type=text]")?.focus();
       });
-      // Flera rader inklistrade i ett fält → en rad var, nedåt (tomma rader fylls först).
-      lista.addEventListener("paste", (e) => {
-        const text = e.clipboardData?.getData("text") || "";
-        const delar = text.split(/\r?\n/).map((t) => t.trim()).filter(Boolean);
-        const radEl = e.target.closest?.(".provl-rad");
-        if (delar.length < 2 || !radEl) return;
-        e.preventDefault();
-        let r = radEl;
-        delar.forEach((t, i) => {
-          if (i > 0) {
-            let nasta = r.nextElementSibling;
-            while (nasta && [...nasta.querySelectorAll("input[type=text]")].some((x) => x.value.trim())) nasta = nasta.nextElementSibling;
-            if (!nasta) {
-              if (lista.children.length >= max) return;
-              nasta = el(rad(tom(), lista.children.length));
-              lista.appendChild(nasta);
-            }
-            r = nasta;
-          }
-          fyll(r, t);
-        });
-        uppdatera();
+      kopplaKlistra(lista, {
+        max, namn, par, uppdatera,
+        nyRad: () => el(rad(tom(), lista.children.length)),
+        meddelande: box.querySelector(".provl-rader-meddelande"),
       });
       uppdatera();
     },
@@ -198,11 +182,7 @@ const KROPP = {
     const tom = { vanster: "", hoger: "" };
     const r = radlista("par", f.par?.length ? f.par : [tom, tom, tom], {
       min: 3, max: 10, laggTill: "Lägg till par", tom: () => tom,
-      fyll: (rad, t) => {
-        const [v, ...h] = t.split(/\s+[–—-]\s+|\t|:\s+/);
-        rad.querySelector("[data-v]").value = v.trim();
-        rad.querySelector("[data-h]").value = h.join(" – ").trim();
-      },
+      par: true,
       rad: (p) => `<div class="provl-rad provl-par">
         <input type="text" data-v maxlength="${GRANS.alternativ}" value="${esc(p.vanster)}" placeholder="Begrepp" aria-label="Vänster led" />
         <span class="provl-pil" aria-hidden="true">↔</span>

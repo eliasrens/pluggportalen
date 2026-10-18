@@ -14,6 +14,7 @@ import { ordnaKvar, ordnaLagg, ordnaSlapp, ordnaStatus, ordnaTaBort, paraKoppla,
 import { flyttaTillIndex, flyttaTillPlats, indexForPlats, platsGrans } from "../src/prov/prov-flytta-ops.js";
 import { fragaNummer, delaUppProv } from "../src/prov/prov-modell.js";
 import { Handelse, installeraDom } from "./helpers/prov-mini-dom.js";
+import { kopplaKlistra, tolkaKlistrat } from "../src/prov/larare/provl-klistra.js";
 
 const ordna = fragetyp("ordna");
 const para = fragetyp("para");
@@ -338,5 +339,107 @@ describe('redigeraren: "Flytta till…", dra ⋮⋮, Alt + pil (§8.1)', () => {
     assert.deepEqual(ids(flyttaTillIndex(prov, 0, 99)).at(-1), "A1");
     assert.equal(flyttaTillIndex(prov, 3, 3), prov);
     assert.equal(flyttaTillIndex(prov, 42, 0), prov);
+  });
+});
+
+describe("fixrunda 1 (#763)", () => {
+  const vanta = (ms) => new Promise((r) => setTimeout(r, ms));
+  const finger = (el, t, x = 10, y = 10, id = 21) => el.dispatchEvent(new Handelse(t, { button: 0, pointerId: id, pointerType: "touch", clientX: x, clientY: y }));
+  const fingerDoc = (t, x = 10, y = 10, id = 21) => dom.doc.skicka(t, { pointerId: id, pointerType: "touch", clientX: x, clientY: y });
+
+  it("F2: ett långsamt tryck med fingret (≥ 250 ms, släpp på stället) är ett tryck – exakt ett", async () => {
+    const { el, sparat } = rita(ordna, ORDNA, [], { elevId: "elev-a" });
+    const kn = kvarKnappar(el)[0];
+    const text = kn.textContent;
+    finger(kn, "pointerdown");
+    await vanta(320); // långtrycket har startat en dragning
+    dom.mal = kn;
+    fingerDoc("pointermove", 12, 11); // darrar < 6 px
+    fingerDoc("pointerup", 12, 11);
+    assert.deepEqual(sparat.svar, [text], "lagd på plats 1");
+    assert.equal(sparat.antal, 1, "bara ett tryck");
+    // …och i svaret: ett långsamt tryck tar bort
+    const sv = svarKnappar(el)[0];
+    finger(sv, "pointerdown");
+    await vanta(320);
+    fingerDoc("pointerup");
+    assert.deepEqual(sparat.svar, []);
+  });
+
+  it("F2: para – ett långt tryck på ett begrepp väljer det", async () => {
+    const { el } = rita(para, PARA, null, { elevId: "elev-a" });
+    const v = el.querySelectorAll("[data-v]")[1];
+    finger(v, "pointerdown");
+    await vanta(420);
+    fingerDoc("pointerup");
+    assert.equal(el.querySelectorAll("[data-v]")[1].getAttribute("aria-pressed"), "true");
+  });
+
+  it("F2: ett långtryck som flyttas ≥ 6 px och släpps är fortfarande en dragning, inget tryck", async () => {
+    const { el, sparat } = rita(ordna, ORDNA, [], { elevId: "elev-a" });
+    const kn = kvarKnappar(el)[1];
+    finger(kn, "pointerdown");
+    await vanta(320);
+    dom.mal = el.querySelector("[data-kvar]");
+    fingerDoc("pointermove", 40, 40);
+    fingerDoc("pointerup", 40, 40);
+    assert.equal(sparat.antal, 0, "släppt i Kvar – inget ändrat, inget tryck");
+  });
+
+  it("F4: numrerade listor tappar siffrorna; F3: para utan avskiljare = en kolumn", () => {
+    assert.deepEqual(tolkaKlistrat("1) Plöja\n2) Så\n3. Skörda\n10. Äta").rader, ["Plöja", "Så", "Skörda", "Äta"]);
+    assert.deepEqual(tolkaKlistrat("Bronsåldern\n1800-talet").rader, ["Bronsåldern", "1800-talet"], "bara siffror + . eller ) + mellanslag");
+    assert.equal(tolkaKlistrat("en rad"), null);
+    assert.deepEqual(tolkaKlistrat("Åska\nVisdom", { par: true }), { rader: ["Åska", "Visdom"], hela: false });
+    assert.deepEqual(tolkaKlistrat("Tor – åska\nOden\n3. Freja: kärlek", { par: true }), { rader: [["Tor", "åska"], ["Oden", ""], ["Freja", "kärlek"]], hela: true });
+  });
+
+  // Formulärets radlista i mini-DOM:en: rader med [data-v]/[data-h] eller ett textfält.
+  function radLista(varden, par) {
+    const d = dom.doc;
+    const lista = d.createElement("div");
+    const nyRad = (v = ["", ""]) => {
+      const r = d.createElement("div");
+      r.className = "provl-rad";
+      const falt = par ? [["data-v", v[0]], ["data-h", v[1]]] : [["data-sak", v[0]]];
+      for (const [k, x] of falt) {
+        const i = d.createElement("input");
+        i.setAttribute("type", "text");
+        i.setAttribute(k, "");
+        i.value = x;
+        r.appendChild(i);
+      }
+      return r;
+    };
+    varden.forEach((v) => lista.appendChild(nyRad(v)));
+    const meddelande = d.createElement("p");
+    kopplaKlistra(lista, { max: 10, namn: par ? "par" : "saker", par, nyRad: () => nyRad(), uppdatera() {}, meddelande });
+    const klistra = (inp, text) => inp.dispatchEvent(new Handelse("paste", { clipboardData: { getData: () => text } }));
+    const lasa = () => lista.children.map((r) => r.querySelectorAll("input[type=text]").map((i) => i.value));
+    return { lista, meddelande, klistra, lasa };
+  }
+
+  it("F3: förklaringar inklistrade i förklaringskolumnen fyller den nedåt – begreppen står kvar", () => {
+    const { lista, klistra, lasa } = radLista([["Tor", ""], ["Oden", ""], ["Freja", ""]], true);
+    klistra(lista.children[0].querySelector("[data-h]"), "Åska och styrka\nVisdom och krig\nKärlek");
+    assert.deepEqual(lasa(), [["Tor", "Åska och styrka"], ["Oden", "Visdom och krig"], ["Freja", "Kärlek"]]);
+  });
+
+  it("F3: begrepp i begreppskolumnen; hela par med avskiljare fyller nya rader", () => {
+    const { lista, klistra, lasa } = radLista([["", "Åska"], ["", "Visdom"], ["", ""]], true);
+    klistra(lista.children[0].querySelector("[data-v]"), "Tor\nOden");
+    assert.deepEqual(lasa(), [["Tor", "Åska"], ["Oden", "Visdom"], ["", ""]]);
+    klistra(lista.children[2].querySelector("[data-v]"), "Freja – kärlek\nLoke - list");
+    assert.deepEqual(lasa().slice(2), [["Freja", "kärlek"], ["Loke", "list"]]);
+  });
+
+  it("F4: 12 rader i en lista med plats för 10 → 10 rader och ett meddelande om de 2", () => {
+    const { lista, klistra, lasa, meddelande } = radLista([[""], [""], [""]], false);
+    klistra(lista.children[0].querySelector("[data-sak]"), Array.from({ length: 12 }, (_, i) => `${i + 1}. Steg ${i + 1}`).join("\n"));
+    assert.deepEqual(lasa().map((r) => r[0]), Array.from({ length: 10 }, (_, i) => `Steg ${i + 1}`));
+    assert.equal(meddelande.textContent, "2 rader fick inte plats – högst 10 saker.");
+    lista.children.slice(1).forEach((r) => { r.querySelector("[data-sak]").value = ""; });
+    klistra(lista.children[0].querySelector("[data-sak]"), "a\nb");
+    assert.equal(meddelande.textContent, "", "nästa inklistring som får plats tömmer meddelandet");
   });
 });
