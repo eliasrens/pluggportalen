@@ -30,6 +30,8 @@ studentData/{studentId}/brakresaHunts/{datum}      ← Bråkresan: daglig guldja
 studentData/{studentId}/provMynt/{tillfalleId}     ← Prov: pluggmynt-kvitto per prov (#746, löpande summa)
 brakresaSecrets/{roundId}                ← Bråkresan: omgångens facit – bara Cloud Functions
 brakresaRecommendations/{recId}          ← Bråkresan: lärarens rekommendationer
+schackKlass/{classId}                    ← Schack (#779): lobbyn, pågående partier och topplistan – EN doc per klass, bara servern skriver
+schackPartier/{partiId}                  ← Schack: ett parti elev mot elev (FEN, drag, klocka) – bara servern skriver
 mathCompetitions/{cid}/…                 ← Mattematchen (#457), se "Mattematchen & Live"
 liveSessions/{sid}/…                     ← Live-matcher (#457), se "Mattematchen & Live"
 liveClock/{uid}                          ← Live: klocksynk per inloggad (#460)
@@ -425,6 +427,7 @@ avstängning gäller därför direkt, utan ny token.
 | `lasresaAttemptsFallback` | array | Läsresan: de senaste (max 30) försöken när skrivning till `lasresaAttempts` nekas (regeln ännu ej deployad). Samma form som ett försöksdokument. Läses av `listAttempts`. |
 | `amneslasning` | map | **Ämnesläsning** (#671, `docs/UTVECKLINGSUPPDRAG_AMNESLASNING.md`): `{ areas: { [areaId]: { subjectId, read: { [textId]: { count, lastAt } }, currentTextId, currentStartedAt, totals } }, totals, updatedAt }` – läst-lista med tidpunkt (`count` = antal läsningar, styr omläsningstrappan för mynten) och påbörjad text per område. Ämnesläsningen har INGEN egen nivå: den läser och uppdaterar `lasresa`s dolda nivå + streaks (tak 7 uppåt, fritt nedåt) men rör aldrig resan (`worldId`, `stepInWorld`, `seenTextIds`, `currentTextId`, totaler). `totals` (#674, per område + för all ämnesläsning) = `{ totalTexts, totalQuestions, totalCorrect, totalIncorrect, moneyEarned, catStats }` (samma namn som `lasresa`), denormaliserade i textavslutets transaktion så att lärarvyerna (Läsresans källfilter, Per område) klarar sig med detta dokument. Kärna `src/amneslasning/`, brygga `src/data-amneslasning.js`. |
 | `kcDonation` | string | Klasscentret (#500): `"<classId>/<donationId>"` för elevens senaste donation – skrivs i samma batch som myntavdraget så att ett avdrag bara kan betala EN donationspost (se Crowdfunding). Läses inte av appen. |
+| `schack` | map | **Schack** (#779, `docs/SCHACK.md` §12.5): `{ datorPartier }` – antal avslutade partier mot datorn. Eleven ökar räknaren själv med en skrivning (`schack-moln.js` `datorPartiKlart`); regeln `schackOk` tillåter bara nyckeln `datorPartier`, heltal, aldrig nedåt och högst +1 per skrivning. Lärare skriver det aldrig. Kompispartier räknas i `schackKlass.tabell`. Etapp 3 lägger `lektioner`/`pussel` här. |
 | `brakdrake` | map | **Bråkresans drake i huset** (#706/#714): `{ id, level, name, pos, stowed, room }` – servern skapar den vid kläckningen och håller `level`/`name` aktuella; eleven skriver bara placeringen (`pos`, `room`, `stowed` – reglerna nekar resten, #750). Se "Bråkresan" nedan. Saknas = ingen kläckt drake. |
 
 ### `studentData/{studentId}/lasresaAttempts/{autoId}` – Läsresan-försök (#399)
@@ -842,6 +845,45 @@ eller lärare (`isClassMember` i `firestore.rules`; regeltester i
 (separat från Pages-deployen).
 
 ---
+
+## Schack – elev mot elev (#779, epic #773)
+
+Spec `docs/UTVECKLINGSUPPDRAG_SCHACK.md` §6; hela beskrivningen med callables, felkoder,
+klient-API och kvotbudget i [`docs/SCHACK.md`](SCHACK.md) §12. **Allt skrivs av Cloud
+Functions** (`schackVanta`, `schackGaMed`, `schackDrag` …); ingen klient skriver i någon
+av samlingarna (reglerna nekar även admin). Alla tider är **epoch-ms från serverns klocka**.
+
+### `schackKlass/{classId}` – lobbyn, pågående partier och topplistan
+
+EN doc per klass som klassens elever (`isClassMember`) och läraren med klassen
+(`hasClass`) lyssnar på (en `onSnapshot`, bara på schacksidan). Skapas av första anropet.
+
+| Fält | Typ | Beskrivning |
+| --- | --- | --- |
+| `vantar` | map | `{ [uid]: { namn, klocka: null\|5\|10\|15, sedan } }` – elever som väntar på motståndare. Utgången efter 10 min (`sedan`); servern filtrerar vid varje skrivning, klienten vid visning. |
+| `utmaningar` | map | `{ [utmaningId]: { fran, franNamn, till, klocka, sedan } }` – utgången efter 2 min. En utmaning per utmanare. |
+| `partier` | map | `{ [partiId]: { vit, svart, vitNamn, svartNamn, klocka, start } }` – **bara pågående**; posten tas bort i samma transaktion som partiet avslutas. En elev finns i högst en post. |
+| `tabell` | map | `{ [uid]: { poang, vinster, forluster, remier, partier } }` – topplistan (§8): start 1000, Elo-lik med låg K, golv 800. Bara kompispartier; avbrutna partier räknas inte. Läraren nollställer via `schackLarareTopplista`. |
+| `dold` | bool | `true` = läraren har dolt topplistan för eleverna (2B visar den inte). |
+
+### `schackPartier/{partiId}` – ett parti
+
+Läses av de två spelarna och läraren med klassen (`hasClass(classId)`; lärarens fråga
+filtrerar på `classId`). Andra elever i klassen läser det **inte**.
+
+| Fält | Typ | Beskrivning |
+| --- | --- | --- |
+| `classId`, `vit`, `svart`, `vitNamn`, `svartNamn` | string | klassen och spelarna (uid + namn ur `classProjections`) |
+| `fen` | string | ställningen efter senaste draget |
+| `drag` | array\<string\> | draglistan i SAN (`["e4", "e5", "Nf3", …]`); servern spelar upp hela listan med chess.js för varje nytt drag (trefaldig upprepning) |
+| `tur` | `"w"\|"b"` | vems tur |
+| `status` | `"pagar"\|"slut"` | |
+| `resultat` | `null\|"1-0"\|"0-1"\|"½-½"` | `null` medan partiet pågår och vid `avbrutet` |
+| `orsak` | `null\|"matt"\|"patt"\|"remi"\|"gav-upp"\|"tid"\|"lamnade"\|"avbrutet"` | `remi` = trefaldig/50 drag/för lite material eller accepterat erbjudande; `lamnade` = motståndaren krävde vinst efter 5 min utan drag (utan klocka); `avbrutet` = läraren eller 24 h utan drag |
+| `klocka` | map/null | `{ minuter, vitMs, svartMs, senastDragAt }` – tiden kvar **efter senaste draget**; den på tur har dessutom förbrukat `nu − senastDragAt`. Fryses vid slutet. `null` = ingen klocka. |
+| `remiErbjudenAv` | uid/null | väntande remierbjudande; tas bort av nästa drag |
+| `senastDragAt` | number | ms, senaste draget (eller starten) – även utan klocka (5-minutersregeln §7.3, 24 h-städningen) |
+| `skapad`, `uppdaterad` | number | ms |
 
 ## Mattematchen & Live (#456/#457)
 
