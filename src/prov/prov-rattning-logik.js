@@ -17,8 +17,7 @@
 
 import { arFraga, fragetyp } from "./prov-fragetyper.js";
 import { NIVAER, autoForslag, fragaNummer, maxPoang } from "./prov-modell.js";
-import { delpoang } from "./prov-rattning.js";
-import { klamPoang, summaPoang } from "./prov-poang.js";
+import { franHalvor, halvor, klamPoang, summaPoang } from "./prov-poang.js";
 import { arOmprov, elevProvNamn } from "./prov-anpassningar.js";
 
 /** Status per elev (§6.3) – i den ordningen. */
@@ -111,12 +110,25 @@ export function kompletteraForslag(r, fragor, svar, facit, stavfel) {
   return { r: andrad ? summera({ ...r, fragor: fr }, fragor) : r, andrad };
 }
 
-/** Poängen som följer en bedömning: rätt = max, fel = 0, delvis = halva (eller tidigare delpoäng). */
+/**
+ * Poängen för "Delvis" (#764): halva maxpoängen nedåt till 0,5 – men minst
+ * 0,5 (aldrig 0 p, som skulle betyda fel) och högst max − 0,5 (aldrig full
+ * poäng, som skulle betyda rätt). En fråga på 0,5 p kan inte ligga emellan –
+ * där ger "Delvis" 0,5. max 0 → 0.
+ */
+export function delvisPoang(max) {
+  const m = halvor(max);
+  if (m <= 0) return 0;
+  const h = Math.max(1, Math.floor(m / 2));
+  return franHalvor(m > 1 ? Math.min(h, m - 1) : h);
+}
+
+/** Poängen som följer en bedömning: rätt = max, fel = 0, delvis = delvisPoang (eller tidigare delpoäng). */
 export function poangFor(ratt, max, tidigare) {
   if (ratt === true) return max;
   if (ratt === false) return 0;
   const t = Number(tidigare);
-  return Number.isFinite(t) && t > 0 && t < max ? t : delpoang(0.5, max);
+  return Number.isFinite(t) && t > 0 && t < max ? t : delvisPoang(max);
 }
 
 /** Bedömningen som följer en poäng: max = rätt, 0 = fel, annars delvis. */
@@ -149,7 +161,8 @@ export function bedom(r, fraga, andring, fragor) {
   const post = { ...fore };
   if ("ratt" in andring && arRatt(andring.ratt)) {
     post.ratt = andring.ratt;
-    post.poang = "poang" in andring && andring.poang != null ? andring.poang : poangFor(andring.ratt, max, fore.ratt === "delvis" ? fore.poang : null);
+    // Poängen kläms alltid till 0 … max (#764) – även när den skickas med markeringen.
+    post.poang = "poang" in andring && andring.poang != null ? klamPoang(andring.poang, max) : poangFor(andring.ratt, max, fore.ratt === "delvis" ? fore.poang : null);
     post.auto = false;
     delete post.autoRattad;
   } else if ("poang" in andring && andring.poang != null) {

@@ -330,7 +330,11 @@ hashen). Den rättar alla automatiska frågor för alla inlämnade elever på en
   under 0 eller över max).
 - Tangenter: **+** och **−** ±0,5 på kortet i fokus (utöver 1/2/3/Tab/Enter/N).
 - Poäng ↔ markering (`bedom`/`rattFor`): max = rätt, 0 = fel, annars delvis;
-  markeringen kan ändras för sig. Prov utan poäng: bara markeringen. Samma regel
+  markeringen kan ändras för sig. Trycker läraren **Delvis** (`delvisPoang`):
+  halva maxpoängen nedåt till 0,5, men **minst 0,5** och **högst max − 0,5**
+  (1 p → 0,5 · 3 p → 1,5 · 7 p → 3,5); en tidigare delpoäng mellan 0 och max
+  behålls. En fråga på 0,5 p har inget emellan – där ger Delvis 0,5 p. Poäng som
+  skickas med markeringen kläms alltid till 0 … max (`klamPoang`). Prov utan poäng: bara markeringen. Samma regel
   gäller automatikens förslag (`forslagAv`, också kortsvarets stavfel): en andel
   som avrundas nedåt till 0 p blir **fel**, aldrig "delvis" med 0 p (1 p lucktext,
   1 av 3 luckor rätt → 0 p → fel). Frågor med max 0 följer andelen som förr.

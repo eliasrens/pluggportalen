@@ -14,7 +14,8 @@ import assert from "node:assert/strict";
 import { delaUppProv } from "../src/prov/prov-modell.js";
 import { validateProv } from "../src/prov/prov-validera.js";
 import {
-  ELEV_STATUS, arAutoRattad, arBedomd, arForslag, arManuell, bedom, elevStatus, kompletteraForslag, nyRattning, sparDok,
+  ELEV_STATUS, arAutoRattad, arBedomd, arForslag, arManuell, bedom, delvisPoang, elevStatus, kompletteraForslag, nyRattning,
+  poangFor, sparDok,
 } from "../src/prov/prov-rattning-logik.js";
 import {
   LAGE, RATTNING_PER_BATCH, autoBedom, delaIBatchar, facitMedTillagg, rattaAlla, rattaAllaElev, sammanfattning,
@@ -166,10 +167,28 @@ describe("halvpoäng i automatiken", () => {
     r = bedom(r, F.q4, { poang: -3 }, fragor);
     assert.equal(r.fragor.q4.poang, 0);
   });
-  it("bedom med ratt OCH poäng över max kläms också (annars nekar reglerna totalen > max)", { todo: "F1: bedom() klämmer inte andring.poang när ratt skickas med – ingen UI-anropare gör det i dag" }, () => {
+  it("bedom med ratt OCH poäng över max kläms också (annars nekar reglerna totalen > max)", () => {
     const r = bedom(ny("e"), F.q4, { ratt: true, poang: 99 }, fragor);
-    assert.ok(r.fragor.q4.poang <= 2.5, `poang ${r.fragor.q4.poang} > max 2,5`);
+    assert.equal(r.fragor.q4.poang, 2.5, "kläms till max 2,5");
     assert.ok(r.totalPoang <= r.maxPoang);
+    assert.equal(bedom(ny("e"), F.q4, { ratt: false, poang: -3 }, fragor).fragor.q4.poang, 0);
+    assert.equal(bedom(ny("e"), F.q4, { ratt: "delvis", poang: 1.3 }, fragor).fragor.q4.poang, 1.5, "halva steg");
+  });
+  it("manuell Delvis ger aldrig 0 p eller full poäng (F2): minst 0,5, högst max − 0,5", () => {
+    for (const [max, vant] of [[0.5, 0.5], [1, 0.5], [1.5, 0.5], [2, 1], [2.5, 1], [3, 1.5], [7, 3.5], [20, 10]]) {
+      assert.equal(delvisPoang(max), vant, `max ${max}`);
+      assert.equal(poangFor("delvis", max, null), vant, `poangFor max ${max}`);
+    }
+    assert.equal(delvisPoang(0), 0);
+    // q1 är värd 0,5 p: Delvis → 0,5 p (inte 0 p med markeringen delvis).
+    const r = bedom(ny("e"), F.q1, { ratt: "delvis" }, fragor);
+    assert.deepEqual([r.fragor.q1.poang, r.fragor.q1.ratt], [0.5, "delvis"]);
+    // En tidigare delpoäng mellan 0 och max behålls.
+    const r2 = bedom(bedom(ny("e"), F.q6, { poang: 5.5 }, fragor), F.q6, { ratt: "delvis" }, fragor);
+    assert.equal(r2.fragor.q6.poang, 5.5);
+    // Från rätt (max) till Delvis → delvisPoang, inte max.
+    const r3 = bedom(bedom(ny("e"), F.q6, { ratt: true }, fragor), F.q6, { ratt: "delvis" }, fragor);
+    assert.equal(r3.fragor.q6.poang, 3.5);
   });
 });
 
