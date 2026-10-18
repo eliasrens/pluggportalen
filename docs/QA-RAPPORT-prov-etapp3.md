@@ -25,7 +25,8 @@ skrevs mot live.
 - **Kvoten (§9):** "Rätta alla" = **0 läsningar** och **1 skrivning per ändrad elev** (+1
   räkneverk) – mätt.
 - **Två buggar hittade och rättade här med test** (F1 avrundning av snitt/procent, F2
-  etiketten över frågetexten i resultatet på mobil). F3 (kosmetisk) står kvar; F4–F8 är info.
+  etiketten över frågetexten i resultatet på mobil). F3 (kosmetisk) står kvar; F4, F5 och F7
+  är info. F6 och F8 är epic-ledens beslut (inte buggar) och står med för spårbarhet.
 - **Sviterna gröna:** unit **3210/3210** (+ 1 skip), `test:rules` **750/750**, bootgrafen
   **107** filer utan `src/prov/`. Functions rördes inte i epicen (ingen diff mot main) –
   inte körda.
@@ -34,10 +35,10 @@ skrevs mot live.
 
 | Svit | Resultat | Hur |
 | --- | --- | --- |
-| Unit | **3205 pass, 0 fail** (1 skip) på `78873b4`; efter F1/F2 **3210 pass** | `node --test $(ls test/*.test.js \| grep -v firestore-rules) test/admin-credential.test.mjs test/brakresan-drake-art.test.mjs` |
-| `test:rules` (alla filer i package.json) | **750/750** | Firestore-emulatorn (jar) på slumpport, `-Xmx1200m`, `FIRESTORE_EMULATOR_HOST=… node --test <listan>` |
+| Unit | **3205 pass, 0 fail** (1 skip) på `78873b4`; efter F1/F2 **3210 pass, 0 fail** (1 skip) – omkört i förgrunden på `78e38e0` | `node --test $(ls test/*.test.js \| grep -v firestore-rules) test/admin-credential.test.mjs test/brakresan-drake-art.test.mjs` |
+| `test:rules` (alla filer i package.json) | **750/750** – omkört i förgrunden på `78e38e0` | Firestore-emulatorn (jar) på slumpport, `-Xmx1200m`, `FIRESTORE_EMULATOR_HOST=… node --test <listan>` |
 | `test:functions` | inte körd | `git diff ad98509..78873b4 -- functions` är tom |
-| Bootgrafen | **107 filer**, ingen `src/prov/` | `node admin/qa-bootgraf-bfs.mjs` |
+| Bootgrafen | **107 filer**, ingen `src/prov/` (även på `78e38e0`) | `node admin/qa-bootgraf-bfs.mjs` |
 
 ## Fynd
 
@@ -48,9 +49,9 @@ skrevs mot live.
 | F3 | kosmetisk – kvar | `src/prov/prov-ratta-sida.js` `godkannAven` | Efter **Godkänn även ”Birkaön”** står facit-raden överst kvar som "Facit: Björkö" tills vyn laddas om (då "Björkö · Birkaön"). Knappen själv säger "✓ ”Birkaön” finns i facit" och sparraden förklarar, så inget går fel. Förslag: rita om innehållet när tillägget sparats (`ritaInnehall()` före sparraden). |
 | F4 | info | pluggmynt (#746) × halvpoäng | Mynt per poäng med halvpoäng avrundas **nedåt**: Cleo 8,5 p × 3 = 25,5 → **25 mynt** (Alva 21 × 3 = 63, Dante 5 × 3 = 15). Rimligt, men specen säger inget – nämns för Elias. |
 | F5 | info (övergången) | gamla webben mot Etapp 3-data | Den gamla appen (Etapp 2) visar ett Etapp 3-tillfälle utan att krascha, men räknar avsnitten som frågor (12 kolumner i stället för 9) och "Rätta alla"-posterna (`autoRattad`) som "? ej rättad". En lärare med en gammal flik öppen under deployen bör ladda om. *Ej provat:* vad den gamla klientens autosparning gör om läraren rättar i en sådan flik. |
-| F6 | info (avsiktligt, #763) | elevens resultat, `ordna` | En påbörjad ordning (3 av 5 placerade) räknas som obesvarad → "✗ Fel · 0 av 2 p", men resultatet visar ✓ vid de tre placerade sakerna. Stämmer med PROV.md, men kan förvirra eleven. Förslag: skriv "Inte färdig – 3 av 5 placerade" i resultatet. |
+| F6 | beslut (epic-leaden, #763) | elevens resultat, `ordna` | En påbörjad ordning (3 av 5 placerade) räknas som obesvarad → "✗ Fel · 0 av 2 p", men resultatet visar ✓ vid de tre placerade sakerna. Beslut: ett delvis ordnat svar räknas som obesvarat och ger 0 p. Möjlig senare finputs: "Inte färdig – 3 av 5 placerade" i resultatet. |
 | F7 | info (känd, Etapp 1 F7) | elevens provlista | Tillbakalämnade prov syns först efter omladdning (Cleo: "Just nu finns inget prov att skriva" tills F5). |
-| F8 | info (avsiktligt, #762) | elevsidan | Gamla prov visar nu också "Provet ger högst 17 poäng" överst (`visaPoangForElev` saknas = på). |
+| F8 | beslut (epic-leaden, #762) | elevsidan | Gamla prov visar nu också "Provet ger högst 17 poäng" överst (`visaPoangForElev` är på som standard). |
 
 Rättelserna ändrar inte reglerna, indexen eller functions. Bootgrafen är oförändrad (107).
 
@@ -194,7 +195,17 @@ statistik stannar på Etapp 2:s nivå: läsningar ≈ 1 600, skrivningar realist
    `rattning.kriterier` bara efter tillbakalämning. Med ny webb och gamla regler nekas en
    tillbakalämning med "Visa poängkriterierna" (#762).
 2. Webben (merge till main → GitHub Pages). Be lärare ladda om sidan (F5).
+   `src/prov/prov-resultat.css` (F2) laddas utan versionsparameter, så webbläsarens cache kan
+   visa den gamla stilen en stund efter deployen.
 3. **Inga index, inga functions.**
+
+Beslut från epic-leaden som QA:n bekräftade (inte buggar): "Rätta alla" ger `auto: true` +
+`autoRattad: true` och räknas som rättat; lärarens egna bedömningar skrivs aldrig över;
+stavfel med "auto" blir ett förslag på halva poängen, med "själv" får svaret ingen post;
+obesvarat = fel; ett delvis ordnat ordna-svar = obesvarat = 0 p; 0 p = fel och full poäng =
+rätt; ingen Delvis vid max 0,5; `visaPoangForElev` på som standard; `visaKriterier` av som
+standard och skyddat av `provKriterierOk`; delpoäng nedåt; facit i efterhand gäller bara
+tillfället.
 
 Ordningen: **regler först, sedan webben.** De nya reglerna godtar allt den gamla webben
 skriver (testat i `test:rules`).
