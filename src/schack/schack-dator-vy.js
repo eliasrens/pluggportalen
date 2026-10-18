@@ -22,13 +22,13 @@ function panelHtml(niva, parti) {
   return (
     `<div class="schack-panel-niva"><span class="schack-panel-pjas">${pjasSvg(parti.egenFarg === "w" ? "b" : "w", niva.pjas)}</span>` +
     `<span>Du spelar mot <b>${esc(niva.namn)}</b><small>${esc(niva.text)}</small></span></div>` +
-    `<div class="schack-ruta schack-varna-ruta" role="alertdialog" aria-labelledby="schack-varna-text" hidden>` +
-    `<p id="schack-varna-text" class="schack-ruta-text"></p>` +
-    `<div class="schack-ruta-knappar"><button type="button" class="btn liten" data-act="varna-angra">Ångra</button>` +
+    `<div class="schack-fraga schack-varna-ruta" role="alertdialog" aria-labelledby="schack-varna-text" hidden>` +
+    `<p id="schack-varna-text" class="schack-fraga-text"></p>` +
+    `<div class="schack-fraga-knappar"><button type="button" class="btn liten" data-act="varna-angra">Ångra</button>` +
     `<button type="button" class="btn ghost liten" data-act="varna-anda">Flytta ändå</button></div></div>` +
-    `<div class="schack-ruta schack-geupp-ruta" role="alertdialog" aria-labelledby="schack-geupp-text" hidden>` +
-    `<p id="schack-geupp-text" class="schack-ruta-text">Vill du ge upp partiet? Då vinner datorn.</p>` +
-    `<div class="schack-ruta-knappar"><button type="button" class="btn liten" data-act="geupp-nej">Nej, spela vidare</button>` +
+    `<div class="schack-fraga schack-geupp-ruta" role="alertdialog" aria-labelledby="schack-geupp-text" hidden>` +
+    `<p id="schack-geupp-text" class="schack-fraga-text">Vill du ge upp partiet? Då vinner datorn.</p>` +
+    `<div class="schack-fraga-knappar"><button type="button" class="btn liten" data-act="geupp-nej">Nej, spela vidare</button>` +
     `<button type="button" class="btn ghost liten" data-act="geupp-ja">Ja, ge upp</button></div></div>` +
     `<div class="schack-knappar">` +
     `<button type="button" class="btn ghost liten" data-act="angra" title="Ta tillbaka ditt senaste drag och datorns svar">Ångra</button>` +
