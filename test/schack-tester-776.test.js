@@ -177,7 +177,10 @@ describe("nivåerna: slump och styrka", () => {
       for (let i = 0; i < 4; i++) { const m = c.moves(); c.move(m[Math.floor(rnd() * m.length)]); }
       let seed = g * 101;
       while (!c.isGameOver() && c.history().length < 100) {
-        const r = valjDrag(c.fen(), { niva: c.turn() === "w" ? vit : svart, seed: seed++, tidsgransMs: 40 });
+        // Klocka som räknar anrop (1 "ms" per kontroll, var 256:e nod): deterministiskt, oberoende av maskinlast.
+        const niva = c.turn() === "w" ? vit : svart;
+        let tick = 0;
+        const r = valjDrag(c.fen(), { niva, seed: seed++, tidsgransMs: niva === "damen" ? 60 : 120, nu: () => ++tick });
         c.move(r.drag);
       }
       if (c.isCheckmate()) return c.turn() === "w" ? -1 : 1;
