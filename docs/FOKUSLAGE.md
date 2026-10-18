@@ -36,6 +36,10 @@ Fälten beskrivs i kommentaren ovanför registret.
 En modul som klassen har **dolt** (`hiddenModules`) eller inte slagit på (opt-in) är
 gråad i målväljaren (#735) – utom om den redan är målet, så läraren kan flytta sluttiden.
 
+**Schack** (#776, `docs/SCHACK.md`) är opt-in och `learning: true` men `lockable: false`:
+fokusläget stänger schacket som alla andra moduler, men klassen kan inte låsas *till*
+schack (det är bara för skojs skull och ger inga mynt).
+
 ## Så registreras en ny modul (Bråkresan, #735, är gjord så här)
 
 1. Routen i `src/app.js` (`"/elev/brakresan": pageElevBrakresan`, dynamisk import – #271).
