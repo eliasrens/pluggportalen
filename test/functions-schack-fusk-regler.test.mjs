@@ -204,3 +204,40 @@ test("reglerna: läsning – annan klass, medspelare i klassen, saknat parti, li
   assert.equal(await code(getDocs(query(collection(ak5.db, "schackPartier"), where("classId", "==", KLASS)))), "permission-denied");
   assert.equal(await code(getDocs(query(collection(v.db, "schackPartier"), where("vit", "==", vit)))), "ok", "spelaren listar egna partier");
 });
+
+test("lärarcallables med prototypnycklar som id: aldrig ok och aldrig internal", async () => {
+  await reset();
+  const ak = await who(AK);
+  const adm = await who(ADMIN);
+  const ut = [];
+  for (const m of ["constructor", "toString", "hasOwnProperty"]) {
+    for (const c of [ak, adm]) {
+      for (const [n, d] of [["schackLarareAvsluta", { partiId: m }], ["schackLarareTopplista", { classId: m, dold: true }]]) {
+        const k = await code(c.call(n, d));
+        if (k === "internal" || k === "unknown" || (c === ak && k === "ok")) ut.push([c.uid, n, m, k]);
+      }
+    }
+  }
+  assert.deepEqual(ut, []);
+});
+
+// F7 (låg): admin kan skapa schackKlass/{vilket-id-som-helst} för klasser som inte finns (schackLarareTopplista kontrollerar inte classes/{id}).
+test("admin skapar inte schackKlass-dokument för klasser som inte finns", { todo: "F7: ingen classes-kontroll" }, async () => {
+  await reset();
+  const adm = await who(ADMIN);
+  await code(adm.call("schackLarareTopplista", { classId: "scf-finns-inte-alls", dold: true }));
+  assert.equal((await adb.doc("schackKlass/scf-finns-inte-alls").get()).exists, false);
+});
+
+test("lärarcallables med reserverade Firestore-id (__proto__, __x__) ger invalid-argument, inte internal (F6)", async () => {
+  await reset();
+  const ak = await who(AK);
+  const ut = [];
+  for (const m of ["__proto__", "__x__"]) {
+    for (const [n, d] of [["schackLarareAvsluta", { partiId: m }], ["schackLarareTopplista", { classId: m, dold: true }]]) {
+      const k = await code(ak.call(n, d));
+      if (k !== "invalid-argument") ut.push([n, m, k]);
+    }
+  }
+  assert.deepEqual(ut, []);
+});

@@ -131,9 +131,8 @@ test("samtidig geUpp och remi-acceptera: ett utfall, tabellen en gång", async (
 
 // --- ett parti åt gången över klasser ------------------------------------------------------
 
-// F2 (låg): grinden "ett parti åt gången" ligger i klassdokumentet – en elev i två klasser med schack kan ha ett parti i vardera.
-// todo tills leaden beslutat (åtgärd = ett lås per elev utanför klassdokumentet, eller dokumentera begränsningen).
-test("elev i två klasser med schack: kan hon spela två partier samtidigt? (spec: ett åt gången per elev)", { todo: "F2: per klassdokument" }, async () => {
+// F2: spärren över klasser är studentData/{uid}.schack.aktivtParti (servern sätter/tar bort den i samma transaktion).
+test("elev i två klasser med schack kan INTE spela två partier samtidigt (ett åt gången per elev, F2)", async () => {
   await reset();
   await nytt(ANNA, BO, { classId: KLASS });
   const dan = await who(DAN);
@@ -260,4 +259,61 @@ test("KVOT: schackSvara nej/okänd samt dubbla schackVanta skriver bara när nå
   await code(anna.call("schackSvara", { utmaningId: "finnsinte", ja: false, classId: KLASS }));
   const efter = (await adb.doc(`schackKlass/${KLASS}`).get()).updateTime.toMillis();
   assert.equal(efter, fore, "nekat svar skrev klassdokumentet");
+});
+
+// --- användarstyrda nycklar (objektuppslag med anroparens sträng) ---------------------------
+
+const PROTO = ["constructor", "toString", "valueOf", "hasOwnProperty", "isPrototypeOf"];
+
+test("gaMed: varje prototypnyckel för sig startar inget parti och ger aldrig internal", async () => {
+  const ut = {};
+  for (const m of PROTO) {
+    await reset();
+    const anna = await who(ANNA);
+    ut[m] = await code(anna.call("schackGaMed", { classId: KLASS, motstandare: m }));
+    const n = (await adb.collection("schackPartier").where("classId", "==", KLASS).get()).size;
+    if (n) ut[m] += " +parti";
+  }
+  assert.deepEqual(Object.entries(ut).filter(([, c]) => c !== "failed-precondition"), [], JSON.stringify(ut));
+});
+
+test("svara/utmana/slutaVanta/vanta med prototypnycklar som id: aldrig ok och aldrig internal", async () => {
+  await reset();
+  const anna = await who(ANNA);
+  const bo = await who(BO);
+  await bo.call("schackUtmana", { classId: KLASS, till: ANNA, klocka: null });
+  const ut = [];
+  for (const m of PROTO) {
+    for (const [n, d] of [
+      ["schackSvara", { utmaningId: m, ja: true }], ["schackSvara", { utmaningId: m, ja: true, classId: KLASS }],
+      ["schackSvara", { utmaningId: m, ja: false, classId: KLASS }], ["schackUtmana", { classId: KLASS, till: m, klocka: null }],
+      ["schackGaMed", { classId: m, motstandare: BO }], ["schackVanta", { classId: m, klocka: null }], ["schackSlutaVanta", { classId: m }],
+      ["schackDrag", { partiId: m, from: "e2", to: "e4" }], ["schackGeUpp", { partiId: m }], ["schackRemi", { partiId: m, handling: "erbjud" }],
+      ["schackKravaVinst", { partiId: m }],
+    ]) {
+      const c = await code(anna.call(n, d));
+      if (c === "ok" || c === "internal" || c === "unknown") ut.push([n, m, c]);
+    }
+  }
+  assert.deepEqual(ut, []);
+  assert.equal((await adb.collection("schackPartier").where("classId", "==", KLASS).get()).size, 0);
+});
+
+// F6 (låg): id som matchar __…__ är reserverade i Firestore – doc() kastar och anropet blir "internal" (+ loggat fel)
+// i stället för invalid-argument.
+test("reserverade Firestore-id (__proto__, __x__) ger invalid-argument, inte internal", async () => {
+  await reset();
+  const anna = await who(ANNA);
+  const ut = [];
+  for (const m of ["__proto__", "__x__", "__defineGetter__"]) {
+    for (const [n, d] of [
+      ["schackGaMed", { classId: m, motstandare: BO }], ["schackGaMed", { classId: KLASS, motstandare: m }], ["schackVanta", { classId: m, klocka: null }],
+      ["schackSlutaVanta", { classId: m }], ["schackDrag", { partiId: m, from: "e2", to: "e4" }], ["schackGeUpp", { partiId: m }],
+      ["schackRemi", { partiId: m, handling: "erbjud" }], ["schackKravaVinst", { partiId: m }], ["schackSvara", { utmaningId: m, ja: true, classId: KLASS }],
+    ]) {
+      const c = await code(anna.call(n, d));
+      if (c !== "invalid-argument") ut.push([n, m, c]);
+    }
+  }
+  assert.deepEqual(ut, []);
 });
