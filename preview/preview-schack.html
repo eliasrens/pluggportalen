@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Schack: brädet och pjäserna (#775)</title>
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      body { padding: 16px; background: var(--ljus); }
+      .wrap { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+      .panel { margin: 0; padding: 14px 18px; display: grid; gap: 10px; min-width: 0; }
+      .panel > h2 { margin: 0; font-size: 1.4rem; }
+      .panel p { margin: 0; }
+      .spel { display: grid; grid-template-columns: minmax(320px, 1fr) minmax(260px, 340px); gap: 18px; align-items: start; }
+      @media (max-width: 820px) { .spel { grid-template-columns: minmax(0, 1fr); } }
+      /* Brädet är minst 320 px – på en 360 px-mobil får sidans egna marginaler krympa. */
+      @media (max-width: 420px) { body { padding: 8px; } .panel { padding: 10px; } }
+      .knappar { display: flex; flex-wrap: wrap; gap: 6px; }
+      .knappar .btn { margin: 0; }
+      .verktyg { display: grid; gap: 8px; }
+      .verktyg label { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-weight: 700; }
+      .verktyg select { max-width: 100%; }
+      #forklaring { font-weight: 700; color: #6b4e00; background: #fff6e5; border-radius: 12px; padding: 8px 12px; }
+      #forklaring:empty { display: none; }
+      .logg { font: 12px/1.45 ui-monospace, monospace; color: var(--text-svag); white-space: pre-wrap; word-break: break-word; min-height: 4em; margin: 0; }
+      #varna-ruta { border: 3px solid var(--gul); border-radius: 14px; padding: 10px 12px; background: #fff8df; display: grid; gap: 8px; }
+      .pv-avatar { display: grid; place-items: center; width: 40px; height: 40px; background: var(--rosa); color: #fff; font-weight: 800; font-size: 1.2rem; }
+      .pv-pjasrad { display: flex; flex-wrap: wrap; gap: 8px; align-items: start; }
+      .pv-pjasrad > b { flex-basis: 100%; }
+      .pv-pjaser { display: grid; gap: 4px; padding: 6px; border-radius: 12px; width: fit-content; max-width: 100%; }
+      .pv-pjaser > div { display: flex; flex-wrap: wrap; gap: 4px; }
+      .pv-ljus { background: #f2e4c4; }
+      .pv-mork { background: #8daf7e; }
+      .pv-pjas { display: inline-block; }
+      .pv-pjas svg { width: 100%; height: 100%; display: block; }
+      .pv-tva { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 18px; align-items: start; }
+      .pv-slut h3 { margin: 0 0 6px; font-size: 1rem; }
+      .pv-slut .schack { --schack-storlek: 340px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="panel">
+        <b>Schack – brädet och pjäserna (issue #775, spec §1–§2).</b>
+        <p>Allt i <code>src/schack/</code> laddas med <code>import()</code>. Reglerna kommer från chess.js 1.4.0
+          (<code>src/schack/vendor/</code>, BSD-2) – bara lagliga drag visas och går att göra. Båda sidor spelas här
+          för hand. Prova tryck-markera + tryck-flytta, dra-och-släpp med mus och finger (DevTools → touch),
+          tangentbordet (Tab till brädet, pilarna, Enter, Escape) och <i>Reducerad rörelse</i>.</p>
+        <p>Länka direkt till en ställning med <code>?st=rockad</code>, <code>en-passant</code>, <code>forvandling</code>,
+          <code>schack</code>, <code>bunden</code>, <code>matt</code>, <code>patt</code>, <code>material</code>, <code>upprepning</code>.</p>
+      </div>
+
+      <section class="panel" id="spela">
+        <h2>1. Spelbart bräde</h2>
+        <div class="knappar" id="stallningar"></div>
+        <p id="forklaring"></p>
+        <div class="spel">
+          <div id="bradet"></div>
+          <div class="verktyg">
+            <div class="knappar">
+              <button id="vand" class="btn ghost liten">Vänd brädet</button>
+              <button id="angra" class="btn ghost liten">Ångra ett drag</button>
+              <button id="tips" class="btn ghost liten">Pil (showArrow)</button>
+              <button id="gav-upp" class="btn ghost liten">Avsluta: gav upp</button>
+            </div>
+            <label>Vem får flytta (setInteractive)
+              <select id="interaktiv"><option value="true">båda (den som är på tur)</option><option value="w">bara vit</option><option value="b">bara svart</option><option value="false">ingen</option></select>
+            </label>
+            <label>Elevens färg (statusraden)
+              <select id="egen"><option value="">ingen – båda för hand</option><option value="w">vit, mot datorn</option><option value="b">svart, mot datorn</option></select>
+            </label>
+            <label><input type="checkbox" id="varna" /> Fånga drag som tar eller ger schack (beforeMove, som B:s "Varna mig")</label>
+            <label><input type="checkbox" id="server" /> Låtsasserver: beforeMove väntar 1 s (pjäsen halvgenomskinlig)</label>
+            <label><input type="checkbox" id="neka" /> … och servern nekar draget</label>
+            <label><input type="checkbox" id="stilla" /> Reducerad rörelse (laddar om sidan)</label>
+            <div id="varna-ruta" hidden>
+              <b id="varna-text"></b>
+              <div class="knappar"><button id="varna-angra" class="btn ghost liten">Ångra</button><button id="varna-ok" class="btn liten">Flytta ändå</button></div>
+            </div>
+            <pre class="logg" id="logg"></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="pjas-sektion">
+        <h2>2. Pjäserna</h2>
+        <p>Egna SVG-pjäser (<code>src/schack/schack-pjaser.js</code>), kung · dam · torn · löpare · springare · bonde, vita och svarta, på ljus och mörk ruta.</p>
+        <div id="pjaser" class="verktyg"></div>
+      </section>
+
+      <section class="panel">
+        <h2>3. Bondeförvandlingen</h2>
+        <p>Bonden har just släppts på b8. Dam är förvald och ligger först; Escape eller Avbryt ångrar.</p>
+        <div class="pv-tva"><div id="forvandling"></div><div><button id="forv-igen" class="btn ghost liten">Öppna väljaren igen</button></div></div>
+      </section>
+
+      <section class="panel">
+        <h2>4. Slutrutorna</h2>
+        <div class="pv-tva" id="slutrutor"></div>
+      </section>
+    </div>
+    <script type="module" src="./schack/preview.js"></script>
+  </body>
+</html>
