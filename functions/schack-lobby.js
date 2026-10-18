@@ -40,8 +40,8 @@ const lika = (a, b) => JSON.stringify(a) === JSON.stringify(b);
  * skrivningarna. `fn(st)` ändrar st.klass och får göra tx.set på nya dokument;
  * till sist skrivs klassdokumentet om det ändrats.
  */
-async function lobbyTx(c, uid, classId, spelare, fn) {
-  const klassInfo = await hamtaKlassForElev(c.db, uid, classId, c.now());
+async function lobbyTx(c, uid, classId, spelare, fn, klassInfoFore = null) {
+  const klassInfo = klassInfoFore || (await hamtaKlassForElev(c.db, uid, classId, c.now()));
   const ref = c.db.collection(KLASS_COLL).doc(classId);
   return c.db.runTransaction(async (tx) => {
     const fore = klassData(await tx.get(ref));
@@ -203,6 +203,8 @@ export async function svara(deps, uid, data = {}) {
   const utmaningId = idEller(data.utmaningId, "utmanings-id");
   const ja = data.ja === true;
   const classId = await klassForUtmaning(c, uid, data, utmaningId);
+  // Grinden FÖRE uppslaget: en elev utanför klassen får permission-denied, inte not-found.
+  const klassInfo = await hamtaKlassForElev(c.db, uid, classId, c.now());
   const fore = await c.db.collection(KLASS_COLL).doc(classId).get();
   const u0 = fore.exists ? post(fore.data().utmaningar, utmaningId) : null;
   const fran = typeof u0?.fran === "string" ? u0.fran : null;
@@ -220,5 +222,5 @@ export async function svara(deps, uid, data = {}) {
     kravIngetParti(st, fran, "Kompisen");
     const { partiId, farg } = startaParti(c, st, fran, uid, normaliseraKlocka(u.klocka) ?? null, namn);
     return { partiId, farg };
-  });
+  }, klassInfo);
 }
