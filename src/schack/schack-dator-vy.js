@@ -94,6 +94,8 @@ export function skapaDatorVy(host, o) {
       if (!v) return true;
       $("#schack-varna-text").textContent = v.text;
       varnaRuta.hidden = false;
+      host.classList.add("schack-parti-varnar");
+      brade.setStatus("Vänta – läs varningen!"); // inte "Din tur" medan rutan väntar (F1)
       knapp("varna-angra").focus({ preventScroll: true });
       return new Promise((resolve) => { varnaSvar = resolve; });
     },
@@ -151,7 +153,8 @@ export function skapaDatorVy(host, o) {
         if (!brade.getState().slut) brade.setInteractive(egenFarg);
       }, vanta);
     };
-    dator.valjDrag(fen, { niva: niva.id, seed, tidsgransMs: o.tidsgransMs })
+    // Partiet hittills följer med så att motorn undviker trefaldig upprepning (F3).
+    dator.valjDrag(fen, { niva: niva.id, seed, tidsgransMs: o.tidsgransMs, historik: brade.getGame() })
       .then((res) => gor(res?.drag || null))
       .catch((e) => {
         if (token !== seq) return;
@@ -162,9 +165,13 @@ export function skapaDatorVy(host, o) {
 
   function svaraVarning(ok) {
     varnaRuta.hidden = true;
+    host.classList.remove("schack-parti-varnar");
     const r = varnaSvar;
     varnaSvar = null;
-    r?.(ok);
+    if (r) {
+      if (!ok) brade.setStatus(null); // tillbaka till "Din tur" (ett gjort drag nollställer själv)
+      r(ok);
+    }
   }
 
   function angra() {
@@ -174,6 +181,7 @@ export function skapaDatorVy(host, o) {
     dator.avbryt();
     svaraVarning(false);
     geuppRuta.hidden = true;
+    host.classList.remove("schack-parti-fragar");
     tipsText.textContent = "";
     brade.undo(s.tur === egenFarg ? 2 : 1);
     parti.slut = null;
@@ -192,7 +200,7 @@ export function skapaDatorVy(host, o) {
     uppdateraKnappar(s);
     tipsText.textContent = "Datorn funderar…";
     try {
-      const r = await dator.tips(s.fen, { tidsgransMs: o.tidsgransMs });
+      const r = await dator.tips(s.fen, { tidsgransMs: o.tidsgransMs, historik: brade.getGame() });
       if (token !== seq || !levande || brade.getFen() !== s.fen) return;
       if (r?.drag) {
         brade.showArrow(r.drag.from, r.drag.to);
@@ -209,6 +217,7 @@ export function skapaDatorVy(host, o) {
 
   function geUpp() {
     geuppRuta.hidden = true;
+    host.classList.remove("schack-parti-fragar");
     seq++;
     dator.avbryt();
     svaraVarning(false);
@@ -218,11 +227,11 @@ export function skapaDatorVy(host, o) {
   const HANDLING = {
     "varna-angra": () => svaraVarning(false),
     "varna-anda": () => svaraVarning(true),
-    "geupp-nej": () => { geuppRuta.hidden = true; },
+    "geupp-nej": () => { geuppRuta.hidden = true; host.classList.remove("schack-parti-fragar"); },
     "geupp-ja": geUpp,
     angra,
     tips,
-    geupp: () => { geuppRuta.hidden = false; knapp("geupp-nej").focus({ preventScroll: true }); },
+    geupp: () => { geuppRuta.hidden = false; host.classList.add("schack-parti-fragar"); knapp("geupp-nej").focus({ preventScroll: true }); },
     tillbaka: () => o.onTillbaka?.(),
   };
   const klick = (e) => {

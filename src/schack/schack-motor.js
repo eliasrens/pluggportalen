@@ -20,7 +20,8 @@
 
 import { Chess } from "./vendor/chess.js";
 
-export const MOTOR_KRAV = ["_moves", "_makeMove", "_undoMove", "_isKingAttacked"];
+export const MOTOR_KRAV = ["_moves", "_makeMove", "_undoMove", "_isKingAttacked", "_getPositionCount"];
+const START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 /** De fyra nivåerna (§3.2). `djup` = sökdjup i halvdrag, `maxDjup` = fortsätt så länge tiden räcker. */
 export const NIVAER = [
@@ -121,10 +122,21 @@ const PST = {
   ],
 };
 
-/** Ställningens värde sett från den som är på tur (material + placering). */
+/** Avstånd till brädets mitt (0–3) och mellan två rutor (0–7), i 0x88-index. */
+const mittAvstand = (sq) => Math.max(Math.abs((sq & 7) - 3.5), Math.abs((sq >> 4) - 3.5)) - 0.5;
+const kungAvstand = (a, b) => Math.max(Math.abs((a & 7) - (b & 7)), Math.abs((a >> 4) - (b >> 4)));
+
+/**
+ * Ställningens värde sett från den som är på tur: material + placering, och i
+ * slutspel där ena sidan nästan bara har kungen kvar en "mop-up"-term: driv den
+ * ensamma kungen mot kanten och för den egna kungen närmare, så att dam/torn mot
+ * kung blir matt i stället för evigt kretsande (F3).
+ */
 export function utvardera(c) {
   let v = 0;
   const b = c._board;
+  const material = { w: 0, b: 0 };
+  const kung = { w: -1, b: -1 };
   for (let sq = 0; sq < 128; sq++) {
     if (sq & 0x88) { sq += 7; continue; }
     const p = b[sq];
@@ -134,6 +146,19 @@ export function utvardera(c) {
     const i = p.color === "w" ? rad * 8 + fil : (7 - rad) * 8 + fil;
     const w = VARDE[p.type] + PST[p.type][i];
     v += p.color === "w" ? w : -w;
+    if (p.type === "k") kung[p.color] = sq;
+    else material[p.color] += VARDE[p.type];
+  }
+  for (const stark of ["w", "b"]) {
+    const svag = stark === "w" ? "b" : "w";
+    if (material[svag] <= 330 && material[stark] >= material[svag] + 450 && kung[stark] >= 0 && kung[svag] >= 0) {
+      // Kungarnas vanliga tabeller (göm dig i hörnet) gäller inte här: den starka
+      // kungen ska hjälpa till och den svaga ska drivas mot kanten.
+      const pstK = (f, sq) => PST.k[f === "w" ? (sq >> 4) * 8 + (sq & 7) : (7 - (sq >> 4)) * 8 + (sq & 7)];
+      v -= stark === "w" ? pstK("w", kung.w) - pstK("b", kung.b) : pstK("b", kung.b) - pstK("w", kung.w);
+      const mop = 15 * mittAvstand(kung[svag]) + 6 * (7 - kungAvstand(kung[stark], kung[svag]));
+      v += stark === "w" ? mop : -mop;
+    }
   }
   return c._turn === "w" ? v : -v;
 }
@@ -194,9 +219,13 @@ function sok(c, djup, alpha, beta, ply, ctx) {
   // Transpositionstabellen (chess.js 64-bitars zobrist-hash): återanvänd en
   // minst lika djup värdering och pröva ställningens bästa drag först.
   const hash = c._hash;
+  // Upprepning = remi (0): en ställning som redan stått i partiet (chess.js
+  // _positionCount efter uppspelning av historiken) eller tidigare i sökvägen.
+  if (ply > 0 && (c._getPositionCount(hash) > 0 || ctx.vag.includes(hash))) return 0;
   const tt = ctx.tt.get(hash);
   if (tt && tt.d >= djup && (tt.typ === 0 || (tt.typ === 1 && tt.v >= beta) || (tt.typ === 2 && tt.v <= alpha))) return tt.v;
   const alphaFore = alpha;
+  ctx.vag.push(hash);
   const killers = ctx.killers[ply] || (ctx.killers[ply] = [0, 0]);
   const drag = ordna(c._moves({ legal: false }), killers, tt ? tt.m : -1);
   let lagliga = 0;
@@ -215,6 +244,7 @@ function sok(c, djup, alpha, beta, ply, ctx) {
       break;
     }
   }
+  ctx.vag.pop();
   if (!lagliga) return iSchack ? -(MATT - ply) : 0; // matt eller patt
   if (ctx.tt.size > 300000) ctx.tt.clear();
   ctx.tt.set(hash, { d: djup, v: bast, typ: bast <= alphaFore ? 2 : bast >= beta ? 1 : 0, m: bastDrag });
@@ -254,16 +284,33 @@ function tillDrag(m) {
  * Sök från ställningen `fen` med iterativ fördjupning inom tidsgränsen.
  * @returns {{ poang: Array<{m, v}>, djup: number, noder: number } | null}  null = inga drag
  */
-function sokIterativt(fen, { djup, maxDjup = djup, exakt = false, tidsgransMs = TIDSGRANS_MS, nu = () => performance.now() }) {
-  const c = new Chess(fen);
+/**
+ * Rotställningen: spelas `historik` ({ fen, drag }) upp med chess.js (så att
+ * _positionCount känner partiets ställningar och upprepning kan undvikas), annars
+ * bara FEN:en. En historik som inte går att spela upp ignoreras.
+ */
+function rotStallning(fen, historik) {
+  if (historik && Array.isArray(historik.drag) && historik.drag.length) {
+    try {
+      const c = new Chess(historik.fen || START);
+      for (const d of historik.drag) c.move(d);
+      if (c.fen() === fen) return c;
+    } catch { /* trasig historik → bara FEN */ }
+  }
+  return new Chess(fen);
+}
+
+function sokIterativt(fen, { djup, maxDjup = djup, exakt = false, tidsgransMs = TIDSGRANS_MS, nu = () => performance.now(), historik = null }) {
+  const c = rotStallning(fen, historik);
   const rot = c._moves({ legal: true });
   if (!rot.length) return null;
   const start = nu();
-  const ctx = { noder: 0, nu, deadline: start + tidsgransMs, killers: [], tt: new Map() };
+  const ctx = { noder: 0, nu, deadline: start + tidsgransMs, killers: [], tt: new Map(), vag: [] };
   let resultat = { poang: ordna(rot.slice()).map((m) => ({ m, v: 0 })), djup: 0, noder: 0 };
   let ordning = resultat.poang.map((x) => x.m);
   for (let d = 1; d <= maxDjup; d++) {
     const fore = nu();
+    ctx.vag.length = 0; // ett avbrutet djup lämnar vägen halvfylld
     try {
       const poang = rotSok(c, ordning, d, ctx, exakt);
       resultat = { poang, djup: d, noder: ctx.noder };
@@ -309,8 +356,9 @@ export function valjEnligtNiva(poang, niva, slump) {
  * @param {object} [opt]
  * @param {string} [opt.niva]        "bonden" | "springaren" | "tornet" | "damen"
  * @param {number} [opt.seed]        slumpfrö (Bonden/Springaren) – samma frö, samma drag
- * @param {number} [opt.tidsgransMs] hård tidsgräns (standard 900 ms)
+ * @param {number} [opt.tidsgransMs] hård tidsgräns (standard 850 ms)
  * @param {() => number} [opt.nu]    klocka (för tester)
+ * @param {{fen?: string, drag: string[]}} [opt.historik]  partiet hittills (brade.getGame()) – för att undvika upprepning
  * @returns {{ drag: {from, to, promotion?}, varde: number, djup: number, noder: number, ms: number,
  *            kandidater: Array<{from, to, promotion?, varde}> } | null}
  */
@@ -320,7 +368,7 @@ export function valjDrag(fen, opt = {}) {
   const start = nu();
   const res = sokIterativt(fen, {
     djup: niva.djup, maxDjup: niva.maxDjup || niva.djup, exakt: niva.djup <= 2,
-    tidsgransMs: opt.tidsgransMs ?? TIDSGRANS_MS, nu,
+    tidsgransMs: opt.tidsgransMs ?? TIDSGRANS_MS, nu, historik: opt.historik,
   });
   if (!res) return null;
   const slump = skapaSlump(opt.seed ?? Math.floor(Math.random() * 2 ** 31));
@@ -335,7 +383,7 @@ export function valjDrag(fen, opt = {}) {
 export function analysera(fen, opt = {}) {
   const nu = opt.nu || (() => performance.now());
   const start = nu();
-  const res = sokIterativt(fen, { djup: opt.djup ?? 3, maxDjup: opt.djup ?? 3, tidsgransMs: opt.tidsgransMs ?? TIDSGRANS_MS, nu });
+  const res = sokIterativt(fen, { djup: opt.djup ?? 3, maxDjup: opt.djup ?? 3, tidsgransMs: opt.tidsgransMs ?? TIDSGRANS_MS, nu, historik: opt.historik });
   if (!res) return null;
   const b = res.poang[0];
   return { drag: tillDrag(b.m), varde: b.v, djup: res.djup, noder: res.noder, ms: nu() - start, matt: Math.abs(b.v) >= MATT - 100 };

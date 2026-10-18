@@ -197,7 +197,16 @@ kungen står i schack. Mattvärdena är `±(100000 − ply)` så den snabbaste m
 
 **Värdering.** Material (bonde 100, springare 320, löpare 330, torn 500, dam 900) +
 enkla piece-square-tabeller (bönder framåt/mitten, lätta pjäser mot mitten, torn på
-sjunde raden, kungen gömd). Inga slutspelstabeller – det räcker för nivåerna här.
+sjunde raden, kungen gömd). När ena sidan nästan bara har kungen kvar (≤ en lätt pjäs)
+och den andra minst ett torn mer, läggs en **mop-up-term** till: den ensamma kungen
+drivs mot kanten (12 cp per steg) och den egna kungen förs närmare (6 cp per steg), och
+den starka kungens "göm dig"-tabell stängs av. Så blir dam/torn mot kung matt i stället
+för evigt kretsande (F3).
+
+**Upprepning.** Sidan skickar partiet hittills (`historik = brade.getGame()`); motorn
+spelar upp det med chess.js så att `_positionCount` känner alla ställningar, och i
+sökningen räknas en ställning som redan stått i partiet eller tidigare i sökvägen som
+remi (0). Går historiken inte att spela upp används bara FEN:en.
 
 **Dragen genereras av chess.js, via den snabba interna vägen.** Den publika `move()`
 bygger SAN och FEN för varje drag och ger ~4 k noder/s; `_moves({legal:false})` +
@@ -210,8 +219,12 @@ brädets vanliga regelkontroll (`brade.move` → chess.js `move()`).
 **Tidsgräns.** `TIDSGRANS_MS = 850`: var 256:e nod jämförs klockan med deadline och
 sökningen avbryts; det senaste **färdiga** djupet används (därför iterativ fördjupning).
 Ett nytt djup över nivåns eget startas bara om det rimligen hinns (≈3× förra djupets tid).
-Med worker-turen och kontrollglappet hamnar varje drag under 1 s även på en långsam
-maskin (mätningen nedan). Klockan (`nu`) och slumpfröet (`seed`) är injicerbara.
+Med worker-turen (ett meddelande fram och ett tillbaka, ~1 ms) och kontrollglappet
+hamnar varje drag under 1 s även på en långsam maskin (mätningen nedan). Workerns
+**kallstart** (modulen laddas och chess.js tolkas) är ~75 ms och tas en gång per
+schackbesök – den startas när partivyn öppnas, inte vid första draget. Klockan (`nu`)
+och slumpfröet (`seed`) är injicerbara. Obs: på en 5× långsammare maskin kan även
+**Tornet** falla till djup 1–2 i de tyngsta ställningarna (gränsen går före djupet).
 
 **API** (rent, samma i workern och i node):
 
@@ -223,9 +236,12 @@ NIVAER, nivaFor(id), skapaSlump(seed), utvardera(chess), valjEnligtNiva(poang, n
 
 Workern (`schack-motor-worker.js`) tar `{ id, typ: "drag"|"tips", fen, opt }` och svarar
 `{ id, ok, resultat | fel }`. `schack-dator.js` ger löftes-API:t i sidan: `valjDrag`, `tips`,
-`avbryt()` (Ångra medan datorn tänker – det sena svaret förkastas), `destroy()`. Kan
-workern inte startas (eller svarar den inte inom tidsgränsen + 2,5 s) körs motorn i
-huvudtråden i stället – partiet fortsätter alltid, brädet kan då frysa en kort stund.
+`avbryt()`, `destroy()`. Workern är entrådad och kan inte avbrytas mitt i en sökning:
+`avbryt()` medan den tänker (Ångra) **dödar den och startar en ny** direkt (kallstart
+~75 ms), så nästa drag köar inte bakom den gamla sökningens tidsgräns (F2); sena svar
+förkastas. Kan workern inte startas (eller svarar den inte inom tidsgränsen + 2,5 s)
+körs motorn i huvudtråden i stället – partiet fortsätter alltid, brädet kan då frysa
+en kort stund.
 
 ### Nivåerna (§3.2)
 
@@ -283,7 +299,10 @@ långsam klocka). Mät om på en riktig Chromebook när det går: öppna
   en kopia, och om datorn då kan göra **matt i ett** eller **ta elevens dam/torn** visas
   rutan "Om du flyttar dit kan datorn ta din dam. Vill du ändå?" med **Ångra** / **Flytta
   ändå** – via brädets `beforeMove` (pjäsen står halvgenomskinlig på målrutan tills
-  eleven svarat). "Kan tas" räknas med ett litet statiskt utbyte på rutan (billigaste
+  eleven svarat; statusraden säger "Vänta – läs varningen!" under tiden). På smal skärm
+  (≤ 820 px, där panelen ligger under brädet) visas rutan som ett fast överlägg nederst
+  i fönstret med en slöja över resten, så den syns utan att skrolla (F1) – detsamma
+  gäller ge upp-frågan. "Kan tas" räknas med ett litet statiskt utbyte på rutan (billigaste
   lagliga slaget först, bara lagliga slag, så en bunden pjäs försvarar inte): varna när
   datorn tjänar ≥ 150 cp (dam mot torn, torn mot löpare, allt oskyddat), inte vid byten
   (dam mot dam) och inte om elevens eget drag tog minst lika mycket. En dam som redan

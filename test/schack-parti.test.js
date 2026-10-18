@@ -138,11 +138,20 @@ describe("datorn (schack-dator.js)", () => {
     assert.equal(LatsasWorker.sista.avslutad, true);
     assert.equal(d.iWorker(), false);
   });
-  it("avbryt() förkastar pågående svar", async () => {
+  it("avbryt() förkastar pågående svar, dödar den tänkande workern och startar en ny (F2)", async () => {
+    const fore = LatsasWorker.skapade;
     const d = skapaDator({ Worker: LatsasWorker });
     const p = d.valjDrag(FEN, { niva: "tornet" });
+    const gammal = LatsasWorker.sista;
     d.avbryt();
     await assert.rejects(p, /avbruten/);
+    assert.equal(gammal.avslutad, true);
+    assert.equal(LatsasWorker.skapade, fore + 2, "ny worker direkt");
+    assert.equal(d.iWorker(), true);
+    const r = await d.valjDrag(FEN, { niva: "tornet" });
+    assert.deepEqual([r.drag.from, r.drag.to], ["a1", "a8"]);
+    d.avbryt(); // inget pågår → ingen omstart
+    assert.equal(LatsasWorker.skapade, fore + 2);
     d.destroy();
   });
 });

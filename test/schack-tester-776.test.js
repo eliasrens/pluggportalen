@@ -289,16 +289,63 @@ describe("datorn (schack-dator.js): reservvägen och kön", () => {
     Tyst.sista.onmessage?.({ data: { id: 1, ok: true, resultat: { drag: { from: "e2", to: "e4" } } } }); // sent svar
     d.destroy();
   });
-  // Workern är entrådad: en avbruten fråga tuggar färdigt sin tidsgräns och
-  // nästa fråga köar bakom den (Ångra + nytt drag ⇒ svaret kommer ~1,7 s senare, fyra Ångra
-  // i rad > vakten på 3,35 s ⇒ workern dödas och motorn körs i huvudtråden).
-  test.todo("OPEN F2: avbryt() ska stoppa workern (terminate + ny worker) så att en avbruten sökning inte köar bakom nästa");
+  // F2 (rättad): workern är entrådad och kan inte avbrytas mitt i en sökning, så
+  // avbryt() under pågående tänkande dödar den och startar en ny – nästa fråga
+  // köar inte bakom den gamla sökningens tidsgräns.
+  it("F2: avbryt() medan workern tänker dödar den och startar en ny, så nästa svar kommer direkt", async () => {
+    class Trog {
+      static alla = [];
+      constructor() { Trog.alla.push(this); this.slut = false; }
+      postMessage(d) {
+        // "Sökningen" tar hela tidsgränsen + lite; svaret kommer bara om workern lever.
+        setTimeout(() => { if (!this.slut) this.onmessage?.({ data: { id: d.id, ok: true, resultat: { drag: { from: "e2", to: "e4" }, ms: d.opt.tidsgransMs } } }); }, d.opt.tidsgransMs + 20);
+      }
+      terminate() { this.slut = true; }
+    }
+    const d = skapaDator({ Worker: Trog });
+    const p1 = d.valjDrag(START, { niva: "damen", tidsgransMs: 400 });
+    d.avbryt();
+    await assert.rejects(p1, /avbruten/);
+    assert.equal(Trog.alla.length, 2, "en ny worker startades direkt");
+    assert.equal(Trog.alla[0].slut, true, "den gamla dödades");
+    assert.equal(d.iWorker(), true);
+    const t = performance.now();
+    const r = await d.valjDrag(START, { niva: "damen", tidsgransMs: 100 });
+    assert.ok(performance.now() - t < 300, "svaret köade inte bakom den avbrutna sökningen");
+    assert.deepEqual(r.drag, { from: "e2", to: "e4" });
+    d.destroy();
+  });
 });
 
 describe("motorns slutspel (kvalitet)", () => {
-  // OPEN F3: sökningen ser inte upprepning och har ingen slutspelsvärdering – Damen
-  // med dam mot en ensam kung drar ofta remi på trefaldig upprepning i stället för att mattsätta.
-  test.todo("OPEN F3: Damen mattar en ensam kung med dam inom 40 drag mot en slumpande motståndare (utan trefaldig upprepning)");
+  // F3 (rättad): historiken följer med till motorn (upprepning = remi i sökningen)
+  // och en mop-up-term driver den ensamma kungen mot kanten.
+  const spelaUt = (fen, niva, seed) => {
+    const c = new Chess(fen);
+    const slump = skapaSlump(seed);
+    const farg = c.turn();
+    let n = 0;
+    while (!c.isGameOver() && n < 80) {
+      if (c.turn() === farg) {
+        const r = valjDrag(c.fen(), { niva, seed: 1, historik: { fen, drag: c.history() }, tidsgransMs: 300 });
+        c.move(r.drag);
+      } else {
+        const m = c.moves();
+        c.move(m[Math.floor(slump() * m.length)]);
+      }
+      n++;
+    }
+    return { matt: c.isCheckmate(), upprepning: c.isThreefoldRepetition(), n };
+  };
+  it("F3: Damen mattar en ensam kung med dam inom 40 drag mot en slumpande motståndare (utan trefaldig upprepning)", () => {
+    const r = spelaUt("8/8/8/4k3/8/8/8/Q3K3 w - - 0 1", "damen", 5);
+    assert.ok(r.matt && r.n <= 80, JSON.stringify(r));
+    assert.equal(r.upprepning, false);
+  });
+  it("F3: Tornet mattar med torn mot kung, och en bonde mot kung förvandlas och mattar", () => {
+    assert.ok(spelaUt("8/8/8/4k3/8/8/8/R3K3 w - - 0 1", "tornet", 5).matt);
+    assert.ok(spelaUt("8/8/8/3k4/8/8/4P3/4K3 w - - 0 1", "damen", 5).matt);
+  });
 });
 
 describe("modulen och fokusläget", () => {

@@ -148,6 +148,32 @@ describe("tidsgränsen (§3.1): högst ~1 s per drag, mätt", () => {
   });
 });
 
+describe("slutspel och upprepning (F3)", () => {
+  it("historiken följer med: en ställning som redan stått i partiet värderas som remi och undviks", () => {
+    // Vit dam + kung mot kung: utan historik är Dd1–d2–d1 lika bra som allt annat; med den pressar motorn på.
+    const fen = "8/8/8/4k3/8/8/8/Q3K3 w - - 0 1";
+    const c = new Chess(fen);
+    const slump = skapaSlump(9);
+    let n = 0;
+    while (!c.isGameOver() && n < 80) {
+      if (c.turn() === "w") c.move(valjDrag(c.fen(), { niva: "damen", seed: 1, historik: { fen, drag: c.history() }, tidsgransMs: 250 }).drag);
+      else { const m = c.moves(); c.move(m[Math.floor(slump() * m.length)]); }
+      n++;
+    }
+    assert.ok(c.isCheckmate(), `slutade utan matt efter ${n} halvdrag (${c.isThreefoldRepetition() ? "upprepning" : c.fen()})`);
+  });
+  it("mop-up: den ensamma kungen vid kanten och den egna kungen nära är bättre än mitt på brädet", () => {
+    const kant = utvardera(new Chess("7k/8/5K2/8/8/8/8/Q7 w - - 0 1"));
+    const mitten = utvardera(new Chess("8/8/8/3k4/8/8/8/Q3K3 w - - 0 1"));
+    assert.ok(kant > mitten + 50, `${kant} > ${mitten}`);
+  });
+  it("en trasig historik ignoreras (bara FEN:en används)", () => {
+    const r = valjDrag(MITT, { niva: "tornet", historik: { fen: START, drag: ["e4", "e4", "Qxz9"] } });
+    assert.ok(r && san(MITT, r.drag));
+    assert.ok(new Chess().move(valjDrag(START, { niva: "tornet", historik: { drag: [] } }).drag));
+  });
+});
+
 describe("alla drag är lagliga (slumpade partier per nivå, fast seed)", () => {
   for (const n of NIVAER) {
     it(n.id, () => {

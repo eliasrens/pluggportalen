@@ -8683,6 +8683,31 @@ html:not([data-halloween]) .af-kostym[data-seasonal="halloween"] { display: none
 .schack-ruta-knappar .btn { margin: 0; }
 .schack-geupp-ruta { background: #fdeeee; border-color: #e07777; }
 
+/* Smal skärm (mobil, stående surfplatta): panelen ligger UNDER brädet och rutan
+   skulle hamna utanför synfältet medan brädet är låst (F1). Då visas den som ett
+   fast överlägg nederst i fönstret – synlig utan att skrolla – och en mörk slöja
+   läggs över resten så att det är tydligt att rutan ska besvaras. */
+@media (max-width: 820px) {
+  .schack-parti-varnar::before,
+  .schack-parti-fragar::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--z-toast, 900) - 1);
+    background: rgba(34, 49, 74, 0.35);
+  }
+  .schack-ruta:not([hidden]) {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    z-index: var(--z-toast, 900);
+    max-width: 480px;
+    margin: 0 auto;
+    box-shadow: var(--skugga-mjuk);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .schack-niva, .schack-farg, .schack-niva:hover, .schack-farg:hover { transition: none; transform: none; }
 }

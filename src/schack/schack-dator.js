@@ -89,9 +89,19 @@ export function skapaDator(opt = {}) {
     });
   }
 
-  /** Glöm alla pågående frågor (svaren förkastas) – t.ex. vid Ångra medan datorn tänker. */
+  /**
+   * Glöm alla pågående frågor (svaren förkastas) – t.ex. vid Ångra medan datorn
+   * tänker. Workern är entrådad och kan inte avbrytas mitt i en sökning: tänker
+   * den just nu dödas den och en ny startas direkt (kallstart ~75 ms), så att
+   * nästa fråga inte köar bakom den gamla sökningens tidsgräns (F2).
+   */
   const avbryt = () => {
+    const tankte = vantande.size > 0;
     for (const [id] of [...vantande]) slapp(id, false, new Error("avbruten"));
+    if (tankte && worker) {
+      stang(false);
+      starta();
+    }
   };
 
   return {
