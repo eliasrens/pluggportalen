@@ -16,9 +16,8 @@
 // ============================================================================
 
 import { arFraga, fragetyp } from "./prov-fragetyper.js";
-import { NIVAER, autoForslag, fragaNummer, maxPoang } from "./prov-modell.js";
+import { NIVAER, autoForslag, maxPoang } from "./prov-modell.js";
 import { franHalvor, halvor, klamPoang, summaPoang } from "./prov-poang.js";
-import { arOmprov, elevProvNamn } from "./prov-anpassningar.js";
 
 /** Status per elev (§6.3) – i den ordningen. */
 export const ELEV_STATUS = Object.freeze({ EJ: "ej", DELVIS: "delvis", RATTAD: "rattad", TILLBAKA: "tillbaka" });
@@ -114,13 +113,31 @@ export function kompletteraForslag(r, fragor, svar, facit, stavfel) {
  * Poängen för "Delvis" (#764): halva maxpoängen nedåt till 0,5 – men minst
  * 0,5 (aldrig 0 p, som skulle betyda fel) och högst max − 0,5 (aldrig full
  * poäng, som skulle betyda rätt). En fråga på 0,5 p kan inte ligga emellan –
- * där ger "Delvis" 0,5. max 0 → 0.
+ * där finns ingen "Delvis" i rättningen (#765, delvisMojlig). max 0 → 0.
  */
 export function delvisPoang(max) {
   const m = halvor(max);
   if (m <= 0) return 0;
   const h = Math.max(1, Math.floor(m / 2));
   return franHalvor(m > 1 ? Math.min(h, m - 1) : h);
+}
+
+/**
+ * Finns "Delvis" för frågan (#765)? Inte på en poängsatt fråga värd 0,5 p –
+ * där finns ingen poäng mellan 0 och max, så knappen döljs och tangenten 2
+ * gör inget. Utan poäng (eller max 0) betyder delvis ½ och finns alltid.
+ */
+export const delvisMojlig = (max, poangsatt = true) => !poangsatt || halvor(max) !== 1;
+
+/**
+ * Markeringen som VISAS för en bedömd post (#765): på ett poängsatt prov är
+ * full poäng alltid "rätt" – även en gammal "delvis" med 0,5 av 0,5 p – så
+ * att statistiken aldrig visar en gul ½-cell för en elev som fick 100 %.
+ */
+export function visadRatt(post, max, poangsatt = true) {
+  const m = halvor(max);
+  if (poangsatt && m > 0 && post?.ratt === "delvis" && halvor(post.poang) >= m) return true;
+  return post?.ratt;
 }
 
 /** Poängen som följer en bedömning: rätt = max, fel = 0, delvis = delvisPoang (eller tidigare delpoäng). */
@@ -358,38 +375,3 @@ export function sparDok(r, fragor, provInfo = null) {
 }
 
 export const nivaNamn = (id) => NIVAER.find((n) => n.id === id)?.namn || "";
-
-/**
- * Elevens resultat (§7 "Elevens resultatvy"): null tills provet lämnats
- * tillbaka. Facit finns bara om läraren valde att visa det (rattning.facit).
- * @param {object} tf   tillfället (frågorna utan facit)
- * @param {object|null} svarDok  elevens svar-dokument
- * @param {object|null} r  elevens rättning
- */
-export function resultatModell(tf, svarDok, r) {
-  if (!r || r.aterlamnad !== true) return null;
-  const fragor = tf?.fragor || [];
-  const nr = fragaNummer(fragor);
-  const poangsatt = tf?.installningar?.poang !== false;
-  const visaFacit = !!r.facit && Object.keys(r.facit).length > 0;
-  const summa = summera(r, fragor);
-  return {
-    namn: tf ? elevProvNamn(tf) : r.provNamn || "Prov",
-    omprov: arOmprov(tf),
-    poangsatt,
-    totalPoang: summa.totalPoang,
-    maxPoang: summa.maxPoang,
-    niva: r.niva || null,
-    nivaNamn: nivaNamn(r.niva),
-    helhetskommentar: r.helhetskommentar || "",
-    mynt: Number.isInteger(r.myntUtbetalt) && r.myntUtbetalt > 0 ? r.myntUtbetalt : 0,
-    visaFacit,
-    poster: fragor.map((f) => ({
-      fraga: f,
-      nr: nr[f.id] ?? null,
-      svar: svarDok?.svar?.[f.id],
-      post: arFraga(f) ? r.fragor?.[f.id] || null : null,
-      facit: visaFacit ? r.facit[f.id] ?? null : null,
-    })),
-  };
-}

@@ -7,6 +7,8 @@
 // max – för frågor över 6 p knapparna − och + i stället. Aldrig > max eller < 0.
 // Fritext: poängkriterierna (#762) bredvid svaret. Kortsvar/luckor: "Godkänn
 // även 'Björkö'" (facit i efterhand). Rättat av "Rätta alla" = etiketten "Auto".
+// En poängsatt fråga värd 0,5 p har ingen "Delvis" (#765, delvisMojlig): det
+// finns ingen poäng mellan 0 och max – knappen saknas och tangenten 2 gör inget.
 //
 //   const k = rattaKort({ ... }); k.el, k.rita(), k.bedom(ratt), k.stega(±1)
 // Kortet är fokuserbart (tabindex 0): sidan låter 1/2/3 bedöma kortet i fokus,
@@ -14,7 +16,7 @@
 // ============================================================================
 
 import { fragetyp } from "./prov-fragetyper.js";
-import { BEDOMNINGAR, arAutoRattad, arForslag, bedomning, tolkaPoang } from "./prov-rattning-logik.js";
+import { BEDOMNINGAR, arAutoRattad, arForslag, bedomning, delvisMojlig, tolkaPoang, visadRatt } from "./prov-rattning-logik.js";
 import { h } from "./prov-vy.js";
 import { franHalvor, halvor, klamPoang, poangTal as poangText } from "./prov-poang.js";
 
@@ -63,7 +65,9 @@ export function rattaKort(o) {
   const papper = h("div", { class: "provv-rot provl-r-papper" },
     typ.renderRattning(o.fraga, o.svar, { facit: o.facit, facitRad: o.facitRad === true }));
   const lageEl = h("span", { class: "provl-r-lage" });
-  const knappar = BEDOMNINGAR.map((b) => h("button", {
+  const delvisOk = delvisMojlig(max, o.poangsatt);
+  const bedomningar = BEDOMNINGAR.filter((b) => delvisOk || b.ratt !== "delvis");
+  const knappar = bedomningar.map((b) => h("button", {
     type: "button", class: `provl-r-b provl-r-b-${b.id}`, tabindex: "-1", "aria-pressed": "false",
     title: `${b.namn} (${b.tangent})`, on: { click: () => bedom(b.ratt) },
   }, h("span", { class: "provl-r-b-ikon", "aria-hidden": "true", text: b.ikon }), h("span", { text: b.namn }), h("kbd", { text: b.tangent })));
@@ -128,7 +132,7 @@ export function rattaKort(o) {
     kontroller, tillagg || "", lastText);
 
   function bedom(ratt) {
-    if (o.lage().last) return;
+    if (o.lage().last || (ratt === "delvis" && !delvisOk)) return;
     o.onAndring({ ratt });
     rita();
   }
@@ -146,7 +150,8 @@ export function rattaKort(o) {
 
   function rita() {
     const { post, blandat, last } = o.lage();
-    const b = bedomning(post?.ratt);
+    const visad = post ? visadRatt(post, max, o.poangsatt) : undefined; // full poäng = rätt (#765)
+    const b = bedomning(visad);
     const forslag = arForslag(post);
     const autoRattad = !blandat && arAutoRattad(post);
     el.classList.toggle("provl-r-forslag", forslag);
@@ -161,7 +166,7 @@ export function rattaKort(o) {
           autoRattad ? h("span", { class: "provl-r-auto", title: "Rättad automatiskt – du kan ändra som vanligt", text: "Auto" }) : null)
           : h("span", { class: "provl-r-tagg provl-r-tagg-ej", text: "? Inte rättad" }));
     knappar.forEach((k, i) => {
-      const valt = !blandat && !!post && post.ratt === BEDOMNINGAR[i].ratt;
+      const valt = !blandat && !!post && visad === bedomningar[i].ratt;
       k.setAttribute("aria-pressed", valt && !forslag ? "true" : "false");
       k.classList.toggle("provl-r-b-forslag", valt && forslag);
       k.disabled = last;

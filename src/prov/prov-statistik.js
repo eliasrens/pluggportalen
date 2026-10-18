@@ -7,7 +7,9 @@
 //   granserFor(installningar)       provets/tillfällets färggränser, annars 60/85 (#759)
 //   fargFor(andel, granser)         gron (≥ 85 %) / gul (60–84 %) / rod (< 60 %)
 //   klassOversikt({ … })            fliken Översikt: rutnätet, räknaren, snittet,
-//                                   de tre svåraste frågorna
+//                                   de tre svåraste frågorna, poäng per avsnitt (#765)
+//   avsnittFor(r, avsnitt, …)       en elevs poäng per avsnitt (#765)
+//   avsnittText(a, poangsatt)       "Del 1: 8 av 10" (elev) / "Del 1: 7,3 av 10" (klassens snitt)
 //   provInfoDok(r, fragor, tf)      det som sparas i rättningen för statistik-
 //                                   fliken "Prov" (datum, gränser, andel)
 //   historik(rattningar)            fliken "Prov" i klassens statistik: klassens
@@ -16,15 +18,16 @@
 // Obesvarade och orättade frågor räknas INTE som fel förrän läraren bedömt
 // dem: andelen räknas bara över bedömda frågor (ett förslag är inte bedömt,
 // en autorättad fråga från "Rätta alla" är det, #764).
-// Utan poäng räknas andelen rätt, där "delvis" = ½.
+// Utan poäng räknas andelen rätt, där "delvis" = ½. Full poäng visas alltid
+// som rätt (#765, visadRatt) – 0,5 av 0,5 p är aldrig en gul ½-cell.
 // ============================================================================
 
 import { fragetyp } from "./prov-fragetyper.js";
 import { STANDARD_INSTALLNINGAR, granserOk } from "./prov-validera.js";
 
 export { granserText } from "./prov-validera.js";
-import { arBedomd, bedomning, elevStatus, nivaNamn, rattFragor } from "./prov-rattning-logik.js";
-import { fragaNummer } from "./prov-modell.js";
+import { arBedomd, bedomning, elevStatus, nivaNamn, rattFragor, visadRatt } from "./prov-rattning-logik.js";
+import { fragaNummer, poangAvsnitt } from "./prov-modell.js";
 import { tillMs } from "./prov-tillfalle-logik.js";
 import { franHalvor, halvor, poangTal } from "./prov-poang.js";
 
@@ -78,9 +81,15 @@ export function fargFor(andel, granser = STANDARD_INSTALLNINGAR.granser) {
 /** "75 %" – avrundat för visning (färgen räknas på den exakta andelen). */
 export const procent = (andel) => (andel == null ? "" : `${Math.round(andel * 100)} %`);
 
-/** En fråga hos en elev: bedömd → ratt/delvis/fel, annars obesvarad eller ej rättad. */
-export function cellLage(post, svar, fraga) {
-  if (arBedomd(post)) return bedomning(post.ratt).id;
+/** Ett snitt med en decimal och decimalkomma: 7.333 → "7,3", 8 → "8" (#765). */
+export const snittTal = (x) => String(Math.round((Number(x) || 0) * 10) / 10).replace(".", ",");
+
+/**
+ * En fråga hos en elev: bedömd → ratt/delvis/fel, annars obesvarad eller ej
+ * rättad. Poängsatt: full poäng = rätt (#765).
+ */
+export function cellLage(post, svar, fraga, poangsatt = true) {
+  if (arBedomd(post)) return bedomning(visadRatt(post, fraga.poang, poangsatt)).id;
   const typ = fragetyp(fraga.typ);
   return typ && !typ.arBesvarad(svar, fraga) ? CELL.OBESVARAD : CELL.EJ;
 }
@@ -112,6 +121,58 @@ export function andelFor(r, fragor, poangsatt) {
     m += halvor(b.m);
   }
   return { andel: m > 0 ? p / m : null, poang: franHalvor(p), max: franHalvor(m), bedomda: bedomda.length, antal: lista.length };
+}
+
+/**
+ * En elevs poäng per avsnitt (#765) – andelFor över avsnittets frågor, med
+ * avsnittets färg. poang/max är de BEDÖMDA frågornas (som totalen), maxAvsnitt
+ * hela avsnittets maxpoäng.
+ * @param {ReturnType<typeof poangAvsnitt>} avsnitt
+ */
+export function avsnittFor(r, avsnitt, poangsatt, granser) {
+  return avsnitt.map((a) => {
+    const res = andelFor(r, a.fragor, poangsatt);
+    return { id: a.id, titel: a.titel, ...res, maxAvsnitt: a.maxPoang, farg: fargFor(res.andel, granser) };
+  });
+}
+
+/**
+ * Klassens poäng per avsnitt (#765): andelen av poängen bland de bedömda
+ * svaren (som "Per fråga"), och snittpoängen = andelen × avsnittets max –
+ * när alla är rättade exakt elevernas medelpoäng.
+ */
+function klassAvsnitt(avsnitt, rader, poangsatt, granser) {
+  return avsnitt.map((a, i) => {
+    let p = 0;
+    let m = 0;
+    let bedomda = 0;
+    for (const rad of rader) {
+      const e = rad.avsnitt[i];
+      if (e.andel == null) continue;
+      p += halvor(e.poang);
+      m += halvor(e.max);
+      bedomda++;
+    }
+    const andel = m > 0 ? p / m : null;
+    return {
+      id: a.id, titel: a.titel, andel, farg: fargFor(andel, granser), bedomda, antal: a.fragor.length,
+      maxAvsnitt: a.maxPoang, snittPoang: andel == null || !poangsatt ? null : andel * a.maxPoang,
+    };
+  });
+}
+
+/**
+ * "Del 1: 8 av 10" för en elev, "Del 1: 7,3 av 10" för klassens snitt
+ * (snittPoang), utan poäng "Del 1: 75 %"; "Del 1: ej rättat" om inget bedömt.
+ */
+export const avsnittText = (a, poangsatt) => `${a.titel}: ${avsnittVarde(a, poangsatt)}`;
+
+/** Bara värdet: "8 av 10" / "7,3 av 10" / "75 %" / "ej rättat". */
+export function avsnittVarde(a, poangsatt) {
+  if (a.andel == null) return "ej rättat";
+  if (!poangsatt) return procent(a.andel);
+  if (a.snittPoang !== undefined) return `${snittTal(a.snittPoang)} av ${poangTal(a.maxAvsnitt)}`;
+  return a.max ? `${poangTal(a.poang)} av ${poangTal(a.max)}` : procent(a.andel);
 }
 
 /** Snittet av andelarna (null-andelar räknas inte). */
@@ -149,13 +210,15 @@ export function klassOversikt({ fragor, med, namn = {}, svarAv, rattningar, inst
   const nr = fragaNummer(fragor);
   const poangsatt = installningar?.poang !== false;
   const granser = granserFor(installningar);
+  const avsnitt = poangAvsnitt(fragor);
   const rader = med.map((uid) => {
     const r = rattningar[uid] || null;
     const res = andelFor(r, fragor, poangsatt);
     return {
       id: uid,
       namn: namn[uid] || uid,
-      celler: rf.map((f) => ({ fid: f.id, lage: cellLage(r?.fragor?.[f.id], svarAv(uid, f.id), f) })),
+      celler: rf.map((f) => ({ fid: f.id, lage: cellLage(r?.fragor?.[f.id], svarAv(uid, f.id), f, poangsatt) })),
+      avsnitt: avsnittFor(r, avsnitt, poangsatt, granser),
       ...res,
       farg: fargFor(res.andel, granser),
       niva: r?.niva || null,
@@ -183,6 +246,7 @@ export function klassOversikt({ fragor, med, namn = {}, svarAv, rattningar, inst
   const andelar = rader.map((r) => r.andel);
   return {
     rader, fragaSumma, svarast, granser, poangsatt,
+    avsnitt: klassAvsnitt(avsnitt, rader, poangsatt, granser),
     raknare: fordelning(andelar, granser),
     snitt: snitt(andelar),
   };

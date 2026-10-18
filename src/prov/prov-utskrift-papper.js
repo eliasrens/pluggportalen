@@ -8,11 +8,13 @@
 //   provSidor(o)       → [HTMLElement] provets sidor (rubrik + namnrad + frågor)
 //   facitSida(o)       → HTMLElement facit (nummer → rätt svar / bedömningsstöd)
 //   skrivlinjer(n)     → n tomma linjer
+// Avsnitt (#765): rubriken med avsnittets poäng ("Del 1 – Begrepp (8 p)"),
+// facit grupperat per avsnitt; frågorna numreras löpande, decimalkomma.
 // CSS: prov-utskrift.css (.provl-ut-).
 // ============================================================================
 
 import { fragetyp } from "./prov-fragetyper.js";
-import { fragaNummer, maxPoang } from "./prov-modell.js";
+import { avsnittsGrupper, fragaNummer, maxPoang } from "./prov-modell.js";
 import { h, stycken } from "./prov-vy.js";
 import { poangP } from "./prov-poang.js";
 
@@ -50,12 +52,19 @@ const PAPPER = {
   fritext: (f) => [skrivlinjer(Math.min(16, Math.max(6, 4 + 2 * (Number(f.poang) || 1))))],
 };
 
-/** En fråga, ett textblock eller ett avsnitt (#762) på papper. */
-function pappersFraga(f, nr, poangsatt) {
+/** Avsnittens maxpoäng per avsnitts-id (#765) – bara avsnitt med frågor. */
+export function avsnittMax(fragor) {
+  return new Map(avsnittsGrupper(fragor).filter((g) => g.avsnitt && g.fragor.length).map((g) => [g.avsnitt.id, g.maxPoang]));
+}
+
+/** En fråga, ett textblock eller ett avsnitt (#762) på papper. avMax = avsnittets maxpoäng (#765). */
+function pappersFraga(f, nr, poangsatt, avMax) {
   const typ = fragetyp(f.typ);
   if (f.typ === "avsnitt") {
     return h("section", { class: "provl-ut-avsnitt" },
-      h("h2", { class: "provl-ut-avsnitt-titel", text: f.titel || "" }), f.instruktion ? stycken(f.instruktion, "provl-ut-instr") : null);
+      h("h2", { class: "provl-ut-avsnitt-titel" }, f.titel || "",
+        poangsatt && avMax ? h("span", { class: "provl-ut-p", text: ` (${poangText(avMax)})` }) : null),
+      f.instruktion ? stycken(f.instruktion, "provl-ut-instr") : null);
   }
   if (typ?.arFraga === false) {
     return h("section", { class: "provl-ut-textblock" },
@@ -86,12 +95,13 @@ export function namnrad(klassNamn) {
 export function provSidor({ namn, klassNamn, fragor, poangsatt = true }) {
   const nr = fragaNummer(fragor);
   const max = maxPoang(fragor);
+  const avMax = avsnittMax(fragor);
   return [h("article", { class: "provv-rot provl-ut-sida" },
     h("header", { class: "provl-ut-huvud" },
       h("h1", { class: "provl-ut-titel", text: namn || "Prov" }),
       namnrad(klassNamn),
       poangsatt && max ? h("p", { class: "provl-ut-max", text: `Provet ger högst ${poangText(max)}.` }) : null),
-    h("div", { class: "provl-ut-fragor" }, fragor.map((f) => pappersFraga(f, nr[f.id], poangsatt))))];
+    h("div", { class: "provl-ut-fragor" }, fragor.map((f) => pappersFraga(f, nr[f.id], poangsatt, avMax.get(f.id)))))];
 }
 
 /** Facit för en fråga som text; para får bokstäverna från pappret. */
@@ -111,11 +121,16 @@ function facitFor(f, facit, stod, krit) {
  */
 export function facitSida({ namn, fragor, facit = {}, bedomningsstod = {}, kriterier = {}, poangsatt = true }) {
   const nr = fragaNummer(fragor);
+  // Grupperat per avsnitt (#765) – ett prov utan avsnitt är en grupp utan rubrik, som förut.
+  const grupper = avsnittsGrupper(fragor).filter((g) => g.fragor.length);
   return h("article", { class: "provv-rot provl-ut-sida provl-ut-facitsida" },
     h("header", { class: "provl-ut-huvud" }, h("h1", { class: "provl-ut-titel", text: `Facit – ${namn || "Prov"}` }),
       h("p", { class: "provl-ut-max", text: "Till läraren. Dela inte ut det här bladet." })),
-    h("ol", { class: "provl-ut-facit" }, fragor.filter((f) => nr[f.id] != null).map((f) => h("li", { value: String(nr[f.id]) },
-      h("span", { class: "provl-ut-facit-fraga", text: kort(f.fraga) }),
-      poangsatt ? h("span", { class: "provl-ut-p", text: ` (${poangText(f.poang ?? 0)})` }) : null,
-      h("span", { class: "provl-ut-facit-svar", text: facitFor(f, facit[f.id], bedomningsstod[f.id], kriterier[f.id]) })))));
+    grupper.flatMap((g) => [
+      g.avsnitt ? h("h2", { class: "provl-ut-avsnitt provl-ut-avsnitt-titel" }, g.avsnitt.titel || "",
+        poangsatt ? h("span", { class: "provl-ut-p", text: ` (${poangText(g.maxPoang)})` }) : null) : null,
+      h("ol", { class: "provl-ut-facit" }, g.fragor.map((f) => h("li", { value: String(nr[f.id]) },
+        h("span", { class: "provl-ut-facit-fraga", text: kort(f.fraga) }),
+        poangsatt ? h("span", { class: "provl-ut-p", text: ` (${poangText(f.poang ?? 0)})` }) : null,
+        h("span", { class: "provl-ut-facit-svar", text: facitFor(f, facit[f.id], bedomningsstod[f.id], kriterier[f.id]) }))))]));
 }

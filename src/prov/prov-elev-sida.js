@@ -14,7 +14,7 @@ import { serverNow } from "../data-class-lock.js";
 import { arFraga } from "./prov-fragetyper.js";
 import { renderaProv } from "./prov-elev-vy.js";
 import { hamtaMinRattning, hamtaMittSvar, hamtaTillfalle, lamnaIn, sparaSvar, startaProv } from "./prov-elev-data.js";
-import { resultatModell } from "./prov-rattning-logik.js";
+import { resultatModell } from "./prov-resultat-modell.js";
 import { arSlutgiltigtFel, skapaSparare } from "./prov-sparning.js";
 import {
   elevLage, kvarNiva, kvarText, lokalNyckel, slutTid, tillMs, valjStartSvar,

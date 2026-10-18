@@ -17,6 +17,9 @@
       ?nollstall i adressen = börja om (rättningen sparas i localStorage).
       #759: ?stavfel=sjalv (Rätta stavfel själv), ?granser=50-75 (egna färggränser),
       ?gammalt (tillfälle utan fälten → standarden auto, 60/85) – länkar i kontrollraden.
+      #765: ?avsnitt = provet i tre avsnitt med halvpoäng och poängkriterier:
+        poäng per avsnitt i Översikten, elevvyn, den fördjupade statistiken och
+        utskrifterna; #/elev/resultat?e=e0 = elevens resultatvy (tillbakalämnad).
     -->
     <script type="importmap">
       {
@@ -28,7 +31,8 @@
           "/src/data-content.js": "/preview/prov-statistik-stubs/data-content.js",
           "/src/prov/prov-tillfalle-data.js": "/preview/prov-statistik-stubs/prov-tillfalle-data.js",
           "/src/prov/prov-rattning-data.js": "/preview/prov-statistik-stubs/prov-rattning-data.js",
-          "/src/prov/prov-statistik-data.js": "/preview/prov-statistik-stubs/prov-statistik-data.js"
+          "/src/prov/prov-statistik-data.js": "/preview/prov-statistik-stubs/prov-statistik-data.js",
+          "/src/prov/prov-jamfor-data.js": "/preview/prov-fordjupad-stubs/prov-jamfor-data.js"
         }
       }
     </script>
@@ -44,6 +48,9 @@
       <a href="#/larare/prov/ratta?t=tf-s">Rätta</a>
       <a href="#/larare/prov/tillfallen">Provtillfällen</a>
       <a href="#/statistik">Klassens statistik → Prov</a>
+      <a href="#/elev/resultat?e=e0">Elevresultat (Alva)</a>
+      <span>#765: <a href="?avsnitt#/larare/prov/ratta?t=tf-s&lage=oversikt">Med avsnitt + halvpoäng</a> ·
+        <a href="?#/larare/prov/ratta?t=tf-s&lage=oversikt">Utan avsnitt (gammalt)</a></span>
       <label><input type="checkbox" id="pv-natfel" /> nätfel</label>
       <a href="?nollstall#/larare/prov/ratta?t=tf-s&lage=oversikt" id="pv-borja-om">Börja om</a>
       <span id="pv-759"></span>
@@ -78,9 +85,19 @@
         const students = S.klasser[0].studentIds.map((id) => ({ id, namn: S.namn[id] }));
         (await import("/src/prov/prov-klass-statistik.js")).renderClassProv(ctx, pane, { classId: "4b", students });
       }
+      // #765: elevens resultatvy för en tillbakalämnad elev (som prov-elev-sida.js visar den).
+      async function elevResultat() {
+        const e = new URLSearchParams(location.hash.split("?")[1] || "").get("e") || "e0";
+        const [{ resultatModell }, { renderaResultat }] = await Promise.all([
+          import("/src/prov/prov-resultat-modell.js"), import("/src/prov/prov-resultat-vy.js")]);
+        const m = resultatModell(S.tf, S.svar[e], S.rattning[e]);
+        if (!m) return app.replaceChildren(Object.assign(document.createElement("p"), { className: "msg", textContent: `${S.namn[e]} har inte fått tillbaka provet (bara e0–e4).` }));
+        app.replaceChildren(renderaResultat(m, { datum: "Skrivet igår", tillbakaHref: "#/larare/prov/ratta?t=tf-s&lage=oversikt" }));
+      }
       const router = () => {
         const path = (location.hash || "").slice(1).split("?")[0];
         if (path === "/statistik") return statistik();
+        if (path === "/elev/resultat") return elevResultat();
         (path === "/larare/prov/tillfallen" ? pageProvTillfallen : pageProvRatta)(ctx);
       };
       window.addEventListener("hashchange", router);

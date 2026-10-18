@@ -95,6 +95,23 @@ export function avsnittsGrupper(fragor) {
   return grupper.map((g) => ({ ...g, maxPoang: maxPoang(g.fragor) }));
 }
 
+// Frågor före första avsnittet (#765) – gruppens namn i statistik och resultat.
+export const UTAN_AVSNITT = "Inledning";
+
+/**
+ * Avsnitten som poäng räknas för (#765, §2.3 "Del 1: 8 av 10 · Del 2: 9,5 av 14"):
+ * avsnittsGrupper med minst en fråga, med titel. [] när provet saknar avsnitt –
+ * ett gammalt prov ser då ut som förut.
+ * @returns {{ id: string, titel: string, fragor: object[], maxPoang: number }[]}
+ */
+export function poangAvsnitt(fragor) {
+  const grupper = avsnittsGrupper(fragor).filter((g) => g.fragor.length);
+  if (!grupper.some((g) => g.avsnitt)) return [];
+  return grupper.map((g) => ({
+    id: g.avsnitt?.id ?? "", titel: g.avsnitt ? g.avsnitt.titel || "Avsnitt" : UTAN_AVSNITT, fragor: g.fragor, maxPoang: g.maxPoang,
+  }));
+}
+
 /** Frågornas nummer som eleven ser dem: { [fragaId]: 1, … } – löpande genom hela provet (textblock och avsnitt saknas). */
 export function fragaNummer(fragor) {
   const nr = {};

@@ -3,9 +3,10 @@
 // i rättningsvyn – laddas med import() när fliken ritas (#271).
 //
 //   verktyg(v)              Exportera CSV · Skriv ut provet · Skriv ut resultat
-//   sektioner(v, m)         staplar per fråga (svårast först), fördelningen av
-//                           totalen och nivåerna, jämförelsen med lärarens
-//                           andra klasser (läses först på knapptryck)
+//   sektioner(v, m)         poäng per avsnitt (#765, bara med avsnitt), staplar
+//                           per fråga (svårast först), fördelningen av totalen
+//                           och nivåerna, jämförelsen med lärarens andra klasser
+//                           (läses först på knapptryck, grupperad per avsnitt)
 //   skrivUtElever(v, uids)  "Skriv ut resultat" för en eller flera elever
 // Allt utom jämförelsen räknas ur det rättningsvyn redan läst (v.lager,
 // v.svarAv, v.fragor): inga extra läsningar. Färg har alltid symbol + text.
@@ -13,7 +14,7 @@
 // CSS: prov-statistik.css (.provl-st-).
 // ============================================================================
 
-import { CELL_INFO, FARG_INFO, fargFor, procent } from "./prov-statistik.js";
+import { CELL_INFO, FARG_INFO, avsnittVarde, fargFor, procent } from "./prov-statistik.js";
 import { csvFilnamn, jamforKlasser, nivaFordelning, perFragaStaplar, poangFordelning, resultatCsv } from "./prov-statistik-fordjupad.js";
 import { fordelningEl } from "./prov-stat-vy.js";
 import { tillMs } from "./prov-tillfalle-logik.js";
@@ -54,7 +55,8 @@ export function exporteraCsv(v) {
 export async function skrivUtProvet(v) {
   const { skrivUtProv } = await import("./prov-utskrift.js");
   return skrivUtProv({
-    namn: v.tf.provNamn, klassNamn: v.tf.klassNamn, fragor: v.fragor, facit: v.facit, bedomningsstod: v.bedomningsstod, poangsatt: v.poangsatt,
+    namn: v.tf.provNamn, klassNamn: v.tf.klassNamn, fragor: v.fragor, facit: v.facit, bedomningsstod: v.bedomningsstod,
+    kriterier: v.kriterier, poangsatt: v.poangsatt,
   });
 }
 
@@ -63,7 +65,7 @@ export async function skrivUtElever(v, uids) {
   const elever = uids.map((uid) => ({ namn: riktigtNamn(v, uid), r: v.lager.rattningar[uid] || null, svar: Object.fromEntries(v.rf.map((f) => [f.id, v.svarAv(uid, f.id)])) }))
     .sort((a, b) => a.namn.localeCompare(b.namn, "sv"));
   return skrivUtResultat({
-    namn: v.tf.provNamn, klassNamn: v.tf.klassNamn, datum: datumText(tillMs(v.tf.oppnad)), fragor: v.fragor, facit: v.facit,
+    namn: v.tf.provNamn, klassNamn: v.tf.klassNamn, datum: datumText(tillMs(v.tf.oppnad)), fragor: v.fragor, facit: v.facit, kriterier: v.kriterier,
     installningar: { ...v.tf.installningar, granser: v.granser() }, elever,
   });
 }
@@ -94,11 +96,29 @@ function perFragaSektion(v, m) {
     h("p", { class: "hint", text: "Hur många elever som fick rätt, delvis rätt och fel på varje fråga. Procenten är andelen av poängen bland de bedömda svaren. Klicka på en fråga för att rätta den." }),
     h("ol", { class: "provl-st-staplar" }, staplar.map((s) => h("li", { class: "provl-st-stapelrad" },
       h("button", { type: "button", class: "provl-st-stapel-namn", title: `Rätta fråga ${s.nr}`, on: { click: () => v.oppnaFraga(s.fid) } },
-        h("b", { text: `Fråga ${s.nr}` }), h("span", { class: "provl-st-stapel-text", text: s.text })),
+        h("b", { text: `Fråga ${s.nr}` }), s.avsnitt ? h("span", { class: "provl-st-stapel-avsnitt", title: s.avsnitt, text: s.avsnitt }) : null,
+        h("span", { class: "provl-st-stapel-text", text: s.text })),
       stapel(s),
       andelBricka(s.andel, s.farg)))),
     h("p", { class: "provl-st-forklaring hint" }, SEGMENT.map((k) => h("span", { class: "provl-st-forkl" },
       h("span", { class: `provl-st-seg-prov provl-st-seg-${k}`, "aria-hidden": "true", text: CELL_INFO[k].ikon }), ` ${CELL_INFO[k].namn}`))));
+}
+
+// --- per avsnitt (#765) ----------------------------------------------------------------
+
+function avsnittSektion(v, m) {
+  if (!m.avsnitt.length) return null;
+  return h("section", { class: "panel provl-st-sektion", "aria-labelledby": "provl-st-pa" },
+    h("h3", { class: "provl-st-rubrik", id: "provl-st-pa", text: "Per avsnitt" }),
+    h("p", { class: "hint", text: m.poangsatt
+      ? "Klassens snittpoäng i varje avsnitt – var det faktakunskaperna eller skrivandet som var svårt? Procenten är andelen av poängen bland de bedömda svaren."
+      : "Andelen rätt i varje avsnitt bland de bedömda svaren." }),
+    h("ul", { class: "provl-st-avsnittlista" }, m.avsnitt.map((a) => h("li", { class: "provl-st-avsnittrad" },
+      h("span", { class: "provl-st-avsnittrad-namn" }, h("b", { text: a.titel }),
+        h("span", { class: "hint", text: ` ${a.antal} ${a.antal === 1 ? "fråga" : "frågor"}` })),
+      h("span", { class: "provl-st-avsnittrad-snitt", text: avsnittVarde(a, m.poangsatt) }),
+      h("span", { class: "provl-st-nivastapel" }, h("span", { class: `provl-st-avsnittfyll provl-st-${a.farg || "ej"}`, style: `width: ${Math.round((a.andel || 0) * 100)}%` })),
+      andelBricka(a.andel, a.farg)))));
 }
 
 // --- fördelningen ------------------------------------------------------------------
@@ -140,8 +160,16 @@ function jamforTabell(v, m, andra) {
         h("tr", {}, th("Elever (rättade)"), j.kolumner.map((k) => h("td", { text: `${k.antal} (${k.rattade})` }))),
         h("tr", {}, th("Snitt"), j.kolumner.map((k) => h("td", {}, andelBricka(k.snitt, k.farg)))),
         h("tr", {}, th("Fördelning"), j.kolumner.map((k) => h("td", { class: "provl-st-ford" }, fordelningEl(k.fordelning)))),
-        j.perFraga.map((f) => h("tr", {}, th(`Fråga ${f.nr}`, { title: f.text }),
+        jamforRader(j).map((f) => h("tr", { class: f.avsnitt ? "provl-st-jamfor-avsnitt" : null },
+          th(f.avsnitt ? f.titel : `Fråga ${f.nr}`, { title: f.avsnitt ? `${f.titel}: snittet i avsnittet` : f.text }),
           f.andelar.map((a) => h("td", {}, andelBricka(a, fargFor(a, j.granser)))))))));
+}
+
+/** Frågeraderna – med avsnitt (#765) först avsnittets rad (snittet), sedan dess frågor. */
+function jamforRader(j) {
+  if (!j.avsnitt.length) return j.perFraga;
+  const perId = new Map(j.perFraga.map((f) => [f.fid, f]));
+  return j.avsnitt.flatMap((a) => [{ avsnitt: true, titel: a.titel, andelar: a.andelar }, ...a.fids.map((id) => perId.get(id)).filter(Boolean)]);
 }
 
 function jamforSektion(v, m) {
@@ -173,5 +201,5 @@ function jamforSektion(v, m) {
 }
 
 export function sektioner(v, m) {
-  return [perFragaSektion(v, m), fordelningSektion(v, m), jamforSektion(v, m)];
+  return [avsnittSektion(v, m), perFragaSektion(v, m), fordelningSektion(v, m), jamforSektion(v, m)].filter(Boolean);
 }
