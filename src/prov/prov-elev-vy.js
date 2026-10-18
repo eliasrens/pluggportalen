@@ -158,6 +158,11 @@ export function renderaProv(o) {
   const el = h("div", { class: "provv-sida" },
     topp,
     h("div", { class: "provv-kropp" }, lista, h("main", { class: "provv-huvud" }, huvud, fot)));
+  // Frågelistans hopp ska landa under den klistrade toppen, vars höjd varierar
+  // (telefon, "Provet ger högst …", tiden) – CSS:ens scroll-margin-top läser den.
+  if (typeof ResizeObserver === "function") {
+    new ResizeObserver(() => el.style.setProperty("--provv-topp-h", `${Math.ceil(topp.offsetHeight)}px`)).observe(topp);
+  }
 
   return {
     el,

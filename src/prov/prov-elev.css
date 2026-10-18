@@ -145,7 +145,8 @@
 .provv-textblock {
   padding: 22px 0;
   border-bottom: 1px solid var(--provv-kant);
-  scroll-margin-top: 80px;
+  /* Under den klistrade toppen (höjden mäts i prov-elev-vy.js, #762 – på en telefon ~150 px). */
+  scroll-margin-top: calc(var(--provv-topp-h, 68px) + 12px);
 }
 .provv-fraga-huvud { display: flex; align-items: flex-start; gap: 14px; }
 .provv-nr {
@@ -175,7 +176,8 @@
 .provv-avsnitt {
   padding: 26px 0 10px;
   border-bottom: 2px solid var(--provv-accent);
-  scroll-margin-top: 80px;
+  /* Under den klistrade toppen (höjden mäts i prov-elev-vy.js, #762 – på en telefon ~150 px). */
+  scroll-margin-top: calc(var(--provv-topp-h, 68px) + 12px);
 }
 .provv-avsnitt-titel { margin: 0; font-size: 1.3rem; line-height: 1.3; }
 .provv-avsnitt-instruktion { margin-top: 6px; color: var(--provv-svag); }

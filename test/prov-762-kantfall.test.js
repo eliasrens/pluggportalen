@@ -240,7 +240,9 @@ describe("rättningsvyns snabbknappar med halvpoängsmax (#764 §6.1)", () => {
     assert.deepEqual(snabbPoang(3), [0, 1, 2, 3]);
     assert.deepEqual(snabbPoang(8), [0, 4, 8]);
   });
-  it("maxpoängen finns alltid som knapp (0,5 → [0, 0,5]; 3,5 → … 3,5)", { todo: "F1: snabbPoang(3.5) = [0,1,2,3], snabbPoang(0.5) = [0] – #764 bygger om knapparna (0, ½, 1 … max)" }, () => {
-    for (const max of [0.5, 1.5, 3.5, 5.5]) assert.equal(snabbPoang(max).at(-1), max, `max ${max}`);
+  it("maxpoängen finns alltid som knapp (0,5 → [0, 0,5]; 3,5 → … 3,5)", () => {
+    for (const max of [0.5, 1.5, 3.5, 5.5, 7.5]) assert.equal(snabbPoang(max).at(-1), max, `max ${max}`);
+    assert.deepEqual(snabbPoang(0.5), [0, 0.5]);
+    assert.deepEqual(snabbPoang(3.5), [0, 1, 2, 3, 3.5]);
   });
 });

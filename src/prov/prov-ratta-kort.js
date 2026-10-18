@@ -14,11 +14,15 @@ import { BEDOMNINGAR, arForslag, bedomning, tolkaPoang } from "./prov-rattning-l
 import { h } from "./prov-vy.js";
 import { poangTal as poangText } from "./prov-poang.js";
 
-/** Snabbknapparna (§6.1): 0 … max, och halva/max för stora frågor. */
+/**
+ * Snabbknapparna (§6.1): 0, 1 … max, och halva/max för stora frågor. Max finns
+ * alltid som knapp, också med halvpoäng (3,5 → 0, 1, 2, 3, 3,5 – #762).
+ */
 export function snabbPoang(max) {
   if (max <= 0) return [];
-  if (max <= 6) return Array.from({ length: max + 1 }, (_, i) => i);
-  return [0, Math.round(max / 2), max];
+  if (max > 6) return [0, Math.round(max / 2), max];
+  const hela = Array.from({ length: Math.floor(max) + 1 }, (_, i) => i);
+  return hela.at(-1) === max ? hela : [...hela, max];
 }
 
 /**
