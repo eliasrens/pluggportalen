@@ -60,7 +60,7 @@ tabellerna, om en rad saknar test, eller om en testfil inte körs av
 | PA | `test/firestore-rules-prov-anpassningar.test.js` |
 | PO | `test/firestore-rules-prov-mynt-omprov.test.js` |
 | SK | `test/firestore-rules-schack.test.js` |
-| SF | `test/functions-schack.test.mjs` (+ `functions-schack-core`/`-parti` mot kärnan) |
+| SF | `test/functions-schack.test.mjs` |
 
 Admin-kolumnen bevisas dessutom av OG test 25 (lärare utan roll gör allt som
 admin) och av alla äldre regeltester, som kör sina lärare som admin (§7 test 26).
@@ -123,7 +123,7 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `adminCreateTeacher`, `adminUpdateTeacher`, `adminSetTeacherPassword`, `adminSetTeacherActive`, `adminDeleteTeacher` | ja (färska claims i Auth; inte sin egen roll eller det sista adminkontot) | nej | FT test 19–23, FR test 19 |
 | `guldrushAnswer`, `guldrushOpenChest`, `guldrushChooseVictim`, `datakuppAnswer`, `datakuppOpenFile`, `datakuppChooseTarget`, `datakuppGuessCode`, `datakuppPickCode`, `hittaRattSubmit` | elevfunktioner, inga lärarvägar | – | GR, DK, HR |
 | `brakresaStartRound`, `brakresaAnswer`, `brakresaRework`, `brakresaFinishRound`, `brakresaAbortRound`, `brakresaAckDragon`, `brakresaRenameDragon`, `brakresaHunt` | nej – elevfunktioner; lärarkonton nekas (testläget körs i klienten och skriver aldrig, #708) | nej | BF |
-| `schackVanta`, `schackSlutaVanta`, `schackGaMed`, `schackUtmana`, `schackSvara`, `schackDrag`, `schackGeUpp`, `schackRemi`, `schackKravaVinst` (#779) | nej – elevfunktioner: anroparen måste stå i klassens `studentIds`, klassen ha `schack` i `enabledModules` och inget aktivt fokuslås | nej | SF |
+| `schackVanta`, `schackSlutaVanta`, `schackGaMed`, `schackUtmana`, `schackSvara`, `schackDrag`, `schackGeUpp`, `schackRemi`, `schackKravaVinst` (#779) | nej – elevfunktioner: anroparen måste stå i klassens `studentIds`, klassen ha `schack` i `enabledModules` och inget aktivt fokuslås (kärnan: `test/functions-schack-core.test.mjs`, `test/functions-schack-parti.test.mjs`) | nej | SF |
 | `schackLarareAvsluta`, `schackLarareTopplista` (#779) | ja (som `hasClass`: alla klasser) | ja, bara egna klasser (kontot läses färskt). Elever nekas. | SF |
 
 Migreringsskriptet `admin/migrate-teacher-admins.mjs` (Admin SDK, förbi reglerna)
