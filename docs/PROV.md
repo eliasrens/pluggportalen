@@ -108,7 +108,8 @@ och utskriften läser samma svar som förr. Två skillnader:
   ordning, t.ex. 3 av 5 – `rensaSvar` godtar provets saker högst en gång var).
   `arBesvarad` är sann först när **alla** platser är fyllda; en påbörjad
   ordning räknas alltså som obesvarad (inlämningsrutan, statistiken och
-  "Rätta alla" → 0 p, som ett tomt svar). Gamla svar var alltid hela eller `[]`.
+  "Rätta alla" → 0 p, som ett tomt svar) – och typens `forslag` ger också 0 p,
+  så förslagen vid inlämning stämmer med "Rätta alla". Gamla svar var alltid hela eller `[]`.
 - **`para`:** listrutorna kunde välja samma förklaring två gånger; den nya
   rutan visar ett gammalt sådant svar med bara den första (det sparade svaret
   ändras inte förrän eleven trycker, och rättningen av det är som förut).
@@ -137,7 +138,8 @@ minus en (3 saker → 2) så att listan inte pekar ut facit. Eleven får
   Ett tryck på ett par tar isär det; finns ett val på andra sidan kopplas
   saken om i stället. Dra begrepp → förklaring fungerar också. Inga menyer.
 - Dra: mus/penna efter 6 px; finger efter ett långtryck (250 ms) så att ett
-  svep fortfarande rullar sidan. Klicket efter ett släpp sväljs.
+  svep fortfarande rullar sidan. Klicket efter ett släpp sväljs. Ett långt
+  tryck som släpps på stället (< 6 px) räknas som ett tryck (`el.click()`).
 
 **Redigeraren** (`larare/provl-flytta.js`, logiken i `prov-flytta-ops.js`,
 upp/ned-pilarna borttagna enligt §8.1):
@@ -152,8 +154,10 @@ upp/ned-pilarna borttagna enligt §8.1):
 - **Alt + pil upp/ned** (fokus var som helst i kortet utom i ett fält) flyttar ett steg.
 - En öppen fråga följer med sitt id när andra kort flyttas.
 - Formuläret: ordna-raderna numreras 1, 2, 3 … (de är facit-ordningen);
-  klistrar läraren in flera rader blir det en rad var – för para delas
-  "Tor – åska" / "Tor - åska" / "Tor: åska" / tab i begrepp och förklaring.
+  klistrar läraren in flera rader blir det en rad var (`larare/provl-klistra.js`):
+  "1. " / "1) " först tas bort, rader som inte får plats (högst 10) nämns i
+  ett meddelande. Para: "Tor – åska" / "Tor - åska" / "Tor: åska" / tab fyller
+  båda leden; rader utan avskiljare fyller bara kolumnen man klistrade i, nedåt.
 
 ### Lägga till en ny frågetyp
 
