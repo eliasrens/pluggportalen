@@ -111,6 +111,10 @@
 @media (max-width: 560px) {
   .provv-res-svar, .provv-res-kommentar { margin-left: 0; }
   .provv-res-fraga .provv-fraga-huvud { flex-wrap: wrap; }
+  /* #766: frågetexten krympte till ~25 px bredvid etiketten ("½ Delvis rätt · 3,5 av 4 p")
+     och etiketten låg över texten – nu får texten minst 12em, annars hamnar etiketten under. */
+  .provv-res-fraga .provv-fraga-huvud > .provv-fragetext { flex: 1 1 12em; min-width: 0; }
+  .provv-res-fraga .provv-fraga-huvud > .provv-res-etikett { margin-left: 50px; }
 }
 
 /* Inuti lärarsidan (rättningens "papper"): lärarens mörka standardstilar ska inte nå svaret. */

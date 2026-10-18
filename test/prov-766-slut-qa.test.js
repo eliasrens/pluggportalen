@@ -4,10 +4,14 @@
 //       Webbläsaren visade "Del 3 – Skriv: 3,7 av 11" för (9 + 3,5 + 2,5 + 0) / 4
 //       = 3,75 (15 / 44 × 11 = 3.7499999…) – ska vara 3,8 (som 8,25 → 8,3).
 //       Samma brus i procenten (0,285 → "28 %" i stället för 29) och i CSV:n.
+//   F2: resultatvyn på mobil (≤ 560 px): etiketten "½ Delvis rätt · 3,5 av 4 p"
+//       klämde frågetexten till ~25 px och låg över den. Nu får texten minst
+//       12em och etiketten radbryts under (verifierat i webbläsaren 320/390/540 px).
 // ============================================================================
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { delaUppProv } from "../src/prov/prov-modell.js";
 import { validateProv } from "../src/prov/prov-validera.js";
 import { bedom, godkannAlla, nyRattning, sparDok } from "../src/prov/prov-rattning-logik.js";
@@ -81,5 +85,13 @@ describe("F1: snitt och procent utan flyttalsbrus (#766)", () => {
     const i = huvud.indexOf("Procent");
     assert.equal(rad("Alva")[i], "82", "9 / 11 = 81,8 %");
     assert.equal(rad("Bilal")[i], "32", "3,5 / 11 = 31,8 %");
+  });
+});
+
+describe("F2: resultatets etikett på mobil (#766)", () => {
+  it("frågetexten har en minsta bredd i mobil-mediafrågan så att etiketten radbryts", () => {
+    const css = readFileSync(new URL("../src/prov/prov-resultat.css", import.meta.url), "utf8");
+    const mobil = css.slice(css.indexOf("@media (max-width: 560px)"));
+    assert.match(mobil, /\.provv-res-fraga \.provv-fraga-huvud > \.provv-fragetext \{ flex: 1 1 12em;/);
   });
 });
