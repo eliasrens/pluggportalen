@@ -316,7 +316,7 @@ returnerar `kriterier`. **C** visar dem vid rättningen.
 `installningar.visaKriterier` (standard `false`, kryssrutan "Visa poängkriterierna"):
 vid tillbakalämningen kopierar `aterlamnadDok(r, { visaFacit, facit, kriterier })`
 dem till `rattning.kriterier` (rättningslagret skickar dem bara när valet är på);
-ångra tar bort dem. **D** visar dem i resultatvyn. Eleven kan aldrig läsa dem före
+ångra tar bort dem. **D** (#765) visar dem i resultatvyn. Eleven kan aldrig läsa dem före
 tillbakalämningen: `privat/facit` läser hen aldrig, och reglerna tillåter
 `rattning.kriterier` bara när `aterlamnad == true` (som `facit`).
 Utskriftens facitblad visar dem efter bedömningsstödet.
@@ -395,7 +395,8 @@ hashen). Den rättar alla automatiska frågor för alla inlämnade elever på en
   markeringen kan ändras för sig. Trycker läraren **Delvis** (`delvisPoang`):
   halva maxpoängen nedåt till 0,5, men **minst 0,5** och **högst max − 0,5**
   (1 p → 0,5 · 3 p → 1,5 · 7 p → 3,5); en tidigare delpoäng mellan 0 och max
-  behålls. En fråga på 0,5 p har inget emellan – där ger Delvis 0,5 p. Poäng som
+  behålls. En fråga på 0,5 p har inget emellan – där finns ingen Delvis (#765,
+  `delvisMojlig(max, poangsatt)`: knappen saknas, tangenten 2 gör inget). Poäng som
   skickas med markeringen kläms alltid till 0 … max (`klamPoang`). Prov utan poäng: bara markeringen. Samma regel
   gäller automatikens förslag (`forslagAv`, också kortsvarets stavfel): en andel
   som avrundas nedåt till 0 p blir **fel**, aldrig "delvis" med 0 p (1 p lucktext,
@@ -416,6 +417,64 @@ igenom – klienten klämmer dem.
 
 Förhandsvisning: `preview/preview-prov-rattning.html` (knappen, sammanfattningen,
 Auto-etiketten, halvpoängen; q7 ordna är värd 8 p → − och +).
+
+## Statistik per avsnitt, resultatvyn och utskriften (Etapp 3, #765, §2.2–§2.3, §7, §7.5, §12–§13)
+
+Allt räknas ur det som redan läses (§9) – inga nya läsningar. Avsnitten är aldrig
+frågor (`arFraga`), numreringen är löpande (`fragaNummer`), poängen exakt i halva
+poäng och skrivs med decimalkomma (`poangTal`; snitt med en decimal, `snittTal`:
+8,25 → "8,3"). **Ett prov utan avsnitt ser ut som förut** – inga nya kolumner,
+rader eller sektioner.
+
+- `poangAvsnitt(fragor)` (`prov-modell.js`) → `[{ id, titel, fragor, maxPoang }]`:
+  avsnittsGrupper med minst en fråga; frågor före första avsnittet heter
+  "Inledning" (`UTAN_AVSNITT`, id ""). `[]` när provet saknar avsnitt.
+- `prov-statistik.js`: `avsnittFor(r, avsnitt, poangsatt, granser)` – en elevs
+  `andelFor` per avsnitt (bara bedömda frågor, som totalen) med färg;
+  `klassOversikt(…).avsnitt` – klassens andel av poängen per avsnitt (bedömda svar)
+  och `snittPoang` = andelen × avsnittets max (= medelpoängen när alla är rättade);
+  `rader[].avsnitt` per elev. `avsnittText`/`avsnittVarde`: "Del 1: 8 av 10" (elev),
+  "Del 1: 7,3 av 10" (klassens snitt), utan poäng "Del 1: 75 %", "ej rättat".
+  Färggränserna (#759) gäller avsnitten som totalen: 8,5 av 10 = 85 % grön.
+- **Full poäng = rätt** (`visadRatt(post, max, poangsatt)`, `prov-rattning-logik.js`):
+  en gammal "delvis" med 0,5 av 0,5 p visas som ✓ Rätt i cellen (`cellLage(…, poangsatt)`),
+  etiketten (`bedomningsEtikett`) och rättningskortet – ingen gul ½-cell vid 100 %.
+- **Översikten** (`prov-stat-vy.js`): "Per avsnitt (klassens snitt)" som brickor
+  överst; rutnätet får en rubrikrad med avsnitten (`colgroup`) och en Σ-kolumn
+  efter varje avsnitt (elevens "8/10" i avsnittets färg, klassens andel i
+  summeringsraden). **Elevvyn**: "Per avsnitt" under totalen och avsnittsrubriker
+  med elevens poäng ("1,5 av 5") i frågelistan.
+- **Fördjupad** (`prov-fordjupad-vy.js`): sektionen "Per avsnitt" (snittpoäng,
+  stapel, andel), avsnittets namn på varje fråga i "Per fråga", jämförelsen med
+  en avsnittsrad (snittet) före avsnittets frågor (`jamforKlasser(…).avsnitt`,
+  samma avsnitts-id i de andra klasserna, annars –). **CSV:n** får en kolumn per
+  avsnitt efter frågorna, "Del 1 (10 p)" (utan poäng "Del 1 (%)").
+- **Elevens resultat** – `resultatModell` ligger nu i `prov-resultat-modell.js`
+  (rättningslogiken höll sig inte under 400 rader): `avsnitt` = `avsnittsPoang(r, fragor)`
+  (summan av frågornas poäng, som totalen), poängen per avsnitt överst ("Del 1:
+  8 av 10 · Del 2: 9,5 av 14") och under avsnittsrubriken ("8 av 10 poäng");
+  `poster[].kriterier` = `rattning.kriterier[id]` bara när tillfällets
+  `visaKriterier === true` OCH tillbakalämningen kopierade dem – ruta
+  "Poängkriterier" under svaret (`.provv-res-kriterier`). "Auto" visas aldrig för eleven.
+- **Utskriften**: provet – avsnittsrubriken med avsnittets maxpoäng "(8 p)";
+  facitbladet grupperat per avsnitt (samma nummer); resultatet – poäng per avsnitt
+  under totalen och vid rubriken ("– 8 av 10 p"), poängkriterierna när provet
+  visar dem för eleven (`visaKriterier`, ur `privat/facit` som läraren redan läst).
+  "Skriv ut provet" i Översikten tar med kriterierna på facitbladet.
+- **Regeln** `provKriterierOk` (firestore.rules): `rattning.kriterier` får skrivas
+  bara när tillfällets `installningar.visaKriterier == true` (tillfället är redan
+  läst – ingen extra åtkomst), eller när de står kvar oförändrade (flaggan slogs
+  av efter tillbakalämningen). Tillsammans med `provAterlamningOk` (bara i en
+  tillbakalämnad rättning) ser eleven alltså kriterierna bara efter
+  tillbakalämningen och bara om läraren valt det.
+  Test: `test/firestore-rules-prov-kriterier-765.test.js`; logiken
+  `test/prov-765-avsnitt-statistik.test.js`. ⚠️ Kräver rules-deploy (före webben).
+
+Förhandsvisning: `preview/preview-prov-statistik.html?avsnitt` – Översikt med tre
+avsnitt, halvpoäng (två frågor à 0,5 p: rätta dem → ingen Delvis) och
+poängkriterier; `&e=e2` elevvyn, `#/elev/resultat?e=e0` elevens resultatvy
+(e0–e4 är tillbakalämnade), "Skriv ut provet/resultat" i Översikten. Utan
+`?avsnitt` = det gamla provet (heltal, inga avsnitt).
 
 ## Skapa och redigera (B, #739)
 
@@ -542,14 +601,15 @@ som skriver som "skriver fortfarande" och kommer med när vyn laddas om.
 
 | Fil | Gör |
 | --- | --- |
-| `prov-rattning-logik.js` | ren logik: förslagen (`nyRattning`, `forslagFor`, `kompletteraForslag`), `bedom` (en elev), `svarsGrupper` + `bedomGrupp` (grupp), `godkannFraga`/`godkannAlla`, `elevStatus`, `summera`, `rattStatusSumma`, `aterlamnaPlan`, `aterlamnadDok`/`angratDok`, `sparDok`, `resultatModell` |
+| `prov-rattning-logik.js` | ren logik: förslagen (`nyRattning`, `forslagFor`, `kompletteraForslag`), `bedom` (en elev), `svarsGrupper` + `bedomGrupp` (grupp), `godkannFraga`/`godkannAlla`, `elevStatus`, `summera`, `rattStatusSumma`, `aterlamnaPlan`, `aterlamnadDok`/`angratDok`, `sparDok`, `delvisMojlig`, `visadRatt` (#765) |
+| `prov-resultat-modell.js` | `resultatModell` (elevens resultat, #765: `avsnitt`, `poster[].kriterier`) och `avsnittsPoang` |
 | `prov-rattning-data.js` | `laddaRattning` (en gång), `sparaRattningar`, `lamnaTillbaka`, `angraTillbaka` – batchar med hela dokument |
 | `prov-ratta-lager.js` | vyns tillstånd + autosparningen (`skapaSparare` med `LARARENS_SPARNING`) |
 | `prov-ratta-sida.js` | route, skalet (räknaren, Lämna tillbaka till alla rättade, flikarna, Dölj namn), rutan, tangentbordet |
 | `prov-ratta-lagen.js` | `perFraga(v)` och `perElev(v)` |
 | `prov-ratta-kort.js` | ett kort: Rätt/Delvis/Fel, poäng (fält + snabbknappar 0, ½ … max, över 6 p − och +, #764), kommentar, Auto-etiketten, kriterierna, "Godkänn även" |
 | `prov-svar-vy.js` | typernas svarsbild (alternativ, text, ✓/½/✗) |
-| `prov-resultat-vy.js` | elevens resultatvy utan Firebase (`renderaResultat(resultatModell(…))`) |
+| `prov-resultat-vy.js` | elevens resultatvy utan Firebase (`renderaResultat(resultatModell(…))`), poäng per avsnitt och poängkriterier (#765) |
 | `prov-ratta.css`, `prov-resultat.css` | `.provl-r-` (lärare), `.provv-sv-`/`.provv-res-` (svaren, eleven) |
 
 - **Förslag**: när vyn öppnas får varje inlämnat prov utan rättning en med
@@ -597,7 +657,7 @@ inte rättad `?`), så att det fungerar för färgblinda och vid utskrift.
 
 | Fil | Gör |
 | --- | --- |
-| `prov-statistik.js` | ren logik: `cellLage`, `andelFor`, `fargFor`, `granserFor`, `klassOversikt`, `sorteraRader`, `fordelning`/`fordelningText`, `provInfoDok`, `historik`, `linjePunkter` |
+| `prov-statistik.js` | ren logik: `cellLage`, `andelFor`, `avsnittFor`/`avsnittText`/`avsnittVarde`/`snittTal` (#765), `fargFor`, `granserFor`, `klassOversikt`, `sorteraRader`, `fordelning`/`fordelningText`, `provInfoDok`, `historik`, `linjePunkter` |
 | `prov-stat-vy.js` | rättningsvyns flik **Översikt** (`oversiktVy`) och elevvyn (`elevStatVy`, bara att läsa) |
 | `prov-klass-statistik.js` | fliken **Prov** i klassens statistik (`renderClassProv`, rad i `STATS_TABS`, `when: classId`) |
 | `prov-statistik-data.js` | statistikflikens enda läsning: `hamtaKlassensRattningar(classId)` |
@@ -932,6 +992,10 @@ valideringen (`felKortsvarFel`, halva poäng och total ≤ max i rättningen,
 fälten i `privat/facit`). Ordningen spelar ingen roll: de gamla reglerna godtar
 allt den nya webben skriver (`autoRattad` ligger i `fragor`-mapen), och de nya
 godtar allt den gamla webben skriver.
+Statistik per avsnitt/resultatvyn (#765) kräver regel-deployen för
+`provKriterierOk` (kriterierna bara när `visaKriterier` är på). Ordningen spelar
+ingen roll: webben skickar kriterierna bara när valet är på, så de nya reglerna
+godtar allt både den gamla och den nya webben skriver.
 Anpassningarna (#748) kräver regel-deployen: innan den nekas varje sparning med
 `flikbyten` (den gamla `validSvarFalt` känner inte fältet) och extra tid
 förlänger inte reglernas gräns. Deploya reglerna FÖRE webben.
