@@ -37,7 +37,9 @@ export const STAVFEL = Object.freeze({ AUTO: "auto", SJALV: "sjalv" });
  * Standardinställningarna (§3). granser = färggränserna i procent (§7.5, #759).
  * visaPoangForElev (#762): "(4 p)" per fråga och "Provet ger högst 32 poäng"
  * för eleven. visaKriterier (#762): fritextens poängkriterier syns för eleven
- * i resultatet efter tillbakalämningen.
+ * i resultatet efter tillbakalämningen. felKortsvarFel (#764): "Fel svar på
+ * kortsvar rättas som fel" när läraren trycker "Rätta alla automatiska frågor"
+ * – av = svaret väntar på läraren.
  */
 export const STANDARD_INSTALLNINGAR = Object.freeze({
   poang: true,
@@ -47,6 +49,7 @@ export const STANDARD_INSTALLNINGAR = Object.freeze({
   visaKriterier: false,
   stavningskontroll: false,
   stavfel: STAVFEL.AUTO,
+  felKortsvarFel: true,
   tidsgransMin: null,
   granser: Object.freeze({ gul: 60, gron: 85 }),
   mynt: STANDARD_MYNT, // #746 – prov-mynt.js
@@ -54,6 +57,9 @@ export const STANDARD_INSTALLNINGAR = Object.freeze({
 
 /** Provets stavfelsval – allt utom "sjalv" (även saknat, gamla prov) = auto. */
 export const stavfelFor = (installningar) => (installningar?.stavfel === STAVFEL.SJALV ? STAVFEL.SJALV : STAVFEL.AUTO);
+
+/** "Fel svar på kortsvar rättas som fel" (#764) – på om inte uttryckligen av (gamla prov = på). */
+export const felKortsvarFelFor = (installningar) => installningar?.felKortsvarFel !== false;
 
 /** Giltiga färggränser (#759): heltal i procent, 0 < gul < grön ≤ 100 – som firestore.rules provGranserOk. */
 export function granserOk(g) {
@@ -95,7 +101,7 @@ function valideraInstallningar(raw, errors) {
     errors.push('Inställningar: "installningar" måste vara ett objekt { … }.');
     return ut;
   }
-  for (const k of ["poang", "visaPoangForElev", "nivaer", "visaFacit", "visaKriterier", "stavningskontroll"]) {
+  for (const k of ["poang", "visaPoangForElev", "nivaer", "visaFacit", "visaKriterier", "stavningskontroll", "felKortsvarFel"]) {
     if (raw[k] === undefined || raw[k] === null) continue;
     if (typeof raw[k] !== "boolean") errors.push(`Inställningar: "${k}" måste vara true eller false.`);
     else ut[k] = raw[k];

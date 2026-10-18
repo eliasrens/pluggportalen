@@ -96,13 +96,18 @@ export function matchaText(svar, godkanda, { exaktStavning = true, skiftlage = f
 export const delpoang = delpoangNed;
 
 /**
- * Förslaget för en andel rätt: 1 → rätt, 0 → fel, annars delvis.
- * Poängen följer andelen (nedåt till halva poäng); en fråga med 0 poäng får ändå
- * rätt/delvis/fel efter andelen.
+ * Förslaget för en andel rätt. Poängen följer andelen (nedåt till halva poäng)
+ * och markeringen följer POÄNGEN (§6.1, #764): full poäng = rätt, 0 = fel,
+ * däremellan delvis – så att avrundningen nedåt aldrig ger "delvis" med 0 p
+ * (1 p lucktext, 1 av 3 luckor rätt → 0 p → fel). En fråga utan poäng (max 0)
+ * får rätt/delvis/fel efter andelen.
  */
 export function forslagAv(andel, max) {
   const a = Math.min(1, Math.max(0, Number(andel) || 0));
-  return { poang: delpoang(a, max), maxPoang: Number(max) || 0, ratt: a >= 1 ? true : a <= 0 ? false : "delvis" };
+  const m = Number(max) || 0;
+  const poang = delpoang(a, max);
+  const ratt = m > 0 ? (poang >= m ? true : poang <= 0 ? false : "delvis") : a >= 1 ? true : a <= 0 ? false : "delvis";
+  return { poang, maxPoang: m, ratt };
 }
 
 // "Exakt stavning krävs" av och svaret är ett stavfel ifrån → hur stor del av

@@ -14,7 +14,8 @@
 //                                   tillfällen + varje elevs prov över tid
 //
 // Obesvarade och orättade frågor räknas INTE som fel förrän läraren bedömt
-// dem: andelen räknas bara över bedömda frågor (ett förslag är inte bedömt).
+// dem: andelen räknas bara över bedömda frågor (ett förslag är inte bedömt,
+// en autorättad fråga från "Rätta alla" är det, #764).
 // Utan poäng räknas andelen rätt, där "delvis" = ½.
 // ============================================================================
 
@@ -25,7 +26,7 @@ export { granserText } from "./prov-validera.js";
 import { arBedomd, bedomning, elevStatus, nivaNamn, rattFragor } from "./prov-rattning-logik.js";
 import { fragaNummer } from "./prov-modell.js";
 import { tillMs } from "./prov-tillfalle-logik.js";
-import { poangTal } from "./prov-poang.js";
+import { franHalvor, halvor, poangTal } from "./prov-poang.js";
 
 /** En cells läge (§7.5 "Per fråga och elev"). */
 export const CELL = Object.freeze({ RATT: "ratt", DELVIS: "delvis", FEL: "fel", OBESVARAD: "obesvarad", EJ: "ej" });
@@ -102,14 +103,15 @@ export function andelFor(r, fragor, poangsatt) {
   const bedomda = lista.filter((f) => arBedomd(r?.fragor?.[f.id]));
   // Poängsatt prov där alla bedömda frågor har 0 poäng: räkna rätt i stället.
   const medPoang = poangsatt && bedomda.some((f) => (Number(f.poang) || 0) > 0);
+  // Halva poäng som heltal (#764): 3,5 + 4 + 0,5 = 8 exakt, så färggränsen aldrig tippar på brus.
   let p = 0;
   let m = 0;
   for (const f of bedomda) {
     const b = bidrag(r.fragor[f.id], f, medPoang);
-    p += b.p;
-    m += b.m;
+    p += halvor(b.p);
+    m += halvor(b.m);
   }
-  return { andel: m > 0 ? p / m : null, poang: Math.round(p * 2) / 2, max: m, bedomda: bedomda.length, antal: lista.length };
+  return { andel: m > 0 ? p / m : null, poang: franHalvor(p), max: franHalvor(m), bedomda: bedomda.length, antal: lista.length };
 }
 
 /** Snittet av andelarna (null-andelar räknas inte). */

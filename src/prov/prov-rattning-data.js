@@ -9,10 +9,11 @@
 
 import { db } from "../firebase-config.js";
 import {
-  collection, deleteField, doc, getDoc, getDocs, serverTimestamp, updateDoc, writeBatch,
+  FieldPath, collection, deleteField, doc, getDoc, getDocs, serverTimestamp, updateDoc, writeBatch,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { FACIT_DOK, RATTNING, SAMLING_TILLFALLEN } from "./prov-modell.js";
 import { hamtaSvar, hamtaTillfalle } from "./prov-tillfalle-data.js";
+import { delaIBatchar } from "./prov-ratta-alla.js";
 
 const rattRef = (t, uid) => doc(db, SAMLING_TILLFALLEN, t, RATTNING, uid);
 
@@ -51,10 +52,10 @@ export async function sparaRattningar(t, dok, rattStatus = null) {
   await iBatchar(t, Object.entries(dok), (batch, uid, d) => batch.set(rattRef(t, uid), d), rattStatus);
 }
 
-// Högst 450 skrivningar per batch; räkneverket följer med den första.
+// EN skrivning per elev, högst 450 per batch (#764: under Firestores 500);
+// räkneverket följer med den första.
 async function iBatchar(t, lista, skriv, rattStatus) {
-  for (let i = 0; i < Math.max(lista.length, 1); i += 450) {
-    const del = lista.slice(i, i + 450);
+  for (const [i, del] of delaIBatchar(lista).entries()) {
     const status = i === 0 && rattStatus;
     if (!del.length && !status) return;
     const batch = writeBatch(db);
@@ -62,6 +63,16 @@ async function iBatchar(t, lista, skriv, rattStatus) {
     if (status) batch.update(doc(db, SAMLING_TILLFALLEN, t), { rattStatus });
     await batch.commit();
   }
+}
+
+/**
+ * Facit i efterhand (#764, §6.0 "Godkänn även 'Björkö'"): frågans facit i
+ * privat/facit byts mot `fa` (facitMedTillagg) – en skrivning. Används nästa
+ * gång läraren trycker "Rätta alla automatiska frågor". Provet (prov/{id})
+ * ändras inte – tillägget gäller bara det här tillfället.
+ */
+export async function sparaFacitTillagg(t, fragaId, fa) {
+  await updateDoc(doc(db, SAMLING_TILLFALLEN, t, ...FACIT_DOK), new FieldPath("facit", fragaId), fa);
 }
 
 /**

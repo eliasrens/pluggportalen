@@ -13,7 +13,10 @@ import { delaUppProv } from "../../src/prov/prov-modell.js";
 import { nyRattning, bedom, godkannAlla, aterlamnadDok, sparDok } from "../../src/prov/prov-rattning-logik.js";
 
 // #759: ?stavfel=sjalv, ?granser=50-75, ?gammalt (prov-installningar-pv.js) – egen nyckel per val.
-const NYCKEL = pvNyckel("pp:preview741-746");
+// #764: egen nyckel – q7 är värd 8 p (− och + i stället för snabbknappar).
+// ?felkortsvar=av: "Fel svar på kortsvar rättas som fel" av (egen nyckel).
+const FEL_AV = new URLSearchParams(location.search).get("felkortsvar") === "av";
+const NYCKEL = pvNyckel("pp:preview741-764") + (FEL_AV ? ":felav" : "");
 export const PROV = validateProv({
   namn: "Vikingatiden – prov",
   installningar: { poang: true, nivaer: true, visaFacit: true, mynt: { typ: "poang", antal: 2 } },
@@ -27,7 +30,7 @@ export const PROV = validateProv({
     { id: "q5", typ: "lucktext", fraga: "Fyll i luckorna.", lucktext: "Vikingarna seglade till [[Miklagård|Konstantinopel]] och [[Bagdad]].", poang: 2 },
     { id: "q6", typ: "para", fraga: "Para ihop guden med det hen styr över.", poang: 3,
       par: [{ vanster: "Tor", hoger: "Åska" }, { vanster: "Oden", hoger: "Visdom" }, { vanster: "Freja", hoger: "Kärlek" }] },
-    { id: "q7", typ: "ordna", fraga: "Sätt tidsåldrarna i ordning.", saker: ["Stenåldern", "Bronsåldern", "Järnåldern", "Vikingatiden"], poang: 4 },
+    { id: "q7", typ: "ordna", fraga: "Sätt tidsåldrarna i ordning.", saker: ["Stenåldern", "Bronsåldern", "Järnåldern", "Vikingatiden"], poang: 8 },
     { id: "a2", typ: "avsnitt", titel: "Del 2 – Skriv och förklara" }, // #762
     { id: "q8", typ: "fritext", fraga: "Beskriv livet på en vikingagård.", poang: 4, bedomningsstod: "Nämner djur, hus och arbete. 4 p = alla tre med exempel.",
       kriterier: ["1 p: nämner djuren", "1 p: nämner långhuset", "1 p: nämner arbetet", "+1 p: ger exempel"] },
@@ -52,7 +55,7 @@ function start() {
   const { fragor, facit, bedomningsstod, kriterier } = delaUppProv(PROV);
   const tf = {
     id: "tf-r", provId: "p1", provNamn: PROV.namn, classId: "4a", status: "stangt", fragor,
-    installningar: pvInstallningar(PROV.installningar), tidsgransMin: 40, oppnad: nu - 2 * 86_400_000, stangd: nu - 2 * 86_400_000 + 45 * 60_000,
+    installningar: { ...pvInstallningar(PROV.installningar), ...(FEL_AV ? { felKortsvarFel: false } : {}) }, tidsgransMin: 40, oppnad: nu - 2 * 86_400_000, stangd: nu - 2 * 86_400_000 + 45 * 60_000,
   };
   const svar = Object.fromEntries(IDS.map((id, i) => [id, {
     id, elevId: id, classId: "4a", startad: tf.oppnad + 60_000, svar: SVAR[i], inlamnad: true, inlamnadNar: i === 7 ? "stangt" : "elev",

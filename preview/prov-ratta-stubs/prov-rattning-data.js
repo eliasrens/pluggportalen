@@ -50,3 +50,11 @@ export async function sparaGranser(t, granser) {
   S.spara();
   S.logg(`sparade färggränserna gul ${granser.gul} % / grön ${granser.gron} %`);
 }
+// #764: facit i efterhand ("Godkänn även 'Björkö'") – en skrivning i privat/facit.
+export async function sparaFacitTillagg(t, fragaId, fa) {
+  await natet();
+  S.facit = { ...S.facit, [fragaId]: kopia(fa) };
+  S.skrivningar++;
+  S.spara();
+  S.logg(`lade till ett godkänt svar i facit för ${fragaId}`);
+}

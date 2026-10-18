@@ -2019,10 +2019,13 @@ service cloud.firestore {
     // #762: visaPoangForElev ("(4 p)" för eleven) och visaKriterier
     // (poängkriterierna i resultatet) är true/false när de finns.
     // Halvpoäng (poang 0,5–20 i steg om 0,5) prövas i klienten (validateProv):
-    // reglerna kan inte gå igenom fragor-listan, och totalPoang/maxPoang är tal.
+    // reglerna kan inte gå igenom fragor-listan; rättningens totalPoang/maxPoang
+    // prövas i validRattning (provHalvpoang, #764).
+    // #764: felKortsvarFel ("Fel svar på kortsvar rättas som fel") är true/false.
     function provInstOk(ins) {
       return ins is map &&
         (!('stavfel' in ins) || ins.stavfel in ['auto', 'sjalv']) &&
+        (!('felKortsvarFel' in ins) || ins.felKortsvarFel is bool) &&
         (!('granser' in ins) || provGranserOk(ins.granser)) &&
         (!('visaPoangForElev' in ins) || ins.visaPoangForElev is bool) &&
         (!('visaKriterier' in ins) || ins.visaKriterier is bool);
@@ -2099,8 +2102,15 @@ service cloud.firestore {
       allow delete: if hasClass(resource.data.classId);
 
       // Facit + bedömningsstöd + poängkriterier (#762): bara lärare med klassen (aldrig eleven).
+      // Facit i efterhand (#764, "Godkänn även 'Björkö'"): läraren uppdaterar
+      // facit.<fråga> – dokumentet får bara ha de tre fälten och facit är en map.
       match /privat/{docId} {
-        allow read, write: if docId == 'facit' && hasClass(tillfalle(t).classId);
+        allow read, delete: if docId == 'facit' && hasClass(tillfalle(t).classId);
+        allow create, update: if docId == 'facit' && hasClass(tillfalle(t).classId) &&
+          request.resource.data.keys().hasOnly(['facit', 'bedomningsstod', 'kriterier']) &&
+          request.resource.data.facit is map &&
+          (!('bedomningsstod' in request.resource.data) || request.resource.data.bedomningsstod is map) &&
+          (!('kriterier' in request.resource.data) || request.resource.data.kriterier is map);
       }
 
       // Elevens svar. Eleven skapar sitt eget när provet är öppet och hen går
@@ -2194,8 +2204,12 @@ service cloud.firestore {
         d.fragor is map && d.fragor.size() <= 60 &&
         d.aterlamnad is bool &&
         (!('niva' in d) || d.niva == null || d.niva in ['EG', 'G', 'MG']) &&
-        (!('totalPoang' in d) || d.totalPoang is number) &&
-        (!('maxPoang' in d) || d.maxPoang is number) &&
+        // Halvpoäng (#764): 0 … 1200 (60 frågor × 20 p) i steg om 0,5, och
+        // totalen aldrig över maxpoängen. Frågornas poster (poang, ratt, auto,
+        // autoRattad) kan reglerna inte gå igenom – de kläms i klienten (klamPoang).
+        (!('totalPoang' in d) || provHalvpoang(d.totalPoang)) &&
+        (!('maxPoang' in d) || provHalvpoang(d.maxPoang)) &&
+        (!('totalPoang' in d) || !('maxPoang' in d) || d.totalPoang <= d.maxPoang) &&
         (!('helhetskommentar' in d) || (d.helhetskommentar is string && d.helhetskommentar.size() <= 4000)) &&
         (!('facit' in d) || d.facit is map) &&
         // #762: fritextens poängkriterier – bara i en tillbakalämnad rättning (provAterlamningOk).
@@ -2203,6 +2217,9 @@ service cloud.firestore {
         (!('myntUtbetalt' in d) || (d.myntUtbetalt is int && d.myntUtbetalt >= 0 && d.myntUtbetalt <= 200)) &&
         // #742: { datum, granser, andel } för statistikfliken "Prov" (en fråga, §7.5).
         (!('provInfo' in d) || (d.provInfo is map && d.provInfo.keys().hasOnly(['datum', 'granser', 'andel'])));
+    }
+    function provHalvpoang(p) {
+      return p is number && p >= 0 && p <= 1200 && math.floor(p * 2) == p * 2;
     }
     // Tillbakalämningen (#741, §7): facit, poängkriterierna (#762) och
     // aterlamnadAt finns BARA i en tillbakalämnad rättning (ångra tar bort dem)

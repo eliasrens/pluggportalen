@@ -11,7 +11,7 @@
 // v (från prov-ratta-sida.js):
 //   lager                 prov-ratta-lager.js (rattningar)
 //   tf, fragor, rf, nr    tillfället, frågorna, de rättade frågorna, numren
-//   facit, bedomningsstod privat/facit
+//   facit, bedomningsstod, kriterier  privat/facit (kriterier: fritextens poängkriterier, #762)
 //   med                   eleverna som rättas
 //   svarAv(uid, fid), visNamn(uid), poangsatt, nivaer
 //   flikbyteText(uid)     #748: "Lämnade provet 2 gånger" eller ""
@@ -19,23 +19,34 @@
 //   ga({ fraga?, elev?, fokus? })  byt fråga/elev och rita om
 //   andrat(uids)          spara + uppdatera räknaren
 //   lamnaTillbaka(uids), angra(uid)
+//   godkannAven(fraga, { text, lucka }) → Promise<boolean>  facit i efterhand (#764)
+// Avsnitten (#762) syns som grupper: rubriker i Per elev, grupperade
+// frågeknappar och avsnittets namn överst i Per fråga.
 // ============================================================================
 
 import { formatKlockslag } from "../class-lock.js";
 import { arAvsnitt, arFraga, fragetyp } from "./prov-fragetyper.js";
-import { NIVAER } from "./prov-modell.js";
+import { NIVAER, avsnittsGrupper } from "./prov-modell.js";
 import {
-  ELEV_STATUS, ELEV_STATUS_NAMN, HELHET_MAX, arBedomd, bedom, bedomGrupp, elevStatus, forslagPaFraga, fragaKlar,
+  ELEV_STATUS, ELEV_STATUS_NAMN, HELHET_MAX, arBedomd, arForslag, bedom, bedomGrupp, elevStatus, forslagPaFraga, fragaKlar,
   godkannAlla, godkannFraga, gruppPost, summera, svarsGrupper,
 } from "./prov-rattning-logik.js";
 import { rattaKort } from "./prov-ratta-kort.js";
+import { godkannbara } from "./prov-ratta-alla.js";
 import { STAVFEL, stavfelFor } from "./prov-validera.js";
 import { tillMs } from "./prov-tillfalle-logik.js";
 import { h, stycken } from "./prov-vy.js";
 import { poangTal } from "./prov-poang.js";
 
 const poangText = poangTal;
-const TANGENTER = "Tangenter: 1 rätt · 2 delvis · 3 fel · Tab nästa svar · Enter poäng/kommentar · N nästa fråga";
+const TANGENTER = "Tangenter: 1 rätt · 2 delvis · 3 fel · + och − ändrar poängen 0,5 · Tab nästa svar · Enter poäng/kommentar · N nästa fråga";
+
+// Kortets extra delar (#764): kriterierna bredvid fritext, "Godkänn även" för kortsvar/luckor.
+const kortExtra = (v, f, svar) => ({
+  kriterier: v.kriterier?.[f.id] || [],
+  godkannbara: godkannbara(f, svar, v.facit[f.id]),
+  onGodkannAven: (g) => v.godkannAven(f, g),
+});
 
 /** Kortets rubrik för en grupp: ”Birka” – 12 elever. */
 function gruppTitel(f, g) {
@@ -58,6 +69,13 @@ export function perFraga(v) {
     type: "button", class: `provl-r-nr${i === v.index.fraga ? " provl-r-nr-aktiv" : ""}`, text: String(nr[x.id]),
     "aria-current": i === v.index.fraga ? "true" : null, on: { click: () => v.ga({ fraga: i }) },
   }));
+  // Avsnitten som grupper (#762): frågeknapparna under avsnittets namn.
+  const grupper = avsnittsGrupper(fragor).filter((g) => g.fragor.length);
+  const avsnittAv = (fid) => grupper.find((g) => g.fragor.some((x) => x.id === fid))?.avsnitt || null;
+  const nrRad = grupper.map((g) => h("span", { class: "provl-r-nrgrupp" },
+    g.avsnitt ? h("span", { class: "provl-r-nrgrupp-namn", text: g.avsnitt.titel || "Avsnitt" }) : null,
+    g.fragor.map((x) => knappar[rf.findIndex((y) => y.id === x.id)])));
+  const avsnitt = avsnittAv(f.id);
   const godkannKnapp = h("button", {
     type: "button", class: "btn small",
     on: { click: () => { v.andrat(godkannFraga(rattningar, med, f.id)); v.ga({}); } },
@@ -65,6 +83,7 @@ export function perFraga(v) {
   const facitText = fa ? typ.facitText?.(f, fa) : "";
   const stod = v.bedomningsstod[f.id];
   const huvud = h("div", { class: "panel provl-r-fraga" },
+    avsnitt ? h("p", { class: "provl-r-fraga-avsnitt", text: avsnitt.titel || "Avsnitt" }) : null,
     h("div", { class: "provl-r-fraga-topp" },
       h("span", { class: "provl-r-fraga-nr", text: `Fråga ${nr[f.id]} av ${rf.length}` }),
       h("span", { class: "hint", text: `${typ.ikon} ${typ.namn}${poangsatt ? ` · ${poangText(f.poang)} p` : ""}` }),
@@ -82,6 +101,7 @@ export function perFraga(v) {
     titel: g.grupp ? gruppTitel(f, g) : v.visNamn(g.elever[0]),
     under: g.grupp ? g.elever.map(v.visNamn).join(", ") : "",
     fraga: f, svar: g.svar, facit: fa, facitRad: false, poangsatt,
+    ...kortExtra(v, f, g.svar),
     lage: () => {
       const aktiva = g.elever.filter((uid) => !rattningar[uid].aterlamnad);
       const post = gruppPost(rattningar, aktiva.length ? aktiva : g.elever, f.id);
@@ -102,7 +122,7 @@ export function perFraga(v) {
   }
   uppdatera();
   return {
-    el: h("div", {}, h("nav", { class: "provl-r-nrrad", "aria-label": "Frågor" }, knappar), huvud, h("div", { class: "provl-r-kortlista" }, kort)),
+    el: h("div", {}, h("nav", { class: "provl-r-nrrad", "aria-label": "Frågor" }, nrRad), huvud, h("div", { class: "provl-r-kortlista" }, kort)),
     uppdatera,
   };
 }
@@ -142,6 +162,7 @@ export function perElev(v) {
     const stod = v.bedomningsstod[f.id];
     const k = rattaKort({
       titel: `Fråga ${nr[f.id]}`, fraga: f, svar: v.svarAv(uid, f.id), facit: v.facit[f.id], facitRad: true, poangsatt,
+      ...kortExtra(v, f, v.svarAv(uid, f.id)),
       huvud: h("div", { class: "provl-r-kortfraga" }, stycken(f.fraga),
         stod ? h("details", { class: "provl-r-stod" }, h("summary", { text: "Bedömningsstöd" }), stycken(stod)) : null),
       lage: () => ({ post: r().fragor?.[f.id] || null, blandat: false, last: last() }),
@@ -177,7 +198,7 @@ export function perElev(v) {
     totalEl.replaceChildren(
       h("b", { text: poangsatt ? `Totalt: ${poangText(sum.totalPoang)} av ${poangText(sum.maxPoang)} poäng` : "Totalt" }),
       h("span", { class: `provl-r-elevstatus provl-r-elevstatus-${s}`, text: ELEV_STATUS_NAMN[s] }));
-    const forslag = rf.filter((f) => r().fragor?.[f.id]?.auto === true).length;
+    const forslag = rf.filter((f) => arForslag(r().fragor?.[f.id])).length;
     godkannKnapp.disabled = last() || !forslag;
     godkannKnapp.textContent = forslag ? `Godkänn elevens förslag (${forslag})` : "Inga förslag kvar";
     [...val.options].forEach((op) => { op.textContent = `${v.visNamn(op.value)} – ${ELEV_STATUS_NAMN[elevStatus(lager.rattningar[op.value], fragor)]}`; });

@@ -225,24 +225,25 @@ describe("gamla prov: delpoängen nedåt är den enda ändringen (#762)", () => 
     const ps = para.forslag(pe.vanster.map((v) => ({ Tor: "Åska", Oden: "Kärlek", Freja: "Visdom" })[v]), para.facit(p), pe);
     assert.equal(ps.poang, 1.5);
   });
-  it("ett delvis-förslag kan bli 0 p (ordna 2 p, 1 av 5) – markeringen följer andelen, poängen nedåt", () => {
+  it("en andel som avrundas till 0 p blir fel (ordna 2 p, 1 av 5) – #764: markeringen följer poängen", () => {
     const ordna = fragetyp("ordna");
     const f = ordna.validera({ id: "q1", typ: "ordna", fraga: "Ordna.", saker: ["A", "B", "C", "D", "E"], poang: 2 }).value;
     const fs = ordna.forslag(["A", "C", "D", "E", "B"], ordna.facit(f), ordna.utanFacit(f));
-    assert.deepEqual([fs.poang, fs.ratt], [0, "delvis"]);
-    assert.equal(rattFor(fs.poang, 2), false, "lärarens poäng 0 skulle betyda fel");
+    assert.deepEqual([fs.poang, fs.ratt], [0, false]);
+    assert.equal(rattFor(fs.poang, 2), fs.ratt, "samma som lärarens poäng 0");
   });
 });
 
 describe("rättningsvyns snabbknappar med halvpoängsmax (#764 §6.1)", () => {
-  it("heltalsmax som förr", () => {
+  it("halvsteg upp till max, inga knappar över 6 p", () => {
     assert.deepEqual(snabbPoang(0), []);
-    assert.deepEqual(snabbPoang(3), [0, 1, 2, 3]);
-    assert.deepEqual(snabbPoang(8), [0, 4, 8]);
+    // #764: halva poäng; över 6 p − och + i stället (prov-ratta-alla.test.js).
+    assert.deepEqual(snabbPoang(3), [0, 0.5, 1, 1.5, 2, 2.5, 3]);
+    assert.deepEqual(snabbPoang(8), []);
   });
   it("maxpoängen finns alltid som knapp (0,5 → [0, 0,5]; 3,5 → … 3,5)", () => {
-    for (const max of [0.5, 1.5, 3.5, 5.5, 7.5]) assert.equal(snabbPoang(max).at(-1), max, `max ${max}`);
+    for (const max of [0.5, 1.5, 3.5, 5.5, 6]) assert.equal(snabbPoang(max).at(-1), max, `max ${max}`);
     assert.deepEqual(snabbPoang(0.5), [0, 0.5]);
-    assert.deepEqual(snabbPoang(3.5), [0, 1, 2, 3, 3.5]);
+    assert.deepEqual(snabbPoang(3.5), [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5]);
   });
 });
