@@ -98,6 +98,7 @@
   border-bottom: 1px solid var(--provv-kant);
 }
 .provv-namn { font-size: 1.35rem; margin: 0; line-height: 1.25; }
+.provv-maxpoang { margin: 2px 0 0; color: var(--provv-svag); font-size: 0.95rem; }
 .provv-topp-info { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .provv-tid {
   font-weight: 700; font-variant-numeric: tabular-nums;
@@ -128,6 +129,8 @@
 }
 .provv-lista-rubrik { font-weight: 700; font-size: 0.95rem; margin-bottom: 8px; }
 .provv-lista-knappar { display: grid; grid-template-columns: repeat(auto-fill, minmax(38px, 1fr)); gap: 6px; }
+.provv-lista-grupp + .provv-lista-grupp { margin-top: 10px; }
+.provv-lista-avsnitt { font-size: 0.82rem; font-weight: 600; color: var(--provv-svag); margin: 0 0 4px; overflow-wrap: anywhere; }
 .provv-lista-nr {
   min-height: 38px; border-radius: 8px; border: 1px dashed #9aa6b4; background: var(--provv-yta);
   font-weight: 600; font-variant-numeric: tabular-nums;
@@ -142,7 +145,8 @@
 .provv-textblock {
   padding: 22px 0;
   border-bottom: 1px solid var(--provv-kant);
-  scroll-margin-top: 80px;
+  /* Under den klistrade toppen (höjden mäts i prov-elev-vy.js, #762 – på en telefon ~150 px). */
+  scroll-margin-top: calc(var(--provv-topp-h, 68px) + 12px);
 }
 .provv-fraga-huvud { display: flex; align-items: flex-start; gap: 14px; }
 .provv-nr {
@@ -168,6 +172,17 @@
 .provv-textblock-titel { margin: 0 0 8px; font-size: 1.2rem; }
 .provv-brodtext p { margin: 0 0 10px; white-space: pre-line; }
 
+/* Avsnitt (#762): en tydlig rubrik som delar in provet, instruktionen under. */
+.provv-avsnitt {
+  padding: 26px 0 10px;
+  border-bottom: 2px solid var(--provv-accent);
+  /* Under den klistrade toppen (höjden mäts i prov-elev-vy.js, #762 – på en telefon ~150 px). */
+  scroll-margin-top: calc(var(--provv-topp-h, 68px) + 12px);
+}
+.provv-avsnitt-titel { margin: 0; font-size: 1.3rem; line-height: 1.3; }
+.provv-avsnitt-instruktion { margin-top: 6px; color: var(--provv-svag); }
+.provv-avsnitt-instruktion p { margin: 0 0 6px; white-space: pre-line; }
+
 /* Alternativ (flerval, flera, sant/falskt) */
 .provv-val-lista { display: grid; gap: 8px; }
 .provv-val {
@@ -183,8 +198,7 @@
 /* Textfält */
 .provv-kortsvar,
 .provv-lucka,
-.provv-fritext,
-.provv-para-val { font: inherit; color: inherit; }
+.provv-fritext { font: inherit; color: inherit; }
 input.provv-kortsvar {
   width: min(100%, 420px); padding: 10px 12px; min-height: 48px;
   border: 1px solid #9aa6b4; border-radius: 10px; background: #fff;
@@ -202,31 +216,52 @@ input.provv-kortsvar {
 .provv-raknare { text-align: right; color: var(--provv-svag); font-size: 0.9rem; margin-top: 4px; font-variant-numeric: tabular-nums; }
 .provv-raknare-nara { color: var(--provv-gul); font-weight: 600; }
 
-/* Para ihop */
-.provv-para { display: grid; gap: 8px; }
-.provv-para-rad {
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 12px; align-items: center;
-  padding: 8px 12px; border: 1px solid var(--provv-kant); border-radius: 10px;
+/* Para ihop (#763): två tryck per par – samma färg + siffra + tunn linje. */
+.provv-para-hjalp, .provv-ordna-hjalp { margin: 0 0 10px; color: var(--provv-svag); font-size: 0.98rem; }
+.provv-para-yta { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 clamp(20px, 6vw, 72px); }
+.provv-para-kol { display: grid; gap: 8px; align-content: start; position: relative; z-index: 1; }
+.provv-para-linjer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.provv-para-linjer line { stroke: var(--par); stroke-width: 2.5; stroke-linecap: round; }
+.provv-para-sak, .provv-ordna-sak {
+  display: flex; align-items: center; gap: 8px; width: 100%; min-height: 48px; box-sizing: border-box; padding: 8px 12px;
+  text-align: left; color: inherit; background: var(--provv-yta); border: 2px solid #9aa6b4; border-radius: 10px;
+  touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
 }
-.provv-para-vanster { font-weight: 600; }
-.provv-para-val { width: 100%; min-height: 44px; padding: 6px 10px; border: 1px solid #9aa6b4; border-radius: 8px; background: #fff; }
+.provv-para-sak:hover:not(:disabled), .provv-ordna-sak:hover:not(:disabled) { border-color: var(--provv-accent); }
+.provv-para-sak:disabled, .provv-ordna-sak:disabled { cursor: default; }
+.provv-para-text { flex: 1; min-width: 0; overflow-wrap: break-word; hyphens: auto; }
+.provv-para-nr {
+  flex: none; display: inline-grid; place-items: center; width: 1.6em; height: 1.6em; border-radius: 50%;
+  font-weight: 700; font-size: 0.9em; border: 2px dashed #b7c0cb; font-variant-numeric: tabular-nums;
+}
+.provv-par { border-color: var(--par); background: color-mix(in srgb, var(--par) 12%, #fff); }
+.provv-par .provv-para-nr { border: 0; background: var(--par); color: #fff; }
+.provv-para-vald { border-color: var(--provv-accent); background: #eaf1fb; box-shadow: 0 0 0 3px var(--provv-accent); }
+.provv-para-vald .provv-para-nr { border: 2px solid var(--provv-accent); }
+.provv-para-over, .provv-ordna-over { outline: 3px dashed var(--provv-accent); outline-offset: 2px; }
+.provv-para-status { margin-top: 10px; color: var(--provv-svag); font-size: 0.95rem; }
+/* Tio parfärger (mörka nog för vit siffra, 4.5:1). */
+.provv-par-f0 { --par: #2463b8; } .provv-par-f1 { --par: #b45309; } .provv-par-f2 { --par: #2f7d4f; }
+.provv-par-f3 { --par: #9d2c8f; } .provv-par-f4 { --par: #0f6f7c; } .provv-par-f5 { --par: #b42318; }
+.provv-par-f6 { --par: #5b4bb7; } .provv-par-f7 { --par: #7a5a00; } .provv-par-f8 { --par: #3f6212; } .provv-par-f9 { --par: #475569; }
 
-/* Sätt i ordning */
-.provv-ordna { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.provv-ordna-sak {
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px 10px 8px 14px; border: 1px solid var(--provv-kant); border-radius: 10px; background: var(--provv-yta);
-}
-.provv-ordna-nr { flex: none; width: 1.8em; color: var(--provv-svag); font-variant-numeric: tabular-nums; }
-.provv-ordna-text { flex: 1; min-width: 0; }
-.provv-ordna-knappar { display: flex; gap: 6px; flex: none; }
-.provv-pil {
-  width: 44px; height: 40px; border-radius: 8px; border: 1px solid var(--provv-kant); background: var(--provv-ljus);
-  font-size: 0.9rem;
-}
-.provv-pil:disabled { opacity: 0.35; cursor: default; }
-.provv-ordna-fot { display: flex; align-items: center; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
+/* Sätt i ordning (#763): tryck i tur och ordning. */
+.provv-ordna-rubrik { font-weight: 700; font-size: 0.98rem; margin: 6px 0 6px; }
+.provv-ordna-svar { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 6px; }
+.provv-ordna-plats { display: flex; align-items: center; gap: 10px; min-height: 48px; border-radius: 10px; }
+.provv-ordna-nr { flex: none; width: 1.8em; text-align: right; color: var(--provv-svag); font-variant-numeric: tabular-nums; font-weight: 600; }
+.provv-ordna-ledig { border: 2px dashed var(--provv-kant); padding-right: 12px; }
+.provv-ordna-tom { color: #9aa6b4; letter-spacing: 2px; }
+.provv-ordna-plats .provv-ordna-sak { flex: 1; border-color: var(--provv-accent); background: #f4f8fd; font-weight: 600; }
+.provv-ordna-kvar { display: flex; flex-wrap: wrap; gap: 8px; min-height: 52px; padding: 8px; border-radius: 12px; background: var(--provv-ljus); }
+.provv-ordna-kvar .provv-ordna-sak { width: auto; max-width: 100%; min-width: 48px; justify-content: center; }
+.provv-ordna-klart { align-self: center; color: var(--provv-svag); padding: 0 6px; }
+.provv-ordna-fot { display: flex; align-items: center; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+.provv-ordna-fot .provv-knapp-liten { min-height: 44px; }
 .provv-ordna-status { color: var(--provv-svag); font-size: 0.95rem; }
+/* Dragningen (prov-dra.js): saken bleknar, kopian följer fingret. */
+.provv-drar { opacity: 0.4; }
+.provv-dra-kopia { opacity: 0.92; box-shadow: 0 8px 24px rgba(31, 42, 58, 0.25); cursor: grabbing; }
 
 /* Lämna in + rutan */
 .provv-fot { padding: 24px 0 4px; display: grid; justify-items: start; gap: 12px; }
@@ -252,7 +287,7 @@ input.provv-kortsvar {
   .provv-rot { font-size: 1.05rem; }
   .provv-panel { padding: 18px 16px; }
   .provv-svar, .provv-hjalp { margin-left: 0; }
-  .provv-para-rad { grid-template-columns: 1fr; gap: 6px; }
+  .provv-para-sak, .provv-ordna-sak { padding: 8px; gap: 6px; }
   .provv-lista-forklaring { display: none; }
 }
 
@@ -265,5 +300,5 @@ input.provv-kortsvar {
 .teacher-dark .provv-rot input.provv-lucka {
   background: #f2f5f9; color: var(--provv-text); border: 0; border-bottom: 2px solid #7b8796; border-radius: 4px 4px 0 0; box-shadow: none;
 }
-.teacher-dark .provv-rot :is(.provv-hjalp, .provv-instruktion, .provv-ruta-hint, .provv-raknare) { color: var(--provv-svag); }
+.teacher-dark .provv-rot :is(.provv-hjalp, .provv-instruktion, .provv-ruta-hint, .provv-raknare, .provv-para-hjalp, .provv-ordna-hjalp) { color: var(--provv-svag); }
 .teacher-dark .provv-rot .provv-fel { color: var(--provv-rod); }

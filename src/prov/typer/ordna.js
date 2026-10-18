@@ -2,16 +2,27 @@
 // Prov (#738) – frågetypen "ordna": eleven sätter 3–10 saker i rätt ordning
 // (händelser i tid, steg i en process). Läraren skriver `saker` i RÄTT
 // ordning; eleven får dem blandade (stabilt per fråge-id, aldrig i facit-
-// ordning). Svar = elevens ordning som lista med texterna, [] = inte rörd.
-// Delpoäng per sak på rätt plats.
+// ordning – och sedan #763 en av `blandningar` per elev). Svar = elevens
+// ordning som lista med texterna, [] = inte rörd. Sedan #763 sparas även en
+// påbörjad ordning (de placerade först), men besvarad är den först när alla
+// platser är fyllda. Delpoäng per sak på rätt plats.
 // ============================================================================
 
 import { forslagAv } from "../prov-rattning.js";
-import { blanda, elevFalt, textLista, valideraGemensamt } from "./delat.js";
+import { blanda, blandningar, elevBlandning, elevFalt, textLista, valideraGemensamt } from "./delat.js";
 import { elevKontext, h } from "../prov-vy.js";
+import { dragbar } from "../prov-dra.js";
+import { ordnaKvar, ordnaLagg, ordnaSlapp, ordnaStatus, ordnaTaBort } from "../prov-ordna-para.js";
 import { facitRad, ingetSvar, mark, svarsVyer } from "../prov-svar-vy.js";
 
 const ordningText = (facit) => (facit?.ordning || []).map((s, i) => `${i + 1}. ${s}`).join("  ");
+
+/** Provets saker, var och en högst en gång – annars "inte rörd". En påbörjad ordning (#763) godtas. */
+function rensaSvar(svar, f) {
+  if (!Array.isArray(svar) || svar.length > f.saker.length) return [];
+  const kvar = new Set(f.saker);
+  return svar.every((s) => kvar.delete(s)) ? [...svar] : [];
+}
 
 // Svaret efter provet (#741): elevens ordning, ✓/✗ per plats och rätt ordning.
 function visa(f, svar, o) {
@@ -40,18 +51,16 @@ export default {
   },
 
   facit: (f) => ({ ordning: [...f.saker] }),
-  utanFacit: (f) => ({ ...elevFalt(f), saker: blanda(f.saker, `ordna:${f.id}`) }),
+  utanFacit: (f) => ({ ...elevFalt(f), saker: blanda(f.saker, `ordna:${f.id}`), blandningar: blandningar(f.saker, `ordna:${f.id}`) }),
   tomtSvar: () => [],
-  arBesvarad: (svar) => Array.isArray(svar) && svar.length > 0,
-  /** Bara en hel omflyttning av provets saker godtas, annars "inte rörd". */
-  rensaSvar(svar, f) {
-    if (!Array.isArray(svar) || svar.length !== f.saker.length) return [];
-    const kvar = new Set(f.saker);
-    return svar.every((s) => kvar.delete(s)) ? [...svar] : [];
-  },
+  /** Besvarad först när alla platser är fyllda (#763) – annars "3 av 5 placerade". */
+  arBesvarad: (svar, f) => Array.isArray(svar) && svar.length > 0 && (!f?.saker || svar.length === f.saker.length),
+  rensaSvar,
 
   forslag(svar, facit, f) {
     const lista = Array.isArray(svar) ? svar : [];
+    // En påbörjad ordning är obesvarad (#763) – 0 p överallt, som i "Rätta alla".
+    if (lista.length !== facit.ordning.length) return forslagAv(0, f.poang);
     const ratt = facit.ordning.filter((s, i) => lista[i] === s).length;
     return forslagAv(ratt / facit.ordning.length, f.poang);
   },
@@ -60,39 +69,94 @@ export default {
   ...svarsVyer(visa),
 
   /**
-   * Elevens svarsruta (#740): flytta upp/ner med knappar (tangentbord och
-   * pekskärm). Orörd ([]) = obesvarad – är ordningen redan rätt trycker
-   * eleven "Behåll den här ordningen".
+   * Elevens svarsruta (#763, §2.3.1): "tryck i tur och ordning". Sakerna
+   * ligger blandade i "Kvar"; ett tryck lägger saken på nästa lediga plats i
+   * "Ditt svar" (n saker = n tryck), ett tryck i svaret lägger tillbaka den
+   * och sakerna under flyttar upp. Dra och släpp är ett extra sätt. Tab +
+   * Enter fungerar (vanliga knappar). Logiken: prov-ordna-para.js.
    */
   renderElev(f, svar, o) {
     const k = elevKontext(svar, o);
-    let ordning = Array.isArray(k.svar) && k.svar.length ? [...k.svar] : [...f.saker];
-    let rord = Array.isArray(k.svar) && k.svar.length > 0;
-    const lista = h("ol", { class: "provv-ordna" });
-    const behall = h("button", { type: "button", class: "provv-knapp-liten", text: "Behåll den här ordningen", disabled: !!k.las });
+    const alla = elevBlandning(f.saker, f.blandningar, k.elevId, f.id);
+    const n = alla.length;
+    let placerade = rensaSvar(k.svar, f);
+    const svarLista = h("ol", { class: "provv-ordna-svar", "aria-label": "Ditt svar" });
+    const kvarRuta = h("div", { class: "provv-ordna-kvar", role: "group", "aria-label": "Kvar", "data-kvar": "" });
     const status = h("span", { class: "provv-ordna-status", "aria-live": "polite" });
+    const borjaOm = h("button", { type: "button", class: "provv-knapp-liten", text: "Börja om" });
+    const rot = h("div", { class: `provv-ordna${k.las ? " provv-last" : ""}` },
+      k.las ? null : h("p", { class: "provv-ordna-hjalp", text: "Tryck på den som kommer först, sedan nästa … Tryck på en sak i ditt svar för att ta bort den." }),
+      h("div", { class: "provv-ordna-rubrik", text: "Ditt svar" }), svarLista,
+      h("div", { class: "provv-ordna-rubrik", text: "Kvar" }), kvarRuta,
+      h("div", { class: "provv-ordna-fot" }, k.las ? null : borjaOm, status));
+
     const valj = (ny, fokus) => {
-      ordning = ny;
-      rord = true;
-      k.andra([...ordning]);
+      if (ny === placerade) return;
+      placerade = ny;
+      k.andra([...placerade]);
       k.lamna();
       rita(fokus);
     };
-    const rita = (fokus) => {
-      lista.replaceChildren(...ordning.map((s, i) => h("li", { class: "provv-ordna-sak" },
-        h("span", { class: "provv-ordna-nr", text: `${i + 1}.` }),
-        h("span", { class: "provv-ordna-text", text: s }),
-        h("span", { class: "provv-ordna-knappar" },
-          h("button", { type: "button", class: "provv-pil", "data-pil": `upp-${i}`, "aria-label": `Flytta upp: ${s}`, text: "▲", disabled: !!k.las || i === 0,
-            on: { click: () => { const n = [...ordning]; [n[i - 1], n[i]] = [n[i], n[i - 1]]; valj(n, `upp-${i - 1}`); } } }),
-          h("button", { type: "button", class: "provv-pil", "data-pil": `ner-${i}`, "aria-label": `Flytta ner: ${s}`, text: "▼", disabled: !!k.las || i === ordning.length - 1,
-            on: { click: () => { const n = [...ordning]; [n[i + 1], n[i]] = [n[i], n[i + 1]]; valj(n, `ner-${i + 1}`); } } })))));
-      behall.hidden = rord;
-      status.textContent = rord ? "" : "Inte ordnad än";
-      if (fokus) (lista.querySelector(`[data-pil="${fokus}"]:not(:disabled)`) || lista.querySelector(`[data-pil]:not(:disabled)`))?.focus();
+    // Dra: släpp på en plats i svaret, eller tillbaka i "Kvar".
+    const gorDragbar = (knapp, sak) => {
+      const over = (mal) => mal?.closest?.("[data-plats], [data-kvar]");
+      let senast = null;
+      const markera = (m) => { senast?.classList.remove("provv-ordna-over"); senast = m && rot.contains(m) ? m : null; senast?.classList.add("provv-ordna-over"); };
+      dragbar(knapp, {
+        onRor: ({ mal }) => markera(over(mal)),
+        onSlut: () => markera(null),
+        onSlapp: ({ mal }) => {
+          const m = over(mal);
+          if (!m || !rot.contains(m)) return;
+          if (m.hasAttribute("data-kvar")) {
+            if (placerade.includes(sak)) valj(ordnaTaBort(placerade, placerade.indexOf(sak)), ["kvar", 0]);
+          } else valj(ordnaSlapp(placerade, sak, Number(m.dataset.plats)), ["svar", Number(m.dataset.plats)]);
+        },
+      });
     };
-    behall.addEventListener("click", () => valj([...ordning], null));
+
+    const rita = (fokus) => {
+      const kvar = ordnaKvar(alla, placerade);
+      svarLista.replaceChildren(...alla.map((_, i) => {
+        const sak = placerade[i];
+        const plats = h("li", { class: `provv-ordna-plats${sak ? "" : " provv-ordna-ledig"}`, "data-plats": String(i) },
+          h("span", { class: "provv-ordna-nr", "aria-hidden": "true", text: `${i + 1}.` }));
+        if (!sak) {
+          plats.append(h("span", { class: "provv-ordna-tom", text: k.las ? "" : "___" }));
+          return plats;
+        }
+        const knapp = h("button", {
+          type: "button", class: "provv-ordna-sak", "data-svar": String(i), text: sak, disabled: !!k.las,
+          "aria-label": `Plats ${i + 1}: ${sak}. Tryck för att ta bort.`,
+          on: { click: () => valj(ordnaTaBort(placerade, i), ["svar", i]) },
+        });
+        if (!k.las) gorDragbar(knapp, sak);
+        plats.append(knapp);
+        return plats;
+      }));
+      kvarRuta.replaceChildren(...(kvar.length ? kvar.map((sak, j) => {
+        const knapp = h("button", {
+          type: "button", class: "provv-ordna-sak", "data-kvar-sak": String(j), text: sak, disabled: !!k.las,
+          "aria-label": `${sak}. Tryck för att lägga på plats ${placerade.length + 1}.`,
+          on: { click: () => valj(ordnaLagg(placerade, sak, n), ["kvar", j]) },
+        });
+        if (!k.las) gorDragbar(knapp, sak);
+        return knapp;
+      }) : [h("span", { class: "provv-ordna-klart", text: "Alla är placerade." })]));
+      status.textContent = ordnaStatus(placerade.length, n);
+      borjaOm.disabled = !placerade.length;
+      if (fokus) satFokus(fokus);
+    };
+    // Fokus stannar nära trycket (tangentbordet): nästa sak i "Kvar", annars svaret.
+    const satFokus = ([var_, i]) => {
+      const kvarKn = [...kvarRuta.querySelectorAll("button")];
+      const svarKn = [...svarLista.querySelectorAll("button")];
+      const forsta = var_ === "kvar" ? kvarKn[Math.min(i, kvarKn.length - 1)] || svarKn[svarKn.length - 1]
+        : svarKn[Math.min(i, svarKn.length - 1)] || kvarKn[0];
+      (forsta || borjaOm).focus();
+    };
+    borjaOm.addEventListener("click", () => valj([], ["kvar", 0]));
     rita();
-    return h("div", {}, lista, h("div", { class: "provv-ordna-fot" }, behall, status));
+    return rot;
   },
 };

@@ -27,8 +27,9 @@ export const SCHEMA_TYP = {
   lucktext: `"lucktext": texten där varje lucka skrivs [[svar]] eller [[svar|annat godkänt svar]] (högst ${GRANS.luckor} luckor), "exaktStavning", "skiftlage" som för kortsvar`,
   para: `"par": [{ "vanster": begrepp, "hoger": förklaring }, …] (3–10 par, alla olika)`,
   ordna: `"saker": [3–10 texter i RÄTT ordning] – eleven får dem blandade`,
-  fritext: `"bedomningsstod": vad ett bra svar innehåller eller ett exempelsvar (bara läraren ser det)`,
+  fritext: `"bedomningsstod": vad ett bra svar innehåller eller ett exempelsvar (bara läraren ser det), "kriterier": [poängkriterier, en text per rad, t.ex. "1 p: nämner en orsak"] (valfritt, högst ${GRANS.kriterier})`,
   text: `INGEN fråga: "titel", "brodtext" (högst ${GRANS.textblock} tecken). Ingen "fraga" och ingen "poang". Frågorna efter kan handla om texten.`,
+  avsnitt: `INGEN fråga: en rubrik som delar in provet, "titel" (t.ex. "Del 1 – Begrepp") och valfri "instruktion" till eleven. Ingen "fraga" och ingen "poang". Frågorna numreras ändå löpande genom hela provet.`,
 };
 
 /** Ett kort exempel per typ (vikingatiden, samma tema som områdesprompten). */
@@ -41,7 +42,8 @@ export const EXEMPEL_TYP = {
   lucktext: { typ: "lucktext", fraga: "Fyll i luckorna.", lucktext: "Vikingatiden varade ungefär från år [[800]] till år [[1050]].", exaktStavning: true, skiftlage: false, poang: 2 },
   para: { typ: "para", fraga: "Para ihop guden med det guden styrde över.", par: [{ vanster: "Tor", hoger: "Åska" }, { vanster: "Oden", hoger: "Visdom" }, { vanster: "Freja", hoger: "Kärlek" }], poang: 3 },
   ordna: { typ: "ordna", fraga: "Sätt tidsperioderna i ordning, äldst först.", saker: ["Stenåldern", "Bronsåldern", "Järnåldern", "Vikingatiden"], poang: 2 },
-  fritext: { typ: "fritext", fraga: "Beskriv hur en vikingagård kunde se ut.", bedomningsstod: "Ett bra svar nämner långhuset, djuren och arbetet på gården (minst två av tre).", poang: 4 },
+  fritext: { typ: "fritext", fraga: "Beskriv hur en vikingagård kunde se ut.", bedomningsstod: "Ett bra svar nämner långhuset, djuren och arbetet på gården (minst två av tre).", kriterier: ["1 p: nämner en del av gården", "2 p: nämner två delar", "+1 p: förklarar vad delarna användes till"], poang: 4 },
+  avsnitt: { typ: "avsnitt", titel: "Del 1 – Fakta om vikingatiden", instruktion: "Läs frågorna noga innan du svarar." },
 };
 
 /** De valda typerna i registrets ordning (okända bort; inget val = alla). */
@@ -77,7 +79,8 @@ export function buildProvPrompt({ amne = "", arskurs = null, antal = ANTAL_STAND
     ...(amneText ? { amne: amneText } : { amne: "Historia" }),
     arskurs: `ak${nr}`,
     installningar: { poang },
-    fragor: ids.map((id) => {
+    // Ett avsnitt står först i exemplet – det inleder en del av provet (#762).
+    fragor: [...ids.filter((id) => id === "avsnitt"), ...ids.filter((id) => id !== "avsnitt")].map((id) => {
       const { poang: p, ...rest } = EXEMPEL_TYP[id];
       return poang || p === undefined ? EXEMPEL_TYP[id] : rest;
     }),
@@ -94,7 +97,7 @@ export function buildProvPrompt({ amne = "", arskurs = null, antal = ANTAL_STAND
     "Fritext: ge alltid ett \"bedomningsstod\" som säger vad ett bra svar innehåller.",
     "Blanda svårighetsgrad: några lätta frågor först, sedan svårare.",
     poang
-      ? `Ge varje fråga ett "poang" (heltal 1–${GRANS.poang}) som speglar hur svår eller omfattande den är.`
+      ? `Ge varje fråga ett "poang" (0.5–${GRANS.poang} i steg om 0.5, t.ex. 1, 2 eller 3.5) som speglar hur svår eller omfattande den är.`
       : 'Provet poängsätts inte: utelämna "poang" på frågorna.',
     `Frågetexten högst ${GRANS.fragetext} tecken. Inga listor i listor.`,
   ];
@@ -104,7 +107,7 @@ export function buildProvPrompt({ amne = "", arskurs = null, antal = ANTAL_STAND
 
   return `Du hjälper en lärare att skriva ett prov för elever i årskurs ${nr} (ca ${alder} år)${amneText ? ` i ämnet ${amneText}` : ""}.
 
-Skapa ETT prov som JSON i exakt formatet nedan. Provet ska ha ${n} ${n === 1 ? "fråga" : "frågor"}${ids.includes("text") ? " (textblock räknas inte som frågor)" : ""}.
+Skapa ETT prov som JSON i exakt formatet nedan. Provet ska ha ${n} ${n === 1 ? "fråga" : "frågor"}${ids.includes("text") || ids.includes("avsnitt") ? ` (${ids.includes("text") && ids.includes("avsnitt") ? "textblock och avsnitt" : ids.includes("text") ? "textblock" : "avsnitt"} räknas inte som frågor)` : ""}.
 Använd BARA de här frågetyperna${fragor.length > 1 ? " och blanda dem" : ""}:
 
 ${typLista}

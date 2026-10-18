@@ -62,10 +62,11 @@ gemensamma fält, stabil blandning) i `typer/delat.js`.
 | --- | --- |
 | `id`, `namn`, `ikon`, `beskrivning` | väljaren "Lägg till fråga" (`typValjare()` i `prov-validera.js`) |
 | `autoratt` | kan få ett automatiskt förslag (alla utom `fritext`, `text`) |
-| `arFraga` | `false` bara för `text` (inget nummer, ingen poäng, aldrig obesvarad) |
+| `arFraga` | `false` för `text` och `avsnitt` (inget nummer, ingen poäng, inget svar, aldrig obesvarad) |
 | `validera(fraga)` | `{ ok, fel, varningar, value }` – fel utan plats; `validateProv` sätter "Fråga 4 (Kort svar): " |
 | `facit(fraga)` | facit för `privat/facit.facit[id]` (`null` = inget) |
 | `bedomningsstod?(fraga)` | text för `privat/facit.bedomningsstod[id]` (bara `fritext`) |
+| `kriterier?(fraga)` | lista för `privat/facit.kriterier[id]` (bara `fritext`, #762) |
 | `utanFacit(fraga)` | elevens fråga – inget facit kvar (testat genom att söka efter facitvärdena) |
 | `tomtSvar(elevFraga)` | startvärde |
 | `arBesvarad(svar, elevFraga)` | för "Fråga 4 och 9 är obesvarade" |
@@ -86,14 +87,78 @@ gemensamma fält, stabil blandning) i `typer/delat.js`.
 | `santfalskt` | `ratt` (bool) | – | `true`/`false`/`null` |
 | `kortsvar` | `godkanda` (1–20), `exaktStavning` (true), `skiftlage` (false) | – | text ≤ 100 |
 | `lucktext` | `lucktext` med `[[svar]]`/`[[svar\|annat]]`, `exaktStavning`, `skiftlage` | `delar: [{ t } \| { lucka: n }]`, `antalLuckor` | lista med text per lucka |
-| `para` | `par: [{ vanster, hoger }]` (3–10) | `vanster`, `hoger` (blandade) | valt högerled per vänsterled (`""` = inget) |
-| `ordna` | `saker` (3–10, i rätt ordning) | `saker` (blandade) | elevens ordning, `[]` = inte rörd |
-| `fritext` | `bedomningsstod?` | `maxTecken` (4000) | text ≤ 4000 |
+| `para` | `par: [{ vanster, hoger }]` (3–10) | `vanster`, `hoger` (blandade), `blandningar` (#763) | valt högerled per vänsterled (`""` = inget) |
+| `ordna` | `saker` (3–10, i rätt ordning) | `saker` (blandade), `blandningar` (#763) | elevens ordning, `[]` = inte rörd; påbörjad = de placerade först (#763) |
+| `fritext` | `bedomningsstod?`, `kriterier?` (≤ 20 rader à ≤ 300 tecken, #762) | `maxTecken` (4000) | text ≤ 4000 |
 | `text` | `titel`, `brodtext` (≤ 6000) | `titel`, `brodtext` | – |
+| `avsnitt` (#762) | `titel` (1–200), `instruktion?` (≤ 1000) | `titel`, `instruktion?` | – |
 
 Alla frågor har `id` (a–z, 0–9, `-`, `_`; fylls i som `f1, f2 …`), `typ`,
-`fraga` (≤ 1000), `poang` (heltal 0–100, standard 1) och kan ha `hjalptext`.
+`fraga` (≤ 1000), `poang` (0,5–20 i steg om 0,5, standard 1, lagras som tal `3.5` – #762;
+gamla heltal 1–20 är giltiga) och kan ha `hjalptext`.
 Blandningen (`para`, `ordna`) är stabil per fråge-id och aldrig facit-ordningen.
+Sedan #763 blandas den dessutom **per elev** – se "Ordna och para med få tryck" nedan.
+
+### Ordna och para med få tryck (#763, §2.3.1)
+
+**Sparformatet är oförändrat** – rättningen, "Rätta alla" (#764), statistiken
+och utskriften läser samma svar som förr. Två skillnader:
+
+- **`ordna`:** en *påbörjad* ordning sparas också (de placerade sakerna i
+  ordning, t.ex. 3 av 5 – `rensaSvar` godtar provets saker högst en gång var).
+  `arBesvarad` är sann först när **alla** platser är fyllda; en påbörjad
+  ordning räknas alltså som obesvarad (inlämningsrutan, statistiken och
+  "Rätta alla" → 0 p, som ett tomt svar) – och typens `forslag` ger också 0 p,
+  så förslagen vid inlämning stämmer med "Rätta alla". Gamla svar var alltid hela eller `[]`.
+- **`para`:** listrutorna kunde välja samma förklaring två gånger; den nya
+  rutan visar ett gammalt sådant svar med bara den första (det sparade svaret
+  ändras inte förrän eleven trycker, och rättningen av det är som förut).
+
+**Blandning per elev.** `utanFacit` ger `blandningar`: upp till 12 olika
+ordningar som strängar med index i elevlistan (`"2031"` – Firestore tål inte
+listor i listor), ingen av dem facit, och högst hälften av alla ordningar
+minus en (3 saker → 2) så att listan inte pekar ut facit. Eleven får
+`blandningar[fnv(elevId:frågeId) % antal]` (`elevBlandning` i `typer/delat.js`)
+– samma efter omladdning, olika mellan eleverna. Utan elev-id
+(förhandsvisningen) eller utan `blandningar` (tillfällen öppnade före #763)
+= `saker`/`hoger` som förr. `renderElev` får elev-id som `o.elevId`
+(provsidan skickar elevens uid via `renderaProv({ elevId })`).
+
+**Elevens rutor** (logiken DOM-fri i `prov-ordna-para.js`, dra och släpp i
+`prov-dra.js`, testat i `test/prov-ordna-para.test.js` med
+`test/helpers/prov-mini-dom.js`):
+
+- `ordna`: "Ditt svar" (n platser) och "Kvar". Ett tryck i Kvar → nästa
+  lediga plats (n saker = n tryck); ett tryck i svaret → tillbaka, sakerna
+  under flyttar upp; "Börja om"; "3 av 5 placerade". Dra en sak till en plats
+  i svaret (eller tillbaka till Kvar) är ett extra sätt. Vanliga knappar:
+  Tab + Enter. Tryckytor ≥ 48 px.
+- `para`: tryck på ett begrepp och sedan en förklaring (eller tvärtom) → paret
+  får samma färg (`provv-par-f0…9`), samma siffra och en tunn SVG-linje.
+  Ett tryck på ett par tar isär det; finns ett val på andra sidan kopplas
+  saken om i stället. Dra begrepp → förklaring fungerar också. Inga menyer.
+- Dra: mus/penna efter 6 px; finger efter ett långtryck (250 ms) så att ett
+  svep fortfarande rullar sidan. Klicket efter ett släpp sväljs. Ett långt
+  tryck som släpps på stället (< 6 px) räknas som ett tryck (`el.click()`).
+
+**Redigeraren** (`larare/provl-flytta.js`, logiken i `prov-flytta-ops.js`,
+upp/ned-pilarna borttagna enligt §8.1):
+
+- **⋮⋮** först i kortet: dra kortet (mus och finger, `touch-action: none`),
+  en linje visar var det hamnar.
+- **"Flytta till…"**: ett litet fält, skriv frågenumret (som på korten –
+  avsnitt och textblock räknas inte, `fragaNummer`). En fråga *blir* fråga N
+  och hamnar bredvid frågan som har numret nu, i dess avsnitt (uppåt före,
+  nedåt efter). Ett avsnitt/textblock hamnar direkt före fråga N (avsnittet
+  börjar där); antalet frågor + 1 = sist. Fel nummer → "Skriv en plats från 1 till N."
+- **Alt + pil upp/ned** (fokus var som helst i kortet utom i ett fält) flyttar ett steg.
+- En öppen fråga följer med sitt id när andra kort flyttas.
+- Formuläret: ordna-raderna numreras 1, 2, 3 … (de är facit-ordningen);
+  klistrar läraren in flera rader blir det en rad var (`larare/provl-klistra.js`):
+  "1. " / "1) " först tas bort när VARJE rad är numrerad, rader som inte får
+  plats (högst 10) nämns i ett meddelande. Para: har VARJE rad "Tor – åska" /
+  "Tor - åska" / "Tor: åska" / tab fylls båda leden; annars fyller raderna,
+  hela, bara kolumnen man klistrade i, nedåt.
 
 ### Lägga till en ny frågetyp
 
@@ -122,7 +187,8 @@ Vyerna ligger i samma typfil: `renderElev` (C, #740) och en visningsfunktion
   `"delvis"` / `false`. Utan exakt stavning blir **ett** stavfel
   (`levenshtein == 1`) `"delvis"` – men aldrig för tal (`7` mot `8`) eller
   godkända svar kortare än 4 tecken (`ek`/`ok`).
-- Delpoäng (`delpoang`) avrundas till **närmaste halva poäng**. Ett stavfel ger
+- Delpoäng (`delpoang` = `delpoangNed`, #762) avrundas **nedåt** till halva poäng
+  (para 2 p, 3 av 5 rätt → 1,2 → 1 p) – se "Halvpoäng" nedan. Ett stavfel ger
   halva poängen (`DELVIS_STAVFEL_ANDEL = 0.5`) – läraren justerar i rättningen.
   Med provets val **Rätta stavfel själv** (`installningar.stavfel: "sjalv"`, #759)
   får stavfelssvaret inget förslag alls – se "Inställningar per prov" nedan.
@@ -195,6 +261,221 @@ eller `?gammalt` (tillfälle utan fälten) – länkar i kontrollraden,
 `preview/prov-installningar-pv.js`. I rättningspreviewn har Cleo stavfelet
 "Birkka" på fråga 4.
 
+## Halvpoäng, avsnitt och poängkriterier (Etapp 3, #762, spec §2.2–§2.3)
+
+**Poäng-kärnan** `src/prov/prov-poang.js` – ALL räkning och visning av poäng går
+hit (test: `test/prov-poang-avsnitt.test.js`):
+
+| Funktion | Gör |
+| --- | --- |
+| `halvor(p)` / `franHalvor(n)` | tal ↔ halva poäng som heltal (3.5 ↔ 7) |
+| `summaPoang(lista)` | exakt summa i halva poäng (3,5 + 4 + 0,5 = 8) – `maxPoang`, `summera` |
+| `delpoangNed(andel, max)` | automatikens delpoäng, **nedåt** till 0,5 (flyttalsbruset tippar aldrig nedåt) |
+| `klamPoang(p, max)` | lärarens poäng 0 … max i steg om 0,5 (`tolkaPoang`, `bedom`) |
+| `arGiltigMaxpoang(p)` | 0,5–20 i steg om 0,5 (`valideraGemensamt`) |
+| `poangTal(p)` / `poangP(p)` / `poangAv(p, max)` | "3,5" / "3,5 p" / "17,5 av 24 poäng" – decimalkomma i elevsidan, rättningen, resultatet, statistiken, CSV:n och utskriften |
+| `POANG_MIN`, `POANG_MAX`, `POANG_STEG`, `POANG_STANDARD` | 0,5 / 20 / 0,5 / 1 |
+
+Validering (§2.5): `poang` som tal eller text med komma/punkt ("3,5"); fel
+"Fråga 4 (Kort svar): poängen ("poang") måste vara 0,5–20 i steg om 0,5." ⚠️ Ett
+gammalt prov med en fråga på 0 eller över 20 poäng (gick förr) måste ändras innan det
+sparas igen – att köra och rätta det fungerar som förut. Redigerarens sifferfält:
+`step 0.5`, `min 0.5`, `max 20`; ett ogiltigt fält blir ett fel, aldrig tyst 1.
+AI-prompten ber om 0.5–20 i steg om 0.5.
+
+**`visaPoangForElev`** (`installningar`, standard `true`, kryssrutan "Visa poängen
+för eleven" under "Poängsätt frågorna"): elevsidan visar "(4 p)" vid varje fråga och
+"Provet ger högst 32 poäng" under namnet. Av – eller `poang: false` – visar inget av det.
+Gamla prov utan fältet får standarden (på), alltså nu även totalen överst.
+
+**Avsnitt** – typen `avsnitt` (`src/prov/typer/avsnitt.js`, `arFraga: false`):
+`{ id, typ: "avsnitt", titel, instruktion? }`, ingen fråga, inget svar, ingen poäng.
+Läggs till via "Lägg till fråga" och flyttas som de andra korten.
+
+- Frågorna numreras **löpande** genom hela provet (`fragaNummer` – avsnitt och
+  textblock får inget nummer); `validateProv` säger "Avsnitt 1: …" för sig.
+- `avsnittsGrupper(fragor)` (`prov-modell.js`) → `[{ avsnitt, poster, fragor, maxPoang }]`:
+  en grupp per avsnitt, poster före första avsnittet i en grupp med `avsnitt: null`
+  (bara om den har något), ett prov utan avsnitt = en grupp. **C och D grupperar
+  rättningen och statistiken (poäng per avsnitt) med den här.**
+- Elevsidan: rubrik + instruktion (`.provv-avsnitt`), frågelistan grupperad per
+  avsnitt (`.provv-lista-grupp`/`.provv-lista-avsnitt`).
+- Redigeraren: överst "Frågor: 12 frågor · 32 p" (`provSumma`), avsnittskortet
+  (`.provl-kort-avsnitt`) visar "3 frågor · 8 p" (`avsnittSummor`).
+- Allt annat hoppar över avsnitten via `arFraga`/`rattFragor`: `tomtSvar`,
+  `rensaSvar`, `besvarat` ("obesvarade"), `autoForslag`, `maxPoang`, `summera`,
+  statistiken, CSV:n, pluggmynten, anpassningarna. Per elev (rättningen),
+  resultatvyn och utskrifterna visar avsnittet som en rubrik.
+  `arAvsnitt(f)` i `prov-fragetyper.js`.
+
+**Poängkriterier** (fritext, valfritt): `kriterier: ["1 p: nämner en orsak", …]`
+på frågan i provet (fältet "Poängkriterier – ett per rad" under bedömningsstödet).
+När provet öppnas → `privat/facit.kriterier: { [fragaId]: [...] }` (bara om provet
+har några – ett gammalt prov ger samma facitdokument som förr); `laddaRattning`
+returnerar `kriterier`. **C** visar dem vid rättningen.
+`installningar.visaKriterier` (standard `false`, kryssrutan "Visa poängkriterierna"):
+vid tillbakalämningen kopierar `aterlamnadDok(r, { visaFacit, facit, kriterier })`
+dem till `rattning.kriterier` (rättningslagret skickar dem bara när valet är på);
+ångra tar bort dem. **D** (#765) visar dem i resultatvyn. Eleven kan aldrig läsa dem före
+tillbakalämningen: `privat/facit` läser hen aldrig, och reglerna tillåter
+`rattning.kriterier` bara när `aterlamnad == true` (som `facit`).
+Utskriftens facitblad visar dem efter bedömningsstödet.
+
+Förhandsvisning (port 8762 i #762): `preview/preview-prov-elev.html#/elev/prov/skriv?t=tf-demo`
+(Del 1/Del 2 + halvpoäng; `?utanpoang`, `?gammalt`), `preview/preview-prov-larare.html`
+→ "Prov med avsnitt (#762)" (`?#/larare/prov?vy=ny&id=avsnitt`; "Återställ proven" om
+det saknas), och `preview/preview-prov-rattning.html` (avsnitt + kriterier i provet).
+
+## Rätta alla automatiska frågor och halvpoäng i rättningen (Etapp 3, #764, §6.0–§6.2)
+
+**Knappen "Rätta alla automatiska frågor"** överst i rättningsvyn (alla tre
+flikarna) och i tillfällets översikt (`#/larare/prov/tillfalle?t=` – den öppnar
+rättningen med `&rattaAlla=1`, som kör knappen direkt och skrivs bort ur
+hashen). Den rättar alla automatiska frågor för alla inlämnade elever på en gång.
+
+| Fil | Gör |
+| --- | --- |
+| `prov-ratta-alla.js` | ren logik (test: `test/prov-ratta-alla.test.js`): `autoBedom` (säkert/osäkert/fritext), `rattaAllaElev`, `rattaAlla`, `sammanfattning`, `facitMedTillagg` + `godkannbara` (facit i efterhand), `delaIBatchar` |
+| `prov-ratta-alla-vy.js` | knappen + sammanfattningen (DOM) |
+| `prov-ratta-lager.js` | `lager.rattaAlla()` (kör + sparar direkt), `lager.godkannAven(f, text, lucka)` |
+| `prov-rattning-data.js` | `sparaFacitTillagg(t, fragaId, facit)` (en `update` av `facit.<fråga>`), batcharna via `delaIBatchar` |
+
+- **Säkert → rättas** (`auto: true, autoRattad: true`): flerval, flera rätt,
+  sant/falskt, para och ordna (delpoäng **nedåt** till 0,5 via `delpoangNed`),
+  obesvarade frågor (fel), kortsvar och luckor som stämmer **exakt** med facit
+  efter normaliseringen. Med **"Fel svar på kortsvar rättas som fel"**
+  (`installningar.felKortsvarFel`, standard på, kryssruta under "Rättning och
+  färggränser" i redigeraren; saknat = på) blir ett kortsvar/en ifylld lucka som
+  inte stämmer alls *fel*.
+- **Osäkert → lämnas åt läraren**: nästan rätt (ett stavfel när exakt stavning
+  inte krävs) och – med `felKortsvarFel: false` – svar som inte stämmer.
+  **Samspelet med #759:** med stavfel `"sjalv"` får nästan-rätt ingen post alls
+  (står som "? Inte rättad"); med `"auto"` står halva poängen kvar som *förslag*
+  (`auto: true` utan `autoRattad`) som läraren godkänner. En lucktext med något
+  stavfel lämnas hel.
+- **Fritext rörs aldrig** (inte heller det obesvarade förslaget). **Lärarens
+  bedömningar** (`auto !== true` med ratt – även gamla poster utan `auto`) skrivs
+  aldrig över; tillbakalämnade prov rörs inte. Lärarens kommentar på ett förslag
+  följer med.
+- **Fältmodellen** (bakåtkompatibel): förslag = `auto: true` (som förr, knappen
+  inte tryckt – beter sig som i §6.1/§6.3); rättat av knappen = `auto: true,
+  autoRattad: true` (trycket ÄR lärarens godkännande av de säkra fallen);
+  lärarens egna = `auto: false` (eller gamla poster utan `auto`) och får aldrig
+  `autoRattad`.
+- **`autoRattad`** räknas som bedömt (`arBedomd`: status, "Lämna tillbaka till
+  alla rättade", statistiken, färgerna, utskriften) men är inte lärarens egen
+  (`arManuell`). Kortet visar bedömningen + en liten etikett **Auto**. Ändrar
+  läraren bedömningen eller poängen blir posten manuell (`auto: false`,
+  `autoRattad` bort); en kommentar ensam ändrar inget. "Godkänn alla förslag"
+  rör inte autorättade.
+- **Omkörbar:** nästa tryck räknar om allt som inte är manuellt – en elev vars
+  rättning inte ändras skrivs inte igen.
+- **Sammanfattningen**: "312 svar rättades automatiskt." (bara nya/ändrade; noll
+  = "Inga nya svar att rätta automatiskt.") · "9 kortsvar behöver din bedömning."
+  (eller "lucktexter" / "kortsvar och lucktexter") med länk till första frågan och
+  "Fråga 4 (6)" per fråga · "24 fritextsvar väntar på rättning." (länk) ·
+  "2 tillbakalämnade prov rördes inte."
+- **Facit i efterhand:** kort med ett kortsvar/en lucka som inte stämmer exakt
+  har knappen **Godkänn även ”Björkö”** (”… i lucka 2”). Den lägger svaret i
+  `privat/facit.facit[fråga].godkanda` (lucktext: `luckor[i].godkanda`) –
+  högst 30 per lista, inte en dubblett efter normaliseringen. Provet (`prov/{id}`)
+  ändras inte; tillägget gäller tillfället och används nästa gång knappen trycks.
+- **Sparningen:** EN skrivning per ändrad elev (hela rättningsdokumentet) +
+  räkneverket, högst 450 rättningar per batch (`RATTNING_PER_BATCH`, under
+  Firestores 500). 25 elever = 1 batch, 26 skrivningar.
+
+**Halvpoäng i rättningen (§6.1–6.2)** – `prov-ratta-kort.js`:
+- Sifferfältet tar decimalkomma/-punkt och kläms till 0 … max i steg om 0,5
+  (`tolkaPoang` → `klamPoang`).
+- Snabbknappar `snabbPoang(max)`: 0, ½, 1, 1½ … max (`halvText`) för frågor upp
+  till 6 p; **över 6 p** knapparna **−** och **+** (`stegaPoang`, ±0,5, aldrig
+  under 0 eller över max).
+- Tangenter: **+** och **−** ±0,5 på kortet i fokus (utöver 1/2/3/Tab/Enter/N).
+- Poäng ↔ markering (`bedom`/`rattFor`): max = rätt, 0 = fel, annars delvis;
+  markeringen kan ändras för sig. Trycker läraren **Delvis** (`delvisPoang`):
+  halva maxpoängen nedåt till 0,5, men **minst 0,5** och **högst max − 0,5**
+  (1 p → 0,5 · 3 p → 1,5 · 7 p → 3,5); en tidigare delpoäng mellan 0 och max
+  behålls. En fråga på 0,5 p har inget emellan – där finns ingen Delvis (#765,
+  `delvisMojlig(max, poangsatt)`: knappen saknas, tangenten 2 gör inget). Poäng som
+  skickas med markeringen kläms alltid till 0 … max (`klamPoang`). Prov utan poäng: bara markeringen. Samma regel
+  gäller automatikens förslag (`forslagAv`, också kortsvarets stavfel): en andel
+  som avrundas nedåt till 0 p blir **fel**, aldrig "delvis" med 0 p (1 p lucktext,
+  1 av 3 luckor rätt → 0 p → fel). Frågor med max 0 följer andelen som förr.
+- Fritext: poängkriterierna (`privat/facit.kriterier`, #762) i en ruta bredvid
+  svaret (under på smal skärm).
+- Avsnitten (#762) som grupper: Per fråga grupperar frågeknapparna under
+  avsnittens namn och visar avsnittet över frågan; Per elev har rubrikerna.
+- Färgerna (`andelFor`) räknas i halva poäng som heltal – 8,5 + 8,5 av 20 är
+  exakt 85 % (grön).
+
+**Regler** (`test/firestore-rules-prov-ratta-alla.test.js`): `provInstOk` –
+`felKortsvarFel` bara true/false; `validRattning` – `totalPoang`/`maxPoang` 0 …
+1200 i steg om 0,5 (`provHalvpoang`) och total ≤ max; `privat/facit` – skapa/
+ändra bara med fälten `facit` (map), `bedomningsstod`, `kriterier` (maps).
+Frågornas poster (`poang`, `ratt`, `auto`, `autoRattad`) kan reglerna inte gå
+igenom – klienten klämmer dem.
+
+Förhandsvisning: `preview/preview-prov-rattning.html` (knappen, sammanfattningen,
+Auto-etiketten, halvpoängen; q7 ordna är värd 8 p → − och +).
+
+## Statistik per avsnitt, resultatvyn och utskriften (Etapp 3, #765, §2.2–§2.3, §7, §7.5, §12–§13)
+
+Allt räknas ur det som redan läses (§9) – inga nya läsningar. Avsnitten är aldrig
+frågor (`arFraga`), numreringen är löpande (`fragaNummer`), poängen exakt i halva
+poäng och skrivs med decimalkomma (`poangTal`; snitt med en decimal, `snittTal`:
+8,25 → "8,3"). **Ett prov utan avsnitt ser ut som förut** – inga nya kolumner,
+rader eller sektioner.
+
+- `poangAvsnitt(fragor)` (`prov-modell.js`) → `[{ id, titel, fragor, maxPoang }]`:
+  avsnittsGrupper med minst en fråga; frågor före första avsnittet heter
+  "Inledning" (`UTAN_AVSNITT`, id ""). `[]` när provet saknar avsnitt.
+- `prov-statistik.js`: `avsnittFor(r, avsnitt, poangsatt, granser)` – en elevs
+  `andelFor` per avsnitt (bara bedömda frågor, som totalen) med färg;
+  `klassOversikt(…).avsnitt` – klassens andel av poängen per avsnitt (bedömda svar)
+  och `snittPoang` = andelen × avsnittets max (= medelpoängen när alla är rättade);
+  `rader[].avsnitt` per elev. `avsnittText`/`avsnittVarde`: "Del 1: 8 av 10" (elev),
+  "Del 1: 7,3 av 10" (klassens snitt), utan poäng "Del 1: 75 %", "ej rättat".
+  Färggränserna (#759) gäller avsnitten som totalen: 8,5 av 10 = 85 % grön.
+- **Full poäng = rätt** (`visadRatt(post, max, poangsatt)`, `prov-rattning-logik.js`):
+  en gammal "delvis" med 0,5 av 0,5 p visas som ✓ Rätt i cellen (`cellLage(…, poangsatt)`),
+  etiketten (`bedomningsEtikett`) och rättningskortet – ingen gul ½-cell vid 100 %.
+- **Översikten** (`prov-stat-vy.js`): "Per avsnitt (klassens snitt)" som brickor
+  överst; rutnätet får en rubrikrad med avsnitten (`colgroup`) och en Σ-kolumn
+  efter varje avsnitt (elevens "8/10" i avsnittets färg, klassens andel i
+  summeringsraden). **Elevvyn**: "Per avsnitt" under totalen och avsnittsrubriker
+  med elevens poäng ("1,5 av 5") i frågelistan.
+- **Fördjupad** (`prov-fordjupad-vy.js`): sektionen "Per avsnitt" (snittpoäng,
+  stapel, andel), avsnittets namn på varje fråga i "Per fråga", jämförelsen med
+  en avsnittsrad (snittet) före avsnittets frågor (`jamforKlasser(…).avsnitt`,
+  samma avsnitts-id i de andra klasserna, annars –). **CSV:n** får en kolumn per
+  avsnitt efter frågorna, "Del 1 (10 p)" (utan poäng "Del 1 (%)").
+- **Elevens resultat** – `resultatModell` ligger nu i `prov-resultat-modell.js`
+  (rättningslogiken höll sig inte under 400 rader): `avsnitt` = `avsnittsPoang(r, fragor)`
+  (summan av frågornas poäng, som totalen), poängen per avsnitt överst ("Del 1:
+  8 av 10 · Del 2: 9,5 av 14") och under avsnittsrubriken ("8 av 10 poäng");
+  `poster[].kriterier` = `rattning.kriterier[id]` bara när tillfällets
+  `visaKriterier === true` OCH tillbakalämningen kopierade dem – ruta
+  "Poängkriterier" under svaret (`.provv-res-kriterier`). "Auto" visas aldrig för eleven.
+- **Utskriften**: provet – avsnittsrubriken med avsnittets maxpoäng "(8 p)";
+  facitbladet grupperat per avsnitt (samma nummer); resultatet – poäng per avsnitt
+  under totalen och vid rubriken ("– 8 av 10 p"), poängkriterierna när provet
+  visar dem för eleven (`visaKriterier`, ur `privat/facit` som läraren redan läst).
+  "Skriv ut provet" i Översikten tar med kriterierna på facitbladet.
+- **Regeln** `provKriterierOk` (firestore.rules): `rattning.kriterier` får skrivas
+  bara när tillfällets `installningar.visaKriterier == true` (tillfället är redan
+  läst – ingen extra åtkomst), eller när de står kvar oförändrade (flaggan slogs
+  av efter tillbakalämningen). Tillsammans med `provAterlamningOk` (bara i en
+  tillbakalämnad rättning) ser eleven alltså kriterierna bara efter
+  tillbakalämningen och bara om läraren valt det.
+  Test: `test/firestore-rules-prov-kriterier-765.test.js`; logiken
+  `test/prov-765-avsnitt-statistik.test.js`. ⚠️ Kräver rules-deploy (före webben).
+
+Förhandsvisning: `preview/preview-prov-statistik.html?avsnitt` – Översikt med tre
+avsnitt, halvpoäng (två frågor à 0,5 p: rätta dem → ingen Delvis) och
+poängkriterier; `&e=e2` elevvyn, `#/elev/resultat?e=e0` elevens resultatvy
+(e0–e4 är tillbakalämnade), "Skriv ut provet/resultat" i Översikten. Utan
+`?avsnitt` = det gamla provet (heltal, inga avsnitt).
+
 ## Skapa och redigera (B, #739)
 
 Lärarsidans grupp **Prov** (`TEACHER_GROUPS`) med fliken **Mina prov**
@@ -204,7 +485,7 @@ Lärarsidans grupp **Prov** (`TEACHER_GROUPS`) med fliken **Mina prov**
 | --- | --- |
 | `page-larare-prov.js` | route: `?vy=mina` (standard), `?vy=ny`, `&id=` (redigera), `&kopia=` (kopiera → osparat utkast); laddar `prov-larare.css` |
 | `provl-lista.js` | Mina prov + kollegors (hopfällda): namn, frågor, senast ändrat, ägare. Redigera/Radera bara med `canEditArea`; Kör i klass, Förhandsvisa och Kopiera för alla. Radera bekräftas i en ruta på sidan |
-| `provl-redigera.js` | uppgifter + inställningar (§3), frågekort (↑ ↓ Redigera Duplicera Ta bort + Ångra), "Lägg till fråga" (typväljaren → formuläret), Spara (`tillDokument` → `setDoc`), lämna-vakt vid osparat |
+| `provl-redigera.js` | uppgifter + inställningar (§3), frågekort (⋮⋮ / Flytta till… / Alt + pil via `provl-flytta.js` (#763), Redigera Duplicera Ta bort + Ångra), "Lägg till fråga" (typväljaren → formuläret), Spara (`tillDokument` → `setDoc`), lämna-vakt vid osparat |
 | `provl-fragaform.js` | ett formulär per typ, `onSubmit(falt) → { ok, errors }` |
 | `provl-ai.js` | "Skapa med AI" (§8.2): val → `buildProvPrompt` → klistra in → Granska (`tolkaAiJson` = `validateProv`) → frågorna läggs sist |
 | `provl-forhandsvisa.js` | "Förhandsvisa som elev": `delaUppProv` (inget facit) + C:s `renderaFragor`, inget sparas |
@@ -230,6 +511,7 @@ Förhandsvisning utan Firebase: `preview/preview-prov-larare.html`
 ## Vad reglerna kräver av klienten (B–E)
 
 - **prov**: `createdBy` = egen uid vid skapande, `namn` 1–80, `fragor` ≤ 60;
+  #762: `installningar.visaPoangForElev`/`visaKriterier` true/false;
   #759: `installningar.stavfel` `"auto"`/`"sjalv"`, `installningar.granser`
   `{ gul, gron }` heltal med `0 < gul < gron ≤ 100` (samma på tillfället).
 - **provTillfallen**: `classId`, `provId` (text), `status`, `fragor` (lista,
@@ -248,7 +530,7 @@ Förhandsvisning utan Firebase: `preview/preview-prov-larare.html`
   (`rensaSvar`) – reglerna kan inte gå igenom en map.
 - **rattning**: `elevId` = dokument-id, `classId` = tillfällets, `fragor` (map,
   ≤ 60), `aterlamnad` (bool), `niva` null/`EG`/`G`/`MG`. Ångra = `aterlamnad: false`
-  + `deleteField()` på `facit` och `aterlamnadAt`. Eleven får `getDoc` på en
+  + `deleteField()` på `facit`, `kriterier` (#762) och `aterlamnadAt`. Eleven får `getDoc` på en
   rättning som inte finns (ingen behörighetsfel) men nekas en som inte är återlämnad.
 - **Elevens lyssnare** (§5.5): `where("classId", "in", classIds)` +
   `where("status", "==", "oppet")` är testad i reglerna. Utan statusfiltret nekas listan.
@@ -293,8 +575,8 @@ resultatvyn är `pageProvResultat` i `prov-elev-sida.js`.
 (en per typfil, låst signatur, kommentaren i `prov-vy.js`): `onChange(nyttSvar)`
 ger svaret i formen ovan; `lasLage: true` = visning utan kontroller som ändrar
 något. Valfritt även `onLamna()` (lämnade rutan → spara snart), `attr`
-(stavningsattributen) och `uid` (id-prefix). `ordna` är obesvarad tills eleven
-flyttat något eller tryckt "Behåll den här ordningen".
+(stavningsattributen), `uid` (id-prefix) och `elevId` (blandning per elev, #763).
+`ordna` är obesvarad tills alla platser är fyllda (#763).
 
 **Flödet** (statusflödet ovan): "Kör i klass" skapar `forberett` (+ `fokus`,
 `skapad`); Öppna kopierar provets **senaste** version; Stäng sätter status först
@@ -319,14 +601,15 @@ som skriver som "skriver fortfarande" och kommer med när vyn laddas om.
 
 | Fil | Gör |
 | --- | --- |
-| `prov-rattning-logik.js` | ren logik: förslagen (`nyRattning`, `forslagFor`, `kompletteraForslag`), `bedom` (en elev), `svarsGrupper` + `bedomGrupp` (grupp), `godkannFraga`/`godkannAlla`, `elevStatus`, `summera`, `rattStatusSumma`, `aterlamnaPlan`, `aterlamnadDok`/`angratDok`, `sparDok`, `resultatModell` |
+| `prov-rattning-logik.js` | ren logik: förslagen (`nyRattning`, `forslagFor`, `kompletteraForslag`), `bedom` (en elev), `svarsGrupper` + `bedomGrupp` (grupp), `godkannFraga`/`godkannAlla`, `elevStatus`, `summera`, `rattStatusSumma`, `aterlamnaPlan`, `aterlamnadDok`/`angratDok`, `sparDok`, `delvisMojlig`, `visadRatt` (#765) |
+| `prov-resultat-modell.js` | `resultatModell` (elevens resultat, #765: `avsnitt`, `poster[].kriterier`) och `avsnittsPoang` |
 | `prov-rattning-data.js` | `laddaRattning` (en gång), `sparaRattningar`, `lamnaTillbaka`, `angraTillbaka` – batchar med hela dokument |
 | `prov-ratta-lager.js` | vyns tillstånd + autosparningen (`skapaSparare` med `LARARENS_SPARNING`) |
 | `prov-ratta-sida.js` | route, skalet (räknaren, Lämna tillbaka till alla rättade, flikarna, Dölj namn), rutan, tangentbordet |
 | `prov-ratta-lagen.js` | `perFraga(v)` och `perElev(v)` |
-| `prov-ratta-kort.js` | ett kort: Rätt/Delvis/Fel, poäng (fält + snabbknappar 0 … max), kommentar |
+| `prov-ratta-kort.js` | ett kort: Rätt/Delvis/Fel, poäng (fält + snabbknappar 0, ½ … max, över 6 p − och +, #764), kommentar, Auto-etiketten, kriterierna, "Godkänn även" |
 | `prov-svar-vy.js` | typernas svarsbild (alternativ, text, ✓/½/✗) |
-| `prov-resultat-vy.js` | elevens resultatvy utan Firebase (`renderaResultat(resultatModell(…))`) |
+| `prov-resultat-vy.js` | elevens resultatvy utan Firebase (`renderaResultat(resultatModell(…))`), poäng per avsnitt och poängkriterier (#765) |
 | `prov-ratta.css`, `prov-resultat.css` | `.provl-r-` (lärare), `.provv-sv-`/`.provv-res-` (svaren, eleven) |
 
 - **Förslag**: när vyn öppnas får varje inlämnat prov utan rättning en med
@@ -374,7 +657,7 @@ inte rättad `?`), så att det fungerar för färgblinda och vid utskrift.
 
 | Fil | Gör |
 | --- | --- |
-| `prov-statistik.js` | ren logik: `cellLage`, `andelFor`, `fargFor`, `granserFor`, `klassOversikt`, `sorteraRader`, `fordelning`/`fordelningText`, `provInfoDok`, `historik`, `linjePunkter` |
+| `prov-statistik.js` | ren logik: `cellLage`, `andelFor`, `avsnittFor`/`avsnittText`/`avsnittVarde`/`snittTal` (#765), `fargFor`, `granserFor`, `klassOversikt`, `sorteraRader`, `fordelning`/`fordelningText`, `provInfoDok`, `historik`, `linjePunkter` |
 | `prov-stat-vy.js` | rättningsvyns flik **Översikt** (`oversiktVy`) och elevvyn (`elevStatVy`, bara att läsa) |
 | `prov-klass-statistik.js` | fliken **Prov** i klassens statistik (`renderClassProv`, rad i `STATS_TABS`, `when: classId`) |
 | `prov-statistik-data.js` | statistikflikens enda läsning: `hamtaKlassensRattningar(classId)` |
@@ -677,7 +960,10 @@ som test i `test/prov-tillfalle.test.js` ("budgeten").
 eller läge läser inget). Skrivningar: förslagen 25 (en batch) + autosparningen –
 en batch med de ändrade eleverna högst var 10:e sekund (`LARARENS_SPARNING`).
 Per fråga rör varje fråga alla elever en gång: 12 × 25 = 300; tillbakalämningen 25,
-räkneverket ett par. **≈ 350 skrivningar** för en hel rättning. Med elevernas
+räkneverket ett par. **≈ 350 skrivningar** för en hel rättning. "Rätta alla
+automatiska frågor" (#764) läser inget extra (vyns data) och skriver en gång per
+elev vars rättning ändras: ≤ 25 + räkneverket per tryck; facit i efterhand = 1
+skrivning per tillägg. Med elevernas
 realistiska några hundra skrivningar och ≈ 1 300 läsningar stannar provet + rättningen
 långt under 3 000/3 000.
 
@@ -697,6 +983,19 @@ Inställningarna per prov (#759) kräver regel-deployen för valideringen av
 reglerna godtar vilken `installningar`-map som helst, och de nya godtar allt
 den nya och den gamla webben skriver (utom ett gammalt reglage som drogs till
 gul 0 – det nekas och visas som sparfel).
+Halvpoäng/avsnitt/kriterier (#762) kräver regel-deployen för `rattning.kriterier`
+(de gamla reglerna nekar fältet – en tillbakalämning med "Visa poängkriterierna"
+skulle nekas) och valideringen av `visaPoangForElev`/`visaKriterier`. Deploya
+reglerna FÖRE webben; de nya reglerna godtar allt den gamla webben skriver.
+"Rätta alla" och halvpoängen i rättningen (#764) kräver regel-deployen för
+valideringen (`felKortsvarFel`, halva poäng och total ≤ max i rättningen,
+fälten i `privat/facit`). Ordningen spelar ingen roll: de gamla reglerna godtar
+allt den nya webben skriver (`autoRattad` ligger i `fragor`-mapen), och de nya
+godtar allt den gamla webben skriver.
+Statistik per avsnitt/resultatvyn (#765) kräver regel-deployen för
+`provKriterierOk` (kriterierna bara när `visaKriterier` är på). Ordningen spelar
+ingen roll: webben skickar kriterierna bara när valet är på, så de nya reglerna
+godtar allt både den gamla och den nya webben skriver.
 Anpassningarna (#748) kräver regel-deployen: innan den nekas varje sparning med
 `flikbyten` (den gamla `validSvarFalt` känner inte fältet) och extra tid
 förlänger inte reglernas gräns. Deploya reglerna FÖRE webben.

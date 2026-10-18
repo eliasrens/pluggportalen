@@ -1,5 +1,6 @@
-// Preview-fixtur (#739): tre prov – ett eget med alla frågetyper, en kollegas
-// och ett gammalt utan ägare (= admins). Går genom validateProv som i appen.
+// Preview-fixtur (#739): fyra prov – ett eget med avsnitt + halvpoäng +
+// poängkriterier (#762), ett eget med alla frågetyper, en kollegas och ett
+// gammalt utan ägare (= admins). Går genom validateProv som i appen.
 import { validateProv } from "../../src/prov/prov-validera.js";
 
 const DAG = 86400000;
@@ -9,6 +10,21 @@ const prov = (id, rå, agare, dagar) => ({
 });
 
 export const FIXTUR = [
+  // #762: avsnitt, halvpoäng och poängkriterier – "4 frågor · 9,5 p".
+  prov("avsnitt", {
+    namn: "Vikingatiden – prov i två delar", amne: "Historia", arskurs: "ak5",
+    installningar: { poang: true, tidsgransMin: 40, visaKriterier: true },
+    fragor: [
+      { typ: "avsnitt", titel: "Del 1 – Begrepp", instruktion: "Svara kort. Varje fråga visar hur många poäng den ger." },
+      { typ: "flerval", fraga: "Var låg handelsstaden Birka?", alternativ: ["På Björkö i Mälaren", "På Gotland", "I Skåne"], ratt: 0, poang: 1 },
+      { typ: "para", fraga: "Para ihop guden med det guden styrde över.", par: [{ vanster: "Tor", hoger: "Åska" }, { vanster: "Oden", hoger: "Visdom" }, { vanster: "Freja", hoger: "Kärlek" }], poang: 1.5 },
+      { typ: "kortsvar", fraga: "Vad hette vikingarnas snabba skepp?", godkanda: ["långskepp"], exaktStavning: false, poang: 0.5 },
+      { typ: "avsnitt", titel: "Del 2 – Skriv och förklara", instruktion: "Svara med hela meningar. Förklara varför." },
+      { typ: "fritext", fraga: "Varför gav sig vikingarna ut på resor?", poang: 6.5,
+        bedomningsstod: "Handel, plundring, ny mark att odla.",
+        kriterier: ["1 p: nämner en orsak", "2 p: nämner två orsaker", "+1 p: förklarar varför", "+1 p: använder begreppen handel och plundring"] },
+    ],
+  }, { createdBy: "anna", createdByName: "Årskurs 4 (Anna)" }, 0),
   prov("vikingar", {
     namn: "Vikingatiden – prov", amne: "Historia", arskurs: "ak4",
     installningar: { poang: true, tidsgransMin: 40 },

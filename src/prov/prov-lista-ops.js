@@ -10,7 +10,7 @@
 // ============================================================================
 
 import { canEditArea, createdByLabel } from "../teacher-role-core.js";
-import { arFraga } from "./prov-fragetyper.js";
+import { arAvsnitt, arFraga } from "./prov-fragetyper.js";
 
 const str = (v) => (v == null ? "" : String(v));
 
@@ -26,7 +26,7 @@ export function provRad(dok, role) {
     namn: str(dok.namn) || "(namnlöst prov)",
     amne: str(dok.amne),
     antal: fragor.filter(arFraga).length,
-    textblock: fragor.length - fragor.filter(arFraga).length,
+    textblock: fragor.filter((f) => !arFraga(f) && !arAvsnitt(f)).length, // avsnitten (#762) räknas inte
     andrad: ms,
     agare: createdByLabel(dok),
     kanAndra: kanAndra(dok, role),

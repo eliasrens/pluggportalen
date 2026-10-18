@@ -62,6 +62,8 @@ function knappar(tf, { oversikt = true } = {}) {
   if (oversikt && tf.status !== STATUS.FORBERETT) k.push(`<button class="btn ghost small" data-hash="${esc(oversiktHash(tf.id))}">Översikt</button>`);
   // Rättningen (#741): när provet är stängt (eller medan de inlämnade väntar).
   if (tf.status !== STATUS.FORBERETT) k.push(`<button class="btn ${tf.status === STATUS.STANGT ? "gron" : "ghost"} small" data-hash="${esc(rattaHash(tf.id))}">Rätta</button>`);
+  // "Rätta alla automatiska frågor" (#764, §6.0): öppnar rättningen och kör knappen där.
+  if (!oversikt && tf.status !== STATUS.FORBERETT) k.push(`<button class="btn ghost small" data-hash="${esc(rattaHash(tf.id))}&amp;rattaAlla=1">Rätta alla automatiska frågor</button>`);
   // Resultatet i grönt/gult/rött (#742): rättningsvyns flik Översikt.
   if (tf.status !== STATUS.FORBERETT && tf.rattStatus?.antal) k.push(`<button class="btn ghost small" data-hash="${esc(rattaHash(tf.id))}&amp;lage=oversikt">Resultat</button>`);
   // Anpassningar (#748): extra tid medan provet pågår (översikten), omprov för valda elever.

@@ -7,11 +7,12 @@
 // Kontraktet (docs/PROV.md "Frågetypsregistret"):
 //   id, namn, ikon, beskrivning
 //   autoratt              kan få ett automatiskt rättningsförslag
-//   arFraga?              false = textblock (inget nummer, ingen poäng)
+//   arFraga?              false = textblock/avsnitt (inget nummer, ingen poäng, inget svar)
 //   validera(fraga)       → { ok, fel: [], varningar: [], value } (svenska fel,
 //                           utan plats – validateProv sätter "Fråga 4 (Kort svar): ")
 //   facit(fraga)          → facit för privat/facit (null = inget facit)
 //   bedomningsstod?(fraga) → lärarens bedömningsstöd (null = inget)
+//   kriterier?(fraga)     → poängkriterier för privat/facit.kriterier (fritext, #762)
 //   utanFacit(fraga)      → elevens fråga, inget facit kvar
 //   tomtSvar(elevFraga)   → startvärdet för elevens svar
 //   arBesvarad(svar, elevFraga) → true/false ("3 obesvarade")
@@ -36,6 +37,7 @@ import para from "./typer/para.js";
 import ordna from "./typer/ordna.js";
 import fritext from "./typer/fritext.js";
 import text from "./typer/text.js";
+import avsnitt from "./typer/avsnitt.js";
 
 /** Registret i väljarens ordning ("Lägg till fråga"). */
 export const FRAGETYPER = Object.freeze([
@@ -48,6 +50,7 @@ export const FRAGETYPER = Object.freeze([
   ordna,
   fritext,
   text,
+  avsnitt,
 ]);
 
 const PER_ID = new Map(FRAGETYPER.map((t) => [t.id, t]));
@@ -60,7 +63,10 @@ export function fragetyp(id) {
   return PER_ID.get(id) || null;
 }
 
-/** Är posten en fråga (inte ett textblock)? Okänd typ räknas som fråga. */
+/** Är posten en fråga (inte ett textblock eller avsnitt)? Okänd typ räknas som fråga. */
 export function arFraga(f) {
   return fragetyp(f?.typ)?.arFraga !== false;
 }
+
+/** Är posten en avsnittsrubrik (#762)? */
+export const arAvsnitt = (f) => f?.typ === "avsnitt";

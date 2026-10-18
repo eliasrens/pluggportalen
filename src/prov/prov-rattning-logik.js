@@ -6,17 +6,18 @@
 // och resultatvyn (prov-resultat-vy.js) bygger på den.
 //
 // rattning/{elevUid} (docs/DATAMODELL.md "Prov"):
-//   { elevId, classId, provNamn, fragor: { [fragaId]: { poang, ratt, kommentar?, auto } },
+//   { elevId, classId, provNamn, fragor: { [fragaId]: { poang, ratt, kommentar?, auto, autoRattad? } },
 //     totalPoang, maxPoang, niva, helhetskommentar?, aterlamnad, aterlamnadAt?, facit?,
 //     myntUtbetalt? (#746: pluggmynten som betalats ut, skrivs bara av prov-mynt-pay.js) }
 // En post med auto: true är ett FÖRSLAG – det räknas inte som rättat förrän
-// läraren godkänner eller ändrar det (§6.3).
+// läraren godkänner eller ändrar det (§6.3). "Rätta alla automatiska frågor"
+// (#764, prov-ratta-alla.js) rättar de säkra fallen: auto: true + autoRattad:
+// true räknas som bedömt (etiketten "Auto") men är inte lärarens egen bedömning.
 // ============================================================================
 
 import { arFraga, fragetyp } from "./prov-fragetyper.js";
-import { NIVAER, autoForslag, fragaNummer, maxPoang } from "./prov-modell.js";
-import { delpoang } from "./prov-rattning.js";
-import { arOmprov, elevProvNamn } from "./prov-anpassningar.js";
+import { NIVAER, autoForslag, maxPoang } from "./prov-modell.js";
+import { franHalvor, halvor, klamPoang, summaPoang } from "./prov-poang.js";
 
 /** Status per elev (§6.3) – i den ordningen. */
 export const ELEV_STATUS = Object.freeze({ EJ: "ej", DELVIS: "delvis", RATTAD: "rattad", TILLBAKA: "tillbaka" });
@@ -36,10 +37,17 @@ export const TANGENT_RATT = Object.freeze({ 1: true, 2: "delvis", 3: false });
 const arRatt = (v) => v === true || v === false || v === "delvis";
 export const bedomning = (ratt) => BEDOMNINGAR.find((b) => b.ratt === ratt) || null;
 
-/** Har läraren bedömt posten (inte bara ett automatiskt förslag)? */
-export const arBedomd = (post) => !!post && post.auto !== true && arRatt(post.ratt);
+/**
+ * Är posten bedömd – av läraren, eller av "Rätta alla automatiska frågor"
+ * (#764: auto: true + autoRattad: true) – och inte bara ett förslag?
+ */
+export const arBedomd = (post) => !!post && arRatt(post.ratt) && (post.auto !== true || post.autoRattad === true);
 /** Är posten ett förslag som väntar på läraren? */
-export const arForslag = (post) => !!post && post.auto === true && arRatt(post.ratt);
+export const arForslag = (post) => !!post && post.auto === true && post.autoRattad !== true && arRatt(post.ratt);
+/** Är posten rättad automatiskt av "Rätta alla" (#764, etiketten "Auto")? */
+export const arAutoRattad = (post) => !!post && post.auto === true && post.autoRattad === true && arRatt(post.ratt);
+/** Har läraren själv bedömt posten (#764: skrivs aldrig över av "Rätta alla")? Gamla poster utan auto = lärarens. */
+export const arManuell = (post) => !!post && post.auto !== true && arRatt(post.ratt);
 
 /** Frågorna som rättas (inte textblocken). */
 export const rattFragor = (fragor) => (fragor || []).filter(arFraga);
@@ -55,12 +63,8 @@ export function elevStatus(r, fragor) {
 
 /** Totalen och maxpoängen (§6.2) – förslagen räknas med, poäng saknas = 0. */
 export function summera(r, fragor) {
-  let total = 0;
-  for (const f of rattFragor(fragor)) {
-    const p = Number(r?.fragor?.[f.id]?.poang);
-    if (Number.isFinite(p)) total += p;
-  }
-  return { ...r, totalPoang: Math.round(total * 2) / 2, maxPoang: maxPoang(fragor) };
+  const total = summaPoang(rattFragor(fragor).map((f) => r?.fragor?.[f.id]?.poang));
+  return { ...r, totalPoang: total, maxPoang: maxPoang(fragor) };
 }
 
 /**
@@ -105,12 +109,43 @@ export function kompletteraForslag(r, fragor, svar, facit, stavfel) {
   return { r: andrad ? summera({ ...r, fragor: fr }, fragor) : r, andrad };
 }
 
-/** Poängen som följer en bedömning: rätt = max, fel = 0, delvis = halva (eller tidigare delpoäng). */
+/**
+ * Poängen för "Delvis" (#764): halva maxpoängen nedåt till 0,5 – men minst
+ * 0,5 (aldrig 0 p, som skulle betyda fel) och högst max − 0,5 (aldrig full
+ * poäng, som skulle betyda rätt). En fråga på 0,5 p kan inte ligga emellan –
+ * där finns ingen "Delvis" i rättningen (#765, delvisMojlig). max 0 → 0.
+ */
+export function delvisPoang(max) {
+  const m = halvor(max);
+  if (m <= 0) return 0;
+  const h = Math.max(1, Math.floor(m / 2));
+  return franHalvor(m > 1 ? Math.min(h, m - 1) : h);
+}
+
+/**
+ * Finns "Delvis" för frågan (#765)? Inte på en poängsatt fråga värd 0,5 p –
+ * där finns ingen poäng mellan 0 och max, så knappen döljs och tangenten 2
+ * gör inget. Utan poäng (eller max 0) betyder delvis ½ och finns alltid.
+ */
+export const delvisMojlig = (max, poangsatt = true) => !poangsatt || halvor(max) !== 1;
+
+/**
+ * Markeringen som VISAS för en bedömd post (#765): på ett poängsatt prov är
+ * full poäng alltid "rätt" – även en gammal "delvis" med 0,5 av 0,5 p – så
+ * att statistiken aldrig visar en gul ½-cell för en elev som fick 100 %.
+ */
+export function visadRatt(post, max, poangsatt = true) {
+  const m = halvor(max);
+  if (poangsatt && m > 0 && post?.ratt === "delvis" && halvor(post.poang) >= m) return true;
+  return post?.ratt;
+}
+
+/** Poängen som följer en bedömning: rätt = max, fel = 0, delvis = delvisPoang (eller tidigare delpoäng). */
 export function poangFor(ratt, max, tidigare) {
   if (ratt === true) return max;
   if (ratt === false) return 0;
   const t = Number(tidigare);
-  return Number.isFinite(t) && t > 0 && t < max ? t : delpoang(0.5, max);
+  return Number.isFinite(t) && t > 0 && t < max ? t : delvisPoang(max);
 }
 
 /** Bedömningen som följer en poäng: max = rätt, 0 = fel, annars delvis. */
@@ -124,7 +159,7 @@ export function rattFor(poang, max) {
 export function tolkaPoang(v, max) {
   const n = Number(String(v ?? "").replace(",", "."));
   if (String(v ?? "").trim() === "" || !Number.isFinite(n)) return null;
-  return Math.min(max, Math.max(0, Math.round(n * 2) / 2));
+  return klamPoang(n, max);
 }
 
 export const KOMMENTAR_MAX = 1000;
@@ -132,8 +167,9 @@ export const HELHET_MAX = 4000;
 
 /**
  * Lärarens bedömning av en fråga hos en elev. `andring` = { ratt?, poang?, kommentar? }.
- * Ny bedömning eller poäng → auto: false (läraren har bestämt). En kommentar
- * ensam ändrar inte bedömningen (ett förslag förblir ett förslag).
+ * Ny bedömning eller poäng → auto: false (läraren har bestämt – en autorättad
+ * post, #764, blir då manuell). En kommentar ensam ändrar inte bedömningen
+ * (ett förslag förblir ett förslag, en autorättad post autorättad).
  * @returns ny rättning (summerad)
  */
 export function bedom(r, fraga, andring, fragor) {
@@ -142,12 +178,15 @@ export function bedom(r, fraga, andring, fragor) {
   const post = { ...fore };
   if ("ratt" in andring && arRatt(andring.ratt)) {
     post.ratt = andring.ratt;
-    post.poang = "poang" in andring && andring.poang != null ? andring.poang : poangFor(andring.ratt, max, fore.ratt === "delvis" ? fore.poang : null);
+    // Poängen kläms alltid till 0 … max (#764) – även när den skickas med markeringen.
+    post.poang = "poang" in andring && andring.poang != null ? klamPoang(andring.poang, max) : poangFor(andring.ratt, max, fore.ratt === "delvis" ? fore.poang : null);
     post.auto = false;
+    delete post.autoRattad;
   } else if ("poang" in andring && andring.poang != null) {
-    post.poang = Math.min(max, Math.max(0, andring.poang));
+    post.poang = klamPoang(andring.poang, max);
     post.ratt = rattFor(post.poang, max);
     post.auto = false;
+    delete post.autoRattad;
   }
   if ("kommentar" in andring) {
     const k = String(andring.kommentar ?? "").trim().slice(0, KOMMENTAR_MAX);
@@ -225,7 +264,8 @@ export function godkannFraga(rattningar, elevIds, fragaId) {
 /**
  * Gruppens gemensamma post, eller null om eleverna bedömts olika ("blandat").
  * Samma bedömning där några är godkända och några förslag = ett förslag
- * (auto: true) – läraren behöver bara bekräfta.
+ * (auto: true) – läraren behöver bara bekräfta. Inga förslag men någon
+ * autorättad (#764) = autorättad (etiketten "Auto").
  */
 export function gruppPost(rattningar, elevIds, fragaId) {
   const poster = elevIds.map((uid) => rattningar[uid]?.fragor?.[fragaId] || null);
@@ -233,7 +273,9 @@ export function gruppPost(rattningar, elevIds, fragaId) {
   const lika = (a, b) => (a?.ratt ?? null) === (b?.ratt ?? null) && (a?.poang ?? null) === (b?.poang ?? null) &&
     (a?.kommentar || "") === (b?.kommentar || "");
   if (!poster.every((p) => lika(p, forsta))) return null;
-  return forsta && poster.some((p) => p?.auto === true) ? { ...forsta, auto: true } : forsta;
+  if (!forsta) return forsta;
+  if (poster.some(arForslag)) return { ...forsta, auto: true, autoRattad: false };
+  return poster.some(arAutoRattad) ? { ...forsta, auto: true, autoRattad: true } : forsta;
 }
 
 /** Hur många förslag väntar på frågan? */
@@ -291,19 +333,22 @@ export function ejKlaraText(n) {
 
 /**
  * Rättningsdokumentet som det skrivs vid tillbakalämningen (§7): aterlamnad
- * true och facit BARA om läraren valt "Visa facit". Tiden (aterlamnadAt)
- * sätter datalagret till serverns tid.
+ * true och facit BARA om läraren valt "Visa facit". Poängkriterierna (#762,
+ * privat/facit.kriterier) följer med bara när provet visar dem för eleven
+ * (installningar.visaKriterier – anroparen skickar då `kriterier`). Tiden
+ * (aterlamnadAt) sätter datalagret till serverns tid.
  */
-export function aterlamnadDok(r, { visaFacit, facit }) {
-  const { aterlamnadAt: _a, facit: _f, ...rest } = r;
+export function aterlamnadDok(r, { visaFacit, facit, kriterier = null }) {
+  const { aterlamnadAt: _a, facit: _f, kriterier: _k, ...rest } = r;
   const ut = { ...rest, aterlamnad: true };
   if (visaFacit && facit && Object.keys(facit).length) ut.facit = facit;
+  if (kriterier && Object.keys(kriterier).length) ut.kriterier = kriterier;
   return ut;
 }
 
-/** Ångra tillbakalämningen (§7): aterlamnad false, facit och tiden bort. */
+/** Ångra tillbakalämningen (§7): aterlamnad false, facit, kriterier och tiden bort. */
 export function angratDok(r) {
-  const { aterlamnadAt: _a, facit: _f, ...rest } = r;
+  const { aterlamnadAt: _a, facit: _f, kriterier: _k, ...rest } = r;
   return { ...rest, aterlamnad: false };
 }
 
@@ -322,6 +367,7 @@ export function sparDok(r, fragor, provInfo = null) {
   const helhet = String(s.helhetskommentar || "").trim().slice(0, HELHET_MAX);
   if (helhet) ut.helhetskommentar = helhet;
   if (ut.aterlamnad && s.facit) ut.facit = s.facit;
+  if (ut.aterlamnad && s.kriterier) ut.kriterier = s.kriterier;
   if (provInfo) ut.provInfo = provInfo;
   // Pluggmyntens spegel (#746) följer med – reglerna nekar att den sänks.
   if (Number.isInteger(s.myntUtbetalt) && s.myntUtbetalt > 0) ut.myntUtbetalt = s.myntUtbetalt;
@@ -329,38 +375,3 @@ export function sparDok(r, fragor, provInfo = null) {
 }
 
 export const nivaNamn = (id) => NIVAER.find((n) => n.id === id)?.namn || "";
-
-/**
- * Elevens resultat (§7 "Elevens resultatvy"): null tills provet lämnats
- * tillbaka. Facit finns bara om läraren valde att visa det (rattning.facit).
- * @param {object} tf   tillfället (frågorna utan facit)
- * @param {object|null} svarDok  elevens svar-dokument
- * @param {object|null} r  elevens rättning
- */
-export function resultatModell(tf, svarDok, r) {
-  if (!r || r.aterlamnad !== true) return null;
-  const fragor = tf?.fragor || [];
-  const nr = fragaNummer(fragor);
-  const poangsatt = tf?.installningar?.poang !== false;
-  const visaFacit = !!r.facit && Object.keys(r.facit).length > 0;
-  const summa = summera(r, fragor);
-  return {
-    namn: tf ? elevProvNamn(tf) : r.provNamn || "Prov",
-    omprov: arOmprov(tf),
-    poangsatt,
-    totalPoang: summa.totalPoang,
-    maxPoang: summa.maxPoang,
-    niva: r.niva || null,
-    nivaNamn: nivaNamn(r.niva),
-    helhetskommentar: r.helhetskommentar || "",
-    mynt: Number.isInteger(r.myntUtbetalt) && r.myntUtbetalt > 0 ? r.myntUtbetalt : 0,
-    visaFacit,
-    poster: fragor.map((f) => ({
-      fraga: f,
-      nr: nr[f.id] ?? null,
-      svar: svarDok?.svar?.[f.id],
-      post: arFraga(f) ? r.fragor?.[f.id] || null : null,
-      facit: visaFacit ? r.facit[f.id] ?? null : null,
-    })),
-  };
-}

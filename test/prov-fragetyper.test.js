@@ -20,8 +20,8 @@ import { EXEMPEL, elevFraga, forslag, giltig } from "./helpers/prov-exempel.js";
 const SRC = join(dirname(fileURLToPath(import.meta.url)), "..", "src");
 
 describe("registret", () => {
-  it("har Etapp 1:s nio typer, var och en i en egen fil i src/prov/typer/", () => {
-    assert.deepEqual(TYP_IDS, ["flerval", "flerval-flera", "santfalskt", "kortsvar", "lucktext", "para", "ordna", "fritext", "text"]);
+  it("har Etapp 1:s nio typer + avsnitt (#762), var och en i en egen fil i src/prov/typer/", () => {
+    assert.deepEqual(TYP_IDS, ["flerval", "flerval-flera", "santfalskt", "kortsvar", "lucktext", "para", "ordna", "fritext", "text", "avsnitt"]);
     const filer = readdirSync(join(SRC, "prov/typer")).filter((f) => f !== "delat.js").map((f) => f.replace(/\.js$/, ""));
     assert.deepEqual(filer.sort(), [...TYP_IDS].sort());
   });
@@ -36,13 +36,15 @@ describe("registret", () => {
     }
     assert.equal(fragetyp("okand"), null);
     assert.equal(arFraga({ typ: "text" }), false);
+    assert.equal(arFraga({ typ: "avsnitt" }), false);
     assert.equal(arFraga({ typ: "kortsvar" }), true);
     assert.deepEqual(typValjare().map((t) => t.id), TYP_IDS);
   });
-  it("bara fritext och text saknar automatiska förslag", () => {
-    assert.deepEqual(FRAGETYPER.filter((t) => !t.autoratt).map((t) => t.id), ["fritext", "text"]);
+  it("bara fritext, text och avsnitt saknar automatiska förslag", () => {
+    assert.deepEqual(FRAGETYPER.filter((t) => !t.autoratt).map((t) => t.id), ["fritext", "text", "avsnitt"]);
     assert.equal(forslag("fritext", "Ett långt svar"), null);
     assert.equal(forslag("text", null), null);
+    assert.equal(forslag("avsnitt", null), null);
   });
 });
 
@@ -59,8 +61,11 @@ describe("validera: giltigt och ogiltigt per typ", () => {
     para: [[{ par: [{ vanster: "a", hoger: "1" }, { vanster: "b", hoger: "2" }] }, /3–10 par/],
       [{ par: [{ vanster: "a", hoger: "1" }, { vanster: "b", hoger: "1" }, { vanster: "c", hoger: "3" }] }, /höger led.*finns redan/]],
     ordna: [[{ saker: ["a", "b"] }, /3–10 saker/], [{ saker: ["a", "", "c"] }, /sak 2 är tomt/]],
-    fritext: [[{ bedomningsstod: 7 }, /bedomningsstod/]],
+    fritext: [[{ bedomningsstod: 7 }, /bedomningsstod/], [{ kriterier: "1 p" }, /"kriterier" måste vara en lista/],
+      [{ kriterier: ["ok", 3] }, /bara innehålla texter/], [{ kriterier: Array(21).fill("x") }, /högst 20 poängkriterier/],
+      [{ kriterier: ["x".repeat(301)] }, /poängkriterium 1 är för långt/]],
     text: [[{ brodtext: "" }, /brodtext/], [{ brodtext: "x".repeat(6001) }, /högst 6000/]],
+    avsnitt: [[{ titel: " " }, /rubriken/], [{ titel: "x".repeat(201) }, /högst 200/], [{ instruktion: "x".repeat(1001) }, /högst 1000/]],
   };
   for (const id of TYP_IDS) {
     it(id, () => {
@@ -70,10 +75,15 @@ describe("validera: giltigt och ogiltigt per typ", () => {
         assert.equal(r.ok, false, `${id} ${JSON.stringify(over)}`);
         assert.match(r.fel.join(" | "), fel);
       }
-      if (id !== "text") {
+      if (arFraga({ typ: id })) {
         assert.match(fragetyp(id).validera({ ...EXEMPEL[id].f, fraga: " " }).fel.join(), /frågetexten/);
         assert.match(fragetyp(id).validera({ ...EXEMPEL[id].f, fraga: "x".repeat(1001) }).fel.join(), /högst 1000/);
-        assert.match(fragetyp(id).validera({ ...EXEMPEL[id].f, poang: 1.5 }).fel.join(), /heltal/);
+        // Halvpoäng (#762, §2.5): 0,5–20 i steg om 0,5; gamla heltal giltiga.
+        for (const p of [0.5, 1.5, 3, 20, "3,5", "2.5"]) assert.ok(fragetyp(id).validera({ ...EXEMPEL[id].f, poang: p }).ok, `${id} poang ${p}`);
+        for (const p of [0, 0.25, 1.3, 20.5, 21, 100, -1, "tre", true]) {
+          assert.match(fragetyp(id).validera({ ...EXEMPEL[id].f, poang: p }).fel.join(), /0,5–20 i steg om 0,5/, `${id} poang ${p}`);
+        }
+        assert.equal(fragetyp(id).validera({ ...EXEMPEL[id].f, poang: "3,5" }).value.poang, 3.5);
       }
     });
   }
@@ -169,10 +179,12 @@ describe("forslag med delpoäng", () => {
     assert.deepEqual(forslag("ordna", [a, b, d, c]), { poang: 2, maxPoang: 4, ratt: "delvis" });
     assert.deepEqual(forslag("ordna", []), { poang: 0, maxPoang: 4, ratt: false });
   });
-  it("delpoängen avrundas till halva poäng", () => {
-    assert.equal(delpoang(1 / 3, 1), 0.5);
+  it("delpoängen avrundas NEDÅT till halva poäng (#762, §2.2)", () => {
+    assert.equal(delpoang(1 / 3, 1), 0);
     assert.equal(delpoang(1 / 3, 2), 0.5);
     assert.equal(delpoang(2 / 3, 3), 2);
+    assert.equal(delpoang(3 / 5, 2), 1, "para 2 p, 3 av 5 rätt → 1,2 → 1");
+    assert.equal(delpoang(0.5, 1.5), 0.5);
     assert.equal(delpoang(1.4, 2), 2);
     assert.equal(delpoang(-1, 2), 0);
   });
@@ -186,7 +198,8 @@ describe("arBesvarad och rensaSvar", () => {
     kortsvar: [["", false], ["  ", false], ["Birka", true]],
     lucktext: [[["", ""], false], [["", "Bagdad"], true]],
     para: [[["", "", ""], false], [["Åska", "", ""], true]],
-    ordna: [[[], false], [["a", "b", "c"], true]],
+    // #763: besvarad först när alla platser är fyllda (exemplet har 4 saker) – "3 av 4 placerade" räknas inte.
+    ordna: [[[], false], [["a", "b", "c"], false], [["a", "b", "c", "d"], true]],
     fritext: [["", false], ["Svar", true]],
   };
   for (const [id, lista] of Object.entries(fall)) {

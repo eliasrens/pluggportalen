@@ -15,8 +15,9 @@ import { validateProv } from "../src/prov/prov-validera.js";
 import {
   ELEV_STATUS, angratDok, arBedomd, aterlamnaPlan, aterlamnadDok, bedom, bedomGrupp, ejKlaraText, elevStatus,
   forslagFor, forslagPaFraga, fragaKlar, godkannAlla, godkannFraga, gruppPost, kompletteraForslag, nyRattning,
-  poangFor, rattFor, rattStatusSumma, rattStatusText, resultatModell, sparDok, summera, svarsGrupper, tolkaPoang,
+  poangFor, rattFor, rattStatusSumma, rattStatusText, sparDok, summera, svarsGrupper, tolkaPoang,
 } from "../src/prov/prov-rattning-logik.js";
+import { resultatModell } from "../src/prov/prov-resultat-modell.js";
 import { snabbPoang } from "../src/prov/prov-ratta-kort.js";
 import { LARARENS_SPARNING } from "../src/prov/prov-sparning.js";
 import { EXEMPEL } from "./helpers/prov-exempel.js";
@@ -90,8 +91,9 @@ describe("bedömningen", () => {
     assert.equal(tolkaPoang("7", 2), 2);
     assert.equal(tolkaPoang("", 2), null);
     assert.equal(tolkaPoang("x", 2), null);
-    assert.deepEqual(snabbPoang(3), [0, 1, 2, 3]);
-    assert.deepEqual(snabbPoang(10), [0, 5, 10]);
+    // #764: halva poäng (0, ½, 1 … max); över 6 p − och + i stället för snabbknappar.
+    assert.deepEqual(snabbPoang(3), [0, 0.5, 1, 1.5, 2, 2.5, 3]);
+    assert.deepEqual(snabbPoang(10), []);
     assert.deepEqual(snabbPoang(0), []);
   });
 });

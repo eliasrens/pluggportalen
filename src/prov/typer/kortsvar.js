@@ -5,7 +5,7 @@
 // roll" (standard av). Jämförelsen efter normalisering: prov-rattning.js.
 // ============================================================================
 
-import { DELVIS_STAVFEL_ANDEL, delpoang, gruppNyckel, matchaText } from "../prov-rattning.js";
+import { DELVIS_STAVFEL_ANDEL, forslagAv, gruppNyckel, matchaText } from "../prov-rattning.js";
 import { GRANS, elevFalt, klipp, tecken, trimmad, valideraGemensamt } from "./delat.js";
 import { elevKontext, h, textFalt } from "../prov-vy.js";
 import { facitRad, svarsVyer, textSvar } from "../prov-svar-vy.js";
@@ -55,7 +55,8 @@ export default {
     const m = matchaText(svar, facit.godkanda, facit);
     if (m === true) return { poang: max, maxPoang: max, ratt: true };
     // Ett stavfel: halva poängen – eller inget förslag när läraren rättar stavfel själv (#759).
-    if (m === "delvis") return opt?.stavfel === "sjalv" ? null : { poang: delpoang(DELVIS_STAVFEL_ANDEL, max), maxPoang: max, ratt: "delvis" };
+    // Markeringen följer poängen (#764): en fråga på 0,5 p ger 0 p → fel, aldrig "delvis" med 0 p.
+    if (m === "delvis") return opt?.stavfel === "sjalv" ? null : forslagAv(DELVIS_STAVFEL_ANDEL, max);
     return { poang: 0, maxPoang: max, ratt: false };
   },
 
