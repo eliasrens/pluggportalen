@@ -34,6 +34,14 @@ finns kvar efter en omladdning.
 | Bootgrafen (`admin/qa-bootgraf-bfs.mjs`) | **107 filer, identisk med main** (ad98509). Inget ur `src/schack/`. |
 | QA i webbläsaren (`admin/qa-schack-app.mjs`, riktiga appen mot emulatorerna) | nivaer **191/191**, bradet **50/50**, hjalp **36/36**, layout **31/31**, kvot **1/1** |
 
+**Miljö:** rules-sviten och webbläsar-QA:n kördes mot Firestore- och Auth-emulatorerna
+(Java-jar, slumpade portar). Emulatorerna är nedstängda efteråt. Körs sviterna **utan** emulator
+är det väntat att `test:rules`, `test:functions`, `test:e2e` och admin-credential-testerna (som
+behöver `firebase-admin`) blir röda. De kräver emulator eller är röda även på basen, och är inga
+schack-buggar. Allt annat är grönt utan emulator. För en körning utan emulator finns
+`preview/preview-schack.html`, `preview/preview-schack-dator.html`,
+`preview/preview-schack-matning.html` och `node admin/qa-schack-matning.mjs`.
+
 ## 3. QA i webbläsaren
 
 **Riggen.** Firestore-emulatorn (jar) och Auth-emulatorn startades på slumpade portar. De seedades
@@ -117,10 +125,17 @@ Uppdelat på öppning, mittspel och slutspel vid 6×: Damen 866, 871 och 856 ms 
   tillbaka: max 54, 109, 166 och 861 ms.
 - **I appen** (ostrypt, elevens drag sparat → datorns drag sparat, inklusive den medvetna tänkpausen
   på 350 ms): Bonden 381/470, Springaren 381/496, Tornet 374/429, Damen 607/885 ms (medel/max).
-- Inget drag gick över 1 s, i någon nivå eller strypning. Taket är motorns `TIDSGRANS_MS = 850`
+- **Marginal mot 1 s:** värsta draget var 871 ms (Damen, 6×), alltså 129 ms kvar. Ostrypt var det 851 ms (149 ms kvar), och genom den riktiga workern 861 ms (139 ms kvar). Inget drag gick över 1 s, i någon nivå eller strypning. B mätte tidigare 853 ms headless och 869 ms vid 6×, vilket stämmer. `node admin/qa-schack-matning.mjs` (utan webbläsare) gav Damen max 852 ms (148 ms kvar), Tornet 225, Springaren 47 och Bonden 26 ms. Taket är motorns `TIDSGRANS_MS = 850`
   plus kontrollglappet. Maskinen hade en load average på 4–16 av andra jobb under mätningarna,
   så siffrorna är snarare pessimistiska. Mät gärna om på en riktig Chromebook med
   `preview/preview-schack-matning.html`.
+
+**Uppgraderingsrisk – chess.js interna delar:** motorn använder chess.js icke-publika metoder
+(`_moves`, `_makeMove`, `_undoMove`, `_isKingAttacked`, `_getPositionCount`). Utan dem blir det
+~4 k i stället för 130–190 k noder/s. `MOTOR_KRAV` i `schack-motor.js` listar dem, och
+`test/schack-motor.test.js` fäller en chess.js-uppgradering som tar bort eller döper om någon av
+dem. En uppgradering av chess.js kan alltså kräva att motorn skrivs om. Pinna versionen (1.4.0)
+och kör testet vid varje byte.
 
 ## 6. Bootgrafen och licenser
 
@@ -167,8 +182,11 @@ Uppdelat på öppning, mittspel och slutspel vid 6×: Damen 866, 871 och 856 ms 
    som Tornet. Räcker det, eller vill du att Damen får mer tid (t.ex. 1,5 s – spec säger ≤ 1 s)
    eller att Tornet sänks till djup 2 på långsamma maskiner? Mät gärna på en riktig Chromebook
    först (`preview/preview-schack-matning.html` → Kör mätningen).
-2. **Pjäserna** (`design/schack/pjaser-120px.png`, `pjaser-56-40-28px.png`): godkänner du dem?
-   Spec §5 vill ha ditt godkännande i PR:en.
+2. **Pjäsdesignen – kräver ditt godkännande i PR:en (spec §5).** Skärmdumparna:
+   `design/schack/pjaser-120px.png` (alla pjäser i 120 px), `pjaser-56-40-28px.png` (56/40/28 px –
+   känns varje pjäs igen i 40 px på Chromebook?), `bradet-parti.png`, `forvandling-och-slutrutor.png`,
+   och i appen `qa777-5-schack-glod.png`, `qa777-6-forvandling.png`, `qa777-8-slut-vinst.png`.
+   Godkänner du formen och färgerna (kräm `#FFF3DC`, skiffergrå `#555C6E`, kontur `#3B3350`)?
 3. **F1** finns även på main (husvärlden skriver över en route som öppnas direkt efter
    inloggningen). Ska den rättas som egen issue före eller efter schack-PR:en?
 4. **Synlighet utan omladdning:** när läraren slår på Schack syns länken hos en inloggad elev
