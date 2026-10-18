@@ -21,8 +21,9 @@ import { FARG_INFO, andelFor, fargFor, granserFor, procent } from "./prov-statis
 import { facitSida, provSidor } from "./prov-utskrift-papper.js";
 import { delaUppProv, fragaNummer } from "./prov-modell.js";
 import { h, laddaCss, stycken } from "./prov-vy.js";
+import { poangTal } from "./prov-poang.js";
 
-const dec = (x) => String(x).replace(".", ",");
+const dec = poangTal;
 
 /**
  * Helskärmsvyn: rubrik, val, Skriv ut / Stäng och bladen.
@@ -92,8 +93,8 @@ export async function skrivUtProv(o) {
 
 /** "Skriv ut" i Mina prov och redigeraren: provet (med facit) delas som när det öppnas. */
 export function skrivUtProvDok(prov) {
-  const { fragor, facit, bedomningsstod } = delaUppProv(prov);
-  return skrivUtProv({ namn: prov.namn || "Namnlöst prov", fragor, facit, bedomningsstod, poangsatt: prov.installningar?.poang !== false });
+  const { fragor, facit, bedomningsstod, kriterier } = delaUppProv(prov);
+  return skrivUtProv({ namn: prov.namn || "Namnlöst prov", fragor, facit, bedomningsstod, kriterier, poangsatt: prov.installningar?.poang !== false });
 }
 
 /** En elevs rättade prov på ett blad. */
@@ -120,6 +121,7 @@ function resultatSida(e, o) {
       r?.helhetskommentar ? h("div", { class: "provl-ut-helhet" }, h("b", { text: "Lärarens kommentar" }), stycken(r.helhetskommentar)) : null),
     h("div", { class: "provl-ut-fragor" }, fragor.map((f) => {
       const typ = fragetyp(f.typ);
+      if (f.typ === "avsnitt") return h("h2", { class: "provl-ut-avsnitt provl-ut-avsnitt-titel", text: f.titel || "" });
       if (nr[f.id] == null) return f.titel ? h("p", { class: "provl-ut-textblock-ref", text: `Text: ${f.titel}` }) : null;
       const post = r?.fragor?.[f.id];
       const bedomd = post && post.auto !== true;

@@ -116,6 +116,11 @@
 .teacher-dark .provl-r-flikbyte { margin: 0 auto 0 0; font-size: 0.85rem; }
 .teacher-dark .provl-r-textblock { display: block; margin: 0; padding: 10px 14px; text-align: left; }
 .teacher-dark .provl-r-textblock summary { cursor: pointer; font-weight: 600; }
+/* #762: avsnittets rubrik mellan korten */
+.teacher-dark .provl-r-avsnitt { margin: 14px 0 0; padding: 0 2px 6px; border-bottom: 2px solid currentColor; text-align: left; }
+.teacher-dark .provl-r-avsnitt .provv-avsnitt-titel { margin: 0; font-size: 1.15rem; }
+.teacher-dark .provl-r-avsnitt .provv-avsnitt-instruktion { opacity: 0.8; }
+.teacher-dark .provl-r-avsnitt .provv-avsnitt-instruktion p { margin: 4px 0 0; }
 .teacher-dark .provl-r .btn:disabled { opacity: 0.45; cursor: default; }
 .teacher-dark .provl-r-summa { margin-top: 12px; display: grid; gap: 12px; }
 .teacher-dark .provl-r-total { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0; font-size: 1.1rem; }

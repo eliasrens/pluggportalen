@@ -15,7 +15,7 @@ function klass(id, namn, antal, niva, fro) {
   for (let i = 0; i < antal; i++) {
     const kan = Math.max(0.05, Math.min(0.98, niva + (r() - 0.5) * 0.6));
     const fragor = {};
-    for (const f of tf.fragor.filter((x) => x.typ !== "text")) {
+    for (const f of tf.fragor.filter((x) => x.typ !== "text" && x.typ !== "avsnitt")) {
       if (i === antal - 1 && r() < 0.5) continue; // en elev är inte färdigrättad
       const x = r();
       const max = Number(f.poang) || 0;

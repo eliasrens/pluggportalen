@@ -6,19 +6,28 @@
 import { validateProv } from "../../src/prov/prov-validera.js";
 import { delaUppProv } from "../../src/prov/prov-modell.js";
 
+const p = new URLSearchParams(location.search);
+// #762: Del 1/Del 2 (avsnitt) och halvpoäng. ?gammalt = provet utan avsnitt och
+// med heltal (som före #762); ?utanpoang = visaPoangForElev av.
+const DEL1 = { typ: "avsnitt", titel: "Del 1 – Fakta och begrepp", instruktion: "Svara kort. Varje fråga visar hur många poäng den ger." };
+const DEL2 = { typ: "avsnitt", titel: "Del 2 – Skriv och förklara", instruktion: "Svara med hela meningar." };
+const gammalt = p.has("gammalt");
+const hp = (halv, hel) => (gammalt ? hel : halv);
 const PROV = validateProv({
   namn: "Vikingatiden – prov",
-  installningar: { poang: true, stavningskontroll: false },
+  installningar: { poang: true, stavningskontroll: false, ...(p.has("utanpoang") ? { visaPoangForElev: false } : {}) },
   fragor: [
+    ...(gammalt ? [] : [DEL1]),
     { typ: "text", titel: "Birka", brodtext: "Birka var en handelsstad på ön Björkö i Mälaren. Där bodde kanske 700 människor.\n\nHit kom köpmän från hela världen med silver, pärlor och tyger." },
     { typ: "flerval", fraga: "På vilken ö låg Birka?", alternativ: ["Björkö", "Gotland", "Öland", "Adelsö"], ratt: 0 },
-    { typ: "flerval-flera", fraga: "Vilka varor handlade man med i Birka?", alternativ: ["Silver", "Pärlor", "Potatis", "Tyger"], ratt: [0, 1, 3], poang: 2 },
-    { typ: "santfalskt", fraga: "Vikingarna hade horn på hjälmarna.", ratt: false },
+    { typ: "flerval-flera", fraga: "Vilka varor handlade man med i Birka?", alternativ: ["Silver", "Pärlor", "Potatis", "Tyger"], ratt: [0, 1, 3], poang: hp(1.5, 2) },
+    { typ: "santfalskt", fraga: "Vikingarna hade horn på hjälmarna.", ratt: false, poang: hp(0.5, 1) },
     { typ: "kortsvar", fraga: "Vad hette vikingarnas guda-värld?", godkanda: ["Asgård"], hjalptext: "Ett ord." },
     { typ: "lucktext", fraga: "Fyll i luckorna.", lucktext: "Vikingarna seglade österut till [[Miklagård|Konstantinopel]] och västerut till [[England]].", poang: 2 },
-    { typ: "para", fraga: "Para ihop guden med det hen styrde över.", poang: 3,
+    { typ: "para", fraga: "Para ihop guden med det hen styrde över.", poang: hp(2.5, 3),
       par: [{ vanster: "Tor", hoger: "Åskan" }, { vanster: "Oden", hoger: "Visdomen" }, { vanster: "Freja", hoger: "Kärleken" }] },
     { typ: "ordna", fraga: "Sätt tidsåldrarna i rätt ordning, äldst först.", saker: ["Stenåldern", "Bronsåldern", "Järnåldern", "Vikingatiden"], poang: 3 },
+    ...(gammalt ? [] : [DEL2]),
     { typ: "fritext", fraga: "Beskriv hur livet på en vikingagård kunde se ut.", poang: 4, bedomningsstod: "Djur, långhus, arbete" },
     { typ: "kortsvar", fraga: "Vad kallades vikingarnas skrivtecken?", godkanda: ["runor"] },
     { typ: "flerval", fraga: "Ungefär när slutade vikingatiden?", alternativ: ["år 800", "år 1050", "år 1500"], ratt: 1 },
@@ -27,7 +36,6 @@ const PROV = validateProv({
 }).value;
 
 const { fragor } = delaUppProv(PROV);
-const p = new URLSearchParams(location.search);
 
 export const S = {
   tf: { id: "tf-demo", classId: "4a", provNamn: PROV.namn, status: "oppet", fragor, installningar: PROV.installningar,

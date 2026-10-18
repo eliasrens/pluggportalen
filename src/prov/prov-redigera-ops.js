@@ -13,6 +13,8 @@
 //   tolkaAiJson(text)                     §8.2: JSON (med eller utan ```) → validateProv
 //   laggTillFragor(prov, nya)             AI-frågor sist i ett befintligt prov (nya id vid krock)
 //   fragaRubrik(f)                        kortets sammanfattning ("3 alternativ · 2 p")
+//   provSumma(fragor, poangPa)            "12 frågor · 32 p" överst (#762)
+//   avsnittSummor(fragor)                 { [avsnittId]: { antal, poang } } – avsnittskortens summa (#762)
 //
 // Ägarskapet följer områdena (#680): withOwner (teacher-role-core.js); listan i
 // "Mina prov" (canEditArea, delaProvlista) bor i prov-lista-ops.js.
@@ -20,8 +22,10 @@
 
 import { withOwner } from "../teacher-role-core.js";
 import { fragetyp } from "./prov-fragetyper.js";
+import { avsnittsGrupper, maxPoang } from "./prov-modell.js";
 import { STANDARD_INSTALLNINGAR, validateProv } from "./prov-validera.js";
 import { GRANS } from "./typer/delat.js";
+import { POANG_STANDARD, poangP } from "./prov-poang.js";
 import { tolkaLucktext } from "./typer/lucktext.js";
 
 const str = (v) => (v == null ? "" : String(v));
@@ -68,15 +72,16 @@ const TOMMA = {
   lucktext: () => ({ lucktext: "", exaktStavning: true, skiftlage: false }),
   para: () => ({ par: [{ vanster: "", hoger: "" }, { vanster: "", hoger: "" }, { vanster: "", hoger: "" }] }),
   ordna: () => ({ saker: ["", "", ""] }),
-  fritext: () => ({ bedomningsstod: "" }),
+  fritext: () => ({ bedomningsstod: "", kriterier: [] }),
   text: () => ({ titel: "", brodtext: "" }),
+  avsnitt: () => ({ titel: "", instruktion: "" }),
 };
 
 /** En ny, tom fråga av typen (fylls i av typens formulär). */
 export function tomFraga(typ, fragor = []) {
   const t = fragetyp(typ);
   if (!t) throw new Error(`Okänd frågetyp: ${typ}`);
-  const bas = t.arFraga === false ? {} : { fraga: "", poang: 1, hjalptext: "" };
+  const bas = t.arFraga === false ? {} : { fraga: "", poang: POANG_STANDARD, hjalptext: "" };
   return { id: nyttId(fragor), typ, ...bas, ...(TOMMA[typ]?.() || {}) };
 }
 
@@ -105,7 +110,8 @@ export function fragaFranFalt(typ, falt = {}, id) {
   if (id) ut.id = id;
   if (fragetyp(typ)?.arFraga !== false) {
     ut.fraga = str(falt.fraga).trim();
-    ut.poang = str(falt.poang).trim() === "" ? 1 : Number(falt.poang);
+    // Halvpoäng med decimalkomma eller -punkt ("3,5" = 3.5, #762); typens validera säger om den är ogiltig.
+    ut.poang = str(falt.poang).trim() === "" ? POANG_STANDARD : Number(str(falt.poang).trim().replace(",", "."));
     if (str(falt.hjalptext).trim()) ut.hjalptext = str(falt.hjalptext).trim();
   }
   switch (typ) {
@@ -143,12 +149,19 @@ export function fragaFranFalt(typ, falt = {}, id) {
     case "ordna":
       ut.saker = rader(falt.saker).filter(Boolean);
       break;
-    case "fritext":
+    case "fritext": {
       if (str(falt.bedomningsstod).trim()) ut.bedomningsstod = str(falt.bedomningsstod).trim();
+      const kriterier = rader(falt.kriterier).filter(Boolean);
+      if (kriterier.length) ut.kriterier = kriterier;
       break;
+    }
     case "text":
       ut.titel = str(falt.titel).trim();
       ut.brodtext = str(falt.brodtext).trim();
+      break;
+    case "avsnitt":
+      ut.titel = str(falt.titel).trim();
+      if (str(falt.instruktion).trim()) ut.instruktion = str(falt.instruktion).trim();
       break;
   }
   return ut;
@@ -183,7 +196,7 @@ export function sparaFraga(prov, index, typ, falt) {
   if (index === null || index === undefined) fragor.push(fraga);
   else fragor[index] = fraga;
   if (fragor.length > GRANS.fragor) {
-    return { ok: false, errors: [`Ett prov får ha högst ${GRANS.fragor} frågor och textblock.`], warnings: [], prov };
+    return { ok: false, errors: [`Ett prov får ha högst ${GRANS.fragor} frågor, textblock och avsnitt.`], warnings: [], prov };
   }
   return { ok: true, errors: [], warnings: (r.varningar || []).map(mening), prov: { ...prov, fragor } };
 }
@@ -232,7 +245,7 @@ export function kopieraProv(dok) {
 
 // --- Kortets sammanfattning -------------------------------------------------------
 
-const poangText = (p) => `${p} p`;
+const poangText = poangP;
 
 /** Kortets rad under frågetexten, t.ex. "4 alternativ · rätt: B · 1 p". */
 export function fragaRubrik(f) {
@@ -266,9 +279,12 @@ export function fragaRubrik(f) {
       break;
     case "fritext":
       delar.push(f.bedomningsstod ? "med bedömningsstöd" : "läraren rättar");
+      if (f.kriterier?.length) delar.push(`${f.kriterier.length} poängkriterier`);
       break;
     case "text":
       return `${Array.from(str(f.brodtext)).length} tecken`;
+    case "avsnitt":
+      return f.instruktion ? `Instruktion: ${Array.from(str(f.instruktion)).slice(0, 80).join("")}` : "Rubrik utan instruktion";
   }
   delar.push(poangText(f.poang ?? 1));
   return delar.join(" · ");
@@ -276,8 +292,23 @@ export function fragaRubrik(f) {
 
 /** Kortets huvudrad: frågetexten (eller textblockets titel/början). */
 export function fragaText(f) {
+  if (f?.typ === "avsnitt") return str(f.titel) || "(ingen rubrik)";
   if (f?.typ === "text") return str(f.titel) || `${Array.from(str(f.brodtext)).slice(0, 80).join("")}…`;
   return str(f?.fraga) || "(ingen frågetext)";
+}
+
+/** Överst i redigeraren (#762): "12 frågor · 32 p" (utan poäng: "12 frågor"). */
+export function provSumma(fragor, poangPa = true) {
+  const n = (fragor || []).filter((f) => fragetyp(f?.typ)?.arFraga !== false).length;
+  const text = `${n} ${n === 1 ? "fråga" : "frågor"}`;
+  return poangPa && n ? `${text} · ${poangP(maxPoang(fragor))}` : text;
+}
+
+/** Varje avsnitts frågor och poängsumma (#762): { [avsnittId]: { antal, poang } }. */
+export function avsnittSummor(fragor) {
+  const ut = {};
+  for (const g of avsnittsGrupper(fragor)) if (g.avsnitt) ut[g.avsnitt.id] = { antal: g.fragor.length, poang: g.maxPoang };
+  return ut;
 }
 
 // --- Klistra in från AI (§8.2) --------------------------------------------------

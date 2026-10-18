@@ -17,7 +17,7 @@ import { hamtaSvar, hamtaTillfalle } from "./prov-tillfalle-data.js";
 const rattRef = (t, uid) => doc(db, SAMLING_TILLFALLEN, t, RATTNING, uid);
 
 /**
- * Allt rättningen behöver, en gång: { tf, facit, bedomningsstod, svar, rattningar }.
+ * Allt rättningen behöver, en gång: { tf, facit, bedomningsstod, kriterier, svar, rattningar }.
  * 1 + 1 + (elever som skrivit) + (rättningar) läsningar.
  */
 export async function laddaRattning(t) {
@@ -33,6 +33,7 @@ export async function laddaRattning(t) {
     tf,
     facit: f.facit || {},
     bedomningsstod: f.bedomningsstod || {},
+    kriterier: f.kriterier || {}, // #762: fritextens poängkriterier (lärarstöd)
     svar,
     rattningar: Object.fromEntries(rattSnap.docs.map((d) => [d.id, d.data()])),
   };
@@ -72,10 +73,10 @@ export async function lamnaTillbaka(t, dok, rattStatus = null) {
   await iBatchar(t, Object.entries(dok), (batch, uid, d) => batch.set(rattRef(t, uid), { ...d, aterlamnadAt: serverTimestamp() }), rattStatus);
 }
 
-/** Ångra tillbakalämningen (§7): aterlamnad false, facit och tiden bort. */
+/** Ångra tillbakalämningen (§7): aterlamnad false, facit, kriterier (#762) och tiden bort. */
 export async function angraTillbaka(t, uid, rattStatus = null) {
   const batch = writeBatch(db);
-  batch.update(rattRef(t, uid), { aterlamnad: false, aterlamnadAt: deleteField(), facit: deleteField() });
+  batch.update(rattRef(t, uid), { aterlamnad: false, aterlamnadAt: deleteField(), facit: deleteField(), kriterier: deleteField() });
   if (rattStatus) batch.update(doc(db, SAMLING_TILLFALLEN, t), { rattStatus });
   await batch.commit();
 }

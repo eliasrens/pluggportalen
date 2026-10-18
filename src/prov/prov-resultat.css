@@ -115,3 +115,6 @@
 
 /* Inuti lärarsidan (rättningens "papper"): lärarens mörka standardstilar ska inte nå svaret. */
 .teacher-dark .provv-rot :is(.provv-sv-facit, .provv-sv-alt-text, .provv-sv-text, .provv-sv-par-v) { color: var(--provv-text); }
+
+/* #762: avsnittets rubrik i resultatet */
+.provv-res-avsnitt { padding: 18px 0 6px; border-bottom: 2px solid var(--provv-accent); }

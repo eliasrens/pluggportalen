@@ -5,6 +5,8 @@
 // lägger sina egna fält ovanpå; utanFacit utgår från elevFalt.
 // ============================================================================
 
+import { POANG_MAX, POANG_MIN, POANG_STANDARD, arGiltigMaxpoang, poangTal } from "../prov-poang.js";
+
 export const GRANS = Object.freeze({
   fragor: 60,          // frågor + textblock i ett prov
   fragetext: 1000,     // fraga
@@ -17,7 +19,9 @@ export const GRANS = Object.freeze({
   bedomningsstod: 4000,
   lucktext: 3000,      // lucktextens text inklusive [[…]]
   luckor: 30,
-  poang: 100,          // högsta poäng på en fråga
+  poang: POANG_MAX,    // högsta poäng på en fråga (0,5–20 i steg om 0,5, #762)
+  instruktion: 1000,   // avsnittets instruktion (#762)
+  kriterier: 20,       // poängkriterier på en fritextfråga (#762)
 });
 
 // Fråge-id blir nycklar i svar/rättning (Firestore-fältnamn) → enkla tecken.
@@ -48,10 +52,11 @@ export function valideraGemensamt(f, { arFraga = true } = {}) {
   else if (tecken(f.fraga.trim()) > GRANS.fragetext) fel.push(`frågetexten är för lång (högst ${GRANS.fragetext} tecken)`);
   value.fraga = trimmad(f.fraga);
 
-  let poang = 1;
+  // Halvpoäng (#762, §2.2): 0,5–20 i steg om 0,5. Text med decimalkomma ("3,5") går också.
+  let poang = POANG_STANDARD;
   if (f.poang !== undefined && f.poang !== null && f.poang !== "") {
-    const n = Number(f.poang);
-    if (!Number.isInteger(n) || n < 0 || n > GRANS.poang) fel.push(`"poang" måste vara ett heltal 0–${GRANS.poang}`);
+    const n = typeof f.poang === "string" ? Number(f.poang.trim().replace(",", ".")) : f.poang;
+    if (!arGiltigMaxpoang(n)) fel.push(`poängen ("poang") måste vara ${poangTal(POANG_MIN)}–${poangTal(POANG_MAX)} i steg om ${poangTal(0.5)}`);
     else poang = n;
   }
   value.poang = poang;

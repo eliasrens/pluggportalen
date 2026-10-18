@@ -13,8 +13,9 @@ import { fragetyp } from "./prov-fragetyper.js";
 import { myntText } from "./prov-mynt.js";
 import { bedomning } from "./prov-rattning-logik.js";
 import { h, laddaCss, stycken } from "./prov-vy.js";
+import { poangTal } from "./prov-poang.js";
 
-const poangText = (p) => String(p).replace(".", ",");
+const poangText = poangTal;
 
 /** "✓ Rätt" / "½ Delvis rätt" / "✗ Fel" – ikon + text, aldrig bara färg. */
 export function bedomningsEtikett(ratt, { poang, max, poangsatt } = {}) {
@@ -76,6 +77,7 @@ export function renderaResultat(m, o = {}) {
   const fragor = m.poster.map(({ fraga: f, nr, svar, post, facit }) => {
     const typ = fragetyp(f.typ);
     if (!typ) return null;
+    if (f.typ === "avsnitt") return h("div", { class: "provv-res-avsnitt" }, typ.renderResultat(f, null, {}));
     if (nr == null) {
       return h("details", { class: "provv-res-textblock" },
         h("summary", { text: f.titel || "Text" }), typ.renderResultat(f, null, {}));
