@@ -96,7 +96,7 @@ function perFragaSektion(v, m) {
     h("p", { class: "hint", text: "Hur många elever som fick rätt, delvis rätt och fel på varje fråga. Procenten är andelen av poängen bland de bedömda svaren. Klicka på en fråga för att rätta den." }),
     h("ol", { class: "provl-st-staplar" }, staplar.map((s) => h("li", { class: "provl-st-stapelrad" },
       h("button", { type: "button", class: "provl-st-stapel-namn", title: `Rätta fråga ${s.nr}`, on: { click: () => v.oppnaFraga(s.fid) } },
-        h("b", { text: `Fråga ${s.nr}` }), s.avsnitt ? h("span", { class: "provl-st-stapel-avsnitt", text: s.avsnitt }) : null,
+        h("b", { text: `Fråga ${s.nr}` }), s.avsnitt ? h("span", { class: "provl-st-stapel-avsnitt", title: s.avsnitt, text: s.avsnitt }) : null,
         h("span", { class: "provl-st-stapel-text", text: s.text })),
       stapel(s),
       andelBricka(s.andel, s.farg)))),

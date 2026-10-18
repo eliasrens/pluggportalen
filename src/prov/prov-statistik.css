@@ -194,7 +194,10 @@
   border-bottom: 2px solid var(--t-border-strong, rgba(255, 255, 255, 0.22)); font-size: 1.05rem;
 }
 .provl-st-elev-avsnitt-p { color: var(--t-muted, #93a2b3); font-weight: 600; }
-.provl-st-stapel-avsnitt { font-size: 0.75rem; color: var(--t-muted, #93a2b3); margin-left: 6px; }
+.provl-st-stapel-avsnitt {
+  flex: 0 1 auto; max-width: 9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 0.72rem; padding: 0 6px; border-radius: 999px; border: 1px solid var(--t-border, rgba(255, 255, 255, 0.12)); color: var(--t-muted, #93a2b3);
+}
 .provl-st-avsnittlista { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .provl-st-avsnittrad { display: grid; grid-template-columns: minmax(8em, 1.4fr) auto minmax(80px, 2fr) auto; align-items: center; gap: 6px 12px; }
 .provl-st-avsnittrad-snitt { font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }

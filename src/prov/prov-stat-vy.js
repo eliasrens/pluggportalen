@@ -50,7 +50,7 @@ function kolumner(rf, avsnitt) {
   const ut = [];
   let i = 0;
   avsnitt.forEach((a, ai) => {
-    for (let k = 0; k < a.fragor.length; k++) ut.push({ f: i++, forst: k === 0 });
+    for (let k = 0; k < a.antal; k++) ut.push({ f: i++, forst: k === 0 });
     ut.push({ a: ai });
   });
   return ut;
@@ -204,7 +204,7 @@ export function oversiktVy(v) {
     const thead = medAvsnitt
       ? h("thead", {},
         h("tr", { class: "provl-st-avsnittsrad" }, namnTh, totTh, m.avsnitt.map((a) => h("th", {
-          scope: "colgroup", colspan: String(a.fragor.length + 1), class: "provl-st-avsnittkol provl-st-avsnitt-start", title: a.titel,
+          scope: "colgroup", colspan: String(a.antal + 1), class: "provl-st-avsnittkol provl-st-avsnitt-start", title: a.titel,
         }, h("span", { class: "provl-st-avsnittnamn", text: a.titel })))),
         h("tr", {}, fnrRad))
       : h("thead", {}, h("tr", {}, namnTh, totTh, fnrRad));

@@ -12,7 +12,7 @@ export async function laddaRattning(t) {
   if (t !== S.tf.id) return null;
   S.lasningar += 2 + Object.keys(S.svar).length + Object.keys(S.rattning).length;
   S.logg(`läste tillfället, facit, ${Object.keys(S.svar).length} svar och ${Object.keys(S.rattning).length} rättningar`);
-  return kopia({ tf: S.tf, facit: S.facit, bedomningsstod: S.bedomningsstod, svar: S.svar, rattningar: S.rattning });
+  return kopia({ tf: S.tf, facit: S.facit, bedomningsstod: S.bedomningsstod, kriterier: S.kriterier || {}, svar: S.svar, rattningar: S.rattning });
 }
 export async function sparaRattningar(t, dok, rattStatus) {
   await natet();
@@ -32,7 +32,7 @@ export async function lamnaTillbaka(t, dok, rattStatus) {
 }
 export async function angraTillbaka(t, uid, rattStatus) {
   await natet();
-  const { facit: _f, aterlamnadAt: _a, ...rest } = S.rattning[uid];
+  const { facit: _f, kriterier: _k, aterlamnadAt: _a, ...rest } = S.rattning[uid];
   S.rattning[uid] = { ...rest, aterlamnad: false };
   if (rattStatus) S.tf.rattStatus = kopia(rattStatus);
   S.skrivningar += rattStatus ? 2 : 1;
@@ -45,4 +45,12 @@ export async function sparaGranser(t, granser) {
   S.skrivningar++;
   S.spara();
   S.logg(`sparade färggränserna gul ${granser.gul} % / grön ${granser.gron} %`);
+}
+// #764: "Godkänn även …" (facit i efterhand) – saknades här, så rättningsvyn kunde inte laddas.
+export async function sparaFacitTillagg(t, fragaId, fa) {
+  await natet();
+  S.facit = { ...S.facit, [fragaId]: kopia(fa) };
+  S.skrivningar++;
+  S.spara();
+  S.logg(`lade till ett godkänt svar i facit för ${fragaId}`);
 }
