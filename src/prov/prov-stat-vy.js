@@ -9,6 +9,9 @@
 //   elevStatVy(v, uid)  en elev: fråga för fråga i färg, svaren, kommentarerna,
 //                       totalen och nivån
 // Båda returnerar { el, uppdatera() } som lägena i prov-ratta-lagen.js.
+// Avsnitt (#765): poäng per avsnitt för klassen (snitt) och eleven
+// ("Del 1: 8 av 10 · Del 2: 9,5 av 14"), avsnittsrubriker över rutnätets
+// kolumner med en Σ-kolumn per avsnitt. Ett prov utan avsnitt ser ut som förut.
 // Den fördjupade statistiken och utskriften (#747) laddas lat från
 // prov-fordjupad-vy.js: verktygsraden ovanför rutnätet, sektionerna under.
 //
@@ -23,10 +26,42 @@ import { fragetyp } from "./prov-fragetyper.js";
 import { ELEV_STATUS_NAMN, elevStatus, nivaNamn } from "./prov-rattning-logik.js";
 import { bedomningsEtikett } from "./prov-resultat-vy.js";
 import {
-  CELL_INFO, FARG_INFO, andelFor, cellLage, fargFor, fordelningText, granserText, klassOversikt, procent, sorteraRader,
-  totalText,
+  CELL_INFO, FARG_INFO, andelFor, avsnittFor, avsnittText, avsnittVarde, cellLage, fargFor, fordelningText, granserText, klassOversikt, procent,
+  sorteraRader, totalText,
 } from "./prov-statistik.js";
+import { poangAvsnitt } from "./prov-modell.js";
+import { poangTal } from "./prov-poang.js";
 import { h, stycken } from "./prov-vy.js";
+
+/** Avsnitten som brickor: färg + symbol + "Del 1: 8 av 10" (#765). null utan avsnitt. */
+export function avsnittBrickor(lista, poangsatt, etikett = "Per avsnitt") {
+  if (!lista?.length) return null;
+  return h("p", { class: "provl-st-avsnitt" }, h("b", { text: `${etikett}: ` }),
+    ...lista.map((a) => {
+      const f = a.farg ? FARG_INFO[a.farg] : null;
+      return h("span", { class: `provl-st-bricka provl-st-${a.farg || "ej"}`, title: f ? `${f.namn} (${procent(a.andel)})` : "Inte rättat än" },
+        h("span", { class: "provl-st-ikon", "aria-hidden": "true", text: f ? f.ikon : "?" }), h("span", { text: avsnittText(a, poangsatt) }));
+    }));
+}
+
+/** Rutnätets kolumner: frågorna, med en Σ-kolumn efter varje avsnitt (#765). */
+function kolumner(rf, avsnitt) {
+  if (!avsnitt.length) return rf.map((_, i) => ({ f: i }));
+  const ut = [];
+  let i = 0;
+  avsnitt.forEach((a, ai) => {
+    for (let k = 0; k < a.fragor.length; k++) ut.push({ f: i++, forst: k === 0 });
+    ut.push({ a: ai });
+  });
+  return ut;
+}
+
+/** Elevens Σ-cell för ett avsnitt: "8/10" i avsnittets färg. */
+function avsnittCell(e, poangsatt) {
+  const text = e.andel == null ? "–" : poangsatt && e.max ? `${poangTal(e.poang)}/${poangTal(e.max)}` : procent(e.andel);
+  return h("span", { class: `provl-st-asum provl-st-${e.farg || "ej"}`, title: avsnittText(e, poangsatt) },
+    e.farg ? h("span", { class: "provl-st-ikon", "aria-hidden": "true", text: FARG_INFO[e.farg].ikon }) : null, h("span", { text }));
+}
 
 /** Totalbrickan: färg + symbol + "18/24 · 75 %" (+ nivån bredvid, ändrar inte färgen). */
 export function totalBricka(rad, poangsatt) {
@@ -150,30 +185,46 @@ export function oversiktVy(v) {
         m.snitt == null ? h("span", { class: "hint", text: "inget rättat än" })
           : h("span", { class: `provl-st-bricka provl-st-${snittFarg}` },
             h("span", { class: "provl-st-ikon", "aria-hidden": "true", text: FARG_INFO[snittFarg].ikon }), h("span", { text: procent(m.snitt) }))),
+      ...(m.avsnitt.length ? [avsnittBrickor(m.avsnitt, m.poangsatt, "Per avsnitt (klassens snitt)")] : []),
       ...(svarast ? [svarast] : []),
       h("div", { class: "provl-st-verktyg" }, sortVal, reglage),
       h("p", { class: "hint", text: "Bara bedömda frågor räknas – obesvarade och orättade blir inte fel förrän du har rättat dem. Förslag räknas när du har godkänt dem." }));
 
     const rf = v.rf;
     const rader = sorteraRader(m.rader, v.stat.sort);
-    const thead = h("thead", {}, h("tr", {},
-      h("th", { scope: "col", class: "provl-st-namnkol", text: "Elev" }),
-      h("th", { scope: "col", class: "provl-st-totkol", text: m.poangsatt ? "Totalt" : "Andel rätt" }),
-      rf.map((f) => h("th", { scope: "col", class: "provl-st-fkol" },
-        h("button", { type: "button", class: "provl-st-fnr", title: `Rätta fråga ${v.nr[f.id]}`, text: String(v.nr[f.id]), on: { click: () => v.oppnaFraga(f.id) } })))));
+    const kol = kolumner(rf, m.avsnitt);
+    const medAvsnitt = m.avsnitt.length > 0;
+    const kolKlass = (k) => `provl-st-cellkol${k.forst ? " provl-st-avsnitt-start" : ""}${k.a != null ? " provl-st-asumkol" : ""}`;
+    const fnrRad = kol.map((k) => (k.a != null
+      ? h("th", { scope: "col", class: "provl-st-fkol provl-st-asumkol", title: `${m.avsnitt[k.a].titel}: poäng i avsnittet`, text: "Σ" })
+      : h("th", { scope: "col", class: `provl-st-fkol${k.forst ? " provl-st-avsnitt-start" : ""}` },
+        h("button", { type: "button", class: "provl-st-fnr", title: `Rätta fråga ${v.nr[rf[k.f].id]}`, text: String(v.nr[rf[k.f].id]), on: { click: () => v.oppnaFraga(rf[k.f].id) } }))));
+    const namnTh = h("th", { scope: "col", class: "provl-st-namnkol", text: "Elev", rowspan: medAvsnitt ? "2" : null });
+    const totTh = h("th", { scope: "col", class: "provl-st-totkol", text: m.poangsatt ? "Totalt" : "Andel rätt", rowspan: medAvsnitt ? "2" : null });
+    const thead = medAvsnitt
+      ? h("thead", {},
+        h("tr", { class: "provl-st-avsnittsrad" }, namnTh, totTh, m.avsnitt.map((a) => h("th", {
+          scope: "colgroup", colspan: String(a.fragor.length + 1), class: "provl-st-avsnittkol provl-st-avsnitt-start", title: a.titel,
+        }, h("span", { class: "provl-st-avsnittnamn", text: a.titel })))),
+        h("tr", {}, fnrRad))
+      : h("thead", {}, h("tr", {}, namnTh, totTh, fnrRad));
     const tbody = h("tbody", {}, rader.map((r) => h("tr", { class: `provl-st-rad provl-st-rad-${r.farg || "ej"}` },
       h("th", { scope: "row", class: "provl-st-namnkol" },
         h("button", { type: "button", class: "provl-st-namn", text: r.namn, title: "Öppna elevvyn", on: { click: () => v.oppnaElev(r.id) } })),
       h("td", { class: "provl-st-totkol" }, totalBricka(r, m.poangsatt)),
-      r.celler.map((c) => h("td", { class: "provl-st-cellkol" },
-        cell(c.lage, `${r.namn}, fråga ${v.nr[c.fid]}`, () => v.oppnaSvar(r.id, c.fid)))))));
+      kol.map((k) => h("td", { class: kolKlass(k) }, k.a != null ? avsnittCell(r.avsnitt[k.a], m.poangsatt)
+        : cell(r.celler[k.f].lage, `${r.namn}, fråga ${v.nr[r.celler[k.f].fid]}`, () => v.oppnaSvar(r.id, r.celler[k.f].fid)))))));
     const tfoot = h("tfoot", {}, h("tr", {},
       h("th", { scope: "row", class: "provl-st-namnkol", text: "Per fråga" }),
       h("td", { class: "provl-st-totkol hint", text: m.poangsatt ? "andel av poängen" : "andel rätt" }),
-      m.fragaSumma.map((s) => h("td", { class: "provl-st-cellkol" },
-        s.andel == null ? h("span", { class: "provl-st-fsum provl-st-ej", title: "Inget bedömt än", text: "?" })
-          : h("span", { class: `provl-st-fsum provl-st-${s.farg}`, title: `Fråga ${s.nr}: ${procent(s.andel)} rätt (${s.bedomda} bedömda)` },
-            h("span", { class: "provl-st-ikon", "aria-hidden": "true", text: FARG_INFO[s.farg].ikon }), h("span", { text: procent(s.andel).replace(" ", " ") }))))));
+      kol.map((k) => {
+        const s = k.a != null ? { ...m.avsnitt[k.a], nr: null } : m.fragaSumma[k.f];
+        const vad = k.a != null ? m.avsnitt[k.a].titel : `Fråga ${s.nr}`;
+        return h("td", { class: kolKlass(k) },
+          s.andel == null ? h("span", { class: "provl-st-fsum provl-st-ej", title: "Inget bedömt än", text: "?" })
+            : h("span", { class: `provl-st-fsum provl-st-${s.farg}`, title: `${vad}: ${procent(s.andel)} rätt (${s.bedomda} bedömda)` },
+              h("span", { class: "provl-st-ikon", "aria-hidden": "true", text: FARG_INFO[s.farg].ikon }), h("span", { text: procent(s.andel).replace(" ", " ") })));
+      })));
     tabellHost.replaceChildren(
       h("div", { class: "provl-st-scroll", tabindex: "0", "aria-label": "Klassens resultat per fråga – scrolla i sidled" },
         h("table", { class: "provl-st-tabell" }, thead, tbody, tfoot)),
@@ -195,7 +246,11 @@ export function elevStatVy(v, uid) {
   const nivaText = nivaNamn(r?.niva);
   const rad = { ...res, farg: fargFor(res.andel, granser), niva: r?.niva || null, nivaNamn: nivaText };
   const status = ELEV_STATUS_NAMN[elevStatus(r, v.fragor)] || "";
-  const lagen = v.rf.map((f) => ({ f, lage: cellLage(r?.fragor?.[f.id], v.svarAv(uid, f.id), f) }));
+  const lagen = v.rf.map((f) => ({ f, lage: cellLage(r?.fragor?.[f.id], v.svarAv(uid, f.id), f, poangsatt) }));
+  const avsnitt = poangAvsnitt(v.fragor);
+  const perAvsnitt = avsnittFor(r, avsnitt, poangsatt, granser);
+  // Avsnittsrubriken före avsnittets första fråga (#765): "Del 1 – 8 av 10 p".
+  const forstaI = new Map(avsnitt.map((a, i) => [a.fragor[0].id, i]));
   const i = v.med.indexOf(uid);
 
   const huvud = h("div", { class: "panel provl-st-elev-topp" },
@@ -211,17 +266,22 @@ export function elevStatVy(v, uid) {
       nivaText ? h("span", { class: "provl-st-niva-text", text: ` Nivå: ${nivaText}` }) : null,
       status ? h("span", { class: "hint", text: ` · ${status}` }) : null,
       res.bedomda < res.antal ? h("span", { class: "hint", text: ` · ${res.bedomda} av ${res.antal} frågor rättade` }) : null),
+    avsnittBrickor(perAvsnitt, poangsatt),
     h("div", { class: "provl-st-elev-rad", "aria-label": "Fråga för fråga" },
       lagen.map(({ f, lage }) => h("span", { class: "provl-st-elev-cell" },
         h("span", { class: "provl-st-elev-nr", text: String(v.nr[f.id]) }),
         cell(lage, `Fråga ${v.nr[f.id]}`, () => document.getElementById(`provl-st-f-${f.id}`)?.scrollIntoView({ block: "start", behavior: "smooth" }))))),
     r?.helhetskommentar ? h("div", { class: "provl-st-helhet" }, h("b", { text: "Helhetskommentar" }), stycken(r.helhetskommentar)) : null);
 
-  const fragor = lagen.map(({ f, lage }) => {
+  const fragor = lagen.flatMap(({ f, lage }) => {
     const typ = fragetyp(f.typ);
     const post = r?.fragor?.[f.id];
     const info = CELL_INFO[lage];
-    return h("section", { class: `panel provl-st-fraga provl-st-fraga-${lage}`, id: `provl-st-f-${f.id}` },
+    const ai = forstaI.get(f.id);
+    const e = ai == null ? null : perAvsnitt[ai];
+    const rubrik = e && h("h3", { class: "provl-st-elev-avsnitt" }, h("span", { text: e.titel }),
+      h("span", { class: "provl-st-elev-avsnitt-p", text: avsnittVarde(e, poangsatt) }));
+    return [rubrik, h("section", { class: `panel provl-st-fraga provl-st-fraga-${lage}`, id: `provl-st-f-${f.id}` },
       h("div", { class: "provl-st-fraga-topp" },
         h("span", { class: "provl-r-fraga-nr", text: `Fråga ${v.nr[f.id]}` }),
         (lage === "ratt" || lage === "delvis" || lage === "fel")
@@ -229,7 +289,7 @@ export function elevStatVy(v, uid) {
           : h("span", { class: `provl-st-ejbedomd provl-st-c-${lage}` }, h("span", { "aria-hidden": "true", text: `${info.ikon} ` }), info.namn)),
       h("div", { class: "provl-r-fragetext" }, stycken(f.fraga)),
       typ ? h("div", { class: "provv-rot provl-r-papper" }, typ.renderRattning(f, v.svarAv(uid, f.id), { facit: v.facit[f.id], facitRad: true })) : null,
-      post?.kommentar ? h("p", { class: "provl-st-kommentar" }, h("b", { text: "Kommentar: " }), post.kommentar) : null);
+      post?.kommentar ? h("p", { class: "provl-st-kommentar" }, h("b", { text: "Kommentar: " }), post.kommentar) : null)];
   });
   return { el: h("div", { class: "provl-st provl-st-elev" }, huvud, h("div", { class: "provl-st-fragor" }, fragor)), uppdatera: () => {} };
 }

@@ -21,8 +21,9 @@ import {
 } from "../src/prov/prov-modell.js";
 import { STANDARD_INSTALLNINGAR, tillfalleInstallningar, validateProv } from "../src/prov/prov-validera.js";
 import {
-  aterlamnadDok, angratDok, bedom, elevStatus, nyRattning, rattFragor, resultatModell, sparDok, summera, tolkaPoang,
+  aterlamnadDok, angratDok, bedom, elevStatus, nyRattning, rattFragor, sparDok, summera, tolkaPoang,
 } from "../src/prov/prov-rattning-logik.js";
+import { resultatModell } from "../src/prov/prov-resultat-modell.js";
 import { andelFor, klassOversikt, totalText } from "../src/prov/prov-statistik.js";
 import { resultatCsv } from "../src/prov/prov-statistik-fordjupad.js";
 import { provMyntBelopp } from "../src/prov/prov-mynt.js";

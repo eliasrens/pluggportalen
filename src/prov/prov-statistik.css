@@ -177,3 +177,34 @@
   .provl-st-c-ratt, .provl-st-c-delvis, .provl-st-c-fel,
   .provl-st-seg-ratt, .provl-st-seg-delvis, .provl-st-seg-fel { color: #000; }
 }
+
+/* #765: avsnitten – brickor "Del 1: 8 av 10", rubriker över rutnätet, Σ per avsnitt */
+.provl-st-avsnitt { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; }
+.provl-st-avsnitt .provl-st-bricka { white-space: normal; }
+.provl-st-tabell .provl-st-avsnittkol { text-align: left; padding: 4px 6px; color: var(--t-text, #e7edf3); font-weight: 700; }
+.provl-st-avsnittnamn { display: block; width: 0; min-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } /* bredar inte kolumnerna */
+.provl-st-tabell .provl-st-avsnitt-start { border-left: 2px solid var(--t-border-strong, rgba(255, 255, 255, 0.22)); }
+.provl-st-asumkol { background: rgba(255, 255, 255, 0.04); }
+.provl-st-asum {
+  display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; border-radius: 999px;
+  font-weight: 700; font-size: 0.78rem; white-space: nowrap; border: 1px solid transparent;
+}
+.provl-st-elev-avsnitt {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; margin: 16px 0 8px; padding-bottom: 4px;
+  border-bottom: 2px solid var(--t-border-strong, rgba(255, 255, 255, 0.22)); font-size: 1.05rem;
+}
+.provl-st-elev-avsnitt-p { color: var(--t-muted, #93a2b3); font-weight: 600; }
+.provl-st-stapel-avsnitt { font-size: 0.75rem; color: var(--t-muted, #93a2b3); margin-left: 6px; }
+.provl-st-avsnittlista { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.provl-st-avsnittrad { display: grid; grid-template-columns: minmax(8em, 1.4fr) auto minmax(80px, 2fr) auto; align-items: center; gap: 6px 12px; }
+.provl-st-avsnittrad-snitt { font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.provl-st-avsnittfyll { display: block; height: 100%; border-radius: inherit; border: 0; padding: 0; }
+.provl-st-jamfor-avsnitt th, .provl-st-jamfor-avsnitt td { border-top: 2px solid var(--t-border-strong, rgba(255, 255, 255, 0.22)); }
+.provl-st-jamfor-avsnitt th { font-weight: 800; }
+@media (max-width: 560px) {
+  .provl-st-avsnittrad { grid-template-columns: 1fr auto; }
+  .provl-st-avsnittrad .provl-st-nivastapel { grid-column: 1 / -1; }
+}
+.provl-st-avsnittfyll.provl-st-gron { background: var(--st-gron); }
+.provl-st-avsnittfyll.provl-st-gul { background: var(--st-gul); }
+.provl-st-avsnittfyll.provl-st-rod { background: var(--st-rod); }

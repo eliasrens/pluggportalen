@@ -11,9 +11,11 @@
 //   jamforKlasser(nu, andra)     samma prov i flera klasser sida vid sida
 //   resultatCsv(o)               klassens resultat som CSV (semikolon, BOM)
 //   csvFilnamn(prov, klass)      "Vikingatiden – 4B.csv" utan otillåtna tecken
+// Avsnitt (#765): staplarna bär avsnittets namn, jämförelsen grupperar
+// frågorna per avsnitt med avsnittets snitt, CSV:n får en kolumn per avsnitt.
 // ============================================================================
 
-import { NIVAER, fragaNummer } from "./prov-modell.js";
+import { NIVAER, fragaNummer, poangAvsnitt } from "./prov-modell.js";
 import { arBedomd, bedomning, ELEV_STATUS_NAMN, rattFragor } from "./prov-rattning-logik.js";
 import { CELL, FARG_INFO, fargFor, granserFor, klassOversikt } from "./prov-statistik.js";
 import { arOmprov } from "./prov-anpassningar.js";
@@ -33,14 +35,16 @@ export function kortText(s, n = 60) {
  * utan något bedömt sist, i nummerordning.
  * @param {ReturnType<typeof klassOversikt>} m
  * @param {object[]} fragor  tillfällets frågor (för frågetexten)
- * @returns {{ fid, nr, text, andel, farg, bedomda, totalt, n: { ratt, delvis, fel, obesvarad, ej } }[]}
+ * @returns {{ fid, nr, text, avsnitt, andel, farg, bedomda, totalt, n: { ratt, delvis, fel, obesvarad, ej } }[]}
+ *   avsnitt = avsnittets namn (#765), null när provet saknar avsnitt
  */
 export function perFragaStaplar(m, fragor) {
   const text = new Map((fragor || []).map((f) => [f.id, kortText(f.fraga)]));
+  const avsnitt = new Map(poangAvsnitt(fragor).flatMap((a) => a.fragor.map((f) => [f.id, a.titel])));
   const lista = m.fragaSumma.map((s, i) => {
     const n = { ratt: 0, delvis: 0, fel: 0, obesvarad: 0, ej: 0 };
     for (const rad of m.rader) n[rad.celler[i]?.lage || CELL.EJ]++;
-    return { fid: s.fid, nr: s.nr, text: text.get(s.fid) || "", andel: s.andel, farg: s.farg, bedomda: s.bedomda, totalt: m.rader.length, n };
+    return { fid: s.fid, nr: s.nr, text: text.get(s.fid) || "", avsnitt: avsnitt.get(s.fid) ?? null, andel: s.andel, farg: s.farg, bedomda: s.bedomda, totalt: m.rader.length, n };
   });
   return lista.sort((a, b) => (a.andel == null) - (b.andel == null) || (a.andel ?? 0) - (b.andel ?? 0) || a.nr - b.nr);
 }
@@ -95,6 +99,7 @@ function klassKolumn({ tf, klassNamn, rattningar, med }, granser) {
     rattade: m.rader.filter((r) => r.andel != null).length,
     snitt: m.snitt, farg: fargFor(m.snitt, granser), fordelning: m.raknare,
     perFraga: new Map(m.fragaSumma.map((s) => [s.fid, s.andel])),
+    perAvsnitt: m.avsnitt,
   };
 }
 
@@ -123,7 +128,12 @@ export function jamforKlasser(nu, andra = []) {
     fid: f.id, nr: nr[f.id], text: kortText(f.fraga),
     andelar: kolumner.map((k) => (k.perFraga.has(f.id) ? k.perFraga.get(f.id) : null)),
   }));
-  return { kolumner: kolumner.map(({ perFraga: _, ...k }) => k), perFraga, granser };
+  // Avsnitten (#765): DET HÄR tillfällets; en annan klass andel för samma avsnitt (samma id), annars null.
+  const avsnitt = poangAvsnitt(nu.tf.fragor).map((a) => ({
+    id: a.id, titel: a.titel, fids: a.fragor.map((f) => f.id),
+    andelar: kolumner.map((k) => k.perAvsnitt.find((x) => x.id === a.id && x.titel === a.titel)?.andel ?? null),
+  }));
+  return { kolumner: kolumner.map(({ perFraga: _, perAvsnitt: _a, ...k }) => k), perFraga, avsnitt, granser };
 }
 
 // --- CSV -----------------------------------------------------------------------
@@ -157,9 +167,12 @@ export function resultatCsv({ fragor, med, namn = {}, rattningar, installningar 
   const m = klassOversikt({ fragor, med, namn, svarAv: () => undefined, rattningar, installningar });
   const rf = rattFragor(fragor);
   const p = m.poangsatt;
+  // En kolumn per avsnitt efter frågorna (#765): poängen (utan poäng: procent) av de bedömda frågorna.
+  const avsnittCell = (a) => (a.andel == null ? "" : p && a.max ? poangTal(a.poang) : String(Math.round(a.andel * 100)));
   const huvud = [
     "Elev",
     ...rf.map((f, i) => (p ? `Fråga ${i + 1} (${poangP(f.poang ?? 0)})` : `Fråga ${i + 1}`)),
+    ...m.avsnitt.map((a) => (p ? `${a.titel} (${poangP(a.maxAvsnitt)})` : `${a.titel} (%)`)),
     ...(p ? ["Poäng", "Av (rättade)"] : []), "Procent", "Färg", "Nivå", "Status",
   ];
   const rader = m.rader.slice().sort((a, b) => a.namn.localeCompare(b.namn, "sv"));
@@ -173,7 +186,7 @@ export function resultatCsv({ fragor, med, namn = {}, rattningar, installningar 
     });
     const harTotal = rad.andel != null;
     return [
-      rad.namn, ...celler,
+      rad.namn, ...celler, ...rad.avsnitt.map(avsnittCell),
       ...(p ? [harTotal ? poangTal(rad.poang) : "", harTotal ? poangTal(rad.max) : ""] : []),
       harTotal ? String(Math.round(rad.andel * 100)) : "",
       rad.farg ? FARG_INFO[rad.farg].namn : "",

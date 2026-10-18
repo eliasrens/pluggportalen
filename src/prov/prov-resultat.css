@@ -118,3 +118,17 @@
 
 /* #762: avsnittets rubrik i resultatet */
 .provv-res-avsnitt { padding: 18px 0 6px; border-bottom: 2px solid var(--provv-accent); }
+
+/* #765: poängen per avsnitt (överst och under rubriken) och poängkriterierna */
+.provv-res-avsnittsrad { margin: 10px 0 0; display: flex; flex-wrap: wrap; gap: 4px 0; color: var(--provv-text); }
+.provv-res-avsnitt-sep { color: var(--provv-svag); white-space: pre; }
+.provv-res-avsnitt-p { white-space: nowrap; }
+.provv-res-avsnitt-summa { margin: 4px 0 0; color: var(--provv-svag); font-weight: 600; }
+.provv-res-kriterier {
+  margin: 10px 0 0 50px; padding: 10px 14px; border: 1px dashed var(--provv-kant); border-radius: 10px; background: var(--provv-ljus);
+}
+.provv-res-kriterier ul { margin: 6px 0 0; padding-left: 1.2em; display: grid; gap: 3px; }
+@media (max-width: 560px) {
+  .provv-res-kriterier { margin-left: 0; }
+  .provv-res-avsnitt-p { white-space: normal; }
+}

@@ -15,8 +15,9 @@ import { validateProv } from "../src/prov/prov-validera.js";
 import {
   ELEV_STATUS, angratDok, arBedomd, aterlamnaPlan, aterlamnadDok, bedom, bedomGrupp, ejKlaraText, elevStatus,
   forslagFor, forslagPaFraga, fragaKlar, godkannAlla, godkannFraga, gruppPost, kompletteraForslag, nyRattning,
-  poangFor, rattFor, rattStatusSumma, rattStatusText, resultatModell, sparDok, summera, svarsGrupper, tolkaPoang,
+  poangFor, rattFor, rattStatusSumma, rattStatusText, sparDok, summera, svarsGrupper, tolkaPoang,
 } from "../src/prov/prov-rattning-logik.js";
+import { resultatModell } from "../src/prov/prov-resultat-modell.js";
 import { snabbPoang } from "../src/prov/prov-ratta-kort.js";
 import { LARARENS_SPARNING } from "../src/prov/prov-sparning.js";
 import { EXEMPEL } from "./helpers/prov-exempel.js";

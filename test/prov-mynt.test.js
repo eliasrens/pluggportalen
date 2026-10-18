@@ -11,7 +11,8 @@ import {
   MYNT_TAK, harMynt, myntRegelText, myntText, provMyntBelopp, tolkaMynt, valideraMynt,
 } from "../src/prov/prov-mynt.js";
 import { STANDARD_INSTALLNINGAR, validateProv } from "../src/prov/prov-validera.js";
-import { angratDok, aterlamnadDok, resultatModell, sparDok } from "../src/prov/prov-rattning-logik.js";
+import { angratDok, aterlamnadDok, sparDok } from "../src/prov/prov-rattning-logik.js";
+import { resultatModell } from "../src/prov/prov-resultat-modell.js";
 import { nyttProv, provFranDok } from "../src/prov/prov-redigera-ops.js";
 
 const INL = { inlamnad: true };
