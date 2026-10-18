@@ -17,7 +17,7 @@
 
 import { NIVAER, fragaNummer, poangAvsnitt } from "./prov-modell.js";
 import { arBedomd, bedomning, ELEV_STATUS_NAMN, rattFragor } from "./prov-rattning-logik.js";
-import { CELL, FARG_INFO, fargFor, granserFor, klassOversikt } from "./prov-statistik.js";
+import { CELL, FARG_INFO, fargFor, granserFor, klassOversikt, procentTal } from "./prov-statistik.js";
 import { arOmprov } from "./prov-anpassningar.js";
 import { poangP, poangTal } from "./prov-poang.js";
 
@@ -168,7 +168,7 @@ export function resultatCsv({ fragor, med, namn = {}, rattningar, installningar 
   const rf = rattFragor(fragor);
   const p = m.poangsatt;
   // En kolumn per avsnitt efter frågorna (#765): poängen (utan poäng: procent) av de bedömda frågorna.
-  const avsnittCell = (a) => (a.andel == null ? "" : p && a.max ? poangTal(a.poang) : String(Math.round(a.andel * 100)));
+  const avsnittCell = (a) => (a.andel == null ? "" : p && a.max ? poangTal(a.poang) : String(procentTal(a.andel)));
   const huvud = [
     "Elev",
     ...rf.map((f, i) => (p ? `Fråga ${i + 1} (${poangP(f.poang ?? 0)})` : `Fråga ${i + 1}`)),
@@ -188,7 +188,7 @@ export function resultatCsv({ fragor, med, namn = {}, rattningar, installningar 
     return [
       rad.namn, ...celler, ...rad.avsnitt.map(avsnittCell),
       ...(p ? [harTotal ? poangTal(rad.poang) : "", harTotal ? poangTal(rad.max) : ""] : []),
-      harTotal ? String(Math.round(rad.andel * 100)) : "",
+      harTotal ? String(procentTal(rad.andel)) : "",
       rad.farg ? FARG_INFO[rad.farg].namn : "",
       rad.niva || "",
       ELEV_STATUS_NAMN[rad.status] || "",

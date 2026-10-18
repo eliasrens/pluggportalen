@@ -78,11 +78,17 @@ export function fargFor(andel, granser = STANDARD_INSTALLNINGAR.granser) {
   return FARG.ROD;
 }
 
+/** Avrunda till heltal utan flyttalsbrus först (15 / 44 × 11 = 3.7499999… ska bli 3,8 – #766). */
+const avrunda = (x) => Math.round(Math.round(x * 10000) / 10000);
+
+/** Hela procent för visning och CSV: 0.285 → 29 (färgen räknas på den exakta andelen). */
+export const procentTal = (andel) => avrunda(andel * 100);
+
 /** "75 %" – avrundat för visning (färgen räknas på den exakta andelen). */
-export const procent = (andel) => (andel == null ? "" : `${Math.round(andel * 100)} %`);
+export const procent = (andel) => (andel == null ? "" : `${procentTal(andel)} %`);
 
 /** Ett snitt med en decimal och decimalkomma: 7.333 → "7,3", 8 → "8" (#765). */
-export const snittTal = (x) => String(Math.round((Number(x) || 0) * 10) / 10).replace(".", ",");
+export const snittTal = (x) => String(avrunda((Number(x) || 0) * 10) / 10).replace(".", ",");
 
 /**
  * En fråga hos en elev: bedömd → ratt/delvis/fel, annars obesvarad eller ej
