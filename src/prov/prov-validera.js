@@ -6,8 +6,9 @@
 //   validateProv(obj) → { ok, errors: string[], warnings: string[], value }
 //
 // Felen bär platsen: "Fråga 4 (Kort svar): minst ett godkänt svar krävs".
-// Frågorna numreras som eleven ser dem (textblock får inget nummer) och
-// textblocken för sig ("Textblock 2: …"). Varje frågas fält kontrolleras av
+// Frågorna numreras som eleven ser dem – löpande genom hela provet (textblock
+// och avsnitt får inget nummer) – och textblocken och avsnitten för sig
+// ("Textblock 2: …", "Avsnitt 1: …", #762). Varje frågas fält kontrolleras av
 // typens validera i registret (prov-fragetyper.js).
 //
 // `value` är normaliserat och redo att sparas i prov/{provId} (utan
@@ -32,11 +33,18 @@ export const TIDSGRANS_MAX = 240;
  */
 export const STAVFEL = Object.freeze({ AUTO: "auto", SJALV: "sjalv" });
 
-/** Standardinställningarna (§3). granser = färggränserna i procent (§7.5, #759). */
+/**
+ * Standardinställningarna (§3). granser = färggränserna i procent (§7.5, #759).
+ * visaPoangForElev (#762): "(4 p)" per fråga och "Provet ger högst 32 poäng"
+ * för eleven. visaKriterier (#762): fritextens poängkriterier syns för eleven
+ * i resultatet efter tillbakalämningen.
+ */
 export const STANDARD_INSTALLNINGAR = Object.freeze({
   poang: true,
+  visaPoangForElev: true,
   nivaer: false,
   visaFacit: true,
+  visaKriterier: false,
   stavningskontroll: false,
   stavfel: STAVFEL.AUTO,
   tidsgransMin: null,
@@ -87,7 +95,7 @@ function valideraInstallningar(raw, errors) {
     errors.push('Inställningar: "installningar" måste vara ett objekt { … }.');
     return ut;
   }
-  for (const k of ["poang", "nivaer", "visaFacit", "stavningskontroll"]) {
+  for (const k of ["poang", "visaPoangForElev", "nivaer", "visaFacit", "visaKriterier", "stavningskontroll"]) {
     if (raw[k] === undefined || raw[k] === null) continue;
     if (typeof raw[k] !== "boolean") errors.push(`Inställningar: "${k}" måste vara true eller false.`);
     else ut[k] = raw[k];
@@ -159,14 +167,15 @@ export function validateProv(obj) {
   if (!Array.isArray(obj.fragor)) {
     errors.push('Provet: "fragor" måste vara en lista med frågor [ … ].');
   } else {
-    if (obj.fragor.length > GRANS.fragor) errors.push(`Provet: högst ${GRANS.fragor} frågor och textblock (nu ${obj.fragor.length}).`);
+    if (obj.fragor.length > GRANS.fragor) errors.push(`Provet: högst ${GRANS.fragor} frågor, textblock och avsnitt (nu ${obj.fragor.length}).`);
     let nrFraga = 0;
     let nrText = 0;
+    let nrAvsnitt = 0;
     const anvanda = new Set();
     obj.fragor.forEach((raw, i) => {
       const typ = fragetyp(raw?.typ);
-      const arText_ = typ?.arFraga === false;
-      const plats = arText_ ? `Textblock ${++nrText}` : `Fråga ${++nrFraga}`;
+      const plats = raw?.typ === "avsnitt" ? `Avsnitt ${++nrAvsnitt}`
+        : typ?.arFraga === false ? `Textblock ${++nrText}` : `Fråga ${++nrFraga}`;
       if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
         errors.push(`${plats}: måste vara ett objekt { "typ": …, "fraga": … }.`);
         return;
@@ -200,7 +209,7 @@ export function validateProv(obj) {
       anvanda.add(f.id);
     }
     if (!errors.length && !fragor.some(({ f }) => fragetyp(f.typ).arFraga !== false)) {
-      errors.push("Provet: minst en fråga krävs (textblock räknas inte).");
+      errors.push("Provet: minst en fråga krävs (textblock och avsnitt räknas inte).");
     }
   }
   // Fältordningen: id, typ först – lättare att läsa i Firestore-konsolen.

@@ -12,14 +12,17 @@
 import { fragetyp } from "./prov-fragetyper.js";
 import { BEDOMNINGAR, arForslag, bedomning, tolkaPoang } from "./prov-rattning-logik.js";
 import { h } from "./prov-vy.js";
+import { poangTal as poangText } from "./prov-poang.js";
 
-const poangText = (p) => String(p).replace(".", ",");
-
-/** Snabbknapparna (§6.1): 0 … max, och halva/max för stora frågor. */
+/**
+ * Snabbknapparna (§6.1): 0, 1 … max, och halva/max för stora frågor. Max finns
+ * alltid som knapp, också med halvpoäng (3,5 → 0, 1, 2, 3, 3,5 – #762).
+ */
 export function snabbPoang(max) {
   if (max <= 0) return [];
-  if (max <= 6) return Array.from({ length: max + 1 }, (_, i) => i);
-  return [0, Math.round(max / 2), max];
+  if (max > 6) return [0, Math.round(max / 2), max];
+  const hela = Array.from({ length: Math.floor(max) + 1 }, (_, i) => i);
+  return hela.at(-1) === max ? hela : [...hela, max];
 }
 
 /**
@@ -48,7 +51,7 @@ export function rattaKort(o) {
     type: "button", class: `provl-r-b provl-r-b-${b.id}`, tabindex: "-1", "aria-pressed": "false",
     title: `${b.namn} (${b.tangent})`, on: { click: () => bedom(b.ratt) },
   }, h("span", { class: "provl-r-b-ikon", "aria-hidden": "true", text: b.ikon }), h("span", { text: b.namn }), h("kbd", { text: b.tangent })));
-  const poangFalt = h("input", { type: "text", inputmode: "decimal", class: "provl-r-poang-falt", size: "3", "aria-label": `Poäng (av ${max})` });
+  const poangFalt = h("input", { type: "text", inputmode: "decimal", class: "provl-r-poang-falt", size: "3", "aria-label": `Poäng (av ${poangText(max)})` });
   poangFalt.addEventListener("change", () => {
     const p = tolkaPoang(poangFalt.value, max);
     if (p == null) return rita();
@@ -56,7 +59,7 @@ export function rattaKort(o) {
     rita();
   });
   const snabb = snabbPoang(max).map((p) => h("button", {
-    type: "button", class: "provl-r-snabb", tabindex: "-1", text: poangText(p), "aria-label": `${p} poäng`,
+    type: "button", class: "provl-r-snabb", tabindex: "-1", text: poangText(p), "aria-label": `${poangText(p)} poäng`,
     on: { click: () => { o.onAndring({ poang: p }); rita(); } },
   }));
   const kommentar = h("input", { type: "text", class: "provl-r-kommentar-falt", maxlength: "1000", placeholder: "Kommentar till eleven (valfri)", "aria-label": "Kommentar" });

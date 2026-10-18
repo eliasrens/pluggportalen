@@ -96,7 +96,7 @@ export async function oppnaTillfalle(tf, las) {
   if (tf.status === STATUS.FORBERETT) {
     const prov = await hamtaProv(tf.provId);
     if (!prov) throw new Error("Provet finns inte längre – det kan ha raderats.");
-    const { fragor, facit, bedomningsstod } = delaUppProv(prov);
+    const { fragor, facit, bedomningsstod, kriterier } = delaUppProv(prov);
     if (!fragor.length) throw new Error("Provet har inga frågor än.");
     const batch = writeBatch(db);
     batch.update(tfRef(tf.id), {
@@ -104,7 +104,8 @@ export async function oppnaTillfalle(tf, las) {
       installningar: tillfalleInstallningar(prov.installningar),
       status: STATUS.OPPET, oppnad: serverTimestamp(),
     });
-    batch.set(facitRef(tf.id), { facit, bedomningsstod });
+    // Poängkriterierna (#762) bara när provet har några – ett gammalt prov ger samma dokument som förr.
+    batch.set(facitRef(tf.id), { facit, bedomningsstod, ...(Object.keys(kriterier).length ? { kriterier } : {}) });
     await batch.commit();
   } else if (tf.status === STATUS.STANGT) {
     await updateDoc(tfRef(tf.id), { status: STATUS.OPPET, oppnad: serverTimestamp(), stangd: deleteField() });

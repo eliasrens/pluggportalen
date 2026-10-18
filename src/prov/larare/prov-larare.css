@@ -44,6 +44,8 @@
 .provl-grupp legend { padding: 0 6px; color: var(--t-muted); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
 .provl-check { display: flex; gap: 9px; align-items: flex-start; font-weight: 400; cursor: pointer; }
 .provl-check input { margin-top: 3px; accent-color: var(--t-accent); width: 17px; height: 17px; flex: none; }
+.provl-check-under { margin-left: 26px; } /* #762: hör till "Poängsätt frågorna" */
+.provl-check:has(input:disabled) { opacity: 0.55; cursor: default; }
 .provl-val { display: flex; gap: 18px; flex-wrap: wrap; }
 /* Pluggmynt (#746, provl-mynt.js): sifferfälten sitter i radioknapparnas text. */
 .provl-check input.provl-mynt-antal { width: 5em; height: auto; margin: -3px 4px 0; padding: 3px 6px; font: inherit; }
@@ -72,6 +74,10 @@
   gap: 6px;
 }
 .provl-kort-text { border-style: dashed; }
+/* #762: avsnittet – en rubrik som delar in provet, med sin poängsumma */
+.provl-kort-avsnitt { border-left: 4px solid var(--t-accent); background: color-mix(in srgb, var(--t-accent) 8%, var(--t-surface)); margin-top: 8px; }
+.provl-kort-avsnitt .provl-kort-text-rad { font-size: 1.1rem; }
+.provl-kort-summa { font-weight: 700; font-size: 0.9rem; color: var(--t-accent); }
 .provl-kort-ny { margin-top: 10px; border-color: var(--t-accent); }
 .provl-kort-huvud { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
 .provl-kort-nr { font-weight: 800; color: var(--t-accent); min-width: 64px; }

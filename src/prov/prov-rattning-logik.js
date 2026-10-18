@@ -16,6 +16,7 @@
 import { arFraga, fragetyp } from "./prov-fragetyper.js";
 import { NIVAER, autoForslag, fragaNummer, maxPoang } from "./prov-modell.js";
 import { delpoang } from "./prov-rattning.js";
+import { klamPoang, summaPoang } from "./prov-poang.js";
 import { arOmprov, elevProvNamn } from "./prov-anpassningar.js";
 
 /** Status per elev (§6.3) – i den ordningen. */
@@ -55,12 +56,8 @@ export function elevStatus(r, fragor) {
 
 /** Totalen och maxpoängen (§6.2) – förslagen räknas med, poäng saknas = 0. */
 export function summera(r, fragor) {
-  let total = 0;
-  for (const f of rattFragor(fragor)) {
-    const p = Number(r?.fragor?.[f.id]?.poang);
-    if (Number.isFinite(p)) total += p;
-  }
-  return { ...r, totalPoang: Math.round(total * 2) / 2, maxPoang: maxPoang(fragor) };
+  const total = summaPoang(rattFragor(fragor).map((f) => r?.fragor?.[f.id]?.poang));
+  return { ...r, totalPoang: total, maxPoang: maxPoang(fragor) };
 }
 
 /**
@@ -124,7 +121,7 @@ export function rattFor(poang, max) {
 export function tolkaPoang(v, max) {
   const n = Number(String(v ?? "").replace(",", "."));
   if (String(v ?? "").trim() === "" || !Number.isFinite(n)) return null;
-  return Math.min(max, Math.max(0, Math.round(n * 2) / 2));
+  return klamPoang(n, max);
 }
 
 export const KOMMENTAR_MAX = 1000;
@@ -145,7 +142,7 @@ export function bedom(r, fraga, andring, fragor) {
     post.poang = "poang" in andring && andring.poang != null ? andring.poang : poangFor(andring.ratt, max, fore.ratt === "delvis" ? fore.poang : null);
     post.auto = false;
   } else if ("poang" in andring && andring.poang != null) {
-    post.poang = Math.min(max, Math.max(0, andring.poang));
+    post.poang = klamPoang(andring.poang, max);
     post.ratt = rattFor(post.poang, max);
     post.auto = false;
   }
@@ -291,19 +288,22 @@ export function ejKlaraText(n) {
 
 /**
  * Rättningsdokumentet som det skrivs vid tillbakalämningen (§7): aterlamnad
- * true och facit BARA om läraren valt "Visa facit". Tiden (aterlamnadAt)
- * sätter datalagret till serverns tid.
+ * true och facit BARA om läraren valt "Visa facit". Poängkriterierna (#762,
+ * privat/facit.kriterier) följer med bara när provet visar dem för eleven
+ * (installningar.visaKriterier – anroparen skickar då `kriterier`). Tiden
+ * (aterlamnadAt) sätter datalagret till serverns tid.
  */
-export function aterlamnadDok(r, { visaFacit, facit }) {
-  const { aterlamnadAt: _a, facit: _f, ...rest } = r;
+export function aterlamnadDok(r, { visaFacit, facit, kriterier = null }) {
+  const { aterlamnadAt: _a, facit: _f, kriterier: _k, ...rest } = r;
   const ut = { ...rest, aterlamnad: true };
   if (visaFacit && facit && Object.keys(facit).length) ut.facit = facit;
+  if (kriterier && Object.keys(kriterier).length) ut.kriterier = kriterier;
   return ut;
 }
 
-/** Ångra tillbakalämningen (§7): aterlamnad false, facit och tiden bort. */
+/** Ångra tillbakalämningen (§7): aterlamnad false, facit, kriterier och tiden bort. */
 export function angratDok(r) {
-  const { aterlamnadAt: _a, facit: _f, ...rest } = r;
+  const { aterlamnadAt: _a, facit: _f, kriterier: _k, ...rest } = r;
   return { ...rest, aterlamnad: false };
 }
 
@@ -322,6 +322,7 @@ export function sparDok(r, fragor, provInfo = null) {
   const helhet = String(s.helhetskommentar || "").trim().slice(0, HELHET_MAX);
   if (helhet) ut.helhetskommentar = helhet;
   if (ut.aterlamnad && s.facit) ut.facit = s.facit;
+  if (ut.aterlamnad && s.kriterier) ut.kriterier = s.kriterier;
   if (provInfo) ut.provInfo = provInfo;
   // Pluggmyntens spegel (#746) följer med – reglerna nekar att den sänks.
   if (Number.isInteger(s.myntUtbetalt) && s.myntUtbetalt > 0) ut.myntUtbetalt = s.myntUtbetalt;

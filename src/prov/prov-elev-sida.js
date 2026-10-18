@@ -22,6 +22,7 @@ import {
 import { onProvChange, provForMe } from "./prov-watch.js";
 import { elevProvNamn, gallerElev, tidsgransFor, tolkaFlikbyten } from "./prov-anpassningar.js";
 import { laddaCss } from "./prov-vy.js";
+import { poangAv } from "./prov-poang.js";
 
 const LISTA = "#/elev/prov";
 const skrivHash = (t) => `#/elev/prov/skriv?t=${encodeURIComponent(t)}`;
@@ -95,7 +96,7 @@ export async function pageProvLista() {
     </article>`;
   }).join("");
   const tillbaka = info.tillbaka.map((r) => {
-    const resultat = r.totalPoang != null && r.maxPoang ? `${r.totalPoang} av ${r.maxPoang} poäng` : "";
+    const resultat = r.totalPoang != null && r.maxPoang ? poangAv(r.totalPoang, r.maxPoang) : "";
     return `<li><a class="provv-tillbaka" href="#/elev/prov/resultat?t=${encodeURIComponent(r.id)}">
       <span class="provv-tillbaka-namn">${escHtml(r.provNamn || "Prov")}</span>
       <span class="provv-tillbaka-info">${escHtml(datum(tillMs(r.aterlamnadAt)))}${resultat ? ` · ${escHtml(resultat)}` : ""}</span>

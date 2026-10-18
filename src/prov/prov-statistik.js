@@ -25,6 +25,7 @@ export { granserText } from "./prov-validera.js";
 import { arBedomd, bedomning, elevStatus, nivaNamn, rattFragor } from "./prov-rattning-logik.js";
 import { fragaNummer } from "./prov-modell.js";
 import { tillMs } from "./prov-tillfalle-logik.js";
+import { poangTal } from "./prov-poang.js";
 
 /** En cells läge (§7.5 "Per fråga och elev"). */
 export const CELL = Object.freeze({ RATT: "ratt", DELVIS: "delvis", FEL: "fel", OBESVARAD: "obesvarad", EJ: "ej" });
@@ -195,7 +196,7 @@ export function sorteraRader(rader, satt = "namn") {
 /** "18/24 · 75 %" (utan poäng: "75 %"); "" om inget är bedömt. */
 export function totalText(rad, poangsatt) {
   if (rad.andel == null) return "";
-  const p = (x) => String(x).replace(".", ",");
+  const p = poangTal;
   return poangsatt && rad.max ? `${p(rad.poang)}/${p(rad.max)} · ${procent(rad.andel)}` : procent(rad.andel);
 }
 

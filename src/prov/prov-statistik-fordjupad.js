@@ -17,6 +17,7 @@ import { NIVAER, fragaNummer } from "./prov-modell.js";
 import { arBedomd, bedomning, ELEV_STATUS_NAMN, rattFragor } from "./prov-rattning-logik.js";
 import { CELL, FARG_INFO, fargFor, granserFor, klassOversikt } from "./prov-statistik.js";
 import { arOmprov } from "./prov-anpassningar.js";
+import { poangP, poangTal } from "./prov-poang.js";
 
 /** Kort text för en etikett: första raden, högst n tecken (kodpunkter). */
 export function kortText(s, n = 60) {
@@ -128,7 +129,6 @@ export function jamforKlasser(nu, andra = []) {
 // --- CSV -----------------------------------------------------------------------
 
 const SEP = ";";
-const decimal = (x) => String(Math.round(x * 100) / 100).replace(".", ",");
 
 /**
  * Ett fält: citeras om det innehåller semikolon, citattecken, radbrytning
@@ -159,7 +159,7 @@ export function resultatCsv({ fragor, med, namn = {}, rattningar, installningar 
   const p = m.poangsatt;
   const huvud = [
     "Elev",
-    ...rf.map((f, i) => (p ? `Fråga ${i + 1} (${f.poang ?? 0} p)` : `Fråga ${i + 1}`)),
+    ...rf.map((f, i) => (p ? `Fråga ${i + 1} (${poangP(f.poang ?? 0)})` : `Fråga ${i + 1}`)),
     ...(p ? ["Poäng", "Av (rättade)"] : []), "Procent", "Färg", "Nivå", "Status",
   ];
   const rader = m.rader.slice().sort((a, b) => a.namn.localeCompare(b.namn, "sv"));
@@ -168,13 +168,13 @@ export function resultatCsv({ fragor, med, namn = {}, rattningar, installningar 
     const celler = rf.map((f) => {
       const post = r?.fragor?.[f.id];
       if (!arBedomd(post)) return "";
-      if (p) return decimal(Number(post.poang) || 0);
+      if (p) return poangTal(post.poang);
       return { ratt: "rätt", delvis: "delvis", fel: "fel" }[bedomning(post.ratt)?.id] || "";
     });
     const harTotal = rad.andel != null;
     return [
       rad.namn, ...celler,
-      ...(p ? [harTotal ? decimal(rad.poang) : "", harTotal ? decimal(rad.max) : ""] : []),
+      ...(p ? [harTotal ? poangTal(rad.poang) : "", harTotal ? poangTal(rad.max) : ""] : []),
       harTotal ? String(Math.round(rad.andel * 100)) : "",
       rad.farg ? FARG_INFO[rad.farg].namn : "",
       rad.niva || "",

@@ -101,7 +101,8 @@ export function skapaRattningsLager({ data, med, onStatus = () => {} }) {
     /** Lämna tillbaka (§7) – osparat sparas först; facit bara om valt. */
     async lamnaTillbaka(uids, visaFacit) {
       await sparare.spolaNu().catch(() => {});
-      const dok = Object.fromEntries(uids.map((uid) => [uid, aterlamnadDok(dokFor(uid), { visaFacit, facit })]));
+      const kriterier = tf.installningar?.visaKriterier === true ? data.kriterier : null; // #762
+      const dok = Object.fromEntries(uids.map((uid) => [uid, aterlamnadDok(dokFor(uid), { visaFacit, facit, kriterier })]));
       const efter = { ...rattningar, ...Object.fromEntries(Object.entries(dok).map(([uid, d]) => [uid, { ...d, aterlamnadAt: Date.now() }])) };
       const st = rattStatusSumma(med, efter, fragor);
       await lamnaTillbaka(t, dok, st);

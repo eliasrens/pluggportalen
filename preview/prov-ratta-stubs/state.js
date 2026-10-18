@@ -18,6 +18,7 @@ export const PROV = validateProv({
   namn: "Vikingatiden – prov",
   installningar: { poang: true, nivaer: true, visaFacit: true, mynt: { typ: "poang", antal: 2 } },
   fragor: [
+    { id: "a1", typ: "avsnitt", titel: "Del 1 – Fakta", instruktion: "Svara kort." }, // #762
     { id: "t1", typ: "text", titel: "Birka", brodtext: "Birka var en handelsstad på Björkö i Mälaren. Dit kom köpmän från många länder." },
     { id: "q1", typ: "flerval", fraga: "Var låg Birka?", alternativ: ["Björkö", "Gotland", "Öland"], ratt: 0 },
     { id: "q2", typ: "flerval-flera", fraga: "Vilka är vikingastäder?", alternativ: ["Birka", "Hedeby", "Paris", "Rom"], ratt: [0, 1], poang: 2 },
@@ -27,7 +28,9 @@ export const PROV = validateProv({
     { id: "q6", typ: "para", fraga: "Para ihop guden med det hen styr över.", poang: 3,
       par: [{ vanster: "Tor", hoger: "Åska" }, { vanster: "Oden", hoger: "Visdom" }, { vanster: "Freja", hoger: "Kärlek" }] },
     { id: "q7", typ: "ordna", fraga: "Sätt tidsåldrarna i ordning.", saker: ["Stenåldern", "Bronsåldern", "Järnåldern", "Vikingatiden"], poang: 4 },
-    { id: "q8", typ: "fritext", fraga: "Beskriv livet på en vikingagård.", poang: 4, bedomningsstod: "Nämner djur, hus och arbete. 4 p = alla tre med exempel." },
+    { id: "a2", typ: "avsnitt", titel: "Del 2 – Skriv och förklara" }, // #762
+    { id: "q8", typ: "fritext", fraga: "Beskriv livet på en vikingagård.", poang: 4, bedomningsstod: "Nämner djur, hus och arbete. 4 p = alla tre med exempel.",
+      kriterier: ["1 p: nämner djuren", "1 p: nämner långhuset", "1 p: nämner arbetet", "+1 p: ger exempel"] },
   ],
 }).value;
 
@@ -46,7 +49,7 @@ const SVAR = [
 
 function start() {
   const nu = Date.now();
-  const { fragor, facit, bedomningsstod } = delaUppProv(PROV);
+  const { fragor, facit, bedomningsstod, kriterier } = delaUppProv(PROV);
   const tf = {
     id: "tf-r", provId: "p1", provNamn: PROV.namn, classId: "4a", status: "stangt", fragor,
     installningar: pvInstallningar(PROV.installningar), tidsgransMin: 40, oppnad: nu - 2 * 86_400_000, stangd: nu - 2 * 86_400_000 + 45 * 60_000,
@@ -65,7 +68,7 @@ function start() {
   rattning.e0 = { ...aterlamnadDok(sparDok(alva, fragor), { visaFacit: true, facit }), aterlamnadAt: nu - 3_600_000 };
   rattning.e1 = sparDok(bedom(godkannAlla(ny("e1"), fragor), q8, { poang: 2, kommentar: "Berätta mer om arbetet på gården." }, fragor), fragor);
   const mynt = { saldo: Object.fromEntries(IDS.map((id) => [id, 100])), kvitton: {} };
-  return { tf, facit, bedomningsstod, svar, rattning, rattStatus: null, mynt };
+  return { tf, facit, bedomningsstod, kriterier, svar, rattning, rattStatus: null, mynt };
 }
 
 function las() {

@@ -22,7 +22,7 @@
 // ============================================================================
 
 import { formatKlockslag } from "../class-lock.js";
-import { arFraga, fragetyp } from "./prov-fragetyper.js";
+import { arAvsnitt, arFraga, fragetyp } from "./prov-fragetyper.js";
 import { NIVAER } from "./prov-modell.js";
 import {
   ELEV_STATUS, ELEV_STATUS_NAMN, HELHET_MAX, arBedomd, bedom, bedomGrupp, elevStatus, forslagPaFraga, fragaKlar,
@@ -32,8 +32,9 @@ import { rattaKort } from "./prov-ratta-kort.js";
 import { STAVFEL, stavfelFor } from "./prov-validera.js";
 import { tillMs } from "./prov-tillfalle-logik.js";
 import { h, stycken } from "./prov-vy.js";
+import { poangTal } from "./prov-poang.js";
 
-const poangText = (p) => String(p).replace(".", ",");
+const poangText = poangTal;
 const TANGENTER = "Tangenter: 1 rätt · 2 delvis · 3 fel · Tab nästa svar · Enter poäng/kommentar · N nästa fråga";
 
 /** Kortets rubrik för en grupp: ”Birka” – 12 elever. */
@@ -133,6 +134,7 @@ export function perElev(v) {
   const kort = fragor.map((f) => {
     const typ = fragetyp(f.typ);
     if (!typ) return null;
+    if (arAvsnitt(f)) return h("div", { class: "provl-r-avsnitt" }, typ.renderRattning(f, null, {}));
     if (!arFraga(f)) {
       return h("details", { class: "panel provl-r-textblock" }, h("summary", { text: f.titel || "Textblock" }),
         h("div", { class: "provv-rot provl-r-papper" }, typ.renderRattning(f, null, {})));
