@@ -367,3 +367,39 @@ describe("rättning av en påbörjad ordning: förslag vid inlämning ↔ Rätta
     assert.deepEqual(ordna.forslag(svar, facit.o, fragor[0]), { poang: 0, maxPoang: fragor[0].poang, ratt: false }, "typens forslag direkt (prov-ratta-lager)");
   });
 });
+
+describe("inklistring i formuläret (fixrunda 1) – kantfall", async () => {
+  const { tolkaKlistrat } = await import("../src/prov/larare/provl-klistra.js");
+
+  it("en helt numrerad lista tappar siffrorna", () => {
+    assert.deepEqual(tolkaKlistrat("1. Stenåldern\n2. Bronsåldern\n3. Järnåldern").rader, ["Stenåldern", "Bronsåldern", "Järnåldern"]);
+  });
+
+  it('"1. världskriget" i en lista där inte alla rader är numrerade behåller siffran', { todo: "R1: NUMMER tas bort per rad – '1. världskriget börjar' blir 'världskriget börjar'" }, () => {
+    assert.deepEqual(tolkaKlistrat("1. världskriget börjar\n2. världskriget börjar\nKalla kriget slutar").rader,
+      ["1. världskriget börjar", "2. världskriget börjar", "Kalla kriget slutar"]);
+  });
+
+  it("para: förklaringar inklistrade i förklaringskolumnen skriver aldrig över begreppen – även när en förklaring har ' – '", { todo: "R2: en rad med avskiljare gör hela=true → Tor skrivs över av 'Åska och styrka'" }, async () => {
+    const { kopplaKlistra } = await import("../src/prov/larare/provl-klistra.js");
+    const { Handelse } = await import("./helpers/prov-mini-dom.js");
+    const d = dom.doc;
+    const lista = d.createElement("div");
+    const nyRad = (v = ["", ""]) => {
+      const r = d.createElement("div");
+      r.className = "provl-rad";
+      for (const [k, x] of [["data-v", v[0]], ["data-h", v[1]]]) {
+        const i = d.createElement("input");
+        i.setAttribute("type", "text");
+        i.setAttribute(k, "");
+        i.value = x;
+        r.appendChild(i);
+      }
+      return r;
+    };
+    for (const v of [["Tor", ""], ["Oden", ""], ["Freja", ""]]) lista.appendChild(nyRad(v));
+    kopplaKlistra(lista, { max: 10, namn: "par", par: true, nyRad: () => nyRad(), uppdatera() {}, meddelande: d.createElement("p") });
+    lista.children[0].querySelector("[data-h]").dispatchEvent(new Handelse("paste", { clipboardData: { getData: () => "Åska och styrka\nVisdom – och krig\nKärlek" } }));
+    assert.deepEqual(lista.children.map((r) => r.querySelector("[data-v]").value), ["Tor", "Oden", "Freja"]);
+  });
+});
