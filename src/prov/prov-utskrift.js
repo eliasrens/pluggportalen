@@ -9,7 +9,9 @@
 //   skrivUtProvDok(p)   samma för ett prov-dokument (Mina prov, redigeraren)
 //   skrivUtResultat(o)  elevernas rättade prov, EN elev per sida: totalen,
 //                       nivån, helhetskommentaren, varje fråga med svaret,
-//                       bedömningen (✓ ½ ✗ + text), kommentaren och ev. facit
+//                       bedömningen (✓ ½ ✗ + text), kommentaren och ev. facit;
+//                       #765: poäng per avsnitt överst och vid avsnittsrubriken,
+//                       poängkriterierna när provet visar dem för eleven
 // Laddas med import() när läraren trycker på en utskriftsknapp (#271).
 // CSS: prov-utskrift.css (.provl-ut-) + prov-elev.css/prov-resultat.css (svaren).
 // ============================================================================
@@ -17,9 +19,9 @@
 import { fragetyp } from "./prov-fragetyper.js";
 import { ELEV_STATUS_NAMN, arBedomd, elevStatus, nivaNamn } from "./prov-rattning-logik.js";
 import { bedomningsEtikett } from "./prov-resultat-vy.js";
-import { FARG_INFO, andelFor, fargFor, granserFor, procent } from "./prov-statistik.js";
+import { FARG_INFO, andelFor, avsnittFor, avsnittText, avsnittVarde, fargFor, granserFor, procent } from "./prov-statistik.js";
 import { facitSida, provSidor } from "./prov-utskrift-papper.js";
-import { delaUppProv, fragaNummer } from "./prov-modell.js";
+import { delaUppProv, fragaNummer, poangAvsnitt } from "./prov-modell.js";
 import { h, laddaCss, stycken } from "./prov-vy.js";
 import { poangTal } from "./prov-poang.js";
 
@@ -99,10 +101,12 @@ export function skrivUtProvDok(prov) {
 
 /** En elevs rättade prov på ett blad. */
 function resultatSida(e, o) {
-  const { fragor, poangsatt, granser, medFacit, facit = {} } = o;
+  const { fragor, poangsatt, granser, medFacit, facit = {}, kriterier = null } = o;
   const nr = fragaNummer(fragor);
   const r = e.r || null;
   const res = andelFor(r, fragor, poangsatt);
+  const avsnitt = avsnittFor(r, poangAvsnitt(fragor), poangsatt, granser);
+  const perAvsnitt = new Map(avsnitt.filter((a) => a.id).map((a) => [a.id, a]));
   const farg = fargFor(res.andel, granser);
   const nivaText = nivaNamn(r?.niva);
   const status = elevStatus(r, fragor);
@@ -118,10 +122,15 @@ function resultatSida(e, o) {
       h("p", { class: "provl-ut-summa" }, total,
         nivaText ? h("span", { class: "provl-ut-niva", text: `Nivå: ${nivaText}` }) : null,
         status !== "tillbaka" && status !== "rattad" ? h("span", { class: "provl-ut-status", text: `${ELEV_STATUS_NAMN[status]} – ${res.bedomda} av ${res.antal} frågor rättade` }) : null),
+      avsnitt.length ? h("p", { class: "provl-ut-avsnittsrad", text: avsnitt.map((a) => avsnittText(a, poangsatt)).join(" · ") }) : null,
       r?.helhetskommentar ? h("div", { class: "provl-ut-helhet" }, h("b", { text: "Lärarens kommentar" }), stycken(r.helhetskommentar)) : null),
     h("div", { class: "provl-ut-fragor" }, fragor.map((f) => {
       const typ = fragetyp(f.typ);
-      if (f.typ === "avsnitt") return h("h2", { class: "provl-ut-avsnitt provl-ut-avsnitt-titel", text: f.titel || "" });
+      if (f.typ === "avsnitt") {
+        const a = perAvsnitt.get(f.id);
+        return h("h2", { class: "provl-ut-avsnitt provl-ut-avsnitt-titel" }, f.titel || "",
+          a ? h("span", { class: "provl-ut-p", text: ` – ${avsnittVarde(a, poangsatt)}${poangsatt && a.max && a.andel != null ? " p" : ""}` }) : null);
+      }
       if (nr[f.id] == null) return f.titel ? h("p", { class: "provl-ut-textblock-ref", text: `Text: ${f.titel}` }) : null;
       const post = r?.fragor?.[f.id];
       const bedomd = arBedomd(post); // #764: autorättade räknas, förslag inte
@@ -132,6 +141,7 @@ function resultatSida(e, o) {
           (bedomd && bedomningsEtikett(post.ratt, { poang: post.poang, max: f.poang, poangsatt }))
             || h("span", { class: "provl-ut-ejbedomd", text: "? Inte rättad" })),
         typ ? h("div", { class: "provl-ut-svar" }, typ.renderRattning(f, e.svar?.[f.id], { facit: medFacit ? facit[f.id] ?? null : null, facitRad: medFacit })) : null,
+        kriterier?.[f.id]?.length ? h("p", { class: "provl-ut-kriterier" }, h("b", { text: "Poängkriterier: " }), kriterier[f.id].join(" · ")) : null,
         bedomd && post.kommentar ? h("p", { class: "provl-ut-kommentar" }, h("b", { text: "Kommentar: " }), post.kommentar) : null);
     })));
 }
@@ -144,13 +154,17 @@ function resultatSida(e, o) {
  * @param {string} [o.datum]
  * @param {object[]} o.fragor  tillfällets frågor
  * @param {object} [o.facit]  privat/facit.facit
- * @param {object} [o.installningar]  tillfällets (poang, granser, visaFacit)
+ * @param {object} [o.kriterier]  privat/facit.kriterier – skrivs ut bara om provet visar dem för eleven (visaKriterier, #765)
+ * @param {object} [o.installningar]  tillfällets (poang, granser, visaFacit, visaKriterier)
  * @param {{ namn: string, r: object|null, svar: object|null }[]} o.elever
  */
 export async function skrivUtResultat(o) {
   await laddaStilar();
   const ins = o.installningar || {};
-  const bas = { ...o, poangsatt: ins.poang !== false, granser: granserFor(ins), medFacit: ins.visaFacit !== false };
+  const bas = {
+    ...o, poangsatt: ins.poang !== false, granser: granserFor(ins), medFacit: ins.visaFacit !== false,
+    kriterier: ins.visaKriterier === true ? o.kriterier || null : null,
+  };
   const harFacit = !!o.facit && Object.keys(o.facit).length > 0;
   const en = o.elever.length === 1;
   const vy = utskriftsvy({

@@ -2136,6 +2136,7 @@ service cloud.firestore {
         allow create, update: if hasClass(tillfalle(t).classId) &&
           validRattning(request.resource.data, elevUid, tillfalle(t).classId) &&
           provAterlamningOk(request.resource.data, resource) &&
+          provKriterierOk(t, request.resource.data, resource) &&
           provMyntFaltOk(t, elevUid, request.resource.data, resource);
         allow delete: if hasClass(resource.data.classId);
       }
@@ -2230,6 +2231,15 @@ service cloud.firestore {
       return d.aterlamnad == false ? (!('facit' in d) && !('kriterier' in d) && !('aterlamnadAt' in d)) :
         (d.get('aterlamnadAt', null) == request.time ||
           (fore != null && fore.data.aterlamnad == true && d.get('aterlamnadAt', null) == fore.data.get('aterlamnadAt', null)));
+    }
+    // Poängkriterierna (#765, §2.2): eleven får dem bara när läraren valt det –
+    // rattning.kriterier skrivs bara när tillfällets installningar.visaKriterier
+    // är true (tillfalle(t) är redan läst, ingen extra åtkomst), eller när de
+    // står kvar oförändrade sedan tillbakalämningen (pluggmyntens spegel m.m.).
+    function provKriterierOk(t, d, fore) {
+      return !('kriterier' in d) ||
+        tillfalle(t).get('installningar', {}).get('visaKriterier', false) == true ||
+        (fore != null && fore.data.get('kriterier', null) == d.kriterier);
     }
     // Pluggmynt per prov (#746, spec §11). rattning.myntUtbetalt är elevens
     // spegel av kvittot studentData/{elev}/provMynt/{t}: en vanlig sparning

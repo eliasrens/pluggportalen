@@ -164,8 +164,9 @@ describe("avsnitt (§2.3)", () => {
     assert.deepEqual(m.fragaSumma.map((s) => s.nr), [1, 2, 3, 4]);
     const csv = resultatCsv({ fragor, med: ["e1"], namn: { e1: "Alva" }, rattningar: { e1: r }, installningar: {} });
     const [huvud, rad] = csv.replace(/^﻿/, "").split("\r\n");
-    assert.equal(huvud, "Elev;Fråga 1 (0,5 p);Fråga 2 (1,5 p);Fråga 3 (2 p);Fråga 4 (4 p);Poäng;Av (rättade);Procent;Färg;Nivå;Status");
-    assert.match(rad, /^Alva;0,5;1,5;2;3,5;7,5;8;/);
+    // Avsnitten är inga frågekolumner – men får en summakolumn var efter frågorna (#765).
+    assert.equal(huvud, "Elev;Fråga 1 (0,5 p);Fråga 2 (1,5 p);Fråga 3 (2 p);Fråga 4 (4 p);Inledning (0,5 p);Del 1 – Begrepp (3,5 p);Del 2 – Skriv och förklara (4 p);Poäng;Av (rättade);Procent;Färg;Nivå;Status");
+    assert.match(rad, /^Alva;0,5;1,5;2;3,5;0,5;3,5;3,5;7,5;8;/);
     // Resultatvyn: avsnittet har inget nummer och ingen post.
     const tf = { fragor, installningar: { poang: true }, provNamn: "x" };
     const modell = resultatModell(tf, { svar: {} }, { ...r, aterlamnad: true });

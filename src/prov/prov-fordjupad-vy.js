@@ -65,7 +65,7 @@ export async function skrivUtElever(v, uids) {
   const elever = uids.map((uid) => ({ namn: riktigtNamn(v, uid), r: v.lager.rattningar[uid] || null, svar: Object.fromEntries(v.rf.map((f) => [f.id, v.svarAv(uid, f.id)])) }))
     .sort((a, b) => a.namn.localeCompare(b.namn, "sv"));
   return skrivUtResultat({
-    namn: v.tf.provNamn, klassNamn: v.tf.klassNamn, datum: datumText(tillMs(v.tf.oppnad)), fragor: v.fragor, facit: v.facit,
+    namn: v.tf.provNamn, klassNamn: v.tf.klassNamn, datum: datumText(tillMs(v.tf.oppnad)), fragor: v.fragor, facit: v.facit, kriterier: v.kriterier,
     installningar: { ...v.tf.installningar, granser: v.granser() }, elever,
   });
 }
