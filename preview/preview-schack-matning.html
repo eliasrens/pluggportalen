@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Schack – mätning av motorn (#776)</title>
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      body { padding: 16px; background: var(--ljus); }
+      .wrap { max-width: 900px; margin: 0 auto; display: grid; gap: 12px; }
+      table { border-collapse: collapse; background: #fff; width: 100%; }
+      td, th { padding: 4px 10px; border: 1px solid #d5deea; text-align: right; font-variant-numeric: tabular-nums; }
+      th:first-child, td:first-child { text-align: left; }
+      pre { font: 12px/1.4 ui-monospace, monospace; background: #fff; padding: 8px; border-radius: 10px; white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="panel" style="margin:0; padding:12px 16px; display:grid; gap:8px">
+        <b>Mätning: ms per drag och nivå i Web Workern (#776 §3.1).</b>
+        <p style="margin:0">Sju ställningar × fyra nivåer, tidsgräns <span id="tg"></span> ms. Chromebook-uppskattning: slå på
+          CPU-strypning 4–6× i DevTools → Performance (eller CDP <code>Emulation.setCPUThrottlingRate</code>) och kör igen.
+          <code>window.__matning</code> = resultatet (rader + markdown-tabell). Strypningen påverkar bara huvudtråden:
+          mät Chromebook-faktorn med <code>?trad=1</code> (motorn i huvudtråden, samma kod).</p>
+        <div><button class="btn liten" id="kor">Kör mätningen</button> <span id="status"></span></div>
+      </div>
+      <table id="tabell" hidden></table>
+      <pre id="md" hidden></pre>
+    </div>
+    <script type="module">
+      import { STALLNINGAR, sammanstall, tabell } from "./schack/matning.js";
+      const [{ skapaDator }, { NIVAER, TIDSGRANS_MS }] = await Promise.all([
+        import("../src/schack/schack-dator.js"), import("../src/schack/schack-motor.js")]);
+      document.getElementById("tg").textContent = TIDSGRANS_MS;
+      const status = document.getElementById("status");
+      window.__matning = null;
+      async function kor() {
+        // ?trad=1: motorn i huvudtråden – DevTools/CDP CPU-strypning gäller bara
+        // huvudtråden, inte workern, så Chromebook-uppskattningen mäts så här.
+        const dator = skapaDator(new URLSearchParams(location.search).has("trad") ? { Worker: null } : {});
+        const rader = [];
+        for (const n of NIVAER) {
+          for (const st of STALLNINGAR) {
+            status.textContent = `${n.namn} · ${st.namn}…`;
+            const t0 = performance.now();
+            const r = await dator.valjDrag(st.fen, { niva: n.id, seed: 1 });
+            const total = performance.now() - t0; // inkl. worker-meddelanden
+            rader.push({ niva: n.id, stallning: st.id, ms: r.ms, totalMs: total, djup: r.djup, noder: r.noder, drag: `${r.drag.from}${r.drag.to}` });
+          }
+        }
+        dator.destroy();
+        const s = sammanstall(rader);
+        const tb = document.getElementById("tabell");
+        tb.hidden = false;
+        tb.innerHTML = `<tr><th>Nivå</th><th>ms/drag medel</th><th>ms/drag max</th><th>inkl. worker max</th><th>djup</th><th>k noder/s</th></tr>` +
+          s.map((p) => `<tr><td>${p.niva}</td><td>${p.medelMs.toFixed(0)}</td><td>${p.maxMs.toFixed(0)}</td>` +
+            `<td>${Math.max(...rader.filter((r) => r.niva === p.niva).map((r) => r.totalMs)).toFixed(0)}</td><td>${p.minDjup}–${p.maxDjup}</td><td>${(p.noderPerS / 1000).toFixed(0)}</td></tr>`).join("");
+        const md = document.getElementById("md");
+        md.hidden = false;
+        md.textContent = tabell(rader) + "\n\n" + rader.map((r) => `${r.niva.padEnd(10)} ${r.stallning.padEnd(9)} ${r.drag.padEnd(5)} djup ${r.djup} ${r.ms.toFixed(0).padStart(5)} ms (${r.totalMs.toFixed(0)} inkl. worker) ${r.noder} noder`).join("\n");
+        status.textContent = "Klart.";
+        window.__matning = { rader, sammanstallning: s, markdown: tabell(rader) };
+        return window.__matning;
+      }
+      window.korMatning = kor;
+      // Synkron variant i huvudtråden (motorn direkt, ingen worker): CDP-strypningen
+      // (Emulation.setCPUThrottlingRate) biter bara på kod som kör i själva
+      // Runtime.evaluate-anropet, inte på senare tasks – så Chromebook-mätningen
+      // görs med den här: evaluate(() => window.korMatningSynkront()).
+      window.korMatningSynkront = async () => {
+        const m = await import("../src/schack/schack-motor.js");
+        const t = performance.now();
+        let s = 0;
+        for (let i = 0; i < 3e7; i++) s += i % 7;
+        const kalibrering = performance.now() - t; // ~55 ms ostrypt på en snabb dator
+        const rader = [];
+        for (const n of NIVAER) for (const st of STALLNINGAR) {
+          const r = m.valjDrag(st.fen, { niva: n.id, seed: 1 });
+          rader.push({ niva: n.id, stallning: st.id, ms: r.ms, djup: r.djup, noder: r.noder, drag: `${r.drag.from}${r.drag.to}` });
+        }
+        return { kalibrering, rader, markdown: tabell(rader) };
+      };
+      document.getElementById("kor").addEventListener("click", kor);
+      if (new URLSearchParams(location.search).has("auto")) kor();
+    </script>
+  </body>
+</html>

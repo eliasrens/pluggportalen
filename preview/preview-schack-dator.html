@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Schack mot datorn (#776)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      body { padding: 16px; background: var(--ljus); }
+      .wrap { max-width: 1100px; margin: 0 auto; display: grid; gap: 14px; }
+      .pv-verktyg { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 0.95rem; }
+      .pv-verktyg a { padding: 5px 12px; border-radius: 999px; background: #fff; border: 2px solid #d5deea; font-weight: 700; text-decoration: none; color: var(--text); }
+      .pv-verktyg a[aria-current="page"] { border-color: #13a39a; background: #dff5f2; }
+      .pv-verktyg label { display: inline-flex; gap: 6px; align-items: center; font-weight: 700; }
+      .pv-verktyg .btn { margin: 0; }
+      .pv-avatar { display: grid; place-items: center; width: 40px; height: 40px; background: var(--rosa); color: #fff; font-weight: 800; font-size: 1.2rem; }
+      .pv-logg { font: 12px/1.45 ui-monospace, monospace; color: var(--text-svag); white-space: pre-wrap; margin: 0; min-height: 3em; }
+      @media (max-width: 420px) { body { padding: 8px; } }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="panel" style="margin:0; padding:12px 16px; display:grid; gap:8px">
+        <b>Schack mot datorn (issue #776, spec §3–§4) – hela elevflödet utan Firebase.</b>
+        <p style="margin:0">Samma kod som <code>#/elev/schack</code> (<code>src/schack/schack-flode.js</code>): startsidan → nivåval → partiet →
+          slutrutan. Motorn kör i en Web Worker; partiet sparas i <code>localStorage</code> (nyckel
+          <code>pp:schack:dator:preview</code>) och fortsätter efter en omladdning. <code>window.schack</code> = flödet (tester).</p>
+        <nav class="pv-verktyg" aria-label="Vy">
+          <a href="#/elev/schack">Startsidan</a>
+          <a href="#/elev/schack?vy=dator&amp;ny=1">Nivåval</a>
+          <a href="#/elev/schack?vy=dator">Partiet (fortsätt)</a>
+          <label><input type="checkbox" id="snabb" /> Snabb dator (tidsgräns 250 ms, ingen tänkpaus)</label>
+          <label><input type="checkbox" id="stilla" /> Reducerad rörelse</label>
+          <button type="button" class="btn ghost liten" id="rensa">Rensa sparat parti</button>
+        </nav>
+        <pre class="pv-logg" id="logg"></pre>
+      </div>
+      <main id="app" class="schack-rot"></main>
+    </div>
+    <script type="module">
+      import { visaSchack, stangSchack } from "../src/schack/schack-flode.js";
+
+      const HASH = "#/elev/schack";
+      const NYCKEL = "pp:schack:dator:preview";
+      const app = document.getElementById("app");
+      const logg = document.getElementById("logg");
+      const skriv = (rad) => { logg.textContent = `${new Date().toLocaleTimeString("sv-SE")} ${rad}\n${logg.textContent}`.split("\n").slice(0, 8).join("\n"); };
+      const snabb = document.getElementById("snabb");
+      const stilla = document.getElementById("stilla");
+      try {
+        snabb.checked = localStorage.getItem(`${NYCKEL}:snabb`) === "1";
+        stilla.checked = localStorage.getItem(`${NYCKEL}:stilla`) === "1";
+      } catch {}
+      snabb.addEventListener("change", () => { try { localStorage.setItem(`${NYCKEL}:snabb`, snabb.checked ? "1" : "0"); } catch {} rita(); });
+      stilla.addEventListener("change", () => { try { localStorage.setItem(`${NYCKEL}:stilla`, stilla.checked ? "1" : "0"); } catch {} rita(); });
+      document.getElementById("rensa").addEventListener("click", () => {
+        try { localStorage.removeItem(NYCKEL); } catch {}
+        skriv("sparat parti rensat");
+        location.hash = HASH;
+        rita();
+      });
+
+      let flode = null;
+      function params() {
+        const q = location.hash.indexOf("?");
+        return q === -1 ? {} : Object.fromEntries(new URLSearchParams(location.hash.slice(q + 1)));
+      }
+      function rita() {
+        if (!location.hash.startsWith(HASH)) { location.hash = HASH; return; }
+        flode?.destroy();
+        const p = params();
+        document.querySelectorAll(".pv-verktyg a").forEach((a) => a.setAttribute("aria-current", a.getAttribute("href") === location.hash ? "page" : "false"));
+        flode = visaSchack(app, {
+          namn: "Elias", avatarHtml: `<span class="pv-avatar">E</span>`,
+          lagring: localStorage, nyckel: NYCKEL, hashBas: HASH,
+          go: (h) => { location.hash = h; },
+          reducedMotion: stilla.checked || undefined,
+          tidsgransMs: snabb.checked ? 250 : undefined,
+          tankMinMs: snabb.checked ? 0 : undefined,
+        }, p);
+        window.schack = flode;
+        skriv(`vy: ${location.hash}`);
+      }
+      window.addEventListener("hashchange", rita);
+      window.addEventListener("pagehide", stangSchack);
+      rita();
+    </script>
+  </body>
+</html>
