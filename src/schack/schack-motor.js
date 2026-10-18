@@ -301,10 +301,12 @@ function rotStallning(fen, historik) {
 }
 
 function sokIterativt(fen, { djup, maxDjup = djup, exakt = false, tidsgransMs = TIDSGRANS_MS, nu = () => performance.now(), historik = null }) {
+  // Klockan startar FÖRE uppspelningen av historiken (chess.js publika move(),
+  // ~0,15 ms per halvdrag) så att hela anropet håller tidsgränsen (F4).
+  const start = nu();
   const c = rotStallning(fen, historik);
   const rot = c._moves({ legal: true });
   if (!rot.length) return null;
-  const start = nu();
   const ctx = { noder: 0, nu, deadline: start + tidsgransMs, killers: [], tt: new Map(), vag: [] };
   let resultat = { poang: ordna(rot.slice()).map((m) => ({ m, v: 0 })), djup: 0, noder: 0 };
   let ordning = resultat.poang.map((x) => x.m);

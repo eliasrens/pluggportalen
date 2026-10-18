@@ -139,6 +139,27 @@ describe("tidsgränsen (§3.1): högst ~1 s per drag, mätt", () => {
     assert.ok(r.ms <= 50 + 5, `klockan stod på ${r.ms}`); // gränsen kontrolleras var 256:e nod
     assert.ok(r.djup < 5, "hann inte djupt");
   });
+  it("historiken (300+ halvdrag) räknas in i tidsgränsen – även med en 6× långsammare klocka (F4)", () => {
+    // Ett långt slumpparti som historik; klockan går 6× fortare än riktig tid (Chromebook-uppskattning).
+    const slump = skapaSlump(11);
+    const c = new Chess();
+    while (c.history().length < 320) {
+      const m = c.moves();
+      if (!m.length) break;
+      c.move(m[Math.floor(slump() * m.length)]);
+    }
+    assert.ok(c.history().length >= 300 && c.moves().length > 0, "ett spelbart parti med 300+ halvdrag");
+    const historik = { fen: START, drag: c.history() };
+    const nu = () => performance.now() * 6;
+    for (const niva of ["damen", "tornet"]) {
+      const t0 = nu();
+      const r = valjDrag(c.fen(), { niva, seed: 1, historik, nu });
+      const totalt = nu() - t0;
+      assert.ok(r && san(c.fen(), r.drag), "lagligt drag");
+      assert.ok(r.ms <= TIDSGRANS_MS + 30, `${niva}: ${r.ms.toFixed(0)} klock-ms inkl. uppspelning`);
+      assert.ok(totalt <= TIDSGRANS_MS + 60, `${niva}: hela anropet ${totalt.toFixed(0)} klock-ms`);
+    }
+  });
   it("standardgränsen är under en sekund och alla nivåer håller den i ett medelspel", () => {
     assert.ok(TIDSGRANS_MS <= 900);
     for (const n of NIVAER) {
