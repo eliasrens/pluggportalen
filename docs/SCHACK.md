@@ -6,10 +6,10 @@ dokumentet beskriver det som är byggt. Etapp 1 byggs i tre delar:
 | Del | Issue | Innehåll |
 | --- | --- | --- |
 | A | #775 | chess.js, brädet, pjäserna, förhandsvisningen (§1–§2) – **klar** |
-| B | – | motorn, nivåerna, hjälpen mot datorn och elevens schacksida (§3–§4) |
+| B | #776 | motorn, nivåerna, hjälpen mot datorn och elevens schacksida (§3–§4) – **klar** |
 | C | – | slut-QA och rapport (§5) |
 
-Avsnitten om motorn, callables, datamodellen och kvotbudgeten fylls i av B och Etapp 2.
+Avsnitten om callables, datamodellen och kvotbudgeten fylls i av Etapp 2.
 
 ---
 
@@ -29,9 +29,27 @@ src/schack/
   schack-bradet.js           komponenten: DOM, rendering, glidanimation, slutruta (API:t nedan)
   schack-bradet-inmatning.js pointer events (mus/touch/penna) och tangentbord
   schack-bradet-delar.js     markup: spelarrad, pilar, förvandlingsväljare, slutruta
-src/styles/35-schack.css     CSS:en (byggs in i styles.css med npm run build:css)
-preview/preview-schack.html  förhandsvisningen (preview/schack/)
+  schack-motor.js            motorn (B, avsnitt 7): alfa-beta, nivåerna, seedad slump – ren, körs i workern och i node
+  schack-motor-worker.js     Web Worker-skalet runt motorn
+  schack-dator.js            datorn i sidan: löftes-API över workern, reserv i huvudtråden, vakt
+  schack-varning.js          "Varna mig": matt i ett och hängande dam/torn (avsnitt 8)
+  schack-parti.js            partiet som data + localStorage (try/catch), nivå-/färgval
+  schack-dator-vy.js         partivyn: brädet + panelen (Ångra, Tips, Varna mig, Ge upp)
+  schack-sida-delar.js       markup: startsidans kort, pågående parti, nivå-/färgväljaren
+  schack-flode.js            elevflödet start → nivåval → parti → slutruta (utan ui.js/data.js)
+  page-schack.js             routen #/elev/schack (kopplar flödet till ui/data/avatar)
+src/styles/35-schack.css     brädets CSS, 36-schack-sida.css sidans (byggs in i styles.css med npm run build:css)
+preview/preview-schack.html         brädet och pjäserna (A; preview/schack/)
+preview/preview-schack-dator.html   hela elevflödet mot datorn utan Firebase (B)
+preview/preview-schack-matning.html mätning av ms per drag och nivå (B, preview/schack/matning.js)
+admin/qa-schack-matning.mjs         samma mätning i node
 ```
+
+Allt laddas lazy i kedjan `app.js → import(page-schack.js) → import(schack-flode.js) →
+import(schack-dator-vy.js)`; motorn laddas av workern (`new Worker(new URL("./schack-motor-worker.js",
+import.meta.url), { type: "module" })` – adressen bygger på modulens egen URL och fungerar
+därför på GitHub Pages med basväg och på egen domän). `test/schack-sida.test.js` kontrollerar
+kedjan och att `app.js` bara har ett `import()`.
 
 **Lagren.** `schack-kontroll.js` äger tillståndet (en chess.js-instans, markering,
 förvandling, väntande drag, senaste drag, pilar, orientering, vem som får flytta)
@@ -168,7 +186,158 @@ och slutrutorna).
 - `node --test test/schack-kontroll.test.js test/schack-grund.test.js` – logiken via
   API:t, bootgrafen, licensen, pjäserna, texterna och geometrin.
 
-## 6. Licenser
+## 7. Motorn (§3.1) – `schack-motor.js`
+
+**Sökning.** Negamax med alfa-beta, iterativ fördjupning (djup 1, 2, 3 …), dragordning
+MVV-LVA (ta det värdefullaste med det billigaste, damförvandling först), två killer-drag
+per nivå, en transpositionstabell på chess.js 64-bitars zobrist-hash (`_hash`), och
+quiescence (bara slag/förvandlingar, högst fyra nivåer, delta-beskärning) så att en
+värdering aldrig görs mitt i ett avbyte. Matt/patt upptäcks också på horisonten när
+kungen står i schack. Mattvärdena är `±(100000 − ply)` så den snabbaste matten väljs.
+
+**Värdering.** Material (bonde 100, springare 320, löpare 330, torn 500, dam 900) +
+enkla piece-square-tabeller (bönder framåt/mitten, lätta pjäser mot mitten, torn på
+sjunde raden, kungen gömd). Inga slutspelstabeller – det räcker för nivåerna här.
+
+**Dragen genereras av chess.js, via den snabba interna vägen.** Den publika `move()`
+bygger SAN och FEN för varje drag och ger ~4 k noder/s; `_moves({legal:false})` +
+`_makeMove`/`_undoMove` + `_isKingAttacked` (precis vad chess.js egna legalitetsfilter
+gör, men utan ett extra make/undo per drag) ger 130–190 k noder/s. `MOTOR_KRAV` listar
+metoderna; `test/schack-motor.test.js` fäller en uppgradering av chess.js som tar bort
+dem. Motorns drag lämnas som vanliga `{from, to, promotion}` och går alltid genom
+brädets vanliga regelkontroll (`brade.move` → chess.js `move()`).
+
+**Tidsgräns.** `TIDSGRANS_MS = 850`: var 256:e nod jämförs klockan med deadline och
+sökningen avbryts; det senaste **färdiga** djupet används (därför iterativ fördjupning).
+Ett nytt djup över nivåns eget startas bara om det rimligen hinns (≈3× förra djupets tid).
+Med worker-turen och kontrollglappet hamnar varje drag under 1 s även på en långsam
+maskin (mätningen nedan). Klockan (`nu`) och slumpfröet (`seed`) är injicerbara.
+
+**API** (rent, samma i workern och i node):
+
+```js
+valjDrag(fen, { niva, seed, tidsgransMs, nu })  // → { drag:{from,to,promotion?}, varde, djup, noder, ms, kandidater } | null
+analysera(fen, { djup = 3, tidsgransMs })       // Tips: bästa draget på Tornets djup, utan slump → { drag, varde, djup, matt }
+NIVAER, nivaFor(id), skapaSlump(seed), utvardera(chess), valjEnligtNiva(poang, niva, slump)
+```
+
+Workern (`schack-motor-worker.js`) tar `{ id, typ: "drag"|"tips", fen, opt }` och svarar
+`{ id, ok, resultat | fel }`. `schack-dator.js` ger löftes-API:t i sidan: `valjDrag`, `tips`,
+`avbryt()` (Ångra medan datorn tänker – det sena svaret förkastas), `destroy()`. Kan
+workern inte startas (eller svarar den inte inom tidsgränsen + 2,5 s) körs motorn i
+huvudtråden i stället – partiet fortsätter alltid, brädet kan då frysa en kort stund.
+
+### Nivåerna (§3.2)
+
+| Nivå | Djup | Slump (seedad) |
+| --- | --- | --- |
+| **Bonden** | 1 (+ quiescence) | Alla rotdrag får exakt poäng. Med 50 % tas slagen bort ur kandidaterna ("missar med flit att ta"); sedan väljs det bästa med 35 %, annars slumpmässigt bland dragen inom 150 cp från det bästa som är kvar. |
+| **Springaren** | 2 | Det bästa med 70 %, annars slumpmässigt bland dragen inom 100 cp. |
+| **Tornet** | 3 | Ingen – alltid det bästa. |
+| **Damen** | 4, sedan 5, 6, 7 så länge tiden räcker | Ingen. |
+
+Bonden och Springaren får därför exakta poäng på alla rotdrag (fullt fönster), Tornet och
+Damen vanlig alfa-beta. Fröet per drag är `parti.seed + antalDrag · 7919`, så ett
+sparat parti ger samma svar efter en omladdning. "Varna mig" är på som standard för
+Bonden och Springaren.
+
+### Uppmätt tid per drag
+
+Sju ställningar (utgångsställning, öppning, två medelspel, en taktisk, en öppen med damer,
+ett slutspel – `preview/schack/matning.js`) × fyra nivåer, seed 1, tidsgräns 850 ms.
+Chromium headless på utvecklingsmaskinen, motorn i workern (`preview-schack-matning.html`):
+
+| Nivå | ms/drag (medel) | ms/drag (max) | djup | k noder/s |
+| --- | --- | --- | --- | --- |
+| Bonden | 5 | 13 | 1 | 51 |
+| Springaren | 11 | 36 | 2 | 186 |
+| Tornet | 23 | 90 | 3 | 124 |
+| Damen | 413 | 851 | 4–7 (3 i det tyngsta medelspelet) | 190 |
+
+**Chromebook-uppskattning:** samma sida med CDP `Emulation.setCPUThrottlingRate` 4× och 6×.
+Strypningen biter bara på huvudtråden och bara under själva `Runtime.evaluate`-anropet, så
+mätningen görs med `window.korMatningSynkront()` (motorn i huvudtråden, samma kod; kalibrering:
+en räkneloop 55 ms ostrypt → 320–400 ms strypt):
+
+| Nivå | 4–6× (medel) | 4–6× (max) | djup |
+| --- | --- | --- | --- |
+| Bonden | 26–32 ms | 61–70 ms | 1 |
+| Springaren | 57–87 ms | 162–252 ms | 2 |
+| Tornet | 87–153 ms | 317–501 ms | 3 |
+| Damen | 488–581 ms | 860–861 ms | 3–6 (4 i de flesta medelspel, 3 i de två tyngsta) |
+
+Alla nivåer håller alltså 1 s per drag med marginal på en 4–6× långsammare maskin; Damen
+når djup 4 i de flesta ställningar och faller tillbaka till djup 3 i de tyngsta. Samma
+siffror i node: `node admin/qa-schack-matning.mjs` (och `--faktor 5` för en simulerad
+långsam klocka). Mät om på en riktig Chromebook när det går: öppna
+`preview/preview-schack-matning.html` och tryck **Kör mätningen** (workern, riktig tid).
+
+## 8. Hjälpen mot datorn (§3.3) – `schack-dator-vy.js`
+
+- **Ångra** – `brade.undo(2)` (elevens drag + datorns svar), `undo(1)` om datorn just
+  tänker (svaret förkastas via `dator.avbryt()` och ett sekvensnummer). Går inte efter
+  "Ge upp".
+- **Tips** – `dator.tips(fen)` (Tornets djup, utan slump) → `brade.showArrow` + "Tips: Sf3".
+  Bara på elevens tur; pilen försvinner vid nästa drag.
+- **Varna mig** (`schack-varning.js`, körs i huvudtråden – billigt): elevens drag görs på
+  en kopia, och om datorn då kan göra **matt i ett** eller **ta elevens dam/torn** visas
+  rutan "Om du flyttar dit kan datorn ta din dam. Vill du ändå?" med **Ångra** / **Flytta
+  ändå** – via brädets `beforeMove` (pjäsen står halvgenomskinlig på målrutan tills
+  eleven svarat). "Kan tas" räknas med ett litet statiskt utbyte på rutan (billigaste
+  lagliga slaget först, bara lagliga slag, så en bunden pjäs försvarar inte): varna när
+  datorn tjänar ≥ 150 cp (dam mot torn, torn mot löpare, allt oskyddat), inte vid byten
+  (dam mot dam) och inte om elevens eget drag tog minst lika mycket. En dam som redan
+  hänger varnar även om eleven flyttar något annat. Vanliga drag varnar aldrig. Kryssrutan
+  sparas i partiet; standard på för Bonden/Springaren.
+- **Ge upp** – fråga i en ruta på sidan (aldrig `confirm()`), sedan `brade.avsluta`.
+- **Slutrutan** – "Spela igen" (samma nivå och färg; slumpad färg slumpas om), "Byt nivå",
+  "Titta på brädet".
+
+**Partiet sparas** (`schack-parti.js`) i `localStorage` under `pp:schack:dator:<elevId>`
+(Chromebooks delas – nyckeln är per elev) efter varje drag, inom try/catch: en nekad
+skrivning (full kvot, privat läge) stoppar inget. Formatet är
+`{ v: 1, niva, egenFarg, drag: [SAN…], varna, seed, skapad, uppdaterad, slut }`; trasig
+eller främmande data ignoreras. Elevens senaste val (nivå, färg) ligger under
+`…:val`. Ingen Firestore-skrivning och inga pluggmynt i Etapp 1.
+
+## 9. Elevens schacksida (§4)
+
+- Modulen `schack` i `STUDENT_MODULES` (`src/gamemode-visibility.js`): `optIn: true`
+  (läraren slår på den per klass under Klasser → Synliga moduler → `enabledModules`),
+  `lockable: false`, `learning: true` (fokusläget stänger den, `docs/FOKUSLAGE.md`), grupp
+  "Öva", länken **Schack** med en egen SVG-bonde (`SCHACK_IKON`). Routern släpper bara in
+  elever vars klass slagit på schack – inte ens via direktlänk.
+- `#/elev/schack` – startsidan: ett pågående parti överst ("Fortsätt partiet"), sedan
+  korten **Spela mot datorn**, Spela mot en kompis (Etapp 2), Lär dig schack och Pussel
+  (Etapp 3) som "kommer snart".
+- `#/elev/schack?vy=dator&ny=1` – nivå (fyra kort) och färg (vit/svart/slumpa) →
+  **Starta partiet**; `?vy=dator` fortsätter det sparade partiet (hashen skrivs om utan
+  `ny=1` när partiet startats, så en omladdning hamnar i partiet).
+- Flödet (`schack-flode.js`) är fristående från `ui.js`/`data.js` – samma kod kör i
+  `preview/preview-schack-dator.html` utan Firebase. Workern stängs när eleven lämnar
+  `#/elev/schack` (`stangSchack`).
+
+## 10. Tester (B)
+
+```
+node --test test/schack-motor.test.js test/schack-varning.test.js test/schack-parti.test.js test/schack-sida.test.js
+```
+
+Motorn: chess.js snabba väg finns; matt i ett på Tornet och Damen (fem ställningar, även
+svart och förvandling); Bonden väljer inte alltid bäst med fast seed men ibland; samma
+seed → samma drag; djupen per nivå; tidsgränsen (150 ms-budget, rusande klocka, alla
+nivåer i ett medelspel); 24-dragspartier per nivå där varje drag kontrolleras med den
+publika `move()`. Varningen: narrmatt-g4 varnar, e4 inte; hängande dam/torn, byten,
+redan hängande dam, olagligt drag, parti som tar slut. Partiet: nyckel per elev, spara/
+läs, trasig JSON/version/nivå, lagring som nekar, senaste valet. Datorn: worker-URL och
+protokoll (attrapp-worker), reserv utan Worker, vakt vid tyst worker, `avbryt`.
+Ångra/tips genom brädets kontroll + motorn, omladdning via `loadGame`. Sidan: registret,
+routen med `import()`, bootgrafen, inga `confirm()`, ingen Firestore, markupen.
+
+Preview: `preview/preview-schack-dator.html` (hela flödet; `window.schack.aktiv()` →
+vyn med `brade`, `varnar()`; kryssruta "Snabb dator" = 250 ms och ingen tänkpaus).
+
+## 11. Licenser
 
 | Del | Licens | Fil |
 | --- | --- | --- |
