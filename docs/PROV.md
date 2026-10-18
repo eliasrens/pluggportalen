@@ -155,9 +155,10 @@ upp/ned-pilarna borttagna enligt §8.1):
 - En öppen fråga följer med sitt id när andra kort flyttas.
 - Formuläret: ordna-raderna numreras 1, 2, 3 … (de är facit-ordningen);
   klistrar läraren in flera rader blir det en rad var (`larare/provl-klistra.js`):
-  "1. " / "1) " först tas bort, rader som inte får plats (högst 10) nämns i
-  ett meddelande. Para: "Tor – åska" / "Tor - åska" / "Tor: åska" / tab fyller
-  båda leden; rader utan avskiljare fyller bara kolumnen man klistrade i, nedåt.
+  "1. " / "1) " först tas bort när VARJE rad är numrerad, rader som inte får
+  plats (högst 10) nämns i ett meddelande. Para: har VARJE rad "Tor – åska" /
+  "Tor - åska" / "Tor: åska" / tab fylls båda leden; annars fyller raderna,
+  hela, bara kolumnen man klistrade i, nedåt.
 
 ### Lägga till en ny frågetyp
 

@@ -375,12 +375,12 @@ describe("inklistring i formuläret (fixrunda 1) – kantfall", async () => {
     assert.deepEqual(tolkaKlistrat("1. Stenåldern\n2. Bronsåldern\n3. Järnåldern").rader, ["Stenåldern", "Bronsåldern", "Järnåldern"]);
   });
 
-  it('"1. världskriget" i en lista där inte alla rader är numrerade behåller siffran', { todo: "R1: NUMMER tas bort per rad – '1. världskriget börjar' blir 'världskriget börjar'" }, () => {
+  it('"1. världskriget" i en lista där inte alla rader är numrerade behåller siffran (R1)', () => {
     assert.deepEqual(tolkaKlistrat("1. världskriget börjar\n2. världskriget börjar\nKalla kriget slutar").rader,
       ["1. världskriget börjar", "2. världskriget börjar", "Kalla kriget slutar"]);
   });
 
-  it("para: förklaringar inklistrade i förklaringskolumnen skriver aldrig över begreppen – även när en förklaring har ' – '", { todo: "R2: en rad med avskiljare gör hela=true → Tor skrivs över av 'Åska och styrka'" }, async () => {
+  it("para: förklaringar inklistrade i förklaringskolumnen skriver aldrig över begreppen – även när en förklaring har ' – ' (R2)", async () => {
     const { kopplaKlistra } = await import("../src/prov/larare/provl-klistra.js");
     const { Handelse } = await import("./helpers/prov-mini-dom.js");
     const d = dom.doc;

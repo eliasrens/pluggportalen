@@ -3,10 +3,11 @@
 // saker, par) – en rad var, nedåt. tolkaKlistrat är DOM-fri (testad i
 // test/prov-763-kantfall.test.js), kopplaKlistra sitter på listan.
 //   - en numrerad lista ("1. Steg", "2) Steg") tappar siffrorna – eleverna
-//     ska inte se facit-numren (F4)
-//   - para: rader med "begrepp – förklaring" (–, -, :, tab) fyller båda leden;
-//     rader UTAN avskiljare fyller bara kolumnen man klistrade i, nedåt i den,
-//     och den andra kolumnen står kvar (F3)
+//     ska inte se facit-numren (F4). Bara när VARJE rad är numrerad (R1):
+//     "1. världskriget börjar" i en vanlig lista behåller sin siffra.
+//   - para: har VARJE rad "begrepp – förklaring" (–, -, :, tab) fylls båda
+//     leden; annars fyller raderna, hela, bara kolumnen man klistrade i, nedåt
+//     i den, och den andra kolumnen står kvar (F3, R2)
 //   - rader som inte får plats (högst max) räknas och visas i ett meddelande
 // ============================================================================
 
@@ -21,16 +22,16 @@ export function delaPar(t) {
 
 /**
  * Inklistrad text → raderna att fördela. `par` = para-listan: `hela` är sant
- * när någon rad har en avskiljare (då fylls båda leden, rader utan avskiljare
- * blir bara ett begrepp).
+ * när varje rad har en avskiljare (då fylls båda leden).
  * @returns {{ rader: (string | [string, string])[], hela: boolean } | null} null = en enda rad (vanlig inklistring)
  */
 export function tolkaKlistrat(text, { par = false } = {}) {
-  const rader = String(text || "").split(/\r?\n/).map((t) => t.replace(NUMMER, "").trim()).filter(Boolean);
+  let rader = String(text || "").split(/\r?\n/).map((t) => t.trim()).filter(Boolean);
   if (rader.length < 2) return null;
+  if (rader.every((t) => NUMMER.test(t))) rader = rader.map((t) => t.replace(NUMMER, "").trim());
   const delade = par ? rader.map(delaPar) : [];
-  const hela = delade.some(Boolean);
-  return { rader: hela ? delade.map((d, i) => d || [rader[i], ""]) : rader, hela };
+  const hela = par && delade.every(Boolean);
+  return { rader: hela ? delade : rader, hela };
 }
 
 /**

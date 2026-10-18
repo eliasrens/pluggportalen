@@ -391,7 +391,9 @@ describe("fixrunda 1 (#763)", () => {
     assert.deepEqual(tolkaKlistrat("Bronsåldern\n1800-talet").rader, ["Bronsåldern", "1800-talet"], "bara siffror + . eller ) + mellanslag");
     assert.equal(tolkaKlistrat("en rad"), null);
     assert.deepEqual(tolkaKlistrat("Åska\nVisdom", { par: true }), { rader: ["Åska", "Visdom"], hela: false });
-    assert.deepEqual(tolkaKlistrat("Tor – åska\nOden\n3. Freja: kärlek", { par: true }), { rader: [["Tor", "åska"], ["Oden", ""], ["Freja", "kärlek"]], hela: true });
+    assert.deepEqual(tolkaKlistrat("1. Tor – åska\n2. Oden: visdom", { par: true }), { rader: [["Tor", "åska"], ["Oden", "visdom"]], hela: true });
+    // R1/R2: bara när VARJE rad är numrerad / har en avskiljare
+    assert.deepEqual(tolkaKlistrat("Tor – åska\nOden\n3. Freja: kärlek", { par: true }), { rader: ["Tor – åska", "Oden", "3. Freja: kärlek"], hela: false });
   });
 
   // Formulärets radlista i mini-DOM:en: rader med [data-v]/[data-h] eller ett textfält.
