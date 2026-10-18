@@ -120,9 +120,15 @@
 .provv-res-avsnitt { padding: 18px 0 6px; border-bottom: 2px solid var(--provv-accent); }
 
 /* #765: poängen per avsnitt (överst och under rubriken) och poängkriterierna */
-.provv-res-avsnittsrad { margin: 10px 0 0; display: flex; flex-wrap: wrap; gap: 4px 0; color: var(--provv-text); }
-.provv-res-avsnitt-sep { color: var(--provv-svag); white-space: pre; }
-.provv-res-avsnitt-p { white-space: nowrap; }
+/* Ett avsnitt per bricka; brickorna radbryts som helhet med mellanrum – ingen
+   ensam "·" på en egen rad på mobilen. Poängen ("2,5 av 9") bryts aldrig; bara
+   ett mycket långt avsnittsnamn får brytas inne i sin bricka. */
+.provv-res-avsnittsrad { margin: 10px 0 0; display: flex; flex-wrap: wrap; gap: 6px 8px; color: var(--provv-text); }
+.provv-res-avsnitt-sep { display: none; }
+.provv-res-avsnitt-p b { white-space: nowrap; }
+.provv-res-avsnitt-p {
+  max-width: 100%; overflow-wrap: anywhere; padding: 3px 10px; border-radius: 10px; border: 1px solid var(--provv-kant); background: var(--provv-ljus);
+}
 .provv-res-avsnitt-summa { margin: 4px 0 0; color: var(--provv-svag); font-weight: 600; }
 .provv-res-kriterier {
   margin: 10px 0 0 50px; padding: 10px 14px; border: 1px dashed var(--provv-kant); border-radius: 10px; background: var(--provv-ljus);
@@ -130,5 +136,4 @@
 .provv-res-kriterier ul { margin: 6px 0 0; padding-left: 1.2em; display: grid; gap: 3px; }
 @media (max-width: 560px) {
   .provv-res-kriterier { margin-left: 0; }
-  .provv-res-avsnitt-p { white-space: normal; }
 }
