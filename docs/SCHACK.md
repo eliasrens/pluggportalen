@@ -137,6 +137,11 @@ const brade = skapaSchackbrade(element, {
   pjäsen tillbaka; annars görs draget. Har ställningen ändrats under tiden görs inget.
 - Allt annat (`true`, `undefined`) släpper igenom draget direkt.
 - Gäller bara elevens drag – `move()` från koden passerar aldrig här.
+- `setPosition`, `loadGame`, `undo` och `avsluta` under väntan avbryter den: spökpjäsen
+  försvinner direkt och det sena svaret gör ingenting (inte heller mot en nyare väntan).
+
+**Fel i sidans callbacks** (`onMove`, `onGameOver`, `subscribe`) fångas och loggas med
+`console.error` – draget är redan gjort, brädet fortsätter och `onGameOver` kommer ändå.
 
 ## 4. Pjäserna
 
