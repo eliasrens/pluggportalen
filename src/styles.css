@@ -8302,3 +8302,415 @@ html:not([data-halloween]) .af-kostym[data-seasonal="halloween"] { display: none
   text-align: left;
 }
 .wear-vilar-ikon { width: 1.15em; height: 1.15em; flex: none; }
+
+/* ── src/styles/35-schack.css ── */
+/* ==========================================================================
+   Schack (#775): brädet, pjäserna, spelarraderna, statusraden och draglistan.
+   Komponenten ligger i src/schack/schack-bradet.js (laddas bara via import()).
+   Rutor: ljus sand + dämpad grön. Markeringar: gul ton (vald/senaste draget),
+   prick/ring (möjliga drag), röd glöd (kung i schack). Se docs/SCHACK.md.
+   ========================================================================== */
+
+.schack {
+  --schack-ljus: #f2e4c4;
+  --schack-mork: #8daf7e;
+  --schack-kontur: #3b3350;
+  --schack-gul: rgba(247, 201, 72, 0.5);
+  --schack-gul-stark: rgba(247, 201, 72, 0.78);
+  --schack-prick: rgba(59, 51, 80, 0.3);
+  /* Brädet följer skärmen men blir aldrig mindre än 320 px (spec §2.1). */
+  --schack-storlek: max(320px, min(100%, 640px, calc(100svh - 250px)));
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  width: 100%;
+  min-width: 320px;
+}
+
+.schack > * { width: var(--schack-storlek); max-width: none; }
+
+/* --- Spelarraderna ------------------------------------------------------- */
+
+.schack-spelare {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 4px 10px;
+  border-radius: 14px;
+  background: #fff;
+  border: 2px solid #e3e9f2;
+}
+.schack-spelare.pa-tur { border-color: var(--gul); box-shadow: 0 0 0 3px rgba(242, 201, 76, 0.35); }
+.schack-avatar {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #eef4ff;
+}
+.schack-avatar > * { max-width: 100%; max-height: 100%; }
+.schack-avatar-standard { width: 34px; height: 34px; display: block; }
+.schack-spelare-text { display: grid; min-width: 0; line-height: 1.2; }
+.schack-spelare-namn { font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.schack-tur {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--gul);
+  color: #5a4300;
+  font-size: 0.75rem;
+  vertical-align: 2px;
+}
+.schack-tagna { display: flex; flex-wrap: wrap; align-items: center; min-height: 20px; }
+.schack-tagna .schack-pjas { width: 20px; height: 20px; margin-right: -5px; }
+.schack-fordel { margin-left: 9px; font-size: 0.85rem; font-weight: 800; color: var(--text-svag); }
+
+/* --- Brädet --------------------------------------------------------------- */
+
+.schack-ram {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  box-shadow: 0 0 0 4px var(--schack-kontur), var(--skugga-mjuk);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.schack-bradet {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  border-radius: 10px;
+  overflow: hidden;
+  container-type: inline-size;
+}
+.schack-rad { display: contents; }
+.schack-ruta { position: relative; background: var(--schack-ljus); outline: none; }
+.schack-ruta.mork { background: var(--schack-mork); }
+.schack-bradet.interaktiv .schack-ruta.kan-valjas,
+.schack-bradet.interaktiv .schack-ruta.mal,
+.schack-bradet.interaktiv .schack-ruta.mal-tar { cursor: pointer; }
+
+/* Markeringar som platt ton under pjäsen. */
+.schack-ruta::before { content: ""; position: absolute; inset: 0; pointer-events: none; }
+.schack-ruta.senast::before { background: var(--schack-gul); }
+.schack-ruta.vald::before { background: var(--schack-gul-stark); }
+.schack-ruta.i-schack::before {
+  background: radial-gradient(circle, rgba(235, 64, 64, 1) 0%, rgba(235, 64, 64, 0.75) 42%, rgba(235, 64, 64, 0) 80%);
+}
+.schack-ruta.over::before { box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.85); }
+.schack-ruta:focus-visible::before { box-shadow: inset 0 0 0 4px var(--schack-kontur), inset 0 0 0 7px #fff; }
+
+/* Möjliga drag: prick på tom ruta, ring där en pjäs kan tas. */
+.schack-ruta.mal::after,
+.schack-ruta.mal-tar::after { content: ""; position: absolute; pointer-events: none; }
+.schack-ruta.mal::after { inset: 36%; border-radius: 50%; background: var(--schack-prick); }
+.schack-ruta.mal-tar::after { inset: 4%; border-radius: 50%; box-shadow: inset 0 0 0 1.1cqi var(--schack-prick); }
+
+.schack-pjasplats { position: absolute; inset: 0; display: block; }
+.schack-pjasplats .schack-pjas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.schack-ruta.glider { z-index: 2; }
+.schack-ruta.dras .schack-pjas { opacity: 0.3; }
+.schack-ruta.vantar .schack-pjas { opacity: 0.55; }
+
+/* Koordinaterna i kanten (i rutorna, i den andra rutfärgen). */
+.schack-koord-rad,
+.schack-koord-fil {
+  position: absolute;
+  font-size: max(10px, 2.1cqi);
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
+  color: var(--schack-mork);
+}
+.schack-ruta.mork .schack-koord-rad,
+.schack-ruta.mork .schack-koord-fil { color: var(--schack-ljus); }
+.schack-koord-rad { top: 3px; left: 4px; }
+.schack-koord-fil { bottom: 2px; right: 4px; }
+
+.schack-pilar { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.schack-pil line { stroke: rgba(242, 153, 74, 0.85); }
+.schack-pil path { fill: rgba(242, 153, 74, 0.85); stroke: rgba(242, 153, 74, 0.85); }
+
+.schack-spoke {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: var(--z-toast);
+  pointer-events: none;
+  filter: drop-shadow(0 6px 6px rgba(31, 45, 74, 0.25));
+}
+.schack-spoke .schack-pjas { width: 112%; height: 112%; margin: -6%; display: block; }
+
+/* --- Förvandlingsväljaren och slutrutan (ovanpå brädet) ------------------- */
+
+.schack-forvandling,
+.schack-slut {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(34, 49, 74, 0.45);
+  z-index: 3;
+}
+.schack-forvandling-rubrik {
+  margin: 0;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: #fff;
+  font-weight: 800;
+}
+.schack-forvandling-val { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.schack-forvandling-knapp {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  width: 80px;
+  padding: 6px 2px;
+  border: 3px solid #d5deea;
+  border-radius: 14px;
+  background: #fff;
+  font: 700 0.8rem var(--font);
+  color: var(--text);
+  cursor: pointer;
+}
+.schack-forvandling-knapp .schack-pjas { width: 52px; height: 52px; }
+.schack-forvandling-knapp.forvald { border-color: var(--gul); background: #fff8df; }
+.schack-forvandling-knapp:hover,
+.schack-forvandling-knapp:focus-visible { border-color: var(--schack-kontur); outline: none; }
+
+.schack-slut-kort {
+  max-width: 92%;
+  padding: 16px 20px;
+  border-radius: var(--radie);
+  background: #fff;
+  text-align: center;
+  box-shadow: var(--skugga-mjuk);
+}
+.schack-slut-rubrik { margin: 0; font-size: 1.45rem; line-height: 1.25; }
+.schack-slut-orsak { margin: 6px 0 0; color: var(--text-svag); }
+.schack-slut-knappar { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 12px; }
+.schack-slut-kort.schack-ton-vinst { border: 4px solid var(--gul); }
+.schack-slut-kort.schack-ton-forlust { border: 4px solid #d5deea; }
+.schack-slut-kort.schack-ton-remi { border: 4px solid var(--schack-mork); }
+
+/* --- Statusraden och draglistan ------------------------------------------ */
+
+.schack-status {
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: 14px;
+  background: #fff;
+  font-weight: 800;
+  font-size: 1.1rem;
+  text-align: center;
+}
+.schack-status-orsak { display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-svag); }
+.schack-status-orsak:empty { display: none; }
+.schack-status.schack-ton-schack { background: #fde8e8; color: #a32222; }
+.schack-status.schack-ton-vinst { background: #fff6d6; }
+.schack-status.schack-ton-remi { background: #eef5ea; }
+
+.schack-drag { display: grid; justify-items: start; gap: 6px; }
+.schack-draglista {
+  margin: 0;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: #fff;
+  font-weight: 600;
+  word-spacing: 2px;
+  line-height: 1.6;
+  max-height: 9.6em; /* sex rader – långa partier skrollar i stället för att trycka ned sidan */
+  overflow-y: auto;
+}
+.schack-draglista span { white-space: nowrap; }
+
+/* ── src/styles/36-schack-sida.css ── */
+/* ==========================================================================
+   Schack – elevens sida (#776): startsidans kort, pågående parti, nivå- och
+   färgväljaren samt partiet mot datorn (bräde + hjälppanel med Ångra, Tips,
+   Varna mig, Ge upp). Brädet självt stylas i 35-schack.css. Se docs/SCHACK.md.
+   ========================================================================== */
+
+.schack-rot { min-width: 0; }
+.schack-sida { display: grid; gap: 14px; }
+.schack-rubrik { margin: 0; font-size: 2rem; line-height: 1.15; }
+.schack-underrubrik { margin: 6px 0 0; font-size: 1.2rem; }
+.schack-intro { margin: -6px 0 0; }
+.schack-tillbaka { justify-self: start; }
+
+/* --- Startsidan: de fyra stora korten ------------------------------------- */
+
+.schack-kort-rad {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  gap: 14px;
+}
+.schack-kort { display: grid; justify-items: center; gap: 2px; min-height: 190px; align-content: center; }
+.schack-kort-ikon { display: flex; justify-content: center; margin-bottom: 8px; filter: drop-shadow(0 4px 6px rgba(31, 45, 74, 0.25)); }
+.schack-kort-ikon .schack-pjas { width: 72px; height: 72px; }
+.schack-kort-ikon .schack-pjas + .schack-pjas { margin-left: -22px; }
+.schack-kort.snart { opacity: 0.62; cursor: default; filter: saturate(0.6); }
+.schack-kort.snart:hover { transform: none; }
+.schack-kort.snart:active { transform: none; box-shadow: var(--skugga); }
+
+/* Pågående parti överst på startsidan. */
+.schack-pagaende {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+  padding: 12px 16px;
+  border: 3px solid var(--gul);
+}
+.schack-pagaende-pjas .schack-pjas { width: 44px; height: 44px; display: block; }
+.schack-pagaende-text { display: grid; flex: 1 1 200px; line-height: 1.25; }
+.schack-pagaende-text small { color: var(--text-svag); font-weight: 600; }
+.schack-pagaende .btn { margin-left: auto; }
+
+/* --- Nivå- och färgväljaren ---------------------------------------------- */
+
+.schack-notis {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: #fff8df;
+  border: 2px solid var(--gul);
+  font-weight: 600;
+}
+.schack-notis .btn { margin-left: 6px; vertical-align: middle; }
+.schack-nivaer { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: 10px; }
+.schack-niva,
+.schack-farg {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 12px 10px;
+  border: 3px solid #d5deea;
+  border-radius: 16px;
+  background: #fff;
+  font: 700 1rem var(--font);
+  color: var(--text);
+  cursor: pointer;
+  text-align: center;
+  transition: transform 0.08s ease, border-color 0.08s ease;
+}
+.schack-niva b { font-size: 1.15rem; }
+.schack-niva small { font-weight: 600; color: var(--text-svag); line-height: 1.3; }
+.schack-niva-pjas .schack-pjas { width: 56px; height: 56px; display: block; }
+.schack-niva:hover,
+.schack-farg:hover { transform: translateY(-2px); border-color: #b8c7dd; }
+.schack-niva.vald,
+.schack-farg.vald { border-color: var(--gul); background: #fff8df; box-shadow: 0 0 0 3px rgba(242, 201, 76, 0.35); }
+.schack-niva:focus-visible,
+.schack-farg:focus-visible { outline: 3px solid var(--bla); outline-offset: 2px; }
+.schack-farger { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; max-width: 480px; }
+.schack-farg .schack-pjas { width: 40px; height: 40px; }
+.schack-farg .schack-pjas + .schack-pjas { margin-left: -12px; }
+.schack-starta { max-width: 480px; }
+
+/* --- Partiet mot datorn: brädet + panelen -------------------------------- */
+
+.schack-parti {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(240px, 300px);
+  gap: 18px;
+  align-items: start;
+}
+@media (max-width: 820px) {
+  .schack-parti { grid-template-columns: minmax(0, 1fr); }
+  /* Under 360 px räcker inte sidans marginal till ett 320 px-bräde (§2.1): brädet
+     går då ut i marginalen, centrerat, i stället för att sidan skrollar i sidled (#777). */
+  .schack-parti-brade { margin-inline: min(0px, (100% - 320px) / 2); }
+}
+.schack-panel { display: grid; gap: 10px; min-width: 0; }
+.schack-panel-niva {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: #fff;
+  border: 2px solid #e3e9f2;
+  line-height: 1.25;
+}
+.schack-panel-niva > span:last-child { display: grid; }
+.schack-panel-niva small { color: var(--text-svag); font-weight: 600; }
+.schack-panel-pjas .schack-pjas { width: 40px; height: 40px; display: block; }
+.schack-dator-avatar .schack-pjas { width: 34px; height: 34px; display: block; }
+
+.schack-knappar { display: flex; flex-wrap: wrap; gap: 8px; }
+.schack-knappar .btn { margin: 0; }
+.schack-knappar .btn:disabled { opacity: 0.45; cursor: default; transform: none; }
+.schack-varna-val {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: #fff;
+  border: 2px solid #e3e9f2;
+  font-weight: 700;
+  cursor: pointer;
+}
+.schack-varna-val input { flex: 0 0 auto; width: 20px; height: 20px; margin-top: 2px; }
+.schack-varna-val span { display: grid; line-height: 1.25; }
+.schack-varna-val small { color: var(--text-svag); font-weight: 600; }
+.schack-tips-text { margin: 0; min-height: 1.4em; font-weight: 700; color: #8a5a00; }
+.schack-tips-text:empty { display: none; }
+
+/* Rutorna på sidan (aldrig confirm()): varningen och "ge upp"-frågan. */
+.schack-fraga {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #fff8df;
+  border: 3px solid var(--gul);
+}
+.schack-fraga-text { margin: 0; font-weight: 800; line-height: 1.3; }
+.schack-fraga-knappar { display: flex; flex-wrap: wrap; gap: 8px; }
+.schack-fraga-knappar .btn { margin: 0; }
+.schack-geupp-ruta { background: #fdeeee; border-color: #e07777; }
+
+/* Smal skärm (mobil, stående surfplatta): panelen ligger UNDER brädet och rutan
+   skulle hamna utanför synfältet medan brädet är låst (F1). Då visas den som ett
+   fast överlägg nederst i fönstret – synlig utan att skrolla – och en mörk slöja
+   läggs över resten så att det är tydligt att rutan ska besvaras. */
+@media (max-width: 820px) {
+  .schack-parti-varnar::before,
+  .schack-parti-fragar::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--z-toast, 900) - 1);
+    background: rgba(34, 49, 74, 0.35);
+  }
+  .schack-fraga:not([hidden]) {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    z-index: var(--z-toast, 900);
+    max-width: 480px;
+    margin: 0 auto;
+    box-shadow: var(--skugga-mjuk);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .schack-niva, .schack-farg, .schack-niva:hover, .schack-farg:hover { transition: none; transform: none; }
+}

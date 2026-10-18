@@ -385,6 +385,12 @@ export function visibleVillageClasses(classes, meId) {
 // Live (#460) är ingen inlärningsmodul: syns som Live-rutan när klassen bjudits in.
 // ---------------------------------------------------------------------------
 
+/** Sidomenyns schackikon (#776): en bonde i pjäsernas stil (schack-pjaser.js), i textstorlek. */
+export const SCHACK_IKON =
+  '<svg viewBox="12 10 76 84" width="1.15em" height="1.15em" aria-hidden="true" fill="#FFF3DC" stroke="#3B3350" ' +
+  'stroke-width="5" stroke-linejoin="round" stroke-linecap="round"><path d="M39 52 C39 63 31 69 29 77 L71 77 C69 69 61 63 61 52 Z"/>' +
+  '<rect x="35" y="45" width="30" height="8" rx="4"/><circle cx="50" cy="31" r="14"/><rect x="22" y="76" width="56" height="12" rx="6"/></svg>';
+
 export const STUDENT_MODULES = [
   // Prov (#740, docs/PROV.md): överst i "Öva" – länken syns bara när ett prov är
   // öppet för klassen eller ett rättat prov lämnats tillbaka (NAV_VILLKOR.prov).
@@ -409,6 +415,12 @@ export const STUDENT_MODULES = [
   // Bråkresan (#705/#713/#735): synlig som standard, döljbar per klass (hiddenModules).
   { id: "brakresan", label: "Bråkresan", ikon: "🐉", grupp: "ova", learning: true, lockable: true,
     routes: ["/elev/brakresan"] },
+  // Schack (#776, docs/SCHACK.md): OPT-IN per klass, bara för skojs skull (inga mynt).
+  // Fokusläget stänger det som alla andra moduler (learning), men det går inte att
+  // låsa klassen TILL schack (lockable: false). Ikonen är en egen SVG-bonde –
+  // inga unicode-schacktecken (de ser olika ut på olika datorer).
+  { id: "schack", label: "Schack", ikon: SCHACK_IKON, grupp: "ova", learning: true, lockable: false,
+    optIn: true, routes: ["/elev/schack"] },
 ];
 
 /** Moduler läraren kan slå av/på per klass (#412, ordning = lärar-UI:ts ordning). */

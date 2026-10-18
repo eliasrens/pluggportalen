@@ -19,6 +19,7 @@
 //   #/elev/ekvationsresan  Ekvationsresan: adaptiva ekvationer (#618) – opt-in per klass, DYNAMISK
 //   #/elev/prov       Prov (#740): pågående/tillbakalämnade prov, /skriv?t= själva provet – DYNAMISK
 //   #/elev/brakresan       Bråkresan (#705): 50 bråkutmaningar, ?u=NN = utmaningsvyn – DYNAMISK
+//   #/elev/schack          Schack (#776): mot datorn, ?vy=dator = partiet – opt-in per klass, DYNAMISK
 //   #/elev/shop       shoppen (köp saker för pluggcoins) – pages-shop.js
 //   #/elev/by         husvärlden, by-nivån (klassbyn: alla elevers hus) – pages-varld.js
 //   #/elev/hus        husvärlden, ute-nivån (huset utifrån) – pages-varld.js
@@ -43,7 +44,7 @@
 import {
   app, el, go, renderTopbar, loading, flash, getHiddenModules, getLockGate, onLockChange, escHtml,
 } from "./ui.js";
-import { moduleForRoute } from "./gamemode-visibility.js";
+import { moduleForRoute, SCHACK_IKON } from "./gamemode-visibility.js";
 import { whenAuthReady, onSessionLost, takeSessionLostNotice } from "./auth.js";
 import {
   pageElevLogin,
@@ -228,6 +229,8 @@ const routes = {
   "/elev/prov/skriv": provSida("pageProvSkriv"),
   "/elev/prov/resultat": provSida("pageProvResultat"),
   "/elev/brakresan": dynSida(async () => (await import("./brakresan/page-brakresan.js")).pageBrakresan(), "🐉", "Bråkresan"), // #709
+  // Schack (#776): opt-in per klass (enabledModules), hela modulen i src/schack/ laddas lazy.
+  "/elev/schack": dynSida(async () => (await import("./schack/page-schack.js")).pageSchack(), SCHACK_IKON, "Schack"),
   // Husvärlden – samma scen för alla tre routes: "by" startar i klassbyn,
   // "hus" ute och "rum" inne. Är scenen redan uppe byter route-bytet bara
   // zoomnivå (sömlöst, ingen omrendering) – se pages-varld.js.
