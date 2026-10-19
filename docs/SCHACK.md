@@ -24,6 +24,8 @@ Etapp 3 (guiden och pusslen, epic #774):
 | 3A | #790 | guiden "Lär dig schack": 12 lektioner, stjärnor, framstegen (§12) – **klar**, avsnitt 15 |
 | 3B | #791 | pusslen "Matt i ett/två drag" ur Lichess (CC0), admin-skriptet, framstegen (§13) – avsnitt 16 |
 
+Pluggmynten (#798, Elias 2026-10-19 – ersätter specens "inga pluggmynt"): avsnitt 18.
+
 Kvotbudgeten för hela schacket står samlad i avsnitt 17, licenserna i avsnitt 11.
 
 ---
@@ -359,7 +361,7 @@ långsam klocka). Mät om på en riktig Chromebook när det går: öppna
 skrivning (full kvot, privat läge) stoppar inget. Formatet är
 `{ v: 1, niva, egenFarg, drag: [SAN…], varna, seed, skapad, uppdaterad, slut }`; trasig
 eller främmande data ignoreras. Elevens senaste val (nivå, färg) ligger under
-`…:val`. Ingen Firestore-skrivning och inga pluggmynt i Etapp 1.
+`…:val`. Ingen Firestore-skrivning och inga pluggmynt i Etapp 1 (mynten för första vinsten per nivå kom med #798, avsnitt 18).
 
 ## 9. Elevens schacksida (§4)
 
@@ -871,7 +873,7 @@ pjäserna går ska kunna hoppa direkt till schack matt eller specialdragen, och 
 
 Varje lektion har en kort text överst (hur pjäsen går, vad schack/patt är). Uppgiften står i panelen
 bredvid brädet (under brädet på smal skärm) och i brädets statusrad; "Nästa uppgift" går vidare.
-**Ingen tidspress** (ingen klocka, inga timers i guiden – källkodstest) och **inga mynt**.
+**Ingen tidspress** (ingen klocka, inga timers i guiden – källkodstest). Mynt: 5 per lektion första gången (#798, avsnitt 18).
 
 ### 15.2 Stjärnjakten (`schack-stjarnjakt.js`) – enpjäslektionerna utan kungar
 
@@ -1024,7 +1026,7 @@ drag"** (resp. två) och "Pussel 13 av 200".
 - **Varje drag som ger matt är rätt** när det är dags för matt (även ett annat mattdrag än lösningens).
   Matt i två: första draget måste vara lösningens (skriptet garanterar att inget annat tvingar fram matt).
 - "Varna mig" finns inte i pusslen (frivilligt i spec) – ett fel drag kostar ingenting här.
-- Inga timers utom försvarspausen (rensas vid byte och `destroy`), ingen tidspress, **inga mynt**.
+- Inga timers utom försvarspausen (rensas vid byte och `destroy`), ingen tidspress. Mynt: 5 per pussel första gången (#798, avsnitt 18).
 - 320 px: som partiet och guiden går brädet ut i sidans marginal i stället för att sidan skrollar i sidled.
 - **Höjden och helskärmen (#794, F5):** `.schack-pussel-brade.schack { --schack-storlek: max(320px, min(100%, 640px,
   calc(100svh - 232px))) }` (`40-schack-pussel.css`; över brädet ≈ 131 px, under det statusraden på upp till två rader)
@@ -1095,6 +1097,7 @@ fungerar ändå, men inget sparas). Inga functions, inga index.
 | Lärarens sektion (2C) | 1 + 1 per ändring; åskådarläget 1 + 1 per halvdrag; datorpartierna 1 per elev bara på knapptryck | 0 (callables på servern) |
 | Guiden (3A) | 0 | 1 per **förbättrad** lektion – högst 12 för en hel genomgång |
 | Pusslen (3B) | 0 (banken är statiska filer, inte Firestore) | 1 per **nytt** löst pussel – högst 400 per elev totalt |
+| Pluggmynten (#798) | 1 per besök (kvittot `schackMynt/{uid}`, bara när en vy med bockar öppnas) + 1 studentData efter en utbetalning (saldot) | 0 i klienten; servern: 2 läsningar + 2 skrivningar per **utbetalning** (högst 4 + 12 + 400 per elev totalt), 2 läsningar per redan betalt anrop |
 
 Ingen närvaro-ping, inga skrivningar per sekund, inga läsningar per elev i heta flöden; lyssnarna stängs
 när eleven lämnar schacksidan (avsnitt 14.2). Pusselbanken (~27 + ~29 kB JSON) hämtas en gång per
@@ -1102,3 +1105,97 @@ sidladdning och sort, bara när pusslen öppnas.
 
 **Deploy-ordning för Etapp 3:** 1. `firebase deploy --only firestore:rules` (`schackOk` med `lektioner`
 och `pussel`), 2. webben. Inga functions och inga index.
+
+## 18. Pluggmynten (#798)
+
+Elias 2026-10-19: *"200 mynt första gången man vinner mot Bonden, 400 mot Springaren, 500 mot Tornet och 500 + en
+pokal mot Damen. Bara första gången. Sen 5 mynt per övning i Lär dig schack och 5 per uppdrag i Pussel."* Det ersätter
+specens "Schack är bara för skojs skull och ger inga pluggmynt". Partier **mot kompisar** ger fortfarande inga mynt.
+
+| Vad | Mynt | Nyckel i kvittot |
+| --- | --- | --- |
+| Första vinsten (matt) mot Bonden / Springaren / Tornet / Damen | 200 / 400 / 500 / 500 + pokalen **Damens besegrare** | `dator.<nivå>` |
+| Varje lektion (1–12) i "Lär dig schack" klar | 5 | `lektioner.<nr>` |
+| Varje pussel löst | 5 | `pussel.<sort>-<Lichess-id>` |
+
+- **Övning = lektion** (12 st, högst 60 mynt), inte varje deluppgift. Lektion 12 (partiet mot Bonden) räknas som en
+  lektion och ger 5 – den räknas **inte** som "första vinsten mot Bonden" (den ges bara under *Spela mot datorn*).
+- **Bara vinst med matt** ger nivåns mynt (inte remi, inte motståndarens uppgivande – datorn ger aldrig upp).
+  **Ångra och Tips är tillåtna** (det är en övningsmotor) och det står i nivåväljaren och i panelen.
+- Belopp, nycklar och texter: `src/schack/schack-mynt-delat.js` (delad med servern).
+
+### 18.1 Servern betalar – `functions/schack-mynt.js`
+
+Partier mot datorn, guiden och pusslen körs i klienten, därför betalar **bara servern** (callables, europe-west1)
+och klienten skriver aldrig `coins` för schack:
+
+| Callable | In | Kontroll (`schack-mynt-kontroll.js`, delad) |
+| --- | --- | --- |
+| `schackDatorVinst` | `{ niva, seed, drag: [SAN…] }` | Hela draglistan spelas upp med chess.js (alla drag lagliga, högst 600 halvdrag); partiet slutar med **matt där eleven vinner** (elevens färg = den som gör matt). Sedan kontrolleras **varje** datordrag med motorn: det måste vara nivåns val med partiets frö (`seed + halvdrag · 7919`, som i `schack-dator-vy.js`) och historiken på **något djup** från `MIN_DJUP` (Bonden 1, Springaren 1, Tornet 2, Damen 3) upp till nivåns största (`provaDatorDrag` i motorn). |
+| `schackLektionMynt` | `{ nr, losning }` | Övningens slutvillkor per uppgift: rätt ruta (lektion 1), jaktens mål i det lyckade försöket – alla stjärnor/pjäser tagna med pjäsens egna drag (2–8), draget som uppfyller kravet (9–11, `bedomDrag`, patt nekas), ett helt parti mot Bonden som vit spelat klart enligt reglerna (12, datordragen kontrolleras som ovan). |
+| `schackPusselMynt` | `{ sort, nr, drag: [UCI…] }` | Pusslet ur samma bank (`functions/schack/pussel/`); elevens drag löser det med samma bedömning som pusselvyn (varje mattdrag är rätt när det är dags för matt; matt i två: lösningens första drag, sedan försvaret ur lösningen). |
+
+Alla svarar `{ mynt, redan, nyckel, pokal }` (`mynt` = utbetalt nu). **Idempotent:** kvittot `schackMynt/{uid}` läses först
+(redan betalt → svar direkt, ingen motor), och betalningen är **EN transaktion** som läser kvittot igen och bara om
+nyckeln saknas skriver nyckeln + `total`, `studentData.coins += mynt` och (Damen) `studentData.schack.pokaler.damen` –
+dubbelanrop och två flikar ger en utbetalning. **Grinden:** eleven går i en klass med `schack` i `enabledModules`
+(inte dold), och ingen av elevens klasser har ett aktivt fokuslås (`failed-precondition`); en kontroll som inte går
+igenom ger `invalid-argument` med en kort förklaring.
+
+**Varför motorn kan kontrolleras.** Sökningen är deterministisk per djup (ny transpositionstabell varje anrop,
+seedad slump) – klientens drag är nivåns val på det djup klienten hann färdigt med inom 850 ms. Olika datorer hinner olika
+djup (Damen 3–7), därför prövas varje djup tills draget stämmer; en matt (åt något håll) stoppar fördjupningen i klienten
+och godtas därför även under `MIN_DJUP`. Ett Damen-parti spelat med 120 ms tidsgräns (= en mycket långsam Chromebook)
+godkänns (`test/fixtures/schack-damen-vinst.json`). Kostnad: Bonden ~0,1 s, Springaren/Tornet < 1 s, ett långt Damen-parti
+upp till ~20 s på en vCPU – därför egna inställningar (`1GiB`, `timeoutSeconds: 300`, tidsgräns 5 s per drag och 150 s per parti).
+
+**Kvarvarande fuskrisk (accepterad, låg):**
+- Eleven väljer själv fröet: mot Bonden/Springaren kan någon i teorin leta frön där datorn spelar svagt – men partiet måste
+  ändå vara ett riktigt parti mot den nivån och vinnas med matt.
+- Elevens egna drag kontrolleras inte (bara att de är lagliga): den som låter ett starkare schackprogram välja sina drag
+  "vinner på riktigt" mot nivån. Det går inte att skilja från en duktig elev.
+- Lektion 1–11 har få möjliga lösningar – den som läser koden kan skicka en lösning utan att spela (högst 55 mynt).
+- Ett nöddrag (motorn svarade inte, `noddrag` i partivyn – mycket sällsynt) ger ett datordrag servern inte känner igen:
+  den vinsten nekas ("Mynten kunde inte hämtas … Datorns drag stämmer inte med nivån.").
+- Elevens egna `coins` är som förut elevens fält (butiken skriver dem); reglerna skyddar kvittot och pokalen.
+
+### 18.2 Klienten – `schack-mynt.js` + vyerna
+
+- `page-schack.js` ger flödet `ctx.mynt` (bara för elever med en klass där schack är på): `skapaMynt` med callables ur
+  `schack-moln.js` (`mynt.datorVinst/lektion/pussel`) och **EN läsning** av kvittot per besök (`lasMyntKvitto`, först när en
+  vy med bockar öppnas). Efter en utbetalning läses studentData om och sidomenyns saldo ritas om. Utan `ctx.mynt`
+  (förhandsvisningar utan stubb) visas inga mynt.
+- **Nivåväljaren:** "Första vinsten: +200 {mynt}" (Damen: "… och en pokal") eller "✓ Slagen – mynten är dina", och raden
+  "Ångra och Tips är tillåtna – mynten får du ändå när du vinner." Panelen i partiet visar samma rad.
+- **Slutrutan efter en vinst:** "+200 {mynt} – första vinsten mot Bonden!" eller "Du har redan fått mynt för Bonden." (från
+  kvittot, inget anrop). Damen: pokalen glider in (0,7 s, ingen animation med reducerad rörelse) och "+500 {mynt} och pokalen
+  Damens besegrare …". Nätfel: "Mynten kunde inte hämtas just nu." + **Försök igen**; ett sparat vunnet parti försöker igen
+  när det öppnas. Ångra efter matten nollar raden. Brädet fick `setSlutExtra(html)` (en rad under slutrutans rubrik).
+- **Guiden:** översikten visar "+5 {mynt}" eller "✓ {mynt}" per lektion och "Varje lektion du klarar ger +5 {mynt} första gången";
+  resultatrutan "+5 {mynt} för lektionen!" / "Du har redan fått mynt för den här lektionen." Lektionsvyn samlar lösningen
+  (rätt ruta / jaktens mål / ställningens drag per uppgift, partiets frö + drag).
+- **Pusslen:** "+5 {mynt} för pusslet!" när ett nytt löses, "✓ Klarat – mynten för det här pusslet har du redan fått." när ett
+  betalt pussel visas. Myntikonen är alltid `{mynt}` → `withCoinIcon()` (aldrig mynt-emojin).
+- **Pokalen i huset:** `studentData.schack.pokaler.damen` → `hr-pokal.js` `schackPokaler` → samma pokal-väg som
+  Kartmästare-pokalerna (nyckel `hrpokal-schack-damen` i rummets placeringar, lådan Möbler, kompisens hus i läsläge).
+  Konsten `schack-pokal-art.js` (guldbägare med en svart dam, samma stil och mått) och namnet laddas dynamiskt bara när
+  eleven har pokalen. Bootgrafen är kvar på **107**.
+
+### 18.3 Tester, förhandsvisning och deploy
+
+```
+node --test test/schack-mynt.test.js          # kontrollen (Bonden/Springaren/Damen, fusk), lektionerna, pusslen, skapaMynt, texter, pokalen
+npm run test:rules      → test/firestore-rules-schack-mynt.test.js   (kvittot och schack.pokaler: ingen klient skriver)
+npm run test:functions  → test/functions-schack-mynt.test.mjs        (e2e: grinden, 200 en gång, två flikar, Damen + pokal, fusk, lektion, pussel)
+```
+
+Förhandsvisningarna `preview-schack-dator.html`, `-guide.html` och `-pussel.html` har en **mynt-stubb**
+(`preview/schack/mynt-stub.js`): samma kontroll som servern körs i webbläsaren, kvittot och saldot ligger i `localStorage`,
+knappen **Nollställ mynten**. Appen mot emulatorerna: `admin/qa-schack-kompis-preview.sh` (proxyn släpper igenom de tre
+nya callables).
+
+**Deploy-ordning:** 1. `firebase deploy --only firestore:rules` (`schackMynt` + `pokaler` i `schackOk`), 2. `firebase deploy
+--only functions` (predeploy `sync:schack` kopierar motorn, lektionerna, pusslen och banken till `functions/schack/`), 3. webben.
+Inga index. ⚠️ Reglerna **före** functions (inte functions först som issuen föreslog): de gamla reglerna känner inte nyckeln
+`schack.pokaler` – får en elev pokalen av servern innan de nya reglerna är ute nekas alla elevens studentData-skrivningar
+(`hasOnly`) tills reglerna deployas. De nya reglerna fungerar med den gamla webben och de gamla functions.

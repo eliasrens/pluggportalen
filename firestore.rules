@@ -2462,7 +2462,7 @@ service cloud.firestore {
     // total, uppdaterad }. Bara Cloud Functions skriver (schackDatorVinst,
     // schackLektionMynt, schackPusselMynt – kvittot + coins + pokal i EN transaktion);
     // eleven läser sitt eget (bockarna i nivåväljaren, guiden och pusslen), läraren
-    // med eleven läser det. ⚠️ DEPLOY KRÄVS: functions → rules → webben.
+    // med eleven läser det. ⚠️ DEPLOY KRÄVS: rules → functions → webben (reglerna först: schack.pokaler).
     match /schackMynt/{uid} {
       allow read: if isSelf(uid) || hasStudent(uid);
       allow write: if false;

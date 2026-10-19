@@ -37,7 +37,8 @@ const FN_NAMES = new Set(["/updateStudentLogin", "/guldrushAnswer", "/guldrushOp
   "/brakresaStartRound", "/brakresaAnswer", "/brakresaRework", "/brakresaFinishRound", "/brakresaAbortRound", "/brakresaAckDragon", "/brakresaRenameDragon",
   "/brakresaHunt",
   "/schackVanta", "/schackSlutaVanta", "/schackGaMed", "/schackUtmana", "/schackSvara", "/schackDrag", "/schackGeUpp", "/schackRemi",
-  "/schackKravaVinst", "/schackLarareAvsluta", "/schackLarareTopplista"]);
+  "/schackKravaVinst", "/schackLarareAvsluta", "/schackLarareTopplista",
+  "/schackDatorVinst", "/schackLektionMynt", "/schackPusselMynt"]); // #798
 const SDK = "https://www.gstatic.com/firebasejs/10.12.2";
 
 const TYPES = {

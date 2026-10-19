@@ -8,7 +8,10 @@ Pluggporten ska få ett schackläge där eleverna kan:
 - spela **mot en klasskompis** i realtid: se vem som väntar i lobbyn, gå med eller utmana någon
 - **lära sig schack** steg för steg och lösa **schackpussel** ("Matt i ett drag")
 
-Schack är **bara för skojs skull** och ger inga pluggmynt. Eleverna möter bara sin **egen klass**.
+~~Schack är **bara för skojs skull** och ger inga pluggmynt.~~ **Ändrat 2026-10-19 (#798, Elias):** första vinsten
+mot datorn per nivå ger pluggmynt (Bonden 200, Springaren 400, Tornet 500, Damen 500 + pokal), och varje lektion i
+"Lär dig schack" och varje pussel ger 5 mynt en gång – se `docs/SCHACK.md` §18. Partier mot kompisar ger fortfarande
+inga mynt. Eleverna möter bara sin **egen klass**.
 
 **Detta är ett implementeringsuppdrag i tre etapper.** Varje etapp ska vara klar och testad innan nästa påbörjas.
 

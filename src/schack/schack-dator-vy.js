@@ -197,6 +197,10 @@ export function skapaDatorVy(host, o) {
   if (parti.slut && parti.slut.orsak === "gav-upp") {
     brade.avsluta({ ...parti.slut, titel: "Du gav upp – datorn vann." });
   }
+  // Ett sparat parti som redan är vunnet (omladdning, eller nätet föll vid slutet): mynten
+  // hämtas igen – servern betalar bara en gång och ett betalt kvitto kostar inget anrop (#798).
+  const s0slut = brade.getState().slut;
+  if (s0slut && s0slut.vinnare === egenFarg && s0slut.orsak === "matt") hamtaMynt();
 
   function uppdateraKnappar(s) {
     const gavUpp = s.slut && s.slut.orsak === "gav-upp";

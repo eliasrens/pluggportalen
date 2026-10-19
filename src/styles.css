@@ -9439,8 +9439,10 @@ html:not([data-halloween]) .af-kostym[data-seasonal="halloween"] { display: none
 .schack-pussel-mynt.ny { color: #8a5a00; }
 
 @media (max-width: 420px) {
-  .schack-lektion-kort { grid-template-columns: auto auto 1fr auto; }
-  .schack-lektion-mynt { grid-column: 3 / -1; justify-self: end; }
+  .schack-lektion-kort { gap: 6px; padding-inline: 8px; }
+  .schack-lektion-mynt { font-size: 0.78rem; }
+  .schack-lektion-kort .schack-gstjarna { width: 17px; height: 17px; }
+  .schack-lektion-kort .schack-lektion-ikon .schack-pjas { width: 32px; height: 32px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
