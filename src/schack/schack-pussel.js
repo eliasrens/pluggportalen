@@ -42,6 +42,11 @@ export const TEXT = {
     : `Du har kommit till sista pusslet – ${losta} av ${antal} lösta.`),
 };
 
+/** Texten vid Tips: första trycket pekar ut pjäsen, andra trycket säger hela draget (`san` = svensk SAN). */
+export function tipsText(steg, san) {
+  return steg >= 2 ? TEXT.tipsDrag(san) : TEXT.tips;
+}
+
 /** UCI ("e7e8q") → { from, to, promotion? } */
 export function uciDrag(s) {
   const d = { from: s.slice(0, 2), to: s.slice(2, 4) };
@@ -183,14 +188,17 @@ export function slutet(framsteg, sort, antal) {
  * Vilket pussel eleven ska få: det lokalt sparade läget om det finns, annars
  * nästa efter det senast lösta. Har eleven kommit till slutet börjar den om på 1
  * (F1) – utom när den redan bläddrat tillbaka och gör om dem (läget < antal).
- * Alltid inom 1..antal.
+ * Står läget på det senast lösta pusslet (löst men inte klickat vidare) är nästa
+ * det som ska fortsättas med, inte samma igen (F6). Alltid inom 1..antal.
  */
 export function startNummer(framsteg, lokalt, sort, antal) {
   const max = Math.max(1, antal);
   const { slut } = slutet(framsteg, sort, antal);
-  if (Number.isInteger(lokalt) && lokalt >= 1 && !(slut && lokalt >= max)) return Math.min(lokalt, max);
+  const { senast } = normaliseraFramsteg(framsteg)[sort];
+  // Läget på det senast lösta pusslet = löst men inte klickat vidare (F6): då är nästa olösta nästa (inte samma igen).
+  if (Number.isInteger(lokalt) && lokalt >= 1 && lokalt !== senast && !(slut && lokalt >= max)) return Math.min(lokalt, max);
   if (slut) return 1;
-  return Math.min(Math.max(1, normaliseraFramsteg(framsteg)[sort].senast + 1), max);
+  return Math.min(Math.max(1, senast + 1), max);
 }
 
 /** Var eleven står per sort, lokalt (localStorage inom try/catch): { ett: nr, tva: nr }. */

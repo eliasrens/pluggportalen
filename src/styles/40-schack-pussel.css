@@ -38,6 +38,11 @@
 .schack-pussel-brade .schack-drag { display: none; }
 /* Slutrutan skulle täcka matten – "Snyggt! Schack matt!" står i statusraden och panelen. */
 .schack-pussel-brade .schack-slut { display: none; }
+/* Höjden (#794, F5): över brädet 24 px sidmarginal, Tillbaka-knappen och rubriken (≈ 131 px), under det statusraden
+   (upp till två rader, ≈ 77 px) och en marginal. Golvet 320 px (spec §2.1) gäller alltid. */
+.schack-pussel-brade.schack { --schack-storlek: max(320px, min(100%, 640px, calc(100svh - 232px))); }
+/* Sidans 60 px bottenmarginal (.container) räknas inte in i höjden – annars skrollar sidan 48 px trots att allt syns. */
+.schack-pussel { margin-bottom: -48px; }
 .schack-pussel-panel { display: grid; gap: 10px; min-width: 0; }
 .schack-pussel-panel p { margin: 0; }
 .schack-pussel-nr { font-weight: 700; color: var(--text-svag); }

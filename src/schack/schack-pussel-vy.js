@@ -14,6 +14,8 @@
 // pjäsen hoppar tillbaka och "Inte riktigt – prova igen!". Matt → "Snyggt! Schack
 // matt! ⭐" och Nästa pussel. Matt i två: efter rätt första drag spelar datorn
 // försvaret (efter en kort paus, så att eleven ser det) och eleven gör matt.
+// Helskärm (#794): knappen ligger bland panelens knappar och helskärmar schacksidans rot
+// (.schack-rot) – Nästa pussel byter bara brädets ställning, så helskärmen består.
 // Framstegen: EN skrivning (pussel.spara) när ett NYTT pussel löses. Inga mynt.
 // ============================================================================
 
@@ -21,10 +23,11 @@ import { skapaSchackbrade } from "./schack-bradet.js";
 import { skapaSchackKontroll } from "./schack-kontroll.js";
 import {
   SORTER, ARSORT, TEXT, laddaPussel, skapaPusselLopp, normaliseraFramsteg, arNyttLost, efterLost,
-  startNummer, lasLage, sparaLage,
+  startNummer, lasLage, sparaLage, tipsText,
 } from "./schack-pussel.js";
 import { valHtml, pusselHtml, nrText } from "./schack-pussel-delar.js";
 import { svenskSan } from "./schack-text.js";
+import { monteraHelskarm } from "./schack-helskarm.js";
 
 const FORSVAR_MS = 700;
 
@@ -66,6 +69,7 @@ export function skapaPusselVy(host, ctx) {
   let timer = null;
   let framsteg = normaliseraFramsteg(pc.framsteg());
   let klar = null; // löftet om att banken laddats (pusselgrenen)
+  let helskarm = null;
 
   host.addEventListener("click", (klick = (e) => {
     const act = e.target.closest("[data-act]")?.dataset.act;
@@ -100,6 +104,7 @@ export function skapaPusselVy(host, ctx) {
   const $ = (s) => host.querySelector(s);
   const text = (s, t) => { const e = $(s); if (e) e.textContent = t; };
   const svar = (t) => text(".schack-pussel-svar", t);
+  helskarm = monteraHelskarm(host.closest?.(".schack-rot") || host, { knappPlats: $(".schack-knappar") });
   text(".schack-pussel-nr", "Laddar pusslen …");
   klar = laddaPussel(sort, { hamta: ctx.hamta }).then((l) => {
     if (!levande) return;
@@ -177,12 +182,15 @@ export function skapaPusselVy(host, ctx) {
     if (!t || !brade.getState().interaktiv) return;
     tipsSteg++;
     brade.markeraTips(t.from);
+    // Andra trycket: hela draget som en pil, så att ingen fastnar för gott.
     if (tipsSteg >= 2) {
-      // Andra trycket: hela draget som en pil, så att ingen fastnar för gott.
       brade.clearArrows();
       brade.showArrow(t.from, t.to);
-      svar(TEXT.tipsDrag(svenskSan(t.san)));
-    } else svar(TEXT.tips);
+    }
+    // Panelen OCH statusraden (F6): annars står "Inte riktigt – prova igen!" kvar under brädet.
+    const tips = tipsText(tipsSteg, svenskSan(t.san));
+    svar(tips);
+    brade.setStatus(tips);
   }
 
   /** Pusslet löst: texten, Nästa pussel, och EN skrivning om det var ett nytt. */
@@ -221,6 +229,8 @@ export function skapaPusselVy(host, ctx) {
         levande = false;
         clearTimeout(timer);
         host.removeEventListener("click", klick);
+        helskarm?.destroy();
+        helskarm = null;
         brade?.destroy();
         brade = null;
         host.innerHTML = "";

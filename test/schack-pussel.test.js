@@ -190,7 +190,8 @@ describe("framstegen (studentData.schack.pussel, §13)", () => {
     assert.deepEqual(slutet(hoppat, "ett", 200), { slut: true, alla: false });
     assert.deepEqual(slutet(klar, "ett", 200), { slut: true, alla: true });
     assert.deepEqual(slutet({}, "ett", 200), { slut: false, alla: false });
-    assert.equal(startNummer({ ett: { losta: 10, senast: 199 } }, 199, "ett", 200), 199, "inte slutet än");
+    assert.equal(startNummer({ ett: { losta: 10, senast: 199 } }, 199, "ett", 200), 200, "199 löst men inte klickat vidare (F6): nästa olösta");
+    assert.equal(startNummer({ ett: { losta: 10, senast: 198 } }, 199, "ett", 200), 199, "inte löst än: fortsätt där");
   });
 
   it("sista pusslets text säger bara 'alla' när alla är lösta (F2)", () => {
