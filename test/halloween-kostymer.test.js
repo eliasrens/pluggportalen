@@ -6,8 +6,8 @@
 //     blir ett buret hw-id en dold platshållare (aldrig emoji, aldrig fel)
 //   • test 8/10: avatarMarkup ritar kostymen (af-kostym) – synligheten avgörs
 //     av CSS mot <html data-halloween>, så den syns direkt när Halloween är på
-//   • test 9: Halloween av → CSS döljer, garderoben säger "ta av men inte på"
-//     (wearableActive), och ingen elevdata rörs (avatarMarkup muterar inget)
+//   • test 9 (#799): kostymerna syns och kan bäras året runt – ingen CSS-spärr,
+//     ingen elevdata rörs (avatarMarkup muterar inget)
 //   • test 11: samma slot-boxar som vanliga plagg → samma ankargrid på alla
 //     avatarer (den visuella matrisen: preview/preview-kostymer.html)
 // ============================================================================
@@ -18,7 +18,7 @@ import { readFileSync } from "node:fs";
 import { SHOP_ITEMS, getItem, itemsInCategory, itemsInCollection, isWearable } from "../src/shop-items.js";
 import { WEARABLES, wearableSvg, wearableAnchor } from "../src/art-wearables.js";
 import { loadCollectionArt } from "../src/art-items.js";
-import { AVATARS, avatarMarkup, wearableActive, buyableAvatars, loadAvatarArt } from "../src/avatars.js";
+import { AVATARS, avatarMarkup, buyableAvatars, loadAvatarArt } from "../src/avatars.js";
 import { HW_KOSTYMER } from "../src/halloween/hw-art-kostymer.js";
 import { HW_KOSTYMER_KATALOG } from "../src/halloween/hw-kostymer.js";
 
@@ -98,9 +98,10 @@ test("test 8/10: avatarMarkup ritar kostymen med af-kostym – vanliga plagg or�
   assert.match(avatarMarkup("fox", ["hw-fladdervingar"]), /af-rygg af-anchor-vingar af-kostym/);
 });
 
-test("test 9: synligheten avgörs av CSS mot <html data-halloween> – på alla ritvägar", () => {
+test("test 9 (#799): inga säsongsspärrar – kostymerna syns året runt, på alla ritvägar", () => {
   const css = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
-  assert.match(css, /html:not\(\[data-halloween\]\) \.af-kostym\[data-seasonal="halloween"\] \{ display: none; \}/);
+  assert.doesNotMatch(css, /\.af-kostym\[data-seasonal[^{]*\{[^}]*display:\s*none/, "ingen CSS döljer kostymer utanför säsongen");
+  assert.doesNotMatch(css, /\.wear-item\.vilar/, "ingen gråad vilande kostym i garderoben");
   assert.match(css, /\.af-wear\.af-rygg\.af-anchor-vingar \{/);
   // Alla avatar-ritvägar går genom avatarMarkup (ingen egen wearableSvg på avataren).
   const ritvagar = ["varld-by-scen.js", "varld-kompis.js", "pages-varld.js", "pages-elev.js", "ui.js", "pages-klasskamrat.js",
@@ -117,23 +118,13 @@ test("test 9: ingen elevdata skrivs om – avatarMarkup muterar inte listan", ()
   assert.deepEqual(worn, ["hw-haxhatt", "hw-spokmask", "keps"]);
 });
 
-test("test 9/10: wearableActive – vanliga alltid, kostymer bara när <html data-halloween>", async () => {
+test("test 9/10 (#799): wearableActive finns inte längre – ingen kostym är spärrad utanför säsongen", async () => {
+  const avatars = await import("../src/avatars.js");
+  assert.equal(avatars.wearableActive, undefined);
   await loadCollectionArt();
-  const prev = globalThis.document;
-  const dataset = {};
-  globalThis.document = { documentElement: { dataset } };
-  try {
-    assert.equal(wearableActive(getItem("keps")), true);
-    assert.equal(wearableActive(getItem("hw-haxhatt")), false, "Halloween av → kan inte tas på");
-    dataset.halloween = "1";
-    assert.equal(wearableActive(getItem("hw-haxhatt")), true, "Halloween på → kan bäras");
-    delete dataset.halloween;
-    assert.equal(wearableActive(getItem("hw-haxhatt")), false, "slutdatum passerat → av igen");
-  } finally {
-    if (prev === undefined) delete globalThis.document;
-    else globalThis.document = prev;
-  }
-  assert.equal(wearableActive(getItem("hw-haxhatt")), false, "utan DOM: aldrig bärbar");
+  const html = avatarMarkup("fox", ["hw-haxhatt"]);
+  assert.match(html, /af-kostym/);
+  assert.doesNotMatch(html, /hidden/);
 });
 
 test("test 11: varje kostym ritas på varje avatar – även de köpbara (#694) – med slottens box", async () => {

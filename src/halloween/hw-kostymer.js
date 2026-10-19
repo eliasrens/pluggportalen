@@ -3,9 +3,8 @@
 // ----------------------------------------------------------------------------
 // Vanliga klädsaker (`category: "klader"`, en per slot) med två markeringar:
 //   collection: "halloween" → säljs bara i 🎃 Halloween-fliken (hw-butik.js)
-//   seasonal:   "halloween" → bärs och SYNS bara när Halloween är på – avgörs
-//               vid ritningen (avatars.js: af-kostym + <html data-halloween>),
-//               så ingen elevdata skrivs om när Halloween tar slut.
+//   seasonal:   "halloween" → ritas med af-kostym (avatars.js) men bärs och syns
+//               ÅRET RUNT (#799) – bara butiken är säsongsbunden.
 // Lazy (#271, bootgrafen 107): registreras i SHOP_ITEMS av hw-konst.js via
 // registerShopItems. Ett buret hw-id som inte laddats än ritas som platshållare
 // i avatarMarkup och fylls i när katalogen kommit. Konsten: hw-art-kostymer.js.
