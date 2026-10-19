@@ -7,6 +7,8 @@
 import { pjasSvg } from "./schack-pjaser.js";
 import { esc } from "./schack-bradet-delar.js";
 import { SORTER, normaliseraFramsteg, slutet, startNummer } from "./schack-pussel.js";
+import { myntHtml } from "./schack-mynt.js";
+import { PUSSEL_MYNT } from "./schack-mynt-delat.js";
 
 const IKON = { ett: pjasSvg("w", "q"), tva: pjasSvg("w", "q") + pjasSvg("w", "n") };
 const TEXT = {
@@ -18,7 +20,7 @@ const TEXT = {
  * Valet av sort. `framsteg` = studentData.schack.pussel, `antal` = { ett, tva } (antal
  * pussel i banken, null medan den laddas), `lage` = { ett: nr, tva: nr } lokalt.
  */
-export function valHtml(framsteg, antal = {}, lage = {}) {
+export function valHtml(framsteg, antal = {}, lage = {}, mynt = false) {
   const f = normaliseraFramsteg(framsteg);
   const kort = Object.values(SORTER).map((s) => {
     const n = antal[s.id];
@@ -46,7 +48,8 @@ export function valHtml(framsteg, antal = {}, lage = {}) {
     `<button type="button" class="btn ghost liten schack-tillbaka" data-act="tillbaka">‹ Till Schack</button>` +
     `<h1 class="schack-rubrik">Pussel</h1>` +
     `<p class="hint schack-intro">Hitta draget som gör schack matt. Pusslen börjar lätt och blir svårare – ` +
-    `ta den tid du behöver. Fastnar du? Tryck på <b>Tips</b>.</p>` +
+    `ta den tid du behöver. Fastnar du? Tryck på <b>Tips</b>.` +
+    (mynt ? ` ${myntHtml(`Varje pussel du löser ger +${PUSSEL_MYNT} {mynt} första gången.`)}` : "") + `</p>` +
     `<div class="schack-kort-rad schack-pussel-sorter">${kort}</div></div>`
   );
 }
@@ -64,6 +67,7 @@ export function pusselHtml(sort) {
     `<p class="schack-pussel-nr"></p>` +
     `<p class="schack-pussel-uppgift">${esc(s.uppgift)}</p>` +
     `<p class="schack-pussel-svar" aria-live="polite"></p>` +
+    `<p class="schack-pussel-mynt" aria-live="polite"></p>` +
     `<div class="schack-knappar">` +
     `<button type="button" class="btn gron" data-act="nasta" hidden>Nästa pussel ›</button>` +
     `<button type="button" class="btn ghost liten" data-act="tips">Tips</button>` +

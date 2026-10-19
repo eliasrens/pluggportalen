@@ -16,13 +16,15 @@
 //   datorPartiKlart()                     EN skrivning: studentData.schack.datorPartier + 1
 //   lektionKlar(nr, stjarnor)             EN skrivning: studentData.schack.lektioner.<nr> (guiden, #790)
 //   pusselLost(sort, nr)                  EN skrivning: studentData.schack.pussel.<sort> (pusslen, #791)
+//   mynt.datorVinst/lektion/pussel(...)   pluggmynten via callables (#798) → { mynt, redan, nyckel, pokal }
+//   lasMyntKvitto()                       EN läsning: schackMynt/{uid} (bockarna)
 //   SchackMolnFel(code, message)          felet från servern (code = HttpsError-koden)
 // Alla tider från servern är epoch-ms; klienten jämför mot serverNow() (klock-
 // korrigerad, data-class-lock.js) – aldrig mot Date.now() rakt av.
 // ============================================================================
 
 import { app, db } from "../firebase-config.js";
-import { doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 import { currentStudentId } from "../data.js";
 import { serverNow, syncServerClock } from "../data-class-lock.js";
@@ -43,18 +45,18 @@ export class SchackMolnFel extends Error {
 }
 
 const calls = new Map();
-function callable(name) {
+function callable(name, timeout = TIMEOUT_MS) {
   if (!calls.has(name)) {
     const fns = getFunctions(app, globalThis.__PP_FUNCTIONS_URL || REGION);
-    calls.set(name, httpsCallable(fns, name, { timeout: TIMEOUT_MS }));
+    calls.set(name, httpsCallable(fns, name, { timeout }));
   }
   return calls.get(name);
 }
 
 /** Ett anrop; serverns fel blir SchackMolnFel med koden utan "functions/"-prefix. */
-async function call(name, data) {
+async function call(name, data, timeout) {
   try {
-    return (await callable(name)(data)).data;
+    return (await callable(name, timeout)(data)).data;
   } catch (err) {
     const code = String(err?.code || "").replace(/^functions\//, "") || "unknown";
     const msg = String(err?.message || "");
@@ -83,6 +85,23 @@ export const larare = {
   avsluta: (partiId) => call("schackLarareAvsluta", { partiId }),
   topplista: (classId, { dold, nollstall } = {}) => call("schackLarareTopplista", utan({ classId, dold, nollstall })),
 };
+
+// Pluggmynten (#798): servern kontrollerar och betalar (functions/schack-mynt.js).
+// schackDatorVinst spelar om hela partiet med motorn – Damen kan ta en halv minut.
+const DATOR_VINST_TIMEOUT_MS = 200_000;
+export const mynt = {
+  datorVinst: ({ niva, seed, drag }) => call("schackDatorVinst", { niva, seed, drag }, DATOR_VINST_TIMEOUT_MS),
+  lektion: ({ nr, losning }) => call("schackLektionMynt", { nr, losning }),
+  pussel: ({ sort, nr, id, drag }) => call("schackPusselMynt", { sort, nr, id, drag }),
+};
+
+/** Kvittot schackMynt/{uid} (EN läsning per besök på schacksidan); saknat = {}. Fel kastas. */
+export async function lasMyntKvitto() {
+  const uid = currentStudentId();
+  if (!uid) return {};
+  const snap = await getDoc(doc(db, "schackMynt", uid));
+  return snap.exists() ? snap.data() : {};
+}
 
 /** Klassdokumentet i säker form (saknat dokument = tomt) med utgångna lobbyposter bortfiltrerade. */
 export function normaliseraKlass(data, nu = serverNow()) {

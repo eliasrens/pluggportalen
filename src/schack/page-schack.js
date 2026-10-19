@@ -17,7 +17,13 @@
 // enabledModules) och stängs av fokusläget – grinden i app.js/ui.js släpper bara
 // in elever vars klass slagit på schack. Partiet mot datorn sparas i localStorage
 // per elev (schack-parti.js); när det tar slut ökar studentData.schack.datorPartier
-// med 1 (EN skrivning). Inga pluggmynt.
+// med 1 (EN skrivning).
+//
+// Pluggmynten (#798, docs/SCHACK.md §18): bara servern betalar (callables i schack-moln.js
+// – första vinsten per nivå mot datorn, 5 per lektion, 5 per pussel). Kvittot
+// schackMynt/{uid} läses EN gång per besök (bockarna), och bara när en vy behöver det;
+// efter en utbetalning läses studentData om (saldot i sidomenyn). Bara elever med en
+// klass där schack är påslaget – samma grind som servern.
 //
 // Utloggning: ui.js väntar på window.__ppSchackLamna (högst 1,5 s) innan signOut, så att
 // en egen väntan hinner tas bort. Flikstängning (pagehide) försöker också, men webbläsaren
@@ -30,14 +36,14 @@
 // ============================================================================
 
 import { app, el, go, getParams, loading, renderTopbar } from "../ui.js";
-import { getSession, currentStudentId, getStudentData, getClasses, ensureClassProjection } from "../data.js";
+import { getSession, currentStudentId, getStudentData, getClasses, ensureClassProjection, invalidateStudentData } from "../data.js";
 import { avatarMarkup, DEFAULT_AVATAR } from "../avatars.js";
 import { partiNyckel } from "./schack-parti.js";
 
 const HASH = "#/elev/schack";
 let aktiv = null;
 let lyssnar = false;
-let besok = null; // { uid, classId, klasslista } – gäller tills eleven lämnar schacksidan
+let besok = null; // { uid, classId, klasslista, mynt } – gäller tills eleven lämnar schacksidan
 
 const moln = () => import("./schack-moln.js");
 const LAMNA_MAX_MS = 1_500; // utloggningen väntar högst så här länge på schackSlutaVanta
@@ -138,6 +144,36 @@ function pusselFor(sd) {
   };
 }
 
+/**
+ * Pluggmynten (#798) för ett besök: kvittot läses lat EN gång, anropen går till servern.
+ * En utbetalning läser om studentData (nästa getStudentData) och ritar sidomenyns saldo.
+ */
+function myntFor(sid) {
+  let modul = null;
+  const m = () => (modul ||= Promise.all([moln(), import("./schack-mynt.js")]));
+  let klient = null;
+  const lat = (fn) => (...a) => m().then(([mo, sm]) => {
+    klient ||= sm.skapaMynt({
+      hamtaKvitto: () => mo.lasMyntKvitto(),
+      datorVinst: (d) => mo.mynt.datorVinst(d),
+      lektion: (d) => mo.mynt.lektion(d),
+      pussel: (d) => mo.mynt.pussel(d),
+      onBetalt: () => {
+        invalidateStudentData(sid);
+        renderTopbar().catch(() => {});
+      },
+    });
+    return fn(klient, ...a);
+  });
+  return {
+    nu: () => klient?.nu() ?? null,
+    kvitto: lat((k) => k.kvitto()),
+    datorVinst: lat((k, parti) => k.datorVinst(parti)),
+    lektion: lat((k, nr, losning) => k.lektion(nr, losning)),
+    pussel: lat((k, sort, nr, id, drag) => k.pussel(sort, nr, id, drag)),
+  };
+}
+
 export async function pageSchack() {
   aktiv?.destroy();
   aktiv = null;
@@ -153,7 +189,7 @@ export async function pageSchack() {
   ]);
   if (forstaGangen) {
     const k = schackKlass(klasser, sid);
-    besok = { uid: sid, classId: k?.id || null, klasslista: k ? klasslistaFor(k.id, k.studentIds) : null };
+    besok = { uid: sid, classId: k?.id || null, klasslista: k ? klasslistaFor(k.id, k.studentIds) : null, mynt: k ? myntFor(sid) : null };
   }
   const params = getParams();
   const kompis = besok.classId ? { moln, classId: besok.classId, uid: sid, klasslista: besok.klasslista } : null;
@@ -171,6 +207,7 @@ export async function pageSchack() {
     onDatorSlut: () => { moln().then((m) => m.datorPartiKlart()).catch(() => {}); },
     guide: guideFor(sd),
     pussel: pusselFor(sd),
+    mynt: besok.mynt || undefined,
   }, params);
   stadaVidByte();
 }

@@ -321,7 +321,9 @@ service cloud.firestore {
     // per skrivning. aktivtParti = serverns spärr "ett parti åt gången" (sätts/
     // tas bort av Cloud Functions) – klienten får aldrig ändra den. lektioner =
     // guidens framsteg (#790, schackLektionerOk nedan), pussel = pusslens
-    // framsteg (#791, schackPusselOk nedan). Inga andra nycklar. Saknas fältet i
+    // framsteg (#791, schackPusselOk nedan), pokaler = schackets pokaler (#798,
+    // { damen: ms }) – bara servern (Admin SDK) skriver den, i samma transaktion som
+    // mynten; klienten får aldrig ändra den. Inga andra nycklar. Saknas fältet i
     // båda = OK. Lärare (årskurskonto) skriver det aldrig.
     // ⚠️ Gränsen 1000 uttryck per begäran (#792 F1): schackOk körs på VARJE
     // studentData-skrivning, så bara de nycklar som ÄNDRAS (diff().affectedKeys())
@@ -331,7 +333,7 @@ service cloud.firestore {
       let n = request.resource.data;
       let o = resource == null ? {} : resource.data;
       return !('schack' in n) ? !('schack' in o) :
-        (n.schack is map && n.schack.keys().hasOnly(['datorPartier', 'aktivtParti', 'lektioner', 'pussel']) &&
+        (n.schack is map && n.schack.keys().hasOnly(['datorPartier', 'aktivtParti', 'lektioner', 'pussel', 'pokaler']) &&
           schackAndratOk(n.schack, schackMap(o, 'schack')));
     }
     // m[k] om det är en map, annars {} (gammal data som inte är en map valideras som ny).
@@ -344,6 +346,7 @@ service cloud.firestore {
     function schackNycklarOk(ns, os, d) {
       return d.size() == 0 || (
         (!('aktivtParti' in d) || ns.get('aktivtParti', null) == os.get('aktivtParti', null)) &&
+        !('pokaler' in d) &&
         (!('datorPartier' in d) || schackDatorPartierOk(ns.get('datorPartier', 0), os.get('datorPartier', 0))) &&
         (!('lektioner' in d) || schackLektionerOk(ns.get('lektioner', {}), schackMap(os, 'lektioner'))) &&
         (!('pussel' in d) || schackPusselOk(ns.get('pussel', {}), schackMap(os, 'pussel'))));
@@ -2452,6 +2455,16 @@ service cloud.firestore {
     // ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` (+ functions).
     match /schackKlass/{classId} {
       allow read: if isClassMember(classId) || hasClass(classId);
+      allow write: if false;
+    }
+    // Schackets pluggmynt (#798, docs/SCHACK.md §18): kvittot schackMynt/{uid} =
+    // { dator: { niva: ms }, lektioner: { nr: ms }, pussel: { "sort-id": ms }, pokaler,
+    // total, uppdaterad }. Bara Cloud Functions skriver (schackDatorVinst,
+    // schackLektionMynt, schackPusselMynt – kvittot + coins + pokal i EN transaktion);
+    // eleven läser sitt eget (bockarna i nivåväljaren, guiden och pusslen), läraren
+    // med eleven läser det. ⚠️ DEPLOY KRÄVS: rules → functions → webben (reglerna först: schack.pokaler).
+    match /schackMynt/{uid} {
+      allow read: if isSelf(uid) || hasStudent(uid);
       allow write: if false;
     }
     match /schackPartier/{partiId} {

@@ -93,12 +93,13 @@ export function forvandlingHtml(farg) {
   );
 }
 
-/** Slutrutan: rubrik, förklaring och knappar ({text, id}). */
-export function slutHtml(status, knappar) {
+/** Slutrutan: rubrik, förklaring, extra (redan escapad HTML, t.ex. mynten #798) och knappar ({text, id}). */
+export function slutHtml(status, knappar, extra = "") {
   return (
     `<div class="schack-slut-kort schack-ton-${esc(status.ton)}">` +
     `<h3 class="schack-slut-rubrik">${esc(status.text)}</h3>` +
     (status.orsak ? `<p class="schack-slut-orsak">${esc(status.orsak)}</p>` : "") +
+    (extra ? `<div class="schack-slut-extra" aria-live="polite">${extra}</div>` : "") +
     `<div class="schack-slut-knappar">` +
     knappar.map((k, i) => `<button type="button" class="btn liten${i ? " ghost" : ""}" data-slut="${i}">${esc(k.text)}</button>`).join("") +
     `</div></div>`

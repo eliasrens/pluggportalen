@@ -10,8 +10,11 @@
 // API
 //   hamtaLedare({ farsk })                   → meta-dokumentet eller null (läsfel)
 //   invalideraLedare()
-//   laddaHusPokaler({ uid, rum })           → null (läsfel – rör inget) eller
+//   laddaHusPokaler({ uid, rum, schack })   → null (läsfel – rör inget) eller
 //       { pokaler: Map<nyckel, pokal>, rensade: number[] }
+//       schack = husägarens studentData.schack: schackets pokaler (#798, t.ex.
+//       "Damens besegrare") ritas med samma väg – ingen extra läsning, konsten
+//       laddas dynamiskt bara när eleven har en.
 //       rum = lista med varje rums placements (muteras: pokaler eleven inte
 //       längre har tas bort; rensade = rum-index som ändrats och ska sparas)
 //   pokalSakHtml(pokal, { key, x, y, vald })  dragbar rum-sak (eget rum)
@@ -24,7 +27,7 @@ import { db } from "../firebase-config.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { rumSakHtml } from "../rum-promenad-golv.js";
 import { kartmastareSvg, POKAL_STORLEK } from "./hr-pokal-art.js";
-import { minaPokaler, rensaPokaler } from "./hr-pokal.js";
+import { minaPokaler, rensaPokaler, schackPokaler } from "./hr-pokal.js";
 
 export { POKAL_STORLEK };
 
@@ -62,19 +65,36 @@ function ensureStyles() {
  * Elevens pokaler + städning av placeringar som inte längre gäller.
  * @param {{ uid: string, rum?: Array<Record<string, object>> }} o
  */
-export async function laddaHusPokaler({ uid, rum = [] }) {
+export async function laddaHusPokaler({ uid, rum = [], schack = null }) {
   ensureStyles();
-  const meta = await hamtaLedare();
+  const [meta, schackLista] = await Promise.all([hamtaLedare(), laddaSchackPokaler(schack)]);
   if (meta === null) return null; // läsfel: rita inga pokaler men städa inget
-  const lista = minaPokaler(meta, uid);
+  const lista = [...minaPokaler(meta, uid), ...(schackLista || [])];
   const pokaler = new Map(lista.map((p) => [p.nyckel, p]));
   const giltiga = new Set(pokaler.keys());
+  // Schackkonsten kunde inte laddas: rita inte schackpokalen nu, men städa inte bort dess plats.
+  if (schackLista === null) for (const pl of rum) for (const k of Object.keys(pl || {})) if (k.startsWith("hrpokal-schack-")) giltiga.add(k);
   const rensade = [];
   rum.forEach((pl, i) => {
     if (rensaPokaler(pl, giltiga) > 0) rensade.push(i);
   });
   return { pokaler, rensade };
 }
+
+/** Schackets pokaler (#798) med sin ritning – modulerna laddas bara när eleven har en. null = laddningsfel. */
+async function laddaSchackPokaler(schack) {
+  if (!schack?.pokaler || typeof schack.pokaler !== "object" || !Object.keys(schack.pokaler).length) return [];
+  try {
+    const [{ SCHACK_POKALER }, { schackPokalSvg }] = await Promise.all([
+      import("../schack/schack-mynt-delat.js"), import("../schack/schack-pokal-art.js"),
+    ]);
+    return schackPokaler(schack, SCHACK_POKALER).map((p) => ({ ...p, ritning: (o) => schackPokalSvg(o) }));
+  } catch {
+    return null; // laddningsfel – placeringen får stå kvar (se laddaHusPokaler)
+  }
+}
+
+const ritaPokal = (p, opts) => (p.ritning ? p.ritning(opts) : kartmastareSvg(p, opts));
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
@@ -85,7 +105,7 @@ const skylt = (p) => `<span class="hr-pokal-skylt" aria-hidden="true">🏆 ${esc
 export function pokalSakHtml(p, { key, x, y, vald = false }) {
   const html = rumSakHtml({
     key, x, y, titel: esc(p.namn), w: POKAL_STORLEK.w, h: POKAL_STORLEK.h, vald,
-    art: kartmastareSvg(p, { aria: p.namn }),
+    art: ritaPokal(p, { aria: p.namn }),
   });
   return html.replace('class="room-item', 'class="room-item hr-pokal').replace(/<\/div>\s*$/, `${skylt(p)}</div>`);
 }
@@ -93,7 +113,7 @@ export function pokalSakHtml(p, { key, x, y, vald = false }) {
 /** Pokal i kompisens rum (läsläge: inga knappar, samma rem-mått som vyns möbler). */
 export function pokalLasHtml(p, { x, y }) {
   return `<div class="room-item readonly hr-pokal" style="left:${x}%;top:${y}%" title="${esc(p.namn)}">
-    <span class="ri-emoji" style="width:${POKAL_STORLEK.w}rem;height:${POKAL_STORLEK.h}rem">${kartmastareSvg(p, { aria: p.namn })}</span>
+    <span class="ri-emoji" style="width:${POKAL_STORLEK.w}rem;height:${POKAL_STORLEK.h}rem">${ritaPokal(p, { aria: p.namn })}</span>
     ${skylt(p)}
   </div>`;
 }
@@ -101,7 +121,7 @@ export function pokalLasHtml(p, { x, y }) {
 /** Knapp i Möbler-lådan – data-place = pokal-nyckeln (samma klick som möbler). */
 export function pokalLadaHtml(p) {
   return `<button class="tray-item hr-pokal-lada" data-place="${esc(p.nyckel)}" title="${esc(p.namn)}">
-    <span class="tray-emoji">${kartmastareSvg(p, { animera: false })}</span>
+    <span class="tray-emoji">${ritaPokal(p, { animera: false })}</span>
     <span class="tray-namn">${esc(p.namn)}</span>
   </button>`;
 }

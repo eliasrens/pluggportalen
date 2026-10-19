@@ -48,6 +48,10 @@
 //   schackLarareAvsluta / schackLarareTopplista   (läraren med klassen – 2C)
 // Varje elevanrop kräver klassmedlem + modulen schack påslagen + inget fokuslås.
 // Logiken: schack-lobby.js, schack-parti.js, schack-larare.js (+ schack-state.js).
+// Pluggmynten (#798, docs/SCHACK.md §18) – servern kontrollerar och betalar, kvittot
+// schackMynt/{uid} gör det idempotent: schackDatorVinst (första vinsten per nivå,
+// Damen + pokal), schackLektionMynt (5 per lektion), schackPusselMynt (5 per pussel).
+// Logiken: schack-mynt.js.
 //
 // ⚠️ DEPLOY KRÄVS: firebase deploy --only functions (Blaze-planen). Klienten
 // (src/data-student-login.js, src/live/formats/guldrush/guldrush-data.js) visar
@@ -83,6 +87,7 @@ import {
 } from "./schack-lobby.js";
 import { drag as scDrag, geUpp as scGeUpp, remi as scRemi, kravaVinst as scKravaVinst } from "./schack-parti.js";
 import { larareAvsluta as scLarareAvsluta, larareTopplista as scLarareTopplista } from "./schack-larare.js";
+import { datorVinst as scDatorVinst, lektionMynt as scLektionMynt, pusselMynt as scPusselMynt } from "./schack-mynt.js";
 
 initializeApp();
 
@@ -261,8 +266,8 @@ export const brakresaHunt = brakresaCall("brakresaHunt", (deps, uid) => brHunt(d
 const SC_OPTS = { region: "europe-west1", memory: "256MiB", cpu: 1, concurrency: 40, maxInstances: 3 };
 const scDeps = () => ({ db: getFirestore(), FieldValue, now: Date.now });
 
-function schackCall(name, core) {
-  return onCall(SC_OPTS, async (request) => {
+function schackCall(name, core, opts = SC_OPTS) {
+  return onCall(opts, async (request) => {
     const uid = request.auth?.uid;
     if (!uid) throw new HttpsError("unauthenticated", "Logga in först.");
     try {
@@ -299,3 +304,11 @@ export const schackRemi = schackCall("schackRemi", scRemi);
 export const schackKravaVinst = schackCall("schackKravaVinst", scKravaVinst);
 export const schackLarareAvsluta = schackLarareCall("schackLarareAvsluta", scLarareAvsluta);
 export const schackLarareTopplista = schackLarareCall("schackLarareTopplista", scLarareTopplista);
+
+// Pluggmynten (#798): schackDatorVinst spelar om hela partiet med motorn (Damen ≈ 20 s
+// för ett långt parti på en vCPU) – egen minnes-/tidsgräns; ett redan betalt anrop
+// svarar direkt ur kvittot utan motor.
+const SC_MYNT_OPTS = { region: "europe-west1", memory: "1GiB", cpu: 1, concurrency: 4, maxInstances: 3, timeoutSeconds: 300 };
+export const schackDatorVinst = schackCall("schackDatorVinst", scDatorVinst, SC_MYNT_OPTS);
+export const schackLektionMynt = schackCall("schackLektionMynt", scLektionMynt);
+export const schackPusselMynt = schackCall("schackPusselMynt", scPusselMynt);

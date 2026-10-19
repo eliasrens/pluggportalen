@@ -207,16 +207,24 @@ describe("partiet – chess.js avgör (§1, §6)", () => {
 describe("synken till functions/schack/ (admin/sync-schack-functions.mjs)", () => {
   it("kopian är i synk och innehåller exakt de delade filerna", () => {
     assert.deepEqual(driftedFiles(), []);
-    assert.deepEqual(sharedFiles(), ["vendor/chess.js", "vendor/LICENSE", "schack-server-delat.js", "schack-server-parti.js"]);
-    assert.equal(FILER.length, 4);
+    assert.deepEqual(sharedFiles(), [
+      "vendor/chess.js", "vendor/LICENSE", "schack-server-delat.js", "schack-server-parti.js",
+      // #798: pluggmynten – servern kontrollerar partier mot datorn, lektioner och pussel.
+      "schack-mynt-delat.js", "schack-mynt-kontroll.js", "schack-motor.js", "schack-lektioner.js", "schack-stjarnjakt.js",
+      "schack-pussel.js", "pussel/matt-i-ett.json", "pussel/matt-i-tva.json", "pussel/LICENSE",
+    ]);
+    assert.equal(FILER.length, 13);
   });
   it("den delade koden är ren: inga webbläsar-/Firebase-importer, bara relativa importer inom src/schack/", () => {
     for (const f of FILER.filter((f) => f.endsWith(".js") && !f.includes("vendor/"))) {
       const src = readFileSync(join(SRC, f), "utf8");
       assert.doesNotMatch(src, /from\s+["']https?:/, `${f}: CDN-import`);
-      assert.doesNotMatch(src, /\b(document|window|localStorage)\./, `${f}: webbläsar-API`);
+      assert.doesNotMatch(src.replace(/^\s*\/\/.*$/gm, ""), /\b(document|window|localStorage)\./, `${f}: webbläsar-API`);
       assert.doesNotMatch(src.replace(/^\s*\/\/.*$/gm, ""), /firebase/i, `${f}: Firebase hör till klient-/serverlagret`);
-      assert.doesNotMatch(src, /Math\.random\s*\(/, `${f}: slumpen tas i servern (crypto)`);
+      // Motorns valjDrag har Math.random som reserv när klienten inte ger ett frö; servern
+      // anropar bara provaDatorDrag, som alltid tar partiets seed (#798).
+      const utanReserv = f === "schack-motor.js" ? src.replace("opt.seed ?? Math.floor(Math.random() * 2 ** 31)", "opt.seed") : src;
+      assert.doesNotMatch(utanReserv, /Math\.random\s*\(/, `${f}: slumpen tas i servern (crypto)`);
       for (const [, spec] of src.matchAll(/(?:import|export)[^"']*from\s+["']([^"']+)["']/g)) {
         assert.ok(spec.startsWith("./"), `${f}: bara importer inom src/schack/ (${spec})`);
       }

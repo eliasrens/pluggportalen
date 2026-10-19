@@ -16,7 +16,9 @@
 // försvaret (efter en kort paus, så att eleven ser det) och eleven gör matt.
 // Helskärm (#794): knappen ligger bland panelens knappar och helskärmar schacksidans rot
 // (.schack-rot) – Nästa pussel byter bara brädets ställning, så helskärmen består.
-// Framstegen: EN skrivning (pussel.spara) när ett NYTT pussel löses. Inga mynt.
+// Framstegen: EN skrivning (pussel.spara) när ett NYTT pussel löses. Pluggmynten (#798):
+// med ctx.mynt skickas elevens drag (UCI) till servern när pusslet löses – 5 mynt första
+// gången per pussel; ett redan betalt pussel får en bock ("✓ Klarat …") när det visas.
 // ============================================================================
 
 import { skapaSchackbrade } from "./schack-bradet.js";
@@ -28,6 +30,8 @@ import {
 import { valHtml, pusselHtml, nrText } from "./schack-pussel-delar.js";
 import { svenskSan } from "./schack-text.js";
 import { monteraHelskarm } from "./schack-helskarm.js";
+import { myntHtml } from "./schack-mynt.js";
+import { TEXT_MYNT, harPussel } from "./schack-mynt-delat.js";
 
 const FORSVAR_MS = 700;
 
@@ -70,6 +74,8 @@ export function skapaPusselVy(host, ctx) {
   let framsteg = normaliseraFramsteg(pc.framsteg());
   let klar = null; // löftet om att banken laddats (pusselgrenen)
   let helskarm = null;
+  let elevDrag = []; // elevens drag i pusslet (UCI) – servern kontrollerar dem (#798)
+  let myntSeq = 0;
 
   host.addEventListener("click", (klick = (e) => {
     const act = e.target.closest("[data-act]")?.dataset.act;
@@ -86,7 +92,7 @@ export function skapaPusselVy(host, ctx) {
   // --- Valet -----------------------------------------------------------------
   if (!ARSORT(ctx.sort)) {
     const antal = {};
-    const rita = () => { host.innerHTML = valHtml(framsteg, antal, lasLage(lagring, lageNyckel)); };
+    const rita = () => { host.innerHTML = valHtml(framsteg, antal, lasLage(lagring, lageNyckel), Boolean(ctx.mynt)); };
     rita();
     for (const s of Object.keys(SORTER)) {
       laddaPussel(s, { hamta: ctx.hamta }).then((l) => {
@@ -127,13 +133,14 @@ export function skapaPusselVy(host, ctx) {
           brade.setStatus(r.text);
           return false;
         }
-        rattDrag = r;
+        rattDrag = { ...r, uci: `${drag.from}${drag.to}${drag.promotion || ""}` };
         return true;
       },
       onMove() {
         const r = rattDrag;
         rattDrag = null;
         if (!r) return;
+        elevDrag.push(r.uci);
         tipsSteg = 0;
         if (r.klart) return lost();
         brade.setInteractive(false);
@@ -165,6 +172,9 @@ export function skapaPusselVy(host, ctx) {
     lopp = skapaPusselLopp(p, sort);
     rattDrag = null;
     tipsSteg = 0;
+    elevDrag = [];
+    myntSeq++;
+    visaMyntBock(p);
     const s = p.senast;
     brade.setPosition(p.fen, { senast: s ? { from: s.slice(0, 2), to: s.slice(2, 4) } : null });
     brade.setInteractive("w");
@@ -175,6 +185,41 @@ export function skapaPusselVy(host, ctx) {
     $('[data-act="tips"]').hidden = false;
     $('[data-act="forra"]').disabled = nr <= 1;
     $('[data-act="hoppa"]').disabled = nr >= lista.length;
+  }
+
+  const myntEl = () => $(".schack-pussel-mynt");
+  /** Bocken på ett pussel vars mynt redan är betalda (kvittot läses en gång per besök). */
+  function visaMyntBock(p) {
+    const e = myntEl();
+    if (!e) return;
+    e.innerHTML = "";
+    e.classList.remove("ny");
+    if (!ctx.mynt) return;
+    const token = myntSeq;
+    ctx.mynt.kvitto().then((k) => {
+      if (k && levande && token === myntSeq && harPussel(k, sort, p.id)) e.innerHTML = myntHtml(TEXT_MYNT.pusselRedan);
+    });
+  }
+
+  /** Pusslet löst (#798): servern kontrollerar elevens drag och betalar 5 mynt första gången. */
+  async function hamtaMynt(p, drag) {
+    if (!ctx.mynt) return;
+    const token = myntSeq;
+    const ut = (html, ny = false) => {
+      const e = myntEl();
+      if (!e || token !== myntSeq || !levande) return;
+      e.innerHTML = html;
+      e.classList.toggle("ny", ny);
+    };
+    const k = await ctx.mynt.kvitto();
+    if (k && harPussel(k, sort, p.id)) return ut(myntHtml(TEXT_MYNT.pusselRedan));
+    try {
+      const svar = await ctx.mynt.pussel(sort, nr, p.id, drag);
+      ut(myntHtml(svar?.mynt > 0 ? `${TEXT_MYNT.pusselNy} för pusslet!` : TEXT_MYNT.pusselRedan), svar?.mynt > 0);
+    } catch (e) {
+      console.warn("schack: pusslets mynt", e?.code || e);
+      ut(myntHtml(TEXT_MYNT.fel));
+    }
   }
 
   function visaTips() {
@@ -196,6 +241,7 @@ export function skapaPusselVy(host, ctx) {
   /** Pusslet löst: texten, Nästa pussel, och EN skrivning om det var ett nytt. */
   function lost() {
     brade.avsluta({ resultat: "1-0", orsak: "matt", vinnare: "w", titel: TEXT.ratt });
+    hamtaMynt(lista[nr - 1], [...elevDrag]);
     if (arNyttLost(framsteg, sort, nr)) {
       framsteg = efterLost(framsteg, sort, nr);
       Promise.resolve()

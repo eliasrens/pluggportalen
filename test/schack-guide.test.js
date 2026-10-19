@@ -299,11 +299,13 @@ describe("källkoden (#271)", () => {
       assert.doesNotMatch(las(`src/${f}`), /schack-(guide|lektion|stjarnjakt)/, `src/${f}`);
     }
   });
-  it("vy=lar och vy=lar&lektion=N i flödet; inga mynt och ingen klocka/timer i guiden", () => {
+  it("vy=lar och vy=lar&lektion=N i flödet; ingen klocka/timer i guiden, mynten bara via servern (#798)", () => {
     assert.match(las("src/schack/schack-flode.js"), /params\.vy === "lar"/);
     assert.match(las("src/schack/schack-flode.js"), /visaGuide\(params\.lektion \|\| null\)/);
     for (const f of NYA) {
-      assert.doesNotMatch(kod(`src/schack/${f}`), /coins|mynt|setInterval|setTimeout|Date\.now/i, f);
+      assert.doesNotMatch(kod(`src/schack/${f}`), /coins|increment\(|setInterval|setTimeout|Date\.now/i, f);
     }
+    // #798: lektionens mynt betalas bara av servern – vyn skickar lösningen via ctx.mynt.
+    assert.match(kod("src/schack/schack-lektion-vy.js"), /o\.mynt\.lektion\(lektion\.nr, los\)/);
   });
 });

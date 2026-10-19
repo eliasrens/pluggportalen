@@ -38,12 +38,13 @@ export function skapaGuideVy(host, ctx) {
   const tillGuide = (nr) => ctx.go(ctx.tillHash(nr ? `vy=lar&lektion=${nr}` : "vy=lar"));
   let lektionVy = null;
   let klick = null;
+  let levande = true;
 
   function visaLektion(l) {
     const sparade = normaliseraLektioner(guide.lektioner())[String(l.nr)] || 0;
     lektionVy = skapaLektionVy(host, {
       lektion: l, sparade, namn: ctx.namn, avatarHtml: ctx.avatarHtml, dator: ctx.dator,
-      lagring: ctx.lagring, nyckel: ctx.nyckel, reducedMotion: ctx.reducedMotion,
+      lagring: ctx.lagring, nyckel: ctx.nyckel, reducedMotion: ctx.reducedMotion, mynt: ctx.mynt,
       tidsgransMs: ctx.tidsgransMs, tankMinMs: ctx.tankMinMs,
       onKlar: (stjarnor) => sparaOmBattre(guide, l.nr, stjarnor),
       onAlla: () => tillGuide(null),
@@ -66,7 +67,10 @@ export function skapaGuideVy(host, ctx) {
   if (lektion) {
     visaLektion(lektion);
   } else {
-    host.innerHTML = oversiktHtml(guide.lektioner());
+    // Mynten (#798): bockarna ur kvittot – ritas om när det lästs (en gång per besök).
+    const rita = () => { host.innerHTML = oversiktHtml(guide.lektioner(), ctx.mynt ? ctx.mynt.nu() : undefined); };
+    rita();
+    if (ctx.mynt && !ctx.mynt.nu()) ctx.mynt.kvitto().then((k) => { if (k && levande && !lektionVy) rita(); });
     klick = (e) => {
       const nr = e.target.closest("[data-lektion]")?.dataset.lektion;
       if (nr) return tillGuide(nr);
@@ -78,6 +82,7 @@ export function skapaGuideVy(host, ctx) {
   return {
     lektion: () => lektionVy,
     destroy() {
+      levande = false;
       lektionVy?.destroy();
       lektionVy = null;
       if (klick) host.removeEventListener("click", klick);

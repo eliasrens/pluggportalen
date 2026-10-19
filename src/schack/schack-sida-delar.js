@@ -9,6 +9,8 @@ import { pjasSvg } from "./schack-pjaser.js";
 import { NIVAER } from "./schack-motor.js";
 import { esc } from "./schack-bradet-delar.js";
 import { partiText } from "./schack-parti.js";
+import { myntHtml } from "./schack-mynt.js";
+import { DATOR_MYNT, TEXT_MYNT, harDator, nivaBelonningText } from "./schack-mynt-delat.js";
 
 const KORT = [
   { act: "dator", farg: "gron", ikon: pjasSvg("w", "k"), titel: "Spela mot datorn", text: "Välj nivå: Bonden, Springaren, Tornet eller Damen" },
@@ -36,17 +38,27 @@ export function startHtml(pagaende, opt = {}) {
     : "";
   return (
     `<div class="schack-sida"><h1 class="schack-rubrik">Schack</h1>` +
-    `<p class="hint schack-intro">Schack är bara för skojs skull – inga pluggmynt, bara kluriga drag.</p>` +
+    `<p class="hint schack-intro">${myntHtml("Vinn mot datorn första gången på en nivå, klara lektionerna och lös pussel – då får du pluggmynt {mynt}. Partier mot kompisar är bara för skojs skull.")}</p>` +
     pag + `<div class="schack-kort-rad">${kort}</div></div>`
   );
 }
 
-/** Nivå- och färgväljaren. `val` = { niva, farg }, `pagaende` = parti som ersätts. */
-export function nivavalHtml(val, pagaende) {
+/**
+ * Nivå- och färgväljaren. `val` = { niva, farg }, `pagaende` = parti som ersätts.
+ * `kvitto` (#798) = myntkvittot: bock på slagna nivåer, belöningen på de andra
+ * (undefined = inga mynt, t.ex. förhandsvisningen; null = medan det läses).
+ */
+export function nivavalHtml(val, pagaende, kvitto) {
+  const belonning = (n) => {
+    if (kvitto === undefined || !DATOR_MYNT[n.id]) return "";
+    const slagen = kvitto && harDator(kvitto, n.id);
+    return `<span class="schack-niva-mynt${slagen ? " slagen" : ""}">${kvitto === null ? "" : myntHtml(nivaBelonningText(n.id, kvitto))}</span>`;
+  };
   const nivaer = NIVAER.map((n) =>
     `<button type="button" role="radio" class="schack-niva${n.id === val.niva ? " vald" : ""}" data-niva="${n.id}" aria-checked="${n.id === val.niva}">` +
     `<span class="schack-niva-pjas" aria-hidden="true">${pjasSvg("b", n.pjas)}</span>` +
-    `<b>${esc(n.namn)}</b><small>${esc(n.text)}</small></button>`).join("");
+    `<b>${esc(n.namn)}</b><small>${esc(n.text)}</small>${belonning(n)}</button>`).join("");
+  const hjalp = kvitto === undefined ? "" : `<p class="hint schack-mynt-hjalp">${esc(TEXT_MYNT.hjalpTillaten)}</p>`;
   const farger = [
     ["w", "Vit", pjasSvg("w", "p")], ["b", "Svart", pjasSvg("b", "p")], ["slump", "Slumpa", pjasSvg("w", "p") + pjasSvg("b", "p")],
   ].map(([id, text, ikon]) =>
@@ -60,7 +72,7 @@ export function nivavalHtml(val, pagaende) {
     `<div class="schack-sida">` +
     `<button type="button" class="btn ghost liten schack-tillbaka" data-act="tillbaka">‹ Till Schack</button>` +
     `<h1 class="schack-rubrik">Spela mot datorn</h1>${pag}` +
-    `<h2 class="schack-underrubrik">Välj nivå</h2><div class="schack-nivaer" role="radiogroup" aria-label="Nivå">${nivaer}</div>` +
+    `<h2 class="schack-underrubrik">Välj nivå</h2><div class="schack-nivaer" role="radiogroup" aria-label="Nivå">${nivaer}</div>${hjalp}` +
     `<h2 class="schack-underrubrik">Välj färg</h2><div class="schack-farger" role="radiogroup" aria-label="Färg">${farger}</div>` +
     `<button type="button" class="btn gron stor schack-starta" data-act="starta">Starta partiet</button></div>`
   );

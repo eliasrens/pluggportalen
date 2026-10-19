@@ -34,18 +34,26 @@
           <label><input type="checkbox" id="stilla" /> Reducerad rörelse</label>
           <button type="button" class="btn ghost liten" id="rensa">Rensa sparat parti</button>
         </nav>
+        <div class="pv-verktyg"><button type="button" class="btn ghost liten" id="nollstallMynt">Nollställ mynten (#798)</button><span id="myntSaldo"></span></div>
         <pre class="pv-logg" id="logg"></pre>
       </div>
       <main id="app" class="schack-rot"></main>
     </div>
     <script type="module">
       import { visaSchack, stangSchack } from "../src/schack/schack-flode.js";
+      import { skapaMyntStub } from "./schack/mynt-stub.js";
 
       const HASH = "#/elev/schack";
       const NYCKEL = "pp:schack:dator:preview";
       const app = document.getElementById("app");
       const logg = document.getElementById("logg");
       const skriv = (rad) => { logg.textContent = `${new Date().toLocaleTimeString("sv-SE")} ${rad}\n${logg.textContent}`.split("\n").slice(0, 8).join("\n"); };
+      // Pluggmynten (#798): samma kontroll som servern, kvittot och saldot i localStorage.
+      const myntStub = skapaMyntStub({ skriv });
+      window.myntStub = myntStub;
+      const myntSaldo = () => { const e = document.getElementById("myntSaldo"); if (e) e.textContent = `Saldo i förhandsvisningen: ${myntStub.saldo()} mynt · kvittot: ${JSON.stringify(myntStub.kvittoData())}`; };
+      setInterval(myntSaldo, 1000);
+      document.getElementById("nollstallMynt").addEventListener("click", () => { myntStub.nollstall(); location.reload(); });
       const snabb = document.getElementById("snabb");
       const stilla = document.getElementById("stilla");
       try {
@@ -75,6 +83,7 @@
           namn: "Elias", avatarHtml: `<span class="pv-avatar">E</span>`,
           lagring: localStorage, nyckel: NYCKEL, hashBas: HASH,
           go: (h) => { location.hash = h; },
+          mynt: myntStub,
           reducedMotion: stilla.checked || undefined,
           tidsgransMs: snabb.checked ? 250 : undefined,
           tankMinMs: snabb.checked ? 0 : undefined,

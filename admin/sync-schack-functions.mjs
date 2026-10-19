@@ -8,8 +8,12 @@
 //   src/schack/vendor/LICENSE             → functions/schack/vendor/LICENSE
 //   src/schack/schack-server-delat.js     → functions/schack/schack-server-delat.js
 //   src/schack/schack-server-parti.js     → functions/schack/schack-server-parti.js
-// Samma inbördes struktur, så "./vendor/chess.js" fungerar oförändrad. Brädet,
-// motorn och sidorna (UI) följer ALDRIG med – listan FILER är uttrycklig.
+// Pluggmynten (#798) – servern kontrollerar partier mot datorn, lektioner och pussel:
+//   schack-mynt-delat.js, schack-mynt-kontroll.js, schack-motor.js (motorn spelar om
+//   datorns drag), schack-lektioner.js, schack-stjarnjakt.js, schack-pussel.js och
+//   pusselbanken pussel/matt-i-ett.json + matt-i-tva.json (+ LICENSE, CC0).
+// Samma inbördes struktur, så "./vendor/chess.js" fungerar oförändrad. Brädet och
+// sidorna (UI) följer ALDRIG med – listan FILER är uttrycklig.
 //
 //   npm run sync:schack     (firebase.json kör det också som predeploy)
 //   node admin/sync-schack-functions.mjs --check   → exit 1 om kopian glidit
@@ -24,7 +28,11 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const SRC = join(ROOT, "src/schack");
 export const DST = join(ROOT, "functions/schack");
 /** De delade filerna, relativt src/schack/ respektive functions/schack/. */
-export const FILER = ["vendor/chess.js", "vendor/LICENSE", "schack-server-delat.js", "schack-server-parti.js"];
+export const FILER = [
+  "vendor/chess.js", "vendor/LICENSE", "schack-server-delat.js", "schack-server-parti.js",
+  "schack-mynt-delat.js", "schack-mynt-kontroll.js", "schack-motor.js", "schack-lektioner.js", "schack-stjarnjakt.js",
+  "schack-pussel.js", "pussel/matt-i-ett.json", "pussel/matt-i-tva.json", "pussel/LICENSE",
+];
 
 export function sharedFiles() {
   return [...FILER];
