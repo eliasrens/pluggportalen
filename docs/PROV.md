@@ -666,6 +666,18 @@ Förhandsvisning utan Firebase: `preview/preview-prov-rattning.html` (8 elever,
 stubbar i `preview/prov-ratta-stubs/`, `?nollstall` börjar om). Skärmdumpar:
 `docs/qa-prov-741/`.
 
+### Räknarna "prov att rätta" (#807, epic #802 §1.3)
+
+`rattStatus.antal` = inlämnade och `rattStatus.rattade` = rättade är lärarsidans räknare; flaggan `attRatta`
+(`antal > rattade`) följer alltid med (`raknareFalt` i `prov-raknare.js`). De skrivs av rättningens sparningar (som
+förut), av **Stäng** (antal = svaren som stängningen läser) och **Öppna igen** (hela räkneverket ur svaren och
+rättningarna som läses där) – aldrig genom att läsa svar eller rättningar bara för att räkna. Rättningsvyn rättar
+räkneverket när den öppnas om det inte stämmer. Märket "Prov 18" i toppmenyn och rutan "Att rätta" på Mina prov
+(`prov-att-ratta.js`) gör EN fråga: `where classId in … + where attRatta == true` (cache 5 min, töms vid skrivningarna).
+En elevs inlämning medan provet är öppet räknas först vid Stäng eller när rättningen öppnas (en elevskrivning på
+tillfället skulle gå ut till alla elevers lyssnare). Detaljer: [`LARARSIDAN_HEM_LASNINGAR.md`](LARARSIDAN_HEM_LASNINGAR.md).
+Inga regeländringar (testat i `test/firestore-rules-prov-raknare.test.js`).
+
 ## Statistiken (E, #742, §7.5)
 
 Grönt/gult/rött – **alltid** med symbol och text (✓ ½ ✗, obesvarad `–` streckad,

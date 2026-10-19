@@ -22,6 +22,7 @@ import {
   angratDok, aterlamnaPlan, aterlamnadDok, bedom, godkannAlla, nyRattning, rattStatusSumma, sparDok,
 } from "../src/prov/prov-rattning-logik.js";
 import { EXEMPEL } from "./helpers/prov-exempel.js";
+import { raknareFalt } from "../src/prov/prov-raknare.js";
 
 let env;
 const PROV = validateProv({ namn: "Vikingaprovet", fragor: Object.values(EXEMPEL).map((e) => structuredClone(e.f)) }).value;
@@ -59,21 +60,21 @@ const fardig = (uid) => bedom(godkannAlla(ny(uid), fragor), q8, { poang: 3, komm
 function spara(db, dok, rattStatus, t = "t1") {
   const b = writeBatch(db);
   for (const [uid, d] of Object.entries(dok)) b.set(rattRef(db, uid, t), d);
-  if (rattStatus) b.update(doc(db, "provTillfallen", t), { rattStatus });
+  if (rattStatus) b.update(doc(db, "provTillfallen", t), raknareFalt(rattStatus)); // + attRatta (#807)
   return b.commit();
 }
 // lamnaTillbaka: aterlamnadDok + aterlamnadAt = serverns tid.
 function lamna(db, dok, rattStatus) {
   const b = writeBatch(db);
   for (const [uid, d] of Object.entries(dok)) b.set(rattRef(db, uid), { ...d, aterlamnadAt: serverTimestamp() });
-  if (rattStatus) b.update(doc(db, "provTillfallen", "t1"), { rattStatus });
+  if (rattStatus) b.update(doc(db, "provTillfallen", "t1"), raknareFalt(rattStatus));
   return b.commit();
 }
 // angraTillbaka
 function angra(db, uid, rattStatus) {
   const b = writeBatch(db);
   b.update(rattRef(db, uid), { aterlamnad: false, aterlamnadAt: deleteField(), facit: deleteField() });
-  if (rattStatus) b.update(doc(db, "provTillfallen", "t1"), { rattStatus });
+  if (rattStatus) b.update(doc(db, "provTillfallen", "t1"), raknareFalt(rattStatus));
   return b.commit();
 }
 
