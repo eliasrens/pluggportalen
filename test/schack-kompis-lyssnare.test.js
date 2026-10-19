@@ -213,7 +213,15 @@ describe("rättningsrunda 1 (#780 F1, F3–F5)", () => {
   });
   it("F3: lägesraden ligger under brädet; F4: meddelandet försvinner; F5: nej till remi visas", () => {
     const vy = kod("src/schack/schack-kompis-vy.js");
-    assert.ok(vy.indexOf('class="schack-kompis-yta"') < vy.indexOf('class="schack-kompis-lage"'), "lägesraden efter brädet");
+    assert.ok(vy.indexOf('class="schack-kompis-yta"') < vy.indexOf('class="schack-kompis-lage schack-kompis-lage-under"'), "lägesraden efter brädet");
+    // F6: på bred skärm står den i panelen bredvid brädet; på smal skrollas den fram (aldrig mitt i ett drag).
+    assert.match(vy, /class="schack-kompis-lage schack-kompis-lage-panel"/);
+    assert.match(vy, /if \(ny\) visaLage\(\);/);
+    assert.match(vy, /if \(!el \|\| pekareNere \|\|/);
+    assert.match(vy, /window\.scrollBy\(\{ top: over/);
+    const css = las("src/styles/37-schack-kompis.css");
+    assert.match(css, /@media \(min-width: 821px\) \{ \.schack-kompis-lage-under \{ display: none; \} \}/);
+    assert.match(css, /@media \(max-width: 820px\) \{ \.schack-kompis-lage-panel \{ display: none; \} \}/);
     assert.match(vy, /meddelandeTimer = setTimeout\(/);
     assert.match(vy, /sa nej tack till remi/);
     assert.match(kod("src/schack/schack-lobby-vy.js"), /felTimer = setTimeout\(/);

@@ -728,8 +728,12 @@ import(schack-lobby-vy.js | schack-kompis-vy.js | schack-kompis.js)`, `schack-mo
   200:e ms ur `klocka` + `senastDragAt` + `serverNow()` (ingen skrivning per sekund), m:ss och
   tiondelar under 10 s, röd under 30 s. Är motståndarens tid slut visas **Kräv vinsten**
   (`schackKravaVinst` – servern kontrollerar tiden; nekas den går knappen att trycka igen).
-- **Lägesraden** (§7.3-texterna, "Kräv vinsten") ligger **under** brädet, så brädet flyttas aldrig
-  när en text dyker upp mitt i ett drag (F3). Fel- och infotexter i panelen och lobbyn försvinner
+- **Lägesraden** (§7.3-texterna, "Kräv vinsten") flyttar aldrig brädet när den dyker upp mitt i
+  ett drag (F3). Bred skärm (> 820 px, panelen bredvid brädet): den står **överst i panelen**, så
+  knappen syns utan att skrolla även på en Chromebook 1366×768 (F6). Smal skärm: **under** brädet, och
+  hamnar den under fönsterkanten skrollas sidan bara så mycket som behövs – aldrig medan eleven
+  har fingret/musen nere på brädet. Uppmätt: 1366×768 knappen y 60–102, 768×1024 y 903–945 (ingen
+  skroll), 320×640 skroll 33 px → y 573–615; brädets läge på sidan oförändrat i alla tre. Fel- och infotexter i panelen och lobbyn försvinner
   efter 6–8 s (F4); säger motståndaren nej till ens remi står "Sara sa nej tack till remi." (F5).
 - **§7.3 utan klocka:** den på tur ser efter 4 min "Din tur! Om en minut kan din motståndare
   avsluta partiet."; motståndaren ser efter 5 min "Sara verkar ha gått. Avsluta partiet och ta

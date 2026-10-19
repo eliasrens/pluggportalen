@@ -30,6 +30,8 @@ const felText = (e) => e?.message || "Det gick inte just nu – försök igen.";
 
 function panelHtml() {
   return (
+    // Lägesraden i panelen (bred skärm: bredvid brädet, alltid synlig – F6); på smal skärm används den under brädet.
+    `<div class="schack-kompis-lage schack-kompis-lage-panel" aria-live="polite"></div>` +
     `<div class="schack-panel-niva schack-kompis-info"></div>` +
     `<div class="schack-fraga schack-remi-ruta" role="alertdialog" aria-labelledby="schack-remi-text" hidden>` +
     `<p id="schack-remi-text" class="schack-fraga-text"></p>` +
@@ -81,10 +83,28 @@ export function skapaKompisVy(host, o) {
   host.innerHTML =
     `<div class="schack-parti-brade"><div class="schack-parti-verktyg" data-krok="verktyg"></div>` +
     // §7.3-texterna och "Kräv vinsten" ligger UNDER brädet: när de dyker upp flyttas aldrig brädet (F3).
-    `<div class="schack-kompis-yta"></div><div class="schack-kompis-lage" aria-live="polite"></div></div>` +
+    `<div class="schack-kompis-yta"></div><div class="schack-kompis-lage schack-kompis-lage-under" aria-live="polite"></div></div>` +
     `<aside class="schack-panel" aria-label="Partiet mot en kompis">${panelHtml()}</aside>`;
   const $ = (s) => host.querySelector(s);
-  const lageEl = $(".schack-kompis-lage");
+  const lageEl = [...host.querySelectorAll(".schack-kompis-lage")]; // under brädet + i panelen – CSS visar en
+  let pekareNere = false; // eleven drar/trycker på brädet just nu – då skrollas inget (F3)
+  const ned = () => { pekareNere = true; };
+  const upp = () => { pekareNere = false; };
+  host.addEventListener("pointerdown", ned);
+  window.addEventListener("pointerup", upp);
+  window.addEventListener("pointercancel", upp);
+
+  /**
+   * F6: en ny text (t.ex. "Kräv vinsten") som hamnar under kanten på smal skärm skrollas
+   * fram – bara så lite som behövs (knappens skugga räknas med), och aldrig mitt i ett drag.
+   */
+  function visaLage() {
+    const el = lageEl.find((e) => e.offsetParent !== null && e.firstElementChild);
+    if (!el || pekareNere || typeof window.scrollBy !== "function") return;
+    const botten = Math.max(...[el, ...el.querySelectorAll("button")].map((e) => e.getBoundingClientRect().bottom));
+    const over = botten + 12 - window.innerHeight;
+    if (over > 0) window.scrollBy({ top: over }); // direkt: en mjuk skrollning avbryts av klockans omritning
+  }
   const meddelande = $(".schack-kompis-meddelande");
   const knapp = (act) => $(`[data-act="${act}"]`);
   const rutor = { remi: $(".schack-remi-ruta"), erbjud: $(".schack-erbjud-ruta"), geupp: $(".schack-geupp-ruta") };
@@ -221,8 +241,10 @@ export function skapaKompisVy(host, o) {
       else if (l.varning) lage = `<p class="schack-kompis-varning">Din tur! Om en minut kan din motståndare avsluta partiet.</p>`;
     }
     if (lage !== senastLage) {
+      const ny = lage && !senastLage;
       senastLage = lage;
-      lageEl.innerHTML = lage;
+      for (const e of lageEl) e.innerHTML = lage;
+      if (ny) visaLage();
     }
     const pagar = parti.status === "pagar";
     const erbjudit = parti.remiErbjudenAv === k.uid;
@@ -303,6 +325,8 @@ export function skapaKompisVy(host, o) {
   }
 
   function stoppa() {
+    window.removeEventListener("pointerup", upp);
+    window.removeEventListener("pointercancel", upp);
     clearInterval(tick);
     clearTimeout(meddelandeTimer);
     tick = null;

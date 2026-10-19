@@ -8854,6 +8854,12 @@ html:not([data-halloween]) .af-kostym[data-seasonal="halloween"] { display: none
 .schack-parti-verktyg .btn { margin: 0; }
 .schack-kompis-lage:empty { display: none; }
 .schack-kompis-lage { max-width: 640px; margin: 10px auto 0; }
+/* F6: bred skärm (brädet + panelen sida vid sida) – lägesraden står överst i panelen, bredvid
+   brädet, så "Kräv vinsten" syns utan att skrolla (1366×768). Smal skärm: under brädet. */
+.schack-kompis-lage-panel { margin: 0; }
+.schack-kompis-lage-panel .schack-kompis-krav p { flex-basis: 100%; }
+@media (min-width: 821px) { .schack-kompis-lage-under { display: none; } }
+@media (max-width: 820px) { .schack-kompis-lage-panel { display: none; } }
 .schack-kompis-krav,
 .schack-kompis-varning {
   margin: 0;
