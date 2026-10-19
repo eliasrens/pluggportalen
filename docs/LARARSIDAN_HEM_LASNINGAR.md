@@ -60,7 +60,8 @@ Prov att rätta på ett tillfälle = `antal − rattade`. Märket = summan över
 | **Omprov** | ett eget tillfälle med egna räknare (samma flöde); ursprunget rörs inte | 0 | – |
 | **Radera** | tillfället försvinner ur frågan | 0 | 0 |
 
-**Inlämning medan provet är öppet räknas inte direkt.** Att eleven ökade en räknare på tillfället vid varje inlämning skulle
+**Beslut (godkänt av epic-leaden 2026-10-19): inlämning medan provet är öppet räknas inte direkt.** Specen §1.3
+förbjuder att läsa svar för att räkna, och att eleven ökade en räknare på tillfället vid varje inlämning skulle
 kräva en ny elevregel på tillfället, och – värre – varje sådan skrivning går ut till **alla elevers lyssnare** på öppna prov
 (`prov-watch.js`): 25 inlämningar × ~25 lyssnare ≈ 625 läsningar per prov. I stället visar Att göra **"Provet är öppet i 4A"**
 (Öppna → översikten där provet stängs); när läraren stänger, eller öppnar rättningen, räknas de inlämnade. Ett prov som rättas
