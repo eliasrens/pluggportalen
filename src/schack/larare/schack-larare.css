@@ -1,0 +1,93 @@
+/* ==========================================================================
+   Schack – lärarens sektion (#781). Laddas lat av schack-larare.js (en <link>,
+   inte i styles.css). Brädet självt stylas i src/styles/35-schack.css.
+   ========================================================================== */
+
+.sl { min-width: 0; }
+.sl-h { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 1.05rem; }
+.sl-antal { color: var(--t-muted, #93a2b3); font-weight: 600; }
+.sl-tomt { margin: 4px 0; }
+.sl-varning { color: #f2c94c; }
+
+.sl-modul-text, .sl-topp-status { display: flex; align-items: baseline; gap: 8px; margin: 0 0 10px; }
+.sl-prick { flex: none; width: 10px; height: 10px; border-radius: 50%; background: #93a2b3; transform: translateY(-1px); }
+.sl-prick.pa { background: var(--t-accent, #2ec16e); box-shadow: 0 0 0 3px rgba(46, 193, 110, 0.2); }
+
+/* --- Pågående partier ----------------------------------------------------- */
+.sl-partier { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 8px; }
+.sl-parti {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px;
+  padding: 10px 12px; border-radius: 12px;
+  background: var(--t-surface-2, #1b232e); border: 1px solid var(--t-border, rgba(255, 255, 255, 0.09));
+}
+.sl-parti-text { display: grid; gap: 2px; min-width: 0; }
+.sl-parti-namn { font-weight: 700; overflow-wrap: anywhere; }
+.sl-parti-knappar { display: flex; gap: 8px; flex-wrap: wrap; }
+.sl-mot { color: var(--t-muted, #93a2b3); font-weight: 500; }
+.sl-farg {
+  display: inline-block; width: 12px; height: 12px; margin: 0 5px 0 0; border-radius: 50%;
+  border: 2px solid #3b3350; vertical-align: -1px;
+}
+.sl-farg-w { background: #fff3dc; }
+.sl-farg-b { background: #555c6e; border-color: #c9cfdb; }
+.sl-bekrafta { flex-basis: 100%; margin: 4px 0 0; }
+.sl-bekrafta p { margin: 0 0 8px; }
+
+/* --- Åskådarläget ---------------------------------------------------------- */
+.sl-ask { display: grid; gap: 10px; min-width: 0; }
+.sl-ask-huvud { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.sl-ask-titel { margin: 0; font-size: 1.05rem; flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.sl-live {
+  display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 999px;
+  font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;
+  color: #ffd7d7; background: rgba(235, 87, 87, 0.18);
+}
+.sl-live::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #eb5757; animation: sl-puls 1.6s ease-in-out infinite; }
+@keyframes sl-puls { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .sl-live::before { animation: none; } }
+.sl-ask-info { margin: 0; color: var(--t-muted, #93a2b3); }
+.sl-ask-knappar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+
+/* Brädet med klockorna i spelarradernas rader: svart överst (rad 1), vit nederst (rad 3).
+   En kolumn lika bred som brädet, så att klockan hamnar i radens högra kant.
+   Brädets vita ytor (spelarrader, status) behåller elevsidans mörka text. */
+.sl-ask-bradet { justify-self: center; }
+.sl-ask-bradet.schack {
+  /* Lite mindre än elevens bräde, så att rubriken, brädet och Avsluta ryms på en skärm. */
+  --schack-storlek: max(300px, min(100%, 560px, calc(100svh - 320px)));
+  min-width: 300px;
+  grid-template-columns: var(--schack-storlek); justify-content: center; color: #3b3350;
+}
+.sl-ask-bradet.schack > .schack-spelare[data-plats="topp"] { grid-row: 1; grid-column: 1; }
+.sl-ask-bradet.schack > .schack-ram { grid-row: 2; grid-column: 1; }
+.sl-ask-bradet.schack > .schack-spelare[data-plats="botten"] { grid-row: 3; grid-column: 1; }
+.sl-ask-bradet.schack > .schack-status { grid-row: 4; grid-column: 1; }
+.sl-ask-bradet.schack > .schack-drag { grid-row: 5; grid-column: 1; }
+.sl-ask-bradet.sl-med-klocka > .schack-spelare { padding-right: 104px; }
+.sl-ask-bradet.schack > .sl-klocka {
+  grid-column: 1; justify-self: end; align-self: center; width: auto; z-index: 1;
+  margin-right: 8px; padding: 4px 12px; border-radius: 10px; min-width: 84px; text-align: center;
+  font: 800 1.25rem/1.2 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums;
+  color: #3b3350; background: #e9e4d8; border: 2px solid #3b3350;
+}
+/* Lärarsidans mörka tema färgar h3 ljust – slutrutans rubrik står på vitt. */
+.teacher-dark .sl-ask-bradet .schack-slut-rubrik { color: #3b3350; }
+.sl-ask-bradet.schack > .sl-klocka-b { grid-row: 1; }
+.sl-ask-bradet.schack > .sl-klocka-w { grid-row: 3; }
+.sl-ask-bradet.schack > .sl-klocka.gar { background: #fff; box-shadow: 0 0 0 3px rgba(242, 201, 76, 0.55); }
+.sl-ask-bradet.schack > .sl-klocka.lite { color: #fff; background: #c0392b; }
+.sl-ask-bradet.schack > .sl-klocka[hidden] { display: none; }
+
+/* --- Tabellerna ------------------------------------------------------------- */
+.sl-tbl td, .sl-tbl th { white-space: nowrap; }
+.sl-tbl td:first-child, .sl-tbl th:first-child { white-space: normal; }
+.sl-stat-tbl tfoot th, .sl-stat-tbl tfoot td { font-weight: 800; }
+.sl-tbl abbr { text-decoration: none; cursor: help; }
+
+@media (max-width: 520px) {
+  .sl-parti { padding: 10px; }
+  .sl-parti-knappar { width: 100%; }
+  .sl-parti-knappar .btn { flex: 1 1 0; justify-content: center; }
+  .sl-ask-bradet.sl-med-klocka > .schack-spelare { padding-right: 88px; }
+  .sl-ask-bradet.schack > .sl-klocka { min-width: 70px; padding: 3px 8px; font-size: 1.1rem; }
+}
