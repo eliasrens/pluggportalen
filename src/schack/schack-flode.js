@@ -26,11 +26,14 @@ import { startHtml, nivavalHtml } from "./schack-sida-delar.js";
 let dator = null;
 let kompisModul = null; // schack-kompis.js när den laddats (för stangSchack)
 
-/** Stäng motorns worker och lobbyns lyssnare (när eleven lämnar schacket). */
+/**
+ * Stäng motorns worker och lobbyns lyssnare (när eleven lämnar schacket).
+ * Returnerar löftet om att elevens väntan tagits bort (schackSlutaVanta).
+ */
 export function stangSchack() {
   dator?.destroy();
   dator = null;
-  kompisModul?.stangKompis();
+  return kompisModul ? kompisModul.stangKompis() : Promise.resolve(false);
 }
 
 function hamtaDator(ctx) {

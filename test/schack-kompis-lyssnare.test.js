@@ -151,12 +151,12 @@ describe("källkoden: kompisläget (§7.2, §9, #271)", () => {
     assert.doesNotMatch(lobby, /lyssnaKlass|lyssnaParti|onSnapshot/, "bara via den delade lyssnaren");
     assert.equal((kod("src/schack/schack-kompis.js").match(/lyssnaKlass\(/g) || []).length, 1, "EN onSnapshot på klassdokumentet");
   });
-  it("sidan stänger allt när eleven lämnar: route-byte, pagehide (och utloggning = route-byte till #/)", () => {
+  it("sidan stänger allt när eleven lämnar: route-byte, pagehide och utloggning (lämna-kroken)", () => {
     const sida = kod("src/schack/page-schack.js");
     assert.match(sida, /addEventListener\("hashchange", stada\)/);
     assert.match(sida, /addEventListener\("pagehide", gomd\)/);
     assert.match(sida, /stangSchack\(\)/);
-    assert.match(kod("src/schack/schack-flode.js"), /export function stangSchack\(\) \{[\s\S]*?kompisModul\?\.stangKompis\(\);/);
+    assert.match(kod("src/schack/schack-flode.js"), /export function stangSchack\(\) \{[\s\S]*?kompisModul \? kompisModul\.stangKompis\(\)/);
     assert.match(kod("src/schack/schack-flode.js"), /destroy\(\) \{[\s\S]*?lobbyAv\(\);/);
   });
   it("allt nytt ligger i src/schack/ och laddas lat (import()); bara schack-moln.js talar med Firebase", () => {
@@ -181,5 +181,41 @@ describe("källkoden: kompisläget (§7.2, §9, #271)", () => {
     assert.match(vy, /const nyttSlut = !parti\.raknad;\s*parti\.raknad = true;/);
     assert.match(vy, /if \(nyttSlut && o\.onSlut\)/);
     assert.match(kod("src/schack/page-schack.js"), /onDatorSlut: \(\) => \{ moln\(\)\.then\(\(m\) => m\.datorPartiKlart\(\)\)/);
+  });
+});
+
+describe("rättningsrunda 1 (#780 F1, F3–F5)", () => {
+  it("F1: utloggningen väntar på schacksidans lämna-krok (högst 1,5 s) före data.logout()", () => {
+    const ui = kod("src/ui.js");
+    const start = ui.indexOf('#logout-btn").addEventListener("click", async');
+    assert.ok(start > 0);
+    assert.match(ui.slice(start, ui.indexOf("data.logout()", start)), /await window\.__ppSchackLamna\?\.\(\);/);
+    const sida = kod("src/schack/page-schack.js");
+    assert.match(sida, /window\.__ppSchackLamna = lamnaFore;/);
+    assert.match(sida, /if \(window\.__ppSchackLamna === lamnaFore\) delete window\.__ppSchackLamna;/);
+    assert.match(sida, /Promise\.race\(\[stang\(\)\.catch/);
+  });
+  it("F1: stangKompis returnerar löftet om schackSlutaVanta", async () => {
+    const minne = new Map();
+    const lagring = { getItem: (k) => minne.get(k) ?? null, setItem: (k, v) => minne.set(k, String(v)), removeItem: (k) => minne.delete(k) };
+    const db = skapaFalskDb({ lagring });
+    seedKlass(db);
+    const m = skapaFalskMoln({ db, uid: "pv-cleo", fordrojningMs: 30 });
+    bevakaKlass({ moln: async () => m, classId: KLASS_ID, uid: "pv-cleo" }, () => {});
+    await m.lobby.vanta(KLASS_ID, 10);
+    await vanta(20);
+    const r = stangKompis();
+    assert.equal(typeof r.then, "function");
+    assert.equal(await r, true, "väntan borttagen när löftet uppfylls");
+    assert.equal(db.las(`schackKlass/${KLASS_ID}`).vantar["pv-cleo"], undefined);
+    assert.equal(await stangKompis(), false, "inget öppet = inget anrop");
+    db.stang();
+  });
+  it("F3: lägesraden ligger under brädet; F4: meddelandet försvinner; F5: nej till remi visas", () => {
+    const vy = kod("src/schack/schack-kompis-vy.js");
+    assert.ok(vy.indexOf('class="schack-kompis-yta"') < vy.indexOf('class="schack-kompis-lage"'), "lägesraden efter brädet");
+    assert.match(vy, /meddelandeTimer = setTimeout\(/);
+    assert.match(vy, /sa nej tack till remi/);
+    assert.match(kod("src/schack/schack-lobby-vy.js"), /felTimer = setTimeout\(/);
   });
 });

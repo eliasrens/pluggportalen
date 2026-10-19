@@ -14,6 +14,10 @@
 // per elev (schack-parti.js); när det tar slut ökar studentData.schack.datorPartier
 // med 1 (EN skrivning). Inga pluggmynt.
 //
+// Utloggning: ui.js väntar på window.__ppSchackLamna (högst 1,5 s) innan signOut, så att
+// en egen väntan hinner tas bort. Flikstängning (pagehide) försöker också, men webbläsaren
+// avbryter oftast anropet – då försvinner väntan efter 10 min (servern filtrerar den).
+//
 // Kompisläget (§9, kvoten): klasslistan (namn + avatarer) läses EN gång per besök ur
 // classProjections; lobbyn är EN onSnapshot på schackKlass/{classId} och partiet EN
 // på schackPartier/{id}. Båda stängs när eleven lämnar schacksidan: route-byte
@@ -31,12 +35,22 @@ let lyssnar = false;
 let besok = null; // { uid, classId, klasslista } – gäller tills eleven lämnar schacksidan
 
 const moln = () => import("./schack-moln.js");
+const LAMNA_MAX_MS = 1_500; // utloggningen väntar högst så här länge på schackSlutaVanta
 
 async function stang() {
   aktiv?.destroy();
   aktiv = null;
   besok = null;
-  (await import("./schack-flode.js")).stangSchack(); // workern och lobbyns lyssnare stängs
+  return (await import("./schack-flode.js")).stangSchack(); // workern och lobbyns lyssnare stängs
+}
+
+/**
+ * Utloggning (F1): logga-ut-knappen i ui.js anropar window.__ppSchackLamna FÖRE
+ * data.logout(), så att väntan tas bort medan eleven fortfarande är inloggad
+ * (efteråt nekar servern anropet och väntan står kvar i 10 min).
+ */
+function lamnaFore() {
+  return Promise.race([stang().catch(() => false), new Promise((r) => setTimeout(() => r(false), LAMNA_MAX_MS))]);
 }
 
 function stadaVidByte() {
@@ -47,6 +61,7 @@ function stadaVidByte() {
     window.removeEventListener("hashchange", stada);
     window.removeEventListener("pagehide", gomd);
     window.removeEventListener("pageshow", visad);
+    if (window.__ppSchackLamna === lamnaFore) delete window.__ppSchackLamna;
     lyssnar = false;
     await stang();
   };
@@ -54,6 +69,7 @@ function stadaVidByte() {
   const gomd = () => { stang(); };
   // Tillbaka ur bfcache: lyssnarna är stängda – rita om sidan.
   const visad = (e) => { if (e.persisted && location.hash.startsWith(HASH)) pageSchack(); };
+  window.__ppSchackLamna = lamnaFore;
   window.addEventListener("hashchange", stada);
   window.addEventListener("pagehide", gomd);
   window.addEventListener("pageshow", visad);

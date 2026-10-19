@@ -56,8 +56,9 @@ function starta(k) {
   return b;
 }
 
+/** Stäng lyssnaren; returnerar löftet om schackSlutaVanta (eller ett uppfyllt löfte). */
 function stang(b, { slutaVanta }) {
-  if (!b || b.stangd) return;
+  if (!b || b.stangd) return Promise.resolve(false);
   b.stangd = true;
   clearTimeout(b.timer);
   try { b.stopp?.(); } catch { /* redan stängd */ }
@@ -65,8 +66,9 @@ function stang(b, { slutaVanta }) {
   if (bev === b) bev = null;
   // Väntan tas bort när eleven lämnar sidan "om det går" (§7.1) – annars går den ut efter 10 min.
   if (slutaVanta && b.moln && b.klass?.vantar && Object.hasOwn(b.klass.vantar, b.uid)) {
-    b.moln.lobby.slutaVanta(b.classId).catch(() => {});
+    return b.moln.lobby.slutaVanta(b.classId).then(() => true, () => false);
   }
+  return Promise.resolve(false);
 }
 
 /**
@@ -94,9 +96,12 @@ export const senasteKlass = () => bev?.klass ?? null;
 /** Är lyssnaren öppen just nu? (tester och förhandsvisningen) */
 export const lyssnarPaKlass = () => Boolean(bev && !bev.stangd);
 
-/** Stäng lyssnaren direkt (eleven lämnar schacksidan) och ta bort en egen väntan. */
+/**
+ * Stäng lyssnaren direkt (eleven lämnar schacksidan) och ta bort en egen väntan.
+ * Returnerar löftet om schackSlutaVanta – utloggningen väntar på det (F1).
+ */
 export function stangKompis({ slutaVanta = true } = {}) {
-  stang(bev, { slutaVanta });
+  return stang(bev, { slutaVanta });
 }
 
 /** Eleven lämnade partiet (Till lobbyn / partiet saknas) – hoppa inte tillbaka in i det. */

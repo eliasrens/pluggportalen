@@ -637,6 +637,9 @@ import(schack-lobby-vy.js | schack-kompis-vy.js | schack-kompis.js)`, `schack-mo
   200:e ms ur `klocka` + `senastDragAt` + `serverNow()` (ingen skrivning per sekund), m:ss och
   tiondelar under 10 s, röd under 30 s. Är motståndarens tid slut visas **Kräv vinsten**
   (`schackKravaVinst` – servern kontrollerar tiden; nekas den går knappen att trycka igen).
+- **Lägesraden** (§7.3-texterna, "Kräv vinsten") ligger **under** brädet, så brädet flyttas aldrig
+  när en text dyker upp mitt i ett drag (F3). Fel- och infotexter i panelen och lobbyn försvinner
+  efter 6–8 s (F4); säger motståndaren nej till ens remi står "Sara sa nej tack till remi." (F5).
 - **§7.3 utan klocka:** den på tur ser efter 4 min "Din tur! Om en minut kan din motståndare
   avsluta partiet."; motståndaren ser efter 5 min "Sara verkar ha gått. Avsluta partiet och ta
   vinsten?" + knappen (`schackKravaVinst`).
@@ -661,7 +664,7 @@ import(schack-lobby-vy.js | schack-kompis-vy.js | schack-kompis.js)`, `schack-mo
 
 | Lyssnare | Öppnas | Stängs |
 | --- | --- | --- |
-| `schackKlass/{classId}` (EN, `schack-kompis.js` → `moln.lyssnaKlass`) | när första vyn på schacksidan behöver den: startsidan, lobbyn, partiet mot datorn, slutrutan efter ett kompisparti. Vyerna delar den – ett vybyte inom schacksidan återanvänder den (ingen ny läsning). | **direkt** när eleven lämnar schacksidan: route-byte (även utloggning – den går till `#/`), `pagehide` (fliken stängs/byts) – via `stangSchack()`; då tas en egen väntan bort med `schackSlutaVanta` (går inte det försvinner den efter 10 min). **2 s** efter att sista vyn släppt den – t.ex. när ett kompisparti öppnas. |
+| `schackKlass/{classId}` (EN, `schack-kompis.js` → `moln.lyssnaKlass`) | när första vyn på schacksidan behöver den: startsidan, lobbyn, partiet mot datorn, slutrutan efter ett kompisparti. Vyerna delar den – ett vybyte inom schacksidan återanvänder den (ingen ny läsning). | **direkt** när eleven lämnar schacksidan: route-byte, `pagehide` (fliken stängs/byts) och utloggning – via `stangSchack()`; då tas en egen väntan bort med `schackSlutaVanta`. **Utloggning:** logga-ut-knappen (`ui.js`) väntar på `window.__ppSchackLamna()` (som sidan sätter medan eleven är på schacksidan, högst 1,5 s) INNAN `data.logout()` – annars är eleven redan utloggad och servern nekar anropet (F1). **Flikstängning:** webbläsaren avbryter oftast anropet vid `pagehide` (callable-SDK:t kan inte skicka med `keepalive`/`sendBeacon`), så väntan står då kvar tills den går ut efter 10 min – servern och alla klienter filtrerar bort den (F2). **2 s** efter att sista vyn släppt den – t.ex. när ett kompisparti öppnas. |
 | `schackPartier/{id}` (EN, `moln.lyssnaParti`) | när partivyn öppnas | när partivyn stängs (`destroy`: Till lobbyn, route-byte, pagehide) |
 
 Medan ett kompisparti pågår är alltså bara partiets lyssnare öppen. Tillbaka ur bfcache

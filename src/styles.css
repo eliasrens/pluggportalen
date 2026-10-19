@@ -8853,7 +8853,7 @@ html:not([data-halloween]) .af-kostym[data-seasonal="halloween"] { display: none
 .schack-parti-verktyg:empty { display: none; }
 .schack-parti-verktyg .btn { margin: 0; }
 .schack-kompis-lage:empty { display: none; }
-.schack-kompis-lage { max-width: 640px; margin: 0 auto 10px; }
+.schack-kompis-lage { max-width: 640px; margin: 10px auto 0; }
 .schack-kompis-krav,
 .schack-kompis-varning {
   margin: 0;
@@ -8868,6 +8868,7 @@ html:not([data-halloween]) .af-kostym[data-seasonal="halloween"] { display: none
 .schack-kompis-varning { background: #fff8df; border: 3px solid var(--gul); }
 .schack-kompis-remi-vantar { margin: 0; font-weight: 700; color: var(--text-svag); }
 .schack-kompis-meddelande { color: #a32222; }
+.schack-kompis-meddelande.info { color: var(--text); }
 .schack-kompis-saknas { display: grid; gap: 10px; justify-items: start; }
 .schack-kompis-saknas p { margin: 0; }
 

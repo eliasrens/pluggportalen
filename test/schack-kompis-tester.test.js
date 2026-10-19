@@ -17,7 +17,7 @@ describe("F1: utloggning lämnar en kvarglömd väntan i lobbyn", () => {
   // via sidomenyn → Bilal ser "Alva väntar · 10 min" i upp till 10 min och kan trycka Spela! mot
   // en spöke. Orsak: logout-knappen anropar data.logout() (signOut) FÖRE hashchange; när
   // page-schack.js stänger lyssnaren är eleven redan utloggad och schackSlutaVanta nekas.
-  it("logga-ut-knappen låter schacksidan ta bort väntan FÖRE data.logout()", { todo: "F1 rättas av 780-coder" }, () => {
+  it("logga-ut-knappen låter schacksidan ta bort väntan FÖRE data.logout()", () => {
     const ui = las("src/ui.js");
     const start = ui.indexOf('#logout-btn").addEventListener');
     assert.ok(start > 0, "logout-knappens lyssnare hittades");

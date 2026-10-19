@@ -18,6 +18,8 @@ import {
   lobbySkalHtml, minDelHtml, vantarHtml, utmanaHtml, pagaendeHtml, topplistaHtml, inkommandeHtml,
 } from "./schack-kompis-delar.js";
 
+const FEL_MS = 8_000;
+
 /** Klockvalet minns under besöket (null = ingen klocka). */
 let senastKlocka = 10;
 
@@ -56,9 +58,13 @@ export function skapaLobbyVy(host, ctx) {
   const felEl = $(".schack-lobby-fel");
   const timer = utgangsTimer(() => rita());
 
-  const visaFel = (text) => {
+  let felTimer = null;
+  /** Felraden; ett fel från ett anrop försvinner efter några sekunder (F4). */
+  const visaFel = (text, { kvar = false } = {}) => {
+    clearTimeout(felTimer);
     felEl.textContent = text || "";
     felEl.hidden = !text;
+    if (text && !kvar) felTimer = setTimeout(() => { if (levande) visaFel(""); }, FEL_MS);
   };
   const namnFor = (uid) => klasslista?.find((x) => x.uid === uid)?.namn || "";
   const avatarFor = (uid) => klasslista?.find((x) => x.uid === uid)?.avatarHtml || "";
@@ -128,7 +134,7 @@ export function skapaLobbyVy(host, ctx) {
     klass = ny;
     rita();
   }, () => {
-    visaFel("Lobbyn gick inte att öppna just nu. Prova att ladda om sidan.");
+    visaFel("Lobbyn gick inte att öppna just nu. Prova att ladda om sidan.", { kvar: true });
   });
   rita();
 
@@ -137,6 +143,7 @@ export function skapaLobbyVy(host, ctx) {
     destroy() {
       levande = false;
       timer.stopp();
+      clearTimeout(felTimer);
       sluta();
       host.removeEventListener("click", klick);
       host.innerHTML = "";
@@ -177,6 +184,7 @@ export function skapaUtmaningsruta(host, ctx) {
       if (ja && r?.partiId && levande) ctx.tillParti?.(r.partiId);
     } catch (e) {
       fel = felText(e);
+      setTimeout(() => { fel = ""; rita(); }, FEL_MS);
     } finally {
       upptagen = false;
       rita();

@@ -25,6 +25,7 @@ import {
 import { markeraLamnat } from "./schack-kompis.js";
 
 const TICK_MS = 200;
+const MEDDELANDE_MS = 6_000; // fel- och infotexten försvinner av sig själv (F4)
 const felText = (e) => e?.message || "Det gick inte just nu – försök igen.";
 
 function panelHtml() {
@@ -79,7 +80,8 @@ export function skapaKompisVy(host, o) {
   host.classList.add("schack-parti", "schack-kompis");
   host.innerHTML =
     `<div class="schack-parti-brade"><div class="schack-parti-verktyg" data-krok="verktyg"></div>` +
-    `<div class="schack-kompis-lage" aria-live="polite"></div><div class="schack-kompis-yta"></div></div>` +
+    // §7.3-texterna och "Kräv vinsten" ligger UNDER brädet: när de dyker upp flyttas aldrig brädet (F3).
+    `<div class="schack-kompis-yta"></div><div class="schack-kompis-lage" aria-live="polite"></div></div>` +
     `<aside class="schack-panel" aria-label="Partiet mot en kompis">${panelHtml()}</aside>`;
   const $ = (s) => host.querySelector(s);
   const lageEl = $(".schack-kompis-lage");
@@ -87,7 +89,14 @@ export function skapaKompisVy(host, o) {
   const knapp = (act) => $(`[data-act="${act}"]`);
   const rutor = { remi: $(".schack-remi-ruta"), erbjud: $(".schack-erbjud-ruta"), geupp: $(".schack-geupp-ruta") };
   const nu = () => (moln?.serverNow ? moln.serverNow() : Date.now());
-  const visa = (text) => { meddelande.textContent = text || ""; };
+  let meddelandeTimer = null;
+  /** Text i panelen (fel i rött, info neutralt) som försvinner efter några sekunder (F4). */
+  const visa = (text, { info = false } = {}) => {
+    clearTimeout(meddelandeTimer);
+    meddelande.textContent = text || "";
+    meddelande.classList.toggle("info", info);
+    if (text) meddelandeTimer = setTimeout(() => { if (levande) meddelande.textContent = ""; }, MEDDELANDE_MS);
+  };
 
   function visaFraga(namn) {
     fraga = namn;
@@ -274,7 +283,13 @@ export function skapaKompisVy(host, o) {
     if (!p) return visaSaknas("Partiet finns inte längre.");
     if (!fargFor(p, k.uid)) return visaSaknas("Du spelar inte i det här partiet.");
     const forsta = !parti;
+    const fore = parti;
     parti = p;
+    // F5: mitt remierbjudande försvann utan drag och utan slut = motståndaren sa nej.
+    if (fore && fore.remiErbjudenAv === k.uid && !p.remiErbjudenAv && p.status === "pagar" &&
+        (p.drag || []).length === (fore.drag || []).length) {
+      visa(`${motstandare(p, k.uid).namn} sa nej tack till remi. Spela vidare!`, { info: true });
+    }
     if (forsta) {
       if (o.fortsatt && p.status !== "pagar") {
         markeraLamnat(o.partiId);
@@ -289,6 +304,7 @@ export function skapaKompisVy(host, o) {
 
   function stoppa() {
     clearInterval(tick);
+    clearTimeout(meddelandeTimer);
     tick = null;
     try { stoppParti?.(); } catch { /* redan stängd */ }
     stoppParti = null;
