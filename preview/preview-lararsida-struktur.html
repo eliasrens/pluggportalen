@@ -1,0 +1,411 @@
+<meta charset="utf-8">
+<title>Ny lärarsida</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;600;700;800&display=swap">
+<style>
+/* Layout: toppmeny med 5 val + profilmeny, därunder en sida i taget. Medvetet mörkt tema som dagens lärarsida. */
+:root{
+  --bg:#0E1318; --panel:#171E26; --panel2:#1E2731; --line:#2A3542; --text:#E8EEF5; --svag:#A9B6C6; --dim:#7F8C9C;
+  --gron:#2ECC71; --gron-m:#1F9D57; --gron-bg:rgba(46,204,113,.12); --gul:#F2C14E; --rod:#F07178; --bla:#5AA9FF;
+  --display:"Baloo 2","Segoe UI Rounded",system-ui,sans-serif; --body:"Nunito",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-size:15px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--gron);outline-offset:2px}
+.demo{background:#26303B;color:var(--svag);font-size:13px;padding:8px max(16px,env(safe-area-inset-left,0px));display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.demo b{color:var(--text)}
+.demo .seg{display:inline-flex;background:var(--bg);border-radius:999px;padding:3px}
+.demo .seg button{border:0;background:none;padding:4px 12px;border-radius:999px;font-weight:700;font-size:13px;color:var(--svag)}
+.demo .seg button[aria-pressed="true"]{background:var(--gron);color:#06240F}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:rgba(14,19,24,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1240px;margin:0 auto;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:800;font-size:18px}
+.brand i{width:30px;height:30px;border-radius:9px;background:var(--gron-bg);border:1px solid var(--gron-m);display:flex;align-items:center;justify-content:center;font-style:normal;color:var(--gron)}
+nav.huvud{display:flex;gap:4px;flex:1;flex-wrap:wrap}
+nav.huvud button{border:1px solid transparent;background:none;padding:8px 14px;border-radius:12px;font-family:var(--display);font-weight:700;font-size:15.5px;color:var(--svag);display:flex;align-items:center;gap:8px}
+nav.huvud button:hover{color:var(--text);background:var(--panel)}
+nav.huvud button[aria-current="page"]{color:var(--text);background:var(--gron-bg);border-color:var(--gron-m)}
+nav.huvud .badge{background:var(--gul);color:#2A1E00;border-radius:999px;font-family:var(--body);font-size:11.5px;font-weight:800;padding:0 7px;line-height:18px}
+.profil{position:relative}
+.profil>button{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:6px 12px 6px 6px;display:flex;align-items:center;gap:8px;font-weight:700}
+.profil .ava{width:26px;height:26px;border-radius:50%;background:var(--gron-m);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#fff}
+.meny{position:absolute;right:0;top:calc(100% + 6px);background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:6px;min-width:220px;box-shadow:0 12px 30px rgba(0,0,0,.4)}
+.meny button{display:block;width:100%;text-align:left;border:0;background:none;padding:9px 12px;border-radius:9px;font-weight:700}
+.meny button:hover{background:var(--panel)}
+.meny small{display:block;color:var(--dim);font-weight:600;padding:6px 12px 4px}
+main{max-width:1240px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px}
+h1{font-family:var(--display);font-weight:800;font-size:28px;margin:0;line-height:1.1}
+h2{font-family:var(--display);font-weight:800;font-size:19px;margin:0}
+.lead{color:var(--svag);margin:2px 0 0;max-width:70ch}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px 20px}
+.rad{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--panel2);padding:9px 14px;border-radius:11px;font-weight:800;display:inline-flex;align-items:center;gap:7px}
+.btn:hover{border-color:var(--svag)}
+.btn.prim{background:var(--gron);border-color:var(--gron);color:#06240F}
+.btn.liten{padding:6px 10px;font-size:13.5px}
+.btn.ghost{background:none}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.todo{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.todo .t{display:flex;align-items:center;gap:12px;background:var(--panel2);border-radius:12px;padding:11px 14px}
+.todo .ik{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:800}
+.todo .txt{flex:1;min-width:0}
+.todo .txt b{display:block}
+.todo .txt span{color:var(--svag);font-size:13.5px}
+.ik.gul{background:rgba(242,193,78,.15);color:var(--gul)} .ik.gron{background:var(--gron-bg);color:var(--gron)} .ik.bla{background:rgba(90,169,255,.14);color:var(--bla)}
+.snabb{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:12px}
+.snabb button{border:1px solid var(--line);background:var(--panel2);border-radius:14px;padding:14px;text-align:left;display:flex;flex-direction:column;gap:3px}
+.snabb button:hover{border-color:var(--gron-m)}
+.snabb b{font-family:var(--display);font-size:16px}
+.snabb span{color:var(--svag);font-size:13px}
+.klasskort{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:14px 16px;text-align:left;display:flex;flex-direction:column;gap:8px}
+.klasskort:hover{border-color:var(--gron-m)}
+.klasskort .namn{font-family:var(--display);font-weight:800;font-size:22px;display:flex;justify-content:space-between;align-items:baseline}
+.klasskort .namn small{font-family:var(--body);font-size:12.5px;color:var(--svag);font-weight:700}
+.stapel{height:7px;border-radius:99px;background:var(--panel2);overflow:hidden}
+.stapel i{display:block;height:100%;background:var(--gron);border-radius:99px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;background:var(--panel2);font-size:12.5px;font-weight:700;color:var(--svag)}
+.chip.fokus{background:rgba(242,193,78,.14);color:var(--gul)}
+.kom{border:1px dashed var(--gron-m);background:linear-gradient(160deg,rgba(46,204,113,.08),transparent)}
+.kom ol{margin:10px 0 0;padding-left:0;list-style:none;display:grid;gap:8px}
+.kom li{display:flex;gap:10px;align-items:center}
+.kom .bock{width:22px;height:22px;border-radius:50%;border:2px solid var(--gron-m);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.kom .bock.klar{background:var(--gron);color:#06240F;border-color:var(--gron)}
+.kom li.klar span{color:var(--dim);text-decoration:line-through}
+.klassval{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.klassval button{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:8px 16px;font-family:var(--display);font-weight:800;font-size:17px}
+.klassval button[aria-pressed="true"]{background:var(--gron-bg);border-color:var(--gron-m)}
+.flikar{display:flex;gap:4px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.flikar button{border:0;background:none;padding:10px 14px;font-weight:800;color:var(--svag);border-bottom:3px solid transparent;margin-bottom:-1px}
+.flikar button[aria-selected="true"]{color:var(--text);border-bottom-color:var(--gron)}
+.flikar button small{display:block;font-weight:600;font-size:11.5px;color:var(--dim)}
+.tabellwrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+table{border-collapse:collapse;width:100%;min-width:640px}
+td:nth-child(2){white-space:nowrap}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);background:var(--panel2);position:sticky;top:0}
+td.namn,th.namn{position:sticky;left:0;background:var(--panel);font-weight:800}
+th.namn{background:var(--panel2)}
+.cell{display:inline-block;min-width:64px;padding:4px 8px;border-radius:8px;font-weight:800;text-align:center}
+.legend{display:flex;gap:12px;align-items:center;color:var(--svag);font-size:13px;flex-wrap:wrap}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:4px}
+.sektion{display:flex;flex-direction:column;gap:10px}
+.steg{display:flex;align-items:center;gap:10px}
+.steg .nr{width:28px;height:28px;border-radius:50%;background:var(--gron-bg);color:var(--gron);font-weight:800;display:flex;align-items:center;justify-content:center;border:1px solid var(--gron-m)}
+.amne{font-weight:800;color:var(--svag);font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin-top:6px}
+.val{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+.val label{display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:9px 12px;font-weight:700;cursor:pointer}
+.val label:has(input:checked){border-color:var(--gron-m);background:var(--gron-bg)}
+.val input{width:18px;height:18px;accent-color:var(--gron)}
+.val input.sw{width:42px;height:24px}
+.val .em{width:22px;text-align:center}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--panel2);border-radius:11px;padding:10px 14px}
+.toggle span small{display:block;color:var(--dim);font-weight:600;font-size:12.5px}
+.sw{appearance:none;width:42px;height:24px;border-radius:99px;background:var(--line);position:relative;cursor:pointer;flex-shrink:0;transition:background .15s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s}
+.sw:checked{background:var(--gron)} .sw:checked::after{left:21px}
+details{background:var(--panel2);border-radius:12px;padding:10px 14px}
+details summary{cursor:pointer;font-weight:800}
+.hjalp{display:flex;gap:10px;align-items:flex-start;background:rgba(90,169,255,.08);border:1px solid rgba(90,169,255,.3);border-radius:12px;padding:10px 14px;color:var(--svag);font-size:14px}
+.hjalp b{color:var(--text)}
+select,input[type=time],input[type=text]{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:8px 10px;font:inherit;font-weight:700}
+.tre{position:relative;display:inline-block}
+.amnesflik{display:flex;gap:16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.amnesflik button{border:0;background:none;padding:8px 2px;font-weight:800;color:var(--svag);border-bottom:3px solid transparent;margin-bottom:-1px}
+.amnesflik button[aria-selected="true"]{color:var(--text);border-bottom-color:var(--gron)}
+.tagg{display:inline-block;padding:1px 8px;border-radius:7px;background:var(--panel2);border:1px solid var(--line);font-size:12px;font-weight:700;margin:2px 2px 2px 0;color:var(--svag)}
+.liten-text{color:var(--dim);font-size:12.5px;font-weight:600}
+.notis{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--gron);color:#06240F;font-weight:800;padding:10px 18px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+@media (max-width:700px){h1{font-size:24px}}
+</style>
+
+<div class="demo" role="note">
+  <span><b>Förhandsvisning.</b> Exempeldata. Klicka runt som en ny lärare.</span>
+  <span>Visa som:</span>
+  <span class="seg"><button id="roll-ak" aria-pressed="true">Årskurslärare</button><button id="roll-ad" aria-pressed="false">Admin</button></span>
+</div>
+
+<header class="top">
+  <div class="top-in">
+    <span class="brand"><i>P</i>Pluggporten</span>
+    <nav class="huvud" id="nav" aria-label="Lärarmeny"></nav>
+    <div class="profil">
+      <button id="profilknapp" aria-expanded="false" aria-haspopup="true"><span class="ava" id="ava">Å4</span><span id="kontonamn">Årskurs 4</span> ▾</button>
+      <div class="meny" id="profilmeny" hidden>
+        <small id="inloggad">Inloggad som Årskurs 4</small>
+        <button data-g="hjalp">❔ Hjälp och guide</button>
+        <button data-g="admin" id="meny-admin" hidden>⚙ Admin</button>
+        <button data-g="logout">↪ Logga ut</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main id="sida"></main>
+
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+let roll = "ak", sida = "hem", klass = "4B", klassFlik = "hur", amne = "SO", modul = "plugga", matFlik = "plugga";
+const AV = { ekvationsresan: 1, hittaratt: 1, schack: 1 };
+const KLASSER_AK = ["4A", "4B", "4C", "4D"];
+const KLASSER_AD = ["4A", "4B", "4C", "4D", "5A", "5B", "5D", "5E", "Studion", "Flex"];
+const klasser = () => (roll === "ad" ? KLASSER_AD : KLASSER_AK);
+const ELEVER = ["Ahlaam", "Bahja", "Cindy", "David", "Elias", "Elissa", "Elsa", "Harry", "Ines", "Jamal", "Kevin", "Lina"];
+const OMR = ["Svensk historia", "Valet och demokrati", "Vasatiden", "Vikingarnas gudar", "Vikingatiden 2.0"];
+const STJ = [[0,7,0,0,9],[0,7,0,0,4],[0,11,0,3,12],[0,0,0,3,0],[1,4,0,3,15],[0,3,0,3,8],[0,3,0,0,2],[0,13,0,3,18],[0,0,0,0,6],[2,9,4,6,21],[0,5,0,0,0],[0,8,0,3,10]];
+const MAX = [3,24,12,18,27];
+
+const NAV = [
+  ["hem", "Hem", ""], ["klasser", "Mina klasser", ""], ["material", "Material", ""],
+  ["prov", "Prov", "18"], ["live", "Live", ""],
+];
+function ritaNav() {
+  const items = NAV.concat(roll === "ad" ? [["admin", "Admin", ""]] : []);
+  $("#nav").innerHTML = items.map(([k, l, b]) =>
+    `<button data-g="${k}" ${sida === k ? 'aria-current="page"' : ""}>${l}${b ? ` <span class="badge" title="${b} prov att rätta">${b}</span>` : ""}</button>`).join("");
+  $("#meny-admin").hidden = roll !== "ad";
+  $("#kontonamn").textContent = roll === "ad" ? "Elias (admin)" : "Årskurs 4";
+  $("#ava").textContent = roll === "ad" ? "E" : "Å4";
+  $("#inloggad").textContent = "Inloggad som " + (roll === "ad" ? "Elias (admin)" : "Årskurs 4");
+}
+function ga(k) {
+  if (k === "logout") return notis("Här loggas man ut.");
+  if (k === "hjalp") k = "hem";
+  sida = k; $("#profilmeny").hidden = true; $("#profilknapp").setAttribute("aria-expanded", "false");
+  ritaNav(); rita(); window.scrollTo(0, 0);
+}
+function notis(t) { const n = document.createElement("div"); n.className = "notis"; n.textContent = t; document.body.append(n); setTimeout(() => n.remove(), 2200); }
+
+/* ---------- HEM ---------- */
+function hem() {
+  const kort = klasser().slice(0, roll === "ad" ? 10 : 4).map((k, i) => {
+    const aktiva = [18, 17, 21, 12, 15, 9, 19, 11, 4, 3][i], tot = [23, 22, 23, 23, 20, 19, 21, 19, 5, 4][i];
+    const fokus = k === "4A";
+    return `<button class="klasskort" data-klass="${k}">
+      <span class="namn">${k}<small>${tot} elever</small></span>
+      <span class="liten-text">Övat den här veckan: <b style="color:var(--text)">${aktiva} av ${tot}</b></span>
+      <span class="stapel"><i style="width:${Math.round(100 * aktiva / tot)}%"></i></span>
+      <span class="rad" style="gap:6px">${fokus ? '<span class="chip fokus">🔒 Fokusläge till 10:40</span>' : ""}<span class="chip">Jobbar med: ${["Vikingatiden 2.0", "Vikingarnas gudar", "Skogen", "Energi"][i % 4]}</span></span>
+    </button>`;
+  }).join("");
+  return `
+  <div><h1>Hej ${roll === "ad" ? "Elias" : "Årskurs 4"}!</h1><p class="lead">Här ser du det som behöver göras och hur det går för dina klasser.</p></div>
+
+  ${roll === "ak" ? `<section class="panel kom" aria-labelledby="kom">
+    <div class="rad" style="justify-content:space-between"><h2 id="kom">Kom igång – 2 av 4 klart</h2><button class="btn ghost liten" onclick="this.closest('section').remove()">Dölj</button></div>
+    <ol>
+      <li class="klar"><span class="bock klar">✓</span><span>Logga in första gången</span></li>
+      <li class="klar"><span class="bock klar">✓</span><span>Skriv ut inloggningskort till eleverna</span></li>
+      <li><span class="bock"></span><span>Välj vilka områden din klass ska jobba med</span><button class="btn liten" data-klassflik="ser">Gör det nu</button></li>
+      <li><span class="bock"></span><span>Testa ett prov eller en Live-match</span><button class="btn liten" data-g="prov">Visa hur</button></li>
+    </ol>
+  </section>` : ""}
+
+  <div class="grid2">
+    <section class="panel" aria-labelledby="att">
+      <h2 id="att">Att göra</h2>
+      <div class="todo">
+        <div class="t"><span class="ik gul">✎</span><span class="txt"><b>18 prov att rätta</b><span>Vikingatiden – avstämning · 4B · inlämnat i fredags</span></span><button class="btn prim liten" data-g="prov">Rätta</button></div>
+        <div class="t"><span class="ik gul">🔒</span><span class="txt"><b>Fokusläge är på i 4A</b><span>Låst till Vikingatiden 2.0 till 10:40</span></span><button class="btn liten" onclick="notis('Fokusläget i 4A är avstängt.')">Stäng av</button></div>
+        <div class="t"><span class="ik bla">👤</span><span class="txt"><b>3 elever i 4B har inte loggat in på 2 veckor</b><span>David, Ines och Kevin</span></span><button class="btn liten" data-klass="4B" data-klassflik="elever">Visa</button></div>
+      </div>
+    </section>
+    <section class="panel" aria-labelledby="sn">
+      <h2 id="sn">Snabbval</h2>
+      <div class="snabb">
+        <button data-klassflik="ser"><b>Välj områden åt en klass</b><span>Bestäm vad eleverna ser i Plugga</span></button>
+        <button data-g="material"><b>Skapa nytt område</b><span>Frågor, par och texter</span></button>
+        <button data-g="prov"><b>Skapa ett prov</b><span>Blandade frågetyper</span></button>
+        <button data-g="live"><b>Starta Live</b><span>Tävling i klassen eller mot en annan</span></button>
+      </div>
+    </section>
+  </div>
+
+  <section class="sektion" aria-labelledby="mk"><div class="rad" style="justify-content:space-between"><h2 id="mk">Mina klasser</h2>${roll === "ad" ? '<span class="liten-text">Testklasser är dolda · <button class="btn ghost liten">Visa alla</button></span>' : ""}</div>
+    <div class="grid4">${kort}</div>
+  </section>`;
+}
+
+/* ---------- MINA KLASSER ---------- */
+const FLIKAR = [["hur", "Hur går det?", "Statistik"], ["ser", "Vad eleverna ser", "Områden och moduler"], ["fokus", "Fokusläge", "Lås till en sak"], ["elever", "Elever", "Inloggning och konton"]];
+function klasserSida() {
+  return `
+  <div><h1>Mina klasser</h1><p class="lead">Välj klass. Allt om klassen finns i flikarna, och klassen du valt är kvar när du byter sida.</p></div>
+  <div class="klassval" role="group" aria-label="Välj klass">${klasser().map((k) => `<button data-klass="${k}" aria-pressed="${k === klass}">${k}</button>`).join("")}</div>
+  <div class="panel" style="display:flex;flex-direction:column;gap:16px">
+    <div class="rad" style="justify-content:space-between"><h2 style="font-size:24px">${klass} <span class="liten-text">22 elever</span></h2></div>
+    <div class="flikar" role="tablist">${FLIKAR.map(([k, l, s]) => `<button role="tab" data-klassflik="${k}" aria-selected="${klassFlik === k}">${l}<small>${s}</small></button>`).join("")}</div>
+    <div>${({ hur, ser, fokus, elever })[klassFlik]()}</div>
+  </div>`;
+}
+function farg(v, m) {
+  if (!v) return `<span class="liten-text">–</span>`;
+  const p = v / m, a = 0.15 + p * 0.7;
+  return `<span class="cell" style="background:rgba(46,204,113,${a.toFixed(2)});color:${p > .55 ? "#06240F" : "var(--text)"}">${v}/${m}</span>`;
+}
+const MODULER = [["plugga","Plugga"],["lasresan","Läsresan"],["ekvationsresan","Ekvationsresan"],["brakresan","Bråkresan"],["hittaratt","Hitta rätt!"],["schack","Schack"],["prov","Prov"],["live","Live"]];
+function hur() {
+  const chips = `<div class="rad" style="gap:6px">${MODULER.map(([k,l]) => `<button class="btn liten" data-modul="${k}" style="${modul===k?"background:var(--gron-bg);border-color:var(--gron-m)":""}${AV[k]?";opacity:.55":""}">${l}${AV[k]?" · av":""}</button>`).join("")}</div>
+    <p class="liten-text" style="margin:-4px 0 0">Varje del har ett eget ställe här: hur det går för klassen och det du kan ställa in för just ${klass}, till exempel elevernas nivåer.</p>`;
+  if (AV[modul]) return `<div class="sektion">${chips}<div class="hjalp">⏸ <span><b>${MODULER.find(m=>m[0]===modul)[1]} är avstängt för ${klass}.</b> Eleverna ser det inte i menyn. Slå på det under <button class="btn liten" data-klassflik="ser">Vad eleverna ser</button></span></div>${modul==="schack"?schackVy(true):""}</div>`;
+  if (modul !== "plugga") return `<div class="sektion">${chips}${({lasresan:nivaVy("Läsresan","Lästa texter","Rätt på frågorna"),ekvationsresan:nivaVy("Ekvationsresan","Lösta ekvationer","Rätt första försöket"),brakresan:brakVy(),hittaratt:"",schack:schackVy(),prov:provVy(),live:liveVy()})[modul]}</div>`;
+  return `<div class="sektion">${chips}
+    <div class="rad"><label>Visa <select><option>Per ämne</option><option>Per område</option></select></label>
+      <label>Ämne <select><option>SO</option><option>Matematik</option><option>NO</option><option>Svenska</option></select></label></div>
+    <div class="legend"><span><i style="background:rgba(46,204,113,.2)"></i>Har börjat</span><span><i style="background:rgba(46,204,113,.85)"></i>Nästan alla stjärnor</span><span>– inte börjat</span><span>Rött används bara för sådant du behöver göra något åt.</span></div>
+    <div class="tabellwrap"><table>
+      <thead><tr><th class="namn">Elev</th>${OMR.map((o) => `<th>${o}</th>`).join("")}<th>Totalt</th><th>Senast inloggad</th></tr></thead>
+      <tbody>${ELEVER.map((e, i) => { const s = STJ[i], tot = s.reduce((a, b) => a + b, 0), mx = MAX.reduce((a, b) => a + b, 0);
+        const sen = ["idag", "idag", "igår", "16 dagar sedan", "idag", "igår", "3 dagar sedan", "idag", "15 dagar sedan", "idag", "14 dagar sedan", "igår"][i];
+        return `<tr><td class="namn">${e}</td>${s.map((v, j) => `<td>${farg(v, MAX[j])}</td>`).join("")}<td><b>${Math.round(100 * tot / mx)} %</b> <span class="liten-text">${tot}/${mx} ★</span></td><td>${sen.includes("dagar") && parseInt(sen) > 13 ? `<span style="color:var(--rod);font-weight:800">${sen}</span>` : sen}</td></tr>`; }).join("")}</tbody>
+    </table></div></div>`;
+}
+function nivaVy(namn, a, b) {
+  return `<div class="hjalp">🎚 <span>Här ser du hur det går i <b>${namn}</b> och kan <b>ändra elevens nivå</b> direkt i tabellen.</span></div>
+  <div class="tabellwrap"><table style="min-width:560px"><thead><tr><th class="namn">Elev</th><th>Nivå</th><th>${a}</th><th>${b}</th><th>Senast</th></tr></thead><tbody>
+  ${ELEVER.map((e,i)=>`<tr><td class="namn">${e}</td><td><select aria-label="Nivå för ${e}">${[...Array(10)].map((_,n)=>`<option ${n+1===[4,5,3,4,6,4,2,7,3,5,4,4][i]?"selected":""}>${n+1}</option>`).join("")}</select></td><td>${[12,18,7,3,25,14,5,30,2,21,0,11][i]}</td><td>${[78,84,61,55,92,80,48,88,50,75,"–",70][i]}${i===10?"":" %"}</td><td>${["idag","igår","idag","16 dagar sedan","idag","igår","3 dagar sedan","idag","15 dagar sedan","idag","14 dagar sedan","igår"][i]}</td></tr>`).join("")}
+  </tbody></table></div>`;
+}
+function brakVy() {
+  return `<div class="tabellwrap"><table style="min-width:520px"><thead><tr><th class="namn">Elev</th><th>Utmaningar klara</th><th>Stjärnor</th><th>Senast</th></tr></thead><tbody>
+  ${ELEVER.map((e,i)=>{const k=[12,20,6,0,31,15,4,26,2,18,0,9][i];return `<tr><td class="namn">${e}</td><td>${farg(k,50)}</td><td>${k*2} ★</td><td>${["idag","igår","idag","–","idag","igår","3 dagar sedan","idag","15 dagar sedan","idag","–","igår"][i]}</td></tr>`}).join("")}
+  </tbody></table></div><div><button class="btn liten" data-g="material" onclick="matFlik='brakresan'">Prova Bråkresan själv (testläge) →</button></div>`;
+}
+function schackVy(av) {
+  return `<div class="grid2"><div class="panel" style="background:var(--panel2)"><h2>Topplista</h2><ol style="margin:10px 0 0;padding-left:20px;display:grid;gap:4px;font-weight:700">${["Harry · 1084","Jamal · 1052","Elias · 1031","Cindy · 1008","Lina · 996"].map(x=>`<li>${x}</li>`).join("")}</ol><div class="rad" style="margin-top:12px"><button class="btn liten">Dölj för eleverna</button><button class="btn liten">Nollställ</button></div></div>
+  <div class="panel" style="background:var(--panel2)"><h2>Pågående partier</h2>${av?'<p class="liten-text">Inga – schack är avstängt.</p>':`<div class="todo"><div class="t"><span class="txt"><b>Elias – Sara</b><span>Drag 14 · 10 min-klocka</span></span><button class="btn liten">Titta</button><button class="btn ghost liten">Avsluta</button></div></div>`}</div></div>`;
+}
+function provVy() {
+  return `<div class="todo" style="margin:0"><div class="t"><span class="ik gul">✎</span><span class="txt"><b>Vikingatiden – avstämning</b><span>16 okt. · 🟢 12 · 🟡 7 · 🔴 3 · 18 orättade</span></span><button class="btn liten" data-g="prov">Öppna</button></div></div>`;
+}
+function liveVy() {
+  return `<div class="todo" style="margin:0">${[["Snilleblixten","16 okt.","Oskar"],["Guldrushen 4A + 4B","13 okt.","Sigrid"],["Klassmatchen 4B mot 4D","10 okt.","4B"]].map(([n,d,v])=>`<div class="t"><span class="txt"><b>${n}</b><span>${d} · vinnare ${v}</span></span><button class="btn liten">Resultat</button></div>`).join("")}</div>`;
+}
+function ser() {
+  const g = { SO: [["⚔️", "Vikingatiden 2.0", 1], ["⚔️", "Vikingarnas gudar", 1], ["🦕", "Svensk historia"], ["🗳️", "Valet och demokrati"], ["📜", "Vasatiden"]],
+    Matematik: [["🧮", "Överslagsräkning", 1], ["➕", "Träna på addition", 1], ["📏", "Längd"], ["🔢", "Talsorter och positionssystemet"], ["≈", "Avrundning"], ["🧠", "Tiokompisar"]],
+    NO: [["🌲", "Skogen", 1], ["☀️", "Energi"]], Svenska: [["✏️", "Skiljetecken, vokaler och dubbelteckning", 1], ["📝", "Tidsord och sambandsord"]] };
+  return `<div class="sektion" style="gap:18px">
+    <div class="hjalp">💡 <span>Här bestämmer du <b>vad eleverna i ${klass} ser</b>. Kryssar du inte i några områden ser eleverna alla.</span></div>
+    <div class="sektion"><div class="steg"><span class="nr">1</span><h2>Vilka områden jobbar ni med nu?</h2></div>
+      ${Object.entries(g).map(([a, l]) => `<div class="amne">${a}</div><div class="val">${l.map(([em, n, c]) => `<label><input type="checkbox" ${c ? "checked" : ""}><span class="em">${em}</span>${n}</label>`).join("")}</div>`).join("")}
+    </div>
+    <div class="sektion"><div class="steg"><span class="nr">2</span><h2>Vilka delar ska finnas i elevernas meny?</h2></div><p class="liten-text" style="margin:0">Det du slår på här får sin statistik och sina inställningar under "Hur går det?".</p>
+      <div class="val" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">
+        ${[["Plugga", "Områden, övningar och äventyr", 1], ["Läsresan", "Läsförståelse på elevens nivå", 1], ["Shoppen", "Köpa saker för pluggmynt", 1], ["Hitta rätt!", "Kartövningar", 0], ["Ekvationsresan", "Ekvationer steg för steg", 0], ["Bråkresan", "Bråk i 50 utmaningar", 1], ["Schack", "Mot datorn och mot klasskompisar", 0]]
+          .map(([n, s, c]) => `<label class="toggle"><span>${n}<small>${s}</small></span><input type="checkbox" class="sw" ${c ? "checked" : ""}></label>`).join("")}
+      </div></div>
+    <details><summary>Avancerat: dölj vissa övningslägen i ett område</summary><p class="liten-text" style="margin:8px 0 0">Till exempel visa Vikingatiden utan Memory. De flesta behöver aldrig ändra det här.</p></details>
+    <div class="rad"><button class="btn prim" onclick="notis('Sparat för ${klass}.')">Spara</button><span class="liten-text">Eleverna ser ändringen direkt.</span></div>
+  </div>`;
+}
+function fokus() {
+  return `<div class="sektion" style="max-width:640px">
+    <div class="hjalp">🔒 <span><b>Fokusläge</b> låser klassen till en sak, till exempel ett område eller ett prov. Resten av Pluggporten är stängd tills tiden är ute eller du stänger av.</span></div>
+    <label>Lås ${klass} till <select style="width:100%;margin-top:6px"><option>Område: Vikingatiden 2.0</option><option>Läsresan</option><option>Prov: Vikingatiden – avstämning</option><option>Bråkresan</option></select></label>
+    <label>Till klockan <input type="time" value="10:40"></label>
+    <div class="rad"><button class="btn prim" onclick="notis('Fokusläge på i ${klass} till 10:40.')">Starta fokusläge</button><span class="liten-text">Just nu: av</span></div>
+  </div>`;
+}
+function elever() {
+  const admin = roll === "ad";
+  return `<div class="sektion">
+    <div class="rad" style="justify-content:space-between">
+      <div class="rad"><button class="btn prim" onclick="notis('Inloggningskort skrivs ut.')">🖨 Skriv ut inloggningskort</button>${admin ? '<button class="btn">＋ Lägg till elev</button><button class="btn">Ge hela klassen mynt</button>' : ""}</div>
+      <input type="text" placeholder="Sök elev…" aria-label="Sök elev">
+    </div>
+    <div class="tabellwrap"><table style="min-width:560px">
+      <thead><tr><th class="namn">Namn</th><th>Användarnamn</th><th>Lösenord</th><th>Senast inloggad</th>${admin ? "<th>Mynt</th>" : ""}<th></th></tr></thead>
+      <tbody>${ELEVER.map((e, i) => `<tr><td class="namn">${e}</td><td>${e.toLowerCase()}${[582, 283, 896, 114, 503, 771, 239, 650, 418, 302, 955, 127][i]}</td><td><button class="btn ghost liten">Visa</button></td><td>${["idag", "idag", "igår", "16 dagar sedan", "idag", "igår", "3 dagar sedan", "idag", "15 dagar sedan", "idag", "14 dagar sedan", "igår"][i]}</td>${admin ? `<td>${[988, 120, 340, 15, 2210, 560, 75, 1310, 40, 890, 0, 230][i]}</td>` : ""}
+        <td style="text-align:right"><button class="btn ghost liten" onclick="notis('Meny: Byt lösenord${admin ? ", Ge mynt, Ta ur klassen, Ta bort konto" : ""}')" aria-label="Fler val för ${e}">⋯</button></td></tr>`).join("")}</tbody>
+    </table></div>
+    <p class="liten-text">${admin ? "Ta bort konto och Ta ur klassen ligger i menyn ⋯ och kräver bekräftelse." : "Byt lösenord ligger i menyn ⋯. Konton skapas av admin."}</p>
+  </div>`;
+}
+
+/* ---------- MATERIAL ---------- */
+function material() {
+  const rad = [["🦕", "Svensk historia", "Admin", "–", ["Tidsjakten", "Lästexter"], "18 händelser · 5 texter", 0],
+    ["🗳️", "Valet och demokrati", "Admin", "–", ["Quiz", "Para ihop", "Bildpar", "Lästexter"], "172 frågor · 63 par · 39 texter", 0],
+    ["📜", "Vasatiden", "Admin", "Åk 5", ["Quiz", "Para ihop", "Lästexter"], "70 frågor · 45 par · 5 texter", 0],
+    ["⚔️", "Vikingarnas gudar", "dig", "Åk 4", ["Quiz", "Lästexter"], "100 frågor · 6 texter", 1],
+    ["⚔️", "Vikingatiden 2.0", "Admin", "Åk 4", ["Quiz", "Para ihop", "Bildpar", "Ämnesläsning", "Lästexter"], "45 frågor · 20 par · 27 ämnestexter", 0]];
+  return `
+  <div class="rad" style="justify-content:space-between;align-items:flex-end"><div><h1>Material</h1><p class="lead">Arbetsområden med frågor, par och texter. Skapa egna eller använd andras.</p></div><button class="btn prim">＋ Skapa nytt område</button></div>
+  <div class="flikar" role="tablist">${[["plugga","Plugga-områden","Frågor, par och texter"],["lasresan","Läsresan","Texterna per nivå"],["ekvationsresan","Ekvationsresan","Prova själv"],["brakresan","Bråkresan","Testläge med facit"],["hittaratt","Hitta rätt!","Kartpaket"],["schack","Schack","Prova mot datorn"]].map(([k,l,t])=>`<button role="tab" data-matflik="${k}" aria-selected="${matFlik===k}">${l}<small>${t}</small></button>`).join("")}</div>
+  ${matFlik!=="plugga" ? matAnnat() : `<div class="panel sektion">
+    <div class="amnesflik" role="tablist">${["SO", "Matematik", "NO", "Svenska"].map((a) => `<button role="tab" data-amne="${a}" aria-selected="${a === amne}">${a}</button>`).join("")}<button class="btn ghost liten" style="border:0">＋ Nytt ämne</button></div>
+    <div class="rad"><label>Årskurs <select><option>Alla</option><option>Åk 4</option><option>Åk 5</option></select></label><label>Visa <select><option>Allt material</option><option>Bara mitt</option></select></label></div>
+    <div class="tabellwrap"><table style="min-width:760px">
+      <thead><tr><th class="namn">Område</th><th>Åk</th><th>Innehåll</th><th>Omfattning</th><th></th></tr></thead>
+      <tbody>${rad.map(([em, n, av, ak, t, om, eget]) => `<tr><td class="namn">${em} ${n}<div class="liten-text">Skapat av ${av}</div></td><td>${ak}</td><td>${t.map((x) => `<span class="tagg">${x}</span>`).join("")}</td><td class="liten-text" style="color:var(--svag)">${om}</td>
+        <td style="text-align:right;white-space:nowrap"><button class="btn liten">Visa</button> <button class="btn liten" onclick="notis('Välj klasser som ska jobba med ${n}.')">Ge till klass</button> ${eget ? '<button class="btn liten">Redigera</button>' : '<button class="btn liten">Kopiera och ändra</button>'} <button class="btn ghost liten" onclick="notis('Meny: Lägg till fler frågor, Förhandsvisa som elev${eget ? ", Ta bort" : ""}')" aria-label="Fler val">⋯</button></td></tr>`).join("")}</tbody>
+    </table></div>
+    <p class="liten-text">Andras områden kan du inte ändra direkt. Med "Kopiera och ändra" får du en egen kopia.</p>
+  </div>`}`;
+}
+function matAnnat() {
+  const T = { lasresan:["Läsresan","Se alla texter och frågor på varje nivå, och prova som elev. Elevernas nivåer ändrar du under Mina klasser → Hur går det? → Läsresan."],
+    ekvationsresan:["Ekvationsresan","Prova uppgifterna som en elev. Elevernas nivåer ändrar du under Mina klasser."],
+    brakresan:["Bråkresan – testläge","Alla 50 utmaningar med facit. Inget sparas."],
+    hittaratt:["Hitta rätt!","Färdiga kartpaket och dina egna. Vilka klasser som har Hitta rätt! slår du på under Mina klasser → Vad eleverna ser."],
+    schack:["Schack","Prova att spela mot datorn på alla nivåer."] }[matFlik];
+  return `<div class="panel sektion"><h2>${T[0]}</h2><p class="lead" style="margin:0">${T[1]}</p><div><button class="btn prim">Öppna</button></div></div>`;
+}
+
+/* ---------- PROV ---------- */
+function prov() {
+  return `
+  <div class="rad" style="justify-content:space-between;align-items:flex-end"><div><h1>Prov</h1><p class="lead">Skapa prov, kör dem i en klass och rätta här.</p></div><button class="btn prim">＋ Nytt prov</button></div>
+  <section class="panel sektion"><h2>Att rätta</h2>
+    <div class="todo" style="margin:0"><div class="t"><span class="ik gul">✎</span><span class="txt"><b>Vikingatiden – avstämning · 4B</b><span>22 inlämnade · 4 rättade · 18 kvar</span></span><button class="btn prim liten">Rätta</button></div></div></section>
+  <section class="panel sektion"><h2>Mina prov</h2>
+    <div class="tabellwrap"><table><thead><tr><th class="namn">Namn</th><th>Frågor</th><th>Körts i</th><th>Senast ändrat</th><th></th></tr></thead>
+    <tbody><tr><td class="namn">Vikingatiden – avstämning<div class="liten-text">Historia</div></td><td>10</td><td>4B</td><td>19 okt.</td><td style="text-align:right;white-space:nowrap"><button class="btn liten">Redigera</button> <button class="btn prim liten">Kör i klass</button> <button class="btn ghost liten" aria-label="Fler val" onclick="notis('Meny: Förhandsvisa, Skriv ut, Kopiera, Ta bort')">⋯</button></td></tr></tbody></table></div>
+  </section>`;
+}
+
+/* ---------- LIVE ---------- */
+function live() {
+  return `
+  <div><h1>Live</h1><p class="lead">Tävla i klassen eller klass mot klass. Projektorvyn öppnas när du startar.</p></div>
+  <section class="panel sektion"><h2>1. Välj spel</h2>
+    <div class="snabb" style="margin:0">${[["🏁 Klassmatchen", "Klass mot klass – flest rätt per elev vinner"], ["⚡ Snilleblixten", "Hela klassen, samma fråga – snabbast rätt vinner"], ["💰 Guldrushen", "Samla guld, öppna kistor, stjäl från varandra"], ["💾 Datakuppen", "Samla data och knäck varandras koder"]].map(([n, s], i) => `<button style="${i === 1 ? "border-color:var(--gron-m);background:var(--gron-bg)" : ""}"><b>${n}</b><span>${s}</span></button>`).join("")}</div>
+  </section>
+  <section class="panel sektion"><h2>2. Välj klass och frågor</h2>
+    <div class="rad"><label>Klass <select><option>4B</option><option>4A</option></select></label><label>Frågor från <select><option>Vikingatiden 2.0</option><option>Multiplikation 0–10</option></select></label><label>Längd <select><option>10 min</option><option>15 min</option></select></label></div>
+    <div><button class="btn prim">Starta och öppna projektorvyn</button></div>
+  </section>
+  <section class="panel"><h2>Senaste matcherna</h2><p class="liten-text" style="margin-top:8px">Snilleblixten 4B · 16 okt. · vinnare Oskar &nbsp;·&nbsp; Guldrushen 4A + 4C · 16 okt. · vinnare Sigrid</p></section>`;
+}
+
+/* ---------- ADMIN ---------- */
+function admin() {
+  return `
+  <div><h1>Admin</h1><p class="lead">Det här ser bara admin. Vanliga lärare ser aldrig den här sidan.</p></div>
+  <div class="snabb">${[["Klasser och elevkonton", "Skapa klasser, lägg till och ta bort elever"], ["Lärarkonton", "Skapa årskurskonton och välj deras klasser"], ["Säsong", "Sommar, höst och Halloween"], ["Hitta rätt!", "Kartpaket och bilder"], ["Mattematchen", "Skapa tävlingsperioder"]].map(([n, s]) => `<button><b>${n}</b><span>${s}</span></button>`).join("")}</div>`;
+}
+
+function rita() {
+  const v = { hem, klasser: klasserSida, material, prov, live, admin }[sida];
+  $("#sida").innerHTML = v();
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-g],[data-klass],[data-klassflik],[data-amne],[data-modul],[data-matflik]");
+  if (!b) return;
+  if (b.dataset.amne) { amne = b.dataset.amne; return rita(); }
+  if (b.dataset.modul) { modul = b.dataset.modul; return rita(); }
+  if (b.dataset.matflik) { matFlik = b.dataset.matflik; return rita(); }
+  if (b.dataset.klass) klass = b.dataset.klass;
+  if (b.dataset.klassflik) klassFlik = b.dataset.klassflik;
+  if (b.dataset.g) return ga(b.dataset.g);
+  if (b.dataset.klass || b.dataset.klassflik) { sida = "klasser"; ritaNav(); rita(); if (!b.closest(".flikar") && !b.closest(".klassval")) window.scrollTo(0, 0); }
+});
+$("#profilknapp").addEventListener("click", () => { const m = $("#profilmeny"); m.hidden = !m.hidden; $("#profilknapp").setAttribute("aria-expanded", String(!m.hidden)); });
+$("#roll-ak").onclick = () => { roll = "ak"; $("#roll-ak").setAttribute("aria-pressed", "true"); $("#roll-ad").setAttribute("aria-pressed", "false"); if (sida === "admin") sida = "hem"; if (!klasser().includes(klass)) klass = "4B"; ritaNav(); rita(); };
+$("#roll-ad").onclick = () => { roll = "ad"; $("#roll-ad").setAttribute("aria-pressed", "true"); $("#roll-ak").setAttribute("aria-pressed", "false"); ritaNav(); rita(); };
+ritaNav(); rita();
+</script>

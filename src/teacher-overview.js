@@ -1,7 +1,7 @@
 // ============================================================================
 // Pluggporten – lärarsidan: Översikt (teacher-overview.js, #679)
 // ----------------------------------------------------------------------------
-// #/larare/oversikt – det läraren gör oftast (spec §5.1):
+// #/larare/hem (Hem sedan #803; gamla #/larare/oversikt omdirigeras) – spec §5.1:
 //   * Mina klasser: ett kort per klass (årskurskonto: bara kontots) med elevantal,
 //     fokusläge-status och snabbval till Fokusläge, Inloggning och Statistik.
 //   * Pågående Live: matcher i lobby/pågående (årskurskonto: där en av kontots
@@ -47,7 +47,7 @@ export async function pageLarareOversikt(ctx) {
       <button type="button" class="btn ghost small" data-hash="#/larare/live">${icon("plus", 16)}<span>Skapa Live-match</span></button>
     </section>
   </div>`);
-  page.prepend(teacherNav(ctx, "oversikt"), teacherHead(ctx, "oversikt"));
+  page.prepend(teacherNav(ctx, "hem"), teacherHead(ctx, "hem"));
 
   const grid = page.querySelector(".ov-classes");
   const drawClasses = () => {

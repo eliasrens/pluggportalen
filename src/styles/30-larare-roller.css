@@ -1,20 +1,9 @@
 /* ==========================================================================
    Lärarsidan: ny struktur + synlighet efter roll (#679)
-   Huvuddelar i toppnaven + underrad för aktiv del, "Inloggad som …",
-   Översikt (#/larare/oversikt) och "Skapat av …" i materiallistan.
+   Huvuddelar i toppnaven + underrad för aktiv del (profilmenyn: 42-larare-meny.css),
+   Översikt/Hem (#/larare/hem) och "Skapat av …" i materiallistan.
    Allt scopat under .teacher-dark (mörk stil, linje-ikoner).
    ========================================================================== */
-
-.teacher-dark .teacher-nav-who {
-  margin-left: auto;
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--t-border);
-  color: var(--t-muted);
-  font-size: 0.86rem;
-  white-space: nowrap;
-}
-.teacher-dark .teacher-nav-who + .tnav.logout { margin-left: 4px; }
 
 .teacher-dark .teacher-subnav {
   display: flex;
@@ -45,11 +34,8 @@
 }
 .teacher-dark .tsub.active .tnav-ic { color: var(--t-accent); }
 
-@media (max-width: 900px) {
-  .teacher-dark .teacher-nav-who { display: none; }
-}
-/* Sju huvuddelar sedan Prov (#739): lite tätare flikar så att raden (med
-   "Inloggad som …" och Logga ut) får plats på en vanlig laptopskärm. */
+/* Lite tätare flikar så att raden (med profilmenyn) får plats på en vanlig
+   laptopskärm. Under 900 px fälls toppmenyn ihop till ☰ (42-larare-meny.css). */
 @media (min-width: 901px) and (max-width: 1320px) {
   .teacher-dark .teacher-nav-tabs { gap: 3px; }
   .teacher-dark .tnav { padding: 9px 10px; gap: 7px; }
