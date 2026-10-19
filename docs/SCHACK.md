@@ -424,6 +424,10 @@ schackPartier/{partiId}
   samma transaktion. Lobbyn läser den för båda spelarna innan ett parti skapas; pekar
   den på ett parti som inte längre pågår räknas den som fri. Klienten kan aldrig ändra
   den (`schackOk`).
+- **Känd lucka (F9, accepterad):** eleven får radera sitt eget `studentData`-dokument
+  (`allow delete: isSelf`) och tar då bort spärren – men också alla mynt, framsteg, hus
+  och djur. Priset är så högt att spärren inte flyttas; inom klassen håller
+  `partier`-mappen ändå "ett parti åt gången".
 - Alla uppslag med en nyckel som en klient skickat in (`motstandare`, `utmaningId`, uid:n)
   görs bara på egna nycklar (`Object.hasOwn`), och id:n på formen `__x__` nekas – ingen
   "constructor"-motståndare kan ge ett fantomparti.

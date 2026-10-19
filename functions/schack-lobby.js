@@ -78,6 +78,8 @@ function stadaGamla(c, st, gamla) {
     if (parti && parti.status === "pagar") {
       avslutaParti(st.tx, { db: c.db, partiRef: snap.ref, parti, klassRef: st.ref, klass: st.klass, resultat: null, orsak: "avbrutet", nu: st.nu });
     }
+    // F8: spärren lästes före städningen – spelarna i det avbrutna partiet är fria i SAMMA anrop.
+    for (const s of [parti?.vit, parti?.svart]) if (s && st.aktivt[s] === partiId) st.aktivt[s] = null;
   }
 }
 

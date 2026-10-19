@@ -270,6 +270,15 @@ describe("24 h-städningen (§7.3) och läraren (§10)", () => {
     assert.deepEqual(k.tabell, {});
     assert.equal(await code(vanta(deps, ANNA, { classId: KLASS, klocka: null })), "ok", "spelarna är fria igen");
   });
+  it("F8: spelaren i ett 24 h-gammalt parti får vänta igen i SAMMA anrop som städar det", async () => {
+    const p1 = await startaParti();
+    tick(GAMMALT_MS);
+    assert.equal(await code(vanta(deps, ANNA, { classId: KLASS, klocka: null })), "ok");
+    assert.equal((await rig.parti(p1)).orsak, "avbrutet");
+    assert.deepEqual(Object.keys((await rig.klass()).vantar), [ANNA]);
+    assert.equal(await rig.aktivt(ANNA), null);
+    assert.equal(await rig.aktivt(BO), null);
+  });
   it("läraren avslutar ett parti som avbrutet (ingen tabell); nekas för elev, lärare utan klassen och färdigt parti", async () => {
     const p1 = await startaParti();
     assert.equal(await code(larareAvsluta(deps, rig.auth.elev, { partiId: p1 })), "permission-denied");

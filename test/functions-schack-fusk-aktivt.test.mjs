@@ -113,7 +113,7 @@ test("datorPartier +1 fungerar fortfarande med aktivtParti satt, null och saknat
 });
 
 // F9 (info/låg): eleven får radera sitt eget studentData (regeln allow delete: isSelf) – det rensar spärren men kostar henne allt sparat (mynt m.m.).
-test("deleteDoc av eget studentData rensar spärren (kringgår 'ett parti åt gången' över klasser)", { todo: "F9: delete isSelf" }, async () => {
+test("deleteDoc av eget studentData rensar spärren (kringgår 'ett parti åt gången' över klasser)", { todo: "F9 accepterad: radering kostar eleven all data – docs/SCHACK.md §12.1" }, async () => {
   await reset();
   const { partiId } = await nytt(ANNA, BO, { classId: KLASS });
   const anna = await who(ANNA);
