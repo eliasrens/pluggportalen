@@ -1,0 +1,20 @@
+tillfälle H57sy7UXvEBuRWG54g7O, elev Dante xEQ9EzAKQtaTbBZ6vUAH4PsLZISw
+OK  startrutan förklarar helskärmen
+OK  Starta provet → helskärm – {"fs":true,"fokus":true,"dold":false,"paus":false,"hash":"#/elev/prov/skriv?t=H57sy7UXvEBuRWG54g7O"}
+OK  ingen helskarmFel när helskärmen gick
+   (före Esc) {"y":300,"h":768,"sh":1278,"fs":true}
+OK  Esc: ur helskärm
+OK  Esc: pausat, frågorna borta ur DOM:en
+OK  Esc: svar.pausad, pausOrsak helskarm, flikbyten 1, svaret sparat – {"p":true,"o":"helskarm","f":1,"l":1,"s":{"f1":0,"f2":null,"f3":"","f4":""}}
+OK  Fortsätt provet → helskärm igen, samma plats, svaret kvar – scroll 198 (förut 300, mål 198) {"h":768,"sh":1278}
+OK  flikbyte: provfliken dold
+OK  flikbyte: pausat, frågorna borta
+OK  flikbyte: EN skrivning – flikbyten 2, pausLogg 2, pausOrsak flik (ingen extra paus för helskärmen) – ["helskarm","flik"]
+OK  Alt+Tab: pausat först efter > 2 s utan fokus (inte dold) – blur → paus 2002 ms, {"blur":35062.40000000596,"fokus":0,"paus":37063.90000000596,"dold":false,"fs":true}
+OK  Alt+Tab: pausOrsak fokus – orsak fokus, logg ["helskarm","flik","fokus"]
+OK  kort fokusförlust (< 2 s): inte pausat – utan fokus 188 ms (försök 1)
+OK  omladdning: pausat (frågorna borta)
+OK  omladdning: en paus till – flikbyten 3 → 4
+OK  inlämnat: helskärmen avslutad, ingen paus – {"fs":false,"paus":false,"banner":"Inlämnat. Ditt prov är inlämnat! Din lärare rättar det och lämnar tillbaka det sen. Till dina prov\nTill startsidan","knappar":["Pluggporten","Logga ut","1","2","3","4"]}
+OK  inlämnat i Firestore – flikbyten 4, logg ["helskarm","flik","fokus","helskarm"]
+ALLT OK

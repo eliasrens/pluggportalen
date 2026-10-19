@@ -7,13 +7,14 @@
 
 import { db } from "../firebase-config.js";
 import {
-  addDoc, collection, deleteDoc, deleteField, doc, getDoc, getDocs, query, serverTimestamp, updateDoc, where, writeBatch,
+  addDoc, collection, deleteDoc, deleteField, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, updateDoc, where, writeBatch,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { buildLock } from "../class-lock.js";
 import { clearClassLock, getClassLock, setClassLock } from "../data-class-lock.js";
 import { FACIT_DOK, RATTNING, SAMLING_PROV, SAMLING_TILLFALLEN, STATUS, SVAR, delaUppProv } from "./prov-modell.js";
 import { OPPNA_IGEN_BATCH, arProvetsLas, attOppnaIgen, attStangaIn } from "./prov-tillfalle-logik.js";
 import { tillfalleInstallningar } from "./prov-validera.js";
+import { SLAPP_IN_BATCH, extraEfterSlappIn } from "./prov-helskarm.js";
 
 const tfRef = (t) => doc(db, SAMLING_TILLFALLEN, t);
 const facitRef = (t) => doc(db, SAMLING_TILLFALLEN, t, ...FACIT_DOK);
@@ -61,9 +62,10 @@ export async function hamtaSvar(t) {
  * @param {Record<string, number>} [o.extraTid]  #748: extra minuter per elev
  * @param {string[]} [o.elevIds]   #748: omprov – bara de här eleverna
  * @param {string} [o.omprovAv]    #748: tillfället omprovet gäller
+ * @param {{ pa: boolean, undantag: string[] }} [o.helskarm]  #810: helskärmsläget (standard på)
  * @returns {Promise<string>} tillfällets id
  */
-export async function skapaTillfalle({ prov, classId, tidsgransMin, fokus, larare, extraTid, elevIds, omprovAv }) {
+export async function skapaTillfalle({ prov, classId, tidsgransMin, fokus, larare, extraTid, elevIds, omprovAv, helskarm }) {
   const ref = await addDoc(collection(db, SAMLING_TILLFALLEN), {
     provId: prov.id, provNamn: prov.namn, classId,
     createdBy: larare.uid, createdByName: larare.name || "",
@@ -74,6 +76,7 @@ export async function skapaTillfalle({ prov, classId, tidsgransMin, fokus, larar
     fokus: { pa: !!fokus?.pa, doljOvrigt: fokus?.doljOvrigt !== false, ...(fokus?.efter ? { efter: fokus.efter } : {}) },
     ...(extraTid && Object.keys(extraTid).length ? { extraTid } : {}),
     ...(elevIds ? { elevIds, ...(omprovAv ? { omprovAv } : {}) } : {}),
+    ...helskarmDok(helskarm),
     skapad: serverTimestamp(),
   });
   return ref.id;
@@ -82,6 +85,49 @@ export async function skapaTillfalle({ prov, classId, tidsgransMin, fokus, larar
 /** Extra tid per elev (#748): hela mapen ersätts ({} = ingen). Går även medan provet pågår. */
 export async function sparaExtraTid(t, extraTid) {
   await updateDoc(tfRef(t), { extraTid });
+}
+
+// #810: { pa, undantag } → tillfällets fält (inget val = på, inga undantag).
+const helskarmDok = (h) => ({ helskarm: h?.pa !== false, helskarmUndantag: h?.undantag || [] });
+
+/** Helskärmsläget (#810): av/på och undantagen. Går även medan provet pågår. */
+export async function sparaHelskarm(t, helskarm) {
+  await updateDoc(tfRef(t), helskarmDok(helskarm));
+}
+
+/**
+ * Lärarens översikt (#810, §5.6): EN lyssnare på de pausade eleverna. Den
+ * läser bara när någon pausas eller släpps in – inte vid de vanliga
+ * sparningarna (de ändrar inget dokument med pausad == true).
+ * @returns {() => void} avsluta
+ */
+export function lyssnaPausade(t, cb, onFel = () => {}) {
+  const q = query(collection(db, SAMLING_TILLFALLEN, t, SVAR), where("pausad", "==", true));
+  return onSnapshot(q, (s) => cb(Object.fromEntries(s.docs.map((d) => [d.id, { id: d.id, ...d.data() }]))), onFel);
+}
+
+/**
+ * "Släpp in" / "Släpp in alla" (#810): pausad = false + slapptInAt på svaren.
+ * Med "+5 min" får eleverna också 5 minuter mer i tillfällets extraTid (#748)
+ * – samma fält som tidsregeln läser. Allt i en batch per SLAPP_IN_BATCH elever.
+ * @param {object} tf       tillfället (extraTid läses härifrån)
+ * @param {string[]} uids
+ * @param {{ plusMin?: boolean }} [o]
+ * @returns {Promise<Record<string, number> | null>} den nya extraTid-mapen (med +5 min), annars null
+ */
+export async function slappIn(tf, uids, { plusMin = false } = {}) {
+  const extraTid = { ...(tf.extraTid || {}) };
+  for (let i = 0; i < uids.length; i += SLAPP_IN_BATCH) {
+    const batch = writeBatch(db);
+    const del = uids.slice(i, i + SLAPP_IN_BATCH);
+    for (const uid of del) {
+      batch.update(doc(db, SAMLING_TILLFALLEN, tf.id, SVAR, uid), { pausad: false, slapptInAt: serverTimestamp() });
+      if (plusMin && tf.tidsgransMin) extraTid[uid] = extraEfterSlappIn({ extraTid }, uid);
+    }
+    if (plusMin && tf.tidsgransMin) batch.update(tfRef(tf.id), { extraTid });
+    await batch.commit();
+  }
+  return plusMin && tf.tidsgransMin ? extraTid : null;
 }
 
 /**

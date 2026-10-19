@@ -100,7 +100,7 @@ export function valjStartSvar(server, lokal) {
  * @param {{ id: string, namn: string }[]} elever  klassens elever
  * @param {Record<string, object>} svarPerElev     svar-dokumenten (id = elevens uid)
  * @param {object} tillfalle                       { fragor, tidsgransMin, extraTid? }
- * @returns {{ id, namn, status: "ej"|"skriver"|"inlamnat", statusText, besvarade, antal, kvarMs: number|null, extraMin: number, inlamnadNar?: string }[]}
+ * @returns {{ id, namn, status: "ej"|"skriver"|"inlamnat", statusText, besvarade, antal, kvarMs: number|null, extraMin: number, inlamnadNar?: string, pausad?: boolean, helskarmFel?: boolean }[]}
  */
 export function oversiktRader(elever, svarPerElev, tillfalle, nu) {
   return elever.map((e) => {
@@ -113,7 +113,12 @@ export function oversiktRader(elever, svarPerElev, tillfalle, nu) {
     if (d.inlamnad) {
       return { id: e.id, namn: e.namn, status: "inlamnat", statusText: "Inlämnat", besvarade, antal, kvarMs: null, extraMin: extra, inlamnadNar: d.inlamnadNar || "elev" };
     }
-    return { id: e.id, namn: e.namn, status: "skriver", statusText: "Skriver", besvarade, antal, kvarMs: slut == null ? null : Math.max(0, slut - nu), extraMin: extra };
+    // #810: pausad (helskärmsläget) – läraren släpper in; helskarmFel: "Helskärm fungerade inte".
+    const pausad = d.pausad === true;
+    return {
+      id: e.id, namn: e.namn, status: "skriver", statusText: pausad ? "Pausad" : "Skriver", besvarade, antal,
+      kvarMs: slut == null ? null : Math.max(0, slut - nu), extraMin: extra, pausad, helskarmFel: d.helskarmFel === true,
+    };
   });
 }
 

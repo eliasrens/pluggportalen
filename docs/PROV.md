@@ -530,8 +530,11 @@ Förhandsvisning utan Firebase: `preview/preview-prov-larare.html`
   #748: `extraTid` en map (≤ 100 elever), `elevIds` en lista med 1–100 elever
   som aldrig byts (inte heller läggs till eller tas bort efter skapandet);
   `omprovAv` likaså, och vid skapandet samma prov och klass som ursprunget.
+  #810: `helskarm` true/false, `helskarmUndantag` en lista (≤ 100).
 - **svar** (eleven): nycklar bara `elevId, classId, startad, uppdaterad, svar,
-  inlamnad, inlamnadAt, inlamnadNar, flikbyten` (#748: heltal 0–10 000). Skapa med `startad` och `uppdaterad` =
+  inlamnad, inlamnadAt, inlamnadNar, flikbyten` (#748: heltal 0–10 000) och
+  #810: `pausad, pausadAt, pausOrsak, pausLogg, slapptInAt, helskarmFel` (se
+  "Helskärmsläget" nedan). Skapa med `startad` och `uppdaterad` =
   `serverTimestamp()`; **varje** sparning sätter `uppdaterad: serverTimestamp()`.
   Inlämning: `inlamnad: true, inlamnadNar: "elev" | "tid", inlamnadAt: serverTimestamp()`.
   Efter `startad + tidsgransMin + extraTid[uid] + 2 min` nekas allt – lämna in i tid.
@@ -882,6 +885,92 @@ fungerar mot minnet), `preview/preview-prov-elev.html?extra=15` (55 minuter;
 byt flik → "flikbyten" i kontrollraden), `preview/preview-prov-rattning.html?nollstall`
 (Bo lämnade provet 2 gånger, under Per elev).
 
+## Helskärmsläget (#810, §5.6)
+
+En **tröskel, inte ett vattentätt skydd** – hjälptexten säger det till läraren
+("Helskärmsläget gör det svårare att fuska, men inte omöjligt").
+
+**Inställningen.** Tillfällets `helskarm` (saknas = på, standard) och
+`helskarmUndantag: [uid]` (de eleverna skriver exakt som förut, t.ex. med ett
+uppläsningsprogram). Fältet "Helskärmsläge" finns i "Kör i klass", "Öppna"
+och – medan provet pågår – bakom knappen "Helskärm: på/av" i översikten
+(`prov-helskarm-falt.js`, `helskarmRuta`). Ett omprov ärver ursprungets val.
+Logiken: `src/prov/prov-helskarm.js` (ren, testad i `test/prov-helskarm.test.js`).
+
+**Eleven** (`prov-helskarm-elev.js`): startrutan visar förklaringen, och
+"Starta provet" begär `requestFullscreen()` **direkt i klicket**. Går det inte
+(stöds inte / nekas) startar provet ändå och svaret får `helskarmFel: true` –
+läraren ser "Helskärm fungerade inte" vid eleven; då pausar bara flik och fokus.
+Pausvakten (`skapaPausvakt`) pausar vid `fullscreenchange` ut ur helskärm,
+`visibilitychange` (fliken dold) och `blur` som varar mer än 2 s utan att
+`document.hasFocus()` kommer tillbaka (Alt+Tab, Windows-tangenten). Kommer
+eleven tillbaka till ett påbörjat prov utan helskärm (omladdad sida, ny flik)
+eller går till en annan sida i appen mitt i provet räknas det också som en
+paus ("gick ur helskärm").
+
+När provet pausas: **en** skrivning (`pausa`) med svaren, `pausad: true`,
+`pausadAt` (serverns tid), `pausOrsak` (`helskarm`/`flik`/`fokus`), räknaren
+och `pausLogg` (`{ at: ms, orsak }` per paus, ≤ 200). Provvyn **tas bort ur
+sidan** (`replaceWith`, inte CSS) och ersätts av rutan "Provet är pausat".
+Tiden går. Eleven lyssnar sedan på **sitt eget** svar-dokument
+(`lyssnaMittSvar`, en läsning per ändring – bara under pausen). När läraren
+släppt in visas "Fortsätt provet"; klicket går in i helskärm igen och provvyn
+sätts tillbaka på samma scrollplats. Tar tiden slut under pausen lämnas
+provet in med de svar som sparades när pausen började (`lamnaInPausad`).
+Efter inlämningen lämnar sidan helskärmen (#788: vägen vidare gäller).
+Nekas pausen (en annan flik hann pausa med en längre logg) läses svaret om och
+pausen skrivs en gång till med serverns logg. Ett svar med `helskarmFel` pausas
+inte för att helskärmen saknas efter en omladdning.
+
+**En räknare.** Antalet pauser är `flikbyten` från #748 (specens `pauser`).
+Med helskärmsläget räknar provsidan inga egna flikbyten – pausen gör det.
+Utan helskärmsläget (av eller undantag) räknas flikbyten exakt som förut.
+Rättningen visar "Lämnade provet 2 gånger (10:42 bytte flik, 10:58 gick ur
+helskärm)" ur `pausLogg` (`lamnadeText`); utan logg som förut. Inget straffas.
+
+**Läraren** (`prov-helskarm-larare.js`): översikten har **en** lyssnare,
+`where("pausad", "==", true)` på tillfällets `svar`. Panelen "Pausade elever"
+visar "⏸ Elias lämnade provet 10:42 (bytte flik) – Släpp in" och "Släpp in
++5 min" (bara med tidsgräns), och "Släpp in alla" (+5 min till alla som val)
+när fler än en är pausad. Ljud och blinkande flikrubrik är val (av som
+standard, sparas i webbläsaren). Tabellen visar "⏸ Pausad". Resten av
+översikten läses som förut en gång i minuten.
+
+**Släpp in** (`slappIn`): en batch med `pausad: false, slapptInAt:
+serverTimestamp()` per elev, och med "+5 min" **tillfällets `extraTid`**
+(#748) +5 för de eleverna (högst 240) – samma fält som tidsregeln
+(`provElevMinuter`) och elevens nedräkning redan läser. Inget nytt `extraMin`
+på svaret (beslut: en källa för extra tid). Läraren ser och kan ändra tiden i
+"Extra tid" som vanligt.
+
+**Reglerna** (`provPausOk`, `provSlappInOk`):
+- eleven får pausa sig (`pausad: true`, `pausadAt == request.time`, känd orsak)
+  men aldrig skapa ett pausat svar, sätta `pausad: false` eller röra `slapptInAt`;
+- `pausLogg` (rättningens bevis) krymper aldrig och ändras bara av en paus –
+  eleven kan inte sudda den efter Släpp in (`flikbyten` får däremot vara
+  icke-ökande som i #748; rättningen visar det största av räknaren och loggen);
+- medan `pausad == true` nekas **varje** elevskrivning utom tidens inlämning
+  (bara `uppdaterad`/`inlamnad`/`inlamnadNar: "tid"`/`inlamnadAt` får ändras);
+- läraren med klassen får ändra **bara** `pausad` (true → false) och
+  `slapptInAt` (= serverns tid) – aldrig svaren. Stängningen fungerar som förut.
+
+**Kostnad (mätt i `test/firestore-rules-prov-helskarm.test.js`):** lärarens
+lyssnare gav 0 händelser av 10 vanliga sparningar från två elever, och exakt 2
+dokumentändringar (tillagd, borttagen) för en paus + släpp in. Den första
+ögonblicksbilden utan träffar kostar 1 läsning. Eleven: 1 skrivning per paus,
+1 läsning när läraren släpper in. Läraren: 1–2 skrivningar per släpp in.
+
+**Webbläsartest** (riktig Esc i X, flikbyte, Alt+Tab = ett annat fönster > 2 s,
+kort fokusförlust, omladdning, inlämning): `admin/qa-prov810-helskarm.mjs` under
+`xvfb-run` mot `admin/qa-prov810-preview.sh` – resultat och skärmdumpar i
+`docs/qa-prov-810/`. CDP-Esc och en headless webbläsares flikar ändrar varken
+helskärmen eller `document.hidden`, så de räcker inte.
+
+Förhandsvisning: `preview/preview-prov-elev.html` (byt flik / Esc → pausen,
+"Läraren släpper in (#810)" i kontrollraden; `?helskarm=av`, `?undantag`),
+`preview/preview-prov-tillfallen.html` → Översikten, "En elev lämnar provet
+(#810)". Mot emulatorn: `bash admin/qa-prov810-preview.sh`.
+
 ## Fördjupad statistik och utskrift (Etapp 2, #747, §12–§13)
 
 Under rutnätet i fliken **Översikt** (rättningsvyn) – laddas med `import()` när
@@ -1015,3 +1104,8 @@ godtar allt både den gamla och den nya webben skriver.
 Anpassningarna (#748) kräver regel-deployen: innan den nekas varje sparning med
 `flikbyten` (den gamla `validSvarFalt` känner inte fältet) och extra tid
 förlänger inte reglernas gräns. Deploya reglerna FÖRE webben.
+Helskärmsläget (#810) kräver regel-deployen: de gamla reglerna godtar
+tillfällets `helskarm`/`helskarmUndantag`, men deras `validSvarFalt` nekar
+`pausad`/`pausLogg`/`helskarmFel` – pausen, starten efter en nekad helskärm
+och lärarens "Släpp in" skulle nekas (och pausen stoppa elevens sparning).
+Deploya reglerna FÖRE webben; de nya reglerna godtar allt den gamla webben skriver.

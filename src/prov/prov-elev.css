@@ -86,6 +86,10 @@
 .provv-start-fakta { padding-left: 22px; margin: 0 0 18px; }
 .provv-start-fakta li { margin-bottom: 6px; }
 .provv-meddelande p { margin: 0 0 10px; }
+/* Helskärmsläget (#810): provet är pausat – frågorna är borta ur sidan. */
+.provv-paus { max-width: 620px; margin: 48px auto; text-align: center; border: 2px solid #b54708; }
+.provv-paus p { margin: 0 0 12px; }
+.provv-paus-vantar { color: var(--provv-svag); }
 .provv-vidare:empty { display: none; }
 .provv-vidare { margin: 12px 0 0; }
 .provv-vidare-text { margin: 0 0 8px; }

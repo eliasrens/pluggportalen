@@ -372,6 +372,65 @@ Läraren kan **öppna igen** vid behov, till exempel om provet stängdes av miss
 - **Efter inlämningen** visas "Ditt prov är inlämnat! Din lärare rättar det och lämnar tillbaka det sen."
 - **Provet ger inga mynt, stjärnor eller XP**, och inga spelljud.
 
+### 5.6 Helskärmsläge (spärr mot fusk)
+
+Eleverna skriver proven på **HP-datorer med Windows**, i Chrome eller Edge. De flesta elever vet hur man byter flik, men inte mer än så. Helskärmsläget gör det svårare att byta flik under provet, och läraren ser när någon lämnar provet.
+
+**Det här är en tröskel, inte ett vattentätt skydd.** En dator- och webbläsarkunnig elev kan ta sig runt det, till exempel med en annan enhet. Skriv det tydligt för läraren i en hjälptext ("Helskärmsläget gör det svårare att fuska, men inte omöjligt").
+
+**Inställning per prov:** `helskarm: true|false`. Standard är **på**. Läraren kan stänga av det per tillfälle och undanta enskilda elever, till exempel en elev som behöver ett uppläsningsprogram (`helskarmUndantag: [uid]`).
+
+#### Starta i helskärm
+
+- **Knappen "Starta provet"** öppnar provet i helskärm (`document.documentElement.requestFullscreen()`). Webbläsaren kräver att det sker vid ett klick, och knappen är det klicket.
+- **Innan provet startar** visas en kort förklaring: "Provet visas i helskärm. Om du lämnar helskärmen pausas provet och din lärare måste släppa in dig igen."
+- **Om webbläsaren inte stödjer helskärm** (sällsynt på Windows-datorer) eller om begäran nekas startar provet ändå. Läraren ser då "Helskärm fungerade inte" vid eleven.
+
+#### När eleven lämnar provet
+
+Provet **pausas** om något av detta händer:
+
+- **eleven går ur helskärmen**, med Esc, F11 eller på annat sätt (`fullscreenchange`)
+- **fliken döljs**, alltså eleven byter flik eller minimerar (`visibilitychange`)
+- **fönstret tappar fokus i mer än 2 sekunder**, till exempel med Alt+Tab eller Windows-tangenten. Helskärmen ligger ofta kvar när eleven byter program med Alt+Tab, så den här kontrollen behövs.
+
+**När provet pausas:**
+
+1. Svaren sparas direkt, så att inget går förlorat.
+2. **Provet döljs helt.** Frågorna och svaren tas bort ur sidan (de göms inte bara med CSS) och ersätts av en ruta:
+
+   > **Provet är pausat**
+   > Du lämnade provet. Räck upp handen – din lärare släpper in dig igen.
+   > *(Väntar på läraren…)*
+
+3. Elevens `svar`-dokument får `pausad: true`, `pausadAt` och `pausOrsak` ("helskarm" | "flik" | "fokus"). Antalet pauser räknas i `pauser`. Det blir **en** skrivning per paus.
+4. **Tidsgränsen fortsätter att räkna** under pausen. Läraren kan ge extra tid när hen släpper in eleven (se nedan).
+
+**Eleven kan inte själv återuppta provet.** Reglerna nekar skrivningar till svaren så länge `pausad == true`, och eleven får inte själv ändra `pausad`.
+
+#### Läraren släpper in eleven igen
+
+- **Lärarens översikt** (5.3) visar pausade elever **direkt**, med en tydlig rad överst: "⏸ Elias lämnade provet 10:42 (bytte flik) – **Släpp in**".
+  - Det görs med **en** lyssnare som bara bevakar pausade elever (`where("pausad","==",true)`) på tillfällets `svar`. Den kostar bara läsningar när någon pausas eller släpps in, inte vid de vanliga sparningarna. Resten av översikten uppdateras som förut en gång i minuten.
+  - En kort ljudsignal och en blinkande flikrubrik hos läraren är valfria och avstängda som standard.
+- **"Släpp in"** sätter `pausad: false` och `slapptInAt`. Läraren kan välja **"+5 min"** extra tid samtidigt.
+  - Reglerna tillåter läraren (`hasClass`) att ändra **bara** fälten `pausad`, `slapptInAt` och `extraMin` i elevens svarsdokument, aldrig svaren.
+- **Eleven** ser rutan försvinna. Hen trycker **"Fortsätt provet"**, och sidan går in i helskärm igen. Det kräver ett nytt klick, som webbläsaren vill ha. Provet visas sedan precis där eleven var.
+- **"Släpp in alla"** finns för till exempel en brandövning eller ett nätverksavbrott.
+
+#### Till rättningen
+
+Vid rättningen visas diskret för varje elev: "Lämnade provet 2 gånger (10:42 bytte flik, 10:58 gick ur helskärm)". **Inget straffas automatiskt.** Det är information till läraren.
+
+#### Tester för helskärmsläget
+
+- Esc, flikbyte och Alt+Tab pausar provet. Frågorna finns då inte kvar i sidan.
+- Reglerna nekar sparning när provet är pausat, och eleven kan inte själv ta bort pausen.
+- "Släpp in" fungerar, och "+5 min" förlänger tidsgränsen även i reglerna.
+- Lyssnaren för pausade elever läser ingenting vid vanliga sparningar. Mät och redovisa.
+- En elev med undantag och ett prov med helskärmsläget avstängt fungerar som utan helskärmsläge.
+- Testa i Chrome och Edge på Windows.
+
 ## 6. Rättningen
 
 Rättningsvyn (`#/larare/prov/ratta?t=<tillfalleId>`) har två lägen, med flikar.
@@ -570,6 +629,7 @@ Ett mål att jämföra med är 25 elever, 12 frågor och 40 minuter. Det ska sta
    - "Kör i klass", öppna och stäng, och fokusläget
    - lärarens översikt
    - elevens provsida med automatisk sparning, tidsgräns och inlämning
+   - helskärmsläget med paus och "Släpp in" (5.6)
    - villkoret för länken i sidomenyn
 4. **Rättning och tillbakalämning:**
    - knappen "Rätta alla automatiska frågor" (6.0)
@@ -696,7 +756,7 @@ Allt räknas ut ur de data som redan har lästs in för rättningen. Det ska int
   - Fältet heter `elevIds` (en valfri lista).
   - Reglerna kräver då att eleven finns i listan.
   - I listan över tillfällen visas det som "Vikingaprovet – omprov (3 elever)".
-- **Uppgift om flikbyte (valfritt, bara information):** räkna hur många gånger eleven lämnade provfliken (`visibilitychange`) och visa det diskret för läraren vid rättningen, till exempel "Lämnade provet 2 gånger". Det ska inte straffa något automatiskt.
+- **Flikbyten:** detta är redan byggt i Etapp 1 genom helskärmsläget (5.6) och visas vid rättningen.
 
 ## 15. Etapp 2 – PR-ordning
 

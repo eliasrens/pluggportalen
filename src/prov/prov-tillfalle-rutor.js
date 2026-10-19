@@ -5,6 +5,7 @@
 // "Kör i klass" i Mina prov (#739) anropar korIKlass via import().
 // Anpassningarna (#748): extra tid per elev i Kör i klass och Öppna; omprovet
 // och lärarens extra tid under provet bor i prov-anpassningar-rutor.js.
+// Helskärmsläget (#810): av/på + undantag i Kör i klass och Öppna (prov-helskarm-falt.js).
 // ============================================================================
 
 import { el, errText, esc } from "../teacher-shared.js";
@@ -19,7 +20,9 @@ import { arFraga } from "./prov-fragetyper.js";
 import { STATUS } from "./prov-modell.js";
 import { arOmprov, rensaExtraTid, tillfalleNamn } from "./prov-anpassningar.js";
 import { extraTidFalt } from "./prov-anpassningar-falt.js";
-import { hamtaProv, oppnaTillfalle, raderaTillfalle, sparaExtraTid, skapaTillfalle, stangTillfalle } from "./prov-tillfalle-data.js";
+import { helskarmFalt } from "./prov-helskarm-falt.js";
+import { helskarmPa } from "./prov-helskarm.js";
+import { hamtaProv, oppnaTillfalle, raderaTillfalle, sparaExtraTid, sparaHelskarm, skapaTillfalle, stangTillfalle } from "./prov-tillfalle-data.js";
 import { standardLasMinuter, tillbakaVarning } from "./prov-tillfalle-logik.js";
 import { TIDSGRANS_MAX, TIDSGRANS_MIN, tolkaTidsgrans } from "./prov-validera.js";
 import { laddaCss } from "./prov-vy.js";
@@ -166,6 +169,7 @@ export async function korIKlass(ctx, provEllerId, { onKlar } = {}) {
     </label>
     ${tidsgransFalt(std)}
     <div data-plats="extra"></div>
+    <div data-plats="helskarm"></div>
     ${lasFalt(standardLasMinuter(std))}
     <p class="provl-tf-fel msg error" role="alert" hidden></p>
     <div class="provl-tf-knappar">
@@ -189,7 +193,9 @@ export async function korIKlass(ctx, provEllerId, { onKlar } = {}) {
   // #748: extra tid per elev – namnen läses först när läraren fäller ut listan.
   extra = extraTidFalt({ hamta: () => elevNamn(klassens()), onAndrat: lasForval });
   box.querySelector('[data-plats="extra"]').replaceWith(extra.el);
-  klassEl.addEventListener("change", () => extra.laddaOm(klassens()));
+  const hs = helskarmFalt({ hamta: () => elevNamn(klassens()) });
+  box.querySelector('[data-plats="helskarm"]').replaceWith(hs.el);
+  klassEl.addEventListener("change", () => { extra.laddaOm(klassens()); hs.laddaOm(klassens()); });
   kopplaTidsgrans(box, lasForval);
 
   const kor = async (oppnaNu, knapp) => {
@@ -205,7 +211,7 @@ export async function korIKlass(ctx, provEllerId, { onKlar } = {}) {
     try {
       const fokus = { pa: box.querySelector('[data-f="las"]').checked, doljOvrigt: box.querySelector('[data-f="dolj"]').checked, efter: efterVal(box) };
       const extraTid = rensaExtraTid(extra.varde(), klassens());
-      t = await skapaTillfalle({ prov, classId, tidsgransMin: tid, fokus, larare: role, extraTid });
+      t = await skapaTillfalle({ prov, classId, tidsgransMin: tid, fokus, larare: role, extraTid, helskarm: hs.varde() });
       if (oppnaNu) await oppnaTillfalle({ id: t, status: STATUS.FORBERETT, provId: prov.id, provNamn: prov.namn, classId }, las);
       stang();
       onKlar?.(t, oppnaNu);
@@ -237,6 +243,7 @@ export function oppnaRuta(tf, klar) {
       : `${tf.tidsgransMin ? `Tidsgräns ${tf.tidsgransMin} minuter per elev, från att eleven startar.` : "Ingen tidsgräns."}`}</p>
     ${igen && tillbakaVarning(tf.rattStatus) ? `<p class="msg provl-tf-varning" role="status">${esc(tillbakaVarning(tf.rattStatus))}</p>` : ""}
     <div data-plats="extra"></div>
+    <div data-plats="helskarm"></div>
     ${omprov ? `<p class="hint">Fokusläget låser hela klassen och används inte för omprov.</p>`
       : lasFalt(std, { pa: igen ? false : tf.fokus?.pa !== false, doljOvrigt: tf.fokus?.doljOvrigt !== false, efter: tf.fokus?.efter })}
     <p class="provl-tf-fel msg error" role="alert" hidden></p>
@@ -257,6 +264,8 @@ export function oppnaRuta(tf, klar) {
   };
   extra = extraTidFalt({ hamta: async () => elevNamn(await elevIds()), extraTid: tf.extraTid, onAndrat: lasForval });
   box.querySelector('[data-plats="extra"]').replaceWith(extra.el);
+  const hs = helskarmFalt({ hamta: async () => elevNamn(await elevIds()), helskarm: { pa: helskarmPa(tf), undantag: tf.helskarmUndantag } });
+  box.querySelector('[data-plats="helskarm"]').replaceWith(hs.el);
   const fel = box.querySelector(".provl-tf-fel");
   const knapp = box.querySelector('[data-act="oppna"]');
   knapp.addEventListener("click", async () => {
@@ -270,6 +279,7 @@ export function oppnaRuta(tf, klar) {
     knapp.textContent = "Öppnar…";
     try {
       if (extra.andrat()) await sparaExtraTid(tf.id, rensaExtraTid(extra.varde(), await elevIds()));
+      if (hs.andrat() || !("helskarm" in tf)) await sparaHelskarm(tf.id, hs.varde());
       await oppnaTillfalle(tf, las);
       stang();
       klar();

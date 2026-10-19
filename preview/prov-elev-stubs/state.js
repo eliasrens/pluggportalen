@@ -41,7 +41,9 @@ export const S = {
   tf: { id: "tf-demo", classId: "4a", provNamn: PROV.namn, status: "oppet", fragor, installningar: PROV.installningar,
     tidsgransMin: p.get("tid") === "ingen" ? null : 40,
     // #748: ?extra=15 → eleven har 15 minuter extra.
-    ...(p.get("extra") ? { extraTid: { elev1: Number(p.get("extra")) } } : {}) },
+    ...(p.get("extra") ? { extraTid: { elev1: Number(p.get("extra")) } } : {}),
+    // #810: ?helskarm=av → helskärmsläget av; ?undantag → eleven är undantagen.
+    helskarm: p.get("helskarm") !== "av", helskarmUndantag: p.has("undantag") ? ["elev1"] : [] },
   svar: null,
   natfel: false,
   hanger: false,
@@ -58,3 +60,11 @@ if (p.get("kvar")) {
 try { if (!S.svar) S.svar = JSON.parse(sessionStorage.getItem("pv740:svar") || "null"); } catch {}
 window.addEventListener("prov-stub", () => sessionStorage.setItem("pv740:svar", JSON.stringify(S.svar)));
 window.__prov = S;
+
+// #810: "Läraren släpper in" i kontrollraden (plus = +5 min i extraTid).
+S.slappIn = (plus = false) => {
+  if (!S.svar?.pausad) return;
+  Object.assign(S.svar, { pausad: false, slapptInAt: Date.now() });
+  if (plus) S.tf.extraTid = { ...(S.tf.extraTid || {}), elev1: Math.min((S.tf.extraTid?.elev1 || 0) + 5, 240) };
+  window.dispatchEvent(new CustomEvent("prov-stub"));
+};

@@ -15,3 +15,6 @@ export const oppnaTillfalle = nej;
 export const stangTillfalle = nej;
 export const raderaTillfalle = nej;
 export const sparaExtraTid = nej; // #748
+export const sparaHelskarm = nej; // #810
+export const slappIn = nej;
+export const lyssnaPausade = () => () => {};

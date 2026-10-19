@@ -8,6 +8,8 @@
 //   korIKlass(ctx, prov)            rutan "Kör i klass" (§5.2, prov-tillfalle-rutor.js)
 //                                   – B:s knapp i "Mina prov" (#739) anropar den
 //   Omprov / Extra tid (#748)       prov-anpassningar-rutor.js
+//   Helskärmsläget (#810)           prov-helskarm-larare.js: pausade elever överst
+//                                   (EN lyssnare, bara på pausad == true) + "Helskärm"
 // Läraren ser bara sina egna klasser (filterClasses). Laddas DYNAMISKT (#271).
 // CSS: prov-tillfalle.css (.provl-).
 // ============================================================================
@@ -22,6 +24,8 @@ import { arFraga } from "./prov-fragetyper.js";
 import { STATUS, STATUS_NAMN } from "./prov-modell.js";
 import { arOmprov, extraTidText, gallerElev, tillfalleNamn } from "./prov-anpassningar.js";
 import { extraTidRuta, omprovRuta } from "./prov-anpassningar-rutor.js";
+import { helskarmPa } from "./prov-helskarm.js";
+import { helskarmRuta, pausPanel } from "./prov-helskarm-larare.js";
 import { rattStatusText } from "./prov-rattning-logik.js";
 import { hamtaSvar, hamtaTillfalle, listaProv, listaTillfallen } from "./prov-tillfalle-data.js";
 import { OVERSIKT_INTERVALL_MS, kvarText, oversiktRader, oversiktSumma, tillMs } from "./prov-tillfalle-logik.js";
@@ -68,6 +72,8 @@ function knappar(tf, { oversikt = true } = {}) {
   if (tf.status !== STATUS.FORBERETT && tf.rattStatus?.antal) k.push(`<button class="btn ghost small" data-hash="${esc(rattaHash(tf.id))}&amp;lage=oversikt">Resultat</button>`);
   // Anpassningar (#748): extra tid medan provet pågår (översikten), omprov för valda elever.
   if (!oversikt && tf.status === STATUS.OPPET) k.push(`<button class="btn ghost small" data-act="extra">Extra tid</button>`);
+  // Helskärmsläget (#810): av/på + undantag, även medan provet pågår.
+  if (!oversikt && tf.status !== STATUS.STANGT) k.push(`<button class="btn ghost small" data-act="helskarm">Helskärm: ${helskarmPa(tf) ? "på" : "av"}</button>`);
   if (tf.status !== STATUS.FORBERETT) k.push(`<button class="btn ghost small" data-act="omprov" title="Ett nytt tillfälle för bara de elever du väljer">Omprov</button>`);
   k.push(`<button class="btn ghost small danger" data-act="radera" aria-label="Radera ${esc(tf.provNamn)}">${icon("trash", 16)}</button>`);
   return k.join("");
@@ -224,6 +230,20 @@ export async function pageProvTillfalle(ctx) {
   </div>`);
   body.replaceChildren(vy);
   wireHashLinks(ctx, vy);
+  // #810: pausade elever överst, direkt (lyssnaren) – resten som förut en gång i minuten.
+  // Lyssnarens dokument är färskare än minutläsningen – de ersätter elevens rad (även efter Släpp in).
+  const panel = pausPanel({ tf, elever, onAndrat: (p) => {
+    for (const [uid, d] of Object.entries(p)) svar[uid] = d;
+    ritaHuvud();
+    ritaTabell();
+  } });
+  vy.querySelector(".provl-huvud").after(panel.el);
+  const lamnat = () => {
+    if (window.location.hash === route && vy.isConnected) return;
+    panel.stoppa();
+    window.removeEventListener("hashchange", lamnat);
+  };
+  window.addEventListener("hashchange", lamnat);
 
   let svar = {};
   let senast = 0;
@@ -239,14 +259,21 @@ export async function pageProvTillfalle(ctx) {
     k.innerHTML = knappar(tf, { oversikt: false });
     kopplaKnappar(ctx, k, tf, () => uppdatera(true), () => ctx.go(LISTA));
     k.querySelector('[data-act="extra"]')?.addEventListener("click", () => extraTidRuta(tf, elever, () => { ritaHuvud(); ritaTabell(); }));
+    k.querySelector('[data-act="helskarm"]')?.addEventListener("click", () => helskarmRuta(tf, elever, () => { ritaHuvud(); ritaTabell(); }));
   };
   const ritaTabell = () => {
-    const rader = oversiktRader(elever, svar, tf, serverNow());
+    // #810: lyssnaren vet vilka som är pausade just nu – den går före minutläsningen.
+    const live = panel.pausade();
+    const svarNu = Object.fromEntries(Object.entries(svar).map(([uid, d]) => [uid, { ...d, pausad: !!live[uid] }]));
+    const rader = oversiktRader(elever, svarNu, tf, serverNow());
     const sum = oversiktSumma(rader);
-    vy.querySelector(".provl-summa").innerHTML = `<b>${sum.antal} elever:</b> ${sum.ej} inte börjat · ${sum.skriver} skriver · ${sum.inlamnat} inlämnat`;
+    const pausade = rader.filter((r) => r.pausad).length;
+    vy.querySelector(".provl-summa").innerHTML = `<b>${sum.antal} elever:</b> ${sum.ej} inte börjat · ${sum.skriver} skriver${
+      pausade ? ` (${pausade} pausad${pausade === 1 ? "" : "e"})` : ""} · ${sum.inlamnat} inlämnat`;
     tbody.innerHTML = rader.map((r) => `<tr class="provl-elev provl-elev-${r.status}">
-      <th scope="row">${esc(r.namn)}${r.extraMin ? ` <span class="provl-ap-tag" title="Extra tid">+${r.extraMin} min</span>` : ""}</th>
-      <td><span class="provl-elevstatus provl-elevstatus-${r.status}">${esc(r.statusText)}${r.inlamnadNar === "tid" ? " (tiden)" : r.inlamnadNar === "stangt" ? " (stängt)" : ""}</span></td>
+      <th scope="row">${esc(r.namn)}${r.extraMin ? ` <span class="provl-ap-tag" title="Extra tid">+${r.extraMin} min</span>` : ""}${
+        r.helskarmFel ? ` <span class="provl-ap-tag provl-hs-tag">Helskärm fungerade inte</span>` : ""}</th>
+      <td><span class="provl-elevstatus provl-elevstatus-${r.pausad ? "pausad" : r.status}">${r.pausad ? "⏸ " : ""}${esc(r.statusText)}${r.inlamnadNar === "tid" ? " (tiden)" : r.inlamnadNar === "stangt" ? " (stängt)" : ""}</span></td>
       <td>${r.status === "ej" ? "–" : `${r.besvarade} av ${r.antal}`}</td>
       ${tf.tidsgransMin ? `<td>${r.kvarMs == null ? "–" : esc(kvarText(r.kvarMs).replace(/ kvar$/, ""))}</td>` : ""}
     </tr>`).join("") || `<tr><td colspan="4" class="hint">Klassen har inga elever.</td></tr>`;
@@ -278,7 +305,7 @@ export async function pageProvTillfalle(ctx) {
   await uppdatera();
 
   const iv = setInterval(() => {
-    if (window.location.hash !== route || !vy.isConnected) return clearInterval(iv);
+    if (window.location.hash !== route || !vy.isConnected) return clearInterval(iv), lamnat();
     if (!document.hidden && tf.status === STATUS.OPPET && serverNow() - senast >= OVERSIKT_INTERVALL_MS) uppdatera();
     else ritaTabell(); // tid kvar räknas ner utan läsning
   }, 15_000);
