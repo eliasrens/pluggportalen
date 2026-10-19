@@ -133,7 +133,7 @@ test("klassvyns nya moduler ligger utanför den statiska bootgrafen från app.js
   assert.deepEqual(bad, [], "teacher-classes-*.js i bootgrafen");
   assert.ok(seen.has(join(root, "teacher-shared.js")), "flik-registryn (teacher-shared.js) ska nås från app.js");
   const entry = readFileSync(join(root, "teacher-classes.js"), "utf8");
-  assert.match(entry, /import\(["']\.\/teacher-classes-page\.js["']\)/);
+  assert.match(entry, /import\(["']\.\/teacher-mina-klasser\.js["']\)/);
 });
 
 test("classesHash med sidlägets route (#679)", () => {

@@ -18,3 +18,8 @@ export const sparaExtraTid = nej; // #748
 export const sparaHelskarm = nej; // #810
 export const slappIn = nej;
 export const lyssnaPausade = () => () => {};
+
+// #807: lat uppskrivning av räknarna – stubben har inga äldre tillfällen.
+export async function uppgraderaRaknare() {
+  return 0;
+}

@@ -10,7 +10,7 @@ import { app, el, go, renderTopbar } from "./ui.js";
 import { confetti, sound, isMuted, toggleMuted } from "./fx.js";
 import { addXp } from "./data-xp.js";
 import { grindMultiplier, xpForExercise, xpIntoLevel } from "./leveling.js";
-import { awardProjectionPatch, mirrorStudentProjection } from "./projection-sync.js";
+import { awardProjectionPatch, mirrorStudentProjection, ovatIdag } from "./projection-sync.js";
 import { coinIcon } from "./icons.js";
 import { MAX_QUESTIONS_PER_SESSION, pickRotatingQuestions } from "./question-rotation.js";
 
@@ -249,7 +249,7 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins, c
       await mirrorStudentProjection(
         data.updateStudentProjectionAllClasses,
         uid,
-        awardProjectionPatch(sd)
+        { ...awardProjectionPatch(sd), ovat: ovatIdag() } // ovat: lärarens Hem (#807)
       );
     }
   } catch {}

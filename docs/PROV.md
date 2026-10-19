@@ -669,6 +669,24 @@ Förhandsvisning utan Firebase: `preview/preview-prov-rattning.html` (8 elever,
 stubbar i `preview/prov-ratta-stubs/`, `?nollstall` börjar om). Skärmdumpar:
 `docs/qa-prov-741/`.
 
+### Räknarna "prov att rätta" (#807, epic #802 §1.3)
+
+`rattStatus.antal` = inlämnade och `rattStatus.rattade` = rättade är lärarsidans räknare; flaggan `attRatta`
+(`antal > rattade`) följer alltid med (`raknareFalt` i `prov-raknare.js`). De skrivs av rättningens sparningar (som
+förut), av **Stäng** (antal = svaren som stängningen läser) och **Öppna igen** (hela räkneverket ur svaren och
+rättningarna som läses där) – aldrig genom att läsa svar eller rättningar bara för att räkna. Rättningsvyn rättar
+räkneverket när den öppnas om det inte stämmer. Märket "Prov 18" i toppmenyn och rutan "Att rätta" på Mina prov
+(`prov-att-ratta.js`) gör EN fråga: `where classId in … + where attRatta == true` (cache 5 min, töms vid skrivningarna).
+En elevs inlämning medan provet är öppet räknas först vid Stäng eller när rättningen öppnas (en elevskrivning på
+tillfället skulle gå ut till alla elevers lyssnare). Detaljer: [`LARARSIDAN_HEM_LASNINGAR.md`](LARARSIDAN_HEM_LASNINGAR.md).
+Stäng och Öppna igen räknar mot det lagrade räkneverket (en transaktion, ett
+inaktuellt tillfälle i minnet skriver inte över rättade). Äldre tillfällen får flaggan när Provtillfällen laddas (den
+listan läser redan alla tillfällen), när rättningen öppnas eller när provet stängs – och alla på en gång med
+engångsskriptet `node admin/backfill-att-ratta.mjs --commit` (kör en gång efter webb-deployen). Inga regeländringar (testat i `test/firestore-rules-prov-raknare.test.js`).
+Helskärmsläget (#810) påverkar inte räknarna: pausdatan ligger på svaren, "Släpp in" (+5 min) och "Helskärm" skriver bara
+`pausad`/`slapptInAt` respektive `extraTid`/`helskarm*`. En pausad elev markeras inlämnad vid Stäng och räknas som de andra;
+vid Öppna igen är hen fortfarande pausad tills läraren släpper in (testat i `test/firestore-prov-raknare-paus-emulator.test.js`).
+
 ## Statistiken (E, #742, §7.5)
 
 Grönt/gult/rött – **alltid** med symbol och text (✓ ½ ✗, obesvarad `–` streckad,

@@ -64,8 +64,10 @@ export async function pageLarareInnehall(ctx) {
   } catch (err) {
     console.error("Wizarden kunde inte laddas:", err);
     const container = el(`<div class="teacher-page teacher-dark"></div>`);
-    container.appendChild(teacherNav(ctx, "innehall"));
-    container.appendChild(teacherHead(ctx, { icon: "book", title: "Innehållsstudion" }));
+    if (!ctx.embedded) {
+      container.appendChild(teacherNav(ctx, "material"));
+      container.appendChild(teacherHead(ctx, { icon: "book", title: "Innehållsstudion" }));
+    }
     container.appendChild(
       el(`<div class="panel"><div class="msg error">Kunde inte ladda innehållsverktygen just nu.
         Prova att ladda om sidan om en stund.</div></div>`)
@@ -212,7 +214,7 @@ export async function pageLarareInnehall(ctx) {
   });
 
   const container = el(`<div class="teacher-page teacher-dark"></div>`);
-  container.appendChild(teacherNav(ctx, "innehall"));
+  if (!ctx.embedded) container.appendChild(teacherNav(ctx, "material")); // Material (#806) har redan toppmenyn
   // Sidhuvudet (ikon + titel + undertitel) ligger INNE i studiokortet (#453).
   container.appendChild(lib);
   container.appendChild(wizard.element);

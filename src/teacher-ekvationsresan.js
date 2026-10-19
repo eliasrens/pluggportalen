@@ -193,13 +193,12 @@ export async function renderClassEkvationsresan(ctx, host, opts = {}) {
   };
   buildRows();
 
-  const off = cls && !(Array.isArray(cls.enabledModules) && cls.enabledModules.includes("ekvationsresan"));
+  // #804: "avstängd för klassen" visas nu av renderClassStats (teacher-stats-av.js) för alla flikar.
   const view = el(`<div class="lrt-teacher ekt-teacher">
     <div class="lrt-intro">
       <h3 class="subhead lrt-title">${icon("sliders", 18)}<span>Ekvationsresan</span></h3>
       ${summaryHtml(rows)}
     </div>
-    ${off ? `<p class="msg warn ekt-off">Ekvationsresan är avstängd för ${esc(cls.name || "klassen")} – slå på den under Synliga moduler så ser eleverna den.</p>` : ""}
     <div class="ekt-level-host"></div>
     <div class="table-scroll">
       <table class="tbl lrt-tbl ekt-tbl"><thead></thead><tbody></tbody></table>

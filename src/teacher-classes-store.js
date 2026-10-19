@@ -15,8 +15,26 @@
 // dynamiskt (via teacher-classes-page.js) – aldrig i den statiska bootgrafen.
 // ============================================================================
 
-/** sessionStorage-nyckel för senast vald klass (reserv när URL:en saknar ?klass=). */
+/** Nyckel för senast vald klass (reserv när URL:en saknar ?klass=). */
 export const SELECTED_KEY = "pp:larare:klass";
+
+/** Senast vald klass – localStorage sedan #804 (minns över omladdning), förr sessionStorage. */
+export function readSavedClass() {
+  try {
+    return localStorage.getItem(SELECTED_KEY) || sessionStorage.getItem(SELECTED_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/** Kom ihåg vald klass (null = glöm). Mina klasser; Admin-sidan glömmer en borttagen klass (#805). */
+export function saveClass(id) {
+  try {
+    if (id) localStorage.setItem(SELECTED_KEY, id);
+    else localStorage.removeItem(SELECTED_KEY);
+    sessionStorage.removeItem(SELECTED_KEY);
+  } catch {}
+}
 
 /** Klasser i visningsordning: `order`, sedan namn (sv) – samma regel som förr (K-10). */
 export function sortClasses(classes) {
@@ -71,8 +89,22 @@ export async function loadLibraryFrom(data) {
   const withAreas = await Promise.all(
     subjects.map(async (subj) => ({ ...subj, areas: await data.getAreas(subj.id) }))
   );
-  return withAreas.filter((subj) => subj.areas.length > 0);
+  const lib = withAreas.filter((subj) => subj.areas.length > 0);
+  // Hem (#807) visar klassernas områden med namn utan att läsa biblioteket:
+  // namnen sparas i webbläsaren när biblioteket ändå laddas här.
+  try {
+    const namn = Object.fromEntries(lib.flatMap((s) => s.areas.map((a) => [`${s.id}/${a.id}`, a.name || a.id])));
+    localStorage.setItem("pp:larare:omradesnamn", JSON.stringify(namn));
+  } catch { /* ingen lagring – Hem visar id:t snyggat */ }
+  return lib;
 }
+
+/**
+ * Överlämning mellan sidor (#805): Admin → Skapa klass lämnar nyss skapade
+ * lösenord (X-08) och "✓ Klassen skapades" till nästa Mina klasser-sida, som
+ * tar dem EN gång när dess store skapas. classId → värde.
+ */
+export const OVERLAMNING = { creds: new Map(), flashes: new Map() };
 
 /**
  * Skapa sid-storen.
@@ -82,6 +114,10 @@ export async function loadLibraryFrom(data) {
 export function createClassStore({ classes, students, loadLibrary }) {
   const subs = new Set();
   let libraryPromise = null;
+  const creds = new Map(OVERLAMNING.creds);
+  const flashes = new Map(OVERLAMNING.flashes);
+  OVERLAMNING.creds.clear();
+  OVERLAMNING.flashes.clear();
 
   const store = {
     classes,
@@ -92,9 +128,9 @@ export function createClassStore({ classes, students, loadLibrary }) {
     // true = detaljytan visar "Skapa en ny klass" (lead-beslut D-4).
     creating: false,
     // classId → senast skapade konton med klartextlösen (X-08), tills läraren stänger.
-    creds: new Map(),
+    creds,
     // classId → engångsmeddelande (HTML) överst i detaljytan, t.ex. "✓ Klassen skapades".
-    flashes: new Map(),
+    flashes,
 
     sorted: () => sortClasses(classes),
     get: (id) => classes.find((c) => c.id === id) || null,

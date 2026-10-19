@@ -4,9 +4,8 @@
 // ----------------------------------------------------------------------------
 // Issue #440 (epic #438, Del 6): detaljytans flikar byggs ur CLASS_SECTIONS.
 // En rad = { key, label, icon, svg?, what, render(ctx, cls, host, store) } (svg(size) =
-// egen flikikon i stället för icon(), #781). En ny
-// klass-modul krokas i med EN rad – detaljytan (teacher-classes-detail.js) ritar
-// flikraden och sektionsvärden ur listan, layouten påverkas inte.
+// egen flikikon i stället för icon(), #781). En ny klass-modul krokas i med EN
+// rad + en plats i MINA_FLIKAR (teacher-mina-val.js) och teacher-struktur.js.
 //
 // Raderna är TUNNA adaptrar runt de befintliga renderarna, som anropas
 // OFÖRÄNDRADE (samma data-anrop, samma sparning). `what` används i laddnings-
@@ -17,14 +16,16 @@
 //
 // #679: sektionerna fördelas på tre sidlägen (CLASS_PAGE_MODES) – Klasser,
 // Statistik och Admin → Klasser & elevkonton. Sektionerna själva är oförändrade;
-// "Inloggning" är medlemshanteraren i lösenordsläge (det årskurskonton får).
+// "Inloggning" är elevtabellen utan adminval (det årskurskonton får, #805).
+// #804 (epic #802): Klasser + Statistik → Mina klasser med flikarna MINA_FLIKAR
+// (teacher-mina-val.js/teacher-mina-klasser.js); Schack är nu statistikens
+// underflik (STATS_TABS). #805: Admin → Klasser & elevkonton (Master-Detail-
+// vyn teacher-classes-page/-master/-detail.js) är borta – se CLASS_PAGE_MODES.
 // ============================================================================
 
 import { el, esc, errText, isAdmin } from "./teacher-shared.js";
-import { renderMemberManager } from "./teacher-class-accounts.js";
 import { renderClassAreaModes, renderClassAssignments } from "./teacher-class-modes.js";
 import { renderClassStats } from "./teacher-class.js";
-import { schackLararIkon } from "./teacher-schack-ikon.js";
 
 /** Laddningsrad → render; vid fel en snäll felrad i samma värd (K-16). */
 export async function withLoading(host, what, render) {
@@ -36,12 +37,15 @@ export async function withLoading(host, what, render) {
   }
 }
 
-const memberSection = (loginOnly) => (ctx, cls, host, store) =>
-  renderMemberManager(ctx, {
+// #805 (§3.4): båda elevsektionerna är den kompakta elevtabellen (lat, #271).
+// Inloggning = lösenord + inloggningskort (alla); Elever = samma tabell med
+// adminvalen (konton, mynt). isAdmin() är ett extra lås – reglerna spärrar ändå.
+const elevSection = (admin) => async (ctx, cls, host, store) =>
+  (await import("./teacher-elever-tabell.js")).renderElevTabell(ctx, {
     cls,
     state: store.state,
-    membersEl: host,
-    loginOnly,
+    host,
+    admin: admin && isAdmin(),
     onChange: () => store.notify(),
     creds: {
       initial: store.creds.get(cls.id) || null,
@@ -57,17 +61,17 @@ export const CLASS_SECTIONS = [
     label: "Inloggning",
     icon: "key",
     what: "elever",
-    render: memberSection(true),
+    render: elevSection(false),
   },
   {
     key: "elever",
     label: "Elever",
     icon: "grad",
     what: "elever",
-    // E-01–E-17, A-, C-: medlemshanteraren. Räknaren i detaljhuvudet + master
-    // hålls i synk via onChange → notify (ersätter countEl, E-17); nyss skapade
+    // E-01–E-17, A-, C-: elevtabellen med adminvalen (#805). Elevantalet i
+    // klasshuvudet hålls i synk via onChange → notify (E-17); nyss skapade
     // lösenord ligger kvar i storen tills läraren stänger panelen (X-08).
-    render: memberSection(false),
+    render: elevSection(true),
   },
   {
     key: "omraden",
@@ -123,18 +127,6 @@ export const CLASS_SECTIONS = [
       }),
   },
   {
-    key: "schack",
-    label: "Schack",
-    icon: "eye",
-    svg: schackLararIkon,
-    what: "schack",
-    // #781 (spec §10): modulen på/av, pågående partier + åskådarläget, avsluta,
-    // topplistan, statistik. Allt lat i src/schack/larare/; lyssnarna stängs när
-    // sektionen lämnas (vakten i schack-larare-delar.js).
-    render: async (ctx, cls, host, store) =>
-      (await import("./schack/larare/schack-larare.js")).renderSchackSektion(ctx, cls, host, { students: store.state.students }),
-  },
-  {
     key: "klasscenter",
     label: "Klasscentret",
     icon: "school",
@@ -163,30 +155,21 @@ export const CLASS_SECTIONS = [
       const studentById = new Map(students.map((s) => [s.id, s]));
       await renderClassStats(ctx, host, {
         students: classStudents, subjects, studentById, loadAreas, classId: cls.id, cls, classes: store.sorted(),
+        ...store.statsOpts, // #804: { tab, onTab, visaSer } från Mina klasser
       });
     },
   },
 ];
 
 /**
- * Sidlägen (#679, spec §5.1). tab = flik i TEACHER_TABS, base = route,
- * sections = sektionsnycklar i ordning, manage = skapa/döp om/ta bort klasser
- * (bara Admin-läget, som i sin tur bara når admin). Nivåstyrningen för Läsresan
- * och Ekvationsresan bor i statistikens flikar (#506) och följer med Statistik.
+ * Sidlägen (#679, spec §5.1; #804; #805). tab = flik i TEACHER_TABS, base =
+ * route, sections = sektionsnycklar som visas där, admin = bara admin ser dem.
+ * #804: Klasser + Statistik blev EN sida, Mina klasser (MINA_FLIKAR i
+ * teacher-mina-val.js). #805: Admin → Klasser & elevkonton finns inte längre –
+ * elever, mynt och Klasscentret ligger i Mina klasser → Elever (bara admin),
+ * skapa/döp om/ta bort klass på Admin-sidan (teacher-admin.js).
  */
 export const CLASS_PAGE_MODES = {
-  klasser: { tab: "klasser", base: "#/larare/klasser", sections: ["omraden", "lagen", "synlighet", "fokus", "schack", "inloggning"], manage: false },
-  statistik: { tab: "statistik", base: "#/larare/statistik", sections: ["statistik"], manage: false },
-  admin: { tab: "adminklasser", base: "#/larare/admin/klasser", sections: ["elever", "klasscenter"], manage: true },
+  mina: { tab: "klasser", base: "#/larare/mina-klasser", sections: ["statistik", "omraden", "synlighet", "lagen", "fokus", "inloggning"], manage: false },
+  minaAdmin: { tab: "klasser", base: "#/larare/mina-klasser", sections: ["elever", "klasscenter"], manage: false, admin: true },
 };
-
-/** Sektionerna (rader ur CLASS_SECTIONS) för ett sidläge; okänt läge → alla. */
-export function sectionsFor(mode) {
-  const keys = CLASS_PAGE_MODES[mode]?.sections;
-  return keys ? keys.map((k) => CLASS_SECTIONS.find((s) => s.key === k)) : CLASS_SECTIONS;
-}
-
-/** Sektion för en nyckel (okänd → första) – bland `list` (default alla). */
-export function sectionFor(key, list = CLASS_SECTIONS) {
-  return list.find((s) => s.key === key) || list[0];
-}

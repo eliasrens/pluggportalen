@@ -8,17 +8,18 @@
 // (som i sin tur kör createStudentAuthAccount mot en sekundär Firebase-app, så
 // lärarens egen session inte kastas ut) och kopplas till klassen.
 //
-// Här bor även "medlemshanteraren" under ett klasskort: klassens elever med döp
-// om/avatar, ge mynt, Inloggning (teacher-login-edit.js), ta ur klassen och ta
-// bort konto – plus "Skriv ut inloggningskort" (teacher-login-print.js) och
-// panelerna för att skapa nya konton eller lägga till befintliga elever.
+// Här bor även byggstenarna som förr var "medlemshanteraren" under en klass
+// (namn/avatar, ge mynt, skapa nya konton, lägg till befintliga elever). Sedan
+// #805 (epic #802 §3.4) använder den kompakta elevtabellen dem
+// (teacher-elever-tabell.js + teacher-elever-atgarder.js).
 // ============================================================================
 
 import * as data from "./data.js";
 import { AVATARS, avatarEmoji, isBuyableAvatar } from "./avatars.js";
-import { el, errText, esc, icon, isAdmin } from "./teacher-shared.js";
+import { el, errText, esc, icon } from "./teacher-shared.js";
 import { coinIcon } from "./icons.js";
 import { renderAccountEditor, credentialsPanel } from "./teacher-login-cards.js";
+import { fordelaMynt } from "./teacher-elever-val.js";
 // credentialsPanel bor i teacher-login-cards.js (fil-cap, #440) – exportnamnet
 // behålls här för befintliga importörer (preview/preview-larare.html).
 export { credentialsPanel };
@@ -96,9 +97,24 @@ export async function createAccountsFromEntries(entries, onProgress) {
   return created;
 }
 
-// --- Små byggstenar för medlemsraden ----------------------------------------
+// --- Byggstenar för elevtabellen (Mina klasser → Elever, #805) --------------
+// Flyttade oförändrade ur förra medlemshanteraren (renderMemberManager, #440):
+// ge mynt, namn/avatar, skapa nya konton och lägg till befintliga elever.
+// Tabellen själv bor i teacher-elever-tabell.js / teacher-elever-atgarder.js.
 
-function wireGiveCoins(row, student) {
+/** Ge mynt-rutan (antal, +10, +50, Ge). Kopplas med wireGiveCoins. */
+export const giveCoinsHtml = () => `<div class="give-coins">
+  <div class="gc-row">
+    <input class="cell gc-amount" type="number" min="1" step="1" value="10" aria-label="Antal mynt" />
+    <button type="button" class="btn ghost small gc-quick" data-add="10">+10</button>
+    <button type="button" class="btn ghost small gc-quick" data-add="50">+50</button>
+    <button type="button" class="btn gron small gc-give">Ge ${coinIcon("1em")}</button>
+  </div>
+  <div class="gc-flash" aria-live="polite"></div>
+</div>`;
+
+/** Koppla Ge mynt-rutan i `row` för en elev. onGiven(nyttSaldo) efter lyckad gåva. */
+export function wireGiveCoins(row, student, onGiven) {
   const amountEl = row.querySelector(".gc-amount");
   const giveBtn = row.querySelector(".gc-give");
   const flashEl = row.querySelector(".gc-flash");
@@ -110,281 +126,162 @@ function wireGiveCoins(row, student) {
     })
   );
   giveBtn.addEventListener("click", async () => {
-    const amount = Math.floor(Number(amountEl.value));
-    if (!Number.isFinite(amount) || amount <= 0) {
-      flashEl.innerHTML = `<span class="gc-err">Skriv ett antal (positivt tal).</span>`;
+    // Samma gräns som Ge hela klassen mynt (#805 F3): heltal 1–1000.
+    const { antal: amount, fel } = fordelaMynt(amountEl.value);
+    if (fel) {
+      flashEl.innerHTML = `<span class="gc-err">${esc(fel)}</span>`;
       amountEl.focus();
       return;
     }
     giveBtn.disabled = true;
-    flashEl.innerHTML = `<span class="hint">Ger coins…</span>`;
+    flashEl.innerHTML = `<span class="hint">Ger mynt…</span>`;
     try {
       await data.addCoins(amount, student.id);
       const nytt = await data.getCoins(student.id);
       const namn = student.namn || student.username || "eleven";
       flashEl.innerHTML = `<span class="gc-ok">✓ ${esc(namn)} fick ${amount} ${coinIcon("1em")} – nytt saldo: ${nytt} ${coinIcon("1em")}</span>`;
+      if (onGiven) onGiven(nytt);
     } catch (err) {
-      flashEl.innerHTML = `<span class="gc-err">Kunde inte ge coins: ${esc(errText(err))}</span>`;
+      flashEl.innerHTML = `<span class="gc-err">Kunde inte ge mynt: ${esc(errText(err))}</span>`;
     } finally {
       giveBtn.disabled = false;
     }
   });
 }
 
-function avatarSelectHtml(sel) {
+export function avatarSelectHtml(sel) {
   // En köpt avatar (#694) står inte i AVATARS – visa den så "Spara" inte byter bort den.
   const val = isBuyableAvatar(sel) ? [[sel, avatarEmoji(sel)]] : [];
-  return `<select class="select avatar-sel">${[...Object.entries(AVATARS), ...val]
+  return `<select class="select avatar-sel" aria-label="Avatar">${[...Object.entries(AVATARS), ...val]
     .map(([id, emoji]) => `<option value="${id}" ${id === sel ? "selected" : ""}>${emoji}</option>`)
     .join("")}</select>`;
 }
 
-function countLabel(n) {
-  return `${n} elev${n === 1 ? "" : "er"}`;
+/**
+ * Namn + avatar för en elev (förr raden i medlemshanteraren): avatarväljare,
+ * namnfält och Spara. Muterar `s` vid lyckad sparning och anropar onSaved().
+ */
+export function renderNameEditor(host, s, onSaved) {
+  host.replaceChildren(el(`<div class="mm-main et-namnruta">
+    ${avatarSelectHtml(s.avatarId || "fox")}
+    <input class="cell mm-namn" value="${esc(s.namn || "")}" placeholder="Elevens namn" aria-label="Elevens namn" />
+    <button type="button" class="btn gron small mm-save">${icon("save", 16)}<span>Spara</span></button>
+    <span class="mm-save-flash" aria-live="polite"></span>
+  </div>`));
+  const saveFlash = host.querySelector(".mm-save-flash");
+  host.querySelector(".mm-namn").focus();
+  host.querySelector(".mm-save").addEventListener("click", async (e) => {
+    const btn = e.currentTarget;
+    const namn = host.querySelector(".mm-namn").value.trim();
+    const avatarId = host.querySelector(".avatar-sel").value;
+    if (!namn) return void (saveFlash.innerHTML = `<span class="gc-err">Namn saknas.</span>`);
+    btn.disabled = true;
+    try {
+      await data.upsertStudent(s.id, { namn, avatarId });
+      s.namn = namn;
+      s.avatarId = avatarId;
+      saveFlash.innerHTML = `<span class="gc-ok">✓ Sparat</span>`;
+      if (onSaved) onSaved();
+    } catch (err) {
+      saveFlash.innerHTML = `<span class="gc-err">${esc(errText(err))}</span>`;
+    } finally {
+      btn.disabled = false;
+    }
+  });
 }
-
-// --- Medlemshanterare (visas under "Elever" på ett klasskort) ---------------
 
 /**
- * Rendera medlemshanteraren för EN klass in i `membersEl`. Muterar de delade
- * `state.students` / `cls.studentIds` och ritar om sig själv vid ändringar samt
- * uppdaterar `countEl`. `state` = { students } (delad referens från sidan).
- * #440: `onChange()` anropas när antalet ändras (master-listans räknare) och
- * `creds` = { initial, save(created), clear() } håller nyss skapade lösenord
- * kvar över klassbyten tills läraren stänger panelen (X-08). Båda valfria.
- * `loginOnly` (#679, Klasser → Inloggning): bara lösenord + inloggningskort –
- * namn, mynt, ta ur/ta bort och skapa/lägg till konton (bara admin) döljs.
+ * Skapa nya elevkonton i klassen: antal → redigerbar kontotabell → skapa.
+ * onCreated(created) efter att kontona kopplats till klassen (cls.studentIds
+ * uppdaterad, eleverna pushade i `students`).
  */
-export function renderMemberManager(ctx, { cls, state, membersEl, countEl, onChange, creds, loginOnly = false }) {
-  const students = state.students;
-  // Persistent yta för nyss skapade inloggningsuppgifter – överlever omritningar.
-  const credsHost = el(`<div class="mm-creds"></div>`);
-  const showCreds = (created) =>
-    credsHost.replaceChildren(
-      credentialsPanel(cls.name || cls.id, created, creds && (() => (creds.clear(), credsHost.replaceChildren())))
-    );
-  if (creds?.initial) showCreds(creds.initial);
-
-  function updateCount() {
-    if (countEl) countEl.textContent = countLabel((cls.studentIds || []).length);
-    if (onChange) onChange();
-  }
-
-  function memberRow(s) {
-    const row = el(`<div class="member-manage-row" data-id="${esc(s.id)}">
-      <div class="mm-main">
-        ${avatarSelectHtml(s.avatarId || "fox")}
-        <input class="cell mm-namn" value="${esc(s.namn || "")}" placeholder="Elevens namn" />
-        <input class="cell mm-username" value="${esc(s.username || "")}" disabled title="Ändras under Inloggning" />
-        <button class="btn ghost small mm-save" title="Spara namn/avatar">${icon("save", 16)}</button>
-        <button class="btn ghost small mm-login" title="Redigera inloggning (användarnamn/lösenord)">${icon("key", 16)}<span>Inloggning</span></button>
-        <span class="mm-save-flash" aria-live="polite"></span>
-      </div>
-      <div class="give-coins">
-        <div class="gc-row">
-          <input class="cell gc-amount" type="number" min="1" step="1" value="10" aria-label="Antal coins" />
-          <button class="btn ghost small gc-quick" data-add="10">+10</button>
-          <button class="btn ghost small gc-quick" data-add="50">+50</button>
-          <button class="btn gron small gc-give">Ge ${coinIcon("1em")}</button>
-        </div>
-        <div class="gc-flash" aria-live="polite"></div>
-      </div>
-      <div class="mm-actions">
-        <button class="btn ghost small" data-act="unlink">${icon("minus", 16)}<span>Ta ur klassen</span></button>
-        <button class="btn ghost small danger" data-act="del">${icon("trash", 16)}<span>Ta bort konto</span></button>
-      </div>
-    </div>`);
-
-    wireGiveCoins(row, s);
-    row.querySelector(".mm-login").addEventListener("click", () =>
-      import("./teacher-login-edit.js").then((m) =>
-        m.openLoginEditor(s, {
-          passwordOnly: !isAdmin(),
-          onSaved: () => (row.querySelector(".mm-username").value = s.username),
-        })
-      )
-    );
-
-    const saveFlash = row.querySelector(".mm-save-flash");
-    row.querySelector(".mm-save").addEventListener("click", async (e) => {
-      const btn = e.currentTarget;
-      const namn = row.querySelector(".mm-namn").value.trim();
-      const avatarId = row.querySelector(".avatar-sel").value;
-      if (!namn) return void (saveFlash.innerHTML = `<span class="gc-err">Namn saknas.</span>`);
-      btn.disabled = true;
-      try {
-        await data.upsertStudent(s.id, { namn, avatarId });
-        s.namn = namn;
-        s.avatarId = avatarId;
-        saveFlash.innerHTML = `<span class="gc-ok">✓ Sparat</span>`;
-      } catch (err) {
-        saveFlash.innerHTML = `<span class="gc-err">${esc(errText(err))}</span>`;
-      } finally {
-        btn.disabled = false;
-      }
-    });
-
-    row.querySelector('[data-act="unlink"]').addEventListener("click", async () => {
-      const nextIds = (cls.studentIds || []).filter((id) => id !== s.id);
-      try {
-        await data.setClassStudents(cls.id, nextIds);
-        cls.studentIds = nextIds;
-        updateCount();
-        draw();
-      } catch (err) {
-        alert("Kunde inte ta ur klassen: " + errText(err));
-      }
-    });
-
-    row.querySelector('[data-act="del"]').addEventListener("click", async () => {
-      const namn = s.namn || s.username || s.id;
-      if (!confirm(`Ta bort eleven "${namn}"? Detta tar även bort elevens speldata och går inte att ångra.`))
-        return;
-      try {
-        await data.deleteStudent(s.id);
-        const nextIds = (cls.studentIds || []).filter((id) => id !== s.id);
-        await data.setClassStudents(cls.id, nextIds).catch(() => {});
-        cls.studentIds = nextIds;
-        const idx = students.findIndex((x) => x.id === s.id);
-        if (idx >= 0) students.splice(idx, 1);
-        updateCount();
-        draw();
-      } catch (err) {
-        alert("Kunde inte ta bort: " + errText(err));
-      }
-    });
-
-    if (loginOnly) {
-      row.querySelectorAll(".mm-save, .give-coins, .mm-actions").forEach((n) => n.remove());
-      row.querySelectorAll(".mm-namn, .avatar-sel").forEach((n) => (n.disabled = true));
+export function renderCreateAccounts(host, { cls, students, onCreated }) {
+  const prefix = usernamePrefix(cls.name || cls.id);
+  host.replaceChildren(el(`<div>
+    <p class="hint">Ange hur många nya elever du vill lägga till. Konton skapas med
+      auto-genererade användarnamn (<b>${esc(prefix)}NN</b>) och lösenord.</p>
+    <div class="row-inline">
+      <input class="cell mm-count" type="number" min="1" max="40" step="1" value="5" aria-label="Antal nya elever" />
+      <button type="button" class="btn gron small mm-create">${icon("plus", 16)}<span>Förbered konton</span></button>
+      <span class="mm-create-flash" aria-live="polite"></span>
+    </div>
+    <div class="mm-editor"></div>
+  </div>`));
+  const createFlash = host.querySelector(".mm-create-flash");
+  const editorHost = host.querySelector(".mm-editor");
+  host.querySelector(".mm-create").addEventListener("click", () => {
+    const count = Math.floor(Number(host.querySelector(".mm-count").value));
+    if (!Number.isFinite(count) || count <= 0) {
+      createFlash.innerHTML = `<span class="gc-err">Ange ett antal (minst 1).</span>`;
+      return;
     }
-    return row;
-  }
-
-  function draw() {
-    const memberIds = new Set(cls.studentIds || []);
-    const byNamn = (a, b) =>
-      String(a.namn || a.username || "").localeCompare(String(b.namn || b.username || ""), "sv");
-    const members = students.filter((s) => memberIds.has(s.id)).sort(byNamn);
-    const nonMembers = students.filter((s) => !memberIds.has(s.id)).sort(byNamn);
-    const prefix = usernamePrefix(cls.name || cls.id);
-
-    const wrap = el(`<div class="member-manage">
-      <div class="mm-head"><h3 class="subhead sm">${icon("grad", 18)}<span>Elever i klassen (${members.length})</span></h3>
-        ${members.length ? `<button class="btn small mm-print">${icon("printer", 16)}<span>Skriv ut inloggningskort</span></button>` : ""}</div>
-      <div class="mm-list"></div>
-      <details class="mm-add">
-        <summary>${icon("plus", 16)} Skapa nya elevkonton i klassen</summary>
-        <div class="mm-add-body">
-          <p class="hint">Ange hur många nya elever du vill lägga till. Konton skapas med
-            auto-genererade användarnamn (<b>${esc(prefix)}NN</b>) och lösenord.</p>
-          <div class="row-inline">
-            <input class="cell mm-count" type="number" min="1" max="40" step="1" value="5" aria-label="Antal nya elever" />
-            <button class="btn gron small mm-create">${icon("plus", 16)}<span>Förbered konton</span></button>
-            <span class="mm-create-flash" aria-live="polite"></span>
-          </div>
-          <div class="mm-editor"></div>
-        </div>
-      </details>
-      <details class="mm-add">
-        <summary>${icon("link", 16)} Lägg till befintliga elever</summary>
-        <div class="mm-add-body mm-existing"></div>
-      </details>
-    </div>`);
-
-    wrap.querySelector(".mm-print")?.addEventListener("click", () =>
-      import("./teacher-login-print.js").then((m) => m.openPrintPicker(cls.name || cls.id, members))
-    );
-    const listEl = wrap.querySelector(".mm-list");
-    if (members.length === 0) {
-      listEl.appendChild(el(`<p class="hint">Inga elever i klassen än${loginOnly ? "." : " – skapa konton nedan."}</p>`));
-    } else {
-      members.forEach((s) => listEl.appendChild(memberRow(s)));
-    }
-
-    // Skapa nya konton i klassen: förslag → redigerbar tabell → skapa.
-    const createBtn = wrap.querySelector(".mm-create");
-    const createFlash = wrap.querySelector(".mm-create-flash");
-    const editorHost = wrap.querySelector(".mm-editor");
-    createBtn.addEventListener("click", () => {
-      const count = Math.floor(Number(wrap.querySelector(".mm-count").value));
-      if (!Number.isFinite(count) || count <= 0) {
-        createFlash.innerHTML = `<span class="gc-err">Ange ett antal (minst 1).</span>`;
-        return;
-      }
-      createFlash.innerHTML = "";
-      const taken = new Set(students.map((x) => String(x.username || "").toLowerCase()).filter(Boolean));
-      renderAccountEditor(editorHost, {
-        count,
-        prefix,
-        className: cls.name || cls.id,
-        taken,
-        onCancel: () => editorHost.replaceChildren(),
-        onCreated: async (created) => {
-          created.forEach((c) =>
-            students.push({ id: c.id, namn: c.namn, username: c.username, avatarId: "fox" })
-          );
-          const nextIds = [...(cls.studentIds || []), ...created.map((c) => c.id)];
-          try {
-            await data.setClassStudents(cls.id, nextIds);
-            cls.studentIds = nextIds;
-          } catch (err) {
-            createFlash.innerHTML = `<span class="gc-err">Kontona skapades men klasskopplingen misslyckades: ${esc(err.message)}</span>`;
-          }
-          if (creds) creds.save(created);
-          showCreds(created);
-          updateCount();
-          draw();
-        },
-      });
-    });
-
-    // Lägg till befintliga elever.
-    const existingEl = wrap.querySelector(".mm-existing");
-    if (nonMembers.length === 0) {
-      existingEl.appendChild(el(`<p class="hint">Alla elevkonton finns redan i den här klassen.</p>`));
-    } else {
-      const rows = nonMembers
-        .map(
-          (s) => `<label class="member-row">
-            <input type="checkbox" value="${esc(s.id)}" />
-            <span class="member-avatar">${avatarEmoji(s.avatarId)}</span>
-            <span class="member-name">${esc(s.namn || s.username || s.id)}</span>
-          </label>`
-        )
-        .join("");
-      const box = el(`<div>
-        <div class="member-grid">${rows}</div>
-        <div class="row-inline" style="margin-top:10px">
-          <button class="btn gron small mm-link">${icon("link", 16)}<span>Lägg till valda</span></button>
-          <span class="mm-link-flash" aria-live="polite"></span>
-        </div>
-      </div>`);
-      box.querySelector(".mm-link").addEventListener("click", async (e) => {
-        const btn = e.currentTarget;
-        const picked = [...box.querySelectorAll('input[type="checkbox"]:checked')].map((c) => c.value);
-        if (picked.length === 0)
-          return void (box.querySelector(".mm-link-flash").innerHTML =
-            `<span class="gc-err">Kryssa i minst en elev.</span>`);
-        btn.disabled = true;
+    createFlash.innerHTML = "";
+    const taken = new Set(students.map((x) => String(x.username || "").toLowerCase()).filter(Boolean));
+    renderAccountEditor(editorHost, {
+      count,
+      prefix,
+      className: cls.name || cls.id,
+      taken,
+      onCancel: () => editorHost.replaceChildren(),
+      onCreated: async (created) => {
+        created.forEach((c) => students.push({ id: c.id, namn: c.namn, username: c.username, avatarId: "fox" }));
+        const nextIds = [...(cls.studentIds || []), ...created.map((c) => c.id)];
+        let fel = null;
         try {
-          const nextIds = [...(cls.studentIds || []), ...picked];
           await data.setClassStudents(cls.id, nextIds);
           cls.studentIds = nextIds;
-          updateCount();
-          draw();
         } catch (err) {
-          box.querySelector(".mm-link-flash").innerHTML =
-            `<span class="gc-err">Kunde inte lägga till: ${esc(errText(err))}</span>`;
-          btn.disabled = false;
+          fel = `Kontona skapades men klasskopplingen misslyckades: ${esc(err.message)}`;
         }
-      });
-      existingEl.appendChild(box);
-    }
-
-    if (loginOnly) wrap.querySelectorAll(".mm-add").forEach((n) => n.remove());
-    membersEl.replaceChildren(credsHost, wrap);
-  }
-
-  draw();
+        onCreated(created, fel);
+      },
+    });
+  });
 }
+
+/** Lägg till befintliga elevkonton (som inte redan är med) i klassen. onAdded() efteråt. */
+export function renderAddExisting(host, { cls, students, onAdded }) {
+  const memberIds = new Set(cls.studentIds || []);
+  const nonMembers = students.filter((s) => !memberIds.has(s.id)).sort(byNamn);
+  if (nonMembers.length === 0) {
+    host.replaceChildren(el(`<p class="hint">Alla elevkonton finns redan i den här klassen.</p>`));
+    return;
+  }
+  const rows = nonMembers
+    .map(
+      (s) => `<label class="member-row">
+        <input type="checkbox" value="${esc(s.id)}" />
+        <span class="member-avatar">${avatarEmoji(s.avatarId)}</span>
+        <span class="member-name">${esc(s.namn || s.username || s.id)}</span>
+      </label>`
+    )
+    .join("");
+  const box = el(`<div>
+    <div class="member-grid">${rows}</div>
+    <div class="row-inline" style="margin-top:10px">
+      <button type="button" class="btn gron small mm-link">${icon("link", 16)}<span>Lägg till valda</span></button>
+      <span class="mm-link-flash" aria-live="polite"></span>
+    </div>
+  </div>`);
+  box.querySelector(".mm-link").addEventListener("click", async (e) => {
+    const btn = e.currentTarget;
+    const picked = [...box.querySelectorAll('input[type="checkbox"]:checked')].map((c) => c.value);
+    if (picked.length === 0)
+      return void (box.querySelector(".mm-link-flash").innerHTML = `<span class="gc-err">Kryssa i minst en elev.</span>`);
+    btn.disabled = true;
+    try {
+      const nextIds = [...(cls.studentIds || []), ...picked];
+      await data.setClassStudents(cls.id, nextIds);
+      cls.studentIds = nextIds;
+      onAdded();
+    } catch (err) {
+      box.querySelector(".mm-link-flash").innerHTML = `<span class="gc-err">Kunde inte lägga till: ${esc(errText(err))}</span>`;
+      btn.disabled = false;
+    }
+  });
+  host.replaceChildren(box);
+}
+
+/** Sortering på namn (annars användarnamn), svensk ordning. */
+export const byNamn = (a, b) =>
+  String(a.namn || a.username || "").localeCompare(String(b.namn || b.username || ""), "sv");

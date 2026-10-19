@@ -182,13 +182,12 @@ export async function renderClassBrakresan(ctx, host, opts = {}) {
   const alla = students.map((s) => stateAv(s.id));
   const agg = utmaningsAggregat(alla);
 
-  const dold = Array.isArray(opts.cls?.hiddenModules) && opts.cls.hiddenModules.includes("brakresan");
+  // #804: "avstängd för klassen" visas nu av renderClassStats (teacher-stats-av.js) för alla flikar.
   const view = el(`<div class="lrt-teacher brl">
     <div class="lrt-intro brl-intro">
       <h3 class="subhead lrt-title">${icon("brak", 18)}<span>Bråkresan</span></h3>
-      <a class="btn small ghost brl-testlank" href="#/larare/brakresan">${icon("eye", 14)} Testa utmaningarna</a>
+      <a class="btn small ghost brl-testlank" href="#/larare/material?flik=brakresan">${icon("eye", 14)} Testa utmaningarna</a>
     </div>
-    ${dold ? `<p class="msg warn brl-dold">Bråkresan är dold för ${esc(opts.cls.name || "klassen")} – visa den under Synliga moduler så ser eleverna den.</p>` : ""}
     <nav class="brl-delar" role="tablist" aria-label="Bråkresan">${DELAR.map((d) =>
       `<button type="button" role="tab" class="brl-del" data-del="${d.key}">${icon(d.ikon, 14)}<span>${d.label}</span></button>`).join("")}</nav>
     ${DELAR.map((d) => `<div class="brl-panel" data-panel="${d.key}" role="tabpanel" hidden></div>`).join("")}

@@ -65,7 +65,7 @@ function drawForm(host, opts, keep) {
       <div class="live-classes">${classes.map((c) => `<label class="live-chip">
         <input type="checkbox" name="klass" value="${esc(c.id)}" ${keep.classIds.includes(c.id) ? "checked" : ""} />
         <span>${esc(c.name || c.id)} <small>(${(c.studentIds || []).length})</small></span></label>`).join("") ||
-        `<p class="hint">Inga klasser ännu – admin skapar dem under Admin → Klasser &amp; elevkonton.</p>`}</div>
+        `<p class="hint">Inga klasser ännu – admin skapar dem under Admin → Skapa klass.</p>`}</div>
     </div>
     ${setupFieldsHtml(fields)}
     <div class="field"><label for="live-name">Matchnamn</label>

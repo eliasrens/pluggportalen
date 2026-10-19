@@ -12,7 +12,7 @@ import { grupperaPack, PACK_IKON, SVARIGHET } from "../hr-start-vy.js";
 import { TYPER, geoNamn } from "./lhr-modell.js";
 import { hamtaOfficielltPack, hamtaPackIndex } from "./lhr-data.js";
 
-const HASH = "#/larare/hitta-ratt";
+const HASH = "#/larare/material?flik=hitta-ratt"; // Material → Hitta rätt! (#806)
 
 /** Frågorna i ett pack som en lista (lärarvyn får visa namnen). */
 export function innehallHtml(pack) {
@@ -85,8 +85,8 @@ export async function renderFardiga(ctx, host) {
   vy.querySelectorAll(".lhr-kort").forEach((kort) => {
     const id = kort.dataset.pack;
     kopplaInnehall(kort.querySelector('[data-act="innehall"]'), kort.querySelector(".lhr-innehall-ruta"), () => hamtaOfficielltPack(id));
-    kort.querySelector('[data-act="prov"]').addEventListener("click", () => ctx.go(`${HASH}?prov=${encodeURIComponent(id)}&fran=fardiga`));
-    kort.querySelector('[data-act="kopia"]').addEventListener("click", () => ctx.go(`${HASH}?vy=ny&kopia=${encodeURIComponent(id)}`));
+    kort.querySelector('[data-act="prov"]').addEventListener("click", () => ctx.go(`${HASH}&prov=${encodeURIComponent(id)}&fran=fardiga`));
+    kort.querySelector('[data-act="kopia"]').addEventListener("click", () => ctx.go(`${HASH}&vy=ny&kopia=${encodeURIComponent(id)}`));
   });
   host.replaceChildren(vy);
 }

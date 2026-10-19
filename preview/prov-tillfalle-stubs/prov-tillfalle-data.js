@@ -92,3 +92,8 @@ export async function slappIn(tf, uids, { plusMin = false } = {}) {
   window.dispatchEvent(new CustomEvent("pv-paus"));
   return plusMin && tf.tidsgransMin ? extraTid : null;
 }
+
+// #807: lat uppskrivning av räknarna – stubben har inga äldre tillfällen.
+export async function uppgraderaRaknare() {
+  return 0;
+}

@@ -7640,21 +7640,10 @@ body:has(.teacher-dark) .container {
 /* ── src/styles/30-larare-roller.css ── */
 /* ==========================================================================
    Lärarsidan: ny struktur + synlighet efter roll (#679)
-   Huvuddelar i toppnaven + underrad för aktiv del, "Inloggad som …",
-   Översikt (#/larare/oversikt) och "Skapat av …" i materiallistan.
+   Huvuddelar i toppnaven + underrad för aktiv del (profilmenyn: 42-larare-meny.css),
+   Översikt/Hem (#/larare/hem) och "Skapat av …" i materiallistan.
    Allt scopat under .teacher-dark (mörk stil, linje-ikoner).
    ========================================================================== */
-
-.teacher-dark .teacher-nav-who {
-  margin-left: auto;
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--t-border);
-  color: var(--t-muted);
-  font-size: 0.86rem;
-  white-space: nowrap;
-}
-.teacher-dark .teacher-nav-who + .tnav.logout { margin-left: 4px; }
 
 .teacher-dark .teacher-subnav {
   display: flex;
@@ -7685,11 +7674,8 @@ body:has(.teacher-dark) .container {
 }
 .teacher-dark .tsub.active .tnav-ic { color: var(--t-accent); }
 
-@media (max-width: 900px) {
-  .teacher-dark .teacher-nav-who { display: none; }
-}
-/* Sju huvuddelar sedan Prov (#739): lite tätare flikar så att raden (med
-   "Inloggad som …" och Logga ut) får plats på en vanlig laptopskärm. */
+/* Lite tätare flikar så att raden (med profilmenyn) får plats på en vanlig
+   laptopskärm. Under 900 px fälls toppmenyn ihop till ☰ (42-larare-meny.css). */
 @media (min-width: 901px) and (max-width: 1320px) {
   .teacher-dark .teacher-nav-tabs { gap: 3px; }
   .teacher-dark .tnav { padding: 9px 10px; gap: 7px; }
@@ -9428,3 +9414,923 @@ html[data-halloween] .port-scen .port-larare-lank {
   .schack-pokal-ny { animation: none; }
 }
 html.reduce-motion .schack-pokal-ny { animation: none; }
+
+/* ── src/styles/42-larare-meny.css ── */
+/* ==========================================================================
+   Lärarsidans toppmeny (#803, epic #802 DEL 1.2/1.4): profilmenyn (kontots
+   namn ▾ → Inloggad som …, Hjälp och guide, Admin, Logga ut) och ☰ som fäller
+   ihop huvudvalen på smala skärmar. Mörk stil som resten av lärarsidan.
+   ========================================================================== */
+
+.teacher-dark .tprof {
+  position: relative;
+  margin-left: auto;
+}
+.teacher-dark .tprof-knapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px 5px 5px;
+  border-radius: 999px;
+  border: 1px solid var(--t-border);
+  background: var(--t-surface);
+  color: var(--t-text);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.teacher-dark .tprof-knapp:hover,
+.teacher-dark .tprof-knapp[aria-expanded="true"] { border-color: var(--t-border-strong); }
+.teacher-dark .tprof-ava {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--t-accent-strong);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+.teacher-dark .tprof-namn {
+  max-width: 16ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.teacher-dark .tprof-meny {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: calc(var(--z-flik-nav) + 1);
+  min-width: 220px;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid var(--t-border-strong);
+  background: var(--t-surface-2);
+  box-shadow: var(--t-shadow);
+}
+.teacher-dark .tprof-meny[hidden] { display: none; }
+.teacher-dark .tprof-who {
+  display: block;
+  padding: 6px 12px 6px;
+  color: var(--t-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.teacher-dark .tprof-val {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  color: var(--t-text);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.92rem;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.teacher-dark .tprof-val:hover,
+.teacher-dark .tprof-val:focus-visible { background: rgba(255, 255, 255, 0.06); }
+.teacher-dark .tprof-val[data-logout]:hover { color: #ff9b9b; }
+
+/* ☰ syns bara på smala skärmar. */
+.teacher-dark .tnav-burger {
+  display: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  /* Ingen sidscroll i bandet längre – menyn fälls ut under raden i stället. */
+  .teacher-dark .teacher-nav-inner {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+  .teacher-dark .tnav-burger {
+    display: inline-flex;
+    border-color: var(--t-border);
+    color: var(--t-text);
+  }
+  .teacher-dark .tnav-burger .tnav-txt { display: inline; }
+  .teacher-dark .teacher-nav-tabs { display: none; }
+  .teacher-dark .teacher-nav.meny-oppen .teacher-nav-tabs {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    order: 10;
+    flex-basis: 100%;
+    margin: 8px 0 0;
+    padding-top: 8px;
+    border-top: 1px solid var(--t-border);
+  }
+  .teacher-dark .teacher-nav.meny-oppen .tnav { padding: 11px 14px; }
+  .teacher-dark .teacher-nav.meny-oppen .tnav .tnav-txt { display: inline; }
+}
+@media (max-width: 460px) {
+  .teacher-dark .tprof-namn { max-width: 10ch; }
+}
+
+/* Hjälp och guide (#/larare/hjalp) – platshållare tills sub-issue F. */
+.teacher-dark .hjalp-lista {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.teacher-dark .hjalp-lista li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--t-surface-2);
+  font-weight: 700;
+}
+
+/* ── src/styles/43-larare-mina-klasser.css ── */
+/* ==========================================================================
+   === Mina klasser #804 (epic #802 §3.1–3.3) ===
+   --------------------------------------------------------------------------
+   Klassväljaren (knappar / sök + rullgardin), fyra flikar med undertext,
+   statistikens "· av"-flikar och Vad eleverna ser i tre numrerade steg.
+   Samma mörka tema och gröna accent som resten av lärarsidan. Allt scopat
+   under .teacher-dark – inga horisontella scrollbars ner till 320 px.
+   ========================================================================== */
+.teacher-dark.mk-page { min-width: 0; }
+.teacher-dark .mk-lead {
+  margin: 0 0 12px;
+  color: var(--t-muted);
+}
+
+/* --- Klassväljaren --------------------------------------------------------- */
+.teacher-dark .mk-klassval {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 14px;
+}
+.teacher-dark .mk-klassknapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 8px 16px;
+  border: 1px solid var(--t-border-strong);
+  border-radius: 12px;
+  background: var(--t-surface);
+  color: var(--t-text);
+  font: inherit;
+  font-weight: 700;
+  font-size: 1.02rem;
+  cursor: pointer;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.teacher-dark .mk-klassknapp:hover { border-color: var(--t-accent); }
+.teacher-dark .mk-klassknapp:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 2px; }
+.teacher-dark .mk-klassknapp[aria-pressed="true"] {
+  background: var(--t-accent-soft);
+  border-color: var(--t-accent);
+  color: #eafff2;
+}
+.teacher-dark .mk-las { display: inline-flex; color: var(--t-muted); }
+.teacher-dark .mk-klassval-sok .mk-sok,
+.teacher-dark .mk-klassval-sok .mk-sok-val { flex: 1 1 220px; min-width: 0; }
+.teacher-dark .mk-sok-falt,
+.teacher-dark .mk-klass-select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 1.5px solid var(--t-border-strong);
+  border-radius: 10px;
+  background: var(--t-surface);
+  color: var(--t-text);
+  font: inherit;
+  font-weight: 600;
+}
+
+/* --- Vald klass + flikarna ----------------------------------------------- */
+.teacher-dark .mk-klass {
+  margin: 0;
+  min-width: 0;
+  padding: 20px 24px 24px;
+}
+.teacher-dark .mk-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 12px;
+}
+.teacher-dark .mk-namn {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--t-text);
+  overflow-wrap: anywhere;
+}
+.teacher-dark .mk-antal { padding: 2px 10px; border-radius: 999px; font-size: 0.82rem; }
+.teacher-dark .mk-flikar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 14px 0 0;
+  border-bottom: 1px solid var(--t-border);
+}
+.teacher-dark .mk-flik {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  padding: 10px 14px;
+  margin-bottom: -1px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: var(--t-muted);
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+.teacher-dark .mk-flik small { font-weight: 500; font-size: 0.75rem; color: var(--t-muted); opacity: 0.85; }
+.teacher-dark .mk-flik:hover { color: var(--t-text); }
+.teacher-dark .mk-flik:focus-visible { outline: none; border-radius: 8px 8px 0 0; box-shadow: inset 0 0 0 2px var(--t-accent-soft); }
+.teacher-dark .mk-flik.active { color: #eafff2; border-bottom-color: var(--t-accent); }
+.teacher-dark .mk-innehall { padding-top: 18px; min-height: 160px; min-width: 0; }
+.teacher-dark .mk-block .subhead { margin-top: 0; }
+
+/* Statistikens underflikar radbryts i stället för att skjuta ut sidan (9+ flikar). */
+.teacher-dark.mk-page .stats-tabs { display: flex; flex-wrap: wrap; max-width: 100%; box-sizing: border-box; }
+/* Rullgardiner och fält i flikarna (t.ex. Fokuslägets målväljare) får inte bli
+   bredare än skärmen – långa områdesnamn i <option> drog ut sidan på mobil. */
+.teacher-dark .mk-innehall select,
+.teacher-dark .mk-innehall input:not([type="checkbox"]):not([type="radio"]) { max-width: 100%; min-width: 0; box-sizing: border-box; }
+.teacher-dark .mk-innehall label,
+.teacher-dark .mk-innehall .field { max-width: 100%; min-width: 0; }
+/* Nivåkorten i Läsresan/Ekvationsresan (minmax 300 px) får plats vid 320 px. */
+.teacher-dark .mk-innehall .lrn-panel { grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); }
+.teacher-dark .stats-tab.av { opacity: 0.6; }
+.teacher-dark .stats-tab.av.active { opacity: 1; }
+.teacher-dark .stats-av { font-weight: 500; }
+.teacher-dark .stats-av-notis { margin: 0 0 14px; }
+.teacher-dark .stats-av-lank { color: var(--t-accent); font-weight: 700; }
+
+/* --- Vad eleverna ser: tre numrerade steg ------------------------------- */
+.teacher-dark .mk-ser { display: flex; flex-direction: column; gap: 22px; }
+.teacher-dark .mk-ser-intro { margin: 0; color: var(--t-muted); }
+.teacher-dark .mk-steg + .mk-steg { padding-top: 20px; border-top: 1px solid var(--t-border); }
+.teacher-dark .mk-steg-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.teacher-dark summary.mk-steg-head { cursor: pointer; list-style: none; }
+.teacher-dark summary.mk-steg-head::-webkit-details-marker { display: none; }
+.teacher-dark summary.mk-steg-head::after { content: "▸"; color: var(--t-muted); }
+.teacher-dark details[open] > summary.mk-steg-head::after { content: "▾"; }
+.teacher-dark .mk-steg-nr {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--t-accent);
+  background: var(--t-accent-soft);
+  color: var(--t-accent);
+  font-weight: 800;
+}
+.teacher-dark .mk-steg-titel { margin: 0; font-size: 1.12rem; color: var(--t-text); flex: 1 1 200px; min-width: 0; }
+.teacher-dark .mk-steg-hjalp { margin: 8px 0 10px; }
+.teacher-dark .mk-sparat:empty { display: none; }
+.teacher-dark .mk-sparat {
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.teacher-dark .mk-sparat.ok { color: var(--t-accent); background: var(--t-accent-soft); }
+.teacher-dark .mk-sparat.andrat { color: #f5c26b; background: rgba(245, 194, 107, 0.12); }
+.teacher-dark .mk-sparat.fel { color: #ff8a80; background: rgba(255, 138, 128, 0.12); }
+
+/* Hela områdesnamnen (inga "Svensk His…"): bredare rutor och radbrytning. */
+.teacher-dark .mk-ser .member-grid { grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); }
+.teacher-dark .mk-ser .member-row { align-items: flex-start; min-width: 0; }
+.teacher-dark .mk-ser .member-name {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+/* --- Smal skärm (mobil 320–760 px) ---------------------------------------- */
+@media (max-width: 760px) {
+  .teacher-dark .mk-klass { padding: 14px 12px 18px; }
+  .teacher-dark .mk-namn { font-size: 1.25rem; }
+  .teacher-dark .mk-flikar { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 0; gap: 6px; }
+  .teacher-dark .mk-flik {
+    min-width: 0;
+    margin: 0;
+    padding: 8px 10px;
+    border: 1px solid var(--t-border);
+    border-radius: 10px;
+    overflow-wrap: anywhere;
+  }
+  .teacher-dark .mk-flik.active { border-color: var(--t-accent); background: var(--t-accent-soft); }
+  .teacher-dark .mk-klassknapp { padding: 8px 12px; min-height: 40px; }
+}
+
+/* ── src/styles/44-larare-material.css ── */
+/* ==========================================================================
+   Lärarsidan: Material med underflikar (#806, epic #802 DEL 4)
+   Flikraden, raden om var klassinställningarna finns och testlägesbannern.
+   Allt scopat under .teacher-dark; själva vyerna (materialtabellen, Bråkresan,
+   Hitta rätt!) har sina egna stilar och är oförändrade.
+   ========================================================================== */
+
+.teacher-dark .mat-flikar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 12px;
+  padding: 5px;
+  background: var(--t-surface);
+  border: 1px solid var(--t-border);
+  border-radius: 12px;
+  width: fit-content;
+  max-width: 100%;
+}
+.teacher-dark .mat-flik {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 9px;
+  color: var(--t-muted);
+  font-weight: 650;
+  text-decoration: none;
+  cursor: pointer;
+}
+.teacher-dark .mat-flik:hover { color: var(--t-text); background: var(--t-raised); }
+.teacher-dark .mat-flik.active { color: var(--t-text); background: var(--t-accent-soft); }
+.teacher-dark .mat-flik.active .t-icon { color: var(--t-accent); }
+
+/* De flyttade vyerna har en egen .teacher-page-rot: ingen dubbel luft inuti ytan. */
+.teacher-dark .mat-host > .teacher-page { padding: 0; margin: 0; }
+
+.teacher-dark .mat-testbanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 9px 12px;
+  border: 1px solid var(--t-border-strong);
+  border-radius: 10px;
+  background: var(--t-surface);
+  color: var(--t-muted);
+  font-size: 0.92rem;
+}
+.teacher-dark .mat-testbanner .t-icon { flex: none; color: var(--t-accent); }
+
+.teacher-dark .mat-ekv-val { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; }
+.teacher-dark .mat-ekv-val select { width: auto; max-width: 100%; }
+.teacher-dark .mat-info h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; }
+.teacher-dark .mat-info p { max-width: 70ch; }
+.teacher-dark .mat-niva-tabell { width: 100%; max-width: 420px; }
+.teacher-dark .mat-niva-tabell th,
+.teacher-dark .mat-niva-tabell td { text-align: left; padding: 6px 10px; }
+
+@media (max-width: 600px) {
+  .teacher-dark .mat-flikar { width: 100%; }
+  .teacher-dark .mat-flik { padding: 8px 11px; }
+}
+
+/* Schackvyerna är elevens (ljusa) och ärver annars lärarsidans ljusa text: lägg dem på en ljus yta. */
+.teacher-dark .mat-schack .schack-rot {
+  background: var(--ljus);
+  color: var(--text);
+  border-radius: 16px;
+  padding: 16px;
+}
+.teacher-dark .mat-schack .schack-rot label { color: var(--text); }
+.teacher-dark .mat-schack .schack-rot :is(h1, h2, h3, .schack-notis) { color: var(--text); }
+/* "‹ Till Schack" på nivåvalet går till samma sida i provläget – dold där (i partiet leder den tillbaka till nivåvalet). */
+.teacher-dark .mat-schack .schack-sida > .schack-tillbaka { display: none; }
+
+/* ── src/styles/45-larare-elever-admin.css ── */
+/* ==========================================================================
+   === Elever-fliken + Admin-sidan #805 (epic #802 §3.4–3.5) ===
+   --------------------------------------------------------------------------
+   Kompakt elevtabell (en rad per elev, menyn ⋯, panel/bekräftelse under
+   raden) och Admin-sidans stora kort. Samma mörka tema, gröna accent och
+   linjeikoner som resten av lärarsidan; allt scopat under .teacher-dark.
+   Ner till 320 px utan horisontell scroll: raden radbryts till två rader.
+   ========================================================================== */
+
+/* --- Verktygsraden: knappar för hela klassen + sök ------------------------ */
+.teacher-dark .et { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.teacher-dark .et-verktyg {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+.teacher-dark .et-knappar { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.teacher-dark .et-knappar .btn[aria-expanded="true"] { box-shadow: inset 0 0 0 2px var(--t-accent); }
+.teacher-dark .et-sok { flex: 0 1 260px; min-width: 0; }
+.teacher-dark .et-sok-falt {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 38px;
+  padding: 7px 12px;
+  border: 1.5px solid var(--t-border-strong);
+  border-radius: 10px;
+  background: var(--t-surface);
+  color: var(--t-text);
+  font: inherit;
+  font-weight: 600;
+}
+.teacher-dark .et-sok-falt:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 1px; }
+.teacher-dark .et-fot { margin: 0; }
+.teacher-dark .et-fot[hidden],
+.teacher-dark .et-besked:empty { display: none; }
+
+/* --- Tabellen ------------------------------------------------------------- */
+.teacher-dark .et-tabell {
+  border: 1px solid var(--t-border);
+  border-radius: 12px;
+  background: var(--t-surface-2);
+  min-width: 0;
+}
+.teacher-dark .et-rad {
+  display: grid;
+  grid-template-columns: minmax(140px, 1.4fr) minmax(110px, 1fr) minmax(110px, 1fr) 48px;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 7px 12px;
+  min-width: 0;
+}
+.teacher-dark .et-admin .et-rad { grid-template-columns: minmax(140px, 1.4fr) minmax(110px, 1fr) minmax(110px, 1fr) minmax(90px, 0.8fr) 48px; }
+.teacher-dark .et-huvud {
+  padding-top: 9px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--t-border);
+  color: var(--t-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.teacher-dark .et-elev + .et-elev { border-top: 1px solid var(--t-border); }
+.teacher-dark .et-elev:hover > .et-rad,
+.teacher-dark .et-elev.meny-oppen > .et-rad { background: rgba(255, 255, 255, 0.025); }
+.teacher-dark .et-namn { display: flex; align-items: center; gap: 8px; min-width: 0; font-weight: 700; color: var(--t-text); }
+.teacher-dark .et-ava { flex: none; font-size: 1.2rem; line-height: 1; }
+.teacher-dark .et-namn-txt,
+.teacher-dark .et-anv { overflow-wrap: anywhere; min-width: 0; }
+.teacher-dark .et-anv { color: var(--t-text); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.92rem; }
+.teacher-dark .et-lbl { display: none; color: var(--t-muted); font-family: inherit; font-size: 0.8rem; font-weight: 600; }
+.teacher-dark .et-los,
+.teacher-dark .et-mynt { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; overflow-wrap: anywhere; }
+.teacher-dark .et-varde { min-width: 0; max-width: 100%; }
+.teacher-dark .et-visa { padding: 4px 10px; }
+.teacher-dark .et-visat { font-weight: 700; color: var(--t-text); }
+.teacher-dark .et-kod { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.95rem; color: #eafff2; overflow-wrap: anywhere; min-width: 0; max-width: 100%; }
+.teacher-dark .et-okant { color: var(--t-muted); font-style: italic; }
+.teacher-dark .et-satt-nytt { padding: 3px 8px; }
+.teacher-dark .et-ingen { margin: 8px 0 0; }
+
+/* --- Menyn ⋯ -------------------------------------------------------------- */
+.teacher-dark .et-mer { position: relative; display: flex; justify-content: flex-end; }
+.teacher-dark .et-meny-knapp { min-width: 38px; justify-content: center; font-size: 1.15rem; font-weight: 800; line-height: 1; }
+.teacher-dark .et-meny-knapp[aria-expanded="true"] { border-color: var(--t-accent); color: var(--t-accent); }
+.teacher-dark .et-meny {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  min-width: 230px;
+  max-width: calc(100vw - 32px);
+  padding: 6px;
+  border: 1px solid var(--t-border-strong);
+  border-radius: 12px;
+  background: var(--t-raised);
+  box-shadow: var(--t-shadow);
+}
+.teacher-dark .et-meny[hidden] { display: none; }
+.teacher-dark .et-menyval {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--t-text);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.teacher-dark .et-menyval .t-icon { color: var(--t-muted); flex: none; }
+.teacher-dark .et-menyval:hover,
+.teacher-dark .et-menyval:focus-visible { outline: none; background: var(--t-accent-soft); }
+.teacher-dark .et-menyval.danger { color: #ff9d9d; }
+.teacher-dark .et-menyval.danger .t-icon { color: #ff9d9d; }
+.teacher-dark .et-menyval.danger:hover,
+.teacher-dark .et-menyval.danger:focus-visible { background: rgba(235, 87, 87, 0.16); }
+.teacher-dark .et-menyval[data-val="ur"] { margin-top: 4px; border-top: 1px solid var(--t-border); border-radius: 0 0 8px 8px; padding-top: 11px; }
+
+/* --- Paneler under raden / överst + bekräftelserutan ------------------------ */
+.teacher-dark .et-panel { padding: 0 12px 12px; }
+.teacher-dark .et-panel[hidden],
+.teacher-dark .et-klasspanel[hidden] { display: none; }
+.teacher-dark .et-panelram,
+.teacher-dark .et-klasspanel {
+  border: 1px solid var(--t-border-strong);
+  border-radius: 12px;
+  background: var(--t-surface);
+}
+.teacher-dark .et-klasspanel > .et-panelram { border: 0; }
+.teacher-dark .et-panelhuvud {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 8px 8px 14px;
+  border-bottom: 1px solid var(--t-border);
+  color: var(--t-text);
+}
+.teacher-dark .et-panelkropp { padding: 12px 14px 14px; min-width: 0; }
+.teacher-dark .et-panelkropp .hint:first-child { margin-top: 0; }
+.teacher-dark .et-namnruta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.teacher-dark .et-namnruta .mm-namn { flex: 1 1 180px; min-width: 0; }
+.teacher-dark .et-lagg-till { display: flex; flex-direction: column; gap: 10px; }
+.teacher-dark .et-mynt-bekrafta:empty { display: none; }
+.teacher-dark .et-mynt-bekrafta { margin-top: 10px; }
+.teacher-dark .et-bekrafta {
+  padding: 12px 14px;
+  border: 1px solid var(--t-border-strong);
+  border-left: 4px solid var(--t-accent);
+  border-radius: 10px;
+  background: var(--t-surface);
+}
+.teacher-dark .et-bekrafta.farlig { border-left-color: #eb5757; background: rgba(235, 87, 87, 0.07); }
+.teacher-dark .et-bekrafta-text { margin: 0 0 10px; color: var(--t-text); overflow-wrap: anywhere; }
+
+/* --- Admin-sidan: stora kort ---------------------------------------------- */
+.teacher-dark .adm-kort {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
+  gap: 12px;
+  margin: 0 0 16px;
+}
+.teacher-dark .adm-kortet {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--t-border-strong);
+  border-radius: 14px;
+  background: var(--t-surface);
+  color: var(--t-text);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.teacher-dark .adm-kortet:hover { border-color: var(--t-accent); }
+.teacher-dark .adm-kortet:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 2px; }
+.teacher-dark .adm-kortet.active { border-color: var(--t-accent); background: var(--t-accent-soft); }
+.teacher-dark .adm-kort-ikon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--t-accent-soft);
+  color: var(--t-accent);
+}
+.teacher-dark .adm-kort-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.teacher-dark .adm-kort-text b { font-size: 1.08rem; }
+.teacher-dark .adm-kort-text span { color: var(--t-muted); font-size: 0.88rem; }
+.teacher-dark .adm-panel { margin: 0; min-width: 0; padding: 18px 22px 22px; }
+.teacher-dark .adm-panel[hidden] { display: none; }
+.teacher-dark .adm-verktyg .subhead { margin-top: 0; }
+.teacher-dark .adm-innehall { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.teacher-dark .adm-klassrad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--t-border);
+  border-radius: 10px;
+  background: var(--t-surface-2);
+  min-width: 0;
+}
+.teacher-dark .adm-klassnamn { flex: 1 1 180px; min-width: 0; overflow-wrap: anywhere; }
+.teacher-dark .adm-klassnamn input { box-sizing: border-box; width: 100%; max-width: 320px; }
+.teacher-dark .adm-bekrafta { margin-top: 6px; }
+.teacher-dark .adm-bekrafta[hidden] { display: none; }
+.teacher-dark .adm-besked:empty { display: none; }
+
+/* --- Smal skärm: raden blir två rader (namn + ⋯ överst) -------------------- */
+@media (max-width: 640px) {
+  .teacher-dark .et-sok { flex: 1 1 100%; }
+  .teacher-dark .et-huvud { display: none; }
+  .teacher-dark .et-rad,
+  .teacher-dark .et-admin .et-rad {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "namn mer" "anv anv" "los los" "mynt mynt";
+    gap: 4px 8px;
+    padding: 10px 12px;
+  }
+  .teacher-dark .et-namn { grid-area: namn; }
+  .teacher-dark .et-mer { grid-area: mer; }
+  .teacher-dark .et-anv { grid-area: anv; }
+  .teacher-dark .et-los { grid-area: los; }
+  .teacher-dark .et-mynt { grid-area: mynt; }
+  .teacher-dark .et-lbl { display: inline; }
+  .teacher-dark .et-panel { padding: 0 8px 10px; }
+  .teacher-dark .adm-panel { padding: 14px 12px 18px; }
+}
+
+/* ── src/styles/46-larare-hem.css ── */
+/* ==========================================================================
+   === Hem #807 (epic #802 DEL 2 + §1.3 + DEL 5) ===
+   --------------------------------------------------------------------------
+   Lärarsidans Hem (Kom igång, Att göra, Snabbval, Mina klasser), det gula
+   märket på Prov i toppmenyn och rutan "Att rätta" på Mina prov. Samma mörka
+   tema och gröna accent som resten av lärarsidan; gult = väntar på läraren.
+   Allt scopat under .teacher-dark – ingen sidscroll ner till 320 px.
+   ========================================================================== */
+
+/* --- Märket "Prov 18" ------------------------------------------------------ */
+.teacher-dark .tnav-marke {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  margin-left: 2px;
+  border-radius: 999px;
+  background: #f2c94c;
+  color: #1d1a10;
+  font-size: 0.74rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* --- Sidan ------------------------------------------------------------------ */
+.teacher-dark.hem-page { min-width: 0; }
+.teacher-dark .hem-lead { margin: 0 0 14px; color: var(--t-muted); }
+.teacher-dark .hem-block { margin: 0 0 18px; min-width: 0; }
+.teacher-dark .hem-h { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; }
+.teacher-dark .hem-grid2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 0 18px;
+  align-items: start;
+}
+
+/* --- Kom igång ------------------------------------------------------------- */
+.teacher-dark .hem-kom { margin: 0 0 18px; border-color: rgba(46, 193, 110, 0.35); }
+.teacher-dark .hem-kom-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.teacher-dark .hem-kom-head .hem-h { margin: 0; }
+.teacher-dark .hem-steg { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
+.teacher-dark .hem-steg li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-height: 34px; }
+.teacher-dark .hem-steg li.klar .hem-steg-txt { color: var(--t-muted); text-decoration: line-through; }
+.teacher-dark .hem-steg-txt { flex: 1 1 180px; min-width: 0; }
+.teacher-dark .hem-bock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--t-border-strong);
+}
+.teacher-dark .hem-steg li.klar .hem-bock { background: var(--t-accent-strong); border-color: var(--t-accent-strong); color: #fff; }
+
+/* --- Att göra ---------------------------------------------------------------- */
+.teacher-dark .hem-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.teacher-dark .hem-rad {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--t-border);
+  background: rgba(255, 255, 255, 0.03);
+  flex-wrap: wrap;
+}
+.teacher-dark .hem-rad-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--t-accent-soft);
+  color: var(--t-accent);
+}
+.teacher-dark .hem-rad-ic.gul { background: rgba(242, 201, 76, 0.14); color: #f2c94c; }
+.teacher-dark .hem-rad-ic.bla { background: rgba(86, 156, 235, 0.16); color: #8fbdf2; }
+.teacher-dark .hem-rad-txt { display: flex; flex-direction: column; gap: 2px; flex: 1 1 160px; min-width: 0; overflow-wrap: anywhere; }
+.teacher-dark .hem-rad-txt .hint { margin: 0; }
+.teacher-dark .hem-rad .btn { margin-left: auto; }
+.teacher-dark .hem-tom { margin: 0; padding: 12px 0; color: var(--t-muted); font-weight: 600; }
+.teacher-dark .hem-fel { flex-basis: 100%; margin: 4px 0 0; }
+
+/* --- Snabbval ------------------------------------------------------------------ */
+.teacher-dark .hem-snabb { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 8px; }
+.teacher-dark .hem-snabbval {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--t-border-strong);
+  background: var(--t-surface);
+  color: var(--t-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.teacher-dark .hem-snabbval:hover { border-color: rgba(46, 193, 110, 0.55); background: var(--t-accent-soft); }
+.teacher-dark .hem-snabb-ic { grid-row: span 2; color: var(--t-accent); }
+.teacher-dark .hem-snabbval .hint { margin: 0; font-size: 0.84rem; }
+
+/* --- Mina klasser ----------------------------------------------------------------- */
+.teacher-dark .hem-klasser-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.teacher-dark .hem-klasser-head .hem-h { margin: 0; }
+.teacher-dark .hem-dolda .hint { display: inline-flex; align-items: center; gap: 6px; margin: 0; }
+.teacher-dark .hem-kort-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 12px; }
+.teacher-dark .hem-kort {
+  display: flex;
+  flex-direction: column;
+  border-radius: 14px;
+  border: 1px solid var(--t-border-strong);
+  background: var(--t-surface);
+  min-width: 0;
+}
+.teacher-dark .hem-kort.dold { opacity: 0.6; border-style: dashed; }
+.teacher-dark .hem-kort-oppna {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  padding: 14px;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  color: var(--t-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.teacher-dark .hem-kort-oppna:hover .hem-kort-namn { color: var(--t-accent); }
+.teacher-dark .hem-kort-oppna .hint { margin: 0; }
+.teacher-dark .hem-kort-oppna .hint b { color: var(--t-text); }
+.teacher-dark .hem-kort-namn { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 1.2rem; font-weight: 800; }
+.teacher-dark .hem-kort-namn small { color: var(--t-muted); font-size: 0.84rem; font-weight: 600; }
+.teacher-dark .hem-stapel { display: block; height: 6px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.teacher-dark .hem-stapel i { display: block; height: 100%; border-radius: inherit; background: var(--t-accent); }
+.teacher-dark .hem-chips { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.teacher-dark .hem-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--t-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.teacher-dark .hem-chip.fokus { background: rgba(242, 201, 76, 0.14); color: #f2c94c; }
+.teacher-dark .hem-dolj { align-self: flex-start; margin: 0 14px 12px; }
+
+/* --- Prov → Mina prov: "Att rätta" överst (DEL 5) ------------------------------- */
+.teacher-dark .provl-att-ratta:empty { display: none; }
+.teacher-dark .hem-att-ratta { margin: 0 0 18px; }
+
+/* ── src/styles/47-larare-hjalp.css ── */
+/* ==========================================================================
+   === Lärarsidan: hjälptexter och Hjälp och guide (#808, epic #802 DEL 8) ===
+   --------------------------------------------------------------------------
+   Hopfällbar hjälpruta överst i varje Mina klasser-flik och Material-underflik
+   (teacher-hjalptext.js) samt guidesidan #/larare/hjalp (teacher-hjalp.js).
+   Samma mörka lärartema; allt scopat under .teacher-dark.
+   ========================================================================== */
+.teacher-dark .hj-ruta {
+  margin: 0 0 14px;
+  max-width: 78ch;
+  border: 1px solid var(--t-border);
+  border-radius: 10px;
+  background: var(--t-surface);
+  color: var(--t-muted);
+  font-size: 0.92rem;
+}
+.teacher-dark .hj-ruta summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 650;
+  color: var(--t-text);
+}
+.teacher-dark .hj-ruta summary::-webkit-details-marker { display: none; }
+.teacher-dark .hj-ruta summary .t-icon { flex: none; color: var(--t-accent); }
+.teacher-dark .hj-ruta .hj-visa { margin-left: auto; color: var(--t-muted); font-weight: 600; font-size: 0.85rem; }
+.teacher-dark .hj-ruta .hj-visa::before { content: "Dölj"; }
+.teacher-dark .hj-ruta:not([open]) .hj-visa::before { content: "Visa"; }
+.teacher-dark .hj-ruta summary:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 2px; border-radius: 10px; }
+.teacher-dark .hj-ruta .hj-text { margin: 0; padding: 0 12px 10px 36px; line-height: 1.5; }
+.teacher-dark .hj-ruta a,
+.teacher-dark .hj-guide a { color: var(--t-accent); font-weight: 650; text-decoration: none; cursor: pointer; }
+.teacher-dark .hj-ruta a:hover,
+.teacher-dark .hj-guide a:hover { text-decoration: underline; }
+
+/* --- Hjälp och guide -------------------------------------------------------- */
+.teacher-dark .hj-sida { max-width: 860px; }
+.teacher-dark .hj-lead { margin: 0 0 14px; color: var(--t-muted); }
+.teacher-dark .hj-innehall { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+.teacher-dark .hj-innehall a {
+  padding: 6px 12px;
+  border: 1px solid var(--t-border);
+  border-radius: 999px;
+  color: var(--t-text);
+  font-size: 0.9rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+.teacher-dark .hj-innehall a:hover { background: var(--t-raised); }
+.teacher-dark .hj-guide { margin: 0 0 14px; scroll-margin-top: 80px; }
+.teacher-dark .hj-guide h2 { margin: 0 0 4px; font-size: 1.15rem; }
+.teacher-dark .hj-guide .hj-kort { margin: 0 0 10px; color: var(--t-muted); font-size: 0.92rem; }
+.teacher-dark .hj-steg { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; counter-reset: steg; }
+.teacher-dark .hj-steg li {
+  counter-increment: steg;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  line-height: 1.5;
+}
+.teacher-dark .hj-steg li::before {
+  content: counter(steg);
+  flex: none;
+  width: 24px;
+  height: 24px;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: var(--t-accent-soft);
+  color: var(--t-text);
+  font-weight: 800;
+  font-size: 0.85rem;
+  display: grid;
+  place-items: center;
+}
+.teacher-dark .hj-steg .hj-admin {
+  margin-left: 6px;
+  padding: 0 7px;
+  border-radius: 999px;
+  border: 1px solid var(--t-border-strong);
+  color: var(--t-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .teacher-dark .hj-ruta .hj-text { padding-left: 12px; }
+}

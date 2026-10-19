@@ -27,6 +27,7 @@ import { provInfoDok } from "./prov-statistik.js";
 import { harMynt, provMyntBelopp } from "./prov-mynt.js";
 import { elevProvNamn } from "./prov-anpassningar.js";
 import { stavfelFor } from "./prov-validera.js";
+import { flaggaStammer, raknareFalt } from "./prov-raknare.js";
 
 /**
  * @param {object} o
@@ -55,17 +56,20 @@ export function skapaRattningsLager({ data, med, onStatus = () => {} }) {
   }
 
   const status = () => rattStatusSumma(med, rattningar, fragor);
+  // #807: räknarna (och flaggan attRatta, som äldre tillfällen saknar) rättas när
+  // vyn öppnas – t.ex. elever som lämnat in efter förra gången.
+  const statusAndrad = () => JSON.stringify(status()) !== JSON.stringify(tf.rattStatus || null) || !flaggaStammer(tf);
   // Hela dokumentet + provInfo (datum, gränser, andel) för statistikfliken "Prov" (#742).
   const dokFor = (uid) => sparDok(rattningar[uid], fragor, provInfoDok(rattningar[uid], fragor, tf));
   async function spara() {
     const uids = [...smutsiga].filter((uid) => !rattningar[uid]?.aterlamnad);
     smutsiga.clear();
     const st = status();
-    const nyStatus = JSON.stringify(st) !== JSON.stringify(tf.rattStatus || null) ? st : null;
+    const nyStatus = statusAndrad() ? st : null;
     if (!uids.length && !nyStatus) return;
     try {
       await sparaRattningar(t, Object.fromEntries(uids.map((uid) => [uid, dokFor(uid)])), nyStatus);
-      if (nyStatus) tf.rattStatus = nyStatus;
+      if (nyStatus) Object.assign(tf, raknareFalt(nyStatus));
     } catch (err) {
       uids.forEach((uid) => smutsiga.add(uid));
       throw err;
@@ -78,7 +82,7 @@ export function skapaRattningsLager({ data, med, onStatus = () => {} }) {
       onStatus({ lage: "nekad" });
     },
   });
-  if (smutsiga.size) sparare.andrat();
+  if (smutsiga.size || statusAndrad()) sparare.andrat();
 
   // Pluggmynt (#746, §11): efter tillbakalämningen, en transaktion per elev
   // med kvitto (prov-mynt-pay.js, Live-mönstret). Aldrig kastande.
@@ -136,7 +140,7 @@ export function skapaRattningsLager({ data, med, onStatus = () => {} }) {
       await lamnaTillbaka(t, dok, st);
       Object.assign(rattningar, efter);
       uids.forEach((uid) => smutsiga.delete(uid));
-      tf.rattStatus = st;
+      Object.assign(tf, raknareFalt(st));
       return betala(uids);
     },
 
@@ -154,7 +158,7 @@ export function skapaRattningsLager({ data, med, onStatus = () => {} }) {
       const st = rattStatusSumma(med, efter, fragor);
       await angraTillbaka(t, uid, st);
       rattningar[uid] = efter[uid];
-      tf.rattStatus = st;
+      Object.assign(tf, raknareFalt(st));
     },
   };
 }

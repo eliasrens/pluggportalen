@@ -41,14 +41,16 @@ test("createdByLabel tål saknade fält (före #680)", () => {
   assert.equal(createdByLabel({ createdBy: "u4", createdByName: "Årskurs 4" }), "Årskurs 4");
 });
 
-test("toppnaven: sju huvuddelar (Prov sedan #739/#740), admin-flikar markerade", () => {
+test("toppnaven: Hem, Mina klasser, Material, Prov, Live, Admin (#803), admin-flikar markerade", () => {
   const src = readFileSync(join(SRC, "teacher-shared.js"), "utf8");
   const groups = [...src.matchAll(/\{ key: "(\w+)", label: "([^"]+)", icon:/g)].map((m) => m[2]);
-  assert.deepEqual(groups, ["Översikt", "Klasser", "Material", "Prov", "Live och tävlingar", "Statistik", "Admin"]);
-  for (const key of ["hittaratt", "mattematchen", "adminklasser", "konton"]) {
+  assert.deepEqual(groups, ["Hem", "Mina klasser", "Material", "Prov", "Live", "Admin"]);
+  for (const key of ["mattematchen", "admin", "konton", "sasong"]) {
     assert.match(src, new RegExp(`tab\\("${key}",[^\\n]*, true\\),`), `${key} är bara för admin`);
   }
-  for (const key of ["oversikt", "klasser", "innehall", "prov", "provtillfallen", "live", "statistik"]) {
+  // Hitta rätt! är en admin-flik under Material (#806); Material i sig syns för alla.
+  assert.match(readFileSync(join(SRC, "teacher-material-flikar.js"), "utf8"), /key: "hitta-ratt"[^\n]*admin: true/);
+  for (const key of ["hem", "klasser", "material", "prov", "provtillfallen", "live", "statistik"]) {
     assert.doesNotMatch(src, new RegExp(`tab\\("${key}",[^\\n]*, true\\),`), `${key} syns för alla`);
   }
 });
@@ -56,9 +58,11 @@ test("toppnaven: sju huvuddelar (Prov sedan #739/#740), admin-flikar markerade",
 test("klasslägen: årskurs-sektionerna saknar elevkonton/ekonomi, bara Admin får hantera klasser", () => {
   const src = readFileSync(join(SRC, "teacher-classes-sections.js"), "utf8");
   const mode = (k) => src.match(new RegExp(`${k}: \\{[^\\n]*\\}`))[0];
-  assert.match(mode("klasser"), /sections: \["omraden", "lagen", "synlighet", "fokus", "schack", "inloggning"\], manage: false/);
-  assert.match(mode("statistik"), /manage: false/);
-  assert.match(mode("admin"), /sections: \["elever", "klasscenter"\], manage: true/);
+  // #804: Klasser + Statistik = Mina klasser (schack är statistikens underflik).
+  assert.match(mode("mina"), /sections: \["statistik", "omraden", "synlighet", "lagen", "fokus", "inloggning"\], manage: false/);
+  // #805: elevkonton och Klasscentret = Mina klasser → Elever, bara admin; ingen sida hanterar klasser här.
+  assert.match(mode("minaAdmin"), /sections: \["elever", "klasscenter"\], manage: false, admin: true/);
+  assert.doesNotMatch(src, /manage: true/);
 });
 
 test("bootgrafen: rollfilerna och Översikt laddas bara dynamiskt", () => {
