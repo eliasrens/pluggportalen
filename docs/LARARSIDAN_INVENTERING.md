@@ -83,18 +83,18 @@ blir några adminval ett eller två klick längre än i B. Ge mynt till alla, so
 | Funktion | Vem | B (#804) | Efter C | Klick B → C |
 | --- | --- | --- | --- | --- |
 | Se lösenordet | alla | rad → Inloggning (dialog) | Lösenord → **Visa** på raden (en läsning, bara den eleven) | 3 → 3 |
-| Byt lösenord (Generera enkelt lösenord, Sätt nytt) | alla | rad → Inloggning → Spara | ⋯ → **Byt lösenord** (samma dialog) → Spara; okänt lösenord: Visa → Sätt nytt | 4 → 5 (okänt: 4 → 5) |
-| Byt användarnamn | admin | rad → Inloggning → Spara | ⋯ → Byt lösenord eller användarnamn → Spara | 4 → 5 |
+| Byt lösenord (Generera enkelt lösenord, Sätt nytt) | alla | rad → Inloggning → Spara | ⋯ → **Byt lösenord** (samma dialog) → Spara; okänt lösenord: Visa → Sätt nytt | 4 → 5 (okänt: 4 → 5) (längre: specen §3.4 lägger valet i menyn ⋯) |
+| Byt användarnamn | admin | rad → Inloggning → Spara | ⋯ → Byt lösenord eller användarnamn → Spara | 4 → 5 (längre: specen §3.4 lägger valet i menyn ⋯) |
 | Skriv ut inloggningskort | alla | knapp överst | knapp överst (oförändrad dialog) | 3 → 3 |
 | Sök elev på namn | alla | – | sökfält överst (namn eller användarnamn) | – → 2 |
 | Mynt per elev (saldo) | admin | syntes bara efter Ge | Mynt → **Visa** (en läsning, bara den eleven); efter Ge mynt syns nya saldot | – → 3 |
-| Ge mynt (+10/+50/antal) | admin | Ge på raden | ⋯ → Ge mynt → Ge | 3 → 5 |
+| Ge mynt (+10/+50/antal) | admin | Ge på raden | ⋯ → Ge mynt → Ge | 3 → 5 (längre: specen §3.4 lägger valet i menyn ⋯) |
 | Ge hela klassen mynt | admin | – (ett Ge per elev) | knapp överst → antal → Ge → Ja, ge mynt | 3 × N → 5 |
-| Ändra namn och avatar | admin | fält på raden → Spara | ⋯ → Ändra namn och avatar → Spara | 3 → 5 |
-| Ta ur klassen | admin | knapp på raden (utan bekräftelse) | ⋯ → Ta ur klassen → bekräfta | 3 → 5 |
-| Ta bort konto | admin | knapp på raden → `confirm()` | ⋯ → Ta bort konto → bekräfta | 4 → 5 |
+| Ändra namn och avatar | admin | fält på raden → Spara | ⋯ → Ändra namn och avatar → Spara | 3 → 5 (längre: specen §3.4 lägger valet i menyn ⋯) |
+| Ta ur klassen | admin | knapp på raden (utan bekräftelse) | ⋯ → Ta ur klassen → bekräfta | 3 → 5 (längre: specen §3.4 kräver menyn ⋯ och bekräftelse i en ruta) |
+| Ta bort konto | admin | knapp på raden → `confirm()` | ⋯ → Ta bort konto → bekräfta | 4 → 5 (längre: specen §3.4 lägger valet i menyn ⋯) |
 | Skapa nya elevkonton (Förbered konton, kontoeditorn, lösenordspanelen) | admin | Skapa nya elevkonton (fälld) → Förbered | Lägg till elev → Förbered (delen är öppen) | 4 → 4 |
-| Lägg till befintliga elever (Lägg till valda) | admin | Lägg till befintliga (fälld) → Lägg till valda | Lägg till elev → Lägg till befintliga (fälld) → Lägg till valda | 4 → 5 |
+| Lägg till befintliga elever (Lägg till valda) | admin | Lägg till befintliga (fälld) → Lägg till valda | Lägg till elev → Lägg till befintliga (fälld) → Lägg till valda | 4 → 5 (längre: Lägg till elev är en knapp för hela klassen, §3.4) |
 
 Årskurslärare ser aldrig Mynt-kolumnen, Ge hela klassen mynt, Lägg till elev eller adminvalen i ⋯ (`menyFor(false)` i
 `src/teacher-elever-val.js`, testat i `test/lararsida-elever-admin.test.js`). Reglerna spärrar dem ändå (`studentData`, `students`,
