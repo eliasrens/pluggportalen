@@ -60,6 +60,7 @@ export function skapaLektionVy(host, o) {
   const klarEl = $(".schack-lektion-klar");
   const plats = $(".schack-lektion-brade");
   const nastaKnapp = $('[data-act="nasta"]');
+  const omKnapp = $('[data-act="om"]'); // bara i jakterna
   const text = (s, t) => { const e = $(s); if (e) e.textContent = t; };
 
   function visaRaknare() {
@@ -76,12 +77,14 @@ export function skapaLektionVy(host, o) {
     text(".schack-lektion-steg", n > 1 ? `${lektion.typ === "fragor" ? "Fråga" : "Uppgift"} ${lopp.steg + 1} av ${n}` : "");
     text(".schack-lektion-text", lopp.uppgift().text || "Ta alla stjärnor på så få drag som möjligt.");
     nastaKnapp.hidden = true;
+    if (omKnapp) omKnapp.hidden = false;
     visaRaknare();
   }
 
   function uppgiftKlar(svar) {
     text(".schack-lektion-svar", svar);
     nastaKnapp.hidden = false;
+    if (omKnapp) omKnapp.hidden = true; // uppgiften är klar – Börja om gör inget då (F2)
     nastaKnapp.focus({ preventScroll: true });
   }
 

@@ -269,6 +269,23 @@ describe("översikten och markupen", () => {
   });
 });
 
+describe("rättningsrunda 1 (#790 F1–F3)", () => {
+  const css = las("src/styles/39-schack-guide.css");
+  it("F1: lektionskorten är minst 300 px breda och namnet bryts hellre än krockar med stjärnorna", () => {
+    assert.match(css, /\.schack-lektion-lista \{[^}]*minmax\(min\(100%, 300px\), 1fr\)/);
+    assert.match(css, /\.schack-lektion-namn \{[^}]*min-width: 0;[^}]*overflow-wrap: anywhere/);
+  });
+  it("F2: Börja om döljs när jaktuppgiften är klar och visas igen vid nästa uppgift", () => {
+    const vy = kod("src/schack/schack-lektion-vy.js");
+    assert.match(vy, /function uppgiftKlar\(svar\) \{[^}]*omKnapp\.hidden = true/);
+    assert.match(vy, /function visaSteg\(\) \{[\s\S]*?omKnapp\.hidden = false/);
+  });
+  it("F3: lektion 12 visar bara guidens resultatruta – brädets slutruta döljs", () => {
+    assert.match(css, /\.schack-lektion-parti \.schack-slut \{ display: none; \}/);
+    assert.match(lektionHtml(lektionFor(12), 0), /schack-lektion-parti/);
+  });
+});
+
 describe("källkoden (#271)", () => {
   const NYA = ["schack-guide-vy.js", "schack-lektion-vy.js", "schack-lektioner.js", "schack-stjarnjakt.js", "schack-guide-delar.js"];
   it("allt nytt ligger i src/schack/ och guiden laddas bara med import() från flödet", () => {

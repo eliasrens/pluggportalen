@@ -32,7 +32,8 @@
 }
 .schack-lektion-lista {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  /* 300 px: namnet får alltid plats bredvid stjärnorna (F1 – vid 4 kolumner krockade "Specialdragen"). */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
   gap: 10px;
   margin: 0;
   padding: 0;
@@ -71,7 +72,7 @@
 }
 .schack-lektion-kort.klar .schack-lektion-nr { background: #f2c94c; color: #3b3350; }
 .schack-lektion-ikon .schack-pjas { width: 40px; height: 40px; display: block; }
-.schack-lektion-namn { display: grid; line-height: 1.2; min-width: 0; }
+.schack-lektion-namn { display: grid; line-height: 1.2; min-width: 0; overflow-wrap: anywhere; }
 .schack-lektion-namn small { font-size: 0.85rem; color: #8a5a00; }
 
 /* --- Lektionen ------------------------------------------------------------- */
@@ -97,6 +98,8 @@
 .schack-lektion-yta[hidden],
 .schack-lektion-klar[hidden] { display: none; }
 .schack-lektion-parti .schack-lektion-yta { display: block; }
+/* Lektion 12: guidens resultatruta räcker – brädets slutruta skulle ge två "Spela igen" (F3). */
+.schack-lektion-parti .schack-slut { display: none; }
 /* Lektionsbrädet har inga spelare och ingen draglista – bara brädet och statusraden. */
 .schack-lektion-brade .schack-spelare,
 .schack-lektion-brade .schack-drag { display: none; }
