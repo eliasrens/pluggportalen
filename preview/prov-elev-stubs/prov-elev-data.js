@@ -12,15 +12,15 @@ const visa = () => window.dispatchEvent(new CustomEvent("prov-stub"));
 
 export async function hamtaTillfalle(t) { return t === S.tf.id ? { ...S.tf } : null; }
 export async function hamtaMittSvar() { return S.svar ? structuredClone(S.svar) : null; }
-export async function startaProv(t, uid, classId, svar = {}) {
+export async function startaProv(t, uid, classId, svar = {}, { helskarmFel = false } = {}) {
   await natet();
-  S.svar = { elevId: uid, classId, startad: Date.now(), uppdaterad: Date.now(), svar, inlamnad: false };
+  S.svar = { elevId: uid, classId, startad: Date.now(), uppdaterad: Date.now(), svar, inlamnad: false, ...(helskarmFel ? { helskarmFel } : {}) };
   visa();
   return structuredClone(S.svar);
 }
 export async function sparaSvar(t, uid, svar, flikbyten = 0) {
   await natet();
-  if (S.tf.status !== "oppet" || S.svar?.inlamnad) throw Object.assign(new Error("nekad"), { code: "permission-denied" });
+  if (S.tf.status !== "oppet" || S.svar?.inlamnad || S.svar?.pausad) throw Object.assign(new Error("nekad"), { code: "permission-denied" });
   S.skrivningar++;
   Object.assign(S.svar, { svar, uppdaterad: Date.now(), ...(flikbyten ? { flikbyten } : {}) });
   visa();
@@ -34,3 +34,26 @@ export async function lamnaIn(t, uid, svar, nar, flikbyten = 0) {
 }
 // #741: elevens rättning (resultatvyn) – bara när den är tillbakalämnad, som reglerna.
 export async function hamtaMinRattning() { return S.rattning?.aterlamnad ? structuredClone(S.rattning) : null; }
+
+// #810: helskärmsläget – pausen (en skrivning), inlämning under pausen och elevens lyssnare.
+const nekad = () => Object.assign(new Error("nekad"), { code: "permission-denied" });
+export async function pausa(t, uid, svar, falt, helskarmFel = false) {
+  await natet();
+  if (S.tf.status !== "oppet" || S.svar?.inlamnad || S.svar?.pausad) throw nekad();
+  S.skrivningar++;
+  Object.assign(S.svar, { svar, uppdaterad: Date.now(), pausad: true, pausadAt: Date.now(), ...falt, ...(helskarmFel ? { helskarmFel } : {}) });
+  visa();
+}
+export async function lamnaInPausad() {
+  await natet();
+  if (S.tf.status !== "oppet" || S.svar?.inlamnad) throw nekad();
+  S.skrivningar++;
+  Object.assign(S.svar, { uppdaterad: Date.now(), inlamnad: true, inlamnadNar: "tid", inlamnadAt: Date.now() });
+  visa();
+}
+export function lyssnaMittSvar(t, uid, cb) {
+  const f = () => cb(S.svar ? structuredClone(S.svar) : null);
+  window.addEventListener("prov-stub", f);
+  setTimeout(f, 0);
+  return () => window.removeEventListener("prov-stub", f);
+}

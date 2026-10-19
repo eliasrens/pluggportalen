@@ -33,7 +33,8 @@ import { granserKontroll } from "./prov-granser-kontroll.js";
 import { sparaGranser } from "./prov-rattning-data.js";
 import { ruta } from "./prov-tillfalle-rutor.js";
 import { harMynt, myntRegelText } from "./prov-mynt.js";
-import { flikbyteText, gallerElev, tillfalleNamn } from "./prov-anpassningar.js";
+import { gallerElev, tillfalleNamn } from "./prov-anpassningar.js";
+import { lamnadeText } from "./prov-helskarm.js";
 import { blanda } from "./typer/delat.js";
 import { h, laddaCss } from "./prov-vy.js";
 
@@ -196,8 +197,8 @@ function rattningsVy(ctx, body, data, elever, q) {
     lager, tf, fragor, rf, nr: fragaNummer(fragor), facit: data.facit, bedomningsstod: data.bedomningsstod, kriterier: data.kriterier, med,
     poangsatt, nivaer: tf.installningar?.nivaer === true, index,
     svarAv: (uid, fid) => svar[uid]?.svar?.[fid],
-    // #748: "Lämnade provet 2 gånger" – diskret, bara information.
-    flikbyteText: (uid) => flikbyteText(svar[uid]?.flikbyten),
+    // #748/#810: "Lämnade provet 2 gånger (10:42 bytte flik, …)" – diskret, bara information.
+    flikbyteText: (uid) => lamnadeText(svar[uid]),
     visNamn: (uid) => (doljNamn ? anonym[uid] : namn[uid]),
     // CSV och utskrift (#747) har alltid det riktiga namnet – de är lärarens egna papper.
     riktigtNamn: (uid) => namn[uid] || "Okänd elev",

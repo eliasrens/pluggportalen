@@ -8,7 +8,7 @@
 
 import { db } from "../firebase-config.js";
 import {
-  doc, getDoc, serverTimestamp, setDoc, updateDoc,
+  doc, getDoc, onSnapshot, serverTimestamp, setDoc, updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { RATTNING, SAMLING_TILLFALLEN, SVAR } from "./prov-modell.js";
 
@@ -30,26 +30,49 @@ export async function hamtaMittSvar(t, uid) {
  * "Starta provet": skapa svar-dokumentet med serverns tid som start. Läser
  * tillbaka det (en läsning) så nedräkningen utgår från serverns startad.
  */
-export async function startaProv(t, uid, classId, svar = {}) {
+export async function startaProv(t, uid, classId, svar = {}, { helskarmFel = false } = {}) {
   await setDoc(svarRef(t, uid), {
     elevId: uid, classId, startad: serverTimestamp(), uppdaterad: serverTimestamp(), svar, inlamnad: false,
+    ...(helskarmFel ? { helskarmFel: true } : {}),
   });
   return hamtaMittSvar(t, uid);
 }
 
 // #748: flikbytena följer med sparningarna (ingen egen skrivning), först när de finns.
-const flik = (n) => (n > 0 ? { flikbyten: n } : {});
+// #810: helskarmFel ("Helskärm fungerade inte") likadant.
+const flik = (n, helskarmFel = false) => ({ ...(n > 0 ? { flikbyten: n } : {}), ...(helskarmFel ? { helskarmFel: true } : {}) });
 
 /** Bakgrundssparningen: hela svar-mapen (rensad) + uppdaterad (+ flikbyten). */
-export function sparaSvar(t, uid, svar, flikbyten = 0) {
-  return updateDoc(svarRef(t, uid), { svar, uppdaterad: serverTimestamp(), ...flik(flikbyten) });
+export function sparaSvar(t, uid, svar, flikbyten = 0, helskarmFel = false) {
+  return updateDoc(svarRef(t, uid), { svar, uppdaterad: serverTimestamp(), ...flik(flikbyten, helskarmFel) });
 }
 
 /** Lämna in: sista svaren + inlämnad i EN skrivning. nar = "elev" | "tid". */
-export function lamnaIn(t, uid, svar, nar, flikbyten = 0) {
+export function lamnaIn(t, uid, svar, nar, flikbyten = 0, helskarmFel = false) {
   return updateDoc(svarRef(t, uid), {
-    svar, uppdaterad: serverTimestamp(), inlamnad: true, inlamnadNar: nar, inlamnadAt: serverTimestamp(), ...flik(flikbyten),
+    svar, uppdaterad: serverTimestamp(), inlamnad: true, inlamnadNar: nar, inlamnadAt: serverTimestamp(), ...flik(flikbyten, helskarmFel),
   });
+}
+
+/**
+ * Helskärmsläget (#810, §5.6): eleven lämnade provet. Svaren + pausen +
+ * räknaren i EN skrivning – reglerna nekar sedan allt tills läraren släpper in.
+ * @param {{ pausOrsak, flikbyten, pausLogg }} falt  ur pausFalt (prov-helskarm.js)
+ */
+export function pausa(t, uid, svar, falt, helskarmFel = false) {
+  return updateDoc(svarRef(t, uid), {
+    svar, uppdaterad: serverTimestamp(), pausad: true, pausadAt: serverTimestamp(), ...falt, ...(helskarmFel ? { helskarmFel: true } : {}),
+  });
+}
+
+/** Tiden tog slut under pausen: lämna in de svar som sparades när pausen började. */
+export function lamnaInPausad(t, uid) {
+  return updateDoc(svarRef(t, uid), { uppdaterad: serverTimestamp(), inlamnad: true, inlamnadNar: "tid", inlamnadAt: serverTimestamp() });
+}
+
+/** Under pausen: lyssna på det egna svaret (en läsning när läraren släpper in). */
+export function lyssnaMittSvar(t, uid, cb) {
+  return onSnapshot(svarRef(t, uid), (s) => cb(s.exists() ? s.data() : null), (err) => console.warn("Prov: pausens lyssnare", err));
 }
 
 /**
