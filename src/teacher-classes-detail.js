@@ -48,7 +48,7 @@ export function createClassDetail(ctx, store) {
       (s) => `<button type="button" role="tab" class="cls-tab${s.key === sec.key ? " active" : ""}"
         data-key="${s.key}" id="cls-tab-${s.key}" aria-controls="cls-section"
         aria-selected="${s.key === sec.key}" tabindex="${s.key === sec.key ? 0 : -1}">
-        ${icon(s.icon, 16)}<span>${esc(s.label)}</span></button>`
+        ${s.svg ? s.svg(16) : icon(s.icon, 16)}<span>${esc(s.label)}</span></button>`
     ).join("");
     const box = el(`<div class="cls-detail-inner">
       <header class="cls-detail-head">
