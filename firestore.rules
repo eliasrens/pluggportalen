@@ -319,18 +319,36 @@ service cloud.firestore {
     // (läraren ser den i 2C): eleven skriver den med EN skrivning när ett
     // datorparti tar slut – ett heltal som aldrig minskar och ökar med högst 1
     // per skrivning. aktivtParti = serverns spärr "ett parti åt gången" (sätts/
-    // tas bort av Cloud Functions) – klienten får aldrig ändra den. Inga andra
-    // nycklar (Etapp 3 lägger till lektioner/pussel här). Saknas fältet i båda =
+    // tas bort av Cloud Functions) – klienten får aldrig ändra den. lektioner =
+    // guidens framsteg (#790, schackLektionerOk nedan). Inga andra nycklar (3B
+    // lägger till 'pussel' i listan + en egen kontroll). Saknas fältet i båda =
     // OK. Lärare (årskurskonto) skriver det aldrig.
     function schackOk() {
       let n = request.resource.data;
       let o = resource == null ? {} : resource.data;
       let os = ('schack' in o && o.schack is map) ? o.schack : {};
       return !('schack' in n) ? !('schack' in o) :
-        (n.schack is map && n.schack.keys().hasOnly(['datorPartier', 'aktivtParti']) &&
+        (n.schack is map && n.schack.keys().hasOnly(['datorPartier', 'aktivtParti', 'lektioner']) &&
           n.schack.get('aktivtParti', null) == os.get('aktivtParti', null) &&
           n.schack.get('datorPartier', 0) is int && n.schack.get('datorPartier', 0) >= os.get('datorPartier', 0) &&
-          n.schack.get('datorPartier', 0) <= os.get('datorPartier', 0) + 1);
+          n.schack.get('datorPartier', 0) <= os.get('datorPartier', 0) + 1 &&
+          schackLektionerOk(n.schack.get('lektioner', {}), os.get('lektioner', {})));
+    }
+    // Guiden "Lär dig schack" (#790): lektioner = { "1".."12": stjärnor }, en map med
+    // högst 12 kända nycklar och heltal 1–3. En lektions stjärnor sänks aldrig och
+    // tas aldrig bort (klienten skriver bara en förbättring, EN fältväg per lektion).
+    function schackLektionerOk(nl, ol) {
+      return nl is map && nl.size() <= 12 &&
+        nl.keys().hasOnly(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']) &&
+        schackLektionOk(nl, ol, '1') && schackLektionOk(nl, ol, '2') && schackLektionOk(nl, ol, '3') &&
+        schackLektionOk(nl, ol, '4') && schackLektionOk(nl, ol, '5') && schackLektionOk(nl, ol, '6') &&
+        schackLektionOk(nl, ol, '7') && schackLektionOk(nl, ol, '8') && schackLektionOk(nl, ol, '9') &&
+        schackLektionOk(nl, ol, '10') && schackLektionOk(nl, ol, '11') && schackLektionOk(nl, ol, '12');
+    }
+    function schackLektionOk(nl, ol, k) {
+      let fanns = ol is map && k in ol && ol[k] is int;
+      return !(k in nl) ? !fanns :
+        (nl[k] is int && nl[k] >= 1 && nl[k] <= 3 && (!fanns || nl[k] >= ol[k]));
     }
 
     // Årskurskontots skrivning i studentData (#678, §2.1) – bara ETT av:

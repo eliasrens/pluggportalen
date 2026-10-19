@@ -17,6 +17,12 @@ Etapp 2 (elev mot elev, epic #773):
 | 2B | #780 | lobbyn, partiet, klockan och topplistan i elevens UI (§7–§8) – avsnitt 14 |
 | 2C | #781 | lärarens sektion med åskådarläget (§10) – **klar**, avsnitt 13 |
 
+Etapp 3 (guiden och pusslen, epic #774):
+
+| Del | Issue | Innehåll |
+| --- | --- | --- |
+| 3A | #790 | guiden "Lär dig schack": 12 lektioner, stjärnor, framstegen (§12) – avsnitt 15 |
+
 ---
 
 ## 1. Arkitektur
@@ -50,11 +56,17 @@ src/schack/
   schack-kompis-vy.js        partiet mot en kompis: brädet, klockorna, remi, ge upp, §7.3
   schack-kompis-data.js      ren logik: klockvisning, lobbyfilter, topplistan, §7.3, slutrutan
   schack-kompis-delar.js     markup för lobbyn och utmaningsrutan
-src/styles/35-schack.css     brädets CSS, 36-schack-sida.css sidans, 37-schack-kompis.css kompisläget (byggs in i styles.css med npm run build:css)
+  schack-guide-vy.js         guiden (3A, avsnitt 15): översikten ↔ en lektion, framstegen
+  schack-lektion-vy.js       en lektion: ramen, uppgifterna på brädet, resultatrutan
+  schack-lektioner.js        de 12 lektionerna som data + stjärnregeln, bedömningen, loppet (ren)
+  schack-stjarnjakt.js       stjärnjakten: egen draggenerering utan kungar, BFS, kontrollen (ren)
+  schack-guide-delar.js      markup: översikten, lektionsramen, resultatrutan, stjärnorna
+src/styles/35-schack.css     brädets CSS, 36-schack-sida.css sidans, 37-schack-kompis.css kompisläget, 39-schack-guide.css guiden (byggs in i styles.css med npm run build:css)
 preview/preview-schack.html         brädet och pjäserna (A; preview/schack/)
 preview/preview-schack-dator.html   hela elevflödet mot datorn utan Firebase (B)
 preview/preview-schack-matning.html mätning av ms per drag och nivå (B, preview/schack/matning.js)
 preview/preview-schack-kompis.html  kompisläget i två flikar utan Firebase (2B, preview/schack-kompis/)
+preview/preview-schack-guide.html   guiden "Lär dig schack" utan Firebase (3A)
 admin/qa-schack-matning.mjs         samma mätning i node
 ```
 
@@ -345,8 +357,8 @@ eller främmande data ignoreras. Elevens senaste val (nivå, färg) ligger under
   "Öva", länken **Schack** med en egen SVG-bonde (`SCHACK_IKON`). Routern släpper bara in
   elever vars klass slagit på schack – inte ens via direktlänk.
 - `#/elev/schack` – startsidan: ett pågående parti överst ("Fortsätt partiet"), sedan
-  korten **Spela mot datorn**, Spela mot en kompis (Etapp 2), Lär dig schack och Pussel
-  (Etapp 3) som "kommer snart".
+  korten **Spela mot datorn**, Spela mot en kompis (Etapp 2), **Lär dig schack** (3A, avsnitt 15)
+  och Pussel (3B) som "kommer snart".
 - `#/elev/schack?vy=dator&ny=1` – nivå (fyra kort) och färg (vit/svart/slumpa) →
   **Starta partiet**; `?vy=dator` fortsätter det sparade partiet (hashen skrivs om utan
   `ny=1` när partiet startats, så en omladdning hamnar i partiet).
@@ -536,10 +548,10 @@ moln.datorPartiKlart()         // studentData.schack.datorPartier + 1 (EN skrivn
 partier mot datorn: klienten (2B, vid datorpartiets slut) ökar räknaren med
 `datorPartiKlart()` (fältväg `schack.datorPartier` + `increment(1)`, så spärren bredvid
 behålls). `aktivtParti` = serverns spärr "ett parti åt gången" (12.1). Regeln `schackOk`
-tillåter bara nycklarna `datorPartier` (heltal, aldrig nedåt, högst +1 per skrivning) och
-`aktivtParti` (måste vara oförändrad); lärare (årskurskonto) skriver fältet aldrig, admin
-får. Kompispartier räknas i `schackKlass.tabell[uid].partier`. Etapp 3 lägger `lektioner`
-och `pussel` här (regeln utökas då).
+tillåter bara nycklarna `datorPartier` (heltal, aldrig nedåt, högst +1 per skrivning),
+`aktivtParti` (måste vara oförändrad) och `lektioner` (guiden, 3A – avsnitt 15.5); lärare
+(årskurskonto) skriver fältet aldrig, admin får. Kompispartier räknas i
+`schackKlass.tabell[uid].partier`. 3B lägger `pussel` här (regeln utökas då).
 
 ### 12.6 Gamla partier – valet (§7.3)
 
@@ -802,3 +814,111 @@ Medan ett kompisparti pågår är alltså bara partiets lyssnare öppen. Tillbak
   markupen, den delade lyssnaren (en onSnapshot, stängs efter sista vyn och direkt vid lämna,
   `schackSlutaVanta`), ett helt parti genom låtsas-servern och källkodstester (ingen ångra/tips/
   varna i kompisläget, unsubscribe i `destroy`, allt lat, datorräknaren en gång).
+
+## 15. Guiden "Lär dig schack" (Etapp 3A, #790)
+
+Spec §12. Kortet **Lär dig schack** på startsidan leder till guiden. Allt ligger i `src/schack/` och
+laddas lat: `page-schack.js → import(schack-flode.js) → import(schack-guide-vy.js)` (som statiskt tar
+`schack-lektion-vy.js`, `schack-lektioner.js`, `schack-stjarnjakt.js`, `schack-guide-delar.js` och
+brädet); lektion 12 laddar dessutom `schack-dator-vy.js` med `import()`. Bootgrafen är kvar på **107**.
+
+| Hash | Vy |
+| --- | --- |
+| `#/elev/schack?vy=lar` | översikten: de 12 lektionerna i ordning med 1–3 stjärnor, summan ("7 av 36 stjärnor · 3 av 12 lektioner klara") och "Börja/Fortsätt här" på första lektionen som inte är klar |
+| `#/elev/schack?vy=lar&lektion=N` | lektion N (okänt N = översikten). En omladdning börjar lektionen om – utom partiet i lektion 12, som fortsätter |
+
+**Alla lektioner är öppna** (ingen låsning). Skäl: eleverna kan redan olika mycket – den som kan hur
+pjäserna går ska kunna hoppa direkt till schack matt eller specialdragen, och läraren ska kunna säga
+"gör lektion 9" till hela klassen. Ordningen och förslaget "Fortsätt här" visar ändå vägen.
+
+### 15.1 Lektionerna (`schack-lektioner.js`)
+
+| Nr | Lektion | Sort | Uppgifter |
+| --- | --- | --- | --- |
+| 1 | Brädet | `fragor` | 7 frågor på utgångsställningen: "Tryck på rutan e4", a8, en ruta i kolumn c, på rad 5, den vita damen, den svarta kungen, en vit springare. Rätt ruta blir grön, fel ruta röd. |
+| 2–7 | Tornet, Löparen, Damen, Kungen, Springaren, Bonden | `jakt` | två stjärnjakter var med bara den pjäsen (tornet och damen även med egna bönder i vägen; bonden tar svarta bönder snett i uppgift 2) |
+| 8 | Ta pjäser | `jakt` | springaren och damen tar alla svarta pjäser (de står still); texten tar upp pjäsernas värde |
+| 9 | Schack | `stallning` | flytta kungen / ta pjäsen som ger schack / ställ en pjäs emellan |
+| 10 | Schack matt och patt | `stallning` | tre matt i ett drag; i två av dem finns ett frestande drag som blir **patt** (Df7, Dc7) – det nekas med en förklaring |
+| 11 | Specialdragen | `stallning` | rockad (kort eller lång), en passant (d7–d5 är markerat som senaste draget), bondeförvandling (väljaren) |
+| 12 | Ditt första parti | `parti` | ett helt parti mot **Bonden** som vit – samma partivy som mot datorn (`skapaDatorVy` med Ångra, Tips, Varna mig, Ge upp) |
+
+Varje lektion har en kort text överst (hur pjäsen går, vad schack/patt är). Uppgiften står i panelen
+bredvid brädet (under brädet på smal skärm) och i brädets statusrad; "Nästa uppgift" går vidare.
+**Ingen tidspress** (ingen klocka, inga timers i guiden – källkodstest) och **inga mynt**.
+
+### 15.2 Stjärnjakten (`schack-stjarnjakt.js`) – enpjäslektionerna utan kungar
+
+chess.js kräver två kungar, och med `skipValidation` blir dragen fel (schackreglerna räknar mot en kung
+som inte finns). Därför har stjärnjakten en **egen enkel draggenerering** för en vit pjäs:
+tornet/löparen/damen glider tills något står i vägen, kungen ett steg, springaren hoppar, bonden ett
+steg (två från rad 2 över en tom ruta) och tar snett framåt. Egna bönder stoppar, svarta pjäser kan
+tas (de står still). Bonden förvandlas aldrig här (det gör lektion 11). `test/schack-guide-jakt.test.js`
+jämför varje pjästyp på **varje ruta** med chess.js (med två kungar placerade där de varken står i vägen
+eller ger schack) och samma sak i varje läge längs lösningen av varje uppgift.
+
+`skapaJaktKontroll(uppgift)` har **samma API som brädets kontroll** (`getState`, `tryck`, `valj`,
+`slapp`, `kanValja`, `subscribe` …) och ges till brädet med `skapaSchackbrade(rot, { kontroll })`.
+Brädet ritar då stjärnorna (`state.stjarnor`) och visar möjliga drag som vanligt – tryck, dra och
+släpp, tangentbord och glidning fungerar som i partierna. En stjärna tas när pjäsen **stannar** på den.
+Hamnar eleven i ett läge där allt inte längre går att nå (bonden har gått förbi en stjärna) säger
+statusraden "Nu går det inte att nå alla – tryck på Börja om". **Börja om** nollar bara den pågående
+uppgiften (och dess drag).
+
+Brädets nya krokar (`schack-bradet.js`, används bara av guiden): `opt.kontroll`, `state.stjarnor`
+(guldstjärna på rutan, "stjärna" i rutans aria-etikett) och `state.rutKlass` (`ratt`/`fel` – grön/röd
+ruta i lektion 1). `skapaDatorVy` fick `tillbakaText` ("‹ Alla lektioner" i lektion 12).
+
+### 15.3 Stjärnregeln
+
+- **Frågor, jakter och ställningar:** "drag" = varje tryck/drag eleven gjort i lektionen, **även de som
+  var fel** och hoppade tillbaka (ett olagligt släpp räknas inte – brädet släpper aldrig fram det).
+  `min` = minsta möjliga: för jakterna minsta antal drag enligt **BFS** (`minstaDrag`, över
+  pjäsens ruta × kvarvarande mål; talen står i lektionsdatan och testet kontrollerar dem mot BFS och en
+  oberoende djupsökning som visar att det inte går på ett drag mindre), annars ett per uppgift.
+  **3 stjärnor** = `drag ≤ min`, **2** = `drag ≤ min + max(2, round(min · 0,25))`, annars **1**.
+- **Lektion 12 (partiet):** vinst 3, remi 2, förlust 1 – partiet ska spelas klart. **Att ge upp räknas
+  inte** som klarat (0 stjärnor, inget sparas), annars vore en stjärna gratis. Partiet sparas i
+  `localStorage` (`pp:schack:dator:<elevId>:lektion`) och fortsätter efter en omladdning. Det räknas
+  **inte** i `datorPartier` – lektionen ger redan sin egen skrivning.
+
+### 15.4 Loppet (`skapaLopp`) och vyn
+
+`skapaLopp(lektion)` räknar utan DOM: `tryck(ruta)` (frågor), `drag(dragObjekt)` (ställningar – brädets
+`beforeMove` frågar loppet; nekat = pjäsen hoppar tillbaka), `jaktKlar(antal)`, `nasta()` och
+`resultat()` → `{ stjarnor, drag, min }`. `skapaLektionVy` ritar och kopplar; när lektionen är klar
+visas resultatrutan ("Lektionen klar!", stjärnorna, "Du klarade det på 9 drag. Det går på 8 …",
+"Nytt rekord!" vid förbättring) med **Nästa: <lektion>**, **Gör om lektionen** och **Alla lektioner**.
+
+### 15.5 Framstegen – `studentData.schack.lektioner`
+
+`{ "1": 3, "2": 1, … }` (lektionsnummer → bästa antal stjärnor).
+
+- **Läsning:** ingen egen. `page-schack.js` ger guiden `lektioner()` ur den redan cachade
+  `getStudentData()` (läses ändå av sidan).
+- **Skrivning:** när en lektion blir klar jämförs resultatet med det sparade (`sparaOmBattre`); bara en
+  **förbättring** sparas, med **EN** skrivning: `updateDoc(studentData/{uid}, { "schack.lektioner.<nr>": n })`
+  (`schack-moln.js` `lektionKlar`, fel sväljs – guiden stannar aldrig). Samma värde skrivs samtidigt in i
+  studentData-cachen, så att översikten stämmer vid nästa vybyte utan ny läsning. En hel genomgång av
+  guiden kostar alltså högst 12 skrivningar (fler bara om eleven slår sitt eget rekord).
+- **Regeln** `schackOk` → `schackLektionerOk` (`firestore.rules`): `lektioner` är en map med högst 12
+  nycklar ur `"1"`–`"12"`, varje värde ett heltal 1–3, och en lektion som fanns får **aldrig sänkas och
+  aldrig tas bort**. `datorPartier`/`aktivtParti` kontrolleras precis som förut, även i samma skrivning.
+  3B lägger till `'pussel'` i `hasOnly` och en egen kontroll bredvid. Test:
+  `test/firestore-rules-schack-lektioner.test.js` (giltigt, ogiltigt värde, sänkning, främmande nyckel,
+  annan elev, årskurskontot).
+- **Deploy:** ⚠️ `firebase deploy --only firestore:rules` **före** webben – annars nekas skrivningen
+  (guiden fungerar ändå, men inget sparas). Inga functions, inga index.
+
+### 15.6 Förhandsvisning och tester
+
+- `preview/preview-schack-guide.html` – startsidan, översikten och alla 12 lektioner (direktlänkar) utan
+  Firebase. Framstegen ligger i `localStorage` (`pp:schack:guide:preview:lektioner`) och finns kvar efter
+  en omladdning; varje "skrivning" loggas och räknas på sidan. Kryssrutor: Snabb dator (lektion 12),
+  Reducerad rörelse; knappen Nollställ framstegen. `window.schack` = flödet (`(await schack.aktiv()).lektion()`
+  = lektionsvyn med `brade` och `lopp()`), `window.guideStub` = framstegen.
+- `node --test test/schack-guide.test.js test/schack-guide-jakt.test.js` – draggenereringen mot chess.js,
+  BFS, varje lektion klarad med minsta lösningen (3 stjärnor) och med extra drag (2), ställningarnas
+  krav, patt-fällorna, en passant och förvandlingen genom brädets kontroll, partiets stjärnor,
+  framstegen (EN skrivning per förbättring, kvar efter "omladdning"), markupen och källkoden (allt i
+  `src/schack/`, bara `import()`, inga mynt/timers, ingen Firestore utanför `schack-moln.js`).

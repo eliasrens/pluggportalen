@@ -114,6 +114,13 @@
 .schack-ruta.dras .schack-pjas { opacity: 0.3; }
 .schack-ruta.vantar .schack-pjas { opacity: 0.55; }
 
+/* Guiden (#790): stjärnor att samla och rätt/fel-svar på en ruta. */
+.schack-stjarna { position: absolute; inset: 16%; display: block; pointer-events: none; }
+.schack-stjarna[hidden] { display: none; }
+.schack-stjarna svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 2px 2px rgba(59, 51, 80, 0.3)); }
+.schack-ruta.ratt::before { background: rgba(76, 175, 80, 0.55); box-shadow: inset 0 0 0 4px #2e7d32; }
+.schack-ruta.fel::before { background: rgba(235, 64, 64, 0.35); box-shadow: inset 0 0 0 4px #c62828; }
+
 /* Koordinaterna i kanten (i rutorna, i den andra rutfärgen). */
 .schack-koord-rad,
 .schack-koord-fil {
