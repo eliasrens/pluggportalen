@@ -186,7 +186,7 @@ export async function renderClassBrakresan(ctx, host, opts = {}) {
   const view = el(`<div class="lrt-teacher brl">
     <div class="lrt-intro brl-intro">
       <h3 class="subhead lrt-title">${icon("brak", 18)}<span>Bråkresan</span></h3>
-      <a class="btn small ghost brl-testlank" href="#/larare/brakresan">${icon("eye", 14)} Testa utmaningarna</a>
+      <a class="btn small ghost brl-testlank" href="#/larare/material?flik=brakresan">${icon("eye", 14)} Testa utmaningarna</a>
     </div>
     <nav class="brl-delar" role="tablist" aria-label="Bråkresan">${DELAR.map((d) =>
       `<button type="button" role="tab" class="brl-del" data-del="${d.key}">${icon(d.ikon, 14)}<span>${d.label}</span></button>`).join("")}</nav>

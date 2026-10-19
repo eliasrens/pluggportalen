@@ -69,3 +69,20 @@ Fokusläge · Klasscentret · Statistik. Döp om, Ta bort och Skapa klass låg i
 
 `docs/lararsidan-679/` – `admin-*` och `arskurs4-*` i 1366×768 och 1920×1080.
 Preview: `bash admin/qa-larkonton-roller-preview.sh` (qaadmin / qaarskurs4, lösenord lilla123, bara emulator).
+
+## Material med underflikar (#806, epic #802 DEL 4)
+
+`#/larare/material?flik=…` (`src/teacher-material.js`, flikarna i `src/teacher-material-flikar.js`, laddas med `import()`):
+
+| Flik | Innehåll | Admin | Årskurs |
+| --- | --- | --- | --- |
+| `plugga` Plugga-områden | Dagens materialtabell, oförändrad (ikonknapparna har `title` + `aria-label` med områdets namn) | ✓ | ✓ |
+| `lasresan` Läsresan | Förklaring, nivåtabell och länk till nivåerna (Mina klasser → Hur går det? → Läsresan); ingen lärarvy för texterna finns | ✓ | ✓ |
+| `ekvationsresan` Ekvationsresan | Nytt testläge: samma spelvy på vald nivå, framsteg bara i minnet (`src/ekvationsresan/larare-testlage.js`) | ✓ | ✓ |
+| `brakresan` Bråkresan | Dagens testläge (#716) | ✓ | ✓ |
+| `hitta-ratt` Hitta rätt! | Dagens lärarsida (`?prov=` är kvar som helskärmsvy) | ✓ | dold (bara admin) |
+| `schack` Schack | "Prova mot datorn": nivåval och parti, bara ett lokalt pågående parti, inga mynt/räknare/serveranrop (`src/schack/larare-prova.js`) | ✓ | ✓ |
+
+Varje flik har en rad överst om var klassinställningarna finns (`LANK` i flikfilen – de enda adresserna att byta när Mina klasser flyttas).
+Gamla adresser: `#/larare/innehall` → `?flik=plugga`, `#/larare/brakresan` → `?flik=brakresan`, `#/larare/hitta-ratt` → `?flik=hitta-ratt` (parametrarna följer med).
+Skärmdumpar före/efter: `docs/skarmdumpar/lararsida-d/`. Preview: `preview/preview-larare-material.html` (`?roll=arskurs` för årskurslärare).

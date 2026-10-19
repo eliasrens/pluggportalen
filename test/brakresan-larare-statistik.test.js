@@ -199,11 +199,12 @@ describe("testläget och lärarvyn skriver aldrig elevdata", () => {
     }
     assert.doesNotMatch(d, /setDoc|runTransaction|writeBatch|httpsCallable/);
   });
-  it("lärarvyn laddas lat från teacher-class.js och teacher-shared.js", () => {
+  it("lärarvyn laddas lat från teacher-class.js och testläget från Materialets flikar (#806)", () => {
     const klass = readFileSync(new URL("../src/teacher-class.js", import.meta.url), "utf8");
     const shared = readFileSync(new URL("../src/teacher-shared.js", import.meta.url), "utf8");
+    const flikar = readFileSync(new URL("../src/teacher-material-flikar.js", import.meta.url), "utf8");
     assert.match(klass, /import\("\.\/brakresan\/larare\/klass\.js"\)/);
-    assert.match(shared, /import\("\.\/brakresan\/larare\/testlage\.js"\)/);
-    assert.doesNotMatch(klass + shared, /^import .*brakresan/m);
+    assert.match(flikar, /import\("\.\/brakresan\/larare\/testlage\.js"\)/);
+    assert.doesNotMatch(klass + shared + flikar, /^import .*brakresan/m);
   });
 });
