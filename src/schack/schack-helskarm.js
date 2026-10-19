@@ -29,7 +29,11 @@ const HASH_BAS = "#/elev/schack";
 
 let vakt = null; // sidbytesvakten – högst en åt gången
 
-/** Avslutar helskärmen när eleven lämnar schacksidan; tar bort sig själv när helskärmen är slut. */
+/**
+ * Avslutar helskärmen när eleven lämnar schacksidan; tar bort sig själv när helskärmen är slut.
+ * Hashvakten (startsWith(hashBas)) avslutar inte vid navigering INOM schack – där sköter appen det:
+ * routerns loading() tar bort vyn och webbläsaren lämnar helskärm när elementet försvinner ur DOM.
+ */
 function startaVakt(hashBas, doc, win) {
   if (vakt) return;
   const sluta = () => {
