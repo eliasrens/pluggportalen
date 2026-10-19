@@ -65,7 +65,7 @@ export function visaSchack(host, ctx, params = {}) {
   const c = { ...ctx, lagring: lagring || { getItem: () => null, setItem() {}, removeItem() {} } };
   const hashBas = c.hashBas || "#/elev/schack";
   const go = c.go || ((h) => { location.hash = h; });
-  const tillHash = (q) => `${hashBas}${q ? `?${q}` : ""}`;
+  const tillHash = (q) => `${hashBas}${q ? `${hashBas.includes("?") ? "&" : "?"}${q}` : ""}`; // hashBas kan ha en query (lärarens testläge, #806)
   const kompis = c.kompis?.classId && c.kompis?.uid ? c.kompis : null;
   const partiHash = (id) => tillHash(`vy=kompis&parti=${encodeURIComponent(id)}`);
 

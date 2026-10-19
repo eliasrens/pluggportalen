@@ -35,7 +35,7 @@ export const ADMIN_KORT = [
   { key: "tabort", titel: "Ta bort klass", text: "Elevkontona finns kvar", icon: "trash", verktyg: true },
   { key: "konton", titel: "Lärarkonton", text: "Skapa årskurskonton och välj deras klasser", icon: "key", hash: "#/larare/konton" },
   { key: "sasong", titel: "Säsong", text: "Sommar, höst och Halloween", icon: "sparkle", hash: "#/larare/admin/sasong" },
-  { key: "hittaratt", titel: "Hitta rätt!", text: "Kartpaket och bilder", icon: "pin", hash: "#/larare/hitta-ratt" },
+  { key: "hittaratt", titel: "Hitta rätt!", text: "Kartpaket och bilder", icon: "pin", hash: "#/larare/material?flik=hitta-ratt" },
   { key: "mattematchen", titel: "Mattematchen", text: "Skapa och styr tävlingsperioder", icon: "trophy", hash: "#/larare/mattematchen" },
 ];
 

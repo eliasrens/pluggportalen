@@ -122,8 +122,11 @@ describe("Admin-sidan (§3.5)", () => {
     assert.deepEqual(admin.ADMIN_KORT.map((k) => k.titel),
       ["Skapa klass", "Döp om klass", "Ta bort klass", "Lärarkonton", "Säsong", "Hitta rätt!", "Mattematchen"]);
   });
-  it("korten som leder vidare pekar på riktiga admin-flikar", () => {
-    for (const k of admin.ADMIN_KORT.filter((x) => x.hash)) {
+  it("korten som leder vidare pekar på riktiga admin-flikar (Hitta rätt!: Material-underfliken, #806)", () => {
+    const hr = admin.ADMIN_KORT.find((x) => x.key === "hittaratt");
+    assert.equal(hr.hash, "#/larare/material?flik=hitta-ratt");
+    assert.match(src("teacher-material-flikar.js"), /key: "hitta-ratt"[^\n]*admin: true/);
+    for (const k of admin.ADMIN_KORT.filter((x) => x.hash && x !== hr)) {
       const t = shared.TEACHER_TABS.find((x) => x.hash === k.hash);
       assert.ok(t, `${k.titel}: ${k.hash} är ingen flik`);
       assert.equal(t.admin, true, `${k.titel} är bara för admin`);

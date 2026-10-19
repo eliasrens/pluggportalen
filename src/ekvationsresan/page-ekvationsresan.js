@@ -17,7 +17,7 @@ import { ensureVagCss } from "./vag.js";
 
 let aktiv = null;
 
-function ensureStyles() {
+export function ensureStyles() {
   return Promise.all(["ekvationsresan.css", "typer.css"].map((fil) => {
     if (document.querySelector(`link[data-ekv-css="${fil}"]`)) return Promise.resolve();
     const link = document.createElement("link");

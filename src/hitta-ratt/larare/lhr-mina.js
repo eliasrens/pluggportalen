@@ -16,7 +16,7 @@ import { TYPER, delaKatalog, geoNamn, klassText, raderaText } from "./lhr-modell
 import { hamtaKatalog, hamtaPack, raderaPack } from "./lhr-data.js";
 import { kopplaInnehall } from "./lhr-fardiga.js";
 
-const HASH = "#/larare/hitta-ratt";
+const HASH = "#/larare/material?flik=hitta-ratt"; // Material → Hitta rätt! (#806)
 
 const typText = (p) => `${(TYPER[p.type] || TYPER.point).ikon} ${(TYPER[p.type] || TYPER.point).namn}`;
 
@@ -91,7 +91,7 @@ export async function renderMina(ctx, host, { meddelande = "" } = {}) {
     }));
   }
 
-  const go = (q) => ctx.go(`${HASH}?${q}`);
+  const go = (q) => ctx.go(`${HASH}&${q}`);
   vy.querySelector('[data-act="ny"]').addEventListener("click", () => go("vy=ny"));
   vy.querySelectorAll("[data-pack]").forEach((rad) => {
     const id = rad.dataset.pack;
