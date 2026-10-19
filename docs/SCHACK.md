@@ -9,7 +9,13 @@ dokumentet beskriver det som är byggt. Etapp 1 byggs i tre delar:
 | B | #776 | motorn, nivåerna, hjälpen mot datorn och elevens schacksida (§3–§4) – **klar** |
 | C | #777 | slut-QA och rapport (§5) – **klar**, se [`RAPPORT-schack-etapp-1.md`](RAPPORT-schack-etapp-1.md) |
 
-Avsnitten om callables, datamodellen och kvotbudgeten fylls i av Etapp 2.
+Etapp 2 (elev mot elev, epic #773):
+
+| Del | Issue | Innehåll |
+| --- | --- | --- |
+| 2A | #779 | datamodellen, reglerna, alla callables, delad logik och klient-API:t (§6–§8) – **klar**, avsnitt 12 |
+| 2B | – | lobbyn, partiet, klockan och topplistan i elevens UI (§7–§8) |
+| 2C | – | lärarens sektion med åskådarläget (§10) |
 
 ---
 
@@ -371,3 +377,211 @@ Inga GPL-bibliotek (Stockfish, chessground) och inga pjäsbilder med oklar licen
 testet letar efter dem i `src/schack/`. **Uppgradera chess.js:** byt hela
 `vendor/chess.js` mot paketets `dist/esm/chess.js`, behåll huvudkommentaren med den
 nya versionen, ta bort `//# sourceMappingURL`-raden och byt `LICENSE` om den ändrats.
+
+## 12. Elev mot elev – servern (Etapp 2A, #779)
+
+Spec §6–§9. **Allt skrivs av Cloud Functions** (`functions/schack-*.js`, Admin SDK förbi
+reglerna); eleverna skriver aldrig direkt i `schackKlass` eller `schackPartier`
+(reglerna nekar alla klientskrivningar, även admin). Klienten anropar callables och
+lyssnar med två `onSnapshot`. Servern avgör tur, laglighet (samma chess.js), FEN,
+draglistan, klockan med **serverns tid** och partiets slut – ingen kan fuska in ett
+drag eller ändra klockan.
+
+### 12.1 Datamodell (§6)
+
+Alla tider är **epoch-ms från serverns klocka** (inga Timestamp-objekt – klienten
+jämför direkt mot `serverNow()`).
+
+```
+schackKlass/{classId}                  EN doc per klass: lobbyn + pågående + tabellen
+  vantar:     { [uid]: { namn, klocka: null|5|10|15, sedan } }
+  utmaningar: { [utmaningId]: { fran, franNamn, till, klocka, sedan } }
+  partier:    { [partiId]: { vit, svart, vitNamn, svartNamn, klocka, start } }   bara pågående
+  tabell:     { [uid]: { poang, vinster, forluster, remier, partier } }
+  dold:       false                                                              läraren döljer topplistan
+
+schackPartier/{partiId}
+  classId, vit, svart, vitNamn, svartNamn
+  fen, drag: ["e4", "e5", …] (SAN), tur: "w"|"b"
+  status: "pagar"|"slut"
+  resultat: null | "1-0"|"0-1"|"½-½"
+  orsak:    null | "matt"|"patt"|"remi"|"gav-upp"|"tid"|"lamnade"|"avbrutet"
+  klocka:   null | { minuter, vitMs, svartMs, senastDragAt }    tiden kvar efter senaste draget
+  remiErbjudenAv: null | uid
+  senastDragAt                     ms – även utan klocka (5-minutersregeln, 24 h-städningen)
+  skapad, uppdaterad               ms
+```
+
+- Dokumentet `schackKlass/{classId}` skapas av första anropet (saknat = tomt).
+- `klocka` i partiet: `vitMs`/`svartMs` är tiden **kvar efter senaste draget**; den på
+  tur har dessutom förbrukat `nu − senastDragAt`. Klockan startar när partiet skapas
+  (vit räknar från start). Vid slutet fryses den (den på tur har 0 vid "tid").
+- `resultat` är `null` vid `orsak: "avbrutet"` (läraren eller 24 h) – tabellen rörs inte.
+- Ett remierbjudande ändrar `uppdaterad` men inte `senastDragAt`; ett drag tar bort
+  erbjudandet.
+- **Ett parti åt gången per elev – även över klasser:** `studentData/{uid}.schack.aktivtParti`
+  (partiId) sätts av servern när partiet skapas och tas bort (`null`) när det slutar, i
+  samma transaktion. Lobbyn läser den för båda spelarna innan ett parti skapas; pekar
+  den på ett parti som inte längre pågår räknas den som fri. Klienten kan aldrig ändra
+  den (`schackOk`).
+- **Känd lucka (F9, accepterad):** eleven får radera sitt eget `studentData`-dokument
+  (`allow delete: isSelf`) och tar då bort spärren – men också alla mynt, framsteg, hus
+  och djur. Priset är så högt att spärren inte flyttas; inom klassen håller
+  `partier`-mappen ändå "ett parti åt gången".
+- Alla uppslag med en nyckel som en klient skickat in (`motstandare`, `utmaningId`, uid:n)
+  görs bara på egna nycklar (`Object.hasOwn`), och id:n på formen `__x__` nekas – ingen
+  "constructor"-motståndare kan ge ett fantomparti.
+
+**Regler** (`firestore.rules`, test `test/firestore-rules-schack.test.js`): `schackKlass`
+läses av `isClassMember(classId) || hasClass(classId)`; `schackPartier` av de två
+spelarna och `hasClass(classId)` (lärarens fråga filtrerar på `classId`) – och ett
+**saknat** parti får varje inloggad hämta (tomt svar, så `lyssnaParti` ger `null` för ett
+gammalt id i stället för ett fel); ingen klient skriver. ⚠️ Kräver `firebase deploy --only firestore:rules`.
+
+### 12.2 Callables (`functions/index.js`, region europe-west1)
+
+Felkoder är Firebase `HttpsError`-koder; klienten får dem som `SchackMolnFel.code`
+(utan prefixet `functions/`). **Grinden** i varje elevanrop (`hamtaKlassForElev`):
+anroparen står i `classes/{classId}.studentIds` (annars `permission-denied` – gäller
+även lärare), `schack` finns i `enabledModules` och inte i `hiddenModules` (annars
+`failed-precondition`), inget aktivt fokuslås (`lock.till` i framtiden, oavsett mål –
+schack är inte låsbart; annars `failed-precondition`). Utloggad → `unauthenticated`,
+trasiga id:n → `invalid-argument`.
+
+| Callable | In | Ut | Fel utöver grinden |
+| --- | --- | --- | --- |
+| `schackVanta` | `{ classId, klocka: null\|5\|10\|15 }` | `{ klocka }` | `invalid-argument` fel klocka; `failed-precondition` du spelar redan. Tar bort egen gammal väntan och egna utmaningar. |
+| `schackSlutaVanta` | `{ classId? }` | `{ borttagen }` | utan `classId`: alla elevens klasser (klasser utan schack/med fokus hoppas över) |
+| `schackGaMed` | `{ classId, motstandare }` | `{ partiId, farg: "w"\|"b" }` | `failed-precondition` kompisen väntar inte / någon av er spelar redan; `invalid-argument` sig själv |
+| `schackUtmana` | `{ classId, till, klocka }` | `{ utmaningId }` | `invalid-argument` sig själv, utanför klassen, fel klocka; `failed-precondition` någon av er spelar. Ersätter egen tidigare utmaning. |
+| `schackSvara` | `{ utmaningId, ja, classId? }` | `{ partiId, farg }` eller `{ partiId: null, farg: null }` | `not-found` utmaningen finns inte/har gått ut/inte till dig; `failed-precondition` någon spelar redan |
+| `schackDrag` | `{ partiId, from, to, promotion? }` | `{ gjort: true, san, fen, tur, drag, klocka, slut }` – eller `{ gjort: false, slut }` när din tid redan var slut | `not-found`; `permission-denied` inte din match; `failed-precondition` inte din tur / partiet slut / avbrutet (24 h); `invalid-argument` olagligt drag |
+| `schackGeUpp` | `{ partiId }` | `{ slut }` | när som helst under partiet |
+| `schackRemi` | `{ partiId, handling: "erbjud"\|"acceptera"\|"neka" }` | `{ remiErbjudenAv, slut }` | `failed-precondition` acceptera/neka utan motståndarens erbjudande. Erbjud när motståndaren redan erbjudit = remi. Är den på turs tid slut (klocka, servertid) avgörs partiet på tid i stället, oavsett handling. |
+| `schackKravaVinst` | `{ partiId }` | `{ slut }` | `failed-precondition` det är din tur / tiden inte slut (klocka) / < 5 min utan drag (utan klocka) |
+| `schackLarareAvsluta` | `{ partiId }` | `{ slut: { resultat: null, orsak: "avbrutet" } }` | lärare med klassen (`hasClass`): admin eller årskurskonto med klassen, annars `permission-denied`; `failed-precondition` redan slut |
+| `schackLarareTopplista` | `{ classId, dold?: bool, nollstall?: bool }` | `{ dold, nollstalld }` | som ovan; `invalid-argument` utan något av fälten; `not-found` om klassen inte finns |
+
+`slut` är `null` eller `{ resultat, orsak }`. **Partiets slut sker i EN transaktion**
+(`avslutaParti` i `schack-parti.js`): partidokumentet får status/resultat/orsak, posten
+försvinner ur `schackKlass.partier`, `tabell` får båda spelarnas nya rader – utom
+vid `avbrutet` – och båda spelarnas `studentData.schack.aktivtParti` nollas. Färgen slumpas med `node:crypto`. Namnen tas ur
+`classProjections/{classId}.members[uid].namn` (en läsning), reserv `students/{uid}.namn`.
+
+**Lobbyregler (§7.1).** Ett parti åt gången per elev: varje lobbyanrop är en
+transaktion på klassdokumentet (och läser `aktivtParti` för båda spelarna), så två
+samtidiga `schackGaMed`/`schackSvara` kan aldrig ge två partier (det andra nekas), inte
+heller i två olika klasser. Ett anrop som inte ändrar något (t.ex. `schackSlutaVanta`
+utan väntan) skriver inte klassdokumentet. Utmaningar lever 2 min och väntan 10 min
+via tidsstämpeln `sedan`: servern filtrerar bort utgångna poster i varje skrivning av
+klassdokumentet (`rensaLobby`), klienten vid varje visning – inga skrivningar per
+sekund och ingen närvaro-ping.
+
+**Klockan (§7.2).** `klockaEfterDrag` drar `nu − senastDragAt` från den som drog. Ett
+drag när ens egen tid redan är slut görs inte: partiet slutar `"tid"` för motståndaren
+(`gjort: false`). Motståndaren kan också kräva vinst med `schackKravaVinst`. Klientens
+fält (`fen`, `tur`, `klocka`, tid) ignoreras helt.
+
+### 12.3 Delad kod – `admin/sync-schack-functions.mjs`
+
+`src/schack/schack-server-delat.js` (klockan, 5 min/24 h, lobbyfiltret, poängformeln,
+fokuslås-tolkningen – inga importer) och `schack-server-parti.js` (chess.js: `provaDrag`,
+`bedomSlut`, `byggParti`) + `vendor/chess.js` och `LICENSE` kopieras till
+`functions/schack/` med `npm run sync:schack` (predeploy i `firebase.json`;
+`--check` och `test/schack-delat.test.js` fäller en glidande kopia). Servern spelar upp
+hela draglistan för varje drag, så trefaldig upprepning räknas rätt (~1 ms).
+
+**Poängformeln (§8)** – `poangDelta(egen, motståndare, utfall)` med Elos förväntade
+utfall E = 1/(1+10^((Rb−Ra)/400)): vinst `+10 + 20·(1−E)` (+10 mot en mycket svagare …
++30 mot en mycket starkare), förlust `−(5 + 15·E)` (−5 mot en starkare … −20 mot en
+svagare), remi `10·(0,5−E)` (±5). Start 1000, **golv 800** (`nyPoang`). Lika motstånd:
+vinst +20, förlust −13, remi 0. Båda raderna räknas ur samma gamla poäng (`uppdateraTabell`).
+
+### 12.4 Klient-API – `src/schack/schack-moln.js` (lat, bara `import()`)
+
+```js
+const moln = await import("./schack/schack-moln.js");
+moln.lobby.vanta(classId, klocka) / slutaVanta(classId?) / gaMed(classId, motstandare)
+moln.lobby.utmana(classId, till, klocka) / svara(utmaningId, ja, classId?)
+moln.parti.drag(partiId, { from, to, promotion? }) / geUpp(partiId) / remi(partiId, handling) / kravaVinst(partiId)
+moln.larare.avsluta(partiId) / topplista(classId, { dold?, nollstall? })
+const stopp = moln.lyssnaKlass(classId, (klass) => …, onError)   // klass = { vantar, utmaningar, partier, tabell, dold, finns }
+const stopp2 = moln.lyssnaParti(partiId, (parti) => …, onError)  // parti = { id, …dokumentet } | null
+moln.klockaVisning(parti)      // { vitMs, svartMs, slut } ur senastDragAt + serverNow() – räkna om lokalt varje sekund
+moln.serverNow() / syncServerClock()   // samma klockkorrigering som fokusläget
+moln.datorPartiKlart()         // studentData.schack.datorPartier + 1 (EN skrivning, fel sväljs)
+```
+
+- Alla anrop returnerar callable-svaret och kastar `SchackMolnFel(code, message)`.
+- `lyssnaKlass` ger klassdokumentet med utgångna lobbyposter bortfiltrerade mot
+  `serverNow()` (`rensaLobby`); lyssnarna är **en** `onSnapshot` var – stäng dem (anropa
+  avregistreringen) när eleven lämnar schacksidan (§9).
+- Allt ur `schack-server-delat.js` re-exporteras (`LAMNAT_MS`, `LAMNAT_VARNING_MS`,
+  `topplista(tabell, namnFor)`, `partiFor` …) för 2B/2C.
+- Brädet: använd `beforeMove` → `moln.parti.drag(...)` (pjäsen står halvgenomskinlig tills
+  servern svarat; nekas draget hoppar den tillbaka), och spela motståndarens drag med
+  `brade.move(sistaSAN)` ur `parti.drag` från lyssnaren.
+
+### 12.5 `studentData.schack` (§10)
+
+`{ datorPartier: int, aktivtParti: partiId|null }`. `datorPartier` = antal avslutade
+partier mot datorn: klienten (2B, vid datorpartiets slut) ökar räknaren med
+`datorPartiKlart()` (fältväg `schack.datorPartier` + `increment(1)`, så spärren bredvid
+behålls). `aktivtParti` = serverns spärr "ett parti åt gången" (12.1). Regeln `schackOk`
+tillåter bara nycklarna `datorPartier` (heltal, aldrig nedåt, högst +1 per skrivning) och
+`aktivtParti` (måste vara oförändrad); lärare (årskurskonto) skriver fältet aldrig, admin
+får. Kompispartier räknas i `schackKlass.tabell[uid].partier`. Etapp 3 lägger `lektioner`
+och `pussel` här (regeln utökas då).
+
+### 12.6 Gamla partier – valet (§7.3)
+
+**Städning när klassdokumentet skrivs**, ingen schemalagd funktion. Varje lobbyanrop
+(`lobbyTx` → `stadaGamla`) tittar på posterna i `partier` vars `start` ligger > 24 h
+tillbaka (gratis – ingen läsning), läser bara dem och avbryter partiet om
+`senastDragAt` är > 24 h (status `slut`, orsak `avbrutet`, ingen tabell). Dessutom
+avbryter **varje partianrop** (`drag`, `geUpp`, `remi`, `kravaVinst`) ett sådant parti
+i stället för att utföra handlingen (svar `failed-precondition`). Skäl: ingen Cloud
+Scheduler/extra deploy, inga läsningar när ingen spelar, och ett gammalt parti stör
+bara den klass det tillhör – där försvinner det så fort någon öppnar lobbyn.
+Konsekvens: ett gammalt parti kan stå kvar i `partier` tills nästa lobbyanrop i
+klassen (bara information i listan "Pågående partier").
+
+### 12.7 Kvotbudget (§9)
+
+Per halvdrag: callable **2 läsningar** (partiet + `classes/{classId}` för grinden) och
+**1 skrivning** (partiet); de två spelarnas lyssnare **2 läsningar**. Klassdokumentet
+läses och skrivs **inte** per drag – bara när partiet tar slut (transaktionen läser det
+först då, före första skrivningen).
+
+| | Skrivningar | Läsningar |
+| --- | --- | --- |
+| Start (lobbyanrop: classes + projektion + klassdoc + 2 × studentData/aktivtParti; parti + klassdoc + 2 × studentData skrivs) | 4 | 5 + lobbylyssnarna |
+| 40 drag per spelare = 80 halvdrag med klocka | 80 | 160 (lyssnare) + 160 (servern) |
+| Slut (klassdoc läses och skrivs; 2 × studentData nollas, i samma transaktion) | +3 | +1 + lobbylyssnarna |
+| **Ett parti** | **≈ 87** | **≈ 165 i klienten + ≈ 166 på servern** |
+
+Räknat utan lobbylyssnare: ett parti ≈ 87 skrivningar och ≈ 330 läsningar (varav de 160
+hos spelarna är de "≈ 160" spec §9 räknar med). Det som avgör fakturan är lyssnarna: en
+lobby med 25 öppna sidor lägger 25 läsningar på varje klassdoc-skrivning (start och slut).
+
+Lärarens åskådarläge (2C) lägger 1 läsning per halvdrag. **Lobbyn:** med 25 elever på
+schacksidan kostar varje skrivning av klassdokumentet 25 läsningar; dokumentet skrivs
+bara av elevhandlingar (vänta/sluta vänta/gå med/utmana/svara) och partislut – aldrig
+per sekund, ingen närvaro-ping. En lektion med 12 partier ≈ 50 klassdoc-skrivningar ≈
+1 250 lobbyläsningar. Lyssnarna stängs när eleven lämnar schacksidan (2B anropar
+avregistreringarna i `stangSchack`).
+
+### 12.8 Tester och deploy
+
+```
+node --test test/schack-delat.test.js                       # poäng, klocka, lobby, chess.js, synk, bootgraf 107
+npm run test:rules      → test/firestore-rules-schack.test.js
+npm run test:functions  → test/functions-schack-core.test.mjs (lobby, lärare, 24 h)
+                          test/functions-schack-parti.test.mjs (drag, klocka, §7.3, tabell, golv 800)
+                          test/functions-schack.test.mjs (callables e2e: auth, roller, helt parti)
+```
+
+Deploy-ordning: **1.** `firebase deploy --only firestore:rules` (läsregler + `schackOk`),
+**2.** `firebase deploy --only functions` (predeploy kör `sync:schack`), **3.** webben
+(2B/2C). Inga index behövs (ingen fråga i elevflödet; lärarens `where("classId", "==")` är
+en enkelfältsfråga).

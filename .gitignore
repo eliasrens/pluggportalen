@@ -18,3 +18,4 @@ serviceAccountKey.json
 # OS/editor
 .DS_Store
 Thumbs.db
+.firebase-emu-779.json
