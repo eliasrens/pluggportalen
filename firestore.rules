@@ -2157,7 +2157,10 @@ service cloud.firestore {
           (d.tidsgransMin is int && d.tidsgransMin >= 5 && d.tidsgransMin <= 240)) &&
         // Anpassningar (#748, §14): extra minuter per elev och omprov för valda elever.
         (!('extraTid' in d) || (d.extraTid is map && d.extraTid.size() <= 100)) &&
-        (!('elevIds' in d) || (d.elevIds is list && d.elevIds.size() >= 1 && d.elevIds.size() <= 100));
+        (!('elevIds' in d) || (d.elevIds is list && d.elevIds.size() >= 1 && d.elevIds.size() <= 100)) &&
+        // Helskärmsläget (#810, §5.6): av/på + elever som skriver utan det.
+        (!('helskarm' in d) || d.helskarm is bool) &&
+        (!('helskarmUndantag' in d) || (d.helskarmUndantag is list && d.helskarmUndantag.size() <= 100));
     }
     function tillfalle(t) {
       return get(/databases/$(database)/documents/provTillfallen/$(t)).data;
@@ -2221,7 +2224,8 @@ service cloud.firestore {
         allow read: if isSelf(elevUid) || hasClass(tillfalle(t).classId);
         allow create: if isSelf(elevUid) && provSvarCreateOk(t, elevUid, request.resource.data);
         allow update: if (isSelf(elevUid) && provSvarUpdateOk(t, request.resource.data, resource.data)) ||
-          (hasClass(resource.data.classId) && provSvarStangOk(t, elevUid, request.resource.data, resource.data));
+          (hasClass(resource.data.classId) && (provSvarStangOk(t, elevUid, request.resource.data, resource.data) ||
+            provSlappInOk(request.resource.data, resource.data)));
         allow delete: if hasClass(resource.data.classId);
       }
 
@@ -2239,12 +2243,39 @@ service cloud.firestore {
       }
     }
     function validSvarFalt(d) {
-      return d.keys().hasOnly(['elevId', 'classId', 'startad', 'uppdaterad', 'svar', 'inlamnad', 'inlamnadAt', 'inlamnadNar', 'flikbyten']) &&
+      return d.keys().hasOnly(['elevId', 'classId', 'startad', 'uppdaterad', 'svar', 'inlamnad', 'inlamnadAt', 'inlamnadNar', 'flikbyten',
+          'pausad', 'pausadAt', 'pausOrsak', 'pausLogg', 'slapptInAt', 'helskarmFel']) &&
         d.svar is map && d.svar.size() <= 60 &&
         d.inlamnad is bool &&
         (!('inlamnadNar' in d) || d.inlamnadNar in ['elev', 'tid', 'stangt']) &&
         // #748: hur många gånger eleven lämnade provfliken – bara information.
-        (!('flikbyten' in d) || (d.flikbyten is int && d.flikbyten >= 0 && d.flikbyten <= 10000));
+        (!('flikbyten' in d) || (d.flikbyten is int && d.flikbyten >= 0 && d.flikbyten <= 10000)) &&
+        // #810: helskärmsläget. Antalet pauser är flikbyten (en räknare); pausLogg
+        // ({ at, orsak } per paus) och helskarmFel är bara information till läraren.
+        (!('pausad' in d) || d.pausad is bool) &&
+        (!('pausLogg' in d) || (d.pausLogg is list && d.pausLogg.size() <= 200)) &&
+        (!('helskarmFel' in d) || d.helskarmFel is bool);
+    }
+    // Pausen (#810, §5.6). Eleven får pausa sig själv (pausadAt = serverns tid,
+    // en känd orsak) men aldrig häva pausen eller röra slapptInAt. Så länge
+    // svaret är pausat nekas allt utom inlämningen när tiden tar slut – med
+    // svaren som de sparades när pausen började.
+    function provPausOk(d, fore) {
+      return d.get('slapptInAt', null) == fore.get('slapptInAt', null) &&
+        (fore.get('pausad', false) == true ?
+          (d.diff(fore).affectedKeys().hasOnly(['uppdaterad', 'inlamnad', 'inlamnadNar', 'inlamnadAt']) &&
+            d.inlamnad == true && d.inlamnadNar == 'tid') :
+        d.get('pausad', false) == true ?
+          (d.get('pausadAt', null) == request.time && d.get('pausOrsak', '') in ['helskarm', 'flik', 'fokus']) :
+          (d.get('pausadAt', null) == fore.get('pausadAt', null) &&
+            d.get('pausOrsak', null) == fore.get('pausOrsak', null)));
+    }
+    // Läraren släpper in (#810): BARA pausad true → false och slapptInAt =
+    // serverns tid. Extra tid (+5 min) skrivs i tillfällets extraTid (#748),
+    // som tidsregeln (provElevMinuter) redan läser – inget extraMin på svaret.
+    function provSlappInOk(d, fore) {
+      return d.diff(fore).affectedKeys().hasOnly(['pausad', 'slapptInAt']) &&
+        fore.get('pausad', false) == true && d.pausad == false && d.slapptInAt == request.time;
     }
     // Omprov (#748): finns elevIds på tillfället får bara de eleverna starta och skriva.
     function provGallerElev(tf) {
@@ -2265,12 +2296,13 @@ service cloud.firestore {
       return tf.status == 'oppet' && isClassMember(tf.classId) && provGallerElev(tf) &&
         validSvarFalt(d) && d.elevId == elevUid && d.classId == tf.classId &&
         d.startad == request.time && d.uppdaterad == request.time &&
+        d.get('pausad', false) == false && !('slapptInAt' in d) &&
         provElevInlamningOk(d);
     }
     function provSvarUpdateOk(t, d, fore) {
       let tf = tillfalle(t);
       return tf.status == 'oppet' && fore.inlamnad == false && provGallerElev(tf) &&
-        validSvarFalt(d) &&
+        validSvarFalt(d) && provPausOk(d, fore) &&
         d.elevId == fore.elevId && d.classId == fore.classId && d.startad == fore.startad &&
         d.uppdaterad == request.time &&
         provElevInlamningOk(d) &&

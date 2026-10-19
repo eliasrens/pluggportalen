@@ -98,3 +98,20 @@
   .teacher-dark .provl-tf-rad { align-items: flex-start; }
   .provl-bakgrund { place-items: end center; padding: 8px; }
 }
+
+/* Helskärmsläget (#810, §5.6): pausade elever överst i översikten. */
+.provl-elevstatus-pausad { color: #ffd68a; background: rgba(242, 153, 0, 0.2); font-weight: 600; }
+.provl-hs-tag { color: #ffd68a; background: rgba(242, 153, 0, 0.16); }
+.provl-hs-undantag { margin-top: 8px; }
+.provl-hs-undantag.provl-av { opacity: 0.45; pointer-events: none; }
+.provl-hs-panel { border: 2px solid rgba(242, 153, 0, 0.7); }
+.provl-hs-rubrik { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; margin-bottom: 6px; }
+.provl-hs-val { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.9rem; }
+.provl-hs-lista { list-style: none; margin: 0; padding: 0; }
+.provl-hs-rad { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; padding: 8px 0; border-top: 1px solid var(--t-border); }
+.provl-hs-rad:first-child { border-top: 0; }
+.provl-hs-text { font-weight: 600; font-size: 1.05rem; }
+.provl-hs-knappar, .provl-hs-alla { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.provl-hs-alla { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--t-border); }
+.provl-hs-fel { margin: 8px 0 0; }
+.provl-hs-panel[hidden], .provl-hs-alla[hidden] { display: none; }

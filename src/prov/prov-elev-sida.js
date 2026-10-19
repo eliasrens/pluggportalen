@@ -14,12 +14,12 @@ import { currentStudentId } from "../auth.js";
 import { serverNow } from "../data-class-lock.js";
 import { arFraga } from "./prov-fragetyper.js";
 import { renderaProv } from "./prov-elev-vy.js";
-import { hamtaMinRattning, hamtaMittSvar, hamtaTillfalle, lamnaIn, sparaSvar, startaProv } from "./prov-elev-data.js";
+import { hamtaMinRattning, hamtaMittSvar, hamtaTillfalle, lamnaIn, lamnaInPausad, sparaSvar, startaProv } from "./prov-elev-data.js";
+import { lasLokal, rensaLokal, skrivLokal } from "./prov-elev-lokal.js";
+import { FORKLARING, begarHelskarm, helskarmFor, kopplaHelskarm } from "./prov-helskarm-elev.js";
 import { resultatModell } from "./prov-resultat-modell.js";
 import { arSlutgiltigtFel, skapaSparare } from "./prov-sparning.js";
-import {
-  elevLage, kvarNiva, kvarText, lokalNyckel, slutTid, tillMs, valjStartSvar,
-} from "./prov-tillfalle-logik.js";
+import { elevLage, kvarNiva, kvarText, slutTid, tillMs, valjStartSvar } from "./prov-tillfalle-logik.js";
 import { onProvChange, provForMe } from "./prov-watch.js";
 import { elevProvNamn, gallerElev, tidsgransFor, tolkaFlikbyten } from "./prov-anpassningar.js";
 import { laddaCss } from "./prov-vy.js";
@@ -51,24 +51,6 @@ function sida(...innehall) {
   wrap.append(...innehall);
   app.replaceChildren(wrap);
   return wrap;
-}
-
-function lasLokal(t, uid) {
-  try {
-    return JSON.parse(localStorage.getItem(lokalNyckel(t, uid)) || "null");
-  } catch {
-    return null;
-  }
-}
-function skrivLokal(t, uid, svar, flikbyten = 0) {
-  try {
-    localStorage.setItem(lokalNyckel(t, uid), JSON.stringify({ svar, at: serverNow(), flikbyten }));
-  } catch {}
-}
-function rensaLokal(t, uid) {
-  try {
-    localStorage.removeItem(lokalNyckel(t, uid));
-  } catch {}
 }
 
 const antalFragor = (tf) => (tf.fragor || []).filter(arFraga).length;
@@ -170,6 +152,7 @@ function startRuta(tf, meId, route) {
       <li>${antalFragor(tf)} frågor</li>
       <li>${min ? `Du har ${min} minuter. Tiden börjar när du startar.` : "Ingen tidsgräns."}</li>
       <li>Dina svar sparas automatiskt medan du skriver.</li>
+      ${helskarmFor(tf, meId) ? `<li><b>${escHtml(FORKLARING)}</b></li>` : ""}
     </ul>
     <button class="provv-lamna-in" type="button">Starta provet</button>
     <p class="provv-fel" role="alert" hidden></p>
@@ -178,12 +161,15 @@ function startRuta(tf, meId, route) {
   const knapp = ruta.querySelector("button");
   knapp.focus();
   knapp.addEventListener("click", async () => {
+    // #810: helskärmen begärs direkt i klicket (webbläsaren kräver det); går den inte startar provet ändå.
+    const hs = helskarmFor(tf, meId) ? begarHelskarm() : Promise.resolve(true);
     knapp.disabled = true;
     knapp.textContent = "Startar…";
     try {
+      const helskarmFel = !(await hs);
       // Fanns ett svar redan (annan flik) används det – annars skapas det nu.
-      const dok = (await hamtaMittSvar(tf.id, meId)) || (await startaProv(tf.id, meId, tf.classId));
-      if (location.hash === route) skriv(tf, dok, meId);
+      const dok = (await hamtaMittSvar(tf.id, meId)) || (await startaProv(tf.id, meId, tf.classId, {}, { helskarmFel }));
+      if (location.hash === route) skriv(tf, dok, meId, { nyss: true, helskarmFel });
     } catch (err) {
       console.warn("Prov: kunde inte starta", err);
       knapp.disabled = false;
@@ -197,7 +183,7 @@ function startRuta(tf, meId, route) {
   });
 }
 
-function skriv(tf, svarDok, meId) {
+function skriv(tf, svarDok, meId, { nyss = false, helskarmFel = false } = {}) {
   const t = tf.id;
   const lokal = lasLokal(t, meId);
   const { svar, franLokal } = valjStartSvar(svarDok, lokal);
@@ -222,7 +208,7 @@ function skriv(tf, svarDok, meId) {
   sida(vy.el);
 
   const nySparare = () => skapaSparare({
-    spara: () => sparaSvar(t, meId, vy.svar(), flikbyten),
+    spara: () => sparaSvar(t, meId, vy.svar(), flikbyten, hs?.helskarmFel),
     onStatus: (s) => vy.satSparstatus(s),
     onSlutgiltigt: () => kollaLage(),
   });
@@ -234,8 +220,15 @@ function skriv(tf, svarDok, meId) {
     sparare.andrat();
   }
 
+  const hs = helskarmFor(tf, meId) ? kopplaHelskarm({ // #810 – pauserna räknas i flikbyten
+    t, meId, svarDok, vyEl: vy.el, nyss, helskarmFel, svarNu: () => vy.svar(), flikbyten: () => flikbyten, satFlikbyten: (n) => (flikbyten = n),
+    forePaus: () => { sparare.stoppa(); skrivLokal(t, meId, vy.svar(), flikbyten); },
+    efterPaus: () => { baraFlik = false; sparare = nySparare(); }, onLage: () => kollaLage(),
+  }) : null;
+
   const avsluta = (rubrik, text) => {
     klar = true;
+    hs?.slut(); // provvyn tillbaka, ut ur helskärm (#788: vägen vidare gäller)
     clearInterval(tick);
     sparare.stoppa();
     vy.las(true);
@@ -284,7 +277,8 @@ function skriv(tf, svarDok, meId) {
       try {
         // Offline hänger skrivningen (SDK:t köar den) – vänta högst 10 s per försök.
         await Promise.race([
-          lamnaIn(t, meId, svarNu, nar, flikbyten),
+          // Tiden tog slut under pausen (#810): de svar som sparades när pausen började gäller.
+          hs?.pausad ? lamnaInPausad(t, meId) : lamnaIn(t, meId, svarNu, nar, flikbyten, hs?.helskarmFel),
           new Promise((_, nej) => setTimeout(() => nej(Object.assign(new Error("timeout"), { code: "deadline-exceeded" })), 10_000)),
         ]);
         rensaLokal(t, meId);
@@ -331,7 +325,7 @@ function skriv(tf, svarDok, meId) {
   const avProv = onProvChange(({ oppna }) => {
     const ny = oppna.find((x) => x.id === t);
     if (!ny) kollaLage();
-    else if (!klar && !lamnar) satSlut(ny);
+    else if (!klar && !lamnar) satSlut(ny), hs?.galler(helskarmFor(ny, meId));
   });
   // Eleven lämnar sidan eller fliken: spara direkt (utan tak).
   const spola = () => { if (!klar && sparare.osparat) sparare.spolaNu(); };
@@ -339,7 +333,7 @@ function skriv(tf, svarDok, meId) {
   // svar sparas direkt som förut (och tar med bytet); annars följer bytet med
   // nästa sparning inom taket – flikbyten ger aldrig fler skrivningar än taket.
   const synlighet = () => {
-    if (!document.hidden || klar || lamnar) return;
+    if (!document.hidden || klar || lamnar || hs?.aktiv) return; // #810: helskärmsläget räknar pauserna
     const svarOsparade = sparare.osparat && !baraFlik;
     flikbyten = Math.min(flikbyten + 1, 10_000);
     skrivLokal(t, meId, vy.svar(), flikbyten);
@@ -357,6 +351,7 @@ function skriv(tf, svarDok, meId) {
     window.removeEventListener("pagehide", spola);
     window.removeEventListener("online", spola);
     document.removeEventListener("visibilitychange", synlighet);
+    hs?.lamnaSidan();
   });
 }
 

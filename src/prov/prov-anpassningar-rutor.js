@@ -99,6 +99,8 @@ export async function omprovRuta(tf, onKlar) {
         fokus: { pa: false }, larare: role, extraTid: rensaExtraTid(lista.varde(), elevIds), elevIds,
         // Alltid det ursprungliga tillfället (även omprov av ett omprov): pluggmynten delar dess kvitto.
         omprovAv: tf.omprovAv || tf.id,
+        // #810: omprovet ärver helskärmsläget (och de undantagna som skriver omprovet).
+        helskarm: { pa: tf.helskarm !== false, undantag: (tf.helskarmUndantag || []).filter((u) => elevIds.includes(u)) },
       });
       if (oppnaNu) await oppnaTillfalle({ id: t, status: STATUS.FORBERETT, provId: tf.provId, provNamn: tf.provNamn, classId: tf.classId }, null);
       stang();

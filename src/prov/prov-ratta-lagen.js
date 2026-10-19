@@ -219,7 +219,7 @@ export function perElev(v) {
   return {
     el: h("div", {}, nav,
       h("div", { class: "provl-r-elevtopp" }, h("h3", { class: "provl-r-elevnamn", text: v.visNamn(uid) }),
-        v.flikbyteText?.(uid) ? h("span", { class: "hint provl-r-flikbyte", title: "Hur många gånger eleven lämnade provfliken. Bara information – det påverkar inget.", text: v.flikbyteText(uid) }) : null,
+        v.flikbyteText?.(uid) ? h("span", { class: "hint provl-r-flikbyte", title: "Hur många gånger eleven lämnade provet (bytte flik, gick ur helskärm). Bara information – det påverkar inget.", text: v.flikbyteText(uid) }) : null,
         godkannKnapp),
       h("div", { class: "provl-r-kortlista" }, kort),
       h("div", { class: "panel provl-r-summa" }, totalEl, nivaRad,
