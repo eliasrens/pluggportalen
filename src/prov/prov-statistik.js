@@ -10,6 +10,7 @@
 //                                   de tre svåraste frågorna, poäng per avsnitt (#765)
 //   avsnittFor(r, avsnitt, …)       en elevs poäng per avsnitt (#765)
 //   avsnittText(a, poangsatt)       "Del 1: 8 av 10" (elev) / "Del 1: 7,3 av 10" (klassens snitt)
+//   medTillfallensGranser(lista, tillfallen) tillfällets gränser före rättningens kopia (#796)
 //   provInfoDok(r, fragor, tf)      det som sparas i rättningen för statistik-
 //                                   fliken "Prov" (datum, gränser, andel)
 //   historik(rattningar)            fliken "Prov" i klassens statistik: klassens
@@ -284,6 +285,17 @@ export function provInfoDok(r, fragor, tf) {
     granser: granserFor(tf?.installningar),
     andel: andelFor(r, fragor, poangsatt).andel,
   };
+}
+
+/**
+ * Rättningarna med tillfällets gränser (#796): tillfället är källan,
+ * provInfo.granser (kopian i rättningen) gäller bara om tillfället saknas.
+ * @param {object[]} lista  rättningar med t
+ * @param {{ id: string, installningar?: object }[]} tillfallen
+ */
+export function medTillfallensGranser(lista, tillfallen) {
+  const per = new Map((tillfallen || []).filter((x) => granserOk(x.installningar?.granser)).map((x) => [x.id, x.installningar.granser]));
+  return lista.map((r) => (per.has(r.t) ? { ...r, provInfo: { ...r.provInfo, granser: per.get(r.t) } } : r));
 }
 
 /** En rättnings andel: provInfo.andel, annars (äldre dokument) totalen av max. */

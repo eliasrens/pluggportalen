@@ -9,9 +9,9 @@
 // CSS: prov-statistik.css (.provl-st-).
 // ============================================================================
 
-import { FARG_INFO, granserFor, historik, linjePunkter, procent } from "./prov-statistik.js";
+import { FARG_INFO, granserFor, historik, medTillfallensGranser, linjePunkter, procent } from "./prov-statistik.js";
 import { fordelningEl } from "./prov-stat-vy.js";
-import { hamtaKlassensRattningar } from "./prov-statistik-data.js";
+import { hamtaKlassensRattningar, hamtaKlassensTillfallen } from "./prov-statistik-data.js";
 import { h, laddaCss } from "./prov-vy.js";
 
 const datumText = (ms) => (ms ? new Date(ms).toLocaleDateString("sv-SE", { day: "numeric", month: "short", year: "numeric" }) : "–");
@@ -53,9 +53,11 @@ export function utvecklingsLinje(prov, b = 180, hojd = 44) {
  * @param {HTMLElement} pane
  * @param {{ classId: string, students: object[], hamta?: (classId: string) => Promise<object[]> }} o
  */
-export async function renderClassProv(ctx, pane, { classId, students = [], hamta = hamtaKlassensRattningar }) {
+export async function renderClassProv(ctx, pane, { classId, students = [], hamta = hamtaKlassensRattningar, hamtaTillfallen = hamtaKlassensTillfallen }) {
   await laddaCss("prov-statistik.css");
-  const lista = await hamta(classId);
+  // Tillfällets gränser (#796) – saknas de (fel/ingen åtkomst) gäller rättningarnas kopia.
+  const [rattningar, klassTillfallen] = await Promise.all([hamta(classId), Promise.resolve().then(() => hamtaTillfallen(classId)).catch(() => [])]);
+  const lista = medTillfallensGranser(rattningar, klassTillfallen);
   const { tillfallen, perElev } = historik(lista);
   const namn = new Map(students.map((s) => [s.id, s.namn || s.username || s.id]));
   const go = (hash) => (ctx?.go ? ctx.go(hash) : (window.location.hash = hash));

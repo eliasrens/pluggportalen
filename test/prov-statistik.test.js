@@ -14,7 +14,7 @@ import { validateProv } from "../src/prov/prov-validera.js";
 import { bedom, godkann, godkannAlla, nyRattning, sparDok } from "../src/prov/prov-rattning-logik.js";
 import {
   CELL, andelFor, cellLage, fargFor, fordelning, fordelningText, granserFor, historik, klassOversikt, linjePunkter,
-  procent, provInfoDok, snitt, sorteraRader, totalText,
+  procent, provInfoDok, medTillfallensGranser, snitt, sorteraRader, totalText,
 } from "../src/prov/prov-statistik.js";
 
 // 10 flervalsfrågor à 10 poäng → varje fråga = 10 %, och poäng 0–100 ger exakta procent.
@@ -212,18 +212,20 @@ describe("historiken (§7.5 Över tid)", () => {
   });
 });
 
-describe('fliken "Prov" i klassens statistik gör exakt EN fråga mot databasen', () => {
+describe('fliken "Prov" i klassens statistik: EN fråga på rättningarna + EN på klassens tillfällen (gränserna, #796)', () => {
   const data = readFileSync(new URL("../src/prov/prov-statistik-data.js", import.meta.url), "utf8").replace(/\/\/.*$/gm, "");
   const vy = readFileSync(new URL("../src/prov/prov-klass-statistik.js", import.meta.url), "utf8").replace(/\/\/.*$/gm, "");
   const rakna = (src, re) => (src.match(re) || []).length;
-  it("datafilen: en getDocs på en collection group med where classId ==, inga andra läsningar", () => {
-    assert.equal(rakna(data, /\bgetDocs\(/g), 1);
+  it("datafilen: en getDocs på en collection group med where classId == (+ en på tillfällena, #796), inga andra läsningar", () => {
+    assert.equal(rakna(data, /\bgetDocs\(/g), 2);
+    assert.equal(rakna(data, /\bcollection\(db, SAMLING_TILLFALLEN\)/g), 1);
     assert.equal(rakna(data, /\bcollectionGroup\(/g), 1);
     assert.match(data, /where\("classId", "==", classId\)/);
     for (const re of [/\bgetDoc\(/, /\bonSnapshot\(/, /\bgetDocsFromServer\(/, /\bgetCountFromServer\(/]) assert.doesNotMatch(data, re);
   });
   it("vyn läser bara genom hamta(classId), en gång, och importerar inte Firebase", () => {
-    assert.equal(rakna(vy, /\bawait hamta\(/g), 1);
+    assert.equal(rakna(vy, /\bhamta\(classId\)/g), 1);
+    assert.equal(rakna(vy, /\bhamtaTillfallen\(classId\)/g), 1);
     assert.doesNotMatch(vy, /firebase|getDocs|getDoc\(|onSnapshot|data-content|getStudentsByIds/);
   });
   it("teacher-class.js laddar fliken lat (import()) och bara med classId", () => {
@@ -235,5 +237,32 @@ describe('fliken "Prov" i klassens statistik gör exakt EN fråga mot databasen'
     const idx = JSON.parse(readFileSync(new URL("../firestore.indexes.json", import.meta.url), "utf8"));
     const o = idx.fieldOverrides.find((x) => x.collectionGroup === "rattning" && x.fieldPath === "classId");
     assert.ok(o?.indexes.some((i) => i.queryScope === "COLLECTION_GROUP" && i.order === "ASCENDING"));
+  });
+});
+
+describe("tillfällets gränser före rättningens kopia (#796)", () => {
+  const lista = [
+    { t: "a", elevId: "e1", provInfo: { andel: 0.7, granser: { gul: 60, gron: 85 }, datum: 1 } },
+    { t: "b", elevId: "e1", provInfo: { andel: 0.7, granser: { gul: 60, gron: 85 }, datum: 2 } },
+    { t: "c", elevId: "e1" },
+  ];
+  it("tillfället vinner; saknat eller ogiltigt tillfälle → rättningens kopia", () => {
+    const ut = medTillfallensGranser(lista, [
+      { id: "a", installningar: { granser: { gul: 50, gron: 70 } } },
+      { id: "b", installningar: { granser: { gul: 90, gron: 80 } } },
+    ]);
+    assert.deepEqual(ut[0].provInfo.granser, { gul: 50, gron: 70 });
+    assert.equal(ut[0].provInfo.andel, 0.7);
+    assert.deepEqual(ut[1].provInfo.granser, { gul: 60, gron: 85 });
+    assert.equal(ut[2].provInfo, undefined);
+  });
+  it("historiken färgar efter de nya gränserna direkt", () => {
+    const vid = (granser) => historik(medTillfallensGranser(lista.slice(0, 1), [{ id: "a", installningar: { granser } }])).tillfallen[0];
+    assert.equal(vid({ gul: 60, gron: 85 }).farg, "gul");
+    assert.equal(vid({ gul: 50, gron: 70 }).farg, "gron");
+    assert.equal(vid({ gul: 75, gron: 90 }).farg, "rod");
+  });
+  it("tillfällena läses utan tillfälleslista (null) → oförändrat", () => {
+    assert.deepEqual(medTillfallensGranser(lista, null), lista);
   });
 });

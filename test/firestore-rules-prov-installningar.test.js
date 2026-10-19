@@ -96,6 +96,20 @@ describe("provTillfallen/{t}: kopian och Översiktens reglage (#759)", () => {
     await assertFails(updateDoc(tfRef(lar, "t-gammal"), { "installningar.granser": { gul: 0, gron: 10 } }));
     await assertSucceeds(updateDoc(tfRef(lar, "t-gammal"), { "installningar.granser": { gul: 60, gron: 85 } }));
   });
+  it("#796: läraren ändrar tillfällets gränser i alla statusar – forberett, oppet, stangt – och ingenting annat flyttas", async () => {
+    const lar = env.ak4();
+    await env.seed(async (db) => {
+      for (const status of ["forberett", "oppet", "stangt"]) await setDoc(tfRef(db, `t-${status}`), tillfalleDok({ ...STANDARD_INSTALLNINGAR }, { status }));
+    });
+    for (const status of ["forberett", "oppet", "stangt"]) {
+      await assertSucceeds(updateDoc(tfRef(lar, `t-${status}`), { "installningar.granser": { gul: 55, gron: 80 } }));
+      await assertFails(updateDoc(tfRef(lar, `t-${status}`), { "installningar.granser": { gul: 80, gron: 55 } }));
+      // Samma skrivning kan inte byta klass eller prov åt sidan.
+      await assertFails(updateDoc(tfRef(lar, `t-${status}`), { "installningar.granser": { gul: 50, gron: 70 }, classId: "5a" }));
+      await assertFails(updateDoc(tfRef(lar, `t-${status}`), { "installningar.granser": { gul: 50, gron: 70 }, provId: "p2" }));
+      await assertFails(updateDoc(tfRef(env.ak5(), `t-${status}`), { "installningar.granser": { gul: 50, gron: 70 } }));
+    }
+  });
   it("eleven och en annan klass lärare ändrar aldrig inställningarna", async () => {
     await assertFails(updateDoc(tfRef(env.as("e4a"), "t1"), { "installningar.stavfel": "auto" }));
     await assertFails(updateDoc(tfRef(env.ak5(), "t1"), { "installningar.granser": { gul: 50, gron: 75 } }));

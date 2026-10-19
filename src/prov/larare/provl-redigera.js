@@ -21,6 +21,7 @@ import { armeraLamnaVakt } from "../../hitta-ratt/hr-lamna-vakt.js";
 import { fragetyp } from "../prov-fragetyper.js";
 import { fragaNummer } from "../prov-modell.js";
 import { poangP } from "../prov-poang.js";
+import { granserFor } from "../prov-statistik.js";
 import { TIDSGRANS_MAX, TIDSGRANS_MIN, stavfelFor, tolkaTidsgrans, typValjare } from "../prov-validera.js";
 import { kanAndra } from "../prov-lista-ops.js";
 import {
@@ -335,6 +336,8 @@ function ritaRedigerare(ctx, host, st) {
     const knapp = $('[data-act="spara"]');
     knapp.disabled = true;
     knapp.lastElementChild.textContent = "Sparar…";
+    // #796: ändrade färggränser i ett prov som redan körts → fråga om tillfällena (efter sparningen).
+    const gamlaGranser = st.id ? granserFor(st.original?.installningar) : null;
     try {
       const nyttId = await sparaProv(st.id, r.value, st.original);
       slappVakt();
@@ -343,6 +346,10 @@ function ritaRedigerare(ctx, host, st) {
       flash = { id: nyttId, html: `<div class="msg ok">Provet är sparat.${varn}</div>` };
       history.replaceState(null, "", `${HASH}?vy=ny&id=${encodeURIComponent(nyttId)}`);
       renderRedigera(ctx, host, { id: nyttId });
+      const nyaGranser = granserFor(r.value.installningar);
+      if (gamlaGranser && (gamlaGranser.gul !== nyaGranser.gul || gamlaGranser.gron !== nyaGranser.gron)) {
+        import("./provl-granser-efter.js").then((m) => m.fragaOmTillfallen(nyttId, nyaGranser)).catch(() => {});
+      }
     } catch (err) {
       knapp.disabled = false;
       knapp.lastElementChild.textContent = "Spara provet";
