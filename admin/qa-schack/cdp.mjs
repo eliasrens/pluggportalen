@@ -2,6 +2,7 @@
 // Liten CDP-driver för schack-QA:n (#777): headless chromium (/usr/bin/chromium
 // eller CHROMIUM=…) på en slumpad debug-port, Node 22:s inbyggda WebSocket –
 // inga npm-paket. Ger riktiga (betrodda) mus-, touch- och tangenthändelser.
+// QA_HEADFUL=1 (under xvfb-run): synligt fönster – då når t.ex. Esc webbläsarens helskärmsutgång.
 //
 //   const br = await startaChromium();  const p = await br.nySida();
 //   await p.gaTill(url);  await p.ev("document.title");  br.stang();
@@ -17,7 +18,7 @@ const medTidsgrans = (lofte, ms, vad) =>
 
 export async function startaChromium({ extra = [] } = {}) {
   const dir = mkdtempSync(join(tmpdir(), "qa-schack-"));
-  const proc = spawn(process.env.CHROMIUM || "/usr/bin/chromium", ["--headless=new", "--no-sandbox", "--disable-gpu",
+  const proc = spawn(process.env.CHROMIUM || "/usr/bin/chromium", [...(process.env.QA_HEADFUL ? [] : ["--headless=new"]), "--no-sandbox", "--disable-gpu",
     "--remote-debugging-port=0", `--user-data-dir=${dir}`, "--no-first-run", "--disable-dev-shm-usage", ...extra, "about:blank"],
   { stdio: "ignore", detached: true }); // egen processgrupp – stang() dödar hela trädet (zygote, renderare)
   const doda = () => { try { process.kill(-proc.pid, "SIGKILL"); } catch { /* redan borta */ } };
@@ -77,7 +78,9 @@ export async function startaChromium({ extra = [] } = {}) {
       }
       throw new Error("väntade förgäves: " + expr);
     };
-    return { s, ev, gaTill, laddaOm, vanta, konsol, sessionId, targetId };
+    /** CDP-händelser för just den här sidan (t.ex. Network.requestWillBeSent); returnerar avregistreringen. */
+    const pa = (fn) => { const l = (m) => { if (m.sessionId === sessionId && m.method) fn(m); }; lyss.add(l); return () => lyss.delete(l); };
+    return { s, ev, gaTill, laddaOm, vanta, konsol, sessionId, targetId, pa };
   }
 
   return {
