@@ -23,6 +23,7 @@ import {
   klockor, fargFor, motstandare, lamnatLage, slutText, dragDiff, klockaEtikett,
 } from "./schack-kompis-data.js";
 import { markeraLamnat } from "./schack-kompis.js";
+import { monteraHelskarm } from "./schack-helskarm.js";
 
 const TICK_MS = 200;
 const MEDDELANDE_MS = 6_000; // fel- och infotexten försvinner av sig själv (F4)
@@ -86,6 +87,8 @@ export function skapaKompisVy(host, o) {
     `<div class="schack-kompis-yta"></div><div class="schack-kompis-lage schack-kompis-lage-under" aria-live="polite"></div></div>` +
     `<aside class="schack-panel" aria-label="Partiet mot en kompis">${panelHtml()}</aside>`;
   const $ = (s) => host.querySelector(s);
+  // Helskärm (#783): hela partivyn (host) visas i helskärm, knappen ligger i verktygsraden.
+  const helskarm = monteraHelskarm(host, { knappPlats: $(".schack-parti-verktyg") });
   const lageEl = [...host.querySelectorAll(".schack-kompis-lage")]; // under brädet + i panelen – CSS visar en
   let pekareNere = false; // eleven drar/trycker på brädet just nu – då skrollas inget (F3)
   const ned = () => { pekareNere = true; };
@@ -352,6 +355,7 @@ export function skapaKompisVy(host, o) {
     destroy() {
       levande = false;
       stoppa();
+      helskarm?.destroy();
       host.removeEventListener("click", klick);
       brade?.destroy();
       brade = null;

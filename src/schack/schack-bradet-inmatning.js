@@ -83,7 +83,8 @@ export function kopplaInmatning({ bradet, k, rutaEl, fokusera, viaDrag }) {
       d.spoke.className = "schack-spoke";
       d.spoke.style.width = d.spoke.style.height = `${storlek}px`;
       if (svg) d.spoke.appendChild(svg.cloneNode(true));
-      document.body.appendChild(d.spoke);
+      // I helskärm syns bara helskärmselementet och det som ligger i det (#783).
+      (document.fullscreenElement || document.webkitFullscreenElement || document.body).appendChild(d.spoke);
       fran.classList.add("dras");
     }
     d.spoke.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%)`;

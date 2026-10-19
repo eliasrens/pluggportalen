@@ -751,6 +751,10 @@ import(schack-lobby-vy.js | schack-kompis-vy.js | schack-kompis.js)`, `schack-mo
   `vy.element`. Flödet ger vyn via `flode.aktiv()` (ett löfte tills modulen laddats). En knapp
   monteras alltså med `(await flode.aktiv()).verktyg.append(knapp)` och helskärmar `vy.element`;
   vyn tömmer `host` i `destroy()`, så knappen försvinner med vyn.
+  **Helskärmsknappen (#783) är monterad:** `skapaKompisVy` anropar `monteraHelskarm(host, { knappPlats: verktyget })`
+  (`src/schack/schack-helskarm.js`, delad logik i `src/helskarm.js`) och `helskarm.destroy()` i `destroy()`;
+  partiet mot datorn monterar samma knapp bland panelens knappar. Stilarna (`38-schack-helskarm.css`)
+  skalar bräde, klockor, §7.3-raden och "Kräv vinsten" efter skärmen, stående och liggande.
 - **Datorpartier räknas:** när ett parti mot datorn tar slut anropas `datorPartiKlart()` (EN
   skrivning, `studentData.schack.datorPartier + 1`). Partiet får `raknad: true` i `localStorage`,
   så en omladdning eller Ångra + nytt slut räknas inte igen.
