@@ -15,6 +15,7 @@ import { nivaFor } from "./schack-motor.js";
 import { analyseraVarning } from "./schack-varning.js";
 import { svenskSan } from "./schack-text.js";
 import { esc } from "./schack-bradet-delar.js";
+import { monteraHelskarm } from "./schack-helskarm.js";
 
 const TANK_MIN_MS = 350; // datorn "tänker" minst så här länge, så draget inte känns som ett ryck
 
@@ -74,6 +75,9 @@ export function skapaDatorVy(host, o) {
   const geuppRuta = $(".schack-geupp-ruta");
   const tipsText = $(".schack-tips-text");
   const knapp = (act) => $(`[data-act="${act}"]`);
+
+  // Helskärm (#783): hela sidans rot, så att "Spela igen" inte avbryter den.
+  const helskarm = monteraHelskarm(host.closest?.(".schack-rot") || host, { knappPlats: $(".schack-knappar") });
 
   const spara = () => {
     parti.drag = brade.getGame().drag;
@@ -260,6 +264,7 @@ export function skapaDatorVy(host, o) {
       seq++;
       dator.avbryt();
       host.removeEventListener("click", klick);
+      helskarm?.destroy();
       brade.destroy();
       host.classList.remove("schack-parti");
       host.innerHTML = "";

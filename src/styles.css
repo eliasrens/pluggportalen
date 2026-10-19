@@ -8714,3 +8714,79 @@ html:not([data-halloween]) .af-kostym[data-seasonal="halloween"] { display: none
 @media (prefers-reduced-motion: reduce) {
   .schack-niva, .schack-farg, .schack-niva:hover, .schack-farg:hover { transition: none; transform: none; }
 }
+
+/* ── src/styles/37-schack-helskarm.css ── */
+/* ==========================================================================
+   Schack i helskärm (#783). monteraHelskarm (src/schack/schack-helskarm.js)
+   sätter .schack-helskarm-pa på behållaren medan den visas i helskärm. Då
+   skalas brädet efter skärmen så att brädet, spelarraderna (klockorna),
+   statusraden och panelens knappar ryms: bredvid varandra i liggande, under
+   varandra i stående. Höjden som ryms bestäms av --hs-extra (allt utom
+   brädet i brädkolumnen), bredden av --hs-panel (panelen i liggande).
+   ========================================================================== */
+
+.schack-helskarm-knapp { display: inline-flex; align-items: center; gap: 6px; }
+.schack-helskarm-knapp svg { flex: 0 0 auto; width: 1.1em; height: 1.1em; }
+
+.schack-helskarm-pa {
+  --hs-pad: 10px;
+  --hs-hojd: 100vh;
+  --hs-extra: 180px; /* två spelarrader, statusrad och mellanrum (draglistan döljs i helskärm) */
+  --hs-panel: 320px; /* panelens bredd + mellanrummet, liggande */
+  --hs-panel-hojd: 150px; /* panelen under brädet, stående */
+  box-sizing: border-box;
+  overflow: auto;
+  padding: var(--hs-pad);
+  background: linear-gradient(160deg, #eaf3ff 0%, #f6ecff 60%, #fff6ec 100%);
+  display: grid;
+  place-items: center;
+}
+@supports (height: 100dvh) {
+  .schack-helskarm-pa { --hs-hojd: 100dvh; }
+}
+
+/* Liggande: brädet till vänster, panelen till höger. */
+.schack-helskarm-pa .schack {
+  --schack-storlek: max(200px, min(100vw - 2 * var(--hs-pad) - var(--hs-panel), var(--hs-hojd) - 2 * var(--hs-pad) - var(--hs-extra)));
+  min-width: 0;
+}
+.schack-helskarm-pa .schack-parti {
+  width: 100%;
+  grid-template-columns: max-content minmax(240px, 300px);
+  justify-content: center;
+  align-items: center;
+}
+.schack-helskarm-pa .schack-parti-brade { margin-inline: 0; }
+
+/* Stående: brädet över panelen, så brett som skärmen tillåter. */
+@media (orientation: portrait), (max-width: 600px) {
+  .schack-helskarm-pa .schack {
+    --schack-storlek: max(200px, min(100vw - 2 * var(--hs-pad), var(--hs-hojd) - 2 * var(--hs-pad) - var(--hs-extra) - var(--hs-panel-hojd)));
+  }
+  .schack-helskarm-pa .schack-parti { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+  .schack-helskarm-pa .schack-panel { width: min(100%, 520px); gap: 8px; }
+  .schack-helskarm-pa .schack-panel-niva,
+  .schack-helskarm-pa .schack-tillbaka,
+  .schack-helskarm-pa .schack-varna-val small { display: none; } /* motståndarens namn står i spelarraden */
+  .schack-helskarm-pa .schack-varna-val { padding: 6px 12px; }
+}
+
+/* Draglistan får inte plats vid sidan av ett helskärmsbräde; den finns utanför helskärm. */
+.schack-helskarm-pa .schack-drag { display: none; }
+
+/* Låg skärm (mobil liggande): trängre rader. */
+@media (max-height: 520px) {
+  .schack-helskarm-pa { --hs-extra: 118px; --hs-pad: 6px; }
+  .schack-helskarm-pa .schack { gap: 4px; }
+  .schack-helskarm-pa .schack-panel { gap: 6px; }
+  .schack-helskarm-pa .schack-panel-niva small,
+  .schack-helskarm-pa .schack-varna-val small,
+  .schack-helskarm-pa .schack-tillbaka { display: none; }
+  .schack-helskarm-pa .schack-panel-niva,
+  .schack-helskarm-pa .schack-varna-val { padding: 6px 12px; }
+  .schack-helskarm-pa .schack-spelare { min-height: 34px; padding: 2px 8px; }
+  .schack-helskarm-pa .schack-avatar { width: 28px; height: 28px; }
+  .schack-helskarm-pa .schack-spelare-text { grid-auto-flow: column; justify-content: start; align-items: center; gap: 8px; }
+  .schack-helskarm-pa .schack-tagna { min-height: 0; }
+  .schack-helskarm-pa .schack-status { padding: 4px 10px; font-size: 1rem; }
+}
