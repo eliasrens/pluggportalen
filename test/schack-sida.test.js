@@ -89,10 +89,17 @@ describe("routen och bootgrafen (#271)", () => {
     const sidCss = las("src/styles/36-schack-sida.css");
     assert.match(sidCss, /\.schack-parti-brade \{ margin-inline: min\(0px, \(100% - 320px\) \/ 2\); \}/);
   });
-  it("ingen Firestore-skrivning och inga mynt i schackmodulen (Etapp 1)", () => {
+  // #779 (Etapp 2A): bara schack-moln.js får tala med Firebase – och den skriver
+  // bara räknaren studentData.schack.datorPartier; allt annat går via callables.
+  it("ingen Firestore utanför schack-moln.js och inga mynt i schackmodulen", () => {
     for (const f of readdirSync(join(ROOT, "src/schack")).filter((f) => f.endsWith(".js"))) {
-      assert.doesNotMatch(kod(`src/schack/${f}`), /firebase|firestore|setDoc|updateDoc|awardCoins|coins\b/i, f);
+      assert.doesNotMatch(kod(`src/schack/${f}`), /awardCoins|coins\b/i, f);
+      if (f === "schack-moln.js") continue;
+      assert.doesNotMatch(kod(`src/schack/${f}`), /firebase|firestore|setDoc|updateDoc/i, f);
     }
+    const moln = kod("src/schack/schack-moln.js");
+    assert.doesNotMatch(moln, /setDoc|deleteDoc|addDoc|writeBatch|runTransaction/);
+    assert.match(moln, /"schack\.datorPartier": increment\(1\)/);
   });
 });
 

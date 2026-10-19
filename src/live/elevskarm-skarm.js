@@ -9,6 +9,8 @@
 // API: createScreenChrome(root, { sound }) → { destroy() }
 // ============================================================================
 
+import { goIn, goUt, helskarmElement } from "../helskarm.js";
+
 export function createScreenChrome(root, { sound }) {
   const card = document.createElement("div");
   card.className = "lp-es-start";
@@ -22,7 +24,7 @@ export function createScreenChrome(root, { sound }) {
   root.append(card, fsBtn);
 
   const enterFs = () => {
-    if (!document.fullscreenElement) root.requestFullscreen?.().catch(() => {});
+    if (!helskarmElement()) goIn(root);
   };
   // Första klicket var som helst: ljudet låses upp (proj-sound lyssnar själv
   // på gesten) och fönstret går i helskärm.
@@ -35,7 +37,7 @@ export function createScreenChrome(root, { sound }) {
   window.addEventListener("pointerdown", onFirst, true);
   fsBtn.addEventListener("click", (e) => {
     e.stopPropagation();
-    if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+    if (helskarmElement()) goUt();
     else enterFs();
   });
 

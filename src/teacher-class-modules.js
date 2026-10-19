@@ -17,12 +17,10 @@
 import * as data from "./data.js";
 import { TOGGLABLE_MODULES, normalizeHiddenModules, normalizeEnabledModules } from "./gamemode-visibility.js";
 import { el, esc, icon } from "./teacher-shared.js";
+import { schackLararIkon } from "./teacher-schack-ikon.js";
 
 // Lärarsidans SVG-ikon per modul (samma ikonuppsättning som resten av lärarsidan).
 const LARAR_IKON = { plugga: "grad", lasresan: "book", shop: "sparkle", hittaratt: "pin", ekvationsresan: "sliders", brakresan: "brak" };
-// Schack (#776): en bonde i samma linjestil – ligger här (lazy modul) i stället för i
-// teacher-shared.js ICONS, som är en bootfil på gränsen till 400 rader (#271).
-const SCHACK_LARAR_IKON = `<svg class="t-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="6.5" r="2.6"/><path d="M9.5 10.5h5"/><path d="M10.2 10.5c0 2.6-1.6 4.3-2.4 6.3h8.4c-.8-2-2.4-3.7-2.4-6.3"/><path d="M6 19.5h12"/></svg>`;
 
 /**
  * Rendera "Synliga moduler"-sektionen för klassen `cls` in i `host`.
@@ -37,7 +35,7 @@ export function renderClassModules(ctx, cls, host) {
   const rows = TOGGLABLE_MODULES.map(
     (m) => `<label class="member-row">
         <input type="checkbox" data-module="${esc(m.id)}"${m.optIn ? ' data-opt-in="1"' : ""}${synlig(m) ? " checked" : ""} />
-        <span class="member-avatar">${m.id === "schack" ? SCHACK_LARAR_IKON : icon(LARAR_IKON[m.id] || "eye", 20)}</span>
+        <span class="member-avatar">${m.id === "schack" ? schackLararIkon(20) : icon(LARAR_IKON[m.id] || "eye", 20)}</span>
         <span class="member-name">${esc(m.label)}${m.optIn ? ' <span class="hint">(av som standard)</span>' : ""}</span>
       </label>`
   ).join("");

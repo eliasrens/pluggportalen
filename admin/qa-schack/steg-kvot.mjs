@@ -1,6 +1,7 @@
 // Schack-QA (#777) steg "kvot": Firestore-läsningar/-skrivningar under ett parti mot datorn.
 // Kräver att proxyn kör med QA_RAKNA=1 (admin/qa-emulator-proxy.mjs räknar per port –
-// kör inget annat mot samma port under tiden). Etapp 1 ska ge 0/0: partiet ligger i localStorage.
+// kör inget annat mot samma port under tiden). Partiet ligger i localStorage: 0 läsningar och bara
+// räknaren studentData.schack.datorPartier (+1, Etapp 2C – lärarens statistik) per AVSLUTAT parti.
 const vila = (ms) => new Promise((r) => setTimeout(r, ms));
 const rakna = (p, nolla = false) => p.ev(`fetch("/__qa/rakna${nolla ? "?nollstall" : ""}").then((r) => r.json())`);
 
@@ -30,6 +31,7 @@ export default async function kvot({ p, e, ok }) {
   await e.vantaDrag(1);
   await vila(1500);
   const r = await rakna(p);
+  // ett parti avslutat (Ge upp) + ett påbörjat → exakt 1 skrivning (räknaren), 0 läsningar
   ok(`ett parti mot datorn: ${r.summaLasningar} läsningar, ${r.summaSkrivningar} skrivningar i Firestore`,
-    r.summaLasningar === 0 && r.summaSkrivningar === 0, JSON.stringify({ las: r.lasningar, skriv: r.skrivningar }));
+    r.summaLasningar === 0 && r.summaSkrivningar === 1 && r.skrivningar["studentData/*"] === 1, JSON.stringify({ las: r.lasningar, skriv: r.skrivningar }));
 }

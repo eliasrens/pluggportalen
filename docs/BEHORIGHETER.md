@@ -59,6 +59,8 @@ tabellerna, om en rad saknar test, eller om en testfil inte körs av
 | PM | `test/firestore-rules-prov-mynt.test.js` |
 | PA | `test/firestore-rules-prov-anpassningar.test.js` |
 | PO | `test/firestore-rules-prov-mynt-omprov.test.js` |
+| SK | `test/firestore-rules-schack.test.js` |
+| SF | `test/functions-schack.test.mjs` |
 | PH | `test/firestore-rules-prov-poang-avsnitt.test.js` |
 | PR | `test/firestore-rules-prov-ratta-alla.test.js` |
 | PK | `test/firestore-rules-prov-kriterier-765.test.js` |
@@ -80,7 +82,7 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `subjects/{s}/areas` | L/S | L: allt. Skapa: i ett befintligt ämne, med `createdBy` = sig själv. Ändra: bara områden med `createdBy` = sig själv, och `createdBy` får inte bytas. Radera: bara egna. Område utan `createdBy` är admins. | SM test 4–7 |
 | `students` | L/S | L (som alla inloggade). S: aldrig. | KE test 12, RO elevkonton |
 | `studentCredentials` | L/radera. S: bara fälten `username`, `password` (minst 6 tecken) och `updatedAt`. | L: egna elever. S: aldrig (lösenordsbyte via `updateStudentLogin`). | SM test 1–3, KE test 13, SC |
-| `studentData` | L/S | L: egna elever. S: bara `lasresa` och där bara nivåfälten (`level`, `level10`, `pendingLevel`, `pendingLevel10`, `highStreak`, `lowStreak`, `levelSetAt`, `levelSetBy`, `updatedAt`). En elev utan `lasresa` får ett nytt tillstånd utan resultat. `coins` + `lastLiveReceipt` bara i samma skrivning som Live-kvittot, och `coins` + `lastProvMynt` bara med exakt kvittots ökning i samma skrivning som provets kvitto (#746). Skapa och radera: aldrig. | SM test 1–2, KE test 12 och 14, LE test 16 och 18, PM |
+| `studentData` | L/S | L: egna elever. S: bara `lasresa` och där bara nivåfälten (`level`, `level10`, `pendingLevel`, `pendingLevel10`, `highStreak`, `lowStreak`, `levelSetAt`, `levelSetBy`, `updatedAt`). En elev utan `lasresa` får ett nytt tillstånd utan resultat. `coins` + `lastLiveReceipt` bara i samma skrivning som Live-kvittot, och `coins` + `lastProvMynt` bara med exakt kvittots ökning i samma skrivning som provets kvitto (#746). `schack` (#779): aldrig – eleven själv ökar `schack.datorPartier` med högst 1 per skrivning och kan aldrig röra serverns `schack.aktivtParti` (`schackOk`; att radera hela dokumentet tar bort spärren tillsammans med all elevdata – accepterat, SCHACK.md §12.1). Skapa och radera: aldrig. | SM test 1–2, KE test 12 och 14, LE test 16 och 18, PM |
 | `studentData/{id}/lasresaAttempts` | L/S | L: egna elever. S: aldrig. | SM test 1–2 |
 | `studentData/{id}/ekvationsresa` (bara `progress`) | L/S (validerat), radera | L: egna elever. S: lärarens nivåbyte (`ekvTeacherLevelOk`) för egna elever. | SM test 1–2, KE test 14 |
 | `studentData/{id}/ekvationsresaAttempts` | L/radera | L: egna elever | SM test 1–2 |
@@ -109,6 +111,8 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `provTillfallen/{t}/rattning`, `{**}/rattning` (collection group) | L/S | L/S: egna klasser (collection group: filtrerat på `classId`). Eleven läser sin egen först när `aterlamnad == true`. Bara kända fält; `facit`, `kriterier` (#762, en map) och `aterlamnadAt` bara i en tillbakalämnad rättning (eleven ser alltså aldrig kriterierna före tillbakalämningen); `kriterier` dessutom bara när tillfällets `installningar.visaKriterier == true` eller oförändrade sedan förut (#765, `provKriterierOk` – eleven ser dem bara om läraren valt det), och att lämna tillbaka kräver `aterlamnadAt` = serverns tid. `myntUtbetalt` (#746) ändras bara ensamt och till kvittots total; annars behålls eller utelämnas det. Halvpoäng (#764): `totalPoang`/`maxPoang` 0–1200 i steg om 0,5 och total ≤ max; frågornas `auto`/`autoRattad` ("Rätta alla") och poäng kläms i klienten – reglerna kan inte gå igenom `fragor`. | PV rattning, PV collection group, PD, PM, PH, PR, PK |
 | `studentData/{uid}/provMynt` (pluggmynt per prov, #746) | L/S (som årskurskontot; S kontrolleras även för admin) | L: egna elever (eleven läser sitt eget). Skapa/ändra: bara läraren med tillfällets klass, `total` bara uppåt, högst 200 och högst vad tillfällets `installningar.mynt` ger; rättningen tillbakalämnad med `myntUtbetalt` = `total`, elevens `svar` inlämnat och `coins` ökar med exakt skillnaden – allt i samma skrivning. Omprov (#748): kvittot är alltid ursprungets (`provMynt/{omprovAv}`) med `senast` = omprovet, vars rättning, svar och inställning då gäller; ett omprov får aldrig ett eget kvitto, så taket 200 gäller provet som helhet. Radera: bara admin. Eleven skriver aldrig. | PM, PO |
 | `brakresaSecrets` (Bråkresans facit) | nekas (bara Cloud Functions) | nekas | BR |
+| `schackKlass` (lobbyn, pågående partier, topplistan – #779) | L (Cloud Functions skriver; inte ens admin skriver direkt) | L: egna klasser. S: aldrig. Eleven läser sin klass (`isClassMember`). | SK |
+| `schackPartier` (ett parti elev mot elev) | L (servern skriver) | L: partier i egna klasser (fråga filtrerad på `classId`). S: aldrig. De två spelarna läser sitt parti; andra elever i klassen nekas. Ett saknat dokument får varje inloggad hämta (tomt). | SK |
 | `brakresaRecommendations` | L/S | L/S: rekommendationer till egna klasser och elever, med `teacherId` = sig själv och exakt ett av `classId`/`studentId`. Ändra bara `active`, `endedAt`, `comment` och `challengeIds`. | BR |
 | `config/season` (bara det dokumentet; läses av alla, även utloggade) | L/S (fälten valideras) | L. S: aldrig. | SA test 3 |
 | allt annat (`{document=**}`) | nekas | nekas | RO allt annat |
@@ -122,6 +126,8 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `adminCreateTeacher`, `adminUpdateTeacher`, `adminSetTeacherPassword`, `adminSetTeacherActive`, `adminDeleteTeacher` | ja (färska claims i Auth; inte sin egen roll eller det sista adminkontot) | nej | FT test 19–23, FR test 19 |
 | `guldrushAnswer`, `guldrushOpenChest`, `guldrushChooseVictim`, `datakuppAnswer`, `datakuppOpenFile`, `datakuppChooseTarget`, `datakuppGuessCode`, `datakuppPickCode`, `hittaRattSubmit` | elevfunktioner, inga lärarvägar | – | GR, DK, HR |
 | `brakresaStartRound`, `brakresaAnswer`, `brakresaRework`, `brakresaFinishRound`, `brakresaAbortRound`, `brakresaAckDragon`, `brakresaRenameDragon`, `brakresaHunt` | nej – elevfunktioner; lärarkonton nekas (testläget körs i klienten och skriver aldrig, #708) | nej | BF |
+| `schackVanta`, `schackSlutaVanta`, `schackGaMed`, `schackUtmana`, `schackSvara`, `schackDrag`, `schackGeUpp`, `schackRemi`, `schackKravaVinst` (#779) | nej – elevfunktioner: anroparen måste stå i klassens `studentIds`, klassen ha `schack` i `enabledModules` och inget aktivt fokuslås (kärnan: `test/functions-schack-core.test.mjs`, `test/functions-schack-parti.test.mjs`) | nej | SF |
+| `schackLarareAvsluta`, `schackLarareTopplista` (#779) | ja (som `hasClass`: alla klasser) | ja, bara egna klasser (kontot läses färskt). Elever nekas. | SF |
 
 Migreringsskriptet `admin/migrate-teacher-admins.mjs` (Admin SDK, förbi reglerna)
 bevisas av FM test 24.
