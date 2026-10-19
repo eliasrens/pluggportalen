@@ -3,7 +3,7 @@
 // Typfilerna importerar den här – men anropar den bara när en vy ritas, så
 // registret går fortfarande att ladda i Node (testerna) utan DOM.
 //
-// renderElev(elevFraga, svar, { onChange, lasLage, onLamna?, attr?, uid? }) – kontraktet
+// renderElev(elevFraga, svar, { onChange, lasLage, onLamna?, attr?, uid?, elevId? }) – kontraktet
 // för elevens svarsruta (§2, §5.5; signaturen låst av leaden för B och C):
 //   svar        nuvarande svar (typens form, docs/PROV.md)
 //   onChange(v) eleven ändrade svaret → nytt värde i samma form (sparas automatiskt)
@@ -11,6 +11,7 @@
 //   onLamna()   (valfri) eleven lämnade rutan / gjorde ett färdigt val → spara snart
 //   attr        (valfri) stavningsattributen för textfält (stavAttr, standard: av)
 //   uid         (valfri) unikt prefix för id/name när flera prov ritas på en sida
+//   elevId      (valfri, #763) elevens uid – ordna/para blandar per elev (stabilt)
 // → ett HTMLElement. Tangentbord och skärmläsare fungerar med vanliga kontroller.
 // ============================================================================
 
@@ -24,6 +25,7 @@ export function elevKontext(svar, o = {}) {
     las: o.lasLage === true,
     attr: o.attr || stavAttr(false),
     uid: o.uid || `provv-f${++nastaUid}`,
+    elevId: o.elevId || "",
   };
 }
 

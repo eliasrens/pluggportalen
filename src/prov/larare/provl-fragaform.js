@@ -14,7 +14,9 @@ import { el, esc, icon } from "../../teacher-shared.js";
 import { fragetyp } from "../prov-fragetyper.js";
 import { STAVFEL } from "../prov-validera.js";
 import { GRANS } from "../typer/delat.js";
+import { POANG_MAX, POANG_MIN, POANG_STEG } from "../prov-poang.js";
 import { tolkaLucktext } from "../typer/lucktext.js";
+import { kopplaKlistra, meddelandeHtml } from "./provl-klistra.js";
 
 let uid = 0;
 const nyttId = () => `provl-f${++uid}`;
@@ -44,14 +46,18 @@ const normalisering = (f, o = {}) => `<fieldset class="provl-grupp"><legend>Rät
 
 /**
  * En lista med rader som kan läggas till och tas bort (alternativ, par, saker).
- * `rad(v, i)` ritar en rad; `tom()` ger en ny rad.
+ * `rad(v, i)` ritar en rad; `tom()` ger en ny rad. Klistrar läraren in flera
+ * rader i ett fält blir det en rad var (#763, provl-klistra.js; `par` = para-
+ * listan: "begrepp – förklaring"). `nummer` = 1, 2, 3 …
+ * i stället för A, B, C (ordna: raderna ÄR facit-ordningen).
  */
-function radlista(namn, varden, { min, max, rad, tom, laggTill }) {
+function radlista(namn, varden, { min, max, rad, tom, laggTill, nummer = false, par = false }) {
   const id = nyttId();
   return {
     html: `<div class="provl-rader" data-rader="${namn}" data-min="${min}" data-max="${max}" id="${id}">
       <div class="provl-rader-lista">${varden.map(rad).join("")}</div>
       <button type="button" class="btn small ghost provl-ny-rad" data-ny-rad>${icon("plus", 15)}<span>${laggTill}</span></button>
+      ${meddelandeHtml}
     </div>`,
     koppla(form) {
       const box = form.querySelector(`#${id}`);
@@ -61,7 +67,7 @@ function radlista(namn, varden, { min, max, rad, tom, laggTill }) {
         const n = lista.children.length;
         knapp.hidden = n >= max;
         lista.querySelectorAll("[data-bort]").forEach((b) => (b.disabled = n <= min));
-        lista.querySelectorAll("[data-radnr]").forEach((s, i) => (s.textContent = String.fromCharCode(65 + i)));
+        lista.querySelectorAll("[data-radnr]").forEach((s, i) => (s.textContent = nummer ? `${i + 1}.` : String.fromCharCode(65 + i)));
         lista.querySelectorAll("input[type=radio], input[type=checkbox][data-ratt]").forEach((x, i) => (x.value = String(i)));
       };
       lista.addEventListener("click", (e) => {
@@ -75,6 +81,11 @@ function radlista(namn, varden, { min, max, rad, tom, laggTill }) {
         lista.appendChild(ny);
         uppdatera();
         ny.querySelector("input[type=text]")?.focus();
+      });
+      kopplaKlistra(lista, {
+        max, namn, par, uppdatera,
+        nyRad: () => el(rad(tom(), lista.children.length)),
+        meddelande: box.querySelector(".provl-rader-meddelande"),
       });
       uppdatera();
     },
@@ -171,6 +182,7 @@ const KROPP = {
     const tom = { vanster: "", hoger: "" };
     const r = radlista("par", f.par?.length ? f.par : [tom, tom, tom], {
       min: 3, max: 10, laggTill: "Lägg till par", tom: () => tom,
+      par: true,
       rad: (p) => `<div class="provl-rad provl-par">
         <input type="text" data-v maxlength="${GRANS.alternativ}" value="${esc(p.vanster)}" placeholder="Begrepp" aria-label="Vänster led" />
         <span class="provl-pil" aria-hidden="true">↔</span>
@@ -178,7 +190,7 @@ const KROPP = {
         ${bortKnapp}</div>`,
     });
     return {
-      html: `<div class="provl-falt"><span class="provl-etikett">Paren <span class="hint">– eleven får högerleden blandade</span></span>${r.html}</div>`,
+      html: `<div class="provl-falt"><span class="provl-etikett">Paren <span class="hint">– ett par per rad, begrepp – förklaring. Eleven får förklaringarna blandade. Klistra in flera rader "Tor – åska" så blir det ett par var.</span></span>${r.html}</div>`,
       koppla: r.koppla,
       samla: (form) => ({
         par: [...form.querySelectorAll("[data-rader=par] .provl-rad")].map((x) => ({ vanster: x.querySelector("[data-v]").value, hoger: x.querySelector("[data-h]").value })),
@@ -187,12 +199,12 @@ const KROPP = {
   },
   ordna: (f) => {
     const r = radlista("saker", f.saker?.length ? f.saker : ["", "", ""], {
-      min: 3, max: 10, laggTill: "Lägg till sak", tom: () => "",
-      rad: (v, i) => `<div class="provl-rad"><span class="provl-radnr" data-radnr>${String.fromCharCode(65 + i)}</span>
+      min: 3, max: 10, laggTill: "Lägg till sak", tom: () => "", nummer: true,
+      rad: (v, i) => `<div class="provl-rad"><span class="provl-radnr" data-radnr>${i + 1}.</span>
         <input type="text" data-sak maxlength="${GRANS.alternativ}" value="${esc(v)}" placeholder="Sak" aria-label="Sak" />${bortKnapp}</div>`,
     });
     return {
-      html: `<div class="provl-falt"><span class="provl-etikett">Sakerna i RÄTT ordning <span class="hint">– eleven får dem blandade</span></span>${r.html}</div>`,
+      html: `<div class="provl-falt"><span class="provl-etikett">Sakerna i RÄTT ordning <span class="hint">– en per rad, den första först (det är facit). Varje elev får dem i en egen blandad ordning. Klistra in flera rader så blir det en sak per rad.</span></span>${r.html}</div>`,
       koppla: r.koppla,
       samla: (form) => ({ saker: [...form.querySelectorAll("[data-sak]")].map((x) => x.value) }),
     };
@@ -200,13 +212,24 @@ const KROPP = {
   fritext: (f) => ({
     html: falt("Bedömningsstöd <span class=\"hint\">(valfritt – bara du ser det)</span>", "bedomningsstod", f.bedomningsstod, {
       textarea: true, rows: 3, max: GRANS.bedomningsstod, hint: `Exempelsvar eller vad som krävs. Eleven skriver högst ${GRANS.fritext} tecken.`,
+    }) + falt("Poängkriterier <span class=\"hint\">(valfritt – ett per rad)</span>", "kriterier", (f.kriterier || []).join("\n"), {
+      textarea: true, rows: 4, placeholder: "1 p: nämner en orsak\n2 p: nämner två orsaker\n+1 p: förklarar varför",
+      hint: "Stöd när du rättar – du sätter poängen själv. Eleven ser dem bara efter tillbakalämningen, om du väljer det under Inställningar.",
     }),
-    samla: (form) => ({ bedomningsstod: form.elements.bedomningsstod.value }),
+    samla: (form) => ({ bedomningsstod: form.elements.bedomningsstod.value, kriterier: form.elements.kriterier.value }),
   }),
   text: (f) => ({
     html: falt("Titel <span class=\"hint\">(valfri)</span>", "titel", f.titel, { max: GRANS.titel })
       + falt("Text", "brodtext", f.brodtext, { textarea: true, rows: 7, max: GRANS.textblock, hint: "Frågorna efter textblocket kan handla om texten." }),
     samla: (form) => ({ titel: form.elements.titel.value, brodtext: form.elements.brodtext.value }),
+  }),
+  avsnitt: (f) => ({
+    html: falt("Rubrik", "titel", f.titel, { max: GRANS.titel, placeholder: "t.ex. Del 1 – Begrepp" })
+      + falt("Instruktion <span class=\"hint\">(valfri – eleven ser den under rubriken)</span>", "instruktion", f.instruktion, {
+        textarea: true, rows: 2, max: GRANS.instruktion, placeholder: "t.ex. Svara med hela meningar.",
+        hint: "Frågorna numreras löpande genom hela provet. Avsnittet har ingen poäng.",
+      }),
+    samla: (form) => ({ titel: form.elements.titel.value, instruktion: form.elements.instruktion.value }),
   }),
 };
 
@@ -221,7 +244,7 @@ export function byggFragaForm(fraga, { ny = false, poangPa = true, stavfel = STA
   const gemensamt = typ.arFraga === false ? "" : `
     ${falt(fraga.typ === "santfalskt" ? "Påstående" : "Fråga", "fraga", fraga.fraga, { textarea: true, rows: 2, max: GRANS.fragetext })}
     <div class="provl-falt-rad">
-      ${falt("Poäng", "poang", fraga.poang ?? 1, { typ: "number", hint: poangPa ? "" : "Provet poängsätts inte – poängen används inte." })}
+      ${falt("Poäng", "poang", fraga.poang ?? 1, { typ: "number", hint: poangPa ? "0,5–20 i steg om 0,5" : "Provet poängsätts inte – poängen används inte." })}
       ${falt("Hjälptext <span class=\"hint\">(valfri – eleven ser den under frågan)</span>", "hjalptext", fraga.hjalptext, { max: GRANS.hjalptext })}
     </div>`;
   const form = el(`<form class="provl-form" novalidate>
@@ -235,13 +258,15 @@ export function byggFragaForm(fraga, { ny = false, poangPa = true, stavfel = STA
     </div>
   </form>`);
   const poang = form.elements.poang;
-  if (poang) Object.assign(poang, { min: 0, max: GRANS.poang, step: 1 });
+  // Halvpoäng (#762): 0,5–20 i steg om 0,5.
+  if (poang) Object.assign(poang, { min: POANG_MIN, max: POANG_MAX, step: POANG_STEG, inputMode: "decimal" });
   kropp.koppla?.(form);
   const felBox = form.querySelector(".provl-form-fel");
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const f = { ...kropp.samla(form) };
-    if (typ.arFraga !== false) Object.assign(f, { fraga: form.elements.fraga.value, poang: poang.value, hjalptext: form.elements.hjalptext.value });
+    // Ett ogiltigt sifferfält ger value "" – skicka något ogiltigt så att valideringen säger till (i stället för standard 1).
+    if (typ.arFraga !== false) Object.assign(f, { fraga: form.elements.fraga.value, poang: poang.validity?.badInput ? "?" : poang.value, hjalptext: form.elements.hjalptext.value });
     const res = onSubmit(f);
     felBox.innerHTML = res?.ok ? "" : `<div class="msg error"><div>Rätta det här:</div>
       <ul class="error-list">${(res?.errors || ["Okänt fel."]).map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div>`;

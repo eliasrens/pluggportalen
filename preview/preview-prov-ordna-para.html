@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Prov – ordna och para med få tryck (#763)</title>
+    <link rel="stylesheet" href="../src/styles.css" />
+    <!--
+      #763 (Prov 3B): STUBBAD preview utan Firebase – elevens riktiga provvy
+      (renderaFragor ur src/prov/prov-elev-vy.js) med ordna/para.
+        ?elev=elev2   en annan elev → en annan blandning (samma efter omladdning)
+        ?las          inlämnat: bara visning
+        ?gammalt      svar sparade före #763 (hel ordning + listrute-par med dubblett)
+      Svaren sparas i localStorage per elev (som provsidan) – ladda om och se
+      att både svaren och blandningen står kvar. Redigeraren: länken i raden.
+    -->
+    <style>
+      body { background: #eef2f6; margin: 0; }
+      .pv-rad {
+        display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center;
+        padding: 8px 12px; background: #1f2a3a; color: #fff; font: 14px system-ui, sans-serif;
+      }
+      .pv-rad a, .pv-rad button { font: inherit; padding: 4px 10px; border-radius: 6px; border: 1px solid #50607a; background: #2b3a50; color: #fff; cursor: pointer; text-decoration: none; }
+      .pv-rad a[aria-current="true"] { background: #2463b8; border-color: #2463b8; }
+      #app { max-width: 1000px; margin: 16px auto; padding: 0 12px; }
+      #pv-svar { max-width: 1000px; margin: 0 auto 24px; padding: 0 12px; font: 13px ui-monospace, monospace; white-space: pre-wrap; color: #334; }
+    </style>
+  </head>
+  <body>
+    <div class="pv-rad">
+      <b>Preview #763</b>
+      <a href="?elev=elev1" data-elev="elev1">Elev 1</a>
+      <a href="?elev=elev2" data-elev="elev2">Elev 2</a>
+      <a href="?elev=elev3" data-elev="elev3">Elev 3</a>
+      <a href="?elev=elev1&las">Inlämnat (låst)</a>
+      <a href="?elev=elev1&gammalt">Gamla svar (före #763)</a>
+      <button type="button" id="pv-nollstall">Nollställ svaren</button>
+      <a href="preview-prov-larare.html?#/larare/prov?vy=ny&id=avsnitt">Redigeraren (⋮⋮ / Flytta till… / Alt + pil)</a>
+      <a href="preview-prov-elev.html#/elev/prov/skriv?t=tf-demo">Hela provsidan (#740)</a>
+    </div>
+    <main id="app"></main>
+    <pre id="pv-svar" aria-label="Sparat svar"></pre>
+
+    <script type="module">
+      import { delaUppProv } from "/src/prov/prov-modell.js";
+      import { renderaFragor } from "/src/prov/prov-elev-vy.js";
+
+      const p = new URLSearchParams(location.search);
+      const elevId = p.get("elev") || "elev1";
+      document.querySelector(`[data-elev="${elevId}"]`)?.setAttribute("aria-current", "true");
+
+      const PROV = { fragor: [
+        { id: "o5", typ: "ordna", fraga: "Sätt händelserna i rätt ordning – tryck på den som kom först, sen nästa …",
+          saker: ["Vikingatiden börjar", "Birka grundas", "Slaget vid Svolder", "Sverige blir kristet", "Vikingatiden slutar"], poang: 2.5 },
+        { id: "p5", typ: "para", fraga: "Para ihop guden med det guden styrde över.", poang: 2.5,
+          par: [{ vanster: "Tor", hoger: "Åska och styrka" }, { vanster: "Oden", hoger: "Visdom och krig" }, { vanster: "Freja", hoger: "Kärlek och fruktbarhet" },
+            { vanster: "Loke", hoger: "List och lögner" }, { vanster: "Heimdal", hoger: "Vaktar regnbågsbron Bifrost" }] },
+        { id: "o3", typ: "ordna", fraga: "Sätt tidsåldrarna i ordning, äldst först.", saker: ["Stenåldern", "Bronsåldern", "Järnåldern"], poang: 1 },
+        { id: "o10", typ: "ordna", fraga: "Tio saker: sätt stegen i ordning.", poang: 2,
+          saker: ["Plöja", "Så", "Vattna", "Rensa ogräs", "Skörda", "Tröska", "Mala", "Baka", "Sälja", "Äta"] },
+      ] };
+      const { fragor } = delaUppProv(PROV);
+      const nyckel = `pv763:${elevId}`;
+      let svar = null;
+      try { svar = JSON.parse(localStorage.getItem(nyckel) || "null"); } catch { /* privat läge */ }
+      if (p.has("gammalt")) {
+        // Före #763: ordna sparades bara som en hel ordning, para med listrutor (samma förklaring två gånger gick).
+        svar = { o5: [...PROV.fragor[0].saker].reverse(), p5: ["Åska och styrka", "Åska och styrka", "Kärlek och fruktbarhet", "", ""], o3: [], o10: [] };
+      }
+      const visa = (s) => { document.getElementById("pv-svar").textContent = `Sparat för ${elevId}:\n${JSON.stringify(s, null, 1)}`; };
+      const vy = renderaFragor(document.getElementById("app"), fragor, {
+        namn: `Ordna och para (${elevId})`, svar: svar || {}, elevId, lasLage: p.has("las"),
+        installningar: { poang: true, visaPoangForElev: true },
+        lamnaInText: "Lämna in (preview – inget skickas)",
+        onAndrat: (s) => {
+          if (!p.has("gammalt")) try { localStorage.setItem(nyckel, JSON.stringify(s)); } catch { /* privat läge */ }
+          visa(s);
+        },
+      });
+      visa(vy.svar());
+      document.getElementById("pv-nollstall").addEventListener("click", () => {
+        for (const e of ["elev1", "elev2", "elev3"]) localStorage.removeItem(`pv763:${e}`);
+        location.reload();
+      });
+    </script>
+  </body>
+</html>

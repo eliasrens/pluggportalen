@@ -2035,10 +2035,19 @@ service cloud.firestore {
     }
     // Provets inställningar (#759) – samma på provet och tillfället (kopian).
     // Saknas stavfel/granser (gamla prov) gäller standarden: auto, 60/85.
+    // #762: visaPoangForElev ("(4 p)" för eleven) och visaKriterier
+    // (poängkriterierna i resultatet) är true/false när de finns.
+    // Halvpoäng (poang 0,5–20 i steg om 0,5) prövas i klienten (validateProv):
+    // reglerna kan inte gå igenom fragor-listan; rättningens totalPoang/maxPoang
+    // prövas i validRattning (provHalvpoang, #764).
+    // #764: felKortsvarFel ("Fel svar på kortsvar rättas som fel") är true/false.
     function provInstOk(ins) {
       return ins is map &&
         (!('stavfel' in ins) || ins.stavfel in ['auto', 'sjalv']) &&
-        (!('granser' in ins) || provGranserOk(ins.granser));
+        (!('felKortsvarFel' in ins) || ins.felKortsvarFel is bool) &&
+        (!('granser' in ins) || provGranserOk(ins.granser)) &&
+        (!('visaPoangForElev' in ins) || ins.visaPoangForElev is bool) &&
+        (!('visaKriterier' in ins) || ins.visaKriterier is bool);
     }
     // Färggränserna i hela procent: 0 < gul < grön <= 100 (prov-validera.js granserOk).
     function provGranserOk(g) {
@@ -2111,9 +2120,16 @@ service cloud.firestore {
         provStatusOk(resource.data.status, request.resource.data.status);
       allow delete: if hasClass(resource.data.classId);
 
-      // Facit + bedömningsstöd: bara lärare med klassen (aldrig eleven).
+      // Facit + bedömningsstöd + poängkriterier (#762): bara lärare med klassen (aldrig eleven).
+      // Facit i efterhand (#764, "Godkänn även 'Björkö'"): läraren uppdaterar
+      // facit.<fråga> – dokumentet får bara ha de tre fälten och facit är en map.
       match /privat/{docId} {
-        allow read, write: if docId == 'facit' && hasClass(tillfalle(t).classId);
+        allow read, delete: if docId == 'facit' && hasClass(tillfalle(t).classId);
+        allow create, update: if docId == 'facit' && hasClass(tillfalle(t).classId) &&
+          request.resource.data.keys().hasOnly(['facit', 'bedomningsstod', 'kriterier']) &&
+          request.resource.data.facit is map &&
+          (!('bedomningsstod' in request.resource.data) || request.resource.data.bedomningsstod is map) &&
+          (!('kriterier' in request.resource.data) || request.resource.data.kriterier is map);
       }
 
       // Elevens svar. Eleven skapar sitt eget när provet är öppet och hen går
@@ -2139,6 +2155,7 @@ service cloud.firestore {
         allow create, update: if hasClass(tillfalle(t).classId) &&
           validRattning(request.resource.data, elevUid, tillfalle(t).classId) &&
           provAterlamningOk(request.resource.data, resource) &&
+          provKriterierOk(t, request.resource.data, resource) &&
           provMyntFaltOk(t, elevUid, request.resource.data, resource);
         allow delete: if hasClass(resource.data.classId);
       }
@@ -2202,26 +2219,46 @@ service cloud.firestore {
     }
     function validRattning(d, elevUid, classId) {
       return d.keys().hasOnly(['elevId', 'classId', 'provNamn', 'fragor', 'totalPoang', 'maxPoang', 'niva',
-          'helhetskommentar', 'aterlamnad', 'aterlamnadAt', 'facit', 'provInfo', 'myntUtbetalt']) &&
+          'helhetskommentar', 'aterlamnad', 'aterlamnadAt', 'facit', 'kriterier', 'provInfo', 'myntUtbetalt']) &&
         d.elevId == elevUid && d.classId == classId &&
         d.fragor is map && d.fragor.size() <= 60 &&
         d.aterlamnad is bool &&
         (!('niva' in d) || d.niva == null || d.niva in ['EG', 'G', 'MG']) &&
-        (!('totalPoang' in d) || d.totalPoang is number) &&
-        (!('maxPoang' in d) || d.maxPoang is number) &&
+        // Halvpoäng (#764): 0 … 1200 (60 frågor × 20 p) i steg om 0,5, och
+        // totalen aldrig över maxpoängen. Frågornas poster (poang, ratt, auto,
+        // autoRattad) kan reglerna inte gå igenom – de kläms i klienten (klamPoang).
+        (!('totalPoang' in d) || provHalvpoang(d.totalPoang)) &&
+        (!('maxPoang' in d) || provHalvpoang(d.maxPoang)) &&
+        (!('totalPoang' in d) || !('maxPoang' in d) || d.totalPoang <= d.maxPoang) &&
         (!('helhetskommentar' in d) || (d.helhetskommentar is string && d.helhetskommentar.size() <= 4000)) &&
         (!('facit' in d) || d.facit is map) &&
+        // #762: fritextens poängkriterier – bara i en tillbakalämnad rättning (provAterlamningOk).
+        (!('kriterier' in d) || d.kriterier is map) &&
         (!('myntUtbetalt' in d) || (d.myntUtbetalt is int && d.myntUtbetalt >= 0 && d.myntUtbetalt <= 200)) &&
         // #742: { datum, granser, andel } för statistikfliken "Prov" (en fråga, §7.5).
         (!('provInfo' in d) || (d.provInfo is map && d.provInfo.keys().hasOnly(['datum', 'granser', 'andel'])));
     }
-    // Tillbakalämningen (#741, §7): facit och aterlamnadAt finns BARA i en
-    // tillbakalämnad rättning (ångra tar bort båda). Att lämna tillbaka sätter
+    function provHalvpoang(p) {
+      return p is number && p >= 0 && p <= 1200 && math.floor(p * 2) == p * 2;
+    }
+    // Tillbakalämningen (#741, §7): facit, poängkriterierna (#762) och
+    // aterlamnadAt finns BARA i en tillbakalämnad rättning (ångra tar bort dem)
+    // – eleven kan alltså aldrig läsa kriterierna före tillbakalämningen
+    // (privat/facit läser hen aldrig). Att lämna tillbaka sätter
     // aterlamnadAt = serverns tid; en redan tillbakalämnad behåller sin tid.
     function provAterlamningOk(d, fore) {
-      return d.aterlamnad == false ? (!('facit' in d) && !('aterlamnadAt' in d)) :
+      return d.aterlamnad == false ? (!('facit' in d) && !('kriterier' in d) && !('aterlamnadAt' in d)) :
         (d.get('aterlamnadAt', null) == request.time ||
           (fore != null && fore.data.aterlamnad == true && d.get('aterlamnadAt', null) == fore.data.get('aterlamnadAt', null)));
+    }
+    // Poängkriterierna (#765, §2.2): eleven får dem bara när läraren valt det –
+    // rattning.kriterier skrivs bara när tillfällets installningar.visaKriterier
+    // är true (tillfalle(t) är redan läst, ingen extra åtkomst), eller när de
+    // står kvar oförändrade sedan tillbakalämningen (pluggmyntens spegel m.m.).
+    function provKriterierOk(t, d, fore) {
+      return !('kriterier' in d) ||
+        tillfalle(t).get('installningar', {}).get('visaKriterier', false) == true ||
+        (fore != null && fore.data.get('kriterier', null) == d.kriterier);
     }
     // Pluggmynt per prov (#746, spec §11). rattning.myntUtbetalt är elevens
     // spegel av kvittot studentData/{elev}/provMynt/{t}: en vanlig sparning

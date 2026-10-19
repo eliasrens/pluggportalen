@@ -70,6 +70,8 @@
 
 .provl-ut-textblock { border: 1px solid #c9d2dd; border-radius: 6px; padding: 8px 12px; background: #f7f9fb; }
 .provl-ut-textblock-titel { margin: 0 0 4px; font-size: 13pt; }
+.provl-ut-avsnitt { break-after: avoid; page-break-after: avoid; border-bottom: 1.5pt solid #1f2a3a; padding: 6pt 0 3pt; margin-top: 6pt; }
+.provl-ut-avsnitt-titel { margin: 0; font-size: 14pt; }
 .provl-ut-textblock-ref { color: #5b6878; font-style: italic; font-size: 10pt; }
 
 /* Facit */
@@ -110,3 +112,8 @@
   /* Resultat: en elev per sida. */
   .provl-ut-resultat + .provl-ut-resultat { break-before: page; page-break-before: always; }
 }
+
+/* #765: poäng per avsnitt och poängkriterierna i det utskrivna resultatet */
+.provl-ut-avsnittsrad { margin: 4pt 0 0; font-weight: 600; }
+.provl-ut-avsnitt-titel .provl-ut-p { font-size: 11pt; font-weight: 600; }
+.provl-ut-kriterier { margin: 4pt 0 0; font-size: 10pt; }

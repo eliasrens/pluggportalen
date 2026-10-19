@@ -83,20 +83,85 @@ Alla frågetyper ska kunna **blandas fritt** i samma prov. Bygg dem som ett **re
 | `flerval` | Väljer **ett** alternativ (2–6 st) | Index för rätt alternativ | Ja |
 | `flerval-flera` | Kryssar **alla** rätta alternativ | Lista med index | Ja. Delpoäng: rätt kryss minus fel kryss, aldrig under 0 |
 | `santfalskt` | Väljer Sant eller Falskt | true eller false | Ja |
-| `kortsvar` | Skriver ett ord, tal eller kort fras (högst 100 tecken) | **Lista** med godkända svar | Ja, efter normalisering (se 2.2) |
+| `kortsvar` | Skriver ett ord, tal eller kort fras (högst 100 tecken) | **Lista** med godkända svar | Ja, efter normalisering (se 2.4) |
 | `lucktext` | Fyller i luckor i en text, skrivna som `[[svar]]` eller `[[svar\|annat svar]]` | Godkända svar per lucka | Ja, per lucka. Delpoäng per lucka |
 | `para` | Parar ihop begrepp och förklaringar (3–10 par) | Paren | Ja. Delpoäng per rätt par |
 | `ordna` | Sätter saker i rätt ordning (3–10 st), till exempel händelser i tid eller steg i en process | Rätt ordning | Ja. Delpoäng per sak på rätt plats |
-| `fritext` | Skriver ett längre svar (högst 4000 tecken, med en teckenräknare) | Valfritt **bedömningsstöd** som bara läraren ser, till exempel ett exempelsvar eller vad som krävs | **Nej**. Läraren rättar alltid |
+| `fritext` | Skriver ett längre svar (högst 4000 tecken, med en teckenräknare) | Valfritt **bedömningsstöd** som bara läraren ser: ett exempelsvar och/eller **poängkriterier** (se 2.2) | **Nej**. Läraren rättar alltid |
 | `text` | *Ingen fråga.* Ett textblock som frågorna efter refererar till, till exempel för läsförståelse eller en källa | – | – |
+| `avsnitt` | *Ingen fråga.* En rubrik som delar in provet i delar, till exempel "Del 1 – Begrepp" eller "Del 2 – Skriv och förklara", med en valfri instruktion till eleven | – | – |
 
 **Alla frågor:**
 
 - har `id`, `typ` och `fraga` (frågetexten; `text`-blocket har i stället `titel` och `brodtext`)
-- har `poang` (heltal, standard 1)
+- har `poang`, maxpoängen för frågan (se 2.2)
 - kan ha `hjalptext`, som eleven ser under frågan
 
-### 2.2 Kortsvar och luckor: normalisering
+### 2.2 Poäng
+
+- **Halvpoäng:** maxpoängen per fråga sätts av läraren i steg om **0,5**, från 0,5 till 20 och med 1 som standard. En skrivfråga kan alltså vara värd 4 poäng och en flervalsfråga 1.
+- **Vid rättningen** kan läraren ge **valfri poäng i steg om 0,5** mellan 0 och maxpoängen. En fråga värd 4 poäng kan alltså få 3,5.
+- **Lagras som tal** (`3.5`), men visas med svenskt decimalkomma överallt ("3,5 p", "17,5 av 24 poäng").
+- **Kontrollera med test** att summor av halvpoäng aldrig ger avrundningsfel som "17.499999". Räkna internt i halva poäng som heltal, eller avrunda till närmaste 0,5 efter varje summering.
+- **Delpoäng från automatiken** avrundas **nedåt** till närmaste 0,5. Exempel: en para-fråga värd 2 poäng med 3 av 5 par rätt ger 2 × 3/5 = 1,2, vilket blir **1 p**.
+- **Poängkriterier för fritextfrågor (valfritt):** läraren kan skriva en lista, till exempel:
+  - "1 p: nämner en orsak"
+  - "2 p: nämner två orsaker"
+  - "+1 p: förklarar varför"
+  - "+1 p: använder begreppen handel och plundring"
+
+  Kriterierna visas för läraren bredvid svaret vid rättningen. Det är bara stöd, och läraren sätter poängen själv. Om läraren väljer det visas de också för eleven i resultatvyn efter tillbakalämningen.
+- **Eleven ser poängen under provet:** frågan visar sin maxpoäng ("(4 p)") och överst står provets totala maxpoäng ("Provet ger högst 32 poäng"). Läraren kan stänga av det per prov med `visaPoangForElev`, som är på som standard.
+
+### 2.3 Provets struktur
+
+- **Avsnitt:** ett prov kan delas in med `avsnitt`-block. Frågorna numreras **löpande genom hela provet** (1, 2, 3 …), inte om från början i varje avsnitt.
+- **Elevens sida:** varje avsnitt visas som en tydlig rubrik med instruktionen under. Frågelistan i sidan grupperas per avsnitt.
+- **Rättning och statistik:** avsnitten syns som grupper. Statistiken visar även **poäng per avsnitt**, till exempel "Del 1: 8 av 10 · Del 2: 9,5 av 14", så att läraren ser om det var faktakunskaperna eller skrivandet som var svårt.
+- **Redigeraren:** avsnitt läggs till som en "fråga" och kan flyttas som de andra korten. Varje avsnitt visar sin poängsumma, och summan för hela provet syns överst ("12 frågor · 32 p").
+
+### 2.3.1 Ordna och para ihop: få tryck
+
+Ordningsfrågor får inte kräva många tryck på pilar upp och ned. Bygg dem så här:
+
+**`ordna` för eleven: "tryck i tur och ordning"**
+
+```
+Sätt händelserna i rätt ordning – tryck på den som kom först, sen nästa …
+
+Ditt svar:   1. Vikingatiden börjar      ← tryck för att ta bort
+             2. Birka grundas
+             3. ___
+             4. ___
+
+Kvar:  [ Sverige blir kristet ]  [ Slaget vid Svolder ]
+```
+
+- **Sakerna ligger blandade i en ruta, "Kvar".** Ett tryck på en sak lägger den på **nästa lediga plats** i svaret. Med 5 saker räcker alltså 5 tryck för att svara.
+- **Ett tryck på en sak i svaret** lägger tillbaka den bland "Kvar", och sakerna under flyttar upp ett steg.
+- **Med mus eller finger** går det också att **dra** en sak till en annan plats i svaret. Dra och släpp är ett extra sätt, inte det enda.
+- **Knappen "Börja om"** lägger tillbaka allt i rutan "Kvar".
+- **Tangentbord:** Tab till en sak och Enter för att lägga till eller ta bort den.
+- **Frågan räknas som besvarad** först när alla platser är fyllda. Annars visas "3 av 5 placerade".
+- **Stora tryckytor**, minst 44 px höga.
+
+**`para` för eleven: tryck på två saker**
+
+- **Para ihop:** tryck på ett begrepp till vänster och sedan på en förklaring till höger. De två får samma färg och samma siffra, med en tunn linje mellan dem.
+- **Ett tryck på ett par** tar isär det.
+- **Dra ett begrepp till en förklaring** fungerar också.
+- **Två tryck per par** och inga menyer.
+
+**Redigeraren för läraren**
+
+- **Ordningsfrågor:** läraren skriver sakerna **i rätt ordning**, en per rad. Det är facit. Eleverna får dem i blandad ordning, som är olika för varje elev men densamma om eleven laddar om sidan.
+- **Para ihop:** läraren skriver paren rad för rad, som "begrepp – förklaring". Eleverna får förklaringarna i blandad ordning.
+- **Flytta frågor i provet:**
+  - **Dra i handtaget ⋮⋮** på frågekortet.
+  - **Skriv en ny plats:** knappen "Flytta till…" öppnar ett litet fält där läraren skriver till exempel "3". Frågan hamnar då där med **ett** tryck, i stället för många klick på upp och ned.
+  - **Tangentbord:** Alt + pil upp eller ned flyttar frågan ett steg.
+
+### 2.4 Kortsvar och luckor: normalisering
 
 - **Standard:** jämför efter normalisering:
   - NFC
@@ -109,13 +174,14 @@ Alla frågetyper ska kunna **blandas fritt** i samma prov. Bygg dem som ett **re
   - **"Stor och liten bokstav spelar roll"** (av som standard). Det behövs till exempel i ett svenskaprov om egennamn.
 - **Automatiken ger alltid ett förslag och aldrig ett slutgiltigt beslut.** Läraren kan ändra allt (se 6).
 
-### 2.3 Validering
+### 2.5 Validering
 
 Skriv `validateProv(obj)` i `src/prov/prov-validera.js`. Den ska bete sig som `validateArea`: returnera `{ ok, errors, warnings, value }`, ge svenska fel med plats ("Fråga 4 (Kort svar): minst ett godkänt svar krävs") och anropa varje typs `validera`.
 
 Gränser:
 
 - högst 60 frågor
+- poäng per fråga: 0,5–20 i steg om 0,5
 - frågetexten högst 1000 tecken
 - `text`-blocket högst 6000 tecken
 - provnamnet 1–80 tecken
@@ -128,6 +194,7 @@ prov/{provId}                          ← läraren (ägaren). Innehåller FACIT
   fragor: [ ...frågor med facit... ]
   installningar: {
     poang: true|false,          // poängsätta? (av → bara rätt/fel/delvis + kommentar)
+    visaPoangForElev: true,     // visa "(4 p)" per fråga och totalen för eleven
     nivaer: true|false,         // använda nivåerna EG / G / MG?
     visaFacit: true|false,      // visa facit vid tillbakalämning (standard: true)
     stavningskontroll: false,   // webbläsarens stavningskontroll i elevens svarsrutor
@@ -307,7 +374,28 @@ Läraren kan **öppna igen** vid behov, till exempel om provet stängdes av miss
 
 ## 6. Rättningen
 
-Rättningsvyn (`#/larare/prov/ratta?t=<tillfalleId>`) har två lägen, med flikar:
+Rättningsvyn (`#/larare/prov/ratta?t=<tillfalleId>`) har två lägen, med flikar.
+
+### 6.0 Rätta allt som kan rättas automatiskt, med en knapp
+
+Överst i rättningsvyn, och i översikten över tillfället, finns knappen **"Rätta alla automatiska frågor"**. Den rättar **alla frågor som kan rättas automatiskt, för alla elever, på en gång**:
+
+- **Säkra fall godkänns direkt:**
+  - flerval, flera rätt och sant/falskt
+  - para ihop och ordna, med delpoäng enligt 2.2
+  - kortsvar och luckor som stämmer **exakt** med facit efter normaliseringen
+- **Osäkra fall lämnas åt läraren:** kortsvar och luckor som bara **nästan** stämmer (en bokstav fel, när exakt stavning inte krävs) och svar som inte stämmer med facit men kanske ändå är rätt. Det gäller till exempel ett kortsvar som inte finns i listan med godkända svar. Rimliga gränsfall ska inte markeras som fel automatiskt.
+  - **Där svaret inte stämmer alls**: om läraren har valt "Fel svar på kortsvar rättas som fel" (på som standard) markeras det som fel. Annars lämnas det åt läraren.
+- **Fritextfrågor rörs aldrig.**
+- **Frågor som läraren redan har bedömt** skrivs inte över. Läraren behöver alltså inte vara rädd att knappen förstör hens egen rättning.
+- **Rättningen** markeras `auto: true` och syns med en liten etikett "Auto" i vyn. Läraren kan ändra den som vanligt.
+- **Efteråt** visas en sammanfattning, till exempel:
+  - "312 svar rättades automatiskt."
+  - "9 kortsvar behöver din bedömning." (med länk till dem)
+  - "24 fritextsvar väntar på rättning."
+- **Knappen går att trycka igen**, till exempel om läraren har lagt till ett nytt godkänt svar i facit. Då rättas bara de svar som inte har bedömts manuellt.
+- **Facit kan kompletteras i efterhand:** i rättningsvyn kan läraren lägga till ett godkänt svar ("Godkänn även 'Björkö'"). Det sparas i `privat/facit` och används nästa gång knappen trycks.
+- **Sparningen:** allt skrivs i **en** batch per elev, med högst 500 skrivningar per batch. Det blir alltså ungefär en skrivning per elev, inte en per fråga.
 
 ### 6.1 Per fråga (standardläget, går snabbast)
 
@@ -318,9 +406,11 @@ Rättningsvyn (`#/larare/prov/ratta?t=<tillfalleId>`) har två lägen, med flika
 - **Kortsvar och luckor:** **identiska svar grupperas** efter normalisering, till exempel "Birka – 12 elever" och "Bjärka – 1 elev". Läraren bedömer gruppen en gång och bedömningen gäller alla i gruppen.
 - **För varje svar:**
   - rätt, delvis eller fel, med stora knappar
-  - poäng, om provet poängsätts: ett sifferfält med snabbknappar 0 … max
+  - poäng, om provet poängsätts: ett sifferfält i steg om 0,5 och snabbknappar för 0, ½, 1, 1½ … upp till max. För frågor värda mer än 6 poäng ersätts snabbknapparna av knapparna − och + i steg om 0,5. Poängen kan inte bli högre än max eller lägre än 0.
+  - för fritextfrågor visas poängkriterierna (2.2) bredvid svaret
   - en kommentar (valfri)
-- **Tangentbord:** 1 = rätt, 2 = delvis, 3 = fel, Tab = nästa elev, N = nästa fråga.
+- **Tangentbord:** 1 = rätt, 2 = delvis, 3 = fel, Tab = nästa elev, N = nästa fråga, + och − ändrar poängen med 0,5.
+- **Poäng och markering hänger ihop:** full poäng blir "rätt", 0 blir "fel" och allt däremellan blir "delvis". Läraren kan ändra markeringen själv. Om provet inte poängsätts gäller bara markeringen.
 - **Namn kan döljas** för opartisk rättning (en kryssruta "Dölj namn"). Då visas eleverna som Elev 1, Elev 2 osv.
 
 ### 6.2 Per elev
@@ -423,7 +513,7 @@ Läraren ska snabbt se hur det gick, med **grönt, gult och rött**. Allt räkna
 ### 8.1 Formulär
 
 - **Provets uppgifter:** namn, ämne, årskurs, beskrivning och inställningarna från avsnitt 3.
-- **Frågelistan:** varje fråga visas som ett kort med typ, fråga och poäng. Korten kan flyttas upp och ned, dupliceras och raderas.
+- **Frågelistan:** varje fråga visas som ett kort med typ, fråga och poäng. Korten kan dupliceras och raderas, och de flyttas genom att man drar dem eller använder "Flytta till…" (se 2.3.1).
 - **"Lägg till fråga"** öppnar en väljare med frågetyperna (ikon, namn och en rad som beskriver typen) och därefter typens formulär.
 - **Varje typ** har ett eget formulär, med samma mönster som `teacher-area-items-forms.js`: `onSubmit(fields)` returnerar `{ ok, errors }`.
 - **Förhandsvisa som elev** visar provet exakt som eleven ser det, men utan att något sparas.
@@ -482,7 +572,8 @@ Ett mål att jämföra med är 25 elever, 12 frågor och 40 minuter. Det ska sta
    - elevens provsida med automatisk sparning, tidsgräns och inlämning
    - villkoret för länken i sidomenyn
 4. **Rättning och tillbakalämning:**
-   - de två rättningslägena och grupperingen av kortsvar
+   - knappen "Rätta alla automatiska frågor" (6.0)
+   - de två rättningslägena, grupperingen av kortsvar och halvpoängen
    - nivåerna
    - tillbakalämning och ångra tillbakalämning
    - elevens resultatvy
@@ -507,6 +598,24 @@ Ett mål att jämföra med är 25 elever, 12 frågor och 40 minuter. Det ska sta
 - **Tillbakalämning:** "Lämna tillbaka till alla rättade" hoppar över elever som inte är färdigrättade.
 - **Resultatet:** eleven ser rättningen först efter tillbakalämningen, och facit bara om det är valt.
 - **Fokusläget:** låset med `typ: "prov"` och `id` skickar eleven direkt till provet.
+- **Poängen:**
+  - halvpoäng sparas och summeras exakt, till exempel 3,5 + 4 + 0,5 = 8
+  - delpoäng avrundas nedåt till 0,5
+  - poängen kan inte bli högre än max eller lägre än 0
+  - decimalkomma visas överallt
+- **"Rätta alla automatiska frågor":**
+  - säkra fall godkänns
+  - nästan rätta kortsvar lämnas åt läraren
+  - fritextfrågor rörs inte
+  - manuellt bedömda svar skrivs inte över
+  - en andra körning efter ett tillägg i facit rättar bara det som inte har bedömts manuellt
+  - ungefär en skrivning per elev
+- **Ordna och para ihop:**
+  - ett fullständigt svar på en `ordna`-fråga med n saker kräver exakt n tryck
+  - ett tryck tar bort en sak och resten flyttar upp
+  - blandningen är densamma för samma elev efter omladdning
+  - "Flytta till…" i redigeraren flyttar en fråga rätt
+- **Avsnitten:** frågorna numreras löpande genom hela provet, och statistiken visar poäng per avsnitt.
 - **Statistiken:**
   - färgerna räknas rätt vid gränserna 39/40 % och 69/70 %
   - "delvis" räknas som ½ när provet inte poängsätts

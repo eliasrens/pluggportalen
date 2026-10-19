@@ -27,8 +27,12 @@ export const EXEMPEL = {
     hemligt: [],
   },
   ordna: { f: { id: "q7", typ: "ordna", fraga: "Sätt i tidsordning.", saker: ["Stenåldern", "Bronsåldern", "Järnåldern", "Vikingatiden"], poang: 4 }, hemligt: [] },
-  fritext: { f: { id: "q8", typ: "fritext", fraga: "Beskriv livet på en gård.", poang: 4, bedomningsstod: "Nämner djur, hus och arbete" }, hemligt: ["Nämner djur, hus och arbete"] },
+  fritext: {
+    f: { id: "q8", typ: "fritext", fraga: "Beskriv livet på en gård.", poang: 4, bedomningsstod: "Nämner djur, hus och arbete", kriterier: ["1 p: nämner djuren", "+1 p: förklarar arbetet"] },
+    hemligt: ["Nämner djur, hus och arbete", "nämner djuren", "förklarar arbetet"],
+  },
   text: { f: { id: "t1", typ: "text", titel: "Birka", brodtext: "Birka var en handelsstad på Björkö." }, hemligt: [] },
+  avsnitt: { f: { id: "a1", typ: "avsnitt", titel: "Del 1 – Begrepp", instruktion: "Svara kort." }, hemligt: [] },
 };
 export const giltig = (id) => {
   const r = fragetyp(id).validera(structuredClone(EXEMPEL[id].f));

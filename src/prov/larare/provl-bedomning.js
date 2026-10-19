@@ -5,15 +5,17 @@
 //   Gäller frågor där "Exakt stavning krävs" är av.
 //   Färggränser: gul från X %, grön från Y % (standard 60/85, under gul =
 //   röd) – används i översikten, elevvyn, statistiken och utskriften.
+//   #764: "Fel svar på kortsvar rättas som fel" (felKortsvarFel, standard på)
+//   – vad "Rätta alla automatiska frågor" gör med kortsvar som inte stämmer.
 // Ritas under inställningarna av provl-redigera.js; valen valideras när provet
 // sparas (validateProv). Fältet visar felet direkt medan läraren skriver.
 //
-//   const f = bedomningFalt({ installningar, onAndra })  onAndra({ stavfel } | { granser })
+//   const f = bedomningFalt({ installningar, onAndra })  onAndra({ stavfel } | { granser } | { felKortsvarFel })
 //   f.el   fieldset att lägga in
 // ============================================================================
 
 import { el } from "../../teacher-shared.js";
-import { STANDARD_INSTALLNINGAR, STAVFEL, granserOk, granserText, stavfelFor } from "../prov-validera.js";
+import { STANDARD_INSTALLNINGAR, STAVFEL, felKortsvarFelFor, granserOk, granserText, stavfelFor } from "../prov-validera.js";
 
 // Sifferfältens värde: ett tal när det går, annars texten (validateProv säger vad som är fel).
 const tal = (v) => (String(v).trim() !== "" && Number.isFinite(Number(v)) ? Number(v) : v);
@@ -21,12 +23,13 @@ const tal = (v) => (String(v).trim() !== "" && Number.isFinite(Number(v)) ? Numb
 export function bedomningFalt({ installningar, onAndra }) {
   const std = STANDARD_INSTALLNINGAR.granser;
   const g = { gul: installningar?.granser?.gul ?? std.gul, gron: installningar?.granser?.gron ?? std.gron };
-  const vy = el(`<fieldset class="provl-grupp provl-bedomning"><legend>Stavfel och färggränser</legend>
+  const vy = el(`<fieldset class="provl-grupp provl-bedomning"><legend>Rättning och färggränser</legend>
     <div class="provl-val" role="radiogroup" aria-label="Stavfel">
       <label class="provl-check"><input type="radio" name="provl-stavfel" value="${STAVFEL.AUTO}" /><span><b>Ett stavfel ger halva poängen</b> <span class="hint">– automatiskt förslag</span></span></label>
       <label class="provl-check"><input type="radio" name="provl-stavfel" value="${STAVFEL.SJALV}" /><span><b>Rätta stavfel själv</b> <span class="hint">– svaret väntar på dig i rättningen</span></span></label>
     </div>
     <p class="hint">Gäller frågor där ”Exakt stavning krävs” är av. Ett stavfel = en bokstav fel i ett ord med minst fyra bokstäver.</p>
+    <label class="provl-check"><input type="checkbox" data-f="felKortsvarFel" /><span><b>Fel svar på kortsvar rättas som fel</b> <span class="hint">– när du trycker ”Rätta alla automatiska frågor”. Av: svar som inte finns bland de godkända väntar på dig.</span></span></label>
     <div class="provl-granser">
       <label class="provl-falt provl-grans"><span><span class="provl-prick provl-prick-gul" aria-hidden="true"></span> Gul från</span> <span class="provl-grans-in"><input type="number" data-g="gul" min="1" max="99" step="1" inputmode="numeric" /> %</span></label>
       <label class="provl-falt provl-grans"><span><span class="provl-prick provl-prick-gron" aria-hidden="true"></span> Grön från</span> <span class="provl-grans-in"><input type="number" data-g="gron" min="2" max="100" step="1" inputmode="numeric" /> %</span></label>
@@ -38,6 +41,10 @@ export function bedomningFalt({ installningar, onAndra }) {
   vy.querySelectorAll('input[name="provl-stavfel"]').forEach((r) => r.addEventListener("change", () => {
     if (r.checked) onAndra({ stavfel: r.value });
   }));
+
+  const felRuta = vy.querySelector('[data-f="felKortsvarFel"]');
+  felRuta.checked = felKortsvarFelFor(installningar);
+  felRuta.addEventListener("change", () => onAndra({ felKortsvarFel: felRuta.checked }));
 
   const falt = (k) => vy.querySelector(`[data-g="${k}"]`);
   const text = vy.querySelector(".provl-grans-text");

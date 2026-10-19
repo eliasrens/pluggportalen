@@ -127,7 +127,7 @@ export const HW_INNE = {
   // Spökgardin: två ljusa draperier med små spökansikten och vågig fåll.
   "hw-spokgardin": {
     viewBox: "0 0 76 88",
-    w: 3.8,
+    w: 8,
     art:
       `<path d="M8 10 Q6 46 10 78 Q16 82 22 78 Q27 82 33 78 Q36 46 34 10 Z" fill="#F4F0FB" ${LINE}/>` +
       `<path d="M42 10 Q40 46 43 78 Q49 82 55 78 Q60 82 66 78 Q70 46 68 10 Z" fill="#F4F0FB" ${LINE}/>` +

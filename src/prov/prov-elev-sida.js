@@ -14,7 +14,7 @@ import { serverNow } from "../data-class-lock.js";
 import { arFraga } from "./prov-fragetyper.js";
 import { renderaProv } from "./prov-elev-vy.js";
 import { hamtaMinRattning, hamtaMittSvar, hamtaTillfalle, lamnaIn, sparaSvar, startaProv } from "./prov-elev-data.js";
-import { resultatModell } from "./prov-rattning-logik.js";
+import { resultatModell } from "./prov-resultat-modell.js";
 import { arSlutgiltigtFel, skapaSparare } from "./prov-sparning.js";
 import {
   elevLage, kvarNiva, kvarText, lokalNyckel, slutTid, tillMs, valjStartSvar,
@@ -22,6 +22,7 @@ import {
 import { onProvChange, provForMe } from "./prov-watch.js";
 import { elevProvNamn, gallerElev, tidsgransFor, tolkaFlikbyten } from "./prov-anpassningar.js";
 import { laddaCss } from "./prov-vy.js";
+import { poangAv } from "./prov-poang.js";
 
 const LISTA = "#/elev/prov";
 const skrivHash = (t) => `#/elev/prov/skriv?t=${encodeURIComponent(t)}`;
@@ -95,7 +96,7 @@ export async function pageProvLista() {
     </article>`;
   }).join("");
   const tillbaka = info.tillbaka.map((r) => {
-    const resultat = r.totalPoang != null && r.maxPoang ? `${r.totalPoang} av ${r.maxPoang} poäng` : "";
+    const resultat = r.totalPoang != null && r.maxPoang ? poangAv(r.totalPoang, r.maxPoang) : "";
     return `<li><a class="provv-tillbaka" href="#/elev/prov/resultat?t=${encodeURIComponent(r.id)}">
       <span class="provv-tillbaka-namn">${escHtml(r.provNamn || "Prov")}</span>
       <span class="provv-tillbaka-info">${escHtml(datum(tillMs(r.aterlamnadAt)))}${resultat ? ` · ${escHtml(resultat)}` : ""}</span>
@@ -201,7 +202,7 @@ function skriv(tf, svarDok, meId) {
   let baraFlik = false; // det osparade är bara flikbytena (inga svar) – spara inom taket, aldrig direkt
 
   const vy = renderaProv({
-    namn: tf.provNamn, fragor: tf.fragor, installningar: tf.installningar, svar,
+    namn: tf.provNamn, fragor: tf.fragor, installningar: tf.installningar, svar, elevId: meId,
     onAndrat: (s) => {
       baraFlik = false;
       skrivLokal(t, meId, s, flikbyten);
