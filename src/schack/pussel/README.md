@@ -70,6 +70,9 @@ görs av motståndaren. Skriptet gör det draget, så varje pussel är:
 
 ## Bygga om
 
+Skriptet väljer båda sorterna först och skriver **inget** om någon fick färre än `--antal`
+(avbruten nedladdning, för få rader) – då står den gamla banken kvar.
+
 ```sh
 node admin/schack-pussel.mjs                        # strömmar från lichess.org (~2 min)
 node admin/schack-pussel.mjs --fil lichess_db_puzzle.csv.zst --max-rader 3000000 --antal 200

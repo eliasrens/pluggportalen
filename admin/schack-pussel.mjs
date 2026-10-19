@@ -220,27 +220,14 @@ async function main() {
   console.log(`Läste ${lasta} rader.`);
   if (!lasta) throw new Error("Inga rader lästes – nås lichess.org? Hitta aldrig på pussel.");
 
-  mkdirSync(UT, { recursive: true });
+  // Välj ALLT först och skriv bara om båda sorterna blev fulla – en avbruten eller för
+  // kort läsning får aldrig ersätta den incheckade banken med en tom eller kort (F4).
   const hamtad = new Date().toISOString().slice(0, 10);
-  for (const [sort, s] of Object.entries(SORTER)) {
-    const valda = [];
-    const bort = {};
-    const lista = kandidater[sort].filter((k) => k.rating <= s.maxRating).sort(ordning);
-    const lagst = lista[0]?.rating ?? 0;
-    let i = 0;
-    for (let steg = 0; steg < a.antal && i < lista.length; steg++) {
-      const mal = lagst + ((s.maxRating - lagst) * steg) / Math.max(1, a.antal - 1);
-      while (i < lista.length && lista[i].rating < mal) i++;
-      // Närmaste GILTIGA pussel från målet och uppåt.
-      for (; i < lista.length; i++) {
-        const k = lista[i];
-        const fel = kontrollera(k, sort);
-        if (fel) { bort[fel] = (bort[fel] || 0) + 1; continue; }
-        valda.push({ id: k.id, fen: k.fen, senast: k.senast, losning: k.losning, rating: k.rating });
-        i++;
-        break;
-      }
-    }
+  const resultat = Object.entries(SORTER).map(([sort, s]) => ({ sort, s, ...valjPussel(kandidater[sort], sort, s.maxRating, a.antal) }));
+  const fel = forKort(resultat, a.antal);
+  if (fel) throw new Error(`${fel} Inget skrevs – läs fler rader (--max-rader) eller kontrollera filen.`);
+  mkdirSync(UT, { recursive: true });
+  for (const { sort, s, valda, bort, kandidater: antalKandidater } of resultat) {
     const ut = {
       sort, tema: s.tema, kalla: KALLA, licens: "CC0-1.0", hamtad, lastaRader: lasta,
       filter: { ...FILTER, maxRating: s.maxRating },
@@ -251,8 +238,39 @@ async function main() {
       `  "pussel": [\n${valda.map((p) => `    ${JSON.stringify(p)}`).join(",\n")}\n  ]\n}\n`;
     writeFileSync(join(UT, s.fil), json);
     const r = valda.map((p) => p.rating);
-    console.log(`${s.fil}: ${valda.length} av ${lista.length} kandidater, rating ${r[0]}–${r.at(-1)}; bortsorterade ${JSON.stringify(bort)}`);
+    console.log(`${s.fil}: ${valda.length} av ${antalKandidater} kandidater, rating ${r[0]}–${r.at(-1)}; bortsorterade ${JSON.stringify(bort)}`);
   }
+}
+
+/**
+ * Välj `antal` giltiga pussel jämnt över ratingen (mål lägst → maxRating), närmaste
+ * giltiga från målet och uppåt. → { valda, bort: {orsak: antal}, kandidater }
+ */
+export function valjPussel(kandidater, sort, maxRating, antal) {
+  const valda = [];
+  const bort = {};
+  const lista = kandidater.filter((k) => k.rating <= maxRating).sort(ordning);
+  const lagst = lista[0]?.rating ?? 0;
+  let i = 0;
+  for (let steg = 0; steg < antal && i < lista.length; steg++) {
+    const mal = lagst + ((maxRating - lagst) * steg) / Math.max(1, antal - 1);
+    while (i < lista.length && lista[i].rating < mal) i++;
+    for (; i < lista.length; i++) {
+      const k = lista[i];
+      const fel = kontrollera(k, sort);
+      if (fel) { bort[fel] = (bort[fel] || 0) + 1; continue; }
+      valda.push({ id: k.id, fen: k.fen, senast: k.senast, losning: k.losning, rating: k.rating });
+      i++;
+      break;
+    }
+  }
+  return { valda, bort, kandidater: lista.length };
+}
+
+/** Felet om någon sort fick färre än `antal` pussel, annars null (då får filerna skrivas). */
+export function forKort(resultat, antal) {
+  const korta = resultat.filter((r) => r.valda.length < antal);
+  return korta.length ? `För få pussel: ${korta.map((r) => `${r.sort} ${r.valda.length} av ${antal}`).join(", ")}.` : null;
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

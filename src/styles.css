@@ -9266,6 +9266,8 @@ html:not([data-halloween]) .af-kostym[data-seasonal="halloween"] { display: none
 
 @media (max-width: 820px) {
   .schack-pussel-yta { grid-template-columns: minmax(0, 1fr); }
+  /* Statusraden direkt ovanför säger redan "Vit drar och gör matt …" – inte två gånger (F3). */
+  .schack-pussel-uppgift { display: none; }
   /* Som partiet (#777): under 360 px går brädet ut i sidans marginal i stället för att sidan skrollar i sidled. */
   .schack-pussel-brade { margin-inline: min(0px, (100% - 320px) / 2); }
 }

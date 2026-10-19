@@ -104,7 +104,8 @@ export function skapaPusselVy(host, ctx) {
   klar = laddaPussel(sort, { hamta: ctx.hamta }).then((l) => {
     if (!levande) return;
     lista = l;
-    starta(startNummer(framsteg, ctx.nr ?? lasLage(lagring, lageNyckel)[sort], sort, lista.length));
+    // En direktlänk (&nr=N) gäller som den är; annars där eleven var (F1: vid slutet från 1).
+    starta(ctx.nr ? Math.min(ctx.nr, lista.length) : startNummer(framsteg, lasLage(lagring, lageNyckel)[sort], sort, lista.length));
   }).catch((e) => {
     console.warn("schack: pusslen kunde inte laddas", e);
     if (levande) text(".schack-pussel-nr", "Pusslen kunde inte laddas. Ladda om sidan och försök igen.");
@@ -187,13 +188,14 @@ export function skapaPusselVy(host, ctx) {
   /** Pusslet löst: texten, Nästa pussel, och EN skrivning om det var ett nytt. */
   function lost() {
     brade.avsluta({ resultat: "1-0", orsak: "matt", vinnare: "w", titel: TEXT.ratt });
-    svar(nr >= lista.length ? `${TEXT.ratt} Du har gjort alla ${lista.length} pussel!` : TEXT.ratt);
     if (arNyttLost(framsteg, sort, nr)) {
       framsteg = efterLost(framsteg, sort, nr);
       Promise.resolve()
         .then(() => pc.spara(sort, nr))
         .catch((e) => console.warn("schack: pusslet kunde inte sparas", e));
     }
+    // Sista pusslet: säg hur många som verkligen är lösta – efter Hoppa över är det färre (F2).
+    svar(nr >= lista.length ? `${TEXT.ratt} ${TEXT.sista(framsteg[sort].losta, lista.length)}` : TEXT.ratt);
     const knapp = $('[data-act="nasta"]');
     knapp.textContent = nr >= lista.length ? "Till alla pussel" : "Nästa pussel ›";
     knapp.hidden = false;

@@ -37,6 +37,9 @@ export const TEXT = {
   nuMatt: "Nu: gör matt i ett drag!",
   tips: "Tips: flytta den markerade pjäsen.",
   tipsDrag: (san) => `Tips: ${san}`,
+  sista: (losta, antal) => (losta >= antal
+    ? `Du har löst alla ${antal} pussel!`
+    : `Du har kommit till sista pusslet – ${losta} av ${antal} lösta.`),
 };
 
 /** UCI ("e7e8q") → { from, to, promotion? } */
@@ -170,13 +173,24 @@ export function efterLost(framsteg, sort, nr) {
   return { ...f, [sort]: { losta: f[sort].losta + 1, senast: nr } };
 }
 
+/** Har eleven kommit till slutet (löst det sista pusslet)? `alla` = dessutom löst vart och ett. */
+export function slutet(framsteg, sort, antal) {
+  const f = normaliseraFramsteg(framsteg)[sort];
+  return { slut: antal >= 1 && f.senast >= antal, alla: antal >= 1 && f.losta >= antal };
+}
+
 /**
  * Vilket pussel eleven ska få: det lokalt sparade läget om det finns, annars
- * nästa efter det senast lösta. Alltid inom 1..antal.
+ * nästa efter det senast lösta. Har eleven kommit till slutet börjar den om på 1
+ * (F1) – utom när den redan bläddrat tillbaka och gör om dem (läget < antal).
+ * Alltid inom 1..antal.
  */
 export function startNummer(framsteg, lokalt, sort, antal) {
-  const n = Number.isInteger(lokalt) && lokalt >= 1 ? lokalt : normaliseraFramsteg(framsteg)[sort].senast + 1;
-  return Math.min(Math.max(1, n), Math.max(1, antal));
+  const max = Math.max(1, antal);
+  const { slut } = slutet(framsteg, sort, antal);
+  if (Number.isInteger(lokalt) && lokalt >= 1 && !(slut && lokalt >= max)) return Math.min(lokalt, max);
+  if (slut) return 1;
+  return Math.min(Math.max(1, normaliseraFramsteg(framsteg)[sort].senast + 1), max);
 }
 
 /** Var eleven står per sort, lokalt (localStorage inom try/catch): { ett: nr, tva: nr }. */

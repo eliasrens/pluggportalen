@@ -970,6 +970,8 @@ kommandona står i [`src/schack/pussel/README.md`](../src/schack/pussel/README.m
   hela linjen laglig, matt efter andra vita draget, och lösningens första drag är det **enda** som tvingar
   fram matt i två (annars tas pusslet bort). Inget av de 400 behövde tas bort – Lichess har redan unika
   lösningar.
+- **Vakt:** skriptet väljer båda sorterna först och skriver **inget** om någon fick färre än målet (200) –
+  en avbruten eller för kort läsning kan aldrig ersätta den incheckade banken med en tom eller kort.
 - **Bara vit vid draget – valet:** spec-texten är "Vit drar och gör matt …" och brädet står som i partierna
   mot datorn. Ett bräde som ibland är vänt och en text som byter färg är ett onödigt hinder för 9–12-åringar,
   och det finns tusentals vita pussel – inget går förlorat.
@@ -987,6 +989,7 @@ drag"** (resp. två) och "Pussel 13 av 200".
 | Matt i två, rätt första drag | "Bra drag! Nu försvarar sig svart …", brädet låses, och efter 0,7 s spelar datorn försvaret ur lösningen ("Svart spelade Td8. Nu: gör matt i ett drag!") |
 | **Tips** | första trycket: en pulserande orange ring runt **pjäsen som ska flyttas** (aria "tips: flytta den här pjäsen"); andra trycket: dessutom draget som pil ("Tips: Tc8+") – så att ingen fastnar för gott |
 | ‹ Förra / Hoppa över › | bläddra; läget sparas lokalt |
+| Sista pusslet löst | "Du har löst alla 200 pussel!" – eller, om eleven hoppat över några, "Du har kommit till sista pusslet – 196 av 200 lösta." – och knappen **Till alla pussel** |
 
 - **Varje drag som ger matt är rätt** när det är dags för matt (även ett annat mattdrag än lösningens).
   Matt i två: första draget måste vara lösningens (skriptet garanterar att inget annat tvingar fram matt).
@@ -1007,6 +1010,9 @@ pusslet, `losta` = hur många nya pussel som lösts.
   = högst 400 skrivningar per elev **totalt**, oftast några stycken per lektion.
 - **Var eleven står** (`{ ett: nr, tva: nr }`, även efter Hoppa över) ligger i `localStorage` under
   `pp:schack:dator:<elevId>:pussel` (try/catch). Saknas det (ny dator) börjar eleven på `senast + 1`.
+- **Slutet:** när `senast` når sista pusslet börjar sorten om på pussel 1 (läget lokalt på sista räknas
+  då inte) och kortet i valet säger "Alla klara – gör om dem!" (alla lösta) eller "Du har kommit till
+  slutet – gör om dem!" (några överhoppade). Den som redan bläddrat tillbaka fortsätter där den är.
 
 ### 16.4 Regeln – `schackOk` → `schackPusselOk`
 

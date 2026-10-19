@@ -17,7 +17,7 @@ import { fileURLToPath } from "node:url";
 import { Chess } from "../src/schack/vendor/chess.js";
 import {
   SORTER, TEXT, laddaPussel, skapaPusselLopp, uciDrag, normaliseraFramsteg, arNyttLost, efterLost,
-  startNummer, lasLage, sparaLage,
+  startNummer, lasLage, sparaLage, slutet,
 } from "../src/schack/schack-pussel.js";
 import { skapaPusselKontroll } from "../src/schack/schack-pussel-vy.js";
 import { valHtml, pusselHtml, nrText } from "../src/schack/schack-pussel-delar.js";
@@ -176,8 +176,29 @@ describe("framstegen (studentData.schack.pussel, §13)", () => {
     assert.deepEqual(db.pussel.ett, { losta: 3, senast: 4 });
     // Ny dator (ingen lokal lagring): nästa efter det senast lösta.
     assert.equal(startNummer(db.pussel, undefined, "ett", 200), 5);
-    assert.equal(startNummer({ ett: { losta: 200, senast: 200 } }, undefined, "ett", 200), 200, "aldrig förbi sista");
+    assert.equal(startNummer({ ett: { losta: 150, senast: 180 } }, 250, "ett", 200), 200, "aldrig förbi sista");
     assert.equal(startNummer(db.pussel, undefined, "tva", 200), 1);
+  });
+
+  it("vid slutet börjar eleven om på 1 (F1), men fortsätter om den redan gör om dem", () => {
+    const klar = { ett: { losta: 200, senast: 200 } };
+    assert.equal(startNummer(klar, undefined, "ett", 200), 1, "ny dator");
+    assert.equal(startNummer(klar, 200, "ett", 200), 1, "läget står kvar på sista");
+    assert.equal(startNummer(klar, 57, "ett", 200), 57, "gör om dem – fortsätt där");
+    const hoppat = { ett: { losta: 196, senast: 200 } };
+    assert.equal(startNummer(hoppat, 200, "ett", 200), 1, "slutet även efter Hoppa över");
+    assert.deepEqual(slutet(hoppat, "ett", 200), { slut: true, alla: false });
+    assert.deepEqual(slutet(klar, "ett", 200), { slut: true, alla: true });
+    assert.deepEqual(slutet({}, "ett", 200), { slut: false, alla: false });
+    assert.equal(startNummer({ ett: { losta: 10, senast: 199 } }, 199, "ett", 200), 199, "inte slutet än");
+  });
+
+  it("sista pusslets text säger bara 'alla' när alla är lösta (F2)", () => {
+    assert.equal(TEXT.sista(200, 200), "Du har löst alla 200 pussel!");
+    assert.equal(TEXT.sista(196, 200), "Du har kommit till sista pusslet – 196 av 200 lösta.");
+    const vy = kod("src/schack/schack-pussel-vy.js");
+    assert.doesNotMatch(vy, /Du har gjort alla/);
+    assert.match(vy, /TEXT\.sista\(framsteg\[sort\]\.losta, lista\.length\)/);
   });
 
   it("läget lokalt tål en lagring som kastar och trasig JSON", () => {
@@ -220,7 +241,10 @@ describe("markupen", () => {
     assert.match(v, /Fortsätt med pussel 14/);
     assert.match(v, /Fortsätt med pussel 7/);
     assert.match(valHtml({}, {}), /0 lösta/);
-    assert.match(valHtml({ ett: { losta: 200, senast: 200 } }, { ett: 200 }), /Alla klara/);
+    assert.match(valHtml({ ett: { losta: 200, senast: 200 } }, { ett: 200 }, { ett: 200 }), /Alla klara – gör om dem!/);
+    assert.match(valHtml({ ett: { losta: 196, senast: 200 } }, { ett: 200 }, { ett: 200 }), /Du har kommit till slutet – gör om dem!/);
+    assert.doesNotMatch(valHtml({ ett: { losta: 196, senast: 200 } }, { ett: 200 }, { ett: 200 }), /Fortsätt med pussel 200/);
+    assert.match(valHtml({ ett: { losta: 200, senast: 200 } }, { ett: 200 }, { ett: 57 }), /Fortsätt med pussel 57/, "gör om dem");
     const p = pusselHtml("ett");
     assert.match(p, /Vit drar och gör matt i ett drag/);
     assert.match(pusselHtml("tva"), /Vit drar och gör matt i två drag/);
@@ -276,6 +300,11 @@ describe("källkoden (#271, §13)", () => {
     const page = kod("src/schack/page-schack.js");
     assert.match(page, /pussel: pusselFor\(sd\)/);
     assert.match(page, /pusselLost\(sort, nr\)/);
+  });
+
+  it("på smal skärm visas uppgiften bara i statusraden (F3)", () => {
+    const css = las("src/styles/40-schack-pussel.css");
+    assert.match(css, /@media \(max-width: 820px\) \{[\s\S]*\.schack-pussel-uppgift \{ display: none; \}/);
   });
 
   it("vyn skriver bara när ett nytt pussel löses och rensar sin timer", () => {

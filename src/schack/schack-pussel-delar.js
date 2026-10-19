@@ -6,7 +6,7 @@
 
 import { pjasSvg } from "./schack-pjaser.js";
 import { esc } from "./schack-bradet-delar.js";
-import { SORTER, normaliseraFramsteg } from "./schack-pussel.js";
+import { SORTER, normaliseraFramsteg, slutet, startNummer } from "./schack-pussel.js";
 
 const IKON = { ett: pjasSvg("w", "q"), tva: pjasSvg("w", "q") + pjasSvg("w", "n") };
 const TEXT = {
@@ -24,15 +24,20 @@ export function valHtml(framsteg, antal = {}, lage = {}) {
     const n = antal[s.id];
     const { losta } = f[s.id];
     const pct = n ? Math.min(100, Math.round((losta / n) * 100)) : 0;
-    const nasta = lage[s.id] || f[s.id].senast + 1;
     const rad = n == null ? `${losta} lösta` : `${losta} av ${n} lösta`;
+    // Samma regel som pusselvyn (startNummer): vid slutet börjar eleven om på 1 (F1).
+    const nasta = n == null ? lage[s.id] || f[s.id].senast + 1 : startNummer(f, lage[s.id], s.id, n);
+    const slut = n == null ? { slut: false } : slutet(f, s.id, n);
+    const nastaText = slut.slut && nasta === 1
+      ? (slut.alla ? "Alla klara – gör om dem!" : "Du har kommit till slutet – gör om dem!")
+      : `Fortsätt med pussel ${nasta}`;
     return (
       `<button type="button" class="big-card schack-kort schack-pussel-sort ${s.id === "ett" ? "orange" : "lila"}" data-sort="${s.id}">` +
       `<span class="schack-kort-ikon" aria-hidden="true">${IKON[s.id]}</span>` +
       `<span class="title">${esc(s.titel)}</span><span class="sub">${esc(TEXT[s.id])}</span>` +
       `<span class="schack-pussel-framsteg"><span class="schack-pussel-stapel" aria-hidden="true"><span style="width:${pct}%"></span></span>` +
       `<span class="schack-pussel-antal">${esc(rad)}</span></span>` +
-      `<span class="schack-pussel-nasta">${n != null && nasta > n ? "Alla klara – gör om dem!" : `Fortsätt med pussel ${nasta}`}</span>` +
+      `<span class="schack-pussel-nasta">${esc(nastaText)}</span>` +
       `</button>`
     );
   }).join("");

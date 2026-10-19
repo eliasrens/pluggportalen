@@ -15,7 +15,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Chess } from "../src/schack/vendor/chess.js";
 import { SORTER, uciDrag } from "../src/schack/schack-pussel.js";
-import { kontrollera, normalisera } from "../admin/schack-pussel.mjs";
+import { kontrollera, normalisera, valjPussel, forKort } from "../admin/schack-pussel.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SRCDIR = join(ROOT, "src");
@@ -136,3 +136,32 @@ describe("skriptets kontroll (admin/schack-pussel.mjs)", () => {
   });
 });
 
+
+describe("skriptet skriver aldrig en för kort bank (F4)", () => {
+  it("forKort: fel när någon sort fick färre än målet, annars null", () => {
+    const full = { sort: "ett", valda: Array(200).fill({}) };
+    assert.equal(forKort([full, { sort: "tva", valda: Array(200).fill({}) }], 200), null);
+    assert.match(forKort([full, { sort: "tva", valda: [] }], 200), /För få pussel: tva 0 av 200/);
+    assert.match(forKort([{ sort: "ett", valda: Array(46).fill({}) }, { sort: "tva", valda: Array(199).fill({}) }], 200), /ett 46 av 200, tva 199 av 200/);
+  });
+  it("valjPussel: tar bara giltiga och sprider över ratingen; för få kandidater ger en kort lista", () => {
+    const k = bank("ett").pussel.slice(0, 30).map((p) => ({ ...p, spelningar: 1000 }));
+    const max = k.at(-1).rating;
+    const r = valjPussel(k, "ett", max, 10);
+    assert.equal(r.valda.length, 10);
+    for (let i = 1; i < r.valda.length; i++) assert.ok(r.valda[i].rating >= r.valda[i - 1].rating);
+    assert.equal(r.valda.at(-1).rating, max, "spritt ända upp till maxRating");
+    assert.equal(valjPussel(k, "ett", 1000, 10).valda.length < 10, true, "mål över kandidaternas rating nås inte – listan blir kort");
+    assert.equal(valjPussel(k.slice(0, 3), "ett", k[2].rating, 10).valda.length, 3, "färre kandidater än målet → kort lista");
+    const trasig = { ...k[0], id: "X", losning: ["a1a1"] };
+    const r2 = valjPussel([trasig], "ett", 1000, 1);
+    assert.equal(r2.valda.length, 0);
+    assert.deepEqual(r2.bort, { "olagligt drag": 1 });
+  });
+  it("main() kontrollerar antalet INNAN något skrivs", () => {
+    const src = readFileSync(join(ROOT, "admin/schack-pussel.mjs"), "utf8");
+    const main = src.slice(src.indexOf("async function main"), src.indexOf("export function valjPussel"));
+    assert.ok(main.indexOf("forKort(") < main.indexOf("writeFileSync("), "kontrollen före skrivningen");
+    assert.ok(main.indexOf("forKort(") < main.indexOf("mkdirSync("));
+  });
+});
