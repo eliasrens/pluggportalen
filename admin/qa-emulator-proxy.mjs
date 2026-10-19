@@ -24,7 +24,8 @@ import { readFile, stat } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const ROOT = fileURLToPath(new URL("..", import.meta.url));
+// QA_ROOT (#809): servera en annan utcheckning (t.ex. "före" via git archive) med samma proxy.
+const ROOT = process.env.QA_ROOT || fileURLToPath(new URL("..", import.meta.url));
 const PORT = Number(process.env.PORT || 8000);
 const FS = (process.env.FIRESTORE_EMULATOR_HOST || "127.0.0.1:8080").split(":");
 const AUTH = (process.env.FIREBASE_AUTH_EMULATOR_HOST || "127.0.0.1:9099").split(":");
@@ -61,8 +62,10 @@ async function emulatorConfig() {
 // QA_RAKNA=1 (#743): räkna dokument som Firestore levererar (Listen = debiterade
 // läsningar) och skrivna dokument (Write) för just den här porten/originet.
 // GET /__qa/rakna visar summan per samlingsmönster, /__qa/rakna?nollstall nollar.
+// "fragor" (#809) = varje Listen-mål (getDoc/getDocs/onSnapshot) per samling – en
+// fråga som ger 0 dokument debiteras ändå som 1 läsning och syns bara här.
 const RAKNA = !!process.env.QA_RAKNA;
-const rakning = { lasningar: {}, skrivningar: {} };
+const rakning = { lasningar: {}, skrivningar: {}, fragor: {} };
 const monster = (namn) => namn.split("/").map((d, i) => (i % 2 ? "*" : d)).join("/");
 function raknaIn(typ, text, re) {
   for (const m of text.matchAll(re)) {
@@ -71,6 +74,13 @@ function raknaIn(typ, text, re) {
   }
 }
 const LAS_RE = /"documentChange":\s*\{\s*"document":\s*\{\s*"name":\s*"projects\/[^/]+\/databases\/[^/]+\/documents\/([^"]+)"/g;
+const MAL_RE = /"addTarget":\s*\{\s*"(query|documents)":\s*\{(?:\s*"parent":\s*"[^"]*",)?\s*"(?:structuredQuery":\s*\{\s*"from":\s*\[\s*\{\s*"collectionId":\s*"([^"]+)"|documents":\s*\[\s*"projects\/[^/]+\/databases\/[^/]+\/documents\/([^"]+)")/g;
+function raknaMal(text) {
+  for (const m of text.matchAll(MAL_RE)) {
+    const k = m[1] === "query" ? `fråga ${m[2]}` : `dok ${monster(m[3])}`;
+    rakning.fragor[k] = (rakning.fragor[k] || 0) + 1;
+  }
+}
 const SKRIV_RE = /"(?:update|delete)":\s*(?:\{\s*"name":\s*)?"projects\/[^/]+\/databases\/[^/]+\/documents\/([^"]+)"/g;
 
 function proxy(req, res, [host, port], path = req.url) {
@@ -88,6 +98,15 @@ function proxy(req, res, [host, port], path = req.url) {
     }
     r.pipe(res);
   });
+  if (RAKNA && path.includes("/Listen/channel") && req.method === "POST") {
+    const delar = [];
+    req.on("data", (c) => delar.push(c));
+    req.on("end", () => {
+      let t = Buffer.concat(delar).toString("utf8");
+      try { t = decodeURIComponent(t.replace(/\+/g, " ")); } catch { /* inte url-kodat */ }
+      raknaMal(t);
+    });
+  }
   if (RAKNA && path.includes("/Write/channel") && req.method === "POST") {
     const delar = [];
     req.on("data", (c) => delar.push(c));
@@ -110,7 +129,7 @@ function proxy(req, res, [host, port], path = req.url) {
 createServer(async (req, res) => {
   const url = req.url || "/";
   if (RAKNA && url.startsWith("/__qa/rakna")) {
-    if (url.includes("nollstall")) { rakning.lasningar = {}; rakning.skrivningar = {}; }
+    if (url.includes("nollstall")) { rakning.lasningar = {}; rakning.skrivningar = {}; rakning.fragor = {}; }
     const summa = (o) => Object.values(o).reduce((a, b) => a + b, 0);
     res.writeHead(200, { "Content-Type": TYPES[".json"], "Access-Control-Allow-Origin": "*" });
     return res.end(JSON.stringify({ summaLasningar: summa(rakning.lasningar), summaSkrivningar: summa(rakning.skrivningar), ...rakning }, null, 1));
