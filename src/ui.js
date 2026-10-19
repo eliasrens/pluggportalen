@@ -146,7 +146,7 @@ export async function getLockGate() {
     lasModP ||= import("./class-lock-watch.js").then((mod) => {
       mod.onLockChange((next, prev) => {
         const gate = mod.gateFor(next);
-        lasLyssnare.forEach((fn) => fn(gate, prev));
+        lasLyssnare.forEach((fn) => fn(gate, prev, next));
       });
       return mod;
     });
@@ -159,9 +159,13 @@ export async function getLockGate() {
   }
 }
 
-/** Lyssna på lås-byten (lärare låser/låser upp, klockslaget passerar). */
+/**
+ * Lyssna på lås-byten (lärare låser/låser upp, klockslaget passerar, eleven
+ * lämnar in provet #788): fn(grind|null, förraLåset|null, nyttLåset|null).
+ */
 export function onLockChange(fn) {
   lasLyssnare.add(fn);
+  return () => lasLyssnare.delete(fn);
 }
 
 // --- Mattematchen (#458) -------------------------------------------------------

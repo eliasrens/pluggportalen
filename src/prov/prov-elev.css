@@ -86,6 +86,16 @@
 .provv-start-fakta { padding-left: 22px; margin: 0 0 18px; }
 .provv-start-fakta li { margin-bottom: 6px; }
 .provv-meddelande p { margin: 0 0 10px; }
+.provv-vidare:empty { display: none; }
+.provv-vidare { margin: 12px 0 0; }
+.provv-vidare-text { margin: 0 0 8px; }
+.provv-vidare-lankar { display: flex; flex-wrap: wrap; gap: 8px; }
+.provv-vidare-knapp {
+  display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 10px;
+  background: var(--provv-yta); color: var(--provv-accent); border: 1px solid var(--provv-kant);
+  font-weight: 600; text-decoration: none;
+}
+.provv-vidare-knapp:hover { background: var(--provv-ljus); }
 .provv-fel { color: var(--provv-rod); margin: 10px 0 0; }
 
 /* --- Själva provet -------------------------------------------------------- */

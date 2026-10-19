@@ -755,7 +755,7 @@ klassen **bara** de områdena; är listan tom eller saknas (eller tillhör eleve
 ingen klass) ser eleverna **hela** biblioteket (bakåtkompatibelt – aldrig en tom
 sida).
 
-**ClassLock** (#436, fokusläge): `{ mal: { typ, id?, namn? }, till, doljOvrigt }`.
+**ClassLock** (#436, fokusläge): `{ mal: { typ, id?, namn? }, till, doljOvrigt, efter? }`.
 `mal.typ` är en utbyggbar enum: `"omrade"` eller en låsbar moduls id
 (`"prov"`, `"lasresan"`, `"mattematchen"`, `"hittaratt"`, `"ekvationsresan"`, `"brakresan"` – härledd ur
 modulregistret, #734, se `docs/FOKUSLAGE.md`); för `"omrade"` är
@@ -771,6 +771,10 @@ server-korrigerad klocka, så "Lås upp nu" och klockslaget slår igenom utan
 omladdning. Reglerna kräver att ett nytt/ändrat lås har `till` framåt och högst
 24 h bort (mot `request.time`). Logik: `src/class-lock.js`, persistens:
 `src/data-class-lock.js`, lärar-UI: `src/teacher-class-lock.js`.
+`efter` (#788, bara provlås) = `{ lage: "prov" | "ovning" | "klass" | "egna", moduler? }`:
+vad en elev som **lämnat in** provet får göra medan låset gäller resten av klassen
+(`moduler` bara i `"egna"`). Saknas = `"prov"` (stanna på provsidan, som förr).
+Samma val sparas som förval på tillfället (`provTillfallen/{t}.fokus.efter`).
 
 Exempel (`classes/6a`):
 

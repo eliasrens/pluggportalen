@@ -9,6 +9,7 @@
 //     mal:  { typ: "omrade" | <modul-id>, id?: "<subjectId>/<areaId>" | <tillfälle>, namn?: string },
 //     till: <epoch-ms>,          // sluttiden (klockslaget läraren valde)
 //     doljOvrigt: <bool>,        // "Dölj allt annat": även shop/värld/profil döljs
+//     efter?: { lage, moduler? }, // bara prov (#788): vad en elev som LÄMNAT IN får göra
 //   }
 //
 // Saknat fält, okänd form eller `till <= now` = INGET lås (bakåtkompatibelt).
@@ -82,7 +83,59 @@ export function normalizeLock(v) {
     mal.id = id;
   }
   if (typeof v.mal.namn === "string" && v.mal.namn.trim()) mal.namn = v.mal.namn.trim().slice(0, 100);
-  return { mal, till, doljOvrigt: v.doljOvrigt === true };
+  const lock = { mal, till, doljOvrigt: v.doljOvrigt === true };
+  // "Efter inlämning" (#788) finns bara på ett provlås; "prov" (stanna) = som förr.
+  const efter = lockTargetModule(typ).lockId ? normalizeEfter(v.efter) : null;
+  if (efter && efter.lage !== EFTER.PROV) lock.efter = efter;
+  return lock;
+}
+
+// --- Efter inlämning (#788) ------------------------------------------------------
+// Läraren väljer i provets låsruta vad en elev som LÄMNAT IN får göra medan
+// låset gäller för resten av klassen. Elever som skriver är låsta som förr.
+
+/** Lägena: stanna på provsidan / bara övning / klassens vanliga läge / välj själv. */
+export const EFTER = { PROV: "prov", OVNING: "ovning", KLASS: "klass", EGNA: "egna" };
+export const EFTER_LAGEN = [EFTER.PROV, EFTER.OVNING, EFTER.KLASS, EFTER.EGNA];
+/** Förvalet i låsrutan (Elias förslag, #788). */
+export const EFTER_STANDARD = EFTER.KLASS;
+
+/** Moduler som kan väljas i "Välj själv" (provet självt är alltid öppet). */
+export const EFTER_VALBARA = STUDENT_MODULES.filter((m) => !m.lockId);
+/** "Bara övning": registrets `ovning`-moduler. */
+export const OVNING_MODULER = STUDENT_MODULES.filter((m) => m.ovning).map((m) => m.id);
+
+/** Normalisera efter-valet: { lage, moduler? } eller null (okänt läge). */
+export function normalizeEfter(v) {
+  if (!v || typeof v !== "object" || !EFTER_LAGEN.includes(v.lage)) return null;
+  if (v.lage !== EFTER.EGNA) return { lage: v.lage };
+  const kanda = new Set(EFTER_VALBARA.map((m) => m.id));
+  const moduler = [...new Set(Array.isArray(v.moduler) ? v.moduler : [])].filter((id) => kanda.has(id));
+  return { lage: EFTER.EGNA, moduler };
+}
+
+/** Modulerna som är öppna efter inlämning ("klass" = alla, klassens vanliga grind gäller). */
+export function efterModuler(efter) {
+  if (efter?.lage === EFTER.OVNING) return [...OVNING_MODULER];
+  if (efter?.lage === EFTER.EGNA) return [...efter.moduler];
+  if (efter?.lage === EFTER.KLASS) return EFTER_VALBARA.map((m) => m.id);
+  return [];
+}
+
+/** Läser låset elevens provsvar (inlämnad eller inte)? Bara ett provlås med ett efter-val. */
+export function lockBehoverInlamning(lock) {
+  return !!(lock?.efter && lockTargetModule(lock.mal.typ)?.lockId);
+}
+
+/**
+ * Elevens EFFEKTIVA lås när hen har lämnat in (`inlamnad`): oförändrat för den
+ * som skriver (eller när läraren valt "stanna på provsidan"), annars samma lås
+ * med `fri` = läget och `moduler` = de öppna modulerna. "klass" ⇒ gateFor ger
+ * null (inget lås – klassens vanliga läge).
+ */
+export function lockEfterInlamning(lock, inlamnad) {
+  if (!lock || !inlamnad || !lockBehoverInlamning(lock)) return lock;
+  return { ...lock, fri: lock.efter.lage, moduler: efterModuler(lock.efter) };
 }
 
 /** Klassens AKTIVA lås vid tiden `now` (ms), annars null. */
@@ -120,6 +173,8 @@ export function lockHomeHash(lock) {
 
 /** Visningsnamn för målet (modulens namn, t.ex. "Läsresan", eller områdets/provets namn). */
 export function lockLabel(lock) {
+  if (lock.fri === EFTER.OVNING) return "Övning efter provet";
+  if (lock.fri) return "Efter provet";
   if (lock.mal.typ !== OMRADE) {
     const m = lockTargetModule(lock.mal.typ);
     return m.lockId && lock.mal.namn ? lock.mal.namn : m.label;
@@ -129,6 +184,7 @@ export function lockLabel(lock) {
 
 /** Är (ämne, område) låsets mål-område? */
 export function lockAllowsArea(lock, subjectId, areaId) {
+  if (lock.fri) return lock.moduler.includes(lockTargetModule(OMRADE)?.id);
   return lock.mal.typ === OMRADE && lock.mal.id === areaKey(subjectId, areaId);
 }
 
@@ -160,6 +216,9 @@ function arInlarning(path) {
 export function lockAllowsRoute(lock, path, query) {
   if (lockIsTarget(lock, path, query)) return true;
   if (path === "/elev/avatar") return true;
+  // Inlämnat (#788): bara de valda modulerna – hus, värld, profil och Live är stängda.
+  if (lock.fri === EFTER.KLASS) return true;
+  if (lock.fri) return lock.moduler.includes(studentModuleForRoute(path)?.id);
   if (arInlarning(path)) return false;
   return !lock.doljOvrigt;
 }
@@ -196,9 +255,27 @@ export function tillFromKlockslag(hhmm, now) {
 }
 
 /** Bygg ett lås att spara (validerat via normalizeLock), eller null. */
-export function buildLock({ typ, id, namn, till, doljOvrigt }) {
+export function buildLock({ typ, id, namn, till, doljOvrigt, efter }) {
   const mal = { typ };
   if (id) mal.id = id;
   if (namn) mal.namn = namn;
-  return normalizeLock({ mal, till, doljOvrigt: !!doljOvrigt });
+  return normalizeLock({ mal, till, doljOvrigt: !!doljOvrigt, efter });
+}
+
+/**
+ * Router-/meny-vänlig vy av ett lås (null in → null ut). Ett inlämnat prov med
+ * "klassens vanliga läge" (#788) är inget lås alls; `fri` = efter-läget annars.
+ */
+export function gateFor(lock) {
+  if (!lock || lock.fri === EFTER.KLASS) return null;
+  return {
+    lock,
+    fri: lock.fri || null,
+    home: lockHomeHash(lock),
+    label: lockLabel(lock),
+    klockslag: formatKlockslag(lock.till),
+    allows: (path, query) => lockAllowsRoute(lock, path, query),
+    isTarget: (path, query) => lockIsTarget(lock, path, query),
+    allowsArea: (subjectId, areaId) => lockAllowsArea(lock, subjectId, areaId),
+  };
 }

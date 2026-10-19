@@ -10,7 +10,9 @@
 import { el, errText, esc } from "../teacher-shared.js";
 import { getClasses } from "../data-classes.js";
 import { getStudentsByIds } from "../data-content.js";
-import { formatKlockslag, tillFromKlockslag } from "../class-lock.js";
+import {
+  EFTER, EFTER_STANDARD, EFTER_VALBARA, OVNING_MODULER, formatKlockslag, normalizeEfter, tillFromKlockslag,
+} from "../class-lock.js";
 import { serverNow, syncServerClock } from "../data-class-lock.js";
 import { filterClasses, myRole } from "../teacher-role.js";
 import { arFraga } from "./prov-fragetyper.js";
@@ -77,29 +79,62 @@ export function ruta(html, { etikett }) {
   return { box, stang };
 }
 
-/** Låsfälten: "Lås klassen till provet" + klockslag + "Dölj allt annat". */
-function lasFalt(standardMin, { pa = true, doljOvrigt = true } = {}) {
+// "Efter inlämning får eleven:" (#788) – lägena i class-lock.js (EFTER).
+const EFTER_VAL = [
+  [EFTER.PROV, "Stanna på provsidan"],
+  [EFTER.OVNING, "Bara övning (Plugga och resorna)"],
+  [EFTER.KLASS, "Klassens vanliga läge"],
+  [EFTER.EGNA, "Välj själv"],
+];
+
+/** Efter inlämning: fyra lägen + kryssrutor per modul för "Välj själv" (förifyllda med övning). */
+function efterFalt(efter) {
+  const e = normalizeEfter(efter) || { lage: EFTER_STANDARD };
+  const valda = new Set(e.lage === EFTER.EGNA ? e.moduler : OVNING_MODULER);
+  return `<fieldset class="provl-efter">
+      <legend>Efter inlämning får eleven:</legend>
+      ${EFTER_VAL.map(([v, text]) => `<label class="provl-kryss"><input type="radio" name="provl-efter" value="${v}" ${v === e.lage ? "checked" : ""} /> ${text}</label>`).join("")}
+      <div class="provl-efter-egna">
+        ${EFTER_VALBARA.map((m) => `<label class="provl-kryss"><input type="checkbox" data-efter-modul="${m.id}" ${valda.has(m.id) ? "checked" : ""} /> ${esc(m.label)}</label>`).join("")}
+      </div>
+      <p class="hint">Gäller bara den som har lämnat in. De som skriver är kvar i provet.</p>
+    </fieldset>`;
+}
+function efterVal(box) {
+  const lage = box.querySelector('input[name="provl-efter"]:checked')?.value || EFTER_STANDARD;
+  const moduler = [...box.querySelectorAll("[data-efter-modul]:checked")].map((c) => c.dataset.efterModul);
+  return normalizeEfter({ lage, moduler });
+}
+
+/** Låsfälten: "Lås klassen till provet" + klockslag + "Dölj allt annat" + efter inlämning (#788). */
+function lasFalt(standardMin, { pa = true, doljOvrigt = true, efter = null } = {}) {
   return `<fieldset class="provl-tf-grupp provl-las">
     <legend>Fokusläge</legend>
     <label class="provl-kryss"><input type="checkbox" data-f="las" ${pa ? "checked" : ""} /> Lås klassen till provet</label>
     <div class="provl-las-detalj">
       <label>till klockan <input type="time" step="60" class="cell" data-f="lasTill" value="${klockslagOm(standardMin)}" /></label>
       <label class="provl-kryss"><input type="checkbox" data-f="dolj" ${doljOvrigt ? "checked" : ""} /> Dölj allt annat (hus, shop)</label>
+      ${efterFalt(efter)}
     </div>
-    <p class="hint">Eleverna hamnar direkt i provet och kan inte öppna något annat förrän du stänger provet eller klockslaget passerar.</p>
+    <p class="hint">Eleverna hamnar direkt i provet och kan inte öppna något annat förrän de lämnat in, du stänger provet eller klockslaget passerar.</p>
   </fieldset>`;
 }
 function lasVal(box) {
   if (!box.querySelector('[data-f="las"]').checked) return { las: null };
   const till = tillFromKlockslag(box.querySelector('[data-f="lasTill"]').value, serverNow());
   if (!till) return { fel: "Välj ett klockslag för låset senare idag." };
-  return { las: { till, doljOvrigt: box.querySelector('[data-f="dolj"]').checked } };
+  return { las: { till, doljOvrigt: box.querySelector('[data-f="dolj"]').checked, efter: efterVal(box) } };
 }
 function kopplaLas(box) {
   const pa = box.querySelector('[data-f="las"]');
   const detalj = box.querySelector(".provl-las-detalj");
-  const visa = () => detalj.classList.toggle("provl-av", !pa.checked);
+  const egna = box.querySelector(".provl-efter-egna");
+  const visa = () => {
+    detalj.classList.toggle("provl-av", !pa.checked);
+    egna.classList.toggle("provl-av", efterVal(box).lage !== EFTER.EGNA);
+  };
   pa.addEventListener("change", visa);
+  box.querySelectorAll('input[name="provl-efter"]').forEach((r) => r.addEventListener("change", visa));
   visa();
 }
 
@@ -168,7 +203,7 @@ export async function korIKlass(ctx, provEllerId, { onKlar } = {}) {
     knapp.textContent = oppnaNu ? "Öppnar…" : "Sparar…";
     let t = null;
     try {
-      const fokus = { pa: box.querySelector('[data-f="las"]').checked, doljOvrigt: box.querySelector('[data-f="dolj"]').checked };
+      const fokus = { pa: box.querySelector('[data-f="las"]').checked, doljOvrigt: box.querySelector('[data-f="dolj"]').checked, efter: efterVal(box) };
       const extraTid = rensaExtraTid(extra.varde(), klassens());
       t = await skapaTillfalle({ prov, classId, tidsgransMin: tid, fokus, larare: role, extraTid });
       if (oppnaNu) await oppnaTillfalle({ id: t, status: STATUS.FORBERETT, provId: prov.id, provNamn: prov.namn, classId }, las);
@@ -203,7 +238,7 @@ export function oppnaRuta(tf, klar) {
     ${igen && tillbakaVarning(tf.rattStatus) ? `<p class="msg provl-tf-varning" role="status">${esc(tillbakaVarning(tf.rattStatus))}</p>` : ""}
     <div data-plats="extra"></div>
     ${omprov ? `<p class="hint">Fokusläget låser hela klassen och används inte för omprov.</p>`
-      : lasFalt(std, { pa: igen ? false : tf.fokus?.pa !== false, doljOvrigt: tf.fokus?.doljOvrigt !== false })}
+      : lasFalt(std, { pa: igen ? false : tf.fokus?.pa !== false, doljOvrigt: tf.fokus?.doljOvrigt !== false, efter: tf.fokus?.efter })}
     <p class="provl-tf-fel msg error" role="alert" hidden></p>
     <div class="provl-tf-knappar">
       <button class="btn gron" data-act="oppna" autofocus>${igen ? "Öppna igen" : "Öppna nu"}</button>

@@ -14,7 +14,8 @@
 //                om den aktiva fortfarande är just den – ett dubbelklick eller en
 //                andra flik startar då inte om en gång till.
 //                Nekas (permission-denied) när klassen dolt Bråkresan eller är
-//                låst till något annat i fokusläget (#735, assertModuleOpen).
+//                låst till något annat i fokusläget (#735, assertModuleOpen;
+//                ett inlämnat prov släpper eleven enligt efter-valet, #788).
 //   answerTask   { roundId, index, answer, helpBefore? } → graded | invalid
 //                Första GILTIGA svaret låser rätt/fel. Omförsök/dubbelklick →
 //                det sparade utfallet (already: true). Inmatningsfel sparas inte.
@@ -118,12 +119,31 @@ async function planFresh(c, r, challenge) {
 /** Modul-id i registret och låstypen i fokusläget (src/gamemode-visibility.js). */
 export const MODUL_ID = "brakresan";
 
+/** Bråkresan är en övningsmodul (`ovning: true` i registret, #788) – test/class-lock.test.js jämför. */
+export const MODUL_OVNING = true;
+
+/**
+ * Frigör ett provlås eleven (#788, src/class-lock.js lockEfterInlamning)? Bara
+ * när läraren valt ett efter-läge som öppnar Bråkresan OCH elevens svar på
+ * just det tillfället är inlämnat – den som skriver är låst som förr.
+ */
+async function frigjordEfterProv(db, uid, l) {
+  const e = l.efter;
+  if (l.mal.typ !== "prov" || !e || typeof l.mal.id !== "string" || !/^[^/]{3,200}$/.test(l.mal.id)) return false;
+  const oppnar = e.lage === "klass" || (e.lage === "ovning" && MODUL_OVNING) ||
+    (e.lage === "egna" && Array.isArray(e.moduler) && e.moduler.includes(MODUL_ID));
+  if (!oppnar) return false;
+  const svar = await db.doc(`provTillfallen/${l.mal.id}/svar/${uid}`).get();
+  return svar.exists && svar.data().inlamnad === true;
+}
+
 /**
  * Speglar elevens grind (#412/#436, src/class-lock.js) på servern (#735): en
  * omgång startar inte när någon av elevens klasser döljer Bråkresan eller har
  * ett aktivt fokuslås till något annat. Ett aktivt lås TILL Bråkresan öppnar
  * den även om den är dold (samma regel som klienten). Reglerna tillåter bara
  * kända låstyper, så varje typ med `till` i framtiden räknas som ett lås.
+ * Ett provlås släpper en elev som lämnat in enligt lärarens efter-val (#788).
  */
 export async function assertModuleOpen(db, uid, nowMs) {
   const klasser = (await db.collection("classes").where("studentIds", "array-contains", uid).get())
@@ -131,7 +151,8 @@ export async function assertModuleOpen(db, uid, nowMs) {
   const las = klasser.map((k) => k.lock)
     .filter((l) => typeof l?.mal?.typ === "string" && Number(l.till) > nowMs);
   if (las.some((l) => l.mal.typ === MODUL_ID)) return;
-  if (las.length) throw new BrFel("permission-denied", "Din klass har fokusläge på något annat just nu.");
+  const fria = await Promise.all(las.map((l) => frigjordEfterProv(db, uid, l)));
+  if (fria.includes(false)) throw new BrFel("permission-denied", "Din klass har fokusläge på något annat just nu.");
   if (klasser.some((k) => Array.isArray(k.hiddenModules) && k.hiddenModules.includes(MODUL_ID))) {
     throw new BrFel("permission-denied", "Bråkresan är stängd för din klass just nu.");
   }

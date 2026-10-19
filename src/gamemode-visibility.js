@@ -380,6 +380,8 @@ export function visibleVillageClasses(classes, meId) {
 //                       eleven skickas till `lockRoute?<lockId>=<mal.id>` (Prov:
 //                       provtillfället, #740). Sätts av modulens eget flöde
 //                       ("Kör i klass"), inte i lärarens målväljare
+//   ovning            – övningsmodul (#788): öppen för en elev som lämnat in provet
+//                       när läraren valt "Bara övning" (docs/FOKUSLAGE.md)
 //
 // Hem (huset) är elevens startsida och går inte att dölja – den står inte här.
 // Live (#460) är ingen inlärningsmodul: syns som Live-rutan när klassen bjudits in.
@@ -397,11 +399,11 @@ export const STUDENT_MODULES = [
   // Låses bara via "Kör i klass" (mal.id = provtillfället, lockHomeHash → provet).
   { id: "prov", label: "Prov", ikon: "📝", grupp: "ova", learning: true, lockable: true, lockId: "t",
     lockRoute: "/elev/prov/skriv", toggle: false, villkor: "prov", routes: ["/elev/prov", "/elev/prov/skriv", "/elev/prov/resultat"] },
-  { id: "plugga", label: "Plugga", ikon: "📚", grupp: "ova", learning: true, lockable: true, lockAreas: true,
+  { id: "plugga", label: "Plugga", ikon: "📚", grupp: "ova", learning: true, lockable: true, lockAreas: true, ovning: true,
     routes: ["/elev/plugga", "/elev/omrade", "/elev/spela", "/elev/aventyr"] },
   // Läsresan (#398): egen huvudmodul, fristående från Plugga.
   { id: "lasresan", label: "Läsresan", ikon: "📖", grupp: "ova", learning: true, lockable: true,
-    lockGrupp: "Läsning", routes: ["/elev/lasresan"] },
+    lockGrupp: "Läsning", ovning: true, routes: ["/elev/lasresan"] },
   { id: "shop", label: "Shoppen", ikon: "🛒", grupp: "mitt", routes: ["/elev/shop"] },
   // Mattematchen (#458): bara under en aktiv period för elevens klass – inte av/på-bar.
   { id: "mattematchen", label: "Mattematchen", ikon: "🧮", grupp: "ova", learning: true, lockable: true,
@@ -409,12 +411,12 @@ export const STUDENT_MODULES = [
   // Hitta rätt! (#605) och Ekvationsresan (#618, E1.11): OPT-IN – av tills läraren
   // aktiverar dem för klassen. Läraren kan alltså inte "dölja" dem utan bara slå på/av.
   { id: "hittaratt", label: "Hitta rätt!", ikon: "🗺️", grupp: "ova", learning: true, lockable: true,
-    optIn: true, routes: ["/elev/hitta-ratt"] },
+    optIn: true, ovning: true, routes: ["/elev/hitta-ratt"] },
   { id: "ekvationsresan", label: "Ekvationsresan", ikon: "⚖️", grupp: "ova", learning: true, lockable: true,
-    optIn: true, routes: ["/elev/ekvationsresan"] },
+    optIn: true, ovning: true, routes: ["/elev/ekvationsresan"] },
   // Bråkresan (#705/#713/#735): synlig som standard, döljbar per klass (hiddenModules).
   { id: "brakresan", label: "Bråkresan", ikon: "🐉", grupp: "ova", learning: true, lockable: true,
-    routes: ["/elev/brakresan"] },
+    ovning: true, routes: ["/elev/brakresan"] },
   // Schack (#776, docs/SCHACK.md): OPT-IN per klass, bara för skojs skull (inga mynt).
   // Fokusläget stänger det som alla andra moduler (learning), men det går inte att
   // låsa klassen TILL schack (lockable: false). Ikonen är en egen SVG-bonde –
