@@ -186,7 +186,7 @@ export async function renderClassBrakresan(ctx, host, opts = {}) {
   const view = el(`<div class="lrt-teacher brl">
     <div class="lrt-intro brl-intro">
       <h3 class="subhead lrt-title">${icon("brak", 18)}<span>Bråkresan</span></h3>
-      <a class="btn small ghost brl-testlank" href="#/larare/brakresan">${icon("eye", 14)} Testa utmaningarna</a>
+      <a class="btn small ghost brl-testlank" href="#/larare/material?flik=brakresan">${icon("eye", 14)} Testa utmaningarna</a>
     </div>
     ${dold ? `<p class="msg warn brl-dold">Bråkresan är dold för ${esc(opts.cls.name || "klassen")} – visa den under Synliga moduler så ser eleverna den.</p>` : ""}
     <nav class="brl-delar" role="tablist" aria-label="Bråkresan">${DELAR.map((d) =>

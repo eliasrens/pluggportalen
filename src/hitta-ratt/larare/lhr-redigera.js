@@ -28,7 +28,7 @@ import { hamtaOfficielltPack, hamtaPack, laddaOmraden, raderaPack, sattTopplista
 import { ritaFragor } from "./lhr-fragor.js";
 import { skapaKartval } from "./lhr-kartval.js";
 
-const HASH = "#/larare/hitta-ratt";
+const HASH = "#/larare/material?flik=hitta-ratt"; // Material → Hitta rätt! (#806)
 let flash = null; // { id, html } – meddelande efter sparning, visas en gång
 
 export async function renderRedigera(ctx, host, { id, kopia } = {}) {
@@ -57,8 +57,8 @@ function fel(ctx, host, text, kopiaId) {
   const vy = el(`<div class="panel lhr-fel" role="alert"><p>${esc(text)}</p>
     <div class="lhr-knappar">${kopiaId ? `<button class="btn gron" data-act="kopia">${icon("copy", 16)}<span>Duplicera</span></button>` : ""}
     <button class="btn" data-act="tillbaka">← Mina områden</button></div></div>`);
-  vy.querySelector('[data-act="tillbaka"]').addEventListener("click", () => ctx.go(`${HASH}?vy=mina`));
-  vy.querySelector('[data-act="kopia"]')?.addEventListener("click", () => ctx.go(`${HASH}?vy=ny&kopia=${encodeURIComponent(kopiaId)}`));
+  vy.querySelector('[data-act="tillbaka"]').addEventListener("click", () => ctx.go(`${HASH}&vy=mina`));
+  vy.querySelector('[data-act="kopia"]')?.addEventListener("click", () => ctx.go(`${HASH}&vy=ny&kopia=${encodeURIComponent(kopiaId)}`));
   host.replaceChildren(vy);
 }
 
@@ -228,7 +228,7 @@ function ritaFormular(ctx, host, { f, original, klasser }) {
         id: svar.id,
         html: `<div class="msg ok">Sparat! ${svar.nollstalld ? "Rekorden och topplistan började om från noll." : delad}${toppText}</div>`,
       };
-      const hash = `${HASH}?vy=ny&id=${encodeURIComponent(svar.id)}`;
+      const hash = `${HASH}&vy=ny&id=${encodeURIComponent(svar.id)}`;
       history.replaceState(null, "", hash);
       renderRedigera(ctx, host, { id: svar.id });
     } catch (err) {
@@ -238,15 +238,15 @@ function ritaFormular(ctx, host, { f, original, klasser }) {
     }
   });
 
-  $('[data-act="avbryt"]').addEventListener("click", () => ctx.go(`${HASH}?vy=mina`)); // vakten frågar om osparat
-  $('[data-act="prov"]')?.addEventListener("click", () => ctx.go(`${HASH}?prov=${encodeURIComponent(f.id)}&fran=mina`));
-  $('[data-act="kopia"]')?.addEventListener("click", () => ctx.go(`${HASH}?vy=ny&kopia=${encodeURIComponent(f.id)}`));
+  $('[data-act="avbryt"]').addEventListener("click", () => ctx.go(`${HASH}&vy=mina`)); // vakten frågar om osparat
+  $('[data-act="prov"]')?.addEventListener("click", () => ctx.go(`${HASH}&prov=${encodeURIComponent(f.id)}&fran=mina`));
+  $('[data-act="kopia"]')?.addEventListener("click", () => ctx.go(`${HASH}&vy=ny&kopia=${encodeURIComponent(f.id)}`));
   $('[data-act="radera"]')?.addEventListener("click", async () => {
     if (!confirm(raderaText({ title: original?.title, leaderboard: original?.leaderboard === true }))) return;
     try {
       await raderaPack(f.id);
       slappVakt();
-      ctx.go(`${HASH}?vy=mina`);
+      ctx.go(`${HASH}&vy=mina`);
     } catch (err) {
       visaFel(err?.message || "Området kunde inte raderas.");
     }

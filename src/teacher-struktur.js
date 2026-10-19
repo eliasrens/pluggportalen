@@ -22,9 +22,7 @@ export const PLACERING = {
     hem: { roll: "alla", efter: "Hem", del: "E" },
     klasser: { roll: "alla", efter: "Mina klasser → Vad eleverna ser · Fokusläge · Elever", del: "B" },
     statistik: { roll: "alla", efter: "Mina klasser → Hur går det?", del: "B" },
-    innehall: { roll: "alla", efter: "Material → Plugga-områden", del: "D" },
-    brakresan: { roll: "alla", efter: "Material → Bråkresan", del: "D" },
-    hittaratt: { roll: "admin", efter: "Material → Hitta rätt! (och kort på Admin)", del: "D" },
+    material: { roll: "alla", efter: "Material (underflikarna nedan)", del: "D" },
     prov: { roll: "alla", efter: "Prov → Mina prov (med Att rätta överst)", del: "E" },
     provtillfallen: { roll: "alla", efter: "Prov → Provtillfällen", del: "–" },
     live: { roll: "alla", efter: "Live", del: "–" },
@@ -33,6 +31,16 @@ export const PLACERING = {
     konton: { roll: "admin", efter: "Admin → Lärarkonton", del: "C" },
     sasong: { roll: "admin", efter: "Admin → Säsong", del: "C" },
     hjalp: { roll: "alla", efter: "Profilmenyn → Hjälp och guide", del: "F" },
+  },
+  // Materialets underflikar (#806, teacher-material-flikar.js): var de gamla flikarna Plugga-material,
+  // Bråkresan och Hitta rätt! (och de nya Läsresan, Ekvationsresan, Schack) ligger.
+  material: {
+    plugga: { roll: "alla", efter: "Material → Plugga-områden", del: "D" },
+    lasresan: { roll: "alla", efter: "Material → Läsresan (förklaring + länk till nivåerna)", del: "D" },
+    ekvationsresan: { roll: "alla", efter: "Material → Ekvationsresan (prova som lärare)", del: "D" },
+    brakresan: { roll: "alla", efter: "Material → Bråkresan (testläge)", del: "D" },
+    "hitta-ratt": { roll: "admin", efter: "Material → Hitta rätt! (och kort på Admin)", del: "D" },
+    schack: { roll: "alla", efter: "Material → Schack (prova mot datorn)", del: "D" },
   },
   sektioner: {
     inloggning: { roll: "alla", efter: "Mina klasser → Elever", del: "B" },

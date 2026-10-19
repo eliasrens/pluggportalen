@@ -1,0 +1,87 @@
+/* ==========================================================================
+   Lärarsidan: Material med underflikar (#806, epic #802 DEL 4)
+   Flikraden, raden om var klassinställningarna finns och testlägesbannern.
+   Allt scopat under .teacher-dark; själva vyerna (materialtabellen, Bråkresan,
+   Hitta rätt!) har sina egna stilar och är oförändrade.
+   ========================================================================== */
+
+.teacher-dark .mat-flikar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 12px;
+  padding: 5px;
+  background: var(--t-surface);
+  border: 1px solid var(--t-border);
+  border-radius: 12px;
+  width: fit-content;
+  max-width: 100%;
+}
+.teacher-dark .mat-flik {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 9px;
+  color: var(--t-muted);
+  font-weight: 650;
+  text-decoration: none;
+  cursor: pointer;
+}
+.teacher-dark .mat-flik:hover { color: var(--t-text); background: var(--t-raised); }
+.teacher-dark .mat-flik.active { color: var(--t-text); background: var(--t-accent-soft); }
+.teacher-dark .mat-flik.active .t-icon { color: var(--t-accent); }
+
+/* "Var ändrar jag klassens inställningar?" – en lugn rad överst i varje flik. */
+.teacher-dark .mat-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 14px;
+  color: var(--t-muted);
+  font-size: 0.92rem;
+  max-width: 78ch;
+}
+.teacher-dark .mat-hint .t-icon { flex: none; margin-top: 3px; color: var(--t-accent); }
+.teacher-dark .mat-hint a { color: var(--t-accent); font-weight: 650; text-decoration: none; cursor: pointer; }
+.teacher-dark .mat-hint a:hover { text-decoration: underline; }
+
+/* De flyttade vyerna har en egen .teacher-page-rot: ingen dubbel luft inuti ytan. */
+.teacher-dark .mat-host > .teacher-page { padding: 0; margin: 0; }
+
+.teacher-dark .mat-testbanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 9px 12px;
+  border: 1px solid var(--t-border-strong);
+  border-radius: 10px;
+  background: var(--t-surface);
+  color: var(--t-muted);
+  font-size: 0.92rem;
+}
+.teacher-dark .mat-testbanner .t-icon { flex: none; color: var(--t-accent); }
+
+.teacher-dark .mat-ekv-val { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; }
+.teacher-dark .mat-ekv-val select { width: auto; max-width: 100%; }
+.teacher-dark .mat-info h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; }
+.teacher-dark .mat-info p { max-width: 70ch; }
+.teacher-dark .mat-niva-tabell { width: 100%; max-width: 420px; }
+.teacher-dark .mat-niva-tabell th,
+.teacher-dark .mat-niva-tabell td { text-align: left; padding: 6px 10px; }
+
+@media (max-width: 600px) {
+  .teacher-dark .mat-flikar { width: 100%; }
+  .teacher-dark .mat-flik { padding: 8px 11px; }
+}
+
+/* Schackvyerna är elevens (ljusa) och ärver annars lärarsidans ljusa text: lägg dem på en ljus yta. */
+.teacher-dark .mat-schack .schack-rot {
+  background: var(--ljus);
+  color: var(--text);
+  border-radius: 16px;
+  padding: 16px;
+}
+.teacher-dark .mat-schack .schack-rot label { color: var(--text); }
+.teacher-dark .mat-schack .schack-rot :is(h1, h2, h3, .schack-notis) { color: var(--text); }

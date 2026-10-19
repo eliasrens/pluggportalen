@@ -18,13 +18,14 @@ import { readFileSync } from "node:fs";
 import { installeraFirebaseStubbe, installeraWebbStubbe } from "./helpers/firebase-stub-loader.js";
 import { GAMLA_ADRESSER, NYA_PLATSER, PLACERING } from "../src/teacher-struktur.js";
 
-let shared, sections, stats;
+let shared, sections, stats, material;
 before(async () => {
   installeraFirebaseStubbe();
   installeraWebbStubbe();
   shared = await import("../src/teacher-shared.js");
   sections = await import("../src/teacher-classes-sections.js");
   stats = (await import("../src/teacher-class.js")).STATS_TABS;
+  material = await import("../src/teacher-material-flikar.js");
 });
 
 const ROLLER = { arskurs: false, admin: true };
@@ -71,6 +72,7 @@ describe("placeringskartan (§0.1)", () => {
     ["flikar", shared.TEACHER_TABS.map((t) => t.key)],
     ["sektioner", sections.CLASS_SECTIONS.map((s) => s.key)],
     ["statistik", stats.map((s) => s.key)],
+    ["material", material.MATERIAL_FLIKAR.map((f) => f.key)], // Materialets underflikar (#806)
   ];
   it("varje flik, sektion och statistikflik har en plats efter omgörningen", () => {
     for (const [del, keys] of fall()) {
@@ -134,10 +136,10 @@ describe("gamla adresser (DEL 7)", () => {
     assert.equal(mal("#/larare"), "#/larare/hem");
     assert.equal(mal("#/larare/klass"), "#/larare/statistik");
     assert.equal(mal("#/larare/elever"), "#/larare/klasser");
-    assert.equal(mal("#/larare/prompter"), "#/larare/innehall");
+    assert.equal(mal("#/larare/prompter"), "#/larare/material?flik=plugga"); // via innehall (#806)
   });
   it("parametrarna följer med: ?prov= till Hitta rätt!, ?klass= till klassvyn", () => {
-    assert.equal(mal("#/larare/hitta-ratt?prov=sverige&fran=fardiga"), "#/larare/hitta-ratt?prov=sverige&fran=fardiga");
+    assert.equal(mal("#/larare/hitta-ratt?prov=sverige&fran=fardiga"), "#/larare/material?flik=hitta-ratt&prov=sverige&fran=fardiga");
     assert.equal(mal("#/larare/klass?klass=4b"), "#/larare/statistik?klass=4b");
     assert.equal(mal("#/larare/oversikt?x=1"), "#/larare/hem?x=1");
   });

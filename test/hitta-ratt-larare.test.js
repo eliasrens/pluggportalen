@@ -243,11 +243,13 @@ describe("provspel (rättning i klienten)", () => {
 });
 
 describe("lärarfliken och bootgrafen", () => {
-  it("en rad i TEACHER_TABS med lazy import av lärarsidan", () => {
-    const src = readFileSync(join(SRC, "teacher-shared.js"), "utf8");
-    // #679: registry-raden byggs med tab(key, hash, grupp, …, load, fn, admin).
-    assert.match(src, /tab\("hittaratt", "#\/larare\/hitta-ratt"[^\n]*import\("\.\/hitta-ratt\/larare\/page-larare-hitta-ratt\.js"\), "pageLarareHittaRatt"/);
-    assert.doesNotMatch(src, /^import .*hitta-ratt/m, "ingen statisk import");
+  it("Hitta rätt! är en underflik i Material (#806) med lazy import av lärarsidan", () => {
+    const src = readFileSync(join(SRC, "teacher-material-flikar.js"), "utf8");
+    assert.match(src, /key: "hitta-ratt"[^\n]*admin: true/);
+    assert.match(src, /import\("\.\/hitta-ratt\/larare\/page-larare-hitta-ratt\.js"\)\)\.pageLarareHittaRatt/);
+    for (const f of ["teacher-shared.js", "teacher-material-flikar.js", "teacher-material.js"]) {
+      assert.doesNotMatch(readFileSync(join(SRC, f), "utf8"), /^import .*hitta-ratt/m, `${f}: ingen statisk import`);
+    }
   });
   it("lärarmodulerna är max 400 rader", () => {
     for (const f of ["page-larare-hitta-ratt", "lhr-fardiga", "lhr-mina", "lhr-redigera", "lhr-fragor", "lhr-data", "lhr-provspel", "lhr-modell"]) {

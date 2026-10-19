@@ -8,11 +8,12 @@
 // kan därför inte ändras; servern nekar dessutom lärarkonton i alla
 // brakresa*-callables (functions/index.js, test/functions-brakresan*.mjs).
 //
-//   #/larare/brakresan                         alla 50, i ämnesgrupper
-//   #/larare/brakresan?u=NN[&seed=…]           granska: tio uppgifter med facit och hjälp
-//   #/larare/brakresan?u=NN&vy=spela[&seed=…]  spela som en elev (demoBackend)
+//   #/larare/material?flik=brakresan                         alla 50, i ämnesgrupper
+//   #/larare/material?flik=brakresan&u=NN[&seed=…]           granska: tio uppgifter med facit och hjälp
+//   #/larare/material?flik=brakresan&u=NN&vy=spela[&seed=…]  spela som en elev (demoBackend)
+// (förr #/larare/brakresan – omdirigeras, #806)
 // "Ny variant" byter seed – samma seed ger alltid samma tio uppgifter.
-// Registreras i TEACHER_TABS (teacher-shared.js) med lazyPage (#271).
+// Ritas som underfliken Bråkresan i Material (teacher-material.js), laddad med import() (#271).
 // ============================================================================
 
 import { el, esc, icon, isTeacher, renderGate, teacherHead, teacherNav } from "../../teacher-shared.js";
@@ -21,12 +22,12 @@ import { CHALLENGES, SECTIONS, challengeMeta, extraLabel, isChallengeId } from "
 import { loadChallenge } from "../utmaningar/index.js";
 import { laddaLarareCss } from "./vy-delat.js";
 
-const HASH = "#/larare/brakresan";
+const HASH = "#/larare/material?flik=brakresan"; // Material → Bråkresan (#806)
 const STEG = { orientering: "Orientering", princip: "Princip", modellering: "Modellering", atergang: "Nu provar du själv" };
 const nySeed = () => `larare-${Date.now().toString(36)}-${Math.floor(Math.random() * 1e6).toString(36)}`;
 const rensaSeed = (s) => (typeof s === "string" ? s.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 40) : "");
 const lank = (u, { vy = null, seed = null } = {}) =>
-  `${HASH}?u=${u}${vy ? `&vy=${vy}` : ""}${seed ? `&seed=${encodeURIComponent(seed)}` : ""}`;
+  `${HASH}&u=${u}${vy ? `&vy=${vy}` : ""}${seed ? `&seed=${encodeURIComponent(seed)}` : ""}`;
 
 const BANNER = `<p class="brl-testbanner" role="note">${icon("eye", 16)}
   <span><b>Testläge.</b> Inget sparas: elevernas resultat, mynt, stjärnor, draknivåer och jaktdagar ändras aldrig.</span></p>`;
@@ -94,7 +95,8 @@ export async function pageLarareBrakresan(ctx) {
   const vy = p.vy === "spela" ? "spela" : "granska";
   await laddaLarareCss();
   const sida = el(`<div class="teacher-page teacher-dark brl-testsida"></div>`);
-  sida.append(teacherNav(ctx, "brakresan"), teacherHead(ctx, "brakresan"), el(BANNER));
+  if (!ctx.embedded) sida.append(teacherNav(ctx, "material"), teacherHead(ctx, "material")); // Material (#806) har ramen
+  sida.append(el(BANNER));
   ctx.app.replaceChildren(sida);
 
   if (!id) {

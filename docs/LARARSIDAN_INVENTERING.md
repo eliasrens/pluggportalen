@@ -21,9 +21,7 @@ Godkänd förhandsvisning: [`preview/preview-lararsida-struktur.html`](../previe
 | Översikt/Hem `flikar.hem` (`#/larare/hem`, förr `#/larare/oversikt`) | Översikt | alla | **Hem** [A: byter namn och adress; E: ny Hem-sida] | 1 → 1 |
 | Statistik `flikar.statistik` (`#/larare/statistik`) | Statistik (eget toppval) | alla | Mina klasser → **Hur går det?** [A: Mina klasser öppnar statistiken; B: fliken] | 1 → 1 |
 | Klasser `flikar.klasser` (`#/larare/klasser`) | Klasser | alla | Mina klasser → Vad eleverna ser · Fokusläge · Elever [A: underfliken Klassinställningar; B: flikarna] | 1 → A: 2 (Hem-korten: 1) · slut: 2 |
-| Plugga-material `flikar.innehall` (`#/larare/innehall`) | Material → Plugga-material | alla | Material → **Plugga-områden** [D] | 1 → 1 |
-| Bråkresan testläge `flikar.brakresan` (`#/larare/brakresan`) | Material → Bråkresan | alla | Material → Bråkresan [D] | 2 → 2 |
-| Hitta rätt! (paket, egna områden, bilder) `flikar.hittaratt` (`#/larare/hitta-ratt`) | Material → Hitta rätt! | admin | Material → Hitta rätt! + kort på Admin [D, C] | 2 → 2 |
+| Material `flikar.material` (`#/larare/material?flik=…`), förr Plugga-material `#/larare/innehall`, Bråkresan testläge `#/larare/brakresan` och Hitta rätt! `#/larare/hitta-ratt` | Material → Plugga-material · Bråkresan · Hitta rätt! (tre flikar) | alla (Hitta rätt!: admin) | **Material** med underflikar Plugga-områden · Läsresan · Ekvationsresan · Bråkresan · Hitta rätt! · Schack; de gamla adresserna omdirigeras (`?prov=` följer med) [D #806] | 1–2 → 1–2 |
 | Mina prov `flikar.prov` (`#/larare/prov`) | Prov → Mina prov | alla | Prov → Mina prov, "Att rätta" överst [E] | 1 → 1 |
 | Provtillfällen `flikar.provtillfallen` (`#/larare/prov/tillfallen`) | Prov → Provtillfällen | alla | Prov → Provtillfällen | 2 → 2 |
 | Live `flikar.live` (`#/larare/live`) | Live och tävlingar → Live | alla | **Live** (byter namn) | 1 → 1 |
@@ -93,21 +91,21 @@ Alla ligger i dag under Statistik → klass → underflik, och efter B under Min
 
 | Funktion | Var i dag | Vem | Var efter omgörningen | Klick i dag → efter |
 | --- | --- | --- | --- | --- |
-| Ämnesflikar, Allt material / Mitt material, årskursfilter, sortering (Område/Årskurs) | Material → Plugga-material | alla | Material → Plugga-områden, oförändrad [D] | 1 → 1 |
+| Ämnesflikar, Allt material / Mitt material, årskursfilter, sortering (Område/Årskurs) | Material → Plugga-material | alla | Material → Plugga-områden, oförändrad (`material.plugga`) [D #806] | 1 → 1 |
 | Nytt ämne | Plugga-material | admin | Plugga-områden [D] | 1 → 1 |
 | Skapa nytt område (guiden steg 1–4, AI-verkstad: Kopiera AI-prompt, Infoga exempel, Kontrollera, Spara) | Plugga-material | alla | Plugga-områden [D] | 2 → 2 |
 | Använd (→ klassens Områden) | Plugga-material → rad | alla | Plugga-områden → rad (→ Mina klasser → Vad eleverna ser) [D] | 2 → 2 |
 | Duplicera (egen kopia) | Plugga-material → rad | alla | Plugga-områden → rad [D] | 2 → 2 |
-| Redigera (guiden) | Plugga-material → rad (eget material) | alla (admin: allt) | Plugga-områden → rad, ikonknapp med `title`/`aria-label` [D] | 2 → 2 |
+| Redigera (guiden) | Plugga-material → rad (eget material) | alla (admin: allt) | Plugga-områden → rad, ikonknapp med `title`/`aria-label` (med områdets namn) [D #806] | 2 → 2 |
 | Granska innehållet / underrader: redigera, lägg till, ta bort frågor, par, texter, spann (Ångra) | Plugga-material → rad | alla (eget) | Plugga-områden → rad [D] | 2 → 2 |
 | Lägg till innehåll (Kopiera AI-prompt för mer innehåll, Visa exempel, Kontrollera, Lägg till i området) | Plugga-material → rad | alla (eget) | Plugga-områden → rad [D] | 2 → 2 |
 | Skapa ämnestexter (Kopiera AI-prompt, Kontrollera, Förhandsgranska, Spara) | Plugga-material → rad | alla (eget) | Plugga-områden → rad [D] | 2 → 2 |
 | Ta bort område (med bekräftelse) | Plugga-material → rad | alla (eget) | Plugga-områden → rad [D] | 2 → 2 |
-| Bråkresan testläge: Granska med facit, Spela som elev, Kontrollera, Visa hjälp, Ny variant | Material → Bråkresan | alla | Material → Bråkresan [D] | 2 → 2 |
-| Hitta rätt!: Färdiga områden (Visa innehåll, Provspela, Duplicera till Mina områden), Mina områden (Redigera, Provspela, Duplicera, Skapa nytt), redigeraren (kartval, platssök i OpenStreetMap, bilder: Sök bild online/Ladda upp egen, frågor, Spara, Radera), provspel `?prov=` | Material → Hitta rätt! | admin | Material → Hitta rätt! (`?prov=` som förut) [D] | 2 → 2 |
-| Läsresan: texter per nivå | – (lärarvy saknas) | – | Material → Läsresan: förklaring + länk till nivåerna [D] | – |
-| Ekvationsresan: prova som lärare | – | – | Material → Ekvationsresan om testläge finns [D] | – |
-| Schack: prova mot datorn | – | – | Material → Schack om testläge finns [D] | – |
+| Bråkresan testläge `material.brakresan`: Granska med facit, Spela som elev, Kontrollera, Visa hjälp, Ny variant | Material → Bråkresan | alla | Material → Bråkresan (`material.brakresan`) [D #806] | 2 → 2 |
+| Hitta rätt! `material.hitta-ratt`: Färdiga områden (Visa innehåll, Provspela, Duplicera till Mina områden), Mina områden (Redigera, Provspela, Duplicera, Skapa nytt), redigeraren (kartval, platssök i OpenStreetMap, bilder: Sök bild online/Ladda upp egen, frågor, Spara, Radera), provspel `?prov=` | Material → Hitta rätt! | admin | Material → Hitta rätt! (`material.hitta-ratt`, `?prov=` som förut) [D #806] | 2 → 2 |
+| Läsresan: texter per nivå `material.lasresan` | – (lärarvy saknas) | – | Material → Läsresan: förklaring, nivåtabell och länk till nivåerna (Mina klasser → Hur går det? → Läsresan) [D #806] | – |
+| Ekvationsresan: prova som lärare `material.ekvationsresan` | – (testläge saknas) | alla | Material → Ekvationsresan: nytt testläge på vald nivå, samma spelvy i ett minneslager, inget sparas [D #806] | – → 2 |
+| Schack: prova mot datorn `material.schack` | – (testläge saknas) | alla | Material → Schack: nivåval och parti mot datorn, bara lokalt pågående parti, inga mynt/räknare [D #806] | – → 2 |
 
 ## 7. Prov
 
@@ -149,9 +147,9 @@ Ett mål som är samma route betyder "dagens sida är fortfarande platsen" – B
 | `#/larare/klasser` | Mina klasser → Vad eleverna ser | `#/larare/klasser` (Mina klasser → Klassinställningar) |
 | `#/larare/statistik` (och `#/larare/klass`) | Mina klasser → Hur går det? | `#/larare/statistik` (Mina klasser → Statistik) |
 | `#/larare/admin/klasser` | Admin, och för en vald klass Mina klasser → Elever | `#/larare/admin/klasser` |
-| `#/larare/innehall` (och `#/larare/prompter`) | Material → Plugga-områden | `#/larare/innehall` |
-| `#/larare/brakresan` | Material → Bråkresan | `#/larare/brakresan` |
-| `#/larare/hitta-ratt` | Material → Hitta rätt! (`?prov=` fungerar som förut) | `#/larare/hitta-ratt` |
+| `#/larare/innehall` (och `#/larare/prompter`) | Material → Plugga-områden | `#/larare/material?flik=plugga` (#806) |
+| `#/larare/brakresan` | Material → Bråkresan | `#/larare/material?flik=brakresan` (#806) |
+| `#/larare/hitta-ratt` | Material → Hitta rätt! (`?prov=` fungerar som förut) | `#/larare/material?flik=hitta-ratt` (#806; `?prov=`, `?vy=` följer med) |
 | `#/larare/elever` | Mina klasser | `#/larare/klasser` |
 
 ## 11. Att veta (rapport)

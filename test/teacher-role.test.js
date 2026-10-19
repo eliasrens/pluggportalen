@@ -45,10 +45,12 @@ test("toppnaven: Hem, Mina klasser, Material, Prov, Live, Admin (#803), admin-fl
   const src = readFileSync(join(SRC, "teacher-shared.js"), "utf8");
   const groups = [...src.matchAll(/\{ key: "(\w+)", label: "([^"]+)", icon:/g)].map((m) => m[2]);
   assert.deepEqual(groups, ["Hem", "Mina klasser", "Material", "Prov", "Live", "Admin"]);
-  for (const key of ["hittaratt", "mattematchen", "adminklasser", "konton"]) {
+  for (const key of ["mattematchen", "adminklasser", "konton"]) {
     assert.match(src, new RegExp(`tab\\("${key}",[^\\n]*, true\\),`), `${key} är bara för admin`);
   }
-  for (const key of ["hem", "klasser", "innehall", "prov", "provtillfallen", "live", "statistik"]) {
+  // Hitta rätt! är en admin-flik under Material (#806); Material i sig syns för alla.
+  assert.match(readFileSync(join(SRC, "teacher-material-flikar.js"), "utf8"), /key: "hitta-ratt"[^\n]*admin: true/);
+  for (const key of ["hem", "klasser", "material", "prov", "provtillfallen", "live", "statistik"]) {
     assert.doesNotMatch(src, new RegExp(`tab\\("${key}",[^\\n]*, true\\),`), `${key} syns för alla`);
   }
 });
