@@ -248,11 +248,11 @@ describe("markupen", () => {
 });
 
 describe("laddningen (#271)", () => {
-  it("sektionen finns i Klasser-läget och laddas bara med import()", () => {
-    const s = kod("src/teacher-classes-sections.js");
-    assert.match(s, /klasser: \{[^\n]*sections: \[[^\]]*"schack"/);
-    assert.match(s, /key: "schack",/);
+  it("Schack är en underflik i Hur går det? (#804) och laddas bara med import()", () => {
+    const s = kod("src/teacher-class.js");
+    assert.match(s, /key: "schack",[^\n]*modul: "schack"/);
     assert.match(s, /await import\("\.\/schack\/larare\/schack-larare\.js"\)\)\.renderSchackSektion/);
+    assert.doesNotMatch(kod("src/teacher-classes-sections.js"), /key: "schack",/);
     for (const f of readdirSync(join(ROOT, "src")).filter((x) => x.endsWith(".js"))) {
       assert.doesNotMatch(kod(`src/${f}`), /^\s*(?:import|export)\s[^;]*?from\s+["']\.\/schack\//m, `src/${f} importerar schack statiskt`);
     }

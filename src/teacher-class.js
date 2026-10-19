@@ -26,6 +26,8 @@ import { avatarEmoji } from "./avatars.js";
 import { el, esc, emptyState, icon } from "./teacher-shared.js";
 import { MAX_STARS_PER_MODE, areaModes, areaEarned, progressLevel } from "./teacher-class-stats.js";
 import { openStudentDetail } from "./teacher-class-detail.js";
+import { avNotis, lastStatsTab, modulAv, sparaStatsTab } from "./teacher-stats-av.js";
+import { schackLararIkon } from "./teacher-schack-ikon.js";
 
 /** Cellens innehåll för en elev × ett område. */
 function cellHtml(earned, maxStars) {
@@ -62,15 +64,17 @@ function cellHtml(earned, maxStars) {
  */
 export async function renderClassStats(ctx, host, opts) {
   // Underflikar ur STATS_TABS (#402 Läsresan, #446 Per område, #459 Mattematchen,
-  // #460 Live). `when` döljer flikar som kräver t.ex. classId. Elevernas
+  // #460 Live, #804 Schack). `when` döljer flikar som kräver t.ex. classId. Elevernas
   // progress läses EN gång och delas mellan flikarna (kvot-regeln #114).
   let progressPromise = null;
   const loadProgress = () => (progressPromise ||= loadClassProgress(opts.students));
   const tabOpts = { ...opts, loadProgress };
   const tabs = STATS_TABS.filter((t) => !t.when || t.when(opts));
+  // #804 (§3.2): en modul som är avstängd för klassen → fliken nedtonad med "· av".
+  const av = (t) => !!(t.modul && opts.cls && modulAv(opts.cls, t.modul));
   const view = el(`<div class="stats-tabs-wrap">
     <div class="stats-tabs" role="tablist" aria-label="Statistik">${tabs.map(
-      (t) => `<button type="button" class="stats-tab" role="tab" data-tab="${t.key}">${icon(t.icon, 16)}<span>${esc(t.label)}</span></button>`
+      (t) => `<button type="button" class="stats-tab${av(t) ? " av" : ""}" role="tab" data-tab="${t.key}">${t.svg ? t.svg(16) : icon(t.icon, 16)}<span>${esc(t.label)}${av(t) ? '<span class="stats-av"> · av</span>' : ""}</span></button>`
     ).join("")}</div>
     ${tabs.map((t) => `<div class="stats-pane" data-pane="${t.key}" hidden></div>`).join("")}
   </div>`);
@@ -78,7 +82,8 @@ export async function renderClassStats(ctx, host, opts) {
   const rendered = new Set();
   const show = (key) => {
     const tab = tabs.find((t) => t.key === key) || tabs[0];
-    lastStatsTab = tab.key;
+    sparaStatsTab(tab.key);
+    opts.onTab?.(tab.key);
     view.querySelectorAll(".stats-tab").forEach((b) => {
       const on = b.dataset.tab === tab.key;
       b.classList.toggle("active", on);
@@ -88,17 +93,21 @@ export async function renderClassStats(ctx, host, opts) {
     if (rendered.has(tab.key)) return;
     rendered.add(tab.key);
     const pane = view.querySelector(`[data-pane="${tab.key}"]`);
-    if (!tab.lazy) return tab.render(ctx, pane, tabOpts);
-    pane.replaceChildren(el(`<div class="spinner">Laddar ${esc(tab.what)}…</div>`));
+    // Avstängd: texten + länk till "Vad eleverna ser" överst, statistiken och
+    // klassinställningarna (t.ex. nivåerna) står kvar under den.
+    const target = av(tab) ? avNotis(ctx, pane, tab, opts) : pane;
+    if (!tab.lazy) return tab.render(ctx, target, tabOpts);
+    target.replaceChildren(el(`<div class="spinner">Laddar ${esc(tab.what)}…</div>`));
     return Promise.resolve()
-      .then(() => tab.render(ctx, pane, tabOpts))
+      .then(() => tab.render(ctx, target, tabOpts))
       .catch((err) => {
         rendered.delete(tab.key);
-        pane.replaceChildren(el(`<div class="msg error">Kunde inte ladda ${esc(tab.what)}: ${esc(err.message)}</div>`));
+        target.replaceChildren(el(`<div class="msg error">Kunde inte ladda ${esc(tab.what)}: ${esc(err.message)}</div>`));
       });
   };
   view.querySelectorAll(".stats-tab").forEach((b) => b.addEventListener("click", () => show(b.dataset.tab)));
-  await show(["live", "mattematchen", "prov"].includes(lastStatsTab) && !opts.classId ? "amnen" : lastStatsTab);
+  const start = opts.tab || lastStatsTab();
+  await show(["live", "mattematchen", "prov", "schack"].includes(start) && !opts.classId ? "amnen" : start);
 }
 
 /** Elev-id → progress för klassens elever (en läsning per elev; fel → {}). */
@@ -111,21 +120,21 @@ async function loadClassProgress(students) {
 // Statistikens underflikar. `lazy` = modulen laddas med import() vid första
 // klick – aldrig i bootgrafen (#271). En ny vy = en rad här.
 export const STATS_TABS = [
-  { key: "amnen", label: "Ämnen", icon: "chart", render: (ctx, pane, o) => renderSubjectStats(ctx, pane, o) },
+  { key: "amnen", label: "Ämnen", icon: "chart", modul: "plugga", render: (ctx, pane, o) => renderSubjectStats(ctx, pane, o) },
   {
-    key: "omraden", label: "Per område", icon: "pin", what: "resultat per område", lazy: true,
+    key: "omraden", label: "Per område", icon: "pin", what: "resultat per område", lazy: true, modul: "plugga",
     // #446: klasstabell per ämne/område + djupdykning per frågekategori.
     render: async (ctx, pane, o) => (await import("./teacher-plugga.js")).renderClassPlugga(ctx, pane, o),
   },
   {
-    key: "lasresan", label: "Läsresan", icon: "book", what: "Läsresan", lazy: true,
+    key: "lasresan", label: "Läsresan", icon: "book", what: "Läsresan", lazy: true, modul: "lasresan",
     render: async (ctx, pane, o) =>
       (await import("./teacher-lasresan.js")).renderClassLasresan(ctx, pane, {
         students: o.students, cls: o.cls, classes: o.classes, studentById: o.studentById, // #506 nivåstyrning
       }),
   },
   {
-    key: "ekvationsresan", label: "Ekvationsresan", icon: "sliders", what: "Ekvationsresan", lazy: true,
+    key: "ekvationsresan", label: "Ekvationsresan", icon: "sliders", what: "Ekvationsresan", lazy: true, modul: "ekvationsresan",
     // #619: klassöversikt + elevdetalj med räknegång + nivåstyrning.
     render: async (ctx, pane, o) =>
       (await import("./teacher-ekvationsresan.js")).renderClassEkvationsresan(ctx, pane, {
@@ -140,7 +149,7 @@ export const STATS_TABS = [
       (await import("./prov/prov-klass-statistik.js")).renderClassProv(ctx, pane, { classId: o.classId, students: o.students }),
   },
   {
-    key: "brakresan", label: "Bråkresan", icon: "brak", what: "Bråkresan", lazy: true,
+    key: "brakresan", label: "Bråkresan", icon: "brak", what: "Bråkresan", lazy: true, modul: "brakresan",
     // #716: klassöversikt, matris, individvy och rekommendationer (src/brakresan/larare/).
     render: async (ctx, pane, o) =>
       (await import("./brakresan/larare/klass.js")).renderClassBrakresan(ctx, pane, {
@@ -161,10 +170,17 @@ export const STATS_TABS = [
     render: async (ctx, pane, o) =>
       (await import("./live/teacher-live-history.js")).renderClassLiveStats(ctx, pane, { classId: o.classId, students: o.students }),
   },
+  {
+    key: "schack", label: "Schack", icon: "eye", svg: schackLararIkon, what: "schack", lazy: true, modul: "schack",
+    when: (o) => !!o.classId,
+    // #781/#804: förr klassens sektion "Schack" – modulen på/av, pågående partier,
+    // avsluta, topplistan och statistiken. Lyssnarna stängs när vyn lämnas.
+    render: async (ctx, pane, o) =>
+      (await import("./schack/larare/schack-larare.js")).renderSchackSektion(ctx, o.cls, pane, {
+        students: o.studentById ? [...o.studentById.values()] : o.students,
+      }),
+  },
 ];
-
-// Senast valda statistikflik (delas mellan klasskort under sessionen).
-let lastStatsTab = "amnen";
 
 /** Ämnesfliken: klassens stjärnmatris (elever × arbetsområden). */
 async function renderSubjectStats(ctx, host, { students, subjects, studentById, loadAreas, loadProgress, cls }) {

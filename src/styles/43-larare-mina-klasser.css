@@ -1,0 +1,188 @@
+/* ==========================================================================
+   === Mina klasser #804 (epic #802 §3.1–3.3) ===
+   --------------------------------------------------------------------------
+   Klassväljaren (knappar / sök + rullgardin), fyra flikar med undertext,
+   statistikens "· av"-flikar och Vad eleverna ser i tre numrerade steg.
+   Samma mörka tema och gröna accent som resten av lärarsidan. Allt scopat
+   under .teacher-dark – inga horisontella scrollbars ner till 320 px.
+   ========================================================================== */
+.teacher-dark.mk-page { min-width: 0; }
+.teacher-dark .mk-lead {
+  margin: 0 0 12px;
+  color: var(--t-muted);
+}
+
+/* --- Klassväljaren --------------------------------------------------------- */
+.teacher-dark .mk-klassval {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 14px;
+}
+.teacher-dark .mk-klassknapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 8px 16px;
+  border: 1px solid var(--t-border-strong);
+  border-radius: 12px;
+  background: var(--t-surface);
+  color: var(--t-text);
+  font: inherit;
+  font-weight: 700;
+  font-size: 1.02rem;
+  cursor: pointer;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.teacher-dark .mk-klassknapp:hover { border-color: var(--t-accent); }
+.teacher-dark .mk-klassknapp:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 2px; }
+.teacher-dark .mk-klassknapp[aria-pressed="true"] {
+  background: var(--t-accent-soft);
+  border-color: var(--t-accent);
+  color: #eafff2;
+}
+.teacher-dark .mk-las { display: inline-flex; color: var(--t-muted); }
+.teacher-dark .mk-klassval-sok .mk-sok,
+.teacher-dark .mk-klassval-sok .mk-sok-val { flex: 1 1 220px; min-width: 0; }
+.teacher-dark .mk-sok-falt,
+.teacher-dark .mk-klass-select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 1.5px solid var(--t-border-strong);
+  border-radius: 10px;
+  background: var(--t-surface);
+  color: var(--t-text);
+  font: inherit;
+  font-weight: 600;
+}
+
+/* --- Vald klass + flikarna ----------------------------------------------- */
+.teacher-dark .mk-klass {
+  margin: 0;
+  min-width: 0;
+  padding: 20px 24px 24px;
+}
+.teacher-dark .mk-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 12px;
+}
+.teacher-dark .mk-namn {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--t-text);
+  overflow-wrap: anywhere;
+}
+.teacher-dark .mk-antal { padding: 2px 10px; border-radius: 999px; font-size: 0.82rem; }
+.teacher-dark .mk-flikar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 14px 0 0;
+  border-bottom: 1px solid var(--t-border);
+}
+.teacher-dark .mk-flik {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  padding: 10px 14px;
+  margin-bottom: -1px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: var(--t-muted);
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+.teacher-dark .mk-flik small { font-weight: 500; font-size: 0.75rem; color: var(--t-muted); opacity: 0.85; }
+.teacher-dark .mk-flik:hover { color: var(--t-text); }
+.teacher-dark .mk-flik:focus-visible { outline: none; border-radius: 8px 8px 0 0; box-shadow: inset 0 0 0 2px var(--t-accent-soft); }
+.teacher-dark .mk-flik.active { color: #eafff2; border-bottom-color: var(--t-accent); }
+.teacher-dark .mk-innehall { padding-top: 18px; min-height: 160px; min-width: 0; }
+.teacher-dark .mk-block .subhead { margin-top: 0; }
+
+/* Statistikens underflikar radbryts i stället för att skjuta ut sidan (9+ flikar). */
+.teacher-dark .mk-page .stats-tabs { display: flex; flex-wrap: wrap; max-width: 100%; box-sizing: border-box; }
+.teacher-dark .stats-tab.av { opacity: 0.6; }
+.teacher-dark .stats-tab.av.active { opacity: 1; }
+.teacher-dark .stats-av { font-weight: 500; }
+.teacher-dark .stats-av-notis { margin: 0 0 14px; }
+.teacher-dark .stats-av-lank { color: var(--t-accent); font-weight: 700; }
+
+/* --- Vad eleverna ser: tre numrerade steg ------------------------------- */
+.teacher-dark .mk-ser { display: flex; flex-direction: column; gap: 22px; }
+.teacher-dark .mk-ser-intro { margin: 0; color: var(--t-muted); }
+.teacher-dark .mk-steg + .mk-steg { padding-top: 20px; border-top: 1px solid var(--t-border); }
+.teacher-dark .mk-steg-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.teacher-dark summary.mk-steg-head { cursor: pointer; list-style: none; }
+.teacher-dark summary.mk-steg-head::-webkit-details-marker { display: none; }
+.teacher-dark summary.mk-steg-head::after { content: "▸"; color: var(--t-muted); }
+.teacher-dark details[open] > summary.mk-steg-head::after { content: "▾"; }
+.teacher-dark .mk-steg-nr {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--t-accent);
+  background: var(--t-accent-soft);
+  color: var(--t-accent);
+  font-weight: 800;
+}
+.teacher-dark .mk-steg-titel { margin: 0; font-size: 1.12rem; color: var(--t-text); flex: 1 1 200px; min-width: 0; }
+.teacher-dark .mk-steg-hjalp { margin: 8px 0 10px; }
+.teacher-dark .mk-sparat:empty { display: none; }
+.teacher-dark .mk-sparat {
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.teacher-dark .mk-sparat.ok { color: var(--t-accent); background: var(--t-accent-soft); }
+.teacher-dark .mk-sparat.andrat { color: #f5c26b; background: rgba(245, 194, 107, 0.12); }
+.teacher-dark .mk-sparat.fel { color: #ff8a80; background: rgba(255, 138, 128, 0.12); }
+
+/* Hela områdesnamnen (inga "Svensk His…"): bredare rutor och radbrytning. */
+.teacher-dark .mk-ser .member-grid { grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); }
+.teacher-dark .mk-ser .member-row { align-items: flex-start; min-width: 0; }
+.teacher-dark .mk-ser .member-name {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+/* --- Smal skärm (mobil 320–760 px) ---------------------------------------- */
+@media (max-width: 760px) {
+  .teacher-dark .mk-klass { padding: 14px 12px 18px; }
+  .teacher-dark .mk-namn { font-size: 1.25rem; }
+  .teacher-dark .mk-flikar { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 0; gap: 6px; }
+  .teacher-dark .mk-flik {
+    min-width: 0;
+    margin: 0;
+    padding: 8px 10px;
+    border: 1px solid var(--t-border);
+    border-radius: 10px;
+    overflow-wrap: anywhere;
+  }
+  .teacher-dark .mk-flik.active { border-color: var(--t-accent); background: var(--t-accent-soft); }
+  .teacher-dark .mk-klassknapp { padding: 8px 12px; min-height: 40px; }
+}

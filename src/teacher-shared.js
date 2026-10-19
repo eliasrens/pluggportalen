@@ -222,9 +222,8 @@ const tab = (key, hash, group, label, title, icon, load, fn, admin = false) =>
 export const TEACHER_TABS = [
   // Hem (#803): dagens översikt tills sub-issue E bygger den nya Hem-sidan.
   tab("hem", "#/larare/hem", "hem", "Hem", "Hem", "home", () => import("./teacher-overview.js"), "pageLarareOversikt"),
-  // Mina klasser (#803): dagens statistik (blir "Hur går det?") + klassida tills sub-issue B gör om dem.
-  tab("statistik", "#/larare/statistik", "klasser", "Statistik", "Statistik", "chart", () => import("./teacher-classes.js"), "pageLarareStatistik"),
-  tab("klasser", "#/larare/klasser", "klasser", "Klassinställningar", "Klassinställningar", "users", () => import("./teacher-classes.js"), "pageLarareKlasser"),
+  // Mina klasser (#804): klassväljare + Hur går det? | Vad eleverna ser | Fokusläge | Elever.
+  tab("klasser", "#/larare/mina-klasser", "klasser", "Mina klasser", "Mina klasser", "users", () => import("./teacher-classes.js"), "pageLarareMinaKlasser"),
   tab("innehall", "#/larare/innehall", "material", "Plugga-material", "Material", "book", () => import("./teacher-content.js"), "pageLarareInnehall"),
   // Bråkresan (#716): testläget – alla 50 utmaningar med facit, inget sparas. Statistiken finns under Statistik.
   tab("brakresan", "#/larare/brakresan", "material", "Bråkresan", "Bråkresan – testläge", "brak", () => import("./brakresan/larare/testlage.js"), "pageLarareBrakresan"),
@@ -253,8 +252,8 @@ export const TEACHER_TABS = [
 export const TEACHER_REDIRECTS = {
   "/larare": "#/larare/hem",
   "/larare/oversikt": "#/larare/hem", // Hem
-  "/larare/klasser": "#/larare/klasser", // B: Mina klasser → Vad eleverna ser
-  "/larare/statistik": "#/larare/statistik", // B: Mina klasser → Hur går det?
+  "/larare/klasser": "#/larare/mina-klasser?flik=ser", // Mina klasser → Vad eleverna ser (#804)
+  "/larare/statistik": "#/larare/mina-klasser?flik=hur", // Mina klasser → Hur går det? (#804)
   "/larare/admin/klasser": "#/larare/admin/klasser", // C: Admin / Mina klasser → Elever
   "/larare/innehall": "#/larare/innehall", // D: Material → Plugga-områden
   "/larare/brakresan": "#/larare/brakresan", // D: Material → Bråkresan
