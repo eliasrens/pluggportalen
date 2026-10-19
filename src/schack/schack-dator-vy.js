@@ -19,7 +19,7 @@ import { monteraHelskarm } from "./schack-helskarm.js";
 
 const TANK_MIN_MS = 350; // datorn "tänker" minst så här länge, så draget inte känns som ett ryck
 
-function panelHtml(niva, parti) {
+function panelHtml(niva, parti, tillbakaText = "‹ Till Schack") {
   return (
     `<div class="schack-panel-niva"><span class="schack-panel-pjas">${pjasSvg(parti.egenFarg === "w" ? "b" : "w", niva.pjas)}</span>` +
     `<span>Du spelar mot <b>${esc(niva.namn)}</b><small>${esc(niva.text)}</small></span></div>` +
@@ -38,7 +38,7 @@ function panelHtml(niva, parti) {
     `<label class="schack-varna-val"><input type="checkbox" data-act="varna"${parti.varna ? " checked" : ""} /> ` +
     `<span>Varna mig <small>om datorn kan ta min dam eller ett torn, eller göra matt</small></span></label>` +
     `<p class="schack-tips-text" aria-live="polite"></p>` +
-    `<button type="button" class="btn ghost liten schack-tillbaka" data-act="tillbaka">‹ Till Schack</button>`
+    `<button type="button" class="btn ghost liten schack-tillbaka" data-act="tillbaka">${esc(tillbakaText)}</button>`
   );
 }
 
@@ -53,6 +53,7 @@ function panelHtml(niva, parti) {
  * @param {Function} [o.onNytt]     "Spela igen"
  * @param {Function} [o.onBytNiva]  "Byt nivå"
  * @param {Function} [o.onTillbaka] "Till Schack"
+ * @param {string} [o.tillbakaText] knappens text (guidens lektion 12: "‹ Alla lektioner")
  * @param {(slut) => void} [o.onSlut] partiet tog slut – EN gång per parti (räknaren
  *        studentData.schack.datorPartier, #780); partiet får `raknad: true`, så en
  *        omladdning eller ett Ångra + nytt slut räknas inte igen
@@ -72,7 +73,7 @@ export function skapaDatorVy(host, o) {
   let levande = true;
 
   host.classList.add("schack-parti");
-  host.innerHTML = `<div class="schack-parti-brade"></div><aside class="schack-panel" aria-label="Hjälp mot datorn">${panelHtml(niva, parti)}</aside>`;
+  host.innerHTML = `<div class="schack-parti-brade"></div><aside class="schack-panel" aria-label="Hjälp mot datorn">${panelHtml(niva, parti, o.tillbakaText)}</aside>`;
   const $ = (s) => host.querySelector(s);
   const varnaRuta = $(".schack-varna-ruta");
   const geuppRuta = $(".schack-geupp-ruta");

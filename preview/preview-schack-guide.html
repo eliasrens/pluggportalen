@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Lär dig schack (#790)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      body { padding: 16px; background: var(--ljus); }
+      .wrap { max-width: 1100px; margin: 0 auto; display: grid; gap: 14px; }
+      .pv-verktyg { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 0.95rem; }
+      .pv-verktyg a { padding: 4px 10px; border-radius: 999px; background: #fff; border: 2px solid #d5deea; font-weight: 700; text-decoration: none; color: var(--text); }
+      .pv-verktyg a[aria-current="page"] { border-color: #13a39a; background: #dff5f2; }
+      .pv-verktyg label { display: inline-flex; gap: 6px; align-items: center; font-weight: 700; }
+      .pv-verktyg .btn { margin: 0; }
+      .pv-avatar { display: grid; place-items: center; width: 40px; height: 40px; background: var(--rosa); color: #fff; font-weight: 800; font-size: 1.2rem; }
+      .pv-logg { font: 12px/1.45 ui-monospace, monospace; color: var(--text-svag); white-space: pre-wrap; margin: 0; min-height: 3em; }
+      @media (max-width: 420px) { body { padding: 8px; } .pv-info { display: none; } }
+      /* ?app=1: samma ram som appen (sidomeny 264 px, .container 880 px, 24 px upptill; hamburgerrad under 820 px) – inga verktyg. */
+      body.pv-app { padding: 0 0 0 264px; }
+      body.pv-app .wrap { display: block; max-width: 880px; padding: 24px 20px 60px; box-sizing: border-box; }
+      body.pv-app .wrap > .panel { display: none !important; }
+      @media (max-width: 820px) { body.pv-app { padding-left: 0; } body.pv-app .wrap { padding-top: 72px; } }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="panel" style="margin:0; padding:12px 16px; display:grid; gap:8px">
+        <b>Lär dig schack (issue #790, spec §12) – guiden utan Firebase.</b>
+        <p class="pv-info" style="margin:0">Samma kod som <code>#/elev/schack?vy=lar</code> (<code>src/schack/schack-flode.js</code> →
+          <code>schack-guide-vy.js</code>). Framstegen (<code>studentData.schack.lektioner</code>) ligger här i
+          <code>localStorage</code> och finns kvar efter en omladdning; varje "skrivning" loggas nedan – den ska bara komma
+          när en lektion blir klar med ett bättre resultat. <code>window.schack</code> = flödet, <code>window.guideStub</code> = framstegen.</p>
+        <nav class="pv-verktyg" aria-label="Vy" id="nav">
+          <a href="#/elev/schack">Startsidan</a>
+          <a href="#/elev/schack?vy=lar">Översikten</a>
+        </nav>
+        <div class="pv-verktyg">
+          <label><input type="checkbox" id="snabb" /> Snabb dator (lektion 12)</label>
+          <label><input type="checkbox" id="stilla" /> Reducerad rörelse</label>
+          <button type="button" class="btn ghost liten" id="nollstall">Nollställ framstegen</button>
+          <span id="status"></span>
+        </div>
+        <pre class="pv-logg" id="logg"></pre>
+      </div>
+      <main id="app" class="schack-rot"></main>
+    </div>
+    <script type="module">
+      if (new URLSearchParams(location.search).has("app")) document.body.classList.add("pv-app");
+      import { visaSchack, stangSchack } from "../src/schack/schack-flode.js";
+
+      const HASH = "#/elev/schack";
+      const NYCKEL = "pp:schack:dator:preview-guide";
+      const FRAMSTEG = "pp:schack:guide:preview:lektioner";
+      const app = document.getElementById("app");
+      const logg = document.getElementById("logg");
+      const statusEl = document.getElementById("status");
+      const skriv = (rad) => { logg.textContent = `${new Date().toLocaleTimeString("sv-SE")} ${rad}\n${logg.textContent}`.split("\n").slice(0, 8).join("\n"); };
+      const nav = document.getElementById("nav");
+      for (let i = 1; i <= 12; i++) nav.insertAdjacentHTML("beforeend", `<a href="${HASH}?vy=lar&amp;lektion=${i}">${i}</a>`);
+
+      // Framstegen som "studentData.schack.lektioner" – en låtsas-Firestore i localStorage.
+      const lasFramsteg = () => { try { return JSON.parse(localStorage.getItem(FRAMSTEG) || "{}"); } catch { return {}; } };
+      let skrivningar = 0;
+      const guideStub = {
+        lektioner: lasFramsteg,
+        async spara(nr, stjarnor) {
+          skrivningar++;
+          const m = { ...lasFramsteg(), [String(nr)]: stjarnor };
+          try { localStorage.setItem(FRAMSTEG, JSON.stringify(m)); } catch {}
+          skriv(`SKRIVNING #${skrivningar}: schack.lektioner.${nr} = ${stjarnor}`);
+          visaStatus();
+          return true;
+        },
+        skrivningar: () => skrivningar,
+      };
+      window.guideStub = guideStub;
+      const visaStatus = () => { statusEl.textContent = `Sparat: ${JSON.stringify(lasFramsteg())} · skrivningar i den här fliken: ${skrivningar}`; };
+
+      const snabb = document.getElementById("snabb");
+      const stilla = document.getElementById("stilla");
+      try {
+        snabb.checked = localStorage.getItem(`${NYCKEL}:snabb`) === "1";
+        stilla.checked = localStorage.getItem(`${NYCKEL}:stilla`) === "1";
+      } catch {}
+      snabb.addEventListener("change", () => { try { localStorage.setItem(`${NYCKEL}:snabb`, snabb.checked ? "1" : "0"); } catch {} rita(); });
+      stilla.addEventListener("change", () => { try { localStorage.setItem(`${NYCKEL}:stilla`, stilla.checked ? "1" : "0"); } catch {} rita(); });
+      document.getElementById("nollstall").addEventListener("click", () => {
+        try { localStorage.removeItem(FRAMSTEG); localStorage.removeItem(`${NYCKEL}:lektion`); } catch {}
+        skriv("framstegen nollställda");
+        rita();
+      });
+
+      let flode = null;
+      function params() {
+        const q = location.hash.indexOf("?");
+        return q === -1 ? {} : Object.fromEntries(new URLSearchParams(location.hash.slice(q + 1)));
+      }
+      function rita() {
+        if (!location.hash.startsWith(HASH)) { location.hash = `${HASH}?vy=lar`; return; }
+        flode?.destroy();
+        document.querySelectorAll("#nav a").forEach((a) => a.setAttribute("aria-current", a.getAttribute("href") === location.hash ? "page" : "false"));
+        flode = visaSchack(app, {
+          namn: "Elias", avatarHtml: `<span class="pv-avatar">E</span>`,
+          lagring: localStorage, nyckel: NYCKEL, hashBas: HASH,
+          go: (h) => { location.hash = h; },
+          reducedMotion: stilla.checked || undefined,
+          tidsgransMs: snabb.checked ? 250 : undefined,
+          tankMinMs: snabb.checked ? 0 : undefined,
+          guide: guideStub,
+        }, params());
+        window.schack = flode;
+        visaStatus();
+        skriv(`vy: ${location.hash}`);
+      }
+      window.addEventListener("hashchange", rita);
+      window.addEventListener("pagehide", stangSchack);
+      rita();
+    </script>
+  </body>
+</html>

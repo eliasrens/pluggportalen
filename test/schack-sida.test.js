@@ -104,11 +104,11 @@ describe("routen och bootgrafen (#271)", () => {
 });
 
 describe("markupen (§4)", () => {
-  it("startsidan: fyra stora kort, bara 'Spela mot datorn' är öppet; pågående parti överst", () => {
+  it("startsidan: fyra stora kort, 'Spela mot datorn' och 'Lär dig schack' (#790) är öppna utan kompisläge; pågående parti överst", () => {
     const html = startHtml(null);
     assert.equal((html.match(/class="big-card schack-kort/g) || []).length, 4);
     assert.match(html, /data-act="dator"[^>]*>(?!.*aria-disabled)/);
-    assert.equal((html.match(/Kommer snart/g) || []).length, 3);
+    assert.equal((html.match(/Kommer snart/g) || []).length, 1, "bara kompisläget utan klass – pusslen är öppna (#791)");
     assert.doesNotMatch(html, /Fortsätt partiet/);
     for (const t of ["Spela mot datorn", "Spela mot en kompis", "Lär dig schack", "Pussel"]) assert.ok(html.includes(t), t);
     const p = nyttParti({ niva: "damen", farg: "b" });

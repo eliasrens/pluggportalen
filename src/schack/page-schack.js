@@ -1,11 +1,16 @@
 // ============================================================================
 // Schack – route-skal (src/schack/page-schack.js) · #776 §4, #780 §7
 // ----------------------------------------------------------------------------
-//   #/elev/schack                    startsidan: mot datorn, mot en kompis, lär dig/pussel (kommer snart)
+//   #/elev/schack                    startsidan: mot datorn, mot en kompis, lär dig, pussel
 //   #/elev/schack?vy=dator           partiet mot datorn (fortsätter det sparade; annars nivåval)
 //   #/elev/schack?vy=dator&ny=1      nivåval → nytt parti
 //   #/elev/schack?vy=kompis          lobbyn "Spela mot en kompis" (#780)
 //   #/elev/schack?vy=kompis&parti=X  partiet mot en kompis
+//   #/elev/schack?vy=lar(&lektion=N) guiden "Lär dig schack" (#790) – framstegen i
+//                                    studentData.schack.lektioner, EN skrivning per
+//                                    förbättrad lektion (schack-moln.js lektionKlar)
+//   #/elev/schack?vy=pussel(&sort=…) pusslen (#791) – framstegen i studentData.schack.pussel,
+//                                    EN skrivning per NYTT löst pussel (schack-moln.js pusselLost)
 //
 // Routen ligger i app.js med DYNAMISK import (dynSida), så inget i src/schack/
 // hamnar i bootgrafen (#271). Modulen är opt-in per klass (STUDENT_MODULES,
@@ -96,6 +101,43 @@ function klasslistaFor(classId, studentIds) {
     })).catch(() => []));
 }
 
+/**
+ * Guidens framsteg (#790): läses ur den redan cachade studentData (ingen egen
+ * läsning). En förbättring skrivs i studentData-cachen direkt (så att översikten
+ * stämmer vid nästa vybyte utan ny läsning) och sedan med EN skrivning i Firestore.
+ */
+function guideFor(sd) {
+  return {
+    lektioner: () => sd?.schack?.lektioner || {},
+    spara: async (nr, stjarnor) => {
+      if (sd && typeof sd === "object") {
+        const s = sd.schack && typeof sd.schack === "object" ? sd.schack : {};
+        sd.schack = { ...s, lektioner: { ...(s.lektioner || {}), [String(nr)]: stjarnor } };
+      }
+      return (await moln()).lektionKlar(nr, stjarnor);
+    },
+  };
+}
+
+/**
+ * Pusslens framsteg (#791): som guiden – ur den cachade studentData, och ett nytt
+ * löst pussel skrivs i cachen direkt och sedan med EN skrivning i Firestore.
+ */
+function pusselFor(sd) {
+  return {
+    framsteg: () => sd?.schack?.pussel || {},
+    spara: async (sort, nr) => {
+      if (sd && typeof sd === "object") {
+        const s = sd.schack && typeof sd.schack === "object" ? sd.schack : {};
+        const p = s.pussel && typeof s.pussel === "object" ? s.pussel : {};
+        const gammal = p[sort] && typeof p[sort] === "object" ? p[sort] : {};
+        sd.schack = { ...s, pussel: { ...p, [sort]: { losta: (gammal.losta || 0) + 1, senast: nr } } };
+      }
+      return (await moln()).pusselLost(sort, nr);
+    },
+  };
+}
+
 export async function pageSchack() {
   aktiv?.destroy();
   aktiv = null;
@@ -127,6 +169,8 @@ export async function pageSchack() {
     // Bara när eleven kommer in på schacksidan utan vald vy: tillbaka till ett pågående kompisparti.
     fortsattParti: forstaGangen && !params.vy ? sd?.schack?.aktivtParti || null : null,
     onDatorSlut: () => { moln().then((m) => m.datorPartiKlart()).catch(() => {}); },
+    guide: guideFor(sd),
+    pussel: pusselFor(sd),
   }, params);
   stadaVidByte();
 }

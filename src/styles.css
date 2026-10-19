@@ -8430,6 +8430,17 @@ html:not([data-halloween]) .af-kostym[data-seasonal="halloween"] { display: none
 .schack-ruta.dras .schack-pjas { opacity: 0.3; }
 .schack-ruta.vantar .schack-pjas { opacity: 0.55; }
 
+/* Guiden (#790): stjärnor att samla och rätt/fel-svar på en ruta. */
+.schack-stjarna { position: absolute; inset: 16%; display: block; pointer-events: none; }
+.schack-stjarna[hidden] { display: none; }
+.schack-stjarna svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 2px 2px rgba(59, 51, 80, 0.3)); }
+.schack-ruta.ratt::before { background: rgba(76, 175, 80, 0.55); box-shadow: inset 0 0 0 4px #2e7d32; }
+.schack-ruta.fel::before { background: rgba(235, 64, 64, 0.35); box-shadow: inset 0 0 0 4px #c62828; }
+/* Pusslen (#791): Tips markerar pjäsen som ska flyttas med en pulserande orange ring. */
+.schack-ruta.tips::before { background: rgba(255, 159, 67, 0.4); box-shadow: inset 0 0 0 5px #e8710a; animation: schack-tips 1.2s ease-in-out infinite alternate; }
+@keyframes schack-tips { from { box-shadow: inset 0 0 0 3px #e8710a; } to { box-shadow: inset 0 0 0 7px #e8710a; } }
+@media (prefers-reduced-motion: reduce) { .schack-ruta.tips::before { animation: none; } }
+
 /* Koordinaterna i kanten (i rutorna, i den andra rutfärgen). */
 .schack-koord-rad,
 .schack-koord-fil {
@@ -9043,4 +9054,326 @@ html:not([data-halloween]) .af-kostym[data-seasonal="halloween"] { display: none
   inset: 0;
   z-index: calc(var(--z-toast, 900) - 1);
   background: rgba(34, 49, 74, 0.35);
+}
+
+/* ==========================================================================
+   Lektioner och pussel i helskärm (#794). Behållaren är .schack-rot; här finns inga spelarrader eller
+   draglista, bara brädet + statusraden (--lp-under) och panelen. Rubrikraden (Tillbaka, rubrik, ikon) döljs
+   – Esc lämnar helskärmen. Liggande: brädet till vänster, panelen (och lektionens intro) till höger.
+   Stående eller smalt: allt under varandra, introt dolt. Egna variabler (--lp-*) så att reglerna ovan
+   för partierna (--hs-basis m.m.) inte behöver ändras.
+   ========================================================================== */
+.schack-helskarm-pa:has(.schack-lektion-brade, .schack-pussel-brade) { --lp-under: 90px; --lp-panel: 340px; --lp-panel-hojd: 230px; }
+.schack-helskarm-pa :is(.schack-lektion, .schack-pussel) > :is(.schack-tillbaka, .schack-rubrik, .schack-lektion-huvud),
+.schack-helskarm-pa .schack-lektion-parti > .schack-lektion-intro { display: none; }
+.schack-helskarm-pa :is(.schack-lektion:not(.schack-lektion-parti), .schack-pussel) {
+  grid-template-columns: max-content minmax(240px, 300px);
+  grid-template-rows: auto;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+  gap: 14px 18px;
+  margin-bottom: 0; /* sidans negativa bottenmarginal (39/40) förskjuter centreringen */
+}
+.schack-helskarm-pa .schack-lektion:not(.schack-lektion-parti) > .schack-lektion-intro { grid-column: 2; grid-row: 1; align-self: end; }
+.schack-helskarm-pa .schack-lektion:not(.schack-lektion-parti) > .schack-lektion-klar { grid-column: 1 / -1; grid-row: 2; justify-self: center; }
+.schack-helskarm-pa .schack-lektion:not(.schack-lektion-parti) > .schack-lektion-yta:not([hidden]) { display: contents; }
+.schack-helskarm-pa .schack-lektion-yta:not([hidden]) > .schack-lektion-brade { grid-column: 1; grid-row: 1 / span 2; margin-inline: 0; }
+.schack-helskarm-pa .schack-lektion-yta:not([hidden]) > .schack-lektion-panel { grid-column: 2; grid-row: 2; align-self: start; }
+.schack-helskarm-pa .schack-pussel > .schack-pussel-yta { display: contents; }
+.schack-helskarm-pa .schack-pussel-yta > .schack-pussel-brade { grid-column: 1; grid-row: 1; margin-inline: 0; }
+.schack-helskarm-pa .schack-pussel-yta > .schack-pussel-panel { grid-column: 2; grid-row: 1; }
+.schack-helskarm-pa .schack-pussel-uppgift { display: block; } /* statusraden på ett litet bräde säger inte alltid samma sak */
+.schack-helskarm-pa :is(.schack-lektion-brade, .schack-pussel-brade).schack {
+  --schack-storlek: max(150px, min(100vw - 2 * var(--hs-pad) - var(--lp-panel), var(--hs-hojd) - 2 * var(--hs-pad) - var(--lp-under)));
+  min-width: 0;
+}
+.schack-helskarm-pa .schack-pussel-kalla { display: none; }
+
+/* Stående eller smalt: brädet över panelen, så brett som skärmen tillåter. */
+@media (orientation: portrait), (max-width: 600px) and (min-height: 521px) {
+  .schack-helskarm-pa :is(.schack-lektion:not(.schack-lektion-parti), .schack-pussel) { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+  .schack-helskarm-pa .schack-lektion:not(.schack-lektion-parti) > .schack-lektion-intro { display: none; }
+  .schack-helskarm-pa .schack-lektion-yta:not([hidden]) > .schack-lektion-brade,
+  .schack-helskarm-pa .schack-pussel-yta > .schack-pussel-brade { grid-column: 1; grid-row: 1; }
+  .schack-helskarm-pa .schack-lektion-yta:not([hidden]) > .schack-lektion-panel,
+  .schack-helskarm-pa .schack-pussel-yta > .schack-pussel-panel { grid-column: 1; grid-row: 2; width: min(100%, 520px); }
+  .schack-helskarm-pa :is(.schack-lektion-brade, .schack-pussel-brade).schack {
+    --schack-storlek: max(150px, min(100vw - 2 * var(--hs-pad), var(--hs-hojd) - 2 * var(--hs-pad) - var(--lp-under) - var(--lp-panel-hojd)));
+  }
+  .schack-helskarm-pa .schack-pussel-uppgift { display: none; }
+}
+
+/* Låg skärm (mobil liggande): alltid sida vid sida, kompaktare panel. */
+@media (max-height: 520px) {
+  .schack-helskarm-pa:has(.schack-lektion-brade, .schack-pussel-brade) { --lp-under: 56px; --lp-panel: 270px; }
+  .schack-helskarm-pa :is(.schack-lektion:not(.schack-lektion-parti), .schack-pussel) { grid-template-columns: max-content minmax(200px, 250px); gap: 8px 12px; }
+  .schack-helskarm-pa :is(.schack-lektion-brade, .schack-pussel-brade).schack { --schack-storlek: max(150px, min(100vw - 2 * var(--hs-pad) - var(--lp-panel), var(--hs-hojd) - 2 * var(--hs-pad) - var(--lp-under))); }
+  .schack-helskarm-pa .schack-lektion-panel, .schack-helskarm-pa .schack-pussel-panel { gap: 6px; }
+  .schack-helskarm-pa .schack-lektion-intro { display: none; }
+  /* Sida vid sida också i ett stående men lågt fönster: placeringen sätts om här (ordningen vinner över stående-blocket). */
+  .schack-helskarm-pa .schack-lektion-yta:not([hidden]) > .schack-lektion-brade,
+  .schack-helskarm-pa .schack-pussel-yta > .schack-pussel-brade { grid-column: 1; grid-row: 1 / span 2; }
+  .schack-helskarm-pa .schack-lektion-yta:not([hidden]) > .schack-lektion-panel,
+  .schack-helskarm-pa .schack-pussel-yta > .schack-pussel-panel { grid-column: 2; grid-row: 1 / span 2; align-self: center; width: auto; }
+  .schack-helskarm-pa .schack-pussel-uppgift { display: none; }
+  .schack-helskarm-pa :is(.schack-lektion-brade, .schack-pussel-brade).schack .schack-status { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 4px 10px; }
+}
+
+/* Resultatrutan (lektionen klar) i helskärm: en smal kolumn i stället för brädets max-content-kolumn,
+   annars blir introt en enda lång rad och rutan skrollar i sidled (#794). */
+.schack-helskarm-pa .schack-lektion:not(.schack-lektion-parti):has(> .schack-lektion-klar:not([hidden])) { grid-template-columns: minmax(0, 560px); }
+.schack-helskarm-pa .schack-lektion:not(.schack-lektion-parti):has(> .schack-lektion-klar:not([hidden])) > .schack-lektion-intro { grid-column: 1; grid-row: 1; align-self: auto; }
+.schack-helskarm-pa .schack-lektion:not(.schack-lektion-parti):has(> .schack-lektion-klar:not([hidden])) > .schack-lektion-klar { grid-column: 1; grid-row: 2; }
+
+/* Panelen hoppar inte i höjdled när svarsrutan fylls (Tips, rätt/fel): platsen är reserverad medan den är tom. */
+.schack-helskarm-pa :is(.schack-lektion-svar, .schack-pussel-svar) { min-height: calc(2.6em + 20px); box-sizing: border-box; } /* två rader, så att en kortare text inte heller flyttar panelen */
+.schack-helskarm-pa :is(.schack-lektion-svar, .schack-pussel-svar):empty { display: block; visibility: hidden; }
+
+/* ── src/styles/39-schack-guide.css ── */
+/* ==========================================================================
+   Schack – guiden "Lär dig schack" (#790): översikten med de 12 lektionerna,
+   lektionen (bräde + uppgiftspanel) och resultatrutan. Stjärnorna på brädet
+   och rätt/fel-rutorna stylas med brädet i 35-schack.css. Se docs/SCHACK.md §15.
+   ========================================================================== */
+
+.schack-dold {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* --- Stjärnorna ------------------------------------------------------------ */
+
+.schack-stjarnrad { display: inline-flex; gap: 2px; align-items: center; }
+.schack-gstjarna { display: block; flex: 0 0 auto; }
+.schack-gstjarna path { fill: #e3e9f2; stroke: #b8c7dd; }
+.schack-gstjarna.fylld path { fill: #f2c94c; stroke: #3b3350; }
+
+/* --- Översikten ------------------------------------------------------------ */
+
+.schack-guide-summa {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-weight: 700;
+}
+.schack-lektion-lista {
+  display: grid;
+  /* 300 px: namnet får alltid plats bredvid stjärnorna (F1 – vid 4 kolumner krockade "Specialdragen"). */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.schack-lektion-kort {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 64px;
+  padding: 8px 12px;
+  border: 3px solid #d5deea;
+  border-radius: 16px;
+  background: #fff;
+  font: 700 1.05rem var(--font);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.08s ease, border-color 0.08s ease;
+}
+.schack-lektion-kort:hover { transform: translateY(-2px); border-color: #b8c7dd; }
+.schack-lektion-kort:focus-visible { outline: 3px solid var(--bla); outline-offset: 2px; }
+.schack-lektion-kort.klar { background: #fffbea; border-color: #f2d98a; }
+.schack-lektion-kort.nasta { border-color: var(--gul); box-shadow: 0 0 0 3px rgba(242, 201, 76, 0.35); }
+.schack-lektion-nr {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #efe7fb;
+  color: #5b3f8c;
+  font-weight: 800;
+}
+.schack-lektion-kort.klar .schack-lektion-nr { background: #f2c94c; color: #3b3350; }
+.schack-lektion-ikon .schack-pjas { width: 40px; height: 40px; display: block; }
+.schack-lektion-namn { display: grid; line-height: 1.2; min-width: 0; overflow-wrap: anywhere; }
+.schack-lektion-namn small { font-size: 0.85rem; color: #8a5a00; }
+
+/* --- Lektionen ------------------------------------------------------------- */
+
+.schack-lektion-huvud { display: flex; align-items: center; gap: 12px; }
+.schack-lektion-huvud .schack-lektion-ikon .schack-pjas { width: 56px; height: 56px; }
+.schack-lektion-av { margin: 0; font-weight: 700; color: var(--text-svag); }
+.schack-lektion-intro {
+  margin: 0;
+  max-width: 70ch;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: #fff;
+  border: 2px solid #e3e9f2;
+  line-height: 1.45;
+}
+.schack-lektion-yta {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(240px, 300px);
+  gap: 18px;
+  align-items: start;
+}
+.schack-lektion-yta[hidden],
+.schack-lektion-klar[hidden] { display: none; }
+.schack-lektion-parti .schack-lektion-yta { display: block; }
+/* Lektion 12: guidens resultatruta räcker – brädets slutruta skulle ge två "Spela igen" (F3). */
+.schack-lektion-parti .schack-slut { display: none; }
+/* Lektionsbrädet har inga spelare och ingen draglista – bara brädet och statusraden. */
+.schack-lektion-brade .schack-spelare,
+.schack-lektion-brade .schack-drag { display: none; }
+.schack-lektion-fragor .schack-bradet .schack-ruta { cursor: pointer; }
+.schack-lektion-panel { display: grid; gap: 10px; min-width: 0; }
+.schack-lektion-panel p { margin: 0; }
+.schack-lektion-steg { font-weight: 700; color: var(--text-svag); }
+.schack-lektion-steg:empty,
+.schack-lektion-svar:empty { display: none; }
+.schack-lektion-text { font-size: 1.15rem; font-weight: 800; line-height: 1.3; }
+.schack-lektion-raknare { font-weight: 700; }
+.schack-lektion-svar {
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: #fff8df;
+  border: 2px solid var(--gul);
+  font-weight: 700;
+  line-height: 1.3;
+}
+.schack-lektion-panel .btn[hidden] { display: none; }
+
+/* Höjden (#794, F5): brädet följer fönstrets höjd. Över brädet ligger 24 px sidmarginal, Tillbaka-knappen och
+   rubrikraden (≈ 158 px), under det statusraden (upp till två rader, ≈ 77 px) och en marginal – därför 100svh - 248 px.
+   Golvet 320 px (spec §2.1) gäller alltid; på en lägre skärm skrollar sidan hellre än att brädet blir mindre. */
+.schack-lektion-brade.schack { --schack-storlek: max(320px, min(100%, 640px, calc(100svh - 248px))); }
+/* Sidans 60 px bottenmarginal (.container) räknas inte in i höjden – annars skrollar sidan 48 px trots att allt syns. */
+.schack-lektion:not(.schack-lektion-parti) { margin-bottom: -48px; }
+
+/* Bred skärm (två kolumner): intro-rutan står i panelens kolumn, inte som en rad över brädet – annars tar den
+   90 px av höjden som brädet behöver (Chromebook 1366×768 med webbläsarens egen list: ≈ 657 px synligt). */
+@media (min-width: 821px) {
+  .schack-lektion:not(.schack-lektion-parti) {
+    grid-template-columns: minmax(320px, 1fr) minmax(240px, 300px);
+    grid-template-rows: auto auto auto auto 1fr;
+    column-gap: 18px;
+    align-items: start;
+  }
+  .schack-lektion:not(.schack-lektion-parti) > .schack-tillbaka { grid-column: 1; grid-row: 1; }
+  .schack-lektion:not(.schack-lektion-parti) > .schack-lektion-huvud { grid-column: 1 / -1; grid-row: 2; }
+  .schack-lektion:not(.schack-lektion-parti) > .schack-lektion-intro { grid-column: 2; grid-row: 3; max-width: none; }
+  .schack-lektion:not(.schack-lektion-parti) > .schack-lektion-klar { grid-column: 1 / -1; grid-row: 4; }
+  .schack-lektion:not(.schack-lektion-parti):has(> .schack-lektion-klar:not([hidden])) > .schack-lektion-intro { grid-column: 1 / -1; }
+  /* Brädet och panelen blir celler i sidans rutnät (brädet över tre rader, panelen under introt). */
+  .schack-lektion:not(.schack-lektion-parti) > .schack-lektion-yta:not([hidden]) { display: contents; }
+  .schack-lektion-yta:not([hidden]) > .schack-lektion-brade { grid-column: 1; grid-row: 3 / span 3; }
+  .schack-lektion-yta:not([hidden]) > .schack-lektion-panel { grid-column: 2; grid-row: 4; }
+}
+
+@media (max-width: 820px) {
+  .schack-lektion-yta { grid-template-columns: minmax(0, 1fr); }
+  /* Som partiet (#777): under 360 px går brädet ut i sidans marginal i stället för att sidan skrollar i sidled. */
+  .schack-lektion-brade { margin-inline: min(0px, (100% - 320px) / 2); }
+}
+
+/* --- Resultatrutan --------------------------------------------------------- */
+
+.schack-lektion-klar {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  margin: 0;
+  max-width: 640px;
+  padding: 18px 16px;
+  border: 3px solid var(--gul);
+  text-align: center;
+}
+.schack-lektion-klar-rubrik { margin: 0; font-size: 1.6rem; }
+.schack-lektion-klar-text { margin: 0; max-width: 46ch; font-weight: 600; line-height: 1.4; }
+.schack-lektion-klar .schack-knappar { justify-content: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  .schack-lektion-kort, .schack-lektion-kort:hover { transition: none; transform: none; }
+}
+
+/* ── src/styles/40-schack-pussel.css ── */
+/* ==========================================================================
+   Schack – pusslen "Matt i ett/två drag" (#791): valet med framstegen och
+   pusselvyn (bräde + panel). Tipsringen på brädet stylas med brädet i
+   35-schack.css. Se docs/SCHACK.md §16.
+   ========================================================================== */
+
+/* --- Valet: två stora kort med framstegen ---------------------------------- */
+
+.schack-pussel-sorter { grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); }
+.schack-pussel-sort { min-height: 230px; }
+.schack-pussel-framsteg {
+  display: grid;
+  gap: 4px;
+  width: min(100%, 220px);
+  margin-top: 10px;
+}
+.schack-pussel-stapel {
+  display: block;
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.35);
+  overflow: hidden;
+}
+.schack-pussel-stapel > span { display: block; height: 100%; border-radius: inherit; background: #fff; }
+.schack-pussel-antal { font-weight: 800; }
+.schack-pussel-nasta { font-size: 0.9rem; font-weight: 700; opacity: 0.92; }
+
+/* --- Ett pussel -------------------------------------------------------------- */
+
+.schack-pussel-yta {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(240px, 300px);
+  gap: 18px;
+  align-items: start;
+}
+/* Pusselbrädet har inga spelare och ingen draglista – bara brädet och statusraden. */
+.schack-pussel-brade .schack-spelare,
+.schack-pussel-brade .schack-drag { display: none; }
+/* Slutrutan skulle täcka matten – "Snyggt! Schack matt!" står i statusraden och panelen. */
+.schack-pussel-brade .schack-slut { display: none; }
+/* Höjden (#794, F5): över brädet 24 px sidmarginal, Tillbaka-knappen och rubriken (≈ 131 px), under det statusraden
+   (upp till två rader, ≈ 77 px) och en marginal. Golvet 320 px (spec §2.1) gäller alltid. */
+.schack-pussel-brade.schack { --schack-storlek: max(320px, min(100%, 640px, calc(100svh - 232px))); }
+/* Sidans 60 px bottenmarginal (.container) räknas inte in i höjden – annars skrollar sidan 48 px trots att allt syns. */
+.schack-pussel { margin-bottom: -48px; }
+.schack-pussel-panel { display: grid; gap: 10px; min-width: 0; }
+.schack-pussel-panel p { margin: 0; }
+.schack-pussel-nr { font-weight: 700; color: var(--text-svag); }
+.schack-pussel-uppgift { font-size: 1.2rem; font-weight: 800; line-height: 1.3; }
+.schack-pussel-svar:empty { display: none; }
+.schack-pussel-svar {
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: #fff8df;
+  border: 2px solid var(--gul);
+  font-weight: 700;
+  line-height: 1.3;
+}
+.schack-pussel-panel .btn[hidden] { display: none; }
+.schack-pussel-bladdra { padding-top: 4px; border-top: 2px dashed #e3e9f2; }
+.schack-pussel-kalla { font-size: 0.85rem; color: var(--text-svag); }
+
+@media (max-width: 820px) {
+  .schack-pussel-yta { grid-template-columns: minmax(0, 1fr); }
+  /* Statusraden direkt ovanför säger redan "Vit drar och gör matt …" – inte två gånger (F3). */
+  .schack-pussel-uppgift { display: none; }
+  /* Som partiet (#777): under 360 px går brädet ut i sidans marginal i stället för att sidan skrollar i sidled. */
+  .schack-pussel-brade { margin-inline: min(0px, (100% - 320px) / 2); }
 }
