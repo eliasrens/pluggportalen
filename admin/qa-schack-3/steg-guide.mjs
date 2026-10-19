@@ -250,4 +250,6 @@ export default async function guide({ br, PORTAR, BILDER, ok }) {
   ok("inga mynt: coin-/mynt-fält i studentData oförändrade efter hela guiden", mynt1 === mynt0 && (sdSlut.coins ?? null) === coins0, `${mynt0} → ${mynt1}`);
   const klientCoin = await A.ev(`(async () => { const t = document.body.innerText; return /mynt|🪙|belöning/i.test(t); })()`);
   ok("inga mynt: ingen mynt-/belöningstext i guidens översikt", !klientCoin);
+  const konsolFel = A.p.konsol.filter((x) => /EXCEPTION|kunde inte sparas|permission|Missing or insufficient|Uncaught/i.test(x));
+  ok("konsolen: inga JS-fel och inga 'kunde inte sparas'/permission-varningar under hela körningen", konsolFel.length === 0, konsolFel.join(" | ").slice(0, 400));
 }

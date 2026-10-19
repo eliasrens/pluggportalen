@@ -183,7 +183,7 @@ export default async function pussel({ br, PORTAR, BILDER, ok }) {
   await A.p.laddaOm();
   await A.vanta(`!!document.querySelector(".schack-pussel-nr, .schack-pussel-val")`, 20000);
   await A.ev(`location.hash = "#/elev/schack?vy=pussel"`);
-  await A.vanta(`/lösta/.test(document.querySelector(".schack-pussel-val")?.innerText || "") && /av 200/.test(document.querySelector(".schack-pussel-val").innerText)`, 15000);
+  await A.vanta(`((document.querySelector(".schack-pussel-val")?.innerText || "").match(/av 200 lösta/g) || []).length === 2`, 15000);
   const val2 = await A.ev(`document.querySelector(".schack-pussel-val").innerText.replace(/\\s+/g, " ")`);
   ok("efter omladdning: 12 av 200 (ett: 10 + 2 extra pussel lösta via direktlänk) och 6 av 200 (två) lösta", /12 av 200 lösta/.test(val2) && /6 av 200 lösta/.test(val2), val2);
   await A.bild(BILDER, "pussel-val-efter");
@@ -209,4 +209,6 @@ export default async function pussel({ br, PORTAR, BILDER, ok }) {
   const sdS = await sd(A.uid);
   ok("inga mynt: coins oförändrade efter hela pusselkörningen", (sdS.coins ?? null) === mynt0, `${mynt0} → ${sdS.coins}`);
   ok("inga mynt: ingen mynttext i pusselvyn", !(await A.ev(`/mynt|🪙|belöning/i.test(document.body.innerText)`)));
+  const konsolFel = A.p.konsol.filter((x) => /EXCEPTION|kunde inte sparas|permission|Missing or insufficient|Uncaught/i.test(x));
+  ok("konsolen: inga JS-fel och inga 'kunde inte sparas'/permission-varningar under hela körningen", konsolFel.length === 0, konsolFel.join(" | ").slice(0, 400));
 }

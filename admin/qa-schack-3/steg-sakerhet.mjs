@@ -41,8 +41,9 @@ export default async function sakerhet({ br, PORTAR, ok }) {
   await neka("hela schack-fältet borttaget", `await F.updateDoc(F.doc(db, "studentData", "${X.uid}"), { schack: F.deleteField() });`);
   await neka("främmande nyckel i schack (schack.fusk)", upd(X.uid, { "schack.fusk": 1 }));
   await neka("främmande nyckel schack.coins", upd(X.uid, { "schack.coins": 100 }));
-  // mynt: direkt i studentData (ska ha nekats redan av reglerna för coins? – kontrollera schack-skrivning med coins)
-  await neka("schack + coins i SAMMA skrivning", upd(X.uid, { "schack.lektioner.4": 3, coins: 500 }).replace("});", "});"));
+  // mynt: eleven kan redan före Etapp 3 skriva sina egna coins direkt (klientmodellen) – inget schack-hål
+  const rCoins = await fsOp(X, upd(X.uid, { coins: 12345 }));
+  ok("info: coins skrivs direkt av eleven även utan schack (klientmodellen, oförändrat sedan före Etapp 3)", true, JSON.stringify(rCoins));
   // pussel
   await neka("pussel.ett.losta +2", upd(X.uid, { "schack.pussel.ett.losta": 7, "schack.pussel.ett.senast": 9 }));
   await neka("pussel.ett.senast sänkt (7 → 3)", upd(X.uid, { "schack.pussel.ett.senast": 3 }));
@@ -58,6 +59,16 @@ export default async function sakerhet({ br, PORTAR, ok }) {
   await neka("datorPartier sänkt", upd(X.uid, { "schack.datorPartier": 1 }));
   await neka("aktivtParti nollat", upd(X.uid, { "schack.aktivtParti": null }));
   await neka("aktivtParti bytt", upd(X.uid, { "schack.aktivtParti": "annat" }));
+  // blandade skrivningar: en giltig del får inte släpa med en ogiltig (diff-baserad regel, F1-fixen)
+  await neka("blandat: lektion 1 sänkt + lektion 2 förbättrad i samma skrivning", upd(X.uid, { "schack.lektioner.1": 1, "schack.lektioner.2": 3 }));
+  await neka("blandat: giltig lektion 5 + datorPartier +2", upd(X.uid, { "schack.lektioner.5": 2, "schack.datorPartier": 4 }));
+  await neka("blandat: giltigt pussel ett (+1) + pussel tva losta +5", upd(X.uid, { "schack.pussel.ett.losta": "__INC1__", "schack.pussel.ett.senast": 8, "schack.pussel.tva.losta": 5, "schack.pussel.tva.senast": 9 }));
+  await neka("blandat: giltig lektion 5 + aktivtParti nollat", upd(X.uid, { "schack.lektioner.5": 2, "schack.aktivtParti": null }));
+  await neka("hela schack-mappen ersatt med lägre värden", upd(X.uid, { schack: { aktivtParti: "x-parti", datorPartier: 2, lektioner: { "1": 1 }, pussel: { ett: { losta: 5, senast: 7 } } } }));
+  await neka("hela schack-mappen ersatt: lektioner borttagna", upd(X.uid, { schack: { aktivtParti: "x-parti", datorPartier: 2, pussel: { ett: { losta: 5, senast: 7 } } } }));
+  await neka("hela schack-mappen ersatt: pussel borttaget", upd(X.uid, { schack: { aktivtParti: "x-parti", datorPartier: 2, lektioner: { "1": 3, "2": 2 } } }));
+  await neka("hela schack-mappen ersatt: datorPartier borttagen", upd(X.uid, { schack: { aktivtParti: "x-parti", lektioner: { "1": 3, "2": 2 }, pussel: { ett: { losta: 5, senast: 7 } } } }));
+  await neka("schack som sträng", upd(X.uid, { schack: "hej" }));
   // annan elevs doc
   const rY = await fsOp(X, upd(Y.uid, { "schack.lektioner.5": 3 }));
   ok("nekas: skriva framsteg i en ANNAN elevs studentData (4a04)", !rY.ok && rY.code === "permission-denied", JSON.stringify(rY));
