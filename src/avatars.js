@@ -159,10 +159,9 @@ export function avatarSvg(id) {
  * sidhuvudet (litet) och som stor hjältebild. Karaktärerna delar ankargrid,
  * så samma slot-koordinater träffar rätt på alla figurer.
  *
- * Säsongskostymer (`seasonal`, #693) ritas med klassen af-kostym och syns BARA
- * när <html data-<säsong>> är satt (styles/34-kostymer.css) – avgörs alltså vid
- * ritningen, så ingen elevdata skrivs om och ett byte slår igenom direkt på
- * alla redan ritade avatarer. Katalogen, konsten och säsongstemat laddas lazy
+ * Säsongskostymer (`seasonal`, #693) ritas med klassen af-kostym och syns
+ * året runt (#799) – bara butiken är säsongsbunden, det eleven äger kan bäras
+ * alltid. Katalogen, konsten och säsongstemat laddas lazy
  * (#271): ett buret "hw-"-id som inte laddats än blir en dold platshållare som
  * fylls i när katalogen kommit (laddaKostymer).
  *
@@ -196,17 +195,6 @@ function wearSpan(it) {
   const cls = `af-wear af-${it.slot}${anchor ? ` af-anchor-${anchor}` : ""}`;
   if (it.seasonal) return `<span class="${cls} af-kostym" data-seasonal="${it.seasonal}">${wearableSvg(it.id) || ""}</span>`;
   return `<span class="${cls}">${wearableSvg(it.id) || it.emoji}</span>`;
-}
-
-/**
- * Kan klädsaken bäras just nu? Vanliga plagg alltid; en säsongskostym bara när
- * dess säsong är på – samma <html data-halloween> som styr synligheten
- * (season-world.js, server-korrigerad klocka). Garderoben: av = kan tas av men
- * inte på (varld-rum-wear.js).
- */
-export function wearableActive(item) {
-  if (!item || !item.seasonal) return true;
-  return typeof document !== "undefined" && document.documentElement.dataset[item.seasonal] != null;
 }
 
 let kostymP = null;
