@@ -14,6 +14,7 @@ import {
 import { FACIT_DOK, RATTNING, SAMLING_TILLFALLEN } from "./prov-modell.js";
 import { hamtaSvar, hamtaTillfalle } from "./prov-tillfalle-data.js";
 import { delaIBatchar } from "./prov-ratta-alla.js";
+import { glomAttRatta, raknareFalt } from "./prov-raknare.js";
 
 const rattRef = (t, uid) => doc(db, SAMLING_TILLFALLEN, t, RATTNING, uid);
 
@@ -53,15 +54,16 @@ export async function sparaRattningar(t, dok, rattStatus = null) {
 }
 
 // EN skrivning per elev, högst 450 per batch (#764: under Firestores 500);
-// räkneverket följer med den första.
+// räkneverket (+ flaggan attRatta, #807) följer med den första.
 async function iBatchar(t, lista, skriv, rattStatus) {
   for (const [i, del] of delaIBatchar(lista).entries()) {
     const status = i === 0 && rattStatus;
     if (!del.length && !status) return;
     const batch = writeBatch(db);
     for (const [uid, d] of del) skriv(batch, uid, d);
-    if (status) batch.update(doc(db, SAMLING_TILLFALLEN, t), { rattStatus });
+    if (status) batch.update(doc(db, SAMLING_TILLFALLEN, t), raknareFalt(rattStatus));
     await batch.commit();
+    if (status) glomAttRatta();
   }
 }
 
@@ -88,8 +90,9 @@ export async function lamnaTillbaka(t, dok, rattStatus = null) {
 export async function angraTillbaka(t, uid, rattStatus = null) {
   const batch = writeBatch(db);
   batch.update(rattRef(t, uid), { aterlamnad: false, aterlamnadAt: deleteField(), facit: deleteField(), kriterier: deleteField() });
-  if (rattStatus) batch.update(doc(db, SAMLING_TILLFALLEN, t), { rattStatus });
+  if (rattStatus) batch.update(doc(db, SAMLING_TILLFALLEN, t), raknareFalt(rattStatus));
   await batch.commit();
+  if (rattStatus) glomAttRatta();
 }
 
 /**

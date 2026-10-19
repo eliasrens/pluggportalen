@@ -74,6 +74,8 @@ export function printLoginCards(className, entries) {
     if (e.key === "Escape") close();
   };
   overlay.querySelector(".lc-print").addEventListener("click", () => window.print());
+  // Hem → Kom igång (#807): "Skriv ut inloggningskort" räknas klart när utskriften öppnats en gång.
+  try { localStorage.setItem("pp:larare:kortUtskrivna", "true"); } catch { /* ingen lagring */ }
   overlay.querySelector(".lc-close").addEventListener("click", close);
   document.addEventListener("keydown", onKey);
   document.body.appendChild(overlay);

@@ -14,6 +14,8 @@ import { clearClassLock, getClassLock, setClassLock } from "../data-class-lock.j
 import { FACIT_DOK, RATTNING, SAMLING_PROV, SAMLING_TILLFALLEN, STATUS, SVAR, delaUppProv } from "./prov-modell.js";
 import { OPPNA_IGEN_BATCH, arProvetsLas, attOppnaIgen, attStangaIn } from "./prov-tillfalle-logik.js";
 import { tillfalleInstallningar } from "./prov-validera.js";
+import { rattStatusSumma } from "./prov-rattning-logik.js";
+import { glomAttRatta, raknareFalt, stangRaknare } from "./prov-raknare.js";
 
 const tfRef = (t) => doc(db, SAMLING_TILLFALLEN, t);
 const facitRef = (t) => doc(db, SAMLING_TILLFALLEN, t, ...FACIT_DOK);
@@ -112,8 +114,8 @@ export async function oppnaTillfalle(tf, las) {
     await updateDoc(tfRef(tf.id), { status: STATUS.OPPET, oppnad: serverTimestamp(), stangd: deleteField() });
     const svar = Object.values(await hamtaSvar(tf.id));
     // #743 F4: tillbakalämnade elever får inte skriva om (en läsning per rättning, bara vid Öppna igen).
-    const tillbaka = (await getDocs(collection(db, SAMLING_TILLFALLEN, tf.id, RATTNING))).docs
-      .filter((d) => d.data().aterlamnad === true).map((d) => d.id);
+    const ratt = Object.fromEntries((await getDocs(collection(db, SAMLING_TILLFALLEN, tf.id, RATTNING))).docs.map((d) => [d.id, d.data()]));
+    const tillbaka = Object.keys(ratt).filter((uid) => ratt[uid].aterlamnad === true);
     const igen = attOppnaIgen(svar, tillbaka);
     for (let i = 0; i < igen.length; i += OPPNA_IGEN_BATCH) {
       const batch = writeBatch(db);
@@ -122,6 +124,9 @@ export async function oppnaTillfalle(tf, las) {
       }
       await batch.commit();
     }
+    // #807: räknarna ur det som redan lästs – de som skriver igen är inte inlämnade.
+    const kvar = svar.filter((d) => d.inlamnad === true && !igen.includes(d.id)).map((d) => d.id);
+    await sparaRaknare(tf, raknareFalt(rattStatusSumma(kvar, ratt, tf.fragor || [])));
   }
   if (las) {
     const lock = buildLock({ typ: "prov", id: tf.id, namn: tf.provNamn, till: las.till, doljOvrigt: las.doljOvrigt, efter: las.efter });
@@ -153,8 +158,22 @@ export async function stangTillfalle(tf) {
     }
     await batch.commit();
   }
+  // #807: nu är alla svar inlämnade – räknaren ur svaren som just lästes.
+  await sparaRaknare(tf, stangRaknare(tf, svar.length));
   await slappLas(tf);
   return inte.length;
+}
+
+/** Räknarna på tillfället (#807) – bara om de ändrats. Aldrig kastande: stängningen är redan gjord. */
+async function sparaRaknare(tf, falt) {
+  if (JSON.stringify(falt.rattStatus) === JSON.stringify(tf.rattStatus || null) && tf.attRatta === falt.attRatta) return;
+  try {
+    await updateDoc(tfRef(tf.id), falt);
+    Object.assign(tf, falt);
+    glomAttRatta();
+  } catch (err) {
+    console.warn("Prov: räknarna kunde inte sparas", err);
+  }
 }
 
 /**
@@ -174,5 +193,6 @@ export async function raderaTillfalle(tf) {
     await batch.commit();
   }
   await deleteDoc(tfRef(tf.id));
+  glomAttRatta();
   await slappLas(tf);
 }

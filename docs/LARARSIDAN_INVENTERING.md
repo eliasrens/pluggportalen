@@ -89,12 +89,22 @@ Alla ligger i dag under Statistik → klass → underflik, och efter B under Min
 
 ## 5. Hem (dagens Översikt)
 
+**Läget efter E (#807):** Hem (`src/teacher-hem.js`) ersätter översikten (`teacher-overview.js` borttagen). Läsningarna:
+[`LARARSIDAN_HEM_LASNINGAR.md`](LARARSIDAN_HEM_LASNINGAR.md). Varje adress på Hem är en riktig lärar-route (inventeringstestet).
+
 | Funktion | Var i dag | Vem | Var efter omgörningen | Klick i dag → efter |
 | --- | --- | --- | --- | --- |
-| Klasskort (elevantal, fokusläge på/av) med snabbval Fokusläge · Inloggning · Statistik | Översikt → Mina klasser | alla (årskurs: egna klasser) | Hem → Mina klasser (kompakta kort, klick öppnar klassen) [E] | 1 → 1 |
-| Pågående Live → Öppna projektorvy | Översikt → Pågående Live | alla (årskurs: där en egen klass deltar) | Hem → Att göra: "Live-match pågår" → Öppna [E] | 1 → 1 |
+| Klasskort (elevantal, fokusläge på/av) | Översikt → Mina klasser | alla (årskurs: egna klasser) | Hem → Mina klasser: kompakta kort (namn, elever, fokusläge till hh:mm, "Jobbar med: …", "Övat den här veckan: 18 av 23"); klick → Mina klasser → Hur går det? [E] | 1 → 1 |
+| Klasskortets snabbval Statistik | Översikt → kort → Statistik | alla | Klick på kortet → Hur går det? [E] | 1 → 1 |
+| Klasskortets snabbval Fokusläge | Översikt → kort → Fokusläge | alla | Hem → Att göra "Fokusläge är på i 4A" → **Stäng av** (direkt); slå på: kortet → flik Fokusläge [E] | 1 → av: 1 · på: 2 |
+| Klasskortets snabbval Inloggning | Översikt → kort → Inloggning | alla | Kortet → flik Elever; Kom igång steg 1 och "inte övat"-raden → Visa leder dit direkt [E] | 1 → 2 (Kom igång/Visa: 1) |
+| Pågående Live → Öppna projektorvy | Översikt → Pågående Live | alla (årskurs: där en egen klass deltar) | Hem → Att göra: "Live-match pågår" / "väntar i lobbyn" → Öppna [E] | 1 → 1 |
 | Skapa Live-match | Översikt | alla | Hem → Snabbval: Starta Live [E] | 1 → 1 |
-| Kom igång, Att göra, Snabbval, dölj testklasser | – (nytt) | årskurs / alla / admin | Hem [E] | – |
+| Kom igång (4 steg som bockas av, Gör det nu, Dölj) | – (nytt) | årskurs (aldrig admin) | Hem överst [E] | – |
+| Att göra: prov att rätta → Rätta, öppet prov → Öppna, fokusläge → Stäng av, Live → Öppna, elever som inte övat på 2 veckor → Visa | – (nytt) | alla | Hem [E] | – → 1 |
+| Snabbval: Välj områden åt en klass, Skapa nytt område, Skapa ett prov, Starta Live | – (nytt) | alla | Hem [E] | – → 1 |
+| Dölj klass / Visa alla (testklasser) | – (nytt) | admin | Hem → Mina klasser (sparas per lärare i webbläsarens localStorage) [E] | – → 1 |
+| Märket "Prov 18" (prov som väntar på rättning) | – (nytt) | alla | Toppmenyn → Prov [E] | – |
 
 ## 6. Material
 
@@ -177,3 +187,7 @@ inloggning/elever/klasscenter → Elever, statistik → Hur går det?, schack �
   medlemshanteraren) i stället för Inloggning under fliken Elever, eftersom den redan har allt Inloggning har; två listor med samma
   elever under varandra vore förvirrande. Hem-kortens länkar (`#/larare/klasser?…&sektion=…`, `#/larare/statistik?…`) leder via
   omdirigeringen till rätt flik; E skriver om Hem.
+- **E (#807):** Översiktens tre snabbval per klasskort blev ett klick på kortet (Hur går det?) – Fokusläge och Inloggning är ett
+  klick längre bort därifrån (kortet → fliken), men att **stänga av** ett fokusläge går direkt i Att göra, och Kom igång/Visa leder
+  direkt till Elever. "Skapa nytt område" leder till Material → Plugga-områden (knappen Skapa nytt där); wizarden öppnas inte direkt,
+  eftersom D (#806) bygger om Materialsidan parallellt. Räknarna, läsningarna och deployen: `LARARSIDAN_HEM_LASNINGAR.md`.
