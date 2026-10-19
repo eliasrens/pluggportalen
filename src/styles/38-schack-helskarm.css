@@ -149,3 +149,67 @@
   z-index: calc(var(--z-toast, 900) - 1);
   background: rgba(34, 49, 74, 0.35);
 }
+
+/* ==========================================================================
+   Lektioner och pussel i helskärm (#794). Behållaren är .schack-rot; här finns inga spelarrader eller
+   draglista, bara brädet + statusraden (--lp-under) och panelen. Rubrikraden (Tillbaka, rubrik, ikon) döljs
+   – Esc lämnar helskärmen. Liggande: brädet till vänster, panelen (och lektionens intro) till höger.
+   Stående eller smalt: allt under varandra, introt dolt. Egna variabler (--lp-*) så att reglerna ovan
+   för partierna (--hs-basis m.m.) inte behöver ändras.
+   ========================================================================== */
+.schack-helskarm-pa:has(.schack-lektion-brade, .schack-pussel-brade) { --lp-under: 90px; --lp-panel: 340px; --lp-panel-hojd: 230px; }
+.schack-helskarm-pa :is(.schack-lektion, .schack-pussel) > :is(.schack-tillbaka, .schack-rubrik, .schack-lektion-huvud),
+.schack-helskarm-pa .schack-lektion-parti > .schack-lektion-intro { display: none; }
+.schack-helskarm-pa :is(.schack-lektion:not(.schack-lektion-parti), .schack-pussel) {
+  grid-template-columns: max-content minmax(240px, 300px);
+  grid-template-rows: auto;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+  gap: 14px 18px;
+  margin-bottom: 0; /* sidans negativa bottenmarginal (39/40) förskjuter centreringen */
+}
+.schack-helskarm-pa .schack-lektion:not(.schack-lektion-parti) > .schack-lektion-intro { grid-column: 2; grid-row: 1; align-self: end; }
+.schack-helskarm-pa .schack-lektion:not(.schack-lektion-parti) > .schack-lektion-klar { grid-column: 1 / -1; grid-row: 2; justify-self: center; }
+.schack-helskarm-pa .schack-lektion:not(.schack-lektion-parti) > .schack-lektion-yta:not([hidden]) { display: contents; }
+.schack-helskarm-pa .schack-lektion-yta:not([hidden]) > .schack-lektion-brade { grid-column: 1; grid-row: 1 / span 2; margin-inline: 0; }
+.schack-helskarm-pa .schack-lektion-yta:not([hidden]) > .schack-lektion-panel { grid-column: 2; grid-row: 2; align-self: start; }
+.schack-helskarm-pa .schack-pussel > .schack-pussel-yta { display: contents; }
+.schack-helskarm-pa .schack-pussel-yta > .schack-pussel-brade { grid-column: 1; grid-row: 1; margin-inline: 0; }
+.schack-helskarm-pa .schack-pussel-yta > .schack-pussel-panel { grid-column: 2; grid-row: 1; }
+.schack-helskarm-pa .schack-pussel-uppgift { display: block; } /* statusraden på ett litet bräde säger inte alltid samma sak */
+.schack-helskarm-pa :is(.schack-lektion-brade, .schack-pussel-brade).schack {
+  --schack-storlek: max(150px, min(100vw - 2 * var(--hs-pad) - var(--lp-panel), var(--hs-hojd) - 2 * var(--hs-pad) - var(--lp-under)));
+  min-width: 0;
+}
+.schack-helskarm-pa .schack-pussel-kalla { display: none; }
+
+/* Stående eller smalt: brädet över panelen, så brett som skärmen tillåter. */
+@media (orientation: portrait), (max-width: 600px) and (min-height: 521px) {
+  .schack-helskarm-pa :is(.schack-lektion:not(.schack-lektion-parti), .schack-pussel) { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+  .schack-helskarm-pa .schack-lektion:not(.schack-lektion-parti) > .schack-lektion-intro { display: none; }
+  .schack-helskarm-pa .schack-lektion-yta:not([hidden]) > .schack-lektion-brade,
+  .schack-helskarm-pa .schack-pussel-yta > .schack-pussel-brade { grid-column: 1; grid-row: 1; }
+  .schack-helskarm-pa .schack-lektion-yta:not([hidden]) > .schack-lektion-panel,
+  .schack-helskarm-pa .schack-pussel-yta > .schack-pussel-panel { grid-column: 1; grid-row: 2; width: min(100%, 520px); }
+  .schack-helskarm-pa :is(.schack-lektion-brade, .schack-pussel-brade).schack {
+    --schack-storlek: max(150px, min(100vw - 2 * var(--hs-pad), var(--hs-hojd) - 2 * var(--hs-pad) - var(--lp-under) - var(--lp-panel-hojd)));
+  }
+  .schack-helskarm-pa .schack-pussel-uppgift { display: none; }
+}
+
+/* Låg skärm (mobil liggande): alltid sida vid sida, kompaktare panel. */
+@media (max-height: 520px) {
+  .schack-helskarm-pa:has(.schack-lektion-brade, .schack-pussel-brade) { --lp-under: 56px; --lp-panel: 270px; }
+  .schack-helskarm-pa :is(.schack-lektion:not(.schack-lektion-parti), .schack-pussel) { grid-template-columns: max-content minmax(200px, 250px); gap: 8px 12px; }
+  .schack-helskarm-pa :is(.schack-lektion-brade, .schack-pussel-brade).schack { --schack-storlek: max(150px, min(100vw - 2 * var(--hs-pad) - var(--lp-panel), var(--hs-hojd) - 2 * var(--hs-pad) - var(--lp-under))); }
+  .schack-helskarm-pa .schack-lektion-panel, .schack-helskarm-pa .schack-pussel-panel { gap: 6px; }
+  .schack-helskarm-pa .schack-lektion-intro { display: none; }
+  /* Sida vid sida också i ett stående men lågt fönster: placeringen sätts om här (ordningen vinner över stående-blocket). */
+  .schack-helskarm-pa .schack-lektion-yta:not([hidden]) > .schack-lektion-brade,
+  .schack-helskarm-pa .schack-pussel-yta > .schack-pussel-brade { grid-column: 1; grid-row: 1 / span 2; }
+  .schack-helskarm-pa .schack-lektion-yta:not([hidden]) > .schack-lektion-panel,
+  .schack-helskarm-pa .schack-pussel-yta > .schack-pussel-panel { grid-column: 2; grid-row: 1 / span 2; align-self: center; width: auto; }
+  .schack-helskarm-pa .schack-pussel-uppgift { display: none; }
+  .schack-helskarm-pa :is(.schack-lektion-brade, .schack-pussel-brade).schack .schack-status { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 4px 10px; }
+}

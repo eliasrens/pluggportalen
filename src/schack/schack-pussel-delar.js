@@ -26,7 +26,7 @@ export function valHtml(framsteg, antal = {}, lage = {}) {
     const pct = n ? Math.min(100, Math.round((losta / n) * 100)) : 0;
     const rad = n == null ? `${losta} lösta` : `${losta} av ${n} lösta`;
     // Samma regel som pusselvyn (startNummer): vid slutet börjar eleven om på 1 (F1).
-    const nasta = n == null ? lage[s.id] || f[s.id].senast + 1 : startNummer(f, lage[s.id], s.id, n);
+    const nasta = startNummer(f, lage[s.id], s.id, n ?? Infinity); // medan banken laddas: ingen övre gräns än
     const slut = n == null ? { slut: false } : slutet(f, s.id, n);
     const nastaText = slut.slut && nasta === 1
       ? (slut.alla ? "Alla klara – gör om dem!" : "Du har kommit till slutet – gör om dem!")

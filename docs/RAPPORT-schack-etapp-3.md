@@ -210,8 +210,8 @@ Klientens Firestore-trafik per elev, räknad i proxyn (`kvot`, `lyssnare` är #7
 | F2 | ⚪ dokumentation | `docs/BEHORIGHETER.md` (raden `studentData`) nämner `schack.lektioner` (#790) men inte `schack.pussel` (#791). | **Rättad** i #792: raden nämner nu `schack.pussel` (`DATAMODELL.md` hade redan `pussel`) |
 | F3 | ⚪ QA-skript | Etapp 2-skriptets `partier` ger ibland FEL på "svart ser 'Din tid är slut.'". Skriptet läser svarts text i samma ögonblick som vits "Kräv vinsten" visas; svarts text kommer i samma sekundtick (isolerat: båda syns efter 1 s). Inget som Etapp 3 ändrat (klockan och kompisvyn är orörda). | Ingen åtgärd (tidsfluga i #782:s skript) |
 | F4 | ⚪ iakttagelse | **Börja om i en jaktuppgift nollställer dragräknaren**, och stjärnorna räknas på det sista försöket. En elev kan alltså få 3 stjärnor genom att trycka Börja om efter första felet. Ingen skada (inga mynt, "Börja om" är en pedagogisk funktion), men "efter antal drag" gäller då det sista försöket. | Ingen åtgärd – fråga till Elias (avsnitt 9) |
-| F5 | ⚪ iakttagelse | På Chromebook 1366×768 slutar brädet i lektioner och pussel vid fönstrets nederkant; med webbläsarens egen list ligger understa raden och statusraden under skärmen och sidan scrollas. Helskärmsknappen finns bara i datorpartiet och kompispartiet, inte i lektion/pussel. | Ingen åtgärd – fråga till Elias |
-| F6 | ⚪ kosmetisk | Statusraden under pusselbrädet står kvar på "Inte riktigt – prova igen!" när man trycker Tips (panelens text byts, statusraden inte). Valet efter ett löst pussel som man inte klickat vidare från säger "Fortsätt med pussel N" om samma pussel. | Ingen åtgärd |
+| F5 | ⚪ iakttagelse | På Chromebook 1366×768 slutar brädet i lektioner och pussel vid fönstrets nederkant; med webbläsarens egen list ligger understa raden och statusraden under skärmen och sidan scrollas. Helskärmsknappen finns bara i datorpartiet och kompispartiet, inte i lektion/pussel. | **Åtgärdad i #794:** brädet följer fönstrets höjd (`100svh - 248 px` i lektionen, `- 232 px` i pusslet, golv 320 px) och introt står i panelens kolumn på bred skärm – hela brädet + statusraden syns utan skroll på 1366×657 och 1280×720; Helskärm-knapp i lektion och pussel (`schack-lektion-vy.js`, `schack-pussel-vy.js`), guiden byter lektion på stället i helskärm. Lektion 12 (partiet, med spelarrader) är oförändrad: dess höjd är datorpartiets. SCHACK.md §15.4, §16.2 |
+| F6 | ⚪ kosmetisk | Statusraden under pusselbrädet står kvar på "Inte riktigt – prova igen!" när man trycker Tips (panelens text byts, statusraden inte). Valet efter ett löst pussel som man inte klickat vidare från säger "Fortsätt med pussel N" om samma pussel. | **Åtgärdad i #794:** Tips skriver "Tips: flytta den markerade pjäsen." (andra trycket "Tips: Te8#") i både panelen och statusraden (`tipsText`); `startNummer` låter läget på det senast lösta pusslet peka på nästa olösta. `test/schack-794-chromebook.test.js` |
 | F7 | ⚪ testmiljö | ⭐ och navigationens emoji syns som rutor i headless-Chromium (saknat typsnitt) – gäller bara testmiljön. | – |
 
 ### Kända beslut (inga nya fel)
@@ -255,8 +255,8 @@ Rollback: webben först (revert av PR:en). Regeln kan ligga kvar, den är bakåt
    räknas på alla drag i uppgiften inklusive de före en omstart?
 2. **Lektion 12:** vinst 3, remi 2, förlust 1 stjärna och "gav upp" = inte klarad. Rimligt, eller ska
    förlust också vara 0?
-3. **Chromebook (F5):** ska lektionerna och pusslen få en Helskärm-knapp som partierna, eller räcker
-   dagens layout?
+3. ~~**Chromebook (F5)**~~ – **besvarad i #794:** lektionerna och pusslen har fått Helskärm-knappen och brädet
+   anpassas efter höjden (F5 ovan). Inget att besluta.
 4. **Elevers egen stjärnrapportering:** klienten skriver stjärnor och pusselframsteg själv och en elev kan
    sätta alla 12 lektioner till 3 stjärnor med devtools. Inga mynt hänger på det – okej?
 5. **Läraren ser inte guide- och pusselframstegen.** Önskas en kolumn i lärarens statistik (kräver läsning

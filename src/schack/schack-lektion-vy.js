@@ -12,6 +12,8 @@
 //   const vy = skapaLektionVy(host, { lektion, sparade, namn, avatarHtml, dator, lagring, nyckel,
 //                                     onKlar(stjarnor) → bool (förbättring), onAlla, onNasta, reducedMotion });
 //   vy.borjaOm(); vy.destroy();   vy.brade / vy.lopp() för tester och förhandsvisningen
+// Helskärm (#794): knappen ligger bland panelens knappar (lektion 12 har den i partivyn) och
+// helskärmar schacksidans rot (.schack-rot), inte vyn – då överlever ett byte till nästa lektion.
 // Ingen tidspress, inga mynt, ingen Firebase.
 // ============================================================================
 
@@ -21,6 +23,7 @@ import { skapaJaktKontroll } from "./schack-stjarnjakt.js";
 import { LEKTIONER, skapaLopp, stjarnorEfterParti } from "./schack-lektioner.js";
 import { lektionHtml, klarHtml } from "./schack-guide-delar.js";
 import { lasParti, sparaParti, nyttParti } from "./schack-parti.js";
+import { monteraHelskarm } from "./schack-helskarm.js";
 
 /**
  * Kontrollen för frågorna i lektion 1: utgångsställningen, inga drag – varje tryck
@@ -62,6 +65,8 @@ export function skapaLektionVy(host, o) {
   const nastaKnapp = $('[data-act="nasta"]');
   const omKnapp = $('[data-act="om"]'); // bara i jakterna
   const text = (s, t) => { const e = $(s); if (e) e.textContent = t; };
+  // Lektion 12 (partiet) monterar sin egen knapp i schack-dator-vy.js – bara en per sida.
+  const helskarm = lektion.typ === "parti" ? null : monteraHelskarm(host.closest?.(".schack-rot") || host, { knappPlats: $(".schack-knappar") });
 
   function visaRaknare() {
     if (lektion.typ === "jakt") {
@@ -257,6 +262,7 @@ export function skapaLektionVy(host, o) {
     destroy() {
       levande = false;
       host.removeEventListener("click", klick);
+      helskarm?.destroy();
       stang();
       host.innerHTML = "";
     },

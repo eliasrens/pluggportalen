@@ -916,6 +916,23 @@ ruta i lektion 1). `skapaDatorVy` fick `tillbakaText` ("‹ Alla lektioner" i le
 visas resultatrutan ("Lektionen klar!", stjärnorna, "Du klarade det på 9 drag. Det går på 8 …",
 "Nytt rekord!" vid förbättring) med **Nästa: <lektion>**, **Gör om lektionen** och **Alla lektioner**.
 
+**Höjden och helskärmen (#794, QA F5).** Brädet i lektionen följer fönstrets höjd:
+`.schack-lektion-brade.schack { --schack-storlek: max(320px, min(100%, 640px, calc(100svh - 248px))) }`
+(`39-schack-guide.css`; över brädet ligger sidmarginalen, Tillbaka-knappen och rubrikraden ≈ 158 px, under det
+statusraden på upp till två rader ≈ 77 px). Golvet 320 px (§2.1) gäller alltid – på ett lägre fönster skrollar
+sidan hellre än att brädet blir mindre. På bred skärm (> 820 px) står **introt i panelens kolumn** i stället för
+som en rad över brädet (sidan blir ett rutnät där brädet spänner tre rader), annars tog det 90 px av höjden: på en
+Chromebook 1366×768 (≈ 657 px synligt med webbläsarens list) ryms nu brädet **och** statusraden utan skroll.
+Sidans bottenmarginal (60 px i `.container`) räknas inte in (`margin-bottom: -48px` på lektionsramen).
+**Helskärmsknappen** ligger bland panelens knappar (`monteraHelskarm(host.closest(".schack-rot") || host, …)`,
+`helskarm.destroy()` i `destroy()`); behållaren är schacksidans rot, så ett byte inom schacksidan avbryter inte
+helskärmen. Ett **hashbyte** ritar om hela sidan och avslutar därför helskärmen – därför byter guiden **Nästa:
+<lektion>** på stället när helskärm är på (`nastaLektionIPlats` i `schack-guide-vy.js`: `history.replaceState` utan
+hashchange, ny lektionsvy på samma `host`); **Alla lektioner** går via hashen och lämnar helskärmen. Lektion 12 har
+sin knapp i partivyn (`schack-dator-vy.js`) – lektionsvyn monterar ingen andra. `38-schack-helskarm.css` döljer
+rubrikraden i helskärm och lägger brädet till vänster och panelen (med introt) till höger, stående under varandra;
+formeln använder egna variabler (`--lp-under`, `--lp-panel`, `--lp-panel-hojd`) så att partiets `--hs-*` är orörda.
+
 ### 15.5 Framstegen – `studentData.schack.lektioner`
 
 `{ "1": 3, "2": 1, … }` (lektionsnummer → bästa antal stjärnor).
@@ -1000,7 +1017,7 @@ drag"** (resp. två) och "Pussel 13 av 200".
 | Fel drag | brädets `beforeMove` frågar loppet → `false`: pjäsen hoppar tillbaka, **"Inte riktigt – prova igen!"** |
 | Rätt drag (matt) | **"Snyggt! Schack matt! ⭐"** i statusraden och panelen, knappen **Nästa pussel ›** (fokus). Brädets slutruta är dold – den skulle täcka matten. |
 | Matt i två, rätt första drag | "Bra drag! Nu försvarar sig svart …", brädet låses, och efter 0,7 s spelar datorn försvaret ur lösningen ("Svart spelade Td8. Nu: gör matt i ett drag!") |
-| **Tips** | första trycket: en pulserande orange ring runt **pjäsen som ska flyttas** (aria "tips: flytta den här pjäsen"); andra trycket: dessutom draget som pil ("Tips: Tc8+") – så att ingen fastnar för gott |
+| **Tips** | första trycket: en pulserande orange ring runt **pjäsen som ska flyttas** (aria "tips: flytta den här pjäsen") och **"Tips: flytta den markerade pjäsen."** i både panelen och statusraden under brädet (#794, F6 – annars stod "Inte riktigt – prova igen!" kvar); andra trycket: dessutom draget som pil ("Tips: Tc8+") – så att ingen fastnar för gott. Texten kommer ur `tipsText(steg, san)`. |
 | ‹ Förra / Hoppa över › | bläddra; läget sparas lokalt |
 | Sista pusslet löst | "Du har löst alla 200 pussel!" – eller, om eleven hoppat över några, "Du har kommit till sista pusslet – 196 av 200 lösta." – och knappen **Till alla pussel** |
 
@@ -1009,6 +1026,14 @@ drag"** (resp. två) och "Pussel 13 av 200".
 - "Varna mig" finns inte i pusslen (frivilligt i spec) – ett fel drag kostar ingenting här.
 - Inga timers utom försvarspausen (rensas vid byte och `destroy`), ingen tidspress, **inga mynt**.
 - 320 px: som partiet och guiden går brädet ut i sidans marginal i stället för att sidan skrollar i sidled.
+- **Höjden och helskärmen (#794, F5):** `.schack-pussel-brade.schack { --schack-storlek: max(320px, min(100%, 640px,
+  calc(100svh - 232px))) }` (`40-schack-pussel.css`; över brädet ≈ 131 px, under det statusraden på upp till två rader)
+  – hela brädet + statusraden syns utan skroll på 1366×657 och 1280×720 (golvet 320 px gäller alltid). Helskärmsknappen
+  ligger bland panelens knappar och helskärmar `.schack-rot`; **Nästa pussel** byter bara brädets ställning, så
+  helskärmen består. `destroy()` tar bort knappen. Stilarna: sista blocket i `38-schack-helskarm.css`.
+- **"Fortsätt med pussel N" (#794, F6):** `startNummer` – står det lokala läget på det **senast lösta** pusslet (löst men inte
+  klickat vidare) är nästa pussel det som visas, i valet och när vyn öppnas. Ett tillbakabläddrat läge (< senast) och ett
+  pågående (> senast) gäller som förut; vid slutet börjar eleven om på 1.
 
 ### 16.3 Framstegen – `studentData.schack.pussel`
 
@@ -1040,6 +1065,10 @@ fungerar ändå, men inget sparas). Inga functions, inga index.
 
 ### 16.5 Förhandsvisning och tester
 
+- Båda förhandsvisningarna har **appläget `?app=1`** (#794): samma ram som appen (sidomeny 264 px, `.container` 880 px,
+  24 px upptill, hamburgerrad under 820 px) utan verktygspanelen – för att mäta höjdregeln (t.ex.
+  `preview-schack-guide.html?app=1#/elev/schack?vy=lar&lektion=9` vid 1366×657). `test/schack-794-chromebook.test.js` –
+  Tips-texten, "Fortsätt med"-numret, helskärmen monterad/rensad i lektions- och pusselvyn, höjdregeln i CSS, bootgrafen 107.
 - `preview/preview-schack-pussel.html` – startsidan, valet och båda sorterna (direktlänkar till pussel 1,
   50, 100, 150, 200) utan Firebase. Framstegen ligger i `localStorage` (`pp:schack:pussel:preview:framsteg`)
   och finns kvar efter en omladdning; varje "skrivning" loggas och räknas. Kryssrutor: Snabbt försvar

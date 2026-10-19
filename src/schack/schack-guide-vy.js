@@ -17,6 +17,7 @@
 import { oversiktHtml } from "./schack-guide-delar.js";
 import { lektionFor, normaliseraLektioner, arForbattring } from "./schack-lektioner.js";
 import { skapaLektionVy } from "./schack-lektion-vy.js";
+import { helskarmElement } from "../helskarm.js";
 
 /**
  * En lektion blev klar: spara bara en förbättring (EN skrivning, `guide.spara`).
@@ -38,16 +39,32 @@ export function skapaGuideVy(host, ctx) {
   let lektionVy = null;
   let klick = null;
 
-  if (lektion) {
-    const sparade = normaliseraLektioner(guide.lektioner())[String(lektion.nr)] || 0;
+  function visaLektion(l) {
+    const sparade = normaliseraLektioner(guide.lektioner())[String(l.nr)] || 0;
     lektionVy = skapaLektionVy(host, {
-      lektion, sparade, namn: ctx.namn, avatarHtml: ctx.avatarHtml, dator: ctx.dator,
+      lektion: l, sparade, namn: ctx.namn, avatarHtml: ctx.avatarHtml, dator: ctx.dator,
       lagring: ctx.lagring, nyckel: ctx.nyckel, reducedMotion: ctx.reducedMotion,
       tidsgransMs: ctx.tidsgransMs, tankMinMs: ctx.tankMinMs,
-      onKlar: (stjarnor) => sparaOmBattre(guide, lektion.nr, stjarnor),
+      onKlar: (stjarnor) => sparaOmBattre(guide, l.nr, stjarnor),
       onAlla: () => tillGuide(null),
-      onNasta: (l) => tillGuide(l?.nr || null),
+      onNasta: (n) => nastaLektionIPlats(n),
     });
+  }
+
+  /**
+   * Nästa lektion. Ett hashbyte ritar om hela sidan och därmed avslutar helskärmen (#794) –
+   * i helskärm byts lektionen på stället (hashen skrivs om utan hashchange), annars går eleven dit.
+   */
+  function nastaLektionIPlats(n) {
+    if (!n || !helskarmElement()) return tillGuide(n?.nr || null);
+    lektionVy?.destroy(); // helskärmen lever vidare (exitOnDestroy: false), bara knappen försvinner
+    lektionVy = null;
+    if (typeof history !== "undefined") history.replaceState(null, "", ctx.tillHash(`vy=lar&lektion=${n.nr}`));
+    visaLektion(n);
+  }
+
+  if (lektion) {
+    visaLektion(lektion);
   } else {
     host.innerHTML = oversiktHtml(guide.lektioner());
     klick = (e) => {
