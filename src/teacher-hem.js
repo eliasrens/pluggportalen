@@ -182,7 +182,7 @@ export async function pageLarareHem(ctx) {
         wireHashLinks(ctx, kort);
         return kort;
       })
-      : [el(`<p class="hint">${role.admin ? (classes.length ? "Alla klasser är dolda." : "Inga klasser än – skapa dem under Admin → Klasser &amp; elevkonton.")
+      : [el(`<p class="hint">${role.admin ? (classes.length ? "Alla klasser är dolda." : "Inga klasser än – skapa dem under Admin → Skapa klass.")
         : "Kontot har inga klasser än – admin väljer dem under Lärarkonton."}</p>`)]));
     grid.querySelectorAll("[data-dolj]").forEach((b) => b.addEventListener("click", () => {
       const id = b.dataset.dolj;

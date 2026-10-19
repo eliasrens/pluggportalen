@@ -85,7 +85,7 @@ export async function mountMinaKlasser(ctx) {
     if (!cls) {
       head = null;
       panel.replaceChildren(el(`<div class="cls-detail-empty"><p class="hint">${sida.admin
-        ? "Det finns inga klasser än – skapa dem under Admin → Klasser & elevkonton."
+        ? `Det finns inga klasser än – <a href="#/larare/admin?verktyg=skapa" class="stats-av-lank">skapa en under Admin → Skapa klass</a>.`
         : "Kontot har inga klasser än – admin väljer dem under Lärarkonton."}</p></div>`));
       return;
     }
@@ -94,11 +94,16 @@ export async function mountMinaKlasser(ctx) {
       tabindex="${f.key === sida.flik ? 0 : -1}"><span class="mk-flik-namn">${esc(f.label)}</span><small>${esc(f.sub)}</small></button>`).join("");
     const box = el(`<div class="mk-klass-inner">
       <header class="mk-head"><h2 class="mk-namn"></h2><span class="class-count mk-antal"></span></header>
+      <div class="mk-flash"></div>
       <div class="mk-flikar" role="tablist" aria-label="Allt om klassen">${flikar}</div>
       <div class="mk-innehall" id="mk-innehall" role="tabpanel" aria-labelledby="mk-flik-${sida.flik}"></div>
     </div>`);
     head = { namn: box.querySelector(".mk-namn"), antal: box.querySelector(".mk-antal") };
     ritaHuvud(cls);
+    // Engångsbesked från Admin → Skapa klass (#805), t.ex. "✓ Klassen skapades".
+    const flash = store.flashes.get(cls.id);
+    if (flash) box.querySelector(".mk-flash").replaceChildren(el(`<div class="msg ok">${flash}</div>`));
+    store.flashes.delete(cls.id);
     const tablist = box.querySelector(".mk-flikar");
     tablist.addEventListener("click", (e) => {
       const t = e.target.closest("[data-flik]");

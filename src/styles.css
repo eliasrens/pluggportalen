@@ -9846,6 +9846,251 @@ html.reduce-motion .schack-pokal-ny { animation: none; }
 /* "‹ Till Schack" på nivåvalet går till samma sida i provläget – dold där (i partiet leder den tillbaka till nivåvalet). */
 .teacher-dark .mat-schack .schack-sida > .schack-tillbaka { display: none; }
 
+/* ── src/styles/45-larare-elever-admin.css ── */
+/* ==========================================================================
+   === Elever-fliken + Admin-sidan #805 (epic #802 §3.4–3.5) ===
+   --------------------------------------------------------------------------
+   Kompakt elevtabell (en rad per elev, menyn ⋯, panel/bekräftelse under
+   raden) och Admin-sidans stora kort. Samma mörka tema, gröna accent och
+   linjeikoner som resten av lärarsidan; allt scopat under .teacher-dark.
+   Ner till 320 px utan horisontell scroll: raden radbryts till två rader.
+   ========================================================================== */
+
+/* --- Verktygsraden: knappar för hela klassen + sök ------------------------ */
+.teacher-dark .et { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.teacher-dark .et-verktyg {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+.teacher-dark .et-knappar { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.teacher-dark .et-knappar .btn[aria-expanded="true"] { box-shadow: inset 0 0 0 2px var(--t-accent); }
+.teacher-dark .et-sok { flex: 0 1 260px; min-width: 0; }
+.teacher-dark .et-sok-falt {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 38px;
+  padding: 7px 12px;
+  border: 1.5px solid var(--t-border-strong);
+  border-radius: 10px;
+  background: var(--t-surface);
+  color: var(--t-text);
+  font: inherit;
+  font-weight: 600;
+}
+.teacher-dark .et-sok-falt:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 1px; }
+.teacher-dark .et-fot { margin: 0; }
+.teacher-dark .et-fot[hidden],
+.teacher-dark .et-besked:empty { display: none; }
+
+/* --- Tabellen ------------------------------------------------------------- */
+.teacher-dark .et-tabell {
+  border: 1px solid var(--t-border);
+  border-radius: 12px;
+  background: var(--t-surface-2);
+  min-width: 0;
+}
+.teacher-dark .et-rad {
+  display: grid;
+  grid-template-columns: minmax(140px, 1.4fr) minmax(110px, 1fr) minmax(110px, 1fr) 48px;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 7px 12px;
+  min-width: 0;
+}
+.teacher-dark .et-admin .et-rad { grid-template-columns: minmax(140px, 1.4fr) minmax(110px, 1fr) minmax(110px, 1fr) minmax(90px, 0.8fr) 48px; }
+.teacher-dark .et-huvud {
+  padding-top: 9px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--t-border);
+  color: var(--t-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.teacher-dark .et-elev + .et-elev { border-top: 1px solid var(--t-border); }
+.teacher-dark .et-elev:hover > .et-rad,
+.teacher-dark .et-elev.meny-oppen > .et-rad { background: rgba(255, 255, 255, 0.025); }
+.teacher-dark .et-namn { display: flex; align-items: center; gap: 8px; min-width: 0; font-weight: 700; color: var(--t-text); }
+.teacher-dark .et-ava { flex: none; font-size: 1.2rem; line-height: 1; }
+.teacher-dark .et-namn-txt,
+.teacher-dark .et-anv { overflow-wrap: anywhere; min-width: 0; }
+.teacher-dark .et-anv { color: var(--t-text); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.92rem; }
+.teacher-dark .et-lbl { display: none; color: var(--t-muted); font-family: inherit; font-size: 0.8rem; font-weight: 600; }
+.teacher-dark .et-los,
+.teacher-dark .et-mynt { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; overflow-wrap: anywhere; }
+.teacher-dark .et-varde { min-width: 0; max-width: 100%; }
+.teacher-dark .et-visa { padding: 4px 10px; }
+.teacher-dark .et-visat { font-weight: 700; color: var(--t-text); }
+.teacher-dark .et-kod { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.95rem; color: #eafff2; overflow-wrap: anywhere; min-width: 0; max-width: 100%; }
+.teacher-dark .et-okant { color: var(--t-muted); font-style: italic; }
+.teacher-dark .et-satt-nytt { padding: 3px 8px; }
+.teacher-dark .et-ingen { margin: 8px 0 0; }
+
+/* --- Menyn ⋯ -------------------------------------------------------------- */
+.teacher-dark .et-mer { position: relative; display: flex; justify-content: flex-end; }
+.teacher-dark .et-meny-knapp { min-width: 38px; justify-content: center; font-size: 1.15rem; font-weight: 800; line-height: 1; }
+.teacher-dark .et-meny-knapp[aria-expanded="true"] { border-color: var(--t-accent); color: var(--t-accent); }
+.teacher-dark .et-meny {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  min-width: 230px;
+  max-width: calc(100vw - 32px);
+  padding: 6px;
+  border: 1px solid var(--t-border-strong);
+  border-radius: 12px;
+  background: var(--t-raised);
+  box-shadow: var(--t-shadow);
+}
+.teacher-dark .et-meny[hidden] { display: none; }
+.teacher-dark .et-menyval {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--t-text);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.teacher-dark .et-menyval .t-icon { color: var(--t-muted); flex: none; }
+.teacher-dark .et-menyval:hover,
+.teacher-dark .et-menyval:focus-visible { outline: none; background: var(--t-accent-soft); }
+.teacher-dark .et-menyval.danger { color: #ff9d9d; }
+.teacher-dark .et-menyval.danger .t-icon { color: #ff9d9d; }
+.teacher-dark .et-menyval.danger:hover,
+.teacher-dark .et-menyval.danger:focus-visible { background: rgba(235, 87, 87, 0.16); }
+.teacher-dark .et-menyval[data-val="ur"] { margin-top: 4px; border-top: 1px solid var(--t-border); border-radius: 0 0 8px 8px; padding-top: 11px; }
+
+/* --- Paneler under raden / överst + bekräftelserutan ------------------------ */
+.teacher-dark .et-panel { padding: 0 12px 12px; }
+.teacher-dark .et-panel[hidden],
+.teacher-dark .et-klasspanel[hidden] { display: none; }
+.teacher-dark .et-panelram,
+.teacher-dark .et-klasspanel {
+  border: 1px solid var(--t-border-strong);
+  border-radius: 12px;
+  background: var(--t-surface);
+}
+.teacher-dark .et-klasspanel > .et-panelram { border: 0; }
+.teacher-dark .et-panelhuvud {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 8px 8px 14px;
+  border-bottom: 1px solid var(--t-border);
+  color: var(--t-text);
+}
+.teacher-dark .et-panelkropp { padding: 12px 14px 14px; min-width: 0; }
+.teacher-dark .et-panelkropp .hint:first-child { margin-top: 0; }
+.teacher-dark .et-namnruta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.teacher-dark .et-namnruta .mm-namn { flex: 1 1 180px; min-width: 0; }
+.teacher-dark .et-lagg-till { display: flex; flex-direction: column; gap: 10px; }
+.teacher-dark .et-mynt-bekrafta:empty { display: none; }
+.teacher-dark .et-mynt-bekrafta { margin-top: 10px; }
+.teacher-dark .et-bekrafta {
+  padding: 12px 14px;
+  border: 1px solid var(--t-border-strong);
+  border-left: 4px solid var(--t-accent);
+  border-radius: 10px;
+  background: var(--t-surface);
+}
+.teacher-dark .et-bekrafta.farlig { border-left-color: #eb5757; background: rgba(235, 87, 87, 0.07); }
+.teacher-dark .et-bekrafta-text { margin: 0 0 10px; color: var(--t-text); overflow-wrap: anywhere; }
+
+/* --- Admin-sidan: stora kort ---------------------------------------------- */
+.teacher-dark .adm-kort {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
+  gap: 12px;
+  margin: 0 0 16px;
+}
+.teacher-dark .adm-kortet {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--t-border-strong);
+  border-radius: 14px;
+  background: var(--t-surface);
+  color: var(--t-text);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.teacher-dark .adm-kortet:hover { border-color: var(--t-accent); }
+.teacher-dark .adm-kortet:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 2px; }
+.teacher-dark .adm-kortet.active { border-color: var(--t-accent); background: var(--t-accent-soft); }
+.teacher-dark .adm-kort-ikon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--t-accent-soft);
+  color: var(--t-accent);
+}
+.teacher-dark .adm-kort-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.teacher-dark .adm-kort-text b { font-size: 1.08rem; }
+.teacher-dark .adm-kort-text span { color: var(--t-muted); font-size: 0.88rem; }
+.teacher-dark .adm-panel { margin: 0; min-width: 0; padding: 18px 22px 22px; }
+.teacher-dark .adm-panel[hidden] { display: none; }
+.teacher-dark .adm-verktyg .subhead { margin-top: 0; }
+.teacher-dark .adm-innehall { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.teacher-dark .adm-klassrad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--t-border);
+  border-radius: 10px;
+  background: var(--t-surface-2);
+  min-width: 0;
+}
+.teacher-dark .adm-klassnamn { flex: 1 1 180px; min-width: 0; overflow-wrap: anywhere; }
+.teacher-dark .adm-klassnamn input { box-sizing: border-box; width: 100%; max-width: 320px; }
+.teacher-dark .adm-bekrafta { margin-top: 6px; }
+.teacher-dark .adm-bekrafta[hidden] { display: none; }
+.teacher-dark .adm-besked:empty { display: none; }
+
+/* --- Smal skärm: raden blir två rader (namn + ⋯ överst) -------------------- */
+@media (max-width: 640px) {
+  .teacher-dark .et-sok { flex: 1 1 100%; }
+  .teacher-dark .et-huvud { display: none; }
+  .teacher-dark .et-rad,
+  .teacher-dark .et-admin .et-rad {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "namn mer" "anv anv" "los los" "mynt mynt";
+    gap: 4px 8px;
+    padding: 10px 12px;
+  }
+  .teacher-dark .et-namn { grid-area: namn; }
+  .teacher-dark .et-mer { grid-area: mer; }
+  .teacher-dark .et-anv { grid-area: anv; }
+  .teacher-dark .et-los { grid-area: los; }
+  .teacher-dark .et-mynt { grid-area: mynt; }
+  .teacher-dark .et-lbl { display: inline; }
+  .teacher-dark .et-panel { padding: 0 8px 10px; }
+  .teacher-dark .adm-panel { padding: 14px 12px 18px; }
+}
+
 /* ── src/styles/45-larare-hem.css ── */
 /* ==========================================================================
    === Hem #807 (epic #802 DEL 2 + §1.3 + DEL 5) ===
