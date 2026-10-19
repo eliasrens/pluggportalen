@@ -175,9 +175,17 @@ describe("Vad eleverna ser (§3.3)", () => {
     assert.match(s(), /<details class="mk-steg mk-steg-ihop"/);
     assert.doesNotMatch(s(), /<details[^>]* open/);
   });
-  it("Sparat ✓ per steg ur sektionens egen bekräftelse", () => {
-    assert.match(s(), /satt\("ok", "Sparat ✓"\)/);
-    assert.match(s(), /"Inte sparat än"/);
+  it("Sparat ✓ per steg ur sektionens egen bekräftelse – bara när ingen sparegrupp har osparat (F1)", () => {
+    assert.match(s(), /\["ok", "Sparat ✓"\]/);
+    assert.match(s(), /osparade\.size \? \["andrat", "Inte sparat än"\]/);
+    assert.match(s(), /osparade\.delete\(grupp\(ok\)\)/);
+    assert.match(s(), /osparade\.add\(grupp\(n\)\)/);
+  });
+  it("Hjälp-länkarna går till rätt flik (F3)", () => {
+    const h = src("teacher-hjalp.js");
+    assert.match(h, /"Välj vad eleverna ser", hash: "#\/larare\/mina-klasser\?flik=ser"/);
+    assert.match(h, /"Fokusläge", hash: "#\/larare\/mina-klasser\?flik=fokus"/);
+    assert.doesNotMatch(h, /hash: "#\/larare\/(klasser|statistik)"/);
   });
   it("hela områdesnamn: ingen ellips i stegen, bredare rutor", () => {
     const css = readFileSync(new URL("../src/styles/43-larare-mina-klasser.css", import.meta.url), "utf8");

@@ -237,6 +237,19 @@ const klick = (b, sel) => b.js(`(() => { const e = document.querySelector(${JSON
   await vanta(800);
   if (!BARA_BILDER) kolla("admin mobil 375 px (ser): ingen horisontell scroll", await b.js(ingenSidscroll));
   await b.bild("efter-admin-mobil-vad-eleverna-ser");
+  if (!BARA_BILDER) {
+    // F1: steg 2 har två sparegrupper (moduler + byar) – att spara byarna gör inte modulerna sparade.
+    await b.tills(`!!document.querySelector('[data-steg="synlighet"] [data-act="save-villages"]') && !!document.querySelector('[data-steg="synlighet"] input[data-module]')`);
+    await b.js(`document.querySelector('[data-steg="synlighet"] input[data-module="lasresan"]').click()`);
+    await klick(b, '[data-steg="synlighet"] [data-act="save-villages"]');
+    await b.tills(`!!document.querySelector('[data-steg="synlighet"] .villages-result .ok-inline')`);
+    await vanta(400);
+    const st = () => b.js(`document.querySelector('[data-steg="synlighet"] .mk-sparat').textContent`);
+    const efterByar = await st();
+    kolla("steg 2: spara byar med osparad modul → 'Inte sparat än'", efterByar === "Inte sparat än", efterByar);
+    await klick(b, '[data-steg="synlighet"] [data-act="save-modules"]');
+    kolla("steg 2: spara moduler också → 'Sparat ✓'", await b.tills(`document.querySelector('[data-steg="synlighet"] .mk-sparat').textContent === "Sparat ✓"`), await st());
+  }
   await b.ga("#/larare/mina-klasser?klass=4b&flik=hur&del=schack");
   await ladda(b);
   await vanta(1200);

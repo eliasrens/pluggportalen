@@ -57,12 +57,25 @@ export function renderVadElevernaSer(ctx, cls, host, store) {
 
 /**
  * "Sparat ✓" / "Inte sparat än" / "Kunde inte spara" i stegets rubrik, ur
- * sektionens egna resultatrader (.ok-inline / .err-inline) och ändringar.
+ * sektionernas egna resultatrader (.ok-inline / .err-inline) och ändringar.
+ * Ett steg kan ha flera sparegrupper med var sin Spara-knapp (steg 2: moduler +
+ * byar) – grupp = värdens barn. "Sparat ✓" visas bara när INGEN grupp har
+ * osparade ändringar; att spara byarna gör inte modulerna sparade (#804 F1).
  */
 function sparStatus(stegEl, body) {
   const status = stegEl.querySelector(".mk-sparat");
-  const satt = (cls, text) => {
-    status.className = `mk-sparat ${cls}`;
+  const osparade = new Set();
+  let fel = false;
+  let sparat = false;
+  const grupp = (n) => {
+    while (n && n.parentElement !== body) n = n.parentElement;
+    return n || body;
+  };
+  const rita = () => {
+    const [cls, text] = fel ? ["fel", "Kunde inte spara"]
+      : osparade.size ? ["andrat", "Inte sparat än"]
+      : sparat ? ["ok", "Sparat ✓"] : ["", ""];
+    status.className = `mk-sparat ${cls}`.trim();
     status.textContent = text;
   };
   new MutationObserver((poster) => {
@@ -70,16 +83,25 @@ function sparStatus(stegEl, body) {
       for (const n of p.addedNodes) {
         if (n.nodeType !== 1) continue;
         const ok = n.matches(".ok-inline") ? n : n.querySelector(".ok-inline");
-        const fel = n.matches(".err-inline") ? n : n.querySelector(".err-inline");
-        if (ok) satt("ok", "Sparat ✓");
-        else if (fel && /spara/i.test(fel.textContent)) satt("fel", "Kunde inte spara");
+        const err = n.matches(".err-inline") ? n : n.querySelector(".err-inline");
+        if (ok) {
+          osparade.delete(grupp(ok));
+          sparat = true;
+          fel = false;
+        } else if (err && /spara/i.test(err.textContent)) fel = true;
+        else continue;
+        rita();
       }
     }
   }).observe(body, { childList: true, subtree: true });
-  const andrat = () => satt("andrat", "Inte sparat än");
-  body.addEventListener("change", andrat);
+  const andrat = (n) => {
+    osparade.add(grupp(n));
+    fel = false;
+    rita();
+  };
+  body.addEventListener("change", (e) => andrat(e.target));
   body.addEventListener("click", (e) => {
     const knapp = e.target.closest("[data-act]");
-    if (knapp && !/^save/.test(knapp.dataset.act)) andrat();
+    if (knapp && !/^save/.test(knapp.dataset.act)) andrat(knapp);
   });
 }

@@ -259,7 +259,7 @@ export const TEACHER_REDIRECTS = {
   "/larare/brakresan": "#/larare/brakresan", // D: Material → Bråkresan
   "/larare/hitta-ratt": "#/larare/hitta-ratt", // D: Material → Hitta rätt!
   "/larare/klass": "#/larare/statistik", // äldre sammanslagningar (#62, #299, #679)
-  "/larare/elever": "#/larare/klasser",
+  "/larare/elever": "#/larare/mina-klasser?flik=elever",
   "/larare/prompter": "#/larare/innehall",
 };
 

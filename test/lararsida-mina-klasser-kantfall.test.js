@@ -18,9 +18,12 @@ describe("startVal – konstiga indata", () => {
   it("tom/blank/okänd ?klass= och sparad klass som inte finns → första klassen", () => {
     for (const k of ["", "%", "NOPE", "4"]) assert.equal(startVal(KL, { query: q(`klass=${k}`), saved: "borta" }).id, "a1", k);
   });
-  // Känt (låg): blankt ?klass=%20 matchar en klass utan namn (norm("") === norm("")) i stället för att ignoreras.
-  it("blankt ?klass= ignoreras även när en klass saknar namn", { todo: true }, () => {
+  // #804 F2: blankt ?klass=%20 matchade en klass utan namn – nu ignoreras det (sparad → första).
+  it("blankt ?klass= ignoreras även när en klass saknar namn", () => {
     assert.equal(startVal(KL, { query: q("klass=%20") }).id, "a1");
+    assert.equal(startVal(KL, { query: q("klass=%20%20"), saved: "b2" }).id, "b2");
+    assert.equal(startVal(KL, { query: q("klass=%204B%20") }).id, "b2");
+    assert.equal(hittaKlass(KL, "   "), null);
   });
   it("okänd ?flik= → hur; okänd ?sektion= ignoreras; sektion slår flik", () => {
     assert.equal(startVal(KL, { query: q("flik=__proto__") }).flik, "hur");
@@ -77,7 +80,7 @@ describe("omdirigeringar", () => {
     assert.equal(r("/larare/statistik"), "#/larare/mina-klasser?flik=hur");
     assert.equal(new URLSearchParams(r("/larare/klasser", "klass=4B&sektion=fokus").split("?")[1]).get("sektion"), "fokus");
     assert.equal(r("/larare/klass"), "#/larare/mina-klasser?flik=hur");
-    assert.equal(r("/larare/elever"), "#/larare/mina-klasser?flik=ser");
+    assert.equal(r("/larare/elever"), "#/larare/mina-klasser?flik=elever");
     assert.equal(r("/larare/mina-klasser"), null);
   });
 });

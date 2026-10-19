@@ -44,6 +44,7 @@ const norm = (s) => String(s ?? "").trim().toLocaleLowerCase("sv");
 
 /** Klass ur ?klass= – id först, annars namnet utan skiftlägeskänslighet ("4B"). */
 export function hittaKlass(classes, q) {
+  q = String(q ?? "").trim(); // blankt ?klass=%20 matchar ingen klass utan namn (#804 F2)
   if (!q) return null;
   return classes.find((c) => c.id === q) || classes.find((c) => norm(c.name) === norm(q)) || null;
 }

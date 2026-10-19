@@ -133,7 +133,7 @@ describe("gamla adresser (DEL 7)", () => {
     assert.equal(mal("#/larare/oversikt"), "#/larare/hem");
     assert.equal(mal("#/larare"), "#/larare/hem");
     assert.equal(mal("#/larare/klass"), "#/larare/mina-klasser?flik=hur");
-    assert.equal(mal("#/larare/elever"), "#/larare/mina-klasser?flik=ser");
+    assert.equal(mal("#/larare/elever"), "#/larare/mina-klasser?flik=elever");
     assert.equal(mal("#/larare/prompter"), "#/larare/innehall");
   });
   it("parametrarna följer med: ?prov= till Hitta rätt!, ?klass= till klassvyn", () => {

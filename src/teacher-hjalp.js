@@ -11,13 +11,13 @@ import { el, esc, icon, isTeacher, renderGate, teacherHead, teacherNav, wireHash
 
 /** Guiderna som F fyller (DEL 8) + var man hittar delen i dag. */
 export const GUIDER = [
-  { titel: "Kom igång med en ny klass", hash: "#/larare/klasser" },
-  { titel: "Välj vad eleverna ser", hash: "#/larare/klasser" },
-  { titel: "Fokusläge", hash: "#/larare/klasser" },
+  { titel: "Kom igång med en ny klass", hash: "#/larare/mina-klasser" },
+  { titel: "Välj vad eleverna ser", hash: "#/larare/mina-klasser?flik=ser" },
+  { titel: "Fokusläge", hash: "#/larare/mina-klasser?flik=fokus" },
   { titel: "Skapa ett område med AI", hash: "#/larare/innehall" },
   { titel: "Gör ett prov och rätta det", hash: "#/larare/prov" },
   { titel: "Starta Live", hash: "#/larare/live" },
-  { titel: "Ändra elevernas nivåer i Läsresan och Ekvationsresan", hash: "#/larare/statistik" },
+  { titel: "Ändra elevernas nivåer i Läsresan och Ekvationsresan", hash: "#/larare/mina-klasser?flik=hur&del=lasresan" },
 ];
 
 export function pageLarareHjalp(ctx) {

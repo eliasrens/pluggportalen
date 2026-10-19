@@ -159,7 +159,7 @@ Ett mål som är samma route betyder "dagens sida är fortfarande platsen" – B
 | `#/larare/innehall` (och `#/larare/prompter`) | Material → Plugga-områden | `#/larare/innehall` |
 | `#/larare/brakresan` | Material → Bråkresan | `#/larare/brakresan` |
 | `#/larare/hitta-ratt` | Material → Hitta rätt! (`?prov=` fungerar som förut) | `#/larare/hitta-ratt` |
-| `#/larare/elever` | Mina klasser | `#/larare/mina-klasser?flik=ser` (B, via `#/larare/klasser`) |
+| `#/larare/elever` | Mina klasser | `#/larare/mina-klasser?flik=elever` (B) |
 
 Gamla `?sektion=` följer med och väljer fliken: omraden/lagen/synlighet → Vad eleverna ser, fokus → Fokusläge,
 inloggning/elever/klasscenter → Elever, statistik → Hur går det?, schack → Hur går det? → Schack (`SEKTION_TILL_FLIK`).
