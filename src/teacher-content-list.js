@@ -89,7 +89,7 @@ function sortHeader({ key, label }, sort) {
   </th>`;
 }
 
-/** Ren ikonknapp (utan boxad bakgrund, #453) med tooltip + aria-label. */
+/** Ren ikonknapp (utan boxad bakgrund, #453) med tooltip (title) + aria-label – samma text, med områdets namn (#806). */
 const actBtn = (act, ic, label, extra = "") =>
   `<button type="button" class="area-act ${extra}" data-act="${act}"
     title="${esc(label)}" aria-label="${esc(label)}">${icon(ic, 16)}</button>`;
@@ -152,10 +152,10 @@ export function buildAreaTable(areas, { subjectId, subjectName, onEdit, onRefres
         ${onUse ? txtBtn("use", "check", "Använd", `Använd ${a.name} i en klass`) : ""}
         ${onDuplicate ? txtBtn("dup", "copy", "Duplicera", `Duplicera ${a.name} till en egen kopia`) : ""}
         ${own ? `${actBtn("edit", "pencil", `Redigera ${a.name}`)}
-        ${actBtn("review", "eye", "Granska innehållet")}
-        ${actBtn("add", "plus", "Lägg till innehåll")}
-        ${actBtn("amnes", "book", "Skapa ämnestexter")}
-        ${actBtn("del", "trash", "Ta bort", "danger")}` : ""}
+        ${actBtn("review", "eye", `Granska innehållet i ${a.name}`)}
+        ${actBtn("add", "plus", `Lägg till innehåll i ${a.name}`)}
+        ${actBtn("amnes", "book", `Skapa ämnestexter till ${a.name}`)}
+        ${actBtn("del", "trash", `Ta bort ${a.name}`, "danger")}` : ""}
       </div></td>
     </tr></tbody></table>`).querySelector("tr");
 

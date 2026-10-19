@@ -224,10 +224,9 @@ export const TEACHER_TABS = [
   tab("hem", "#/larare/hem", "hem", "Hem", "Hem", "home", () => import("./teacher-hem.js"), "pageLarareHem"),
   // Mina klasser (#804): klassväljare + Hur går det? | Vad eleverna ser | Fokusläge | Elever.
   tab("klasser", "#/larare/mina-klasser", "klasser", "Mina klasser", "Mina klasser", "users", () => import("./teacher-classes.js"), "pageLarareMinaKlasser"),
-  tab("innehall", "#/larare/innehall", "material", "Plugga-material", "Material", "book", () => import("./teacher-content.js"), "pageLarareInnehall"),
-  // Bråkresan (#716): testläget – alla 50 utmaningar med facit, inget sparas. Statistiken finns under Statistik.
-  tab("brakresan", "#/larare/brakresan", "material", "Bråkresan", "Bråkresan – testläge", "brak", () => import("./brakresan/larare/testlage.js"), "pageLarareBrakresan"),
-  tab("hittaratt", "#/larare/hitta-ratt", "material", "Hitta rätt!", "Hitta rätt!", "pin", () => import("./hitta-ratt/larare/page-larare-hitta-ratt.js"), "pageLarareHittaRatt", true),
+  // Material (#806): en sida med underflikar (Plugga-områden, Läsresan, Ekvationsresan, Bråkresan, Hitta rätt!, Schack)
+  // som laddas lat ur teacher-material.js (?flik=). Gamla adresser omdirigeras (TEACHER_REDIRECTS).
+  tab("material", "#/larare/material", "material", "Material", "Material", "book", () => import("./teacher-material.js"), "pageLarareMaterial"),
   // Prov (epic #737): Mina prov (#739, skapa/redigera) + Provtillfällen (#740, öppna/stäng/översikt). Lat.
   tab("prov", "#/larare/prov", "prov", "Mina prov", "Mina prov", "clipboard", () => import("./prov/larare/page-larare-prov.js"), "pageLarareProv"),
   tab("provtillfallen", "#/larare/prov/tillfallen", "prov", "Provtillfällen", "Provtillfällen", "inbox", () => import("./prov/prov-tillfallen-sida.js"), "pageProvTillfallen"),
@@ -255,9 +254,9 @@ export const TEACHER_REDIRECTS = {
   "/larare/klasser": "#/larare/mina-klasser?flik=ser", // Mina klasser → Vad eleverna ser (#804)
   "/larare/statistik": "#/larare/mina-klasser?flik=hur", // Mina klasser → Hur går det? (#804)
   "/larare/admin/klasser": "#/larare/admin/klasser", // C: Admin / Mina klasser → Elever
-  "/larare/innehall": "#/larare/innehall", // D: Material → Plugga-områden
-  "/larare/brakresan": "#/larare/brakresan", // D: Material → Bråkresan
-  "/larare/hitta-ratt": "#/larare/hitta-ratt", // D: Material → Hitta rätt!
+  "/larare/innehall": "#/larare/material?flik=plugga", // Material → Plugga-områden (#806)
+  "/larare/brakresan": "#/larare/material?flik=brakresan", // Material → Bråkresan (#806)
+  "/larare/hitta-ratt": "#/larare/material?flik=hitta-ratt", // Material → Hitta rätt! (?prov= följer med, #806)
   "/larare/klass": "#/larare/statistik", // äldre sammanslagningar (#62, #299, #679)
   "/larare/elever": "#/larare/mina-klasser?flik=elever",
   "/larare/prompter": "#/larare/innehall",

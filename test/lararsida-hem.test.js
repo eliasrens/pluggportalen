@@ -118,6 +118,7 @@ describe("klasskort, Att göra och Snabbval", () => {
   it("Snabbval: specens fyra knappar", () => {
     assert.deepEqual(SNABBVAL.map((s) => s.titel), ["Välj områden åt en klass", "Skapa nytt område", "Skapa ett prov", "Starta Live"]);
     assert.equal(SNABBVAL[0].hash, "#/larare/mina-klasser?flik=ser");
+    assert.equal(SNABBVAL[1].hash, "#/larare/material?flik=plugga", "Material → Plugga-områden (#806)");
   });
   it("admin: dolda klasser bort, Visa alla visar alla", () => {
     const k = [{ id: "4a" }, { id: "test" }];

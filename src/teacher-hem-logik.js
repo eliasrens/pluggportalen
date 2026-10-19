@@ -45,7 +45,7 @@ export const harOmraden = (classes) => (classes || []).some((c) => Array.isArray
 /** Snabbval (2.3). */
 export const SNABBVAL = [
   { key: "omraden", titel: "Välj områden åt en klass", text: "Bestäm vad eleverna ser i Plugga", hash: minaHash(null, "ser"), icon: "users" },
-  { key: "omrade", titel: "Skapa nytt område", text: "Frågor, par och texter", hash: "#/larare/innehall", icon: "book" },
+  { key: "omrade", titel: "Skapa nytt område", text: "Frågor, par och texter", hash: "#/larare/material?flik=plugga", icon: "book" },
   { key: "prov", titel: "Skapa ett prov", text: "Blandade frågetyper", hash: "#/larare/prov?vy=ny", icon: "clipboard" },
   { key: "live", titel: "Starta Live", text: "Tävling i klassen eller mot en annan", hash: "#/larare/live", icon: "bolt" },
 ];
