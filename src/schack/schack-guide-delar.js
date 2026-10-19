@@ -7,6 +7,8 @@
 import { pjasSvg } from "./schack-pjaser.js";
 import { esc } from "./schack-bradet-delar.js";
 import { LEKTIONER, ANTAL_LEKTIONER, normaliseraLektioner, summa } from "./schack-lektioner.js";
+import { myntHtml } from "./schack-mynt.js";
+import { LEKTION_MYNT, harLektion } from "./schack-mynt-delat.js";
 
 const STJARNA_D = "M50 8l12.4 25.1 27.7 4-20 19.5 4.7 27.6L50 71.2 25.2 84.2l4.7-27.6-20-19.5 27.7-4z";
 
@@ -29,8 +31,16 @@ export function nastaLektion(lektioner) {
   return LEKTIONER.find((l) => !m[String(l.nr)])?.nr ?? null;
 }
 
-/** Översikten: de 12 lektionerna i ordning, alla öppna, med stjärnorna. */
-export function oversiktHtml(lektioner) {
+/** Lektionskortets mynt (#798): bock när mynten är betalda, annars "+5". `kvitto` undefined = inga mynt. */
+function lektionMyntHtml(nr, kvitto) {
+  if (!kvitto) return "";
+  return harLektion(kvitto, nr)
+    ? `<span class="schack-lektion-mynt betald" title="Mynten är dina">${myntHtml("✓ {mynt}")}<span class="schack-dold"> mynten för lektionen är dina</span></span>`
+    : `<span class="schack-lektion-mynt">${myntHtml(`+${LEKTION_MYNT} {mynt}`)}</span>`;
+}
+
+/** Översikten: de 12 lektionerna i ordning, alla öppna, med stjärnorna (och mynten, #798). */
+export function oversiktHtml(lektioner, kvitto) {
   const m = normaliseraLektioner(lektioner);
   const { stjarnor, klara, max } = summa(m);
   const nasta = nastaLektion(m);
@@ -43,7 +53,7 @@ export function oversiktHtml(lektioner) {
       `<span class="schack-lektion-ikon" aria-hidden="true">${pjasSvg(l.ikon[0], l.ikon[1])}</span>` +
       `<span class="schack-lektion-namn"><span class="schack-dold">Lektion ${l.nr}: </span>${esc(l.titel)}` +
       (ar ? `<small>${st ? "" : klara ? "Fortsätt här" : "Börja här"}</small>` : "") + `</span>` +
-      stjarnRad(st) + `</button></li>`
+      stjarnRad(st) + lektionMyntHtml(l.nr, kvitto) + `</button></li>`
     );
   }).join("");
   return (
@@ -51,7 +61,8 @@ export function oversiktHtml(lektioner) {
     `<button type="button" class="btn ghost liten schack-tillbaka" data-act="tillbaka">‹ Till Schack</button>` +
     `<h1 class="schack-rubrik">Lär dig schack</h1>` +
     `<p class="hint schack-intro">${ANTAL_LEKTIONER} korta lektioner – från brädet till ditt första parti. ` +
-    `Välj vilken du vill; ta dem gärna i ordning. Ingen tidspress!</p>` +
+    `Välj vilken du vill; ta dem gärna i ordning. Ingen tidspress!` +
+    (kvitto !== undefined ? ` ${myntHtml(`Varje lektion du klarar ger +${LEKTION_MYNT} {mynt} första gången.`)}` : "") + `</p>` +
     `<p class="schack-guide-summa">${stjarnaSvg(true, 24)} <b>${stjarnor} av ${max}</b> stjärnor · ${klara} av ${ANTAL_LEKTIONER} lektioner klara</p>` +
     `<ol class="schack-lektion-lista">${kort}</ol></div>`
   );
@@ -94,6 +105,7 @@ export function klarHtml(lektion, r) {
     `<h2 class="schack-lektion-klar-rubrik">${r.stjarnor ? "Lektionen klar!" : "Inte klarad"}</h2>` +
     (r.stjarnor ? stjarnRad(r.stjarnor, 40) : "") +
     `<p class="schack-lektion-klar-text">${esc(rad)}${r.forbattring ? " <b>Nytt rekord!</b>" : ""}</p>` +
+    `<p class="schack-lektion-mynt-svar" aria-live="polite"></p>` +
     `<div class="schack-knappar">` +
     (r.nasta ? `<button type="button" class="btn gron" data-act="nasta-lektion">Nästa: ${esc(r.nasta.titel)}</button>` : "") +
     `<button type="button" class="btn ghost" data-act="igen">${lektion.typ === "parti" ? "Spela igen" : "Gör om lektionen"}</button>` +

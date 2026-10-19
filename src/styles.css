@@ -9377,3 +9377,73 @@ html:not([data-halloween]) .af-kostym[data-seasonal="halloween"] { display: none
   /* Som partiet (#777): under 360 px går brädet ut i sidans marginal i stället för att sidan skrollar i sidled. */
   .schack-pussel-brade { margin-inline: min(0px, (100% - 320px) / 2); }
 }
+
+/* ── src/styles/41-schack-mynt.css ── */
+/* ==========================================================================
+   Schackets pluggmynt (#798): belöningen på nivåkorten, myntraden i panelen,
+   svaret i slutrutan, pokalen för Damen (lugn och kort), lektionernas och
+   pusslens bockar. Myntikonen är coinIcon() (.coin-svg) via withCoinIcon.
+   ========================================================================== */
+
+.schack-niva-mynt {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #8a5a00;
+  line-height: 1.3;
+}
+.schack-niva-mynt.slagen { color: #2f7d4f; }
+.schack-mynt-hjalp { margin: 8px 0 0; }
+.schack-niva-mynt .coin-svg,
+.schack-mynt-rad .coin-svg,
+.schack-mynt-svar .coin-svg,
+.schack-lektion-mynt .coin-svg,
+.schack-lektion-mynt-svar .coin-svg,
+.schack-pussel-mynt .coin-svg,
+.schack-intro .coin-svg { vertical-align: -0.15em; }
+
+/* Panelen mot datorn */
+.schack-mynt-rad { margin: 0; font-weight: 800; color: #8a5a00; }
+.schack-mynt-rad small { display: block; font-weight: 600; color: var(--text-svag); margin-top: 2px; }
+.schack-mynt-rad:empty { display: none; }
+
+/* Slutrutan */
+.schack-slut-extra { margin-top: 10px; }
+.schack-mynt-svar { margin: 0; font-weight: 800; color: #8a5a00; }
+.schack-mynt-svar small { display: block; font-weight: 600; color: var(--text-svag); }
+.schack-mynt-svar.ny { font-size: 1.1rem; }
+.schack-pokal-ny { display: block; width: 84px; height: 118px; margin: 0 auto 6px; }
+.schack-pokal-ny svg { width: 100%; height: 100%; display: block; }
+.schack-pokal-ny { animation: schack-pokal-in 700ms ease-out both; }
+@keyframes schack-pokal-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.85); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Guiden: lektionskortens mynt (bock när de är betalda) */
+.schack-lektion-kort { grid-template-columns: auto auto 1fr auto auto; }
+.schack-lektion-mynt {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #8a5a00;
+  white-space: nowrap;
+}
+.schack-lektion-mynt.betald { color: #2f7d4f; }
+.schack-lektion-mynt-svar { margin: 4px 0 0; font-weight: 800; color: #8a5a00; }
+.schack-lektion-mynt-svar:empty, .schack-pussel-mynt:empty { display: none; }
+.schack-lektion-mynt-svar.ny, .schack-pussel-mynt.ny { font-size: 1.1rem; }
+
+/* Pusslen */
+.schack-pussel-mynt { margin: 0; font-weight: 800; color: #2f7d4f; }
+.schack-pussel-mynt.ny { color: #8a5a00; }
+
+@media (max-width: 420px) {
+  .schack-lektion-kort { grid-template-columns: auto auto 1fr auto; }
+  .schack-lektion-mynt { grid-column: 3 / -1; justify-self: end; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .schack-pokal-ny { animation: none; }
+}
+html.reduce-motion .schack-pokal-ny { animation: none; }

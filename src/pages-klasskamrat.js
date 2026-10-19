@@ -261,7 +261,7 @@ export async function pageElevKlasskamrat() {
   renderRoomStage();
   import("./hitta-ratt/hr-pokal-rum.js")
     .then(async (m) => {
-      const res = await m.laddaHusPokaler({ uid: otherId });
+      const res = await m.laddaHusPokaler({ uid: otherId, schack: sd?.schack }); // + schackpokalen (#798)
       if (!res || !res.pokaler.size || !stage.isConnected) return;
       hrPokalMod = m;
       hrPokaler = res.pokaler;

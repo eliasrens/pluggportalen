@@ -716,11 +716,11 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   renderTray();
   renderPets();
 
-  // Kartmästare-pokalerna (#610): EN läsning av ledarlistan (cachad). Placeringar
+  // Kartmästare-pokalerna (#610) + schackets pokaler ur sd.schack (#798): EN läsning av ledarlistan (cachad). Placeringar
   // för pokaler eleven inte längre har (tappad ledning) städas bort och sparas.
   import("./hitta-ratt/hr-pokal-rum.js")
     .then(async (m) => {
-      const res = await m.laddaHusPokaler({ uid: data.currentStudentId(), rum: roomModels.map((r) => r.placements) });
+      const res = await m.laddaHusPokaler({ uid: data.currentStudentId(), rum: roomModels.map((r) => r.placements), schack: sd.schack });
       if (!res || !stage.isConnected) return;
       hrPokalMod = m;
       hrPokaler = res.pokaler;
@@ -733,7 +733,11 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
       renderTray();
       const nya = [...hrPokaler.keys()].filter((k) => remainingToPlace(k) > 0 && !hrPokalAviserade.has(k));
       nya.forEach((k) => hrPokalAviserade.add(k));
-      if (nya.length) flash(`🏆 Du leder topplistan! Din Kartmästare-pokal ligger i Möbler 📦`);
+      // Schackpokalen (#798) är vunnen för alltid – den får en egen text.
+      const nyKartmastare = nya.some((k) => hrPokaler.get(k)?.typ !== "schack");
+      const nySchack = nya.map((k) => hrPokaler.get(k)).find((p) => p?.typ === "schack");
+      if (nyKartmastare) flash(`🏆 Du leder topplistan! Din Kartmästare-pokal ligger i Möbler 📦`);
+      else if (nySchack) flash(`🏆 Din pokal ${nySchack.namn} ligger i Möbler 📦`);
     })
     .catch(() => {});
 

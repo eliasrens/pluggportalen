@@ -14,7 +14,9 @@
 //   vy.borjaOm(); vy.destroy();   vy.brade / vy.lopp() för tester och förhandsvisningen
 // Helskärm (#794): knappen ligger bland panelens knappar (lektion 12 har den i partivyn) och
 // helskärmar schacksidans rot (.schack-rot), inte vyn – då överlever ett byte till nästa lektion.
-// Ingen tidspress, inga mynt, ingen Firebase.
+// Ingen tidspress, ingen Firebase. Pluggmynten (#798): med `o.mynt` skickas lösningen
+// (rätt ruta / jaktens mål / ställningens drag per uppgift, eller partiet) till servern när
+// lektionen är klar – 5 mynt första gången; svaret står i resultatrutan.
 // ============================================================================
 
 import { skapaSchackbrade } from "./schack-bradet.js";
@@ -24,6 +26,8 @@ import { LEKTIONER, skapaLopp, stjarnorEfterParti } from "./schack-lektioner.js"
 import { lektionHtml, klarHtml } from "./schack-guide-delar.js";
 import { lasParti, sparaParti, nyttParti } from "./schack-parti.js";
 import { monteraHelskarm } from "./schack-helskarm.js";
+import { myntHtml } from "./schack-mynt.js";
+import { TEXT_MYNT, harLektion } from "./schack-mynt-delat.js";
 
 /**
  * Kontrollen för frågorna i lektion 1: utgångsställningen, inga drag – varje tryck
@@ -56,6 +60,9 @@ export function skapaLektionVy(host, o) {
   let klar = false;
   let levande = true;
   let laddar = null;
+  let losning = []; // per uppgift: det som klarade den (servern kontrollerar, #798)
+  let jaktForsok = []; // jaktens mål i det pågående försöket
+  let myntSeq = 0;
 
   host.innerHTML = lektionHtml(lektion, o.sparade || 0);
   const $ = (s) => host.querySelector(s);
@@ -105,12 +112,32 @@ export function skapaLektionVy(host, o) {
     klarEl.hidden = false;
     if (lektion.typ !== "parti") yta.hidden = true;
     klarEl.querySelector("button")?.focus({ preventScroll: true });
+    if (r.stjarnor > 0) hamtaMynt(lektion.typ === "parti" ? r.losning : losning);
+  }
+
+  /** Lektionen klar (#798): servern kontrollerar lösningen och betalar 5 mynt första gången. */
+  async function hamtaMynt(los) {
+    if (!o.mynt || !los) return;
+    const token = ++myntSeq;
+    const ut = (html) => { const e = klarEl.querySelector(".schack-lektion-mynt-svar"); if (e && token === myntSeq && levande) e.innerHTML = html; };
+    const k = await o.mynt.kvitto();
+    if (k && harLektion(k, lektion.nr)) return ut(myntHtml(TEXT_MYNT.lektionRedan));
+    ut(myntHtml(TEXT_MYNT.hamtar));
+    try {
+      const svar = await o.mynt.lektion(lektion.nr, los);
+      ut(myntHtml(svar?.mynt > 0 ? TEXT_MYNT.lektionNy : TEXT_MYNT.lektionRedan));
+      if (svar?.mynt > 0) klarEl.querySelector(".schack-lektion-mynt-svar")?.classList.add("ny");
+    } catch (e) {
+      console.warn("schack: lektionens mynt", e?.code || e);
+      ut(myntHtml(TEXT_MYNT.fel));
+    }
   }
 
   // --- Lektion 1: frågor ----------------------------------------------------
   function startaFragor() {
     const k = skapaFragaKontroll((ruta) => {
       const r = lopp.tryck(ruta);
+      if (r.ratt) losning.push(ruta);
       if (r.ratt) k.markera({ [ruta]: "ratt" }, `Rätt – ${ruta}!`);
       else if (!r.lektionKlar) k.markera({ [ruta]: "fel" }, `Det där var ${ruta}. Prova igen!`);
       if (r.lektionKlar) return lektionKlar(lopp.resultat());
@@ -125,13 +152,16 @@ export function skapaLektionVy(host, o) {
   // --- Lektion 2–8: stjärnjakt -----------------------------------------------
   function nyJakt() {
     brade?.destroy();
+    jaktForsok = [];
     const k = skapaJaktKontroll(lopp.uppgift(), {
       onMove(drag) {
+        jaktForsok.push(drag.to);
         visaRaknare();
         text(".schack-lektion-svar", drag.captured ? "Tagen!" : drag.stjarna ? "En stjärna!" : "");
       },
       onKlar(s) {
         k.setInteractive(false);
+        losning.push([...jaktForsok]);
         if (lopp.jaktKlar(s.jakt.antal).lektionKlar) return lektionKlar(lopp.resultat());
         uppgiftKlar(s.jakt.antal <= lopp.uppgift().min ? "Alla tagna – på minsta möjliga antal drag!" : "Alla tagna!");
       },
@@ -153,13 +183,14 @@ export function skapaLektionVy(host, o) {
         text(".schack-lektion-svar", r.text);
         visaRaknare();
         if (!r.ok) { brade.setStatus("Prova igen!"); return false; }
-        rattDrag = r;
+        rattDrag = { ...r, drag: { from: drag.from, to: drag.to, ...(drag.promotion ? { promotion: drag.promotion } : {}) } };
         return true;
       },
       onMove() {
         if (!rattDrag) return;
         const r = rattDrag;
         rattDrag = false;
+        losning.push(r.drag);
         brade.setInteractive(false);
         if (r.lektionKlar) return lektionKlar(lopp.resultat());
         uppgiftKlar(r.text);
@@ -195,7 +226,7 @@ export function skapaLektionVy(host, o) {
           const st = stjarnorEfterParti(slut, parti.egenFarg);
           const t = { 3: "Du vann mot Bonden!", 2: "Remi – bra kämpat!", 1: "Bonden vann den här gången, men du spelade klart ett helt parti!" }[st] ||
             "Du gav upp – spela klart ett parti för att få stjärnor.";
-          lektionKlar({ stjarnor: st, parti: true, text: t });
+          lektionKlar({ stjarnor: st, parti: true, text: t, losning: { seed: parti.seed, drag: [...brade.getGame().drag] } });
         },
         onNytt: () => borjaOm(),
         onTillbaka: () => o.onAlla?.(),
@@ -223,6 +254,8 @@ export function skapaLektionVy(host, o) {
     klarEl.hidden = true;
     klarEl.innerHTML = "";
     yta.hidden = false;
+    losning = [];
+    myntSeq++;
     lopp = lektion.typ === "parti" ? null : skapaLopp(lektion);
     if (lektion.typ === "fragor") startaFragor();
     else if (lektion.typ === "jakt") nyJakt();
@@ -244,6 +277,7 @@ export function skapaLektionVy(host, o) {
     else if (act === "nasta") nasta();
     else if (act === "om" && !klar && !lopp.uppgiftKlar) {
       brade.borjaOm(); // jakt: bara den här uppgiften – dess drag nollas
+      jaktForsok = [];
       text(".schack-lektion-svar", "");
       visaRaknare();
     }

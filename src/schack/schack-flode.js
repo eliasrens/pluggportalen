@@ -18,7 +18,8 @@
 //   ctx = { namn, avatarHtml, lagring, nyckel, go(hash), hashBas, dator?, reducedMotion?, tidsgransMs?, tankMinMs?,
 //           kompis?: { moln, classId, uid, klasslista }, fortsattParti?, onDatorSlut?,
 //           guide?: { lektioner(), spara(nr, stjarnor) },     framstegen i guiden (#790)
-//           pussel?: { framsteg(), spara(sort, nr) } }        framstegen i pusslen (#791)
+//           pussel?: { framsteg(), spara(sort, nr) },         framstegen i pusslen (#791)
+//           mynt?: skapaMynt(…) }                             pluggmynten (#798, schack-mynt.js) – utan den inga mynt
 // Utan ctx.kompis är kortet "Spela mot en kompis" avstängt (förhandsvisningen mot datorn).
 // Med kompis: EN lyssnare på klassdokumentet (schack-kompis.js) medan eleven är på
 // schacksidan utanför ett pågående kompisparti – den visar inkommande utmaningar och tar
@@ -121,7 +122,11 @@ export function visaSchack(host, ctx, params = {}) {
   function visaNivaval() {
     const val = lasVal(c.lagring, c.nyckel);
     const p = pagaende(c);
-    yta.innerHTML = nivavalHtml(val, p);
+    const gen = generation;
+    const rita = () => { yta.innerHTML = nivavalHtml(val, p, c.mynt ? c.mynt.nu() : undefined); };
+    rita();
+    // Bockarna (#798): kvittot läses en gång per besök – rita om när det kommit.
+    if (c.mynt && !c.mynt.nu()) c.mynt.kvitto().then((k) => { if (k && levande && gen === generation) rita(); });
     const markera = (klass, attr, varde) => {
       for (const b of yta.querySelectorAll(`.${klass}`)) {
         const vald = b.dataset[attr] === varde;
@@ -159,6 +164,7 @@ export function visaSchack(host, ctx, params = {}) {
         reducedMotion: c.reducedMotion, tidsgransMs: c.tidsgransMs, tankMinMs: c.tankMinMs,
         spara: (p) => sparaParti(c.lagring, c.nyckel, p),
         onSlut: c.onDatorSlut,
+        mynt: c.mynt,
         onNytt: () => {
           const val = lasVal(c.lagring, c.nyckel);
           const nytt = nyttParti({ niva: parti.niva, farg: val.farg === "slump" ? "slump" : parti.egenFarg, slump: c.slump });
@@ -178,7 +184,7 @@ export function visaSchack(host, ctx, params = {}) {
       const el = document.createElement("div");
       yta.replaceChildren(el);
       return skapaGuideVy(el, {
-        lektion, guide: c.guide, go, tillHash, hashBas, namn: c.namn, avatarHtml: c.avatarHtml,
+        lektion, guide: c.guide, mynt: c.mynt, go, tillHash, hashBas, namn: c.namn, avatarHtml: c.avatarHtml,
         dator: () => hamtaDator(c), lagring: c.lagring, nyckel: c.nyckel,
         reducedMotion: c.reducedMotion, tidsgransMs: c.tidsgransMs, tankMinMs: c.tankMinMs,
       });
@@ -192,7 +198,7 @@ export function visaSchack(host, ctx, params = {}) {
       const el = document.createElement("div");
       yta.replaceChildren(el);
       return skapaPusselVy(el, {
-        sort, nr, pussel: c.pussel, go, tillHash, hashBas, lagring: c.lagring, nyckel: c.nyckel,
+        sort, nr, pussel: c.pussel, mynt: c.mynt, go, tillHash, hashBas, lagring: c.lagring, nyckel: c.nyckel,
         reducedMotion: c.reducedMotion, forsvarMs: c.forsvarMs,
       });
     });

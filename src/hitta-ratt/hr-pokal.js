@@ -16,6 +16,7 @@
 //   POKAL_PREFIX, arPokalNyckel(key), pokalNyckel(packId), packIdFranNyckel(key)
 //   pokalNamn(titel)              → "Kartmästare – Skolrekord {titel}"
 //   minaPokaler(meta, uid)        → [{ nyckel, packId, titel, typ, scope?, namn }] (sorterad på titel)
+//   schackPokaler(schack, katalog) → schackets pokaler (#798) i samma form, typ "schack"
 //   rensaPokaler(placements, giltiga) → antal borttagna (muterar placements)
 // ============================================================================
 
@@ -48,6 +49,24 @@ export function minaPokaler(meta, uid) {
     ut.push({ nyckel: pokalNyckel(packId), packId, titel, typ: p.typ === "area" ? "area" : "point", ...scope, namn: pokalNamn(titel) });
   }
   return ut.sort((a, b) => a.titel.localeCompare(b.titel, "sv"));
+}
+
+/**
+ * Schackets pokaler (#798) i husets pokal-nycklar: studentData.schack.pokaler =
+ * { damen: ms } (bara servern skriver) → [{ nyckel: "hrpokal-schack-damen", … }].
+ * Samma placeringsväg som Kartmästare-pokalerna (prefixet, lådan, städningen).
+ * `katalog` = SCHACK_POKALER (src/schack/schack-mynt-delat.js, laddas dynamiskt av
+ * anroparen) – okända nycklar ger ingen pokal.
+ * @param {object|null} schack studentData.schack
+ * @param {Record<string, { id: string, namn: string, text?: string }>} katalog
+ */
+export function schackPokaler(schack, katalog) {
+  const p = schack && typeof schack === "object" ? schack.pokaler : null;
+  if (!p || typeof p !== "object" || !katalog) return [];
+  return Object.keys(katalog).filter((id) => Object.hasOwn(p, id) && p[id] != null).map((id) => ({
+    nyckel: pokalNyckel(`schack-${id}`), packId: `schack-${id}`, titel: katalog[id].namn, typ: "schack",
+    schack: id, namn: katalog[id].namn,
+  }));
 }
 
 /**

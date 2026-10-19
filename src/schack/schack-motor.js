@@ -300,7 +300,7 @@ function rotStallning(fen, historik) {
   return new Chess(fen);
 }
 
-function sokIterativt(fen, { djup, maxDjup = djup, exakt = false, tidsgransMs = TIDSGRANS_MS, nu = () => performance.now(), historik = null }) {
+function sokIterativt(fen, { djup, maxDjup = djup, exakt = false, tidsgransMs = TIDSGRANS_MS, nu = () => performance.now(), historik = null, efterDjup = null }) {
   // Klockan startar FÖRE uppspelningen av historiken (chess.js publika move(),
   // ~0,15 ms per halvdrag) så att hela anropet håller tidsgränsen (F4).
   const start = nu();
@@ -321,6 +321,7 @@ function sokIterativt(fen, { djup, maxDjup = djup, exakt = false, tidsgransMs = 
       if (e !== AVBRUTET) throw e;
       break;
     }
+    if (efterDjup?.(resultat)) break; // servern (#798): rätt djup hittat – sluta
     if (Math.abs(resultat.poang[0].v) >= MATT - 100) break; // matt hittad – djupare ger inget
     // Över nivåns djup (Damen): nästa djup kostar typiskt 3–6× mer – börja bara om det hinns.
     if (d >= djup && nu() + (nu() - fore) * 3 > ctx.deadline) break;
@@ -379,6 +380,36 @@ export function valjDrag(fen, opt = {}) {
     drag: tillDrag(val.m), varde: val.v, djup: res.djup, noder: res.noder, ms: nu() - start,
     kandidater: res.poang.slice(0, 5).map((x) => ({ ...tillDrag(x.m), varde: x.v })),
   };
+}
+
+/**
+ * Servern (#798): kunde datorn på nivån ha spelat `drag` i ställningen? Sökningen
+ * är deterministisk per djup (ny transpositionstabell varje anrop, slumpen seedad),
+ * så klientens drag är nivåns val på det djup klienten hann färdigt med. Motorn
+ * hinner olika djup på olika datorer (Damen 3–7, en strypt Chromebook kan tappa ett
+ * djup), därför prövas varje djup från `minDjup` upp till nivåns största tills
+ * draget matchar. Returnerar djupet som matchade, annars 0 (även när tiden tog slut).
+ * @param {string} fen
+ * @param {{from: string, to: string, promotion?: string}} drag
+ * @param {{ niva: string, seed: number, historik?: object, minDjup?: number, tidsgransMs?: number, nu?: () => number }} opt
+ */
+export function provaDatorDrag(fen, drag, opt = {}) {
+  const niva = nivaFor(opt.niva);
+  const minDjup = opt.minDjup ?? 1;
+  let traff = 0;
+  sokIterativt(fen, {
+    djup: niva.djup, maxDjup: niva.maxDjup || niva.djup, exakt: niva.djup <= 2,
+    tidsgransMs: opt.tidsgransMs ?? 5_000, nu: opt.nu, historik: opt.historik,
+    efterDjup(res) {
+      // En matt (åt något håll) stoppar fördjupningen i klienten – då gäller det djupet även under minDjup.
+      if (res.djup < minDjup && !arMatt(res.poang[0].v)) return false;
+      const val = tillDrag(valjEnligtNiva(res.poang, niva, skapaSlump(opt.seed)).m);
+      if (val.from !== drag.from || val.to !== drag.to || (val.promotion || undefined) !== (drag.promotion || undefined)) return false;
+      traff = res.djup;
+      return true;
+    },
+  });
+  return traff;
 }
 
 /** Tips (§3.3): det bästa draget enligt en sökning på Tornets djup, utan slump. */

@@ -48,6 +48,7 @@ export function skapaSchackbrade(rot, opt = {}) {
   let extra = { ...(opt.spelarExtra || {}) }; // t.ex. schackklockan i spelarraden (Etapp 2)
   let slutKnappar = opt.slutKnappar || [];
   let slutStangd = false;
+  let slutExtra = ""; // redan escapad HTML under slutrutans rubrik (mynten, #798)
   let ingenGlid = false;
   let fokusRuta = null;
   let senastInmatning = 0;
@@ -198,7 +199,7 @@ export function skapaSchackbrade(rot, opt = {}) {
       return;
     }
     if (slutStangd) return;
-    slutEl.innerHTML = slutHtml(s.status, [...slutKnappar, { text: "Titta på brädet" }]);
+    slutEl.innerHTML = slutHtml(s.status, [...slutKnappar, { text: "Titta på brädet" }], slutExtra);
     slutEl.hidden = false;
   }
 
@@ -295,6 +296,13 @@ export function skapaSchackbrade(rot, opt = {}) {
         const yta = el.querySelector(".schack-spelare-extra");
         if (yta && f in e && yta.innerHTML !== (extra[f] || "")) yta.innerHTML = extra[f] || "";
       }
+    },
+    /** Extra rad i slutrutan (redan escapad HTML, "" = ingen) – t.ex. "+200 mynt" (#798). Stängs inte upp igen. */
+    setSlutExtra(html = "") {
+      slutExtra = html || "";
+      const yta = slutEl.querySelector(".schack-slut-extra");
+      if (yta && slutExtra) yta.innerHTML = slutExtra;
+      else if (!slutEl.hidden) ritaSlut(k.getState());
     },
     /** Extra knappar i slutrutan: [{ text, onClick }]. "Titta på brädet" finns alltid sist. */
     setSlutKnappar(lista = []) {

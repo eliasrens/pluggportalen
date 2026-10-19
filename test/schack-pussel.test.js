@@ -263,7 +263,8 @@ describe("källkoden (#271, §13)", () => {
     const flode = kod("src/schack/schack-flode.js");
     assert.match(flode, /import\("\.\/schack-pussel-vy\.js"\)/);
     // Utanför pusselmodulerna själva importerar ingen fil dem statiskt.
-    for (const fil of filerUnder(SRCDIR).filter((f) => f.endsWith(".js") && !/[/\\]schack-pussel[^/\\]*\.js$/.test(f))) {
+    // schack-mynt-kontroll.js (#798) är serverns kontroll (functions/schack/) – den laddas aldrig av klienten.
+    for (const fil of filerUnder(SRCDIR).filter((f) => f.endsWith(".js") && !/[/\\](schack-pussel[^/\\]*|schack-mynt-kontroll)\.js$/.test(f))) {
       const src = readFileSync(fil, "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
       assert.doesNotMatch(src, /^\s*(?:import|export)\s[^;]*?from\s+["'][^"']*schack-pussel[^"']*\.js["']/m, relative(ROOT, fil));
     }
@@ -289,7 +290,7 @@ describe("källkoden (#271, §13)", () => {
   it("inga mynt, ingen Firestore i pusselvyn; EN skrivning i schack-moln.js pusselLost", () => {
     for (const f of NYA) {
       const src = kod(`src/schack/${f}`);
-      assert.doesNotMatch(src, /coins|awardExercise|pluggmynt|firebase|firestore|updateDoc|setDoc/i, f);
+      assert.doesNotMatch(src, /coins|awardExercise|firebase|firestore|updateDoc|setDoc/i, f); // mynten (#798) bara via ctx.mynt → servern
       assert.doesNotMatch(src, /\bconfirm\(/, f);
     }
     const moln = kod("src/schack/schack-moln.js");
@@ -317,7 +318,7 @@ describe("källkoden (#271, §13)", () => {
 
   it("schackOk i firestore.rules har pussel bredvid lektionerna", () => {
     const r = las("firestore.rules");
-    assert.match(r, /hasOnly\(\['datorPartier', 'aktivtParti', 'lektioner', 'pussel'\]\)/);
+    assert.match(r, /hasOnly\(\['datorPartier', 'aktivtParti', 'lektioner', 'pussel', 'pokaler'\]\)/);
     assert.match(r, /!\('pussel' in d\) \|\| schackPusselOk\(ns\.get\('pussel', \{\}\), schackMap\(os, 'pussel'\)\)/);
     assert.match(las("package.json"), /test\/firestore-rules-schack-pussel\.test\.js/);
   });
