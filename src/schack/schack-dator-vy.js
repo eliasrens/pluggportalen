@@ -53,6 +53,9 @@ function panelHtml(niva, parti) {
  * @param {Function} [o.onNytt]     "Spela igen"
  * @param {Function} [o.onBytNiva]  "Byt nivå"
  * @param {Function} [o.onTillbaka] "Till Schack"
+ * @param {(slut) => void} [o.onSlut] partiet tog slut – EN gång per parti (räknaren
+ *        studentData.schack.datorPartier, #780); partiet får `raknad: true`, så en
+ *        omladdning eller ett Ångra + nytt slut räknas inte igen
  * @param {boolean} [o.reducedMotion]
  * @param {number} [o.tidsgransMs]  motorns tidsgräns (standard: motorns)
  * @param {number} [o.tankMinMs]    minsta "tänketid" (0 i tester)
@@ -113,7 +116,12 @@ export function skapaDatorVy(host, o) {
       seq++;
       dator.avbryt();
       parti.slut = { resultat: slut.resultat, orsak: slut.orsak, vinnare: slut.vinnare };
+      const nyttSlut = !parti.raknad;
+      parti.raknad = true;
       spara();
+      if (nyttSlut && o.onSlut) {
+        try { o.onSlut(parti.slut); } catch (e) { console.warn("schack: räknaren", e); }
+      }
       uppdateraKnappar(brade.getState());
     },
   });
