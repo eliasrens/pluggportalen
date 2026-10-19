@@ -260,7 +260,7 @@ export async function pageElevPlugga() {
       getLockGate(),
       data.getProgress().catch(() => ({})),
     ]);
-    las = gate;
+    las = gate?.fri ? null : gate; // inlämnat prov (#788): routern grindar Plugga, listan är som vanligt
     subjects = subj;
     studentClass = cls;
     progress = prog || {};

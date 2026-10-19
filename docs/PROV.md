@@ -546,6 +546,7 @@ Förhandsvisning utan Firebase: `preview/preview-prov-larare.html`
 | `prov-vy.js` | DOM-hjälpare för typvyerna: `h`, `stavAttr`, `valLista`, `textFalt`, `laddaCss` |
 | `prov-elev-vy.js` | `renderaProv({ namn, fragor, installningar, svar, onAndrat, onLamnat, onLamnaIn })` – hela provet utan Firebase |
 | `prov-elev-sida.js` | `#/elev/prov` (lista), `#/elev/prov/skriv?t=`, `#/elev/prov/resultat?t=` (platshållare för D) |
+| `prov-vidare.js` | kvittensens väg vidare efter inlämningen enligt låsets efter-val (#788): `vidareHtml`, `kopplaVidare` |
 | `prov-elev-data.js` | elevens skrivningar: `startaProv`, `sparaSvar`, `lamnaIn` |
 | `prov-watch.js` | menylänken + elevens lista: EN `onSnapshot` på öppna tillfällen, ETT `getDocs` på tillbakalämnade |
 | `prov-tillfalle-data.js` | lärarens skrivningar: `skapaTillfalle`, `oppnaTillfalle`, `stangTillfalle`, `raderaTillfalle`, `hamtaSvar` |
@@ -592,6 +593,11 @@ reglernas 2 minuter). Läraren stänger → elevens lista tappar tillfället →
 sidan läser läget en gång och visar "Provet är stängt. Dina sparade svar gäller."
 
 **Fokusläget:** `typ: "prov"` + `id` = tillfället, se [`FOKUSLAGE.md`](FOKUSLAGE.md).
+**Efter inlämning** (#788): låsrutan har valet "Efter inlämning får eleven:" – stanna
+på provsidan / bara övning / klassens vanliga läge (förval) / välj själv. Valet
+sparas på låset (`lock.efter`) och på tillfället (`fokus.efter`, förval när provet
+öppnas senare). Gäller bara elever som lämnat in; kvittensen "Inlämnat" visar vägen
+vidare (`prov-vidare.js`). Detaljer i [`FOKUSLAGE.md`](FOKUSLAGE.md#prov-efter-inlämning-788).
 
 ## Rättningen och tillbakalämningen (D, #741)
 

@@ -56,7 +56,7 @@ export async function hamtaSvar(t) {
  * @param {{ id, namn, installningar? }} o.prov
  * @param {string} o.classId
  * @param {number|null} o.tidsgransMin
- * @param {{ pa: boolean, doljOvrigt: boolean }} o.fokus  lås klassen när provet öppnas
+ * @param {{ pa: boolean, doljOvrigt: boolean, efter?: { lage, moduler? } }} o.fokus  lås klassen när provet öppnas
  * @param {{ uid, name }} o.larare
  * @param {Record<string, number>} [o.extraTid]  #748: extra minuter per elev
  * @param {string[]} [o.elevIds]   #748: omprov – bara de här eleverna
@@ -70,7 +70,8 @@ export async function skapaTillfalle({ prov, classId, tidsgransMin, fokus, larar
     status: STATUS.FORBERETT, fragor: [],
     installningar: tillfalleInstallningar(prov.installningar),
     tidsgransMin: tidsgransMin ?? null,
-    fokus: { pa: !!fokus?.pa, doljOvrigt: fokus?.doljOvrigt !== false },
+    // efter (#788): vad en elev som lämnat in får göra – förval när provet öppnas senare.
+    fokus: { pa: !!fokus?.pa, doljOvrigt: fokus?.doljOvrigt !== false, ...(fokus?.efter ? { efter: fokus.efter } : {}) },
     ...(extraTid && Object.keys(extraTid).length ? { extraTid } : {}),
     ...(elevIds ? { elevIds, ...(omprovAv ? { omprovAv } : {}) } : {}),
     skapad: serverTimestamp(),
@@ -90,7 +91,7 @@ export async function sparaExtraTid(t, extraTid) {
  * stängningens inlämnad-markeringar tas tillbaka (elevens egna står kvar).
  * Sedan fokusläget, om läraren valt det.
  * @param {object} tf  tillfället
- * @param {{ till: number, doljOvrigt: boolean } | null} las
+ * @param {{ till: number, doljOvrigt: boolean, efter?: { lage, moduler? } } | null} las
  */
 export async function oppnaTillfalle(tf, las) {
   if (tf.status === STATUS.FORBERETT) {
@@ -123,7 +124,7 @@ export async function oppnaTillfalle(tf, las) {
     }
   }
   if (las) {
-    const lock = buildLock({ typ: "prov", id: tf.id, namn: tf.provNamn, till: las.till, doljOvrigt: las.doljOvrigt });
+    const lock = buildLock({ typ: "prov", id: tf.id, namn: tf.provNamn, till: las.till, doljOvrigt: las.doljOvrigt, efter: las.efter });
     if (!lock) throw new Error("Provet är öppet, men fokusläget kunde inte sättas (välj ett klockslag senare idag).");
     await setClassLock(tf.classId, lock);
   }

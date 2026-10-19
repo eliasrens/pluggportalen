@@ -71,6 +71,11 @@
 .provl-min { width: 5.5em; }
 .provl-las-detalj { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; }
 .provl-las-detalj.provl-av { opacity: 0.45; pointer-events: none; }
+/* Efter inlämning (#788): fyra lägen + modulerna för "Välj själv" */
+.provl-efter { flex: 1 1 100%; border: 0; border-top: 1px solid var(--t-border); margin: 6px 0 0; padding: 8px 0 0; min-width: 0; }
+.provl-efter legend { font-weight: 600; padding: 0; }
+.provl-efter-egna { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0 12px; margin: 0 0 0 26px; }
+.provl-efter-egna.provl-av { display: none; }
 .provl-tf-knappar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
 .provl-ruta .provl-tf-fel { margin: 10px 0 0; }
 .provl-ruta select, .provl-ruta input[type="time"], .provl-ruta input[type="number"] {

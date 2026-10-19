@@ -64,6 +64,8 @@ tabellerna, om en rad saknar test, eller om en testfil inte körs av
 | PH | `test/firestore-rules-prov-poang-avsnitt.test.js` |
 | PR | `test/firestore-rules-prov-ratta-alla.test.js` |
 | PK | `test/firestore-rules-prov-kriterier-765.test.js` |
+| CL | `test/firestore-rules-class-lock.test.js` |
+| BC | `test/functions-brakresan-core.test.mjs` |
 
 Admin-kolumnen bevisas dessutom av OG test 25 (lärare utan roll gör allt som
 admin) och av alla äldre regeltester, som kör sina lärare som admin (§7 test 26).
@@ -87,7 +89,7 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `studentData/{id}/ekvationsresa` (bara `progress`) | L/S (validerat), radera | L: egna elever. S: lärarens nivåbyte (`ekvTeacherLevelOk`) för egna elever. | SM test 1–2, KE test 14 |
 | `studentData/{id}/ekvationsresaAttempts` | L/radera | L: egna elever | SM test 1–2 |
 | `studentData/{id}/brakresa`, `brakresaRounds`, `brakresaRewards`, `brakresaHunts` (Bråkresan, #706) | L (Cloud Functions skriver) | L: egna elever. S: aldrig. | BR |
-| `classes` | L/S | L. Ändra egna klasser, bara fälten `assignedAreas`, `hiddenModes`, `areaModes`, `hiddenModules`, `enabledModules`, `lock`, `lasresaStartLevel10` och `lasresaStartLevel`. Skapa och radera: aldrig. | KE test 9–12 |
+| `classes` | L/S | L. Ändra egna klasser, bara fälten `assignedAreas`, `hiddenModes`, `areaModes`, `hiddenModules`, `enabledModules`, `lock`, `lasresaStartLevel10` och `lasresaStartLevel`. Skapa och radera: aldrig. `lock.efter` (#788, vad en elev som lämnat in provet får göra: `lage` `prov`/`ovning`/`klass`/`egna`, `moduler` ≤ 20 bara i `egna`) bara på ett provlås; eleven ändrar det aldrig – frigörelsen bygger på elevens eget inlämnade `svar`, som hen inte kan ta tillbaka. Klientens modulgrind och Bråkresans `brakresa*`-callables (`assertModuleOpen`) tillämpar valet. | KE test 9–12, CL #788, BC #788 |
 | `classProjections`, `classProjects` | L/S | L. S: aldrig. | RO klassprojektioner |
 | `mathCompetitions` (tävlingen) | L/S | L (som alla inloggade). Skapa, styra, nollställa och radera: aldrig. | LE test 17 |
 | `mathCompetitions/{c}/answers`, `studentStats` | L/radera | L: dokument med `classId` i egna klasser. En lista måste filtrera på egna klasser. | SM test 1–2, LE test 17 |
