@@ -53,7 +53,7 @@ export const MATERIAL_FLIKAR = [
   {
     key: "schack", label: "Schack", icon: "grad", admin: false,
     hint: `Klassens partier, topplistan och på/av-knappen för schack finns under ${lank("schack")}. Här provar du mot datorn; inget sparas.`,
-    rita: async (sub) => (await import("./schack/larare-prova.js")).renderSchackProva(sub),
+    rita: async (sub, params) => (await import("./schack/larare-prova.js")).renderSchackProva(sub, params),
   },
 ];
 

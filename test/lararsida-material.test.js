@@ -175,6 +175,11 @@ describe("Schack – Prova mot datorn", () => {
     assert.match(src, /kompis: null/);
     assert.match(src, /pp:schack:dator:larare-prova/, "egen lokal nyckel, inte elevens");
   });
+  it("Material skickar ?-parametrarna vidare till Schack (Fortsätt och omladdning visar det sparade partiet, F4)", () => {
+    assert.match(las("teacher-material-flikar.js"), /rita: async \(sub, params\) => \(await import\("\.\/schack\/larare-prova\.js"\)\)\.renderSchackProva\(sub, params\)/);
+    assert.match(las("teacher-material.js"), /flik\.rita\(sub, params\)/);
+    assert.match(las("schack/larare-prova.js"), /params\.vy === "dator" \? params/);
+  });
   it("schack-flode bygger hashar även när hashBas har en query", () => {
     assert.match(las("schack/schack-flode.js"), /hashBas\.includes\("\?"\) \? "&" : "\?"/);
   });
