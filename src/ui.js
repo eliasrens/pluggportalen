@@ -397,10 +397,12 @@ export async function renderTopbar() {
     </div>
   </div>`);
 
-  wrap.querySelector("#logout-btn").addEventListener("click", () => {
+  wrap.querySelector("#logout-btn").addEventListener("click", async () => {
     // Hitta rätt!s lämna-vakt (#605) frågar FÖRE utloggningen – "Avbryt" ska inte
     // lämna eleven kvar i omgången men redan utloggad (#611 F1).
     if (window.__ppLamnaVakt?.({ oldURL: location.href, newURL: `${location.href.split("#")[0]}#/` })) return;
+    // Schack (#780 F1): ta bort elevens väntan i lobbyn medan eleven ännu är inloggad (högst 1,5 s).
+    await window.__ppSchackLamna?.();
     data.logout();
     go("#/");
   });

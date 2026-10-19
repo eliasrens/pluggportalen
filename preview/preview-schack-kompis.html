@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Schack mot en kompis (#780)</title>
+    <!-- Serverkoden i functions/ körs i sidan; det enda den behöver ur node är randomInt. -->
+    <script type="importmap">{ "imports": { "node:crypto": "./schack-kompis/node-crypto.js" } }</script>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      body { padding: 16px; background: var(--ljus); }
+      .wrap { max-width: 1100px; margin: 0 auto; display: grid; gap: 14px; }
+      .pv-panel { margin: 0; padding: 12px 16px; display: grid; gap: 8px; }
+      .pv-verktyg { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 0.95rem; }
+      .pv-verktyg a, .pv-verktyg button.pv-chip { padding: 4px 12px; border-radius: 999px; background: #fff; border: 2px solid #d5deea; font: 700 0.95rem var(--font); text-decoration: none; color: var(--text); cursor: pointer; }
+      .pv-verktyg a[aria-current="page"], .pv-verktyg a.du { border-color: #13a39a; background: #dff5f2; }
+      .pv-verktyg label { display: inline-flex; gap: 6px; align-items: center; font-weight: 700; }
+      .pv-avatar { display: grid; place-items: center; width: 100%; height: 100%; color: #fff; font-weight: 800; font-size: 1.1rem; }
+      .pv-status { font: 12px/1.45 ui-monospace, monospace; color: var(--text-svag); white-space: pre-wrap; margin: 0; }
+      .pv-lamnat { text-align: center; }
+      @media (max-width: 420px) { body { padding: 8px; } .pv-panel { padding: 10px; } }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="panel pv-panel">
+        <b>Schack mot en kompis (issue #780, spec §7–§8) – två elever i två flikar, utan Firebase.</b>
+        <p style="margin:0">Samma kod som <code>#/elev/schack?vy=kompis</code>. Lobbyn och partierna ligger i en låtsas-databas i
+          <code>localStorage</code> som delas mellan flikarna; anropen kör den <b>riktiga serverkoden</b> (<code>functions/schack-*.js</code>).
+          Öppna en annan elev i en ny flik och spela mot dig själv.</p>
+        <nav class="pv-verktyg" aria-label="Elev" id="elever"></nav>
+        <nav class="pv-verktyg" aria-label="Vy">
+          <a href="#/elev/schack">Startsidan</a>
+          <a href="#/elev/schack?vy=kompis">Lobbyn</a>
+          <a href="#/elev/hus">Lämna schacksidan</a>
+          <span>Spola fram tiden:</span>
+          <button type="button" class="pv-chip" data-spola="60000">+1 min</button>
+          <button type="button" class="pv-chip" data-spola="240000">+4 min</button>
+          <button type="button" class="pv-chip" data-spola="300000">+5 min</button>
+          <button type="button" class="pv-chip" data-spola="600000">+10 min</button>
+          <button type="button" class="pv-chip" data-spola="0">Nolla tiden</button>
+          <label><input type="checkbox" id="stilla" /> Reducerad rörelse</label>
+          <button type="button" class="pv-chip" id="rensa">Nollställ allt</button>
+        </nav>
+        <p class="pv-status" id="status"></p>
+      </div>
+      <main id="app" class="schack-rot"></main>
+    </div>
+    <script type="module">
+      import { visaSchack, stangSchack } from "../src/schack/schack-flode.js";
+      import { lyssnarPaKlass } from "../src/schack/schack-kompis.js";
+      import { skapaFalskDb } from "./schack-kompis/falsk-db.js";
+      import { skapaFalskMoln } from "./schack-kompis/falsk-moln.js";
+      import { KLASS_ID, ELEVER, elevFor, avatarHtml, seedKlass } from "./schack-kompis/klassen.js";
+
+      const HASH = "#/elev/schack";
+      const SPOLA = "pp:schack-kompis-preview:spola";
+      const elev = elevFor(new URLSearchParams(location.search).get("elev") || "alva");
+      document.title = `${elev.namn} – Schack mot en kompis (#780)`;
+      const db = skapaFalskDb();
+      if (!db.las(`classes/${KLASS_ID}`)) seedKlass(db);
+      const spola = () => { try { return Number(localStorage.getItem(SPOLA)) || 0; } catch { return 0; } };
+      const moln = skapaFalskMoln({ db, uid: elev.uid, spola });
+      const klasslista = async () => ELEVER.map((e) => ({ uid: e.uid, namn: e.namn, avatarHtml: avatarHtml(e) }));
+
+      document.getElementById("elever").innerHTML = `<span>Du är:</span>` + ELEVER.map((e) =>
+        `<a href="?elev=${e.uid.slice(3)}${HASH}" ${e.uid === elev.uid ? 'class="du" aria-current="page"' : 'target="_blank"'}>${e.namn}${e.uid === elev.uid ? "" : " ↗"}</a>`).join("");
+
+      const app = document.getElementById("app");
+      const stilla = document.getElementById("stilla");
+      let flode = null;
+      let forsta = true;
+      const params = () => {
+        const q = location.hash.indexOf("?");
+        return q === -1 ? {} : Object.fromEntries(new URLSearchParams(location.hash.slice(q + 1)));
+      };
+      function rita() {
+        flode?.destroy();
+        flode = null;
+        if (!location.hash.startsWith(HASH)) {
+          // Som page-schack.js: eleven lämnade schacksidan → lyssnarna stängs, väntan tas bort.
+          stangSchack();
+          app.innerHTML = `<div class="panel pv-lamnat"><p><b>Du har lämnat schacksidan.</b> Lyssnarna är stängda.</p><a class="btn" href="${HASH}">Tillbaka till Schack</a></div>`;
+          return;
+        }
+        const p = params();
+        flode = visaSchack(app, {
+          namn: elev.namn, avatarHtml: avatarHtml(elev), nyckel: `pp:schack:dator:${elev.uid}`, hashBas: HASH,
+          go: (h) => { location.hash = h; }, reducedMotion: stilla.checked || undefined,
+          kompis: { moln: async () => moln, classId: KLASS_ID, uid: elev.uid, klasslista },
+          fortsattParti: forsta && !p.vy ? db.las(`studentData/${elev.uid}`)?.schack?.aktivtParti || null : null,
+          onDatorSlut: () => moln.datorPartiKlart(),
+        }, p);
+        forsta = false;
+        window.schack = flode;
+      }
+      window.stub = { db, moln, lyssnarPaKlass };
+      window.addEventListener("hashchange", rita);
+      window.addEventListener("pagehide", () => stangSchack());
+      stilla.addEventListener("change", rita);
+      document.querySelectorAll("[data-spola]").forEach((b) => b.addEventListener("click", () => {
+        const ms = Number(b.dataset.spola);
+        try { localStorage.setItem(SPOLA, String(ms ? spola() + ms : 0)); } catch {}
+      }));
+      document.getElementById("rensa").addEventListener("click", () => {
+        db.rensa();
+        seedKlass(db);
+        try { localStorage.removeItem(SPOLA); } catch {}
+        location.hash = HASH;
+        rita();
+      });
+      const status = document.getElementById("status");
+      setInterval(() => {
+        const sd = db.las(`studentData/${elev.uid}`)?.schack || {};
+        const s = spola();
+        status.textContent =
+          `Lyssnare: klassdokumentet ${moln.oppna.klass} · partiet ${moln.oppna.parti}  |  anrop: ${moln.logg.length}` +
+          (moln.logg.length ? ` (senast ${moln.logg.at(-1).namn})` : "") +
+          `  |  tiden spolad +${Math.round(s / 60000)} min  |  datorPartier: ${sd.datorPartier || 0}  |  aktivtParti: ${sd.aktivtParti || "–"}`;
+      }, 500);
+      if (!location.hash) history.replaceState(null, "", HASH);
+      rita();
+    </script>
+  </body>
+</html>
