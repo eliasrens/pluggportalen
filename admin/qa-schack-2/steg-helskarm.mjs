@@ -2,9 +2,22 @@
 // kompis och mot datorn, brädet + klockorna fyller skärmen (mobil, surfplatta, Chromebook,
 // stående/liggande), ut med knappen och Esc, ingen knapp utan Fullscreen API, och att Live/
 // Datakuppens helskärm (samma delade src/helskarm.js) fungerar som förut.
+import { execFileSync } from "node:child_process";
 import { vila, anvandare, loggaInElev } from "./lib.mjs";
 import { farger, vantaMed, spelaMot, callFran, nollaKlass } from "./spel.mjs";
 
+// Esc via CDP når aldrig webbläsarens helskärmsutgång. Med QA_HEADFUL=1 under xvfb-run trycks en
+// RIKTIG Esc i X-servern (libXtst via ctypes) – samma väg som ett tangentbord.
+const X_ESC = process.env.QA_HEADFUL && process.env.DISPLAY ? `
+import ctypes
+x = ctypes.CDLL("libX11.so.6"); t = ctypes.CDLL("libXtst.so.6")
+x.XOpenDisplay.restype = ctypes.c_void_p; d = x.XOpenDisplay(None)
+x.XStringToKeysym.restype = ctypes.c_ulong; ks = x.XStringToKeysym(b"Escape")
+x.XKeysymToKeycode.argtypes = [ctypes.c_void_p, ctypes.c_ulong]; kc = x.XKeysymToKeycode(d, ks)
+t.XTestFakeKeyEvent.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_int, ctypes.c_ulong]
+t.XTestFakeKeyEvent(d, kc, 1, 0); t.XTestFakeKeyEvent(d, kc, 0, 0)
+x.XFlush.argtypes = [ctypes.c_void_p]; x.XFlush(d)
+` : null;
 const STORLEKAR = [
   ["mobil-staende", 390, 844, true], ["mobil-liggande", 844, 390, true], ["surfplatta", 820, 1180, true],
   ["chromebook", 1366, 768, false], ["liten-chromebook", 1280, 650, false],
@@ -38,8 +51,11 @@ async function provaHelskarm(u, rot, namn, ok, BILDER) {
     if (stl === "chromebook") {
       // Esc hanteras av webbläsaren (inte sidan) och når inte fram via CDP i headless –
       // det sidan ska klara är webbläsarens utgång: fullscreenchange utan knapptryck.
-      await u.e.tangent("Escape");
-      await vila(400);
+      if (X_ESC) {
+        await u.p.s("Page.bringToFront");
+        execFileSync("python3", ["-c", X_ESC]); // en riktig tangent i X (XTest) – går via webbläsaren, inte sidan
+      } else await u.e.tangent("Escape");
+      await vila(600);
       const viaEsc = !(await u.ev("!!document.fullscreenElement"));
       if (!viaEsc) await u.ev("document.exitFullscreen()");
       await vila(500);
