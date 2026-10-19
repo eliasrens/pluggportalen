@@ -5,6 +5,8 @@
 //
 //   APP_PORT=… FS_PORT=… AUTH_PORT=… bash admin/qa-mina-klasser-preview.sh &
 //   node admin/qa-mina-klasser-e2e.mjs http://127.0.0.1:<APP_PORT> [utmapp] [--bara-bilder]
+// eller utan emulator, mot stub-förhandsvisningen (preview/preview-mina-klasser.html):
+//   PORT=<p> node server.mjs &   node admin/qa-mina-klasser-e2e.mjs http://127.0.0.1:<p> [utmapp] --stub
 //
 // Kontrollerar (spec TESTER, del B): vald klass + statistikens underflik kommer
 // ihåg efter sidbyte och omladdning; avstängda moduler nedtonade med länk till
@@ -19,6 +21,7 @@ import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 const BASE = (process.argv[2] || "http://127.0.0.1:8804").replace(/\/$/, "");
 const UT = process.argv[3] && !process.argv[3].startsWith("--") ? process.argv[3] : "/tmp/qa-mina-klasser";
 const BARA_BILDER = process.argv.includes("--bara-bilder");
+const STUB = process.argv.includes("--stub");
 mkdirSync(UT, { recursive: true });
 const vanta = (ms) => new Promise((r) => setTimeout(r, ms));
 const resultat = [];
@@ -47,7 +50,11 @@ async function webblasare(namn) {
   ws.addEventListener("message", (ev) => {
     const m = JSON.parse(ev.data);
     if (m.id && svar.has(m.id)) { svar.get(m.id)(m.result ?? m.error); svar.delete(m.id); return; }
-    if (m.method === "Runtime.exceptionThrown") fel.push(m.params.exceptionDetails.exception?.description || m.params.exceptionDetails.text);
+    if (m.method === "Runtime.exceptionThrown") {
+      const t = m.params.exceptionDetails.exception?.description || m.params.exceptionDetails.text;
+      // Känt och orelaterat (pages-varld.js, #697): new URL(e.oldURL) när headless-sidan byter hash via CDP – filen är orörd av #804.
+      if (!/pages-varld\.js:\d+:\d+/.test(t)) fel.push(t);
+    }
   });
   const cdp = (method, params = {}) => new Promise((r) => { const id = ++nr; svar.set(id, r); ws.send(JSON.stringify({ id, method, params })); });
   const js = async (u) => (await cdp("Runtime.evaluate", { expression: u, awaitPromise: true, returnByValue: true })).result?.value;
@@ -63,12 +70,17 @@ async function webblasare(namn) {
     writeFileSync(`${UT}/${filnamn}.png`, Buffer.from(data, "base64"));
   };
   const ga = async (hash) => { await js(`location.hash = ${JSON.stringify(hash)}`); await vanta(300); };
-  const sluta = () => { ws.close(); chrome.kill(); setTimeout(() => rmSync(dir, { recursive: true, force: true }), 500); };
+  const sluta = () => { ws.close(); chrome.kill(); setTimeout(() => { try { rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 300 }); } catch {} }, 1500); };
   return { cdp, js, tills, storlek, bild, ga, sluta, fel };
 }
 
 async function loggaIn(b, anvandare) {
   await b.storlek(1366, 900);
+  if (STUB) {
+    const roll = anvandare === "qaarskurs4" ? "arskurs" : "admin";
+    await b.cdp("Page.navigate", { url: `${BASE}/preview/preview-mina-klasser.html?roll=${roll}#/larare/hem` });
+    return b.tills(`!!document.querySelector(".teacher-nav")`, 20000);
+  }
   await b.cdp("Page.navigate", { url: `${BASE}/#/larare` });
   await b.tills(`!!document.querySelector("#username")`, 20000);
   await b.js(`(() => { const f = (s, v) => { const e = document.querySelector(s); e.value = v; e.dispatchEvent(new Event("input", { bubbles: true })); };
@@ -88,8 +100,8 @@ const klick = (b, sel) => b.js(`(() => { const e = document.querySelector(${JSON
   await ladda(b);
   if (!BARA_BILDER) {
     kolla("årskurs: toppmenyn utan Admin", await b.js(`![...document.querySelectorAll(".teacher-nav-tabs .tnav")].some((a) => /Admin/.test(a.textContent))`));
-    kolla("årskurs: klassknappar 4A + 4B", (await b.js(`[...document.querySelectorAll(".mk-klassknapp")].map((k) => k.textContent.trim()).join(",")`)) === "4A,4B");
-    kolla("årskurs: fyra flikar med undertext", (await b.js(`[...document.querySelectorAll(".mk-flik")].map((f) => f.textContent.replace(/\\s+/g, " ").trim()).join("|")`)) ===
+    kolla("årskurs: klassknappar 4A + 4B", (await b.js(`[...document.querySelectorAll(".mk-klassknapp-namn")].map((k) => k.textContent.trim()).join(",")`)) === "4A,4B");
+    kolla("årskurs: fyra flikar med undertext", (await b.js(`[...document.querySelectorAll(".mk-flik")].map((f) => [...f.children].map((c) => c.textContent.trim()).join(" ")).join("|")`)) ===
       "Hur går det? Statistik|Vad eleverna ser Områden och moduler|Fokusläge Lås till en sak|Elever Inloggning och konton");
   }
   await klick(b, '.mk-klassknapp[data-klass="4b"]');
@@ -104,6 +116,7 @@ const klick = (b, sel) => b.js(`(() => { const e = document.querySelector(${JSON
     await b.tills(`!!document.querySelector('[data-pane="ekvationsresan"] .stats-av-notis')`);
     const text = await b.js(`document.querySelector('[data-pane="ekvationsresan"] .stats-av-notis')?.textContent.replace(/\\s+/g, " ").trim()`);
     kolla("klick på avstängd: texten med länk", text === "Ekvationsresan är avstängd för 4B. Eleverna ser den inte. Slå på den under Vad eleverna ser.", text);
+    await b.tills(`!document.querySelector('[data-pane="ekvationsresan"] .spinner')`);
     await b.bild("efter-arskurs-desktop-hur-gar-det-av");
     await klick(b, '[data-pane="ekvationsresan"] .stats-av-lank');
     await ladda(b);
@@ -169,6 +182,16 @@ const klick = (b, sel) => b.js(`(() => { const e = document.querySelector(${JSON
       await vanta(400);
       if (!BARA_BILDER) kolla(`mobil ${w} px, ${f}: ingen horisontell scroll`, await b.js(ingenSidscroll), String(await b.js("document.documentElement.scrollWidth")));
       if (w === 375 && (f === "hur" || f === "ser")) await b.bild(`efter-arskurs-mobil-${f}`);
+    }
+    if (BARA_BILDER) continue;
+    // Varje underflik i Hur går det? (tabellerna scrollar i sin egen ruta, aldrig sidan).
+    await klick(b, '.mk-flik[data-flik="hur"]');
+    await ladda(b);
+    for (const del of await b.js(`[...document.querySelectorAll(".stats-tab")].map((t) => t.dataset.tab)`)) {
+      await klick(b, `.stats-tab[data-tab="${del}"]`);
+      await ladda(b);
+      await vanta(500);
+      kolla(`mobil ${w} px, Hur går det? → ${del}: ingen horisontell scroll`, await b.js(ingenSidscroll), String(await b.js("document.documentElement.scrollWidth")));
     }
   }
   if (b.fel.length) console.log("  JS-fel (årskurs):", b.fel.slice(0, 5));

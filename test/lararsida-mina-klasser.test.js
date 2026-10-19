@@ -192,7 +192,7 @@ describe("mobil (320–375 px)", () => {
   const css = () => readFileSync(new URL("../src/styles/43-larare-mina-klasser.css", import.meta.url), "utf8");
   it("klassknapparna och statistikens underflikar radbryts; flikarna blir 2 × 2", () => {
     assert.match(css(), /\.teacher-dark \.mk-klassval \{[^}]*flex-wrap: wrap/);
-    assert.match(css(), /\.mk-page \.stats-tabs \{ display: flex; flex-wrap: wrap/);
+    assert.match(css(), /\.teacher-dark\.mk-page \.stats-tabs \{ display: flex; flex-wrap: wrap/);
     assert.match(css(), /@media \(max-width: 760px\)[\s\S]*\.mk-flikar \{ display: grid; grid-template-columns: 1fr 1fr/);
   });
   it("styles.css är byggd av delarna", () => {

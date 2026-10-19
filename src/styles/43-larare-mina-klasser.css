@@ -111,7 +111,15 @@
 .teacher-dark .mk-block .subhead { margin-top: 0; }
 
 /* Statistikens underflikar radbryts i stället för att skjuta ut sidan (9+ flikar). */
-.teacher-dark .mk-page .stats-tabs { display: flex; flex-wrap: wrap; max-width: 100%; box-sizing: border-box; }
+.teacher-dark.mk-page .stats-tabs { display: flex; flex-wrap: wrap; max-width: 100%; box-sizing: border-box; }
+/* Rullgardiner och fält i flikarna (t.ex. Fokuslägets målväljare) får inte bli
+   bredare än skärmen – långa områdesnamn i <option> drog ut sidan på mobil. */
+.teacher-dark .mk-innehall select,
+.teacher-dark .mk-innehall input:not([type="checkbox"]):not([type="radio"]) { max-width: 100%; min-width: 0; box-sizing: border-box; }
+.teacher-dark .mk-innehall label,
+.teacher-dark .mk-innehall .field { max-width: 100%; min-width: 0; }
+/* Nivåkorten i Läsresan/Ekvationsresan (minmax 300 px) får plats vid 320 px. */
+.teacher-dark .mk-innehall .lrn-panel { grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); }
 .teacher-dark .stats-tab.av { opacity: 0.6; }
 .teacher-dark .stats-tab.av.active { opacity: 1; }
 .teacher-dark .stats-av { font-weight: 500; }
