@@ -918,6 +918,9 @@ släppt in visas "Fortsätt provet"; klicket går in i helskärm igen och provvy
 sätts tillbaka på samma scrollplats. Tar tiden slut under pausen lämnas
 provet in med de svar som sparades när pausen började (`lamnaInPausad`).
 Efter inlämningen lämnar sidan helskärmen (#788: vägen vidare gäller).
+Nekas pausen (en annan flik hann pausa med en längre logg) läses svaret om och
+pausen skrivs en gång till med serverns logg. Ett svar med `helskarmFel` pausas
+inte för att helskärmen saknas efter en omladdning.
 
 **En räknare.** Antalet pauser är `flikbyten` från #748 (specens `pauser`).
 Med helskärmsläget räknar provsidan inga egna flikbyten – pausen gör det.
@@ -943,6 +946,9 @@ på svaret (beslut: en källa för extra tid). Läraren ser och kan ändra tiden
 **Reglerna** (`provPausOk`, `provSlappInOk`):
 - eleven får pausa sig (`pausad: true`, `pausadAt == request.time`, känd orsak)
   men aldrig skapa ett pausat svar, sätta `pausad: false` eller röra `slapptInAt`;
+- `pausLogg` (rättningens bevis) krymper aldrig och ändras bara av en paus –
+  eleven kan inte sudda den efter Släpp in (`flikbyten` får däremot vara
+  icke-ökande som i #748; rättningen visar det största av räknaren och loggen);
 - medan `pausad == true` nekas **varje** elevskrivning utom tidens inlämning
   (bara `uppdaterad`/`inlamnad`/`inlamnadNar: "tid"`/`inlamnadAt` får ändras);
 - läraren med klassen får ändra **bara** `pausad` (true → false) och
@@ -953,6 +959,12 @@ lyssnare gav 0 händelser av 10 vanliga sparningar från två elever, och exakt 
 dokumentändringar (tillagd, borttagen) för en paus + släpp in. Den första
 ögonblicksbilden utan träffar kostar 1 läsning. Eleven: 1 skrivning per paus,
 1 läsning när läraren släpper in. Läraren: 1–2 skrivningar per släpp in.
+
+**Webbläsartest** (riktig Esc i X, flikbyte, Alt+Tab = ett annat fönster > 2 s,
+kort fokusförlust, omladdning, inlämning): `admin/qa-prov810-helskarm.mjs` under
+`xvfb-run` mot `admin/qa-prov810-preview.sh` – resultat och skärmdumpar i
+`docs/qa-prov-810/`. CDP-Esc och en headless webbläsares flikar ändrar varken
+helskärmen eller `document.hidden`, så de räcker inte.
 
 Förhandsvisning: `preview/preview-prov-elev.html` (byt flik / Esc → pausen,
 "Läraren släpper in (#810)" i kontrollraden; `?helskarm=av`, `?undantag`),

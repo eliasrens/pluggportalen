@@ -2257,7 +2257,8 @@ service cloud.firestore {
         (!('helskarmFel' in d) || d.helskarmFel is bool);
     }
     // Pausen (#810, §5.6). Eleven får pausa sig själv (pausadAt = serverns tid,
-    // en känd orsak) men aldrig häva pausen eller röra slapptInAt. Så länge
+    // en känd orsak) men aldrig häva pausen eller röra slapptInAt. Pausloggen
+    // (rättningens "Lämnade provet …") krymper aldrig och ändras bara av en paus. Så länge
     // svaret är pausat nekas allt utom inlämningen när tiden tar slut – med
     // svaren som de sparades när pausen började.
     function provPausOk(d, fore) {
@@ -2266,9 +2267,11 @@ service cloud.firestore {
           (d.diff(fore).affectedKeys().hasOnly(['uppdaterad', 'inlamnad', 'inlamnadNar', 'inlamnadAt']) &&
             d.inlamnad == true && d.inlamnadNar == 'tid') :
         d.get('pausad', false) == true ?
-          (d.get('pausadAt', null) == request.time && d.get('pausOrsak', '') in ['helskarm', 'flik', 'fokus']) :
+          (d.get('pausadAt', null) == request.time && d.get('pausOrsak', '') in ['helskarm', 'flik', 'fokus'] &&
+            d.get('pausLogg', []).size() >= fore.get('pausLogg', []).size()) :
           (d.get('pausadAt', null) == fore.get('pausadAt', null) &&
-            d.get('pausOrsak', null) == fore.get('pausOrsak', null)));
+            d.get('pausOrsak', null) == fore.get('pausOrsak', null) &&
+            d.get('pausLogg', null) == fore.get('pausLogg', null)));
     }
     // Läraren släpper in (#810): BARA pausad true → false och slapptInAt =
     // serverns tid. Extra tid (+5 min) skrivs i tillfällets extraTid (#748),

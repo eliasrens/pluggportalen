@@ -54,7 +54,7 @@ const chrome = spawn(CHROME, [
 ], { stdio: "ignore", detached: true });
 process.once("exit", () => { try { process.kill(-chrome.pid, "SIGKILL"); } catch {} });
 const portFil = join(profil, "DevToolsActivePort");
-for (let i = 0; i < 300 && !existsSync(portFil); i++) await vila(100);
+for (let i = 0; i < 600 && !existsSync(portFil); i++) await vila(100);
 const [cdpPort, cdpPath] = readFileSync(portFil, "utf8").trim().split("\n");
 const wsUrl = `ws://127.0.0.1:${cdpPort}${cdpPath}`;
 const ws = new WebSocket(wsUrl);

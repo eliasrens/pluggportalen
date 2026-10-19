@@ -293,6 +293,7 @@ function skriv(tf, svarDok, meId, { nyss = false, helskarmFel = false } = {}) {
         }
         if (nar === "elev") {
           lamnar = false;
+          if (hs?.pausad) return; // pausen tog över – den sparade svaren (#810)
           sparare = nySparare();
           sparare.andrat();
           vy.inlamningMisslyckades("Kunde inte lämna in – kontrollera internet och försök igen. Dina svar finns kvar här.");
@@ -345,13 +346,14 @@ function skriv(tf, svarDok, meId, { nyss = false, helskarmFel = false } = {}) {
   window.addEventListener("online", spola); // nätet tillbaka → försök direkt
   document.addEventListener("visibilitychange", synlighet);
   vidByte(() => {
-    spola();
+    // #810: gick eleven härifrån mitt i provet skriver pausen svaren – sedan sparas inget mer.
+    if (hs?.lamnaSidan()) klar = true, sparare.stoppa();
+    else spola();
     clearInterval(tick);
     avProv();
     window.removeEventListener("pagehide", spola);
     window.removeEventListener("online", spola);
     document.removeEventListener("visibilitychange", synlighet);
-    hs?.lamnaSidan();
   });
 }
 

@@ -129,7 +129,9 @@ export function pausPanel({ tf, elever, onAndrat = () => {} }) {
   }
   allaKnapp.addEventListener("click", () => slapp(Object.keys(pausade), plusAlla.checked, allaKnapp));
 
-  const av = lyssnaPausade(tf.id, (ny) => {
+  const av = lyssnaPausade(tf.id, (alla) => {
+    // Inlämnade (tiden tog slut under pausen, stängt) står kvar med pausad: true – inte pausade.
+    const ny = Object.fromEntries(Object.entries(alla).filter(([, d]) => arPausad(d)));
     const nya = Object.keys(ny).filter((uid) => !pausade[uid]);
     pausade = ny;
     rita();

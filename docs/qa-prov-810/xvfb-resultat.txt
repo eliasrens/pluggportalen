@@ -10,10 +10,9 @@ OK  Fortsätt provet → helskärm igen, samma plats, svaret kvar – scroll 198
 OK  flikbyte: provfliken dold
 OK  flikbyte: pausat, frågorna borta
 OK  flikbyte: EN skrivning – flikbyten 2, pausLogg 2, pausOrsak flik (ingen extra paus för helskärmen) – ["helskarm","flik"]
-OK  flikbyte: reglerna nekar sparning medan pausad – se test/firestore-rules-prov-helskarm.test.js
-OK  Alt+Tab: pausat först efter > 2 s utan fokus (inte dold) – blur → paus 2008 ms, {"blur":59047.5,"fokus":0,"paus":61055.5,"dold":false,"fs":true}
+OK  Alt+Tab: pausat först efter > 2 s utan fokus (inte dold) – blur → paus 2002 ms, {"blur":35062.40000000596,"fokus":0,"paus":37063.90000000596,"dold":false,"fs":true}
 OK  Alt+Tab: pausOrsak fokus – orsak fokus, logg ["helskarm","flik","fokus"]
-OK  kort fokusförlust (< 2 s): inte pausat – utan fokus 747 ms (försök 1)
+OK  kort fokusförlust (< 2 s): inte pausat – utan fokus 188 ms (försök 1)
 OK  omladdning: pausat (frågorna borta)
 OK  omladdning: en paus till – flikbyten 3 → 4
 OK  inlämnat: helskärmen avslutad, ingen paus – {"fs":false,"paus":false,"banner":"Inlämnat. Ditt prov är inlämnat! Din lärare rättar det och lämnar tillbaka det sen. Till dina prov\nTill startsidan","knappar":["Pluggporten","Logga ut","1","2","3","4"]}

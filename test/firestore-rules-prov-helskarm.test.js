@@ -156,6 +156,15 @@ describe("läraren släpper in", () => {
     await assertSucceeds(slappIn(env.ak4(), "t-tid", "e4a"));
     await assertFails(spara(env.as("e4a"), "t-tid", "e4a", { f1: "Birka" }));
   });
+  it("efter Släpp in kan eleven inte sudda pausloggen (rättningens 'Lämnade provet …')", async () => {
+    await assertSucceeds(slappIn(env.ak4(), "t-tid", "e4a"));
+    await assertFails(spara(env.as("e4a"), "t-tid", "e4a", {}, { pausLogg: [] }), "tömma");
+    await assertFails(spara(env.as("e4a"), "t-tid", "e4a", {}, { pausLogg: [{ at: 1, orsak: "flik" }, { at: 2, orsak: "flik" }] }), "ändra utan paus");
+    await assertFails(pausa(env.as("e4a"), "t-tid", "e4a", {}, "flik", { pausLogg: [] }), "en paus som krymper loggen");
+    await assertSucceeds(pausa(env.as("e4a"), "t-tid", "e4a", {}, "flik", {
+      flikbyten: 2, pausLogg: [{ at: Date.now() - MIN, orsak: "flik" }, { at: Date.now(), orsak: "flik" }],
+    }));
+  });
   it("Släpp in alla: en batch med alla pausade + extraTid", async () => {
     const db = env.ak4();
     const b = writeBatch(db);

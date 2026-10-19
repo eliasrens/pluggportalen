@@ -13,7 +13,7 @@
 import { escHtml } from "../ui.js";
 import { fullscreenSupported, goUt, helskarmElement } from "../helskarm.js";
 import { serverNow } from "../data-class-lock.js";
-import { lyssnaMittSvar, pausa } from "./prov-elev-data.js";
+import { hamtaMittSvar, lyssnaMittSvar, pausa } from "./prov-elev-data.js";
 import { arPausad, pausFalt, skapaPausvakt } from "./prov-helskarm.js";
 import { arSlutgiltigtFel } from "./prov-sparning.js";
 
@@ -60,7 +60,7 @@ function pausRuta() {
  * @param {(nytt: object|null) => void} o.onLage  stängt / inlämnat under pausen – sidan läser läget
  */
 export function kopplaHelskarm(o) {
-  let fel = o.helskarmFel === true || !fullscreenSupported();
+  let fel = o.helskarmFel === true || o.svarDok?.helskarmFel === true || !fullscreenSupported();
   let logg = o.svarDok?.pausLogg || [];
   let ruta = null;
   let avLyssna = null;
@@ -102,21 +102,30 @@ export function kopplaHelskarm(o) {
     if (klar) return;
     o.forePaus();
     visaPaus();
-    const falt = pausFalt({ flikbyten: o.flikbyten(), pausLogg: logg }, orsak, serverNow());
-    o.satFlikbyten(falt.flikbyten);
-    logg = falt.pausLogg;
     const svar = o.svarNu();
+    let omlast = false;
     // Pausen måste fram: försök igen tills det går (offline köar SDK:t skrivningen).
     for (let forsok = 0; !klar; forsok++) {
+      const falt = pausFalt({ flikbyten: o.flikbyten(), pausLogg: logg }, orsak, serverNow());
       try {
         await Promise.race([
           pausa(o.t, o.meId, svar, falt, fel),
           new Promise((_, nej) => setTimeout(() => nej(Object.assign(new Error("timeout"), { code: "deadline-exceeded" })), 10_000)),
         ]);
+        o.satFlikbyten(falt.flikbyten);
+        logg = falt.pausLogg;
         break;
       } catch (err) {
-        // Nekad: stängt, inlämnat eller tiden slut – sidan läser läget.
         if (arSlutgiltigtFel(err)) {
+          // Nekad. En gammal pauslogg (en annan flik pausade) – läs om och försök en gång till.
+          const d = omlast ? null : await hamtaMittSvar(o.t, o.meId).catch(() => null);
+          if (d && !d.inlamnad && !d.pausad) {
+            omlast = true;
+            logg = d.pausLogg || [];
+            o.satFlikbyten(Math.max(o.flikbyten(), d.flikbyten || 0));
+            continue;
+          }
+          // Stängt, inlämnat eller tiden slut – sidan läser läget.
           o.onLage(undefined);
           break;
         }
@@ -200,6 +209,7 @@ export function kopplaHelskarm(o) {
      * Sidan städas. Gick eleven till en annan sida mitt i provet (utan
      * fokuslås går det) har hen lämnat provet: pausen skrivs, som vid Esc.
      * Samma route som ritas om: bara vakten av – helskärmen ligger kvar.
+     * @returns {boolean} true = pausen skrevs (med svaren) – sidan ska inte spara mer
      */
     lamnaSidan() {
       if (location.hash === route) {
@@ -207,13 +217,15 @@ export function kopplaHelskarm(o) {
         vakt.stoppa();
         window.removeEventListener("scroll", merkScroll);
         avLyssna?.();
-        return;
+        return false;
       }
-      if (!klar && vakt.aktiv && !vakt.pausad) {
+      const skriv = !klar && vakt.aktiv && !vakt.pausad;
+      if (skriv) {
         const falt = pausFalt({ flikbyten: o.flikbyten(), pausLogg: logg }, "helskarm", serverNow());
         pausa(o.t, o.meId, o.svarNu(), falt, fel).catch(() => {});
       }
       this.slut();
+      return skriv;
     },
   };
 }
