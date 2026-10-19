@@ -13,7 +13,7 @@ import { el, esc, icon, isTeacher, renderGate, teacherHead, teacherNav, wireHash
 export const GUIDER = [
   { titel: "Kom igång med en ny klass", hash: "#/larare/klasser" },
   { titel: "Välj vad eleverna ser", hash: "#/larare/klasser" },
-  { titel: "Fokusläge", hash: "#/larare/klasser" },
+  { titel: "Fokusläge", hash: "#/larare/mina-klasser?flik=fokus" },
   { titel: "Skapa ett område med AI", hash: "#/larare/innehall" },
   { titel: "Gör ett prov och rätta det", hash: "#/larare/prov" },
   { titel: "Starta Live", hash: "#/larare/live" },

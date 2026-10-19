@@ -417,7 +417,8 @@ export const STUDENT_MODULES = [
   // Bråkresan (#705/#713/#735): synlig som standard, döljbar per klass (hiddenModules).
   { id: "brakresan", label: "Bråkresan", ikon: "🐉", grupp: "ova", learning: true, lockable: true,
     ovning: true, routes: ["/elev/brakresan"] },
-  // Schack (#776, docs/SCHACK.md): OPT-IN per klass, bara för skojs skull (inga mynt).
+  // Schack (#776, docs/SCHACK.md): OPT-IN per klass. Pluggmynt (#798): första vinsten mot
+  // varje datornivå, lektionerna och pusslen – inte partier mot kompisar.
   // Fokusläget stänger det som alla andra moduler (learning), men det går inte att
   // låsa klassen TILL schack (lockable: false). Ikonen är en egen SVG-bonde –
   // inga unicode-schacktecken (de ser olika ut på olika datorer).

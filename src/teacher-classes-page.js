@@ -8,43 +8,29 @@
 //
 // Valet minns utan att trigga routern: history.replaceState skriver
 // #/larare/klasser?klass=<id>&sektion=<key> (ingen hashchange → ingen full
-// omritning, X-05) + sessionStorage som reserv (X-09). Vid sidladdning:
-// query → sessionStorage → första klassen. pushState används INTE (back/forward
+// omritning, X-05) + localStorage som reserv (X-09, #804). Vid sidladdning:
+// query → localStorage → första klassen. pushState används INTE (back/forward
 // mellan hash-URL:er avfyrar hashchange → full omritning).
 //
 // #679: tre sidlägen (CLASS_PAGE_MODES): Klasser, Statistik, Admin → Klasser &
 // elevkonton. Ett årskurskonto ser bara sina klasser och deras elever.
+// #804: Klasser + Statistik är nu Mina klasser (teacher-mina-klasser.js); här
+// återstår Admin-läget tills sub-issue C gör om det. Vald klass delas med Mina
+// klasser via localStorage (readSavedClass/saveClass).
 //
 // Laddas dynamiskt av teacher-classes.js – aldrig i den statiska bootgrafen (#271).
 // ============================================================================
 
 import * as data from "./data.js";
 import { el, esc, teacherNav, teacherHead } from "./teacher-shared.js";
-import {
-  SELECTED_KEY,
-  classesHash,
-  createClassStore,
-  loadLibraryFrom,
-  pickInitial,
-} from "./teacher-classes-store.js";
+import { classesHash, createClassStore, loadLibraryFrom, pickInitial, readSavedClass, saveClass } from "./teacher-classes-store.js";
 import { CLASS_PAGE_MODES, sectionsFor } from "./teacher-classes-sections.js";
 import { filterClasses, myRole, studentsInClasses } from "./teacher-role.js";
 import { createClassMaster } from "./teacher-classes-master.js";
 import { createClassDetail } from "./teacher-classes-detail.js";
 
-function readSaved() {
-  try {
-    return sessionStorage.getItem(SELECTED_KEY);
-  } catch {
-    return null;
-  }
-}
-
 function persist(mode, id, section) {
-  try {
-    if (id) sessionStorage.setItem(SELECTED_KEY, id);
-    else sessionStorage.removeItem(SELECTED_KEY);
-  } catch {}
+  saveClass(id);
   const hash = classesHash(id, section, mode.base);
   // Bara om vi fortfarande står på klassvyn (läraren kan ha hunnit byta flik).
   if (window.location.hash.split("?")[0] === mode.base && window.location.hash !== hash) {
@@ -53,8 +39,8 @@ function persist(mode, id, section) {
 }
 
 /** Montera Master-Detail-vyn i ctx.app (anropas efter lärarspärren). */
-export async function mountClassesPage(ctx, modeKey = "klasser") {
-  const mode = CLASS_PAGE_MODES[modeKey] || CLASS_PAGE_MODES.klasser;
+export async function mountClassesPage(ctx, modeKey = "admin") {
+  const mode = CLASS_PAGE_MODES[modeKey] || CLASS_PAGE_MODES.admin;
   const sections = sectionsFor(modeKey);
   ctx.app.replaceChildren(el(`<div class="spinner">Laddar klasser…</div>`));
   const startHash = window.location.hash;
@@ -88,7 +74,7 @@ export async function mountClassesPage(ctx, modeKey = "klasser") {
   const initial = pickInitial(classes, {
     klass: query.get("klass"),
     sektion: query.get("sektion"),
-    saved: readSaved(),
+    saved: readSavedClass(),
     sections: sections.map((s) => s.key),
   });
   store.selectedId = initial.id;

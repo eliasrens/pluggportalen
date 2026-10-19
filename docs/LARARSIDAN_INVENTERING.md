@@ -9,7 +9,9 @@ Godkänd förhandsvisning: [`preview/preview-lararsida-struktur.html`](../previe
 - **Var efter** = planerad plats enligt specen DEL 1–8. Bokstaven i hakparentes säger vilken sub-issue som flyttar den:
   **A** #803 (toppmeny, profilmeny, omdirigeringar) · **B** Mina klasser · **C** Elever och Admin · **D** Material · **E** Hem + Prov-räknare · **F** Hjälp. "–" = ligger redan rätt.
 - **Vem**: *alla* = årskurslärare och admin, *admin* = bara admin. Behörigheterna ändras inte (reglerna och Cloud Functions spärrar på riktigt, se [`BEHORIGHETER.md`](BEHORIGHETER.md)).
-- **Klick** räknas från en annan lärarsida (toppmenyn syns), med klassen redan vald där klassen kommer ihåg. "A:" = efter #803, "slut:" = efter hela epicen.
+- **Klick** räknas från en annan lärarsida (toppmenyn syns), med klassen redan vald där klassen kommer ihåg. "A:" = efter #803, "B:" = efter #804, "slut:" = efter hela epicen.
+- **Läget efter B (#804):** Statistik och Klasser är EN flik, **Mina klasser** (`#/larare/mina-klasser`), med klassväljaren och flikarna
+  Hur går det? · Vad eleverna ser · Fokusläge · Elever. Raderna märkta [B] nedan ligger där de ska.
 - Koderna (`flikar.…`, `sektioner.…`, `statistik.…`) är raderna i placeringskartan [`src/teacher-struktur.js`](../src/teacher-struktur.js).
   `test/lararsida-inventering.test.js` kräver att varje flik i `TEACHER_TABS`, sektion i `CLASS_SECTIONS` och flik i `STATS_TABS`
   har en rad där, att rollen stämmer och att den går att nå i toppmenyn – och att varje kod står i det här dokumentet.
@@ -19,8 +21,8 @@ Godkänd förhandsvisning: [`preview/preview-lararsida-struktur.html`](../previe
 | Funktion | Var i dag | Vem | Var efter omgörningen | Klick i dag → efter |
 | --- | --- | --- | --- | --- |
 | Översikt/Hem `flikar.hem` (`#/larare/hem`, förr `#/larare/oversikt`) | Översikt | alla | **Hem** [A: byter namn och adress; E: ny Hem-sida] | 1 → 1 |
-| Statistik `flikar.statistik` (`#/larare/statistik`) | Statistik (eget toppval) | alla | Mina klasser → **Hur går det?** [A: Mina klasser öppnar statistiken; B: fliken] | 1 → 1 |
-| Klasser `flikar.klasser` (`#/larare/klasser`) | Klasser | alla | Mina klasser → Vad eleverna ser · Fokusläge · Elever [A: underfliken Klassinställningar; B: flikarna] | 1 → A: 2 (Hem-korten: 1) · slut: 2 |
+| Statistik `flikar.statistik` (`#/larare/statistik`) | Statistik (eget toppval) | alla | Mina klasser → **Hur går det?** [B: ingen egen flik längre – gamla adressen omdirigeras dit] | 1 → 1 |
+| Klasser / Mina klasser `flikar.klasser` (`#/larare/mina-klasser`, förr `#/larare/klasser`) | Klasser | alla | **Mina klasser** → Hur går det? · Vad eleverna ser · Fokusläge · Elever [B] | 1 → A: 2 · B: 2 (Mina klasser → flik; Hur går det? 1) |
 | Material `flikar.material` (`#/larare/material?flik=…`), förr Plugga-material `#/larare/innehall`, Bråkresan testläge `#/larare/brakresan` och Hitta rätt! `#/larare/hitta-ratt` | Material → Plugga-material · Bråkresan · Hitta rätt! (tre flikar) | alla (Hitta rätt!: admin) | **Material** med underflikar Plugga-områden · Läsresan · Ekvationsresan · Bråkresan · Hitta rätt! · Schack; de gamla adresserna omdirigeras (`?prov=` följer med) [D #806] | 1–2 → 1–2 |
 | Mina prov `flikar.prov` (`#/larare/prov`) | Prov → Mina prov | alla | Prov → Mina prov, "Att rätta" överst [E] | 1 → 1 |
 | Provtillfällen `flikar.provtillfallen` (`#/larare/prov/tillfallen`) | Prov → Provtillfällen | alla | Prov → Provtillfällen | 2 → 2 |
@@ -46,25 +48,29 @@ Godkänd förhandsvisning: [`preview/preview-lararsida-struktur.html`](../previe
 
 I dag: klasslista till vänster, sektionsflikar till höger. Klasser (`#/larare/klasser`) visar Områden · Lägen per område · Synlighet · Fokusläge · Schack · Inloggning; Statistik visar Statistik; Admin → Klasser & elevkonton visar Elever · Klasscentret (+ skapa/döp om/ta bort).
 
+Efter B (#804): Mina klasser = klassknappar överst (fler än 8 → sök + rullgardin) och fyra flikar (`MINA_FLIKAR` i `src/teacher-mina-val.js`). Sektionerna är oförändrade; Schack är en underflik i Hur går det? (`statistik.schack`). Admin → Klasser & elevkonton finns kvar tills C gör om Admin-sidan.
+
 | Funktion | Var i dag | Vem | Var efter omgörningen | Klick i dag → efter |
 | --- | --- | --- | --- | --- |
-| Inloggning `sektioner.inloggning`: användarnamn, lösenord (Visa, Sätt nytt lösenord, Generera enkelt lösenord), Skriv ut inloggningskort (Markera alla/Avmarkera alla, Skriv ut) | Klasser → klass → Inloggning | alla (årskurs: användarnamnet låst) | Mina klasser → **Elever** [B; kompakt tabell + ⋯ Byt lösenord i C] | 2 → slut: 2 |
-| Elever `sektioner.elever`: elevkonton, namn/avatar, +10/+50/Ge mynt, Ta ur klassen, Ta bort konto, Förbered konton/Generera alla/Skapa N konton/Kopiera alla, Lägg till valda | Admin → Klasser & elevkonton → klass → Elever | admin | Mina klasser → **Elever** (admin: mynt-kolumn, ⋯ Ge mynt/Ta ur klassen/Ta bort konto, Ge hela klassen mynt, Lägg till elev) [C] | 3 → slut: 2 |
+| Inloggning `sektioner.inloggning`: användarnamn, lösenord (Visa, Sätt nytt lösenord, Generera enkelt lösenord), Skriv ut inloggningskort (Markera alla/Avmarkera alla, Skriv ut) | Klasser → klass → Inloggning | alla (årskurs: användarnamnet låst) | Mina klasser → **Elever** [B; kompakt tabell + ⋯ Byt lösenord i C] | 2 → 2 |
+| Elever `sektioner.elever`: elevkonton, namn/avatar, +10/+50/Ge mynt, Ta ur klassen, Ta bort konto, Förbered konton/Generera alla/Skapa N konton/Kopiera alla, Lägg till valda | Admin → Klasser & elevkonton → klass → Elever | admin | Mina klasser → **Elever** (admin; B: hela medlemshanteraren som i dag – den har allt Inloggning har; kvar även i Admin → Klasser & elevkonton) [B; kompakt tabell i C] | 3 → B: 2 |
 | Områden `sektioner.omraden`: tilldela arbetsområden (Spara områden, Rensa – visa allt) | Klasser → klass → Områden | alla | Mina klasser → Vad eleverna ser → **1. Områden** (hela namn) [B] | 2 → 2 |
 | Lägen per område `sektioner.lagen`: dölj övningslägen (Visa alla, Spara lägen per område) | Klasser → klass → Lägen per område | alla | Mina klasser → Vad eleverna ser → **3. Avancerat** (ihopfällt) [B] | 2 → 3 |
 | Synlighet `sektioner.synlighet`: moduler på/av (Spara moduler, Visa alla); byar (Spara byar, Dölj för alla andra klasser, Visa för alla) bara admin | Klasser → klass → Synlighet | alla (byar: admin) | Mina klasser → Vad eleverna ser → **2. Delar i elevernas meny** [B] | 2 → 2 |
 | Fokusläge `sektioner.fokus`: Lås klassen (mål, sluttid, vad eleven får göra efter inlämning #788), +N min, Lås upp nu | Klasser → klass → Fokusläge | alla | Mina klasser → **Fokusläge** [B] | 2 → 2 |
-| Schack `sektioner.schack`: Slå på/Stäng av schack, pågående partier (Titta = åskådarläge, Avsluta partiet), topplistan (Dölj/Visa för eleverna, Nollställ topplistan), statistik | Klasser → klass → Schack | alla | Mina klasser → Hur går det? → **Schack**; på/av även i Vad eleverna ser [B] | 2 → 3 |
-| Klasscentret `sektioner.klasscenter`: vem får inreda (Alla får inreda, Spara), kassörer (Spara kassörer), Lägg från klasskassan, insamling med donatorer, pokaler, historik | Admin → Klasser & elevkonton → klass → Klasscentret | admin | Mina klasser → **Elever** (admin) [C] | 3 → slut: 2 |
+| Schack `sektioner.schack`: Slå på/Stäng av schack, pågående partier (Titta = åskådarläge, Avsluta partiet), topplistan (Dölj/Visa för eleverna, Nollställ topplistan), statistik | Klasser → klass → Schack | alla | Flyttad till statistikens underflik `statistik.schack` (se §4) [B] | 2 → 2 |
+| Klasscentret `sektioner.klasscenter`: vem får inreda (Alla får inreda, Spara), kassörer (Spara kassörer), Lägg från klasskassan, insamling med donatorer, pokaler, historik | Admin → Klasser & elevkonton → klass → Klasscentret | admin | Mina klasser → **Elever** (admin, under Elever; kvar även i Admin → Klasser & elevkonton) [B] | 3 → B: 2 |
 | Statistik `sektioner.statistik` (matrisen + underflikarna nedan) | Statistik → klass | alla | Mina klasser → **Hur går det?** [B] | 1 → 1 |
 | Skapa en ny klass (+ N elevkonton) | Admin → Klasser & elevkonton → Skapa en ny klass | admin | Admin → Klasser [C] | 2 → 2 |
 | Döp om klass | Admin → Klasser & elevkonton → klass → Döp om | admin | Admin → Klasser [C] | 3 → 3 |
 | Ta bort klassen | Admin → Klasser & elevkonton → klass → Ta bort klassen | admin | Admin → Klasser [C] | 3 → 3 |
-| Vald klass kommer ihåg (`?klass=&sektion=`) | Per sidläge i URL:en | alla | `?klass=` + `localStorage`, gemensam för hela Mina klasser [B] | – |
+| Vald klass kommer ihåg (`?klass=&sektion=`) | Per sidläge i URL:en | alla | `?klass=` (id eller namn, t.ex. `4B`) + `&flik=` + `&del=` och klassen i `localStorage` (`pp:larare:klass`, delas med Admin → Klasser), gamla `?sektion=` leder till rätt flik [B] | – |
+| Fokuslåset 🔒 på klasser med aktivt fokusläge | Klasslistan till vänster | alla | Klassknappen (rullgardinen: "🔒 4B") [B] | 0 → 0 |
+| "Sparat ✓" per steg | – (bara rad vid Spara-knappen) | alla | Vad eleverna ser: stegets rubrik visar Sparat ✓ / Inte sparat än / Kunde inte spara [B] | – |
 
 ## 4. Statistikens underflikar (`STATS_TABS`)
 
-Alla ligger i dag under Statistik → klass → underflik, och efter B under Mina klasser → Hur går det? → underflik (samma tabeller, oförändrade). Senast valda underflik kommer ihåg (`lastStatsTab`). Avstängd modul → underfliken nedtonad "· av" med länk till Vad eleverna ser [B].
+Alla ligger i dag under Statistik → klass → underflik, och efter B under Mina klasser → Hur går det? → underflik (samma tabeller, oförändrade). Senast valda underflik kommer ihåg (`lastStatsTab`, nu i `localStorage` `pp:larare:statsflik` + `&del=` i adressen, så även efter omladdning). Avstängd modul (Plugga, Läsresan, Ekvationsresan, Bråkresan, Schack) → underfliken nedtonad "· av"; klick visar "X är avstängd för 4B. Eleverna ser den inte. Slå på den under Vad eleverna ser" med länk dit, och statistiken/nivåerna står kvar under texten [B]. (Ekvationsresans och Bråkresans egna "avstängd"-rader med det gamla namnet "Synliga moduler" är ersatta av den gemensamma texten.)
 
 | Funktion | Var i dag | Vem | Var efter omgörningen | Klick i dag → efter |
 | --- | --- | --- | --- | --- |
@@ -76,7 +82,8 @@ Alla ligger i dag under Statistik → klass → underflik, och efter B under Min
 | Bråkresan `statistik.brakresan`: Översikt, Matris, Rekommendationer (Rekommendera, Avsluta/Ta bort), elevdetalj, Testa utmaningarna | Statistik → Bråkresan | alla | Hur går det? → Bråkresan [B] | 2 → 2 |
 | Mattematchen `statistik.mattematchen`: välj period → klassens tabell | Statistik → Mattematchen | alla | Hur går det? → Mattematchen [B] | 2 → 2 |
 | Live `statistik.live`: klassens Live-matcher + elevernas summa | Statistik → Live | alla | Hur går det? → Live [B] | 2 → 2 |
-| Hitta rätt! (klassens statistik) | – (finns inte i dag) | – | Hur går det? → Hitta rätt! om det finns statistik [B] | – |
+| Schack `statistik.schack`: Slå på/Stäng av schack, pågående partier (Titta = åskådarläge, Avsluta partiet), topplistan (Dölj/Visa för eleverna, Nollställ topplistan), statistik (förr sektionen `sektioner.schack`) | Klasser → klass → Schack | alla | Hur går det? → **Schack**; på/av även i Vad eleverna ser → 2 [B] | 2 → 2 |
+| Hitta rätt! (klassens statistik) | – (finns inte i dag) | – | **Ingen underflik i B:** det finns ingen statistik per klass för Hitta rätt! (topplistorna gäller hela skolan, #609). På/av ligger i Vad eleverna ser → 2 [B] | – |
 
 ## 5. Hem (dagens Översikt)
 
@@ -144,13 +151,16 @@ Ett mål som är samma route betyder "dagens sida är fortfarande platsen" – B
 | Gammal | Ny (planerad) | Mål efter #803 |
 | --- | --- | --- |
 | `#/larare/oversikt` (och `#/larare`) | Hem | `#/larare/hem` |
-| `#/larare/klasser` | Mina klasser → Vad eleverna ser | `#/larare/klasser` (Mina klasser → Klassinställningar) |
-| `#/larare/statistik` (och `#/larare/klass`) | Mina klasser → Hur går det? | `#/larare/statistik` (Mina klasser → Statistik) |
+| `#/larare/klasser` | Mina klasser → Vad eleverna ser | `#/larare/mina-klasser?flik=ser` (B) |
+| `#/larare/statistik` (och `#/larare/klass`) | Mina klasser → Hur går det? | `#/larare/mina-klasser?flik=hur` (B) |
 | `#/larare/admin/klasser` | Admin, och för en vald klass Mina klasser → Elever | `#/larare/admin/klasser` |
 | `#/larare/innehall` (och `#/larare/prompter`) | Material → Plugga-områden | `#/larare/material?flik=plugga` (#806) |
 | `#/larare/brakresan` | Material → Bråkresan | `#/larare/material?flik=brakresan` (#806) |
 | `#/larare/hitta-ratt` | Material → Hitta rätt! (`?prov=` fungerar som förut) | `#/larare/material?flik=hitta-ratt` (#806; `?prov=`, `?vy=` följer med) |
-| `#/larare/elever` | Mina klasser | `#/larare/klasser` |
+| `#/larare/elever` | Mina klasser | `#/larare/mina-klasser?flik=elever` (B) |
+
+Gamla `?sektion=` följer med och väljer fliken: omraden/lagen/synlighet → Vad eleverna ser, fokus → Fokusläge,
+inloggning/elever/klasscenter → Elever, statistik → Hur går det?, schack → Hur går det? → Schack (`SEKTION_TILL_FLIK`).
 
 ## 11. Att veta (rapport)
 
@@ -159,5 +169,9 @@ Ett mål som är samma route betyder "dagens sida är fortfarande platsen" – B
   (klasskortens snabbval). Logga ut är ett klick längre bort (profilmenyn) – det är det specen ber om.
 - **Funktioner som inte passar perfekt:** inga borttagna. Lägen per område hamnar i ett ihopfällt steg (ett klick till), Schack
   får sin statistik i Hur går det? men på/av ligger kvar i Vad eleverna ser.
-- **Iakttagelse:** schackets lärarsektion säger "Inga pluggmynt delas ut för schack", men sedan #798 ger första vinsten mot datorn
-  mynt. Texten flyttas i B – rättas där (eller separat).
+- **Iakttagelse:** schackets lärarsektion sa "Inga pluggmynt delas ut för schack", men sedan #798 ger första vinsten mot datorn
+  mynt. **Rättat i B:** texten säger nu vad som ger mynt (första vinsten mot varje datornivå, lektionerna, pusslen – inte kompispartier).
+- **B (#804):** Hitta rätt! får ingen underflik i Hur går det? – det finns ingen klassstatistik för den. Admin ser Elever (hela
+  medlemshanteraren) i stället för Inloggning under fliken Elever, eftersom den redan har allt Inloggning har; två listor med samma
+  elever under varandra vore förvirrande. Hem-kortens länkar (`#/larare/klasser?…&sektion=…`, `#/larare/statistik?…`) leder via
+  omdirigeringen till rätt flik; E skriver om Hem.

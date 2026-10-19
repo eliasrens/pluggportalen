@@ -20,8 +20,8 @@ export const NYA_PLATSER = ["Hem", "Mina klasser", "Material", "Prov", "Live", "
 export const PLACERING = {
   flikar: {
     hem: { roll: "alla", efter: "Hem", del: "E" },
-    klasser: { roll: "alla", efter: "Mina klasser → Vad eleverna ser · Fokusläge · Elever", del: "B" },
-    statistik: { roll: "alla", efter: "Mina klasser → Hur går det?", del: "B" },
+    // #804: Klasser + Statistik blev EN flik, Mina klasser (#/larare/mina-klasser).
+    klasser: { roll: "alla", efter: "Mina klasser → Hur går det? · Vad eleverna ser · Fokusläge · Elever", del: "B" },
     material: { roll: "alla", efter: "Material (underflikarna nedan)", del: "D" },
     prov: { roll: "alla", efter: "Prov → Mina prov (med Att rätta överst)", del: "E" },
     provtillfallen: { roll: "alla", efter: "Prov → Provtillfällen", del: "–" },
@@ -44,13 +44,12 @@ export const PLACERING = {
   },
   sektioner: {
     inloggning: { roll: "alla", efter: "Mina klasser → Elever", del: "B" },
-    elever: { roll: "admin", efter: "Mina klasser → Elever (admin: konton och mynt)", del: "C" },
+    elever: { roll: "admin", efter: "Mina klasser → Elever (admin: konton och mynt) + Admin → Klasser & elevkonton", del: "B" },
     omraden: { roll: "alla", efter: "Mina klasser → Vad eleverna ser → 1. Områden", del: "B" },
     lagen: { roll: "alla", efter: "Mina klasser → Vad eleverna ser → 3. Avancerat (ihopfällt)", del: "B" },
     synlighet: { roll: "alla", efter: "Mina klasser → Vad eleverna ser → 2. Delar i elevernas meny", del: "B" },
     fokus: { roll: "alla", efter: "Mina klasser → Fokusläge", del: "B" },
-    schack: { roll: "alla", efter: "Mina klasser → Hur går det? → Schack (på/av under Vad eleverna ser)", del: "B" },
-    klasscenter: { roll: "admin", efter: "Mina klasser → Elever (admin: Klasscentret)", del: "C" },
+    klasscenter: { roll: "admin", efter: "Mina klasser → Elever (admin: Klasscentret) + Admin → Klasser & elevkonton", del: "B" },
     statistik: { roll: "alla", efter: "Mina klasser → Hur går det?", del: "B" },
   },
   statistik: {
@@ -62,6 +61,8 @@ export const PLACERING = {
     brakresan: { roll: "alla", efter: "Mina klasser → Hur går det? → Bråkresan", del: "B" },
     mattematchen: { roll: "alla", efter: "Mina klasser → Hur går det? → Mattematchen", del: "B" },
     live: { roll: "alla", efter: "Mina klasser → Hur går det? → Live", del: "B" },
+    // #804: förr klassens sektion "Schack" (på/av även under Vad eleverna ser).
+    schack: { roll: "alla", efter: "Mina klasser → Hur går det? → Schack (på/av även under Vad eleverna ser)", del: "B" },
   },
 };
 

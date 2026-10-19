@@ -12,13 +12,13 @@
 // test/lararsida-material.test.js kräver att varje rad finns i placeringskartan.
 // ============================================================================
 
-// Var klassinställningarna finns i dag. Byter Mina klasser (sub-issue B) adresser ändras bara raderna här.
+// Var klassinställningarna finns (Mina klasser, #804): ?flik= = fliken, &del= = Hur går det?-underfliken. Byter adresserna ändras bara raderna här.
 export const LANK = {
-  vadEleverna: { hash: "#/larare/klasser", text: "Mina klasser → Vad eleverna ser" },
-  lasresan: { hash: "#/larare/statistik", text: "Mina klasser → Hur går det? → Läsresan" },
-  ekvationsresan: { hash: "#/larare/statistik", text: "Mina klasser → Hur går det? → Ekvationsresan" },
-  brakresan: { hash: "#/larare/statistik", text: "Mina klasser → Hur går det? → Bråkresan" },
-  schack: { hash: "#/larare/statistik", text: "Mina klasser → Hur går det? → Schack" },
+  vadEleverna: { hash: "#/larare/mina-klasser?flik=ser", text: "Mina klasser → Vad eleverna ser" },
+  lasresan: { hash: "#/larare/mina-klasser?flik=hur&del=lasresan", text: "Mina klasser → Hur går det? → Läsresan" },
+  ekvationsresan: { hash: "#/larare/mina-klasser?flik=hur&del=ekvationsresan", text: "Mina klasser → Hur går det? → Ekvationsresan" },
+  brakresan: { hash: "#/larare/mina-klasser?flik=hur&del=brakresan", text: "Mina klasser → Hur går det? → Bråkresan" },
+  schack: { hash: "#/larare/mina-klasser?flik=hur&del=schack", text: "Mina klasser → Hur går det? → Schack" },
 };
 const lank = (k) => `<a href="${LANK[k].hash}" data-hash="${LANK[k].hash}">${LANK[k].text}</a>`;
 
@@ -52,7 +52,7 @@ export const MATERIAL_FLIKAR = [
   },
   {
     key: "schack", label: "Schack", icon: "grad", admin: false,
-    hint: `Klassens partier, topplistan och på/av-knappen för schack finns under ${lank("schack")}. Här provar du mot datorn; inget sparas.`,
+    hint: `Du slår på schack för en klass under ${lank("vadEleverna")}. Klassens partier och topplista finns under ${lank("schack")}. Här provar du mot datorn; inget sparas.`,
     rita: async (sub, params) => (await import("./schack/larare-prova.js")).renderSchackProva(sub, params),
   },
 ];

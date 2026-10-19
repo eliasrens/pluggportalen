@@ -222,9 +222,8 @@ const tab = (key, hash, group, label, title, icon, load, fn, admin = false) =>
 export const TEACHER_TABS = [
   // Hem (#803): dagens översikt tills sub-issue E bygger den nya Hem-sidan.
   tab("hem", "#/larare/hem", "hem", "Hem", "Hem", "home", () => import("./teacher-overview.js"), "pageLarareOversikt"),
-  // Mina klasser (#803): dagens statistik (blir "Hur går det?") + klassida tills sub-issue B gör om dem.
-  tab("statistik", "#/larare/statistik", "klasser", "Statistik", "Statistik", "chart", () => import("./teacher-classes.js"), "pageLarareStatistik"),
-  tab("klasser", "#/larare/klasser", "klasser", "Klassinställningar", "Klassinställningar", "users", () => import("./teacher-classes.js"), "pageLarareKlasser"),
+  // Mina klasser (#804): klassväljare + Hur går det? | Vad eleverna ser | Fokusläge | Elever.
+  tab("klasser", "#/larare/mina-klasser", "klasser", "Mina klasser", "Mina klasser", "users", () => import("./teacher-classes.js"), "pageLarareMinaKlasser"),
   // Material (#806): en sida med underflikar (Plugga-områden, Läsresan, Ekvationsresan, Bråkresan, Hitta rätt!, Schack)
   // som laddas lat ur teacher-material.js (?flik=). Gamla adresser omdirigeras (TEACHER_REDIRECTS).
   tab("material", "#/larare/material", "material", "Material", "Material", "book", () => import("./teacher-material.js"), "pageLarareMaterial"),
@@ -252,14 +251,14 @@ export const TEACHER_TABS = [
 export const TEACHER_REDIRECTS = {
   "/larare": "#/larare/hem",
   "/larare/oversikt": "#/larare/hem", // Hem
-  "/larare/klasser": "#/larare/klasser", // B: Mina klasser → Vad eleverna ser
-  "/larare/statistik": "#/larare/statistik", // B: Mina klasser → Hur går det?
+  "/larare/klasser": "#/larare/mina-klasser?flik=ser", // Mina klasser → Vad eleverna ser (#804)
+  "/larare/statistik": "#/larare/mina-klasser?flik=hur", // Mina klasser → Hur går det? (#804)
   "/larare/admin/klasser": "#/larare/admin/klasser", // C: Admin / Mina klasser → Elever
   "/larare/innehall": "#/larare/material?flik=plugga", // Material → Plugga-områden (#806)
   "/larare/brakresan": "#/larare/material?flik=brakresan", // Material → Bråkresan (#806)
   "/larare/hitta-ratt": "#/larare/material?flik=hitta-ratt", // Material → Hitta rätt! (?prov= följer med, #806)
   "/larare/klass": "#/larare/statistik", // äldre sammanslagningar (#62, #299, #679)
-  "/larare/elever": "#/larare/klasser",
+  "/larare/elever": "#/larare/mina-klasser?flik=elever",
   "/larare/prompter": "#/larare/innehall",
 };
 

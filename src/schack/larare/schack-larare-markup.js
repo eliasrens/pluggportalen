@@ -47,7 +47,7 @@ export function modulHtml({ pa, klassNamn, antalPartier = 0, resultat = null }) 
       <button type="button" class="btn small ${pa ? "ghost" : "gron"}" data-modul="${pa ? "av" : "pa"}">${pa ? "Stäng av schack" : "Slå på schack"}</button>
       <span class="sl-modul-resultat" role="status">${resultatHtml(resultat)}</span>
     </div>
-    <p class="hint">Samma val finns under Synlighet. Inga pluggmynt delas ut för schack.</p>`;
+    <p class="hint">Samma val finns under Vad eleverna ser. Eleverna får pluggmynt första gången de vinner mot varje datornivå, för lektionerna i Lär dig schack och för pusslen – inte för partier mot kompisar.</p>`;
 }
 
 /** Partilistan (pågående); `bekrafta` = partiId vars bekräftelseruta är öppen. */
