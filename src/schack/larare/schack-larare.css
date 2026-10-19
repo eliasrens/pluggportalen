@@ -53,9 +53,11 @@
    Brädets vita ytor (spelarrader, status) behåller elevsidans mörka text. */
 .sl-ask-bradet { justify-self: center; }
 .sl-ask-bradet.schack {
-  /* Lite mindre än elevens bräde, så att rubriken, brädet och Avsluta ryms på en skärm. */
-  --schack-storlek: max(300px, min(100%, 560px, calc(100svh - 320px)));
-  min-width: 300px;
+  /* Lite mindre än elevens bräde, så att rubriken, brädet och Avsluta ryms på en skärm.
+     Aldrig bredare än kortet (F2: 320 px-mobil utan sidscroll) – bara att titta på,
+     så under 300 px går bra. */
+  --schack-storlek: min(100%, max(300px, min(560px, calc(100svh - 320px))));
+  min-width: min(300px, 100%);
   grid-template-columns: var(--schack-storlek); justify-content: center; color: #3b3350;
 }
 .sl-ask-bradet.schack > .schack-spelare[data-plats="topp"] { grid-row: 1; grid-column: 1; }
@@ -79,12 +81,18 @@
 .sl-ask-bradet.schack > .sl-klocka[hidden] { display: none; }
 
 /* --- Tabellerna ------------------------------------------------------------- */
-.sl-tbl td, .sl-tbl th { white-space: nowrap; }
-.sl-tbl td:first-child, .sl-tbl th:first-child { white-space: normal; }
+/* .tbl har min-width 640px (elevkontotabellen) – våra tabeller ska få plats på mobil (F1). */
+.teacher-dark .sl-tbl { min-width: 0; }
+.sl-tbl td { white-space: nowrap; }
+.sl-tbl td:first-child { white-space: normal; overflow-wrap: anywhere; }
+.sl-tbl th { white-space: normal; vertical-align: bottom; }
+.sl-vfr { white-space: nowrap; }
 .sl-stat-tbl tfoot th, .sl-stat-tbl tfoot td { font-weight: 800; }
 .sl-tbl abbr { text-decoration: none; cursor: help; }
 
 @media (max-width: 520px) {
+  .teacher-dark .sl-tbl th, .teacher-dark .sl-tbl td { padding: 6px 4px; font-size: 0.9rem; }
+  .sl-vfr { display: block; font-size: 0.8rem; }
   .sl-parti { padding: 10px; }
   .sl-parti-knappar { width: 100%; }
   .sl-parti-knappar .btn { flex: 1 1 0; justify-content: center; }

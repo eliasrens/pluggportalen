@@ -271,3 +271,25 @@ describe("laddningen (#271)", () => {
     for (const f of filer) assert.doesNotMatch(kod(f), /addCoins|coins|pluggmynt\(/i, f);
   });
 });
+
+describe("rättningsrunda 1 (F1–F4)", () => {
+  const css = las(`${LARARE}/schack-larare.css`);
+  const s = kod(`${LARARE}/schack-larare.js`);
+  it("F1: tabellerna har inte .tbl:s min-width 640 – alla kolumner syns på mobil", () => {
+    assert.match(css, /\.teacher-dark \.sl-tbl \{ min-width: 0; \}/);
+  });
+  it("F2: åskådarbrädet blir aldrig bredare än kortet (320 px utan sidscroll)", () => {
+    assert.match(css, /--schack-storlek: min\(100%, max\(300px,/);
+    assert.match(css, /min-width: min\(300px, 100%\);/);
+  });
+  it("F3: listan och topplistan ritas inte om medan en bekräftelseruta är öppen; fokus följer med omritningen", () => {
+    assert.match(s, /function ritaPartier\(\) \{[\s\S]*?if \(ui\.bekrafta\) return;[\s\S]*?satt\(partierEl,/);
+    assert.match(s, /function ritaTopp\(\{ tvinga = false \} = \{\}\) \{\s*if \(!klass \|\| \(ui\.toppBekrafta && !tvinga\)\) return;/);
+    assert.match(s, /function satt\(el, html, reserv = null\) \{[\s\S]*?igen\.focus\([\s\S]*?reserv\?\.focus\(/);
+  });
+  it("F4: efter Avsluta → Ja får nästa parti (eller rubriken) fokus, aldrig <body>", () => {
+    assert.match(s, /<h3 id="sl-h-partier" class="sl-h" tabindex="-1">/);
+    assert.match(s, /const mal = r\.ok \? nasta && partierEl\.querySelector\(`\[data-titta=/);
+    assert.match(s, /\(mal \|\| rubrikPartier\)\.focus\(/);
+  });
+});

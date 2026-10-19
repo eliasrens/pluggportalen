@@ -107,7 +107,7 @@ export function statistikHtml(rader, { datorHamtad, hamtar = false, fel = "" } =
   return `${knapp}<div class="table-scroll"><table class="tbl sl-tbl sl-stat-tbl">
     <thead><tr><th scope="col">Elev</th><th scope="col">Mot kompisar</th><th scope="col">Mot datorn</th><th scope="col">Totalt</th></tr></thead>
     <tbody>${rader.map((r) => `<tr><td>${esc(r.namn)}</td>
-      <td>${r.kompis}${r.kompis ? ` <span class="hint">(${r.vinster}–${r.forluster}–${r.remier})</span>` : ""}</td>
+      <td>${r.kompis}${r.kompis ? ` <span class="hint sl-vfr">(${r.vinster}–${r.forluster}–${r.remier})</span>` : ""}</td>
       <td>${d(r.dator)}</td><td>${r.dator == null ? d(null) : r.totalt}</td></tr>`).join("")}</tbody>
     <tfoot><tr><th scope="row">Klassen</th><td>${summa.kompis} ${summa.kompis === 1 ? "parti" : "partier"}</td><td>${d(summa.dator)}</td><td></td></tr></tfoot>
   </table></div>

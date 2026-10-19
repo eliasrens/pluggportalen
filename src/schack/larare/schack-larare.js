@@ -42,11 +42,27 @@ export function felText(err) {
   }
 }
 
-/** Sätt innerHTML bara om markupen ändrats (behåller fokus vid ointressanta ändringar). */
-function satt(el, html) {
+/** Knappens nyckel för att hitta den igen efter en omritning: [data-x="v"]. */
+function fokusNyckel(knapp) {
+  const a = [...(knapp?.attributes || [])].find((x) => x.name.startsWith("data-"));
+  return a ? `[${a.name}="${CSS.escape(a.value)}"]` : null;
+}
+
+/**
+ * Sätt innerHTML bara om markupen ändrats. Satt fokus i värden ligger kvar på
+ * samma knapp efter omritningen (F3); finns den inte längre går fokus till
+ * `reserv` (t.ex. blockets rubrik) i stället för till <body>.
+ */
+function satt(el, html, reserv = null) {
   if (el.dataset.html === html) return;
+  const aktiv = document.activeElement;
+  const nyckel = aktiv && aktiv !== el && el.contains(aktiv) ? fokusNyckel(aktiv) : undefined;
   el.dataset.html = html;
   el.innerHTML = html;
+  if (nyckel === undefined) return;
+  const igen = nyckel && el.querySelector(nyckel);
+  if (igen && !igen.disabled) igen.focus({ preventScroll: true });
+  else reserv?.focus({ preventScroll: true });
 }
 
 /**
@@ -65,16 +81,16 @@ export async function renderSchackSektion(ctx, cls, host, { students = [] } = {}
       <h3 id="sl-h-modul" class="sl-h">Schack för klassen</h3><div class="sl-modul-innehall"></div>
     </section>
     <section class="cls-block sl-block sl-partier-block" aria-labelledby="sl-h-partier">
-      <h3 id="sl-h-partier" class="sl-h">Pågående partier <span class="sl-antal"></span></h3>
+      <h3 id="sl-h-partier" class="sl-h" tabindex="-1">Pågående partier <span class="sl-antal"></span></h3>
       <div class="sl-partier-innehall"><div class="spinner">Laddar partierna…</div></div>
     </section>
     <section class="cls-block sl-block sl-topp" aria-labelledby="sl-h-topp">
-      <h3 id="sl-h-topp" class="sl-h">Topplistan</h3>
+      <h3 id="sl-h-topp" class="sl-h" tabindex="-1">Topplistan</h3>
       <p class="hint">Bara partier mot kompisar räknas. Alla börjar på 1000 poäng; ingen kan hamna under 800.</p>
       <div class="sl-topp-innehall"></div>
     </section>
     <section class="cls-block sl-block sl-stat" aria-labelledby="sl-h-stat">
-      <h3 id="sl-h-stat" class="sl-h">Statistik</h3><div class="sl-stat-innehall"></div>
+      <h3 id="sl-h-stat" class="sl-h" tabindex="-1">Statistik</h3><div class="sl-stat-innehall"></div>
     </section>
   </div>`;
   const $ = (s) => host.querySelector(s);
@@ -83,6 +99,9 @@ export async function renderSchackSektion(ctx, cls, host, { students = [] } = {}
   const antalEl = $(".sl-antal");
   const toppEl = $(".sl-topp-innehall");
   const statEl = $(".sl-stat-innehall");
+  const rubrikPartier = $("#sl-h-partier");
+  const rubrikTopp = $("#sl-h-topp");
+  const rubrikStat = $("#sl-h-stat");
 
   // Kvar = värden sitter i DOM:en OCH routen är samma sida (en ny route kan rita
   // sin vy först efter att den läst klart – då stängs lyssnarna redan vid hashchange).
@@ -125,7 +144,6 @@ export async function renderSchackSektion(ctx, cls, host, { students = [] } = {}
   // --- 2–3. Partierna ----------------------------------------------------------
   async function avsluta(id) {
     ui.upptagen = id;
-    ritaPartier();
     try {
       await moln.larare.avsluta(id);
       return { ok: true };
@@ -138,18 +156,32 @@ export async function renderSchackSektion(ctx, cls, host, { students = [] } = {}
     }
   }
 
+  /**
+   * Partilistan. Medan en bekräftelseruta är öppen skjuts omritningen upp
+   * (F3) – rutan och fokus står kvar och ett klick på Ja/Avbryt tappas aldrig;
+   * stängs rutan ritas den senaste listan.
+   */
   function ritaPartier() {
     if (!klass) return;
     const rader = partiRader(klass.partier);
     antalEl.textContent = rader.length ? `(${rader.length})` : "";
     if (ui.askadare) return; // åskådarläget står i blocket
-    if (ui.bekrafta && !rader.some((r) => r.id === ui.bekrafta)) ui.bekrafta = null;
-    satt(partierEl, partiListaHtml(rader, { bekrafta: ui.bekrafta, upptagen: ui.upptagen, fel: ui.fel, vantar: Object.keys(klass.vantar).length }));
+    if (ui.bekrafta) return;
+    satt(partierEl, partiListaHtml(rader, { fel: ui.fel, vantar: Object.keys(klass.vantar).length }), rubrikPartier);
+  }
+  /** Öppna bekräftelserutan för ett parti (ritas direkt, sedan står den still). */
+  function visaBekrafta(id) {
+    ui.bekrafta = id;
+    ui.fel = "";
+    const rader = partiRader(klass?.partier);
+    satt(partierEl, partiListaHtml(rader, { bekrafta: id, vantar: Object.keys(klass?.vantar || {}).length }));
+    partierEl.querySelector(".sl-bekrafta [data-nej]")?.focus();
   }
 
   async function titta(id) {
     const rad = partiRader(klass?.partier).find((r) => r.id === id);
     if (!rad) return;
+    ui.bekrafta = null;
     ui.askadare = { id, stang: null };
     delete partierEl.dataset.html;
     partierEl.innerHTML = "";
@@ -175,13 +207,7 @@ export async function renderSchackSektion(ctx, cls, host, { students = [] } = {}
     const t = e.target.closest("[data-titta]");
     if (t) return titta(t.dataset.titta);
     const a = e.target.closest("[data-avsluta]");
-    if (a) {
-      ui.bekrafta = a.dataset.avsluta;
-      ui.fel = "";
-      ritaPartier();
-      partierEl.querySelector(".sl-bekrafta [data-nej]")?.focus();
-      return;
-    }
+    if (a) return visaBekrafta(a.dataset.avsluta);
     if (e.target.closest(".sl-bekrafta [data-nej]")) {
       const id = ui.bekrafta;
       ui.bekrafta = null;
@@ -191,21 +217,34 @@ export async function renderSchackSektion(ctx, cls, host, { students = [] } = {}
     }
     const ja = e.target.closest(".sl-bekrafta [data-ja]");
     if (ja && !ui.upptagen) {
-      const r = await avsluta(ja.dataset.ja);
+      const id = ja.dataset.ja;
+      // Nästa rad (eller rubriken) får fokus efteråt (F4) – inte det avslutade partiet.
+      const ids = partiRader(klass?.partier).map((r) => r.id).filter((x) => x !== id);
+      const i = partiRader(klass?.partier).findIndex((r) => r.id === id);
+      const nasta = ids[Math.min(Math.max(i, 0), ids.length - 1)];
+      ja.disabled = true;
+      ja.textContent = "Avslutar…";
+      ja.parentElement.querySelector("[data-nej]").disabled = true;
+      rubrikPartier.focus({ preventScroll: true }); // fokus får inte ligga på en knapp som försvinner
+      const r = await avsluta(id);
       ui.fel = r.ok ? "" : r.fel;
       ritaPartier();
+      if (!host.isConnected || ui.askadare) return;
+      const mal = r.ok ? nasta && partierEl.querySelector(`[data-titta="${CSS.escape(nasta)}"]`) : partierEl.querySelector(".sl-fel");
+      (mal || rubrikPartier).focus({ preventScroll: !mal });
     }
   });
 
   // --- 4. Topplistan -------------------------------------------------------------
-  function ritaTopp() {
-    if (!klass) return;
-    satt(toppEl, topplistaHtml(topplista(klass.tabell, namnFor), { dold: klass.dold, bekrafta: ui.toppBekrafta, upptagen: ui.toppUpptagen, resultat: ui.toppRes }));
+  /** Topplistan; som partilistan står den still medan Nollställ-rutan är öppen (F3). */
+  function ritaTopp({ tvinga = false } = {}) {
+    if (!klass || (ui.toppBekrafta && !tvinga)) return;
+    satt(toppEl, topplistaHtml(topplista(klass.tabell, namnFor), { dold: klass.dold, bekrafta: ui.toppBekrafta, upptagen: ui.toppUpptagen, resultat: ui.toppRes }), rubrikTopp);
   }
   async function toppAnrop(opt, klart) {
     ui.toppUpptagen = true;
     ui.toppRes = null;
-    ritaTopp();
+    if (!ui.toppBekrafta) ritaTopp(); // Nollställ-rutans Ja sätts om på plats i stället
     try {
       await moln.larare.topplista(cls.id, opt);
       ui.toppRes = { ok: true, text: klart };
@@ -223,7 +262,7 @@ export async function renderSchackSektion(ctx, cls, host, { students = [] } = {}
     if (e.target.closest("[data-nollstall]")) {
       ui.toppBekrafta = true;
       ui.toppRes = null;
-      ritaTopp();
+      ritaTopp({ tvinga: true });
       toppEl.querySelector(".sl-bekrafta [data-nej]")?.focus();
       return;
     }
@@ -233,14 +272,21 @@ export async function renderSchackSektion(ctx, cls, host, { students = [] } = {}
       toppEl.querySelector("[data-nollstall]")?.focus();
       return;
     }
-    if (e.target.closest(".sl-bekrafta [data-ja]") && !ui.toppUpptagen) toppAnrop({ nollstall: true }, "Topplistan är nollställd.");
+    const ja = e.target.closest(".sl-bekrafta [data-ja]");
+    if (ja && !ui.toppUpptagen) {
+      ja.disabled = true;
+      ja.textContent = "Nollställer…";
+      ja.parentElement.querySelector("[data-nej]").disabled = true;
+      rubrikTopp.focus({ preventScroll: true });
+      toppAnrop({ nollstall: true }, "Topplistan är nollställd.");
+    }
   });
 
   // --- 5. Statistiken ------------------------------------------------------------
   function ritaStat() {
     const dator = datorCache.get(cls.id) || null;
     const rader = statistikRader(studentIds, { tabell: klass?.tabell || {}, dator, namnFor });
-    satt(statEl, statistikHtml(rader, { datorHamtad: !!dator, hamtar: ui.hamtar, fel: ui.datorFel }));
+    satt(statEl, statistikHtml(rader, { datorHamtad: !!dator, hamtar: ui.hamtar, fel: ui.datorFel }), rubrikStat);
   }
   statEl.addEventListener("click", async (e) => {
     if (!e.target.closest("[data-dator]") || ui.hamtar) return;
@@ -256,7 +302,9 @@ export async function renderSchackSektion(ctx, cls, host, { students = [] } = {}
       ui.datorFel = `Kunde inte hämta: ${err.message}`;
     }
     ui.hamtar = false;
-    if (host.isConnected) ritaStat();
+    if (!host.isConnected) return;
+    ritaStat();
+    statEl.querySelector("[data-dator]")?.focus({ preventScroll: true });
   });
 
   // Namn: elevlistan räcker nästan alltid; elever som lämnat klassen men står kvar
