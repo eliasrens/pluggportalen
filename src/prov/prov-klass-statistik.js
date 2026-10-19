@@ -56,8 +56,8 @@ export function utvecklingsLinje(prov, b = 180, hojd = 44) {
 export async function renderClassProv(ctx, pane, { classId, students = [], hamta = hamtaKlassensRattningar, hamtaTillfallen = hamtaKlassensTillfallen }) {
   await laddaCss("prov-statistik.css");
   // Tillfällets gränser (#796) – saknas de (fel/ingen åtkomst) gäller rättningarnas kopia.
-  const [rattningar, tillfallen] = await Promise.all([hamta(classId), Promise.resolve().then(() => hamtaTillfallen(classId)).catch(() => [])]);
-  const lista = medTillfallensGranser(rattningar, tillfallen);
+  const [rattningar, klassTillfallen] = await Promise.all([hamta(classId), Promise.resolve().then(() => hamtaTillfallen(classId)).catch(() => [])]);
+  const lista = medTillfallensGranser(rattningar, klassTillfallen);
   const { tillfallen, perElev } = historik(lista);
   const namn = new Map(students.map((s) => [s.id, s.namn || s.username || s.id]));
   const go = (hash) => (ctx?.go ? ctx.go(hash) : (window.location.hash = hash));
