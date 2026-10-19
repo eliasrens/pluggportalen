@@ -47,6 +47,8 @@ done
 [ -n "$EMU" ] || exit 1
 export FIRESTORE_EMULATOR_HOST=127.0.0.1:$FS_PORT FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:$AUTH_PORT \
   GCLOUD_PROJECT=pluggportalen-so-2026
+# Värm upp emulatorn (första anropet kan ta över en minut på en lastad dator).
+for _ in $(seq 1 60); do curl -s -m 10 -o /dev/null "http://127.0.0.1:$FS_PORT/" && break; sleep 2; done
 node admin/qa-larkonton-seed.mjs
 node admin/qa-larkonton-roller-seed.mjs
 node admin/qa-mina-klasser-seed.mjs
