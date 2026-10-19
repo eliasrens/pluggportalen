@@ -45,7 +45,7 @@ test("toppnaven: Hem, Mina klasser, Material, Prov, Live, Admin (#803), admin-fl
   const src = readFileSync(join(SRC, "teacher-shared.js"), "utf8");
   const groups = [...src.matchAll(/\{ key: "(\w+)", label: "([^"]+)", icon:/g)].map((m) => m[2]);
   assert.deepEqual(groups, ["Hem", "Mina klasser", "Material", "Prov", "Live", "Admin"]);
-  for (const key of ["hittaratt", "mattematchen", "adminklasser", "konton"]) {
+  for (const key of ["hittaratt", "mattematchen", "admin", "konton", "sasong"]) {
     assert.match(src, new RegExp(`tab\\("${key}",[^\\n]*, true\\),`), `${key} är bara för admin`);
   }
   for (const key of ["hem", "klasser", "innehall", "prov", "provtillfallen", "live", "statistik"]) {
@@ -58,7 +58,9 @@ test("klasslägen: årskurs-sektionerna saknar elevkonton/ekonomi, bara Admin f�
   const mode = (k) => src.match(new RegExp(`${k}: \\{[^\\n]*\\}`))[0];
   // #804: Klasser + Statistik = Mina klasser (schack är statistikens underflik).
   assert.match(mode("mina"), /sections: \["statistik", "omraden", "synlighet", "lagen", "fokus", "inloggning"\], manage: false/);
-  assert.match(mode("admin"), /sections: \["elever", "klasscenter"\], manage: true/);
+  // #805: elevkonton och Klasscentret = Mina klasser → Elever, bara admin; ingen sida hanterar klasser här.
+  assert.match(mode("minaAdmin"), /sections: \["elever", "klasscenter"\], manage: false, admin: true/);
+  assert.doesNotMatch(src, /manage: true/);
 });
 
 test("bootgrafen: rollfilerna och Översikt laddas bara dynamiskt", () => {

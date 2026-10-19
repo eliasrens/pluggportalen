@@ -38,10 +38,10 @@ function nar(tabKey, admin) {
   return meny(admin).some((g) => g.key === t.group && g.tabs.includes(t));
 }
 const rollAv = (admin) => (admin ? "admin" : "alla");
-/** Minsta roll som når en klass-sektion: via något sidläge vars flik rollen når. */
+/** Minsta roll som når en klass-sektion: via något sidläge vars flik rollen når (admin-lägen bara admin, #805). */
 function sektionsRoll(key) {
   const lagen = Object.values(sections.CLASS_PAGE_MODES).filter((m) => m.sections.includes(key));
-  if (lagen.some((m) => nar(m.tab, false))) return "alla";
+  if (lagen.some((m) => !m.admin && nar(m.tab, false))) return "alla";
   if (lagen.some((m) => nar(m.tab, true))) return "admin";
   return null;
 }

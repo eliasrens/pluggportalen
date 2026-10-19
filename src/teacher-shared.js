@@ -2,23 +2,21 @@
 // Pluggporten – lärarsidan: delat (teacher-shared.js)
 // ----------------------------------------------------------------------------
 // Delade byggstenar för lärarsidans undersidor:
-//   * Lärarinloggning via Firebase Auth (custom claim teacher:true). Ersätter
-//     det gamla hårdkodade lösenordet. Logiken bor i src/auth.js.
+//   * Lärarinloggning via Firebase Auth (claim teacher:true, src/auth.js).
 //   * Små DOM-/text-hjälpare (el, esc, copyText, wireHashLinks).
 //   * Flik-registryn (TEACHER_TABS), toppmenyn med profilmeny (teacherNav, #803)
 //     och kartan över gamla adresser (TEACHER_REDIRECTS, DEL 7 i epic #802).
 //   * Diskret sidtitel (teacherHead) och vänliga tomtillstånd (emptyState).
 //   * renderGate: lärarspärren, laddas lat ur teacher-gate.js.
 //
-// Sidorna anropas från app.js router med ett `ctx` som innehåller de delade
-// hjälparna { app, go, renderTopbar }.
+// Sidorna anropas från app.js router med ctx = { app, go, renderTopbar }.
 // ============================================================================
 
 import { isAdmin, isTeacher, signOutCurrent } from "./auth.js";
 
 // --- Lärarläge --------------------------------------------------------------
-// isTeacher() läser custom claim (teacher:true) ur den inloggade Auth-användaren
-// – re-exporteras här eftersom lärarsidans moduler importerar den härifrån.
+// isTeacher()/isAdmin() läser claims ur Auth-användaren – re-exporteras här
+// eftersom lärarsidans moduler importerar dem härifrån.
 export { isAdmin, isTeacher };
 
 // --- Små hjälpare -----------------------------------------------------------
@@ -225,7 +223,7 @@ export const TEACHER_TABS = [
   // Mina klasser (#804): klassväljare + Hur går det? | Vad eleverna ser | Fokusläge | Elever.
   tab("klasser", "#/larare/mina-klasser", "klasser", "Mina klasser", "Mina klasser", "users", () => import("./teacher-classes.js"), "pageLarareMinaKlasser"),
   tab("innehall", "#/larare/innehall", "material", "Plugga-material", "Material", "book", () => import("./teacher-content.js"), "pageLarareInnehall"),
-  // Bråkresan (#716): testläget – alla 50 utmaningar med facit, inget sparas. Statistiken finns under Statistik.
+  // Bråkresan (#716): testläget – alla 50 utmaningar med facit, inget sparas.
   tab("brakresan", "#/larare/brakresan", "material", "Bråkresan", "Bråkresan – testläge", "brak", () => import("./brakresan/larare/testlage.js"), "pageLarareBrakresan"),
   tab("hittaratt", "#/larare/hitta-ratt", "material", "Hitta rätt!", "Hitta rätt!", "pin", () => import("./hitta-ratt/larare/page-larare-hitta-ratt.js"), "pageLarareHittaRatt", true),
   // Prov (epic #737): Mina prov (#739, skapa/redigera) + Provtillfällen (#740, öppna/stäng/översikt). Lat.
@@ -233,9 +231,10 @@ export const TEACHER_TABS = [
   tab("provtillfallen", "#/larare/prov/tillfallen", "prov", "Provtillfällen", "Provtillfällen", "inbox", () => import("./prov/prov-tillfallen-sida.js"), "pageProvTillfallen"),
   // Live (#460): realtidsmatch klass mot klass. ?id=<sid> = projektorvyn.
   tab("live", "#/larare/live", "live", "Live", "Live", "bolt", () => import("./live/teacher-live.js"), "pageLarareLive"),
-  // Mattematchen (#459): skapa/styr tävlingsperioder – bara admin (§2.2). Statistiken finns under Statistik.
+  // Mattematchen (#459): skapa/styr tävlingsperioder – bara admin (§2.2).
   tab("mattematchen", "#/larare/mattematchen", "live", "Mattematchen", "Mattematchen", "trophy", () => import("./tavling/teacher-mattematchen.js"), "pageLarareMattematchen", true),
-  tab("adminklasser", "#/larare/admin/klasser", "admin", "Klasser & elevkonton", "Klasser & elevkonton", "school", () => import("./teacher-classes.js"), "pageLarareAdminKlasser", true),
+  // Admin (#805): sida med kort – skapa/döp om/ta bort klass + genvägar till verktygen.
+  tab("admin", "#/larare/admin", "admin", "Översikt", "Admin", "key", () => import("./teacher-admin.js"), "pageLarareAdmin", true),
   tab("konton", "#/larare/konton", "admin", "Lärarkonton", "Lärarkonton", "key", () => import("./teacher-accounts.js"), "pageLarareKonton", true),
   // Säsong (#690): config/season – Sommar/Höst + Halloween på/av och slutdatum.
   tab("sasong", "#/larare/admin/sasong", "admin", "Säsong", "Säsong och Halloween", "sparkle", () => import("./teacher-season.js"), "pageLarareSasong", true),
@@ -246,15 +245,16 @@ export const TEACHER_TABS = [
 /**
  * Gamla lärar-adresser (DEL 7) → ny plats. EN karta: sub-issues B–D byter bara
  * målen här när den nya platsen finns. Mål = samma route betyder "dagens sida
- * är fortfarande platsen". Kedjor följs (klass → statistik → …), och adressens
- * egna parametrar (?prov=, ?klass= …) följer med till målet.
+ * är fortfarande platsen"; ett mål kan bero på adressens parametrar (q => mål).
+ * Kedjor följs, och adressens egna parametrar (?prov=, ?klass= …) följer med.
  */
 export const TEACHER_REDIRECTS = {
   "/larare": "#/larare/hem",
   "/larare/oversikt": "#/larare/hem", // Hem
   "/larare/klasser": "#/larare/mina-klasser?flik=ser", // Mina klasser → Vad eleverna ser (#804)
   "/larare/statistik": "#/larare/mina-klasser?flik=hur", // Mina klasser → Hur går det? (#804)
-  "/larare/admin/klasser": "#/larare/admin/klasser", // C: Admin / Mina klasser → Elever
+  // #805: Admin, och för en vald klass (?klass=) Mina klasser → Elever.
+  "/larare/admin/klasser": (q) => (q.get("klass") ? "#/larare/mina-klasser?flik=elever" : "#/larare/admin"),
   "/larare/innehall": "#/larare/innehall", // D: Material → Plugga-områden
   "/larare/brakresan": "#/larare/brakresan", // D: Material → Bråkresan
   "/larare/hitta-ratt": "#/larare/hitta-ratt", // D: Material → Hitta rätt!
@@ -267,7 +267,8 @@ export const TEACHER_REDIRECTS = {
 export function teacherRedirect(path, query = "") {
   let to = null;
   for (let p = path, i = 0; i < 8 && TEACHER_REDIRECTS[p]; i++) {
-    const next = TEACHER_REDIRECTS[p];
+    let next = TEACHER_REDIRECTS[p];
+    if (typeof next === "function") next = next(new URLSearchParams(query));
     if (next.split("?")[0].slice(1) === p) break;
     to = next;
     p = next.split("?")[0].slice(1);

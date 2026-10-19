@@ -93,6 +93,13 @@ export async function loadLibraryFrom(data) {
 }
 
 /**
+ * Överlämning mellan sidor (#805): Admin → Skapa klass lämnar nyss skapade
+ * lösenord (X-08) och "✓ Klassen skapades" till nästa Mina klasser-sida, som
+ * tar dem EN gång när dess store skapas. classId → värde.
+ */
+export const OVERLAMNING = { creds: new Map(), flashes: new Map() };
+
+/**
  * Skapa sid-storen.
  * @param {{classes:Array, students:Array, loadLibrary:Function}} o
  *   classes/students muteras in-place (delade referenser), loadLibrary → Promise.
@@ -100,6 +107,10 @@ export async function loadLibraryFrom(data) {
 export function createClassStore({ classes, students, loadLibrary }) {
   const subs = new Set();
   let libraryPromise = null;
+  const creds = new Map(OVERLAMNING.creds);
+  const flashes = new Map(OVERLAMNING.flashes);
+  OVERLAMNING.creds.clear();
+  OVERLAMNING.flashes.clear();
 
   const store = {
     classes,
@@ -110,9 +121,9 @@ export function createClassStore({ classes, students, loadLibrary }) {
     // true = detaljytan visar "Skapa en ny klass" (lead-beslut D-4).
     creating: false,
     // classId → senast skapade konton med klartextlösen (X-08), tills läraren stänger.
-    creds: new Map(),
+    creds,
     // classId → engångsmeddelande (HTML) överst i detaljytan, t.ex. "✓ Klassen skapades".
-    flashes: new Map(),
+    flashes,
 
     sorted: () => sortClasses(classes),
     get: (id) => classes.find((c) => c.id === id) || null,
