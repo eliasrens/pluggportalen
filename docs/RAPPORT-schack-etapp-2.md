@@ -33,7 +33,7 @@ schackkoden**. Ett gammalt fel på main (F1) och några iakttagelser står i avs
 | Firestore-regler (`test:rules`-listan mot emulatorn) | **725 / 725** |
 | Cloud Functions (`test:functions`-listan mot functions + auth + firestore) | **348 pass, 0 fail, 2 todo**. De två todo är det accepterade F9 från #779: den som raderar sitt eget `studentData` tappar spärren "ett parti åt gången", och `avslutaParti` nollar spärren villkorslöst. |
 | Bootgrafen (`admin/qa-bootgraf-bfs.mjs HEAD`) | **107 filer**, inget under `src/schack/` |
-| Webbläsar-QA Etapp 2 (`admin/qa-schack-2/qa.mjs`, 11 steg) | **236 OK, 0 FEL** (avsnitt 3–5) |
+| Webbläsar-QA Etapp 2 (`admin/qa-schack-2/qa.mjs`, 13 steg) | **263 OK, 0 FEL** (avsnitt 3–5), varav `helskarm` även i ett synligt fönster (Xvfb) med riktig Esc |
 | Etapp 1 i webbläsaren (`admin/qa-schack-app.mjs`, eleven `4a04`) | nivaer **192/192**, bradet **50/50**, hjalp **36/36**, layout **31/31**, kvot **2/2** (se F4) |
 
 Alla sviter kördes på 782aafd, en emulator åt gången (`flock /tmp/schack-773-emulator.lock`, slumpade
@@ -45,7 +45,8 @@ portar). Emulatorn är nedstängd efteråt.
 bash admin/qa-schack-2/rigg.sh <p-Alva> <p-Bilal> <p-lärare> <p-Cleo> <p-Ebba> <p-extra>
 source /tmp/qa-schack-2/env
 node admin/qa-schack-2/qa.mjs <steg> <samma portar> [bildmapp]
-   steg: partier lobby larare sakerhet kvot kvotlobby latens helskarm layout extra gammalt
+   steg: partier lobby larare sakerhet kvot kvotlobby latens helskarm layout extra gammalt lyssnare klocka
+QA_HEADFUL=1 xvfb-run -a node admin/qa-schack-2/qa.mjs helskarm <portar>   # synligt fönster, riktig Esc
 node admin/qa-schack-2/kvot-server.mjs          # serverns läsningar/skrivningar (avsnitt 5)
 ```
 
@@ -131,7 +132,7 @@ väljaren visas, Springare skickas som `bxa8=N` och motståndaren ser en vit spr
 | --- | --- |
 | Knappen finns mot kompis (verktygsraden ovanför brädet) och mot datorn | ✅ |
 | I helskärm fyller brädet skärmen, och spelarraderna med klockorna samt knapparna ryms på skärmen utan sidledsskroll: mobil stående 390×844 → bräde 370 px (95 % av kortsidan), mobil liggande 844×390 → 254 px (65 %, panelen bredvid), surfplatta 820×1180 → 800 px (98 %), Chromebook 1366×768 → 522 px (kompis) / 568 px (dator), liten Chromebook 1280×650 → 404/450 px | ✅ (bild 14–17) |
-| Knappen går ut ur helskärm. Webbläsarens utgång (Esc) tar bort helskärmsklassen och knappen säger "Helskärm" igen. | ✅ (Esc, se F3) |
+| Knappen går ut ur helskärm. **Esc** (en riktig tangent: synligt Chromium under Xvfb, Esc via XTest – `QA_HEADFUL=1 xvfb-run … qa.mjs helskarm`) lämnar helskärmen mot kompis och mot datorn. Helskärmsklassen tas bort och knappen säger "Helskärm" igen. | ✅ (Esc via CDP når inte webbläsaren, därför X) |
 | Slutrutan syns i helskärm. "Till lobbyn" och byte till en annan sida lämnar helskärm. | ✅ (bild 18) |
 | Utan Fullscreen API (t.ex. Safari på iPhone): ingen knapp mot datorn eller kompis, verktygsraden dold | ✅ |
 | **Live:** Datakuppens elevvy (`preview-datakuppen-elev.html`): ⛶ går in, knappen byter till "Lämna helskärm", och knappen går ut. Live-elevskärmens ⛶ (`createScreenChrome`) går in och ut. | ✅ som förut |
@@ -150,11 +151,39 @@ Etapp 1-skripten är gröna (avsnitt 2). Datorpartier räknas nu: en skrivning p
 Övrigt som provades utöver listan, med resultat:
 
 - En elevdator som går 3 min före visar ändå rätt: väntan är inte utgången, ingen falsk
-  4-/5-min-text och klockorna står på 10:00 (`serverNow`).
+  4-/5-min-text och klockorna står på 10:00 (`serverNow`). Se även 4.9.
 - Samma elev i två flikar: båda går till partiet, och ett drag i den ena syns i den andra.
 - Logga ut i väntan → väntan borta hos kompisen.
 - Latens mot emulatorn: tryck–tryck 117 ms, servern har draget 34 ms efter släppet, motståndarens
   bräde 63 ms efter (median av 10). Ett nekat anrop tar 25 ms.
+
+### 4.9 Klockan på riktigt och klientklockor som går fel – `klocka` 14/14
+
+Ingen fejkad emulatordata, utom i sista raden:
+
+| Kontroll | Resultat |
+| --- | --- |
+| Alvas dator går **3 min efter**, Bilals **4 min före**. Båda visar 5:00/4:58 vid start (`serverNow` ur HTTP Date). | ✅ |
+| 5-minutersparti: vit drar, svart låter tiden gå ut (5 min riktig väntan). 8 s före visas tiondelar ("0:09,0"). **"Kräv vinsten" dyker upp av sig själv efter 300 s**, bara av den lokala nedräkningen. Partidokumentet skrivs inte under väntan. | ✅ (bild 24, 25) |
+| Svart visar 0:00 och "Din tid är slut." högst ~1 s efter att vit fått knappen (skattningen ur HTTP Date har sekundupplösning). Kräv → "Du vann! Alvas tid tog slut." / "Din tid tog slut – Bilal vann.", servern `1-0 tid`, svart 0 ms. | ✅ |
+| Ett drag efter att den egna tiden gått ut görs inte. Partiet slutar på tid (`gjort: false`). | ✅ |
+| En dator som går **4 s före** korrigeras inte (`syncServerClock` ignorerar under 5 s). "Kräv vinsten" visas 3,9 s för tidigt. Servern nekar med "Motståndarens tid är inte slut.", partiet pågår, och samma knapp vinner när tiden verkligen är slut. | ✅ fungerar, se F6 |
+
+### 4.10 Antal onSnapshot mot Firestore – `lyssnare` 13/13
+
+Mätt på tråden: Firestore-SDK:t skickar `addTarget`/`removeTarget` i Listen-kanalens POST-kroppar, och
+skriptet följer dem per sida med CDP-nätverkshändelser. Räknat är aktiva mål på `schack*`:
+
+| Läge | Aktiva lyssnare |
+| --- | --- |
+| Elev utanför schack | 0 |
+| Startsidan, lobbyn (samma lyssnare återanvänds vid vybyte) | 1: `schackKlass/4a` |
+| I ett kompisparti (lobbylyssnaren stängd efter 2 s) | 1: `schackPartier/<id>` – hos båda spelarna |
+| Slutrutan (utmaningsrutan lyssnar igen) | 2: partiet + klassdokumentet |
+| Till lobbyn | 1: klassdokumentet |
+| Eleven lämnar schacksidan | 0 |
+| Lärarens sektion / åskådarläget / ← Alla partier / lämnar sektionen | 1 / 2 / 1 / 0 |
+| 10 vybyten startsida ↔ lobby | fortfarande 1 (inga nya `addTarget`) |
 
 ## 5. Kvot (§9) – uppmätt
 
@@ -194,9 +223,21 @@ klassdokumentet under 80 halvdrag).
 | --- | --- | --- | --- |
 | **F1** | 🟡 låg, **finns på main** | `src/pages-varld.js:76` gör `new URL(e.oldURL)` i en `hashchange`-lyssnare. Lärarinloggningen (`src/teacher-shared.js:384`) skickar en egen `new HashChangeEvent("hashchange")` utan `oldURL` när den redan står på målet → `TypeError: Failed to construct 'URL': Invalid URL` i konsolen. Steg: öppna `#/larare/klasser?klass=4a&sektion=schack` utloggad, logga in. Förväntat: ingen konsolfel. Faktiskt: TypeError (ofarligt – andra lyssnare körs ändå, sidan fungerar). | Inte rättad (utanför schack). Förslag: `new URL(e.oldURL \|\| location.href)` eller `oldURL` i den syntetiska händelsen. |
 | F2 | ⚪ kosmetisk | Lärarens åskådarbräde är 237 px på en 320 px-skärm (två panellager med padding), 276 px på 360 px. Elevens bräde är 320 px. | Inte rättad – läraren tittar sällan på 320 px |
-| F3 | ⚪ test-begränsning | Esc går inte att trycka via CDP i headless (webbläsaren hanterar Esc, inte sidan). Webbläsarens utgång (`exitFullscreen` utan knapptryck) är verifierad: klassen tas bort och knappen synkas. | Verifiera Esc en gång för hand på en riktig Chromebook/iPad |
+| F3 | ⚪ test-begränsning | Esc via CDP når aldrig webbläsarens helskärmsutgång, varken headless eller i ett synligt fönster. | **Löst** i riggen: riktig Esc via XTest under Xvfb. Esc fungerar (4.6). |
+| F6 | ⚪ låg | `syncServerClock` (`src/data-class-lock.js`) ignorerar avvikelser under 5 s. Två elevers klockor kan därför skilja upp till ~5 s, och "Kräv vinsten" kan visas några sekunder för tidigt hos den vars dator går före. Servern nekar med en tydlig text, och samma knapp vinner när tiden är slut (4.9), så inget blir fel. Det kan bara se lite ryckigt ut. | Inte rättad (delad kod med fokusläget). Förslag om det stör: gräns 1 s, eller visa knappen först när den egna visningen varit 0:00 i ~1 s. |
 | F4 | ⚪ QA-skript | Etapp 1-skriptets `kvot`-steg (`admin/qa-schack/steg-kvot.mjs`) väntade 0 skrivningar. Sedan 2C skrivs räknaren `datorPartier` (+1) när ett datorparti tar slut. | **Rättat** i skriptet: väntar nu exakt 1 skrivning (`studentData/*`) för ett avslutat + ett påbörjat parti |
 | F5 | ⚪ QA-miljö | Etapp 1:s `hjalp` gav 22/23 när det körde samtidigt som ett annat QA-steg (brädet hann inte ritas på 20 s efter `injicera`). Ensamt: 36/36. | Ingen åtgärd (lastberoende tidsgräns i skriptet) |
+
+### Kända beslut (inga nya fel, med för fullständighetens skull)
+
+- **F9 från #779:** en elev som raderar sitt eget `studentData` kringgår spärren "ett parti åt
+  gången", men förlorar samtidigt all sin data. Det är dokumenterat i SCHACK.md §12.1. De två `todo`
+  i functions-sviten gäller det, plus att `avslutaParti` nollar spärren villkorslöst.
+- **F2 från #780:** en stängd flik lämnar väntan kvar i högst 10 min (SCHACK.md §14.2). Utloggning
+  tar bort den (verifierat, 4.8).
+- **24 h-städningen** sker när klassdokumentet skrivs, inte i en schemalagd funktion (avsnitt 7).
+- **Lärarvyn** tar elevnamnen ur lärarsidans elevlista (0 läsningar). Datorpartierna läses med en
+  `getDoc` per elev, och bara när läraren trycker "Hämta partier mot datorn" (SCHACK.md §13.3).
 
 ## 7. 24 h-städningen – valet
 
@@ -237,8 +278,8 @@ gammal klient använder dem.
 1. **Poängen växer i snitt:** vid lika poäng får vinnaren +20 och förloraren −13 (spec: vinst
    +10…+30, förlust −5…−20). Klassens summa ökar alltså med ~7 per avgjort parti, och alla
    klättrar över tid. Snällt och avsiktligt, eller ska förlusten spegla vinsten?
-2. **Esc i helskärm (F3):** testa gärna en gång på en riktig Chromebook och en iPad. På iPhone
-   finns inget Fullscreen API, och då visas ingen knapp.
+2. **Helskärm på iPad:** Esc och knappen är verifierade i Chromium. Testa gärna en gång på en
+   riktig iPad (Safari). På iPhone finns inget Fullscreen API, och då visas ingen knapp.
 3. **F1** (konsolfel vid lärarinloggning, finns på main): egen liten issue?
 4. **Lärarens åskådarläge på mobil (F2):** brädet är 237 px på 320 px. Räcker det?
 5. **24 h-valet:** ett övergivet parti syns i "Pågående partier" tills någon i klassen gör något i
@@ -257,4 +298,5 @@ headless-Chromium och ser ut som rutor – det gäller bara testmiljön):
 12 lärarens åskådarläge live · 13 åskådarläget vid matt · 14 helskärm Chromebook ·
 15 helskärm mobil stående · 16 helskärm mobil liggande · 17 helskärm mot datorn, surfplatta ·
 18 slutrutan i helskärm · 19 partiet 320 px · 20 Kräv vinsten 320 px · 21 åskådarläget 320 px ·
-22 förvandling mot kompis · 23 utmaning mitt i ett parti mot datorn.
+22 förvandling mot kompis · 23 utmaning mitt i ett parti mot datorn · 24 tiondelar sista 10 s
+(riktig klocka) · 25 Kräv vinsten efter riktiga 5 min.
