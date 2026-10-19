@@ -17,7 +17,11 @@
 //                    lyssnarna stängs, inget per sekund
 //         layout   – 320/360 px, surfplatta, Chromebook: lobby, parti, slutruta, lärarvy
 //         helskarm – 2E: knappen mot kompis och datorn, fyller skärmen, ut med knappen/Esc,
-//                    mobil/surfplatta/Chromebook, dold utan Fullscreen API
+//                    mobil/surfplatta/Chromebook, dold utan Fullscreen API (riktig Esc:
+//                    QA_HEADFUL=1 xvfb-run -a node admin/qa-schack-2/qa.mjs helskarm …)
+//         lyssnare – antal onSnapshot (addTarget/removeTarget på tråden) i varje läge
+//         klocka   – riktig 5-min-utgång + Kräv vinsten, elevdatorer som går fel
+//         (även kvotlobby, latens, extra, gammalt – se steg-*.mjs)
 // Allt som testas är DOM:en eleven ser + riktiga callables; facit läses med Admin-SDK.
 // ============================================================================
 import { startaChromium } from "../qa-schack/cdp.mjs";
