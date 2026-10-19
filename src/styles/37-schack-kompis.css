@@ -130,6 +130,10 @@
 .schack-klocka.lite { color: #a32222; }
 .schack-klocka.aktiv.lite { background: #c43c3c; color: #fff; }
 
+/* Verktygsraden ovanför brädet: kroken för t.ex. helskärmsknappen (#783). Tom = dold. */
+.schack-parti-verktyg { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; max-width: 640px; margin: 0 auto 8px; }
+.schack-parti-verktyg:empty { display: none; }
+.schack-parti-verktyg .btn { margin: 0; }
 .schack-kompis-lage:empty { display: none; }
 .schack-kompis-lage { max-width: 640px; margin: 0 auto 10px; }
 .schack-kompis-krav,

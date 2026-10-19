@@ -170,6 +170,12 @@ describe("källkoden: kompisläget (§7.2, §9, #271)", () => {
     assert.doesNotMatch(sida, /^import [^;]*schack-moln/m);
     for (const f of KOMPIS) assert.doesNotMatch(kod(`src/schack/${f}`), /firebase|firestore|setDoc|updateDoc|confirm\(|awardCoins|coins\b/i, f);
   });
+  it("kroken för helskärmsknappen (#783): verktygsraden och hela vyn finns i vyns API", () => {
+    const vy = kod("src/schack/schack-kompis-vy.js");
+    assert.match(vy, /<div class="schack-parti-verktyg" data-krok="verktyg"><\/div>/);
+    assert.match(vy, /element: host,/);
+    assert.match(vy, /verktyg: host\.querySelector\("\.schack-parti-verktyg"\)/);
+  });
   it("datorpartiet räknas EN gång (raknad) via datorPartiKlart", () => {
     const vy = kod("src/schack/schack-dator-vy.js");
     assert.match(vy, /const nyttSlut = !parti\.raknad;\s*parti\.raknad = true;/);

@@ -13,6 +13,8 @@
 //
 //   const vy = skapaKompisVy(host, { kompis, partiId, fortsatt, avatarHtml, onSlut, tillLobby, spelaIgen });
 //   vy.destroy();   // stänger partiets lyssnare och klockan
+//   vy.verktyg      // .schack-parti-verktyg: tom verktygsrad ovanför brädet – kroken för
+//                   // t.ex. helskärmsknappen (#783); vy.element = hela partivyn (det som visas i helskärm)
 // ============================================================================
 
 import { skapaSchackbrade } from "./schack-bradet.js";
@@ -76,7 +78,8 @@ export function skapaKompisVy(host, o) {
 
   host.classList.add("schack-parti", "schack-kompis");
   host.innerHTML =
-    `<div class="schack-parti-brade"><div class="schack-kompis-lage" aria-live="polite"></div><div class="schack-kompis-yta"></div></div>` +
+    `<div class="schack-parti-brade"><div class="schack-parti-verktyg" data-krok="verktyg"></div>` +
+    `<div class="schack-kompis-lage" aria-live="polite"></div><div class="schack-kompis-yta"></div></div>` +
     `<aside class="schack-panel" aria-label="Partiet mot en kompis">${panelHtml()}</aside>`;
   const $ = (s) => host.querySelector(s);
   const lageEl = $(".schack-kompis-lage");
@@ -299,6 +302,10 @@ export function skapaKompisVy(host, o) {
 
   return {
     get brade() { return brade; },
+    /** Hela partivyn (brädet + panelen) – t.ex. det element som visas i helskärm. */
+    element: host,
+    /** Verktygsraden ovanför brädet (tom; döljs med CSS när den är tom) – montera knappar här. */
+    verktyg: host.querySelector(".schack-parti-verktyg"),
     get parti() { return parti; },
     /** Lyssnar vyn på partiet just nu? (tester) */
     lyssnar: () => Boolean(stoppParti),

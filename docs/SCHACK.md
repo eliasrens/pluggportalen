@@ -647,6 +647,12 @@ import(schack-lobby-vy.js | schack-kompis-vy.js | schack-kompis.js)`, `schack-mo
   orsaken: överenskommen, upprepning, 50 drag, material, patt) / "Din tid tog slut – Sara vann." /
   "Partiet avbröts" – med **Spela igen** (`schackUtmana` till samma kompis med samma klocka, sedan
   lobbyn) och **Till lobbyn**.
+- **Krok för helskärm m.m. (#783):** partivyn har en tom verktygsrad ovanför brädet,
+  `.schack-parti-verktyg` (`data-krok="verktyg"`, dold med CSS när den är tom, knappar högerställda).
+  `skapaKompisVy` returnerar den som `vy.verktyg` och hela partivyn (brädet + panelen) som
+  `vy.element`. Flödet ger vyn via `flode.aktiv()` (ett löfte tills modulen laddats). En knapp
+  monteras alltså med `(await flode.aktiv()).verktyg.append(knapp)` och helskärmar `vy.element`;
+  vyn tömmer `host` i `destroy()`, så knappen försvinner med vyn.
 - **Datorpartier räknas:** när ett parti mot datorn tar slut anropas `datorPartiKlart()` (EN
   skrivning, `studentData.schack.datorPartier + 1`). Partiet får `raknad: true` i `localStorage`,
   så en omladdning eller Ångra + nytt slut räknas inte igen.
