@@ -40,6 +40,15 @@
 // Bara inloggade elever – lärarkonton nekas (testläget körs i klienten och
 // skriver aldrig). Logiken: brakresan-core.js + brakresan-avslut.js.
 //
+// Schack (#779, epic Schack Etapp 2) – elev mot elev; servern avgör tur,
+// laglighet (chess.js i functions/schack/), klockan med serverns tid och
+// partiets slut (spec docs/UTVECKLINGSUPPDRAG_SCHACK.md §6–§8, docs/SCHACK.md §12):
+//   schackVanta / schackSlutaVanta / schackGaMed / schackUtmana / schackSvara  (lobbyn)
+//   schackDrag / schackGeUpp / schackRemi / schackKravaVinst                  (partiet)
+//   schackLarareAvsluta / schackLarareTopplista   (läraren med klassen – 2C)
+// Varje elevanrop kräver klassmedlem + modulen schack påslagen + inget fokuslås.
+// Logiken: schack-lobby.js, schack-parti.js, schack-larare.js (+ schack-state.js).
+//
 // ⚠️ DEPLOY KRÄVS: firebase deploy --only functions (Blaze-planen). Klienten
 // (src/data-student-login.js, src/live/formats/guldrush/guldrush-data.js) visar
 // ett tydligt fel tills funktionerna finns.
@@ -68,6 +77,12 @@ import {
   abortRound as brAbort, ackDragon as brAckDragon, renameDragon as brRenameDragon,
 } from "./brakresan-core.js";
 import { hunt as brHunt } from "./brakresan-jakt.js";
+import { SchackFel } from "./schack-state.js";
+import {
+  vanta as scVanta, slutaVanta as scSlutaVanta, gaMed as scGaMed, utmana as scUtmana, svara as scSvara,
+} from "./schack-lobby.js";
+import { drag as scDrag, geUpp as scGeUpp, remi as scRemi, kravaVinst as scKravaVinst } from "./schack-parti.js";
+import { larareAvsluta as scLarareAvsluta, larareTopplista as scLarareTopplista } from "./schack-larare.js";
 
 initializeApp();
 
@@ -238,3 +253,49 @@ export const brakresaAckDragon = brakresaCall("brakresaAckDragon", brAckDragon);
 export const brakresaRenameDragon = brakresaCall("brakresaRenameDragon", brRenameDragon); // #713
 // Servertid avgör dagen (Europe/Stockholm) – klienten skickar inga fält (#715).
 export const brakresaHunt = brakresaCall("brakresaHunt", (deps, uid) => brHunt(deps, uid));
+
+// --- Schack (#779) ---------------------------------------------------------------
+// Ett anrop per drag/lobbyhandling. Lärarkonton nekas i elevanropen redan av
+// klassgrinden (en lärare står inte i studentIds); lärarens egna anrop går
+// genom assertLarare (hasClass). Slumpen (färgen) ur node:crypto.
+const SC_OPTS = { region: "europe-west1", memory: "256MiB", cpu: 1, concurrency: 40, maxInstances: 3 };
+const scDeps = () => ({ db: getFirestore(), FieldValue, now: Date.now });
+
+function schackCall(name, core) {
+  return onCall(SC_OPTS, async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) throw new HttpsError("unauthenticated", "Logga in först.");
+    try {
+      return await core(scDeps(), uid, request.data || {});
+    } catch (err) {
+      if (err instanceof SchackFel) throw new HttpsError(err.code, err.message);
+      logger.error(`${name} oväntat fel`, err);
+      throw new HttpsError("internal", "Något gick fel på servern – försök igen.");
+    }
+  });
+}
+
+function schackLarareCall(name, core) {
+  return onCall(SC_OPTS, async (request) => {
+    if (!request.auth?.uid) throw new HttpsError("unauthenticated", "Logga in först.");
+    try {
+      return await core(scDeps(), request.auth, request.data || {});
+    } catch (err) {
+      if (err instanceof SchackFel) throw new HttpsError(err.code, err.message);
+      logger.error(`${name} oväntat fel`, err);
+      throw new HttpsError("internal", "Något gick fel på servern – inget ändrades.");
+    }
+  });
+}
+
+export const schackVanta = schackCall("schackVanta", scVanta);
+export const schackSlutaVanta = schackCall("schackSlutaVanta", scSlutaVanta);
+export const schackGaMed = schackCall("schackGaMed", scGaMed);
+export const schackUtmana = schackCall("schackUtmana", scUtmana);
+export const schackSvara = schackCall("schackSvara", scSvara);
+export const schackDrag = schackCall("schackDrag", scDrag);
+export const schackGeUpp = schackCall("schackGeUpp", scGeUpp);
+export const schackRemi = schackCall("schackRemi", scRemi);
+export const schackKravaVinst = schackCall("schackKravaVinst", scKravaVinst);
+export const schackLarareAvsluta = schackLarareCall("schackLarareAvsluta", scLarareAvsluta);
+export const schackLarareTopplista = schackLarareCall("schackLarareTopplista", scLarareTopplista);

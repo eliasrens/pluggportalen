@@ -206,8 +206,8 @@ service cloud.firestore {
     match /studentData/{studentId} {
       allow read:  if isSelf(studentId) || hasStudent(studentId) ||
         (signedIn() && !isTeacher() && resource.data.get('husLast', false) != true);
-      allow create: if (isSelf(studentId) && kopAvatarOk() && brakdrakeOk()) || isAdmin();
-      allow update: if (isSelf(studentId) && kopAvatarOk() && brakdrakeOk()) || isAdmin() ||
+      allow create: if (isSelf(studentId) && kopAvatarOk() && brakdrakeOk() && schackOk()) || isAdmin();
+      allow update: if (isSelf(studentId) && kopAvatarOk() && brakdrakeOk() && schackOk()) || isAdmin() ||
         (gradeStudent(studentId) && gradeStudentDataOk(studentId));
       allow delete: if isSelf(studentId) || isAdmin();
 
@@ -312,6 +312,25 @@ service cloud.firestore {
       return !('brakdrake' in o) ? !('brakdrake' in n) :
         ('brakdrake' in n && n.brakdrake is map &&
           n.brakdrake.diff(o.brakdrake).affectedKeys().hasOnly(['pos', 'room', 'stowed']));
+    }
+
+    // Schack (#779, docs/SCHACK.md §12.5): studentData.schack är elevens egen
+    // schackdata. datorPartier = räknaren över avslutade partier mot datorn
+    // (läraren ser den i 2C): eleven skriver den med EN skrivning när ett
+    // datorparti tar slut – ett heltal som aldrig minskar och ökar med högst 1
+    // per skrivning. aktivtParti = serverns spärr "ett parti åt gången" (sätts/
+    // tas bort av Cloud Functions) – klienten får aldrig ändra den. Inga andra
+    // nycklar (Etapp 3 lägger till lektioner/pussel här). Saknas fältet i båda =
+    // OK. Lärare (årskurskonto) skriver det aldrig.
+    function schackOk() {
+      let n = request.resource.data;
+      let o = resource == null ? {} : resource.data;
+      let os = ('schack' in o && o.schack is map) ? o.schack : {};
+      return !('schack' in n) ? !('schack' in o) :
+        (n.schack is map && n.schack.keys().hasOnly(['datorPartier', 'aktivtParti']) &&
+          n.schack.get('aktivtParti', null) == os.get('aktivtParti', null) &&
+          n.schack.get('datorPartier', 0) is int && n.schack.get('datorPartier', 0) >= os.get('datorPartier', 0) &&
+          n.schack.get('datorPartier', 0) <= os.get('datorPartier', 0) + 1);
     }
 
     // Årskurskontots skrivning i studentData (#678, §2.1) – bara ETT av:
@@ -2352,6 +2371,30 @@ service cloud.firestore {
       allow update: if brRecTeacher(resource.data) && brRecShapeOk(request.resource.data) &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['active', 'endedAt', 'comment', 'challengeIds']);
       allow delete: if brRecTeacher(resource.data);
+    }
+
+    // Schack – elev mot elev (#779, spec §6, docs/SCHACK.md §12). Eleverna
+    // skriver ALDRIG direkt: allt går genom callables (schackVanta, schackDrag …,
+    // Admin SDK förbi reglerna). schackKlass/{classId} = EN doc per klass (lobbyn,
+    // pågående partier, topplistan) som klassens elever och läraren med klassen
+    // läser live. schackPartier/{id} läses av de två spelarna och läraren med
+    // klassen – INTE av andra elever i klassen (lärarens åskådarläge i 2C går via
+    // hasClass; en fråga måste filtrera på classId == klassen). Ett SAKNAT parti
+    // får varje inloggad hämta (tomt svar): så ger lyssnaParti cb(null) för ett
+    // gammalt id i stället för ett fel. Id:n är slumpade (20 tecken) och
+    // dokumentet avslöjar inget när det inte finns.
+    // ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` (+ functions).
+    match /schackKlass/{classId} {
+      allow read: if isClassMember(classId) || hasClass(classId);
+      allow write: if false;
+    }
+    match /schackPartier/{partiId} {
+      allow read: if signedIn() && (
+        resource == null ||
+        request.auth.uid == resource.data.get('vit', '') ||
+        request.auth.uid == resource.data.get('svart', '') ||
+        hasClass(resource.data.get('classId', '')));
+      allow write: if false;
     }
 
     // Allt annat nekas.

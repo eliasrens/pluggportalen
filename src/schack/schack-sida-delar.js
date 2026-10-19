@@ -1,6 +1,7 @@
 // ============================================================================
 // Elevens schacksida – markup (#776, §4): startsidan med de fyra stora korten
-// (bara "Spela mot datorn" är öppet i Etapp 1), rutan för ett pågående parti
+// ("Spela mot datorn"; "Spela mot en kompis" när eleven har en klass med schack,
+// #780), rutan för ett pågående parti
 // och nivå-/färgväljaren. Rena funktioner; schack-flode.js kopplar knapparna.
 // ============================================================================
 
@@ -16,9 +17,14 @@ const KORT = [
   { act: "pussel", farg: "orange", ikon: pjasSvg("b", "n"), titel: "Pussel", text: "Kommer snart", snart: true },
 ];
 
-/** Startsidan. `pagaende` = ett pågående (ej avslutat) parti mot datorn, annars null. */
-export function startHtml(pagaende) {
-  const kort = KORT.map((k) =>
+const KOMPIS_OPPEN = { ...KORT[1], text: "Utmana någon i klassen eller vänta på en motståndare", snart: false };
+
+/**
+ * Startsidan. `pagaende` = ett pågående (ej avslutat) parti mot datorn, annars null.
+ * `opt.kompis` = kompisläget finns (eleven har en klass med schack påslaget).
+ */
+export function startHtml(pagaende, opt = {}) {
+  const kort = KORT.map((k) => (k.act === "kompis" && opt.kompis ? KOMPIS_OPPEN : k)).map((k) =>
     `<button type="button" class="big-card schack-kort ${k.farg}${k.snart ? " snart" : ""}" data-act="${k.act}"${k.snart ? ' aria-disabled="true"' : ""}>` +
     `<span class="schack-kort-ikon" aria-hidden="true">${k.ikon}</span>` +
     `<span class="title">${esc(k.titel)}</span><span class="sub">${esc(k.text)}</span></button>`).join("");

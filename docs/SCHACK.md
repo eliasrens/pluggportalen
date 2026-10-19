@@ -9,7 +9,13 @@ dokumentet beskriver det som är byggt. Etapp 1 byggs i tre delar:
 | B | #776 | motorn, nivåerna, hjälpen mot datorn och elevens schacksida (§3–§4) – **klar** |
 | C | #777 | slut-QA och rapport (§5) – **klar**, se [`RAPPORT-schack-etapp-1.md`](RAPPORT-schack-etapp-1.md) |
 
-Avsnitten om callables, datamodellen och kvotbudgeten fylls i av Etapp 2.
+Etapp 2 (elev mot elev, epic #773):
+
+| Del | Issue | Innehåll |
+| --- | --- | --- |
+| 2A | #779 | datamodellen, reglerna, alla callables, delad logik och klient-API:t (§6–§8) – **klar**, avsnitt 12 |
+| 2B | #780 | lobbyn, partiet, klockan och topplistan i elevens UI (§7–§8) – avsnitt 14 |
+| 2C | #781 | lärarens sektion med åskådarläget (§10) – **klar**, avsnitt 13 |
 
 ---
 
@@ -38,10 +44,17 @@ src/schack/
   schack-sida-delar.js       markup: startsidans kort, pågående parti, nivå-/färgväljaren
   schack-flode.js            elevflödet start → nivåval → parti → slutruta (utan ui.js/data.js)
   page-schack.js             routen #/elev/schack (kopplar flödet till ui/data/avatar)
-src/styles/35-schack.css     brädets CSS, 36-schack-sida.css sidans (byggs in i styles.css med npm run build:css)
+  schack-moln.js             klient-API:t mot callables och de två lyssnarna (2A, avsnitt 12.4)
+  schack-kompis.js           EN delad lyssnare på klassdokumentet (2B, avsnitt 14)
+  schack-lobby-vy.js         lobbyn "Spela mot en kompis" + rutan för inkommande utmaningar
+  schack-kompis-vy.js        partiet mot en kompis: brädet, klockorna, remi, ge upp, §7.3
+  schack-kompis-data.js      ren logik: klockvisning, lobbyfilter, topplistan, §7.3, slutrutan
+  schack-kompis-delar.js     markup för lobbyn och utmaningsrutan
+src/styles/35-schack.css     brädets CSS, 36-schack-sida.css sidans, 37-schack-kompis.css kompisläget (byggs in i styles.css med npm run build:css)
 preview/preview-schack.html         brädet och pjäserna (A; preview/schack/)
 preview/preview-schack-dator.html   hela elevflödet mot datorn utan Firebase (B)
 preview/preview-schack-matning.html mätning av ms per drag och nivå (B, preview/schack/matning.js)
+preview/preview-schack-kompis.html  kompisläget i två flikar utan Firebase (2B, preview/schack-kompis/)
 admin/qa-schack-matning.mjs         samma mätning i node
 ```
 
@@ -138,6 +151,7 @@ const brade = skapaSchackbrade(element, {
 | `setSpelare({ egenFarg?, motstandare?, namn?, avatar? })` | byt spelare/namn/avatar. |
 | `avsluta({ resultat, orsak, vinnare, titel?, text? })` | avsluta utifrån (gav upp, tid, avbrutet) – `titel` blir statusrad och slutrutans rubrik. |
 | `setSlutKnappar([{ text, onClick }])` | knapparna i slutrutan. |
+| `setSpelarExtra({ w?, b? })` | extra markup längst till höger i spelarraden per färg (klockan i kompisläget, 2B) – skrivs direkt, brädet ritas inte om. Även som `opt.spelarExtra`. |
 | `getState()`, `getFen()`, `getHistory(verbose?)`, `lagligaDrag(ruta)` | läs tillståndet. |
 | `subscribe(fn)` | `fn(state, händelse)` efter varje ändring; returnerar avregistrering. |
 | `tryck(ruta)`, `slapp(från, till)`, `valjForvandling(typ)` | samma anrop som mus/touch/tangentbord gör (för tester och automatisering). |
@@ -371,3 +385,420 @@ Inga GPL-bibliotek (Stockfish, chessground) och inga pjäsbilder med oklar licen
 testet letar efter dem i `src/schack/`. **Uppgradera chess.js:** byt hela
 `vendor/chess.js` mot paketets `dist/esm/chess.js`, behåll huvudkommentaren med den
 nya versionen, ta bort `//# sourceMappingURL`-raden och byt `LICENSE` om den ändrats.
+
+## 12. Elev mot elev – servern (Etapp 2A, #779)
+
+Spec §6–§9. **Allt skrivs av Cloud Functions** (`functions/schack-*.js`, Admin SDK förbi
+reglerna); eleverna skriver aldrig direkt i `schackKlass` eller `schackPartier`
+(reglerna nekar alla klientskrivningar, även admin). Klienten anropar callables och
+lyssnar med två `onSnapshot`. Servern avgör tur, laglighet (samma chess.js), FEN,
+draglistan, klockan med **serverns tid** och partiets slut – ingen kan fuska in ett
+drag eller ändra klockan.
+
+### 12.1 Datamodell (§6)
+
+Alla tider är **epoch-ms från serverns klocka** (inga Timestamp-objekt – klienten
+jämför direkt mot `serverNow()`).
+
+```
+schackKlass/{classId}                  EN doc per klass: lobbyn + pågående + tabellen
+  vantar:     { [uid]: { namn, klocka: null|5|10|15, sedan } }
+  utmaningar: { [utmaningId]: { fran, franNamn, till, klocka, sedan } }
+  partier:    { [partiId]: { vit, svart, vitNamn, svartNamn, klocka, start } }   bara pågående
+  tabell:     { [uid]: { poang, vinster, forluster, remier, partier } }
+  dold:       false                                                              läraren döljer topplistan
+
+schackPartier/{partiId}
+  classId, vit, svart, vitNamn, svartNamn
+  fen, drag: ["e4", "e5", …] (SAN), tur: "w"|"b"
+  status: "pagar"|"slut"
+  resultat: null | "1-0"|"0-1"|"½-½"
+  orsak:    null | "matt"|"patt"|"remi"|"gav-upp"|"tid"|"lamnade"|"avbrutet"
+  klocka:   null | { minuter, vitMs, svartMs, senastDragAt }    tiden kvar efter senaste draget
+  remiErbjudenAv: null | uid
+  senastDragAt                     ms – även utan klocka (5-minutersregeln, 24 h-städningen)
+  skapad, uppdaterad               ms
+```
+
+- Dokumentet `schackKlass/{classId}` skapas av första anropet (saknat = tomt).
+- `klocka` i partiet: `vitMs`/`svartMs` är tiden **kvar efter senaste draget**; den på
+  tur har dessutom förbrukat `nu − senastDragAt`. Klockan startar när partiet skapas
+  (vit räknar från start). Vid slutet fryses den (den på tur har 0 vid "tid").
+- `resultat` är `null` vid `orsak: "avbrutet"` (läraren eller 24 h) – tabellen rörs inte.
+- Ett remierbjudande ändrar `uppdaterad` men inte `senastDragAt`; ett drag tar bort
+  erbjudandet.
+- **Ett parti åt gången per elev – även över klasser:** `studentData/{uid}.schack.aktivtParti`
+  (partiId) sätts av servern när partiet skapas och tas bort (`null`) när det slutar, i
+  samma transaktion. Lobbyn läser den för båda spelarna innan ett parti skapas; pekar
+  den på ett parti som inte längre pågår räknas den som fri. Klienten kan aldrig ändra
+  den (`schackOk`).
+- **Känd lucka (F9, accepterad):** eleven får radera sitt eget `studentData`-dokument
+  (`allow delete: isSelf`) och tar då bort spärren – men också alla mynt, framsteg, hus
+  och djur. Priset är så högt att spärren inte flyttas; inom klassen håller
+  `partier`-mappen ändå "ett parti åt gången".
+- Alla uppslag med en nyckel som en klient skickat in (`motstandare`, `utmaningId`, uid:n)
+  görs bara på egna nycklar (`Object.hasOwn`), och id:n på formen `__x__` nekas – ingen
+  "constructor"-motståndare kan ge ett fantomparti.
+
+**Regler** (`firestore.rules`, test `test/firestore-rules-schack.test.js`): `schackKlass`
+läses av `isClassMember(classId) || hasClass(classId)`; `schackPartier` av de två
+spelarna och `hasClass(classId)` (lärarens fråga filtrerar på `classId`) – och ett
+**saknat** parti får varje inloggad hämta (tomt svar, så `lyssnaParti` ger `null` för ett
+gammalt id i stället för ett fel); ingen klient skriver. ⚠️ Kräver `firebase deploy --only firestore:rules`.
+
+### 12.2 Callables (`functions/index.js`, region europe-west1)
+
+Felkoder är Firebase `HttpsError`-koder; klienten får dem som `SchackMolnFel.code`
+(utan prefixet `functions/`). **Grinden** i varje elevanrop (`hamtaKlassForElev`):
+anroparen står i `classes/{classId}.studentIds` (annars `permission-denied` – gäller
+även lärare), `schack` finns i `enabledModules` och inte i `hiddenModules` (annars
+`failed-precondition`), inget aktivt fokuslås (`lock.till` i framtiden, oavsett mål –
+schack är inte låsbart; annars `failed-precondition`). Utloggad → `unauthenticated`,
+trasiga id:n → `invalid-argument`.
+
+| Callable | In | Ut | Fel utöver grinden |
+| --- | --- | --- | --- |
+| `schackVanta` | `{ classId, klocka: null\|5\|10\|15 }` | `{ klocka }` | `invalid-argument` fel klocka; `failed-precondition` du spelar redan. Tar bort egen gammal väntan och egna utmaningar. |
+| `schackSlutaVanta` | `{ classId? }` | `{ borttagen }` | utan `classId`: alla elevens klasser (klasser utan schack/med fokus hoppas över) |
+| `schackGaMed` | `{ classId, motstandare }` | `{ partiId, farg: "w"\|"b" }` | `failed-precondition` kompisen väntar inte / någon av er spelar redan; `invalid-argument` sig själv |
+| `schackUtmana` | `{ classId, till, klocka }` | `{ utmaningId }` | `invalid-argument` sig själv, utanför klassen, fel klocka; `failed-precondition` någon av er spelar. Ersätter egen tidigare utmaning. |
+| `schackSvara` | `{ utmaningId, ja, classId? }` | `{ partiId, farg }` eller `{ partiId: null, farg: null }` | `not-found` utmaningen finns inte/har gått ut/inte till dig; `failed-precondition` någon spelar redan |
+| `schackDrag` | `{ partiId, from, to, promotion? }` | `{ gjort: true, san, fen, tur, drag, klocka, slut }` – eller `{ gjort: false, slut }` när din tid redan var slut | `not-found`; `permission-denied` inte din match; `failed-precondition` inte din tur / partiet slut / avbrutet (24 h); `invalid-argument` olagligt drag |
+| `schackGeUpp` | `{ partiId }` | `{ slut }` | när som helst under partiet |
+| `schackRemi` | `{ partiId, handling: "erbjud"\|"acceptera"\|"neka" }` | `{ remiErbjudenAv, slut }` | `failed-precondition` acceptera/neka utan motståndarens erbjudande. Erbjud när motståndaren redan erbjudit = remi. Är den på turs tid slut (klocka, servertid) avgörs partiet på tid i stället, oavsett handling. |
+| `schackKravaVinst` | `{ partiId }` | `{ slut }` | `failed-precondition` det är din tur / tiden inte slut (klocka) / < 5 min utan drag (utan klocka) |
+| `schackLarareAvsluta` | `{ partiId }` | `{ slut: { resultat: null, orsak: "avbrutet" } }` | lärare med klassen (`hasClass`): admin eller årskurskonto med klassen, annars `permission-denied`; `failed-precondition` redan slut |
+| `schackLarareTopplista` | `{ classId, dold?: bool, nollstall?: bool }` | `{ dold, nollstalld }` | som ovan; `invalid-argument` utan något av fälten; `not-found` om klassen inte finns |
+
+`slut` är `null` eller `{ resultat, orsak }`. **Partiets slut sker i EN transaktion**
+(`avslutaParti` i `schack-parti.js`): partidokumentet får status/resultat/orsak, posten
+försvinner ur `schackKlass.partier`, `tabell` får båda spelarnas nya rader – utom
+vid `avbrutet` – och båda spelarnas `studentData.schack.aktivtParti` nollas. Färgen slumpas med `node:crypto`. Namnen tas ur
+`classProjections/{classId}.members[uid].namn` (en läsning), reserv `students/{uid}.namn`.
+
+**Lobbyregler (§7.1).** Ett parti åt gången per elev: varje lobbyanrop är en
+transaktion på klassdokumentet (och läser `aktivtParti` för båda spelarna), så två
+samtidiga `schackGaMed`/`schackSvara` kan aldrig ge två partier (det andra nekas), inte
+heller i två olika klasser. Ett anrop som inte ändrar något (t.ex. `schackSlutaVanta`
+utan väntan) skriver inte klassdokumentet. Utmaningar lever 2 min och väntan 10 min
+via tidsstämpeln `sedan`: servern filtrerar bort utgångna poster i varje skrivning av
+klassdokumentet (`rensaLobby`), klienten vid varje visning – inga skrivningar per
+sekund och ingen närvaro-ping.
+
+**Klockan (§7.2).** `klockaEfterDrag` drar `nu − senastDragAt` från den som drog. Ett
+drag när ens egen tid redan är slut görs inte: partiet slutar `"tid"` för motståndaren
+(`gjort: false`). Motståndaren kan också kräva vinst med `schackKravaVinst`. Klientens
+fält (`fen`, `tur`, `klocka`, tid) ignoreras helt.
+
+### 12.3 Delad kod – `admin/sync-schack-functions.mjs`
+
+`src/schack/schack-server-delat.js` (klockan, 5 min/24 h, lobbyfiltret, poängformeln,
+fokuslås-tolkningen – inga importer) och `schack-server-parti.js` (chess.js: `provaDrag`,
+`bedomSlut`, `byggParti`) + `vendor/chess.js` och `LICENSE` kopieras till
+`functions/schack/` med `npm run sync:schack` (predeploy i `firebase.json`;
+`--check` och `test/schack-delat.test.js` fäller en glidande kopia). Servern spelar upp
+hela draglistan för varje drag, så trefaldig upprepning räknas rätt (~1 ms).
+
+**Poängformeln (§8)** – `poangDelta(egen, motståndare, utfall)` med Elos förväntade
+utfall E = 1/(1+10^((Rb−Ra)/400)): vinst `+10 + 20·(1−E)` (+10 mot en mycket svagare …
++30 mot en mycket starkare), förlust `−(5 + 15·E)` (−5 mot en starkare … −20 mot en
+svagare), remi `10·(0,5−E)` (±5). Start 1000, **golv 800** (`nyPoang`). Lika motstånd:
+vinst +20, förlust −13, remi 0. Båda raderna räknas ur samma gamla poäng (`uppdateraTabell`).
+
+### 12.4 Klient-API – `src/schack/schack-moln.js` (lat, bara `import()`)
+
+```js
+const moln = await import("./schack/schack-moln.js");
+moln.lobby.vanta(classId, klocka) / slutaVanta(classId?) / gaMed(classId, motstandare)
+moln.lobby.utmana(classId, till, klocka) / svara(utmaningId, ja, classId?)
+moln.parti.drag(partiId, { from, to, promotion? }) / geUpp(partiId) / remi(partiId, handling) / kravaVinst(partiId)
+moln.larare.avsluta(partiId) / topplista(classId, { dold?, nollstall? })
+const stopp = moln.lyssnaKlass(classId, (klass) => …, onError)   // klass = { vantar, utmaningar, partier, tabell, dold, finns }
+const stopp2 = moln.lyssnaParti(partiId, (parti) => …, onError)  // parti = { id, …dokumentet } | null
+moln.klockaVisning(parti)      // { vitMs, svartMs, slut } ur senastDragAt + serverNow() – räkna om lokalt varje sekund
+moln.serverNow() / syncServerClock()   // samma klockkorrigering som fokusläget
+moln.datorPartiKlart()         // studentData.schack.datorPartier + 1 (EN skrivning, fel sväljs)
+```
+
+- Alla anrop returnerar callable-svaret och kastar `SchackMolnFel(code, message)`.
+- `lyssnaKlass` ger klassdokumentet med utgångna lobbyposter bortfiltrerade mot
+  `serverNow()` (`rensaLobby`); lyssnarna är **en** `onSnapshot` var – stäng dem (anropa
+  avregistreringen) när eleven lämnar schacksidan (§9).
+- Allt ur `schack-server-delat.js` re-exporteras (`LAMNAT_MS`, `LAMNAT_VARNING_MS`,
+  `topplista(tabell, namnFor)`, `partiFor` …) för 2B/2C.
+- Brädet: använd `beforeMove` → `moln.parti.drag(...)` (pjäsen står halvgenomskinlig tills
+  servern svarat; nekas draget hoppar den tillbaka), och spela motståndarens drag med
+  `brade.move(sistaSAN)` ur `parti.drag` från lyssnaren.
+
+### 12.5 `studentData.schack` (§10)
+
+`{ datorPartier: int, aktivtParti: partiId|null }`. `datorPartier` = antal avslutade
+partier mot datorn: klienten (2B, vid datorpartiets slut) ökar räknaren med
+`datorPartiKlart()` (fältväg `schack.datorPartier` + `increment(1)`, så spärren bredvid
+behålls). `aktivtParti` = serverns spärr "ett parti åt gången" (12.1). Regeln `schackOk`
+tillåter bara nycklarna `datorPartier` (heltal, aldrig nedåt, högst +1 per skrivning) och
+`aktivtParti` (måste vara oförändrad); lärare (årskurskonto) skriver fältet aldrig, admin
+får. Kompispartier räknas i `schackKlass.tabell[uid].partier`. Etapp 3 lägger `lektioner`
+och `pussel` här (regeln utökas då).
+
+### 12.6 Gamla partier – valet (§7.3)
+
+**Städning när klassdokumentet skrivs**, ingen schemalagd funktion. Varje lobbyanrop
+(`lobbyTx` → `stadaGamla`) tittar på posterna i `partier` vars `start` ligger > 24 h
+tillbaka (gratis – ingen läsning), läser bara dem och avbryter partiet om
+`senastDragAt` är > 24 h (status `slut`, orsak `avbrutet`, ingen tabell). Dessutom
+avbryter **varje partianrop** (`drag`, `geUpp`, `remi`, `kravaVinst`) ett sådant parti
+i stället för att utföra handlingen (svar `failed-precondition`). Skäl: ingen Cloud
+Scheduler/extra deploy, inga läsningar när ingen spelar, och ett gammalt parti stör
+bara den klass det tillhör – där försvinner det så fort någon öppnar lobbyn.
+Konsekvens: ett gammalt parti kan stå kvar i `partier` tills nästa lobbyanrop i
+klassen (bara information i listan "Pågående partier").
+
+### 12.7 Kvotbudget (§9)
+
+Per halvdrag: callable **2 läsningar** (partiet + `classes/{classId}` för grinden) och
+**1 skrivning** (partiet); de två spelarnas lyssnare **2 läsningar**. Klassdokumentet
+läses och skrivs **inte** per drag – bara när partiet tar slut (transaktionen läser det
+först då, före första skrivningen).
+
+| | Skrivningar | Läsningar |
+| --- | --- | --- |
+| Start (lobbyanrop: classes + projektion + klassdoc + 2 × studentData/aktivtParti; parti + klassdoc + 2 × studentData skrivs) | 4 | 5 + lobbylyssnarna |
+| 40 drag per spelare = 80 halvdrag med klocka | 80 | 160 (lyssnare) + 160 (servern) |
+| Slut (klassdoc läses och skrivs; 2 × studentData nollas, i samma transaktion) | +3 | +1 + lobbylyssnarna |
+| **Ett parti** | **≈ 87** | **≈ 165 i klienten + ≈ 166 på servern** |
+
+Räknat utan lobbylyssnare: ett parti ≈ 87 skrivningar och ≈ 330 läsningar (varav de 160
+hos spelarna är de "≈ 160" spec §9 räknar med). Det som avgör fakturan är lyssnarna: en
+lobby med 25 öppna sidor lägger 25 läsningar på varje klassdoc-skrivning (start och slut).
+
+Lärarens åskådarläge (2C) lägger 1 läsning per halvdrag (avsnitt 13.3). **Lobbyn:** med 25 elever på
+schacksidan kostar varje skrivning av klassdokumentet 25 läsningar; dokumentet skrivs
+bara av elevhandlingar (vänta/sluta vänta/gå med/utmana/svara) och partislut – aldrig
+per sekund, ingen närvaro-ping. En lektion med 12 partier ≈ 50 klassdoc-skrivningar ≈
+1 250 lobbyläsningar. Lyssnarna stängs när eleven lämnar schacksidan (2B anropar
+avregistreringarna i `stangSchack`).
+
+### 12.8 Tester och deploy
+
+```
+node --test test/schack-delat.test.js                       # poäng, klocka, lobby, chess.js, synk, bootgraf 107
+npm run test:rules      → test/firestore-rules-schack.test.js
+npm run test:functions  → test/functions-schack-core.test.mjs (lobby, lärare, 24 h)
+                          test/functions-schack-parti.test.mjs (drag, klocka, §7.3, tabell, golv 800)
+                          test/functions-schack.test.mjs (callables e2e: auth, roller, helt parti)
+```
+
+Deploy-ordning: **1.** `firebase deploy --only firestore:rules` (läsregler + `schackOk`),
+**2.** `firebase deploy --only functions` (predeploy kör `sync:schack`), **3.** webben
+(2B/2C). Inga index behövs (ingen fråga i elevflödet; lärarens `where("classId", "==")` är
+en enkelfältsfråga).
+
+## 13. Lärarens sektion "Schack" (Etapp 2C, #781)
+
+Spec §10. En egen sektion **Schack** i klassens sidor (`CLASS_SECTIONS` i
+`src/teacher-classes-sections.js`, sidläget Klasser: Områden, Lägen, Synlighet, Fokusläge,
+**Schack**, Inloggning). Raden laddar allt med `import()`; inget under `src/schack/` ligger i
+lärarsidans eller appens statiska graf (bootgrafen står på 107).
+
+```
+src/schack/larare/
+  schack-larare.js           sektionen: modulen, partilistan, topplistan, statistiken, lyssnaren
+  schack-larare-askadare.js  åskådarläget: Etapp 1-brädet utan inmatning + klockorna, EN lyssnare
+  schack-larare-delar.js     rent: modulvalet, statistiken, partilistan, dragsynken, slutet, vakten
+  schack-larare-markup.js    rent: markupen (bekräftelserutan, listan, topplistan, tabellen)
+  schack-larare-data.js      datorpartierna (studentData) och projektionsnamnen – lat
+  schack-larare.css          laddas som <link> av sektionen (inte i styles.css)
+src/teacher-schack-ikon.js   bondeikonen (fliken och Synlighet)
+preview/preview-schack-larare.html  hela lärarsidan mot minnes-Firestore med partier som spelas live
+```
+
+### 13.1 Vad läraren ser och gör
+
+1. **Schack för klassen** – på/av. Samma skrivning som Synlighet
+   (`data.setClassHiddenModules(classId, hidden, enabled)`): på = `schack` i `enabledModules` och
+   inte i `hiddenModules`; av = bort ur `enabledModules`. Andra moduler rörs inte. Är schack av
+   medan partier pågår visas en påminnelse (servern nekar dragen – grinden i 12.2).
+2. **Pågående partier** – ur `schackKlass/{classId}.partier`, äldst först: namnen (vit/svart),
+   klocktypen och starttiden, plus hur många som väntar i lobbyn. **Titta** öppnar åskådarläget
+   i samma ruta, **Avsluta** öppnar en bekräftelseruta på sidan (aldrig `confirm()`).
+3. **Åskådarläget** – samma bräde som Etapp 1 (`skapaSchackbrade`) med `ASKADAR_OPT`
+   (`interaktiv: false`, ingen `beforeMove`, `egenFarg: null`, vit nederst). Dragen kommer bara
+   ur lyssnaren: nya drag spelas med `brade.move(san)` (det sista glider), allt annat laddas om med
+   `loadGame` (`synkaDrag`). Klockorna står i spelarradernas högra kant och räknas lokalt varje
+   halvsekund ur `moln.klockaVisning` (servertid, ingen skrivning). Raden ovanför säger vem som
+   drar, ett remierbjudande och antal drag. När partiet slutar (även avbrutet, gav upp, tid,
+   lämnade) visar brädet slutrutan via `avsluta(slutInfo(parti))`; matt/patt/regelremi ser
+   brädet själv. **Avsluta partiet** finns även här, med samma bekräftelse.
+4. **Avsluta** → `moln.larare.avsluta(partiId)` (`schackLarareAvsluta`): `avbrutet`, inget
+   resultat, tabellen orörd. "Redan slut" (`failed-precondition`) visas som en rad i listan.
+5. **Topplistan** – `topplista(tabell, namnFor)` i samma ordning som elevernas; **Dölj för
+   eleverna**/**Visa för eleverna** (`dold`) och **Nollställ topplistan** (bekräftelse) via
+   `moln.larare.topplista`. Nollställningen tömmer `tabell` – även räknaren "mot kompisar".
+6. **Statistik per elev** – mot kompisar = `tabell[uid].partier` (med V–F–R), mot datorn =
+   `studentData/{uid}.schack.datorPartier`, totalt och klassens summa (ett kompisparti räknas en
+   gång). Datorpartierna läses **bara när läraren trycker** "Hämta partier mot datorn".
+
+Namnen kommer ur lärarsidans redan laddade elevlista (0 läsningar). Bara elever som står i
+tabellen men inte finns i listan (har lämnat klassen) slås upp i `classProjections/{classId}`
+(`getClassProjection`, 1 läsning, en gång per öppning).
+
+### 13.2 Lyssnarna och när de stängs
+
+- **EN** `onSnapshot` på `schackKlass/{classId}` (`moln.lyssnaKlass`) medan sektionen är öppen –
+  listan, topplistan och kompisstatistiken ritas ur den.
+- **EN** `onSnapshot` på `schackPartier/{partiId}` (`moln.lyssnaParti`) i åskådarläget.
+  **Alla partier** (tillbaka) stänger den och brädet; att titta på ett annat parti öppnar en ny.
+- **Vakten** (`skapaVakt` i `schack-larare-delar.js`) samlar avstängningarna och kör dem när
+  sektionens värd lämnat DOM:en (annan flik, annan klass) eller routen bytts (kollas vid
+  `hashchange` och en gång i sekunden). Lärarsidans detaljyta har ingen "unmount"-krok, så
+  det är samma mönster som Fokusläget och pokalerna (`isConnected`-vakt).
+- Förhandsvisningen visar öppna lyssnare (`window.__ppStub.lyssnare()` och i panelen).
+
+### 13.3 Kvot
+
+| Handling | Läsningar | Skrivningar |
+| --- | --- | --- |
+| Öppna sektionen | 1 (klassdokumentet) + ev. 1 (projektionen) | 0 |
+| Varje ändring i klassdokumentet (lobby, start, slut) medan sektionen är öppen | 1 | 0 |
+| Åskådarläget: öppna + varje halvdrag | 1 + 1 per halvdrag | 0 |
+| Hämta partier mot datorn | 1 per elev (≈ 25), bara på knapptryck | 0 |
+| Slå på/av schack | 0 | 1 (`classes/{classId}`) |
+| Avsluta / dölj / nollställ (callable) | på servern (12.2) | på servern (12.2) |
+
+Ingen fråga (`where`) och inget index: listan står i klassdokumentet.
+
+### 13.4 Förhandsvisning och tester
+
+- `preview/preview-schack-larare.html` – hela appen (lärare inloggad) med Firebase-SDK:t
+  import-mappat till #440:s minnes-Firestore med **levande** `onSnapshot`
+  (`preview/schack-larare/fb-firestore.js`) och lärarens två callables (`fb-functions.js`).
+  Klass 5E har schack på, två pågående partier (Alva–Bo med 10 min, Cleo–Dino utan klocka), en
+  elev i lobbyn, en topplista (Saga har lämnat klassen – namnet ur projektionen) och
+  datorpartier. `sim.js` spelar drag med serverns regel- och klocklogik (Alva–Bo var 3:e s), så
+  åskådarläget ändras live; panelen nere till vänster pausar, startar ett nytt parti och låter
+  Bo ge upp. Startar på `#/larare/klasser?klass=5e&sektion=schack`.
+- `node --test test/schack-larare.test.js` – modulvalet, statistiken (tabell + datorräknaren,
+  summan), namnen, partilistan, klockan, dragsynken, slutet, vakten (fejkade timers), att
+  åskådarbrädets kontroll med `ASKADAR_OPT` nekar tryck/dra/släpp, källkodstester för att
+  åskådarläget aldrig kopplar in inmatning och att båda lyssnarna stängs, markupen (inget
+  `confirm()`), och att allt laddas med `import()`.
+- Ingen ändring i regler eller functions – deploy: bara webben (efter 2A:s regler och functions).
+
+## 14. Elev mot elev – lobbyn, partiet, klockan och topplistan (Etapp 2B, #780)
+
+Spec §7–§9. Allt ligger i `src/schack/` och laddas lat (`page-schack.js → import(schack-flode.js) →
+import(schack-lobby-vy.js | schack-kompis-vy.js | schack-kompis.js)`, `schack-moln.js` bara med
+`import()` från sidan). Bootgrafen är kvar på **107** (`test/schack-delat.test.js`).
+
+### 14.1 Vyerna
+
+| Hash | Vy |
+| --- | --- |
+| `#/elev/schack` | startsidan – kortet **Spela mot en kompis** är öppet när eleven har en klass med schack påslaget |
+| `#/elev/schack?vy=kompis` | lobbyn (`schack-lobby-vy.js`) |
+| `#/elev/schack?vy=kompis&parti=X` | partiet mot en kompis (`schack-kompis-vy.js`); en omladdning stannar i partiet |
+
+- **Klassen:** den första av elevens klasser (lärarens ordning, `getClasses()` – cachad, routern
+  har redan läst den) som har `schack` i `enabledModules` och inte i `hiddenModules`.
+- **Lobbyn:** "Ditt parti" (klockval ingen/5/10/15 + **Vänta på en motståndare**, eller "Du väntar …
+  · 10 min" + **Sluta vänta**, och en egen utmaning med **Ta tillbaka** = `schackSlutaVanta`, som
+  tar bort egen väntan och egna utmaningar), väntar-korten ("Alva väntar · 10 min" + **Spela!** =
+  `schackGaMed`), **Utmana en kompis** (klasslistan, klockan = det valda klockvalet; avstängt för den
+  som spelar), **Pågående partier i klassen** ("Elias – Sara", bara info) och **Topplistan** (§8,
+  döljs helt när `dold: true`). Utgångna poster (väntan 10 min, utmaning 2 min räknat från `sedan`
+  mot `serverNow()`) filtreras bort vid varje ritning, och vyn ritar om när nästa post går ut –
+  utan skrivning. En sektion ritas bara om när dess HTML ändrats (fokus står kvar).
+- **Inkommande utmaning:** rutan "Sara vill spela schack med dig (10 min)" med **Spela!**/**Nej
+  tack** (`schackSvara`) visas överst på startsidan, i lobbyn, under partiet mot datorn och på
+  slutrutan efter ett kompisparti – överallt där lobbyns lyssnare är öppen.
+- **Till partiet:** så fort klassdokumentet visar ett pågående parti för eleven (någon tryckte
+  Spela! på ens väntan, eller svarade ja på ens utmaning) går flödet till partiet. Kommer eleven in
+  på `#/elev/schack` med `studentData.schack.aktivtParti` satt (läst ur den redan cachade
+  `getStudentData`) går flödet också dit; är det partiet redan slut visas lobbyn i stället.
+  Ett parti eleven lämnat med **Till lobbyn** hoppar flödet aldrig tillbaka in i.
+- **Partiet:** samma bräde och "möjliga drag" som mot datorn, vänt efter elevens färg, **utan
+  ångra, tips och varningar** (källkodstest). Elevens drag går via brädets `beforeMove` →
+  `schackDrag`: pjäsen står halvgenomskinlig på målrutan med statusen "Skickar…"; nekar servern
+  (eller svarar `gjort: false` för att tiden tog slut) hoppar pjäsen tillbaka och felet visas i
+  panelen. Motståndarens drag kommer ur lyssnaren: ett nytt drag spelas med `brade.move` (glider),
+  allt annat laddar om partiet (`dragDiff`). Under väntan på servern synkas inte brädet – det görs
+  direkt efteråt mot senaste ögonblicksbilden.
+- **Klockan:** båda klockorna står i spelarraderna (`brade.setSpelarExtra`), räknas lokalt var
+  200:e ms ur `klocka` + `senastDragAt` + `serverNow()` (ingen skrivning per sekund), m:ss och
+  tiondelar under 10 s, röd under 30 s. Är motståndarens tid slut visas **Kräv vinsten**
+  (`schackKravaVinst` – servern kontrollerar tiden; nekas den går knappen att trycka igen).
+- **Lägesraden** (§7.3-texterna, "Kräv vinsten") flyttar aldrig brädet när den dyker upp mitt i
+  ett drag (F3). Bred skärm (> 820 px, panelen bredvid brädet): den står **överst i panelen**, så
+  knappen syns utan att skrolla även på en Chromebook 1366×768 (F6). Smal skärm: **under** brädet, och
+  hamnar den under fönsterkanten skrollas sidan bara så mycket som behövs – aldrig medan eleven
+  har fingret/musen nere på brädet. Uppmätt: 1366×768 knappen y 60–102, 768×1024 y 903–945 (ingen
+  skroll), 320×640 skroll 33 px → y 573–615; brädets läge på sidan oförändrat i alla tre. Fel- och infotexter i panelen och lobbyn försvinner
+  efter 6–8 s (F4); säger motståndaren nej till ens remi står "Sara sa nej tack till remi." (F5).
+- **§7.3 utan klocka:** den på tur ser efter 4 min "Din tur! Om en minut kan din motståndare
+  avsluta partiet."; motståndaren ser efter 5 min "Sara verkar ha gått. Avsluta partiet och ta
+  vinsten?" + knappen (`schackKravaVinst`).
+- **Ge upp / Föreslå remi:** bekräftelserutor på sidan (aldrig `confirm()`), på smal skärm som
+  överlägg nederst. Ett remierbjudande från motståndaren visas som ruta med **Ja, remi** /
+  **Nej, spela vidare** (`schackRemi` acceptera/neka); den som erbjudit ser "väntar på svar".
+- **Slutrutan:** "Du vann! Sara gav upp." / "Schack matt – Elias vann." / "Remi – ingen vann" (med
+  orsaken: överenskommen, upprepning, 50 drag, material, patt) / "Din tid tog slut – Sara vann." /
+  "Partiet avbröts" – med **Spela igen** (`schackUtmana` till samma kompis med samma klocka, sedan
+  lobbyn) och **Till lobbyn**.
+- **Krok för helskärm m.m. (#783):** partivyn har en tom verktygsrad ovanför brädet,
+  `.schack-parti-verktyg` (`data-krok="verktyg"`, dold med CSS när den är tom, knappar högerställda).
+  `skapaKompisVy` returnerar den som `vy.verktyg` och hela partivyn (brädet + panelen) som
+  `vy.element`. Flödet ger vyn via `flode.aktiv()` (ett löfte tills modulen laddats). En knapp
+  monteras alltså med `(await flode.aktiv()).verktyg.append(knapp)` och helskärmar `vy.element`;
+  vyn tömmer `host` i `destroy()`, så knappen försvinner med vyn.
+  **Helskärmsknappen (#783) är monterad:** `skapaKompisVy` anropar `monteraHelskarm(host, { knappPlats: verktyget })`
+  (`src/schack/schack-helskarm.js`, delad logik i `src/helskarm.js`) och `helskarm.destroy()` i `destroy()`;
+  partiet mot datorn monterar samma knapp bland panelens knappar. Stilarna (`38-schack-helskarm.css`)
+  skalar bräde, klockor, §7.3-raden och "Kräv vinsten" efter skärmen, stående och liggande.
+- **Datorpartier räknas:** när ett parti mot datorn tar slut anropas `datorPartiKlart()` (EN
+  skrivning, `studentData.schack.datorPartier + 1`). Partiet får `raknad: true` i `localStorage`,
+  så en omladdning eller Ångra + nytt slut räknas inte igen.
+
+### 14.2 Lyssnarna – när de öppnas och stängs (§9)
+
+| Lyssnare | Öppnas | Stängs |
+| --- | --- | --- |
+| `schackKlass/{classId}` (EN, `schack-kompis.js` → `moln.lyssnaKlass`) | när första vyn på schacksidan behöver den: startsidan, lobbyn, partiet mot datorn, slutrutan efter ett kompisparti. Vyerna delar den – ett vybyte inom schacksidan återanvänder den (ingen ny läsning). | **direkt** när eleven lämnar schacksidan: route-byte, `pagehide` (fliken stängs/byts) och utloggning – via `stangSchack()`; då tas en egen väntan bort med `schackSlutaVanta`. **Utloggning:** logga-ut-knappen (`ui.js`) väntar på `window.__ppSchackLamna()` (som sidan sätter medan eleven är på schacksidan, högst 1,5 s) INNAN `data.logout()` – annars är eleven redan utloggad och servern nekar anropet (F1). **Flikstängning:** webbläsaren avbryter oftast anropet vid `pagehide` (callable-SDK:t kan inte skicka med `keepalive`/`sendBeacon`), så väntan står då kvar tills den går ut efter 10 min – servern och alla klienter filtrerar bort den (F2). **2 s** efter att sista vyn släppt den – t.ex. när ett kompisparti öppnas. |
+| `schackPartier/{id}` (EN, `moln.lyssnaParti`) | när partivyn öppnas | när partivyn stängs (`destroy`: Till lobbyn, route-byte, pagehide) |
+
+Medan ett kompisparti pågår är alltså bara partiets lyssnare öppen. Tillbaka ur bfcache
+(`pageshow` med `persisted`) ritas sidan om och lyssnarna öppnas igen.
+
+### 14.3 Kvoten i praktiken
+
+- **Besök på schacksidan:** klasslistan (namn + avatarer) = **1** läsning per besök
+  (`ensureClassProjection` – bygger en saknad post en gång), klassdokumentet = 1 läsning när
+  lyssnaren öppnas + 1 per ändring. `getClasses`/`getStudentData` är redan cachade av appen.
+- **Lobbyn:** klassdokumentet skrivs bara av elevhandlingar (vänta, sluta vänta, spela, utmana,
+  svara) och partislut. Med 25 elever på schacksidan kostar varje sådan skrivning 25 läsningar;
+  en lektion med 12 partier (≈ 4 lobbyhandlingar + 1 slut per parti ≈ 60 skrivningar) ≈ 1 500
+  lobbyläsningar. Ingen närvaro-ping, inga skrivningar per sekund; utgångna poster filtreras lokalt.
+- **Ett parti** med 40 drag per spelare och klocka: som 12.7 – ≈ 87 skrivningar, ≈ 165 läsningar i
+  klienten (2 lyssnare × 80 halvdrag + start/slut) och ≈ 166 på servern. Klockan räknas lokalt.
+  Medan partiet pågår är lobbylyssnaren stängd hos båda spelarna, så deras egna drag kostar
+  inget i lobbyn.
+- **Datorpartier:** 1 skrivning per avslutat parti (räknaren), inget annat.
+
+### 14.4 Förhandsvisning och tester
+
+- `preview/preview-schack-kompis.html?elev=alva` (och `bilal`, `cleo`, `dante`) – två (eller fyra)
+  elever i varsin flik, **utan Firebase**: lobbyn och partierna ligger i en låtsas-databas i
+  `localStorage` (`preview/schack-kompis/falsk-db.js`, Web Locks mellan flikarna, `storage`-
+  händelsen som "onSnapshot") och anropen kör den **riktiga serverkärnan**
+  (`functions/schack-lobby.js`, `schack-parti.js`) i sidan (`falsk-moln.js`; import map för
+  `node:crypto`). Verktygsraden: byt elev (ny flik), Lämna schacksidan, spola fram tiden (+1/+4/+5/
+  +10 min – testar klockan och §7.3), Nollställ allt; statusraden visar öppna lyssnare.
+  `window.schack` = flödet, `window.stub` = `{ db, moln, lyssnarPaKlass }`.
+- Riktiga appen mot emulatorerna (auth, firestore, functions): `bash admin/qa-schack-kompis-preview.sh
+  <port1> <port2>` → två origins, logga in `4a01` (Alva) och `4a02` (Bilal), lösenord `lilla123`.
+  Slumpade emulatorportar, under `flock /tmp/schack-773-emulator.lock`.
+- `node --test test/schack-kompis.test.js test/schack-kompis-lyssnare.test.js` – klockvisningen,
+  lobbyfiltret (utgångna väntan/utmaningar), topplistans sortering, §7.3, slutrutan, `dragDiff`,
+  markupen, den delade lyssnaren (en onSnapshot, stängs efter sista vyn och direkt vid lämna,
+  `schackSlutaVanta`), ett helt parti genom låtsas-servern och källkodstester (ingen ångra/tips/
+  varna i kompisläget, unsubscribe i `destroy`, allt lat, datorräknaren en gång).
