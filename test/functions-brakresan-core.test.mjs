@@ -258,6 +258,48 @@ describe("fokusläge och dold modul (#735)", () => {
     assert.equal((await startRound(deps, U, { challengeId: "03" })).resumed, true);
   });
 
+  it("#788: provlås släpper den som lämnat in enligt efter-valet – den som skriver nekas", async () => {
+    const T = "brk-tillfalle";
+    const provLas = (efter) => klass("brk-6a", {
+      lock: { mal: { typ: "prov", id: T }, till: rig.ctl.clock + 30 * MIN, doljOvrigt: true, ...(efter ? { efter } : {}) },
+    });
+    const svar = (uid, inlamnad) => db.doc(`provTillfallen/${T}/svar/${uid}`).set({ elevId: uid, inlamnad });
+    try {
+      await svar(U, true); // U har lämnat in, brk-annan skriver fortfarande
+      await svar("brk-annan", false);
+      const utfall = async () => [await code(startRound(deps, U, { challengeId: "03" })),
+        await code(startRound(deps, "brk-annan", { challengeId: "03" }))];
+      await provLas(null); // stanna på provsidan (som förr)
+      assert.deepEqual(await utfall(), ["permission-denied", "permission-denied"]);
+      await provLas({ lage: "prov" });
+      assert.deepEqual(await utfall(), ["permission-denied", "permission-denied"]);
+      for (const efter of [{ lage: "ovning" }, { lage: "klass" }, { lage: "egna", moduler: ["plugga", "brakresan"] }]) {
+        await provLas(efter);
+        assert.deepEqual(await utfall(), ["ok", "permission-denied"], efter.lage);
+      }
+      await provLas({ lage: "egna", moduler: ["plugga"] });
+      assert.deepEqual(await utfall(), ["permission-denied", "permission-denied"], "egna utan Bråkresan");
+      // Inget svar alls (har inte startat) = inte inlämnat.
+      await db.doc(`provTillfallen/${T}/svar/brk-annan`).delete();
+      await provLas({ lage: "klass" });
+      assert.deepEqual(await utfall(), ["ok", "permission-denied"]);
+      // Klassens vanliga läge: en dold Bråkresan är fortfarande stängd.
+      await klass("brk-6a", {
+        hiddenModules: ["brakresan"],
+        lock: { mal: { typ: "prov", id: T }, till: rig.ctl.clock + 30 * MIN, doljOvrigt: true, efter: { lage: "klass" } },
+      });
+      assert.equal(await code(startRound(deps, U, { challengeId: "03" })), "permission-denied");
+      // Ett lås till något annat i en annan klass gäller fortfarande.
+      await provLas({ lage: "klass" });
+      await db.doc("classes/brk-6b").set({
+        name: "6B", studentIds: [U], lock: { mal: { typ: "lasresan" }, till: rig.ctl.clock + 30 * MIN, doljOvrigt: false },
+      });
+      assert.equal(await code(startRound(deps, U, { challengeId: "03" })), "permission-denied");
+    } finally {
+      await Promise.all([U, "brk-annan"].map((uid) => db.doc(`provTillfallen/${T}/svar/${uid}`).delete()));
+    }
+  });
+
   it("dold i någon av elevens klasser → nekas; andra elever påverkas inte", async () => {
     await klass("brk-6a", {});
     await db.doc("classes/brk-6b").set({ name: "6B", studentIds: [U], hiddenModules: ["brakresan"] });

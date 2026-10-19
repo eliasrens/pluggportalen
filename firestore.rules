@@ -434,8 +434,8 @@ service cloud.firestore {
          request.resource.data.enabledModules.size() <= 20);
     }
     // FOKUSLÄGE / KLASS-LÅS (#436): fältet `lock` = { mal: { typ, id?, namn? },
-    // till: <epoch-ms>, doljOvrigt: bool }. Läsbart för alla inloggade (elevens
-    // klient tillämpar låset), skrivbart bara av lärare. Ett NYTT/ändrat lås
+    // till: <epoch-ms>, doljOvrigt: bool, efter?: { lage, moduler? } (#788) }.
+    // Läsbart för alla inloggade (elevens klient tillämpar låset), skrivbart bara av lärare. Ett NYTT/ändrat lås
     // valideras mot SERVERNS klocka: `till` ligger framåt och högst 24 h bort,
     // så ingen klient (med fel klocka) kan spara ett evigt lås. Ett oförändrat
     // (ev. redan utgånget) lås stoppar inte andra klass-skrivningar. Borttaget
@@ -446,7 +446,9 @@ service cloud.firestore {
     function validLockShape(l) {
       return l is map &&
         l.keys().hasAll(['mal', 'till', 'doljOvrigt']) &&
-        l.keys().hasOnly(['mal', 'till', 'doljOvrigt']) &&
+        l.keys().hasOnly(['mal', 'till', 'doljOvrigt', 'efter']) &&
+        // Efter inlämning (#788): bara på ett provlås (src/class-lock.js EFTER).
+        (!('efter' in l) || (l.mal.typ == 'prov' && validLockEfter(l.efter))) &&
         l.mal is map &&
         l.mal.keys().hasOnly(['typ', 'id', 'namn']) &&
         l.mal.typ in ['prov', 'omrade', 'lasresan', 'mattematchen', 'hittaratt', 'ekvationsresan', 'brakresan'] &&
@@ -459,6 +461,13 @@ service cloud.firestore {
         l.till > request.time.toMillis() &&
         l.till <= request.time.toMillis() + 24 * 60 * 60 * 1000 &&
         l.doljOvrigt is bool;
+    }
+    // Vad en elev som lämnat in provet får göra (#788): läget + modulerna för
+    // "Välj själv". Klienten (modulgrinden) och Bråkresans callable tillämpar det.
+    function validLockEfter(e) {
+      return e is map && e.keys().hasAll(['lage']) && e.keys().hasOnly(['lage', 'moduler']) &&
+        e.lage in ['prov', 'ovning', 'klass', 'egna'] &&
+        (!('moduler' in e) || (e.lage == 'egna' && e.moduler is list && e.moduler.size() <= 20));
     }
     function validLock() {
       return !('lock' in request.resource.data) ||

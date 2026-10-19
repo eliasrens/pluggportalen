@@ -9,6 +9,8 @@
 //      "Lås upp nu" slår igenom DIREKT, utan omladdning
 //   3. en timer till `till` (+ 15 s-intervall och flik-återkomst som skyddsnät
 //      mot strypta bakgrunds-timers) → automatisk återgång när klockslaget går
+//   4. provlås med ett efter-val (#788): en onSnapshot på elevens eget svar
+//      (provTillfallen/{t}/svar/{uid}) → inlämnat ger lärarens efter-läge direkt
 // Tiden jämförs mot serverNow() (klock-korrigerad, data-class-lock.js).
 //
 // Laddas DYNAMISKT (ui.getLockGate) – aldrig i den statiska bootgrafen (#271).
@@ -17,18 +19,11 @@
 import { db } from "./firebase-config.js";
 import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getClasses, clearClassCache } from "./data-classes.js";
-import {
-  lockForStudent,
-  lockAllowsRoute,
-  lockIsTarget,
-  lockAllowsArea,
-  lockHomeHash,
-  lockLabel,
-  formatKlockslag,
-} from "./class-lock.js";
+import { gateFor, lockForStudent, lockBehoverInlamning, lockEfterInlamning } from "./class-lock.js";
 import { serverNow, syncServerClock } from "./data-class-lock.js";
 
 let watch = null; // { meId, order: classId[], docs: Map, unsubs: fn[], iv, ready }
+let svarWatch = null; // { t, unsub, inlamnad } – elevens svar under ett provlås med efter-val (#788)
 let current = null; // aktivt lås (+ classId) eller null
 let currentKey = "null";
 let timer = null;
@@ -40,19 +35,8 @@ export function onLockChange(fn) {
   return () => lyssnare.delete(fn);
 }
 
-/** Router-/meny-vänlig vy av ett lås (null in → null ut). */
-export function gateFor(lock) {
-  if (!lock) return null;
-  return {
-    lock,
-    home: lockHomeHash(lock),
-    label: lockLabel(lock),
-    klockslag: formatKlockslag(lock.till),
-    allows: (path, query) => lockAllowsRoute(lock, path, query),
-    isTarget: (path, query) => lockIsTarget(lock, path, query),
-    allowsArea: (subjectId, areaId) => lockAllowsArea(lock, subjectId, areaId),
-  };
-}
+/** Router-/meny-vänlig vy av ett lås (bor i class-lock.js, ren logik – testbar). */
+export { gateFor };
 
 function schemalaggSlut(lock) {
   clearTimeout(timer);
@@ -63,11 +47,50 @@ function schemalaggSlut(lock) {
   timer = setTimeout(omrakna, ms);
 }
 
+function stoppaSvar() {
+  svarWatch?.unsub();
+  svarWatch = null;
+}
+
+/**
+ * Har eleven lämnat in provet som låset gäller? Startar (eller byter) lyssnaren
+ * på elevens svar. Tills första svaret kommit räknas provet som INTE inlämnat.
+ */
+function inlamnadFor(lock) {
+  if (!lockBehoverInlamning(lock)) {
+    stoppaSvar();
+    return false;
+  }
+  const t = lock.mal.id;
+  if (svarWatch?.t !== t) {
+    stoppaSvar();
+    let forstaKlar;
+    const sw = { t, inlamnad: false, unsub: null, forsta: new Promise((r) => (forstaKlar = r)) };
+    svarWatch = sw;
+    sw.unsub = onSnapshot(
+      doc(db, "provTillfallen", t, "svar", watch.meId),
+      (snap) => {
+        if (svarWatch !== sw) return;
+        sw.inlamnad = snap.exists() && snap.data().inlamnad === true;
+        forstaKlar();
+        // Startläget (lockForMe väntar in första svaret): routern grindar själv.
+        omrakna({ tyst: !!watch?.startar });
+      },
+      (err) => {
+        console.warn("Fokusläget: kunde inte bevaka provsvaret", t, err);
+        forstaKlar();
+      }
+    );
+  }
+  return svarWatch.inlamnad;
+}
+
 /** Räkna om låset ur de bevakade klass-dokumenten; meddela vid ändring. */
 function omrakna({ tyst = false } = {}) {
   if (!watch) return;
   const klasser = watch.order.map((id) => watch.docs.get(id)).filter(Boolean);
-  const next = lockForStudent(klasser, watch.meId, serverNow());
+  const las = lockForStudent(klasser, watch.meId, serverNow());
+  const next = lockEfterInlamning(las, inlamnadFor(las));
   const key = JSON.stringify(next);
   schemalaggSlut(next);
   if (key === currentKey) return;
@@ -88,6 +111,7 @@ function omrakna({ tyst = false } = {}) {
 export function stopLockWatch() {
   if (!watch) return;
   watch.unsubs.forEach((u) => u());
+  stoppaSvar();
   clearInterval(watch.iv);
   clearTimeout(timer);
   watch = null;
@@ -120,7 +144,14 @@ export async function lockForMe(meId) {
     const mina = klasser.filter((c) => Array.isArray(c.studentIds) && c.studentIds.includes(meId));
     w.order = mina.map((c) => c.id);
     mina.forEach((c) => w.docs.set(c.id, c));
+    w.startar = true;
     omrakna({ tyst: true }); // startläget: routern grindar själv, ingen notis
+    // Provlås med efter-val (#788): vänta in elevens svar (högst 3 s) så en elev
+    // som redan lämnat in inte först skickas till provet vid en omladdning.
+    if (svarWatch) await Promise.race([svarWatch.forsta, new Promise((r) => setTimeout(r, 3000))]);
+    if (watch !== w) return;
+    omrakna({ tyst: true });
+    w.startar = false;
     for (const id of w.order) {
       let forsta = true;
       w.unsubs.push(

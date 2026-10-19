@@ -82,3 +82,43 @@ Det betyder:
   tillfällets (`arProvetsLas`).
 - ⚠️ Kräver `firebase deploy --only firestore:rules` innan "Lås klassen till provet"
   fungerar (annars nekas låset – provet öppnas ändå, läraren ser ett fel).
+
+## Prov: efter inlämning (#788)
+
+I provets låsruta ("Kör i klass" och "Öppna") väljer läraren **"Efter inlämning får
+eleven:"** – valet sparas på låset (`lock.efter`) och som förval på tillfället
+(`fokus.efter`):
+
+| Val | `efter.lage` | Eleven som lämnat in når |
+| --- | --- | --- |
+| Stanna på provsidan | `prov` (sparas inte på låset) | bara provet, som före #788 |
+| Bara övning | `ovning` | provet + registrets `ovning`-moduler |
+| **Klassens vanliga läge** (förval) | `klass` | allt klassen har påslaget, som om inget prov pågick |
+| Välj själv | `egna` + `moduler` | provet + de ikryssade modulerna (förifyllt med övningsmodulerna) |
+
+**Övningsmoduler** (`ovning: true` i `STUDENT_MODULES`): Plugga (alla områden och
+deras lägen, äventyr och Ämnesläsning), Läsresan, Hitta rätt!, Ekvationsresan och
+Bråkresan. **Inte** övning: Shoppen, Mattematchen, Schack – och allt utanför
+registret (hus, gård, by, profil, Live). En ny övningsmodul = `ovning: true` på
+sin rad; `test/prov-efter-inlamning.test.js` listar dem uttryckligen.
+
+- **Gäller bara den som lämnat in** (`svar.inlamnad == true` – själv, när tiden tog
+  slut, eller när läraren stängde). Elevens klient bevakar sitt eget svar
+  (`class-lock-watch.js`, en onSnapshot bara när låset har ett efter-val) och
+  `lockEfterInlamning` ger det effektiva låset: `fri` = läget, `moduler` = de
+  öppna. `"klass"` ⇒ ingen grind alls. Den som skriver (eller inte startat) är låst
+  som förr. Inlämnat är slutgiltigt för eleven (reglerna).
+- `"ovning"`/`"egna"`: hus, värld, profil och Live är stängda; klassens egna
+  `hiddenModules`/`enabledModules` gäller fortfarande. Hem för grinden är provets
+  kvittens, som visar vägen vidare (`src/prov/prov-vidare.js`): "Fortsätt öva" med
+  de öppna modulerna, "Till startsidan" (klassens vanliga läge) eller "Stanna kvar
+  här" – utan ljud och belöningar.
+- **Läraren stänger** provet eller **klockslaget passerar** ⇒ låset försvinner och
+  klassens vanliga läge gäller för alla (som förr).
+- **Servern:** Bråkresans callables (`assertModuleOpen` i `functions/brakresan-core.js`)
+  läser elevens svar och släpper bara den som lämnat in, när valet öppnar Bråkresan
+  (`MODUL_OVNING` speglar registrets flagga – testet jämför). Övriga moduler har
+  ingen serverkontroll av fokusläget (grinden är klientens, som förut).
+- ⚠️ Kräver `firebase deploy --only firestore:rules` (`validLockShape` tillåter
+  `efter`) **och** `--only functions` (Bråkresan) – rules före webben, annars nekas
+  provlåset med efter-val. En gammal cachad klient ignorerar `efter` = låst som förr.

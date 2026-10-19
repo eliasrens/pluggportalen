@@ -240,7 +240,7 @@ export async function renderClassLock(ctx, cls, host, library, { onChange } = {}
         omrade
           ? { typ: "omrade", id: omrade.id, namn: omrade.namn, till, doljOvrigt: doljEl.checked }
           : tillfalleMal && val === tillfalleMal.typ
-          ? { ...tillfalleMal, till, doljOvrigt: doljEl.checked }
+          ? { ...tillfalleMal, till, doljOvrigt: doljEl.checked, efter: start.efter } // efter-valet (#788) följer med
           : { typ: modul?.typ, till, doljOvrigt: doljEl.checked }
       );
       if (!lock) {

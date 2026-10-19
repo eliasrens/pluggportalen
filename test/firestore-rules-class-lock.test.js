@@ -120,6 +120,34 @@ describe("Fokusläge (#436): lock läsbart för eleven, skrivbart för lärare",
     );
   });
 
+  it("#788: provlåsets efter-val – fyra lägen, moduler bara i \"egna\", bara på ett provlås", async () => {
+    const prov = (efter, typ = "prov") => ({
+      lock: { mal: { typ, id: "tillfalle-abc" }, till: Date.now() + 50 * MIN, doljOvrigt: true, efter },
+    });
+    for (const lage of ["prov", "ovning", "klass"]) {
+      await assertSucceeds(updateDoc(doc(teacher(), "classes", "6b"), prov({ lage })), lage);
+    }
+    await assertSucceeds(updateDoc(doc(teacher(), "classes", "6b"), prov({ lage: "egna", moduler: ["plugga", "shop"] })));
+    await assertSucceeds(updateDoc(doc(teacher(), "classes", "6b"), prov({ lage: "egna", moduler: [] })));
+    const snap = await assertSucceeds(getDoc(doc(elev("elev2"), "classes", "6b")));
+    assert.deepEqual(snap.data().lock.efter, { lage: "egna", moduler: [] }, "klassens elev läser efter-valet");
+    // Fel form avvisas.
+    await assertFails(updateDoc(doc(teacher(), "classes", "6b"), prov({ lage: "allt" })));
+    await assertFails(updateDoc(doc(teacher(), "classes", "6b"), prov({})));
+    await assertFails(updateDoc(doc(teacher(), "classes", "6b"), prov("klass")));
+    await assertFails(updateDoc(doc(teacher(), "classes", "6b"), prov({ lage: "ovning", moduler: ["plugga"] })));
+    await assertFails(updateDoc(doc(teacher(), "classes", "6b"), prov({ lage: "egna", moduler: "plugga" })));
+    await assertFails(updateDoc(doc(teacher(), "classes", "6b"), prov({ lage: "egna", hack: 1 })));
+    await assertFails(updateDoc(doc(teacher(), "classes", "6b"),
+      prov({ lage: "egna", moduler: Array.from({ length: 21 }, (_, i) => `m${i}`) })));
+    // Bara ett provlås har efter-val.
+    await assertFails(updateDoc(doc(teacher(), "classes", "6b"), {
+      lock: { mal: { typ: "lasresan" }, till: Date.now() + 30 * MIN, doljOvrigt: false, efter: { lage: "klass" } },
+    }));
+    // Eleven kan inte frige sig själv.
+    await assertFails(updateDoc(doc(elev("elev1"), "classes", "6a"), prov({ lage: "klass" })));
+  });
+
   it("#735: läraren FÅR låsa till Bråkresan, eleven får INTE ändra eller ta bort låset", async () => {
     const brak = { mal: { typ: "brakresan" }, till: Date.now() + 30 * MIN, doljOvrigt: false };
     await assertSucceeds(updateDoc(doc(teacher(), "classes", "6a"), { lock: brak }));
