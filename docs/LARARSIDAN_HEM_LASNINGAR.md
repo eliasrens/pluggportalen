@@ -5,7 +5,9 @@ Kvoten (#114/#231): Hem läser **högst en gång per klass** plus det som redan 
 
 Koden: `src/teacher-hem.js` (sidan), `src/teacher-hem-logik.js` (ren logik), `src/teacher-hem-data.js` (alla läsningar),
 `src/prov/prov-raknare.js` (räknarna) och `src/prov/prov-att-ratta.js` (märket och "Att rätta").
-Testerna: `test/lararsida-hem.test.js`, `test/prov-raknare.test.js` och `test/firestore-rules-prov-raknare.test.js`.
+Testerna: `test/lararsida-hem.test.js` och `test/prov-raknare.test.js` (node, minnes-Firestore),
+`test/firestore-rules-prov-raknare.test.js` (reglerna) och `test/firestore-prov-raknare-emulator.test.js` (de riktiga
+src-modulerna mot emulatorn med de riktiga reglerna, inloggad som årskurskonto – räknarna genom hela flödet och Hems läsningar).
 
 ## 1. Vad Hem läser
 
@@ -27,6 +29,9 @@ och i `test/lararsida-hem.test.js` (räknande adapter + de riktiga läsningarna 
 `provTillfallen (1 dok)` (öppna prov) · `provTillfallen (2 dok)` (att rätta) · `liveSessions (1 dok)` = **15 läsningar, varav 12 nya**
 (10 klasser + 2 frågor). Två dolda klasser → 8 projektioner; "Visa alla" läser de två efteråt.
 **Årskurslärare (4A + 4B), ny:** 2 projektioner + 2 frågor + Kom igång 2 = 6 nya läsningar första gången, sedan 4.
+**Mot emulatorn (årskurskontot ak4, 4A + 4B, `firestore-prov-raknare-emulator.test.js`):** `doc classProjections/4a` ·
+`doc classProjections/4b` · `fråga provTillfallen (0 dok)` (öppna prov) · `fråga prov (0 dok)` · `fråga liveSessions (0 dok)`
+(Kom igång) · `fråga provTillfallen (2 dok)` (att rätta) = 6 läsningar enligt Firestores debitering (tom fråga = 1).
 
 Inga `students`, `studentData`, `svar`, `rattning` eller `expMembers` läses (testet kontrollerar det). Toppmenyns märke på varje
 annan lärarsida är fråga 5 – högst en gång per 5 minuter (och direkt efter att läraren själv ändrat räknarna).
