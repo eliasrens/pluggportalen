@@ -13,6 +13,8 @@
         ?kvar=4      eleven har redan startat, 4 min kvar (gul); ?kvar=0.8 → röd
         ?tid=ingen   provet saknar tidsgräns
         ?extra=15    eleven har 15 minuter extra (#748); byt flik → flikbyten i raden
+        ?helskarm=av / ?undantag  utan helskärmsläget (#810); annars pausar Esc/flikbyte/Alt+Tab
+                     provet tills "Läraren släpper in" trycks
         ?gammalt     provet utan avsnitt och med heltal (som före #762)
         ?efter=ovning|klass|egna|prov  lärarens efter-val (#788): kvittensens väg vidare
         ?utanpoang   visaPoangForElev av (#762) – inget "(4 p)" och ingen total
@@ -50,6 +52,10 @@
       <button data-pv="natfel" aria-pressed="false">Nätfel</button>
       <button data-pv="hanger" aria-pressed="false">Offline (hänger)</button>
       <button data-pv="stang">Läraren stänger provet</button>
+      <button data-pv="slapp">Läraren släpper in (#810)</button>
+      <button data-pv="slapp5">Släpp in +5 min</button>
+      <a href="?helskarm=av#/elev/prov">Helskärm av</a>
+      <a href="?undantag#/elev/prov">Undantagen</a>
       <a href="?kvar=4#/elev/prov/skriv?t=tf-demo">4 min kvar</a>
       <a href="?kvar=0.8#/elev/prov/skriv?t=tf-demo">48 s kvar</a>
       <a href="?extra=15#/elev/prov">+15 min extra (#748)</a>
@@ -80,7 +86,7 @@
       const info = document.getElementById("pv-info");
       const visaInfo = () => {
         const s = S.svar;
-        info.textContent = `Skrivningar: ${S.skrivningar}` + (s ? ` · sparat ${Object.keys(s.svar || {}).length} svar · flikbyten ${s.flikbyten || 0}${s.inlamnad ? ` · inlämnat (${s.inlamnadNar})` : ""}` : " · inte startat");
+        info.textContent = `Skrivningar: ${S.skrivningar}` + (s ? ` · sparat ${Object.keys(s.svar || {}).length} svar · flikbyten ${s.flikbyten || 0}${s.pausad ? ` · ⏸ pausad (${s.pausOrsak})` : ""}${s.inlamnad ? ` · inlämnat (${s.inlamnadNar})` : ""}` : " · inte startat");
       };
       window.addEventListener("prov-stub", visaInfo);
       visaInfo();
