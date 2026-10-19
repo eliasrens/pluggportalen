@@ -15,8 +15,9 @@ import { FRAGETYPER, fragetyp } from "../prov-fragetyper.js";
 import { ANTAL_MAX, ANTAL_MIN, ANTAL_STANDARD, buildProvPrompt } from "../prov-prompt.js";
 import { fyllFranAi, tolkaAiJson } from "../prov-redigera-ops.js";
 
-// Förvalda typer: allt utom textblocket (det väljer läraren till läsförståelse).
-const FORVALDA = FRAGETYPER.map((t) => t.id).filter((id) => id !== "text");
+// Förvalda typer: allt utom textblocket (det väljer läraren till läsförståelse)
+// och avsnitten (#762 – läraren väljer om provet ska delas in).
+const FORVALDA = FRAGETYPER.map((t) => t.id).filter((id) => id !== "text" && id !== "avsnitt");
 
 /** "12 frågor: 4 Flerval, 3 Kort svar …" – sammanfattningen efter granskningen. */
 export function aiSammanfattning(fragor) {
@@ -24,8 +25,10 @@ export function aiSammanfattning(fragor) {
   for (const f of fragor) per.set(f.typ, (per.get(f.typ) || 0) + 1);
   const delar = [...per].map(([typ, n]) => `${n} ${fragetyp(typ)?.namn || typ}`);
   const n = fragor.filter((f) => fragetyp(f.typ)?.arFraga !== false).length;
-  const text = fragor.length - n;
-  return `${n} ${n === 1 ? "fråga" : "frågor"}${text ? ` och ${text} textblock` : ""} (${delar.join(", ")})`;
+  const avsnitt = fragor.filter((f) => f.typ === "avsnitt").length;
+  const text = fragor.length - n - avsnitt;
+  const extra = [text ? `${text} textblock` : "", avsnitt ? `${avsnitt} ${avsnitt === 1 ? "avsnitt" : "avsnitt"}` : ""].filter(Boolean);
+  return `${n} ${n === 1 ? "fråga" : "frågor"}${extra.length ? ` och ${extra.join(" och ")}` : ""} (${delar.join(", ")})`;
 }
 
 /**

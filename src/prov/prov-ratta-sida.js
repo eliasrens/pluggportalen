@@ -9,7 +9,9 @@
 // Läser EN gång när vyn öppnas (tillfället, facit, alla svar, alla
 // rättningar – inga lyssnare, §6.3) och sparar automatiskt (prov-sparning.js
 // med lärarens tak). Förslagen sparas med auto: true direkt.
-// Tangenter: 1 rätt · 2 delvis · 3 fel · Tab nästa svar · N nästa fråga.
+// "Rätta alla automatiska frågor" (#764, §6.0) överst i alla flikar
+// (prov-ratta-alla-vy.js); &rattaAlla=1 (knappen i tillfällets översikt) kör den direkt.
+// Tangenter: 1 rätt · 2 delvis · 3 fel · + / − ±0,5 p · Tab nästa svar · N nästa fråga.
 // Läget och fråga/elev står i hashen (&lage=elev&e=<uid>, &f=<fråga>) men byts
 // med replaceState – vyn laddas inte om. Laddas DYNAMISKT (#271). CSS:
 // prov-ratta.css (.provl-r-) + prov-resultat.css (svaren).
@@ -24,6 +26,7 @@ import { TANGENT_RATT, aterlamnaPlan, ejKlaraText, rattFragor, rattStatusText } 
 import { laddaRattning } from "./prov-rattning-data.js";
 import { skapaRattningsLager } from "./prov-ratta-lager.js";
 import { perElev, perFraga } from "./prov-ratta-lagen.js";
+import { rattaAllaVy } from "./prov-ratta-alla-vy.js";
 import { elevStatVy, oversiktVy } from "./prov-stat-vy.js";
 import { granserFor } from "./prov-statistik.js";
 import { sparaGranser } from "./prov-rattning-data.js";
@@ -118,6 +121,12 @@ function rattningsVy(ctx, body, data, elever, q) {
   // --- skalet -------------------------------------------------------------------
   const statusRad = h("span", { class: "provl-r-raknare" });
   const allaKnapp = h("button", { type: "button", class: "btn gron small", text: "Lämna tillbaka till alla rättade", on: { click: () => lamnaAlla() } });
+  // #764: "Rätta alla automatiska frågor" + sammanfattningen (länken går till Per fråga).
+  const auto = rattaAllaVy({
+    lager, fragor,
+    oppnaFraga: (fid) => v.oppnaFraga(fid),
+    onKlar: () => ritaInnehall(),
+  });
   const doljRuta = h("input", { type: "checkbox", checked: doljNamn });
   doljRuta.addEventListener("change", () => {
     doljNamn = doljRuta.checked;
@@ -144,7 +153,8 @@ function rattningsVy(ctx, body, data, elever, q) {
         poangsatt ? "" : "utan poäng",
       ].filter(Boolean).join(" · ") }),
       tf.status === STATUS.OPPET ? h("p", { class: "msg provl-r-oppet", text: "Provet är fortfarande öppet. Du rättar de inlämnade proven – ladda om sidan när fler har lämnat in." }) : null,
-      h("div", { class: "provl-r-verktyg" }, statusRad, sparStatus, allaKnapp)),
+      h("div", { class: "provl-r-verktyg" }, statusRad, sparStatus, auto.knapp, allaKnapp)),
+    auto.panel,
     h("div", { class: "provl-r-flikrad" },
       h("div", { class: "provl-r-flikar", role: "tablist", "aria-label": "Rättningsläge" }, flikar),
       h("label", { class: "provl-kryss provl-r-dolj" }, doljRuta, " Dölj namn")),
@@ -166,14 +176,14 @@ function rattningsVy(ctx, body, data, elever, q) {
       text: skriver ? `${skriver} elever skriver fortfarande. Ladda om sidan när de har lämnat in, eller stäng provet.` : "Ingen elev har skrivit provet.",
       icon: "inbox",
     }));
-    [...flikar, allaKnapp, doljRuta].forEach((x) => (x.disabled = true));
+    [...flikar, allaKnapp, auto.knapp, doljRuta].forEach((x) => (x.disabled = true));
     statusRad.textContent = "";
     return;
   }
 
   // Vyernas kontext (prov-ratta-lagen.js).
   const v = {
-    lager, tf, fragor, rf, nr: fragaNummer(fragor), facit: data.facit, bedomningsstod: data.bedomningsstod, med,
+    lager, tf, fragor, rf, nr: fragaNummer(fragor), facit: data.facit, bedomningsstod: data.bedomningsstod, kriterier: data.kriterier, med,
     poangsatt, nivaer: tf.installningar?.nivaer === true, index,
     svarAv: (uid, fid) => svar[uid]?.svar?.[fid],
     // #748: "Lämnade provet 2 gånger" – diskret, bara information.
@@ -191,6 +201,19 @@ function rattningsVy(ctx, body, data, elever, q) {
       ritaStatus();
     },
     lamnaTillbaka: (uids) => lamnaRuta(uids, 0),
+    // Facit i efterhand (#764): sparas i privat/facit, används nästa gång "Rätta alla" körs.
+    async godkannAven(f, g) {
+      try {
+        const ok = await lager.godkannAven(f, g.text, g.lucka);
+        sparStatus.textContent = ok ? `”${g.text}” är godkänt i facit. Tryck ”Rätta alla automatiska frågor” för att rätta om.` : `”${g.text}” finns redan i facit.`;
+        sparStatus.dataset.lage = "sparat";
+        return true;
+      } catch (err) {
+        sparStatus.textContent = `Kunde inte spara i facit: ${errText(err)}`;
+        sparStatus.dataset.lage = "fel";
+        return null;
+      }
+    },
     // Översikten och elevvyn (#742, prov-stat-vy.js).
     stat: { sort: "namn" },
     granser: () => granserFor(tf.installningar),
@@ -327,6 +350,10 @@ function rattningsVy(ctx, body, data, elever, q) {
     if (kort && e.key in TANGENT_RATT) {
       e.preventDefault();
       kort.__kort?.bedom(TANGENT_RATT[e.key]);
+    } else if (kort && ["+", "-", "−"].includes(e.key)) {
+      // #764: + och − ändrar poängen med 0,5.
+      e.preventDefault();
+      kort.__kort?.stega(e.key === "+" ? 1 : -1);
     } else if (paKortet && e.key === "Enter") {
       e.preventDefault();
       kort.querySelector(".provl-r-poang-falt:not(:disabled), .provl-r-kommentar-falt:not(:disabled)")?.focus();
@@ -353,6 +380,8 @@ function rattningsVy(ctx, body, data, elever, q) {
   document.addEventListener("visibilitychange", synlighet);
 
   ritaInnehall();
+  // Översiktens knapp (#764): &rattaAlla=1 → kör direkt (hashen skrivs om utan den).
+  if (q.get("rattaAlla") === "1") auto.kor();
   // Mynt som inte hann betalas ut förra gången (avbrott, nekad) – som Live-historiken.
   lager.betalaKvar().then((ut) => { if (ut.length && vy.isConnected) { visaMynt(ut); aktiv?.uppdatera(); } });
 }

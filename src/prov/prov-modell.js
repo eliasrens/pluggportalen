@@ -11,7 +11,8 @@
 // Fälten: docs/DATAMODELL.md "Prov". Reglerna: firestore.rules "PROV".
 // ============================================================================
 
-import { arFraga, fragetyp } from "./prov-fragetyper.js";
+import { arAvsnitt, arFraga, fragetyp } from "./prov-fragetyper.js";
+import { summaPoang } from "./prov-poang.js";
 
 export const SAMLING_PROV = "prov";
 export const SAMLING_TILLFALLEN = "provTillfallen";
@@ -45,14 +46,15 @@ export const NIVAER = Object.freeze([
 
 /**
  * Dela ett validerat prov när det öppnas (§5.2): elevens frågor (utanFacit)
- * till tillfället, facit + bedömningsstöd till privat/facit.
+ * till tillfället, facit + bedömningsstöd + poängkriterier (#762) till privat/facit.
  * @param {{ fragor: object[] }} prov value från validateProv / prov-dokumentet
- * @returns {{ fragor: object[], facit: Record<string, any>, bedomningsstod: Record<string, string> }}
+ * @returns {{ fragor: object[], facit: Record<string, any>, bedomningsstod: Record<string, string>, kriterier: Record<string, string[]> }}
  */
 export function delaUppProv(prov) {
   const fragor = [];
   const facit = {};
   const bedomningsstod = {};
+  const kriterier = {};
   for (const f of prov?.fragor || []) {
     const typ = fragetyp(f.typ);
     if (!typ) continue;
@@ -61,11 +63,56 @@ export function delaUppProv(prov) {
     if (fa !== null && fa !== undefined) facit[f.id] = fa;
     const stod = typ.bedomningsstod?.(f);
     if (stod) bedomningsstod[f.id] = stod;
+    const krit = typ.kriterier?.(f);
+    if (krit?.length) kriterier[f.id] = krit;
   }
-  return { fragor, facit, bedomningsstod };
+  return { fragor, facit, bedomningsstod, kriterier };
 }
 
-/** Frågornas nummer som eleven ser dem: { [fragaId]: 1, … } (textblock saknas). */
+/**
+ * Provet indelat i avsnitt (#762, §2.3) – för elevens frågelista, redigerarens
+ * summor och grupperingen i rättning/statistik. En grupp per avsnitt; poster
+ * före första avsnittet hamnar i en grupp utan avsnitt (avsnitt: null), som
+ * bara finns om den har något – eller om provet saknar avsnitt (då är hela
+ * provet en grupp, som förr).
+ * @param {object[]} fragor provets eller tillfällets frågor (i ordning)
+ * @returns {{ avsnitt: object|null, poster: object[], fragor: object[], maxPoang: number }[]}
+ *   poster = allt i gruppen utom rubriken (frågor + textblock), fragor = bara frågorna
+ */
+export function avsnittsGrupper(fragor) {
+  const grupper = [];
+  let nu = { avsnitt: null, poster: [], fragor: [] };
+  for (const f of fragor || []) {
+    if (arAvsnitt(f)) {
+      if (nu.avsnitt || nu.poster.length) grupper.push(nu);
+      nu = { avsnitt: f, poster: [], fragor: [] };
+      continue;
+    }
+    nu.poster.push(f);
+    if (arFraga(f)) nu.fragor.push(f);
+  }
+  grupper.push(nu);
+  return grupper.map((g) => ({ ...g, maxPoang: maxPoang(g.fragor) }));
+}
+
+// Frågor före första avsnittet (#765) – gruppens namn i statistik och resultat.
+export const UTAN_AVSNITT = "Inledning";
+
+/**
+ * Avsnitten som poäng räknas för (#765, §2.3 "Del 1: 8 av 10 · Del 2: 9,5 av 14"):
+ * avsnittsGrupper med minst en fråga, med titel. [] när provet saknar avsnitt –
+ * ett gammalt prov ser då ut som förut.
+ * @returns {{ id: string, titel: string, fragor: object[], maxPoang: number }[]}
+ */
+export function poangAvsnitt(fragor) {
+  const grupper = avsnittsGrupper(fragor).filter((g) => g.fragor.length);
+  if (!grupper.some((g) => g.avsnitt)) return [];
+  return grupper.map((g) => ({
+    id: g.avsnitt?.id ?? "", titel: g.avsnitt ? g.avsnitt.titel || "Avsnitt" : UTAN_AVSNITT, fragor: g.fragor, maxPoang: g.maxPoang,
+  }));
+}
+
+/** Frågornas nummer som eleven ser dem: { [fragaId]: 1, … } – löpande genom hela provet (textblock och avsnitt saknas). */
 export function fragaNummer(fragor) {
   const nr = {};
   let n = 0;
@@ -121,9 +168,9 @@ export function fragaLista(nummer) {
   return `Fråga ${nummer.slice(0, -1).join(", ")} och ${nummer[nummer.length - 1]}`;
 }
 
-/** Högsta möjliga poäng på tillfällets frågor. */
+/** Högsta möjliga poäng på tillfällets frågor – exakt med halvpoäng (#762). */
 export function maxPoang(fragor) {
-  return (fragor || []).filter(arFraga).reduce((s, f) => s + (Number(f.poang) || 0), 0);
+  return summaPoang((fragor || []).filter(arFraga).map((f) => f.poang));
 }
 
 /**

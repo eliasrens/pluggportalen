@@ -1,9 +1,12 @@
 // ============================================================================
 // Prov (#738): det som alla frågetyper delar – gränserna (§2.3), de gemensamma
-// fälten (id, typ, fraga, poang, hjalptext) och en stabil blandning.
+// fälten (id, typ, fraga, poang, hjalptext) och en stabil blandning (+ en per
+// elev, #763).
 // Varje typfil (src/prov/typer/<typ>.js) anropar valideraGemensamt först och
 // lägger sina egna fält ovanpå; utanFacit utgår från elevFalt.
 // ============================================================================
+
+import { POANG_MAX, POANG_MIN, POANG_STANDARD, arGiltigMaxpoang, poangTal } from "../prov-poang.js";
 
 export const GRANS = Object.freeze({
   fragor: 60,          // frågor + textblock i ett prov
@@ -17,7 +20,9 @@ export const GRANS = Object.freeze({
   bedomningsstod: 4000,
   lucktext: 3000,      // lucktextens text inklusive [[…]]
   luckor: 30,
-  poang: 100,          // högsta poäng på en fråga
+  poang: POANG_MAX,    // högsta poäng på en fråga (0,5–20 i steg om 0,5, #762)
+  instruktion: 1000,   // avsnittets instruktion (#762)
+  kriterier: 20,       // poängkriterier på en fritextfråga (#762)
 });
 
 // Fråge-id blir nycklar i svar/rättning (Firestore-fältnamn) → enkla tecken.
@@ -48,10 +53,11 @@ export function valideraGemensamt(f, { arFraga = true } = {}) {
   else if (tecken(f.fraga.trim()) > GRANS.fragetext) fel.push(`frågetexten är för lång (högst ${GRANS.fragetext} tecken)`);
   value.fraga = trimmad(f.fraga);
 
-  let poang = 1;
+  // Halvpoäng (#762, §2.2): 0,5–20 i steg om 0,5. Text med decimalkomma ("3,5") går också.
+  let poang = POANG_STANDARD;
   if (f.poang !== undefined && f.poang !== null && f.poang !== "") {
-    const n = Number(f.poang);
-    if (!Number.isInteger(n) || n < 0 || n > GRANS.poang) fel.push(`"poang" måste vara ett heltal 0–${GRANS.poang}`);
+    const n = typeof f.poang === "string" ? Number(f.poang.trim().replace(",", ".")) : f.poang;
+    if (!arGiltigMaxpoang(n)) fel.push(`poängen ("poang") måste vara ${poangTal(POANG_MIN)}–${poangTal(POANG_MAX)} i steg om ${poangTal(0.5)}`);
     else poang = n;
   }
   value.poang = poang;
@@ -125,6 +131,39 @@ export function blanda(lista, frö) {
   }
   if (ut.length > 1 && ut.every((x, i) => x === lista[i])) ut.push(ut.shift());
   return ut;
+}
+
+const fakultet = (n) => (n <= 1 ? 1 : n * fakultet(n - 1));
+
+/**
+ * Blandningar per elev (#763, §2.3.1) för `ordna`/`para`: upp till 12 olika
+ * ordningar av listan, ingen av dem facit-ordningen (`lista` = facit). Varje
+ * ordning är index (0–9) i elevens lista `blanda(lista, frö)` som en sträng
+ * ("2031") – Firestore tål inte listor i listor. Högst hälften av alla
+ * ordningar minus en, så att listan aldrig pekar ut facit (3 saker → 2).
+ */
+export function blandningar(lista, frö) {
+  const elev = blanda(lista, frö);
+  const max = Math.min(12, Math.floor(fakultet(lista.length) / 2) - 1);
+  const koder = new Set();
+  for (let k = 1; k <= 40 && koder.size < max; k++) {
+    koder.add(blanda(lista, `${frö}:${k}`).map((x) => elev.indexOf(x)).join(""));
+  }
+  return [...koder];
+}
+
+/**
+ * Elevens egen ordning (#763): en av frågans `blandningar`, vald av elev-id +
+ * fråge-id – samma efter omladdning, olika mellan eleverna. Utan elev-id
+ * (förhandsvisningen) eller utan blandningar (tillfällen öppnade före #763)
+ * = listan som den är, som förr.
+ */
+export function elevBlandning(lista, koder, elevId, fragaId) {
+  if (!elevId || !Array.isArray(koder) || !koder.length) return [...lista];
+  const kod = koder[fro(`${elevId}:${fragaId}`) % koder.length];
+  const index = typeof kod === "string" ? [...kod].map(Number) : [];
+  const giltig = index.length === lista.length && new Set(index).size === lista.length && index.every((i) => i >= 0 && i < lista.length);
+  return giltig ? index.map((i) => lista[i]) : [...lista];
 }
 
 /** Svaret som en lista med strängar (klippta), för luckor/par/ordna. */

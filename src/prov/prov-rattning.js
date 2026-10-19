@@ -7,13 +7,15 @@
 //   normSvar(s, { skiftlage })        → jämförelseform
 //   levenshtein(a, b, max?)           → redigeringsavstånd (tidigt avbrott > max)
 //   matchaText(svar, godkanda, opt)   → true | "delvis" | false
-//   delpoang(andel, max)              → poäng avrundade till närmaste halva
+//   delpoang(andel, max)              → poäng avrundade NEDÅT till halva (#762, prov-poang.js)
 //   forslagAv(andel, max)             → { poang, maxPoang, ratt }
 //   gruppNyckel(svar, opt)            → nyckeln som grupperar identiska svar
 //
 // Automatiken ger alltid ett FÖRSLAG, aldrig ett beslut (§2.2) – läraren kan
 // ändra allt i rättningen.
 // ============================================================================
+
+import { delpoangNed } from "./prov-poang.js";
 
 // Ett tal med decimalkomma eller -punkt ("7", "7,0", "-3.50", "1 000,5").
 const TAL = /^-?(\d+|\d{1,3}( \d{3})+)([.,]\d+)?$/;
@@ -90,20 +92,22 @@ export function matchaText(svar, godkanda, { exaktStavning = true, skiftlage = f
   return nara ? "delvis" : false;
 }
 
-/** Andelen (0–1) av maxpoängen, avrundad till närmaste halva poäng. */
-export function delpoang(andel, max) {
-  const a = Math.min(1, Math.max(0, Number(andel) || 0));
-  return Math.round(a * (Number(max) || 0) * 2) / 2;
-}
+/** Andelen (0–1) av maxpoängen, avrundad NEDÅT till halva poäng (§2.2, #762). */
+export const delpoang = delpoangNed;
 
 /**
- * Förslaget för en andel rätt: 1 → rätt, 0 → fel, annars delvis.
- * Poängen följer andelen (halva poäng); en fråga med 0 poäng får ändå
- * rätt/delvis/fel efter andelen.
+ * Förslaget för en andel rätt. Poängen följer andelen (nedåt till halva poäng)
+ * och markeringen följer POÄNGEN (§6.1, #764): full poäng = rätt, 0 = fel,
+ * däremellan delvis – så att avrundningen nedåt aldrig ger "delvis" med 0 p
+ * (1 p lucktext, 1 av 3 luckor rätt → 0 p → fel). En fråga utan poäng (max 0)
+ * får rätt/delvis/fel efter andelen.
  */
 export function forslagAv(andel, max) {
   const a = Math.min(1, Math.max(0, Number(andel) || 0));
-  return { poang: delpoang(a, max), maxPoang: Number(max) || 0, ratt: a >= 1 ? true : a <= 0 ? false : "delvis" };
+  const m = Number(max) || 0;
+  const poang = delpoang(a, max);
+  const ratt = m > 0 ? (poang >= m ? true : poang <= 0 ? false : "delvis") : a >= 1 ? true : a <= 0 ? false : "delvis";
+  return { poang, maxPoang: m, ratt };
 }
 
 // "Exakt stavning krävs" av och svaret är ett stavfel ifrån → hur stor del av

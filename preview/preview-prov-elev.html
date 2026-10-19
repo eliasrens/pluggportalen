@@ -13,6 +13,8 @@
         ?kvar=4      eleven har redan startat, 4 min kvar (gul); ?kvar=0.8 → röd
         ?tid=ingen   provet saknar tidsgräns
         ?extra=15    eleven har 15 minuter extra (#748); byt flik → flikbyten i raden
+        ?gammalt     provet utan avsnitt och med heltal (som före #762)
+        ?utanpoang   visaPoangForElev av (#762) – inget "(4 p)" och ingen total
         #/elev/prov  listan, #/elev/prov/skriv?t=tf-demo själva provet
     -->
     <script type="importmap">
@@ -50,6 +52,9 @@
       <a href="?kvar=4#/elev/prov/skriv?t=tf-demo">4 min kvar</a>
       <a href="?kvar=0.8#/elev/prov/skriv?t=tf-demo">48 s kvar</a>
       <a href="?extra=15#/elev/prov">+15 min extra (#748)</a>
+      <a href="?#/elev/prov/skriv?t=tf-demo">Avsnitt + halvpoäng (#762)</a>
+      <a href="?utanpoang#/elev/prov/skriv?t=tf-demo">Poäng dolda</a>
+      <a href="?gammalt#/elev/prov/skriv?t=tf-demo">Gammalt prov</a>
       <button data-pv="nollstall">Nollställ</button>
       <span class="pv-info" id="pv-info"></span>
     </div>

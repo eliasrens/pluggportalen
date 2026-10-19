@@ -73,7 +73,7 @@ describe("validateProv (§2.3)", () => {
     const r = validateProv(prov({ arskurs: 5, amne: " SO ", installningar: { tidsgransMin: 40 } }));
     assert.deepEqual(r.errors, []);
     assert.equal(r.ok, true);
-    assert.equal(r.value.fragor.length, 9);
+    assert.equal(r.value.fragor.length, 10);
     assert.equal(r.value.arskurs, "ak5");
     assert.equal(r.value.amne, "SO");
     assert.deepEqual(r.value.installningar, { ...STANDARD_INSTALLNINGAR, tidsgransMin: 40, granser: { gul: 60, gron: 85 }, stavfel: "auto" });
@@ -95,7 +95,7 @@ describe("validateProv (§2.3)", () => {
       "Provet: namnet är för långt (högst 80 tecken).",
       'Textblock 1 (Textblock): texten ("brodtext") saknas eller är tom.',
       'Fråga 1 (Kort svar): minst ett godkänt svar krävs ("godkanda": ["…"]).',
-      'Fråga 3: okänd frågetyp "gissa". Giltiga: "flerval", "flerval-flera", "santfalskt", "kortsvar", "lucktext", "para", "ordna", "fritext", "text".',
+      'Fråga 3: okänd frågetyp "gissa". Giltiga: "flerval", "flerval-flera", "santfalskt", "kortsvar", "lucktext", "para", "ordna", "fritext", "text", "avsnitt".',
       'Fråga 4 (Fritext): frågetexten ("fraga") saknas eller är tom.',
     ]);
   });

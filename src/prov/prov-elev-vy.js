@@ -5,7 +5,7 @@
 // att något sparas. Lugn design: vit panel, stor text, inga spelinslag,
 // inga ljud och inga belöningar. CSS: prov-elev.css (.provv-).
 //
-//   const vy = renderaProv({ namn, fragor, installningar, svar, onAndrat, onLamnat, onLamnaIn })
+//   const vy = renderaProv({ namn, fragor, installningar, svar, elevId, onAndrat, onLamnat, onLamnaIn })
 //   vy.el                 elementet att sätta in
 //   vy.svar()             elevens svar just nu (rensade, som de sparas)
 //   vy.satTid(text, niva) nedräkningen överst ("23 min kvar", "gul"/"rod")
@@ -15,8 +15,9 @@
 //   renderaFragor(container, fragor, o)  samma vy insatt i ett element (B:s förhandsvisning)
 // ============================================================================
 
-import { arFraga, fragetyp } from "./prov-fragetyper.js";
-import { besvarat, fragaLista, fragaNummer, rensaSvar, tomtSvar } from "./prov-modell.js";
+import { arAvsnitt, arFraga, fragetyp } from "./prov-fragetyper.js";
+import { avsnittsGrupper, besvarat, fragaLista, fragaNummer, maxPoang, rensaSvar, tomtSvar } from "./prov-modell.js";
+import { poangP, poangTal } from "./prov-poang.js";
 import { h, laddaCss, stavAttr, stycken } from "./prov-vy.js";
 
 let raknare = 0;
@@ -38,8 +39,9 @@ export function sparText(s) {
  * @param {object} o
  * @param {string} o.namn                 provets namn
  * @param {object[]} o.fragor             tillfällets frågor (utan facit)
- * @param {object} [o.installningar]      { poang, stavningskontroll }
+ * @param {object} [o.installningar]      { poang, visaPoangForElev, stavningskontroll }
  * @param {object} [o.svar]               startsvaren
+ * @param {string} [o.elevId]             elevens uid – ordna/para blandas per elev (#763)
  * @param {(svar: object) => void} [o.onAndrat]  varje ändring
  * @param {() => void} [o.onLamnat]       eleven lämnade en ruta / bytte fråga
  * @param {() => void} [o.onLamnaIn]      eleven bekräftade "Lämna in"
@@ -51,28 +53,37 @@ export function renderaProv(o) {
   const nr = fragaNummer(fragor);
   const svar = { ...tomtSvar(fragor), ...(o.svar || {}) };
   const attr = stavAttr(o.installningar?.stavningskontroll);
-  const visaPoang = o.installningar?.poang !== false;
+  // "(4 p)" per fråga och totalen överst (#762) – av med poang: false eller visaPoangForElev: false.
+  const visaPoang = o.installningar?.poang !== false && o.installningar?.visaPoangForElev !== false;
+  const max = maxPoang(fragor);
   let last = false;
 
   const tid = h("div", { class: "provv-tid", role: "timer", "aria-live": "off", hidden: true });
   const spar = h("div", { class: "provv-spar", role: "status", "aria-live": "polite" });
   const topp = h("header", { class: "provv-topp" },
-    h("h1", { class: "provv-namn", text: o.namn || "Prov" }),
+    h("div", { class: "provv-topp-rubrik" },
+      h("h1", { class: "provv-namn", text: o.namn || "Prov" }),
+      visaPoang && max > 0 ? h("p", { class: "provv-maxpoang", text: `Provet ger högst ${poangTal(max)} poäng` }) : null),
     h("div", { class: "provv-topp-info" }, tid, spar));
 
   const listaKnappar = new Map();
+  const nrKnapp = (f) => {
+    const b = h("button", { type: "button", class: "provv-lista-nr", text: String(nr[f.id]), "aria-label": `Fråga ${nr[f.id]}` });
+    b.addEventListener("click", () => {
+      const sek = huvud.querySelector(`[data-fraga="${CSS.escape(f.id)}"]`);
+      sek?.scrollIntoView({ behavior: "smooth", block: "start" });
+      sek?.querySelector("input:not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled])")?.focus({ preventScroll: true });
+    });
+    listaKnappar.set(f.id, b);
+    return b;
+  };
+  // Frågelistan grupperas per avsnitt (#762); utan avsnitt en enda grupp som förr.
+  const listGrupper = avsnittsGrupper(fragor).filter((g) => g.fragor.length || g.avsnitt);
   const lista = h("nav", { class: "provv-lista", "aria-label": "Frågor" },
     h("div", { class: "provv-lista-rubrik", text: "Frågor" }),
-    h("div", { class: "provv-lista-knappar" }, fragor.filter(arFraga).map((f) => {
-      const b = h("button", { type: "button", class: "provv-lista-nr", text: String(nr[f.id]), "aria-label": `Fråga ${nr[f.id]}` });
-      b.addEventListener("click", () => {
-        const sek = huvud.querySelector(`[data-fraga="${CSS.escape(f.id)}"]`);
-        sek?.scrollIntoView({ behavior: "smooth", block: "start" });
-        sek?.querySelector("input:not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled])")?.focus({ preventScroll: true });
-      });
-      listaKnappar.set(f.id, b);
-      return b;
-    })),
+    listGrupper.map((g) => h("div", { class: "provv-lista-grupp" },
+      g.avsnitt ? h("div", { class: "provv-lista-avsnitt", text: g.avsnitt.titel }) : null,
+      g.fragor.length ? h("div", { class: "provv-lista-knappar" }, g.fragor.map(nrKnapp)) : null)),
     h("div", { class: "provv-lista-forklaring" },
       h("span", {}, h("span", { class: "provv-prick provv-prick-klar" }), " besvarad"),
       h("span", {}, h("span", { class: "provv-prick" }), " obesvarad")));
@@ -91,11 +102,11 @@ export function renderaProv(o) {
       const typ = fragetyp(f.typ);
       if (!typ) return null;
       if (!arFraga(f)) {
-        const s = h("section", { class: "provv-textblock", "data-fraga": f.id }, typ.renderElev(f, null, { uid, attr, lasLage: last }));
+        const s = h("section", { class: arAvsnitt(f) ? "provv-avsnitt" : "provv-textblock", "data-fraga": f.id }, typ.renderElev(f, null, { uid, attr, lasLage: last }));
         return s;
       }
       const k = {
-        uid, attr, lasLage: last,
+        uid, attr, lasLage: last, elevId: o.elevId,
         onChange: (v) => {
           svar[f.id] = v;
           markera(f);
@@ -107,7 +118,7 @@ export function renderaProv(o) {
         h("div", { class: "provv-fraga-huvud" },
           h("span", { class: "provv-nr", text: `${nr[f.id]}` }),
           h("div", { class: "provv-fragetext", id: `${uid}-${f.id}-rubrik` }, stycken(f.fraga)),
-          visaPoang && f.poang ? h("span", { class: "provv-poang", text: `${f.poang} p` }) : null),
+          visaPoang && f.poang ? h("span", { class: "provv-poang", text: `(${poangP(f.poang)})` }) : null),
         f.hjalptext ? h("p", { class: "provv-hjalp", text: f.hjalptext }) : null,
         h("div", { class: "provv-svar" }, typ.renderElev(f, svar[f.id], k)));
       // Byter eleven fråga (fokus lämnar sektionen) sparas det direkt (§5.5).
@@ -148,6 +159,11 @@ export function renderaProv(o) {
   const el = h("div", { class: "provv-sida" },
     topp,
     h("div", { class: "provv-kropp" }, lista, h("main", { class: "provv-huvud" }, huvud, fot)));
+  // Frågelistans hopp ska landa under den klistrade toppen, vars höjd varierar
+  // (telefon, "Provet ger högst …", tiden) – CSS:ens scroll-margin-top läser den.
+  if (typeof ResizeObserver === "function") {
+    new ResizeObserver(() => el.style.setProperty("--provv-topp-h", `${Math.ceil(topp.offsetHeight)}px`)).observe(topp);
+  }
 
   return {
     el,

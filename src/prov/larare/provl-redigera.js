@@ -5,8 +5,8 @@
 //   #/larare/prov?vy=ny              nytt prov
 //   #/larare/prov?vy=ny&id=<id>      redigera (bara ägaren/admin – andra kopierar)
 //   #/larare/prov?vy=ny&kopia=<id>   kopia → osparat utkast med "(kopia)"
-// Provets uppgifter + inställningar, frågekorten (flytta, duplicera, ta bort,
-// redigera i kortet), "Lägg till fråga" (typväljaren → typens formulär),
+// Provets uppgifter + inställningar, frågekorten (flytta med ⋮⋮/"Flytta till…"/
+// Alt + pil – provl-flytta.js, #763 –, duplicera, ta bort, redigera i kortet), "Lägg till fråga" (typväljaren → typens formulär),
 // "Skapa med AI" (provl-ai.js), "Förhandsvisa som elev" (provl-forhandsvisa.js),
 // "Skriv ut" (prov-utskrift.js, #747)
 // och "Kör i klass" (provtillfället, #740).
@@ -19,14 +19,17 @@ import { myRole } from "../../teacher-role.js";
 import { GRADES } from "../../grades.js";
 import { armeraLamnaVakt } from "../../hitta-ratt/hr-lamna-vakt.js";
 import { fragetyp } from "../prov-fragetyper.js";
-import { fragaNummer, maxPoang } from "../prov-modell.js";
+import { fragaNummer } from "../prov-modell.js";
+import { poangP } from "../prov-poang.js";
 import { TIDSGRANS_MAX, TIDSGRANS_MIN, stavfelFor, tolkaTidsgrans, typValjare } from "../prov-validera.js";
 import { kanAndra } from "../prov-lista-ops.js";
 import {
-  bild, dupliceraFraga, flyttaFraga, fragaRubrik, fragaText, kopieraProv, nyttProv, provFranDok,
-  sparaFraga, taBortFraga, tillDokument, tomFraga,
+  avsnittSummor, bild, dupliceraFraga, fragaRubrik, fragaText, kopieraProv, nyttProv, provFranDok,
+  provSumma, sparaFraga, taBortFraga, tillDokument, tomFraga,
 } from "../prov-redigera-ops.js";
+import { flyttaTillIndex } from "../prov-flytta-ops.js";
 import { byggFragaForm } from "./provl-fragaform.js";
+import { flyttaTillHtml, handtagHtml, kopplaFlytt } from "./provl-flytta.js";
 import { myntFalt } from "./provl-mynt.js";
 import { bedomningFalt } from "./provl-bedomning.js";
 import { felText, hamtaProv, raderaProv, sparaProv } from "./provl-data.js";
@@ -95,8 +98,10 @@ function ritaRedigerare(ctx, host, st) {
       </div>
       <fieldset class="provl-grupp provl-installningar"><legend>Inställningar</legend>
         <label class="provl-check"><input type="checkbox" data-ins="poang" ${checked(ins.poang)} /><span><b>Poängsätt frågorna</b> <span class="hint">– av: bara rätt, fel eller delvis + kommentar</span></span></label>
+        <label class="provl-check provl-check-under"><input type="checkbox" data-ins="visaPoangForElev" ${checked(ins.visaPoangForElev !== false)} /><span><b>Visa poängen för eleven</b> <span class="hint">– "(4 p)" vid frågan och "Provet ger högst … poäng" överst</span></span></label>
         <label class="provl-check"><input type="checkbox" data-ins="nivaer" ${checked(ins.nivaer)} /><span><b>Använd nivåerna</b> <span class="hint">EG / G / MG i rättningen</span></span></label>
         <label class="provl-check"><input type="checkbox" data-ins="visaFacit" ${checked(ins.visaFacit)} /><span><b>Visa facit</b> <span class="hint">när provet lämnas tillbaka</span></span></label>
+        <label class="provl-check"><input type="checkbox" data-ins="visaKriterier" ${checked(ins.visaKriterier === true)} /><span><b>Visa poängkriterierna</b> <span class="hint">för fritextfrågorna i elevens resultat, efter tillbakalämningen</span></span></label>
         <label class="provl-check"><input type="checkbox" data-ins="stavningskontroll" ${checked(ins.stavningskontroll)} /><span><b>Stavningskontroll</b> <span class="hint">– webbläsarens röda understrykning i elevens svarsrutor</span></span></label>
         <label class="provl-falt provl-tid">Tidsgräns <span class="hint">(minuter, tomt = ingen – standard när provet körs)</span>
           <input type="number" data-ins="tidsgransMin" min="${TIDSGRANS_MIN}" max="${TIDSGRANS_MAX}" step="1" value="${ins.tidsgransMin ?? ""}" placeholder="Ingen" /></label>
@@ -147,9 +152,12 @@ function ritaRedigerare(ctx, host, st) {
     andra({ ...st.prov, installningar: { ...st.prov.installningar, [k]: v === undefined ? inp.value : v } });
     if (k === "poang") {
       mynt.sattPoang(inp.checked);
+      visaPoangRuta.disabled = !inp.checked;
       ritaFragor();
     }
   }));
+  const visaPoangRuta = $('[data-ins="visaPoangForElev"]');
+  visaPoangRuta.disabled = ins.poang === false; // utan poäng visas ingen poäng (#762)
   // Pluggmynt (#746) – eget fält under inställningarna.
   const mynt = myntFalt({
     mynt: ins.mynt, poang: ins.poang,
@@ -168,17 +176,17 @@ function ritaRedigerare(ctx, host, st) {
   function ritaFragor() {
     const fragor = st.prov.fragor;
     const nr = fragaNummer(fragor);
-    const antal = Object.keys(nr).length;
     const poangPa = st.prov.installningar.poang !== false;
-    $(".provl-fragor-rubrik").textContent = `Frågor (${antal})${poangPa && antal ? ` · ${maxPoang(fragor)} poäng totalt` : ""}`;
-    lista.replaceChildren(...fragor.map((f, i) => kort(f, i, nr[f.id], fragor.length, poangPa)));
+    $(".provl-fragor-rubrik").textContent = `Frågor: ${provSumma(fragor, poangPa)}`; // "12 frågor · 32 p" (#762)
+    const summor = avsnittSummor(fragor);
+    lista.replaceChildren(...fragor.map((f, i) => kort(f, i, nr[f.id], poangPa, summor[f.id])));
     if (!fragor.length) lista.appendChild(el(`<li class="provl-tom hint">Inga frågor än. Lägg till en fråga nedan eller skapa frågor med AI.</li>`));
     ritaLaggTill();
   }
 
-  function kort(f, i, nummer, antal, poangPa) {
+  function kort(f, i, nummer, poangPa, summa) {
     const typ = fragetyp(f.typ);
-    const li = el(`<li class="provl-kort${typ?.arFraga === false ? " provl-kort-text" : ""}" data-i="${i}"></li>`);
+    const li = el(`<li class="provl-kort${f.typ === "avsnitt" ? " provl-kort-avsnitt" : typ?.arFraga === false ? " provl-kort-text" : ""}" data-i="${i}"></li>`);
     if (st.oppen === i) {
       li.appendChild(byggFragaForm(f, {
         poangPa,
@@ -197,36 +205,48 @@ function ritaRedigerare(ctx, host, st) {
       return li;
     }
     const rubrik = fragaRubrik(f);
+    const namn = nummer ? `Fråga ${nummer}` : summa ? "Avsnittet" : "Textblocket";
     li.innerHTML = `<div class="provl-kort-huvud">
-        <span class="provl-kort-nr">${nummer ? `Fråga ${nummer}` : "Text"}</span>
+        ${handtagHtml(namn)}
+        <span class="provl-kort-nr">${nummer ? `Fråga ${nummer}` : summa ? "Avsnitt" : "Text"}</span>
         <span class="provl-kort-typ"><span aria-hidden="true">${typ?.ikon || "❔"}</span> ${esc(typ?.namn || f.typ)}</span>
         <span class="provl-kort-knappar">
-          <button type="button" class="btn small ghost" data-k="upp" title="Flytta upp" aria-label="Flytta upp" ${i === 0 ? "disabled" : ""}>↑</button>
-          <button type="button" class="btn small ghost" data-k="ned" title="Flytta ned" aria-label="Flytta ned" ${i === antal - 1 ? "disabled" : ""}>↓</button>
+          ${flyttaTillHtml}
           <button type="button" class="btn small" data-k="redigera">${icon("pencil", 15)}<span>Redigera</span></button>
           <button type="button" class="btn small ghost" data-k="dup" title="Duplicera" aria-label="Duplicera">${icon("copy", 15)}</button>
           <button type="button" class="btn small ghost danger" data-k="bort" title="Ta bort" aria-label="Ta bort">${icon("trash", 15)}</button>
         </span>
       </div>
       <div class="provl-kort-text-rad">${esc(fragaText(f))}</div>
-      <div class="hint provl-kort-rubrik">${esc(poangPa ? rubrik : rubrik.replace(/ · \d+ p$/, ""))}</div>
+      <div class="hint provl-kort-rubrik">${esc(poangPa ? rubrik : rubrik.replace(/ · [\d,]+ p$/, ""))}</div>
+      ${summa ? `<div class="provl-kort-summa">${summa.antal} ${summa.antal === 1 ? "fråga" : "frågor"}${poangPa && summa.antal ? ` · ${poangP(summa.poang)}` : ""}</div>` : ""}
       ${f.hjalptext ? `<div class="hint provl-kort-hjalp">Hjälptext: ${esc(f.hjalptext)}</div>` : ""}`;
     const knapp = (k) => li.querySelector(`[data-k="${k}"]`);
-    knapp("upp").addEventListener("click", () => { andra(flyttaFraga(st.prov, i, -1)); ritaFragor(); fokus(i - 1, "upp"); });
-    knapp("ned").addEventListener("click", () => { andra(flyttaFraga(st.prov, i, 1)); ritaFragor(); fokus(i + 1, "ned"); });
+    kopplaFlytt(li, { i, fragor: st.prov.fragor, lista, onFlytta: (till, k) => flytta(i, till, k) });
     knapp("dup").addEventListener("click", () => { andra(dupliceraFraga(st.prov, i)); ritaFragor(); });
     knapp("redigera").addEventListener("click", () => { st.oppen = i; ritaFragor(); });
     knapp("bort").addEventListener("click", () => {
       const fore = st.prov;
       andra(taBortFraga(st.prov, i));
       ritaFragor();
-      visaMsg(`<div class="msg ok provl-angra">${nummer ? `Fråga ${nummer}` : "Textblocket"} togs bort.
+      visaMsg(`<div class="msg ok provl-angra">${namn} togs bort.
         <button type="button" class="btn small ghost" data-angra>Ångra</button></div>`);
       $("[data-angra]").addEventListener("click", () => { andra(fore); ritaFragor(); visaMsg(""); });
     });
     return li;
   }
-  const fokus = (i, k) => lista.querySelector(`[data-i="${i}"] [data-k="${k}"]:not(:disabled)`)?.focus();
+  // Flytta ett kort (#763); en öppen fråga följer med sitt id, fokus följer kortet.
+  function flytta(fran, till, k) {
+    const ny = flyttaTillIndex(st.prov, fran, till);
+    if (ny === st.prov) return;
+    if (typeof st.oppen === "number") st.oppen = ny.fragor.indexOf(st.prov.fragor[st.oppen]);
+    const plats = ny.fragor.indexOf(st.prov.fragor[fran]);
+    andra(ny);
+    ritaFragor();
+    const kortEl = lista.querySelector(`[data-i="${plats}"]`);
+    kortEl?.querySelector(`[data-k="${k}"]`)?.focus({ preventScroll: true });
+    kortEl?.scrollIntoView({ block: "nearest" });
+  }
   const visaMsg = (html) => { $(".provl-msg").innerHTML = html; };
 
   // --- Lägg till fråga: typväljaren → typens formulär ------------------------------

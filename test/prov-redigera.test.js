@@ -40,6 +40,7 @@ const FALT = {
   ordna: { fraga: "Ordna.", poang: "3", saker: ["Sten", "", "Brons", "Järn"] },
   fritext: { fraga: "Beskriv.", poang: "4", bedomningsstod: "  Djur och hus  " },
   text: { titel: "Birka", brodtext: "Birka låg på Björkö." },
+  avsnitt: { titel: " Del 1 – Begrepp ", instruktion: " Svara kort. " },
 };
 
 describe("formulärets fält → fråga (alla typer)", () => {
@@ -92,7 +93,10 @@ describe("formulärets fält → fråga (alla typer)", () => {
     assert.ok(r.errors.includes('Frågetexten ("fraga") saknas eller är tom.'), r.errors.join("|"));
     assert.ok(r.errors.some((e) => /^Minst ett godkänt svar krävs/.test(e)));
     assert.equal(r.prov, p);
-    assert.equal(sparaFraga(p, null, "kortsvar", { ...FALT.kortsvar, poang: "1,5" }).errors[0], '"poang" måste vara ett heltal 0–100.');
+    // Halvpoäng (#762): "1,5" går, utanför 0,5–20 eller fel steg ger ett begripligt fel.
+    assert.equal(sparaFraga(p, null, "kortsvar", { ...FALT.kortsvar, poang: "1,5" }).prov.fragor[0].poang, 1.5);
+    assert.equal(sparaFraga(p, null, "kortsvar", { ...FALT.kortsvar, poang: "1,3" }).errors[0], 'Poängen ("poang") måste vara 0,5–20 i steg om 0,5.');
+    assert.equal(sparaFraga(p, null, "kortsvar", { ...FALT.kortsvar, poang: "?" }).ok, false, "ogiltigt sifferfält blir inte tyst 1");
   });
   it("redigera behåller frågans id och plats", () => {
     let p = sparaFraga(nyttProv(), null, "kortsvar", FALT.kortsvar).prov;

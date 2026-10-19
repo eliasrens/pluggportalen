@@ -4,16 +4,21 @@
 // några med nivå), två har bara förslag ("ej rättade") och en är halvrättad.
 // Klassen har också tre äldre prov – fliken "Prov" i klassens statistik visar
 // dem över tid. Allt i minnet + localStorage (pp:preview742). ?nollstall = börja om.
+// #765: ?avsnitt = samma prov indelat i tre avsnitt med halvpoäng (två frågor à
+// 0,5 p – ingen "Delvis"), poängkriterier på fritexten och "Visa poängkriterierna"
+// på; de tillbakalämnade har kriterierna (elevresultatet #/elev/resultat?e=e0).
 // ============================================================================
 import { stavfelFor, validateProv } from "../../src/prov/prov-validera.js";
 import { pvInstallningar, pvNollstall, pvNyckel } from "../prov-installningar-pv.js";
 import { delaUppProv } from "../../src/prov/prov-modell.js";
+import { arFraga } from "../../src/prov/prov-fragetyper.js";
 import { aterlamnadDok, bedom, godkann, godkannAlla, nyRattning, sparDok } from "../../src/prov/prov-rattning-logik.js";
 import { provInfoDok } from "../../src/prov/prov-statistik.js";
 
 // #759: ?stavfel=sjalv, ?granser=50-75, ?gammalt (prov-installningar-pv.js) – egen nyckel per val.
-const NYCKEL = pvNyckel("pp:preview742");
-export const PROV = validateProv({
+export const PV_AVSNITT = new URLSearchParams(location.search).has("avsnitt");
+const NYCKEL = pvNyckel("pp:preview742") + (PV_AVSNITT ? ":avsnitt" : "");
+const GRUND = {
   namn: "Vikingatiden – kapitelprov",
   installningar: { poang: true, nivaer: true, visaFacit: true },
   fragor: [
@@ -31,7 +36,22 @@ export const PROV = validateProv({
     { id: "q11", typ: "fritext", fraga: "Beskriv livet på en vikingagård.", poang: 4, bedomningsstod: "Djur, hus och arbete. 4 p = alla tre med exempel." },
     { id: "q12", typ: "fritext", fraga: "Varför reste vikingarna?", poang: 2, bedomningsstod: "Handel, plundring, ny mark." },
   ],
-}).value;
+};
+// #765: tre avsnitt, halvpoäng och poängkriterier (samma frågor och svar).
+const MED_AVSNITT = {
+  ...GRUND,
+  installningar: { ...GRUND.installningar, visaKriterier: true },
+  fragor: GRUND.fragor.flatMap((f) => {
+    const ny = { q1: { poang: 0.5 }, q2: { poang: 0.5 }, q7: { poang: 1.5 }, q10: { poang: 2.5 },
+      q11: { poang: 4.5, kriterier: ["1 p: nämner djuren", "1 p: nämner långhuset", "+1 p: beskriver arbetet", "+1,5 p: förklarar med exempel"] },
+      q12: { poang: 2.5, kriterier: ["1 p: nämner en orsak", "+1 p: nämner två orsaker", "+0,5 p: förklarar varför"] } }[f.id] || {};
+    const fore = { q1: { id: "a1", typ: "avsnitt", titel: "Del 1 – Fakta", instruktion: "Svara kort. Kryssa eller skriv ett ord." },
+      q7: { id: "a2", typ: "avsnitt", titel: "Del 2 – Para ihop och ordna" },
+      q11: { id: "a3", typ: "avsnitt", titel: "Del 3 – Skriv och förklara", instruktion: "Skriv hela meningar." } }[f.id];
+    return [...(fore ? [fore] : []), { ...f, ...ny }];
+  }),
+};
+export const PROV = validateProv(PV_AVSNITT ? MED_AVSNITT : GRUND).value;
 
 const NAMN = ["Alva", "Bo", "Cleo", "Dante", "Ebba", "Filip", "Greta", "Hugo", "Ines", "Jamal", "Klara", "Liam", "Maja",
   "Nils", "Olivia", "Pelle", "Rut", "Sami", "Tilde", "Ugo", "Vera", "William", "Ylva", "Zara", "Åke"];
@@ -65,7 +85,7 @@ function svarFor(f, ratt, r) {
 
 function start() {
   const nu = Date.now();
-  const { fragor, facit, bedomningsstod } = delaUppProv(PROV);
+  const { fragor, facit, bedomningsstod, kriterier } = delaUppProv(PROV);
   const tf = {
     id: "tf-s", provId: "p1", provNamn: PROV.namn, classId: "4b", status: "stangt", fragor,
     installningar: pvInstallningar(PROV.installningar), tidsgransMin: 40, oppnad: nu - 86_400_000, stangd: nu - 86_400_000 + 45 * 60_000,
@@ -75,6 +95,7 @@ function start() {
   IDS.forEach((id, i) => {
     const s = {};
     for (const f of fragor) {
+      if (!arFraga(f)) continue;
       if (r() < 0.05 + (1 - KAN[i]) * 0.08) continue; // obesvarad
       s[f.id] = svarFor(f, r() < KAN[i], r);
     }
@@ -99,9 +120,10 @@ function start() {
     if (i % 3 === 0) x = { ...x, niva: KAN[i] >= 0.8 ? "MG" : KAN[i] >= 0.45 ? "G" : "EG" };
     if (uid === "e2") x = bedom(x, fragor.find((f) => f.id === "q5"), { ratt: "delvis", kommentar: "Nästan – kolla stavningen." }, fragor);
     if (i < 6) x = { ...x, helhetskommentar: "Bra kämpat! Läs om gudarna en gång till." };
-    rattning[uid] = i < 5 ? { ...aterlamnadDok(dok(x), { visaFacit: true, facit }), aterlamnadAt: nu - 3_600_000 } : dok(x);
+    const krit = tf.installningar.visaKriterier === true ? kriterier : null; // #765: som rättningslagret
+    rattning[uid] = i < 5 ? { ...aterlamnadDok(dok(x), { visaFacit: true, facit, kriterier: krit }), aterlamnadAt: nu - 3_600_000 } : dok(x);
   });
-  return { tf, facit, bedomningsstod, svar, rattning };
+  return { tf, facit, bedomningsstod, kriterier, svar, rattning };
 }
 
 // Tre äldre prov (bara rättningsdokument, som collection group-frågan ger dem).
@@ -147,8 +169,8 @@ export const S = {
   fragorMotDb: 0,
   natfel: false,
   spara() {
-    const { tf, facit, bedomningsstod, svar, rattning } = S;
-    localStorage.setItem(NYCKEL, JSON.stringify({ tf, facit, bedomningsstod, svar, rattning }));
+    const { tf, facit, bedomningsstod, kriterier, svar, rattning } = S;
+    localStorage.setItem(NYCKEL, JSON.stringify({ tf, facit, bedomningsstod, kriterier, svar, rattning }));
   },
   logg: (t) => window.dispatchEvent(new CustomEvent("pv-logg", { detail: t })),
 };
