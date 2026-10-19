@@ -677,8 +677,8 @@ räkneverket när den öppnas om det inte stämmer. Märket "Prov 18" i toppmeny
 En elevs inlämning medan provet är öppet räknas först vid Stäng eller när rättningen öppnas (en elevskrivning på
 tillfället skulle gå ut till alla elevers lyssnare). Detaljer: [`LARARSIDAN_HEM_LASNINGAR.md`](LARARSIDAN_HEM_LASNINGAR.md).
 Stäng och Öppna igen räknar mot det lagrade räkneverket (en transaktion, ett
-inaktuellt tillfälle i minnet skriver inte över rättade). Äldre tillfällen får flaggan när Provtillfällen laddas, eller
-alla på en gång med `node admin/backfill-att-ratta.mjs --commit`. Inga regeländringar (testat i `test/firestore-rules-prov-raknare.test.js`).
+inaktuellt tillfälle i minnet skriver inte över rättade). Äldre tillfällen får flaggan när Provtillfällen laddas (den
+listan läser redan alla tillfällen), när rättningen öppnas eller när provet stängs. Inga regeländringar (testat i `test/firestore-rules-prov-raknare.test.js`).
 
 ## Statistiken (E, #742, §7.5)
 

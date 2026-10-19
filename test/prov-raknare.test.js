@@ -15,7 +15,7 @@ import assert from "node:assert/strict";
 import { installeraMinnesFirestore } from "./helpers/minnes-firestore-loader.js";
 import { EXEMPEL } from "./helpers/prov-exempel.js";
 import {
-  attRattaAntal, attRattaCache, attRattaRader, backfillPlan, flaggaStammer, glomAttRatta, raknareFalt, rattaHash, stangRaknare,
+  attRattaAntal, attRattaCache, attRattaRader, flaggaStammer, glomAttRatta, raknareFalt, rattaHash, stangRaknare,
   summaAttRatta, uppgraderaFalt,
 } from "../src/prov/prov-raknare.js";
 
@@ -50,16 +50,11 @@ describe("prov-raknare (rena hjälpare)", () => {
     assert.equal(summaAttRatta(rader), 19);
     assert.equal(rattaHash("a b"), "#/larare/prov/ratta?t=a%20b");
   });
-  it("F2: äldre tillfällen – uppgraderaFalt (lat) och backfillPlan (engångsskriptet)", () => {
+  it("F2: äldre tillfällen – uppgraderaFalt (lat uppskrivning)", () => {
     assert.deepEqual(uppgraderaFalt({ status: "stangt", rattStatus: { antal: 3, rattade: 1 } }),
       { rattStatus: { antal: 3, rattade: 1, tillbaka: 0 }, attRatta: true });
     assert.equal(uppgraderaFalt({ status: "stangt", rattStatus: { antal: 3, rattade: 1 }, attRatta: true }), null, "redan rätt");
     assert.equal(uppgraderaFalt({ status: "stangt" }), null, "utan räkneverk kan klienten inte räkna");
-    assert.equal(backfillPlan({ status: "stangt", rattStatus: { antal: 2, rattade: 2 } }), "flagga");
-    assert.equal(backfillPlan({ status: "stangt" }), "rakna");
-    assert.equal(backfillPlan({ status: "stangt", rattStatus: { antal: 2, rattade: 2, tillbaka: 0 }, attRatta: false }), null);
-    assert.equal(backfillPlan({ status: "oppet" }), null, "öppet räknas när det stängs");
-    assert.equal(backfillPlan({ status: "forberett" }), null);
   });
   it("glomAttRatta tömmer sessionscachen", () => {
     Object.assign(attRattaCache, { nyckel: "x", tid: Date.now(), lofte: Promise.resolve([]) });
