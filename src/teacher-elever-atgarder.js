@@ -14,7 +14,7 @@
 // ============================================================================
 
 import * as data from "./data.js";
-import { el, esc, icon } from "./teacher-shared.js";
+import { el, errText, esc, icon } from "./teacher-shared.js";
 import { coinIcon } from "./icons.js";
 import { giveCoinsHtml, renderAddExisting, renderCreateAccounts, renderNameEditor, wireGiveCoins } from "./teacher-class-accounts.js";
 import { fordelaMynt } from "./teacher-elever-val.js";
@@ -34,9 +34,9 @@ const ram = (host, titel, stang) => {
 
 /**
  * Panelen under en elevrad för valet `typ` i menyn ⋯.
- * @param {{cls, s, students, stang, namnAndrat, saldo, borta}} o
+ * @param {{cls, s, students, stang, namnAndrat, saldo, borta, fel}} o  fel(html) = besked ovanför tabellen
  */
-export function oppnaRadpanel(host, typ, { cls, s, students, stang, namnAndrat, saldo, borta }) {
+export function oppnaRadpanel(host, typ, { cls, s, students, stang, namnAndrat, saldo, borta, fel }) {
   const namn = esc(s.namn || s.username || s.id);
   const klass = esc(cls.name || cls.id);
   host.hidden = false;
@@ -71,7 +71,14 @@ export function oppnaRadpanel(host, typ, { cls, s, students, stang, namnAndrat, 
         const nextIds = (cls.studentIds || []).filter((id) => id !== s.id);
         await data.setClassStudents(cls.id, nextIds);
         cls.studentIds = nextIds;
-        await data.deleteStudent(s.id);
+        try {
+          await data.deleteStudent(s.id);
+        } catch (err) {
+          // Eleven är redan ur klassen – rita om (raden försvinner) och säg att kontot finns kvar (#805 F4).
+          borta();
+          fel(`Kunde inte ta bort kontot för <b>${namn}</b> (${esc(errText(err))}). Eleven är tagen ur klassen ${klass}, men kontot finns kvar – lägg till eleven igen under Lägg till elev, eller försök igen.`);
+          return;
+        }
         const idx = students.findIndex((x) => x.id === s.id);
         if (idx >= 0) students.splice(idx, 1);
         borta();

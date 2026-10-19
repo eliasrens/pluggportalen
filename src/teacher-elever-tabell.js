@@ -39,6 +39,7 @@ export function renderElevTabell(ctx, { cls, state, host, admin = false, onChang
   const klassnamn = cls.name || cls.id;
   let sok = "";
   const credsHost = el(`<div class="mm-creds"></div>`);
+  const besked = el(`<div class="et-besked" role="alert"></div>`); // fel som gäller tabellen (t.ex. Ta bort konto, #805 F4)
   const showCreds = (created) =>
     credsHost.replaceChildren(credentialsPanel(klassnamn, created, creds && (() => (creds.clear(), credsHost.replaceChildren()))));
   if (creds?.initial) showCreds(creds.initial);
@@ -114,7 +115,8 @@ export function renderElevTabell(ctx, { cls, state, host, admin = false, onChang
     knappar.querySelectorAll("[data-klass]").forEach((b) => b.setAttribute("aria-expanded", "false"));
   }
   function visaKlassfel(html) {
-    credsHost.prepend(el(`<div class="msg error">${html}</div>`));
+    besked.replaceChildren(el(`<div class="msg error" tabindex="-1">${html}</div>`));
+    besked.firstElementChild.focus();
   }
 
   // --- Sök ------------------------------------------------------------------
@@ -140,6 +142,7 @@ export function renderElevTabell(ctx, { cls, state, host, admin = false, onChang
     stangMeny();
     ritaKnappar();
     const rader = medlemmar();
+    wrap.querySelector(".et-fot").hidden = !rader.length; // fotnoten om ⋯ bara när det finns rader (#805 F3)
     if (!rader.length) {
       lista.replaceChildren(el(`<p class="hint">Inga elever i klassen än${admin ? " – lägg till med Lägg till elev." : "."}</p>`));
       return;
@@ -203,6 +206,7 @@ export function renderElevTabell(ctx, { cls, state, host, admin = false, onChang
         },
         saldo: (nytt) => visaVarde(rad.querySelector(".et-mynt .et-varde"), `${nytt} ${coinIcon("1em")}`),
         borta: andrat,
+        fel: visaKlassfel,
       });
       lista.querySelectorAll(".et-elev").forEach((r) => r !== rad && stangPanel(r));
     });
@@ -268,7 +272,7 @@ export function renderElevTabell(ctx, { cls, state, host, admin = false, onChang
   document.addEventListener("click", utanfor);
   document.addEventListener("keydown", tangent);
 
-  host.replaceChildren(credsHost, wrap);
+  host.replaceChildren(credsHost, besked, wrap);
   draw();
 }
 

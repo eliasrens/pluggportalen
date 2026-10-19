@@ -108,6 +108,18 @@ describe("bekräftelse på sidan, aldrig confirm()/prompt()/alert()", () => {
       assert.doesNotMatch(utanKommentarer(src(f)), /\b(confirm|prompt|alert)\(/, f);
     }
   });
+  it("bekräftelserutan fokuserar Avbryt – Enter bekräftar aldrig av misstag (#805 F3)", () => {
+    const b = src("teacher-bekrafta.js");
+    assert.match(b, /ruta\.querySelector\("\.et-avbryt"\)\.focus\(\)/);
+    assert.doesNotMatch(utanKommentarer(b), /ja\.focus\(\)/);
+  });
+  it("Ta bort konto: misslyckas raderingen efter att eleven tagits ur klassen ritas tabellen om med ett fel (#805 F4)", () => {
+    const a = src("teacher-elever-atgarder.js");
+    assert.match(a, /await data\.setClassStudents\(cls\.id, nextIds\);\s*cls\.studentIds = nextIds;\s*try \{\s*await data\.deleteStudent\(s\.id\);\s*\} catch \(err\) \{[\s\S]*?borta\(\);\s*fel\(/);
+  });
+  it("Ge mynt per elev har samma gräns som hela klassen (fordelaMynt)", () => {
+    assert.match(src("teacher-class-accounts.js"), /const \{ antal: amount, fel \} = fordelaMynt\(amountEl\.value\);/);
+  });
   it("Ta ur klassen, Ta bort konto och Ta bort klass går via bekrafta()", () => {
     const a = src("teacher-elever-atgarder.js");
     assert.match(a, /typ === "ur"\) \{\s*return bekrafta\(host, \{/);

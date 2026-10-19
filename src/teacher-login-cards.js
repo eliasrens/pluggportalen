@@ -55,7 +55,7 @@ export function renderAccountEditor(host, { count, prefix, className, taken, onC
       <h3 class="subhead sm">${icon("pencil", 18)}<span>Kontrollera och ändra inloggningsuppgifter (${plan.length})</span></h3>
       <p class="hint">Uppgifterna är ifyllda med förslag – ändra fritt eller klicka
         på slumpa-knappen för nya. När det ser bra ut skapar du kontona. Lösenorden sparas så att
-        du kan se dem igen under <b>Inloggning</b> och skriva ut inloggningskort.</p>
+        du kan se dem igen under Mina klasser → <b>Elever</b> (Visa) och skriva ut inloggningskort.</p>
     </div>
     <div class="row-inline acct-editor-tools">
       <button type="button" class="btn ghost small ae-gen-all">${icon("shuffle", 16)}<span>Generera alla</span></button>
@@ -261,7 +261,7 @@ export function credentialsPanel(className, created, onClose) {
   const box = el(`<div class="cred-panel">
     <div class="cred-warn">✓ ${created.length} konto${created.length === 1 ? "" : "n"} skapade.
       Skriv ut eller kopiera inloggningarna. Lösenorden finns sparade (bara för lärare) under
-      <b>Inloggning</b> hos varje elev – där kan du också byta användarnamn och lösenord.</div>
+      Mina klasser → <b>Elever</b>: <b>Visa</b> på elevens rad, och byt dem under <b>⋯ → Byt lösenord</b>.</div>
     <div class="table-scroll"><table class="tbl cred-tbl">
       <thead><tr><th>Namn</th><th>Användarnamn</th><th>Lösenord</th></tr></thead>
       <tbody>${rows}</tbody>

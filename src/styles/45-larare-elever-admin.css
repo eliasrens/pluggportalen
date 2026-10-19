@@ -33,6 +33,8 @@
 }
 .teacher-dark .et-sok-falt:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 1px; }
 .teacher-dark .et-fot { margin: 0; }
+.teacher-dark .et-fot[hidden],
+.teacher-dark .et-besked:empty { display: none; }
 
 /* --- Tabellen ------------------------------------------------------------- */
 .teacher-dark .et-tabell {
@@ -70,10 +72,11 @@
 .teacher-dark .et-anv { color: var(--t-text); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.92rem; }
 .teacher-dark .et-lbl { display: none; color: var(--t-muted); font-family: inherit; font-size: 0.8rem; font-weight: 600; }
 .teacher-dark .et-los,
-.teacher-dark .et-mynt { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; }
+.teacher-dark .et-mynt { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; overflow-wrap: anywhere; }
+.teacher-dark .et-varde { min-width: 0; max-width: 100%; }
 .teacher-dark .et-visa { padding: 4px 10px; }
 .teacher-dark .et-visat { font-weight: 700; color: var(--t-text); }
-.teacher-dark .et-kod { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.95rem; color: #eafff2; }
+.teacher-dark .et-kod { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.95rem; color: #eafff2; overflow-wrap: anywhere; min-width: 0; max-width: 100%; }
 .teacher-dark .et-okant { color: var(--t-muted); font-style: italic; }
 .teacher-dark .et-satt-nytt { padding: 3px 8px; }
 .teacher-dark .et-ingen { margin: 8px 0 0; }

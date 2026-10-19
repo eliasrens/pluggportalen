@@ -19,6 +19,7 @@ import { AVATARS, avatarEmoji, isBuyableAvatar } from "./avatars.js";
 import { el, errText, esc, icon } from "./teacher-shared.js";
 import { coinIcon } from "./icons.js";
 import { renderAccountEditor, credentialsPanel } from "./teacher-login-cards.js";
+import { fordelaMynt } from "./teacher-elever-val.js";
 // credentialsPanel bor i teacher-login-cards.js (fil-cap, #440) – exportnamnet
 // behålls här för befintliga importörer (preview/preview-larare.html).
 export { credentialsPanel };
@@ -125,9 +126,10 @@ export function wireGiveCoins(row, student, onGiven) {
     })
   );
   giveBtn.addEventListener("click", async () => {
-    const amount = Math.floor(Number(amountEl.value));
-    if (!Number.isFinite(amount) || amount <= 0) {
-      flashEl.innerHTML = `<span class="gc-err">Skriv ett antal (positivt tal).</span>`;
+    // Samma gräns som Ge hela klassen mynt (#805 F3): heltal 1–1000.
+    const { antal: amount, fel } = fordelaMynt(amountEl.value);
+    if (fel) {
+      flashEl.innerHTML = `<span class="gc-err">${esc(fel)}</span>`;
       amountEl.focus();
       return;
     }

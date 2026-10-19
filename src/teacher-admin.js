@@ -144,7 +144,8 @@ export async function pageLarareAdmin(ctx) {
     const [alla, { bekrafta }] = await Promise.all([klasser(), import("./teacher-bekrafta.js")]);
     const lista = sortClasses(alla);
     if (!lista.length) return host.replaceChildren(tomt());
-    const besked = el(`<div class="adm-besked" aria-live="polite"></div>`);
+    const besked = el(`<div class="adm-besked" aria-live="polite" tabindex="-1"></div>`);
+    let stangOppen = null; // bara EN bekräftelseruta åt gången (#805 F3)
     host.replaceChildren(el(`<p class="hint">Elevkontona finns kvar när en klass tas bort – bara grupperingen försvinner.</p>`), besked,
       ...lista.map((c) => {
         const rad = el(`<div class="adm-klassrad-wrap"><div class="adm-klassrad">
@@ -154,9 +155,17 @@ export async function pageLarareAdmin(ctx) {
         rad.querySelector("b").textContent = c.name || c.id;
         const knapp = rad.querySelector("button");
         const ruta = rad.querySelector(".adm-bekrafta");
-        const stang = () => ((ruta.hidden = true), ruta.replaceChildren(), knapp.setAttribute("aria-expanded", "false"), knapp.focus());
+        const stang = (fokus = true) => {
+          ruta.hidden = true;
+          ruta.replaceChildren();
+          knapp.setAttribute("aria-expanded", "false");
+          if (stangOppen === stang) stangOppen = null;
+          if (fokus) knapp.focus();
+        };
         knapp.addEventListener("click", () => {
           if (!ruta.hidden) return stang();
+          stangOppen?.(false);
+          stangOppen = stang;
           knapp.setAttribute("aria-expanded", "true");
           bekrafta(ruta, {
             text: `Ta bort klassen <b>${esc(c.name || c.id)}</b>? Elevkontona finns kvar – bara grupperingen försvinner.`,
@@ -167,9 +176,13 @@ export async function pageLarareAdmin(ctx) {
               const i = alla.indexOf(c);
               if (i >= 0) alla.splice(i, 1);
               if (readSavedClass() === c.id) saveClass(null);
+              stangOppen = null;
+              // Fokus till nästa klass Ta bort…-knapp (annars föregående), sist till beskedet.
+              const nasta = (rad.nextElementSibling || rad.previousElementSibling)?.querySelector?.(".adm-klassrad button");
               rad.remove();
               besked.innerHTML = `<div class="msg ok">✓ Klassen "${esc(c.name || c.id)}" togs bort. Elevkontona finns kvar.</div>`;
               if (!alla.length) host.append(tomt());
+              (nasta || besked).focus();
             },
           });
         });

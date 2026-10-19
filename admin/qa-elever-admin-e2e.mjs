@@ -150,6 +150,18 @@ const ADMINTEXT = /Ge mynt|Ge hela klassen mynt|Ta ur klassen|Ta bort konto|Läg
   const losLas = await b.js(`window.__ppStub.rakna.logg.filter((l) => l.startsWith("las"))`);
   kolla("Visa lösenord: exakt en läsning (studentCredentials för eleven)", losLas.length === 1 && /studentCredentials\/stub-cleo/.test(losLas[0]), JSON.stringify(losLas));
 
+  // Långt lösenord (64 tecken, största tillåtna) får inte ge sidscroll (#805 F1).
+  await b.js(`(async () => { const fs = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+    await fs.setDoc(fs.doc(fs.getFirestore(), "studentCredentials", "stub-alva"), { username: "4a01", password: "${"x".repeat(64)}" }); })()`);
+  await b.js(`${radMed("Alva")}.querySelector(".et-los .et-visa").click()`);
+  await b.tills(`${radMed("Alva")}.querySelector(".et-kod")?.textContent.length === 64`);
+  for (const w of [320, 768]) {
+    await b.storlek(w, 780);
+    await vanta(300);
+    kolla(`långt lösenord (64 tecken) vid ${w} px: ingen horisontell scroll`, await b.js(ingenSidscroll), String(await b.js("document.documentElement.scrollWidth")));
+  }
+  await b.storlek(1366, 900);
+
   // Sök.
   await skriv(b, ".et-sok-falt", "bi");
   kolla("sök 'bi' → bara Bilal", (await b.js(synligaNamn)) === "Bilal", await b.js(synligaNamn));
@@ -217,6 +229,8 @@ const ADMINTEXT = /Ge mynt|Ge hela klassen mynt|Ta ur klassen|Ta bort konto|Läg
   await b.js(`${radMed("Alva")}.querySelector(".et-meny-knapp").click()`);
   await klick(b, '.et-meny:not([hidden]) [data-val="mynt"]');
   await b.tills(`!!${radMed("Alva")}.querySelector(".et-panel .gc-give")`);
+  kolla("Ge mynt: samma gräns som hela klassen (1001 nekas)", await b.js(`(async () => { const r = ${radMed("Alva")}; r.querySelector(".et-panel .gc-amount").value = "1001"; r.querySelector(".et-panel .gc-give").click();
+    await new Promise((v) => setTimeout(v, 200)); return /Högst 1000/.test(r.querySelector(".gc-flash").textContent); })()`));
   await b.js(`${radMed("Alva")}.querySelector(".et-panel .gc-quick[data-add='50']").click(); ${radMed("Alva")}.querySelector(".et-panel .gc-give").click()`);
   kolla("Ge mynt (+50) → nytt saldo 97 i panelen och kolumnen", await b.tills(`/nytt saldo: 97/.test(${radMed("Alva")}.querySelector(".gc-flash").textContent) && /^97/.test(${radMed("Alva")}.querySelector(".et-mynt .et-visat").textContent.trim())`));
 
@@ -243,6 +257,7 @@ const ADMINTEXT = /Ge mynt|Ge hela klassen mynt|Ta ur klassen|Ta bort konto|Läg
   await b.js(`${radMed("Dante")}.querySelector(".et-meny-knapp").click()`);
   await klick(b, '.et-meny:not([hidden]) [data-val="ur"]');
   kolla("Ta ur klassen: bekräftelseruta under raden", await b.tills(`/Ta <?b?>?Dante|Dante/.test(${radMed("Dante")}.querySelector(".et-bekrafta")?.textContent || "")`));
+  kolla("… fokus på Avbryt", await b.js(`document.activeElement?.classList.contains("et-avbryt")`));
   await b.bild("efter-admin-desktop-bekrafta", false);
   await b.js(`${radMed("Dante")}.querySelector(".et-avbryt").click()`);
   kolla("… Avbryt stänger, Dante kvar", await b.js(`!!${radMed("Dante")} && ${radMed("Dante")}.querySelector(".et-panel").hidden`));
@@ -292,9 +307,14 @@ const ADMINTEXT = /Ge mynt|Ge hela klassen mynt|Ta ur klassen|Ta bort konto|Läg
   await b.tills(`document.querySelectorAll(".adm-klassrad").length === 10`);
   await b.js(`[...document.querySelectorAll(".adm-klassrad-wrap")].find((r) => r.querySelector("b").textContent === "Flex").querySelector("button").click()`);
   kolla("Ta bort klass: bekräftelseruta på sidan", await b.tills(`/Ta bort klassen Flex/.test(document.querySelector(".adm-bekrafta:not([hidden]) .et-bekrafta")?.textContent || "")`));
+  kolla("… fokus på Avbryt (Enter bekräftar inte av misstag)", await b.js(`document.activeElement?.classList.contains("et-avbryt")`));
+  await b.js(`[...document.querySelectorAll(".adm-klassrad-wrap")].find((r) => r.querySelector("b").textContent === "Studion").querySelector("button").click()`);
+  await b.js(`[...document.querySelectorAll(".adm-klassrad-wrap")].find((r) => r.querySelector("b").textContent === "Flex").querySelector("button").click()`);
+  kolla("… bara EN bekräftelseruta öppen åt gången", (await b.js(`document.querySelectorAll(".adm-bekrafta:not([hidden])").length`)) === 1);
   await b.bild("efter-admin-desktop-ta-bort-klass", false);
   await klick(b, ".adm-bekrafta:not([hidden]) .et-ja");
   kolla("… Ja → Flex borttagen", await b.tills(`/Flex" togs bort/.test(document.querySelector(".adm-besked").textContent) && !window.__ppStub.las("classes/flex")`));
+  kolla("… fokus flyttar till grannklassens Ta bort…", await b.js(`document.activeElement?.closest(".adm-klassrad-wrap")?.querySelector("b")?.textContent === "Studion"`));
 
   await klick(b, '.adm-kortet[data-verktyg="skapa"]');
   await b.tills(`!!document.querySelector(".adm-panel #new-name")`);
@@ -302,6 +322,7 @@ const ADMINTEXT = /Ge mynt|Ge hela klassen mynt|Ta ur klassen|Ta bort konto|Läg
   kolla("Skapa klass 6Z (0 elever) → Mina klasser → Elever för 6Z med beskedet", await b.tills(`/klass=6z&flik=elever/.test(location.hash) && document.querySelector(".mk-namn")?.textContent === "6Z" && /Klassen "6Z" skapades/.test(document.querySelector(".mk-flash").textContent)`));
   const tomKnappar = `[...document.querySelectorAll(".et-knappar button")].map((k) => k.textContent.trim()).join("|")`;
   kolla("… tom klass: Lägg till elev finns, ingen utskrift", await b.tills(`${tomKnappar} === "Lägg till elev"`), await b.js(tomKnappar));
+  kolla("… tom klass: ingen fotnot om ⋯", await b.js(`document.querySelector(".et-fot").hidden && !document.querySelector(".et-fot").offsetParent`));
 
   // Mobil.
   for (const w of [320, 375]) {

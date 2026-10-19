@@ -4,7 +4,8 @@
 // #805 (epic #802 §3.4/3.5): destruktiva val (Ta ur klassen, Ta bort konto, Ta
 // bort klass) bekräftas i en ruta på sidan, aldrig med confirm(). Delas av
 // elevtabellen (teacher-elever-atgarder.js) och Admin-sidan (teacher-admin.js).
-// Laddas bara med import() via dem (#271).
+// Fokus hamnar på Avbryt, så Enter aldrig bekräftar av misstag. Laddas bara med
+// import() via dem (#271).
 // ============================================================================
 
 import { el, errText, esc } from "./teacher-shared.js";
@@ -38,6 +39,7 @@ export function bekrafta(host, { text, knapp, farlig = true, onJa, onAvbryt }) {
   ruta.querySelector(".et-avbryt").addEventListener("click", () => onAvbryt());
   host.replaceChildren(ruta);
   host.hidden = false;
-  ja.focus();
+  // Avbryt får fokus (#805 F3): Enter direkt efter öppnandet ska aldrig bekräfta.
+  ruta.querySelector(".et-avbryt").focus();
   return ruta;
 }
