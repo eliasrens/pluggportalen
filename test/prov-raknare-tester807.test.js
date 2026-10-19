@@ -110,4 +110,49 @@ describe("#807 tester – kantfall", () => {
     await td.oppnaTillfalle(tf, null);
     assert.equal(las("tG").rattStatus.antal, 1);
   });
+
+  it("H: äldre tillfälle UTAN rattStatus får aldrig flaggan av den lata uppskrivningen (syns inte förrän Stäng/rättningsvy)", async () => {
+    await skapa("tH", { status: "stangt" }, [["e1", RATT, true, "elev"]]);
+    assert.equal(await td.uppgraderaRaknare([{ id: "tH", ...las("tH") }]), 0);
+    assert.equal(las("tH").attRatta, undefined);
+    assert.ok(!(await attRatta.lasAttRattaTillfallen(["4a"])).some((t) => t.id === "tH"));
+  });
+
+  it("I: äldre tillfälle MED rattStatus utan flagga: uppskrivning en gång, sedan 0 skrivningar", async () => {
+    await skapa("tI", { status: "stangt", rattStatus: { antal: 3, rattade: 1, tillbaka: 0 } });
+    const tf = { id: "tI", ...las("tI") };
+    const fran = fs.rakna.logg.length;
+    assert.equal(await td.uppgraderaRaknare([tf]), 1);
+    assert.equal(las("tI").attRatta, true);
+    assert.ok((await attRatta.lasAttRattaTillfallen(["4a"])).some((t) => t.id === "tI"));
+    assert.equal(await td.uppgraderaRaknare([{ id: "tI", ...las("tI") }]), 0, "andra gången: inget att skriva");
+    assert.equal(fs.rakna.logg.slice(fran).filter((l) => l.startsWith("skriv")).length, 1);
+  });
+
+  it("J: tillfälle med rattade == antal och ingen flagga får attRatta:false, inte true", async () => {
+    await skapa("tJ", { status: "stangt", rattStatus: { antal: 2, rattade: 2, tillbaka: 2 } });
+    await td.uppgraderaRaknare([{ id: "tJ", ...las("tJ") }]);
+    assert.equal(las("tJ").attRatta, false);
+  });
+
+  it("L: märkets fråga har tak 50 och markerar fler", async () => {
+    for (let i = 0; i < 53; i++) await satt(`provTillfallen/tL${i}`, { provId: "p", provNamn: "L", classId: "4l", createdBy: "l1", status: "stangt", fragor: [], installningar: {}, rattStatus: { antal: 2, rattade: 0, tillbaka: 0 }, attRatta: true });
+    const ut = await attRatta.lasAttRattaTillfallen(["4l"]);
+    assert.equal(ut.length, 50);
+    assert.equal(ut.fler, true);
+    const few = await attRatta.lasAttRattaTillfallen(["4a"]);
+    assert.equal(few.fler, false);
+  });
+
+  it("M: utanDolda: admin ser inte dolda klassers rader; årskurs påverkas aldrig", async () => {
+    const rader = [{ classId: "4a", antal: 1 }, { classId: "4b", antal: 2 }];
+    rader.fler = true;
+    localStorage.setItem("pp:larare:adm:doldaKlasser", JSON.stringify(["4a"]));
+    const u = attRatta.utanDolda(rader, { admin: true, uid: "adm" });
+    assert.deepEqual(u.map((r) => r.classId), ["4b"]);
+    assert.equal(u.fler, true);
+    assert.equal(attRatta.utanDolda(rader, { admin: false, uid: "adm" }).length, 2);
+    localStorage.setItem("pp:larare:adm:doldaKlasser", "inte json");
+    assert.equal(attRatta.utanDolda(rader, { admin: true, uid: "adm" }).length, 2, "trasig lagring kastar inte");
+  });
 });

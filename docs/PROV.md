@@ -678,7 +678,8 @@ En elevs inlämning medan provet är öppet räknas först vid Stäng eller när
 tillfället skulle gå ut till alla elevers lyssnare). Detaljer: [`LARARSIDAN_HEM_LASNINGAR.md`](LARARSIDAN_HEM_LASNINGAR.md).
 Stäng och Öppna igen räknar mot det lagrade räkneverket (en transaktion, ett
 inaktuellt tillfälle i minnet skriver inte över rättade). Äldre tillfällen får flaggan när Provtillfällen laddas (den
-listan läser redan alla tillfällen), när rättningen öppnas eller när provet stängs. Inga regeländringar (testat i `test/firestore-rules-prov-raknare.test.js`).
+listan läser redan alla tillfällen), när rättningen öppnas eller när provet stängs – och alla på en gång med
+engångsskriptet `node admin/backfill-att-ratta.mjs --commit` (kör en gång efter webb-deployen). Inga regeländringar (testat i `test/firestore-rules-prov-raknare.test.js`).
 
 ## Statistiken (E, #742, §7.5)
 

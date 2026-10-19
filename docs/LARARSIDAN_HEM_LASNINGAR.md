@@ -69,15 +69,19 @@ kräva en ny elevregel på tillfället, och – värre – varje sådan skrivnin
 (Öppna → översikten där provet stängs); när läraren stänger, eller öppnar rättningen, räknas de inlämnade. Ett prov som rättas
 medan det är öppet räknas med rättningsvyns siffror (de som lämnat in när vyn öppnades).
 
-**Äldre tillfällen (före deployen, #807 F2)** saknar `attRatta`. Utan åtgärd skulle Hem kunna säga "Inget att göra" trots
-orättade prov. Lösningen är **lat uppskrivning utan extra läsningar**, inget engångsskript (ingen skulle köra det):
-- **Prov → Provtillfällen** läser redan alla tillfällen i lärarens klasser; varje tillfälle med räkneverk men utan rätt flagga
-  får `attRatta` där – en skrivning per sådant tillfälle, en gång (`uppgraderaRaknare` i `prov-tillfalle-data.js`).
-  (Listan **Mina prov** läser bara `prov`-dokumenten, inte tillfällena, så uppskrivningen ligger på Provtillfällen – fliken
-  bredvid, ett klick bort.)
-- Rättningsvyn och Stäng skriver också flaggan.
-- Ett stängt tillfälle som **aldrig** rättats har inget räkneverk alls; det kan inte räknas utan att läsa svaren (§1.3 förbjuder
-  det) och syns i märket först när läraren öppnar rättningen (knappen Rätta på Provtillfällen) eller stänger provet igen.
+**Äldre tillfällen (före deployen, #807 F2)** saknar `attRatta`, och de som aldrig rättats saknar även räkneverket. Utan
+åtgärd skulle Hem kunna säga "Inget att göra" trots orättade prov. Två vägar, båda kvar:
+- **Engångsskriptet `admin/backfill-att-ratta.mjs` – ett deploysteg, kör en gång efter webb-deployen (§5).** Torrkörning som
+  standard, skriver bara med `--commit`, idempotent. Räkneverk utan flagga → flaggan ur räkneverket (ingen läsning till);
+  stängt tillfälle **utan** räkneverk (aldrig rättat) → antal = inlämnade svar med en **count-fråga på svaren per gammalt prov**
+  (admin-SDK:t; klienten läser aldrig svar för att räkna). Förberedda och öppna utan räkneverk rörs inte (räknas när de stängs).
+  **Engångskostnad:** en läsning av varje tillfälle (`provTillfallen` hela samlingen) + en count-fråga per stängt, aldrig rättat
+  tillfälle (1 läsning per 1000 svar, alltså i praktiken 1 per prov) + en skrivning per tillfälle som ändras.
+- **Lat uppskrivning i webben (reserv, inga extra läsningar):** **Prov → Provtillfällen** läser redan alla tillfällen i
+  lärarens klasser; varje tillfälle med räkneverk men utan rätt flagga får `attRatta` där – en skrivning per sådant tillfälle,
+  en gång (`uppgraderaRaknare` i `prov-tillfalle-data.js`). Listan **Mina prov** läser bara `prov`-dokumenten, inte
+  tillfällena, så den lata vägen ligger på Provtillfällen. Rättningsvyn och Stäng skriver också flaggan. Ett stängt tillfälle
+  som aldrig rättats kan webben inte räkna (§1.3) – det tar skriptet.
 
 ## 3. "Inte övat på 14 dagar" och "Övat den här veckan" – gick billigt
 
@@ -112,7 +116,10 @@ varje medlem i projektionen fått **`members.<uid>.ovat`** = dagen eleven senast
 
 ## 5. Deploy
 
-- **Webben** (Pages) – det är allt som krävs.
+- **Webben** (Pages).
+- **Kör en gång efter webb-deployen:** `node admin/backfill-att-ratta.mjs` (torrkörning – visar planen) och sedan
+  `node admin/backfill-att-ratta.mjs --commit`. Kräver admin-nyckeln som övriga skript i `admin/` (`docs/ADMIN.md`). Kostnad
+  ovan (§2); utan skriptet syns äldre orättade prov först när en lärare öppnar Provtillfällen eller rättningen.
 - **Inga regler, inga index, inga functions.** Lärarens uppdatering av tillfället har ingen fältlista i reglerna (bara
   `validTillfalle` + oförändrat `classId`/`provId`/`createdBy`/`elevIds`/`omprovAv`), och klassmedlemmar skriver redan sin egen
   projektionspost fritt. `test/firestore-rules-prov-raknare.test.js` visar att skrivningarna och frågorna går med dagens regler, och
