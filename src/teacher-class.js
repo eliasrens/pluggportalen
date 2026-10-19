@@ -110,7 +110,7 @@ async function loadClassProgress(students) {
 
 // Statistikens underflikar. `lazy` = modulen laddas med import() vid första
 // klick – aldrig i bootgrafen (#271). En ny vy = en rad här.
-const STATS_TABS = [
+export const STATS_TABS = [
   { key: "amnen", label: "Ämnen", icon: "chart", render: (ctx, pane, o) => renderSubjectStats(ctx, pane, o) },
   {
     key: "omraden", label: "Per område", icon: "pin", what: "resultat per område", lazy: true,

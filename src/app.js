@@ -30,12 +30,9 @@
 //   #/elev/profil     profil: avatar, namn, coins, statistik
 //   #/elev/klassfoto  (borttagen sida – omdirigerar till #/elev/by, klassbyn)
 //   #/elev/klasskamrat  en klasskamrats rum i läsläge (?id=<studentId>)
-//   #/larare          → #/larare/oversikt (Översikt, #679)
-//   #/larare/klass    → #/larare/statistik (elevers framsteg per klass)
-//   #/larare/klasser  Klasser (synlighet, fokusläge, inloggning); skapa/ändra klasser + konton under Admin
-//   #/larare/live     Live: skapa session, aktiva sessioner, historik; ?id= = projektorvy (#460)
-//   #/larare/innehall innehållsinmatning (arbetsområdes-JSON) + AI-promptbyggare
-//   #/larare/elever   (sammanslagen med #/larare/klasser – omdirigerar dit)
+//   #/larare/…        lärarsidan: routes ur TEACHER_TABS, gamla adresser (#/larare,
+//                     #/larare/oversikt, /klass, /elever, /prompter …) omdirigeras via
+//                     TEACHER_REDIRECTS (teacher-shared.js, #803)
 //
 // Hash-routing används medvetet så att GitHub Pages inte behöver någon
 // server-omskrivning (alla "sidor" ligger i index.html).
@@ -54,7 +51,7 @@ import {
 } from "./pages-elev.js";
 // Lärarsidans flikar (#440): routes registreras ur flik-registryn TEACHER_TABS;
 // sidmodulerna laddas med import() (utanför den statiska bootgrafen, #271).
-import { TEACHER_TABS } from "./teacher-shared.js";
+import { TEACHER_TABS, teacherRedirect } from "./teacher-shared.js";
 // Klasskamratens rum (#/elev/klasskamrat) – läs-endast vy av en annan elevs rum.
 import { pageElevKlasskamrat } from "./pages-klasskamrat.js";
 import { pageElevShop } from "./pages-shop.js";
@@ -261,21 +258,8 @@ const routes = {
   "/elev/klassfoto": () => go("#/elev/by"),
   // Klasskamratens rum (#/elev/klasskamrat?id=…) – läs-endast vy av annans rum.
   "/elev/klasskamrat": pageElevKlasskamrat,
-  // #/larare → Översikt (#679, ny struktur). Lärarspärren (renderGate) visas av
-  // sidan själv om man inte är inloggad.
-  "/larare": () => go("#/larare/oversikt"),
-  // Klassöversikt/statistik (gamla #/larare/klass) är sammanslagen med Klasser &
-  // elever (issue #299): framstegsmatrisen är nu en 📊-expander per klasskort.
-  // Gamla länkar/bokmärken skickas dit (samma mönster som /larare/elever).
-  "/larare/klass": () => go("#/larare/statistik"),
-  // #/larare/klasser (klass-master-detail) och #/larare/innehall registreras
-  // ur TEACHER_TABS nedanför routes-objektet (#440).
-  // AI-prompt-sidan är sammanslagen med innehållssidan (issue #62): den
-  // dynamiska promptbyggaren bor nu där. Gamla länkar/bokmärken skickas dit.
-  "/larare/prompter": () => go("#/larare/innehall"),
-  // Elevkontohanteringen är sammanslagen med klass-sidan (klass-centrerad). Gamla
-  // länkar/bokmärken skickas dit (samma mönster som /larare/prompter).
-  "/larare/elever": () => go("#/larare/klasser"),
+  // Lärarflikarna registreras ur TEACHER_TABS nedanför (#440); gamla lärar-
+  // adresser omdirigeras i router() via TEACHER_REDIRECTS (#803).
   // Prov (#740): lärarens översikt över ett provtillfälle (?t=<tillfälle>).
   "/larare/prov/tillfalle": async () =>
     (await import("./prov/prov-tillfallen-sida.js")).pageProvTillfalle(teacherCtx),
@@ -340,7 +324,7 @@ onSessionLost(() => {
   const { path } = aktuellRutt();
   const larare = path === "/larare" || path.startsWith("/larare/");
   if (!larare && !path.startsWith("/elev/")) return void takeSessionLostNotice();
-  const dit = larare ? "#/larare/oversikt" : "#/";
+  const dit = larare ? "#/larare/hem" : "#/";
   if ((window.location.hash || "#/") === dit) router();
   else window.location.replace(dit);
 });
@@ -356,6 +340,9 @@ function router(e) {
   // Skala bort ev. query-del (?area=…&mode=…) innan route-uppslag.
   const raw = (window.location.hash || "#/").slice(1) || "/";
   const path = raw.split("?")[0] || "/";
+  // Gamla lärar-adresser (DEL 7, #803) → ny plats; replace() så bakåt inte studsar.
+  const ny = path.startsWith("/larare") && teacherRedirect(path, raw.split("?")[1]);
+  if (ny) return void window.location.replace(ny);
   // Husvärlden får en bredare innehållsyta (större spelcanvas) – sidomenyn
   // påverkas inte (den ligger utanför .container). Porten (#/ och #/elev)
   // behöver INTE klassen: dess scen är position:fixed och fyller hela

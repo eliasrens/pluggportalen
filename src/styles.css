@@ -7640,21 +7640,10 @@ body:has(.teacher-dark) .container {
 /* ── src/styles/30-larare-roller.css ── */
 /* ==========================================================================
    Lärarsidan: ny struktur + synlighet efter roll (#679)
-   Huvuddelar i toppnaven + underrad för aktiv del, "Inloggad som …",
-   Översikt (#/larare/oversikt) och "Skapat av …" i materiallistan.
+   Huvuddelar i toppnaven + underrad för aktiv del (profilmenyn: 42-larare-meny.css),
+   Översikt/Hem (#/larare/hem) och "Skapat av …" i materiallistan.
    Allt scopat under .teacher-dark (mörk stil, linje-ikoner).
    ========================================================================== */
-
-.teacher-dark .teacher-nav-who {
-  margin-left: auto;
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--t-border);
-  color: var(--t-muted);
-  font-size: 0.86rem;
-  white-space: nowrap;
-}
-.teacher-dark .teacher-nav-who + .tnav.logout { margin-left: 4px; }
 
 .teacher-dark .teacher-subnav {
   display: flex;
@@ -7685,11 +7674,8 @@ body:has(.teacher-dark) .container {
 }
 .teacher-dark .tsub.active .tnav-ic { color: var(--t-accent); }
 
-@media (max-width: 900px) {
-  .teacher-dark .teacher-nav-who { display: none; }
-}
-/* Sju huvuddelar sedan Prov (#739): lite tätare flikar så att raden (med
-   "Inloggad som …" och Logga ut) får plats på en vanlig laptopskärm. */
+/* Lite tätare flikar så att raden (med profilmenyn) får plats på en vanlig
+   laptopskärm. Under 900 px fälls toppmenyn ihop till ☰ (42-larare-meny.css). */
 @media (min-width: 901px) and (max-width: 1320px) {
   .teacher-dark .teacher-nav-tabs { gap: 3px; }
   .teacher-dark .tnav { padding: 9px 10px; gap: 7px; }
@@ -9428,3 +9414,145 @@ html[data-halloween] .port-scen .port-larare-lank {
   .schack-pokal-ny { animation: none; }
 }
 html.reduce-motion .schack-pokal-ny { animation: none; }
+
+/* ── src/styles/42-larare-meny.css ── */
+/* ==========================================================================
+   Lärarsidans toppmeny (#803, epic #802 DEL 1.2/1.4): profilmenyn (kontots
+   namn ▾ → Inloggad som …, Hjälp och guide, Admin, Logga ut) och ☰ som fäller
+   ihop huvudvalen på smala skärmar. Mörk stil som resten av lärarsidan.
+   ========================================================================== */
+
+.teacher-dark .tprof {
+  position: relative;
+  margin-left: auto;
+}
+.teacher-dark .tprof-knapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px 5px 5px;
+  border-radius: 999px;
+  border: 1px solid var(--t-border);
+  background: var(--t-surface);
+  color: var(--t-text);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.teacher-dark .tprof-knapp:hover,
+.teacher-dark .tprof-knapp[aria-expanded="true"] { border-color: var(--t-border-strong); }
+.teacher-dark .tprof-ava {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--t-accent-strong);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+.teacher-dark .tprof-namn {
+  max-width: 16ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.teacher-dark .tprof-meny {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: calc(var(--z-flik-nav) + 1);
+  min-width: 220px;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid var(--t-border-strong);
+  background: var(--t-surface-2);
+  box-shadow: var(--t-shadow);
+}
+.teacher-dark .tprof-meny[hidden] { display: none; }
+.teacher-dark .tprof-who {
+  display: block;
+  padding: 6px 12px 6px;
+  color: var(--t-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.teacher-dark .tprof-val {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  color: var(--t-text);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.92rem;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.teacher-dark .tprof-val:hover,
+.teacher-dark .tprof-val:focus-visible { background: rgba(255, 255, 255, 0.06); }
+.teacher-dark .tprof-val[data-logout]:hover { color: #ff9b9b; }
+
+/* ☰ syns bara på smala skärmar. */
+.teacher-dark .tnav-burger {
+  display: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  /* Ingen sidscroll i bandet längre – menyn fälls ut under raden i stället. */
+  .teacher-dark .teacher-nav-inner {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+  .teacher-dark .tnav-burger {
+    display: inline-flex;
+    border-color: var(--t-border);
+    color: var(--t-text);
+  }
+  .teacher-dark .tnav-burger .tnav-txt { display: inline; }
+  .teacher-dark .teacher-nav-tabs { display: none; }
+  .teacher-dark .teacher-nav.meny-oppen .teacher-nav-tabs {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    order: 10;
+    flex-basis: 100%;
+    margin: 8px 0 0;
+    padding-top: 8px;
+    border-top: 1px solid var(--t-border);
+  }
+  .teacher-dark .teacher-nav.meny-oppen .tnav { padding: 11px 14px; }
+  .teacher-dark .teacher-nav.meny-oppen .tnav .tnav-txt { display: inline; }
+}
+@media (max-width: 460px) {
+  .teacher-dark .tprof-namn { max-width: 10ch; }
+}
+
+/* Hjälp och guide (#/larare/hjalp) – platshållare tills sub-issue F. */
+.teacher-dark .hjalp-lista {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.teacher-dark .hjalp-lista li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--t-surface-2);
+  font-weight: 700;
+}
