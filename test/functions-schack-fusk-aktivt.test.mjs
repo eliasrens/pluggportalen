@@ -321,3 +321,96 @@ test("lobbyanrop utan ändring skriver inte – men utgångna poster rensas änd
   await adb.doc(`schackKlass/${KLASS}`).update({ [`vantar.${ANNA}`]: { namn: "Anna", klocka: null, sedan: ned(11) } });
   assert.equal(await code(bo.call("schackGaMed", { classId: KLASS, motstandare: ANNA })), "failed-precondition");
 });
+
+// --- F8 omtest: städningen i samma anrop ----------------------------------------------------------
+
+async function gammaltParti() {
+  const g = await nytt(ANNA, BO);
+  await adb.doc(`schackPartier/${g.partiId}`).update({ senastDragAt: ned(25 * 60) });
+  await adb.doc(`schackKlass/${KLASS}`).update({ [`partier.${g.partiId}.start`]: ned(25 * 60) });
+  return g;
+}
+
+test("F8: motståndaren (inte bara den som började) kan vänta direkt efter 24 h-städningen i samma anrop", async () => {
+  await reset();
+  const g = await gammaltParti();
+  const bo = await who(BO);
+  assert.equal(await code(bo.call("schackVanta", { classId: KLASS, klocka: null })), "ok");
+  assert.equal((await getP(g.partiId)).orsak, "avbrutet");
+  assert.equal(await akt(ANNA), null);
+  assert.equal(await akt(BO), null);
+  assert.deepEqual((await getK()).tabell, {});
+  assert.deepEqual(Object.keys((await getK()).partier), []);
+  assert.deepEqual(Object.keys((await getK()).vantar), [BO]);
+});
+
+test("F8: gaMed i samma anrop som städningen ger ett NYTT parti och aktivtParti pekar på det nya, inte null", async () => {
+  await reset();
+  const g = await gammaltParti();
+  const cia = await who(CIA);
+  const bo = await who(BO);
+  const anna = await who(ANNA);
+  await cia.call("schackVanta", { classId: KLASS, klocka: null }); // städar redan här (Cias anrop) ...
+  // ... så återskapa ett nytt gammalt parti och låt BO starta nytt i samma anrop som städar
+  await reset();
+  const g2 = await gammaltParti();
+  await adb.doc(`schackKlass/${KLASS}`).update({ [`vantar.${CIA}`]: { namn: "Cia", klocka: null, sedan: Date.now() } });
+  const r = await bo.call("schackGaMed", { classId: KLASS, motstandare: CIA });
+  assert.notEqual(r.partiId, g2.partiId);
+  assert.equal((await getP(g2.partiId)).orsak, "avbrutet");
+  assert.equal(await akt(BO), r.partiId, "städningen nollade Bos nya aktivtParti");
+  assert.equal(await akt(CIA), r.partiId);
+  assert.equal(await akt(ANNA), null);
+  // och Bo kan inte starta ett till
+  const cia2 = await who(CIA);
+  assert.equal(await code(cia2.call("schackUtmana", { classId: KLASS, till: ANNA, klocka: null })), "failed-precondition");
+  assert.ok(g && anna);
+});
+
+test("F8: svara ja i samma anrop som städningen ger nytt parti med spärr på det nya", async () => {
+  await reset();
+  const g = await gammaltParti();
+  const cia = await who(CIA);
+  const bo = await who(BO);
+  const u = (await cia.call("schackUtmana", { classId: KLASS, till: BO, klocka: null }));
+  // utmanaren Cia är fri, Bo sitter i ett gammalt parti – men utmana städade det redan; återställ ett gammalt parti
+  void u;
+  await reset();
+  const g2 = await gammaltParti();
+  await adb.doc(`schackKlass/${KLASS}`).update({ [`utmaningar.u1`]: { fran: CIA, franNamn: "Cia", till: BO, klocka: null, sedan: Date.now() } });
+  const r = await bo.call("schackSvara", { utmaningId: "u1", ja: true, classId: KLASS });
+  assert.equal((await getP(g2.partiId)).orsak, "avbrutet");
+  assert.equal(await akt(BO), r.partiId);
+  assert.equal(await akt(CIA), r.partiId);
+  assert.equal(await akt(ANNA), null);
+  assert.ok(g);
+});
+
+test("F8: en kvarglömd start-post för ett redan avslutat parti rör inte spelarnas NYA aktivtParti", async () => {
+  await reset();
+  const g1 = await nytt(ANNA, BO);
+  await (await who(g1.vit)).call("schackGeUpp", { partiId: g1.partiId });
+  const g2 = await nytt(ANNA, BO);
+  // spökpost för g1 (slutat parti) med gammal start i klassdokumentet
+  await adb.doc(`schackKlass/${KLASS}`).update({ [`partier.${g1.partiId}`]: { vit: ANNA, svart: BO, start: ned(30 * 60), klocka: null } });
+  await (await who(CIA)).call("schackVanta", { classId: KLASS, klocka: null });
+  assert.equal(await akt(ANNA), g2.partiId);
+  assert.equal(await akt(BO), g2.partiId);
+  assert.equal((await getP(g2.partiId)).status, "pagar");
+  assert.equal((await getK()).partier[g1.partiId], undefined);
+});
+
+// F9-följd (låg, info): när ett parti slutar nollar avslutaParti spelarnas aktivtParti OAVSETT vilket id som står där.
+// Efter F9-kringgåendet (radera studentData, starta i klass B) tappar därför det nyare partiet sin spärr när det äldre slutar.
+test("avslutaParti nollar bara spärren om den pekar på det avslutade partiet", { todo: "F9-följd: nollar villkorslöst" }, async () => {
+  await reset();
+  const g1 = await nytt(ANNA, BO);
+  const anna = await who(ANNA);
+  const dan = await who(DAN);
+  await dan.call("schackVanta", { classId: KLASS_B, klocka: null });
+  await code(deleteDoc(doc(anna.db, "studentData", ANNA)));
+  const r = await anna.call("schackGaMed", { classId: KLASS_B, motstandare: DAN });
+  assert.equal(await akt(ANNA), r.partiId);
+  await (await who(BO)).call("schackGeUpp", { partiId: g1.partiId });
+  assert.equal(await akt(ANNA), r.partiId, "det nyare partiets spärr försvann när det äldre slutade");
+});
