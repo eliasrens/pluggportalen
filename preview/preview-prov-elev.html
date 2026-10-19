@@ -14,6 +14,7 @@
         ?tid=ingen   provet saknar tidsgräns
         ?extra=15    eleven har 15 minuter extra (#748); byt flik → flikbyten i raden
         ?gammalt     provet utan avsnitt och med heltal (som före #762)
+        ?efter=ovning|klass|egna|prov  lärarens efter-val (#788): kvittensens väg vidare
         ?utanpoang   visaPoangForElev av (#762) – inget "(4 p)" och ingen total
         #/elev/prov  listan, #/elev/prov/skriv?t=tf-demo själva provet
     -->
@@ -55,6 +56,8 @@
       <a href="?#/elev/prov/skriv?t=tf-demo">Avsnitt + halvpoäng (#762)</a>
       <a href="?utanpoang#/elev/prov/skriv?t=tf-demo">Poäng dolda</a>
       <a href="?gammalt#/elev/prov/skriv?t=tf-demo">Gammalt prov</a>
+      <a href="?efter=ovning#/elev/prov/skriv?t=tf-demo">Efter: bara övning (#788)</a>
+      <a href="?efter=klass#/elev/prov/skriv?t=tf-demo">Efter: klassens läge</a>
       <button data-pv="nollstall">Nollställ</button>
       <span class="pv-info" id="pv-info"></span>
     </div>

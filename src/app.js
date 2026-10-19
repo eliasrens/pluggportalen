@@ -317,12 +317,15 @@ function sparrMal(path, query, las, dolda) {
 // grinda om den route eleven står på – UTAN att ladda om sidan. Ett pågående
 // spel i målområdet lämnas orört; bara Plugga-listan (vars innehåll beror på
 // låset) ritas om, och en route som nu är spärrad byts mot låsets mål.
-onLockChange(async (las, prev) => {
+onLockChange(async (las, prev, next) => {
   const { path, query } = aktuellRutt();
   if (!path.startsWith("/elev/") || path === "/elev/avatar") return;
-  if (las && !prev) flash(`🎯 Fokusläge: din klass jobbar med ${escHtml(las.label)} till ${las.klockslag}.`);
+  // Eleven lämnade in provet (#788): lugn text, inget firande (andra skriver än).
+  if (next?.fri && !prev?.fri) flash(next.fri === "klass" ? "Provet är inlämnat. Nu kan du jobba som vanligt."
+    : next.fri === "ovning" ? "Provet är inlämnat. Nu kan du öva." : "Provet är inlämnat.");
+  else if (las && !prev) flash(`🎯 Fokusläge: din klass jobbar med ${escHtml(las.label)} till ${las.klockslag}.`);
   else if (las) flash(`🎯 Fokusläget ändrades: ${escHtml(las.label)} till ${las.klockslag}.`);
-  else flash("Fokusläget är slut – nu är allt öppet igen! 🎉");
+  else if (!next && prev?.fri !== "klass") flash("Fokusläget är slut – nu är allt öppet igen! 🎉");
   renderTopbar();
   const dit = sparrMal(path, query, las, await getHiddenModules());
   if (dit) window.location.replace(dit);

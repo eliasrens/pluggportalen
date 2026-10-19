@@ -49,8 +49,8 @@ export async function oppnaTillfalle(tf, las) {
     t.status = "oppet";
     for (const id of attOppnaIgen(Object.values(S.svar[t.id] || {}))) Object.assign(S.svar[t.id][id], { inlamnad: false, inlamnadNar: undefined });
   }
-  if (las) S.las[t.classId] = { mal: { typ: "prov", id: t.id, namn: t.provNamn }, till: las.till, doljOvrigt: las.doljOvrigt };
-  S.logg(`Öppnade ${t.provNamn}${las ? " + fokuslås" : ""}`);
+  if (las) S.las[t.classId] = { mal: { typ: "prov", id: t.id, namn: t.provNamn }, till: las.till, doljOvrigt: las.doljOvrigt, efter: las.efter };
+  S.logg(`Öppnade ${t.provNamn}${las ? ` + fokuslås (efter: ${JSON.stringify(las.efter)})` : ""}`);
 }
 export async function stangTillfalle(tf) {
   await vanta();

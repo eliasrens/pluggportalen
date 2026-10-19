@@ -64,6 +64,8 @@ tabellerna, om en rad saknar test, eller om en testfil inte körs av
 | PH | `test/firestore-rules-prov-poang-avsnitt.test.js` |
 | PR | `test/firestore-rules-prov-ratta-alla.test.js` |
 | PK | `test/firestore-rules-prov-kriterier-765.test.js` |
+| CL | `test/firestore-rules-class-lock.test.js` |
+| BC | `test/functions-brakresan-core.test.mjs` |
 
 Admin-kolumnen bevisas dessutom av OG test 25 (lärare utan roll gör allt som
 admin) och av alla äldre regeltester, som kör sina lärare som admin (§7 test 26).
@@ -82,12 +84,12 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `subjects/{s}/areas` | L/S | L: allt. Skapa: i ett befintligt ämne, med `createdBy` = sig själv. Ändra: bara områden med `createdBy` = sig själv, och `createdBy` får inte bytas. Radera: bara egna. Område utan `createdBy` är admins. | SM test 4–7 |
 | `students` | L/S | L (som alla inloggade). S: aldrig. | KE test 12, RO elevkonton |
 | `studentCredentials` | L/radera. S: bara fälten `username`, `password` (minst 6 tecken) och `updatedAt`. | L: egna elever. S: aldrig (lösenordsbyte via `updateStudentLogin`). | SM test 1–3, KE test 13, SC |
-| `studentData` | L/S | L: egna elever. S: bara `lasresa` och där bara nivåfälten (`level`, `level10`, `pendingLevel`, `pendingLevel10`, `highStreak`, `lowStreak`, `levelSetAt`, `levelSetBy`, `updatedAt`). En elev utan `lasresa` får ett nytt tillstånd utan resultat. `coins` + `lastLiveReceipt` bara i samma skrivning som Live-kvittot, och `coins` + `lastProvMynt` bara med exakt kvittots ökning i samma skrivning som provets kvitto (#746). `schack` (#779): aldrig – eleven själv ökar `schack.datorPartier` med högst 1 per skrivning, skriver guidens `schack.lektioner` (#790: 1–12 → 1–3 stjärnor, sänks aldrig) och kan aldrig röra serverns `schack.aktivtParti` (`schackOk`; att radera hela dokumentet tar bort spärren tillsammans med all elevdata – accepterat, SCHACK.md §12.1). Skapa och radera: aldrig. | SM test 1–2, KE test 12 och 14, LE test 16 och 18, PM |
+| `studentData` | L/S | L: egna elever. S: bara `lasresa` och där bara nivåfälten (`level`, `level10`, `pendingLevel`, `pendingLevel10`, `highStreak`, `lowStreak`, `levelSetAt`, `levelSetBy`, `updatedAt`). En elev utan `lasresa` får ett nytt tillstånd utan resultat. `coins` + `lastLiveReceipt` bara i samma skrivning som Live-kvittot, och `coins` + `lastProvMynt` bara med exakt kvittots ökning i samma skrivning som provets kvitto (#746). `schack` (#779): aldrig – eleven själv ökar `schack.datorPartier` med högst 1 per skrivning, skriver guidens `schack.lektioner` (#790: 1–12 → 1–3 stjärnor, sänks aldrig) och pusslens `schack.pussel` (#791: `ett`/`tva` med `losta` +1 högst per skrivning och `senast`, sjunker aldrig, `losta ≤ senast ≤ 1000`) och kan aldrig röra serverns `schack.aktivtParti` (`schackOk`; att radera hela dokumentet tar bort spärren tillsammans med all elevdata – accepterat, SCHACK.md §12.1). Skapa och radera: aldrig. | SM test 1–2, KE test 12 och 14, LE test 16 och 18, PM |
 | `studentData/{id}/lasresaAttempts` | L/S | L: egna elever. S: aldrig. | SM test 1–2 |
 | `studentData/{id}/ekvationsresa` (bara `progress`) | L/S (validerat), radera | L: egna elever. S: lärarens nivåbyte (`ekvTeacherLevelOk`) för egna elever. | SM test 1–2, KE test 14 |
 | `studentData/{id}/ekvationsresaAttempts` | L/radera | L: egna elever | SM test 1–2 |
 | `studentData/{id}/brakresa`, `brakresaRounds`, `brakresaRewards`, `brakresaHunts` (Bråkresan, #706) | L (Cloud Functions skriver) | L: egna elever. S: aldrig. | BR |
-| `classes` | L/S | L. Ändra egna klasser, bara fälten `assignedAreas`, `hiddenModes`, `areaModes`, `hiddenModules`, `enabledModules`, `lock`, `lasresaStartLevel10` och `lasresaStartLevel`. Skapa och radera: aldrig. | KE test 9–12 |
+| `classes` | L/S | L. Ändra egna klasser, bara fälten `assignedAreas`, `hiddenModes`, `areaModes`, `hiddenModules`, `enabledModules`, `lock`, `lasresaStartLevel10` och `lasresaStartLevel`. Skapa och radera: aldrig. `lock.efter` (#788, vad en elev som lämnat in provet får göra: `lage` `prov`/`ovning`/`klass`/`egna`, `moduler` ≤ 20 bara i `egna`) bara på ett provlås; eleven ändrar det aldrig – frigörelsen bygger på elevens eget inlämnade `svar`, som hen inte kan ta tillbaka. Klientens modulgrind och Bråkresans `brakresa*`-callables (`assertModuleOpen`) tillämpar valet. | KE test 9–12, CL #788, BC #788 |
 | `classProjections`, `classProjects` | L/S | L. S: aldrig. | RO klassprojektioner |
 | `mathCompetitions` (tävlingen) | L/S | L (som alla inloggade). Skapa, styra, nollställa och radera: aldrig. | LE test 17 |
 | `mathCompetitions/{c}/answers`, `studentStats` | L/radera | L: dokument med `classId` i egna klasser. En lista måste filtrera på egna klasser. | SM test 1–2, LE test 17 |

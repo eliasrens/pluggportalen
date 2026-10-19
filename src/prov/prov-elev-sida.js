@@ -8,7 +8,8 @@
 // XP eller ljud – provet är lugnt och seriöst.
 // ============================================================================
 
-import { app, el, escHtml, go, loading, renderTopbar } from "../ui.js";
+import { app, el, escHtml, getHiddenModules, getLockGate, go, loading, onLockChange, renderTopbar } from "../ui.js";
+import { kopplaVidare } from "./prov-vidare.js";
 import { currentStudentId } from "../auth.js";
 import { serverNow } from "../data-class-lock.js";
 import { arFraga } from "./prov-fragetyper.js";
@@ -119,14 +120,19 @@ export async function pageProvLista() {
 
 // --- #/elev/prov/skriv ---------------------------------------------------------------
 
-function meddelande(rubrik, text, { lankLista = true } = {}) {
+function meddelande(rubrik, text, { lankLista = true, vidare = null } = {}) {
   const m = el(`<div class="provv-panel provv-meddelande" role="status">
     <h1 class="provv-sidrubrik">${escHtml(rubrik)}</h1>
     ${text ? `<p>${escHtml(text)}</p>` : ""}
+    ${vidare ? `<div class="provv-vidare"></div>` : ""}
     ${lankLista ? `<p><a href="${LISTA}" class="provv-lank">Till dina prov</a></p>` : ""}
   </div>`);
   sida(m);
+  if (vidare) visaVidare(m.querySelector(".provv-vidare"), vidare);
 }
+
+// Vägen vidare efter inlämningen (#788): ritas om när låset ändras.
+const visaVidare = (plats, t) => kopplaVidare(plats, t, { getLockGate, getHiddenModules, onLockChange });
 
 const KLART = "Ditt prov är inlämnat! Din lärare rättar det och lämnar tillbaka det sen.";
 const TID_SLUT = "Tiden är slut – ditt prov är inlämnat.";
@@ -150,7 +156,7 @@ export async function pageProvSkriv() {
   if (location.hash !== route) return;
 
   const lage = elevLage(tf, svarDok, serverNow(), meId);
-  if (lage === "inlamnat") return meddelande("Inlämnat", svarDok.inlamnadNar === "tid" ? TID_SLUT : KLART);
+  if (lage === "inlamnat") return meddelande("Inlämnat", svarDok.inlamnadNar === "tid" ? TID_SLUT : KLART, { vidare: t });
   if (lage === "stangt") return meddelande("Provet är stängt", svarDok ? STANGT : "Din lärare har stängt provet.");
   if (lage === "ny") return startRuta(tf, meId, route);
   return skriv(tf, svarDok, meId);
@@ -235,7 +241,9 @@ function skriv(tf, svarDok, meId) {
     vy.las(true);
     vy.satTid("");
     banner.hidden = false;
-    banner.innerHTML = `<b>${escHtml(rubrik)}</b> ${escHtml(text)} <a href="${LISTA}" class="provv-lank">Till dina prov</a>`;
+    banner.innerHTML = `<b>${escHtml(rubrik)}</b> ${escHtml(text)} <a href="${LISTA}" class="provv-lank">Till dina prov</a>
+      <div class="provv-vidare"></div>`;
+    visaVidare(banner.querySelector(".provv-vidare"), t);
     banner.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
