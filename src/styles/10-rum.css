@@ -62,6 +62,16 @@
   pointer-events: none;
 }
 
+/* Spökgardinen (#785) ska täcka ett fönster, och fönstret har golvet 120 px
+   (clamp ovan) medan vanliga saker skalas med scenbredden – på mobil blev
+   gardinen då bara ~70 px. Samma klamp-kurva som fönstret, +5 % marginal;
+   desktop (200 px) = w 8 i hw-art-inne.js. Höjd ur viewBox 76:88. */
+.room-item[data-id^="hw-spokgardin"] .ri-emoji {
+  width: clamp(126px, 25.5cqw, 200px) !important;
+  height: auto !important;
+  aspect-ratio: 76 / 88;
+}
+
 /* --- Palettväljaren (Måla om – delas av Mitt rum & hus-vyn) ---------------- */
 
 .palett-rad {
