@@ -11,11 +11,14 @@
 //   #/elev/schack?vy=kompis&parti=X  partiet mot en kompis
 //   #/elev/schack?vy=lar             guiden "Lär dig schack" (#790, schack-guide-vy.js)
 //   #/elev/schack?vy=lar&lektion=N   lektion N
+//   #/elev/schack?vy=pussel          pusslen: Matt i ett / Matt i två (#791, schack-pussel-vy.js)
+//   #/elev/schack?vy=pussel&sort=ett|tva(&nr=N)  ett pussel i taget (nr = direktlänk)
 //
 //   const flode = visaSchack(host, ctx, params);   flode.destroy();
 //   ctx = { namn, avatarHtml, lagring, nyckel, go(hash), hashBas, dator?, reducedMotion?, tidsgransMs?, tankMinMs?,
 //           kompis?: { moln, classId, uid, klasslista }, fortsattParti?, onDatorSlut?,
-//           guide?: { lektioner(), spara(nr, stjarnor) } }   framstegen i guiden (#790)
+//           guide?: { lektioner(), spara(nr, stjarnor) },     framstegen i guiden (#790)
+//           pussel?: { framsteg(), spara(sort, nr) } }        framstegen i pusslen (#791)
 // Utan ctx.kompis är kortet "Spela mot en kompis" avstängt (förhandsvisningen mot datorn).
 // Med kompis: EN lyssnare på klassdokumentet (schack-kompis.js) medan eleven är på
 // schacksidan utanför ett pågående kompisparti – den visar inkommande utmaningar och tar
@@ -111,6 +114,7 @@ export function visaSchack(host, ctx, params = {}) {
     yta.querySelector('[data-act="fortsatt"]')?.addEventListener("click", () => go(tillHash("vy=dator")));
     yta.querySelector('[data-act="dator"]').addEventListener("click", () => go(tillHash("vy=dator&ny=1")));
     yta.querySelector('[data-act="lar"]').addEventListener("click", () => go(tillHash("vy=lar")));
+    yta.querySelector('[data-act="pussel"]').addEventListener("click", () => go(tillHash("vy=pussel")));
     if (kompis) yta.querySelector('[data-act="kompis"]').addEventListener("click", () => go(tillHash("vy=kompis")));
   }
 
@@ -181,6 +185,19 @@ export function visaSchack(host, ctx, params = {}) {
     });
   }
 
+  function visaPussel(sort, nr) {
+    const gen = generation;
+    return import("./schack-pussel-vy.js").then(({ skapaPusselVy }) => {
+      if (gen !== generation) return null;
+      const el = document.createElement("div");
+      yta.replaceChildren(el);
+      return skapaPusselVy(el, {
+        sort, nr, pussel: c.pussel, go, tillHash, hashBas, lagring: c.lagring, nyckel: c.nyckel,
+        reducedMotion: c.reducedMotion, forsvarMs: c.forsvarMs,
+      });
+    });
+  }
+
   function visaLobby() {
     const gen = generation;
     return import("./schack-lobby-vy.js").then(({ skapaLobbyVy }) => {
@@ -226,6 +243,15 @@ export function visaSchack(host, ctx, params = {}) {
     }
   } else if (params.vy === "lar") {
     byt(() => visaGuide(params.lektion || null));
+    lobbyPa();
+  } else if (params.vy === "pussel") {
+    // Direktlänken &nr=N gäller en gång: hashen skrivs om utan den, så att en omladdning
+    // fortsätter där eleven är (läget sparas lokalt) i stället för att hoppa tillbaka.
+    const nr = Number.parseInt(params.nr, 10);
+    if (params.nr && typeof history !== "undefined" && location.hash.startsWith(hashBas)) {
+      history.replaceState(null, "", tillHash(`vy=pussel&sort=${encodeURIComponent(params.sort || "")}`));
+    }
+    byt(() => visaPussel(params.sort || null, Number.isInteger(nr) && nr >= 1 ? nr : undefined));
     lobbyPa();
   } else if (params.vy === "dator") {
     const p = params.ny ? null : lasParti(c.lagring, c.nyckel);

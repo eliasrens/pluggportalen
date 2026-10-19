@@ -68,7 +68,7 @@ describe("studentData.schack.lektioner – guidens framsteg (#790)", () => {
     for (const k of ["0", "13", "01", "a", "pussel", "constructor"]) {
       await assertFails(updateDoc(sd(env.elev("e4a"), "e4a"), { [`schack.lektioner.${k}`]: 3 }), `lektion ${k}`);
     }
-    await assertFails(updateDoc(sd(env.elev("e4a"), "e4a"), { "schack.pussel": { 1: 3 } }), "pussel kommer i 3B");
+    await assertFails(updateDoc(sd(env.elev("e4a"), "e4a"), { "schack.pussel": { 1: 3 } }), "pussel har bara ett/tva (3B)");
     await assertFails(updateDoc(sd(env.elev("e4a"), "e4a"), { "schack.stjarnor": 36 }));
   });
   it("datorPartier och aktivtParti är lika skyddade som förut, även i samma skrivning som en lektion", async () => {

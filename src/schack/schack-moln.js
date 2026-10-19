@@ -15,6 +15,7 @@
 //   klockaVisning(parti, nu = serverNow()) → { vitMs, svartMs, slut } för visningen
 //   datorPartiKlart()                     EN skrivning: studentData.schack.datorPartier + 1
 //   lektionKlar(nr, stjarnor)             EN skrivning: studentData.schack.lektioner.<nr> (guiden, #790)
+//   pusselLost(sort, nr)                  EN skrivning: studentData.schack.pussel.<sort> (pusslen, #791)
 //   SchackMolnFel(code, message)          felet från servern (code = HttpsError-koden)
 // Alla tider från servern är epoch-ms; klienten jämför mot serverNow() (klock-
 // korrigerad, data-class-lock.js) – aldrig mot Date.now() rakt av.
@@ -147,6 +148,27 @@ export async function lektionKlar(nr, stjarnor) {
     return true;
   } catch (err) {
     console.warn("schack: lektionen kunde inte sparas", err);
+    return false;
+  }
+}
+
+/**
+ * Ett NYTT pussel löstes (#791): EN skrivning av fältvägarna
+ * schack.pussel.<sort>.losta (+1) och .senast (= nr). Regeln schackOk: losta ökar
+ * med högst 1 och sjunker aldrig, senast sjunker aldrig. Anroparen (schack-pussel-vy.js)
+ * skriver bara när nr > senast. Fel sväljs.
+ */
+export async function pusselLost(sort, nr) {
+  const uid = currentStudentId();
+  if (!uid || !["ett", "tva"].includes(sort) || !Number.isInteger(nr) || nr < 1 || nr > 1000) return false;
+  try {
+    await updateDoc(doc(db, "studentData", uid), {
+      [`schack.pussel.${sort}.losta`]: increment(1),
+      [`schack.pussel.${sort}.senast`]: nr,
+    });
+    return true;
+  } catch (err) {
+    console.warn("schack: pusslet kunde inte sparas", err);
     return false;
   }
 }

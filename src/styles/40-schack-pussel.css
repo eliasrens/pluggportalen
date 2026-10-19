@@ -1,0 +1,64 @@
+/* ==========================================================================
+   Schack – pusslen "Matt i ett/två drag" (#791): valet med framstegen och
+   pusselvyn (bräde + panel). Tipsringen på brädet stylas med brädet i
+   35-schack.css. Se docs/SCHACK.md §16.
+   ========================================================================== */
+
+/* --- Valet: två stora kort med framstegen ---------------------------------- */
+
+.schack-pussel-sorter { grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); }
+.schack-pussel-sort { min-height: 230px; }
+.schack-pussel-framsteg {
+  display: grid;
+  gap: 4px;
+  width: min(100%, 220px);
+  margin-top: 10px;
+}
+.schack-pussel-stapel {
+  display: block;
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.35);
+  overflow: hidden;
+}
+.schack-pussel-stapel > span { display: block; height: 100%; border-radius: inherit; background: #fff; }
+.schack-pussel-antal { font-weight: 800; }
+.schack-pussel-nasta { font-size: 0.9rem; font-weight: 700; opacity: 0.92; }
+
+/* --- Ett pussel -------------------------------------------------------------- */
+
+.schack-pussel-yta {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(240px, 300px);
+  gap: 18px;
+  align-items: start;
+}
+/* Pusselbrädet har inga spelare och ingen draglista – bara brädet och statusraden. */
+.schack-pussel-brade .schack-spelare,
+.schack-pussel-brade .schack-drag { display: none; }
+/* Slutrutan skulle täcka matten – "Snyggt! Schack matt!" står i statusraden och panelen. */
+.schack-pussel-brade .schack-slut { display: none; }
+.schack-pussel-panel { display: grid; gap: 10px; min-width: 0; }
+.schack-pussel-panel p { margin: 0; }
+.schack-pussel-nr { font-weight: 700; color: var(--text-svag); }
+.schack-pussel-uppgift { font-size: 1.2rem; font-weight: 800; line-height: 1.3; }
+.schack-pussel-svar:empty { display: none; }
+.schack-pussel-svar {
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: #fff8df;
+  border: 2px solid var(--gul);
+  font-weight: 700;
+  line-height: 1.3;
+}
+.schack-pussel-panel .btn[hidden] { display: none; }
+.schack-pussel-bladdra { padding-top: 4px; border-top: 2px dashed #e3e9f2; }
+.schack-pussel-kalla { font-size: 0.85rem; color: var(--text-svag); }
+
+@media (max-width: 820px) {
+  .schack-pussel-yta { grid-template-columns: minmax(0, 1fr); }
+  /* Statusraden direkt ovanför säger redan "Vit drar och gör matt …" – inte två gånger (F3). */
+  .schack-pussel-uppgift { display: none; }
+  /* Som partiet (#777): under 360 px går brädet ut i sidans marginal i stället för att sidan skrollar i sidled. */
+  .schack-pussel-brade { margin-inline: min(0px, (100% - 320px) / 2); }
+}

@@ -238,11 +238,11 @@ describe("framstegen – studentData.schack.lektioner", () => {
 });
 
 describe("översikten och markupen", () => {
-  it("startsidan: kortet 'Lär dig schack' är öppet, bara Pussel kommer snart", () => {
+  it("startsidan: kortet 'Lär dig schack' är öppet (och Pussel, #791)", () => {
     const html = startHtml(null);
     assert.doesNotMatch(html, /data-act="lar"[^>]*aria-disabled/);
     assert.match(html, /12 korta lektioner/);
-    assert.match(html, /data-act="pussel"[^>]*aria-disabled="true"/);
+    assert.doesNotMatch(html, /data-act="pussel"[^>]*aria-disabled/);
   });
   it("12 öppna lektionskort i ordning med stjärnorna, summan och förslaget", () => {
     const html = oversiktHtml({ 1: 3, 2: 1 });
