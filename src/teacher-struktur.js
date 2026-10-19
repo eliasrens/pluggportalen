@@ -31,7 +31,7 @@ export const PLACERING = {
     admin: { roll: "admin", efter: "Admin → kort: Skapa klass · Döp om klass · Ta bort klass · Lärarkonton · Säsong · Hitta rätt! · Mattematchen", del: "C" },
     konton: { roll: "admin", efter: "Admin → Lärarkonton (kort + underflik)", del: "C" },
     sasong: { roll: "admin", efter: "Admin → Säsong (kort + underflik)", del: "C" },
-    hjalp: { roll: "alla", efter: "Profilmenyn → Hjälp och guide", del: "F" },
+    hjalp: { roll: "alla", efter: "Profilmenyn → Hjälp och guide (sju guider med direktlänkar; hjälptexter överst i Mina klasser och Material)", del: "F" },
   },
   // Materialets underflikar (#806, teacher-material-flikar.js): var de gamla flikarna Plugga-material,
   // Bråkresan och Hitta rätt! (och de nya Läsresan, Ekvationsresan, Schack) ligger.

@@ -23,7 +23,8 @@ import { filterClasses, myRole, studentsInClasses } from "./teacher-role.js";
 import { lastStatsTab } from "./teacher-stats-av.js";
 import { activeLock } from "./class-lock.js";
 import { serverNow } from "./data-class-lock.js";
-import { MANGA_KLASSER, MINA_BASE, MINA_FLIKAR, filtreraKlasser, flikSektioner, minaHash, startVal } from "./teacher-mina-val.js";
+import { MANGA_KLASSER, MINA_BASE, MINA_FLIKAR, filtreraKlasser, flikHjalp, flikSektioner, minaHash, startVal } from "./teacher-mina-val.js";
+import { hjalpRuta } from "./teacher-hjalptext.js";
 
 const sektion = (key) => CLASS_SECTIONS.find((s) => s.key === key);
 
@@ -96,6 +97,7 @@ export async function mountMinaKlasser(ctx) {
       <header class="mk-head"><h2 class="mk-namn"></h2><span class="class-count mk-antal"></span></header>
       <div class="mk-flash"></div>
       <div class="mk-flikar" role="tablist" aria-label="Allt om klassen">${flikar}</div>
+      <div class="mk-hjalp"></div>
       <div class="mk-innehall" id="mk-innehall" role="tabpanel" aria-labelledby="mk-flik-${sida.flik}"></div>
     </div>`);
     head = { namn: box.querySelector(".mk-namn"), antal: box.querySelector(".mk-antal") };
@@ -118,6 +120,9 @@ export async function mountMinaKlasser(ctx) {
       valjFlik(keys[j]);
       panel.querySelector(`#mk-flik-${keys[j]}`)?.focus();
     });
+    // Hjälptexten överst i fliken (DEL 8): hopfällbar, valet sparas per flik.
+    const aktiv = MINA_FLIKAR.find((f) => f.key === sida.flik);
+    box.querySelector(".mk-hjalp").replaceChildren(hjalpRuta(`mina-${aktiv.key}`, flikHjalp(aktiv, sida.admin), ctx));
     panel.replaceChildren(box);
     // Läsresan-milstolpar (#528): pokalerna delas ut när klassen öppnas – bara admin (ekonomi, §2.2).
     if (sida.admin) import("./klasscenter/kc-pokal-data.js").then((m) => m.delaUtLasresanMilstolpar(cls.id), () => {});

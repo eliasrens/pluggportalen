@@ -214,8 +214,8 @@ Båda startar/river emulatorerna själva via `firebase emulators:exec`. Kräver
 
 ## 6. Lösenordsåterställning & radering (per elev)
 
-**I lärarsidan (efter deploy av Cloud Functions):** Klasser & elever → klassen →
-**Inloggning** på elevraden. Där ser läraren användarnamn + sparat lösenord
+**I lärarsidan (efter deploy av Cloud Functions):** Mina klasser → klassen →
+**Elever** → menyn ⋯ på elevraden → **Byt lösenord** (admin: även användarnamn). Där ser läraren användarnamn + sparat lösenord
 (`studentCredentials`), kan byta användarnamn och sätta nytt lösenord ("Generera
 enkelt lösenord" = ord + 3 siffror). Bytet görs av Cloud Functionen
 `updateStudentLogin` (europe-west1): Auth-e-post + lösenord, `students.username`,
