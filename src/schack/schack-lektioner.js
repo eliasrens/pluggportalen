@@ -147,11 +147,11 @@ export const LEKTIONER = [
     uppgifter: [
       {
         fen: "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1", krav: "rockad",
-        text: "Gör rockad: flytta kungen två steg mot ett av tornen – tornet hoppar över kungen av sig självt.",
+        text: "Gör rockad: kungen går två steg mot ett torn, och tornet hoppar över.",
       },
       {
         fen: "4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 2", krav: "enpassant", senast: { from: "d7", to: "d5" },
-        text: "Den svarta bonden gick precis två steg, från d7 till d5. Ta den en passant: flytta din bonde snett till d6.",
+        text: "Svart gick just d7–d5. Ta den en passant: din bonde går snett till d6.",
       },
       { fen: "4k3/1P6/8/8/8/8/8/4K3 w - - 0 1", krav: "forvandling", text: "Flytta bonden till sista raden och välj vad den ska bli." },
     ],

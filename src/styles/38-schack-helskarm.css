@@ -213,3 +213,13 @@
   .schack-helskarm-pa .schack-pussel-uppgift { display: none; }
   .schack-helskarm-pa :is(.schack-lektion-brade, .schack-pussel-brade).schack .schack-status { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 4px 10px; }
 }
+
+/* Resultatrutan (lektionen klar) i helskärm: en smal kolumn i stället för brädets max-content-kolumn,
+   annars blir introt en enda lång rad och rutan skrollar i sidled (#794). */
+.schack-helskarm-pa .schack-lektion:not(.schack-lektion-parti):has(> .schack-lektion-klar:not([hidden])) { grid-template-columns: minmax(0, 560px); }
+.schack-helskarm-pa .schack-lektion:not(.schack-lektion-parti):has(> .schack-lektion-klar:not([hidden])) > .schack-lektion-intro { grid-column: 1; grid-row: 1; align-self: auto; }
+.schack-helskarm-pa .schack-lektion:not(.schack-lektion-parti):has(> .schack-lektion-klar:not([hidden])) > .schack-lektion-klar { grid-column: 1; grid-row: 2; }
+
+/* Panelen hoppar inte i höjdled när svarsrutan fylls (Tips, rätt/fel): platsen är reserverad medan den är tom. */
+.schack-helskarm-pa :is(.schack-lektion-svar, .schack-pussel-svar) { min-height: calc(2.6em + 20px); box-sizing: border-box; } /* två rader, så att en kortare text inte heller flyttar panelen */
+.schack-helskarm-pa :is(.schack-lektion-svar, .schack-pussel-svar):empty { display: block; visibility: hidden; }

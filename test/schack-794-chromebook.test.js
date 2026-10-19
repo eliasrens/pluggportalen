@@ -18,6 +18,7 @@ import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { TEXT, tipsText, startNummer } from "../src/schack/schack-pussel.js";
 import { valHtml } from "../src/schack/schack-pussel-delar.js";
+import { LEKTIONER } from "../src/schack/schack-lektioner.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SRCDIR = join(ROOT, "src");
@@ -101,7 +102,20 @@ describe("F5: helskärm i lektion och pussel (källkod)", () => {
   });
 });
 
+describe("F5: statusraden ryms på två rader (höjdregeln räknar med två)", () => {
+  it("uppgiftstexterna i ställningslektionerna (9–11) är högst 80 tecken (tre rader sprängde höjden, runda 1)", () => {
+    for (const l of LEKTIONER.filter((x) => x.typ === "stallning")) {
+      for (const u of l.uppgifter) assert.ok(u.text.length <= 80, `lektion ${l.nr}: ${u.text.length} tecken – ${u.text}`);
+    }
+  });
+});
+
 describe("F5: CSS (byggd i styles.css)", () => {
+  it("helskärm: resultatrutan får en smal kolumn och panelen hoppar inte när svarsrutan fylls", () => {
+    const h = las("src/styles/38-schack-helskarm.css");
+    assert.match(h, /:has\(> \.schack-lektion-klar:not\(\[hidden\]\)\) \{ grid-template-columns: minmax\(0, 560px\); \}/);
+    assert.match(h, /:is\(\.schack-lektion-svar, \.schack-pussel-svar\):empty \{ display: block; visibility: hidden; \}/);
+  });
   const css = las("src/styles.css");
   it("brädet i lektion och pussel följer fönstrets höjd, med golvet 320 px", () => {
     assert.match(las("src/styles/39-schack-guide.css"), /\.schack-lektion-brade\.schack \{ --schack-storlek: max\(320px, min\(100%, 640px, calc\(100svh - 248px\)\)\); \}/);
