@@ -20,6 +20,8 @@ import { esc, pilarSvg, spelareHtml, forvandlingHtml, slutHtml } from "./schack-
 
 const FILER = "abcdefgh";
 const GLID_MS = 150;
+/** Guidens stjärna på en ruta (#790) – guld med mörklila kontur som pjäserna. */
+const STJARNA = `<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 8l12.4 25.1 27.7 4-20 19.5 4.7 27.6L50 71.2 25.2 84.2l4.7-27.6-20-19.5 27.7-4z" fill="#f2c94c" stroke="#3B3350" stroke-width="6" stroke-linejoin="round"/></svg>`;
 const RUTOR = [];
 for (let r = 8; r >= 1; r--) for (const f of FILER) RUTOR.push(f + r);
 
@@ -35,9 +37,12 @@ function mork(ruta) {
  * @param {Array<{text: string, onClick?: Function}>} [opt.slutKnappar]  extra knappar i slutrutan
  * @param {boolean} [opt.reducedMotion]  tvinga bort glidanimationen (annars prefers-reduced-motion)
  * @param {string} [opt.etikett]  brädets aria-label (standard "Schackbräde")
+ * @param {object} [opt.kontroll]  en färdig kontroll med samma API (guidens stjärnjakt, #790);
+ *        annars skapaSchackKontroll(opt). Dess tillstånd får också ha `stjarnor: [ruta]`
+ *        (ritas som stjärnor) och `rutKlass: { ruta: "ratt" | "fel" }` (grön/röd ruta).
  */
 export function skapaSchackbrade(rot, opt = {}) {
-  const k = skapaSchackKontroll(opt);
+  const k = opt.kontroll || skapaSchackKontroll(opt);
   let avatar = { ...(opt.avatar || {}) };
   let extra = { ...(opt.spelarExtra || {}) }; // t.ex. schackklockan i spelarraden (Etapp 2)
   let slutKnappar = opt.slutKnappar || [];
@@ -87,7 +92,8 @@ export function skapaSchackbrade(rot, opt = {}) {
       el.dataset.ruta = ruta;
       el.setAttribute("role", "gridcell");
       el.tabIndex = -1;
-      el.innerHTML = `<span class="schack-pjasplats"></span><span class="schack-koord-rad"></span><span class="schack-koord-fil"></span>`;
+      el.innerHTML = `<span class="schack-pjasplats"></span><span class="schack-koord-rad"></span><span class="schack-koord-fil"></span>` +
+        `<span class="schack-stjarna" hidden>${STJARNA}</span>`;
       rad.appendChild(el);
       rutaEl.set(ruta, el);
     }
@@ -124,6 +130,8 @@ export function skapaSchackbrade(rot, opt = {}) {
       pjasPa.set(s.pagaende.to, { ...s.pagaende.pjas, vantar: true });
     }
     const mal = new Map(s.mal.map((m) => [m.to, m]));
+    const stjarnor = new Set(s.stjarnor || []);
+    const rutKlass = s.rutKlass || {};
     const vand = s.orientering === "b";
     for (const [ruta, el] of rutaEl) {
       const fil = FILER.indexOf(ruta[0]);
@@ -147,7 +155,11 @@ export function skapaSchackbrade(rot, opt = {}) {
       el.classList.toggle("i-schack", s.schackRuta === ruta);
       el.classList.toggle("vantar", !!p?.vantar);
       el.classList.toggle("kan-valjas", k.kanValja(ruta));
+      el.classList.toggle("ratt", rutKlass[ruta] === "ratt");
+      el.classList.toggle("fel", rutKlass[ruta] === "fel");
+      el.children[3].hidden = !stjarnor.has(ruta);
       const extra = [];
+      if (stjarnor.has(ruta)) extra.push("stjärna");
       if (s.vald === ruta) extra.push("markerad");
       if (m) extra.push(m.tar ? "kan tas" : "möjligt drag");
       if (s.schackRuta === ruta) extra.push("i schack");

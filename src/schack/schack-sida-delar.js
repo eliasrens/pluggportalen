@@ -1,7 +1,7 @@
 // ============================================================================
 // Elevens schacksida – markup (#776, §4): startsidan med de fyra stora korten
 // ("Spela mot datorn"; "Spela mot en kompis" när eleven har en klass med schack,
-// #780), rutan för ett pågående parti
+// #780; "Lär dig schack" – guiden, #790), rutan för ett pågående parti
 // och nivå-/färgväljaren. Rena funktioner; schack-flode.js kopplar knapparna.
 // ============================================================================
 
@@ -13,7 +13,7 @@ import { partiText } from "./schack-parti.js";
 const KORT = [
   { act: "dator", farg: "gron", ikon: pjasSvg("w", "k"), titel: "Spela mot datorn", text: "Välj nivå: Bonden, Springaren, Tornet eller Damen" },
   { act: "kompis", farg: "bla", ikon: pjasSvg("b", "p") + pjasSvg("w", "p"), titel: "Spela mot en kompis", text: "Kommer snart", snart: true },
-  { act: "lar", farg: "lila", ikon: pjasSvg("w", "b"), titel: "Lär dig schack", text: "Kommer snart", snart: true },
+  { act: "lar", farg: "lila", ikon: pjasSvg("w", "b"), titel: "Lär dig schack", text: "12 korta lektioner – från brädet till ditt första parti" },
   { act: "pussel", farg: "orange", ikon: pjasSvg("b", "n"), titel: "Pussel", text: "Kommer snart", snart: true },
 ];
 

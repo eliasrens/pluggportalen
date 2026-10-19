@@ -14,6 +14,7 @@
 //   lyssnaParti(partiId, cb, onError?)   → avregistrering; cb(parti | null)
 //   klockaVisning(parti, nu = serverNow()) → { vitMs, svartMs, slut } för visningen
 //   datorPartiKlart()                     EN skrivning: studentData.schack.datorPartier + 1
+//   lektionKlar(nr, stjarnor)             EN skrivning: studentData.schack.lektioner.<nr> (guiden, #790)
 //   SchackMolnFel(code, message)          felet från servern (code = HttpsError-koden)
 // Alla tider från servern är epoch-ms; klienten jämför mot serverNow() (klock-
 // korrigerad, data-class-lock.js) – aldrig mot Date.now() rakt av.
@@ -128,6 +129,24 @@ export async function datorPartiKlart() {
     return true;
   } catch (err) {
     console.warn("schack: datorPartier kunde inte sparas", err);
+    return false;
+  }
+}
+
+/**
+ * En lektion i guiden blev klar med ett BÄTTRE resultat (#790): EN skrivning av
+ * fältvägen schack.lektioner.<nr> (regeln schackOk: heltal 1–3, sänks aldrig).
+ * Anroparen (schack-guide-vy.js) skriver bara vid förbättring. Fel sväljs.
+ */
+export async function lektionKlar(nr, stjarnor) {
+  const uid = currentStudentId();
+  const n = Number(nr);
+  if (!uid || !Number.isInteger(n) || n < 1 || n > 12 || ![1, 2, 3].includes(stjarnor)) return false;
+  try {
+    await updateDoc(doc(db, "studentData", uid), { [`schack.lektioner.${n}`]: stjarnor });
+    return true;
+  } catch (err) {
+    console.warn("schack: lektionen kunde inte sparas", err);
     return false;
   }
 }
