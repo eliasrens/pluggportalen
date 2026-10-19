@@ -33,6 +33,7 @@
     <div class="pv-rad"><b>Preview #740 (lärare)</b>
       <a href="#/larare/prov/tillfallen">Provtillfällen</a>
       <a href="#/larare/prov/tillfalle?t=tf-oppet">Översikten (4A skriver)</a>
+      <button id="pv-paus" type="button">En elev lämnar provet (#810)</button>
       <span id="pv-info"></span>
     </div>
     <div class="layout"><main id="app" class="container"></main></div>
@@ -49,6 +50,17 @@
       window.addEventListener("hashchange", router);
       if (!location.hash) location.hash = "#/larare/prov/tillfallen";
       else router();
+      // #810: en slumpad elev som skriver pausas (som om hen tryckt Esc / bytt flik).
+      const ORSAK = ["flik", "helskarm", "fokus"];
+      document.getElementById("pv-paus").addEventListener("click", () => {
+        const skriver = Object.values(S.svar["tf-oppet"] || {}).filter((d) => !d.inlamnad && !d.pausad);
+        const d = skriver[Math.floor(Math.random() * skriver.length)];
+        if (!d) return;
+        const orsak = ORSAK[Math.floor(Math.random() * 3)];
+        Object.assign(d, { pausad: true, pausadAt: Date.now(), pausOrsak: orsak, flikbyten: (d.flikbyten || 0) + 1,
+          pausLogg: [...(d.pausLogg || []), { at: Date.now(), orsak }] });
+        window.dispatchEvent(new CustomEvent("pv-paus"));
+      });
       const info = document.getElementById("pv-info");
       window.addEventListener("pv-logg", (e) => {
         const las = Object.entries(S.las).map(([k, l]) => `${k}: ${l.mal.namn}`).join(", ") || "inga";

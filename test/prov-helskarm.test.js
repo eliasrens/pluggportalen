@@ -92,6 +92,9 @@ describe("pausvakten", () => {
     v.starta();
     f.doc.fullscreenElement = null;
     f.skicka("doc", "fullscreenchange");
+    assert.deepEqual(pauser, [], "orsaken bestäms efter en kort stund");
+    f.korTimers();
+    assert.deepEqual(pauser, ["helskarm"]);
     f.doc.hidden = true;
     f.skicka("doc", "visibilitychange"); // samma lämning – ingen andra skrivning
     assert.deepEqual(pauser, ["helskarm"]);
@@ -106,6 +109,17 @@ describe("pausvakten", () => {
     v.starta();
     f.skicka("doc", "fullscreenchange");
     assert.deepEqual(pauser, []);
+  });
+  it("flikbyte i helskärm: Chrome lämnar helskärmen först – orsaken blir ändå flik, en paus", () => {
+    const f = falsk();
+    const pauser = [];
+    skapaPausvakt({ onPaus: (o) => pauser.push(o), doc: f.doc, win: f.win, timer: f.timer }).starta();
+    f.doc.fullscreenElement = null;
+    f.skicka("doc", "fullscreenchange");
+    f.doc.hidden = true;
+    f.skicka("doc", "visibilitychange");
+    f.korTimers();
+    assert.deepEqual(pauser, ["flik"]);
   });
   it("flikbyte pausar", () => {
     const f = falsk();
@@ -136,6 +150,7 @@ describe("pausvakten", () => {
     v.starta();
     f.doc.fullscreenElement = null;
     f.skicka("doc", "fullscreenchange");
+    f.korTimers();
     assert.deepEqual(pauser, []);
   });
   it("stoppa tar bort lyssnarna; markeraPausad tystar utan onPaus", () => {

@@ -64,8 +64,12 @@ export function kopplaHelskarm(o) {
   let logg = o.svarDok?.pausLogg || [];
   let ruta = null;
   let avLyssna = null;
-  let scroll = 0;
+  let scroll = window.scrollY || 0;
   let klar = false;
+  // Platsen i provet: bara medan eleven är i helskärm – när helskärmen lämnas
+  // krymper fönstret och webbläsaren flyttar scrollen innan pausen hinner läsa den.
+  const merkScroll = () => { if (!ruta && (fel || helskarmElement())) scroll = window.scrollY || 0; };
+  window.addEventListener("scroll", merkScroll, { passive: true });
   const route = location.hash;
 
   const vakt = skapaPausvakt({
@@ -79,7 +83,6 @@ export function kopplaHelskarm(o) {
   // Provvyn ut ur sidan, pausrutan in.
   function visaPaus() {
     if (ruta) return;
-    scroll = window.scrollY || 0;
     const r = pausRuta();
     ruta = r;
     o.vyEl.replaceWith(r);
@@ -148,7 +151,9 @@ export function kopplaHelskarm(o) {
         }
         ruta.replaceWith(o.vyEl);
         ruta = null;
+        // Samma plats – efter att helskärmen hunnit ändra fönstrets storlek.
         window.scrollTo?.(0, scroll);
+        setTimeout(() => window.scrollTo?.(0, scroll), 250);
         vakt.aterstall();
         o.efterPaus({ helskarmFel: fel });
       });
@@ -182,6 +187,7 @@ export function kopplaHelskarm(o) {
     slut() {
       klar = true;
       vakt.stoppa();
+      window.removeEventListener("scroll", merkScroll);
       avLyssna?.();
       avLyssna = null;
       if (ruta) {
@@ -199,6 +205,7 @@ export function kopplaHelskarm(o) {
       if (location.hash === route) {
         klar = true;
         vakt.stoppa();
+        window.removeEventListener("scroll", merkScroll);
         avLyssna?.();
         return;
       }

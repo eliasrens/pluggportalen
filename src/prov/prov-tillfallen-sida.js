@@ -231,7 +231,12 @@ export async function pageProvTillfalle(ctx) {
   body.replaceChildren(vy);
   wireHashLinks(ctx, vy);
   // #810: pausade elever överst, direkt (lyssnaren) – resten som förut en gång i minuten.
-  const panel = pausPanel({ tf, elever, onAndrat: () => { ritaHuvud(); ritaTabell(); } });
+  // Lyssnarens dokument är färskare än minutläsningen – de ersätter elevens rad (även efter Släpp in).
+  const panel = pausPanel({ tf, elever, onAndrat: (p) => {
+    for (const [uid, d] of Object.entries(p)) svar[uid] = d;
+    ritaHuvud();
+    ritaTabell();
+  } });
   vy.querySelector(".provl-huvud").after(panel.el);
   const lamnat = () => {
     if (window.location.hash === route && vy.isConnected) return;
@@ -260,10 +265,11 @@ export async function pageProvTillfalle(ctx) {
     // #810: lyssnaren vet vilka som är pausade just nu – den går före minutläsningen.
     const live = panel.pausade();
     const svarNu = Object.fromEntries(Object.entries(svar).map(([uid, d]) => [uid, { ...d, pausad: !!live[uid] }]));
-    for (const [uid, d] of Object.entries(live)) svarNu[uid] = { ...svarNu[uid], ...d };
     const rader = oversiktRader(elever, svarNu, tf, serverNow());
     const sum = oversiktSumma(rader);
-    vy.querySelector(".provl-summa").innerHTML = `<b>${sum.antal} elever:</b> ${sum.ej} inte börjat · ${sum.skriver} skriver · ${sum.inlamnat} inlämnat`;
+    const pausade = rader.filter((r) => r.pausad).length;
+    vy.querySelector(".provl-summa").innerHTML = `<b>${sum.antal} elever:</b> ${sum.ej} inte börjat · ${sum.skriver} skriver${
+      pausade ? ` (${pausade} pausad${pausade === 1 ? "" : "e"})` : ""} · ${sum.inlamnat} inlämnat`;
     tbody.innerHTML = rader.map((r) => `<tr class="provl-elev provl-elev-${r.status}">
       <th scope="row">${esc(r.namn)}${r.extraMin ? ` <span class="provl-ap-tag" title="Extra tid">+${r.extraMin} min</span>` : ""}${
         r.helskarmFel ? ` <span class="provl-ap-tag provl-hs-tag">Helskärm fungerade inte</span>` : ""}</th>

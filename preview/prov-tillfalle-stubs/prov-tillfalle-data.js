@@ -68,3 +68,27 @@ export async function raderaTillfalle(tf) {
   delete S.svar[tf.id];
   S.logg(`Raderade ${tf.provNamn}`);
 }
+// #810: helskärmsläget – inställningen, lyssnaren på pausade och Släpp in.
+export async function sparaHelskarm(t, h) {
+  await vanta();
+  Object.assign(S.tillfallen[t], { helskarm: h?.pa !== false, helskarmUndantag: h?.undantag || [] });
+  S.logg(`Helskärm: ${h?.pa !== false ? "på" : "av"}, undantag ${JSON.stringify(h?.undantag || [])}`);
+}
+export function lyssnaPausade(t, cb) {
+  const f = () => cb(kopia(Object.fromEntries(Object.entries(S.svar[t] || {}).filter(([, d]) => d.pausad === true))));
+  window.addEventListener("pv-paus", f);
+  setTimeout(f, 0);
+  return () => window.removeEventListener("pv-paus", f);
+}
+export async function slappIn(tf, uids, { plusMin = false } = {}) {
+  await vanta();
+  const extraTid = { ...(tf.extraTid || {}) };
+  for (const uid of uids) {
+    Object.assign(S.svar[tf.id][uid], { pausad: false, slapptInAt: Date.now() });
+    if (plusMin && tf.tidsgransMin) extraTid[uid] = Math.min((extraTid[uid] || 0) + 5, 240);
+  }
+  if (plusMin && tf.tidsgransMin) S.tillfallen[tf.id].extraTid = extraTid;
+  S.logg(`Släppte in ${uids.join(", ")}${plusMin ? " (+5 min)" : ""}`);
+  window.dispatchEvent(new CustomEvent("pv-paus"));
+  return plusMin && tf.tidsgransMin ? extraTid : null;
+}

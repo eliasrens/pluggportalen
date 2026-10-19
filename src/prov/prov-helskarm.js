@@ -14,6 +14,8 @@ import { EXTRA_TID_MAX, extraMin, flikbyteText, tolkaFlikbyten } from "./prov-an
 export const PAUS_ORSAKER = Object.freeze(["helskarm", "flik", "fokus"]);
 // Fönstret får tappa fokus så här länge innan provet pausas (Alt+Tab, Windows-tangenten).
 export const FOKUS_GRANS_MS = 2_000;
+// Chrome lämnar helskärmen FÖRE flikbytet: vänta så här länge innan orsaken bestäms.
+export const HELSKARM_VANTA_MS = 300;
 // "+5 min" när läraren släpper in.
 export const SLAPP_IN_EXTRA_MIN = 5;
 // Så många pauser sparas med tid och orsak (reglerna: högst 200).
@@ -115,14 +117,27 @@ export function skapaPausvakt({ onPaus, doc, win, harFokus = () => true, kravHel
   let aktiv = false;
   let pausad = false;
   let fokusTimer = null;
+  let helskarmTimer = null;
+  const rensa = () => {
+    if (fokusTimer) timer.clear(fokusTimer);
+    if (helskarmTimer) timer.clear(helskarmTimer);
+    fokusTimer = helskarmTimer = null;
+  };
   const paus = (orsak) => {
     if (!aktiv || pausad) return;
     pausad = true;
-    if (fokusTimer) timer.clear(fokusTimer);
-    fokusTimer = null;
+    rensa();
     onPaus(orsak);
   };
-  const helskarm = () => { if (kravHelskarm && !doc.fullscreenElement) paus("helskarm"); };
+  // Ut ur helskärmen: Esc/F11 – eller ett flikbyte (Chrome lämnar helskärmen först).
+  // Döljs fliken strax efter räknas det som ett flikbyte; annars "helskarm".
+  const helskarm = () => {
+    if (!kravHelskarm || doc.fullscreenElement || helskarmTimer || !aktiv || pausad) return;
+    helskarmTimer = timer.set(() => {
+      helskarmTimer = null;
+      if (!doc.fullscreenElement) paus(doc.hidden ? "flik" : "helskarm");
+    }, HELSKARM_VANTA_MS);
+  };
   const synlighet = () => { if (doc.hidden) paus("flik"); };
   const blur = () => {
     if (!aktiv || pausad || fokusTimer) return;
@@ -147,7 +162,7 @@ export function skapaPausvakt({ onPaus, doc, win, harFokus = () => true, kravHel
     stoppa() {
       if (!aktiv) return;
       aktiv = false;
-      fokus();
+      rensa();
       doc.removeEventListener("fullscreenchange", helskarm);
       doc.removeEventListener("visibilitychange", synlighet);
       win.removeEventListener("blur", blur);
