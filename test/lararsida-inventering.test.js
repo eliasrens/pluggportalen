@@ -172,3 +172,28 @@ describe("profilmenyn och bootgrafen", () => {
     assert.match(src, /import\("\.\/teacher-hjalp\.js"\)/);
   });
 });
+
+describe("Hem (#807, DEL 2)", () => {
+  const routes = () => new Set(shared.TEACHER_TABS.map((t) => t.hash.split("?")[0]));
+  it("Hem är den nya sidan och laddas lat", () => {
+    const hem = shared.TEACHER_TABS.find((t) => t.key === "hem");
+    assert.equal(hem.hash, "#/larare/hem");
+    const src = readFileSync(new URL("../src/teacher-shared.js", import.meta.url), "utf8");
+    assert.match(src, /import\("\.\/teacher-hem\.js"\), "pageLarareHem"/);
+    assert.doesNotMatch(src, /teacher-overview/);
+  });
+  it("varje adress på Hem (Kom igång, Snabbval, Att göra) är en lärar-route som årskurslärare når", async () => {
+    const logik = await import("../src/teacher-hem-logik.js");
+    const rader = logik.attGoraRader({
+      attRatta: [{ id: "t", namn: "P", klass: "4A", antal: 1 }], oppnaProv: [{ id: "t", namn: "P", klass: "4A" }],
+      live: [{ id: "l", namn: "L" }], inaktiva: [{ classId: "4a", klass: "4A", elever: [{ namn: "A" }] }],
+    });
+    const prov = ["#/larare/prov/ratta", "#/larare/prov/tillfalle"]; // provets undersidor (registrerade i app.js)
+    for (const h of [...logik.KOM_IGANG, ...logik.SNABBVAL, ...rader].map((x) => x.hash).filter(Boolean)) {
+      const bas = h.split("?")[0];
+      const t = shared.TEACHER_TABS.find((x) => x.hash === bas);
+      assert.ok(routes().has(bas) || prov.includes(bas), `${h} är ingen route`);
+      if (t) assert.equal(nar(t.key, false), true, `årskurs når ${h}`);
+    }
+  });
+});

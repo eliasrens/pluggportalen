@@ -218,8 +218,8 @@ export const TEACHER_GROUPS = [
 const tab = (key, hash, group, label, title, icon, load, fn, admin = false) =>
   ({ key, hash, group, label, title, icon, admin, page: lazyPage(load, fn, admin) });
 export const TEACHER_TABS = [
-  // Hem (#803): dagens översikt tills sub-issue E bygger den nya Hem-sidan.
-  tab("hem", "#/larare/hem", "hem", "Hem", "Hem", "home", () => import("./teacher-overview.js"), "pageLarareOversikt"),
+  // Hem (#807): Kom igång, Att göra, Snabbval och Mina klasser (ersätter översikten).
+  tab("hem", "#/larare/hem", "hem", "Hem", "Hem", "home", () => import("./teacher-hem.js"), "pageLarareHem"),
   // Mina klasser (#804): klassväljare + Hur går det? | Vad eleverna ser | Fokusläge | Elever.
   tab("klasser", "#/larare/mina-klasser", "klasser", "Mina klasser", "Mina klasser", "users", () => import("./teacher-classes.js"), "pageLarareMinaKlasser"),
   // Material (#806): en sida med underflikar (Plugga-områden, Läsresan, Ekvationsresan, Bråkresan, Hitta rätt!, Schack)
@@ -352,6 +352,7 @@ export function teacherNav(ctx, active) {
     nav.querySelector(".tprof-ava").textContent = initialer(r.name);
     nav.querySelector(".tprof-who").textContent = `Inloggad som ${r.name}`;
   }, () => {});
+  import("./prov/prov-att-ratta.js").then((m) => m.provMarke(nav), () => {}); // "Prov 18" (#807)
   return nav;
 }
 

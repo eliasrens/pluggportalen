@@ -23,7 +23,7 @@ import { STATUS, STATUS_NAMN } from "./prov-modell.js";
 import { arOmprov, extraTidText, gallerElev, tillfalleNamn } from "./prov-anpassningar.js";
 import { extraTidRuta, omprovRuta } from "./prov-anpassningar-rutor.js";
 import { rattStatusText } from "./prov-rattning-logik.js";
-import { hamtaSvar, hamtaTillfalle, listaProv, listaTillfallen } from "./prov-tillfalle-data.js";
+import { hamtaSvar, hamtaTillfalle, listaProv, listaTillfallen, uppgraderaRaknare } from "./prov-tillfalle-data.js";
 import { OVERSIKT_INTERVALL_MS, kvarText, oversiktRader, oversiktSumma, tillMs } from "./prov-tillfalle-logik.js";
 import { korIKlass, oppnaRuta, raderaRuta, ruta, stangRuta } from "./prov-tillfalle-rutor.js";
 import { laddaCss } from "./prov-vy.js";
@@ -93,6 +93,7 @@ export async function pageProvTillfallen(ctx) {
     const mina = filterClasses(klasser, role);
     const tillfallen = mina.length ? await listaTillfallen(mina.map((c) => c.id)) : [];
     if (window.location.hash.split("?")[0] !== LISTA) return;
+    uppgraderaRaknare(tillfallen); // #807 F2: äldre tillfällen syns sedan i märket och Att rätta
     ritaLista(ctx, body, mina, tillfallen);
   } catch (err) {
     body.replaceChildren(el(`<div class="panel"><div class="msg error">Kunde inte ladda provtillfällena: ${esc(errText(err))}</div></div>`));

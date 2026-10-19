@@ -28,6 +28,17 @@ export function awardProjectionPatch(sd = {}) {
   return { stars, xp: xpFromStudentData(sd), completed, plays: playsTotal(sd && sd.progress) };
 }
 
+/**
+ * #807 (Hem på lärarsidan): dagen eleven senast övade, "YYYY-MM-DD" i lokal tid.
+ * Följer med award-patchen (members.<uid>.ovat) – ingen egen skrivning – så att
+ * lärarens Hem kan räkna "Övat den här veckan" och "inte övat på 2 veckor" ur
+ * EN läsning per klass.
+ */
+export function ovatIdag(now = new Date()) {
+  const p = (n) => String(n).padStart(2, "0");
+  return `${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}`;
+}
+
 /** Default-loggning av en fallerad projektions-skrivning (aldrig kastande). */
 function defaultOnError(err) {
   try {

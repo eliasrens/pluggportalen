@@ -89,7 +89,14 @@ export async function loadLibraryFrom(data) {
   const withAreas = await Promise.all(
     subjects.map(async (subj) => ({ ...subj, areas: await data.getAreas(subj.id) }))
   );
-  return withAreas.filter((subj) => subj.areas.length > 0);
+  const lib = withAreas.filter((subj) => subj.areas.length > 0);
+  // Hem (#807) visar klassernas områden med namn utan att läsa biblioteket:
+  // namnen sparas i webbläsaren när biblioteket ändå laddas här.
+  try {
+    const namn = Object.fromEntries(lib.flatMap((s) => s.areas.map((a) => [`${s.id}/${a.id}`, a.name || a.id])));
+    localStorage.setItem("pp:larare:omradesnamn", JSON.stringify(namn));
+  } catch { /* ingen lagring – Hem visar id:t snyggat */ }
+  return lib;
 }
 
 /**

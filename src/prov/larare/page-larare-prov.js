@@ -1,7 +1,8 @@
 // ============================================================================
 // Prov (#739, spec §5.1/§8): lärarfliken "Mina prov" (src/prov/larare/page-larare-prov.js)
 // ----------------------------------------------------------------------------
-//   #/larare/prov[?vy=mina]              listan: mina prov + kollegors (provl-lista.js)
+//   #/larare/prov[?vy=mina]              listan: mina prov + kollegors (provl-lista.js),
+//                                        med rutan "Att rätta" överst (prov-att-ratta.js, #807)
 //   #/larare/prov?vy=ny                  nytt prov (provl-redigera.js)
 //   #/larare/prov?vy=ny&id=<provId>      redigera (bara ägaren/admin – andra kopierar)
 //   #/larare/prov?vy=ny&kopia=<provId>   kopiera → osparat utkast
@@ -46,6 +47,10 @@ export async function pageLarareProv(ctx) {
     const { renderRedigera } = await import("./provl-redigera.js");
     return renderRedigera(ctx, host, { id: p.id, kopia: p.kopia });
   }
+  // "Att rätta" överst (#807, epic #802 DEL 5) – ur tillfällenas räknare, väntar inte in listan.
+  const attRatta = el(`<div class="provl-att-ratta"></div>`);
+  sida.insertBefore(attRatta, host);
+  import("../prov-att-ratta.js").then((m) => m.renderAttRatta(ctx, attRatta), () => {});
   const { renderLista } = await import("./provl-lista.js");
   return renderLista(ctx, host);
 }
