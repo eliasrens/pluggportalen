@@ -21,7 +21,7 @@
 // ============================================================================
 
 import { app, el, go, getParams, loading, renderTopbar } from "../ui.js";
-import { getSession, currentStudentId, getStudentData, getClasses, getClassProjection } from "../data.js";
+import { getSession, currentStudentId, getStudentData, getClasses, ensureClassProjection } from "../data.js";
 import { avatarMarkup, DEFAULT_AVATAR } from "../avatars.js";
 import { partiNyckel } from "./schack-parti.js";
 
@@ -67,10 +67,13 @@ function schackKlass(klasser, uid) {
     !(Array.isArray(c.hiddenModules) && c.hiddenModules.includes("schack"))) || null;
 }
 
-/** Klasskompisarna med namn och avatar – EN läsning (classProjections) per besök. */
+/**
+ * Klasskompisarna med namn och avatar – EN läsning (classProjections) per besök.
+ * Saknas någon i projektionen byggs den posten en gång (self-heal, #231).
+ */
 function klasslistaFor(classId, studentIds) {
   let p = null;
-  return () => (p ||= getClassProjection(classId).then(({ members }) =>
+  return () => (p ||= ensureClassProjection(classId, studentIds || []).then(({ members }) =>
     (studentIds || []).map((uid) => {
       const m = members?.[uid] || {};
       return { uid, namn: m.namn || "Okänd", avatarHtml: avatarMarkup(m.avatarId || DEFAULT_AVATAR, m.avatarItems || []) };
