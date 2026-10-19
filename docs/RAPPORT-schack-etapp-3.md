@@ -4,7 +4,7 @@ Slut-QA (#792) av Etapp 3 i [`UTVECKLINGSUPPDRAG_SCHACK.md`](UTVECKLINGSUPPDRAG_
 guiden "Lär dig schack" (3A, #790) och pusslen "Matt i ett/två drag" (3B, #791). Arkitektur,
 datamodell och kvot står i [`SCHACK.md`](SCHACK.md) §15–§17. QA gjord 2026-10-19 på epic-grenen
 (4a484c3) med `origin/main` inmergad (ae5353d, Prov #788 – inga konflikter) och med rättningen av F1
-(nedan) i `firestore.rules`.
+(47a4fff) i `firestore.rules`.
 
 **Kort:** allt i §12–§14 fungerar i den riktiga appen mot emulatorerna: alla 12 lektioner går att klara
 med riktiga mus-/touchhändelser, stjärnorna räknas efter antal drag, lektion 12 spelas mot Bonden till
@@ -34,19 +34,19 @@ avsnitt 6. **Deploy:** rules → webb, inga functions, inga index (avsnitt 8).
 
 | Svit | Resultat |
 | --- | --- |
-| Enhetstester (`node --test` på alla `test/*.test.*` utom rules/functions/e2e) | SLUTSIFFRA_UNIT |
-| Firestore-regler (`npm run test:rules`) | SLUTSIFFRA_RULES |
-| Cloud Functions (`npm run test:functions`) | SLUTSIFFRA_FUNCTIONS |
-| Smoke (`npm run test:e2e`, auth + firestore) | SLUTSIFFRA_E2E |
+| Enhetstester (`node --test` på alla `test/*.test.*` utom rules/functions/e2e) | **3600 pass, 0 fail, 1 skip** (skippen är den gamla Live-demo-stubben, inte schack) |
+| Firestore-regler (`npm run test:rules`) | **799 / 799** (var 779 före F1; +13 `schack-grans-792`, +7 `schack-uttryck-792`) |
+| Cloud Functions (`npm run test:functions`) | **349 pass, 0 fail, 2 todo** (de två todo är de accepterade F9 från #779) |
+| Smoke (`npm run test:e2e`, auth + firestore) | **5 / 5** |
 | Bootgrafen (`admin/qa-bootgraf-bfs.mjs HEAD`) | **107 filer**, inget under `src/schack/` |
 | Pusselvalidering (`admin/qa-schack-3/pussel-validera.mjs`) | **400/400** (avsnitt 4.2) |
-| Webbläsar-QA Etapp 3 (`admin/qa-schack-3/qa.mjs`) | `guide` 93, `guide12` 8, `pussel` 35, `lazy` 10, `layout` 52, `kvot` 7, `extra` 24, `regelgrans` 7, `sakerhet` 54 – **allt OK**, 0 FEL |
-| Etapp 2 i webbläsaren (`admin/qa-schack-2/qa.mjs`) | `lobby` 25, `larare` 24, `sakerhet` 31, `gammalt` 10, `extra` 23, `layout` 24 OK; `partier` 49 OK + 1 känd tidsfluga (F3) |
+| Webbläsar-QA Etapp 3 (`admin/qa-schack-3/qa.mjs`) | `guide` 94, `guide12` 8, `pussel` 36, `lazy` 10, `layout` 52, `kvot` 7, `extra` 24, `regelgrans` 7, `sakerhet` 54 – **allt OK**, 0 FEL |
+| Etapp 2 i webbläsaren (`admin/qa-schack-2/qa.mjs`) | `lobby` 25, `larare` 24, `sakerhet` 31, `gammalt` 10, `extra` 23, `layout` 24 OK; `partier` 49 OK + 1 känd tidsfluga (F3). `larare` föll en gång på ett klick som inte hann ritas och var grönt vid två omkörningar (belastningsfluga i riggen) |
 | Etapp 1 i webbläsaren (`admin/qa-schack-app.mjs`) | `nivaer` **192/192**, `bradet` **50/50**, `hjalp` **36/36**, `layout` **31/31**, `kvot` **2/2** |
 
-Allt kördes på slutversionen, en emulator åt gången (`flock /tmp/schack-774-emulator.lock`, slumpade
-portar). Emulatorn är nedstängd efteråt. Regelsviten och F1-matrisen kördes både före och efter rättningen
-(avsnitt 6).
+Allt kördes på slutversionen (47a4fff + rapporten), en emulator åt gången (`flock /tmp/schack-774-emulator.lock`, slumpade
+portar). Emulatorn är nedstängd efteråt. Regelsviten (779 före, 799 efter) och F1-matrisen kördes både före och efter rättningen
+(avsnitt 6); `test/firestore-rules-schack-grans-792.test.js` fallerar 9 av 13 på originalregeln och passerar 13/13 på rättningen.
 
 ## 3. QA i webbläsaren – riggen
 
@@ -88,7 +88,7 @@ Admin-SDK:t. Klientens Firestore-skrivningar mot reglerna görs med appens egna 
   stjärnor", "Ta alla stjärnor på så få drag som möjligt", "Ditt första parti" mot Bonden med Ångra, Tips
   och Varna mig (mot datorn). Alla lektioner är öppna, ingen tidspress.
 
-### 4.2 Pusslen (`pussel` 35/35, `pussel-validera.mjs` 400/400)
+### 4.2 Pusslen (`pussel` 36/36, `pussel-validera.mjs` 400/400)
 
 - **Oberoende validering av alla 400 pussel** (`node admin/qa-schack-3/pussel-validera.mjs`, egen
   implementation med chess.js, strängare än #791:s skript): matt i ett – lösningsdraget är lagligt och ger
@@ -206,7 +206,7 @@ Klientens Firestore-trafik per elev, räknad i proxyn (`kvot`, `lyssnare` är #7
 
 | # | Allvar | Vad | Status |
 | --- | --- | --- | --- |
-| **F1** | 🔴 **blockerare** | `schackOk()` i `firestore.rules` körs på **varje** skrivning till `studentData` när dokumentet har ett `schack`-fält, och utvärderade alltid alla 12 `schackLektionOk` + 2 `schackPusselSortOk` (långa grenar för varje befintlig nyckel). Firestore avbryter vid **1000 uttryck per begäran** ("maximum of 1000 expressions to evaluate has been reached", `firestore.rules` L351/L353). Resultat i riktiga appen mot emulatorn: en elev med **12 sparade lektioner**, eller **6+ lektioner + pussel ett och två**, eller **9+ lektioner + pussel ett** fick **alla** skrivningar till sitt `studentData` nekade – `coins +1`, `stars +1`, `avatarId`, `datorPartier +1`, nästa lektion, nästa pussel. Det slog alltså mot hela sajten. Lektion 12 gick aldrig att spara när 1–11 fanns. Klienten sväljer felet (`console.warn`), så eleven märker inget förrän mynt och stjärnor slutar sparas. De 779 regeltesterna var gröna eftersom ingen testade ett halvfullt/fullt tillstånd. Repro: `qa.mjs regelgrans` (matris tillstånd × skrivning), eller regeltestet `test/firestore-rules-schack-grans-792.test.js` (9 av 13 fall fallerar på originalregeln). | **Rättad** av Coder i `firestore.rules`: bara de nycklar som ÄNDRAS (`diff().affectedKeys()`) valideras, en orelaterad skrivning kostar nästan inget. Verifierad: matrisen **7/7**, `sakerhet` 54/54 (alla fusk nekas fortfarande, inklusive blandade skrivningar och ersatt hel mapp), regeltestet **13/13**, Etapp 1–2 gröna. **Regeln måste deployas innan webben.** |
+| **F1** | 🔴 **blockerare** | `schackOk()` i `firestore.rules` körs på **varje** skrivning till `studentData` när dokumentet har ett `schack`-fält, och utvärderade alltid alla 12 `schackLektionOk` + 2 `schackPusselSortOk` (långa grenar för varje befintlig nyckel). Firestore avbryter vid **1000 uttryck per begäran** ("maximum of 1000 expressions to evaluate has been reached", `firestore.rules` L351/L353). Resultat i riktiga appen mot emulatorn: en elev med **12 sparade lektioner**, eller **6+ lektioner + pussel ett och två**, eller **9+ lektioner + pussel ett** fick **alla** skrivningar till sitt `studentData` nekade – `coins +1`, `stars +1`, `avatarId`, `datorPartier +1`, nästa lektion, nästa pussel. Det slog alltså mot hela sajten. Lektion 12 gick aldrig att spara när 1–11 fanns. Klienten sväljer felet (`console.warn`), så eleven märker inget förrän mynt och stjärnor slutar sparas. De 779 regeltesterna var gröna eftersom ingen testade ett halvfullt/fullt tillstånd. Repro: `qa.mjs regelgrans` (matris tillstånd × skrivning), eller regeltestet `test/firestore-rules-schack-grans-792.test.js` (9 av 13 fall fallerar på originalregeln). | **Rättad** (47a4fff, Coder) i `firestore.rules`: bara de nycklar som ÄNDRAS (`diff().affectedKeys()`) valideras, en orelaterad skrivning kostar nästan inget. Verifierad: matrisen **7/7**, `sakerhet` 54/54 (alla fusk nekas fortfarande, inklusive blandade skrivningar och ersatt hel mapp), regeltestet **13/13**, Etapp 1–2 gröna. **Regeln måste deployas innan webben.** |
 | F2 | ⚪ dokumentation | `docs/BEHORIGHETER.md` (raden `studentData`) nämner `schack.lektioner` (#790) men inte `schack.pussel` (#791). | **Rättad** i #792: raden nämner nu `schack.pussel` (`DATAMODELL.md` hade redan `pussel`) |
 | F3 | ⚪ QA-skript | Etapp 2-skriptets `partier` ger ibland FEL på "svart ser 'Din tid är slut.'". Skriptet läser svarts text i samma ögonblick som vits "Kräv vinsten" visas; svarts text kommer i samma sekundtick (isolerat: båda syns efter 1 s). Inget som Etapp 3 ändrat (klockan och kompisvyn är orörda). | Ingen åtgärd (tidsfluga i #782:s skript) |
 | F4 | ⚪ iakttagelse | **Börja om i en jaktuppgift nollställer dragräknaren**, och stjärnorna räknas på det sista försöket. En elev kan alltså få 3 stjärnor genom att trycka Börja om efter första felet. Ingen skada (inga mynt, "Börja om" är en pedagogisk funktion), men "efter antal drag" gäller då det sista försöket. | Ingen åtgärd – fråga till Elias (avsnitt 9) |
