@@ -56,8 +56,8 @@ test("toppnaven: Hem, Mina klasser, Material, Prov, Live, Admin (#803), admin-fl
 test("klasslägen: årskurs-sektionerna saknar elevkonton/ekonomi, bara Admin får hantera klasser", () => {
   const src = readFileSync(join(SRC, "teacher-classes-sections.js"), "utf8");
   const mode = (k) => src.match(new RegExp(`${k}: \\{[^\\n]*\\}`))[0];
-  assert.match(mode("klasser"), /sections: \["omraden", "lagen", "synlighet", "fokus", "schack", "inloggning"\], manage: false/);
-  assert.match(mode("statistik"), /manage: false/);
+  // #804: Klasser + Statistik = Mina klasser (schack är statistikens underflik).
+  assert.match(mode("mina"), /sections: \["statistik", "omraden", "synlighet", "lagen", "fokus", "inloggning"\], manage: false/);
   assert.match(mode("admin"), /sections: \["elever", "klasscenter"\], manage: true/);
 });
 

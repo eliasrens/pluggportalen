@@ -132,13 +132,13 @@ describe("gamla adresser (DEL 7)", () => {
   it("Översikt → Hem, och äldre adresser följer kedjan", () => {
     assert.equal(mal("#/larare/oversikt"), "#/larare/hem");
     assert.equal(mal("#/larare"), "#/larare/hem");
-    assert.equal(mal("#/larare/klass"), "#/larare/statistik");
-    assert.equal(mal("#/larare/elever"), "#/larare/klasser");
+    assert.equal(mal("#/larare/klass"), "#/larare/mina-klasser?flik=hur");
+    assert.equal(mal("#/larare/elever"), "#/larare/mina-klasser?flik=elever");
     assert.equal(mal("#/larare/prompter"), "#/larare/innehall");
   });
   it("parametrarna följer med: ?prov= till Hitta rätt!, ?klass= till klassvyn", () => {
     assert.equal(mal("#/larare/hitta-ratt?prov=sverige&fran=fardiga"), "#/larare/hitta-ratt?prov=sverige&fran=fardiga");
-    assert.equal(mal("#/larare/klass?klass=4b"), "#/larare/statistik?klass=4b");
+    assert.equal(mal("#/larare/klass?klass=4b"), "#/larare/mina-klasser?flik=hur&klass=4b");
     assert.equal(mal("#/larare/oversikt?x=1"), "#/larare/hem?x=1");
   });
   it("en route som redan är platsen omdirigeras inte (ingen loop)", () => {

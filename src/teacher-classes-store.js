@@ -15,8 +15,26 @@
 // dynamiskt (via teacher-classes-page.js) – aldrig i den statiska bootgrafen.
 // ============================================================================
 
-/** sessionStorage-nyckel för senast vald klass (reserv när URL:en saknar ?klass=). */
+/** Nyckel för senast vald klass (reserv när URL:en saknar ?klass=). */
 export const SELECTED_KEY = "pp:larare:klass";
+
+/** Senast vald klass – localStorage sedan #804 (minns över omladdning), förr sessionStorage. */
+export function readSavedClass() {
+  try {
+    return localStorage.getItem(SELECTED_KEY) || sessionStorage.getItem(SELECTED_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/** Kom ihåg vald klass (null = glöm). Delas av Mina klasser och Admin → Klasser. */
+export function saveClass(id) {
+  try {
+    if (id) localStorage.setItem(SELECTED_KEY, id);
+    else localStorage.removeItem(SELECTED_KEY);
+    sessionStorage.removeItem(SELECTED_KEY);
+  } catch {}
+}
 
 /** Klasser i visningsordning: `order`, sedan namn (sv) – samma regel som förr (K-10). */
 export function sortClasses(classes) {

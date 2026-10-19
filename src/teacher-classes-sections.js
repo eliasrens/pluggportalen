@@ -18,13 +18,15 @@
 // #679: sektionerna fördelas på tre sidlägen (CLASS_PAGE_MODES) – Klasser,
 // Statistik och Admin → Klasser & elevkonton. Sektionerna själva är oförändrade;
 // "Inloggning" är medlemshanteraren i lösenordsläge (det årskurskonton får).
+// #804 (epic #802): Klasser + Statistik → Mina klasser med flikarna MINA_FLIKAR
+// (teacher-mina-val.js/teacher-mina-klasser.js); Schack är nu statistikens
+// underflik (STATS_TABS).
 // ============================================================================
 
 import { el, esc, errText, isAdmin } from "./teacher-shared.js";
 import { renderMemberManager } from "./teacher-class-accounts.js";
 import { renderClassAreaModes, renderClassAssignments } from "./teacher-class-modes.js";
 import { renderClassStats } from "./teacher-class.js";
-import { schackLararIkon } from "./teacher-schack-ikon.js";
 
 /** Laddningsrad → render; vid fel en snäll felrad i samma värd (K-16). */
 export async function withLoading(host, what, render) {
@@ -123,18 +125,6 @@ export const CLASS_SECTIONS = [
       }),
   },
   {
-    key: "schack",
-    label: "Schack",
-    icon: "eye",
-    svg: schackLararIkon,
-    what: "schack",
-    // #781 (spec §10): modulen på/av, pågående partier + åskådarläget, avsluta,
-    // topplistan, statistik. Allt lat i src/schack/larare/; lyssnarna stängs när
-    // sektionen lämnas (vakten i schack-larare-delar.js).
-    render: async (ctx, cls, host, store) =>
-      (await import("./schack/larare/schack-larare.js")).renderSchackSektion(ctx, cls, host, { students: store.state.students }),
-  },
-  {
     key: "klasscenter",
     label: "Klasscentret",
     icon: "school",
@@ -163,20 +153,21 @@ export const CLASS_SECTIONS = [
       const studentById = new Map(students.map((s) => [s.id, s]));
       await renderClassStats(ctx, host, {
         students: classStudents, subjects, studentById, loadAreas, classId: cls.id, cls, classes: store.sorted(),
+        ...store.statsOpts, // #804: { tab, onTab, visaSer } från Mina klasser
       });
     },
   },
 ];
 
 /**
- * Sidlägen (#679, spec §5.1). tab = flik i TEACHER_TABS, base = route,
- * sections = sektionsnycklar i ordning, manage = skapa/döp om/ta bort klasser
- * (bara Admin-läget, som i sin tur bara når admin). Nivåstyrningen för Läsresan
- * och Ekvationsresan bor i statistikens flikar (#506) och följer med Statistik.
+ * Sidlägen (#679, spec §5.1; #804). tab = flik i TEACHER_TABS, base = route,
+ * sections = sektionsnycklar som rollen som når fliken ser, manage = skapa/döp
+ * om/ta bort klasser (bara Admin-läget, som i sin tur bara når admin).
+ * #804: Klasser + Statistik blev EN sida, Mina klasser, med flikarna i
+ * MINA_FLIKAR (teacher-mina-val.js). Admin-läget görs om i sub-issue C.
  */
 export const CLASS_PAGE_MODES = {
-  klasser: { tab: "klasser", base: "#/larare/klasser", sections: ["omraden", "lagen", "synlighet", "fokus", "schack", "inloggning"], manage: false },
-  statistik: { tab: "statistik", base: "#/larare/statistik", sections: ["statistik"], manage: false },
+  mina: { tab: "klasser", base: "#/larare/mina-klasser", sections: ["statistik", "omraden", "synlighet", "lagen", "fokus", "inloggning"], manage: false },
   admin: { tab: "adminklasser", base: "#/larare/admin/klasser", sections: ["elever", "klasscenter"], manage: true },
 };
 
