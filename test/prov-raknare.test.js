@@ -15,7 +15,8 @@ import assert from "node:assert/strict";
 import { installeraMinnesFirestore } from "./helpers/minnes-firestore-loader.js";
 import { EXEMPEL } from "./helpers/prov-exempel.js";
 import {
-  attRattaAntal, attRattaCache, attRattaRader, flaggaStammer, glomAttRatta, raknareFalt, rattaHash, stangRaknare, summaAttRatta,
+  attRattaAntal, attRattaCache, attRattaRader, backfillPlan, flaggaStammer, glomAttRatta, raknareFalt, rattaHash, stangRaknare,
+  summaAttRatta, uppgraderaFalt,
 } from "../src/prov/prov-raknare.js";
 
 describe("prov-raknare (rena hjälpare)", () => {
@@ -48,6 +49,17 @@ describe("prov-raknare (rena hjälpare)", () => {
     assert.equal(rader[0].inlamnade, 22);
     assert.equal(summaAttRatta(rader), 19);
     assert.equal(rattaHash("a b"), "#/larare/prov/ratta?t=a%20b");
+  });
+  it("F2: äldre tillfällen – uppgraderaFalt (lat) och backfillPlan (engångsskriptet)", () => {
+    assert.deepEqual(uppgraderaFalt({ status: "stangt", rattStatus: { antal: 3, rattade: 1 } }),
+      { rattStatus: { antal: 3, rattade: 1, tillbaka: 0 }, attRatta: true });
+    assert.equal(uppgraderaFalt({ status: "stangt", rattStatus: { antal: 3, rattade: 1 }, attRatta: true }), null, "redan rätt");
+    assert.equal(uppgraderaFalt({ status: "stangt" }), null, "utan räkneverk kan klienten inte räkna");
+    assert.equal(backfillPlan({ status: "stangt", rattStatus: { antal: 2, rattade: 2 } }), "flagga");
+    assert.equal(backfillPlan({ status: "stangt" }), "rakna");
+    assert.equal(backfillPlan({ status: "stangt", rattStatus: { antal: 2, rattade: 2, tillbaka: 0 }, attRatta: false }), null);
+    assert.equal(backfillPlan({ status: "oppet" }), null, "öppet räknas när det stängs");
+    assert.equal(backfillPlan({ status: "forberett" }), null);
   });
   it("glomAttRatta tömmer sessionscachen", () => {
     Object.assign(attRattaCache, { nyckel: "x", tid: Date.now(), lofte: Promise.resolve([]) });
@@ -138,7 +150,7 @@ describe("räknarna genom hela flödet (riktiga data-moduler, minnes-Firestore)"
     lager.andrat(["e3", "e4"]);
     await lager.spola();
     assert.deepEqual(raknare(), [4, 4, 1, false]);
-    assert.deepEqual(await attRatta.lasAttRattaTillfallen(["4a"]), []);
+    assert.equal((await attRatta.lasAttRattaTillfallen(["4a"])).length, 0);
   });
 
   it("Öppna igen: de som får skriva igen är inte inlämnade – räknarna ur svaren och rättningarna som redan läses", async () => {
@@ -168,6 +180,39 @@ describe("räknarna genom hela flödet (riktiga data-moduler, minnes-Firestore)"
     assert.deepEqual(tfNu().rattStatus, fore.rattStatus);
     const ids = (await attRatta.lasAttRattaTillfallen(["4a"])).map((t) => t.id).sort();
     assert.ok(ids.includes(O));
+  });
+
+  it("F2: Provtillfällen skriver upp äldre tillfällen lat (en skrivning, inga läsningar) – sedan hittar märket dem", async () => {
+    await fs.setDoc(fs.doc(fs.db, "provTillfallen/t-gammal"), { provId: "p1", provNamn: "Gammal", classId: "4a", status: "stangt", fragor, rattStatus: { antal: 3, rattade: 1, tillbaka: 0 } });
+    assert.ok(!(await attRatta.lasAttRattaTillfallen(["4a"])).some((t) => t.id === "t-gammal"));
+    const lista = await td.listaTillfallen(["4a"]);
+    const fran = fs.rakna.logg.length;
+    assert.equal(await td.uppgraderaRaknare(lista), 1);
+    assert.deepEqual(fs.rakna.logg.slice(fran).filter((l) => l.startsWith("las ")), []);
+    assert.equal(fs.las("provTillfallen/t-gammal").attRatta, true);
+    assert.ok((await attRatta.lasAttRattaTillfallen(["4a"])).some((t) => t.id === "t-gammal"));
+    assert.equal(await td.uppgraderaRaknare(await td.listaTillfallen(["4a"])), 0, "idempotent");
+  });
+
+  it("F3: admin – klasser dolda på Hem syns inte i märket/Att rätta; årskurs påverkas inte", () => {
+    const rader = Object.assign([{ classId: "4a", antal: 2 }, { classId: "test", antal: 5 }], { fler: true });
+    localStorage.setItem("pp:larare:adm:doldaKlasser", JSON.stringify(["test"]));
+    const ut = attRatta.utanDolda(rader, { admin: true, uid: "adm" });
+    assert.deepEqual(ut.map((r) => r.classId), ["4a"]);
+    assert.equal(ut.fler, true, "taket följer med");
+    assert.equal(attRatta.utanDolda(rader, { admin: false, uid: "adm" }).length, 2);
+    assert.equal(attRatta.utanDolda(rader, { admin: true, uid: "annan" }).length, 2, "per lärare");
+  });
+
+  it("F4: märkets fråga har ett tak (MAX_TILLFALLEN) och säger till när det slår i", async () => {
+    const N = attRatta.MAX_TILLFALLEN;
+    for (let i = 0; i < N + 2; i++) {
+      await fs.setDoc(fs.doc(fs.db, `provTillfallen/tak-${i}`), { classId: "4b", status: "stangt", provNamn: "P", rattStatus: { antal: 1, rattade: 0, tillbaka: 0 }, attRatta: true });
+    }
+    const ut = await attRatta.lasAttRattaTillfallen(["4b"]);
+    assert.equal(ut.length, N);
+    assert.equal(ut.fler, true);
+    assert.equal((await attRatta.lasAttRattaTillfallen(["4a"])).fler, false);
   });
 
   it("Radera: tillfället försvinner ur frågan", async () => {

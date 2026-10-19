@@ -35,6 +35,24 @@ export function raknareFalt(rattStatus) {
 export const flaggaStammer = (tf) => tf?.attRatta === attRattaAntal({ rattStatus: tf?.rattStatus }) > 0;
 
 /**
+ * Äldre tillfälle (före #807) med räkneverk men utan flaggan → fälten att skriva
+ * (lat uppskrivning när Provtillfällen laddas, inga extra läsningar), annars null.
+ */
+export const uppgraderaFalt = (tf) => (tf?.rattStatus && !flaggaStammer(tf) ? raknareFalt(tf.rattStatus) : null);
+
+/**
+ * Engångsskriptet admin/backfill-att-ratta.mjs: vad behöver ett tillfälle från före #807?
+ *   "flagga" – räkneverket finns, flaggan saknas/fel (uppgraderaFalt)
+ *   "rakna"  – stängt utan räkneverk (aldrig rättat): antal = inlämnade svar (count-fråga)
+ *   null     – inget (förberett, öppet utan räkneverk – räknas när det stängs – eller redan rätt)
+ */
+export function backfillPlan(tf) {
+  if (!tf || tf.status === "forberett") return null;
+  if (tf.rattStatus) return uppgraderaFalt(tf) ? "flagga" : null;
+  return tf.status === "stangt" && tf.attRatta === undefined ? "rakna" : null;
+}
+
+/**
  * Stäng: alla `antalSvar` svar är inlämnade nu. Rättade och tillbakalämnade
  * står kvar (de gäller elever som redan lämnat in).
  */

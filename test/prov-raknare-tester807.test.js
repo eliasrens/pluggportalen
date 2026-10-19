@@ -87,14 +87,13 @@ describe("#807 tester – kantfall", () => {
     assert.deepEqual([las("tD").rattStatus.antal, las("tD").rattStatus.rattade, las("tD").attRatta], [4, 2, true]);
   });
 
-  it("E: Stäng med inaktuellt tf-objekt (rättning gjord i en annan flik) skriver över rättade", { todo: "#807 tester F1: stangRaknare använder tf.rattStatus.rattade ur minnet" }, async () => {
+  it("E: Stäng med inaktuellt tf-objekt (rättning gjord i en annan flik) räknar mot det lagrade räkneverket (F1 rättad)", async () => {
     await skapa("tE", {}, [["e1", RATT, true, "elev"], ["e2", RATT, true, "elev"], ["e3", FEL, false]]);
     const gammal = { id: "tE", ...las("tE") }; // läst före rättningen
     const { lager } = await rattning("tE");
     await lager.rattaAlla();
     assert.equal(las("tE").rattStatus.rattade, 2);
     await td.stangTillfalle(gammal);
-    // Förväntat (korrekt): antal 3, rattade 2. Med inaktuellt objekt: rattade 0?
     assert.deepEqual([las("tE").rattStatus.antal, las("tE").rattStatus.rattade], [3, 2], `skrev ${JSON.stringify(las("tE").rattStatus)}`);
   });
 

@@ -112,6 +112,16 @@ describe("räknarna och Hems läsningar mot emulatorn (riktiga regler, ak4)", { 
     assert.deepEqual(await raknare(), [4, 2, 1, true], "ursprunget orört");
   });
 
+  it("F1: Stäng med ett inaktuellt tillfälle i minnet räknar mot det lagrade (transaktionen godtas av reglerna)", async () => {
+    const gammal = await tfNu();
+    await env.seed(async (db) => {
+      const { updateDoc } = await import("firebase/firestore");
+      await updateDoc(doc(db, "provTillfallen", T), { "rattStatus.rattade": 3 }); // "en annan flik" rättade en till
+    });
+    await td.stangTillfalle(gammal);
+    assert.deepEqual(await raknare(), [4, 3, 1, true]);
+  });
+
   it("reglerna gäller: ak4 får inte stänga (och räkna) ett prov i 5a", async () => {
     await env.seed(async (db) => {
       await setDoc(doc(db, "provTillfallen", "t-5a"), { provId: "p1", provNamn: "X", classId: "5a", createdBy: "ak5", status: "oppet", fragor: [], installningar: {} });
@@ -129,7 +139,7 @@ describe("räknarna och Hems läsningar mot emulatorn (riktiga regler, ak4)", { 
     assert.deepEqual(las.filter((l) => l.includes("classProjections")).sort(), ["doc classProjections/4a", "doc classProjections/4b"]);
     assert.equal(las.length, 2 + 4, las.join(" | "));
     assert.ok(!las.some((l) => /students|studentData|\/svar|\/rattning/.test(l)), las.join(" | "));
-    assert.deepEqual(ut.attRatta.map((r) => [r.id, r.antal]).sort(), [["t-emu", 2], ["t-omprov", 1]]);
+    assert.deepEqual(ut.attRatta.map((r) => [r.id, r.antal]).sort(), [["t-emu", 1], ["t-omprov", 1]]);
     assert.deepEqual(ut.oppnaProv, []);
     assert.equal(ut.members.get("4a").e4a.ovat, "2026-09-01");
     console.log("Hem-läsningar (emulator):", las.join(" | "));

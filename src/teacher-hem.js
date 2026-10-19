@@ -45,7 +45,7 @@ export async function pageLarareHem(ctx) {
 
   // Kom igång (2.1): stegen som redan räknats klara läses inte om.
   const sparat = lasLokalt(LAGRING.komIgangKlart(uid), {}) || {};
-  const klart = { kort: !!lasLokalt(LAGRING.kortUtskrivna), omraden: harOmraden(classes), prov: !!sparat.prov, live: !!sparat.live };
+  const klart = { kort: !!lasLokalt(LAGRING.kortUtskrivna(uid)), omraden: harOmraden(classes), prov: !!sparat.prov, live: !!sparat.live };
   const komDold = !!lasLokalt(LAGRING.komIgangDold(uid));
   const komMojlig = visaKomIgang({ admin: role.admin, dold: komDold, steg: komIgangSteg(klart) });
   const fraga = komMojlig ? { prov: !klart.prov, live: !klart.live } : {};
@@ -118,6 +118,7 @@ export async function pageLarareHem(ctx) {
   const namnPa = (id) => classes.find((c) => c.id === id)?.name || id;
   const ritaAtt = () => {
     const now = serverNow();
+    const syns = new Set(synliga().map((c) => c.id));
     const fokus = synliga().flatMap((c) => {
       const lock = activeLock(c, now);
       return lock ? [{ classId: c.id, klass: c.name || c.id, mal: lockLabel(lock), sluttid: formatKlockslag(lock.till) }] : [];
@@ -126,8 +127,9 @@ export async function pageLarareHem(ctx) {
       classId: c.id, klass: c.name || c.id, elever: members.get(c.id) ? inaktiva(members.get(c.id), c.studentIds) : [],
     }));
     const rader = attGoraRader({
-      attRatta: las.attRatta,
-      oppnaProv: las.oppnaProv.map((tf) => ({ id: tf.id, namn: tf.provNamn || "Prov", klass: namnPa(tf.classId) })),
+      // #807 F3: admin – dolda klasser syns inte här heller (märket följer samma val).
+      attRatta: las.attRatta.filter((r) => syns.has(r.classId)),
+      oppnaProv: las.oppnaProv.filter((tf) => syns.has(tf.classId)).map((tf) => ({ id: tf.id, namn: tf.provNamn || "Prov", klass: namnPa(tf.classId) })),
       fokus,
       live: st.live.map((s) => ({ id: s.id, namn: s.name || "Live-match", lobby: s.status === "lobby" })),
       inaktiva: ina,

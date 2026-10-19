@@ -45,7 +45,9 @@ describe("Kom igång (2.1)", () => {
     assert.equal(harOmraden([{}, { assignedAreas: [{ subjectId: "so", areaId: "x" }] }]), true);
   });
   it("utskriften av inloggningskort sätter samma nyckel som Hem läser", () => {
-    assert.ok(las("teacher-login-print.js").includes(`"${LAGRING.kortUtskrivna}"`));
+    // per lärare (#807 F4): samma mall som LAGRING.kortUtskrivna(uid)
+    assert.equal(LAGRING.kortUtskrivna("u1"), "pp:larare:u1:kortUtskrivna");
+    assert.ok(las("teacher-login-print.js").includes("`pp:larare:${auth.currentUser?.uid || \"\"}:kortUtskrivna`"));
     assert.ok(las("teacher-classes-store.js").includes(`"${LAGRING.omradesNamn}"`));
   });
 });

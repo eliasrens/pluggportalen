@@ -13,6 +13,7 @@
 
 import { el, esc, icon } from "./teacher-shared.js";
 import { avatarEmoji } from "./avatars.js";
+import { auth } from "./firebase-config.js";
 
 /** Adressen eleverna ska gå till (står stort på varje kort). */
 export const LOGIN_SITE = "pluggporten.se";
@@ -75,7 +76,7 @@ export function printLoginCards(className, entries) {
   };
   overlay.querySelector(".lc-print").addEventListener("click", () => window.print());
   // Hem → Kom igång (#807): "Skriv ut inloggningskort" räknas klart när utskriften öppnats en gång.
-  try { localStorage.setItem("pp:larare:kortUtskrivna", "true"); } catch { /* ingen lagring */ }
+  try { localStorage.setItem(`pp:larare:${auth.currentUser?.uid || ""}:kortUtskrivna`, "true"); } catch { /* ingen lagring */ }
   overlay.querySelector(".lc-close").addEventListener("click", close);
   document.addEventListener("keydown", onKey);
   document.body.appendChild(overlay);

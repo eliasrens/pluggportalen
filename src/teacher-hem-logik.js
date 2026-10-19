@@ -18,7 +18,7 @@ const minaHash = (id, flik) => `${MINA}?${new URLSearchParams(id ? { klass: id, 
 
 /** localStorage-nycklar (per webbläsare; *Uid = per lärarkonto). */
 export const LAGRING = {
-  kortUtskrivna: "pp:larare:kortUtskrivna", // teacher-login-print.js sätter den
+  kortUtskrivna: (uid) => `pp:larare:${uid}:kortUtskrivna`, // teacher-login-print.js sätter den
   omradesNamn: "pp:larare:omradesnamn", // "subj/area" → namn, fylls när biblioteket laddas
   komIgangDold: (uid) => `pp:larare:${uid}:komIgangDold`,
   komIgangKlart: (uid) => `pp:larare:${uid}:komIgangKlart`, // steg som räknats klara (läses inte om)

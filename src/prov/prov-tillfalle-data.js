@@ -7,7 +7,7 @@
 
 import { db } from "../firebase-config.js";
 import {
-  addDoc, collection, deleteDoc, deleteField, doc, getDoc, getDocs, query, serverTimestamp, updateDoc, where, writeBatch,
+  addDoc, collection, deleteDoc, deleteField, doc, getDoc, getDocs, query, runTransaction, serverTimestamp, updateDoc, where, writeBatch,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { buildLock } from "../class-lock.js";
 import { clearClassLock, getClassLock, setClassLock } from "../data-class-lock.js";
@@ -15,7 +15,7 @@ import { FACIT_DOK, RATTNING, SAMLING_PROV, SAMLING_TILLFALLEN, STATUS, SVAR, de
 import { OPPNA_IGEN_BATCH, arProvetsLas, attOppnaIgen, attStangaIn } from "./prov-tillfalle-logik.js";
 import { tillfalleInstallningar } from "./prov-validera.js";
 import { rattStatusSumma } from "./prov-rattning-logik.js";
-import { glomAttRatta, raknareFalt, stangRaknare } from "./prov-raknare.js";
+import { glomAttRatta, raknareFalt, stangRaknare, uppgraderaFalt } from "./prov-raknare.js";
 
 const tfRef = (t) => doc(db, SAMLING_TILLFALLEN, t);
 const facitRef = (t) => doc(db, SAMLING_TILLFALLEN, t, ...FACIT_DOK);
@@ -43,6 +43,28 @@ export async function listaTillfallen(classIds) {
   for (let i = 0; i < ids.length; i += 30) delar.push(ids.slice(i, i + 30));
   const snaps = await Promise.all(delar.map((d) => getDocs(query(collection(db, SAMLING_TILLFALLEN), where("classId", "in", d)))));
   return snaps.flatMap((s) => s.docs.map((d) => ({ id: d.id, ...d.data() })));
+}
+
+/**
+ * #807 F2: äldre tillfällen (stängda före räknarna) får flaggan attRatta ur sitt
+ * befintliga räkneverk när listan Provtillfällen ändå har läst dem – en skrivning
+ * per sådant tillfälle, en gång. Aldrig kastande. @returns antal uppskrivna
+ */
+export async function uppgraderaRaknare(tillfallen) {
+  const lista = tillfallen.map((tf) => [tf, uppgraderaFalt(tf)]).filter(([, f]) => f);
+  try {
+    for (let i = 0; i < lista.length; i += 450) {
+      const batch = writeBatch(db);
+      for (const [tf, f] of lista.slice(i, i + 450)) batch.update(tfRef(tf.id), f);
+      await batch.commit();
+    }
+    lista.forEach(([tf, f]) => Object.assign(tf, f));
+    if (lista.length) glomAttRatta();
+    return lista.length;
+  } catch (err) {
+    console.warn("Prov: räknarna kunde inte skrivas upp", err);
+    return 0;
+  }
 }
 
 /** Elevernas svar i ett tillfälle (en läsning per elev som startat) → { [uid]: dok }. */
@@ -126,7 +148,7 @@ export async function oppnaTillfalle(tf, las) {
     }
     // #807: räknarna ur det som redan lästs – de som skriver igen är inte inlämnade.
     const kvar = svar.filter((d) => d.inlamnad === true && !igen.includes(d.id)).map((d) => d.id);
-    await sparaRaknare(tf, raknareFalt(rattStatusSumma(kvar, ratt, tf.fragor || [])));
+    await sparaRaknare(tf, () => raknareFalt(rattStatusSumma(kvar, ratt, tf.fragor || [])));
   }
   if (las) {
     const lock = buildLock({ typ: "prov", id: tf.id, namn: tf.provNamn, till: las.till, doljOvrigt: las.doljOvrigt, efter: las.efter });
@@ -158,19 +180,33 @@ export async function stangTillfalle(tf) {
     }
     await batch.commit();
   }
-  // #807: nu är alla svar inlämnade – räknaren ur svaren som just lästes.
-  await sparaRaknare(tf, stangRaknare(tf, svar.length));
+  // #807: nu är alla svar inlämnade – räknaren ur svaren som just lästes, mot det
+  // LAGRADE räkneverket (F1: en annan flik/kollega kan ha rättat sedan tf lästes).
+  await sparaRaknare(tf, (lagrat) => stangRaknare(lagrat, svar.length));
   await slappLas(tf);
   return inte.length;
 }
 
-/** Räknarna på tillfället (#807) – bara om de ändrats. Aldrig kastande: stängningen är redan gjord. */
-async function sparaRaknare(tf, falt) {
-  if (JSON.stringify(falt.rattStatus) === JSON.stringify(tf.rattStatus || null) && tf.attRatta === falt.attRatta) return;
+/**
+ * Räknarna på tillfället (#807): `ny(lagrat)` räknar fram fälten ur det lagrade
+ * tillfället, läst i en transaktion (en läsning) – bara om de ändrats. Aldrig
+ * kastande: stängningen/öppningen är redan gjord.
+ */
+async function sparaRaknare(tf, ny) {
   try {
-    await updateDoc(tfRef(tf.id), falt);
-    Object.assign(tf, falt);
-    glomAttRatta();
+    const falt = await runTransaction(db, async (tx) => {
+      const snap = await tx.get(tfRef(tf.id));
+      if (!snap.exists()) return null;
+      const lagrat = snap.data();
+      const f = ny(lagrat);
+      if (JSON.stringify(f.rattStatus) === JSON.stringify(lagrat.rattStatus || null) && lagrat.attRatta === f.attRatta) return null;
+      tx.update(tfRef(tf.id), f);
+      return f;
+    });
+    if (falt) {
+      Object.assign(tf, falt);
+      glomAttRatta();
+    }
   } catch (err) {
     console.warn("Prov: räknarna kunde inte sparas", err);
   }

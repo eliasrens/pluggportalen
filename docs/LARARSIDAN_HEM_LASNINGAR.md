@@ -20,7 +20,7 @@ och i `test/lararsida-hem.test.js` (räknande adapter + de riktiga läsningarna 
 | 2 | `teacherAccounts/{uid}` (`myRole`) | nej, toppmenyn läser den ändå | 1 | cachad i sessionen |
 | 3 | `liveSessions` where status in [lobby, live] (lyssnare) | nej, samma lyssnare som översikten hade | 1 + ändringar | så länge Hem är öppet |
 | 4 | `classProjections/{classId}` | **ja – den enda läsningen per klass** | 1 per synlig klass | varje besök (cache 30 s); admin: inte för dolda klasser (läses först vid "Visa alla") |
-| 5 | `provTillfallen` where classId in [klasserna] + attRatta == true | **ja – per lärare, inte per klass** | 1 fråga per 30 klasser; en läsning per tillfälle med orättade prov (minst 1) | delas med märket på Prov, cache 5 min, töms när räknarna skrivs |
+| 5 | `provTillfallen` where classId in [klasserna] + attRatta == true | **ja – per lärare, inte per klass** | 1 fråga per 30 klasser; en läsning per tillfälle med orättade prov (minst 1, **högst 50** per fråga – märket visar då "50+") | delas med märket på Prov, cache 5 min, töms när räknarna skrivs |
 | 6 | `provTillfallen` where classId in [klasserna] + status == "oppet" | **ja – per lärare** | 1 fråga per 30 klasser; en läsning per öppet prov (minst 1) | varje besök |
 | 7 | `prov` where createdBy == uid, limit 1 | **ja – Kom igång steg 3** | 1 | bara årskurslärare, bara medan rutan visas och steget inte är klart; "klart" sparas i localStorage och läses aldrig om |
 | 8 | `liveSessions` where createdBy == uid, limit 1 | **ja – Kom igång steg 4** | 1 | som 7 (lyssnaren i 3 bockar också av steget) |
@@ -34,7 +34,9 @@ och i `test/lararsida-hem.test.js` (räknande adapter + de riktiga läsningarna 
 (Kom igång) · `fråga provTillfallen (2 dok)` (att rätta) = 6 läsningar enligt Firestores debitering (tom fråga = 1).
 
 Inga `students`, `studentData`, `svar`, `rattning` eller `expMembers` läses (testet kontrollerar det). Toppmenyns märke på varje
-annan lärarsida är fråga 5 – högst en gång per 5 minuter (och direkt efter att läraren själv ändrat räknarna).
+annan lärarsida är fråga 5 – högst en gång per 5 minuter (och direkt efter att läraren själv ändrat räknarna). Värsta fall med
+gamla, aldrig färdigrättade prov: 50 läsningar per 30 klasser och 5 minuter (taket `MAX_TILLFALLEN`, #807 F4); rutan Att rätta
+säger då att resten finns under Provtillfällen.
 
 ## 2. Räknarna "prov att rätta" (§1.3) – gick billigt
 
@@ -53,8 +55,8 @@ Prov att rätta på ett tillfälle = `antal − rattade`. Märket = summan över
 
 | Händelse | Vad som skrivs | Extra läsningar | Extra skrivningar |
 | --- | --- | --- | --- |
-| **Stäng** | `antal` = antalet svar (alla är inlämnade efter stängningen); rättade/tillbaka står kvar | 0 (svaren läses redan för att markera dem) | 1 |
-| **Öppna igen** | hela räkneverket ur svaren och rättningarna som redan läses; de som får skriva igen räknas inte | 0 | 1 |
+| **Stäng** | `antal` = antalet svar (alla är inlämnade efter stängningen); rättade/tillbaka står kvar – ur det **lagrade** räkneverket, läst i en transaktion (#807 F1: ett inaktuellt tillfälle i minnet, t.ex. en annan flik som rättat, skriver inte över rättade) | 1 (tillfället i transaktionen; svaren läses redan för att markera dem) | 1 |
+| **Öppna igen** | hela räkneverket ur svaren och rättningarna som redan läses; de som får skriva igen räknas inte (samma transaktion) | 1 | 1 |
 | **Rättningsvyn öppnas** | räkneverket rättas om det inte stämmer (t.ex. elever som lämnat in sedan förra gången) | 0 (vyn läser allt ändå) | högst 1 |
 | **Bedömning, Rätta alla, Lämna tillbaka, Ångra** | som sedan #741 (`rattStatusSumma` i samma batch som rättningarna) + `attRatta` | 0 | 0 (fältet följer med) |
 | **Omprov** | ett eget tillfälle med egna räknare (samma flöde); ursprunget rörs inte | 0 | – |
@@ -67,8 +69,14 @@ kräva en ny elevregel på tillfället, och – värre – varje sådan skrivnin
 (Öppna → översikten där provet stängs); när läraren stänger, eller öppnar rättningen, räknas de inlämnade. Ett prov som rättas
 medan det är öppet räknas med rättningsvyns siffror (de som lämnat in när vyn öppnades).
 
-Äldre tillfällen (före deployen) saknar `attRatta` och syns inte i märket förrän läraren öppnar rättningen eller stänger provet
-igen – då skrivs flaggan.
+**Äldre tillfällen (före deployen, #807 F2)** saknar `attRatta`, och de som aldrig rättats saknar även räkneverket. Utan åtgärd
+skulle Hem kunna säga "Inget att göra" trots orättade prov. Valet – båda:
+- **Lat uppskrivning i webben:** när listan **Provtillfällen** laddas (den läser redan alla klassens tillfällen) får varje tillfälle
+  med räkneverk men utan rätt flagga `attRatta` – en skrivning per sådant tillfälle, en gång, inga extra läsningar
+  (`uppgraderaRaknare` i `prov-tillfalle-data.js`). Rättningsvyn och Stäng skriver också flaggan.
+- **Engångsskript direkt efter deployen:** `node admin/backfill-att-ratta.mjs` (torrkörning) / `--commit`. Det tar även stängda
+  tillfällen **utan** räkneverk: antal = inlämnade svar med en count-fråga per tillfälle (det kan bara admin-SDK:t göra billigt –
+  klienten läser inga svar för att räkna). Idempotent.
 
 ## 3. "Inte övat på 14 dagar" och "Övat den här veckan" – gick billigt
 
@@ -91,8 +99,10 @@ varje medlem i projektionen fått **`members.<uid>.ovat`** = dagen eleven senast
 
 - **Dolda klasser (admin):** sparas per lärare i webbläsarens **localStorage** (`pp:larare:<uid>:doldaKlasser`), inte i
   `teacherAccounts/{uid}`: ingen skrivning till Firestore, inget nytt fält i kontodokumentet (som admin-sidan Lärarkonton och
-  Cloud Functions skriver), och valet gäller bara Hem. Nackdel: valet följer inte med till en annan dator.
-- **Kom igång:** utskriften av inloggningskort sätter `pp:larare:kortUtskrivna`; "Dölj" och avbockade steg sparas per lärare
+  Cloud Functions skriver). Nackdel: valet följer inte med till en annan dator. **Samma val gäller märket och Att rätta**
+  (#807 F3): prov att rätta och öppna prov i en dold klass syns inte på Hem, i märket eller i Mina prov → Att rätta (de finns
+  kvar under Provtillfällen, och "Visa alla" på Hem visar dem igen).
+- **Kom igång:** utskriften av inloggningskort sätter `pp:larare:<uid>:kortUtskrivna` (per lärare, #807 F4); "Dölj" och avbockade steg sparas per lärare
   (`pp:larare:<uid>:komIgangDold`, `…:komIgangKlart`). Admin ser aldrig rutan.
 - **"Jobbar med: …"** på klasskorten: områdenas namn sparas i webbläsaren (`pp:larare:omradesnamn`) när biblioteket ändå laddas
   (Mina klasser → Vad eleverna ser). Saknas namnet visas id:t snyggat ("vasatiden" → "Vasatiden") – Hem läser aldrig biblioteket.
@@ -101,7 +111,8 @@ varje medlem i projektionen fått **`members.<uid>.ovat`** = dagen eleven senast
 
 ## 5. Deploy
 
-- **Webben** (Pages) – det är allt som krävs.
+- **Webben** (Pages) – det är allt som krävs. Kör sedan gärna `node admin/backfill-att-ratta.mjs --commit` en gång (se §2), så
+  syns äldre orättade prov direkt.
 - **Inga regler, inga index, inga functions.** Lärarens uppdatering av tillfället har ingen fältlista i reglerna (bara
   `validTillfalle` + oförändrat `classId`/`provId`/`createdBy`/`elevIds`/`omprovAv`), och klassmedlemmar skriver redan sin egen
   projektionspost fritt. `test/firestore-rules-prov-raknare.test.js` visar att skrivningarna och frågorna går med dagens regler, och

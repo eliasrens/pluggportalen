@@ -14,23 +14,46 @@
 // ============================================================================
 
 import { db } from "../firebase-config.js";
-import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { collection, getDocs, limit, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { el, esc, icon } from "../teacher-shared.js";
 import { getClasses } from "../data-classes.js";
 import { filterClasses, myRole } from "../teacher-role.js";
 import { SAMLING_TILLFALLEN } from "./prov-modell.js";
 import { attRattaCache, attRattaRader, rattaHash, summaAttRatta } from "./prov-raknare.js";
+import { LAGRING } from "../teacher-hem-logik.js";
 
 export const CACHE_MS = 5 * 60_000;
+/** Högst så många tillfällen per fråga (#807 F4): gamla, aldrig färdigrättade prov får inte göra märket dyrt. */
+export const MAX_TILLFALLEN = 50;
 
-/** Tillfällena med orättade prov i klasserna (en fråga per 30 klasser). */
+/**
+ * Tillfällena med orättade prov i klasserna (en fråga per 30 klasser, högst
+ * MAX_TILLFALLEN var). Listan får `fler = true` om någon fråga slog i taket.
+ */
 export async function lasAttRattaTillfallen(classIds) {
   const ids = [...new Set(classIds)];
   const delar = [];
   for (let i = 0; i < ids.length; i += 30) delar.push(ids.slice(i, i + 30));
   const snaps = await Promise.all(delar.map((d) =>
-    getDocs(query(collection(db, SAMLING_TILLFALLEN), where("classId", "in", d), where("attRatta", "==", true)))));
-  return snaps.flatMap((s) => s.docs.map((d) => ({ id: d.id, ...d.data() })));
+    getDocs(query(collection(db, SAMLING_TILLFALLEN), where("classId", "in", d), where("attRatta", "==", true), limit(MAX_TILLFALLEN)))));
+  const ut = snaps.flatMap((s) => s.docs.map((d) => ({ id: d.id, ...d.data() })));
+  ut.fler = snaps.some((s) => s.size >= MAX_TILLFALLEN);
+  return ut;
+}
+
+/**
+ * Admin: utan klasserna som är dolda på Hem (#807 F3) – samma val (localStorage
+ * per lärare), så att märket, Att rätta och Hem säger samma sak.
+ */
+export function utanDolda(rader, role) {
+  let dolda = [];
+  try {
+    if (role?.admin) dolda = JSON.parse(localStorage.getItem(LAGRING.doldaKlasser(role.uid)) || "[]");
+  } catch { /* ingen lagring */ }
+  if (!dolda.length) return rader;
+  const ut = rader.filter((r) => !dolda.includes(r.classId));
+  ut.fler = rader.fler;
+  return ut;
 }
 
 /**
@@ -47,7 +70,7 @@ export async function hamtaAttRatta({ classes, role } = {}) {
     c.nyckel = nyckel;
     c.tid = Date.now();
     c.lofte = (mina.length ? lasAttRattaTillfallen(mina.map((k) => k.id)) : Promise.resolve([]))
-      .then((tf) => attRattaRader(tf, mina))
+      .then((tf) => Object.assign(attRattaRader(tf, mina), { fler: !!tf.fler }))
       .catch((err) => {
         c.lofte = null;
         throw err;
@@ -56,13 +79,25 @@ export async function hamtaAttRatta({ classes, role } = {}) {
   return c.lofte;
 }
 
-/** Märket "Prov 18" på toppmenyns Prov (och samma val i ☰-menyn). Tyst vid fel. */
+/** Lärarens rader utan Hem-dolda klasser (admin) – märket och Mina prov. Tyst vid fel. */
+async function minaRader() {
+  try {
+    const role = await myRole();
+    return utanDolda(await hamtaAttRatta({ role }), role);
+  } catch {
+    return [];
+  }
+}
+
+/** Märket "Prov 18" på toppmenyns Prov (och samma val i ☰-menyn); "50+" när frågan slog i taket. */
 export async function provMarke(nav) {
-  const n = summaAttRatta(await hamtaAttRatta().catch(() => []));
+  const rader = await minaRader();
+  const n = summaAttRatta(rader);
   if (!n || !nav.isConnected) return;
+  const text = `${n}${rader.fler ? "+" : ""}`;
   nav.querySelectorAll('.tnav[data-hash="#/larare/prov"]').forEach((a) => {
     a.querySelector(".tnav-marke")?.remove();
-    a.append(el(`<span class="tnav-marke" title="${n} prov att rätta"><span class="sr-only">, </span>${n}<span class="sr-only"> att rätta</span></span>`));
+    a.append(el(`<span class="tnav-marke" title="${text} prov att rätta"><span class="sr-only">, </span>${text}<span class="sr-only"> att rätta</span></span>`));
   });
 }
 
@@ -78,11 +113,12 @@ export function attRattaRad(r) {
 
 /** Rutan "Att rätta" överst på Mina prov (DEL 5). Visas bara när något väntar. */
 export async function renderAttRatta(ctx, host) {
-  const rader = await hamtaAttRatta().catch(() => []);
+  const rader = await minaRader();
   if (!rader.length || !host.isConnected) return;
   const ruta = el(`<section class="panel hem-att-ratta" aria-labelledby="provl-att-ratta">
     <h2 class="subhead hem-h" id="provl-att-ratta">${icon("inbox", 18)}<span>Att rätta</span></h2>
     <ul class="hem-lista">${rader.map(attRattaRad).join("")}</ul>
+    ${rader.fler ? `<p class="hint">Visar de ${rader.length} första – resten finns under <a data-hash="#/larare/prov/tillfallen">Provtillfällen</a>.</p>` : ""}
   </section>`);
   ruta.querySelectorAll("[data-hash]").forEach((b) => b.addEventListener("click", () => ctx.go(b.dataset.hash)));
   host.replaceChildren(ruta);
