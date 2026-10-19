@@ -9645,3 +9645,5 @@ html.reduce-motion .schack-pokal-ny { animation: none; }
 }
 .teacher-dark .mat-schack .schack-rot label { color: var(--text); }
 .teacher-dark .mat-schack .schack-rot :is(h1, h2, h3, .schack-notis) { color: var(--text); }
+/* "‹ Till Schack" på nivåvalet går till samma sida i provläget – dold där (i partiet leder den tillbaka till nivåvalet). */
+.teacher-dark .mat-schack .schack-sida > .schack-tillbaka { display: none; }
