@@ -14,8 +14,8 @@ Etapp 2 (elev mot elev, epic #773):
 | Del | Issue | Innehåll |
 | --- | --- | --- |
 | 2A | #779 | datamodellen, reglerna, alla callables, delad logik och klient-API:t (§6–§8) – **klar**, avsnitt 12 |
-| 2B | #780 | lobbyn, partiet, klockan och topplistan i elevens UI (§7–§8) – avsnitt 13 |
-| 2C | – | lärarens sektion med åskådarläget (§10) |
+| 2B | #780 | lobbyn, partiet, klockan och topplistan i elevens UI (§7–§8) – avsnitt 14 |
+| 2C | #781 | lärarens sektion med åskådarläget (§10) – **klar**, avsnitt 13 |
 
 ---
 
@@ -45,7 +45,7 @@ src/schack/
   schack-flode.js            elevflödet start → nivåval → parti → slutruta (utan ui.js/data.js)
   page-schack.js             routen #/elev/schack (kopplar flödet till ui/data/avatar)
   schack-moln.js             klient-API:t mot callables och de två lyssnarna (2A, avsnitt 12.4)
-  schack-kompis.js           EN delad lyssnare på klassdokumentet (2B, avsnitt 13)
+  schack-kompis.js           EN delad lyssnare på klassdokumentet (2B, avsnitt 14)
   schack-lobby-vy.js         lobbyn "Spela mot en kompis" + rutan för inkommande utmaningar
   schack-kompis-vy.js        partiet mot en kompis: brädet, klockorna, remi, ge upp, §7.3
   schack-kompis-data.js      ren logik: klockvisning, lobbyfilter, topplistan, §7.3, slutrutan
@@ -572,7 +572,7 @@ Räknat utan lobbylyssnare: ett parti ≈ 87 skrivningar och ≈ 330 läsningar 
 hos spelarna är de "≈ 160" spec §9 räknar med). Det som avgör fakturan är lyssnarna: en
 lobby med 25 öppna sidor lägger 25 läsningar på varje klassdoc-skrivning (start och slut).
 
-Lärarens åskådarläge (2C) lägger 1 läsning per halvdrag. **Lobbyn:** med 25 elever på
+Lärarens åskådarläge (2C) lägger 1 läsning per halvdrag (avsnitt 13.3). **Lobbyn:** med 25 elever på
 schacksidan kostar varje skrivning av klassdokumentet 25 läsningar; dokumentet skrivs
 bara av elevhandlingar (vänta/sluta vänta/gå med/utmana/svara) och partislut – aldrig
 per sekund, ingen närvaro-ping. En lektion med 12 partier ≈ 50 klassdoc-skrivningar ≈
@@ -594,13 +594,104 @@ Deploy-ordning: **1.** `firebase deploy --only firestore:rules` (läsregler + `s
 (2B/2C). Inga index behövs (ingen fråga i elevflödet; lärarens `where("classId", "==")` är
 en enkelfältsfråga).
 
-## 13. Elev mot elev – lobbyn, partiet, klockan och topplistan (Etapp 2B, #780)
+## 13. Lärarens sektion "Schack" (Etapp 2C, #781)
+
+Spec §10. En egen sektion **Schack** i klassens sidor (`CLASS_SECTIONS` i
+`src/teacher-classes-sections.js`, sidläget Klasser: Områden, Lägen, Synlighet, Fokusläge,
+**Schack**, Inloggning). Raden laddar allt med `import()`; inget under `src/schack/` ligger i
+lärarsidans eller appens statiska graf (bootgrafen står på 107).
+
+```
+src/schack/larare/
+  schack-larare.js           sektionen: modulen, partilistan, topplistan, statistiken, lyssnaren
+  schack-larare-askadare.js  åskådarläget: Etapp 1-brädet utan inmatning + klockorna, EN lyssnare
+  schack-larare-delar.js     rent: modulvalet, statistiken, partilistan, dragsynken, slutet, vakten
+  schack-larare-markup.js    rent: markupen (bekräftelserutan, listan, topplistan, tabellen)
+  schack-larare-data.js      datorpartierna (studentData) och projektionsnamnen – lat
+  schack-larare.css          laddas som <link> av sektionen (inte i styles.css)
+src/teacher-schack-ikon.js   bondeikonen (fliken och Synlighet)
+preview/preview-schack-larare.html  hela lärarsidan mot minnes-Firestore med partier som spelas live
+```
+
+### 13.1 Vad läraren ser och gör
+
+1. **Schack för klassen** – på/av. Samma skrivning som Synlighet
+   (`data.setClassHiddenModules(classId, hidden, enabled)`): på = `schack` i `enabledModules` och
+   inte i `hiddenModules`; av = bort ur `enabledModules`. Andra moduler rörs inte. Är schack av
+   medan partier pågår visas en påminnelse (servern nekar dragen – grinden i 12.2).
+2. **Pågående partier** – ur `schackKlass/{classId}.partier`, äldst först: namnen (vit/svart),
+   klocktypen och starttiden, plus hur många som väntar i lobbyn. **Titta** öppnar åskådarläget
+   i samma ruta, **Avsluta** öppnar en bekräftelseruta på sidan (aldrig `confirm()`).
+3. **Åskådarläget** – samma bräde som Etapp 1 (`skapaSchackbrade`) med `ASKADAR_OPT`
+   (`interaktiv: false`, ingen `beforeMove`, `egenFarg: null`, vit nederst). Dragen kommer bara
+   ur lyssnaren: nya drag spelas med `brade.move(san)` (det sista glider), allt annat laddas om med
+   `loadGame` (`synkaDrag`). Klockorna står i spelarradernas högra kant och räknas lokalt varje
+   halvsekund ur `moln.klockaVisning` (servertid, ingen skrivning). Raden ovanför säger vem som
+   drar, ett remierbjudande och antal drag. När partiet slutar (även avbrutet, gav upp, tid,
+   lämnade) visar brädet slutrutan via `avsluta(slutInfo(parti))`; matt/patt/regelremi ser
+   brädet själv. **Avsluta partiet** finns även här, med samma bekräftelse.
+4. **Avsluta** → `moln.larare.avsluta(partiId)` (`schackLarareAvsluta`): `avbrutet`, inget
+   resultat, tabellen orörd. "Redan slut" (`failed-precondition`) visas som en rad i listan.
+5. **Topplistan** – `topplista(tabell, namnFor)` i samma ordning som elevernas; **Dölj för
+   eleverna**/**Visa för eleverna** (`dold`) och **Nollställ topplistan** (bekräftelse) via
+   `moln.larare.topplista`. Nollställningen tömmer `tabell` – även räknaren "mot kompisar".
+6. **Statistik per elev** – mot kompisar = `tabell[uid].partier` (med V–F–R), mot datorn =
+   `studentData/{uid}.schack.datorPartier`, totalt och klassens summa (ett kompisparti räknas en
+   gång). Datorpartierna läses **bara när läraren trycker** "Hämta partier mot datorn".
+
+Namnen kommer ur lärarsidans redan laddade elevlista (0 läsningar). Bara elever som står i
+tabellen men inte finns i listan (har lämnat klassen) slås upp i `classProjections/{classId}`
+(`getClassProjection`, 1 läsning, en gång per öppning).
+
+### 13.2 Lyssnarna och när de stängs
+
+- **EN** `onSnapshot` på `schackKlass/{classId}` (`moln.lyssnaKlass`) medan sektionen är öppen –
+  listan, topplistan och kompisstatistiken ritas ur den.
+- **EN** `onSnapshot` på `schackPartier/{partiId}` (`moln.lyssnaParti`) i åskådarläget.
+  **Alla partier** (tillbaka) stänger den och brädet; att titta på ett annat parti öppnar en ny.
+- **Vakten** (`skapaVakt` i `schack-larare-delar.js`) samlar avstängningarna och kör dem när
+  sektionens värd lämnat DOM:en (annan flik, annan klass) eller routen bytts (kollas vid
+  `hashchange` och en gång i sekunden). Lärarsidans detaljyta har ingen "unmount"-krok, så
+  det är samma mönster som Fokusläget och pokalerna (`isConnected`-vakt).
+- Förhandsvisningen visar öppna lyssnare (`window.__ppStub.lyssnare()` och i panelen).
+
+### 13.3 Kvot
+
+| Handling | Läsningar | Skrivningar |
+| --- | --- | --- |
+| Öppna sektionen | 1 (klassdokumentet) + ev. 1 (projektionen) | 0 |
+| Varje ändring i klassdokumentet (lobby, start, slut) medan sektionen är öppen | 1 | 0 |
+| Åskådarläget: öppna + varje halvdrag | 1 + 1 per halvdrag | 0 |
+| Hämta partier mot datorn | 1 per elev (≈ 25), bara på knapptryck | 0 |
+| Slå på/av schack | 0 | 1 (`classes/{classId}`) |
+| Avsluta / dölj / nollställ (callable) | på servern (12.2) | på servern (12.2) |
+
+Ingen fråga (`where`) och inget index: listan står i klassdokumentet.
+
+### 13.4 Förhandsvisning och tester
+
+- `preview/preview-schack-larare.html` – hela appen (lärare inloggad) med Firebase-SDK:t
+  import-mappat till #440:s minnes-Firestore med **levande** `onSnapshot`
+  (`preview/schack-larare/fb-firestore.js`) och lärarens två callables (`fb-functions.js`).
+  Klass 5E har schack på, två pågående partier (Alva–Bo med 10 min, Cleo–Dino utan klocka), en
+  elev i lobbyn, en topplista (Saga har lämnat klassen – namnet ur projektionen) och
+  datorpartier. `sim.js` spelar drag med serverns regel- och klocklogik (Alva–Bo var 3:e s), så
+  åskådarläget ändras live; panelen nere till vänster pausar, startar ett nytt parti och låter
+  Bo ge upp. Startar på `#/larare/klasser?klass=5e&sektion=schack`.
+- `node --test test/schack-larare.test.js` – modulvalet, statistiken (tabell + datorräknaren,
+  summan), namnen, partilistan, klockan, dragsynken, slutet, vakten (fejkade timers), att
+  åskådarbrädets kontroll med `ASKADAR_OPT` nekar tryck/dra/släpp, källkodstester för att
+  åskådarläget aldrig kopplar in inmatning och att båda lyssnarna stängs, markupen (inget
+  `confirm()`), och att allt laddas med `import()`.
+- Ingen ändring i regler eller functions – deploy: bara webben (efter 2A:s regler och functions).
+
+## 14. Elev mot elev – lobbyn, partiet, klockan och topplistan (Etapp 2B, #780)
 
 Spec §7–§9. Allt ligger i `src/schack/` och laddas lat (`page-schack.js → import(schack-flode.js) →
 import(schack-lobby-vy.js | schack-kompis-vy.js | schack-kompis.js)`, `schack-moln.js` bara med
 `import()` från sidan). Bootgrafen är kvar på **107** (`test/schack-delat.test.js`).
 
-### 13.1 Vyerna
+### 14.1 Vyerna
 
 | Hash | Vy |
 | --- | --- |
@@ -660,7 +751,7 @@ import(schack-lobby-vy.js | schack-kompis-vy.js | schack-kompis.js)`, `schack-mo
   skrivning, `studentData.schack.datorPartier + 1`). Partiet får `raknad: true` i `localStorage`,
   så en omladdning eller Ångra + nytt slut räknas inte igen.
 
-### 13.2 Lyssnarna – när de öppnas och stängs (§9)
+### 14.2 Lyssnarna – när de öppnas och stängs (§9)
 
 | Lyssnare | Öppnas | Stängs |
 | --- | --- | --- |
@@ -670,7 +761,7 @@ import(schack-lobby-vy.js | schack-kompis-vy.js | schack-kompis.js)`, `schack-mo
 Medan ett kompisparti pågår är alltså bara partiets lyssnare öppen. Tillbaka ur bfcache
 (`pageshow` med `persisted`) ritas sidan om och lyssnarna öppnas igen.
 
-### 13.3 Kvoten i praktiken
+### 14.3 Kvoten i praktiken
 
 - **Besök på schacksidan:** klasslistan (namn + avatarer) = **1** läsning per besök
   (`ensureClassProjection` – bygger en saknad post en gång), klassdokumentet = 1 läsning när
@@ -685,7 +776,7 @@ Medan ett kompisparti pågår är alltså bara partiets lyssnare öppen. Tillbak
   inget i lobbyn.
 - **Datorpartier:** 1 skrivning per avslutat parti (räknaren), inget annat.
 
-### 13.4 Förhandsvisning och tester
+### 14.4 Förhandsvisning och tester
 
 - `preview/preview-schack-kompis.html?elev=alva` (och `bilal`, `cleo`, `dante`) – två (eller fyra)
   elever i varsin flik, **utan Firebase**: lobbyn och partierna ligger i en låtsas-databas i

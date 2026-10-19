@@ -56,7 +56,7 @@ test("toppnaven: sju huvuddelar (Prov sedan #739/#740), admin-flikar markerade",
 test("klasslägen: årskurs-sektionerna saknar elevkonton/ekonomi, bara Admin får hantera klasser", () => {
   const src = readFileSync(join(SRC, "teacher-classes-sections.js"), "utf8");
   const mode = (k) => src.match(new RegExp(`${k}: \\{[^\\n]*\\}`))[0];
-  assert.match(mode("klasser"), /sections: \["omraden", "lagen", "synlighet", "fokus", "inloggning"\], manage: false/);
+  assert.match(mode("klasser"), /sections: \["omraden", "lagen", "synlighet", "fokus", "schack", "inloggning"\], manage: false/);
   assert.match(mode("statistik"), /manage: false/);
   assert.match(mode("admin"), /sections: \["elever", "klasscenter"\], manage: true/);
 });

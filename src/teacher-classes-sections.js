@@ -3,7 +3,8 @@
 // (teacher-classes-sections.js)
 // ----------------------------------------------------------------------------
 // Issue #440 (epic #438, Del 6): detaljytans flikar byggs ur CLASS_SECTIONS.
-// En rad = { key, label, icon, what, render(ctx, cls, host, store) }. En ny
+// En rad = { key, label, icon, svg?, what, render(ctx, cls, host, store) } (svg(size) =
+// egen flikikon i stället för icon(), #781). En ny
 // klass-modul krokas i med EN rad – detaljytan (teacher-classes-detail.js) ritar
 // flikraden och sektionsvärden ur listan, layouten påverkas inte.
 //
@@ -23,6 +24,7 @@ import { el, esc, errText, isAdmin } from "./teacher-shared.js";
 import { renderMemberManager } from "./teacher-class-accounts.js";
 import { renderClassAreaModes, renderClassAssignments } from "./teacher-class-modes.js";
 import { renderClassStats } from "./teacher-class.js";
+import { schackLararIkon } from "./teacher-schack-ikon.js";
 
 /** Laddningsrad → render; vid fel en snäll felrad i samma värd (K-16). */
 export async function withLoading(host, what, render) {
@@ -121,6 +123,18 @@ export const CLASS_SECTIONS = [
       }),
   },
   {
+    key: "schack",
+    label: "Schack",
+    icon: "eye",
+    svg: schackLararIkon,
+    what: "schack",
+    // #781 (spec §10): modulen på/av, pågående partier + åskådarläget, avsluta,
+    // topplistan, statistik. Allt lat i src/schack/larare/; lyssnarna stängs när
+    // sektionen lämnas (vakten i schack-larare-delar.js).
+    render: async (ctx, cls, host, store) =>
+      (await import("./schack/larare/schack-larare.js")).renderSchackSektion(ctx, cls, host, { students: store.state.students }),
+  },
+  {
     key: "klasscenter",
     label: "Klasscentret",
     icon: "school",
@@ -161,7 +175,7 @@ export const CLASS_SECTIONS = [
  * och Ekvationsresan bor i statistikens flikar (#506) och följer med Statistik.
  */
 export const CLASS_PAGE_MODES = {
-  klasser: { tab: "klasser", base: "#/larare/klasser", sections: ["omraden", "lagen", "synlighet", "fokus", "inloggning"], manage: false },
+  klasser: { tab: "klasser", base: "#/larare/klasser", sections: ["omraden", "lagen", "synlighet", "fokus", "schack", "inloggning"], manage: false },
   statistik: { tab: "statistik", base: "#/larare/statistik", sections: ["statistik"], manage: false },
   admin: { tab: "adminklasser", base: "#/larare/admin/klasser", sections: ["elever", "klasscenter"], manage: true },
 };
