@@ -16,7 +16,7 @@
 // ============================================================================
 
 import { Chess } from "./vendor/chess.js";
-import { provaDatorDrag } from "./schack-motor.js";
+import { provaDatorDragDjup } from "./schack-motor.js";
 import { lektionFor, bedomDrag } from "./schack-lektioner.js";
 import { skapaJaktKontroll } from "./schack-stjarnjakt.js";
 import { skapaPusselLopp, uciDrag, ARSORT } from "./schack-pussel.js";
@@ -33,6 +33,9 @@ const SAN_OK = /^[A-Za-z0-9+#=\-]{2,9}$/;
 const RUTA_OK = /^[a-h][1-8]$/;
 const UCI_OK = /^[a-h][1-8][a-h][1-8][qrbn]?$/;
 const PROMO_OK = new Set(["q", "r", "b", "n"]);
+
+/** Högst så många datordrag får stämma bara under nivåns djup (10 %, minst 1). */
+export const maxGrunda = (antal) => Math.max(1, Math.floor(antal * 0.1));
 
 export const arSeed = (s) => Number.isInteger(s) && s >= 0 && s < 2 ** 32;
 
@@ -78,15 +81,22 @@ export function verifieraDatorParti(p, o = {}) {
   // 2. Datorns drag (dyrt): nivåns val med partiets seed.
   const datorFarg = studentFarg === "w" ? "b" : "w";
   const slutTid = nu() + (o.partiTidsgransMs ?? PARTI_TIDSGRANS_MS);
+  let antal = 0;
+  let grunda = 0; // datordrag som bara stämmer under nivåns djup
   for (let i = 0; i < fore.length; i++) {
     if (fore[i].tur !== datorFarg) continue;
     if (nu() > slutTid) return { ok: false, fel: "tid" };
-    const djup = provaDatorDrag(fore[i].fen, fore[i].drag, {
+    const r = provaDatorDragDjup(fore[i].fen, fore[i].drag, {
       niva: p.niva, seed: (p.seed + i * 7919) >>> 0, historik: { drag: drag.slice(0, i) },
       minDjup: MIN_DJUP[p.niva], tidsgransMs: o.dragTidsgransMs ?? DRAG_TIDSGRANS_MS, nu: o.nu,
     });
-    if (!djup) return { ok: false, fel: "dator", halvdrag: i };
+    if (!r.traff) return { ok: false, fel: "dator", halvdrag: i };
+    antal++;
+    if (!r.fullt) grunda++;
   }
+  // Ett parti mot Tornet är Damen på djup 3 – därför bara några få drag under nivåns djup
+  // (en långsam dator: 2 av 40 med 120 ms tidsgräns; Tornet som "Damen": ~1 av 4).
+  if (grunda > maxGrunda(antal)) return { ok: false, fel: "dator", grunda };
   return { ok: true, studentFarg };
 }
 

@@ -394,22 +394,38 @@ export function valjDrag(fen, opt = {}) {
  * @param {{ niva: string, seed: number, historik?: object, minDjup?: number, tidsgransMs?: number, nu?: () => number }} opt
  */
 export function provaDatorDrag(fen, drag, opt = {}) {
+  return provaDatorDragDjup(fen, drag, opt).traff;
+}
+
+/**
+ * Som provaDatorDrag, men säger också om draget stämmer på nivåns EGET djup (eller
+ * djupare, eller vid en matt): `{ traff, fullt }`. `traff` = första djupet ≥ minDjup som
+ * stämmer; `fullt` = något djup ≥ nivåns djup stämmer. Ett drag som bara stämmer under
+ * nivåns djup (en långsam dator som tappade ett djup) är ovanligt i ett äkta parti – men
+ * vanligt i ett parti mot en svagare nivå (Tornets drag är Damens djup 3), så servern
+ * godtar bara några få sådana (#798, schack-mynt-kontroll.js).
+ */
+export function provaDatorDragDjup(fen, drag, opt = {}) {
   const niva = nivaFor(opt.niva);
   const minDjup = opt.minDjup ?? 1;
   let traff = 0;
+  let fullt = false;
   sokIterativt(fen, {
     djup: niva.djup, maxDjup: niva.maxDjup || niva.djup, exakt: niva.djup <= 2,
     tidsgransMs: opt.tidsgransMs ?? 5_000, nu: opt.nu, historik: opt.historik,
     efterDjup(res) {
       // En matt (åt något håll) stoppar fördjupningen i klienten – då gäller det djupet även under minDjup.
-      if (res.djup < minDjup && !arMatt(res.poang[0].v)) return false;
+      const matt = arMatt(res.poang[0].v);
+      if (res.djup < minDjup && !matt) return false;
       const val = tillDrag(valjEnligtNiva(res.poang, niva, skapaSlump(opt.seed)).m);
-      if (val.from !== drag.from || val.to !== drag.to || (val.promotion || undefined) !== (drag.promotion || undefined)) return false;
-      traff = res.djup;
-      return true;
+      const lika = val.from === drag.from && val.to === drag.to && (val.promotion || undefined) === (drag.promotion || undefined);
+      if (!lika) return false;
+      traff ||= res.djup;
+      if (res.djup >= niva.djup || matt) fullt = true;
+      return fullt; // stämmer bara under nivåns djup: fortsätt och se om även nivåns djup stämmer
     },
   });
-  return traff;
+  return { traff, fullt };
 }
 
 /** Tips (§3.3): det bästa draget enligt en sökning på Tornets djup, utan slump. */

@@ -7,7 +7,8 @@
 //   vinst mot Bonden: 200 första gången, 0 andra gången (redan), coins + kvittot
 //   dubbelanrop och två "flikar" samtidigt → EN utbetalning
 //   Damen: 500 + pokalen (kvittot och studentData.schack.pokaler) i samma transaktion
-//   fusk: fel seed, ett utbytt datordrag, olagligt drag, ingen matt, fel nivå → invalid-argument, inga mynt
+//   fusk: fel seed, ett utbytt datordrag, olagligt drag, ingen matt, fel nivå → invalid-argument, inga mynt;
+//   direkt efter ett nekat parti → resource-exhausted (30 s paus)
 //   lektion: 5 en gång, fel lösning nekas; pussel: 5 en gång, fel lösning nekas,
 //   redan belönat id ger 0
 //   klienten kan inte skriva kvittot (reglerna) – inte ens efter en utbetalning
@@ -126,18 +127,28 @@ test("utloggad → unauthenticated; utan schack, lärare, fokusläge → failed-
   assert.equal(await coins(ANNA), 10, "inga mynt");
 });
 
-test("fusk från konsolen: fel seed, ett utbytt datordrag, olagligt drag, ingen matt, fel nivå – inga mynt", async () => {
+test("fusk från konsolen: fel seed, ett utbytt datordrag, olagligt drag, ingen matt, fel nivå – inga mynt; paus efter nekat parti", async () => {
   await as(ANNA);
-  assert.equal(await errCode(call("schackDatorVinst", { ...BONDEN, seed: BONDEN.seed + 1 })), "invalid-argument", "fel seed");
+  const nolla = () => adb.doc(`schackMynt/${ANNA}`).set({ senastFel: admin.firestore.FieldValue.delete() }, { merge: true });
+  const nekas = async (d, vad) => {
+    await nolla();
+    assert.equal(await errCode(call("schackDatorVinst", d)), "invalid-argument", vad);
+  };
+  await nekas({ ...BONDEN, seed: BONDEN.seed + 1 }, "fel seed");
+  // Spärren: direkt efter ett nekat parti får nästa försök vänta (motorn är dyr).
+  assert.equal(await errCode(call("schackDatorVinst", BONDEN)), "resource-exhausted", "paus efter nekat parti");
   const c = new Chess();
   c.move(BONDEN.drag[0]);
   const annat = c.moves().find((m) => m !== BONDEN.drag[1]);
-  assert.equal(await errCode(call("schackDatorVinst", { ...BONDEN, drag: [BONDEN.drag[0], annat, ...BONDEN.drag.slice(2)] })), "invalid-argument", "utbytt drag");
-  assert.equal(await errCode(call("schackDatorVinst", { ...BONDEN, drag: ["e4", "e5", "Ke3"] })), "invalid-argument", "olagligt");
-  assert.equal(await errCode(call("schackDatorVinst", { ...BONDEN, drag: BONDEN.drag.slice(0, -1) })), "invalid-argument", "ingen matt");
-  assert.equal(await errCode(call("schackDatorVinst", { ...BONDEN, niva: "tornet" })), "invalid-argument", "Bondens parti påstått mot Tornet");
+  await nekas({ ...BONDEN, drag: [BONDEN.drag[0], annat, ...BONDEN.drag.slice(2)] }, "utbytt drag");
+  await nekas({ ...BONDEN, drag: ["e4", "e5", "Ke3"] }, "olagligt");
+  await nekas({ ...BONDEN, drag: BONDEN.drag.slice(0, -1) }, "ingen matt");
+  await nekas({ ...BONDEN, niva: "tornet" }, "Bondens parti påstått mot Tornet");
+  await nolla();
   assert.equal(await coins(ANNA), 10);
-  assert.deepEqual(await kvitto(ANNA), {}, "inget kvitto");
+  const k = await kvitto(ANNA);
+  assert.deepEqual(k.dator ?? {}, {}, "ingen nivå betald");
+  assert.equal(k.total ?? 0, 0);
 });
 
 test("vinst mot Bonden: +200 första gången, 0 andra gången; dubbelanrop och två flikar = EN utbetalning", async () => {
@@ -193,7 +204,8 @@ test("pussel: +5 en gång per pussel, fel lösning nekas, redan belönat id ger 
   assert.equal(await errCode(call("schackPusselMynt", { sort: "tva", nr: 1, drag: [p.losning[0]] })), "invalid-argument", "bara första draget");
   assert.equal(await errCode(call("schackPusselMynt", { sort: "tva", nr: 1, drag: [p.losning[2], p.losning[0]] })), "invalid-argument");
   assert.equal(await errCode(call("schackPusselMynt", { sort: "tva", nr: 2, drag: [p.losning[0], p.losning[2]] })), "invalid-argument", "pussel 1:s lösning på pussel 2");
-  const r = await call("schackPusselMynt", { sort: "tva", nr: 1, drag: [p.losning[0], p.losning[2]] });
+  // id:t gäller före numret (en gammal bank i klientens cache)
+  const r = await call("schackPusselMynt", { sort: "tva", nr: 7, id: p.id, drag: [p.losning[0], p.losning[2]] });
   assert.deepEqual(r, { mynt: 5, redan: false, nyckel: `tva-${p.id}`, pokal: false });
   assert.deepEqual(await call("schackPusselMynt", { sort: "tva", nr: 1, drag: [p.losning[0], p.losning[2]] }), { mynt: 0, redan: true, nyckel: `tva-${p.id}`, pokal: false });
   assert.equal(await coins(ANNA), 730);

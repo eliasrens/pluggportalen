@@ -906,6 +906,7 @@ med eleven läser det; ingen klient skriver (`allow write: if false`).
 | `pokaler` | map | `{ damen: ms }` – samma tid som `studentData.schack.pokaler` |
 | `total` | int | summan som betalats ut (`increment`) |
 | `uppdaterad` | number | ms |
+| `senastFel` | number | ms – senaste NEKADE datorpartiet; nästa `schackDatorVinst` inom 30 s nekas (`resource-exhausted`) |
 
 ## Mattematchen & Live (#456/#457)
 

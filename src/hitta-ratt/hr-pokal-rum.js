@@ -69,9 +69,11 @@ export async function laddaHusPokaler({ uid, rum = [], schack = null }) {
   ensureStyles();
   const [meta, schackLista] = await Promise.all([hamtaLedare(), laddaSchackPokaler(schack)]);
   if (meta === null) return null; // läsfel: rita inga pokaler men städa inget
-  const lista = [...minaPokaler(meta, uid), ...schackLista];
+  const lista = [...minaPokaler(meta, uid), ...(schackLista || [])];
   const pokaler = new Map(lista.map((p) => [p.nyckel, p]));
   const giltiga = new Set(pokaler.keys());
+  // Schackkonsten kunde inte laddas: rita inte schackpokalen nu, men städa inte bort dess plats.
+  if (schackLista === null) for (const pl of rum) for (const k of Object.keys(pl || {})) if (k.startsWith("hrpokal-schack-")) giltiga.add(k);
   const rensade = [];
   rum.forEach((pl, i) => {
     if (rensaPokaler(pl, giltiga) > 0) rensade.push(i);
@@ -79,7 +81,7 @@ export async function laddaHusPokaler({ uid, rum = [], schack = null }) {
   return { pokaler, rensade };
 }
 
-/** Schackets pokaler (#798) med sin ritning – modulerna laddas bara när eleven har en. */
+/** Schackets pokaler (#798) med sin ritning – modulerna laddas bara när eleven har en. null = laddningsfel. */
 async function laddaSchackPokaler(schack) {
   if (!schack?.pokaler || typeof schack.pokaler !== "object" || !Object.keys(schack.pokaler).length) return [];
   try {
@@ -88,7 +90,7 @@ async function laddaSchackPokaler(schack) {
     ]);
     return schackPokaler(schack, SCHACK_POKALER).map((p) => ({ ...p, ritning: (o) => schackPokalSvg(o) }));
   } catch {
-    return [];
+    return null; // laddningsfel – placeringen får stå kvar (se laddaHusPokaler)
   }
 }
 

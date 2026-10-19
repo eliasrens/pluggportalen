@@ -92,7 +92,7 @@ const DATOR_VINST_TIMEOUT_MS = 200_000;
 export const mynt = {
   datorVinst: ({ niva, seed, drag }) => call("schackDatorVinst", { niva, seed, drag }, DATOR_VINST_TIMEOUT_MS),
   lektion: ({ nr, losning }) => call("schackLektionMynt", { nr, losning }),
-  pussel: ({ sort, nr, drag }) => call("schackPusselMynt", { sort, nr, drag }),
+  pussel: ({ sort, nr, id, drag }) => call("schackPusselMynt", { sort, nr, id, drag }),
 };
 
 /** Kvittot schackMynt/{uid} (EN läsning per besök på schacksidan); saknat = {}. Fel kastas. */

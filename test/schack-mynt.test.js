@@ -18,7 +18,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Chess } from "../src/schack/vendor/chess.js";
 import { valjDrag, analysera, provaDatorDrag } from "../src/schack/schack-motor.js";
-import { verifieraDatorParti, verifieraLektion, verifieraPussel, MAX_HALVDRAG } from "../src/schack/schack-mynt-kontroll.js";
+import { verifieraDatorParti, verifieraLektion, verifieraPussel, MAX_HALVDRAG, maxGrunda } from "../src/schack/schack-mynt-kontroll.js";
 import {
   DATOR_MYNT, LEKTION_MYNT, PUSSEL_MYNT, SCHACK_POKALER, pusselNyckel, normaliseraKvitto, efterUtbetalning,
   harDator, harLektion, harPussel, nivaBelonningText, datorVinstText,
@@ -68,6 +68,20 @@ describe("serverns kontroll av ett parti mot datorn (verifieraDatorParti)", () =
     const f = JSON.parse(las("test/fixtures/schack-damen-vinst.json"));
     assert.deepEqual(verifieraDatorParti({ niva: f.niva, seed: f.seed, drag: f.drag }), { ok: true, studentFarg: "w" });
     assert.equal(verifieraDatorParti({ niva: "tornet", seed: f.seed, drag: f.drag }).fel, "dator", "Tornet hade spelat annorlunda");
+  });
+
+  it("ett vunnet parti mot Tornet räknas inte som Damen (Tornet = Damen på djup 3, granskningsfynd #798)", () => {
+    const p = spela({ niva: "tornet", seed: 1, elevDjup: 4 });
+    assert.ok(p.chess.isCheckmate());
+    assert.equal(verifieraDatorParti({ niva: "tornet", seed: 1, drag: p.drag }).ok, true);
+    const r = verifieraDatorParti({ niva: "damen", seed: 1, drag: p.drag });
+    assert.equal(r.ok, false);
+    assert.equal(r.fel, "dator");
+  });
+
+  it("maxGrunda: högst 10 % (minst 1) av datordragen får stämma bara under nivåns djup", () => {
+    assert.equal(maxGrunda(5), 1);
+    assert.equal(maxGrunda(40), 4);
   });
 
   it("ett riktigt parti mot Springaren godkänns (slumpen med seed)", () => {

@@ -1131,16 +1131,18 @@ och klienten skriver aldrig `coins` för schack:
 
 | Callable | In | Kontroll (`schack-mynt-kontroll.js`, delad) |
 | --- | --- | --- |
-| `schackDatorVinst` | `{ niva, seed, drag: [SAN…] }` | Hela draglistan spelas upp med chess.js (alla drag lagliga, högst 600 halvdrag); partiet slutar med **matt där eleven vinner** (elevens färg = den som gör matt). Sedan kontrolleras **varje** datordrag med motorn: det måste vara nivåns val med partiets frö (`seed + halvdrag · 7919`, som i `schack-dator-vy.js`) och historiken på **något djup** från `MIN_DJUP` (Bonden 1, Springaren 1, Tornet 2, Damen 3) upp till nivåns största (`provaDatorDrag` i motorn). |
+| `schackDatorVinst` | `{ niva, seed, drag: [SAN…] }` | Hela draglistan spelas upp med chess.js (alla drag lagliga, högst 600 halvdrag); partiet slutar med **matt där eleven vinner** (elevens färg = den som gör matt). Sedan kontrolleras **varje** datordrag med motorn: det måste vara nivåns val med partiets frö (`seed + halvdrag · 7919`, som i `schack-dator-vy.js`) och historiken på **något djup** från `MIN_DJUP` (Bonden 1, Springaren 1, Tornet 2, Damen 3) upp till nivåns största (`provaDatorDragDjup` i motorn). Högst 10 % (minst 1) av datordragen får stämma **bara under nivåns eget djup** – annars nekas partiet: Tornets drag är Damens djup 3, så en vinst mot Tornet kan inte lämnas in som Damen (granskningsfynd; ett Damen-parti med 120 ms tidsgräns hade 2 av 40 sådana drag, Tornet som "Damen" ~1 av 4). |
 | `schackLektionMynt` | `{ nr, losning }` | Övningens slutvillkor per uppgift: rätt ruta (lektion 1), jaktens mål i det lyckade försöket – alla stjärnor/pjäser tagna med pjäsens egna drag (2–8), draget som uppfyller kravet (9–11, `bedomDrag`, patt nekas), ett helt parti mot Bonden som vit spelat klart enligt reglerna (12, datordragen kontrolleras som ovan). |
-| `schackPusselMynt` | `{ sort, nr, drag: [UCI…] }` | Pusslet ur samma bank (`functions/schack/pussel/`); elevens drag löser det med samma bedömning som pusselvyn (varje mattdrag är rätt när det är dags för matt; matt i två: lösningens första drag, sedan försvaret ur lösningen). |
+| `schackPusselMynt` | `{ sort, nr, id, drag: [UCI…] }` | Pusslet (Lichess-`id` gäller före `nr`, så en gammal bank i klientens cache pekar ändå rätt) ur samma bank (`functions/schack/pussel/`); elevens drag löser det med samma bedömning som pusselvyn (varje mattdrag är rätt när det är dags för matt; matt i två: lösningens första drag, sedan försvaret ur lösningen). |
 
 Alla svarar `{ mynt, redan, nyckel, pokal }` (`mynt` = utbetalt nu). **Idempotent:** kvittot `schackMynt/{uid}` läses först
 (redan betalt → svar direkt, ingen motor), och betalningen är **EN transaktion** som läser kvittot igen och bara om
 nyckeln saknas skriver nyckeln + `total`, `studentData.coins += mynt` och (Damen) `studentData.schack.pokaler.damen` –
 dubbelanrop och två flikar ger en utbetalning. **Grinden:** eleven går i en klass med `schack` i `enabledModules`
 (inte dold), och ingen av elevens klasser har ett aktivt fokuslås (`failed-precondition`); en kontroll som inte går
-igenom ger `invalid-argument` med en kort förklaring.
+igenom ger `invalid-argument` med en kort förklaring. **Spärr:** ett nekat datorparti stämplar kvittot (`senastFel`) och nästa
+`schackDatorVinst` inom 30 s får `resource-exhausted` ("Vänta en halv minut …") – annars kunde någon hålla motorn igång med
+påhittade partier (ett parti som stämmer till sista draget tar upp till 150 s att neka).
 
 **Varför motorn kan kontrolleras.** Sökningen är deterministisk per djup (ny transpositionstabell varje anrop,
 seedad slump) – klientens drag är nivåns val på det djup klienten hann färdigt med inom 850 ms. Olika datorer hinner olika

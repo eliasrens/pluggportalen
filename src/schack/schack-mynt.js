@@ -55,7 +55,7 @@ export function skapaMynt(t) {
     datorVinst: (parti) => Promise.resolve(t.datorVinst({ niva: parti.niva, seed: parti.seed, drag: [...parti.drag] }))
       .then((s) => efter("dator", parti.niva, s)),
     lektion: (nr, losning) => Promise.resolve(t.lektion({ nr, losning })).then((s) => efter("lektioner", String(nr), s)),
-    pussel: (sort, nr, id, drag) => Promise.resolve(t.pussel({ sort, nr, drag: [...drag] }))
+    pussel: (sort, nr, id, drag) => Promise.resolve(t.pussel({ sort, nr, id, drag: [...drag] }))
       .then((s) => efter("pussel", pusselNyckel(sort, id), s)),
   };
 }

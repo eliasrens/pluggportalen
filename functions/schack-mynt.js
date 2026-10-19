@@ -7,7 +7,7 @@
 //
 //   datorVinst    { niva, seed, drag: [SAN…] }        → första vinsten per nivå (Damen + pokal)
 //   lektionMynt   { nr, losning }                      → 5 per lektion i "Lär dig schack"
-//   pusselMynt    { sort: "ett"|"tva", nr, drag: [UCI…] } → 5 per pussel
+//   pusselMynt    { sort: "ett"|"tva", nr, id?, drag: [UCI…] } → 5 per pussel (id = Lichess-id, gäller före nr)
 // Alla svarar { mynt, redan, nyckel, pokal? } – `mynt` = utbetalt NU (0 när kvittot
 // redan har nyckeln: dubbelanrop, två flikar, en senare vinst).
 //
@@ -19,7 +19,9 @@
 // Grinden: eleven går i en klass med schack påslaget (enabledModules, inte dold)
 // och ingen av elevens klasser har ett aktivt fokuslås – samma regel som
 // kompis-callables (schack är inte låsbart: varje aktivt lås stänger schacket).
-// Kvittot läses FÖRE den dyra kontrollen, så en redan betald nivå kostar ingen motor.
+// Kvittot läses FÖRE den dyra kontrollen, så en redan betald nivå kostar ingen motor. Ett NEKAT
+// datorparti stämplar kvittot (senastFel) och nästa försök väntar FEL_PAUS_MS (30 s) – en spärr
+// mot den som skickar påhittade partier för att hålla motorn igång.
 // ============================================================================
 
 import { readFileSync } from "node:fs";
@@ -82,20 +84,30 @@ export async function betala(c, uid, grupp, nyckel, mynt, pokal = null) {
   });
 }
 
-/** Har kvittot redan nyckeln? (Läses före den dyra kontrollen.) */
-async function redanBetald(c, uid, grupp, nyckel) {
-  const k = normaliseraKvitto((await c.db.collection(KVITTO_COLL).doc(uid).get()).data());
-  return Object.hasOwn(k[grupp], nyckel);
+/** Kvittot som det är (läses före den dyra kontrollen). */
+async function lasKvitto(c, uid) {
+  return (await c.db.collection(KVITTO_COLL).doc(uid).get()).data() || {};
 }
+const harNyckel = (data, grupp, nyckel) => Object.hasOwn(normaliseraKvitto(data)[grupp], nyckel);
+
+/** Efter ett nekat parti får eleven vänta så här länge – motorn är dyr (ett påhittat parti kan ta 150 s). */
+export const FEL_PAUS_MS = 30_000;
 
 export async function datorVinst(deps, uid, data = {}) {
   const c = ctx(deps);
   const niva = typeof data.niva === "string" && Object.hasOwn(DATOR_MYNT, data.niva) ? data.niva : null;
   if (!niva) throw nekad("niva");
   await grindForMynt(c.db, uid, c.now());
-  if (await redanBetald(c, uid, "dator", niva)) return { mynt: 0, redan: true, nyckel: niva, pokal: false };
+  const kv = await lasKvitto(c, uid);
+  if (harNyckel(kv, "dator", niva)) return { mynt: 0, redan: true, nyckel: niva, pokal: false };
+  if (Number(kv.senastFel) > c.now() - FEL_PAUS_MS) {
+    throw new SchackFel("resource-exhausted", "Vänta en halv minut och försök igen.");
+  }
   const r = verifieraDatorParti({ niva, seed: data.seed, drag: data.drag }, { krav: "vinst", ...deps.kontroll });
-  if (!r.ok) throw nekad(r.fel);
+  if (!r.ok) {
+    await c.db.collection(KVITTO_COLL).doc(uid).set({ senastFel: c.now() }, { merge: true });
+    throw nekad(r.fel);
+  }
   return betala(c, uid, "dator", niva, DATOR_MYNT[niva], DATOR_POKAL[niva] || null);
 }
 
@@ -105,7 +117,7 @@ export async function lektionMynt(deps, uid, data = {}) {
   if (!nr) throw nekad("lektion");
   await grindForMynt(c.db, uid, c.now());
   const nyckel = String(nr);
-  if (await redanBetald(c, uid, "lektioner", nyckel)) return { mynt: 0, redan: true, nyckel, pokal: false };
+  if (harNyckel(await lasKvitto(c, uid), "lektioner", nyckel)) return { mynt: 0, redan: true, nyckel, pokal: false };
   const r = verifieraLektion(nr, data.losning, deps.kontroll);
   if (!r.ok) throw nekad(r.fel);
   return betala(c, uid, "lektioner", nyckel, LEKTION_MYNT);
@@ -116,11 +128,13 @@ export async function pusselMynt(deps, uid, data = {}) {
   const sort = data.sort === "ett" || data.sort === "tva" ? data.sort : null;
   if (!sort) throw new SchackFel("invalid-argument", "Okänd pusselsort.");
   const lista = pusselBank(sort);
-  const p = Number.isInteger(data.nr) && data.nr >= 1 && data.nr <= lista.length ? lista[data.nr - 1] : null;
+  // Id:t (Lichess) gäller före numret: en klient med en gammal bank i cachen pekar ändå rätt.
+  const viaId = typeof data.id === "string" ? lista.find((x) => x.id === data.id) : null;
+  const p = viaId || (Number.isInteger(data.nr) && data.nr >= 1 && data.nr <= lista.length ? lista[data.nr - 1] : null);
   if (!p) throw new SchackFel("invalid-argument", "Pusslet finns inte.");
   await grindForMynt(c.db, uid, c.now());
   const nyckel = pusselNyckel(sort, p.id);
-  if (await redanBetald(c, uid, "pussel", nyckel)) return { mynt: 0, redan: true, nyckel, pokal: false };
+  if (harNyckel(await lasKvitto(c, uid), "pussel", nyckel)) return { mynt: 0, redan: true, nyckel, pokal: false };
   if (!verifieraPussel(p, sort, data.drag)) throw new SchackFel("invalid-argument", "Det där löser inte pusslet.");
   return betala(c, uid, "pussel", nyckel, PUSSEL_MYNT);
 }

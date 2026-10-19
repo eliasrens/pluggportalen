@@ -55,9 +55,10 @@ export function skapaMyntStub({ skriv = () => {}, nyckel = "pp:schack:mynt:previ
       if (!r.ok) throw FEL("Lösningen klarar inte övningen.");
       return betala("lektioner", String(nr), LEKTION_MYNT);
     },
-    pussel: async ({ sort, nr, drag }) => {
+    pussel: async ({ sort, nr, id, drag }) => {
       await vanta();
-      const p = (await laddaPussel(sort))[nr - 1];
+      const lista = await laddaPussel(sort);
+      const p = lista.find((x) => x.id === id) || lista[nr - 1];
       const ok = verifieraPussel(p, sort, drag);
       skriv(`SERVERN kontrollerade pussel ${sort} ${nr} (${drag.join(" ")}): ${ok ? "ok" : "fel"}`);
       if (!ok) throw FEL("Det där löser inte pusslet.");
