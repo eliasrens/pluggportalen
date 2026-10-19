@@ -4,6 +4,12 @@ Del D av epic Lärarkonton (spec `docs/UTVECKLINGSUPPDRAG_LARARKONTON.md` §5).
 Funktionerna är **flyttade, inte ändrade**. Behörigheten avgörs av reglerna och
 Cloud Functions (#678); gränssnittet döljer bara det kontot inte får använda.
 
+> **Uppdaterat i #803 (epic #802, Lärarsidan – enklare struktur):** toppmenyn är nu Hem · Mina klasser
+> (Statistik · Klassinställningar) · Material · Prov · Live · Admin (bara admin). Översikt heter Hem (`#/larare/hem`),
+> Statistik är inget eget val, "Inloggad som …" och Logga ut ligger i profilmenyn (kontots namn ▾, även Hjälp och guide
+> och – för admin – Admin), och smala skärmar får ☰. Gamla adresser omdirigeras via `TEACHER_REDIRECTS`
+> (teacher-shared.js). Inventering: [LARARSIDAN_INVENTERING.md](LARARSIDAN_INVENTERING.md). Dokumentet skrivs om i sub-issue F.
+
 ## Före
 
 Toppnav: Klasser & elever · Innehåll · Mattematchen · Live · Hitta rätt! · Lärarkonton (admin).
