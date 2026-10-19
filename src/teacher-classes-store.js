@@ -27,7 +27,7 @@ export function readSavedClass() {
   }
 }
 
-/** Kom ihåg vald klass (null = glöm). Delas av Mina klasser och Admin → Klasser. */
+/** Kom ihåg vald klass (null = glöm). Mina klasser; Admin-sidan glömmer en borttagen klass (#805). */
 export function saveClass(id) {
   try {
     if (id) localStorage.setItem(SELECTED_KEY, id);
