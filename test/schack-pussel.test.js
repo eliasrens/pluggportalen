@@ -317,7 +317,7 @@ describe("källkoden (#271, §13)", () => {
   it("schackOk i firestore.rules har pussel bredvid lektionerna", () => {
     const r = las("firestore.rules");
     assert.match(r, /hasOnly\(\['datorPartier', 'aktivtParti', 'lektioner', 'pussel'\]\)/);
-    assert.match(r, /schackPusselOk\(n\.schack\.get\('pussel', \{\}\), os\.get\('pussel', \{\}\)\)/);
+    assert.match(r, /!\('pussel' in d\) \|\| schackPusselOk\(ns\.get\('pussel', \{\}\), schackMap\(os, 'pussel'\)\)/);
     assert.match(las("package.json"), /test\/firestore-rules-schack-pussel\.test\.js/);
   });
 });

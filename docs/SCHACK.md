@@ -569,6 +569,16 @@ tillåter bara nycklarna `datorPartier` (heltal, aldrig nedåt, högst +1 per sk
 3B – avsnitt 16.4); lärare (årskurskonto) skriver fältet aldrig, admin får. Kompispartier räknas i
 `schackKlass.tabell[uid].partier`.
 
+**Bara ändrade nycklar valideras (#792 F1).** Firestore avbryter en regel efter **1000 utvärderade
+uttryck** och nekar då skrivningen. `schackOk` körs på **varje** skrivning till `studentData` (mynt,
+stjärnor, avatar …), och när den kontrollerade alla 12 lektioner och båda pusselsorterna varje gång
+spräckte ett fyllt schack-fält gränsen – eleven nekades då *alla* skrivningar till sitt dokument. Därför
+räknar regeln först ut vad som ändrats (`diff().affectedKeys()`) och kontrollerar bara det: en
+orelaterad skrivning kostar ett par uttryck, och inom `lektioner`/`pussel` kontrolleras bara den lektion
+respektive sort som ändrats. Ny regeldel här ska följa samma mönster. Test:
+`test/firestore-rules-schack-uttryck-792.test.js` (fullt tillstånd: orelaterat, egna skrivningar, allt
+ändrat i en skrivning, fusk) och `test/firestore-rules-schack-grans-792.test.js`.
+
 ### 12.6 Gamla partier – valet (§7.3)
 
 **Städning när klassdokumentet skrivs**, ingen schemalagd funktion. Varje lobbyanrop
@@ -917,9 +927,12 @@ visas resultatrutan ("Lektionen klar!", stjärnorna, "Du klarade det på 9 drag.
   (`schack-moln.js` `lektionKlar`, fel sväljs – guiden stannar aldrig). Samma värde skrivs samtidigt in i
   studentData-cachen, så att översikten stämmer vid nästa vybyte utan ny läsning. En hel genomgång av
   guiden kostar alltså högst 12 skrivningar (fler bara om eleven slår sitt eget rekord).
-- **Regeln** `schackOk` → `schackLektionerOk` (`firestore.rules`): `lektioner` är en map med högst 12
-  nycklar ur `"1"`–`"12"`, varje värde ett heltal 1–3, och en lektion som fanns får **aldrig sänkas och
-  aldrig tas bort**. `datorPartier`/`aktivtParti` kontrolleras precis som förut, även i samma skrivning.
+- **Regeln** `schackOk` → `schackLektionerOk` (`firestore.rules`): `lektioner` är en map med bara
+  nycklar ur `"1"`–`"12"` och värden 1–3 (`values().hasOnly([1, 2, 3])`); ingen lektion får tas bort
+  (`diff().removedKeys()` tom) och en **ändrad** lektion (`diff().changedKeys()`) måste ha fler stjärnor
+  än förut – sänks aldrig. Bara ändrade lektioner jämförs, så kostnaden håller sig under Firestores
+  gräns på 1000 uttryck även med hela guiden klar (#792 F1, avsnitt 12.5).
+  `datorPartier`/`aktivtParti` kontrolleras precis som förut, även i samma skrivning.
   3B lade till `'pussel'` i `hasOnly` och `schackPusselOk` bredvid (avsnitt 16.4). Test:
   `test/firestore-rules-schack-lektioner.test.js` (giltigt, ogiltigt värde, sänkning, främmande nyckel,
   annan elev, årskurskontot).
@@ -1018,7 +1031,8 @@ pusslet, `losta` = hur många nya pussel som lösts.
 
 `pussel` är en map med bara `ett`/`tva`; varje sort bara `losta`/`senast`, heltal; `losta` ökar med högst
 1 per skrivning och sjunker aldrig; `senast` sjunker aldrig; `losta ≤ senast ≤ 1000`; en sort som fanns
-tas aldrig bort. `datorPartier`, `aktivtParti` och `lektioner` kontrolleras precis som förut, även i samma
+tas aldrig bort. Bara en sort som ändrats (`diff().affectedKeys()`) kontrolleras – 1000-uttrycksgränsen,
+avsnitt 12.5. `datorPartier`, `aktivtParti` och `lektioner` kontrolleras precis som förut, även i samma
 skrivning. Test: `test/firestore-rules-schack-pussel.test.js` (klientens skrivning, hopp över pussel,
 räknaren, ogiltiga värden, främmande nycklar, borttagning, de andra nycklarna, annan elev, årskurskontot).
 ⚠️ **Deploy:** `firebase deploy --only firestore:rules` **före** webben – annars nekas skrivningen (pusslen

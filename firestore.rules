@@ -323,52 +323,80 @@ service cloud.firestore {
     // guidens framsteg (#790, schackLektionerOk nedan), pussel = pusslens
     // framsteg (#791, schackPusselOk nedan). Inga andra nycklar. Saknas fältet i
     // båda = OK. Lärare (årskurskonto) skriver det aldrig.
+    // ⚠️ Gränsen 1000 uttryck per begäran (#792 F1): schackOk körs på VARJE
+    // studentData-skrivning, så bara de nycklar som ÄNDRAS (diff().affectedKeys())
+    // valideras – en orelaterad skrivning (mynt, stjärnor …) kostar nästan inget och
+    // ett fyllt schack-fält får aldrig spärra elevens övriga skrivningar.
     function schackOk() {
       let n = request.resource.data;
       let o = resource == null ? {} : resource.data;
-      let os = ('schack' in o && o.schack is map) ? o.schack : {};
       return !('schack' in n) ? !('schack' in o) :
         (n.schack is map && n.schack.keys().hasOnly(['datorPartier', 'aktivtParti', 'lektioner', 'pussel']) &&
-          n.schack.get('aktivtParti', null) == os.get('aktivtParti', null) &&
-          n.schack.get('datorPartier', 0) is int && n.schack.get('datorPartier', 0) >= os.get('datorPartier', 0) &&
-          n.schack.get('datorPartier', 0) <= os.get('datorPartier', 0) + 1 &&
-          schackLektionerOk(n.schack.get('lektioner', {}), os.get('lektioner', {})) &&
-          schackPusselOk(n.schack.get('pussel', {}), os.get('pussel', {})));
+          schackAndratOk(n.schack, schackMap(o, 'schack')));
+    }
+    // m[k] om det är en map, annars {} (gammal data som inte är en map valideras som ny).
+    function schackMap(m, k) {
+      return (k in m && m[k] is map) ? m[k] : {};
+    }
+    function schackAndratOk(ns, os) {
+      return schackNycklarOk(ns, os, ns.diff(os).affectedKeys());
+    }
+    function schackNycklarOk(ns, os, d) {
+      return d.size() == 0 || (
+        (!('aktivtParti' in d) || ns.get('aktivtParti', null) == os.get('aktivtParti', null)) &&
+        (!('datorPartier' in d) || schackDatorPartierOk(ns.get('datorPartier', 0), os.get('datorPartier', 0))) &&
+        (!('lektioner' in d) || schackLektionerOk(ns.get('lektioner', {}), schackMap(os, 'lektioner'))) &&
+        (!('pussel' in d) || schackPusselOk(ns.get('pussel', {}), schackMap(os, 'pussel'))));
+    }
+    function schackDatorPartierOk(nv, ov) {
+      return nv is int && nv >= ov && nv <= ov + 1;
     }
     // Pusslen (#791): pussel = { ett: { losta, senast }, tva: { losta, senast } }.
     // Klienten skriver EN gång per nytt löst pussel: losta + 1 och senast = numret.
     // losta (antal lösta) ökar med högst 1 per skrivning och sjunker aldrig; senast
     // (numret på senast lösta) sjunker aldrig; losta ≤ senast ≤ 1000. En sort som
-    // fanns tas aldrig bort.
+    // fanns tas aldrig bort. Bara en ändrad sort valideras (#792 F1).
     function schackPusselOk(np, op) {
       return np is map && np.keys().hasOnly(['ett', 'tva']) &&
-        schackPusselSortOk(np, op, 'ett') && schackPusselSortOk(np, op, 'tva');
+        schackPusselAndratOk(np, op, np.diff(op).affectedKeys());
     }
-    function schackPusselSortOk(np, op, k) {
-      let fanns = op is map && k in op && op[k] is map;
-      let o = fanns ? op[k] : {};
-      return !(k in np) ? !fanns :
+    function schackPusselAndratOk(np, op, d) {
+      return (!('ett' in d) || schackPusselSortOk(np, 'ett', op.get('ett', null))) &&
+        (!('tva' in d) || schackPusselSortOk(np, 'tva', op.get('tva', null)));
+    }
+    function schackPusselSortOk(np, k, os) {
+      return !(k in np) ? !(os is map) :
         (np[k] is map && np[k].keys().hasOnly(['losta', 'senast']) &&
-          np[k].get('losta', 0) is int && np[k].get('senast', 0) is int &&
-          np[k].get('losta', 0) >= o.get('losta', 0) && np[k].get('losta', 0) <= o.get('losta', 0) + 1 &&
-          np[k].get('senast', 0) >= o.get('senast', 0) && np[k].get('senast', 0) <= 1000 &&
-          np[k].get('losta', 0) <= np[k].get('senast', 0));
+          schackPusselVardenOk(np[k].get('losta', 0), np[k].get('senast', 0), os is map ? os : {}));
+    }
+    function schackPusselVardenOk(losta, senast, o) {
+      return losta is int && senast is int &&
+        losta >= o.get('losta', 0) && losta <= o.get('losta', 0) + 1 &&
+        senast >= o.get('senast', 0) && senast <= 1000 && losta <= senast;
     }
     // Guiden "Lär dig schack" (#790): lektioner = { "1".."12": stjärnor }, en map med
     // högst 12 kända nycklar och heltal 1–3. En lektions stjärnor sänks aldrig och
     // tas aldrig bort (klienten skriver bara en förbättring, EN fältväg per lektion).
+    // Bara ändrade lektioner valideras (#792 F1).
     function schackLektionerOk(nl, ol) {
-      return nl is map && nl.size() <= 12 &&
+      return nl is map &&
         nl.keys().hasOnly(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']) &&
-        schackLektionOk(nl, ol, '1') && schackLektionOk(nl, ol, '2') && schackLektionOk(nl, ol, '3') &&
-        schackLektionOk(nl, ol, '4') && schackLektionOk(nl, ol, '5') && schackLektionOk(nl, ol, '6') &&
-        schackLektionOk(nl, ol, '7') && schackLektionOk(nl, ol, '8') && schackLektionOk(nl, ol, '9') &&
-        schackLektionOk(nl, ol, '10') && schackLektionOk(nl, ol, '11') && schackLektionOk(nl, ol, '12');
+        nl.values().hasOnly([1, 2, 3]) &&
+        schackLektionerHojdaOk(nl, ol, nl.diff(ol));
     }
-    function schackLektionOk(nl, ol, k) {
-      let fanns = ol is map && k in ol && ol[k] is int;
-      return !(k in nl) ? !fanns :
-        (nl[k] is int && nl[k] >= 1 && nl[k] <= 3 && (!fanns || nl[k] >= ol[k]));
+    // Nya lektioner täcks av values() ovan; en borttagen lektion nekas; en ändrad
+    // lektion (changedKeys) måste ha fler stjärnor än förut.
+    function schackLektionerHojdaOk(nl, ol, d) {
+      return d.removedKeys().size() == 0 && schackLektionerStorreOk(nl, ol, d.changedKeys());
+    }
+    function schackLektionerStorreOk(nl, ol, c) {
+      return c.size() == 0 || (
+        (!('1' in c) || nl['1'] > ol['1']) && (!('2' in c) || nl['2'] > ol['2']) &&
+        (!('3' in c) || nl['3'] > ol['3']) && (!('4' in c) || nl['4'] > ol['4']) &&
+        (!('5' in c) || nl['5'] > ol['5']) && (!('6' in c) || nl['6'] > ol['6']) &&
+        (!('7' in c) || nl['7'] > ol['7']) && (!('8' in c) || nl['8'] > ol['8']) &&
+        (!('9' in c) || nl['9'] > ol['9']) && (!('10' in c) || nl['10'] > ol['10']) &&
+        (!('11' in c) || nl['11'] > ol['11']) && (!('12' in c) || nl['12'] > ol['12']));
     }
 
     // Årskurskontots skrivning i studentData (#678, §2.1) – bara ETT av:
