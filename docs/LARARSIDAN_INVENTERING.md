@@ -35,7 +35,7 @@ Godkänd förhandsvisning: [`preview/preview-lararsida-struktur.html`](../previe
 | Admin-sidan `flikar.admin` (`#/larare/admin`) | – (ny i C) | admin | **Admin** → kort: Skapa klass · Döp om klass · Ta bort klass · Lärarkonton · Säsong · Hitta rätt! · Mattematchen; underraden Översikt · Lärarkonton · Säsong [C] | – → 1 |
 | Lärarkonton `flikar.konton` (`#/larare/konton`) | Admin → Lärarkonton | admin | Admin → Lärarkonton (kort och underflik) [C] | 2 → 2 |
 | Säsong och Halloween `flikar.sasong` (`#/larare/admin/sasong`) | Admin → Säsong | admin | Admin → Säsong (kort och underflik) [C] | 2 → 2 |
-| Hjälp och guide `flikar.hjalp` (`#/larare/hjalp`) | – (ny) | alla | Profilmenyn → Hjälp och guide [A: platshållare; F: guiderna] | – → 2 |
+| Hjälp och guide `flikar.hjalp` (`#/larare/hjalp`) | – (ny) | alla | Profilmenyn → Hjälp och guide: sju guider med 3–5 steg och direktlänkar [A: platshållare; F #808: guiderna, se §11] | – → 2 |
 
 ## 2. Toppmenyns ram
 
@@ -205,7 +205,21 @@ Ett mål som är samma route betyder "dagens sida är fortfarande platsen" – B
 Gamla `?sektion=` följer med och väljer fliken: omraden/lagen/synlighet → Vad eleverna ser, fokus → Fokusläge,
 inloggning/elever/klasscenter → Elever, statistik → Hur går det?, schack → Hur går det? → Schack (`SEKTION_TILL_FLIK`).
 
-## 11. Att veta (rapport)
+## 11. Hjälp (F, #808)
+
+Hjälptexter och guider är nya – ingen gammal funktion flyttas, så "Var i dag" är "–". Texterna står i `MINA_FLIKAR` (`hjalp`,
+`hjalpAdmin`), `MATERIAL_FLIKAR` (`hint`) och guiderna i `src/teacher-hjalp-guider.js`; `test/lararsida-hjalp.test.js` kräver att
+varje länk pekar på en riktig route, flik och underflik och inte på en gammal adress.
+
+| Funktion | Var i dag | Vem | Var efter omgörningen | Klick i dag → efter |
+| --- | --- | --- | --- | --- |
+| Hjälptext överst i varje flik i Mina klasser (Hur går det? · Vad eleverna ser · Fokusläge · Elever; admin har egen text för Elever) | – (nytt) | alla | Överst i fliken: hopfällbar ruta "Hjälp" (1–2 meningar, länkar till rätt flik); valet sparas per ruta i `localStorage` (`pp:larare:hjalp:mina-<flik>`) [F] | – → 0 (syns direkt) |
+| Hjälptext överst i varje underflik i Material | Raden "var ändrar jag klassens inställningar" (D) | alla (Hitta rätt!: admin) | Samma hopfällbara ruta (`pp:larare:hjalp:material-<flik>`); texten säger vad fliken är till och var klassinställningarna finns [F] | 0 → 0 |
+| Hjälp och guide: Kom igång med en ny klass | – (nytt) | alla (steg 1 olika för admin och årskurs) | Profilmenyn → Hjälp och guide → guiden; länkar till Admin → Skapa klass (admin), Mina klasser → Elever, Vad eleverna ser [F] | – → 2 |
+| Hjälp och guide: Välj vad eleverna ser · Fokusläge · Ändra elevernas nivåer | – (nytt) | alla | Guiderna; länkar direkt till `?flik=ser|fokus` och `?flik=hur&del=lasresan|ekvationsresan` [F] | – → 2 |
+| Hjälp och guide: Skapa ett område med AI · Gör ett prov och rätta det · Starta Live | – (nytt) | alla (Mattematchen-steget: admin) | Guiderna; länkar till Material → Plugga-områden, Prov (Nytt prov, Provtillfällen, Att rätta), Live [F] | – → 2 |
+
+## 12. Att veta (rapport)
 
 - **Klick i #803:** Klassinställningar (dagens Klasser) är ett klick längre bort i toppmenyn (Mina klasser → Klassinställningar),
   eftersom Mina klasser öppnar statistiken som blir "Hur går det?" i B. Från Hem är Fokusläge och Inloggning fortfarande ett klick
@@ -218,6 +232,7 @@ inloggning/elever/klasscenter → Elever, statistik → Hur går det?, schack �
   medlemshanteraren) i stället för Inloggning under fliken Elever, eftersom den redan har allt Inloggning har; två listor med samma
   elever under varandra vore förvirrande. Hem-kortens länkar (`#/larare/klasser?…&sektion=…`, `#/larare/statistik?…`) leder via
   omdirigeringen till rätt flik; E skriver om Hem.
+- **F (#808):** Hjälptexterna och guiderna är nya och läser inget. Hjälprutan är öppen som standard och sparar bara "hopfälld" i `localStorage` (fungerar utan lagring). Platshållarsidan från A är ersatt; hjälplänkarna från B pekar nu direkt på `?flik=` och `&del=`, inte via omdirigeringar.
 - **E (#807):** Översiktens tre snabbval per klasskort blev ett klick på kortet (Hur går det?) – Fokusläge och Inloggning är ett
   klick längre bort därifrån (kortet → fliken), men att **stänga av** ett fokusläge går direkt i Att göra, och Kom igång/Visa leder
   direkt till Elever. "Skapa nytt område" leder till Material → Plugga-områden (`#/larare/material?flik=plugga`, knappen Skapa nytt där);

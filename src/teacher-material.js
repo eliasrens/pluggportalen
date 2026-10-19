@@ -2,8 +2,8 @@
 // Pluggporten – lärarsidan: Material med underflikar (teacher-material.js, #806)
 // ----------------------------------------------------------------------------
 // Epic #802 DEL 4. EN sida, #/larare/material?flik=<plugga|lasresan|ekvationsresan|
-// brakresan|hitta-ratt|schack>, med flikraden, en rad om var klassinställningarna
-// finns och en yta där flikens vy ritas. Vyerna är de gamla sidorna, flyttade:
+// brakresan|hitta-ratt|schack>, med flikraden, en hopfällbar hjälptext (vad fliken är till, var klassinställningarna
+// finns) och en yta där flikens vy ritas. Vyerna är de gamla sidorna, flyttade:
 // materialtabellen (teacher-content.js), Bråkresans testläge, Hitta rätt!-sidan.
 // Flikarna står i teacher-material-flikar.js och laddas med import() (#271).
 //
@@ -16,6 +16,7 @@
 
 import { ADMIN_ONLY, el, esc, icon, isAdmin, isTeacher, renderGate, teacherHead, teacherNav, wireHashLinks } from "./teacher-shared.js";
 import { materialFlik, materialFlikar } from "./teacher-material-flikar.js";
+import { hjalpRuta } from "./teacher-hjalptext.js";
 import { getParams } from "./ui.js";
 
 export const MATERIAL_HASH = "#/larare/material";
@@ -55,10 +56,9 @@ export async function pageLarareMaterial(ctx) {
     wireHashLinks(ctx, flikrad);
     return ctx.app.replaceChildren(sida);
   }
-  const hint = el(`<p class="mat-hint" role="note">${icon("link", 15)}<span>${flik.hint}</span></p>`);
-  sida.append(hint, host);
+  // Hjälptexten överst (DEL 8): hopfällbar, valet sparas per underflik.
+  sida.append(hjalpRuta(`material-${flik.key}`, flik.hint, ctx), host);
   wireHashLinks(ctx, flikrad);
-  wireHashLinks(ctx, hint);
   ctx.app.replaceChildren(sida);
 
   window.addEventListener("hashchange", lamnar);

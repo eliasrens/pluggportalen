@@ -32,20 +32,6 @@
 .teacher-dark .mat-flik.active { color: var(--t-text); background: var(--t-accent-soft); }
 .teacher-dark .mat-flik.active .t-icon { color: var(--t-accent); }
 
-/* "Var ändrar jag klassens inställningar?" – en lugn rad överst i varje flik. */
-.teacher-dark .mat-hint {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin: 0 0 14px;
-  color: var(--t-muted);
-  font-size: 0.92rem;
-  max-width: 78ch;
-}
-.teacher-dark .mat-hint .t-icon { flex: none; margin-top: 3px; color: var(--t-accent); }
-.teacher-dark .mat-hint a { color: var(--t-accent); font-weight: 650; text-decoration: none; cursor: pointer; }
-.teacher-dark .mat-hint a:hover { text-decoration: underline; }
-
 /* De flyttade vyerna har en egen .teacher-page-rot: ingen dubbel luft inuti ytan. */
 .teacher-dark .mat-host > .teacher-page { padding: 0; margin: 0; }
 

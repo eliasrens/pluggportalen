@@ -182,8 +182,8 @@ describe("Vad eleverna ser (§3.3)", () => {
     assert.match(s(), /osparade\.delete\(grupp\(ok\)\)/);
     assert.match(s(), /osparade\.add\(grupp\(n\)\)/);
   });
-  it("Hjälp-länken Fokusläge går till fliken Fokusläge (F3; resten av Hjälp görs i #808)", () => {
-    assert.match(src("teacher-hjalp.js"), /"Fokusläge", hash: "#\/larare\/mina-klasser\?flik=fokus"/);
+  it("Hjälp-guiden Fokusläge går direkt till fliken Fokusläge (F3; guiderna i #808)", () => {
+    assert.match(src("teacher-hjalp-guider.js"), /key: "fokuslage"[\s\S]*?\$\{MINA\}\?flik=fokus/);
   });
   it("admin: Elever har allt Inloggning har – samma tabell, admin får bara FLER val (#805)", () => {
     const sek = src("teacher-classes-sections.js");

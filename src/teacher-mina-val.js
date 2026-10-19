@@ -15,21 +15,39 @@
 
 export const MINA_BASE = "#/larare/mina-klasser";
 
+const lank = (hash, text) => `<a href="${hash}" data-hash="${hash}">${text}</a>`;
+
 /** Fler klasser än så här → sökbar rullgardin i stället för knappraden (§3.1). */
 export const MANGA_KLASSER = 8;
 
 /**
- * Flikarna (§3.1). sections = vad årskurslärare ser; admin = vad admin ser i
+ * Flikarna (§3.1; hjälptexten överst i fliken, DEL 8). sections = vad årskurslärare ser; admin = vad admin ser i
  * stället (Elever: hela medlemshanteraren – den har allt Inloggning har – plus
  * Klasscentret). Nivåerna för Läsresan och Ekvationsresan bor i statistikens
  * underflikar (#506) och följer alltså med Hur går det?.
  */
 export const MINA_FLIKAR = [
-  { key: "hur", label: "Hur går det?", sub: "Statistik", sections: ["statistik"] },
-  { key: "ser", label: "Vad eleverna ser", sub: "Områden och moduler", sections: ["omraden", "synlighet", "lagen"] },
-  { key: "fokus", label: "Fokusläge", sub: "Lås till en sak", sections: ["fokus"] },
-  { key: "elever", label: "Elever", sub: "Inloggning och konton", sections: ["inloggning"], admin: ["elever", "klasscenter"] },
+  {
+    key: "hur", label: "Hur går det?", sub: "Statistik", sections: ["statistik"],
+    hjalp: `Här ser du hur det går för klassen i varje del av Pluggporten och ändrar elevernas nivåer i Läsresan och Ekvationsresan. Delar som är avstängda slår du på under ${lank(MINA_BASE + "?flik=ser", "Vad eleverna ser")}.`,
+  },
+  {
+    key: "ser", label: "Vad eleverna ser", sub: "Områden och moduler", sections: ["omraden", "synlighet", "lagen"],
+    hjalp: `Det du slår på här dyker upp i elevernas meny och får sin statistik under ${lank(MINA_BASE + "?flik=hur", "Hur går det?")}. Nya områden skapar du under ${lank("#/larare/material?flik=plugga", "Material → Plugga-områden")}.`,
+  },
+  {
+    key: "fokus", label: "Fokusläge", sub: "Lås till en sak", sections: ["fokus"],
+    hjalp: "Fokusläge låser klassen till en sak, till exempel ett område eller ett prov. Resten av Pluggporten är stängd tills tiden är ute eller du låser upp.",
+  },
+  {
+    key: "elever", label: "Elever", sub: "Inloggning och konton", sections: ["inloggning"], admin: ["elever", "klasscenter"],
+    hjalp: "Här ser du klassens elever med användarnamn och lösenord och skriver ut inloggningskort. Byt lösenord ligger i menyn ⋯ på varje rad.",
+    hjalpAdmin: "Här ser du klassens elever med användarnamn och lösenord och skriver ut inloggningskort. Som admin lägger du också till elever, ger mynt och tar bort konton i menyn ⋯.",
+  },
 ];
+
+/** Hjälptexten för fliken och rollen (hjalpAdmin finns där admin har fler val). */
+export const flikHjalp = (flik, admin) => (admin && flik.hjalpAdmin) || flik.hjalp;
 
 /** Flikens sektionsnycklar för rollen. */
 export const flikSektioner = (flik, admin) => (admin && flik.admin) || flik.sections;

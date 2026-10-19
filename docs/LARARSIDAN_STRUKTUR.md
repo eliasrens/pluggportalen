@@ -1,88 +1,171 @@
-# Lärarsidan – struktur och synlighet efter roll (#679)
+# Lärarsidan – struktur och synlighet efter roll
 
-Del D av epic Lärarkonton (spec `docs/UTVECKLINGSUPPDRAG_LARARKONTON.md` §5).
-Funktionerna är **flyttade, inte ändrade**. Behörigheten avgörs av reglerna och
-Cloud Functions (#678); gränssnittet döljer bara det kontot inte får använda.
+Så är lärarsidan byggd efter omgörningen i epic #802 (Lärarsidan – enklare struktur; spec
+[`UTVECKLINGSUPPDRAG_LARARSIDA_STRUKTUR.md`](UTVECKLINGSUPPDRAG_LARARSIDA_STRUKTUR.md)), ovanpå rollerna från epic #676
+(Lärarkonton, #679). Funktionerna är **flyttade, inte ändrade**: behörigheten avgörs av Firestore-reglerna och Cloud
+Functions (#678, [`BEHORIGHETER.md`](BEHORIGHETER.md)); gränssnittet döljer bara det kontot inte får använda.
+Var varje enskild funktion hamnade står i [`LARARSIDAN_INVENTERING.md`](LARARSIDAN_INVENTERING.md); Hems läsningar i
+[`LARARSIDAN_HEM_LASNINGAR.md`](LARARSIDAN_HEM_LASNINGAR.md).
 
-> **Uppdaterat i #803 (epic #802, Lärarsidan – enklare struktur):** toppmenyn är nu Hem · Mina klasser
-> (Statistik · Klassinställningar) · Material · Prov · Live · Admin (bara admin). Översikt heter Hem (`#/larare/hem`),
-> Statistik är inget eget val, "Inloggad som …" och Logga ut ligger i profilmenyn (kontots namn ▾, även Hjälp och guide
-> och – för admin – Admin), och smala skärmar får ☰. Gamla adresser omdirigeras via `TEACHER_REDIRECTS`
-> (teacher-shared.js). Inventering: [LARARSIDAN_INVENTERING.md](LARARSIDAN_INVENTERING.md). Dokumentet skrivs om i sub-issue F.
+## Toppmenyn och profilmenyn
 
-## Före
+Fem val för alla lärare och ett för admin (`TEACHER_GROUPS` och `TEACHER_TABS` i `src/teacher-shared.js`):
 
-Toppnav: Klasser & elever · Innehåll · Mattematchen · Live · Hitta rätt! · Lärarkonton (admin).
-Klassvyn hade sektionerna Elever · Områden · Lägen per område · Synlighet (moduler + byar) ·
-Fokusläge · Klasscentret · Statistik. Döp om, Ta bort och Skapa klass låg i samma vy.
+| Val | Adress | Innehåll | Admin | Årskurs |
+| --- | --- | --- | --- | --- |
+| **Hem** | `#/larare/hem` | Kom igång, Att göra, Snabbval, Mina klasser | ✓ | ✓ (Kom igång bara för årskurs) |
+| **Mina klasser** | `#/larare/mina-klasser` | Klassväljare + fliken Hur går det? · Vad eleverna ser · Fokusläge · Elever | ✓ alla klasser | ✓ bara egna klasser |
+| **Material** | `#/larare/material?flik=…` | Plugga-områden · Läsresan · Ekvationsresan · Bråkresan · Hitta rätt! · Schack | ✓ | ✓ utom Hitta rätt! |
+| **Prov** | `#/larare/prov` | Mina prov (med Att rätta överst) · Provtillfällen | ✓ ändrar alla prov | ✓ ändrar bara egna, kopierar andras |
+| **Live** | `#/larare/live` | Skapa Live-match, pågående matcher, historik · Mattematchen (admin) | ✓ | ✓ (Mattematchen dold) |
+| **Admin** | `#/larare/admin` | Kort: Skapa klass · Döp om klass · Ta bort klass · Lärarkonton · Säsong · Hitta rätt! · Mattematchen | ✓ | dold helt |
 
-## Efter
+- **Profilmenyn** (kontots namn ▾ längst till höger): "Inloggad som …", **Hjälp och guide** (`#/larare/hjalp`), för admin
+  också Admin och sist **Logga ut**. På smala skärmar fäller ☰ ut samma val som toppmenyn.
+- **Märket på Prov** ("Prov 18"): antalet inlämnade prov som väntar på rättning i lärarens klasser. Samma siffror står i
+  rutan **Att rätta** överst på Prov → Mina prov och som rader under Att göra på Hem. Räknaren skrivs på provtillfället
+  (`rattStatus`, `attRatta`) och räknas ned när man rättar och lämnar tillbaka – se `LARARSIDAN_HEM_LASNINGAR.md`.
+- Inloggning landar på Hem (eller på den lärarsida man försökte öppna). Rubriken på varje sida visar sidans namn.
+- En admin-sida som öppnas direkt av ett årskurskonto visar "Det här kan bara admin göra." Nekar servern något visas
+  samma besked i stället för ett tekniskt fel (`errText` i `teacher-shared.js`).
 
-| Huvuddel | Underflikar / innehåll | Admin | Årskurs |
-| --- | --- | --- | --- |
-| **Översikt** `#/larare/oversikt` | Mina klasser (elevantal, fokusläge på/av, snabbval Fokusläge · Inloggning · Statistik), Pågående Live | ✓ | ✓ bara egna klasser och matcher där en egen klass deltar |
-| **Klasser** `#/larare/klasser` | Områden · Lägen per område · Synlighet (moduler; byar bara admin) · Fokusläge · Inloggning (lösenord + inloggningskort) | ✓ | ✓ bara egna klasser |
-| **Material** | Plugga-material `#/larare/innehall` (Allt material / Mitt material, "Skapat av …", Använd, Duplicera) · Bråkresan `#/larare/brakresan` (testläge, #716) · Hitta rätt! | ✓ | Plugga-material ✓, Bråkresan ✓, Hitta rätt! dold |
-| **Prov** (#737) | Mina prov `#/larare/prov` (Nytt prov, Redigera, Förhandsvisa, Kopiera, Radera; kollegors prov att kopiera) – [`PROV.md`](PROV.md) | ✓ ändrar alla prov | ✓ ändrar bara egna, kopierar andras |
-| **Live och tävlingar** | Live `#/larare/live` · Mattematchen | ✓ | Live ✓, Mattematchen dold |
-| **Statistik** `#/larare/statistik` | Per klass: Ämnen · Per område · Läsresan · Ekvationsresan · Prov (#742) · Bråkresan (översikt, matris, rekommendationer, #716) · Mattematchen · Live (+ nivåstyrning) | ✓ | ✓ bara egna klasser |
-| **Admin** | Klasser & elevkonton `#/larare/admin/klasser` (skapa/döp om/ta bort klass, elevkonton, mynt, Klasscentret) · Lärarkonton | ✓ | hela delen dold |
+## Hem (`src/teacher-hem.js`, #807)
 
-- Gamla länkar: `#/larare` → Översikt, `#/larare/klass` → Statistik, `#/larare/elever` → Klasser.
-- Inloggning landar på Översikt (eller på den lärarsida man försökte öppna).
-- Rubriken visar "Inloggad som …" (kontots `displayName`, annars Admin/Årskurskonto).
-- En admin-route som öppnas direkt av ett årskurskonto visar "Det här kan bara admin göra."
-  Nekar servern något visas samma besked i stället för ett tekniskt fel (`errText` i teacher-shared.js).
+Svarar på "vad behöver jag göra, och hur går det?":
 
-## Synlighet för årskurskonton (§5.2)
+- **Kom igång** (bara årskurslärare): fyra steg som bockas av automatiskt, "Gör det nu" per steg, Dölj sparas i `localStorage`.
+- **Att göra**: prov att rätta (→ Rätta), öppna prov (→ Öppna), fokusläge på (→ Stäng av), Live som pågår (→ Öppna),
+  elever som inte övat på två veckor (→ Visa). Annars "Inget att göra just nu".
+- **Snabbval**: Välj områden åt en klass · Skapa nytt område · Skapa ett prov · Starta Live.
+- **Mina klasser**: kompakta kort (elever, fokusläge, "Jobbar med …", "Övat den här veckan"); klick öppnar klassen. Admin kan
+  dölja testklasser (sparas per lärare i `localStorage`).
 
-- Klasslistor (Översikt, Klasser, Statistik) filtreras på `teacherAccounts/{uid}.classIds`
-  (eget dokument, 20 s cache så att admins ändringar slår igenom utan utloggning).
-- Inloggning: bara knappen Inloggning (lösenord, användarnamnet låst) och Skriv ut inloggningskort.
-  Namn, avatar, mynt, Ta ur klassen, Ta bort konto och Skapa/Lägg till elever döljs.
-- Material: "Skapat av …" under namnet. Andras material visar **Använd** (→ Klasser › Områden)
-  och **Duplicera**; Ändra, Granska/underrader, Lägg till, Ämnestexter och Ta bort bara på eget.
-  Material utan `createdBy` räknas som admins. "Nytt ämne" döljs.
-- Läsresans pokalutdelning vid klassbyte körs bara för admin (pokaler = ekonomi).
+## Mina klasser (`src/teacher-mina-klasser.js`, #804)
 
-## Krokar för #680 (ägarskap)
+Överst klassväljaren (knappar; fler än 8 klasser → sökruta + rullgardin; 🔒 på klasser med fokusläge på), under den vald
+klass med fyra flikar (`MINA_FLIKAR` i `src/teacher-mina-val.js`). Valet speglas i adressen
+`#/larare/mina-klasser?klass=<id eller namn>&flik=hur|ser|fokus|elever[&del=<underflik>]`; klassen och statistikens underflik
+ligger också i `localStorage` (`pp:larare:klass`, `pp:larare:statsflik`), så läraren kommer tillbaka till samma ställe.
 
-- `createdBy` / `createdByName` på området läses tåligt (`teacher-role-core.js`).
-- **Duplicera** visas när `data.duplicateArea(subjectId, areaId)` finns (exporteras via `data.js`);
-  efter anropet laddas listan om. Utan den funktionen visas ingen Duplicera-knapp.
-- **Byggt i #680:** `data.saveArea` stämplar ägaren för ALLA skapa-flöden (guiden, AI-prompten,
-  "mer innehåll", importen, ämnestexter): finns dokumentet behålls dess `createdBy`/`createdByName`
-  (eller att de saknas = admins), annars får det kontots uid och visningsnamn (`withOwner`).
-  `data.duplicateArea` kopierar allt innehåll till `<id>-kopia` med namnet "… (kopia)", sist i
-  ordningen, ägd av anroparen (`duplicateValue`). Radering av konto: `deleteTeacher` (#677) tar
-  bort ägarfälten, så materialet blir admins.
+| Flik | Innehåll | Sektioner (`CLASS_SECTIONS`) |
+| --- | --- | --- |
+| **Hur går det?** `flik=hur` | Underflikar: Ämnen · Per område · Läsresan · Ekvationsresan · Prov · Bråkresan · Mattematchen · Live · Schack. Läsresans och Ekvationsresans nivåer ändras här. Avstängda moduler visas nedtonade med länk till Vad eleverna ser. | `statistik` (`STATS_TABS`) |
+| **Vad eleverna ser** `flik=ser` | Tre numrerade steg: 1. Områden (hela namn) · 2. Delar i elevernas meny (moduler på/av, byar för admin) · 3. Avancerat (ihopfällt: dölj övningslägen). "Sparat ✓" per steg. | `omraden`, `synlighet`, `lagen` |
+| **Fokusläge** `flik=fokus` | Lås klassen till en sak till ett klockslag, +N min, Lås upp nu, vad eleven får göra efter inlämning. | `fokus` |
+| **Elever** `flik=elever` | Den kompakta elevtabellen (se nedan). Admin får också Klasscentret under tabellen. | `inloggning` (årskurs), `elever` + `klasscenter` (admin) |
 
-## Oklart – valt det strängaste
+### Elever och menyn ⋯ (`src/teacher-elever-tabell.js`, #805)
 
-- **Hitta rätt!** (egna kartområden) står inte i §2.1 → bara admin.
-- **Klasscentret** (vem får inreda, insamling, historik) ligger under Admin; Klasscentrets
-  statistik för årskurskonton finns alltså inte i lärarvyn än.
-- **Live-formuläret** visar alla klasser (motståndare får vara vilken klass som helst, §2.1);
-  reglerna kräver att minst en egen klass deltar.
+En rad per elev: namn, användarnamn, lösenord (**Visa** hämtar just den elevens lösenord), senast inloggad och – bara admin –
+mynt (**Visa**). Överst: sökfält, **Skriv ut inloggningskort** och för admin **Lägg till elev** och **Ge hela klassen mynt**.
+Allt som ändrar något ligger i menyn ⋯ på raden och bekräftas i en ruta under raden (aldrig `confirm()`):
 
-## Skärmdumpar (test 28)
+| Val i ⋯ | Årskurs | Admin |
+| --- | --- | --- |
+| Byt lösenord (Generera enkelt lösenord, Sätt nytt) | ✓ (användarnamnet låst) | ✓ (+ byt användarnamn) |
+| Ge mynt, Ändra namn och avatar, Ta ur klassen, Ta bort konto | – | ✓ |
 
-`docs/lararsidan-679/` – `admin-*` och `arskurs4-*` i 1366×768 och 1920×1080.
-Preview: `bash admin/qa-larkonton-roller-preview.sh` (qaadmin / qaarskurs4, lösenord lilla123, bara emulator).
+Valen byggs av `menyFor(admin)` i `src/teacher-elever-val.js`; reglerna spärrar dem ändå (test i
+`test/lararsida-elever-admin.test.js` och `test/firestore-rules-roller-klasser-elever.test.js`).
 
-## Material med underflikar (#806, epic #802 DEL 4)
+## Admin (`src/teacher-admin.js`, #805)
 
-`#/larare/material?flik=…` (`src/teacher-material.js`, flikarna i `src/teacher-material-flikar.js`, laddas med `import()`):
+En sida med kort (`ADMIN_KORT`); bara admin. Klassverktygen öppnas i en panel under korten (`?verktyg=skapa|dopom|tabort`),
+de andra korten leder till sina sidor. Underraden under Admin: **Översikt** (korten) · **Lärarkonton** (`#/larare/konton`) ·
+**Säsong** (`#/larare/admin/sasong`, Sommar/Höst och Halloween). Sidan läser inget när den öppnas; klasserna läses först när
+ett klassverktyg öppnas. Skapa klass landar på klassens Elever med lösenorden kvar att skriva ut. Elever, mynt och
+Klasscentret för en klass ligger i Mina klasser → Elever (inte på Admin). Det finns ingen "Klasser & elevkonton" längre.
+
+## Material (`src/teacher-material.js`, #806)
+
+`#/larare/material?flik=…`, flikarna står i `src/teacher-material-flikar.js` och laddas med `import()`:
 
 | Flik | Innehåll | Admin | Årskurs |
 | --- | --- | --- | --- |
-| `plugga` Plugga-områden | Dagens materialtabell, oförändrad (ikonknapparna har `title` + `aria-label` med områdets namn) | ✓ | ✓ |
-| `lasresan` Läsresan | Förklaring, nivåtabell och länk till nivåerna (Mina klasser → Hur går det? → Läsresan); ingen lärarvy för texterna finns | ✓ | ✓ |
-| `ekvationsresan` Ekvationsresan | Nytt testläge: samma spelvy på vald nivå, framsteg bara i minnet (`src/ekvationsresan/larare-testlage.js`) | ✓ | ✓ |
-| `brakresan` Bråkresan | Dagens testläge (#716) | ✓ | ✓ |
-| `hitta-ratt` Hitta rätt! | Dagens lärarsida (`?prov=` är kvar som helskärmsvy) | ✓ | dold (bara admin) |
-| `schack` Schack | "Prova mot datorn": nivåval och parti, bara ett lokalt pågående parti, inga mynt/räknare/serveranrop (`src/schack/larare-prova.js`) | ✓ | ✓ |
+| `plugga` Plugga-områden | Materialtabellen: ämnesflikar, Allt material / Mitt material, Skapa nytt område (guiden och AI-verkstaden), Använd, Duplicera, Redigera, Ta bort | ✓ | ✓ (ändrar bara eget) |
+| `lasresan` Läsresan | Förklaring, nivåtabell och länk till nivåerna (Mina klasser → Hur går det? → Läsresan) | ✓ | ✓ |
+| `ekvationsresan` Ekvationsresan | Testläge: spelvyn på vald nivå, inget sparas | ✓ | ✓ |
+| `brakresan` Bråkresan | Testläge med facit, inget sparas | ✓ | ✓ |
+| `hitta-ratt` Hitta rätt! | Kartområden och bilder (`?prov=` är kvar som helskärmsvy) | ✓ | dold |
+| `schack` Schack | Prova mot datorn, inga mynt eller serveranrop | ✓ | ✓ |
 
-Varje flik har en rad överst om var klassinställningarna finns (`LANK` i flikfilen – de enda adresserna att byta när Mina klasser flyttas).
-Gamla adresser: `#/larare/innehall` → `?flik=plugga`, `#/larare/brakresan` → `?flik=brakresan`, `#/larare/hitta-ratt` → `?flik=hitta-ratt` (parametrarna följer med).
-Skärmdumpar före/efter: `docs/skarmdumpar/lararsida-d/`. Preview: `preview/preview-larare-material.html` (`?roll=arskurs` för årskurslärare).
+## Prov och Live
+
+- **Prov** (`#/larare/prov`, [`PROV.md`](PROV.md)): *Mina prov* med rutan **Att rätta** överst (visas bara när något väntar) och
+  *Provtillfällen* (`#/larare/prov/tillfallen`). Översikt, rättning och utskrift för ett tillfälle har egna adresser
+  (`#/larare/prov/tillfalle?t=`, `#/larare/prov/ratta?t=`).
+- **Live** (`#/larare/live`): skapa lobby, belöningar, pågående matcher, projektorvy (`?id=`). **Mattematchen**
+  (`#/larare/mattematchen`) är bara admin och nås från Live och från ett kort på Admin.
+
+## Hjälp (`#808`)
+
+- **Hjälptexter**: varje flik i Mina klasser (`hjalp` / `hjalpAdmin` i `MINA_FLIKAR`) och varje underflik i Material (`hint` i
+  `MATERIAL_FLIKAR`) har en kort hjälptext (1–2 meningar) överst. Rutan ritas av `hjalpRuta` i `src/teacher-hjalptext.js`, kan
+  fällas ihop och valet sparas per ruta i `localStorage` (`pp:larare:hjalp:<ruta>`, i `try/catch` – utan lagring är rutan öppen).
+- **Hjälp och guide** (`#/larare/hjalp`, profilmenyn; `src/teacher-hjalp.js`): sju korta guider med 3–5 steg (Kom igång med en
+  ny klass · Välj vad eleverna ser · Fokusläge · Skapa ett område med AI · Gör ett prov och rätta det · Starta Live · Ändra
+  elevernas nivåer i Läsresan och Ekvationsresan). Guiderna är data i `src/teacher-hjalp-guider.js`; varje steg länkar direkt
+  till rätt flik (`?flik=`, `&del=`), aldrig via en gammal adress. Steg för admin (`roll: "admin"`) visas bara för admin.
+  Sidan gör inga läsningar.
+
+## Gamla adresser
+
+`TEACHER_REDIRECTS` i `src/teacher-shared.js` är EN karta; `router()` i `src/app.js` slår upp den (`location.replace`, så
+bakåtknappen inte studsar). Parametrar följer med (`?prov=`, `?klass=` …); gamla `?sektion=` väljer rätt flik.
+
+| Gammal | Ny |
+| --- | --- |
+| `#/larare`, `#/larare/oversikt` | `#/larare/hem` |
+| `#/larare/klasser` | `#/larare/mina-klasser?flik=ser` |
+| `#/larare/statistik`, `#/larare/klass` | `#/larare/mina-klasser?flik=hur` |
+| `#/larare/elever` | `#/larare/mina-klasser?flik=elever` |
+| `#/larare/admin/klasser` | `#/larare/admin`; med `?klass=` → `#/larare/mina-klasser?flik=elever` |
+| `#/larare/innehall`, `#/larare/prompter` | `#/larare/material?flik=plugga` |
+| `#/larare/brakresan` | `#/larare/material?flik=brakresan` |
+| `#/larare/hitta-ratt` | `#/larare/material?flik=hitta-ratt` |
+
+Nya länkar i koden ska peka på den nya adressen direkt (`test/lararsida-lankar.test.js`, `test/lararsida-hjalp.test.js`).
+
+## Var ska en ny flik eller sektion placeras?
+
+1. **Ny sida** → en rad i `TEACHER_TABS` (`group` = Hem, Mina klasser, Material, Prov, Live eller Admin; `admin: true` om bara admin).
+   Ladda sidan med `import()` – aldrig statiskt i bootgrafen (#271).
+2. **Ny flik i Mina klasser** → `MINA_FLIKAR` (med `hjalp`); **ny sektion** → `CLASS_SECTIONS`; **ny statistikflik** → `STATS_TABS`
+   (blir en underflik i Hur går det?). **Ny Materialflik** → `MATERIAL_FLIKAR` (med `hint`).
+3. **Placeringskartan** `PLACERING` i `src/teacher-struktur.js` ska ha en rad för den (roll, var den ligger, vilken del som flyttade
+   den) och raden ska stå i [`LARARSIDAN_INVENTERING.md`](LARARSIDAN_INVENTERING.md). **Inventeringstestet**
+   (`test/lararsida-inventering.test.js`) blir rött utan raden, om rollen inte stämmer med registryn eller om fliken inte går
+   att nå i toppmenyn för sin roll.
+4. Har det en egen adress som ersätter en gammal: lägg den gamla i `TEACHER_REDIRECTS`.
+5. Behöver läraren en förklaring: skriv hjälptexten och, om det är ett återkommande arbetsflöde, ett steg i en guide. Testet
+   `test/lararsida-hjalp.test.js` kräver att varje länk pekar på en riktig route, flik och underflik.
+6. En ny Firestore-samling eller ändrad behörighet → uppdatera [`BEHORIGHETER.md`](BEHORIGHETER.md) (kontrolltestet kräver det).
+
+## Synlighet för årskurskonton (§5.2 i spec för Lärarkonton)
+
+- Klasslistor (Hem, Mina klasser, Hur går det?) filtreras på `teacherAccounts/{uid}.classIds` (eget dokument, 20 s cache så att
+  admins ändringar slår igenom utan utloggning).
+- Elever: bara Byt lösenord (användarnamnet låst) och Skriv ut inloggningskort. Namn, avatar, mynt, Ta ur klassen, Ta bort konto
+  och Skapa/Lägg till elever döljs.
+- Material: "Skapat av …" under namnet. Andras material kan man använda och duplicera; Ändra, Granska/underrader, Lägg till,
+  Ämnestexter och Ta bort bara på eget. Material utan `createdBy` räknas som admins. "Nytt ämne" döljs.
+- Läsresans pokalutdelning vid klassbyte körs bara för admin (pokaler = ekonomi).
+- **Hitta rätt!** (egna kartområden), Mattematchen, Lärarkonton, Säsong och Klasscentret är bara admin (det strängaste valet där
+  specen var otydlig). **Live-formuläret** visar alla klasser (motståndare får vara vilken klass som helst); reglerna kräver att
+  minst en egen klass deltar.
+
+## Ägarskap (#680)
+
+`createdBy` / `createdByName` på området läses tåligt (`teacher-role-core.js`). `data.saveArea` stämplar ägaren för alla
+skapa-flöden (guiden, AI-prompten, "mer innehåll", importen, ämnestexter): finns dokumentet behålls dess ägare (eller att den
+saknas = admins), annars får det kontots uid och visningsnamn. `data.duplicateArea` kopierar allt innehåll till `<id>-kopia`
+("… (kopia)"), sist i ordningen, ägd av den som duplicerar. Radering av konto (`deleteTeacher`, #677) tar bort ägarfälten, så
+materialet blir admins.
+
+## Tester och skärmdumpar
+
+`test/lararsida-inventering.test.js` (placeringskartan, menyer per roll, omdirigeringar), `lararsida-lankar.test.js`,
+`lararsida-mina-klasser*.test.js`, `lararsida-elever-admin.test.js`, `lararsida-material.test.js`, `lararsida-hem.test.js` och
+`lararsida-hjalp.test.js`. Skärmdumpar: `docs/lararsidan-679/` (före omgörningen), `docs/skarmdumpar/lararsida-d/` (Material),
+`docs/qa-lararsida-807/` (Hem) och `docs/skarmdumpar/lararsida-f/` (hjälptexter och guider, #808).
+Preview med roller: `bash admin/qa-larkonton-roller-preview.sh` (qaadmin / qaarskurs4, lösenord lilla123, bara emulator).
