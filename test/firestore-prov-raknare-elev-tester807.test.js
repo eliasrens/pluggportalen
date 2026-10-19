@@ -4,15 +4,16 @@
 import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
-import { installeraEmulatorFirestore } from "./helpers/emulator-firestore.js";
+import { installeraMedProjekt } from "./helpers/emulator-eget-projekt-tester807.js";
 import { createRollerEnv, seedRoller } from "./helpers/roller-env.js";
 
+const PROJEKT = "pluggportalen-807-elev"; // eget projekt: parallellt med andra emulatortester
 const HAR = !!process.env.FIRESTORE_EMULATOR_HOST;
 describe("#807 eleven skriver ovat (riktiga regler, e4a)", { skip: !HAR && "ingen emulator" }, () => {
   let env, data, sync;
   before(async () => {
-    env = await createRollerEnv("pluggportalen-so-2026");
-    await installeraEmulatorFirestore({ sub: "e4a", user_id: "e4a" });
+    env = await createRollerEnv(PROJEKT);
+    await installeraMedProjekt(PROJEKT, { sub: "e4a", user_id: "e4a" });
     await env.testEnv.clearFirestore();
     await seedRoller(env);
     await env.seed(async (db) => {

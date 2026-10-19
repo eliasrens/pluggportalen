@@ -4,17 +4,18 @@
 import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { doc, setDoc } from "firebase/firestore";
-import { installeraEmulatorFirestore } from "./helpers/emulator-firestore.js";
+import { installeraMedProjekt } from "./helpers/emulator-eget-projekt-tester807.js";
 import { createRollerEnv, seedRoller } from "./helpers/roller-env.js";
 import { EXEMPEL } from "./helpers/prov-exempel.js";
 
+const PROJEKT = "pluggportalen-807-kollega";
 const HAR = !!process.env.FIRESTORE_EMULATOR_HOST;
 const RATT = { q1: 0, q2: [0, 1], q3: false, q4: "Birka", q5: ["Miklagård", "Bagdad"], q6: ["Åska", "Visdom", "Kärlek"], q7: ["Stenåldern", "Bronsåldern", "Järnåldern", "Vikingatiden"] };
 describe("#807 kollega med klassen skriver räknarna (riktiga regler, ak4)", { skip: !HAR && "ingen emulator" }, () => {
   let env, td, rd, lagerMod, logik, fragor, facit;
   before(async () => {
-    env = await createRollerEnv("pluggportalen-so-2026");
-    await installeraEmulatorFirestore({ sub: "ak4", user_id: "ak4", teacher: true, role: "arskurs" });
+    env = await createRollerEnv(PROJEKT);
+    await installeraMedProjekt(PROJEKT, { sub: "ak4", user_id: "ak4", teacher: true, role: "arskurs" });
     await env.testEnv.clearFirestore();
     await seedRoller(env);
     const { validateProv } = await import("../src/prov/prov-validera.js");
