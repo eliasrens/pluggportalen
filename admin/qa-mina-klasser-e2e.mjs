@@ -229,6 +229,17 @@ const klick = (b, sel) => b.js(`(() => { const e = document.querySelector(${JSON
   await vanta(800);
   if (!BARA_BILDER) {
     kolla("admin: Elever har elevkonton (mynt m.m.) och Klasscentret", await b.js(`!!document.querySelector(".mk-page .give-coins, .mk-page .mm-actions") && /Klasscentret/.test(document.querySelector(".mk-innehall").innerText)`));
+    // Allt från Inloggning finns kvar för admin: inloggningskort + Redigera inloggning (användarnamn + lösenord) per elev.
+    const inl = await b.js(`({ rader: document.querySelectorAll(".mk-page .member-manage-row").length,
+      login: document.querySelectorAll(".mk-page .member-manage-row .mm-login").length, utskrift: !!document.querySelector(".mk-page .mm-print") })`);
+    kolla("admin: Elever har Inloggningens funktioner (Skriv ut inloggningskort, Redigera inloggning per elev)",
+      inl.rader > 0 && inl.login === inl.rader && inl.utskrift, JSON.stringify(inl));
+    await klick(b, ".mk-page .member-manage-row .mm-login");
+    kolla("admin: Redigera inloggning öppnar användarnamn + nytt lösenord", await b.tills(`!!document.querySelector(".le-modal .le-user") && !!document.querySelector(".le-modal .le-pass-row")`));
+    await b.js(`document.querySelector(".le-modal .cx-modal-close")?.click()`);
+    await klick(b, ".mk-page .mm-print");
+    kolla("admin: Skriv ut inloggningskort öppnar utskriftsvalet", await b.tills(`document.querySelectorAll(".lp-modal .lp-row").length > 0`));
+    await b.js(`document.querySelector(".lp-modal .cx-modal-close")?.click()`);
   }
   await b.bild("efter-admin-desktop-elever");
   await b.storlek(375, 780);
