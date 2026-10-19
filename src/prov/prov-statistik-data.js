@@ -8,8 +8,8 @@
 // ============================================================================
 
 import { db } from "../firebase-config.js";
-import { collectionGroup, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { RATTNING } from "./prov-modell.js";
+import { collection, collectionGroup, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { RATTNING, SAMLING_TILLFALLEN } from "./prov-modell.js";
 
 /**
  * Klassens alla rättningar, med tillfällets id (t) ur sökvägen
@@ -19,4 +19,14 @@ import { RATTNING } from "./prov-modell.js";
 export async function hamtaKlassensRattningar(classId) {
   const snap = await getDocs(query(collectionGroup(db, RATTNING), where("classId", "==", classId)));
   return snap.docs.map((d) => ({ ...d.data(), t: d.ref.parent.parent?.id || "" }));
+}
+
+/**
+ * Klassens tillfällen (#796) – en fråga till, så att färggränserna läses från
+ * tillfället (installningar.granser) och inte ur rättningarnas kopia. Utan
+ * facit: bara [{ id, installningar }] används.
+ */
+export async function hamtaKlassensTillfallen(classId) {
+  const snap = await getDocs(query(collection(db, SAMLING_TILLFALLEN), where("classId", "==", classId)));
+  return snap.docs.map((d) => ({ id: d.id, installningar: d.data().installningar }));
 }

@@ -242,15 +242,25 @@ tillfälle → 60/85, så att reglerna godtar t.ex. ett omprov av det).
   står kvar). **Kedjan**: tillfällets gränser → provets → 60/85
   (`granserFor(tf.installningar, prov.installningar)`, första giltiga vinner).
   Prov sparade före #759 behåller sina sparade gränser (40/70); bara prov utan gränser får 60/85.
-  Provets gränser är standard och kopieras till tillfället när det skapas och
-  öppnas; reglaget i Översikten sparar på **tillfället** och gäller bara den
-  körningen (provet ändras inte). Används i översikten, elevvyn, CSV,
-  fördelningen, klassjämförelsen, utskriften och historiken (via
-  `provInfo.granser`). Översiktens reglage ändrar tillfällets kopia (1–99 / 2–100).
+  Provets gränser är standard och kopieras till tillfället när det skapas.
+  **Efterhand (#796)**: **tillfällets** `installningar.granser` är den enda källan
+  för färgerna – rättningen, Översikten, elevvyn, den fördjupade statistiken,
+  CSV, utskriften **och** klassens Prov-flik (som läser tillfällena med en
+  fråga till, `hamtaKlassensTillfallen`, och låter dem gå före kopian
+  `provInfo.granser` i rättningen: `medTillfallensGranser`). Kontrollen
+  "Färggränser: gul från X %, grön från Y %" (`prov-granser-kontroll.js`) sitter i
+  rättningsvyns huvud i alla lägen och går att ändra när som helst, även efter
+  stängning och tillbakalämning: ett giltigt värde ritar om vyerna direkt, och
+  sparas (en skrivning på tillfället) när fältet lämnas / Enter. Ändrar läraren
+  provets gränser i Mina prov och provet har tillfällen med andra gränser frågar
+  redigeraren efter sparningen "Använd de nya gränserna även för redan körda
+  tillfällen (N st)?" (`provl-granser-efter.js`): Ja = en skrivning per tillfälle,
+  Nej = tillfällena behåller sina. Orsaken till "gamla färger" var att
+  tillfället bara är en kopia av provet – redigerarens ändring nådde det aldrig.
 - Reglerna (`provInstOk`): `stavfel` bara `"auto"`/`"sjalv"`, `granser` bara
   `{ gul, gron }` heltal enligt ovan – på provet, när ett tillfälle skapas och när
   ett tillfälles inställningar **ändras** (ett äldre tillfälle med gränser som inte
-  längre godtas kan ändå stängas/öppnas).
+  längre godtas kan ändå stängas/öppnas). Läraren med `hasClass` ändrar `installningar.granser` på tillfället i alla statusar (forberett/oppet/stangt); klass, prov och status prövas som förut (regeltest i `firestore-rules-prov-installningar.test.js`).
 
 Tester: `test/prov-installningar.test.js`, regler
 `test/firestore-rules-prov-installningar.test.js`. Förhandsvisning utan Firebase:

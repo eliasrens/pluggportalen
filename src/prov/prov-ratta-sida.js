@@ -29,6 +29,7 @@ import { perElev, perFraga } from "./prov-ratta-lagen.js";
 import { rattaAllaVy } from "./prov-ratta-alla-vy.js";
 import { elevStatVy, oversiktVy } from "./prov-stat-vy.js";
 import { granserFor } from "./prov-statistik.js";
+import { granserKontroll } from "./prov-granser-kontroll.js";
 import { sparaGranser } from "./prov-rattning-data.js";
 import { ruta } from "./prov-tillfalle-rutor.js";
 import { harMynt, myntRegelText } from "./prov-mynt.js";
@@ -139,6 +140,13 @@ function rattningsVy(ctx, body, data, elever, q) {
     on: { click: () => { lage = id; statElev = null; ritaInnehall(); } },
   }));
   const innehall = h("div", { class: "provl-r-innehall" });
+  // #796: färggränserna – samma kontroll i alla lägen, ändras när som helst (även stängt/tillbakalämnat).
+  const granser = granserKontroll({
+    granser: granserFor(tf.installningar),
+    // Direkt i alla vyer (ritas om), sedan tillfället – den enda källan (klassens Prov-flik läser den också).
+    onForhandsvisa: (g) => { tf.installningar = { ...tf.installningar, granser: g }; ritaInnehall(); },
+    onSpara: (g) => sparaGranser(t, g),
+  });
   const vy = h("div", { class: "provl-r" },
     h("div", { class: "panel provl-huvud" },
       h("div", { class: "provl-r-lankar" },
@@ -153,7 +161,8 @@ function rattningsVy(ctx, body, data, elever, q) {
         poangsatt ? "" : "utan poäng",
       ].filter(Boolean).join(" · ") }),
       tf.status === STATUS.OPPET ? h("p", { class: "msg provl-r-oppet", text: "Provet är fortfarande öppet. Du rättar de inlämnade proven – ladda om sidan när fler har lämnat in." }) : null,
-      h("div", { class: "provl-r-verktyg" }, statusRad, sparStatus, auto.knapp, allaKnapp)),
+      h("div", { class: "provl-r-verktyg" }, statusRad, sparStatus, auto.knapp, allaKnapp),
+      granser.el),
     auto.panel,
     h("div", { class: "provl-r-flikrad" },
       h("div", { class: "provl-r-flikar", role: "tablist", "aria-label": "Rättningsläge" }, flikar),
@@ -177,6 +186,7 @@ function rattningsVy(ctx, body, data, elever, q) {
       icon: "inbox",
     }));
     [...flikar, allaKnapp, auto.knapp, doljRuta].forEach((x) => (x.disabled = true));
+    granser.el.hidden = true;
     statusRad.textContent = "";
     return;
   }
@@ -217,17 +227,6 @@ function rattningsVy(ctx, body, data, elever, q) {
     // Översikten och elevvyn (#742, prov-stat-vy.js).
     stat: { sort: "namn" },
     granser: () => granserFor(tf.installningar),
-    async sattGranser(g) {
-      tf.installningar = { ...tf.installningar, granser: g };
-      // Rättningarnas provInfo (statistikfliken "Prov") får de nya gränserna vid nästa sparning.
-      v.andrat(med.filter((uid) => !lager.rattningar[uid]?.aterlamnad));
-      try {
-        await sparaGranser(t, g);
-      } catch (err) {
-        sparStatus.textContent = `Kunde inte spara färggränserna: ${errText(err)}`;
-        sparStatus.dataset.lage = "fel";
-      }
-    },
     oppnaElev: (uid) => { lage = "oversikt"; statElev = uid; ritaInnehall({ topp: true }); },
     tillKlassen: () => { lage = "oversikt"; statElev = null; ritaInnehall({ topp: true }); },
     oppnaSvar(uid, fid) {

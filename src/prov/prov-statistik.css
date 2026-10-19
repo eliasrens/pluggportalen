@@ -39,11 +39,13 @@
 .provl-st-snitt { display: flex; align-items: center; gap: 8px; }
 .provl-st-verktyg { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: flex-start; margin-top: 6px; }
 .provl-st-sort { width: auto; }
-.provl-st-granser summary { cursor: pointer; color: var(--t-muted, #93a2b3); padding: 6px 0; }
-.provl-st-grans-rad { display: flex; flex-wrap: wrap; gap: 8px 20px; }
-.provl-st-grans { display: inline-flex; align-items: center; gap: 8px; }
-.provl-st-grans input { width: 150px; accent-color: var(--t-accent, #2ec16e); }
-.provl-st-gv { min-width: 3.2em; font-variant-numeric: tabular-nums; font-weight: 700; }
+/* Färggränserna (#796): kontrollen i rättningsvyns huvud. */
+.provl-granser-kontroll { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--t-line, rgba(147, 162, 179, .25)); }
+.provl-granser-rad { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-weight: 600; }
+.provl-granser-tal { width: 4.5em; text-align: center; font-variant-numeric: tabular-nums; }
+.provl-granser-text { margin: 6px 0 0; }
+.provl-granser-text[data-lage="fel"] { color: var(--t-danger, #c0392b); font-weight: 600; }
+.provl-granser-hint { margin: 4px 0 0; }
 
 /* Rutnätet: scrollar i sidled i sin egen ruta, namnkolumnen fast */
 .provl-st-scroll { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }

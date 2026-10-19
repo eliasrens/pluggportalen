@@ -4,7 +4,7 @@
 // Allt räknas ur det rättningsvyn redan läst (prov-ratta-sida.js): inga
 // extra läsningar. Färgerna har alltid symbol och text (✓ ½ ✗ – ?).
 //
-//   oversiktVy(v)       räknaren, snittet, de tre svåraste frågorna, gränsreglagen,
+//   oversiktVy(v)       räknaren, snittet, de tre svåraste frågorna,
 //                       rutnätet elev × fråga med totalbricka och summering per fråga
 //   elevStatVy(v, uid)  en elev: fråga för fråga i färg, svaren, kommentarerna,
 //                       totalen och nivån
@@ -18,7 +18,7 @@
 // v utöver lägenas kontext (prov-ratta-sida.js):
 //   stat           { sort: "namn"|"resultat" }
 //   oppnaElev(uid) / tillKlassen() / oppnaSvar(uid, fid) / oppnaFraga(fid)
-//   granser()      tillfällets gränser, sattGranser({ gul, gron })
+//   granser()      tillfällets gränser (kontrollen i huvudet, prov-granser-kontroll.js, #796)
 // CSS: prov-statistik.css (.provl-st-).
 // ============================================================================
 
@@ -26,7 +26,7 @@ import { fragetyp } from "./prov-fragetyper.js";
 import { ELEV_STATUS_NAMN, elevStatus, nivaNamn } from "./prov-rattning-logik.js";
 import { bedomningsEtikett } from "./prov-resultat-vy.js";
 import {
-  CELL_INFO, FARG_INFO, andelFor, avsnittFor, avsnittText, avsnittVarde, cellLage, fargFor, fordelningText, granserText, klassOversikt, procent,
+  CELL_INFO, FARG_INFO, andelFor, avsnittFor, avsnittText, avsnittVarde, cellLage, fargFor, fordelningText, klassOversikt, procent,
   sorteraRader, totalText,
 } from "./prov-statistik.js";
 import { poangAvsnitt } from "./prov-modell.js";
@@ -100,43 +100,6 @@ function teckenforklaring() {
       h("span", { class: `provl-st-c provl-st-c-${l} provl-st-c-liten`, "aria-hidden": "true", text: CELL_INFO[l].ikon }), ` ${CELL_INFO[l].namn}`)));
 }
 
-const granssText = (g) => `Färggränser: ${granserText(g)}`;
-
-/**
- * Två reglage för färggränserna (§7.5) – gul från, grön från. Startar på
- * tillfällets gränser (provets från Mina prov, #759); hela procent som där.
- */
-function granssReglage(v, onAndrat) {
-  const g = v.granser();
-  const falt = (id, namn, varde, min, max) => {
-    const ut = h("output", { class: "provl-st-gv", text: `${varde} %` });
-    const inp = h("input", { type: "range", min: String(min), max: String(max), step: "1", value: String(varde), "data-g": id, "aria-label": namn });
-    return { inp, ut, el: h("label", { class: "provl-st-grans" }, h("span", { text: namn }), inp, ut) };
-  };
-  const sammanfattning = h("summary", { text: granssText(g) });
-  const gul = falt("gul", "Gul från", g.gul, 1, 99);
-  const gron = falt("gron", "Grön från", g.gron, 2, 100);
-  const andra = (vem) => {
-    let a = Number(gul.inp.value);
-    let b = Number(gron.inp.value);
-    if (a >= b) {
-      if (vem === "gul") b = Math.min(100, a + 5);
-      else a = Math.max(1, b - 5);
-      gul.inp.value = String(a);
-      gron.inp.value = String(b);
-    }
-    gul.ut.textContent = `${a} %`;
-    gron.ut.textContent = `${b} %`;
-    sammanfattning.textContent = granssText({ gul: a, gron: b });
-    onAndrat({ gul: a, gron: b });
-  };
-  gul.inp.addEventListener("input", () => andra("gul"));
-  gron.inp.addEventListener("input", () => andra("gron"));
-  return h("details", { class: "provl-st-granser" }, sammanfattning,
-    h("div", { class: "provl-st-grans-rad" }, gul.el, gron.el),
-    h("p", { class: "hint", text: "Gäller det här provet i klassen – provets egna gränser ställer du in i Mina prov. Nivån (EG/G/MG) är din bedömning och ändrar inte färgen." }));
-}
-
 // --- Hela klassen ---------------------------------------------------------------
 
 export function oversiktVy(v) {
@@ -148,12 +111,6 @@ export function oversiktVy(v) {
   const fordjupadHost = h("div", { class: "provl-st-fordjupad" });
   let fordjupad = null;
   let senast = null;
-  let tid = null;
-  const reglage = granssReglage(v, (g) => {
-    clearTimeout(tid);
-    tid = setTimeout(() => v.sattGranser(g), 400);
-    rita(g);
-  });
   wrap.append(topp, verktygHost, tabellHost, fordjupadHost);
   import("./prov-fordjupad-vy.js").then((mod) => {
     fordjupad = mod;
@@ -161,17 +118,17 @@ export function oversiktVy(v) {
     if (senast) fordjupadHost.replaceChildren(...mod.sektioner(v, senast));
   }).catch(() => fordjupadHost.replaceChildren(h("p", { class: "msg error", text: "Den fördjupade statistiken kunde inte laddas – ladda om sidan." })));
 
-  function rita(granser) {
+  function rita() {
     const m = klassOversikt({
       fragor: v.fragor, med: v.med, namn: Object.fromEntries(v.med.map((uid) => [uid, v.visNamn(uid)])),
       svarAv: v.svarAv, rattningar: v.lager.rattningar,
-      installningar: { ...v.tf.installningar, granser: granser || v.granser() },
+      installningar: { ...v.tf.installningar, granser: v.granser() },
     });
     const snittFarg = fargFor(m.snitt, m.granser);
     const sortVal = h("select", { class: "select provl-st-sort", "aria-label": "Sortera eleverna" },
       h("option", { value: "namn", text: "Sortera: namn", selected: v.stat.sort === "namn" }),
       h("option", { value: "resultat", text: "Sortera: resultat", selected: v.stat.sort === "resultat" }));
-    sortVal.addEventListener("change", () => { v.stat.sort = sortVal.value; rita(granser); });
+    sortVal.addEventListener("change", () => { v.stat.sort = sortVal.value; rita(); });
     const svarast = m.svarast.length
       ? h("p", { class: "provl-st-svarast" }, h("b", { text: "Svåraste frågorna: " }),
         ...m.svarast.flatMap((s, i) => [i ? ", " : "", h("a", {
@@ -187,7 +144,7 @@ export function oversiktVy(v) {
             h("span", { class: "provl-st-ikon", "aria-hidden": "true", text: FARG_INFO[snittFarg].ikon }), h("span", { text: procent(m.snitt) }))),
       ...(m.avsnitt.length ? [avsnittBrickor(m.avsnitt, m.poangsatt, "Per avsnitt (klassens snitt)")] : []),
       ...(svarast ? [svarast] : []),
-      h("div", { class: "provl-st-verktyg" }, sortVal, reglage),
+      h("div", { class: "provl-st-verktyg" }, sortVal),
       h("p", { class: "hint", text: "Bara bedömda frågor räknas – obesvarade och orättade blir inte fel förrän du har rättat dem. Förslag räknas när du har godkänt dem." }));
 
     const rf = v.rf;

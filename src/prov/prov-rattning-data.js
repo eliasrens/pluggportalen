@@ -92,7 +92,12 @@ export async function angraTillbaka(t, uid, rattStatus = null) {
   await batch.commit();
 }
 
-/** Färggränserna för tillfället (#742, §7.5: två reglage i översikten). */
+/**
+ * Färggränserna för tillfället (#742, #796): installningar.granser på tillfället
+ * – EN skrivning, och den enda källan: rättningsvyn, klassens Prov-flik, CSV
+ * och utskrift läser alla tillfällets gränser (provInfo.granser i rättningen är
+ * bara reserv).
+ */
 export async function sparaGranser(t, granser) {
   await updateDoc(doc(db, SAMLING_TILLFALLEN, t), { "installningar.granser": { gul: granser.gul, gron: granser.gron } });
 }
