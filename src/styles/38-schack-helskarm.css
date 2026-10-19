@@ -4,7 +4,9 @@
    skalas brädet efter skärmen så att brädet, spelarraderna (klockorna),
    statusraden och panelens knappar ryms: bredvid varandra i liggande, under
    varandra i stående. Höjden som ryms bestäms av --hs-extra (allt utom
-   brädet i brädkolumnen), bredden av --hs-panel (panelen i liggande).
+   brädet i brädkolumnen = summan av --hs-basis, --hs-verktyg, --hs-slutrad
+   och --hs-lage), bredden av --hs-panel (panelen i liggande).
+   Behållaren är .schack-rot (mot datorn) eller själva partivyn (mot en kompis).
    ========================================================================== */
 
 .schack-helskarm-knapp { display: inline-flex; align-items: center; gap: 6px; }
@@ -12,8 +14,13 @@
 
 .schack-helskarm-pa {
   --hs-pad: 10px;
+  --hs-golv: 160px; /* minsta brädstorlek (brädet skrollar hellre än blir mindre) */
   --hs-hojd: 100vh;
-  --hs-extra: 180px; /* två spelarrader, statusrad och mellanrum; draglistan döljs i helskärm */
+  --hs-basis: 180px; /* två spelarrader, statusrad och mellanrum; draglistan döljs i helskärm */
+  --hs-verktyg: 0px; /* verktygsraden med helskärmsknappen ovanför brädet (kompisvyn) */
+  --hs-slutrad: 0px; /* statusraden får två rader vid slut */
+  --hs-lage: 0px; /* §7.3-raden / "Kräv vinsten" under brädet (kompisvyn, stående) */
+  --hs-extra: calc(var(--hs-basis) + var(--hs-verktyg) + var(--hs-slutrad) + var(--hs-lage));
   --hs-panel: 320px; /* panelens bredd + mellanrummet, liggande */
   --hs-panel-hojd: 158px; /* panelen under brädet, stående */
   box-sizing: border-box;
@@ -25,18 +32,23 @@
 }
 /* Slutorsaken står i slutrutan på brädet – statusraden visar bara resultatet (högst två rader). */
 .schack-helskarm-pa .schack-status-orsak { display: none; }
-/* Vid slut har statusraden upp till två rader. */
-.schack-helskarm-pa:has(.schack-slut:not([hidden])) { --hs-extra: 202px; }
+.schack-helskarm-pa:has(.schack-slut:not([hidden])) { --hs-slutrad: 22px; }
+.schack-helskarm-pa:has(.schack-parti-verktyg:not(:empty)) { --hs-verktyg: 46px; }
+.schack-parti-verktyg { padding-inline: 10px; box-sizing: border-box; } /* luft mot kanten (320 px) */
+.schack-helskarm-pa .schack-parti-verktyg { margin-bottom: 6px; }
+/* Kompisvyn: lägesraden står i panelen (liggande) eller under brädet (stående), aldrig båda. */
+.schack-helskarm-pa .schack-kompis-lage-under { display: none; }
+.schack-helskarm-pa .schack-kompis-lage-panel:not(:empty) { display: block; }
 @supports (height: 100dvh) {
   .schack-helskarm-pa { --hs-hojd: 100dvh; }
 }
 
 /* Liggande: brädet till vänster, panelen till höger. */
 .schack-helskarm-pa .schack {
-  --schack-storlek: max(160px, min(100vw - 2 * var(--hs-pad) - var(--hs-panel), var(--hs-hojd) - 2 * var(--hs-pad) - var(--hs-extra)));
+  --schack-storlek: max(var(--hs-golv), min(100vw - 2 * var(--hs-pad) - var(--hs-panel), var(--hs-hojd) - 2 * var(--hs-pad) - var(--hs-extra)));
   min-width: 0;
 }
-.schack-helskarm-pa .schack-parti {
+:is(.schack-helskarm-pa .schack-parti, .schack-helskarm-pa.schack-parti) {
   width: 100%;
   grid-template-columns: max-content minmax(240px, 300px);
   justify-content: center;
@@ -47,14 +59,22 @@
 /* Stående: brädet över panelen, så brett som skärmen tillåter. */
 @media (orientation: portrait), (max-width: 600px) and (min-height: 521px) {
   .schack-helskarm-pa .schack {
-    --schack-storlek: max(160px, min(100vw - 2 * var(--hs-pad), var(--hs-hojd) - 2 * var(--hs-pad) - var(--hs-extra) - var(--hs-panel-hojd)));
+    --schack-storlek: max(var(--hs-golv), min(100vw - 2 * var(--hs-pad), var(--hs-hojd) - 2 * var(--hs-pad) - var(--hs-extra) - var(--hs-panel-hojd)));
   }
-  .schack-helskarm-pa .schack-parti { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+  :is(.schack-helskarm-pa .schack-parti, .schack-helskarm-pa.schack-parti) { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+  .schack-helskarm-pa .schack > :not(.schack-ram) { width: max(var(--schack-storlek), min(100%, 300px)); } /* spelarrader/status får plats även vid litet bräde */
   .schack-helskarm-pa .schack-panel { width: min(100%, 520px); gap: 8px; }
   .schack-helskarm-pa .schack-panel-niva,
   .schack-helskarm-pa .schack-tillbaka,
   .schack-helskarm-pa .schack-varna-val small { display: none; } /* motståndarens namn står i spelarraden */
   .schack-helskarm-pa .schack-varna-val { padding: 6px 12px; }
+  .schack-helskarm-pa:is(.schack-kompis, :has(.schack-kompis)) { --hs-panel-hojd: 84px; } /* bara Föreslå remi / Ge upp */
+  .schack-helskarm-pa .schack-kompis-lage-panel:not(:empty) { display: none; }
+  .schack-helskarm-pa .schack-kompis-lage-under:not(:empty) { display: block; margin-top: 6px; }
+  .schack-helskarm-pa:has(.schack-kompis-lage-under:not(:empty)) { --hs-lage: 104px; --hs-golv: 110px; }
+  .schack-helskarm-pa .schack-kompis-krav { flex-wrap: nowrap; padding: 6px 10px; gap: 8px; }
+  .schack-helskarm-pa .schack-kompis-krav p { flex: 1 1 auto; font-size: 0.95rem; }
+  .schack-helskarm-pa .schack-kompis-varning { padding: 6px 10px; font-size: 0.95rem; }
 }
 
 /* Draglistan får inte plats vid sidan av ett helskärmsbräde; den finns utanför helskärm. */
@@ -62,8 +82,11 @@
 
 /* Låg skärm (mobil liggande, även smal): alltid sida vid sida, brädet skalas efter höjden. */
 @media (max-height: 520px) {
-  .schack-helskarm-pa, .schack-helskarm-pa:has(.schack-slut:not([hidden])) { --hs-extra: 124px; --hs-pad: 6px; --hs-panel: 250px; }
-  .schack-helskarm-pa .schack-parti { grid-template-columns: max-content minmax(200px, 240px); gap: 10px; }
+  .schack-helskarm-pa, .schack-helskarm-pa:has(.schack-slut:not([hidden])) { --hs-basis: 124px; --hs-slutrad: 0px; --hs-pad: 6px; --hs-panel: 250px; }
+  /* Verktygsraden ligger i hörnet ovanför panelen i stället för ovanför brädet – brädet behåller höjden. */
+  .schack-helskarm-pa:has(.schack-parti-verktyg:not(:empty)) { --hs-verktyg: 0px; }
+  .schack-helskarm-pa .schack-parti-verktyg { position: absolute; top: var(--hs-pad); right: var(--hs-pad); z-index: 2; margin: 0; padding: 0; max-width: none; }
+  :is(.schack-helskarm-pa .schack-parti, .schack-helskarm-pa.schack-parti) { grid-template-columns: max-content minmax(200px, 240px); gap: 10px; }
   .schack-helskarm-pa .schack-status { line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .schack-helskarm-pa .schack { --schack-storlek: max(150px, min(100vw - 2 * var(--hs-pad) - var(--hs-panel), var(--hs-hojd) - 2 * var(--hs-pad) - var(--hs-extra))); }
   .schack-helskarm-pa .schack { gap: 4px; }
@@ -77,6 +100,7 @@
   .schack-helskarm-pa .schack-avatar { width: 28px; height: 28px; }
   .schack-helskarm-pa .schack-spelare-text { grid-auto-flow: column; justify-content: start; align-items: center; gap: 8px; }
   .schack-helskarm-pa .schack-tagna { min-height: 0; }
+  .schack-helskarm-pa .schack-klocka { min-width: 3.6em; padding: 1px 6px; font-size: 1rem; }
   .schack-helskarm-pa .schack-status { padding: 4px 10px; font-size: 1rem; }
 }
 
@@ -104,4 +128,24 @@
   .schack-helskarm-pa .schack-slut-rubrik { font-size: 0.95rem; }
   .schack-helskarm-pa .schack-slut-knappar { flex-wrap: wrap; }
   .schack-helskarm-pa .schack-slut-knappar .btn { flex: 1 1 42%; padding: 5px 4px; font-size: 0.8rem; }
+}
+
+/* Bekräftelserutorna (Ge upp, remi, varning) ligger som överlägg nederst i helskärm, även på bred skärm:
+   i panelen skulle de göra sidan högre än skärmen (11 px skroll vid 844×390). */
+.schack-helskarm-pa .schack-fraga:not([hidden]) {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: var(--z-toast, 900);
+  max-width: 480px;
+  margin: 0 auto;
+  box-shadow: var(--skugga-mjuk);
+}
+:is(.schack-helskarm-pa .schack-parti-varnar, .schack-helskarm-pa .schack-parti-fragar, .schack-helskarm-pa.schack-parti-varnar, .schack-helskarm-pa.schack-parti-fragar)::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-toast, 900) - 1);
+  background: rgba(34, 49, 74, 0.35);
 }

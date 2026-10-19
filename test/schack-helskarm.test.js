@@ -260,6 +260,20 @@ describe("källkod: knappen finns, Live/Datakuppen delar helpern, bootgrafen 107
     assert.match(k, /monteraHelskarm\(host\.closest\?\.\("\.schack-rot"\) \|\| host, \{ knappPlats: \$\("\.schack-knappar"\) \}\)/);
     assert.match(k, /helskarm\?\.destroy\(\)/);
   });
+  it("kompisläget monterar helskärmsknappen i verktygsraden och tar bort den med vyn", () => {
+    const k = kod("src/schack/schack-kompis-vy.js");
+    assert.match(k, /import \{ monteraHelskarm \} from "\.\/schack-helskarm\.js"/);
+    assert.match(k, /monteraHelskarm\(host, \{ knappPlats: \$\("\.schack-parti-verktyg"\) \}\)/);
+    assert.match(k, /helskarm\?\.destroy\(\)/);
+    assert.match(las("src/styles/38-schack-helskarm.css"), /\.schack-parti-verktyg \{ padding-inline: 10px/, "luft mot kanten");
+  });
+  it("kompisvyns lägesrad, klockor och slutruta har helskärmsstilar; bekräftelserutorna ligger som överlägg", () => {
+    const c = las("src/styles/38-schack-helskarm.css");
+    assert.match(c, /\.schack-kompis-lage-under/);
+    assert.match(c, /\.schack-kompis-krav/);
+    assert.match(c, /\.schack-klocka/);
+    assert.match(c, /\.schack-helskarm-pa \.schack-fraga:not\(\[hidden\]\) \{\s*position: fixed/);
+  });
   it("dragspöket läggs i helskärmselementet (annars osynligt i helskärm)", () => {
     assert.match(kod("src/schack/schack-bradet-inmatning.js"), /document\.fullscreenElement \|\| document\.webkitFullscreenElement \|\| document\.body\)\.appendChild\(d\.spoke\)/);
   });
@@ -274,7 +288,7 @@ describe("källkod: knappen finns, Live/Datakuppen delar helpern, bootgrafen 107
     assert.match(kod("src/schack/schack-helskarm.js"), /from "\.\.\/helskarm\.js"/);
   });
   it("stilarna för helskärm är inbyggda i styles.css", () => {
-    assert.match(las("src/styles.css"), /src\/styles\/37-schack-helskarm\.css/);
+    assert.match(las("src/styles.css"), /src\/styles\/38-schack-helskarm\.css/);
     assert.match(las("src/styles.css"), /\.schack-helskarm-pa \.schack \{/);
   });
   it("bootgrafen är kvar på 107 – helpern och schackfilerna ligger inte i den", () => {
