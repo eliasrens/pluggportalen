@@ -39,6 +39,7 @@ function mork(ruta) {
 export function skapaSchackbrade(rot, opt = {}) {
   const k = skapaSchackKontroll(opt);
   let avatar = { ...(opt.avatar || {}) };
+  let extra = { ...(opt.spelarExtra || {}) }; // t.ex. schackklockan i spelarraden (Etapp 2)
   let slutKnappar = opt.slutKnappar || [];
   let slutStangd = false;
   let ingenGlid = false;
@@ -197,7 +198,7 @@ export function skapaSchackbrade(rot, opt = {}) {
     for (const [plats, f] of [["topp", topp], ["botten", botten]]) {
       spelarEl[plats].dataset.farg = f;
       spelarEl[plats].classList.toggle("pa-tur", !s.slut && s.tur === f);
-      spelarEl[plats].innerHTML = spelareHtml(f, s, avatar[f]);
+      spelarEl[plats].innerHTML = spelareHtml(f, s, avatar[f]) + `<span class="schack-spelare-extra">${extra[f] || ""}</span>`;
     }
     statusEl.className = `schack-status schack-ton-${s.status.ton}`;
     statusEl.children[0].textContent = s.status.text;
@@ -267,6 +268,18 @@ export function skapaSchackbrade(rot, opt = {}) {
     setSpelare(s = {}) {
       if (s.avatar) avatar = { ...avatar, ...s.avatar };
       k.setSpelare(s);
+    },
+    /**
+     * Extra innehåll längst till höger i spelarraden per färg (klockan i kompisläget):
+     * { w?: html, b?: html }. Skrivs direkt i raden – brädet ritas inte om.
+     */
+    setSpelarExtra(e = {}) {
+      extra = { ...extra, ...e };
+      for (const el of Object.values(spelarEl)) {
+        const f = el.dataset.farg;
+        const yta = el.querySelector(".schack-spelare-extra");
+        if (yta && f in e && yta.innerHTML !== (extra[f] || "")) yta.innerHTML = extra[f] || "";
+      }
     },
     /** Extra knappar i slutrutan: [{ text, onClick }]. "Titta på brädet" finns alltid sist. */
     setSlutKnappar(lista = []) {
