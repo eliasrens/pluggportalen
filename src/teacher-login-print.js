@@ -111,7 +111,7 @@ export function openPrintPicker(className, members, opts = {}) {
         </div>
       </div>
       <p class="hint">Välj hela klassen eller bara vissa elever. Elever utan sparat lösenord får en tom
-        rad att fylla i (sätt ett nytt lösenord under <b>Inloggning</b> så hamnar det på kortet).</p>
+        rad att fylla i (sätt ett nytt lösenord under <b>⋯ → Byt lösenord</b> så hamnar det på kortet).</p>
       <div class="row-inline lp-tools">
         <button type="button" class="btn ghost small lp-all">${icon("check", 16)}<span>Markera alla</span></button>
         <button type="button" class="btn ghost small lp-none">${icon("minus", 16)}<span>Avmarkera alla</span></button>

@@ -75,11 +75,12 @@ describe("flikarna (§3.1)", () => {
     assert.deepEqual(flikSektioner(MINA_FLIKAR[1], false), ["omraden", "synlighet", "lagen"]);
   });
   it("sidläget Mina klasser = årskurssektionerna; admin-sektionerna bara via admin (rollen bestämmer)", () => {
-    const { mina, admin } = sections.CLASS_PAGE_MODES;
+    const { mina, minaAdmin } = sections.CLASS_PAGE_MODES;
     assert.equal(mina.tab, "klasser");
     assert.equal(mina.manage, false);
     assert.deepEqual([...mina.sections].sort(), MINA_FLIKAR.flatMap((f) => f.sections).sort());
-    assert.deepEqual(admin.sections, ["elever", "klasscenter"]);
+    // #805: admin-sektionerna ligger i samma flik (Elever), bara för admin.
+    assert.deepEqual(minaAdmin, { tab: "klasser", base: mina.base, sections: ["elever", "klasscenter"], manage: false, admin: true });
     // Rollen kommer ur myRole() (servern/reglerna spärrar ändå, #678) – inte ur adressen.
     assert.match(src("teacher-mina-klasser.js"), /admin: !!role\.admin/);
     assert.match(src("teacher-mina-klasser.js"), /flikSektioner\(flik, sida\.admin\)/);
@@ -184,13 +185,15 @@ describe("Vad eleverna ser (§3.3)", () => {
   it("Hjälp-länken Fokusläge går till fliken Fokusläge (F3; resten av Hjälp görs i #808)", () => {
     assert.match(src("teacher-hjalp.js"), /"Fokusläge", hash: "#\/larare\/mina-klasser\?flik=fokus"/);
   });
-  it("admin: Elever (full medlemshanterare) har allt Inloggning har – loginOnly tar bara bort", () => {
-    const acc = src("teacher-class-accounts.js");
-    // Inloggningens funktioner (Skriv ut inloggningskort, Redigera inloggning) ritas i båda lägena;
-    // loginOnly-grenarna tar bara BORT delar (namn, mynt, ta ur/ta bort, skapa konton).
-    assert.match(acc, /class="btn small mm-print"/);
-    assert.match(acc, /class="btn ghost small mm-login"/);
-    for (const m of acc.matchAll(/if \(loginOnly\)([^\n]*\n?[^\n]*)/g)) assert.match(m[1], /remove\(\)|disabled = true/, m[0]);
+  it("admin: Elever har allt Inloggning har – samma tabell, admin får bara FLER val (#805)", () => {
+    const sek = src("teacher-classes-sections.js");
+    // Båda sektionerna är den kompakta elevtabellen; skillnaden är bara admin-flaggan.
+    assert.match(sek, /render: elevSection\(false\)/);
+    assert.match(sek, /render: elevSection\(true\)/);
+    assert.match(sek, /admin: admin && isAdmin\(\)/);
+    const tabell = src("teacher-elever-tabell.js");
+    assert.match(tabell, /et-skriv-ut/);
+    assert.match(tabell, /openLoginEditor\(s, \{\s*passwordOnly: !admin/);
   });
   it("hela områdesnamn: ingen ellips i stegen, bredare rutor", () => {
     const css = readFileSync(new URL("../src/styles/43-larare-mina-klasser.css", import.meta.url), "utf8");

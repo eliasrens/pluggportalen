@@ -164,10 +164,11 @@ const klick = (b, sel) => b.js(`(() => { const e = document.querySelector(${JSON
   // Elever: inga admin-kontroller.
   await klick(b, '.mk-flik[data-flik="elever"]');
   await ladda(b);
-  await b.tills(`!!document.querySelector(".member-manage")`);
+  await b.tills(`!!document.querySelector(".et-tabell")`);
   if (!BARA_BILDER) {
+    // #805: kompakt elevtabell – adminvalen (mynt, ⋯-adminval, Lägg till elev) ritas inte alls.
     const admin = await b.js(`(() => { const t = document.querySelector(".mk-page").innerText;
-      return { knappar: document.querySelectorAll(".mk-page .give-coins, .mk-page .mm-actions, .mk-page .mm-add, .mk-page [data-act=rename], .mk-page [data-act=del], .mk-page .cls-new").length,
+      return { knappar: document.querySelectorAll(".mk-page .give-coins, .mk-page .et-mynt, .mk-page .et-knappar [data-klass], .mk-page .et-menyval:not([data-val=losen]), .mk-page .mm-add, .mk-page .cls-new").length,
         text: /Ta bort konto|Ge mynt|Skapa en ny klass|Ta bort klassen|Ta ur klassen/.test(t) }; })()`);
     kolla("årskurs ser inga admin-kontroller (Elever)", admin.knappar === 0 && !admin.text, JSON.stringify(admin));
   }
@@ -225,19 +226,20 @@ const klick = (b, sel) => b.js(`(() => { const e = document.querySelector(${JSON
   await b.bild("efter-admin-desktop-hur-gar-det");
   await b.ga("#/larare/mina-klasser?klass=4a&flik=elever");
   await ladda(b);
-  await b.tills(`!!document.querySelector(".member-manage")`);
+  await b.tills(`!!document.querySelector(".et-tabell")`);
   await vanta(800);
   if (!BARA_BILDER) {
-    kolla("admin: Elever har elevkonton (mynt m.m.) och Klasscentret", await b.js(`!!document.querySelector(".mk-page .give-coins, .mk-page .mm-actions") && /Klasscentret/.test(document.querySelector(".mk-innehall").innerText)`));
-    // Allt från Inloggning finns kvar för admin: inloggningskort + Redigera inloggning (användarnamn + lösenord) per elev.
-    const inl = await b.js(`({ rader: document.querySelectorAll(".mk-page .member-manage-row").length,
-      login: document.querySelectorAll(".mk-page .member-manage-row .mm-login").length, utskrift: !!document.querySelector(".mk-page .mm-print") })`);
+    kolla("admin: Elever har elevkonton (mynt m.m.) och Klasscentret", await b.js(`!!document.querySelector(".mk-page .et-mynt") && /Klasscentret/.test(document.querySelector(".mk-innehall").innerText)`));
+    // Allt från Inloggning finns kvar för admin: inloggningskort + Byt lösenord (användarnamn + lösenord) per elev (#805: i ⋯).
+    const inl = await b.js(`({ rader: document.querySelectorAll(".mk-page .et-elev").length,
+      login: document.querySelectorAll('.mk-page .et-elev [data-val="losen"]').length, utskrift: !!document.querySelector(".mk-page .et-skriv-ut") })`);
     kolla("admin: Elever har Inloggningens funktioner (Skriv ut inloggningskort, Redigera inloggning per elev)",
       inl.rader > 0 && inl.login === inl.rader && inl.utskrift, JSON.stringify(inl));
-    await klick(b, ".mk-page .member-manage-row .mm-login");
+    await klick(b, ".mk-page .et-elev .et-meny-knapp");
+    await klick(b, '.mk-page .et-elev [data-val="losen"]');
     kolla("admin: Redigera inloggning öppnar användarnamn + nytt lösenord", await b.tills(`!!document.querySelector(".le-modal .le-user") && !!document.querySelector(".le-modal .le-pass-row")`));
     await b.js(`document.querySelector(".le-modal .cx-modal-close")?.click()`);
-    await klick(b, ".mk-page .mm-print");
+    await klick(b, ".mk-page .et-skriv-ut");
     kolla("admin: Skriv ut inloggningskort öppnar utskriftsvalet", await b.tills(`document.querySelectorAll(".lp-modal .lp-row").length > 0`));
     await b.js(`document.querySelector(".lp-modal .cx-modal-close")?.click()`);
   }

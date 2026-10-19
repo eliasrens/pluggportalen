@@ -70,7 +70,7 @@ export async function pageLarareOversikt(ctx) {
               </div>
             </article>`);
           })
-        : [el(`<p class="hint">${role.admin ? "Inga klasser än – skapa dem under Admin → Klasser &amp; elevkonton."
+        : [el(`<p class="hint">${role.admin ? "Inga klasser än – skapa dem under Admin → Skapa klass."
             : "Kontot har inga klasser än – admin väljer dem under Lärarkonton."}</p>`)])
     );
     wire(grid);
