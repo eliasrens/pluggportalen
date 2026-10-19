@@ -320,19 +320,39 @@ service cloud.firestore {
     // datorparti tar slut – ett heltal som aldrig minskar och ökar med högst 1
     // per skrivning. aktivtParti = serverns spärr "ett parti åt gången" (sätts/
     // tas bort av Cloud Functions) – klienten får aldrig ändra den. lektioner =
-    // guidens framsteg (#790, schackLektionerOk nedan). Inga andra nycklar (3B
-    // lägger till 'pussel' i listan + en egen kontroll). Saknas fältet i båda =
-    // OK. Lärare (årskurskonto) skriver det aldrig.
+    // guidens framsteg (#790, schackLektionerOk nedan), pussel = pusslens
+    // framsteg (#791, schackPusselOk nedan). Inga andra nycklar. Saknas fältet i
+    // båda = OK. Lärare (årskurskonto) skriver det aldrig.
     function schackOk() {
       let n = request.resource.data;
       let o = resource == null ? {} : resource.data;
       let os = ('schack' in o && o.schack is map) ? o.schack : {};
       return !('schack' in n) ? !('schack' in o) :
-        (n.schack is map && n.schack.keys().hasOnly(['datorPartier', 'aktivtParti', 'lektioner']) &&
+        (n.schack is map && n.schack.keys().hasOnly(['datorPartier', 'aktivtParti', 'lektioner', 'pussel']) &&
           n.schack.get('aktivtParti', null) == os.get('aktivtParti', null) &&
           n.schack.get('datorPartier', 0) is int && n.schack.get('datorPartier', 0) >= os.get('datorPartier', 0) &&
           n.schack.get('datorPartier', 0) <= os.get('datorPartier', 0) + 1 &&
-          schackLektionerOk(n.schack.get('lektioner', {}), os.get('lektioner', {})));
+          schackLektionerOk(n.schack.get('lektioner', {}), os.get('lektioner', {})) &&
+          schackPusselOk(n.schack.get('pussel', {}), os.get('pussel', {})));
+    }
+    // Pusslen (#791): pussel = { ett: { losta, senast }, tva: { losta, senast } }.
+    // Klienten skriver EN gång per nytt löst pussel: losta + 1 och senast = numret.
+    // losta (antal lösta) ökar med högst 1 per skrivning och sjunker aldrig; senast
+    // (numret på senast lösta) sjunker aldrig; losta ≤ senast ≤ 1000. En sort som
+    // fanns tas aldrig bort.
+    function schackPusselOk(np, op) {
+      return np is map && np.keys().hasOnly(['ett', 'tva']) &&
+        schackPusselSortOk(np, op, 'ett') && schackPusselSortOk(np, op, 'tva');
+    }
+    function schackPusselSortOk(np, op, k) {
+      let fanns = op is map && k in op && op[k] is map;
+      let o = fanns ? op[k] : {};
+      return !(k in np) ? !fanns :
+        (np[k] is map && np[k].keys().hasOnly(['losta', 'senast']) &&
+          np[k].get('losta', 0) is int && np[k].get('senast', 0) is int &&
+          np[k].get('losta', 0) >= o.get('losta', 0) && np[k].get('losta', 0) <= o.get('losta', 0) + 1 &&
+          np[k].get('senast', 0) >= o.get('senast', 0) && np[k].get('senast', 0) <= 1000 &&
+          np[k].get('losta', 0) <= np[k].get('senast', 0));
     }
     // Guiden "Lär dig schack" (#790): lektioner = { "1".."12": stjärnor }, en map med
     // högst 12 kända nycklar och heltal 1–3. En lektions stjärnor sänks aldrig och

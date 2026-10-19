@@ -21,7 +21,10 @@ Etapp 3 (guiden och pusslen, epic #774):
 
 | Del | Issue | Innehåll |
 | --- | --- | --- |
-| 3A | #790 | guiden "Lär dig schack": 12 lektioner, stjärnor, framstegen (§12) – avsnitt 15 |
+| 3A | #790 | guiden "Lär dig schack": 12 lektioner, stjärnor, framstegen (§12) – **klar**, avsnitt 15 |
+| 3B | #791 | pusslen "Matt i ett/två drag" ur Lichess (CC0), admin-skriptet, framstegen (§13) – avsnitt 16 |
+
+Kvotbudgeten för hela schacket står samlad i avsnitt 17, licenserna i avsnitt 11.
 
 ---
 
@@ -61,13 +64,22 @@ src/schack/
   schack-lektioner.js        de 12 lektionerna som data + stjärnregeln, bedömningen, loppet (ren)
   schack-stjarnjakt.js       stjärnjakten: egen draggenerering utan kungar, BFS, kontrollen (ren)
   schack-guide-delar.js      markup: översikten, lektionsramen, resultatrutan, stjärnorna
-src/styles/35-schack.css     brädets CSS, 36-schack-sida.css sidans, 37-schack-kompis.css kompisläget, 39-schack-guide.css guiden (byggs in i styles.css med npm run build:css)
+  schack-pussel-vy.js        pusslen (3B, avsnitt 16): valet ↔ ett pussel i taget, tipset, försvaret, framstegen
+  schack-pussel.js           pusselbanken (lat fetch), bedömningen, tipset, framstegen (ren)
+  schack-pussel-delar.js     markup: valet Matt i ett / Matt i två, pusselvyns ram
+  pussel/matt-i-ett.json     200 pussel "Matt i ett drag" (Lichess, CC0) – byggs av admin/schack-pussel.mjs
+  pussel/matt-i-tva.json     200 pussel "Matt i två drag"
+  pussel/README.md, LICENSE  källan, filtret, datumet, antalet; CC0 1.0
+src/styles/35-schack.css     brädets CSS, 36-schack-sida.css sidans, 37-schack-kompis.css kompisläget, 38-schack-helskarm.css helskärmen,
+                             39-schack-guide.css guiden, 40-schack-pussel.css pusslen (byggs in i styles.css med npm run build:css)
 preview/preview-schack.html         brädet och pjäserna (A; preview/schack/)
 preview/preview-schack-dator.html   hela elevflödet mot datorn utan Firebase (B)
 preview/preview-schack-matning.html mätning av ms per drag och nivå (B, preview/schack/matning.js)
 preview/preview-schack-kompis.html  kompisläget i två flikar utan Firebase (2B, preview/schack-kompis/)
 preview/preview-schack-guide.html   guiden "Lär dig schack" utan Firebase (3A)
+preview/preview-schack-pussel.html  pusslen utan Firebase (3B)
 admin/qa-schack-matning.mjs         samma mätning i node
+admin/schack-pussel.mjs             bygger pusselbanken ur Lichess pusseldatabas (3B, körs för hand)
 ```
 
 Allt laddas lazy i kedjan `app.js → import(page-schack.js) → import(schack-flode.js) →
@@ -357,8 +369,8 @@ eller främmande data ignoreras. Elevens senaste val (nivå, färg) ligger under
   "Öva", länken **Schack** med en egen SVG-bonde (`SCHACK_IKON`). Routern släpper bara in
   elever vars klass slagit på schack – inte ens via direktlänk.
 - `#/elev/schack` – startsidan: ett pågående parti överst ("Fortsätt partiet"), sedan
-  korten **Spela mot datorn**, Spela mot en kompis (Etapp 2), **Lär dig schack** (3A, avsnitt 15)
-  och Pussel (3B) som "kommer snart".
+  korten **Spela mot datorn**, **Spela mot en kompis** (Etapp 2, avsnitt 14), **Lär dig schack** (3A,
+  avsnitt 15) och **Pussel** (3B, avsnitt 16).
 - `#/elev/schack?vy=dator&ny=1` – nivå (fyra kort) och färg (vit/svart/slumpa) →
   **Starta partiet**; `?vy=dator` fortsätter det sparade partiet (hashen skrivs om utan
   `ny=1` när partiet startats, så en omladdning hamnar i partiet).
@@ -392,6 +404,10 @@ vyn med `brade`, `varnar()`; kryssruta "Snabb dator" = 250 ms och ingen tänkpau
 | --- | --- | --- |
 | chess.js 1.4.0 (Jeff Hlywa) | BSD-2-Clause – fri att använda på en publik sajt med licenstexten | `src/schack/vendor/LICENSE` |
 | Pjäserna | egna, ritade för Pluggporten | `src/schack/schack-pjaser.js` |
+| Pusslen (3B) – Lichess öppna pusseldatabas | **CC0 1.0** (allmän egendom) – fri att använda, även utan namngivning (vi nämner ändå Lichess i pusselvyn) | `src/schack/pussel/LICENSE`, källan och filtret i `src/schack/pussel/README.md` |
+| zstd (bara `admin/schack-pussel.mjs`, för att packa upp Lichess-filen) | BSD/GPLv2 dubbellicens, systemets program – **inget webbberoende**, följer aldrig med till sajten | – |
+
+Inga nya runtime-bibliotek i Etapp 3: guiden och pusslen använder chess.js och brädet som redan fanns.
 
 Inga GPL-bibliotek (Stockfish, chessground) och inga pjäsbilder med oklar licens –
 testet letar efter dem i `src/schack/`. **Uppgradera chess.js:** byt hela
@@ -549,9 +565,9 @@ partier mot datorn: klienten (2B, vid datorpartiets slut) ökar räknaren med
 `datorPartiKlart()` (fältväg `schack.datorPartier` + `increment(1)`, så spärren bredvid
 behålls). `aktivtParti` = serverns spärr "ett parti åt gången" (12.1). Regeln `schackOk`
 tillåter bara nycklarna `datorPartier` (heltal, aldrig nedåt, högst +1 per skrivning),
-`aktivtParti` (måste vara oförändrad) och `lektioner` (guiden, 3A – avsnitt 15.5); lärare
-(årskurskonto) skriver fältet aldrig, admin får. Kompispartier räknas i
-`schackKlass.tabell[uid].partier`. 3B lägger `pussel` här (regeln utökas då).
+`aktivtParti` (måste vara oförändrad), `lektioner` (guiden, 3A – avsnitt 15.5) och `pussel` (pusslen,
+3B – avsnitt 16.4); lärare (årskurskonto) skriver fältet aldrig, admin får. Kompispartier räknas i
+`schackKlass.tabell[uid].partier`.
 
 ### 12.6 Gamla partier – valet (§7.3)
 
@@ -904,7 +920,7 @@ visas resultatrutan ("Lektionen klar!", stjärnorna, "Du klarade det på 9 drag.
 - **Regeln** `schackOk` → `schackLektionerOk` (`firestore.rules`): `lektioner` är en map med högst 12
   nycklar ur `"1"`–`"12"`, varje värde ett heltal 1–3, och en lektion som fanns får **aldrig sänkas och
   aldrig tas bort**. `datorPartier`/`aktivtParti` kontrolleras precis som förut, även i samma skrivning.
-  3B lägger till `'pussel'` i `hasOnly` och en egen kontroll bredvid. Test:
+  3B lade till `'pussel'` i `hasOnly` och `schackPusselOk` bredvid (avsnitt 16.4). Test:
   `test/firestore-rules-schack-lektioner.test.js` (giltigt, ogiltigt värde, sänkning, främmande nyckel,
   annan elev, årskurskontot).
 - **Deploy:** ⚠️ `firebase deploy --only firestore:rules` **före** webben – annars nekas skrivningen
@@ -922,3 +938,118 @@ visas resultatrutan ("Lektionen klar!", stjärnorna, "Du klarade det på 9 drag.
   krav, patt-fällorna, en passant och förvandlingen genom brädets kontroll, partiets stjärnor,
   framstegen (EN skrivning per förbättring, kvar efter "omladdning"), markupen och källkoden (allt i
   `src/schack/`, bara `import()`, inga mynt/timers, ingen Firestore utanför `schack-moln.js`).
+
+## 16. Pusslen "Matt i ett/två drag" (Etapp 3B, #791)
+
+Spec §13. Kortet **Pussel** på startsidan leder till pusslen. Allt ligger i `src/schack/` och laddas lat:
+`page-schack.js → import(schack-flode.js) → import(schack-pussel-vy.js)` (som statiskt tar
+`schack-pussel.js`, `schack-pussel-delar.js` och brädet). Pusselbanken (JSON) hämtas med `fetch` först
+när pusselvyn öppnas – den importeras aldrig. Bootgrafen är kvar på **107**.
+
+| Hash | Vy |
+| --- | --- |
+| `#/elev/schack?vy=pussel` | valet: två stora kort, **Matt i ett drag** och **Matt i två drag**, med "12 av 200 lösta", en stapel och "Fortsätt med pussel 13" |
+| `#/elev/schack?vy=pussel&sort=ett\|tva` | ett pussel i taget – där eleven senast var (lokalt), annars nästa efter det senast lösta |
+| `…&sort=ett&nr=N` | direktlänk till pussel N (förhandsvisningen); hashen skrivs om utan `nr` direkt, så en omladdning fortsätter där eleven är |
+
+### 16.1 Pusselbanken – `admin/schack-pussel.mjs`
+
+Lichess öppna pusseldatabas (`lichess_db_puzzle.csv.zst`, ~300 MB, ~5,8 miljoner pussel, **CC0**)
+**strömmas** från database.lichess.org genom `zstd -dc` och läsningen avbryts efter 2 000 000 rader
+(pusslen ligger i slumpmässig ordning, så det är ett slumpmässigt urval). Ingen rådata checkas in.
+Filtret: temat `mateIn1`/`mateIn2`, rating ≤ 1000 resp. ≤ 1100 (Lichess lägsta är ~400, medel ~1500),
+`RatingDeviation ≤ 90`, `Popularity ≥ 80`, `NbPlays ≥ 300` och **vit vid draget**. 200 pussel per sort
+väljs **jämnt över ratingen** (annars hamnar alla på 400–460 och "lätt → svårt" blir platt) och sorteras
+på rating. Resultat (2026-10-19): matt i ett 399 → 1000, matt i två 399 → 1100. Detaljerna, formatet och
+kommandona står i [`src/schack/pussel/README.md`](../src/schack/pussel/README.md).
+
+- **Normaliseringen:** Lichess FEN är ställningen före motståndarens första drag. Skriptet gör det
+  draget, så `fen` är ställningen där eleven är vid draget och `senast` (UCI) det drag som just gjordes –
+  det markeras som senaste draget på brädet, så eleven ser vad motståndaren gjorde.
+- **Kontrollen (chess.js):** matt i ett – lösningen är laglig och ger matt; matt i två – ingen matt i ett,
+  hela linjen laglig, matt efter andra vita draget, och lösningens första drag är det **enda** som tvingar
+  fram matt i två (annars tas pusslet bort). Inget av de 400 behövde tas bort – Lichess har redan unika
+  lösningar.
+- **Bara vit vid draget – valet:** spec-texten är "Vit drar och gör matt …" och brädet står som i partierna
+  mot datorn. Ett bräde som ibland är vänt och en text som byter färg är ett onödigt hinder för 9–12-åringar,
+  och det finns tusentals vita pussel – inget går förlorat.
+
+### 16.2 Pusselvyn (`schack-pussel-vy.js`, logiken i `schack-pussel.js`)
+
+Samma bräde som partierna (`skapaSchackbrade` med en kontroll som också kan rita en tipsring), vit
+nederst, utan spelarrader och draglista. Statusraden och panelen visar **"Vit drar och gör matt i ett
+drag"** (resp. två) och "Pussel 13 av 200".
+
+| Händelse | Vad som händer |
+| --- | --- |
+| Fel drag | brädets `beforeMove` frågar loppet → `false`: pjäsen hoppar tillbaka, **"Inte riktigt – prova igen!"** |
+| Rätt drag (matt) | **"Snyggt! Schack matt! ⭐"** i statusraden och panelen, knappen **Nästa pussel ›** (fokus). Brädets slutruta är dold – den skulle täcka matten. |
+| Matt i två, rätt första drag | "Bra drag! Nu försvarar sig svart …", brädet låses, och efter 0,7 s spelar datorn försvaret ur lösningen ("Svart spelade Td8. Nu: gör matt i ett drag!") |
+| **Tips** | första trycket: en pulserande orange ring runt **pjäsen som ska flyttas** (aria "tips: flytta den här pjäsen"); andra trycket: dessutom draget som pil ("Tips: Tc8+") – så att ingen fastnar för gott |
+| ‹ Förra / Hoppa över › | bläddra; läget sparas lokalt |
+
+- **Varje drag som ger matt är rätt** när det är dags för matt (även ett annat mattdrag än lösningens).
+  Matt i två: första draget måste vara lösningens (skriptet garanterar att inget annat tvingar fram matt).
+- "Varna mig" finns inte i pusslen (frivilligt i spec) – ett fel drag kostar ingenting här.
+- Inga timers utom försvarspausen (rensas vid byte och `destroy`), ingen tidspress, **inga mynt**.
+- 320 px: som partiet och guiden går brädet ut i sidans marginal i stället för att sidan skrollar i sidled.
+
+### 16.3 Framstegen – `studentData.schack.pussel`
+
+`{ ett: { losta, senast }, tva: { losta, senast } }` – `senast` = numret på det senast lösta **nya**
+pusslet, `losta` = hur många nya pussel som lösts.
+
+- **Läsning:** ingen egen – `page-schack.js` (`pusselFor`) ger vyn framstegen ur den redan cachade
+  `getStudentData()`.
+- **Skrivning:** när ett pussel med nummer > `senast` löses: **EN** `updateDoc` med fältvägarna
+  `schack.pussel.<sort>.losta: increment(1)` och `.senast: nr` (`schack-moln.js` `pusselLost`, fel sväljs).
+  Samma ändring görs i studentData-cachen. Att göra om ett gammalt pussel skriver inget. 200 + 200 pussel
+  = högst 400 skrivningar per elev **totalt**, oftast några stycken per lektion.
+- **Var eleven står** (`{ ett: nr, tva: nr }`, även efter Hoppa över) ligger i `localStorage` under
+  `pp:schack:dator:<elevId>:pussel` (try/catch). Saknas det (ny dator) börjar eleven på `senast + 1`.
+
+### 16.4 Regeln – `schackOk` → `schackPusselOk`
+
+`pussel` är en map med bara `ett`/`tva`; varje sort bara `losta`/`senast`, heltal; `losta` ökar med högst
+1 per skrivning och sjunker aldrig; `senast` sjunker aldrig; `losta ≤ senast ≤ 1000`; en sort som fanns
+tas aldrig bort. `datorPartier`, `aktivtParti` och `lektioner` kontrolleras precis som förut, även i samma
+skrivning. Test: `test/firestore-rules-schack-pussel.test.js` (klientens skrivning, hopp över pussel,
+räknaren, ogiltiga värden, främmande nycklar, borttagning, de andra nycklarna, annan elev, årskurskontot).
+⚠️ **Deploy:** `firebase deploy --only firestore:rules` **före** webben – annars nekas skrivningen (pusslen
+fungerar ändå, men inget sparas). Inga functions, inga index.
+
+### 16.5 Förhandsvisning och tester
+
+- `preview/preview-schack-pussel.html` – startsidan, valet och båda sorterna (direktlänkar till pussel 1,
+  50, 100, 150, 200) utan Firebase. Framstegen ligger i `localStorage` (`pp:schack:pussel:preview:framsteg`)
+  och finns kvar efter en omladdning; varje "skrivning" loggas och räknas. Kryssrutor: Snabbt försvar
+  (150 ms), Reducerad rörelse; Nollställ framstegen. `window.schack` = flödet (`(await schack.aktiv())` =
+  vyn med `brade`, `lopp()`, `tips()`, `visa(n)`), `window.pusselStub` = framstegen.
+- `node --test test/schack-pussel-data.test.js` – banken: antal, unika, sortering, låg rating med en riktig
+  stegring, vit vid draget, `senast` landar på en svart pjäs, README/licens – och varje lösning kontrollerad
+  med en **egen** chess.js-kontroll (matt i ett är matt; matt i två: ingen matt i ett, hela linjen, matt,
+  bara ett första drag som tvingar fram matt), plus skriptets `normalisera`/`kontrollera`.
+- `node --test test/schack-pussel.test.js` – logiken utan DOM (fel drag nekas och ställningen är
+  oförändrad, tipset pekar på rätt pjäs, alla mattdrag är rätt, försvaret), samma sak genom brädets kontroll
+  (fel drag hoppar tillbaka, tipsringen), framstegen (EN skrivning per nytt pussel, kvar efter "omladdning"),
+  lat laddning, markupen och källkoden (allt i `src/schack/`, `import()`, ingen statisk JSON, bootgrafen 107,
+  inga mynt, ingen Firestore utanför `schack-moln.js`, regeln).
+
+## 17. Kvotbudgeten – hela schacket
+
+| Del | Läsningar | Skrivningar |
+| --- | --- | --- |
+| Besök på schacksidan | 0 egna (`getStudentData`/`getClasses` är redan cachade av appen) + 1 klasslista (projektionen) om eleven har en klass med schack | 0 |
+| Parti mot datorn (Etapp 1) | 0 | 1 per avslutat parti (`datorPartier + 1`) |
+| Lobbyn (2B) | 1 när lyssnaren öppnas + 1 per ändring i klassdokumentet (25 elever på sidan → 25 per ändring) | bara elevhandlingar och partislut (callables) |
+| Parti mot en kompis, 40 drag/spelare med klocka (2A/2B) | ≈ 165 i klienten + ≈ 166 på servern | ≈ 87 |
+| Lärarens sektion (2C) | 1 + 1 per ändring; åskådarläget 1 + 1 per halvdrag; datorpartierna 1 per elev bara på knapptryck | 0 (callables på servern) |
+| Guiden (3A) | 0 | 1 per **förbättrad** lektion – högst 12 för en hel genomgång |
+| Pusslen (3B) | 0 (banken är statiska filer, inte Firestore) | 1 per **nytt** löst pussel – högst 400 per elev totalt |
+
+Ingen närvaro-ping, inga skrivningar per sekund, inga läsningar per elev i heta flöden; lyssnarna stängs
+när eleven lämnar schacksidan (avsnitt 14.2). Pusselbanken (~27 + ~29 kB JSON) hämtas en gång per
+sidladdning och sort, bara när pusslen öppnas.
+
+**Deploy-ordning för Etapp 3:** 1. `firebase deploy --only firestore:rules` (`schackOk` med `lektioner`
+och `pussel`), 2. webben. Inga functions och inga index.

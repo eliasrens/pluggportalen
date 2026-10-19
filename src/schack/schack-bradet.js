@@ -39,7 +39,8 @@ function mork(ruta) {
  * @param {string} [opt.etikett]  brädets aria-label (standard "Schackbräde")
  * @param {object} [opt.kontroll]  en färdig kontroll med samma API (guidens stjärnjakt, #790);
  *        annars skapaSchackKontroll(opt). Dess tillstånd får också ha `stjarnor: [ruta]`
- *        (ritas som stjärnor) och `rutKlass: { ruta: "ratt" | "fel" }` (grön/röd ruta).
+ *        (ritas som stjärnor) och `rutKlass: { ruta: "ratt" | "fel" | "tips" }` (grön/röd ruta,
+ *        eller pusslens tipsring runt pjäsen som ska flyttas, #791).
  */
 export function skapaSchackbrade(rot, opt = {}) {
   const k = opt.kontroll || skapaSchackKontroll(opt);
@@ -157,9 +158,11 @@ export function skapaSchackbrade(rot, opt = {}) {
       el.classList.toggle("kan-valjas", k.kanValja(ruta));
       el.classList.toggle("ratt", rutKlass[ruta] === "ratt");
       el.classList.toggle("fel", rutKlass[ruta] === "fel");
+      el.classList.toggle("tips", rutKlass[ruta] === "tips");
       el.children[3].hidden = !stjarnor.has(ruta);
       const extra = [];
       if (stjarnor.has(ruta)) extra.push("stjärna");
+      if (rutKlass[ruta] === "tips") extra.push("tips: flytta den här pjäsen");
       if (s.vald === ruta) extra.push("markerad");
       if (m) extra.push(m.tar ? "kan tas" : "möjligt drag");
       if (s.schackRuta === ruta) extra.push("i schack");

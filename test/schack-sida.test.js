@@ -108,7 +108,7 @@ describe("markupen (§4)", () => {
     const html = startHtml(null);
     assert.equal((html.match(/class="big-card schack-kort/g) || []).length, 4);
     assert.match(html, /data-act="dator"[^>]*>(?!.*aria-disabled)/);
-    assert.equal((html.match(/Kommer snart/g) || []).length, 2);
+    assert.equal((html.match(/Kommer snart/g) || []).length, 1, "bara kompisläget utan klass – pusslen är öppna (#791)");
     assert.doesNotMatch(html, /Fortsätt partiet/);
     for (const t of ["Spela mot datorn", "Spela mot en kompis", "Lär dig schack", "Pussel"]) assert.ok(html.includes(t), t);
     const p = nyttParti({ niva: "damen", farg: "b" });

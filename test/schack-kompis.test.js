@@ -254,6 +254,6 @@ describe("markupen", () => {
     const html = startHtml(null, { kompis: true });
     assert.doesNotMatch(html, /data-act="kompis" aria-disabled/);
     assert.match(html, /Utmana någon i klassen/);
-    assert.equal((html.match(/Kommer snart/g) || []).length, 1, "bara Pussel (3B) – guiden är öppen (#790)");
+    assert.equal((html.match(/Kommer snart/g) || []).length, 0, "guiden (#790) och pusslen (#791) är öppna");
   });
 });
