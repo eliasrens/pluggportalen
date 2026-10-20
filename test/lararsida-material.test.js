@@ -58,8 +58,8 @@ describe("flikarna per roll", () => {
 
 describe("raden överst i varje flik", () => {
   const routes = () => new Set(shared.TEACHER_TABS.map((t) => t.hash.slice(1)));
-  it("varje flik säger var klassinställningarna finns, med minst en länk", () => {
-    for (const f of MATERIAL_FLIKAR) {
+  it("varje flik med hjälptext säger var klassinställningarna finns, med minst en länk", () => {
+    for (const f of MATERIAL_FLIKAR.filter((f) => f.key !== "plugga")) {
       assert.match(f.hint, /Mina klasser/, f.key);
       assert.match(f.hint, /data-hash="#\/larare\//, `${f.key}: länk`);
     }

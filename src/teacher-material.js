@@ -56,8 +56,9 @@ export async function pageLarareMaterial(ctx) {
     wireHashLinks(ctx, flikrad);
     return ctx.app.replaceChildren(sida);
   }
-  // Hjälptexten överst (DEL 8): hopfällbar, valet sparas per underflik.
-  sida.append(hjalpRuta(`material-${flik.key}`, flik.hint, ctx), host);
+  // Hjälptexten överst (DEL 8): hopfällbar, valet sparas per underflik. Flik utan hint ritas utan ruta (#814).
+  if (flik.hint) sida.append(hjalpRuta(`material-${flik.key}`, flik.hint, ctx));
+  sida.append(host);
   wireHashLinks(ctx, flikrad);
   ctx.app.replaceChildren(sida);
 

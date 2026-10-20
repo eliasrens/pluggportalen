@@ -59,13 +59,13 @@ function fel(hash, adminLank, var_) {
 }
 
 describe("hjälptexter (Mina klasser och Material)", () => {
-  it("varje flik har en kort hjälptext, 1–2 meningar", () => {
+  it("varje flik har en kort hjälptext, 1–2 meningar (utom Plugga-områden, #814)", () => {
     const meningar = (html) => html.replace(/<[^>]+>/g, "").replace(/Hur går det\?/g, "Hur går det").replace(/Hitta rätt!/g, "Hitta rätt").split(/[.!?]\s+/).filter(Boolean).length;
     const alla = [
       ...MINA_FLIKAR.flatMap((f) => [[`mina ${f.key}`, f.hjalp], ...(f.hjalpAdmin ? [[`mina ${f.key} (admin)`, f.hjalpAdmin]] : [])]),
-      ...material.MATERIAL_FLIKAR.map((f) => [`material ${f.key}`, f.hint]),
+      ...material.MATERIAL_FLIKAR.filter((f) => f.key !== "plugga").map((f) => [`material ${f.key}`, f.hint]),
     ];
-    assert.equal(alla.length, 4 + 1 + 6);
+    assert.equal(alla.length, 4 + 1 + 5);
     for (const [namn, html] of alla) {
       assert.ok(html && html.length > 20, namn);
       const n = meningar(html);
@@ -81,14 +81,17 @@ describe("hjälptexter (Mina klasser och Material)", () => {
   it("varje länk i en hjälptext pekar på en riktig route och flik", () => {
     const problem = [];
     for (const f of MINA_FLIKAR) for (const h of lankar(f.hjalp + (f.hjalpAdmin || ""))) problem.push(...fel(h, false, `mina ${f.key}`));
-    for (const f of material.MATERIAL_FLIKAR) for (const h of lankar(f.hint)) problem.push(...fel(h, f.admin, `material ${f.key}`));
+    for (const f of material.MATERIAL_FLIKAR) for (const h of lankar(f.hint || "")) problem.push(...fel(h, f.admin, `material ${f.key}`));
     assert.deepEqual(problem, []);
   });
   it("Mina klasser och Material ritar hjälprutan, och den sparar valet per ruta", () => {
     const mk = readFileSync(new URL("../src/teacher-mina-klasser.js", import.meta.url), "utf8");
     assert.match(mk, /hjalpRuta\(`mina-\$\{aktiv\.key\}`, flikHjalp\(aktiv, sida\.admin\), ctx\)/);
     const mat = readFileSync(new URL("../src/teacher-material.js", import.meta.url), "utf8");
-    assert.match(mat, /hjalpRuta\(`material-\$\{flik\.key\}`, flik\.hint, ctx\)/);
+    assert.match(mat, /if \(flik\.hint\) sida\.append\(hjalpRuta\(`material-\$\{flik\.key\}`, flik\.hint, ctx\)\)/);
+  });
+  it("Plugga-områden har ingen hjälptext, så fliken ritas helt utan ruta (#814)", () => {
+    assert.equal(material.materialFlik("plugga").hint, undefined);
   });
 });
 
