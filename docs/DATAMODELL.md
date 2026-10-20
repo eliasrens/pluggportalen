@@ -871,7 +871,7 @@ EN doc per klass som klassens elever (`isClassMember`) och läraren med klassen
 | `vantar` | map | `{ [uid]: { namn, klocka: null\|5\|10\|15, sedan } }` – elever som väntar på motståndare. Utgången efter 10 min (`sedan`); servern filtrerar vid varje skrivning, klienten vid visning. |
 | `utmaningar` | map | `{ [utmaningId]: { fran, franNamn, till, klocka, sedan } }` – utgången efter 2 min. En utmaning per utmanare. |
 | `partier` | map | `{ [partiId]: { vit, svart, vitNamn, svartNamn, klocka, start } }` – **bara pågående**; posten tas bort i samma transaktion som partiet avslutas. En elev finns i högst en post – och i högst ett parti över alla klasser (`studentData.schack.aktivtParti`). |
-| `tabell` | map | `{ [uid]: { poang, vinster, forluster, remier, partier } }` – topplistan (§8): start 1000, Elo-lik med låg K, golv 800. Bara kompispartier; avbrutna partier räknas inte. Läraren nollställer via `schackLarareTopplista`. |
+| `tabell` | map | `{ [uid]: { poang, vinster, forluster, remier, partier } }` – topplistan (§8): start 1000, Elo-lik med låg K, golv 800. Bara kompispartier; avbrutna partier räknas inte. Läraren nollställer via `schackLarareTopplista`. Eleven ser bara topp 5 plus en egen rad (poäng och plats) när hen står utanför (#816, filtreras i klienten); läraren ser hela. |
 | `dold` | bool | `true` = läraren har dolt topplistan för eleverna (2B visar den inte). |
 
 ### `schackPartier/{partiId}` – ett parti

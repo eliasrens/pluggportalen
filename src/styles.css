@@ -8814,6 +8814,8 @@ html[data-halloween] .port-scen .port-larare-lank {
 .schack-topplista-namn { font-weight: 700; overflow-wrap: anywhere; }
 .schack-topplista-namn small { color: var(--text-svag); }
 .schack-topplista abbr { text-decoration: none; }
+/* #816: elevens egen rad under topp 5 (samma gula som den egna raden i listan). */
+.schack-topplista-du { margin: 8px 0 0; padding: 8px 12px; border-radius: 14px; background: #fff3c4; border: 2px solid #f3e2a0; font-weight: 600; }
 
 /* --- Partiet mot en kompis -------------------------------------------------- */
 
