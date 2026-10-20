@@ -146,6 +146,27 @@ describe("topplistan (§8)", () => {
     assert.equal(topplistaHtml(topplistaRader(tabell, "c"), { dold: true }), "");
     assert.match(topplistaHtml([]), /Ingen har spelat än/);
   });
+  // #816: eleven ser topp 5 och en egen rad om hen står utanför.
+  const stor = Object.fromEntries(Array.from({ length: 12 }, (_, i) =>
+    [`u${i}`, { poang: 1100 - i * 10, vinster: 1, forluster: 0, remier: 0, partier: 1 }]));
+  const rader = (uid) => topplistaRader({ ...stor, u11: { ...stor.u11, poang: 1040 } }, uid, (u) => u.toUpperCase());
+  it("#816: bara topp 5; egen i topp 5 = markerad där, ingen extra rad", () => {
+    const html = topplistaHtml(rader("u2"));
+    assert.equal(html.match(/<tr[ >]/g).length, 6); // rubrikrad + 5
+    assert.match(html, /<tr class="egen" aria-current="true"><td>3<\/td>/);
+    assert.doesNotMatch(html, /schack-topplista-du/);
+  });
+  it("#816: utanför topp 5 → egen rad med poäng och plats", () => {
+    const html = topplistaHtml(rader("u10"));
+    assert.equal(html.match(/<tr[ >]/g).length, 6);
+    assert.doesNotMatch(html, /class="egen"/);
+    assert.match(html, /<p class="schack-topplista-du"><b>Du:<\/b> 1 000 p · plats 12<\/p>/);
+  });
+  it("#816: inte spelat → startpoängen; dold → ingenting", () => {
+    assert.match(topplistaHtml(rader("ny")), /Du har inte spelat mot en kompis än – startpoäng 1 000/);
+    assert.match(topplistaHtml([]), /Du har inte spelat mot en kompis än/);
+    assert.equal(topplistaHtml(rader("u10"), { dold: true }), "");
+  });
 });
 
 describe("§7.3 och tiden: lamnatLage", () => {

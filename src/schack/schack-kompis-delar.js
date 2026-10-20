@@ -8,6 +8,7 @@
 import { pjasSvg } from "./schack-pjaser.js";
 import { esc } from "./schack-bradet-delar.js";
 import { KLOCK_VAL, klockaEtikett } from "./schack-kompis-data.js";
+import { START_POANG } from "./schack-server-delat.js";
 
 const standardAvatar = () => `<span class="schack-avatar-standard">${pjasSvg("w", "p")}</span>`;
 const avatar = (html, klass = "") => `<span class="schack-avatar${klass}">${html || standardAvatar()}</span>`;
@@ -117,22 +118,42 @@ export function pagaendeHtml(vy) {
   );
 }
 
-/** Topplistan (§8). Tom sträng när läraren dolt den. */
+/** Så många rader ser eleven i topplistan (#816); läraren ser hela. */
+export const TOPPLISTA_ANTAL = 5;
+
+/** 1040 → "1 040" (hårt mellanslag, så siffrorna inte bryts isär). */
+const poangText = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+
+/** Egen rad under listan (#816): elevens poäng och plats, eller startpoängen. */
+function egenRadHtml(egen) {
+  const text = egen
+    ? `<b>Du:</b> ${poangText(egen.poang)} p · plats ${egen.plats}`
+    : `Du har inte spelat mot en kompis än – startpoäng ${poangText(START_POANG)}`;
+  return `<p class="schack-topplista-du">${text}</p>`;
+}
+
+/**
+ * Topplistan (§8): bara topp 5 (#816). Står eleven utanför topp 5 – eller har
+ * inte spelat – följer en egen rad under listan. Tom sträng när läraren dolt den.
+ */
 export function topplistaHtml(rader, { dold } = {}) {
   if (dold) return "";
   const rubrik = `<h2 class="schack-underrubrik" id="schack-topplista-rubrik">Topplistan</h2>` +
     `<p class="hint schack-lobby-not">Du får mer poäng om du vinner mot någon som har många poäng.</p>`;
-  if (!rader.length) return rubrik + `<p class="hint schack-lobby-tom">Ingen har spelat än – bli först på listan!</p>`;
+  const egen = rader.find((r) => r.egen);
+  if (!rader.length) return rubrik + `<p class="hint schack-lobby-tom">Ingen har spelat än – bli först på listan!</p>` + egenRadHtml(null);
+  const topp = rader.slice(0, TOPPLISTA_ANTAL);
   return (
     rubrik +
     `<div class="schack-topplista-skal"><table class="schack-topplista">` +
     `<thead><tr><th scope="col">#</th><th scope="col">Namn</th><th scope="col">Poäng</th>` +
     `<th scope="col"><abbr title="vinster/förluster/remier">V/F/R</abbr></th></tr></thead><tbody>` +
-    rader.map((r) =>
+    topp.map((r) =>
       `<tr${r.egen ? ' class="egen" aria-current="true"' : ""}><td>${r.plats}</td>` +
       `<td class="schack-topplista-namn">${esc(r.namn)}${r.egen ? " <small>(du)</small>" : ""}</td>` +
       `<td><b>${r.poang}</b></td><td>${r.vinster}/${r.forluster}/${r.remier}</td></tr>`).join("") +
-    `</tbody></table></div>`
+    `</tbody></table></div>` +
+    (topp.includes(egen) ? "" : egenRadHtml(egen))
   );
 }
 

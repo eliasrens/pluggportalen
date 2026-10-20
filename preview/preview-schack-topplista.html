@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Schackets topplista för eleven (#816)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      body { padding: 16px; background: var(--ljus); }
+      .pv-verktyg { max-width: 760px; margin: 0 auto 12px; display: flex; flex-wrap: wrap; gap: 6px 10px; font: 700 0.95rem var(--font); }
+      .pv-verktyg a { padding: 4px 12px; border-radius: 999px; background: #fff; border: 2px solid #d5deea; text-decoration: none; color: var(--text); }
+      .pv-verktyg a[aria-current="page"] { border-color: #13a39a; background: #dff5f2; }
+      @media (max-width: 420px) { body { padding: 8px; } }
+    </style>
+  </head>
+  <body>
+    <!-- Klassen har 12 elever som spelat. ?du=<uid> väljer vem som tittar: u2 = i topp 5, u10 = utanför, ny = inte spelat. -->
+    <nav class="pv-verktyg" aria-label="Vem tittar?">
+      <a href="?du=u2">I topp 5 (Cleo)</a><a href="?du=u10">Utanför (Kim)</a><a href="?du=ny">Inte spelat</a><a href="?du=u10&amp;dold=1">Dold</a>
+    </nav>
+    <div class="schack-sida schack-lobby">
+      <section class="schack-lobby-del schack-lobby-topplista" aria-labelledby="schack-topplista-rubrik"></section>
+    </div>
+    <script type="module">
+      import { topplistaRader } from "../src/schack/schack-kompis-data.js";
+      import { topplistaHtml } from "../src/schack/schack-kompis-delar.js";
+      const namn = ["Alva", "Bilal", "Cleo", "Dante", "Ebba", "Filip", "Greta", "Hugo", "Iris", "Jonas", "Kim", "Liam"];
+      const tabell = Object.fromEntries(namn.map((_, i) =>
+        [`u${i}`, { poang: 1100 - i * 10, vinster: 6 - (i >> 1), forluster: i >> 1, remier: i % 2, partier: 6 + (i % 2) }]));
+      const q = new URLSearchParams(location.search);
+      const du = q.get("du") || "u2";
+      for (const a of document.querySelectorAll(".pv-verktyg a")) if (a.search === location.search) a.setAttribute("aria-current", "page");
+      document.querySelector(".schack-lobby-topplista").innerHTML =
+        topplistaHtml(topplistaRader(tabell, du, (u) => namn[Number(u.slice(1))]), { dold: q.has("dold") });
+    </script>
+  </body>
+</html>
