@@ -99,8 +99,8 @@ Klasscentret för en klass ligger i Mina klasser → Elever (inte på Admin). De
 
 ## Hjälp (`#808`)
 
-- **Hjälptexter**: varje flik i Mina klasser (`hjalp` / `hjalpAdmin` i `MINA_FLIKAR`) och varje underflik i Material (`hint` i
-  `MATERIAL_FLIKAR`) har en kort hjälptext (1–2 meningar) överst. Rutan ritas av `hjalpRuta` i `src/teacher-hjalptext.js`, kan
+- **Hjälptexter**: varje flik i Mina klasser (`hjalp` / `hjalpAdmin` i `MINA_FLIKAR`) och varje underflik i Material utom Plugga-områden (`hint` i
+  `MATERIAL_FLIKAR`; utan `hint` ritas ingen ruta, #814) har en kort hjälptext (1–2 meningar) överst. Rutan ritas av `hjalpRuta` i `src/teacher-hjalptext.js`, kan
   fällas ihop och valet sparas per ruta i `localStorage` (`pp:larare:hjalp:<ruta>`, i `try/catch` – utan lagring är rutan öppen).
 - **Hjälp och guide** (`#/larare/hjalp`, profilmenyn; `src/teacher-hjalp.js`): sju korta guider med 3–5 steg (Kom igång med en
   ny klass · Välj vad eleverna ser · Fokusläge · Skapa ett område med AI · Gör ett prov och rätta det · Starta Live · Ändra

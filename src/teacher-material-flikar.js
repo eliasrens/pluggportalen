@@ -5,7 +5,8 @@
 //   key    – ?flik=-värdet
 //   label  – fliktexten, icon – linje-ikon ur teacher-shared.js
 //   admin  – bara admin (en flik utan innehåll för rollen visas inte)
-//   hint   – hjälptexten överst (1–2 meningar, hopfällbar via teacher-hjalptext.js, DEL 8): vad fliken är till och var klassinställningarna finns (markup med data-hash-länkar)
+//   hint   – hjälptexten överst (1–2 meningar, hopfällbar via teacher-hjalptext.js, DEL 8): vad fliken är till och var klassinställningarna finns (markup med data-hash-länkar).
+//            Ingen hint = ingen ruta alls (Plugga-områden, #814).
 //   helsida(params) – true = vyn tar hela sidan (utan Materialets ram), t.ex. provspelet i Hitta rätt!
 //   rita(sub, params) – laddar vyn med import() och ritar den i sub.app; får returnera { destroy }
 // Ren data med lata importer – laddas av teacher-material.js, aldrig i bootgrafen (#271).
@@ -25,7 +26,6 @@ const lank = (k) => `<a href="${LANK[k].hash}" data-hash="${LANK[k].hash}">${LAN
 export const MATERIAL_FLIKAR = [
   {
     key: "plugga", label: "Plugga-områden", icon: "book", admin: false,
-    hint: `Här skapar och redigerar du arbetsområden med frågor, par och texter. Vilka områden en klass ser väljer du under ${lank("vadEleverna")}.`,
     rita: async (sub) => (await import("./teacher-content.js")).pageLarareInnehall(sub),
   },
   {
