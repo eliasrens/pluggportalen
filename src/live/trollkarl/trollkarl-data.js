@@ -23,7 +23,7 @@
 // ============================================================================
 
 import { formatScore } from "../live-core.js";
-import { resolveWizards, WIZARD_NAMES } from "./trollkarl-val.js";
+import { resolveWizards, wizardName } from "./trollkarl-val.js";
 
 export const FINALE_WAIT_MS = 4000;
 export const TENSION_MS = { high: 30_000, final: 10_000 };
@@ -43,18 +43,21 @@ export function duelData(st, finishedSeenMs = null, nowMs = null) {
   const classes = st?.classes || [];
   const anyScore = classes.some((c) => c.correct > 0);
   const leaderId = anyScore && st?.leaderIds?.length === 1 ? st.leaderIds[0] : null;
-  const sides = classes.slice(0, 2).map((c, i) => ({
-    classId: c.classId,
-    name: c.name,
-    who: wizards[c.classId] || (i ? "elias" : "rasmus"),
-    wizardName: WIZARD_NAMES[wizards[c.classId] || (i ? "elias" : "rasmus")],
-    side: i ? "right" : "left",
-    score: c.score,
-    scoreText: formatScore(c.score),
-    correct: c.correct,
-    divisor: c.divisor,
-    leading: c.classId === leaderId,
-  }));
+  const sides = classes.slice(0, 2).map((c, i) => {
+    const who = wizards[c.classId] || (i ? "elias" : "rasmus");
+    return {
+      classId: c.classId,
+      name: c.name,
+      who,
+      wizardName: wizardName(who),
+      side: i ? "right" : "left",
+      score: c.score,
+      scoreText: formatScore(c.score),
+      correct: c.correct,
+      divisor: c.divisor,
+      leading: c.classId === leaderId,
+    };
+  });
   const phase = st?.phase || "lobby";
   const msLeft = Number(st?.msLeft) || 0;
   const tension = phase !== "live" ? "" : msLeft <= TENSION_MS.final ? "final" : msLeft <= TENSION_MS.high ? "high" : "";

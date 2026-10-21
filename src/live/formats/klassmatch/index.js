@@ -51,7 +51,7 @@ const KLASSMATCH = {
     },
     {
       key: "wizards", kind: "custom", label: "🧙 Trollkarlsduellen", cls: "live-wizards",
-      hint: "projektorvy för två klasser – vem är Rasmus och vem är Elias? Kan bytas i lobbyn före start.",
+      hint: "projektorvy för två klasser – välj trollkarl (Rasmus, Elias eller Emre) för varje klass. Kan ändras i lobbyn före start.",
       load: () => import("./klassmatch-setup.js"),
     },
     durationField(),

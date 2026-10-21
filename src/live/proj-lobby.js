@@ -6,8 +6,9 @@
 // Vilken lärare som helst som öppnat sessionen kan starta – startLiveSession
 // är en transaktion, så två samtidiga tryck startar inte om klockan.
 //
-// Trollkarlsduellen (#536): i tvåklassmatcher visas vem som är Rasmus/Elias
-// och läraren kan byta (bara i lobbyn – sparas i sessionen, wizards).
+// Trollkarlsduellen (#536): i tvåklassmatcher visas varje klass trollkarl och
+// läraren kan välja ur registret (#818: Rasmus/Elias/Emre) eller byta – bara i
+// lobbyn, sparas i sessionen (wizards). Aldrig samma på båda (chooseWizard).
 //
 // API: createLobby(host, { st, colors, modeName, actions, say, readonly })
 //        → { update(st), destroy() }
@@ -20,7 +21,7 @@
 import { esc } from "../teacher-shared.js";
 import { coinIcon } from "../icons.js";
 import { prizeText } from "./formats/klassmatch/klassmatch-core.js";
-import { resolveWizards, swapWizards, WIZARD_NAMES } from "./trollkarl/trollkarl-val.js";
+import { chooseWizard, resolveWizards, swapWizards, wizardName, TROLLKARLAR } from "./trollkarl/trollkarl-val.js";
 
 const MAX_DOTS = 40;
 
@@ -46,7 +47,7 @@ export function createLobby(host, { st, colors, modeName, actions, say, readonly
       </div>`).join("")}
     </div>
     ${duel ? `<div class="lpl-tk">🧙 <span>Trollkarlsduellen:</span> <b data-tk></b>
-      ${readonly || !actions?.setWizards ? "" : `<button class="lp-btn" data-tk-swap title="Byt vilken klass som är Rasmus och Elias">⇄ Byt trollkarlar</button>`}</div>` : ""}
+      ${readonly || !actions?.setWizards ? "" : `<button class="lp-btn" data-tk-swap title="Byt trollkarlar mellan klasserna">⇄ Byt trollkarlar</button>`}</div>` : ""}
     <div class="lpl-meta">
       <span class="lpl-len">⏱ Matchtid: <b>${Math.round((s.durationSeconds || 0) / 60)} min</b></span>
       <span class="lpl-status"><i class="lpl-pulse"></i>Väntar på start</span>
@@ -61,19 +62,32 @@ export function createLobby(host, { st, colors, modeName, actions, say, readonly
   if (!readonly) wireControls(root, { actions, say });
   const tkText = root.querySelector("[data-tk]");
   const swapBtn = root.querySelector("[data-tk-swap]");
+  const canPick = !readonly && !!actions?.setWizards;
+  function saveWizards(next, ctrl) {
+    if (ctrl) ctrl.disabled = true;
+    actions.setWizards(next).then(() => say(""))
+      .catch((err) => say(`Kunde inte byta trollkarlar: ${err.message}`))
+      .finally(() => { if (ctrl) ctrl.disabled = false; });
+  }
   swapBtn?.addEventListener("click", () => {
     const map = resolveWizards(session);
-    if (!map) return;
-    swapBtn.disabled = true;
-    actions.setWizards(swapWizards(map)).then(() => say(""))
-      .catch((err) => say(`Kunde inte byta trollkarlar: ${err.message}`))
-      .finally(() => { swapBtn.disabled = false; });
+    if (map) saveWizards(swapWizards(map), swapBtn);
+  });
+  tkText?.addEventListener("change", (e) => {
+    const sel = e.target.closest("[data-tk-pick]");
+    const map = resolveWizards(session);
+    if (!sel || !map) return;
+    saveWizards(chooseWizard(map, sel.dataset.tkPick, sel.value), sel);
   });
   function drawWizards() {
     if (!tkText) return;
     const map = resolveWizards(session) || {};
-    tkText.innerHTML = st.classes.map((c) =>
-      `<span style="color:${colors[c.classId]}">${esc(c.name)}</span> = ${WIZARD_NAMES[map[c.classId]] || "?"}`).join(" · ");
+    tkText.innerHTML = st.classes.map((c) => {
+      const namn = `<span style="color:${colors[c.classId]}">${esc(c.name)}</span>`;
+      if (!canPick) return `${namn} = ${esc(wizardName(map[c.classId]))}`;
+      return `${namn} = <select class="lpl-tk-pick" data-tk-pick="${esc(c.classId)}" aria-label="Trollkarl för ${esc(c.name)}">${
+        TROLLKARLAR.map((t) => `<option value="${t.id}"${map[c.classId] === t.id ? " selected" : ""}>${esc(t.namn)}</option>`).join("")}</select>`;
+    }).join(" · ");
   }
 
   const cards = new Map();

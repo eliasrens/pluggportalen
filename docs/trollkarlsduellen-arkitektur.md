@@ -54,10 +54,18 @@ Analys enligt spec §18 + modulkarta + kontrakt för del C (attackmotor) och E
   vinnarfanfar hoppas över för sådana vyer.
 - **Lat laddning.** `projector.js` pekar bara på en loader som gör
   `import("./trollkarl/trollkarl-vy.js")`; inga filer i bootgrafen.
-- **Trollkarlsval** sparas i sessionen: `wizards: { classId: "rasmus" |
-  "elias" }` (bara tvåklassmatcher, alltid en av varje, ändras bara i
-  lobbyn – firestore.rules). Saknas/ogiltigt → klass 1 = Rasmus, klass 2 =
-  Elias. Väljs i "Skapa Live-match" och kan bytas i lobbyn.
+- **Trollkarlsval** sparas i sessionen: `wizards: { classId: <id> }` där id
+  kommer ur registret `TROLLKARLAR` i `trollkarl-val.js` (#818: `rasmus`,
+  `elias`, `emre`). Bara tvåklassmatcher, aldrig samma på båda, ändras bara i
+  lobbyn – firestore.rules (`liveWizardsOk`, samma id-lista). Saknas/ogiltigt →
+  klass 1 = Rasmus, klass 2 = Elias. Varje klass väljer i en lista i "Skapa
+  Live-match" och i lobbyn (`chooseWizard`: väljer man den andra klassens
+  trollkarl byter de), plus ⇄ Byt.
+- **Ny trollkarl:** rad i `TROLLKARLAR` + ansiktslager
+  `ref/<id>-{happy,angry,sad}.webp` (`admin/trollkarl-ansikten/`, README) +
+  `THEME`/`FACE` i `trollkarl-delar.js` + `data-who`-färger i `trollkarl.css`
+  + id:t i `liveWizardsOk` + gärna egna drag i `attack-figurer.js`. Testet
+  "Trollkarlsregistret" i `test/trollkarl-karna.test.js` larmar om något saknas.
 - **Omladdning spelar inget igen.** Första renderingen efter montering hoppar
   till nuvarande läge (inga gamla attacker). "Senast sedda attackindex" och
   "finalen visad" sparas i `sessionStorage` per session (per FÖNSTER – panel
@@ -67,7 +75,7 @@ Analys enligt spec §18 + modulkarta + kontrakt för del C (attackmotor) och E
 
 | Fil | Ansvar (spec §19) |
 |---|---|
-| `trollkarl-val.js` | Trollkarlsval: `WIZARDS`, namn, `resolveWizards`, `swapWizards` (ren) |
+| `trollkarl-val.js` | Trollkarlsregistret `TROLLKARLAR` + val: `WIZARDS`, `wizardName`, `resolveWizards`, `swapWizards`, `chooseWizard` (ren) |
 | `trollkarl-data.js` | **Matchdata**-adapter `duelData(st)` (ren) |
 | `trollkarl-magi.js` | **MagicSystem**: `magicState`, `createMagicTracker`, `attackSeed`, `seededRandom` (ren) |
 | `trollkarl-register.js` | Attack-/final-/ljudregister (C, D, E fyller) |
@@ -100,7 +108,7 @@ registerAttack({
 ```
 Lägg modulen i `trollkarl-innehall.js` (en importrad). `run` får:
 
-- `a.from`, `a.to`: `{ classId, who: "rasmus"|"elias", side: "left"|"right",
+- `a.from`, `a.to`: `{ classId, who: <trollkarls-id>, side: "left"|"right",
   wizard }` där `wizard` = `createWizard`-API:t (B).
 - `a.index` (klassens attacknummer 1, 2, 3 …), `a.seed` (uint32,
   deterministiskt ur session + klass + index), `a.rng()` (seedad 0–1).

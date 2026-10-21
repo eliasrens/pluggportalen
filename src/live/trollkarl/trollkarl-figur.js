@@ -1,5 +1,6 @@
 // ============================================================================
-// Trollkarlsduellen (#537): lagerriggade trollkarlsfigurer – Rasmus & Elias.
+// Trollkarlsduellen (#537): lagerriggade trollkarlsfigurer – Rasmus, Elias och
+// Emre (#818; alla i registret TROLLKARLAR, trollkarl-val.js).
 // Ansiktet är friskurna lager från referensbilderna (ref/*.webp, ett per
 // uttryck); kropp/mantel/hatt/armar/stav/hals ritas i kod (trollkarl-delar).
 // Varje kroppsdel är en egen <g> med pivot (transform-box:view-box) så poser
@@ -14,6 +15,7 @@
 import { VIEW, PIVOT, ANCHOR, THEME, FACE, bodySvg, capeSvg, legsSvg, neckSvg, collarSvg, armLSvg, armRSvg } from "./trollkarl-delar.js";
 import { POSES, PRIO, runPose } from "./trollkarl-poser.js";
 import { startIdleLoops, createEventScheduler } from "./trollkarl-idle.js";
+import { WIZARDS, wizardName } from "./trollkarl-val.js";
 
 const EXPRESSIONS = ["neutral", "happy", "angry", "sad", "surprised"];
 // Rasterlager finns för happy/angry/sad; neutral delar happy-lagret (det är
@@ -24,8 +26,9 @@ const BASE = new URL("./ref/", import.meta.url).href;
 let uid = 0;
 
 export function createWizard(host, { who = "rasmus", facing = "right", reducedMotion = false } = {}) {
-  const t = THEME[who] || THEME.rasmus;
-  const face = FACE[who] || FACE.rasmus;
+  if (!THEME[who] || !FACE[who]) who = "rasmus"; // okänt id → aldrig trasiga bildlänkar
+  const t = THEME[who];
+  const face = FACE[who];
   const id = "tkf" + ++uid;
 
   // Ansiktslagrets geometri: bilden (höjd 380) skalas till bredd 224 och
@@ -39,7 +42,7 @@ export function createWizard(host, { who = "rasmus", facing = "right", reducedMo
   svg.setAttribute("viewBox", `0 0 ${VIEW.w} ${VIEW.h}`);
   svg.setAttribute("class", "tkf tkf-" + who);
   svg.setAttribute("role", "img");
-  svg.setAttribute("aria-label", who === "rasmus" ? "Trollkarlen Rasmus" : "Trollkarlen Elias");
+  svg.setAttribute("aria-label", "Trollkarlen " + wizardName(who));
   svg.style.overflow = "visible";
 
   const fscale = FW / face.w;
@@ -248,7 +251,7 @@ export function createWizard(host, { who = "rasmus", facing = "right", reducedMo
 // Förladdning av ansiktslagren (anropas gärna före matchstart, §17).
 export function preloadWizardFaces() {
   const urls = [];
-  for (const who of ["rasmus", "elias"]) {
+  for (const who of WIZARDS) {
     for (const n of ["happy", "angry", "sad"]) urls.push(`${BASE}${who}-${n}.webp`);
   }
   return Promise.allSettled(urls.map((u) => new Promise((res, rej) => {

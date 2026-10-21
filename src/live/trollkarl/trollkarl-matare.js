@@ -2,7 +2,7 @@
 // Trollkarlsduellen (#536): MAGIMÄTAREN (spec §7.1/7.2) – lysande energivätska
 // som fylls mjukt (transform scaleX + transition), bubblor, gnistor som flyger
 // upp vid nya rätt, extra glöd nära full och en kraftig blixt när den slår
-// över (attack). Rasmus = eld/orange, Elias = is/blått (CSS via data-who).
+// över (attack). Rasmus = eld/orange, Elias = is/blått, Emre = grön (CSS via data-who).
 // Mätaren visar magipoäng (rätt % 100) – ALDRIG matchpoäng.
 //
 // API: createMeter(host, { who, side }) → {
