@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Meteorstormen ☄️ – motorn (#820)</title>
+    <style>
+      body { margin: 0; font: 14px/1.4 system-ui, sans-serif; background: #f4efe6; color: #2c2230; }
+      main { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 12px; padding: 12px; max-width: 1280px; margin: 0 auto; }
+      @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+      h1 { font-size: 18px; margin: 0 0 6px; }
+      .kort { background: #fff; border-radius: 12px; padding: 10px 12px; box-shadow: 0 2px 10px rgba(0,0,0,.08); margin-bottom: 10px; }
+      canvas { width: 100%; height: auto; border-radius: 12px; display: block; background: #0d1640; }
+      label { display: flex; gap: 6px; align-items: center; margin: 4px 0; flex-wrap: wrap; }
+      input[type=range] { flex: 1; min-width: 160px; }
+      input[type=number], input[type=text], select { width: 90px; font: inherit; }
+      button { font: inherit; padding: 4px 10px; border-radius: 8px; border: 1px solid #d8c9b0; background: #fbf5ea; cursor: pointer; }
+      #banderoll { min-height: 22px; font-weight: 700; color: #b5450b; }
+      table { border-collapse: collapse; width: 100%; font-size: 12px; }
+      td, th { border-bottom: 1px solid #eee; padding: 2px 4px; text-align: right; }
+      td:first-child, th:first-child { text-align: left; }
+      ul { margin: 4px 0; padding-left: 18px; font-size: 12px; }
+      code { font-size: 11px; word-break: break-all; }
+      .liten { font-size: 12px; color: #6a5d6e; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section>
+        <h1>☄️ Meteorstormen – motorn (debug, inget UI)</h1>
+        <div class="kort">
+          <label>Tid <input id="t" type="range" min="0" max="600000" step="100" value="0" /> <span id="tLabel"></span></label>
+          <label><button id="spela">▶︎ / ⏸</button> fart
+            <select id="fart"><option value="1">1×</option><option value="4">4×</option><option value="16" selected>16×</option><option value="60">60×</option></select>
+          </label>
+          <div id="banderoll"></div>
+        </div>
+        <canvas id="rymd" width="960" height="520"></canvas>
+        <div class="kort">
+          <table><thead><tr><th>Klass</th><th>Aktiva</th><th>Skrov</th><th>Sköld</th><th>Laser</th><th>Nedskjutna</th><th>Träffar</th><th>Kast</th></tr></thead><tbody id="tabell"></tbody></table>
+          <p class="liten">Resultat: <span id="resultat"></span><br>Fingeravtryck (tillståndet just nu): <code id="avtryck"></code></p>
+        </div>
+      </section>
+      <aside>
+        <div class="kort">
+          <b>Matchen</b>
+          <label>Frö <input id="seed" type="text" value="test" /></label>
+          <label>Läge <select id="lage"><option value="klass-mot-klass">Klass mot klass</option><option value="en-klass">En klass</option></select></label>
+          <label>Attacker <select id="attacker"><option value="milda">Milda</option><option value="vilda">Vilda</option><option value="av">Av</option></select></label>
+          <label>Speltid (min) <input id="tid" type="number" min="5" max="20" value="10" /></label>
+          <label>4B: elever <input id="elevA" type="number" min="1" max="40" value="25" /> % rätt <input id="rattA" type="number" min="0" max="100" value="80" /></label>
+          <label>4D: elever <input id="elevB" type="number" min="1" max="40" value="19" /> % rätt <input id="rattB" type="number" min="0" max="100" value="60" /></label>
+          <p class="liten" id="plan"></p>
+          <p class="liten">Steg <span id="steg"></span> · projektorns renderingsfördröjning <span id="fordrojning"></span></p>
+        </div>
+        <div class="kort">
+          <b>Samma frö</b>
+          <p><button id="samma-knapp">Kör två gånger</button></p>
+          <p class="liten" id="samma">Två nya motorer med samma indata (loggen i omvänd ordning andra gången) – fingeravtrycken ska vara identiska.</p>
+        </div>
+        <div class="kort">
+          <b>Skrov (skadenivåerna ritas i C)</b>
+          <label><input id="skrovPa" type="checkbox" /> styr skrovet</label>
+          <label><input id="skrov" type="range" min="0" max="100" step="1" value="100" /></label>
+          <p class="liten" id="skrovLabel"></p>
+        </div>
+        <div class="kort">
+          <b>Loggen (senaste)</b>
+          <ul id="logg"></ul>
+        </div>
+      </aside>
+    </main>
+    <script type="module" src="./meteorstorm-motor-preview.js"></script>
+  </body>
+</html>

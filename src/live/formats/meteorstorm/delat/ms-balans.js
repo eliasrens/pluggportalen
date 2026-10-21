@@ -162,6 +162,23 @@ export function normInstallningar(inst = {}) {
   return { lage, attacker };
 }
 
+/**
+ * Skadenivåerna (§4.1.1) – hur stationen ska se ut. Projektorn (C) ritar dem;
+ * motor-previewn visar dem med skrovreglaget.
+ */
+export const SKADENIVAER = [
+  { id: "hel", over: 75, text: "Hel och blank, alla fönster lyser" },
+  { id: "repor", over: 50, text: "Repor och små bucklor, lite rök från ett hörn" },
+  { id: "sprickor", over: 25, text: "Sprickor, gnistor, en panel hänger snett, röd lampa pulserar långsamt" },
+  { id: "rok", over: 0, text: "Mer rök, ett par fönster släckta, antennen böjd – mätaren orange" },
+  { id: "flyter", over: -Infinity, text: "Flyter i rymden: dämpat ljus, driver långsamt – går att försvara" },
+];
+
+/** Skadenivån för ett skrov: "hel" (100–76) … "rok" (25–>0), "flyter" (0). */
+export function skadeniva(skrov) {
+  return SKADENIVAER.find((n) => skrov > n.over);
+}
+
 /** Stjärnor i läget En klass för ett skrov (0–100). */
 export function stjarnorFor(skrov) {
   for (const [grans, n] of STJARNOR) if (skrov >= grans) return n;
