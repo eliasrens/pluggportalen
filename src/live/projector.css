@@ -255,11 +255,16 @@
   color: #fff;
   font: inherit;
 }
-/* Trollkarlsduellen (#536): vem är Rasmus/Elias – bara i tvåklassmatcher. */
+/* Trollkarlsduellen (#536): klassernas trollkarlar – bara i tvåklassmatcher.
+   #818: läraren väljer i en lista per klass (registret TROLLKARLAR). */
 .lpl-tk { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0.5em;
   font-size: clamp(16px, 2.6vh, 28px); font-weight: 700; }
 .lpl-tk > span { opacity: 0.8; font-weight: 600; }
 .lpl-tk b span { font-weight: 800; }
+.lpl-tk-pick { font: inherit; font-weight: 800; color: #fff; background: rgba(0, 0, 0, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.35); border-radius: 10px; padding: 0.05em 0.3em; cursor: pointer; }
+.lpl-tk-pick:focus-visible { outline: 3px solid #ffd23d; outline-offset: 2px; }
+.lpl-tk-pick option { color: #111; background: #fff; }
 .lpl-meta { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2vw; font-size: clamp(18px, 3vh, 32px); }
 .lpl-status {
   display: inline-flex;

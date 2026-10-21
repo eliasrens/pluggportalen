@@ -2,7 +2,8 @@
 // Trollkarlsduellen (#538): FÖRVANDLINGSFIGURER – groda, höna och potatis som
 // SVG-strängar för wizard.transform() (figurens viewBox 400 × 560, fötter vid
 // y≈540). Identiteten följer med (§8): Rasmus = svarta glasögon + skäggstubb,
-// Elias = guldglasögon + mustasch, och båda behåller sin lilla trollkarlshatt
+// Elias = guldglasögon + mustasch, Emre (#818) = kraftiga ögonbryn + mörkt
+// helskägg, och alla behåller sin lilla trollkarlshatt
 // i klassens färger (THEME). Rena stränghjälpare – ingen DOM.
 // ============================================================================
 
@@ -10,6 +11,12 @@ import { THEME } from "../trollkarl-delar.js";
 
 // Kännetecken centrerade kring ögonlinjen (0,0); skala via transform utifrån.
 function drag(who) {
+  if (who === "emre") {
+    return `
+      <path d="M-46 -22 Q-28 -34 -9 -24 M9 -24 Q28 -34 46 -22" stroke="#2a1c14" stroke-width="7" stroke-linecap="round" fill="none"/>
+      <path d="M-42 24 Q-38 64 0 72 Q38 64 42 24 Q30 38 14 33 Q0 28 -14 33 Q-30 38 -42 24Z" fill="#2a1c14"/>
+      <path d="M-14 46 Q0 52 14 46" stroke="#c9705e" stroke-width="4" stroke-linecap="round" fill="none"/>`;
+  }
   if (who === "elias") {
     return `
       <g stroke="#b8860b" stroke-width="5" fill="none">

@@ -51,11 +51,12 @@
         <button data-act="t35">35 s kvar</button>
         <button data-act="t10">10 s kvar</button>
         <button data-act="byt">Byt trollkarlar</button>
+        <label>A: <select data-wiz="0"></select></label>
+        <label>B: <select data-wiz="1"></select></label>
         <b>Slut</b>
         <button data-act="slut">Matchslut nu</button>
         <button data-act="oavgjort">Oavgjort</button>
-        <button data-act="vinn-rasmus">Rasmus vinner</button>
-        <button data-act="vinn-elias">Elias vinner</button>
+        <span data-vinn></span>
         <div class="pv-log" data-log></div>
       </div>
     </details>
@@ -65,7 +66,7 @@
       import {
         phaseAt, classStandings, decideWinner, topPlayers, buildResult, formatClock, buildSessionDoc,
       } from "../src/live/live-core.js";
-      import { swapWizards, resolveWizards } from "../src/live/trollkarl/trollkarl-val.js";
+      import { swapWizards, resolveWizards, chooseWizard, TROLLKARLAR } from "../src/live/trollkarl/trollkarl-val.js";
       import { listAttacks } from "../src/live/trollkarl/trollkarl-register.js";
       import { trollkarlDemo } from "../src/live/trollkarl/trollkarl-vy.js";
 
@@ -144,7 +145,7 @@
         async start() { await new Promise((r) => setTimeout(r, 250)); if (sim.session.status === "lobby") { sim.session.status = "live"; sim.session.startedAt = now(); } emit(true); },
         async finish() { finish(); },
         async setDivisor(sid, cid, n) { sim.session.classDivisors[cid] = Math.max(1, Math.floor(Number(n))); emit(true); },
-        async setWizards(sid, map) { await new Promise((r) => setTimeout(r, 150)); sim.session.wizards = { ...map }; log(`wizards = ${JSON.stringify(map)}`); emit(true); },
+        async setWizards(sid, map) { await new Promise((r) => setTimeout(r, 150)); sim.session.wizards = { ...map }; log(`wizards = ${JSON.stringify(map)}`); drawWizPanel(); emit(true); },
       };
       const ctx = { app: document.getElementById("app"), go: (h) => log(`navigera till ${h}`) };
       mountProjector(ctx, sim.session.id, { cleanups: [], uid: "demo", deps, screen: elev });
@@ -192,16 +193,38 @@
         },
         t35() { setLeft(35_000); },
         t10() { setLeft(10_000); },
-        byt() { sim.session.wizards = swapWizards(resolveWizards(sim.session)); log(`wizards = ${JSON.stringify(sim.session.wizards)}`); },
+        byt() { setWiz(swapWizards(resolveWizards(sim.session))); },
         slut() { finish(); },
         oavgjort() {
           const n = Math.max(...ids().map((c) => sim.correct[c]), 100);
           for (const c of ids()) { sim.session.classDivisors[c] = 20; sim.correct[c] = n; }
           finish();
         },
-        "vinn-rasmus"() { const m = resolveWizards(sim.session); leadBy(ids().find((c) => m[c] === "rasmus")); finish(); },
-        "vinn-elias"() { const m = resolveWizards(sim.session); leadBy(ids().find((c) => m[c] === "elias")); finish(); },
       };
+      // Trollkarlsregistret (#818): välj trollkarl per klass + "X vinner" för den som spelar.
+      // ?wiz=emre,elias sätter valet direkt (t.ex. för skärmdumpar).
+      const wizSel = [...document.querySelectorAll("[data-wiz]")];
+      const vinnBox = document.querySelector("[data-vinn]");
+      function drawWizPanel() {
+        const m = resolveWizards(sim.session);
+        wizSel.forEach((el) => { el.innerHTML = TROLLKARLAR.map((t) =>
+          `<option value="${t.id}"${m[ids()[Number(el.dataset.wiz)]] === t.id ? " selected" : ""}>${t.namn}</option>`).join(""); });
+        vinnBox.innerHTML = ids().map((c) => { const t = TROLLKARLAR.find((x) => x.id === m[c]);
+          return `<button data-vinn-cid="${c}">${t.namn} vinner</button>`; }).join(" ");
+      }
+      function setWiz(map) { sim.session.wizards = map; log(`wizards = ${JSON.stringify(map)}`); drawWizPanel(); emit(true); }
+      wizSel.forEach((el) => el.addEventListener("change", () =>
+        setWiz(chooseWizard(resolveWizards(sim.session), ids()[Number(el.dataset.wiz)], el.value))));
+      vinnBox.addEventListener("click", (e) => { const c = e.target.closest("[data-vinn-cid]")?.dataset.vinnCid; if (c) { leadBy(c); finish(); } });
+      const wizQ = new URLSearchParams(location.search).get("wiz");
+      if (wizQ && !elev) {
+        const [a, b] = wizQ.split(",");
+        let m = resolveWizards(sim.session);
+        m = chooseWizard(m, ids()[0], a);
+        m = chooseWizard(m, ids()[1], b);
+        sim.session.wizards = m;
+      }
+      drawWizPanel();
       document.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => {
         const a = b.dataset.act;
         const m = a.match(/^(plus10|full)-(\d)$/);

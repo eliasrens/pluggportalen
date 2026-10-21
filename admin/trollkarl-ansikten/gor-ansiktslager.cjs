@@ -24,7 +24,17 @@ const JOBS = {
     { name: "rasmus-angry", box: [548, 40, 440, 630] },
     { name: "rasmus-sad", box: [1058, 40, 450, 640] },
   ],
+  // Emre (#818): JPG 1882×836, panelskiljelinjer vid x≈615 och x≈1250.
+  "emre_3_bilder.jpg": [
+    { name: "emre-happy", box: [40, 0, 480, 640] },
+    { name: "emre-angry", box: [650, 0, 490, 650] },
+    { name: "emre-sad", box: [1285, 0, 490, 650] },
+  ],
 };
+// Valfritt filter: `node gor-ansiktslager.cjs emre` kör bara jobben vars
+// filnamn innehåller "emre" (övriga lager skrivs då inte om).
+// (require("process"): funktionen process() nedan skuggar den globala.)
+const ONLY = (require("process").argv[2] || "").toLowerCase();
 
 const FLOOD_WHITE = 232;   // flood-fill-tröskel (sänkt från 238)
 const POCKET_WHITE = 218;  // "nästan vit" som tas bort nära bakgrunden
@@ -157,6 +167,11 @@ const JAW = {
   "rasmus-happy": [[0,302],[35,316],[70,342],[100,360],[135,368],[170,360],[200,340],[228,312],[250,296],[267,288]],
   "rasmus-angry": [[0,310],[35,324],[70,352],[100,364],[135,372],[170,364],[200,348],[228,320],[250,300],[265,292]],
   "rasmus-sad":   [[0,308],[35,330],[70,358],[110,378],[160,378],[200,360],[228,330],[250,312],[267,300]],
+  // Emre (#818): helskägg som Rasmus → manuella linjer längs skäggets underkant
+  // (~4 px in), ovanför zip-tröjans krage vid sidorna.
+  "emre-happy": [[0,264],[45,262],[66,258],[82,283],[100,303],[122,321],[145,333],[165,335],[185,328],[205,316],[220,303],[232,291],[240,278],[248,258],[262,245],[285,240]],
+  "emre-angry": [[0,252],[50,250],[70,248],[82,277],[97,301],[112,313],[135,328],[152,336],[167,338],[185,333],[202,321],[220,306],[230,291],[237,272],[243,250],[255,242],[286,236]],
+  "emre-sad":   [[0,278],[50,276],[88,276],[96,280],[110,302],[122,312],[145,327],[165,334],[185,334],[205,327],[225,314],[240,302],[250,284],[256,262],[264,248],[286,242]],
   "elias-happy":  [[0,246],[20,262],[50,304],[240,310],[265,300]],
   "elias-angry":  [[0,270],[30,278],[245,285],[265,270]],
   "elias-sad":    [[0,278],[33,282],[238,300],[265,285]],
@@ -165,6 +180,10 @@ const JAW = {
 // konturens tjocklek. Manuella JAW-punkter används bara där hud saknas (håret
 // vid sidorna). Rasmus skägg täcker hakan, där räcker de manuella linjerna.
 const AUTO_FACE = { "elias-happy": 1, "elias-angry": 1, "elias-sad": 1 };
+// Toningsbredd (px) under manuella linjer, standard 12. Emre: halsen under
+// skägget är ljus hud direkt under en skarp kontur → kort toning, annars syns
+// ett orange dis under hakan mot den mörka arenan.
+const JAW_FADE = { "emre-happy": 6, "emre-angry": 6, "emre-sad": 6 };
 
 function autoFaceLine(data, w, h, pts) {
   const line = new Float64Array(w).fill(-1);
@@ -207,7 +226,7 @@ function jawY(pts, x) {
 function applyJawMask(data, w, h, name) {
   const pts = JAW[name];
   if (!pts) return;
-  const FADE = AUTO_FACE[name] ? 4 : 12;
+  const FADE = AUTO_FACE[name] ? 4 : JAW_FADE[name] || 12;
   const auto = AUTO_FACE[name] ? autoFaceLine(data, w, h, pts) : null;
   for (let x = 0; x < w; x++) {
     const yl = auto ? auto[x] : jawY(pts, x);
@@ -233,6 +252,7 @@ function applyJawMask(data, w, h, name) {
 
 (async () => {
   for (const [file, panels] of Object.entries(JOBS)) {
+    if (ONLY && !file.toLowerCase().includes(ONLY)) continue;
     const { data, W, H } = await process(file);
     const base = sharp(data, { raw: { width: W, height: H, channels: 4 } });
     for (const p of panels) {

@@ -8,12 +8,15 @@ visar (ett per uttryck och trollkarl).
 ```bash
 cd admin/trollkarl-ansikten
 npm install          # hämtar sharp (enda beroendet)
-node gor-ansiktslager.cjs
+node gor-ansiktslager.cjs          # alla trollkarlar
+node gor-ansiktslager.cjs emre     # bara jobb vars källfil innehåller "emre"
 ```
 
-- **Indata:** `src/live/trollkarl/ref/Elias_3_bilder.png` och
-  `src/live/trollkarl/ref/rasmus_3_bilder.png` (3 paneler: glad/arg/ledsen).
-- **Utdata:** `src/live/trollkarl/ref/{elias,rasmus}-{happy,angry,sad}.webp`
+- **Indata:** `src/live/trollkarl/ref/Elias_3_bilder.png`,
+  `src/live/trollkarl/ref/rasmus_3_bilder.png` och
+  `src/live/trollkarl/ref/emre_3_bilder.jpg` (#818; 3 paneler: glad/arg/ledsen).
+  JPG fungerar lika bra som PNG.
+- **Utdata:** `src/live/trollkarl/ref/{elias,rasmus,emre}-{happy,angry,sad}.webp`
   (~20–32 KB st, max 380 px, skrivs över).
 
 ## Vad skriptet gör
@@ -28,17 +31,23 @@ node gor-ansiktslager.cjs
    - **Elias:** linjen AUTO-SPÅRAS ur bilden (understa hudpixeln per kolumn
      + 6 px kontur, median+box-utjämning). `JAW`-punkterna används bara vid
      hårsidorna där hud saknas.
-   - **Rasmus:** enbart manuella `JAW`-polylinjer – skägget täcker hakan så
-     hudspårning fungerar inte där.
+   - **Rasmus och Emre:** enbart manuella `JAW`-polylinjer – skägget täcker
+     hakan så hudspårning fungerar inte där. Emre har kortare toning
+     (`JAW_FADE` 6 px): halsen under skägget är ljus hud, med 12 px syns ett
+     orange dis under hakan.
 6. Ljusa lågkroma-rester längs hela silhuetten dämpas; därefter behålls bara
    den största sammanhängande ytan (annars svävar frånkopplade tröjfragment).
 7. WebP-export med `alphaQuality: 100` (lossless alfa – annars bandning).
 
 ## Fallgropar (lärda den hårda vägen)
 
+- Skriptets funktion heter `process` och skuggar den globala – CLI-argument
+  läses via `require("process").argv`.
 - Fade-faktorn MÅSTE klampas ≤ 1: `Math.round(alpha * 1.04)` wrappar förbi
   255 i en Uint8Array → prickad linje längs masken.
 - Hattarna är borttagna ur grundfiguren; lagren ska visa HELA håret.
-- Nya uttryck: lägg till panelbox i `JOBS`, Rasmus behöver även en
-  `JAW`-polylinje; verifiera mot mörk bakgrund i preview/preview-trollkarl-figurer.html
+- Nya uttryck/trollkarlar: lägg till panelboxar i `JOBS` (håll dem fria
+  från panelernas skiljelinjer), skäggiga behöver även `JAW`-polylinjer.
+  Rita linjerna i slutskala: kör först utan `JAW`-rad, zooma in hakan med
+  ett rutnät och lägg linjen ~2 px ovanför skäggets svarta underkontur; verifiera mot mörk bakgrund i preview/preview-trollkarl-figurer.html
   (2× zoom på hår + haka).

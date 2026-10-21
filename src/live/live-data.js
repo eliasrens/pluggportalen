@@ -18,7 +18,7 @@
 //   deleteLiveSession(sid)              → radera en session som inte startat
 //                                         (+ lobbyns spelardokument (#543) och
 //                                         formatets privateDocs)
-//   setLiveWizards(sid, wizards)        → Trollkarlsduellen: { classId: "rasmus"|"elias" }
+//   setLiveWizards(sid, wizards)        → Trollkarlsduellen: { classId: trollkarls-id } (TROLLKARLAR)
 //                                         (bara i lobbyn – reglerna, #536)
 //   finishLiveSession(sid)              → avsluta nu (lärarens knapp) / avbryt lobby
 //   writeResultIfMissing(sid, result)   → historikens ögonblicksbild (en gång)
@@ -153,7 +153,7 @@ export async function deleteLiveSession(sid) {
   }
 }
 
-/** Trollkarlsduellen (#536): vem som är Rasmus/Elias. Reglerna: bara i lobbyn, en av varje. */
+/** Trollkarlsduellen (#536): klassernas trollkarlar. Reglerna: bara i lobbyn, aldrig samma på båda. */
 export async function setLiveWizards(sid, wizards) {
   await updateDoc(sessRef(sid), { wizards: { ...wizards } });
 }

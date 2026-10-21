@@ -195,7 +195,7 @@ export function buildSessionFields(input) {
   const out = { classDivisors, counterShards: LIVE_COUNTER_SHARDS };
   const prize = parsePrize(input.coinPrize);
   if (Number.isInteger(prize) && prize > 0) out.coinPrize = prize;
-  // Trollkarlsduellen (#536): vem som är Rasmus/Elias – bara klass mot klass.
+  // Trollkarlsduellen (#536, #818): klassernas trollkarlar – bara klass mot klass.
   if (classIds.length === 2) {
     out.wizards = validWizards(input.wizards, classIds) ? { ...input.wizards } : defaultWizards(classIds);
   }
