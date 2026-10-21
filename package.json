@@ -12,6 +12,7 @@
     "sync:guldrush": "node admin/sync-guldrush-functions.mjs",
     "sync:kistspel": "node admin/sync-guldrush-functions.mjs",
     "sync:datakuppen": "node admin/sync-guldrush-functions.mjs",
+    "sync:meteorstorm": "node admin/sync-guldrush-functions.mjs",
     "sync:hitta-ratt": "node admin/sync-hitta-ratt-functions.mjs",
     "sync:brakresan": "node admin/sync-brakresan-functions.mjs",
     "sync:schack": "node admin/sync-schack-functions.mjs",
