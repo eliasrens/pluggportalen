@@ -1,8 +1,8 @@
 // ============================================================================
 // Meteorstormen (#820): TESTARENS sviter – cachen mot en färsk motor (fuzz),
 // spegelvänd storm med 3–4 stationer, regelkanter och kanAgera mot motorn.
-// Ren node, ingen emulator. Kända fel är markerade { todo } med F-nummer
-// (se testarens rapport på issue #820) så att sviten är grön tills de rättas.
+// Ren node, ingen emulator. Testerna märkta F1–F3 fångade fel i cachen och
+// ordningen (testarens rapport på issue #820) – rättade, nu vanliga tester.
 // ============================================================================
 
 import { describe, it } from "node:test";
@@ -40,9 +40,7 @@ function skur(r, nasta, t0, n, varaktighetMs = M5) {
 }
 
 describe("Meteorstormen (testare) – cachen ger samma svar som en färsk motor", () => {
-  it("F1: sen handling efter en tillbakaspolning – gamla kontrollpunkter återanvänds inte", {
-    todo: "F1: satHandlingar/laggTill rensar inte kontrollpunkter efter den nya handlingens tid när den inte spolar tillbaka",
-  }, () => {
+  it("F1: sen handling efter en tillbakaspolning – gamla kontrollpunkter återanvänds inte", () => {
     const c = bas({ stationer: [{ classId: "A", aktiva: 25 }], installningar: { lage: "en-klass" } });
     const sköld = Array.from({ length: 200 }, (_, i) => ({ id: `s${String(i).padStart(4, "0")}`, t: START + 20_000, classId: "A", typ: "skold", uid: "u" }));
     simulera({ ...c, handlingar: [] }, START + 60_000); // kontrollpunkter 5 s … 60 s utan handlingar
@@ -52,9 +50,7 @@ describe("Meteorstormen (testare) – cachen ger samma svar som en färsk motor"
     assert.equal(fel.stationer[0].skold, farsk(c, sköld, START + 25_000).stationer[0].skold);
   });
 
-  it("F1: projektormönstret (nu och nu − 1,5 s varannan gång, handlingar ~1 s sena)", {
-    todo: "F1",
-  }, () => {
+  it("F1: projektormönstret (nu och nu − 1,5 s varannan gång, handlingar ~1 s sena)", () => {
     const c = bas();
     const m = skapaMotor(c);
     let h = [];
@@ -69,9 +65,7 @@ describe("Meteorstormen (testare) – cachen ger samma svar som en färsk motor"
     assert.equal(fel, 0);
   });
 
-  it("F1: fuzz – slumpade loggändringar och tider fram och tillbaka (satHandlingar, simulera, laggTill)", {
-    todo: "F1",
-  }, () => {
+  it("F1: fuzz – slumpade loggändringar och tider fram och tillbaka (satHandlingar, simulera, laggTill)", () => {
     const fel = [];
     for (let run = 0; run < 45; run++) {
       const r = skapaPrng(`fuzz-${run}`, "test");
@@ -116,9 +110,7 @@ describe("Meteorstormen (testare) – cachen ger samma svar som en färsk motor"
 });
 
 describe("Meteorstormen (testare) – indata", () => {
-  it("F2: handlingar med samma t och samma (eller saknat) id – utfallet beror på indataordningen", {
-    todo: "F2: jamforHandling har ingen sista nyckel (uid/typ) – servern måste alltid ge unika id",
-  }, () => {
+  it("F2: handlingar med samma t och samma (eller saknat) id – utfallet beror på indataordningen", () => {
     const a = { t: START + 5000, classId: "A", typ: "laser", uid: "anna" };
     const b = { t: START + 5000, classId: "A", typ: "laser", uid: "bo" };
     const c = bas({ stationer: [{ classId: "A", aktiva: 25 }], installningar: { lage: "en-klass" } });
@@ -127,9 +119,7 @@ describe("Meteorstormen (testare) – indata", () => {
     assert.deepEqual(farsk(c, [...x, ...y], START + M5).bidrag, farsk(c, [...y, ...x], START + M5).bidrag);
   });
 
-  it("F3: en handling som byts ut på plats i samma lista (samma längd) syns inte", {
-    todo: "F3: satHandlingar hoppar över när lista === senasteLista och längden är densamma",
-  }, () => {
+  it("F3: en handling som byts ut på plats i samma lista (samma längd) syns inte", () => {
     const c = bas();
     const h = [{ id: "a", t: START + 5000, classId: "A", typ: "skold", uid: "u" }];
     simulera({ ...c, handlingar: h }, START + 10_000);

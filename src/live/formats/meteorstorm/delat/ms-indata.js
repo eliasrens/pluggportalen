@@ -4,7 +4,7 @@
 //
 //   normCfg(cfg)                     → { seed, startMs, varaktighetMs, stationer, installningar }
 //   cfgNyckel(cfg)                   → sträng – samma nyckel = samma motor (cachen)
-//   jamforHandling(a, b)             → ordningen: t, sedan id (strängjämförelse)
+//   jamforHandling(a, b)             → ordningen: t, id, sedan klass/typ/uid/mål (strängjämförelse)
 //   normHandlingar(lista, index)     → giltiga handlingar, sorterade, med stationsindex i
 //   sammaHandling(a, b)              → true om två normaliserade handlingar är lika
 // ============================================================================
@@ -27,8 +27,11 @@ export function normCfg(cfg) {
 
 export const cfgNyckel = (c) => JSON.stringify([typeof c.seed, c.seed, c.startMs, c.varaktighetMs, c.stationer, c.installningar]);
 
+const jmf = (x, y) => (x < y ? -1 : x > y ? 1 : 0);
+
+/** t, sedan id – och vid samma id: klass, typ, uid, mål, så att ordningen aldrig beror på indata. */
 export function jamforHandling(a, b) {
-  return a.t - b.t || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+  return a.t - b.t || jmf(a.id, b.id) || jmf(a.classId, b.classId) || jmf(a.typ, b.typ) || jmf(a.uid, b.uid) || jmf(a.mal, b.mal);
 }
 
 export function normHandlingar(lista, stationIndex) {

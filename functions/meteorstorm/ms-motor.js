@@ -96,8 +96,6 @@ export function skapaMotor(cfgIn) {
   const handelseStart = new Map(plan.handelser.map((h) => [h.startMs, h]));
 
   let handlingar = [];
-  let senasteLista = null;
-  let senasteLangd = -1;
   let S = { n: 0, h: 0, p: 0, st: cfg.stationer.map(nyStation), met: [], logg: [], bidrag: {} };
   let kontroll = [klonaTillstand(S)];
 
@@ -262,24 +260,34 @@ export function skapaMotor(cfgIn) {
   }
 
   /**
-   * Byt hela loggen. Spolar tillbaka (till senaste kontrollpunkt före ändringen)
-   * bara om en handling som redan tillämpats ändrats, eller om en ny handling
-   * har en tid före det redan beräknade.
+   * Släpp kontrollpunkter som inte längre stämmer med loggen: de som tillämpat
+   * fler än de maxH första (oförändrade) handlingarna, eller som ligger efter
+   * relGrans (en ny handling med den tiden hade redan tillämpats där).
+   */
+  function rensaKontroll(maxH, relGrans) {
+    let j = kontroll.length - 1;
+    while (j > 0 && (kontroll[j].h > maxH || kontroll[j].n * STEG_MS > relGrans)) j--;
+    kontroll.length = j + 1;
+  }
+
+  /**
+   * Byt hela loggen (ge gärna en ny array – samma array jämförs ändå i sin
+   * helhet). Ogiltiga kontrollpunkter släpps alltid; tillståndet spolas
+   * tillbaka bara om en redan tillämpad handling ändrats eller om en ny
+   * handling har en tid före det redan beräknade.
    */
   function satHandlingar(lista) {
-    if (lista === senasteLista && Array.isArray(lista) && lista.length === senasteLangd) return;
-    senasteLista = lista;
-    senasteLangd = Array.isArray(lista) ? lista.length : 0;
     const ny = normHandlingar(lista, stationIndex);
     let k = 0;
     const max = Math.min(ny.length, handlingar.length);
     while (k < max && sammaHandling(ny[k], handlingar[k])) k++;
+    if (k === ny.length && k === handlingar.length) return;
     handlingar = ny;
     const relNy = k < ny.length ? ny[k].t - cfg.startMs : Infinity;
+    rensaKontroll(k, relNy);
     if (k >= S.h && relNy >= S.n * STEG_MS) return;
     let j = kontroll.length - 1;
-    while (j > 0 && (kontroll[j].h > k || kontroll[j].n * STEG_MS > relNy || kontroll[j].n > S.n)) j--;
-    kontroll.length = j + 1;
+    while (j > 0 && kontroll[j].n > S.n) j--;
     aterstall(kontroll[j]);
   }
 
@@ -290,7 +298,7 @@ export function skapaMotor(cfgIn) {
     const sist = handlingar[handlingar.length - 1];
     if ((!sist || jamforHandling(sist, n) <= 0) && n.t - cfg.startMs >= S.n * STEG_MS) {
       handlingar.push(n);
-      senasteLista = null;
+      rensaKontroll(handlingar.length, n.t - cfg.startMs);
       return;
     }
     satHandlingar([...handlingar, n]);

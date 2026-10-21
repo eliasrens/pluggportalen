@@ -68,7 +68,10 @@ rendering).
 stegar vidare från senaste tid. Bara om loggen ändrats *före* den redan beräknade
 tiden spolas den tillbaka till närmaste kontrollpunkt (var 5:e s). En hel match
 med 4000 handlingar tar några ms i node. `skapaMotor(cfg)` ger samma motor direkt
-(`tillstand(tMs)`, `satHandlingar(lista)`, `laggTill(h)`).
+(`tillstand(tMs)`, `satHandlingar(lista)`, `laggTill(h)`). Loggen jämförs alltid
+i sin helhet, så det går bra att ändra i samma array. Kontrollpunkter som inte
+längre stämmer med loggen släpps varje gång (#820 F1). Två handlingar med
+samma `t` och `id` ordnas på klass, typ, uid och mål (#820 F2).
 
 **Determinism:** samma indata → identiskt resultat, oavsett ordning på
 handlingarna i listan. All räkning sker i heltal (tusendelar), så node och
@@ -247,7 +250,11 @@ Simulerade klasser med 25 elever, där varje elev svarar en fråga per ~8 s
 - Att blanda slår ren sköld och ren laser tydligt.
 - Per elev håller: 19 och 25 elever ger samma utfall.
 - I Klass mot klass vinner 60 % mot 70 % i ~31–35 % av matcherna, så målet
-  ≥ 25 % nås.
+  ≥ 25 % nås. **Balansfråga till Elias:** målet nås även när båda spelar
+  **naivt** (30 %), och "smart" ger bara ~+2 procentenheter. Upsetchansen kommer
+  alltså från att dragstrålen gör matchen slumpigare (16 % utan dragstråle),
+  inte från smart spel. Ska smart spel löna sig mer behöver dragstrålen ett
+  tydligare "rätt tillfälle", t.ex. att bara mellan/stora går att fånga.
 - **Dragstrålen är mycket stark mot en klass som aldrig använder den:** 60 % som
   drar vinner alltid mot 70 % som inte drar. Den byter skada åt båda håll, och
   med en gles storm är var tredje meteor en möjlig fångst. Det är en fråga för
