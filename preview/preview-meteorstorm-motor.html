@@ -27,7 +27,7 @@
   <body>
     <main>
       <section>
-        <h1>☄️ Meteorstormen – motorn (debug, inget UI)</h1>
+        <h1>☄️ Meteorstormen – motorn + projektorns ritning</h1>
         <div class="kort">
           <label>Tid <input id="t" type="range" min="0" max="600000" step="100" value="0" /> <span id="tLabel"></span></label>
           <label><button id="spela">▶︎ / ⏸</button> fart
@@ -35,7 +35,7 @@
           </label>
           <div id="banderoll"></div>
         </div>
-        <canvas id="rymd" width="960" height="520"></canvas>
+        <canvas id="rymd" width="1600" height="900"></canvas>
         <div class="kort">
           <table><thead><tr><th>Klass</th><th>Aktiva</th><th>Skrov</th><th>Sköld</th><th>Laser</th><th>Nedskjutna</th><th>Träffar</th><th>Kast</th></tr></thead><tbody id="tabell"></tbody></table>
           <p class="liten">Resultat: <span id="resultat"></span><br>Fingeravtryck (tillståndet just nu): <code id="avtryck"></code></p>
@@ -59,7 +59,7 @@
           <p class="liten" id="samma">Två nya motorer med samma indata (loggen i omvänd ordning andra gången) – fingeravtrycken ska vara identiska.</p>
         </div>
         <div class="kort">
-          <b>Skrov (skadenivåerna ritas i C)</b>
+          <b>Skrov – skadenivåerna (alla stationer)</b>
           <label><input id="skrovPa" type="checkbox" /> styr skrovet</label>
           <label><input id="skrov" type="range" min="0" max="100" step="1" value="100" /></label>
           <p class="liten" id="skrovLabel"></p>
