@@ -343,6 +343,10 @@ och **ingen skrivning**. Klienten buffrar det.
   publik) kommer inte förbi en snabb människas takt – men ~5× en snittelev (8 s)
   går fortfarande (testat i `functions-meteorstorm-fusk-2`). En fel-länk kräver
   dessutom `MS_FEL_LANK_MS` (25 s) sedan förra länken.
+  **Rest (testaren omgång 3):** en elev med skript kommer upp i ~441 länkar
+  (= skrivningar) på 10 min (41 i hinken + 600 s / 1,5 s), mot ~46 för en
+  snittelev. Två sådana elever i samma match ger ~2 463 + 2 × ~395 ≈ 3 250
+  skrivningar – över taket 3 000 (se frågan i §9).
 
 **Spärrar och säkerhet**
 - Energin: 1 per rätt (Solstorm ×2, Kometsvans +1 via `energiEffekt`), tak 5
@@ -560,15 +564,28 @@ läses loggen och sessionen en gång per instans → ~15 000.
 > stället för att läsa om hela loggen (−2 300, men resultatet hänger då på att
 > minnet är komplett), (2) `maxInstances: 1` (minnet alltid varmt – men taket blir
 > 80 samtidiga anrop för alla stormar på en gång).
+>
+> ❓ **Fråga till Elias (skrivningar och skript):** takten (§7.1, `MS_K_TAKT_MS`
+> 1,5 s) håller en elev som skriver egna anrop till en snabb människas takt,
+> ~441 skrivningar per 10 min. Två sådana elever i en match tar den över
+> 3 000 skrivningar (~3 250). Godtar vi det (kräver att eleven skriver ett
+> skript mot callable-API:t), eller ska takten skärpas – t.ex. 2,5 s per fråga
+> (~280 per elev), vilket då också bromsar de allra snabbaste ärliga eleverna?
 
 ---
 
 ## 10. Deploy
 
 Del A deployar ingenting själv. Från B (#821), i den här ordningen:
+**firestore:indexes → (vänta på READY) → rules → functions → webb.**
 
 0. **`firebase deploy --only firestore:indexes`** – `msEvents (uid ↑, nr ↓)` (#821 N4,
-   `msLage` och omsynk). Bygget tar några minuter – vänta tills det är klart.
+   `msLage` och omsynk). Indexet måste vara **READY** (Firebase-konsolen →
+   Firestore → Index, eller `gcloud firestore indexes composite list`) innan
+   functions deployas: utan det misslyckas `senaste()` med `FAILED_PRECONDITION`,
+   som eleven ser som "internal" (msLage, och msAgera när klientens `nr` inte
+   stämmer). ⚠️ Emulatorn kräver inga sammansatta index – testerna fångar inte
+   ett saknat index.
 1. **`firebase deploy --only firestore:rules`** – regelgrenen "Meteorstormen"
    (msFormat, ms-samlingarna, kvittot mot `msPlayers`). Utan den nekas varje
    Meteorstorm-session; den rör inga andra format.
