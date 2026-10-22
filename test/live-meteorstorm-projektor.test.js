@@ -107,45 +107,43 @@ describe("Meteorstormen projektorn: renderingsklockan går aldrig bakåt", () =>
   });
 });
 
-describe("Meteorstormen projektorn: anpassad renderingsbuffert (#822 F1)", () => {
-  it("börjar på RENDER_FORDROJNING_MS (3 s), växer till ≈ p95 + marginal, aldrig över taket, krymper aldrig", async () => {
-    const { skapaBuffert, BUFFERT_MAX_MS, BUFFERT_MARGINAL_MS } = await import("../src/live/formats/meteorstorm/msp-buffert.js");
-    assert.equal(RENDER_FORDROJNING_MS, 3000);
-    const b = skapaBuffert();
-    assert.equal(b.varde(), 3000);
-    for (let i = 0; i < 50; i++) b.matt(800 + (i % 10) * 50); // snabbt nät: ryms i basen
-    assert.equal(b.varde(), 3000);
-    for (let i = 0; i < 100; i++) b.matt(4000 + (i % 20) * 100); // long-poll 4–6 s
-    const vuxen = b.varde();
-    assert.ok(vuxen >= 5800 + BUFFERT_MARGINAL_MS - 1 && vuxen <= BUFFERT_MAX_MS, `buffert ${vuxen}`);
-    for (let i = 0; i < 400; i++) b.matt(200); // nätet blir bra igen – bufferten står kvar
-    assert.equal(b.varde(), vuxen);
-    b.matt(60_000);
-    for (let i = 0; i < 20; i++) b.matt(30_000);
-    assert.equal(b.varde(), BUFFERT_MAX_MS);
-    assert.deepEqual(Object.keys(b.stat()), ["buffertMs", "n", "median", "p95", "max"]);
+describe("Meteorstormen projektorn: konstant buffert, sen händelse ändrar aldrig det som visats (#822 F1)", () => {
+  it("bufferten är konstant 2 s", () => {
+    assert.equal(RENDER_FORDROJNING_MS, 2000);
+    assert.equal(FORDROJNING_MS, 2000);
   });
-  it("när bufferten växer saktar klockan in (fart ≥ 0,8) – t går aldrig bakåt, inga ryck", async () => {
-    const { skapaBuffert } = await import("../src/live/formats/meteorstorm/msp-buffert.js");
-    const b = skapaBuffert();
-    let nu = 1_000_000;
+  it("en händelse som kommer efter att dess tid visats stämplas om till 'från nu' – visade rutor oförändrade, t monoton", async () => {
+    const { skapaSenvakt } = await import("../src/live/formats/meteorstorm/msp-senvakt.js");
+    const s = session();
+    const alla = events(260);
+    const sen = alla.filter((e, i) => i % 9 === 4 && e.typ !== "fel"); // dessa kommer för sent
+    const iTid = alla.filter((e) => !sen.includes(e));
+    const vakt = skapaSenvakt();
+    const m = skapaMotor(motorIndata(s));
+    m.satHandlingar(vakt.las(iTid.filter((e) => e.t < T0 + 20_000), null, T0)); // historiken
     let t = null;
-    let minFart = Infinity;
-    for (let i = 0; i < 6000; i++) {
-      const dt = 16 + (i % 3);
-      nu += dt;
-      if (i % 40 === 0) b.matt(i < 2000 ? 2500 : 4000 + (i % 7) * 500); // leveranserna blir sämre efter en stund
-      const ny = stegaKlocka(t, nu - b.varde(), dt);
-      if (t != null) {
-        assert.ok(ny >= t, `steg ${i}: t bakåt`);
-        minFart = Math.min(minFart, (ny - t) / dt);
-        assert.ok(ny - t <= dt * 1.0801, `steg ${i}: för snabbt`);
-      }
+    let nu = T0 + 20_000;
+    const visade = [];
+    const kvar = [...iTid.filter((e) => e.t >= T0 + 20_000), ...sen].sort((a, b) => a.t - b.t);
+    let lev = iTid.filter((e) => e.t < T0 + 20_000);
+    for (let ram = 0; ram < 9000; ram++) {
+      nu += 16;
+      // i tid: levereras 0,5 s efter t; de sena: 6 s efter t (mer än bufferten)
+      const nya = kvar.filter((e) => !lev.includes(e) && nu >= e.t + (sen.includes(e) ? 6000 : 500));
+      if (nya.length) { lev = [...lev, ...nya]; m.satHandlingar(vakt.las(lev, t, nu)); }
+      const ny = stegaKlocka(t, nu - FORDROJNING_MS, 16);
+      if (t != null) assert.ok(ny >= t, `ram ${ram}: t bakåt`);
       t = ny;
+      if (ram % 50 === 0) visade.push([t, JSON.stringify(m.tillstand(t).stationer)]);
     }
-    assert.ok(minFart >= 0.8 - 1e-9, `fart ${minFart}`);
-    assert.ok(minFart < 0.95, "bufferten växte och klockan saktade in");
-    assert.ok(Math.abs(nu - b.varde() - t) < 300, "ikapp den nya bufferten");
+    const levSena = sen.filter((e) => lev.includes(e)).length;
+    // (de som kom innan första rutan visats behöver ingen omstämpling)
+    assert.ok(vakt.stat().sena > 10 && vakt.stat().sena <= levSena, `omstämplade ${vakt.stat().sena} av ${levSena}`);
+    for (const [tv, bild] of visade) assert.equal(JSON.stringify(m.tillstand(tv).stationer), bild, `ruta vid ${tv - T0} ändrades i efterhand`);
+    // utan vakten (händelserna med sin riktiga tid) hade det förflutna ändrats
+    const facit = skapaMotor(motorIndata(s));
+    facit.satHandlingar(handlingarUr(lev));
+    assert.ok(visade.some(([tv, bild]) => JSON.stringify(facit.tillstand(tv).stationer) !== bild), "testet saknar sena händelser som syns");
   });
 });
 

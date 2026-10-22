@@ -2,14 +2,13 @@
 // Meteorstormen – projektorns huvudvy "☄️ Rymden" (#822, spec §4). Vyn är
 // också slutet (finale): stationerna, slutrutan och fyrverkerierna.
 //
-// RENDERINGSBUFFERTEN (Elias 2026-10-21, #822 F1): vyn ritar motorns tillstånd
-// för t = nu − buffert (nu = server-korrigerad klocka, deps.now()). Bufferten
-// börjar på RENDER_FORDROJNING_MS (3 s) och växer – aldrig krymper – med de
-// uppmätta leveranstiderna (msp-buffert.js, tak 8 s). t följer målet mjukt
-// (saktar in till ≥ 0,8 när bufferten växer) och går aldrig bakåt (stegaKlocka).
-// Allt som ritas är en funktion av (sessionen, händelseloggen, fröet, t) – två
-// lärare som öppnar projektorn för samma session får samma bild (§4.4) så länge
-// händelserna når båda inom bufferten. Slutet: t stannar vid
+// RENDERINGSBUFFERTEN (Elias 2026-10-21): vyn ritar motorns tillstånd för
+// t = nu − RENDER_FORDROJNING_MS (2 s, KONSTANT; nu = server-korrigerad klocka,
+// deps.now()). t följer målet mjukt och går aldrig bakåt (stegaKlocka). Allt som
+// ritas är en funktion av (sessionen, händelseloggen, fröet, t) – två lärare som
+// öppnar projektorn för samma session får samma bild (§4.4) när händelserna når
+// båda inom bufferten. En händelse som kommer senare ändrar aldrig det som redan
+// visats: msp-senvakt.js stämplar om den till "från nu" (#822 F1). Slutet: t stannar vid
 // stormens slut (lärarens avslut eller 00:00); animationerna fortsätter.
 //
 // DATA (kvoten, docs/METEORSTORMEN.md §9): EN lyssnare på msEvents (watchEvents),
@@ -24,8 +23,8 @@
 // API: createRymden(host, { st, colors, sound, actions, screen, deps }) → { update, destroy }
 //   globalThis.__mspProjektor (felsökning/QA): { t(), frys(t|null), avtryck(),
 //   avtryckVid(t), fps(), nollstall(), stat() } – två projektorer jämförs med
-//   avtryckVid(t) (samma t → samma pixlar); stat(): sena handlingar, bakåt-steg,
-//   leverans { buffertMs, n, median, p95, max }.
+//   avtryckVid(t) (samma t → samma pixlar); stat(): sena (omstämplade) handlingar,
+//   bakåt-steg, leverans { buffertMs, n, median, p95, max }.
 // ============================================================================
 
 import { skapaMotor } from "./delat/ms-motor.js";
@@ -37,7 +36,7 @@ import {
   W, H, FORDROJNING_MS, platser, motorIndata, slutVid, handlingarUr, stegaKlocka, skapaLoggminne, flodeVid, banderollVid,
 } from "./msp-scen.js";
 import { skapaBild } from "./msp-bild.js";
-import { skapaBuffert } from "./msp-buffert.js";
+import { skapaSenvakt } from "./msp-senvakt.js";
 import { createHud } from "./msp-hud.js";
 import { slutModell, slutHtml } from "./msp-slut.js";
 import { createMsLjud } from "./msp-ljud.js";
@@ -118,22 +117,12 @@ export function createRymden(host, { st, colors = {}, sound = null, screen = fal
 
   // --- händelseloggen: EN lyssnare ------------------------------------------------
   let unsub = () => {};
-  const buffert = skapaBuffert();
-  const kanda = new Set();
-  let forsta = true; // första ögonblicksbilden = historiken: varken leveranstid eller sen
-  let sena = 0; // handlingar som kom efter att deras tid redan ritats (QA: renderingsbufferten)
+  const senvakt = skapaSenvakt();
+  let harLogg = false; // inget ritas förrän historiken kommit (annars "ändras" de första rutorna)
   const onEvents = (events) => {
-    const ankom = now();
-    for (const e of events) {
-      if (!e?.id || kanda.has(e.id)) continue;
-      kanda.add(e.id);
-      if (e.uid && e.namn) namn.set(e.uid, String(e.namn));
-      if (forsta || !Number.isFinite(e.t)) continue;
-      buffert.matt(ankom - e.t);
-      if (e.typ !== "fel" && tAnim != null && e.t < tAnim - 100) sena++;
-    }
-    forsta = false;
-    handlingar = handlingarUr(events);
+    for (const e of events) if (e?.uid && e.namn) namn.set(e.uid, String(e.namn));
+    handlingar = senvakt.las(events, tAnim, now());
+    harLogg = true;
     motor?.satHandlingar(handlingar);
   };
   const onErr = (e) => say(`Händelserna: ${e?.message || e}`);
@@ -178,13 +167,13 @@ export function createRymden(host, { st, colors = {}, sound = null, screen = fal
 
   function ram1(nu) {
     raf = requestAnimationFrame(ram1);
-    if (!motor || !cfg) return;
+    if (!motor || !cfg || !harLogg) return;
     const dt = senastRam ? nu - senastRam : 16;
     senastRam = nu;
     ramtider.push(dt);
     if (ramtider.length > 300) ramtider.shift();
     const fore = tAnim;
-    tAnim = frys ?? stegaKlocka(tAnim, now() - buffert.varde(), dt);
+    tAnim = frys ?? stegaKlocka(tAnim, now() - FORDROJNING_MS, dt);
     if (fore != null && frys == null) {
       if (tAnim < fore) bakat++;
       if (dt <= 100) ryck = Math.max(ryck, Math.abs(tAnim - fore - dt)); // en hängd sida räknas inte som ryck
@@ -262,7 +251,10 @@ export function createRymden(host, { st, colors = {}, sound = null, screen = fal
       };
     },
     nollstall() { ramtider.length = 0; rittider.length = 0; ryck = 0; },
-    stat: () => ({ handlingar: handlingar.length, sena, bakat, ryckMs: +ryck.toFixed(1), fordrojning: FORDROJNING_MS, leverans: buffert.stat() }),
+    stat() {
+      const { sena, ...leverans } = senvakt.stat();
+      return { handlingar: handlingar.length, sena, bakat, ryckMs: +ryck.toFixed(1), fordrojning: FORDROJNING_MS, leverans: { buffertMs: FORDROJNING_MS, ...leverans } };
+    },
   };
   globalThis.__mspProjektor = api;
 
