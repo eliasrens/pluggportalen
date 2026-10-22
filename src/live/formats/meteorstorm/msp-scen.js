@@ -30,18 +30,13 @@
 
 import { RENDER_FORDROJNING_MS, KAST_FLYGTID_MS, HANDLINGAR, STORLEKAR } from "./delat/ms-balans.js";
 import { hashFro } from "./delat/ms-prng.js";
+import { toMs } from "../../live-time.js";
 
 export const W = 1600;
 export const H = 900;
 export const FORDROJNING_MS = RENDER_FORDROJNING_MS;
 
-const ms = (v) => {
-  if (v == null) return null;
-  if (typeof v === "number") return v;
-  if (typeof v.toMillis === "function") return v.toMillis();
-  if (typeof v.seconds === "number") return v.seconds * 1000 + Math.floor((v.nanoseconds || 0) / 1e6);
-  return null;
-};
+const ms = toMs;
 
 /** Motorns indata ur sessionen (docs/METEORSTORMEN.md §8.1). */
 export function motorIndata(s) {

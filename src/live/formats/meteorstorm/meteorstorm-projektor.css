@@ -1,0 +1,122 @@
+/* ==========================================================================
+   Meteorstormen – projektorn (#822). Egna klasser (msp-), inga delade.
+   Scenen är en 16:9-ram (.msp-ram) i projektorns yta; --msp-u = 1 logisk
+   pixel (ramens bredd / 1600) så text och mätare skalar med bilden.
+   Textlagret sätts ur tillståndet vid t (inga övergångar som beror på när
+   en projektor råkade rita) – två projektorer visar samma sak.
+   Ingen blinkning: allt som pulserar gör det långsamt (≥ 2 s), inga vita ytor
+   som tänds. prefers-reduced-motion: inga glidningar eller pulser.
+   ========================================================================== */
+
+.msp {
+  position: absolute; inset: 0; display: grid; place-items: center; overflow: hidden;
+  background: #070c2b; color: #eef3ff; font-family: "Baloo 2", system-ui, sans-serif;
+  --msp-u: 1px;
+}
+.msp-ram { position: relative; width: 100%; height: 100%; }
+.msp-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.msp-hud { position: absolute; inset: 0; pointer-events: none; }
+.msp-hud[hidden] { display: none; }
+
+/* --- överst: klockan + banderollen --------------------------------------- */
+.msp-topp { position: absolute; top: calc(var(--msp-u) * 14); left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: calc(var(--msp-u) * 8); width: calc(var(--msp-u) * 900); }
+.msp-klocka { display: flex; align-items: baseline; gap: calc(var(--msp-u) * 8); padding: calc(var(--msp-u) * 2) calc(var(--msp-u) * 22);
+  border-radius: calc(var(--msp-u) * 18); background: rgba(10, 16, 52, .72); border: calc(var(--msp-u) * 2) solid rgba(160, 200, 255, .35); }
+.msp-klocka b { font-size: calc(var(--msp-u) * 54); font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.msp-klocka span { font-size: calc(var(--msp-u) * 20); opacity: .8; }
+.msp-klocka.msp-slutet b { color: #ffcf5a; }
+.msp-band { display: flex; align-items: center; gap: calc(var(--msp-u) * 14); padding: calc(var(--msp-u) * 8) calc(var(--msp-u) * 26);
+  border-radius: 999px; font-size: calc(var(--msp-u) * 30); font-weight: 800; color: #1d1736;
+  background: linear-gradient(180deg, #ffe08a, #ffbf47); box-shadow: 0 calc(var(--msp-u) * 6) calc(var(--msp-u) * 24) rgba(0, 0, 0, .35); }
+.msp-band[hidden] { display: none; }
+.msp-band[data-typ="jattemeteor"] { background: linear-gradient(180deg, #ffb08a, #ff7a4d); }
+.msp-band[data-typ="lugnet"] { background: linear-gradient(180deg, #b9d8ff, #86b4ff); }
+.msp-band[data-typ="kometsvans"] { background: linear-gradient(180deg, #e6c8ff, #c49bff); }
+.msp-band b { font-variant-numeric: tabular-nums; min-width: 2.4em; text-align: right; }
+
+/* --- stationernas skyltar ------------------------------------------------- */
+.msp-stn { position: absolute; transform: translate(-50%, -100%); width: calc(var(--msp-u) * 330);
+  display: flex; flex-direction: column; align-items: center; gap: calc(var(--msp-u) * 5); }
+.msp-stn-namn { font-size: calc(var(--msp-u) * 40); font-weight: 800; line-height: 1; color: var(--msp-k);
+  text-shadow: 0 calc(var(--msp-u) * 3) 0 rgba(10, 14, 40, .9); }
+.msp-mat { position: relative; width: 100%; height: calc(var(--msp-u) * 26); border-radius: 999px; overflow: hidden;
+  background: rgba(10, 16, 52, .78); border: calc(var(--msp-u) * 2) solid rgba(200, 220, 255, .35); }
+.msp-mat i { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: inherit; }
+.msp-mat span { position: relative; display: block; text-align: center; font-size: calc(var(--msp-u) * 17); font-weight: 700;
+  line-height: calc(var(--msp-u) * 23); text-shadow: 0 1px 2px rgba(0, 0, 0, .7); }
+.msp-mat-skrov i { background: linear-gradient(90deg, #3ccf7a, #8ef0a8); }
+.msp-mat-skold i { background: linear-gradient(90deg, #4aa8ff, #9fdcff); }
+.msp-mat-skold.msp-full { box-shadow: 0 0 calc(var(--msp-u) * 14) rgba(150, 220, 255, .55); }
+.msp-varning .msp-mat-skrov i { background: linear-gradient(90deg, #ff8a2b, #ffb15c); }
+.msp-varning .msp-mat-skrov span, .msp-varning .msp-stn-rad { color: #ffb15c; }
+.msp-stn-rad { display: flex; gap: calc(var(--msp-u) * 16); font-size: calc(var(--msp-u) * 18); font-weight: 700; opacity: .92; }
+.msp-hjalp { padding: calc(var(--msp-u) * 3) calc(var(--msp-u) * 14); border-radius: 999px; font-size: calc(var(--msp-u) * 20); font-weight: 800;
+  background: rgba(255, 207, 90, .92); color: #2a1f05; }
+.msp-hjalp[hidden] { display: none; }
+
+/* --- flödet (högst 4 rader, bara det som är bra) ------------------------- */
+.msp-flode { position: absolute; left: 50%; bottom: calc(var(--msp-u) * 14); transform: translateX(-50%);
+  width: calc(var(--msp-u) * 760); margin: 0; padding: 0; list-style: none;
+  display: flex; flex-direction: column; gap: calc(var(--msp-u) * 6); height: calc(var(--msp-u) * 4 * 46); justify-content: flex-end; }
+.msp-rad { display: flex; align-items: center; gap: calc(var(--msp-u) * 10); padding: calc(var(--msp-u) * 4) calc(var(--msp-u) * 16);
+  border-radius: calc(var(--msp-u) * 14); background: rgba(12, 18, 58, .78); font-size: calc(var(--msp-u) * 24); font-weight: 700;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; }
+.msp-rad-text { overflow: hidden; text-overflow: ellipsis; }
+.msp-rad-stor { background: rgba(80, 52, 140, .85); }
+
+/* --- kontrollerna, vänta, slutet ------------------------------------------ */
+.msp-kontroll { position: absolute; left: calc(var(--msp-u) * 14); bottom: calc(var(--msp-u) * 14); opacity: .55; transition: opacity .3s; }
+.msp-kontroll:hover, .msp-kontroll:focus-within { opacity: 1; }
+.msp-kontroll[hidden] { display: none; }
+.msp-vanta { position: absolute; left: 50%; top: 66%; transform: translateX(-50%); padding: calc(var(--msp-u) * 14) calc(var(--msp-u) * 30);
+  border-radius: calc(var(--msp-u) * 20); background: rgba(10, 16, 52, .85); font-size: calc(var(--msp-u) * 34); font-weight: 800; white-space: nowrap; }
+.msp-vanta[hidden] { display: none; }
+.msp-slut { position: absolute; left: 0; right: 0; bottom: calc(var(--msp-u) * 22); display: flex; justify-content: center; }
+.msp-slut[hidden] { display: none; }
+.msp-slutruta { width: calc(var(--msp-u) * 1240); text-align: center; animation: msp-in .7s cubic-bezier(.2, .8, .3, 1); }
+.msp-slutruta h2 { margin: 0; font-size: calc(var(--msp-u) * 62); font-weight: 800; line-height: 1.05; text-shadow: 0 calc(var(--msp-u) * 4) 0 rgba(10, 14, 40, .8); }
+.msp-slut-under { margin: calc(var(--msp-u) * 4) 0 calc(var(--msp-u) * 14); font-size: calc(var(--msp-u) * 26); opacity: .9; }
+.msp-slutkorten { display: flex; justify-content: center; gap: calc(var(--msp-u) * 26); }
+.msp-slutkort { flex: 0 1 calc(var(--msp-u) * 560); padding: calc(var(--msp-u) * 14) calc(var(--msp-u) * 22); text-align: left;
+  border-radius: calc(var(--msp-u) * 24); background: rgba(12, 18, 58, .86); border: calc(var(--msp-u) * 4) solid var(--msp-k); }
+.msp-slutkort.msp-vann { box-shadow: 0 0 calc(var(--msp-u) * 30) color-mix(in srgb, var(--msp-k) 55%, transparent); }
+.msp-slutkort h3 { margin: 0 0 calc(var(--msp-u) * 6); font-size: calc(var(--msp-u) * 38); color: var(--msp-k); line-height: 1.1; }
+.msp-slut-tal { display: inline-flex; align-items: baseline; gap: calc(var(--msp-u) * 8); margin-right: calc(var(--msp-u) * 26); }
+.msp-slut-tal b { font-size: calc(var(--msp-u) * 40); font-weight: 800; }
+.msp-slut-tal span { font-size: calc(var(--msp-u) * 20); opacity: .85; }
+.msp-snall { margin: calc(var(--msp-u) * 6) 0 0; font-size: calc(var(--msp-u) * 22); font-weight: 700; color: #ffe08a; }
+.msp-ogon { margin: calc(var(--msp-u) * 8) 0 0; padding: 0; list-style: none; font-size: calc(var(--msp-u) * 21); line-height: 1.35; }
+.msp-stjarnor { font-size: calc(var(--msp-u) * 84); line-height: 1; letter-spacing: .08em; color: rgba(255, 255, 255, .2); }
+.msp-stjarnor .msp-pa { color: #ffd166; text-shadow: 0 0 calc(var(--msp-u) * 18) rgba(255, 209, 102, .55); }
+
+/* --- lobbyn --------------------------------------------------------------- */
+.msp-lobbyruta { position: absolute; left: 50%; bottom: calc(var(--msp-u) * 26); transform: translateX(-50%);
+  width: calc(var(--msp-u) * 1240); text-align: center; display: flex; flex-direction: column; align-items: center; gap: calc(var(--msp-u) * 8); }
+.msp-logga { font-size: calc(var(--msp-u) * 30); font-weight: 800; letter-spacing: .12em; color: #ffd166; }
+.msp-lobbytitel { margin: 0; font-size: calc(var(--msp-u) * 64); font-weight: 800; line-height: 1.05; text-shadow: 0 calc(var(--msp-u) * 4) 0 rgba(10, 14, 40, .8); }
+.msp-mot { font-style: normal; font-size: .55em; opacity: .8; margin: 0 .5em; }
+.msp-lobbymeta, .msp-lobbypris { font-size: calc(var(--msp-u) * 22); opacity: .9; }
+.msp-lobbyklasser { display: flex; gap: calc(var(--msp-u) * 24); }
+.msp-lobbyklass { min-width: calc(var(--msp-u) * 300); padding: calc(var(--msp-u) * 8) calc(var(--msp-u) * 18); border-radius: calc(var(--msp-u) * 18);
+  background: rgba(12, 18, 58, .8); border: calc(var(--msp-u) * 3) solid var(--msp-k); display: flex; flex-direction: column; align-items: center; }
+.msp-lobbyklass b { font-size: calc(var(--msp-u) * 30); color: var(--msp-k); line-height: 1.1; }
+.msp-lobbyklass span { font-size: calc(var(--msp-u) * 22); }
+.msp-lobbyklass span i { font-style: normal; font-weight: 800; font-size: 1.3em; }
+.msp-prickar { display: flex; flex-wrap: wrap; justify-content: center; gap: calc(var(--msp-u) * 4); max-width: calc(var(--msp-u) * 300); min-height: calc(var(--msp-u) * 10); }
+.msp-prickar i { width: calc(var(--msp-u) * 10); height: calc(var(--msp-u) * 10); border-radius: 50%; background: var(--msp-k); }
+.msp-lobbystatus { display: flex; align-items: center; gap: calc(var(--msp-u) * 10); font-size: calc(var(--msp-u) * 22); }
+.msp-puls { width: calc(var(--msp-u) * 12); height: calc(var(--msp-u) * 12); border-radius: 50%; background: #8ef0a8; animation: msp-puls 2.4s ease-in-out infinite; }
+.msp-start { pointer-events: auto; font: inherit; font-size: calc(var(--msp-u) * 38); font-weight: 800; color: #1d1736; cursor: pointer;
+  padding: calc(var(--msp-u) * 10) calc(var(--msp-u) * 46); border: 0; border-radius: 999px; background: linear-gradient(180deg, #ffe08a, #ffbf47);
+  box-shadow: 0 calc(var(--msp-u) * 6) 0 #c98a1c; }
+.msp-start:disabled { opacity: .7; cursor: default; }
+.msp-lobbyfot { display: flex; gap: calc(var(--msp-u) * 16); align-items: center; font-size: calc(var(--msp-u) * 19); opacity: .85; }
+
+@keyframes msp-in { from { opacity: 0; transform: translateY(calc(var(--msp-u) * -12)) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes msp-puls { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .msp-slutruta { animation: none; }
+  .msp-puls { animation: none; opacity: 1; }
+}
