@@ -18,7 +18,7 @@
 //
 // API: createRymden(host, { st, colors, sound, actions, screen, deps }) → { update, destroy }
 //   globalThis.__mspProjektor (felsökning/QA): { t(), frys(t|null), avtryck(),
-//   fps(), stat() } – två projektorer jämförs med frys(t) + avtryck().
+//   fps(), nollstall(), stat() } – två projektorer jämförs med frys(t) + avtryck().
 // ============================================================================
 
 import { skapaMotor } from "./delat/ms-motor.js";
@@ -83,6 +83,7 @@ export function createRymden(host, { st, colors = {}, sound = null, screen = fal
   let sedd = 0; // loggposter som redan gett ljud
   let slutVisad = "";
   const ramtider = [];
+  const rittider = []; // JS-tid per bildruta (motorn + ritningen)
 
   function byggMotor() {
     const c = motorIndata(s);
@@ -169,7 +170,10 @@ export function createRymden(host, { st, colors = {}, sound = null, screen = fal
     ramtider.push(dt);
     if (ramtider.length > 300) ramtider.shift();
     tAnim = frys ?? stegaKlocka(tAnim, now() - FORDROJNING_MS, dt);
+    const t0 = performance.now();
     const { tillstand, m, tM, klar, fas } = ritaVid(tAnim);
+    rittider.push(performance.now() - t0);
+    if (rittider.length > 300) rittider.shift();
     // ljud för NYA loggposter (inte vid montering eller efter en tillbakaspolning)
     const logg = tillstand.logg;
     if (sedd === Infinity) sedd = logg.length;
@@ -223,10 +227,18 @@ export function createRymden(host, { st, colors = {}, sound = null, screen = fal
       return { t: tAnim, px: [canvas.width, canvas.height], hash: h.toString(16), tillstand: hashFro(JSON.stringify(motor.tillstand(Math.min(tAnim, slutVid(s) ?? tAnim)).stationer)).toString(16) };
     },
     fps() {
-      const l = [...ramtider].sort((a, b) => a - b);
-      const medel = l.reduce((a, b) => a + b, 0) / (l.length || 1);
-      return { fps: Math.round(1000 / medel), medelMs: +medel.toFixed(2), p95Ms: +(l[Math.floor(l.length * 0.95)] || 0).toFixed(2), ramar: l.length };
+      const stat = (lista) => {
+        const l = [...lista].sort((a, b) => a - b);
+        return { medel: l.reduce((a, b) => a + b, 0) / (l.length || 1), p95: l[Math.floor(l.length * 0.95)] || 0, max: l[l.length - 1] || 0 };
+      };
+      const r = stat(ramtider);
+      const j = stat(rittider);
+      return {
+        fps: Math.round(1000 / r.medel), medelMs: +r.medel.toFixed(2), p95Ms: +r.p95.toFixed(2), ramar: ramtider.length,
+        ritaMedelMs: +j.medel.toFixed(2), ritaP95Ms: +j.p95.toFixed(2), ritaMaxMs: +j.max.toFixed(2), px: [canvas.width, canvas.height],
+      };
     },
+    nollstall() { ramtider.length = 0; rittider.length = 0; },
     stat: () => ({ handelser: handlingar.length, cfg, fordrojning: FORDROJNING_MS }),
   };
   globalThis.__mspProjektor = api;
