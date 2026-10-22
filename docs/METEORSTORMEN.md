@@ -333,6 +333,16 @@ och **ingen skrivning**. Klienten buffrar det.
   `failed-precondition` med `details.omsynk` (klienten frågar `msLage` och
   börjar om efter senaste länken). Ett k före länken med samma `attemptId` är
   ett omförsök → samma svar (`igen`, #821 F4); med nytt id nekas det.
+- **Takten** (#821 N2/N3): högst en fråga per `MS_K_TAKT_MS` (1,5 s) i längden.
+  Länken bär en "hink" `kRum` som fylls med en fråga per 1,5 s upp till
+  `MS_K_RUM` (41 – en hel felbuffert ryms alltid) och töms med k-steget (svaret
+  + de överhoppade). Elevens första länk börjar på
+  `min(41, tid sedan start / 1,5 s + MS_K_START)`. Tom hink →
+  `resource-exhausted` med `details.vantaMs`. En snabb elev (ett svar varannan
+  sekund) märker den aldrig; ett skript som räknar ut `multFor` (koden är
+  publik) kommer inte förbi en snabb människas takt – men ~5× en snittelev (8 s)
+  går fortfarande (testat i `functions-meteorstorm-fusk-2`). En fel-länk kräver
+  dessutom `MS_FEL_LANK_MS` (25 s) sedan förra länken.
 
 **Spärrar och säkerhet**
 - Energin: 1 per rätt (Solstorm ×2, Kometsvans +1 via `energiEffekt`), tak 5
@@ -365,7 +375,9 @@ priset för att fel svar aldrig skrivs.
 
 ### 7.3 `msLage({ sid })` → `{ nr, energi, k, status }`
 
-Elevens läge efter en omladdning (läser elevens egna händelser).
+Elevens läge efter en omladdning: EN läsning (#821 N4 – frågan `uid ==` +
+`orderBy(nr desc) limit 1`, sammansatt index `msEvents (uid ↑, nr ↓)` i
+`firestore.indexes.json`). Samma uppslag när klientens `nr` inte stämmer.
 
 ### 7.4 `msAvsluta({ sid })` → `{ result, redan }`
 
@@ -403,6 +415,10 @@ obesvarad fråga visas igen i stället för att hoppas över (annars saknas dess
 svaret och bufferten ligga kvar – samma `agera` igen ger samma `attemptId`.
 Bufferten töms på `attemptId` (inte de första N), så ett fel-anrop som korsar
 ett `agera` tappar inget (#821 F7). `details.omsynk` → `lage()` och börja om.
+**D anropar `lage()` när elevskärmen monteras.** `lage()` sätter nästa k =
+serverns senaste k + 1 och behåller bara den del av bufferten som är en obruten
+följd därifrån – ett rätt svar som väntade på handling när sidan laddades om
+delas då ut igen i stället för att bli ett hål (#821 N1).
 Status: `skapaStatusvakt(sid, cb)` – `vakt.fran(r.status)` efter varje svar,
 och bara när inget kommit på 20 s en läsning av `msPublic/status`.
 
@@ -551,6 +567,8 @@ läses loggen och sessionen en gång per instans → ~15 000.
 
 Del A deployar ingenting själv. Från B (#821), i den här ordningen:
 
+0. **`firebase deploy --only firestore:indexes`** – `msEvents (uid ↑, nr ↓)` (#821 N4,
+   `msLage` och omsynk). Bygget tar några minuter – vänta tills det är klart.
 1. **`firebase deploy --only firestore:rules`** – regelgrenen "Meteorstormen"
    (msFormat, ms-samlingarna, kvittot mot `msPlayers`). Utan den nekas varje
    Meteorstorm-session; den rör inga andra format.
@@ -558,4 +576,4 @@ Del A deployar ingenting själv. Från B (#821), i den här ordningen:
    – predeploy synkar `delat/` → `functions/meteorstorm/` (`npm run sync:meteorstorm`).
 3. **Webben** (C/D registrerar formatet – först då syns det för lärarna).
 
-Inga index behövs (frågorna är enkelfälts: `t`, `at`, `uid`).
+Övriga frågor är enkelfälts (`t`, `at`, `uid` + `attemptId`).
