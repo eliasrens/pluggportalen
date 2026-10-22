@@ -14,6 +14,9 @@
 // API (historyRenderer-kontraktet, teacher-live-history.js)
 //   winnerText(s, result) · detailHtml(s, result) · ownPlayerTable
 //   playerCounts(s, result) · classStats · classSummaryHtml(entries, classId)
+//   settle(s, deps?)  → Promise – klasspokalerna och Live-priset till klasskassan
+//                     (idempotenta) när läraren (admin) öppnar matchen: täcker
+//                     matcher där en elevs msAvsluta skrev result (#823 G1)
 //   + utfallText(s, result, classId), stationerHtml, handlingarHtml, eleverHtml,
 //     fragorHtml (exporterade för testerna)
 // ============================================================================
@@ -165,6 +168,25 @@ export function detailHtml(s, result) {
 }
 
 export const ownPlayerTable = true;
+
+/**
+ * Klasscentret om ingen lärarflik fanns vid slutet (#823 G1): pokalerna och
+ * Live-priset är idempotenta (deterministiska id) – samma anrop som
+ * live-data.js writeResultIfMissing. Klassbonusen (inte idempotent) delas
+ * inte ut här. Bara admin skriver klasscentret (#678). Aldrig kastande.
+ */
+export async function settle(s, deps = null) {
+  if (!s?.id || !s.result || s.status !== "finished" || s.demo === true) return;
+  try {
+    const admin = deps?.admin || (await import("../../../auth.js")).isAdmin;
+    if (!admin()) return;
+    const m = deps?.klass ? await deps.klass() : await import("../../../klasscenter/kc-koppling.js");
+    await m.pokalerEfterAvslut("live", s.id, s);
+    await m.livePrisEfterAvslut(s.id, s);
+  } catch (err) {
+    console.warn("[meteorstorm] klasscentret i historiken hoppades över", s.id, err?.code || err);
+  }
+}
 
 export function playerCounts(_s, result) {
   return counts(result);

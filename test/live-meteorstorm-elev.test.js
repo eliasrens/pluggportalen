@@ -456,4 +456,27 @@ describe("historiken och Statistik → Live (meteorstorm-history.js)", () => {
     assert.deepEqual(pc.get(row.uid), { correct: row.correct, incorrect: row.answered - row.correct });
     assert.equal(H.ownPlayerTable, true);
   });
+  it("#823 G1: settle(s) delar ut pokalerna och kassapriset (idempotenta) – aldrig klassbonusen, bara admin, aldrig demo/utan result", async () => {
+    const rigg = (admin = true) => {
+      const anrop = [];
+      const deps = { admin: () => admin, klass: async () => ({
+        liveKlassBonus: async () => anrop.push(["bonus"]),
+        pokalerEfterAvslut: async (kalla, id, doc) => anrop.push(["pokaler", kalla, id, doc.result === R]),
+        livePrisEfterAvslut: async (id, doc) => anrop.push(["pris", id, doc.result === R]),
+      }) };
+      return { anrop, deps };
+    };
+    const klar = { ...S, demo: false, status: "finished", result: R };
+    let r = rigg();
+    await H.settle(klar, r.deps);
+    assert.deepEqual(r.anrop, [["pokaler", "live", S.id, true], ["pris", S.id, true]]);
+    for (const [s, admin] of [[klar, false], [{ ...klar, demo: true }, true], [{ ...klar, result: null }, true], [{ ...klar, status: "live" }, true]]) {
+      r = rigg(admin);
+      await H.settle(s, r.deps);
+      assert.deepEqual(r.anrop, []);
+    }
+    r = rigg();
+    r.deps.klass = async () => { throw new Error("laddning"); };
+    await H.settle(klar, r.deps); // kastar inte
+  });
 });

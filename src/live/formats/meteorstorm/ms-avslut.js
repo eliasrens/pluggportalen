@@ -25,7 +25,8 @@
 // result (svarets redan === false, servern avgör i en transaktion), som
 // kärnans "klienten vars transaktion skrev result". ⚠️ Skrev en elevs
 // msAvsluta result (projektorn stängd vid slutet) blir det ingen klassbonus –
-// pokalerna och priset kommer ändå när läraren öppnar matchen i historiken.
+// pokalerna och priset delas ändå ut av historikens settle (meteorstorm-history.js)
+// när en admin öppnar matchen. Bara klassbonusen kan gå förlorad.
 //
 // API
 //   buildResult(s, classes, players, mode, extra?) → extra.result | ett tomt

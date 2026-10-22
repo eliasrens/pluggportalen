@@ -639,8 +639,9 @@ och betalar därför inte – projektorn (C) som själv anropar `avsluta` ska an
 Klasscentret (#823 F2) som i `live-data.js` (bara admin, aldrig demo):
 klasspokalerna och Live-priset till klasskassan (idempotenta) efter varje
 `msAvsluta`; klassbonusen (inte idempotent) bara när svaret är `redan: false`
-(anropet som skrev `result`). Skrev en elevs anrop `result` blir det ingen
-klassbonus.
+(anropet som skrev `result`). Skrev en elevs anrop `result` (projektorn stängd)
+delar historikens `settle(s)` ut pokalerna och priset när en admin öppnar
+matchen – bara klassbonusen går då förlorad.
 
 **Historiken** (`meteorstorm-history.js`): vinnare/stjärnor, stationerna (skrov,
 nedskjutna, träffar, kastade, bästa ögonblicken), handlingar per sort och klass,
