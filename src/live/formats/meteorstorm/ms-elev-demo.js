@@ -210,7 +210,8 @@ export function createMsElevDemo({
     }
     const perClass = Object.fromEntries(slut.stationer.map((x) => [x.classId, {
       name: classNames[x.classId], players: ranking.filter((p) => p.classId === x.classId && p.answered).length, aktiva: x.aktiva,
-      skrov: x.skrov, skold: x.skold, nedskjutna: x.nedskjutna, traffar: x.traffar, kastade: x.kastade, handlingar: x.handlingar,
+      skrov: x.skrov, skold: x.skold, nedskjutna: x.nedskjutna, traffar: x.traffar, kastade: x.kastade,
+      handlingar: Object.fromEntries(HANDLINGAR.map((h) => [h, logg.filter((e) => e.classId === x.classId && e.typ === h).length])),
       correct: ranking.filter((p) => p.classId === x.classId).reduce((n, p) => n + p.correct, 0),
       ogonblick: ogonblick(ranking.filter((p) => p.classId === x.classId)),
     }]));

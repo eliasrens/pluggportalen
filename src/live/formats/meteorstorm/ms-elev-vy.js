@@ -37,7 +37,7 @@ import { myReward } from "../../live-rewards.js";
 import { createQuestionFlow } from "../../kistspel/ks-fraga.js";
 import { ENERGI_TAK } from "./delat/ms-balans.js";
 import {
-  stageAction, planCfg, minStation, andraStationer, energiVinst, knappar, tangentTyp, kvittens, handelseRad,
+  stageAction, planCfg, minStation, andraStationer, energiVinst, knappar, valTangent, medKvitto, kvittens, handelseRad, VAL_SPARR_MS,
   stationRad, lagesRad,
 } from "./ms-elev.js";
 import { stationSvg, matareHtml } from "./ms-station-mini.js";
@@ -68,7 +68,7 @@ export function createMsStage({ view, host, uid, classId, session, mode, answerK
       <p class="mse-felrad" role="status" hidden></p>
       <div class="mse-mitt">
         <div class="mse-svar"></div>
-        <div class="mse-val" hidden>
+        <div class="mse-val" tabindex="-1" hidden>
           <p class="mse-val-rubrik">✅ Rätt! Vad ska energin göra?</p>
           <div class="mse-knappar"></div>
           <button type="button" class="mse-spara" data-typ="spara">⚡ Spara energin <kbd>mellanslag</kbd></button>
@@ -199,7 +199,8 @@ export function createMsStage({ view, host, uid, classId, session, mode, answerK
     busy = false;
     drawVal();
     drawTop();
-    root.querySelector(".mse-knapp:not([disabled])")?.focus({ preventScroll: true });
+    // Fokus på valet, inte på en knapp: ett andra ENTER (skriv själv) får inte välja Sköld (#823 F3).
+    parts.val.focus({ preventScroll: true });
   }
 
   function drawVal() {
@@ -262,21 +263,24 @@ export function createMsStage({ view, host, uid, classId, session, mode, answerK
     if (destroyed) return;
     vakt?.fran(res?.status);
     visaKvitto(kvittens(res, { classId, session }));
+    if (res?.status) status = medKvitto(status, res, classId);
     nastaFraga();
   }
 
   parts.val.addEventListener("click", (e) => {
     const b = e.target.closest("[data-typ]");
-    if (b && !b.disabled) valj(b.dataset.typ);
+    if (b && !b.disabled && Date.now() - shownAt >= VAL_SPARR_MS) valj(b.dataset.typ);
   });
+  // Capture-fasen: flervalets dolda knappar (choice-answer.js) förhindrar 1–4 även
+  // när de är avstängda – valet måste se tangenten först (#823 F1). Medan frågan
+  // visas (lage "fraga") släpps allt igenom till frågekomponenten.
   function onKey(e) {
-    if (lage !== "val" || e.defaultPrevented || Date.now() - shownAt < 200) return;
-    const typ = tangentTyp(e);
+    const typ = valTangent(e, { lage, shownAt, nu: Date.now() });
     if (!typ) return;
     e.preventDefault();
     valj(typ);
   }
-  host.ownerDocument.addEventListener("keydown", onKey);
+  host.ownerDocument.addEventListener("keydown", onKey, true);
 
   // --- Start och slut -----------------------------------------------------------------
   async function begin() {
@@ -343,7 +347,7 @@ export function createMsStage({ view, host, uid, classId, session, mode, answerK
       clearTimeout(avslutaT);
       (coinTimers || []).forEach(clearTimeout);
       vakt?.stop();
-      host.ownerDocument.removeEventListener("keydown", onKey);
+      host.ownerDocument.removeEventListener("keydown", onKey, true);
       flow.destroy();
       view.classList.remove("mse-elev-vy");
     },

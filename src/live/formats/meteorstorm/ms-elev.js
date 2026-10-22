@@ -29,6 +29,12 @@
 //                                  tangent, kostnad, kan, info }] (dragstrålen bara
 //                                  om den finns i matchen)
 //   tangentTyp(e)                  → "skold" | "laser" | "drag" | "spara" | null
+//   valTangent(e, { lage, shownAt, nu }) → typen om valet visas (och inte nyss
+//                                  öppnades), annars null. Bryr sig INTE om
+//                                  defaultPrevented: flervalets dolda knappar
+//                                  (choice-answer.js) tar också 1–4 (#823 F1)
+//   medKvitto(status, res, classId) → status med den egna stationens sköld/
+//                                  laddning efter handlingen (samma tal som kvittensen)
 //   kvittens(res, { classId, session })  → { text, ton } ur msAgera-svaret
 //   handelseRad(status, now, cfg?) → { typ, text } | null (banderollen)
 //   stationRad(station)            → "Skrov 82 · Sköld 34/60" (skärmläsare/text)
@@ -144,6 +150,14 @@ export function tangentTyp(e) {
   return n ? KNAPPAR[Number(n) - 1].typ : null;
 }
 
+/** Valets tangent (lyssnas i capture-fasen – före frågekomponentens). */
+export function valTangent(e, { lage, shownAt = 0, nu = 0 } = {}) {
+  if (lage !== "val" || nu - shownAt < VAL_SPARR_MS) return null;
+  return tangentTyp(e);
+}
+/** Så länge efter att valet visats räknas inte tangenter/klick (samma tryck som svarade). */
+export const VAL_SPARR_MS = 400;
+
 const NEKAD = {
   energi: (kostnad) => `🌀 Dragstrålen kostar ${kostnad} ⚡ – energin sparad.`,
   vantetid: () => "🌀 Dragstrålen laddar om – energin sparad.",
@@ -159,6 +173,20 @@ function dragMal(res, classId, session, status) {
   const andra = andraStationer(status, classId, session);
   const kand = andra.filter((x) => !x.flyter).sort((a, b) => (b.skrov ?? 100) - (a.skrov ?? 100));
   return (kand[0] || andra[0])?.namn || "den andra stationen";
+}
+
+/** Statusen med handlingens effekt på den egna stationen (toppraden = kvittensen, #823 F6). */
+export function medKvitto(status, res, classId) {
+  const plus = res?.correct && !res.nekad ? res.effekt || {} : {};
+  if (!status || !(plus.skold || plus.laser)) return status;
+  return {
+    ...status,
+    stationer: (status.stationer || []).map((x) => (x.classId !== classId ? x : {
+      ...x,
+      skold: Math.min(SKOLD_TAK, (Number(x.skold) || 0) + (Number(plus.skold) || 0)),
+      laddning: Math.min(LADDNING_TAK, (Number(x.laddning) || 0) + (Number(plus.laser) || 0)),
+    })),
+  };
 }
 
 /** Kvittensen ur msAgera-svaret (spec §5: "som Guldrushen"). ton: "bra" | "lugn". */

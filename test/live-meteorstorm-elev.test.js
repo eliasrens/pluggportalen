@@ -21,7 +21,7 @@ import {
 import { avslutaOchBetala, buildResult } from "../src/live/formats/meteorstorm/ms-avslut.js";
 import {
   knappar, energiVinst, tangentTyp, kvittens, handelseRad, slutet, bidragText, myntRader, dragFinns, decimal, planCfg,
-  stageAction, lagesRad,
+  stageAction, lagesRad, valTangent, medKvitto, stationRad, VAL_SPARR_MS,
 } from "../src/live/formats/meteorstorm/ms-elev.js";
 import { endHtml, lobbyHtml } from "../src/live/formats/meteorstorm/ms-skarmar.js";
 import { stationSvg, matareHtml } from "../src/live/formats/meteorstorm/ms-station-mini.js";
@@ -144,6 +144,33 @@ describe("resultatet och pluggmynten (ms-avslut.js)", () => {
     assert.equal(betalt, 0);
     await assert.rejects(avslutaOchBetala({ id: "s1" }, { avsluta: async () => { throw new Error("nät"); }, settle: async () => {} }));
   });
+  it("#823 F2: klassbonus (bara anropet som SKREV result), pokaler och kassapris som i live-data.js – bara admin, aldrig demo", async () => {
+    const R2 = { ...RES, perClass: { "4b": { players: 3 }, "4d": { players: 2 } } };
+    const rigg = (redan, admin = true) => {
+      const anrop = [];
+      const klass = async () => ({
+        liveKlassBonus: async (r) => { anrop.push(["bonus", r]); return 1; },
+        pokalerEfterAvslut: async (kalla, id, doc) => { anrop.push(["pokaler", kalla, id, doc.status, doc.result]); return []; },
+        livePrisEfterAvslut: async (id, doc) => { anrop.push(["pris", id, doc.status]); return []; },
+      });
+      return { anrop, deps: { avsluta: async () => ({ result: R2, redan }), settle: async () => anrop.push(["settle"]), admin: () => admin, klass } };
+    };
+    let r = rigg(false);
+    await avslutaOchBetala({ id: "s1", status: "live" }, r.deps);
+    assert.deepEqual(r.anrop, [["settle"], ["bonus", R2], ["pokaler", "live", "s1", "finished", R2], ["pris", "s1", "finished"]]);
+    r = rigg(true);
+    await avslutaOchBetala({ id: "s1" }, r.deps);
+    assert.deepEqual(r.anrop.map((a) => a[0]), ["settle", "pokaler", "pris"], "result fanns redan → ingen andra klassbonus");
+    r = rigg(false, false);
+    await avslutaOchBetala({ id: "s1" }, r.deps);
+    assert.deepEqual(r.anrop.map((a) => a[0]), ["settle"], "årskurskonto: klasscentret skriver bara admin (som kärnan)");
+    r = rigg(false);
+    await avslutaOchBetala({ id: "s1", demo: true }, r.deps);
+    assert.deepEqual(r.anrop, []);
+    const fel = rigg(false);
+    fel.deps.klass = async () => { throw new Error("laddning"); };
+    assert.equal(await avslutaOchBetala({ id: "s1" }, fel.deps), R2, "klasscentret kastar aldrig vidare");
+  });
   it("buildResult lämnar serverns result orört; utan det ett tomt utan mynt", () => {
     assert.equal(buildResult({}, [], [], MULT, { result: RES }), RES);
     const tomt = buildResult({ msInstallningar: { lage: "en-klass" } }, [], [{ uid: "a" }], MULT, undefined);
@@ -188,6 +215,32 @@ describe("elevskärmens logik (ms-elev.js, spec §5)", () => {
     assert.equal(tangentTyp({ key: "4", code: "Digit4" }), null);
     assert.equal(tangentTyp({ key: "1", ctrlKey: true }), null);
     assert.equal(tangentTyp({ key: "1", repeat: true }), null);
+  });
+  it("#823 F1: valets tangenter gäller även när flervalet redan förhindrat dem (capture-fasen)", () => {
+    const e = { key: "2", code: "Digit2", defaultPrevented: true };
+    assert.equal(valTangent(e, { lage: "val", shownAt: 0, nu: 5000 }), "laser");
+    assert.equal(valTangent(e, { lage: "fraga", shownAt: 0, nu: 5000 }), null, "under frågan: frågekomponentens tangent");
+    assert.equal(valTangent(e, { lage: "val", shownAt: 5000, nu: 5000 + VAL_SPARR_MS - 1 }), null, "samma tryck som svarade");
+    const vy = readFileSync(new URL("ms-elev-vy.js", DIR), "utf8");
+    assert.match(vy, /addEventListener\("keydown", onKey, true\)/);
+    assert.match(vy, /removeEventListener\("keydown", onKey, true\)/);
+    assert.equal(/defaultPrevented/.test(vy.replace(/\/\/.*$/gm, "")), false);
+  });
+  it("#823 F3: valet fokuserar rutan, inte Sköld; klick direkt efter att valet visats räknas inte", () => {
+    const vy = readFileSync(new URL("ms-elev-vy.js", DIR), "utf8");
+    assert.match(vy, /parts\.val\.focus\(/);
+    assert.equal(/\.mse-knapp:not\(\[disabled\]\)"\)\?\.focus/.test(vy), false);
+    assert.match(vy, /Date\.now\(\) - shownAt >= VAL_SPARR_MS\) valj/);
+  });
+  it("#823 F6: toppraden visar samma sköld som kvittensen", () => {
+    const st = status();
+    const res = { correct: true, typ: "skold", effekt: { skold: 0.64 }, energi: 0, status: st };
+    const efter = medKvitto(st, res, "4b");
+    assert.match(kvittens(res, { classId: "4b", session: KMK }).text, /skölden 34\/60/);
+    assert.match(stationRad(efter.stationer[0]), /Sköld 34\/60/);
+    assert.equal(efter.stationer[1], st.stationer[1], "den andra stationen orörd");
+    assert.equal(medKvitto(st, { ...res, nekad: "energi" }, "4b"), st);
+    assert.equal(medKvitto(st, { correct: true, typ: "laser", effekt: { laser: 0.077 } }, "4b").stationer[0].laddning, 3.177);
   });
   it("kvittensen ur msAgera-svaret: sköldmätaren, lasern, dragstrålens mål, sparad/nekad energi", () => {
     const k = (res) => kvittens({ correct: true, status: status(), ...res }, { classId: "4b", session: KMK })?.text;
@@ -327,6 +380,10 @@ describe("elevdemot (ms-elev-demo.js): låtsasservern + elevklienten", () => {
     assert.ok(r.perQuestion.length > 10);
     assert.ok(Object.keys(r.rewards).length >= 40);
     assert.equal(d.avsluta(), r, "idempotent");
+    // #823 F4: handlingar per klass som serverns perClass (sparat med).
+    for (const t of ["skold", "laser", "drag", "spara"]) {
+      assert.equal(r.perClass["4b"].handlingar[t] + r.perClass["4d"].handlingar[t], r.handlingar[t], t);
+    }
   });
   it("En klass: stjärnor, ingen dragstråle hos de simulerade eleverna", () => {
     const { d, fram } = match({ lage: "en-klass" });

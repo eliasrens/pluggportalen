@@ -99,11 +99,15 @@
       window.__msStage = stage;
 
       let tvingad = qs.get("fas") === "lobby" ? "lobby" : null;
+      let avslutas = 0;
       function render() {
         demo.tick();
-        let st = demo.st(tvingad);
-        if (st.phase === "ended" && !demo.result()) demo.avsluta();
-        st = demo.st(tvingad);
+        const st = demo.st(tvingad);
+        // Som i en riktig match: elevskärmen skickar först sin felbuffert
+        // (skickaFel, vid första "slut"-uppdateringen), sedan räknar servern (#823 F5).
+        if (st.phase === "ended" && !demo.result() && !avslutas) {
+          avslutas = setTimeout(() => { demo.avsluta(); render(); }, (Number($("[data-lat]").value) || 0) + 400);
+        }
         const part = st.phase === "lobby" ? "lobby" : st.phase === "live" ? "play" : "end";
         for (const k of ["lobby", "count", "play", "end"]) $(`.live-elev-${k}`).hidden = k !== part;
         if (part === "end") {
