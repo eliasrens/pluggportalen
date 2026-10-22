@@ -11,7 +11,8 @@
 #   JAVA_BIN=/tmp/j742/jdk-21.0.12.1+1-jre/bin FIREBASE_BIN=/tmp/j742/ft/node_modules/.bin \
 #     bash admin/qa-meteorstorm-e2e-preview.sh
 #   → http://127.0.0.1:$PROXY/#/larare/live (elias / lilla123), elev b01 / lilla123
-#   Driv: node admin/qa-meteorstorm-e2e.mjs $DIR/env
+#   Driv i en egen headless chromium (CDP): lärare #u/#p på #/larare → Live → Meteorstormen;
+#   elev #u/#p på #/ → #/elev/live → "Gå med"; testaren #822 körde så 2026-10-22.
 #   Städa: kill $(cat $DIR/pids)
 # Kräver node_modules i repo-roten (firebase-admin) och functions/node_modules
 # (symlänkar, gitignorerade – se docs/METEORSTORMEN.md §9-receptet).
