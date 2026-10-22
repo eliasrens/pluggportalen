@@ -5,7 +5,7 @@ försvarar var sin rymdstation mot en **förutbestämd** meteorstorm; rätt svar
 energi som eleven lägger på 🛡️ sköld, 🔫 laser eller 🌀 dragstråle. Specen:
 [`UTVECKLINGSUPPDRAG_METEORSTORMEN.md`](UTVECKLINGSUPPDRAG_METEORSTORMEN.md).
 Det här är **formatets kontraktsdokument** – del A (#820) beskriver motorn,
-B (#821) servern (§7–§10), C (#822) projektorn (§11); D (elevskärmen/lärarvyerna) och E fyller på.
+B (#821) servern (§7–§10), C (#822) projektorn (§12), D (#823) elevskärmen och lärarvyerna (§11); E fyller på.
 
 ---
 
@@ -32,6 +32,12 @@ B (#821) servern (§7–§10), C (#822) projektorn (§11); D (elevskärmen/lära
 | `admin/ms-kvot-sim.mjs` | **B:** kvotmätningen mot emulatorn (§9) |
 | `test/live-meteorstorm-server.test.js`, `test/functions-meteorstorm*.test.mjs`, `test/firestore-rules-live-meteorstorm.test.js` | **B:** servertesterna |
 | `test/*-meteorstorm-fusk.test.*`, `test/live-meteorstorm-klient-fusk.test.js` | **B:** testarens fusk-/race-sviter (F1–F8 rättade i rättningsrunda 1) |
+| `ms-format-elev.js` | **D:** formatobjektets elev-, formulär- och historikdelar (`MS_ELEV_DELAR`, sprids in i `index.js`) |
+| `ms-setup.js`, `ms-avslut.js` | **D:** lärarformuläret + sessionens fält + quizets ögonblicksbild; resultatet (msAvsluta) + pluggmyntens utbetalning |
+| `meteorstorm-student.js` → `ms-elev-vy.js` (+ `ms-elev.js`, `ms-skarmar.js`, `ms-station-mini.js`, `meteorstorm-elev.css`) | **D:** elevskärmen (§11) |
+| `meteorstorm-history.js` (+ `meteorstorm-historik.css`) | **D:** historiken + Statistik → Live |
+| `ms-elev-demo.js`, `preview/preview-meteorstorm-elev.html`, `preview/preview-meteorstorm-historik.html` | **D:** elevdelen av demoläget (låtsasserver med `delat/`-reglerna + simulerade klasser) |
+| `test/live-meteorstorm-elev.test.js` | **D:** formulär, resultat/mynt, elevlogik, slutskärm, historik, demo |
 
 `delat/` är ren: ingen DOM, ingen Firebase, ingen `Math.random`/`Date.now`,
 bara importer inom `delat/` (testat). Inget format registreras i del A –
@@ -206,7 +212,7 @@ banderollerna, `handelser[0]` för banderollen och nedräkningen,
 `skadeniva(skrov)` för stationens utseende och `bidrag` för "bästa ögonblick".
 Inget ritas om fel svar, för motorn ser dem aldrig.
 
-Genomfört i #822 – se §11.
+Genomfört i #822 – se §12.
 
 ---
 
@@ -597,15 +603,67 @@ Del A deployar ingenting själv. Från B (#821), i den här ordningen:
 
 Övriga frågor är enkelfälts (`t`, `at`, `uid` + `attemptId`).
 
+## 11. Elevskärmen och lärarvyerna (D, #823)
+
+**Lärarformuläret** (`setupFields`, ritas av `live-setup-fields.js`): Läge (En
+klass = exakt 1 klass / Klass mot klass = 2), Attacker (Av/Milda/Vilda, standard
+Milda – En klass sparas alltid med `av`), speltid 5–20 min (standard 10,
+snabbknappar + "Egen tid"), namn i projektorns flöde, pluggmynt. `msSeed` slumpas
+i `buildSessionFields` (crypto). Spelläge/svarssätt: multiplikation eller
+Plugga-quiz, skriv själv/flerval, tidslinjefrågor (`timelineQuestions`).
+
+**Elevskärmen** (`ms-elev-vy.js`, utan Firebase – `api` injiceras):
+- `lage()` när spelet börjar; sedan frågeflödet (`createQuestionFlow`) med
+  `ms-klient.js` som `send` (multiplikation: `kalla()` som källa; quiz: `fraga()`).
+- Rätt svar → 🛡️ Sköld / 🔫 Laser / 🌀 Dragstråle (kostnad, gråa utan råd,
+  nedräkning/"på väg"; ingen dragstråle i En klass eller med Attacker av) +
+  "Spara energin". Genvägar 1/2/3 och mellanslag. Svar + val går i ETT
+  `msAgera`; nästa fråga först när svaret kommit (klienten har en väntande plats).
+- Spärren (`resource-exhausted`): klienten väntar en gång, vyn sedan lugnt upp
+  till ~30 s ("⏳ Ett ögonblick …") – ingen felruta.
+- Kvittensen ur svaret: "🛡️ +0,6 – skölden 34/60", "🔫 Lasern laddas – 3,4 skott
+  redo", "🌀 … slungar den mot 4D!", nekad dragstråle = "energin sparad".
+- Hela tiden: ⚡ energi (5 prickar), den egna stationen (skrov + sköld ur
+  status), de andras skrov som mätare, klockan, banderollen för pågående
+  händelse och "extra kraft"/"flyter". **Händelserna och energins vinst räknas
+  ur fröet** (`stormPlan`/`energiEffekt` – samma som servern), utan läsningar;
+  stationerna ur `msPublic/status` (svaren + statusvakten var 20:e s).
+- Slutet: felbufferten skickas (`skickaFel`); saknas `result` efter 20–35 s
+  anropar eleven `msAvsluta` (idempotent). Slutskärmen: "Ni vann! 🚀" / "Bra
+  kämpat – 4D vann den här gången" / "Oavgjort" / stjärnorna – **ingen
+  placering som nummer** – elevens bidrag och pluggmynten.
+
+**Pluggmynten:** `resultInputs(s)` = `msAvsluta` och sedan
+`settleLiveRewards(sid, { ...s, status: "finished", result })` (`ms-avslut.js`
+`avslutaOchBetala`). Kärnans `writeResultIfMissing` skriver aldrig `result` här
+och betalar därför inte – projektorn (C) anropar aldrig `avsluta` själv: skalets
+Avsluta och 00:00 går genom kärnans `resultInputs` = `avslutaOchBetala`. Historiken betalar det som saknas när läraren öppnar matchen.
+Klasscentret (#823 F2) som i `live-data.js` (bara admin, aldrig demo):
+klasspokalerna och Live-priset till klasskassan (idempotenta) efter varje
+`msAvsluta`; klassbonusen (inte idempotent) bara när svaret är `redan: false`
+(anropet som skrev `result`). Skrev en elevs anrop `result` (projektorn stängd)
+delar historikens `settle(s)` ut pokalerna och priset när en admin öppnar
+matchen – bara klassbonusen går då förlorad.
+
+**Historiken** (`meteorstorm-history.js`): vinnare/stjärnor, stationerna (skrov,
+nedskjutna, träffar, kastade, bästa ögonblicken), handlingar per sort och klass,
+eleverna (rätt, svar, andel rätt, 🛡️/🔫/🌀, nedskjutna, pluggmynt – ingen
+placeringskolumn), andel rätt per fråga/tabell. Statistik → Live: Rätt · Skrov ·
+Utfall + sammanfattning per tabell/kategori.
+
+**Demo/preview:** `preview/preview-meteorstorm-elev.html` (`?fas=live`,
+`?lage=en-klass`, `?attacker=av|vilda`, `?svar=choice`, `?quiz=1`, `?status=5`)
+och `preview/preview-meteorstorm-historik.html`.
+
 ---
 
-## 11. Projektorn (C, #822)
+## 12. Projektorn (C, #822)
 
-### 11.1 Filerna
+### 12.1 Filerna
 
 | Fil | Innehåll |
 | --- | --- |
-| `index.js` | Formatobjektet = `{ id, …projektordelarna, ...MS_ELEV_DELAR }`. **C:s del:** namn/klassantal/svarssätt/takt, `compatibleGameModes`, `computeStandings` (klasser + anslutna elever), `emitOnPlayers`, `projectorViews`. `MS_ELEV_DELAR` (setup, `resultInputs` → `msAvsluta`, `buildResult` = serverns `result`, elevvyn, historiken) är en lokal platshållare tills D (#823) landar. `music` saknas tills E lägger in filen (ingen 🎵-knapp, ingen 404) |
+| `index.js` | Formatobjektet = `{ id, …projektordelarna, ...MS_ELEV_DELAR }` (D:s `ms-format-elev.js`, §11). **C:s del:** namn/ikon/svarssätt/takt, `compatibleGameModes`, `computeStandings` (klasser + anslutna elever), `emitOnPlayers`, `projectorViews`. `music` saknas tills E lägger in filen (ingen 🎵-knapp, ingen 404) |
 | `meteorstorm-projector.js` | Projektorskalets modul: vyn ☄️ Rymden (`finale`), lobbyn, `ownTimer` |
 | `msp-scen.js` | **Ren** logik (node-testad): motorns indata ur sessionen, slutet, `handlingarUr` (hoppar över `typ: "fel"`), renderingsklockan `stegaKlocka`, stationernas platser, meteorernas banor, loggindexet (kast, träffar, flödet), banderollen, besättningens humör, gunget, kosmetisk slump `brus(frö, nyckel)` |
 | `msp-rymd.js` | Vyn: DOM, EN `watchEvents`-lyssnare, bildrutsloopen, ljud, `__mspProjektor` (QA) |
@@ -614,12 +672,12 @@ Del A deployar ingenting själv. Från B (#821), i den här ordningen:
 | `msp-hud.js`, `msp-slut.js`, `msp-lobby.js`, `msp-ljud.js` | Textlagret (klocka, banderoll, mätare, flödet), slutrutan, lobbyn, ljuden |
 | `msp-demo.js` + `preview/preview-meteorstorm-demo.html` | Demoläget (LIVE-FORMAT §8) |
 | `meteorstorm-projektor.css` | Bara `msp-`-klasser |
-| `test/live-meteorstorm-projektor.test.js` | 23 tester (se §11.6) |
-| `admin/qa-meteorstorm-fps.mjs`, `admin/qa-meteorstorm-tva.mjs`, `preview/qa-meteorstorm-projektor.html` | Mätningarna i §11.4–11.5 |
+| `test/live-meteorstorm-projektor.test.js` | 23 tester (se §12.6) |
+| `admin/qa-meteorstorm-fps.mjs`, `admin/qa-meteorstorm-tva.mjs`, `preview/qa-meteorstorm-projektor.html` | Mätningarna i §12.4–12.5 |
 
 Allt laddas latt (`projectorViews()` = `import()`); bootgrafen är 107 filer som förut.
 
-### 11.2 Renderingsbufferten och samma bild på två projektorer
+### 12.2 Renderingsbufferten och samma bild på två projektorer
 
 - Vyn ritar motorns tillstånd för `t = deps.now() − RENDER_FORDROJNING_MS` (1 500 ms,
   `ms-balans.js`; `deps.now()` = `live-clock.js` `serverNow`). `stegaKlocka` låter `t`
@@ -639,14 +697,15 @@ Allt laddas latt (`projectorViews()` = `import()`); bootgrafen är 107 filer som
 - Slutet: `t` stannar vid stormens slut (lärarens avslut via `finishedAt`, annars
   00:00); animationerna (fyrverkerier, besättningen) fortsätter.
 
-### 11.3 Projektorn skriver inget i formatets samlingar
+### 12.3 Projektorn skriver inget i formatets samlingar
 
 - EN `onSnapshot` på `msEvents` per projektor (`watchEvents`), ingen omläsning.
   Händelser med `typ: "fel"` blir aldrig handlingar. `aktiva` = sessionens
   `msStationer` (saknas → 1, ingen har handlat).
 - **Avsluta** = skalets knapp (med bekräftelse), som i övriga format: kärnan
-  sätter `status: "finished"` och kör sedan formatets `resultInputs` →
-  `msAvsluta` (servern läser hela loggen och skriver `result`); kärnans
+  sätter `status: "finished"` och kör sedan formatets `resultInputs` (D:s
+  `avslutaOchBetala`: `msAvsluta` – servern läser hela loggen och skriver
+  `result` – och sedan pluggmynten); kärnans
   `writeResultIfMissing` ser att `result` redan finns. Samma väg vid 00:00. Slutrutan
   visar serverns `result`. Projektorn skriver aldrig `msPublic/status`; kärnans
   egna sessionsskrivningar (STARTA, `endsAt`, `status`) är desamma som i alla format.
@@ -654,7 +713,7 @@ Allt laddas latt (`projectorViews()` = `import()`); bootgrafen är 107 filer som
   och båda projektorerna – ingen annan Live-projektor har paus heller. Kontrollerna
   är skalets: Avsluta, ljud, 🎵 musik (när E lagt in filen) och fullskärm.
 
-### 11.4 Två projektorer med nätfördröjning (uppmätt)
+### 12.4 Två projektorer med nätfördröjning (uppmätt)
 
 `flock /tmp/pp-821-emulator.lock node admin/qa-meteorstorm-tva.mjs --latens 300,1500 --sek 90`
 – Firestore-emulatorn (öppna QA-regler; reglerna testas i `test:rules`), en pågående
@@ -681,7 +740,7 @@ båda bildrutan för samma `t` i en egen canvas och pixlarnas fingeravtryck jäm
   ~3 s (allt på projektorn kommer då 3 s efter elevens tryck)? Talet ligger i
   `ms-balans.js` och styr även serverns `msPublic/status`.
 
-### 11.5 Bilder per sekund (uppmätt)
+### 12.5 Bilder per sekund (uppmätt)
 
 `node admin/qa-meteorstorm-fps.mjs` – demosidan i huvudlös Chromium (Linux-VM, 6
 kärnor, ingen GPU: `--disable-gpu` = Skia på CPU), 8 s mätning i finalen (flest
@@ -695,14 +754,14 @@ bildruta för motorn + hela ritningen.
 | 1280 × 720 | finalen | 59 | 16,8 ms | 1,5 / 3,8 ms |
 | 1920 × 1080 | mitten | 60 | 16,7 ms | 1,2 / 3,0 ms |
 
-Två projektorer i samma maskin samtidigt (§11.4, 1600 × 900, två Chromium + emulatorn på 6 kärnor): 37–56 fps beroende på körning, JS 0,7–0,9 ms per bildruta.
+Två projektorer i samma maskin samtidigt (§12.4, 1600 × 900, två Chromium + emulatorn på 6 kärnor): 37–56 fps beroende på körning, JS 0,7–0,9 ms per bildruta.
 Budgeten för 60 fps är 16,7 ms; ritningen tar en tiondel. I Barista-webbläsaren
 (SwiftShader, delad med andra flikar) blev det 18 fps i 1920 × 1080 med samma JS-tid
 (2,5 ms) – där är det mjukvarurastret, inte projektorn, som begränsar. En vanlig
 lärardator rastrar Canvas 2D på GPU:n. Bakgrunden (stjärnor, nebulosa, planet)
 ritas en gång per storlek; canvasen är högst 2048 px bred (`devicePixelRatio` ≤ 2).
 
-### 11.6 Testat
+### 12.6 Testat
 
 `node --test test/live-meteorstorm-projektor.test.js` (23): formatobjektet
 (giltigt, latt, ingen musik än, `buildResult` = serverns result), indata
@@ -715,7 +774,7 @@ oavgjort, stjärnor, ingen elevlista), ramarna (≤ 400 rader, ingen
 Math.random/Date.now i ritningen, inga Firestore-skrivningar, EN `watchEvents`,
 bara `msp-`-klasser) och demot.
 
-### 11.7 Bilder
+### 12.7 Bilder
 
 `docs/meteorstormen-822/`: `skadenivaer.jpg` (alla fem nivåerna med sköldens
 lägen), `slungad.jpg` (slungad meteor med svans och "från 4B"), `jattemeteor.jpg`

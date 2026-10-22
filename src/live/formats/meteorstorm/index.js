@@ -6,19 +6,17 @@
 // docs/METEORSTORMEN.md. Motorn och balansen: ./delat/ (#820), servern:
 // functions/meteorstorm-*.js + ms-klient.js/meteorstorm-data.js (#821).
 //
-// Formatobjektet = { id, …projektordelarna (C, #822), ...MS_ELEV_DELAR }.
+// Formatobjektet = { id, …projektordelarna (C, #822), ...MS_ELEV_DELAR (D, #823) }.
 //   C (#822): id/namn/ikon/klassantal/svarssätt/takt, compatibleGameModes,
 //     computeStandings (klasserna + anslutna elever till lobbyn och skalet),
-//     emitOnPlayers, projectorViews (meteorstorm-projector.js), registreringen.
-//   D (#823): MS_ELEV_DELAR – setupFields, validateSetup, buildSessionFields,
-//     sessionTitle, defaultSessionName, prepareCreate, privateDocs,
-//     timelineQuestions, resultInputs, buildResult, studentView,
-//     historyRenderer. Tills D landat står en LOKAL PLATSHÅLLARE här (det
-//     minsta som krävs för att registrera och skapa en multiplikationsstorm);
-//     D byter den mot sin import.
-//   Avsluta: skalets knapp → kärnans flöde (status finished → resultInputs →
-//     msAvsluta). Serverns result gäller; kärnans writeResultIfMissing nekas
-//     av reglerna och ser sedan att result redan finns.
+//     emitOnPlayers, projectorViews (meteorstorm-projector.js), registreringen
+//     (src/live/formats/index.js).
+//   D (#823): ms-format-elev.js – lärarformuläret, sessionen, quizets
+//     ögonblicksbild, resultInputs/buildResult (ms-avslut.js: msAvsluta +
+//     pluggmynten), elevskärmen och historiken.
+//   Avsluta: skalets knapp → kärnans flöde (status finished → resultInputs =
+//     avslutaOchBetala → msAvsluta + settleLiveRewards). Samma väg vid 00:00.
+//     Serverns result gäller; kärnans writeResultIfMissing ser att det finns.
 //   E (#824) – `music` (assets/meteorstormen-loop.ogg). Fältet saknas tills
 //     filen finns: ingen 🎵-knapp och ingen 404.
 //
@@ -26,76 +24,23 @@
 // ============================================================================
 
 import { answerKindsFor } from "../../live-formats.js";
-import { rewardsSetupField, validateRewards, rewardSessionFields } from "../../live-rewards.js";
-import { LAGEN, ATTACKER, LAGE_STANDARD, ATTACKER_STANDARD, normInstallningar } from "./delat/ms-balans.js";
-
-const MODES = ["multiplication_0_10"]; // D (#823): + plugga_quiz med prepareCreate
-
-// ---- D (#823) ersätter hela objektet med sina elev-/lärardelar ----------------------
-const MS_ELEV_DELAR = {
-  setupFields: [
-    { key: "lage", kind: "choice", label: "Läge", default: LAGE_STANDARD,
-      options: [{ value: "klass-mot-klass", label: "Klass mot klass" }, { value: "en-klass", label: "En klass" }] },
-    { key: "attacker", kind: "choice", label: "Attacker", default: ATTACKER_STANDARD,
-      options: [{ value: "av", label: "Av" }, { value: "milda", label: "Milda" }, { value: "vilda", label: "Vilda" }] },
-    rewardsSetupField(),
-  ],
-  validateSetup(input) {
-    const fel = [];
-    const lage = input?.lage ?? LAGE_STANDARD;
-    if (!LAGEN.includes(lage)) fel.push("Välj läge.");
-    if (input?.attacker != null && !ATTACKER[input.attacker]) fel.push("Välj attacker.");
-    const n = (input?.classIds || []).length;
-    if (lage === "en-klass" && n !== 1) fel.push("En klass: välj exakt en klass.");
-    if (lage === "klass-mot-klass" && n < 2) fel.push("Klass mot klass: välj två klasser.");
-    const min = Number(input?.durationMin);
-    if (!(Number.isInteger(min) && min >= 5 && min <= 20)) fel.push("Speltiden måste vara hela minuter mellan 5 och 20.");
-    return [...fel, ...validateRewards(input?.rewards)];
-  },
-  /** Det msAgera/msLage läser: msSeed + msInstallningar (msStationer/aktiva sätter servern). */
-  buildSessionFields(input, { rng = Math.random } = {}) {
-    return {
-      msSeed: Math.floor(rng() * 2147483647),
-      msInstallningar: normInstallningar({ lage: input?.lage, attacker: input?.attacker }),
-      ...rewardSessionFields(input?.rewards),
-    };
-  },
-  sessionTitle(s) {
-    return (s?.participatingClassIds || []).map((id) => s?.classNames?.[id] || id).join(" mot ").toUpperCase();
-  },
-  defaultSessionName(names) {
-    const n = (names || []).filter(Boolean);
-    return n.length ? `Meteorstormen ${n.join(" mot ")}` : "Meteorstormen";
-  },
-  prepareCreate: async () => ({ data: {}, subdocs: [] }),
-  privateDocs: [["msPrivate", "snapshot"], ["msPublic", "questions"]],
-  timelineQuestions: false,
-  /** Serverns slutresultat – kärnan kör detta när matchen är slut (Avsluta eller 00:00). */
-  async resultInputs(s) {
-    const { avsluta } = await import("./meteorstorm-data.js");
-    return avsluta(s.id); // D (#823): byt till avslutaOchBetala
-  },
-  buildResult(s, classes, players, mode, extra) {
-    if (!extra?.result) throw new Error("Meteorstormen: serverns resultat saknas (msAvsluta).");
-    return extra.result;
-  },
-  studentView: () => import("./meteorstorm-student.js"),
-  historyRenderer: () => import("./meteorstorm-history.js"),
-};
+import { MS_ELEV_DELAR, MS_MODES, MS_MIN_CLASSES, MS_MAX_CLASSES } from "./ms-format-elev.js";
 
 const METEORSTORM = {
   id: "meteorstorm",
   displayName: "Meteorstormen",
   icon: "☄️",
-  description: "Försvara rymdstationen – rätt svar ger sköld, laser och dragstråle.",
-  scope: "mellan-klasser",
-  minClasses: 1,
-  maxClasses: 2,
+  description: "Försvara rymdstationen – sköld, laser och dragstråle.",
+  scope: "inom-klass",
+  minClasses: MS_MIN_CLASSES,
+  maxClasses: MS_MAX_CLASSES,
   answerKinds: ["free", "choice"],
   pacing: "tid",
 
+  ...MS_ELEV_DELAR,
+
   compatibleGameModes(mode) {
-    return MODES.includes(mode?.id) && answerKindsFor(METEORSTORM, mode).length > 0;
+    return MS_MODES.includes(mode?.id) && answerKindsFor(METEORSTORM, mode).length > 0;
   },
 
   /** Klasserna + anslutna elever (lobbyn); stationerna räknar projektorn själv ur loggen. */
@@ -109,7 +54,6 @@ const METEORSTORM = {
 
   emitOnPlayers: true,
   projectorViews: () => import("./meteorstorm-projector.js"),
-  ...MS_ELEV_DELAR,
 };
 
 export default METEORSTORM;

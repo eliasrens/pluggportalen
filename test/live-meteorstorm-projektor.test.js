@@ -50,10 +50,13 @@ describe("Meteorstormen projektorn: formatobjektet (C:s del)", () => {
     assert.equal(MS.music, undefined);
     assert.equal(MS.pacing, "tid");
   });
-  it("buildResult = serverns result (msAvsluta), kastar utan det", () => {
+  it("slutet går genom D:s resultInputs (avslutaOchBetala: msAvsluta + pluggmynt); buildResult = serverns result", async () => {
+    const avslut = await import("../src/live/formats/meteorstorm/ms-avslut.js");
+    assert.equal(MS.resultInputs, avslut.resultInputs);
+    assert.equal(MS.buildResult, avslut.buildResult);
     const r = { format: "meteorstorm", winner: "4b" };
-    assert.equal(MS.buildResult(session(), [], [], null, { result: r, redan: false }), r);
-    assert.throws(() => MS.buildResult(session(), [], [], null, undefined), /msAvsluta/);
+    assert.equal(MS.buildResult(session(), [], [], null, { result: r }), r);
+    assert.equal(MS.buildResult(session(), [], [], null, undefined).rewards, undefined, "utan servern: inga mynt");
   });
   it("computeStandings: klasserna och anslutna elever, ingen poäng", () => {
     const st = MS.computeStandings(session(), { players: [{ uid: "a", classId: "4b" }, { uid: "b", classId: "4b" }, { uid: "c", classId: "4d" }] });
