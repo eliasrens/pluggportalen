@@ -199,15 +199,13 @@ export function cfgFor(s) {
 const INGEN_LANK = Object.freeze({ nr: 0, k: -1, energi: 0, t: -Infinity });
 const somLank = (h) => (h ? { nr: h.nr, k: Number.isInteger(h.k) ? h.k : -1, energi: Number(h.energi) || 0, t: h.t } : INGEN_LANK);
 
-/** Elevens senaste länk – läser alla elevens händelser (omladdning, fel nr). */
+/**
+ * Elevens senaste länk – EN läsning (#821 N4): sammansatt index
+ * msEvents (uid ↑, nr ↓) i firestore.indexes.json.
+ */
 export async function senaste(deps, sid, uid) {
-  const snap = await refs(deps.db, sid).events.where("uid", "==", uid).get();
-  let best = null;
-  for (const d of snap.docs) {
-    const h = d.data();
-    if (Number.isInteger(h.nr) && (!best || h.nr > best.nr)) best = h;
-  }
-  return best;
+  const snap = await refs(deps.db, sid).events.where("uid", "==", uid).orderBy("nr", "desc").limit(1).get();
+  return snap.empty ? null : snap.docs[0].data();
 }
 
 export function minnsLank(deps, sid, uid, h) {

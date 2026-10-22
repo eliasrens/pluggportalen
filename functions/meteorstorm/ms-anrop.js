@@ -12,6 +12,16 @@
 //   MS_TYPER            handlingarna eleven kan välja (= motorns HANDLINGAR)
 //   MS_K_FONSTER        så här långt före elevens senaste k får en fråga ligga
 //                       (de överhoppade måste finnas i fel[] – högst MS_FEL_TAK)
+//   MS_K_TAKT_MS        takten (#821 N2/N3): högst en fråga per MS_K_TAKT_MS i
+//                       längden. En "hink" i elevens länk (kRum) fylls med en
+//                       fråga per MS_K_TAKT_MS upp till MS_K_RUM (= MS_K_FONSTER,
+//                       så att en felbuffert på 25 alltid ryms) och töms med
+//                       k-steget. Tom hink → resource-exhausted med vantaMs.
+//                       1,5 s per fråga är snabbare än även en snabb elev i
+//                       längden (en snittelev ~8 s), men stoppar ett skript.
+//   MS_K_START          hinken vid elevens första länk: min(MS_K_RUM, tid sedan
+//                       start / takten + MS_K_START)
+//   MS_FEL_LANK_MS      minsta tid från förra länken till en fel-länk (#821 N2)
 //   fragaFor(seed, uid, k, n) → frågeindex 0…n−1 för elevens k:te quizfråga
 //   multFor(seed, uid, k)     → { a, b } – elevens k:te multiplikationsfråga
 //
@@ -42,6 +52,10 @@ export const MS_EFTER_SLUT_MS = 60_000;
 export const MS_AVSLUTA_VANTA_MS = 4000;
 export const MS_TYPER = HANDLINGAR;
 export const MS_K_FONSTER = MS_FEL_TAK + 1;
+export const MS_K_TAKT_MS = 1500;
+export const MS_K_RUM = MS_K_FONSTER;
+export const MS_K_START = 5;
+export const MS_FEL_LANK_MS = 25_000;
 
 function kortlek(seed, uid, varv, n) {
   const rng = skapaPrng(`${seed}|${uid}`, `fragor:${varv}`);

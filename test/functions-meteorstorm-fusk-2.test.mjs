@@ -6,7 +6,7 @@
 //     elevskärmen – med en omladdning mitt i ett rätt svar
 //   • en elev som skriver egna anrop: fel-länkar och rätta svar så fort
 //     spärren tillåter, upprepade anrop som slår upp kedjan
-// Fynd som inte är rättade står som todo-tester (N-numren i testarens rapport).
+// N1–N4 (testarens rapport) rättade i rättningsrunda 2 – vanliga tester.
 // Körs via:  npm run test:functions  (eller ensam med node --test)
 // ============================================================================
 
@@ -14,7 +14,7 @@ import assert from "node:assert/strict";
 import { describe, it, beforeEach } from "node:test";
 import { agera, lage, ratta } from "../functions/meteorstorm-core.js";
 import { createMsKlient } from "../src/live/formats/meteorstorm/ms-klient.js";
-import { multFor, MS_FEL_SKICKA, MS_FEL_TAK } from "../src/live/formats/meteorstorm/delat/ms-anrop.js";
+import { multFor, MS_FEL_SKICKA, MS_FEL_TAK, MS_K_TAKT_MS, MS_K_RUM } from "../src/live/formats/meteorstorm/delat/ms-anrop.js";
 import { ctl, deps, T0, makeSession, events, att, code, db } from "./helpers/meteorstorm-core-rig.js";
 
 beforeEach(() => { ctl.clock = T0 + 60_000; });
@@ -38,7 +38,7 @@ function skarm(sid, uid, d, lagring) {
 const lagringNy = () => { const m = new Map(); return { getItem: (x) => m.get(x) ?? null, setItem: (x, v) => m.set(x, v) }; };
 
 describe("Elevskärmen: omladdning mitt i ett rätt svar", () => {
-  it("N1: efter en omladdning mellan rätt svar och handling godtas elevens nästa rätta svar", { todo: "N1 – det väntande svarets k blir ett hål som aldrig fylls; varje msAgera → omsynk" }, async () => {
+  it("N1: efter en omladdning mellan rätt svar och handling godtas elevens nästa rätta svar", async () => {
     const sid = await makeSession();
     const d = deps();
     const lagring = lagringNy();
@@ -81,7 +81,7 @@ describe("Egna anrop: takten", () => {
     return { k: fran + i, factorA: a, factorB: b, answer: a * b + 1, attemptId: `f-${fran + i}`.padEnd(10, "x") };
   });
 
-  it("N2: fel-länkar med 25 påhittade fel svar varje sekund → högst några skrivningar per minut", { todo: "N2 – kravet på 25 poster stoppar inte en elev som hittar på dem; k har ingen övre gräns i tiden" }, async () => {
+  it("N2: fel-länkar med 25 påhittade fel svar varje sekund → högst några skrivningar per minut", async () => {
     const sid = await makeSession();
     const d = deps();
     let k = 0;
@@ -95,16 +95,35 @@ describe("Egna anrop: takten", () => {
     assert.ok(skrev <= 3, `${skrev} fel-länkar (skrivningar) på 60 s, k nu ${k}`);
   });
 
-  it("N3: rätta svar ur multFor varje sekund (skript) → högst en mänsklig takt", { todo: "N3 – multFor är publik kod; spärren är 1 s" }, async () => {
+  it("N3: rätta svar ur multFor varje sekund (skript) i 5 min → högst takten MS_K_TAKT_MS (+ hinken)", async () => {
     const sid = await makeSession();
     const d = deps();
     let ok = 0;
-    for (let k = 0; k < 60; k++) {
+    let k = 0;
+    const koder = new Set();
+    for (let i = 0; i < 300; i++) {
       ctl.clock += 1000;
       const { a, b } = multFor(4711, "alma", k);
-      if ((await code(agera(d, "alma", { sid, attemptId: att(), svar: { k, factorA: a, factorB: b, answer: a * b }, typ: "laser" }))) === "ok") ok++;
+      const c = await code(agera(d, "alma", { sid, attemptId: att(), svar: { k, factorA: a, factorB: b, answer: a * b }, typ: "laser" }));
+      koder.add(c);
+      if (c === "ok") { ok++; k++; }
     }
-    assert.ok(ok <= 30, `${ok} rätta svar + laser på 60 s`);
+    // Hinken (MS_K_RUM) + en fråga per MS_K_TAKT_MS – ett skript klarar inte mer än en snabb människa.
+    assert.ok(ok <= MS_K_RUM + 300_000 / MS_K_TAKT_MS, `${ok} rätta svar + laser på 5 min`);
+    assert.ok(ok < 300 * 0.85, `${ok}`);
+    assert.deepEqual([...koder].sort(), ["ok", "resource-exhausted"]);
+  });
+
+  it("N3: en snabb elev (ett svar varannan sekund, var tredje fel) stoppas aldrig av takten", async () => {
+    const sid = await makeSession();
+    const a = skarm(sid, "alma", deps(), lagringNy());
+    let nej = 0;
+    for (let i = 0; i < 150; i++) {
+      ctl.clock += 2000;
+      const r = await a.svara(i % 3 !== 1);
+      if (r.correct && (await code(a.k.agera("spara"))) !== "ok") nej++;
+    }
+    assert.equal(nej, 0);
   });
 
   it("fel-länken: dubbletter, rätta svar och gamla k räknas inte mot de 25", async () => {
@@ -193,14 +212,14 @@ describe("Egna anrop: läsningar per anrop", () => {
     return sid;
   }
 
-  it("N4: msLage i en loop läser inte hela elevens kedja varje gång", { todo: "N4 – senaste() läser alla elevens händelser per anrop" }, async () => {
+  it("N4: msLage i en loop läser inte hela elevens kedja varje gång", async () => {
     const sid = await medLankar(60);
     const { d, n } = raknande();
     for (let i = 0; i < 20; i++) await lage(d, "alma", { sid });
     assert.ok(n.las / 20 <= 5, `${(n.las / 20).toFixed(1)} läsningar per msLage med 60 länkar`);
   });
 
-  it("N4b: ett msAgera utanför k-fönstret (omsynk) i en loop läser inte hela kedjan varje gång", { todo: "N4 – omsynk-vägen slår upp senaste() per anrop" }, async () => {
+  it("N4b: ett msAgera utanför k-fönstret (omsynk) i en loop läser inte hela kedjan varje gång", async () => {
     const sid = await medLankar(60);
     const { d, n } = raknande();
     const ut = [];

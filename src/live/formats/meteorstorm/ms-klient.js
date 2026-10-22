@@ -44,6 +44,8 @@
 import { fragaFor, multFor, MS_FEL_TAK, MS_FEL_SKICKA } from "./delat/ms-anrop.js";
 
 const MULT = "multiplication_0_10";
+/** Väntar klienten själv på spärren/takten innan den ger upp och visar felet. */
+const VANTA_MAX_MS = 5000;
 
 function parseTal(v) {
   if (Number.isInteger(v)) return v;
@@ -134,7 +136,7 @@ export function createMsKlient({ sid, uid, seed, gameMode, antalFragor = 0, call
         res = await call("msAgera", data);
       } catch (err) {
         const v = Number(err?.details?.vantaMs);
-        if (err?.code !== "resource-exhausted" || !(v > 0)) throw err;
+        if (err?.code !== "resource-exhausted" || !(v > 0) || v > VANTA_MAX_MS) throw err;
         await paus(v + 50);
         res = await call("msAgera", data);
       }
@@ -176,16 +178,33 @@ export function createMsKlient({ sid, uid, seed, gameMode, antalFragor = 0, call
     }
   }
 
+  /**
+   * Börja om efter serverns senaste länk (#821 N1): nästa k = länkens k + 1,
+   * och bufferten behålls bara så långt den är en obruten följd därifrån. Ett
+   * rätt svar som väntade på handling när sidan laddades om (eller nekades)
+   * finns varken i bufferten eller på servern – dess k delas ut igen i stället
+   * för att bli ett hål som varje senare anrop snubblar på.
+   */
   async function lage() {
     const res = await call("msLage", { sid });
     st.nr = res.nr;
     st.energi = res.energi;
-    const k = Number.isInteger(res.k) ? res.k : -1;
-    st.buffert = st.buffert.filter((f) => f.k > k);
-    if (st.k <= k || (st.utdelad != null && st.utdelad <= k)) {
-      st.k = k + 1;
-      st.utdelad = null;
+    let nasta = (Number.isInteger(res.k) ? res.k : -1) + 1;
+    const foljd = [];
+    for (const f of [...st.buffert].sort((a, b) => a.k - b.k)) {
+      if (f.k === nasta) {
+        foljd.push(f);
+        nasta++;
+      }
     }
+    st.buffert = foljd;
+    if (st.utdelad === nasta) {
+      st.k = nasta + 1;
+    } else {
+      st.utdelad = null;
+      st.k = nasta;
+    }
+    vantande = null;
     spara();
     return res;
   }

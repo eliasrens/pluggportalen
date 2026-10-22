@@ -229,14 +229,15 @@ describe("Fusk: fel-anropen (utan svar) och kvoten", () => {
     const d = deps();
     await handla(d, sid, "omar", "laser");
     const lang = (k) => ({ ...nasta(sid, "alma", { fel: true }), k, attemptId: `x${k}-`.padEnd(64, "z") });
-    // Under matchen: bara hela buffertar (≥ 25) blir länkar, högst MS_FEL_TAK poster var.
+    // Under matchen: bara hela buffertar (≥ 25) blir länkar, högst MS_FEL_TAK poster var,
+    // i elevens takt (#821 N2: 40 frågor ≈ 60 s).
     let k = 0;
     let ok = 0;
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 6; i++) {
       const buf = Array.from({ length: MS_FEL_TAK }, () => lang(k++));
-      if ((await kod(agera(steg(d, 1100), "alma", { sid, fel: buf }))) === "ok") ok++;
+      if ((await kod(agera(steg(d, 61_000), "alma", { sid, fel: buf }))) === "ok") ok++;
     }
-    assert.equal(ok, 30);
+    assert.equal(ok, 6);
     assert.ok((await events(sid)).every((h) => (h.fel || []).length <= MS_FEL_TAK));
     // Efter slutet: EN buffert per elev, högst MS_FEL_TAK poster.
     ctl.clock = END + 1000;
@@ -248,7 +249,7 @@ describe("Fusk: fel-anropen (utan svar) och kvoten", () => {
     assert.equal(await kod(avsluta(deps(), larare, { sid })), "ok");
     assert.ok((await session(sid)).result);
     assert.equal((await msPlayer(sid, "alma")).fel, undefined, "totalerna skrivs utan felbufferten");
-    assert.equal((await msPlayer(sid, "alma")).incorrect, 30 * MS_FEL_TAK + MS_FEL_TAK);
+    assert.equal((await msPlayer(sid, "alma")).incorrect, 6 * MS_FEL_TAK + MS_FEL_TAK);
   });
 });
 

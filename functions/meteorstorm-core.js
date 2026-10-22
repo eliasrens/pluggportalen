@@ -54,6 +54,7 @@ import { kanAgera, energiEffekt, effektPerTryck } from "./meteorstorm/ms-agera.j
 import { ENERGI_TAK, HANDLINGAR, RENDER_FORDROJNING_MS } from "./meteorstorm/ms-balans.js";
 import {
   MS_MIN_GAP_MS, MS_EFTER_SLUT_MS, MS_AVSLUTA_VANTA_MS, MS_TYPER, MS_FEL_SKICKA, MS_FEL_TAK, MS_K_FONSTER,
+  MS_K_TAKT_MS, MS_K_RUM, MS_K_START, MS_FEL_LANK_MS,
 } from "./meteorstorm/ms-anrop.js";
 import {
   refs, parseSid, parseAttempt, sessionFor, slutFor, assertLive, playerFor, quizFor,
@@ -112,6 +113,19 @@ function kontrolleraK(prevK, k, felLista) {
     if (!har.has(i)) throw fel("failed-precondition", "Svaren kom i fel ordning.", { omsynk: true, k: prevK });
   }
   return felLista.filter((f) => f.k > prevK && f.k < k);
+}
+
+/**
+ * Takten (#821 N2/N3): hinken i länken fylls med en fråga per MS_K_TAKT_MS
+ * (högst MS_K_RUM) och töms med k-steget. → kRum efter länken.
+ */
+function takt(s, prev, t, steg) {
+  const fore = prev && Number.isFinite(prev.kRum)
+    ? Math.min(MS_K_RUM, prev.kRum + (t - prev.t) / MS_K_TAKT_MS)
+    : Math.min(MS_K_RUM, (t - (matchWindow(s)?.t0 ?? t)) / MS_K_TAKT_MS + MS_K_START);
+  const kRum = fore - steg;
+  if (kRum < 0) throw fel("resource-exhausted", "Lugn i stormen – ett svar i taget!", { vantaMs: Math.ceil(-kRum * MS_K_TAKT_MS) });
+  return Math.round(kRum * 1000) / 1000;
 }
 
 /** Energi, väntetid, dragstråle → handlingens fält. */
@@ -214,12 +228,16 @@ async function kedja(deps, sid, s, uid, p, raw, { felLista, k = null, graded = n
         if (arFel) {
           if (felHar.length < MS_FEL_SKICKA) throw new KsError("failed-precondition", "Skicka svaren tillsammans med nästa rätta svar.");
           kontrolleraK(prevK, kMax + 1, felHar);
+          if (prev && t - prev.t < MS_FEL_LANK_MS) {
+            throw fel("resource-exhausted", "Skicka svaren tillsammans med nästa rätta svar.", { vantaMs: MS_FEL_LANK_MS - (t - prev.t) });
+          }
         }
+        const kRum = takt(s, prev, t, kMax - prevK);
         const b = arFel
           ? { typ: "fel", energi: Number(prev?.energi) || 0, vinst: 0, kostnad: 0, handelse: null }
           : beslut({ cfg, t, prev, typ, mal, p, logg, senastDrag: lasSnap?.exists ? lasSnap.data() : null });
         const h = {
-          uid, classId: p.classId, namn: p.name, nr, attemptId: forsokId, t, ...b, k: kMax,
+          uid, classId: p.classId, namn: p.name, nr, attemptId: forsokId, t, ...b, k: kMax, kRum,
           ...(graded ? { svar: svarsFalt(graded, k, null) } : {}), fel: felHar, at: FieldValue.serverTimestamp(),
         };
         tx.create(r.ev(uid, nr), h);
