@@ -158,8 +158,10 @@ describe("N2/N3: takt-hinken", () => {
       if (lista[i].typ === "fel") assert.ok(lista[i].t - lista[i - 1].t >= 25_000, `fel-länk ${lista[i].nr} efter ${lista[i].t - lista[i - 1].t} ms`);
     }
     assert.ok(k <= 5 + 600_000 / MS_K_TAKT_MS + 1, `k ${k}`);
-    assert.equal(skrev, lista.length);
-    assert.ok(skrev <= 600_000 / MS_K_TAKT_MS + 5, `${skrev} skrivningar (${felL.length} fel-länkar)`);
+    // "ok" utan skrivning = ett svar på ett k som fel-bufferten redan rättat fel (correct: false).
+    assert.ok(skrev >= lista.length);
+    assert.ok(lista.length <= 600_000 / MS_K_TAKT_MS + 5, `${lista.length} skrivningar (${felL.length} fel-länkar)`);
+    assert.ok(felL.length <= 600_000 / 25_000 + 1, `${felL.length} fel-länkar`);
   });
 
   it("snabb gissare via elevskärmen (ett svar per sekund, var fjärde rätt) i 5 min: aldrig utelåst", async () => {
