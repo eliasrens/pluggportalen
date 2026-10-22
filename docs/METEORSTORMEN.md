@@ -32,6 +32,12 @@ B (#821) servern (§7–§10); C (projektorn), D (elevskärmen/lärarvyerna) och
 | `admin/ms-kvot-sim.mjs` | **B:** kvotmätningen mot emulatorn (§9) |
 | `test/live-meteorstorm-server.test.js`, `test/functions-meteorstorm*.test.mjs`, `test/firestore-rules-live-meteorstorm.test.js` | **B:** servertesterna |
 | `test/*-meteorstorm-fusk.test.*`, `test/live-meteorstorm-klient-fusk.test.js` | **B:** testarens fusk-/race-sviter (F1–F8 rättade i rättningsrunda 1) |
+| `ms-format-elev.js` | **D:** formatobjektets elev-, formulär- och historikdelar (`MS_ELEV_DELAR`, sprids in i `index.js`) |
+| `ms-setup.js`, `ms-avslut.js` | **D:** lärarformuläret + sessionens fält + quizets ögonblicksbild; resultatet (msAvsluta) + pluggmyntens utbetalning |
+| `meteorstorm-student.js` → `ms-elev-vy.js` (+ `ms-elev.js`, `ms-skarmar.js`, `ms-station-mini.js`, `meteorstorm-elev.css`) | **D:** elevskärmen (§11) |
+| `meteorstorm-history.js` (+ `meteorstorm-historik.css`) | **D:** historiken + Statistik → Live |
+| `ms-elev-demo.js`, `preview/preview-meteorstorm-elev.html`, `preview/preview-meteorstorm-historik.html` | **D:** elevdelen av demoläget (låtsasserver med `delat/`-reglerna + simulerade klasser) |
+| `test/live-meteorstorm-elev.test.js` | **D:** formulär, resultat/mynt, elevlogik, slutskärm, historik, demo |
 
 `delat/` är ren: ingen DOM, ingen Firebase, ingen `Math.random`/`Date.now`,
 bara importer inom `delat/` (testat). Inget format registreras i del A –
@@ -573,6 +579,52 @@ läses loggen och sessionen en gång per instans → ~15 000.
 > (~280 per elev), vilket då också bromsar de allra snabbaste ärliga eleverna?
 
 ---
+
+## 11. Elevskärmen och lärarvyerna (D, #823)
+
+**Lärarformuläret** (`setupFields`, ritas av `live-setup-fields.js`): Läge (En
+klass = exakt 1 klass / Klass mot klass = 2), Attacker (Av/Milda/Vilda, standard
+Milda – En klass sparas alltid med `av`), speltid 5–20 min (standard 10,
+snabbknappar + "Egen tid"), namn i projektorns flöde, pluggmynt. `msSeed` slumpas
+i `buildSessionFields` (crypto). Spelläge/svarssätt: multiplikation eller
+Plugga-quiz, skriv själv/flerval, tidslinjefrågor (`timelineQuestions`).
+
+**Elevskärmen** (`ms-elev-vy.js`, utan Firebase – `api` injiceras):
+- `lage()` när spelet börjar; sedan frågeflödet (`createQuestionFlow`) med
+  `ms-klient.js` som `send` (multiplikation: `kalla()` som källa; quiz: `fraga()`).
+- Rätt svar → 🛡️ Sköld / 🔫 Laser / 🌀 Dragstråle (kostnad, gråa utan råd,
+  nedräkning/"på väg"; ingen dragstråle i En klass eller med Attacker av) +
+  "Spara energin". Genvägar 1/2/3 och mellanslag. Svar + val går i ETT
+  `msAgera`; nästa fråga först när svaret kommit (klienten har en väntande plats).
+- Spärren (`resource-exhausted`): klienten väntar en gång, vyn sedan lugnt upp
+  till ~30 s ("⏳ Ett ögonblick …") – ingen felruta.
+- Kvittensen ur svaret: "🛡️ +0,6 – skölden 34/60", "🔫 Lasern laddas – 3,4 skott
+  redo", "🌀 … slungar den mot 4D!", nekad dragstråle = "energin sparad".
+- Hela tiden: ⚡ energi (5 prickar), den egna stationen (skrov + sköld ur
+  status), de andras skrov som mätare, klockan, banderollen för pågående
+  händelse och "extra kraft"/"flyter". **Händelserna och energins vinst räknas
+  ur fröet** (`stormPlan`/`energiEffekt` – samma som servern), utan läsningar;
+  stationerna ur `msPublic/status` (svaren + statusvakten var 20:e s).
+- Slutet: felbufferten skickas (`skickaFel`); saknas `result` efter 20–35 s
+  anropar eleven `msAvsluta` (idempotent). Slutskärmen: "Ni vann! 🚀" / "Bra
+  kämpat – 4D vann den här gången" / "Oavgjort" / stjärnorna – **ingen
+  placering som nummer** – elevens bidrag och pluggmynten.
+
+**Pluggmynten:** `resultInputs(s)` = `msAvsluta` och sedan
+`settleLiveRewards(sid, { ...s, status: "finished", result })` (`ms-avslut.js`
+`avslutaOchBetala`). Kärnans `writeResultIfMissing` skriver aldrig `result` här
+och betalar därför inte – projektorn (C) som själv anropar `avsluta` ska använda
+`avslutaOchBetala`. Historiken betalar det som saknas när läraren öppnar matchen.
+
+**Historiken** (`meteorstorm-history.js`): vinnare/stjärnor, stationerna (skrov,
+nedskjutna, träffar, kastade, bästa ögonblicken), handlingar per sort och klass,
+eleverna (rätt, svar, andel rätt, 🛡️/🔫/🌀, nedskjutna, pluggmynt – ingen
+placeringskolumn), andel rätt per fråga/tabell. Statistik → Live: Rätt · Skrov ·
+Utfall + sammanfattning per tabell/kategori.
+
+**Demo/preview:** `preview/preview-meteorstorm-elev.html` (`?fas=live`,
+`?lage=en-klass`, `?attacker=av|vilda`, `?svar=choice`, `?quiz=1`, `?status=5`)
+och `preview/preview-meteorstorm-historik.html`.
 
 ## 10. Deploy
 
