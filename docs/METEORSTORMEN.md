@@ -293,8 +293,8 @@ Fel = HttpsError med svenskt meddelande (`details.vantaMs` vid spärren).
 | `nr` | elevens nästa länk i kedjan (förra svarets `nr` + 1). Saknas/fel → servern letar upp den |
 
 **Rätt svar** → EN händelse `msEvents/{uid}_{nr}` (en skrivning):
-`{ uid, classId, namn, t, typ, nr, attemptId, energi, vinst, kostnad, handelse,
-mal?, onskad?, nekad?, redoMs?, k?, svar, fel[], at }`. `t` = serverns tid
+`{ uid, classId, namn, t, typ, nr, attemptId, k, kRum, energi, vinst, kostnad, handelse,
+mal?, onskad?, nekad?, redoMs?, svar, fel[], at }`. `t` = serverns tid
 (motorns tidsstämpel), `at` = commit-tiden. `energi` = elevens energi EFTER
 handlingen – händelserna är en kedja per elev, och nästa anrop läser bara
 föregående länk i transaktionen (ingen msPlayers-skrivning per svar).
