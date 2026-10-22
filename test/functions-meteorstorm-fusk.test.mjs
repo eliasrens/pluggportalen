@@ -5,9 +5,8 @@
 // Anropen har samma form som elevklienten (ms-klient.js) eller en elev som
 // skriver egna anrop i konsolen.
 //
-// Fynd som inte är rättade står som todo-tester (F-numren i testarens
-// rapport till 821-issue-lead) – de visar det ÖNSKADE beteendet och
-// rapporteras utan att fälla sviten.
+// F-numren = testarens fynd (rapport till 821-issue-lead); alla rättade i
+// rättningsrunda 1 och därför vanliga tester.
 // Körs via:  npm run test:functions  (eller ensam med node --test)
 // ============================================================================
 
@@ -18,11 +17,11 @@ import { simulera } from "../src/live/formats/meteorstorm/delat/ms-motor.js";
 import { fragaFor, MS_FEL_TAK } from "../src/live/formats/meteorstorm/delat/ms-anrop.js";
 import {
   ctl, deps, T0, END, makeSession, makeQuiz, events, ev, msPlayer, status, session, att, mult, code, db, Timestamp,
-  QUESTIONS, FACIT,
+  QUESTIONS, FACIT, nasta,
 } from "./helpers/meteorstorm-core-rig.js";
 
 const steg = (d, ms = 2000) => { ctl.clock += ms; return d; };
-const handla = (d, sid, uid, typ, extra = {}) => agera(d, uid, { sid, attemptId: att(), svar: mult(3, 4), typ, ...extra });
+const handla = (d, sid, uid, typ, extra = {}) => agera(d, uid, { sid, attemptId: att(), svar: nasta(sid, uid), typ, ...extra });
 const larare = { uid: "larare1", teacher: true };
 /** Som riggens code(), men ett rått Firestore-fel (t.ex. dokumentets storlek) blir "raw:<kod>". */
 const kod = async (p) => {
@@ -64,7 +63,7 @@ describe("Fusk: energin och kedjan", () => {
     const inst = [deps(), deps(), deps()];
     const ut = await Promise.all(Array.from({ length: 10 }, (_, i) => code(handla(inst[i % 3], sid, "alma", "skold"))));
     assert.ok(ut.includes("ok"), ut.join(","));
-    assert.ok(ut.every((c) => ["ok", "resource-exhausted", "aborted"].includes(c)), ut.join(","));
+    assert.ok(ut.every((c) => ["ok", "resource-exhausted", "aborted", "failed-precondition"].includes(c)), ut.join(","));
     const lista = await events(sid);
     assert.equal(lista.length, 1, `händelser: ${lista.map((h) => h.id)}`);
   });
@@ -73,7 +72,7 @@ describe("Fusk: energin och kedjan", () => {
     const sid = await makeSession();
     const base = ctl.clock;
     const mk = (off) => ({ ...deps(), now: () => base + off });
-    const ut = await Promise.all([0, 1500, 3000].map((off) => code(agera(mk(off), "alma", { sid, attemptId: att(), svar: mult(2, 2), typ: "spara" }))));
+    const ut = await Promise.all([0, 1500, 3000].map((off) => code(agera(mk(off), "alma", { sid, attemptId: att(), svar: nasta(sid, "alma"), typ: "spara" }))));
     const lista = (await events(sid)).sort((a, b) => a.nr - b.nr);
     assert.deepEqual(lista.map((h) => h.nr), lista.map((_, i) => i + 1), `nr: ${lista.map((h) => h.nr)} (${ut})`);
     // Energin följer kedjan: varje länk = föregående + 1 (spara).
@@ -120,10 +119,10 @@ describe("Fusk: energin och kedjan", () => {
 });
 
 describe("Fusk: idempotens", () => {
-  it("F4: samma attemptId igen EFTER en senare handling ger ingen ny händelse", { todo: "F4 – idempotensen ser bara föregående länk" }, async () => {
+  it("F4: samma attemptId igen EFTER en senare handling ger ingen ny händelse", async () => {
     const sid = await makeSession();
     const d = deps();
-    const forsta = { sid, attemptId: att(), svar: mult(6, 7), typ: "laser" };
+    const forsta = { sid, attemptId: att(), svar: nasta(sid, "alma"), typ: "laser" };
     await agera(d, "alma", forsta);
     await handla(steg(d), sid, "alma", "skold");
     const igen = await agera(steg(d), "alma", forsta);
@@ -133,15 +132,15 @@ describe("Fusk: idempotens", () => {
 });
 
 describe("Fusk: multiplikationens faktorer väljer klienten", () => {
-  it("F1: 0 × 0 = 0 varje sekund i en minut → högst ~takten en människa klarar", { todo: "F1 – servern tar valfria faktorer, bara 1 s spärr" }, async () => {
+  it("F1: 0 × 0 = 0 varje sekund i en minut → nekas (faktorerna kommer ur elevens kortlek)", async () => {
     const sid = await makeSession({ rewards: { firstPrize: 100, perCorrect: 5, cap: 300 } });
     const d = deps();
     let ok = 0;
     for (let i = 0; i < 60; i++) {
-      const r = await agera(steg(d, 1000), "alma", { sid, attemptId: att(), svar: mult(0, 0), typ: "laser" });
-      if (r.correct && r.typ === "laser") ok++;
+      const r = await code(agera(steg(d, 1000), "alma", { sid, attemptId: att(), svar: { ...mult(0, 0), k: i }, typ: "laser" }));
+      if (r === "ok") ok++;
     }
-    assert.ok(ok <= 20, `${ok} laserskott på 60 s med 0 × 0`);
+    assert.ok(ok <= 1, `${ok} laserskott på 60 s med 0 × 0`);
   });
 });
 
@@ -151,7 +150,7 @@ describe("Fusk: quizets facit och dolda fel svar", () => {
     throw new Error("ingen k");
   };
 
-  it("F2: msRatta på k långt fram ger inte facit till frågor eleven inte fått", { todo: "F2 – k är fritt uppåt, facit skördas utan spår" }, async () => {
+  it("F2: msRatta på k långt fram ger inte facit till frågor eleven inte fått", async () => {
     const sid = await makeQuiz();
     const d = deps();
     const kant = [];
@@ -164,7 +163,7 @@ describe("Fusk: quizets facit och dolda fel svar", () => {
     assert.ok(kant.every((c) => c !== "ok"), `msRatta på k 500+: ${kant}`);
   });
 
-  it("F2b: ett rätt svar som hoppar över k utan att fel svaren skickas → stoppas", { todo: "F2 – överhoppade k behöver inte redovisas" }, async () => {
+  it("F2b: ett rätt svar som hoppar över k utan att fel svaren skickas → stoppas", async () => {
     const sid = await makeQuiz();
     const d = deps();
     // Eleven svarar fel på k 0–4 (msRatta, ingen skrivning), skickar aldrig bufferten,
@@ -193,50 +192,63 @@ describe("Fusk: quizets facit och dolda fel svar", () => {
     const sid = await makeQuiz();
     const d = deps();
     const q = fragaFor(4711, "alma", 0, 4);
-    await agera(d, "alma", { sid, fel: [{ k: 0, q, choiceIndex: (FACIT[q].answerIndex + 1) % 4, attemptId: att() }] });
+    // Ett ensamt fel under matchen skrivs inte (#821 F3) – men k=0 är rättat fel.
+    await code(agera(d, "alma", { sid, fel: [{ k: 0, q, choiceIndex: (FACIT[q].answerIndex + 1) % 4, attemptId: att() }] }));
     const r = await agera(steg(d), "alma", { sid, attemptId: att(), svar: { k: 0, q, choiceIndex: FACIT[q].answerIndex }, typ: "laser" });
     assert.equal(r.correct, false);
   });
 });
 
 describe("Fusk: fel-anropen (utan svar) och kvoten", () => {
-  it("F3: fel-anrop varje sekund i en minut → högst ett par skrivningar", { todo: "F3 – en msPlayers-skrivning per sekund och elev" }, async () => {
+  it("F3: fel-anrop varje sekund i en minut → högst ett par skrivningar", async () => {
     const sid = await makeSession();
     const d = deps();
     let skrev = 0;
     for (let i = 0; i < 60; i++) {
-      const r = await code(agera(steg(d, 1000), "alma", { sid, fel: [{ ...mult(2, 3, i + 100), attemptId: att() }] }));
+      const r = await code(agera(steg(d, 1000), "alma", { sid, fel: [{ ...nasta(sid, "alma", { fel: true }), attemptId: att() }] }));
       if (r === "ok") skrev++;
     }
-    assert.ok(skrev <= 3, `${skrev} msPlayers-skrivningar på 60 s`);
+    assert.ok(skrev <= 3, `${skrev} skrivningar på 60 s`);
+    assert.equal((await events(sid)).length + ((await msPlayer(sid, "alma")) ? 1 : 0), skrev);
   });
 
-  it("F3b: fel-anrop via nya instanser samma sekund → spärren gäller ändå", { todo: "F3 – spärren finns bara i instansens minne" }, async () => {
+  it("F3b: fel-anrop via nya instanser samma sekund → spärren gäller ändå (kedjan, inte minnet)", async () => {
     const sid = await makeSession();
+    const buffert = Array.from({ length: 25 }, () => ({ ...nasta(sid, "alma", { fel: true }), attemptId: att() }));
     const ut = [];
-    for (let i = 0; i < 5; i++) ut.push(await code(agera(deps(), "alma", { sid, fel: [{ ...mult(2, 3, 50 + i), attemptId: att() }] })));
-    assert.equal(ut.filter((c) => c === "ok").length, 1, ut.join(","));
+    for (let i = 0; i < 5; i++) ut.push(await code(agera(deps(), "alma", { sid, fel: buffert })));
+    ut.push(await code(agera(deps(), "alma", { sid, fel: [{ ...nasta(sid, "alma", { fel: true }), attemptId: att() }] })));
+    // Samma buffert igen = samma svar (idempotent); en ensam post nekas. EN skrivning.
+    assert.equal(ut.at(-1), "failed-precondition", ut.join(","));
+    assert.equal((await events(sid)).length, 1, ut.join(","));
+    assert.equal(await msPlayer(sid, "alma"), undefined);
   });
 
-  it("F5: msPlayers.fel fylls nära 1 MiB av en elev → msAvsluta ger ändå resultat", { todo: "F5 – en elev kan stoppa resultatet" }, async () => {
+  it("F5: felbufferten kan inte växa msPlayers mot 1 MiB → msAvsluta ger ändå resultat", async () => {
     const sid = await makeSession();
     const d = deps();
     await handla(d, sid, "omar", "laser");
-    const lang = (i, j) => ({ factorA: 7, factorB: 8, answer: (i * 41 + j) % 9999, attemptId: `x${i}-${j}-`.padEnd(64, "z") });
-    let i = 0;
-    let fel = "ok";
-    while (fel === "ok" && i < 400) {
-      fel = await kod(agera(steg(d, 1000), "alma", { sid, fel: Array.from({ length: MS_FEL_TAK }, (_, j) => lang(i, j)) }));
-      i++;
+    const lang = (k) => ({ ...nasta(sid, "alma", { fel: true }), k, attemptId: `x${k}-`.padEnd(64, "z") });
+    // Under matchen: bara hela buffertar (≥ 25) blir länkar, högst MS_FEL_TAK poster var.
+    let k = 0;
+    let ok = 0;
+    for (let i = 0; i < 30; i++) {
+      const buf = Array.from({ length: MS_FEL_TAK }, () => lang(k++));
+      if ((await kod(agera(steg(d, 1100), "alma", { sid, fel: buf }))) === "ok") ok++;
     }
-    // Finjustera med ett i taget tills dokumentet är fullt.
-    let j = 0;
-    let fel1 = "ok";
-    while (fel1 === "ok" && j < 400) fel1 = await kod(agera(steg(d, 1000), "alma", { sid, fel: [lang(9000 + j++, 0)] }));
+    assert.equal(ok, 30);
+    assert.ok((await events(sid)).every((h) => (h.fel || []).length <= MS_FEL_TAK));
+    // Efter slutet: EN buffert per elev, högst MS_FEL_TAK poster.
+    ctl.clock = END + 1000;
+    const efter = [];
+    for (let i = 0; i < 50; i++) efter.push(await kod(agera(steg(d, 1000), "alma", { sid, fel: Array.from({ length: MS_FEL_TAK * 2 }, () => lang(k++)) })));
+    assert.equal(efter.filter((c) => c === "ok").length, 1, efter.slice(0, 3).join(","));
+    assert.ok((await msPlayer(sid, "alma")).fel.length <= MS_FEL_TAK);
     ctl.clock = END + 5000;
-    const r = await kod(avsluta(deps(), larare, { sid }));
-    assert.equal(r, "ok", `fyllde med ${i} + ${j} anrop (${fel}/${fel1}), msAvsluta → ${r}`);
+    assert.equal(await kod(avsluta(deps(), larare, { sid })), "ok");
     assert.ok((await session(sid)).result);
+    assert.equal((await msPlayer(sid, "alma")).fel, undefined, "totalerna skrivs utan felbufferten");
+    assert.equal((await msPlayer(sid, "alma")).incorrect, 30 * MS_FEL_TAK + MS_FEL_TAK);
   });
 });
 
