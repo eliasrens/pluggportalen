@@ -10,6 +10,7 @@
 import assert from "node:assert/strict";
 import { describe, it, beforeEach } from "node:test";
 import { agera, lage, avsluta } from "../functions/meteorstorm-core.js";
+import { uppdateraLogg } from "../functions/meteorstorm-status.js";
 import { simulera } from "../src/live/formats/meteorstorm/delat/ms-motor.js";
 import { ENERGI_TAK } from "../src/live/formats/meteorstorm/delat/ms-balans.js";
 import { MS_STATUS_MS } from "../src/live/formats/meteorstorm/delat/ms-anrop.js";
@@ -226,6 +227,18 @@ describe("Meteorstormen: stationerna och status", () => {
     ctl.clock = s1.tMs + MS_STATUS_MS;
     await handla(d, sid, "bo", "skold");
     assert.equal((await status(sid)).tMs, ctl.clock);
+  });
+
+  it("loggen i minnet: läses en gång, sedan bara det andra instanser skrivit efter (commit-tiden)", async () => {
+    const sid = await makeSession();
+    const a = deps();
+    const b = deps();
+    await handla(a, sid, "alma", "skold");
+    assert.deepEqual([...(await uppdateraLogg(a, sid)).lista.keys()], ["alma_1"]);
+    await handla(steg(b), sid, "omar", "laser");
+    await handla(steg(b), sid, "bo", "laser");
+    const e = await uppdateraLogg(a, sid);
+    assert.deepEqual([...e.lista.keys()].sort(), ["alma_1", "bo_1", "omar_1"]);
   });
 
   it("msLage: elevens senaste nr och energi efter omladdning", async () => {
