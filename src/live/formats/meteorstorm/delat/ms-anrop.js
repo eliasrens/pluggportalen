@@ -46,6 +46,8 @@ export function fragaFor(seed, uid, k, n) {
   const antal = Math.floor(Number(n) || 0);
   const nr = Math.floor(Number(k));
   if (antal <= 1 || !(nr >= 0)) return 0;
+  // Två frågor: bara växling går (bytet nedan skulle flytta varvets sista kort).
+  if (antal === 2) return (kortlek(seed, uid, 0, 2)[0] + nr) % 2;
   const varv = Math.floor(nr / antal);
   const lek = kortlek(seed, uid, varv, antal);
   if (varv > 0 && lek[0] === kortlek(seed, uid, varv - 1, antal)[antal - 1]) [lek[0], lek[1]] = [lek[1], lek[0]];
