@@ -31,6 +31,7 @@ B (#821) servern (§7–§10); C (projektorn), D (elevskärmen/lärarvyerna) och
 | `meteorstorm-data.js` | **B:** lat Firebase-modul: `skapaKlient`, `skapaStatusvakt`, `watchEvents`, `avsluta` … |
 | `admin/ms-kvot-sim.mjs` | **B:** kvotmätningen mot emulatorn (§9) |
 | `test/live-meteorstorm-server.test.js`, `test/functions-meteorstorm*.test.mjs`, `test/firestore-rules-live-meteorstorm.test.js` | **B:** servertesterna |
+| `test/*-meteorstorm-fusk.test.*`, `test/live-meteorstorm-klient-fusk.test.js` | **B:** testarens fusk-/race-sviter (F1–F8 rättade i rättningsrunda 1) |
 
 `delat/` är ren: ingen DOM, ingen Firebase, ingen `Math.random`/`Date.now`,
 bara importer inom `delat/` (testat). Inget format registreras i del A –
@@ -541,8 +542,8 @@ läses loggen och sessionen en gång per instans → ~15 000.
 > instans, upp till 15 000 med fyra). Räcker det med klienterna? Annars
 > finns två spakar: (1) `msAvsluta` räknar ur instansens logg i minnet i
 > stället för att läsa om hela loggen (−2 300, men resultatet hänger då på att
-> minnet är komplett), (2) `maxInstances: 1` (en match per instans, minnet
-> alltid varmt – men en storm per region åt gången).
+> minnet är komplett), (2) `maxInstances: 1` (minnet alltid varmt – men taket blir
+> 80 samtidiga anrop för alla stormar på en gång).
 
 ---
 
