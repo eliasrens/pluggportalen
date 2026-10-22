@@ -65,8 +65,8 @@ describe("Meteorstormen quiz: msAgera", () => {
     assert.deepEqual(h.svar.k, 3);
     ctl.clock += 2000;
     // k=1 fanns i bufferten som fel – går inte att ta tillbaka som rätt.
-    const r3 = await agera(d, "alma", { sid, attemptId: att(), svar: ratt("alma", 1), typ: "skold" });
-    assert.equal(r3.correct, false);
+    assert.equal((await agera(d, "alma", { sid, attemptId: att(), svar: ratt("alma", 1), typ: "skold" })).correct, false);
+    assert.equal((await events(sid)).length, 2);
   });
 
   it("msAvsluta: andel rätt per fråga ur svaren + felbufferten", async () => {
@@ -75,6 +75,7 @@ describe("Meteorstormen quiz: msAgera", () => {
     await agera(d, "alma", { sid, attemptId: att(), svar: ratt("alma", 0), typ: "laser" });
     ctl.clock += 2000;
     await agera(d, "omar", { sid, attemptId: att(), svar: ratt("omar", 0), typ: "skold", fel: [] });
+    ctl.clock = END + 1000;
     await agera(d, "omar", { sid, fel: [fel("omar", 1)] });
     ctl.clock = END + 5000;
     const { result } = await avsluta(deps(), { uid: "x", teacher: true }, { sid });
