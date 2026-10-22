@@ -59,8 +59,8 @@
 .mse-prickar i { width: 10px; height: 10px; border-radius: 50%; background: rgba(255, 216, 74, 0.2); box-shadow: inset 0 0 0 1px rgba(255, 216, 74, 0.6); }
 .mse-prickar i.pa { background: var(--mse-energi); }
 .mse-egen { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.mse-egen-bild { width: clamp(54px, 9vh, 76px); flex: none; }
-.mse-egen-text { display: flex; flex-direction: column; min-width: 0; }
+.mse-egen-bild { width: clamp(64px, 11vh, 92px); flex: none; }
+.mse-egen-text { display: flex; flex-direction: column; min-width: 0; text-align: left; }
 .mse-egen-text b { font-size: 1.05rem; }
 .mse-egen-rad { font-size: 0.9rem; color: var(--mse-svag); }
 .mse-andra { display: flex; flex-direction: column; gap: 4px; flex: 1 1 140px; min-width: 120px; max-width: 260px; }
@@ -139,10 +139,10 @@
 .mse-knapp[disabled] { cursor: not-allowed; filter: grayscale(0.85) brightness(0.7); }
 .mse-knapp.mse-skickar, .mse-spara.mse-skickar { filter: none; outline: 3px solid var(--mse-energi); outline-offset: 3px; }
 .mse-knapp:focus-visible, .mse-spara:focus-visible { outline: 3px solid var(--mse-fokus); outline-offset: 3px; }
-.mse-spara { position: relative; align-self: center; min-width: min(360px, 100%); padding: 12px 64px 12px 18px; border-radius: 999px; cursor: pointer;
+.mse-spara { display: inline-flex; align-items: center; justify-content: center; gap: 10px; align-self: center; min-width: min(360px, 100%); padding: 12px 18px; border-radius: 999px; cursor: pointer;
   font: inherit; font-weight: 800; font-size: 1.05rem; color: var(--mse-text); background: rgba(255, 216, 74, 0.12);
   border: 2px solid rgba(255, 216, 74, 0.6); }
-.mse-spara kbd { top: 50%; transform: translateY(-50%); }
+.mse-spara kbd { position: static; }
 .mse-spara[disabled] { opacity: 0.6; cursor: wait; }
 
 /* --- Kvittensen ------------------------------------------------------------- */
@@ -178,7 +178,6 @@
   .mse-knapp b { font-size: 16px; }
   .mse-knapp small { font-size: 0.85rem; }
   .mse-knapp kbd { display: none; }
-  .mse-spara { padding-right: 18px; }
   .mse-spara kbd { display: none; }
 }
 

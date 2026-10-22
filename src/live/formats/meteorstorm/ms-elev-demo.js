@@ -65,7 +65,7 @@ export function createMsElevDemo({
   const session = {
     id: `demo-ms-${seed}`, name: "Meteorstormen (demo)", format: "meteorstorm", demo: true,
     gameMode: quiz ? "plugga_quiz" : "multiplication_0_10", answerKind: quiz ? "choice" : "free",
-    participatingClassIds: klasser, classNames, durationSeconds: minuter * 60, countdownSeconds: 0,
+    participatingClassIds: klasser, classNames, durationSeconds: minuter * 60, countdownSeconds: 0, startedAt: startMs,
     msSeed: seed, msInstallningar: { lage, attacker: lage === "en-klass" ? "av" : attacker },
     rewards: { firstPrize: 100, perCorrect: 5, cap: 300 }, questionCount: quiz ? quiz.length : undefined,
   };
@@ -87,14 +87,23 @@ export function createMsElevDemo({
   let resultat = null;
 
   const lank = (uid) => kedja.get(uid) || kedja.set(uid, { nr: 0, energi: 0, k: -1, t: -Infinity, svar: new Map() }).get(uid);
-  const rakna = (uid, ratt) => {
+  const svarLogg = []; // { classId, key, text, statKeys, ok } – andel rätt per fråga i result
+  const fragaAv = (sv) => {
+    if (Number.isInteger(sv?.q)) return { key: `q:${sv.q}`, text: quiz?.[sv.q]?.text || `Fråga ${sv.q + 1}`, statKeys: [] };
+    const [x, y] = [sv?.factorA ?? 0, sv?.factorB ?? 0].sort((a, b) => a - b);
+    return { key: `m:${x}x${y}`, text: `${x} × ${y}`, statKeys: [...new Set([`t${x}`, `t${y}`])] };
+  };
+  const rakna = (uid, ratt, sv = null) => {
     const r = raknare.get(uid) || raknare.set(uid, { correct: 0, incorrect: 0 }).get(uid);
     r[ratt ? "correct" : "incorrect"]++;
+    const classId = spelare.find((p) => p.uid === uid)?.classId;
+    const f = sv || (quiz ? { q: Math.floor(rng.tal() * quiz.length) } : { factorA: Math.floor(rng.tal() * 11), factorB: Math.floor(rng.tal() * 11) });
+    svarLogg.push({ classId, ...fragaAv(f), ok: ratt });
   };
   const status = () => statusFran(cfg, logg, now());
 
   /** Serverns beslut (som meteorstorm-core.js beslut): energi, kostnad, nekad. */
-  function utfor(p, typ, t, mal = null) {
+  function utfor(p, typ, t, mal = null, sv = null) {
     const l = lank(p.uid);
     const eff = energiEffekt(cfg, t);
     let kostnad = 0;
@@ -113,7 +122,7 @@ export function createMsElevDemo({
     l.energi = Math.min(ENERGI_TAK, l.energi + eff.energi - kostnad);
     l.t = t;
     logg.push({ id: `${p.uid}_${l.nr}`, t, classId: p.classId, uid: p.uid, typ: utfort, ...(utfort === "drag" && mal ? { mal } : {}) });
-    rakna(p.uid, true);
+    rakna(p.uid, true, sv);
     return {
       correct: true, nr: l.nr, typ: utfort, energi: l.energi, vinst: eff.energi, kostnad, handelse: eff.handelse,
       ...(nekad ? { onskad: typ, nekad } : {}), ...(redoMs != null ? { redoMs } : {}),
@@ -155,12 +164,12 @@ export function createMsElevDemo({
     if (namn === "msRatta") {
       const q = quiz?.[data.svar.q];
       const correct = !!q && (data.svar.year != null ? data.svar.year === q.year : data.svar.choiceIndex === q.a);
-      if (!correct) rakna(me.uid, false);
+      if (!correct) rakna(me.uid, false, data.svar);
       return { correct, correctAnswer: q ? q.options?.[q.a] ?? q.year : null, ...(q?.year != null ? { correctYear: q.year } : {}), k: data.svar.k };
     }
     if (namn !== "msAgera") throw fel("not-found", `Okänt anrop ${namn}`);
     if (!data.svar) {
-      for (const f of data.fel || []) rakna(me.uid, false);
+      if (!quiz) for (const f of data.fel || []) rakna(me.uid, false, f);
       return { ok: true, fel: (data.fel || []).length };
     }
     if (t < startMs || t >= slutMs) throw fel("failed-precondition", "Matchen pågår inte.");
@@ -171,8 +180,8 @@ export function createMsElevDemo({
     if (!ratt) return { correct: false, correctAnswer: sv.factorA * sv.factorB, k: sv.k };
     if (t - l.t < MS_MIN_GAP_MS) throw fel("resource-exhausted", "Lugn i stormen – ett svar i taget!", { vantaMs: Math.ceil(MS_MIN_GAP_MS - (t - l.t)) });
     if (!HANDLINGAR.includes(data.typ)) throw fel("invalid-argument", "Välj sköld, laser, dragstråle eller spara.");
-    for (const f of data.fel || []) rakna(me.uid, false);
-    const ut = { ...utfor(p, data.typ, t, data.mal || null), k: sv.k };
+    if (!quiz) for (const f of data.fel || []) rakna(me.uid, false, f);
+    const ut = { ...utfor(p, data.typ, t, data.mal || null, sv), k: sv.k };
     l.k = sv.k;
     l.svar.set(data.attemptId, ut);
     logg.sort((a, b) => a.t - b.t || (a.id < b.id ? -1 : 1));
@@ -202,17 +211,38 @@ export function createMsElevDemo({
     const perClass = Object.fromEntries(slut.stationer.map((x) => [x.classId, {
       name: classNames[x.classId], players: ranking.filter((p) => p.classId === x.classId && p.answered).length, aktiva: x.aktiva,
       skrov: x.skrov, skold: x.skold, nedskjutna: x.nedskjutna, traffar: x.traffar, kastade: x.kastade, handlingar: x.handlingar,
-      correct: ranking.filter((p) => p.classId === x.classId).reduce((n, p) => n + p.correct, 0), ogonblick: [],
+      correct: ranking.filter((p) => p.classId === x.classId).reduce((n, p) => n + p.correct, 0),
+      ogonblick: ogonblick(ranking.filter((p) => p.classId === x.classId)),
     }]));
+    const per = new Map();
+    for (const a of svarLogg) {
+      const row = per.get(a.key) || per.set(a.key, { key: a.key, text: a.text, statKeys: a.statKeys, answered: 0, correct: 0, byClass: {} }).get(a.key);
+      const b = (row.byClass[a.classId] ||= { answered: 0, correct: 0 });
+      row.answered++;
+      b.answered++;
+      if (a.ok) { row.correct++; b.correct++; }
+    }
+    const perQuestion = [...per.values()].sort((a, b) => (a.key < b.key ? -1 : 1)).map((r, index) => ({ index, ...r }));
     resultat = {
       format: "meteorstorm", lage: r.lage, winner: r.vinnare, draw: r.oavgjort, placering: r.placering,
       ...(r.lage === "en-klass" ? { stjarnor: r.stjarnor, overlevde: r.overlevde } : {}),
       startMs, slutMs, players: ranking.filter((p) => p.answered).length,
       totalCorrect: ranking.reduce((n, p) => n + p.correct, 0), totalAnswered: ranking.reduce((n, p) => n + p.answered, 0),
       handlingar: Object.fromEntries(HANDLINGAR.map((x) => [x, logg.filter((e) => e.typ === x).length])), nekade: 0,
-      perClass, ranking, rewards,
+      perClass, ranking, perQuestion, rewards,
     };
     return resultat;
+  }
+
+  /** Bästa ögonblicken (bara det som är bra): flest nedskjutna, flest sköldtryck, flest kast. */
+  function ogonblick(rader) {
+    const bast = (f) => rader.filter((r) => f(r) > 0).sort((a, b) => f(b) - f(a) || (a.uid < b.uid ? -1 : 1))[0];
+    const ut = [];
+    for (const [typ, f] of [["nedskjutna", (r) => r.bidrag.nedskjutna], ["skold", (r) => r.handlingar.skold], ["kast", (r) => r.bidrag.kast]]) {
+      const b = bast(f);
+      if (b) ut.push({ typ, uid: b.uid, namn: b.name, antal: f(b) });
+    }
+    return ut;
   }
 
   function skapaStatusvakt(_sid, cb) {

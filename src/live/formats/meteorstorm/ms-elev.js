@@ -21,13 +21,16 @@
 //   dragFinns(session)             → dragstrålen i matchen? (Klass mot klass, attacker ≠ av)
 //   minStation(status, classId)    → stationen | null
 //   andraStationer(status, classId, session) → [{ classId, namn, skrov, flyter }]
-//   energiVinst(status, now)       → 1 | 2 (☀️ Solstorm ×2, ✨ Kometsvans +1)
+//   planCfg(session)               → motorns indata utan handlingar (fröet, start, speltid)
+//                                  | null före start – händelserna och energin räknas
+//                                  ur fröet (samma som servern), utan läsningar
+//   energiVinst(status, now, cfg?) → 1 | 2 (☀️ Solstorm ×2, ✨ Kometsvans +1)
 //   knappar({ energi, vinst, status, classId, session, now }) → [{ typ, ikon, namn,
 //                                  tangent, kostnad, kan, info }] (dragstrålen bara
 //                                  om den finns i matchen)
 //   tangentTyp(e)                  → "skold" | "laser" | "drag" | "spara" | null
 //   kvittens(res, { classId, session })  → { text, ton } ur msAgera-svaret
-//   handelseRad(status, now)       → { typ, text } | null (banderollen)
+//   handelseRad(status, now, cfg?) → { typ, text } | null (banderollen)
 //   stationRad(station)            → "Skrov 82 · Sköld 34/60" (skärmläsare/text)
 //   lagesRad(station, classNamn)   → hjälp/flyter-raden | ""
 //   slutet(result, classId, session) → { titel, rad, vann }
@@ -36,6 +39,8 @@
 // ============================================================================
 
 import { KOSTNAD, SKOLD_TAK, LADDNING_TAK, ENERGI_TAK, HANDELSE } from "./delat/ms-balans.js";
+import { energiEffekt, stormPlan } from "./delat/ms-agera.js";
+import { toMs } from "../../live-time.js";
 
 export const KNAPPAR = [
   { typ: "skold", ikon: "🛡️", namn: "Sköld", tangent: "1" },
@@ -76,8 +81,30 @@ export function andraStationer(status, classId, session) {
   });
 }
 
+/** Motorns indata ur sessionen (som functions/meteorstorm-sess.js cfgFor) | null före start. */
+export function planCfg(session) {
+  const start = toMs(session?.startedAt);
+  if (start == null || session?.msSeed == null) return null;
+  return {
+    seed: session.msSeed,
+    startMs: start + (Number(session.countdownSeconds) || 0) * 1000,
+    varaktighetMs: (Number(session.durationSeconds) || 0) * 1000,
+    stationer: session.msStationer || (session.participatingClassIds || []).map((classId) => ({ classId, aktiva: 1 })),
+    installningar: session.msInstallningar,
+  };
+}
+
+/** Pågående händelse ur stormplanen (absoluta tider) | null. */
+function handelseUrPlan(cfg, now) {
+  const rel = now - cfg.startMs;
+  if (!(rel >= 0 && rel < cfg.varaktighetMs)) return null;
+  const h = stormPlan(cfg).handelser.find((x) => rel >= x.startMs && rel < x.slutMs);
+  return h ? { typ: h.typ, slutMs: cfg.startMs + h.slutMs } : null;
+}
+
 /** Vad ett rätt svar ger just nu (servern räknar – det här gråar bara knapparna). */
-export function energiVinst(status, now) {
+export function energiVinst(status, now, cfg = null) {
+  if (cfg) return energiEffekt(cfg, now).energi;
   const h = status?.handelse;
   if (!h || !(Number(h.slutMs) > now)) return 1;
   if (h.typ === "solstorm") return HANDELSE.solstorm.energiFaktor;
@@ -172,8 +199,8 @@ const HANDELSE_TEXT = {
 };
 
 /** Banderollen för en pågående händelse, med sekunder kvar. */
-export function handelseRad(status, now) {
-  const h = status?.handelse;
+export function handelseRad(status, now, cfg = null) {
+  const h = cfg ? handelseUrPlan(cfg, now) : status?.handelse;
   if (!h || !HANDELSE_TEXT[h.typ]) return null;
   const kvar = Math.ceil((Number(h.slutMs) - now) / 1000);
   if (!(kvar > 0)) return null;

@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Meteorstormens elevskärm (#823)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      /* Bara förhandsvisningen: en låtsad toppmeny (~70 px som appens) + demopanel. */
+      body { margin: 0; min-height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; }
+      .pv-topbar { flex: none; height: 64px; display: flex; align-items: center; padding: 0 18px; gap: 14px; background: #fff;
+        box-shadow: 0 2px 8px rgba(0,0,0,.08); font-weight: 800; color: #1b2559; }
+      .pv-main { flex: 1; display: flex; flex-direction: column; padding: 12px 16px; min-height: 0; }
+      .pv { position: fixed; right: 10px; bottom: 10px; z-index: 100; width: 330px; max-height: 72vh; overflow: auto;
+        font: 13px/1.35 system-ui, sans-serif; background: rgba(255, 255, 255, 0.97); color: #1b2559; border-radius: 12px;
+        box-shadow: 0 8px 30px rgba(0,0,0,.35); }
+      .pv:not([open]) { width: auto; }
+      .pv summary { cursor: pointer; padding: 8px 12px; font-weight: 700; }
+      .pv-body { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 12px; }
+      .pv-body b { width: 100%; margin-top: 6px; }
+      .pv button, .pv label, .pv select { font: inherit; padding: 4px 8px; border-radius: 8px; border: 1px solid #c5cde0; background: #f3f6fc; cursor: pointer; }
+      .pv-note, .pv-stat { width: 100%; color: #5a6585; }
+      .pv-stat { font-family: ui-monospace, monospace; font-size: 12px; color: #1b2559; white-space: pre-line; }
+    </style>
+  </head>
+  <body>
+    <div class="pv-topbar">🏠 Pluggporten <span style="margin-left:auto;font-weight:600">Elev: Jag (4B)</span></div>
+    <div class="pv-main" id="app"></div>
+
+    <details class="pv" data-panel>
+      <summary>🧪 Demo (#823, bara förhandsvisning)</summary>
+      <div class="pv-body">
+        <span class="pv-note">Isolerad match i minnet (ms-elev-demo.js): formatets riktiga regler, 4B och 4D med simulerade elever (70 % / 60 % rätt). Ingen Firestore, inga pluggmynt.</span>
+        <b>Fas</b>
+        <button data-fas="lobby">Lobby</button>
+        <button data-fas="live">Spel</button>
+        <button data-fas="slut">Slut (msAvsluta)</button>
+        <b>Klockan</b>
+        <button data-act="handelse">⏩ Nästa händelse</button>
+        <button data-act="hoppa">⏩ +60 s</button>
+        <button data-act="snart">⏩ 20 s kvar</button>
+        <b>Eleven</b>
+        <button data-act="svara">✔ Svara rätt nu</button>
+        <button data-act="fel">✖ Svara fel nu</button>
+        <label>Serverns svarstid <select data-lat><option>0</option><option selected>150</option><option>600</option><option>2500</option></select> ms</label>
+        <span class="pv-note">Adressen: ?lage=en-klass · ?attacker=av|vilda · ?svar=choice · ?quiz=1 · ?fas=live · ?status=5 (statusvakten i s, riktig = 20)</span>
+        <div class="pv-stat" data-stat></div>
+      </div>
+    </details>
+
+    <script type="module">
+      import { createMsStage } from "../src/live/formats/meteorstorm/ms-elev-vy.js";
+      import { lobbyHtml, endHtml, joinedText } from "../src/live/formats/meteorstorm/ms-skarmar.js";
+      import { createMsElevDemo } from "../src/live/formats/meteorstorm/ms-elev-demo.js";
+      import { sessionTitle } from "../src/live/formats/meteorstorm/ms-setup.js";
+      import { requireGameMode } from "../src/live/modes/index.js";
+
+      const qs = new URLSearchParams(location.search);
+      const $ = (s) => document.querySelector(s);
+      const QUIZ = [
+        { text: "Vilken planet är närmast solen?", options: ["Venus", "Merkurius", "Mars", "Jorden"], a: 1 },
+        { text: "Vad heter vår galax?", options: ["Andromeda", "Vintergatan", "Orion", "Karlavagnen"], a: 1 },
+        { text: "Hur många planeter har vårt solsystem?", options: ["7", "8", "9", "10"], a: 1 },
+        { text: "Vad är en meteor?", options: ["En stjärna", "En sten som brinner i atmosfären", "En måne", "Ett moln"], a: 1 },
+        { text: "Vilken planet kallas den röda planeten?", options: ["Mars", "Jupiter", "Saturnus", "Neptunus"], a: 0 },
+      ];
+      const quizOn = qs.get("quiz") === "1";
+      const demo = createMsElevDemo({
+        lage: qs.get("lage") === "en-klass" ? "en-klass" : "klass-mot-klass",
+        attacker: ["av", "milda", "vilda"].includes(qs.get("attacker")) ? qs.get("attacker") : "milda",
+        quiz: quizOn ? QUIZ : null,
+        latens: () => Number($("[data-lat]").value) || 0,
+        statusMs: (Number(qs.get("status")) || 20) * 1000,
+      });
+      window.__msDemo = demo;
+      const session = demo.session;
+      const answerKind = quizOn || qs.get("svar") === "choice" ? "choice" : "free";
+      session.answerKind = answerKind;
+      const mode = requireGameMode(session.gameMode);
+
+      // Kärnans elevvy (page-elev-live.js) i liten skala: lobby / spel / slut.
+      $("#app").innerHTML = `<div class="live-elev">
+          <header class="live-elev-head"><span class="live-elev-badge">⚡ LIVE</span>
+            <h1 class="live-elev-title">${sessionTitle(session)}</h1><span class="live-elev-me"></span></header>
+          <div class="live-elev-stage">
+            <div class="live-elev-lobby" hidden><p class="live-elev-wait">${joinedText}</p>${lobbyHtml(session)}</div>
+            <div class="live-elev-count" hidden></div>
+            <div class="live-elev-play" hidden></div>
+            <div class="live-elev-end" hidden></div>
+          </div></div>`;
+      const view = $(".live-elev");
+      const player = { uid: "jag", name: "Jag", classId: "4b" };
+      const stage = createMsStage(
+        { view, host: $(".live-elev-play"), uid: player.uid, classId: "4b", session, mode, answerKind },
+        { api: demo.api, now: demo.now },
+      );
+      window.__msStage = stage;
+
+      let tvingad = qs.get("fas") === "lobby" ? "lobby" : null;
+      function render() {
+        demo.tick();
+        let st = demo.st(tvingad);
+        if (st.phase === "ended" && !demo.result()) demo.avsluta();
+        st = demo.st(tvingad);
+        const part = st.phase === "lobby" ? "lobby" : st.phase === "live" ? "play" : "end";
+        for (const k of ["lobby", "count", "play", "end"]) $(`.live-elev-${k}`).hidden = k !== part;
+        if (part === "end") {
+          const html = endHtml(st, player, "4b");
+          if ($(".live-elev-end").dataset.html !== html) { $(".live-elev-end").innerHTML = html; $(".live-elev-end").dataset.html = html; }
+        }
+        stage.update(st, player);
+      }
+      setInterval(render, 250);
+      render();
+
+      document.querySelectorAll("[data-fas]").forEach((b) => b.addEventListener("click", () => {
+        const f = b.dataset.fas;
+        if (f === "lobby") tvingad = "lobby";
+        else if (f === "live") tvingad = null;
+        else { tvingad = null; demo.snartSlut(0); demo.hoppa(1500); }
+        render();
+      }));
+      $("[data-act=handelse]").addEventListener("click", () => { demo.tillHandelse(); render(); });
+      $("[data-act=hoppa]").addEventListener("click", () => { demo.hoppa(60_000); render(); });
+      $("[data-act=snart]").addEventListener("click", () => { demo.snartSlut(20); render(); });
+      function svara(ratt) {
+        const fa = document.querySelector(".mse-svar .fa-input");
+        const q = document.querySelector(".mse-svar .fa-question")?.textContent || "";
+        const m = q.match(/(\d+)\s*[·×x*]\s*(\d+)/);
+        if (fa && m) {
+          fa.value = String(Number(m[1]) * Number(m[2]) + (ratt ? 0 : 1));
+          fa.form?.requestSubmit?.();
+          return;
+        }
+        const knappar = [...document.querySelectorAll(".mse-svar .ca-knapp")];
+        const fraga = document.querySelector(".mse-svar .ca-fraga")?.textContent || "";
+        const quizRatt = QUIZ.findIndex((x) => fraga.includes(x.text));
+        const mm = fraga.match(/(\d+)\s*[·×x*]\s*(\d+)/);
+        const facit = mm ? String(Number(mm[1]) * Number(mm[2])) : quizRatt >= 0 ? QUIZ[quizRatt].options[QUIZ[quizRatt].a] : null;
+        const b = knappar.find((k) => (k.querySelector(".ca-text")?.textContent === facit) === ratt);
+        b?.click();
+      }
+      $("[data-act=svara]").addEventListener("click", () => svara(true));
+      $("[data-act=fel]").addEventListener("click", () => svara(false));
+      window.__msSvara = svara;
+
+      const stat = $("[data-stat]");
+      setInterval(() => {
+        const s = demo.status();
+        stat.textContent = `${s.stationer.map((x) => `${x.classId}: skrov ${x.skrov} · sköld ${x.skold} · laddning ${x.laddning}${x.hjalp ? " · hjälp" : ""}`).join("\n")}
+händelse: ${s.handelse ? `${s.handelse.typ} (${Math.ceil((s.handelse.slutMs - demo.now()) / 1000)} s)` : "–"}
+handlingar i loggen: ${demo.handlingar().length}`;
+      }, 500);
+    </script>
+  </body>
+</html>

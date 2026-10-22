@@ -37,7 +37,7 @@ import { myReward } from "../../live-rewards.js";
 import { createQuestionFlow } from "../../kistspel/ks-fraga.js";
 import { ENERGI_TAK } from "./delat/ms-balans.js";
 import {
-  stageAction, minStation, andraStationer, energiVinst, knappar, tangentTyp, kvittens, handelseRad,
+  stageAction, planCfg, minStation, andraStationer, energiVinst, knappar, tangentTyp, kvittens, handelseRad,
   stationRad, lagesRad,
 } from "./ms-elev.js";
 import { stationSvg, matareHtml } from "./ms-station-mini.js";
@@ -100,6 +100,7 @@ export function createMsStage({ view, host, uid, classId, session, mode, answerK
   let kvittoT = 0;
   let felT = 0;
   let stationNyckel = "";
+  let cfg = null; // stormplanen ur fröet – händelserna och energins vinst utan läsningar
   const ticker = setInterval(() => { if (!destroyed && stageAction(st?.phase) === "spel") { drawTop(); if (lage === "val") drawVal(); } }, 1000);
 
   const fragor = quiz ? mode : { ...mode, createSource: klient.kalla };
@@ -120,7 +121,7 @@ export function createMsStage({ view, host, uid, classId, session, mode, answerK
   // --- Toppraden ----------------------------------------------------------------
   function energiNu() {
     const e = Number(klient.energi) || 0;
-    return lage === "val" ? Math.min(ENERGI_TAK, e + energiVinst(status, now())) : e;
+    return lage === "val" ? Math.min(ENERGI_TAK, e + energiVinst(status, now(), cfg)) : e;
   }
 
   function drawTop() {
@@ -137,7 +138,7 @@ export function createMsStage({ view, host, uid, classId, session, mode, answerK
     $(".mse-egen-rad").textContent = stationRad(mine);
     $(".mse-andra").innerHTML = andraStationer(status, classId, session).map((x) => matareHtml(x)).join("");
     $(".mse-klocka").textContent = st?.clock ? `⏱ ${st.clock}` : "";
-    const h = handelseRad(status, now());
+    const h = handelseRad(status, now(), cfg);
     const ban = $(".mse-banderoll");
     ban.hidden = !h;
     if (h) {
@@ -202,7 +203,7 @@ export function createMsStage({ view, host, uid, classId, session, mode, answerK
   }
 
   function drawVal() {
-    const lista = knappar({ energi: klient.energi, vinst: energiVinst(status, now()), status, classId, session, now: now() });
+    const lista = knappar({ energi: klient.energi, vinst: energiVinst(status, now(), cfg), status, classId, session, now: now() });
     const box = $(".mse-knappar");
     const html = lista.map((k) => `<button type="button" class="mse-knapp mse-knapp-${k.typ}${skickar === k.typ ? " mse-skickar" : ""}" data-typ="${k.typ}"${k.kan && !busy ? "" : " disabled"}
         aria-keyshortcuts="${k.tangent}"><span class="mse-knapp-ikon" aria-hidden="true">${k.ikon}</span><b>${esc(k.namn)}</b>
@@ -235,7 +236,7 @@ export function createMsStage({ view, host, uid, classId, session, mode, answerK
 
   async function valj(typ) {
     if (busy || lage !== "val" || over()) return;
-    const k = knappar({ energi: klient.energi, vinst: energiVinst(status, now()), status, classId, session, now: now() })
+    const k = knappar({ energi: klient.energi, vinst: energiVinst(status, now(), cfg), status, classId, session, now: now() })
       .find((x) => x.typ === typ);
     if (typ !== "spara" && !k?.kan) return;
     busy = true;
@@ -319,6 +320,7 @@ export function createMsStage({ view, host, uid, classId, session, mode, answerK
 
   function sync() {
     if (destroyed || !st) return;
+    if (!cfg && st.session) cfg = planCfg(st.session);
     const what = stageAction(st.phase);
     if (what === "slut") return drawEnd();
     if (what !== "spel") return;
