@@ -666,8 +666,8 @@ båda bildrutan för samma `t` i en egen canvas och pixlarnas fingeravtryck jäm
 
 | Fördröjning A / B | Samma `t` = nu − 6 s | Samma `t` = nu − 1,5 s (det som ritas) | Sena handlingar A / B | `t` bakåt | Största ryck i `t` |
 | --- | --- | --- | --- | --- | --- |
-| 300 / 1 500 ms (90 s) | 29/29 identiska | 28/29 | 0 / 318 av 320 | 0 / 0 | 5 / 7 ms |
-| 600 / 1 000 ms (60 s) | 20/20 identiska | 19/20 | 0 / 119 av 228 | 0 / 0 | 8 / 8 ms |
+| 300 / 1 500 ms (90 s) | 29/29 identiska | 28/29 | 0 / 318 (av 320 nya händelser) | 0 / 0 | 5 / 7 ms |
+| 600 / 1 000 ms (60 s) | 20/20 identiska | 19/20 | 0 / 119 (av 228) | 0 / 0 | 8 / 8 ms |
 
 - **Jämn:** `t` gick aldrig bakåt, och steget per bildruta avvek högst 8 ms från
   verklig tid (bildrutor efter en hängning > 100 ms räknas inte).
@@ -695,7 +695,7 @@ bildruta för motorn + hela ritningen.
 | 1280 × 720 | finalen | 59 | 16,8 ms | 1,5 / 3,8 ms |
 | 1920 × 1080 | mitten | 60 | 16,7 ms | 1,2 / 3,0 ms |
 
-Två projektorer i samma maskin samtidigt (§11.4, 1600 × 900): 52–56 fps, JS 0,7–0,9 ms.
+Två projektorer i samma maskin samtidigt (§11.4, 1600 × 900, två Chromium + emulatorn på 6 kärnor): 37–56 fps beroende på körning, JS 0,7–0,9 ms per bildruta.
 Budgeten för 60 fps är 16,7 ms; ritningen tar en tiondel. I Barista-webbläsaren
 (SwiftShader, delad med andra flikar) blev det 18 fps i 1920 × 1080 med samma JS-tid
 (2,5 ms) – där är det mjukvarurastret, inte projektorn, som begränsar. En vanlig
