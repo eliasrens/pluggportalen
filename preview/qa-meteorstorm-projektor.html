@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>QA – Meteorstormens projektor mot emulatorn (#822)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../src/styles.css" />
+  </head>
+  <body>
+    <!-- Den RIKTIGA projektorn (projektorskalet + Firestore-lagret, inga låtsas-deps) för
+         ?sid=<session>. Bara via admin/qa-emulator-proxy.mjs (firebase-config → emulatorn).
+         Används av admin/qa-meteorstorm-tva.mjs: två sådana sidor = två klassrum. -->
+    <div id="app"></div>
+    <script type="module">
+      import { mountProjector } from "../src/live/projector.js";
+      const sid = new URLSearchParams(location.search).get("sid") || "qa822";
+      localStorage.setItem("pp:live:vy", "ms-rymden");
+      mountProjector({ app: document.getElementById("app"), go: () => {} }, sid, { cleanups: [], uid: undefined });
+    </script>
+  </body>
+</html>

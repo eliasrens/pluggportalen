@@ -18,7 +18,8 @@
 //
 // API: createRymden(host, { st, colors, sound, actions, screen, deps }) → { update, destroy }
 //   globalThis.__mspProjektor (felsökning/QA): { t(), frys(t|null), avtryck(),
-//   fps(), nollstall(), stat() } – två projektorer jämförs med frys(t) + avtryck().
+//   avtryckVid(t), fps(), nollstall(), stat() } – två projektorer jämförs med
+//   avtryckVid(t) (samma t → samma pixlar); stat(): sena handlingar, bakåt-steg.
 // ============================================================================
 
 import { skapaMotor } from "./delat/ms-motor.js";
@@ -36,6 +37,13 @@ import { createMsLjud } from "./msp-ljud.js";
 
 const CSS = new URL("./meteorstorm-projektor.css", import.meta.url).href;
 const MAX_PX = 2048;
+
+function pixelHash(g, w, h) {
+  const c = g.getImageData(0, 0, w, h).data;
+  let x = 0x811c9dc5;
+  for (let i = 0; i < c.length; i++) x = Math.imul(x ^ c[i], 0x01000193) >>> 0;
+  return x.toString(16);
+}
 
 export function ensureMspCss() {
   if (document.querySelector("link[data-msp-css]")) return;
@@ -84,6 +92,8 @@ export function createRymden(host, { st, colors = {}, sound = null, screen = fal
   let slutVisad = "";
   const ramtider = [];
   const rittider = []; // JS-tid per bildruta (motorn + ritningen)
+  let bakat = 0; // bildrutor där t gick bakåt (ska alltid vara 0)
+  let ryck = 0; // största avvikelsen (ms) mellan t:s steg och verklig tid
 
   function byggMotor() {
     const c = motorIndata(s);
@@ -102,9 +112,16 @@ export function createRymden(host, { st, colors = {}, sound = null, screen = fal
 
   // --- händelseloggen: EN lyssnare ------------------------------------------------
   let unsub = () => {};
+  const kanda = new Set();
+  let sena = 0; // handlingar som kom efter att deras tid redan ritats (QA: renderingsbufferten)
   const onEvents = (events) => {
     for (const e of events) if (e?.uid && e.namn) namn.set(e.uid, String(e.namn));
     handlingar = handlingarUr(events);
+    for (const h of handlingar) {
+      if (kanda.has(h.id)) continue;
+      kanda.add(h.id);
+      if (tAnim != null && h.t < tAnim - 100) sena++;
+    }
     motor?.satHandlingar(handlingar);
   };
   const onErr = (e) => say(`Händelserna: ${e?.message || e}`);
@@ -145,7 +162,7 @@ export function createRymden(host, { st, colors = {}, sound = null, screen = fal
   mq?.addEventListener?.("change", onMq);
 
   // --- en bildruta ------------------------------------------------------------------
-  function ritaVid(tA) {
+  function ritaVid(tA, b = bild) {
     const slut = slutVid(s);
     const tM = slut == null ? Math.min(tA, cfg.startMs) : Math.min(tA, slut);
     const tillstand = motor.tillstand(tM);
@@ -155,7 +172,7 @@ export function createRymden(host, { st, colors = {}, sound = null, screen = fal
     const firar = !klar ? [] : s.result.lage === "en-klass"
       ? (s.result.overlevde ? [0] : [])
       : tillstand.stationer.map((x, i) => (x.classId === s.result.winner ? i : -1)).filter((i) => i >= 0);
-    bild.rita({
+    b.rita({
       s: tillstand, tMotor: tM, tAnim: tA, cfg, plan: motor.plan, minne: m, farger, namn: klassNamn,
       seed: cfg.seed, rorelse, slut: klar ? { sedan: slut ?? tA, firar } : null,
     });
@@ -169,7 +186,12 @@ export function createRymden(host, { st, colors = {}, sound = null, screen = fal
     senastRam = nu;
     ramtider.push(dt);
     if (ramtider.length > 300) ramtider.shift();
+    const fore = tAnim;
     tAnim = frys ?? stegaKlocka(tAnim, now() - FORDROJNING_MS, dt);
+    if (fore != null && frys == null) {
+      if (tAnim < fore) bakat++;
+      ryck = Math.max(ryck, Math.abs(tAnim - fore - dt));
+    }
     const t0 = performance.now();
     const { tillstand, m, tM, klar, fas } = ritaVid(tAnim);
     rittider.push(performance.now() - t0);
@@ -221,10 +243,15 @@ export function createRymden(host, { st, colors = {}, sound = null, screen = fal
     t: () => tAnim,
     frys(t) { frys = t == null ? null : Number(t); if (frys != null) tAnim = frys; },
     avtryck() {
-      const c = bild.g.getImageData(0, 0, canvas.width, canvas.height).data;
-      let h = 0x811c9dc5;
-      for (let i = 0; i < c.length; i += 7) h = Math.imul(h ^ c[i], 0x01000193) >>> 0;
-      return { t: tAnim, px: [canvas.width, canvas.height], hash: h.toString(16), tillstand: hashFro(JSON.stringify(motor.tillstand(Math.min(tAnim, slutVid(s) ?? tAnim)).stationer)).toString(16) };
+      return { t: tAnim, px: [canvas.width, canvas.height], hash: pixelHash(bild.g, canvas.width, canvas.height) };
+    },
+    /** Rita bildrutan för t i en egen 960×540-canvas (rör inte projektorns t) → fingeravtryck. */
+    avtryckVid(t) {
+      const c = document.createElement("canvas");
+      const b = skapaBild(c);
+      b.storlek(960, 540);
+      const { tillstand } = ritaVid(Number(t), b);
+      return { t: Number(t), hash: pixelHash(b.g, 960, 540), tillstand: hashFro(JSON.stringify(tillstand.stationer)).toString(16), handlingar: handlingar.length };
     },
     fps() {
       const stat = (lista) => {
@@ -238,8 +265,8 @@ export function createRymden(host, { st, colors = {}, sound = null, screen = fal
         ritaMedelMs: +j.medel.toFixed(2), ritaP95Ms: +j.p95.toFixed(2), ritaMaxMs: +j.max.toFixed(2), px: [canvas.width, canvas.height],
       };
     },
-    nollstall() { ramtider.length = 0; rittider.length = 0; },
-    stat: () => ({ handelser: handlingar.length, cfg, fordrojning: FORDROJNING_MS }),
+    nollstall() { ramtider.length = 0; rittider.length = 0; ryck = 0; },
+    stat: () => ({ handlingar: handlingar.length, sena, bakat, ryckMs: +ryck.toFixed(1), fordrojning: FORDROJNING_MS }),
   };
   globalThis.__mspProjektor = api;
 
