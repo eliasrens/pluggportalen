@@ -164,7 +164,7 @@ describe("Meteorstormen: klienten skriver aldrig i formatets samlingar", () => {
       await assertFails(updateDoc(sub(d, "pagar", "msPlayers", "alma"), { correct: 999 }));
       await assertFails(setDoc(sub(d, "pagar", "msPublic", "status"), { tMs: 1, stationer: [] }));
       await assertFails(setDoc(sub(d, "pagar", "msLas", "4b"), { id: "x" }));
-      await assertFails(deleteDoc(sub(d, "pagar", "msEvents", "alma_1")));
+      if (vem === "eleven") await assertFails(deleteDoc(sub(d, "pagar", "msEvents", "alma_1"))); // admin får städa
     });
   }
   it("inga svar i kärnans answers (servern rättar)", async () => {
