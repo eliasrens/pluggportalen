@@ -4,8 +4,8 @@ Meteorstormen är ett Live-format (`format: "meteorstorm"`, epic #819). Klasser
 försvarar var sin rymdstation mot en **förutbestämd** meteorstorm; rätt svar ger
 energi som eleven lägger på 🛡️ sköld, 🔫 laser eller 🌀 dragstråle. Specen:
 [`UTVECKLINGSUPPDRAG_METEORSTORMEN.md`](UTVECKLINGSUPPDRAG_METEORSTORMEN.md).
-Det här är **formatets kontraktsdokument** – del A (#820) beskriver motorn; B
-(servern), C (projektorn), D (elevskärmen/lärarvyerna) och E fyller på.
+Det här är **formatets kontraktsdokument** – del A (#820) beskriver motorn,
+B (#821) servern (§7–§10); C (projektorn), D (elevskärmen/lärarvyerna) och E fyller på.
 
 ---
 
@@ -25,6 +25,13 @@ Det här är **formatets kontraktsdokument** – del A (#820) beskriver motorn; 
 | `admin/ms-balans-sim.mjs` | Balanssimuleringen (§2.3.2) |
 | `test/live-meteorstorm-motor.test.js`, `test/live-meteorstorm-regler.test.js` | Motortesterna (node, ingen emulator) |
 | `preview/preview-meteorstorm-motor.html` | Tidsreglage, "Samma frö", skrovreglage – debug-rendering |
+| `delat/ms-anrop.js` | **B:** anropskontraktet (spärrar, buffertens tak, statusintervallet) och quizets kortlek `fragaFor` |
+| `functions/meteorstorm-core.js` (+ `-sess`, `-ratta`, `-status`, `-resultat`, `-mynt`) | **B:** servern – `msAgera`, `msRatta`, `msLage`, `msAvsluta` (§7) |
+| `ms-klient.js` | **B:** elevens anrop, ren (anropen injiceras) – svar + handling, felbufferten, nr/energi/k |
+| `meteorstorm-data.js` | **B:** lat Firebase-modul: `skapaKlient`, `skapaStatusvakt`, `watchEvents`, `avsluta` … |
+| `admin/ms-kvot-sim.mjs` | **B:** kvotmätningen mot emulatorn (§9) |
+| `test/live-meteorstorm-server.test.js`, `test/functions-meteorstorm*.test.mjs`, `test/firestore-rules-live-meteorstorm.test.js` | **B:** servertesterna |
+| `test/*-meteorstorm-fusk.test.*`, `test/live-meteorstorm-klient-fusk.test.js` | **B:** testarens fusk-/race-sviter (F1–F8 rättade i rättningsrunda 1) |
 
 `delat/` är ren: ingen DOM, ingen Firebase, ingen `Math.random`/`Date.now`,
 bara importer inom `delat/` (testat). Inget format registreras i del A –
@@ -173,7 +180,7 @@ resultat = { lage, vinnare: classId|null, oavgjort, placering: [{ classId, skrov
 
 ---
 
-## 4. För servern (B)
+## 4. För servern (B) – A:s anvisningar (genomfört i §7–§9)
 
 - **Energin räknas på servern** (1 per rätt, tak 5). `energiEffekt(cfg, t)`
   ger `{ faktor, bonus, energi, handelse }` för ett rätt svar vid `t`. Fel svar
@@ -267,7 +274,323 @@ Simulerade klasser med 25 elever, där varje elev svarar en fråga per ~8 s
 
 ---
 
-## 7. Deploy
+## 7. Servern (B, #821) – anropen
 
-Del A deployar ingenting själv. `functions/meteorstorm/` används först av B:s
-callables. Synken körs som predeploy (`admin/sync-guldrush-functions.mjs`).
+Elias 2026-10-21 (gäller före specen): **svar och handling i ETT anrop**, fel
+svar buffras i klienten, totalerna räknas i `msAvsluta`, `msPublic/status`
+skrivs bara av servern. Alla callables i `europe-west1`
+(`functions/index.js`, `MS_OPTS`: 512 MiB, concurrency 80, högst 4 instanser).
+Fel = HttpsError med svenskt meddelande (`details.vantaMs` vid spärren).
+
+### 7.1 `msAgera({ sid, attemptId, svar, typ, mal?, fel?, nr? })`
+
+| Fält | |
+| --- | --- |
+| `svar` | Multiplikation `{ k, factorA, factorB, answer, choiceIndex? }`. Quiz `{ k, q, choiceIndex }` eller `{ k, q, year }` (tidslinje). `k` = elevens fråga nr k ur kortleken (§7.1 "Frågorna") |
+| `typ` | `"skold" \| "laser" \| "drag" \| "spara"` – valet efter det rätta svaret |
+| `mal` | dragstrålens mål (classId) vid 3–4 stationer; annars väljer motorn |
+| `fel` | de buffrade fel svaren sedan förra anropet (högst `MS_FEL_TAK` = 40), samma form som `svar` + `attemptId`. **Varje k mellan förra länkens k och svarets måste finnas här** |
+| `nr` | elevens nästa länk i kedjan (förra svarets `nr` + 1). Saknas/fel → servern letar upp den |
+
+**Rätt svar** → EN händelse `msEvents/{uid}_{nr}` (en skrivning):
+`{ uid, classId, namn, t, typ, nr, attemptId, k, kRum, energi, vinst, kostnad, handelse,
+mal?, onskad?, nekad?, redoMs?, svar, fel[], at }`. `t` = serverns tid
+(motorns tidsstämpel), `at` = commit-tiden. `energi` = elevens energi EFTER
+handlingen – händelserna är en kedja per elev, och nästa anrop läser bara
+föregående länk i transaktionen (ingen msPlayers-skrivning per svar).
+Svaret: `{ correct: true, nr, typ, energi, vinst, kostnad, handelse, effekt,
+onskad?, nekad?, redoMs?, k?, igen?, status }` – `effekt` = motorns
+`effektPerTryck` för valet (D: "🛡️ +0,6"), `status` = stationerna (§8.3).
+Kvittensen "💥 Din laser sprängde en meteor!" avgörs först när motorn kommit
+dit – D kan läsa elevens `bidrag` i slutet eller visa effekten direkt.
+
+**Nekad handling** (`kanAgera` säger nej: `tid`, `av`, `armerad`, `vantetid`
+med `redoMs`; eller `energi` = för lite energi) → händelsen sparas som
+`typ: "spara"` med `onskad`/`nekad`. Energin från svaret går aldrig förlorad.
+
+**Fel svar** (servern rättar om) → `{ correct: false, correctAnswer, correctYear?, k }`
+och **ingen skrivning**. Klienten buffrar det.
+
+**Utan svar** – `msAgera({ sid, fel, nr? })`, bara felbufferten:
+- *under matchen* bara en hel buffert: minst `MS_FEL_SKICKA` (25) fel svar i
+  följd från förra länkens k → EN länk `msEvents/{uid}_{nr}` med `typ: "fel"`
+  (ingen handling: motorn och projektorn hoppar över den; energin oförändrad,
+  spärren `MS_MIN_GAP_MS` gäller). Färre nekas – de följer med nästa rätta svar.
+  Spärren bor i kedjan, inte i minnet, så flera instanser ger ändå EN skrivning
+  per buffert (#821 F3).
+- *efter slutet* (till `MS_EFTER_SLUT_MS` = 60 s) EN gång per elev →
+  `msPlayers/{uid}.fel` (högst `MS_FEL_TAK` poster; en andra gång → `already-exists`, #821 F5).
+
+**Frågorna** (#821 F1/F2) – varje svar bär `k`, elevens fråga nr k:
+- Multiplikationen: faktorerna ur elevens egen påse `multFor(msSeed, uid, k)`
+  (`delat/ms-anrop.js`: `src/mult/generator.js`-påsen med fröets PRNG – varje
+  kombination 0–10 i varje påse, ×0/×1 en gång och övriga två, aldrig samma
+  fråga eller spegeln två gånger i rad). Andra faktorer → `failed-precondition`
+  – ingen kan svara 0 × 0 om och om igen.
+- Quiz: `fragaFor(msSeed, uid, k, n)` – en blandad kortlek per varv.
+- `k` måste ligga efter förra länkens k och högst `MS_K_FONSTER` (41) före den,
+  och varje k däremellan måste vara ett fel svar i `fel[]`. Annars
+  `failed-precondition` med `details.omsynk` (klienten frågar `msLage` och
+  börjar om efter senaste länken). Ett k före länken med samma `attemptId` är
+  ett omförsök → samma svar (`igen`, #821 F4); med nytt id nekas det.
+- **Takten** (#821 N2/N3): högst en fråga per `MS_K_TAKT_MS` (1,5 s) i längden.
+  Länken bär en "hink" `kRum` som fylls med en fråga per 1,5 s upp till
+  `MS_K_RUM` (41 – en hel felbuffert ryms alltid) och töms med k-steget (svaret
+  + de överhoppade). Elevens första länk börjar på
+  `min(41, tid sedan start / 1,5 s + MS_K_START)`. Tom hink →
+  `resource-exhausted` med `details.vantaMs`. En snabb elev (ett svar varannan
+  sekund) märker den aldrig; ett skript som räknar ut `multFor` (koden är
+  publik) kommer inte förbi en snabb människas takt – men ~5× en snittelev (8 s)
+  går fortfarande (testat i `functions-meteorstorm-fusk-2`). En fel-länk kräver
+  dessutom `MS_FEL_LANK_MS` (25 s) sedan förra länken.
+  **Rest (testaren omgång 3):** en elev med skript kommer upp i ~441 länkar
+  (= skrivningar) på 10 min (41 i hinken + 600 s / 1,5 s), mot ~46 för en
+  snittelev. Två sådana elever i samma match ger ~2 463 + 2 × ~395 ≈ 3 250
+  skrivningar – över taket 3 000 (se frågan i §9).
+
+**Spärrar och säkerhet**
+- Energin: 1 per rätt (Solstorm ×2, Kometsvans +1 via `energiEffekt`), tak 5
+  efter handlingen. Ett tryck kostar det man just fick, dragstrålen 3/2.
+- `MS_MIN_GAP_MS` (1 s) mellan två handlingar per elev → `resource-exhausted`
+  med `details.vantaMs` (klienten väntar och försöker en gång till).
+- Idempotens: samma `attemptId` igen → samma svar (`igen: true`), ingen ny händelse –
+  också efter senare handlingar (#821 F4: k före länken slås upp på `attemptId`).
+- Två anrop samtidigt från samma elev krockar på länken – en vinner.
+- **Dragstrålen:** `kanAgera` körs i SAMMA transaktion som händelsen skrivs,
+  mot serverns logg + stationens lås `msLas/{classId}` (senaste dragstrålen)
+  som transaktionen läser och skriver. Två dragstrålar samtidigt från samma
+  station → den andra ser den första och nekas (`armerad`).
+- Bara deltagare (`players/{uid}` i en av sessionens klasser), bara under
+  matchen (`t0 ≤ nu < slut`, status `live`).
+- Ett `k` som rättats fel (msRatta eller bufferten) kan inte tas tillbaka som rätt.
+
+### 7.2 `msRatta({ sid, svar: { k, q, choiceIndex | year }, nr? })` – bara quiz
+
+Klienten kan inte rätta quiz (facit är lärarskyddat), så eleven frågar servern
+först – **utan skrivning**. → `{ correct, correctAnswer, correctYear?, k, nastaQ }`.
+Rätt → eleven väljer handling och skickar `msAgera` med samma `svar` (servern
+rättar igen). Samma `k` rättas bara en gång per instans (minnet): första
+beskedet gäller, så ingen kan pröva sig fram. `k` måste ligga efter elevens
+senaste länk och högst `MS_K_FONSTER` före den (#821 F2 – inget facit för
+frågor långt fram); länken hålls i instansens minne (läses en gång: länk `nr`
+och koll att `nr + 1` saknas). ⚠️ Med flera instanser (högst 4) kan en elev som
+skriver egna anrop i sällsynta fall få pröva samma `k` en gång per instans –
+priset för att fel svar aldrig skrivs.
+
+### 7.3 `msLage({ sid })` → `{ nr, energi, k, status }`
+
+Elevens läge efter en omladdning: EN läsning (#821 N4 – frågan `uid ==` +
+`orderBy(nr desc) limit 1`, sammansatt index `msEvents (uid ↑, nr ↓)` i
+`firestore.indexes.json`). Samma uppslag när klientens `nr` inte stämmer.
+
+### 7.4 `msAvsluta({ sid })` → `{ result, redan }`
+
+Läraren (admin, eller årskurskonto med en av klasserna) när som helst – en
+pågående storm avslutas då (`status: "finished"`, `finishedAt`). En deltagare
+först efter slutet (status `finished` eller tiden ute), så resultatet kommer
+även om projektorn stängts. Väntar `MS_AVSLUTA_VANTA_MS` (4 s) efter slutet på
+de sista felbuffrarna, läser HELA loggen och kör `simulera` fram till slutet
+(lärarens avslut eller ordinarie slut – händelser efter det räknas inte).
+Skriver i EN transaktion: `result` (en gång), `msStationer` om det saknas,
+`msPlayers/{uid}`-totalerna (utan merge – slutbufferten `fel` är inräknad och
+försvinner, #821 F5) och sista `msPublic/status` (`klart`, `resultat`).
+Idempotent: finns `result` → `{ result, redan: true }`.
+
+**C/D:** formatets `resultInputs`/projektorn anropar `avsluta(sid)` när tiden
+är ute; kärnans `writeResultIfMissing` nekas för formatet (reglerna) och ser
+sedan att `result` finns.
+
+### 7.5 Klienten (`ms-klient.js`, via `meteorstorm-data.js` `skapaKlient`)
+
+```js
+const k = skapaKlient({ sid, uid, seed: s.msSeed, gameMode: s.gameMode, antalFragor });
+const fragor = s.gameMode === "multiplication_0_10" ? { ...mode, createSource: k.kalla } : mode;
+flow = createQuestionFlow(host, { mode: fragor, answerKind, send: k.svara, onCorrect: visaKnapparna, … });
+flow.setNextQ(k.fraga());               // quiz: elevens första fråga ur kortleken
+const r = await k.agera("laser");       // eller "skold" | "drag" | "spara" (mal valfritt)
+await k.skickaFel();                    // när matchen tar slut
+```
+
+`kalla()` delar ut multiplikationens frågor ur elevens påse (`multFor`) – en
+obesvarad fråga visas igen i stället för att hoppas över (annars saknas dess k).
+`svara` rättar multiplikationen själv (fel → bufferten, inget anrop), frågar
+`msRatta` vid quiz, och håller ett rätt svar väntande tills `agera`. Bufferten,
+`nr`, energin och `k` sparas i `sessionStorage` (omladdning). Ett nätfel låter
+svaret och bufferten ligga kvar – samma `agera` igen ger samma `attemptId`.
+Bufferten töms på `attemptId` (inte de första N), så ett fel-anrop som korsar
+ett `agera` tappar inget (#821 F7). `details.omsynk` → `lage()` och börja om.
+**D anropar `lage()` när elevskärmen monteras.** `lage()` sätter nästa k =
+serverns senaste k + 1 och behåller bara den del av bufferten som är en obruten
+följd därifrån – ett rätt svar som väntade på handling när sidan laddades om
+delas då ut igen i stället för att bli ett hål (#821 N1).
+Status: `skapaStatusvakt(sid, cb)` – `vakt.fran(r.status)` efter varje svar,
+och bara när inget kommit på 20 s en läsning av `msPublic/status`.
+
+---
+
+## 8. Datamodellen (B, #821)
+
+### 8.1 Sessionen `liveSessions/{sid}` (regelgrenen "Meteorstormen")
+
+Kärnans fält (som kistformaten) + `msSeed` (heltal 0–2³¹−1),
+`msInstallningar: { lage: "en-klass"|"klass-mot-klass", attacker: "av"|"milda"|"vilda" }`
+(En klass = exakt 1 klass, Klass mot klass = 2–4), `showNames?`, `quiz`,
+`questionCount`, `rewards`. Speltid 5–20 hela minuter. Låst efter skapandet.
+**Bara servern** skriver `msStationer` och `result`:
+
+- `msStationer: [{ classId, aktiva }]` – antal elever per klass som gått med
+  (`players.joinedAt`) senast när stormen började (`t0`), minst 1. Sätts EN gång
+  vid första handlingen (eller i `msAvsluta`); alla projektorer och
+  `msAvsluta` använder samma tal (motorns `stationer`). Saknas fältet har ingen
+  handlat än – projektorn kan rita med `aktiva: 1` (inga handlingar = ingen skillnad).
+- Motorns indata: `{ seed: msSeed, startMs: startedAt + countdownSeconds,
+  varaktighetMs: durationSeconds·1000, stationer: msStationer, installningar: msInstallningar }`.
+
+### 8.2 Underdokumenten
+
+| Dokument | Vem skriver | Vem läser | Innehåll |
+| --- | --- | --- | --- |
+| `msEvents/{uid}_{nr}` | servern (`msAgera`) | lärare/projektor | en per rätt svar (§7.1) – motorns `handlingar` = `{ id, t, classId, uid, typ, mal? }`. **`typ: "fel"`** = bara en felbuffert (ingen handling) – C hoppar över den |
+| `msPlayers/{uid}` | servern | eleven själv, lärare | `fel[]` (slutbufferten, en gång, ≤ 40); efter `msAvsluta` ersatt av: `correct, incorrect, handlingar{skold,laser,drag,spara}, nekade, bidrag{skold,laser,drag,nedskjutna,kast}, energi, klar` |
+| `msPublic/status` | servern | deltagare, lärare | §8.3 |
+| `msPublic/questions` | läraren i lobbyn (quiz) | deltagare | `{ questions }` utan facit |
+| `msPrivate/snapshot` | läraren i lobbyn (quiz) | lärare | `{ facit }` |
+| `msLas/{classId}` | servern | ingen klient | stationens senaste dragstråle `{ id, t, uid, mal? }` |
+
+Eleverna lyssnar **inte** på `msEvents` (reglerna nekar). Projektorerna lyssnar
+på `msEvents` (`watchEvents`, sorterat på `t`).
+
+### 8.3 `msPublic/status`
+
+`{ tMs, visarMs, kvarMs, klart, handelse: { typ, slutMs } | null,
+stationer: [{ classId, skrov, skold, laddning, skott, nedskjutna, flyter, hjalp,
+drag: { tillaten, kostnad, armerad, redoMs } }], resultat?, uppdaterad }` –
+motorn på servern vid `nu − RENDER_FORDROJNING_MS` (samma bild som projektorn).
+Skrivs högst var `MS_STATUS_MS` (10 s) per session: i `msAgera` (minnet per
+instans + statusdokumentets `tMs` i en transaktion mellan instanserna) och i
+`msAvsluta` (`klart: true`, `resultat`). Samma objekt följer med varje
+`msAgera`-svar (ur serverns logg i minnet).
+
+### 8.4 `result` (msAvsluta, `functions/meteorstorm-resultat.js`)
+
+```
+{ format: "meteorstorm", lage, winner: classId|null, draw, placering: [{ classId, skrov, nedskjutna, plats }],
+  stjarnor?, overlevde?, startMs, slutMs, players, totalCorrect, totalAnswered,
+  handlingar: { skold, laser, drag, spara }, nekade,
+  perClass: { classId: { name, players, aktiva, skrov, skold, nedskjutna, traffar, kastade,
+                         handlingar, correct, answered, ogonblick[] } },
+  ranking: [{ uid, name, classId, correct, answered, handlingar, bidrag, rank }],
+  perQuestion: [{ index, key, text, answered, correct, statKeys, byClass }],   // som kistspelets
+  rewards?: { uid: { rank, correct, prize, correctCoins, total } }, computedAt }
+```
+
+- `ogonblick` (C:s slutruta, bara det som är bra): `{ typ: "nedskjutna", uid, namn, antal }`
+  (flest nedskjutna), `{ typ: "sista", uid, namn, t }` (sista sköld/laser de sista
+  30 s – bara om stationen klarade sig), `{ typ: "skold" | "kast", uid, namn, antal }`.
+- `correct` = elevens händelser (varje rätt svar), `answered` = + fel svar
+  (händelsernas `fel[]` + slutbufferten, dubbletter på `attemptId` en gång).
+- **Pluggmynten** (LIVE-FORMAT §6): servern räknar `result.rewards`
+  (`functions/meteorstorm-mynt.js` = samma tal som `live-rewards.js`, testat).
+  Placeringspris per klass: klassens `plats` → `round(förstapris × 0,85^(plats−1))`
+  till varje elev som svarat. En klass: plats = 4 − stjärnor (⭐⭐⭐ = förstapriset,
+  0 ⭐ = plats 4). Mynt per rätt svar som i övriga format. **Utbetalningen** sker i
+  klienten som i övriga format (`settleLiveRewards` / historikens `settle`, kvittot
+  `coinReceipts/{uid}`) – D kopplar in den, eftersom `writeResultIfMissing` inte
+  skriver `result` här. Reglerna (`liveCoinPlayerOk`) kräver rätt-mynt ≤
+  `perCorrect × msPlayers.correct` (bara servern skriver det).
+
+---
+
+## 9. Kvoten (B, #821) – uppmätt i emulatorn
+
+`admin/ms-kvot-sim.mjs` kör en hel match mot serverkärnan (samma kod som
+Cloud Functions) med elevklienten (`ms-klient.js`) och styrd klocka i
+Firestore-emulatorn. Serverns anrop räknas (en läsning per dokument, minst en
+per fråga – som Firestores debitering), projektorernas lyssnare på `msEvents`
+och sessionen är riktiga `onSnapshot`, elevskärmarna läser status som
+`skapaStatusvakt`. Kärnans egna dokument (närvaropuls, lobby, kvitton) är
+desamma i alla format och räknas inte.
+
+```
+FIRESTORE_EMULATOR_HOST=127.0.0.1:PORT node admin/ms-kvot-sim.mjs --md
+  (--elever 25 --klasser 2 --min 10 --takt 8 --ratt 0.7,0.6 --projektorer 2 --instanser 1 --quiz --status 20)
+```
+
+**2 klasser × 25 elever, 10 min, ett svar per ~8 s (±25 %), 70 % / 60 % rätt,
+2 projektorer, Klass mot klass / Milda** (rättningsrunda 1, statusvakten 20 s).
+"4 instanser" = varje anrop till en slumpad av fyra instanser (värsta fallet;
+concurrency 80 håller normalt en match på en instans).
+
+| | Multiplikation, 1 instans | Multiplikation, 4 instanser | Quiz, 1 instans |
+| --- | --- | --- | --- |
+| Rätta svar (= händelser) / fel svar | 2 299 / 1 237 | 2 305 / 1 236 | 2 299 / 1 237 |
+| **Skrivningar totalt** | **2 463** | **2 465** | **2 463** |
+| Projektorerna: `msEvents` (2 × händelserna¹) | 4 598 | 4 610 | 4 598 |
+| Projektorerna: sessionen | 8 | 8 | 8 |
+| Elevskärmarna: `msPublic/status` (efter 20 s utan svar) | 350 | 395 | 350 |
+| Elevskärmarna: sessionen + eget `msPlayers` | 300 | 300 | 300 |
+| Skärmarna: `msPublic/questions` (en gång var) | – | – | 52 |
+| **Klienternas läsningar** | **≈ 5 260** | **≈ 5 310** | **≈ 5 310** |
+| **Serverns läsningar** | **7 574** | **15 097** | **7 627** |
+| Läsningar totalt | ≈ 12 830 | ≈ 20 410 | ≈ 12 940 |
+
+¹ Varje händelse läses en gång per projektor; lyssnarna i simuleringen hann
+inte helt ikapp före stopp (mätt 4 370–4 394), så tabellen räknar 2 × händelserna.
+
+Serverns läsningar (1 instans): föregående länk i kedjan 2 249 (en per rätt
+svar – energin, spärren och k-ordningen utan skrivning), loggen 2 299 (en gång
+per instans, sedan bara nya händelser på commit-tiden `at`), hela loggen i
+`msAvsluta` 2 299, sessionen 122 (minnet 5 s), övrigt ~600. Med 4 instanser
+läses loggen och sessionen en gång per instans → ~15 000.
+
+- **Skrivningar ≈ 2 460** – inom målet 2 200–2 500 (tak 3 000). En skrivning per
+  rätt svar; fel svar skrivs aldrig (de följer med nästa händelse, en hel
+  buffert på 25 blir en länk). Rättningsrunda 1 (F3): ingen kan längre skriva
+  mer än en länk per sekund och elev – samma gräns som för rätta svar.
+- **Klienternas läsningar ≈ 5 300 < 6 000** – marginal ~700 sedan statusvakten
+  gick från 12 s till 20 s (rättningsrunda 1, F6: −750 läsningar; en elev som
+  svarar får status i varje svar, så bara elever som står still läser). Varje
+  extra projektor kostar ~2 300.
+- **Serverns läsningar 7 600–15 100 tillkommer** (Firestore debiterar dem också).
+  Totalt ≈ 13 000–20 000 per match (≈ 0,01 USD; gratisnivån 50 000 läsningar per dag).
+- Sessionsdokumentet läses av alla skärmar vid varje ändring – servern skriver
+  det bara 3 gånger (`msStationer`, `finished`, `result`).
+
+> ❓ **Fråga till Elias (kvoten):** målet "läsningar < 6 000" nås för
+> klienternas läsningar (specens räkning: projektorerna på `msEvents` +
+> elevskärmarna), men inte om serverns läsningar räknas in (7 600 med en
+> instans, upp till 15 000 med fyra). Räcker det med klienterna? Annars
+> finns två spakar: (1) `msAvsluta` räknar ur instansens logg i minnet i
+> stället för att läsa om hela loggen (−2 300, men resultatet hänger då på att
+> minnet är komplett), (2) `maxInstances: 1` (minnet alltid varmt – men taket blir
+> 80 samtidiga anrop för alla stormar på en gång).
+>
+> ❓ **Fråga till Elias (skrivningar och skript):** takten (§7.1, `MS_K_TAKT_MS`
+> 1,5 s) håller en elev som skriver egna anrop till en snabb människas takt,
+> ~441 skrivningar per 10 min. Två sådana elever i en match tar den över
+> 3 000 skrivningar (~3 250). Godtar vi det (kräver att eleven skriver ett
+> skript mot callable-API:t), eller ska takten skärpas – t.ex. 2,5 s per fråga
+> (~280 per elev), vilket då också bromsar de allra snabbaste ärliga eleverna?
+
+---
+
+## 10. Deploy
+
+Del A deployar ingenting själv. Från B (#821), i den här ordningen:
+**firestore:indexes → (vänta på READY) → rules → functions → webb.**
+
+0. **`firebase deploy --only firestore:indexes`** – `msEvents (uid ↑, nr ↓)` (#821 N4,
+   `msLage` och omsynk). Indexet måste vara **READY** (Firebase-konsolen →
+   Firestore → Index, eller `gcloud firestore indexes composite list`) innan
+   functions deployas: utan det misslyckas `senaste()` med `FAILED_PRECONDITION`,
+   som eleven ser som "internal" (msLage, och msAgera när klientens `nr` inte
+   stämmer). ⚠️ Emulatorn kräver inga sammansatta index – testerna fångar inte
+   ett saknat index.
+1. **`firebase deploy --only firestore:rules`** – regelgrenen "Meteorstormen"
+   (msFormat, ms-samlingarna, kvittot mot `msPlayers`). Utan den nekas varje
+   Meteorstorm-session; den rör inga andra format.
+2. **`firebase deploy --only functions:msAgera,functions:msRatta,functions:msLage,functions:msAvsluta`**
+   – predeploy synkar `delat/` → `functions/meteorstorm/` (`npm run sync:meteorstorm`).
+3. **Webben** (C/D registrerar formatet – först då syns det för lärarna).
+
+Övriga frågor är enkelfälts (`t`, `at`, `uid` + `attemptId`).
