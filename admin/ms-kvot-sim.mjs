@@ -199,8 +199,16 @@ const svarTakt = (e) => Math.round(TAKT * (0.75 + 0.5 * e.rng.tal()));
 
 let rattSvar = 0;
 let felSvar = 0;
+// "blandar" (balanssimuleringen) med elevskärmens status: det andra när en
+// mätare är full, spara när båda är det; ibland dragstrålen när energin räcker.
 const valj = (e, energi) => {
-  if (LAGE !== "en-klass" && ATTACKER !== "av" && energi >= 2 && e.rng.tal() < 0.25) return "drag";
+  const st = e.senast?.stationer?.find((x) => x.classId === e.classId);
+  if (LAGE !== "en-klass" && ATTACKER !== "av" && energi >= 2 && st?.drag?.armerad === false && e.rng.tal() < 0.1) return "drag";
+  const skoldFull = st && st.skold >= 59.5;
+  const laserFull = st && st.laddning >= 9.95;
+  if (skoldFull && laserFull) return "spara";
+  if (skoldFull) return "laser";
+  if (laserFull) return "skold";
   return e.rng.tal() < 0.5 ? "skold" : "laser";
 };
 
@@ -224,12 +232,12 @@ for (let t = T0; t < END; t += 1000) {
     }
     rattSvar++;
     const res = await e.k.agera(valj(e, e.k.energi));
-    if (res.status) e.status = t;
+    if (res.status) { e.status = t; e.senast = res.status; }
   }
   for (const e of elever) {
     if (t - e.status >= STATUS_POLL_MS) {
       e.status = t;
-      await rawDb.doc(`liveSessions/${sid}/msPublic/status`).get();
+      e.senast = (await rawDb.doc(`liveSessions/${sid}/msPublic/status`).get()).data() || e.senast;
       klient.elevStatus++;
     }
   }
