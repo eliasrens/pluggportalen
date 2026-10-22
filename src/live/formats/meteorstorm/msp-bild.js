@@ -65,7 +65,8 @@ export function skapaBild(canvas) {
 
     // meteorerna – bara medan stormen pågår (ett avslut före tiden fryser inga stenar i luften)
     if (!slut) {
-      const slutR = s.stationer.map((st) => (st.skold > 0 ? RADIE.bubbla : RADIE.skrov));
+      // flyter (skrov 0): ingen bubbla – skölden tar inget, meteoren når skrovet och puffar ofarligt
+      const slutR = s.stationer.map((st, i) => ((o.skrov?.[i] ?? st.skrov) > 0 && st.skold > 0 ? RADIE.bubbla : RADIE.skrov));
       for (const m of s.meteorer) {
         const i = index.get(m.mal);
         if (i === undefined) continue;

@@ -25,8 +25,11 @@ export const STEG_MS = 100;
  * Projektorn ritar tillståndet för nu − RENDER_FORDROJNING_MS (Elias 2026-10-21):
  * handlingar som når projektorn sent (nät, Firestore-lyssnare) hinner in i
  * loggen innan deras tid ritas, så bilden behöver nästan aldrig "ångras".
+ * 3 s (#822 F1: 1,5 s räckte inte – Firestores long-poll levererar ofta
+ * 2–4 s efter skrivningen). Projektorn växer bufferten själv vid sämre nät
+ * (msp-buffert.js); servern visar status för samma tid.
  */
-export const RENDER_FORDROJNING_MS = 1500;
+export const RENDER_FORDROJNING_MS = 3000;
 
 /** Heltalsenheter: 1 sköld = 1000 milli, 1 laserskott = 1000 milli. */
 export const MILLI = 1000;

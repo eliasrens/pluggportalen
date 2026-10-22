@@ -8,7 +8,10 @@
 //   - i slutet ritas samma t om (frys) med hela loggen: "reviderade" = rutor
 //     vars tillstånd ändrades i efterhand, "synliga" = > 30 px skiljer sig;
 //     de 4 största skillnaderna sparas som <dir>/rev-<latens>-N-{visad,ratt}.png;
-//   - leveransfördröjningen (skrivning → projektorn) per flik i analys.json.
+//   - leveransfördröjningen (skrivning → projektorn) per flik i analys.json och
+//     projektorns egen mätning (stat().leverans: median/p95/max + bufferten);
+//   - pixeljämförelse A/B vid samma t: den t som visas just nu och nu − 10 s.
+// (#822 F1: projektorns buffert anpassar sig – 3 s, växer med leveranserna.)
 // --p4b/--p4d (andel rätt) och --attacker styr hur mycket som händer: med
 // standardvärdena (0,7/0,6, milda) är skölden full hela tiden och få
 // skillnader syns; 0,3/0,22 vilda ger skada och dragstrålar.
@@ -199,8 +202,11 @@ try {
   const slut = Date.now() + SEK * 1000;
   while (Date.now() < slut) {
     await sleep(3000);
+    // "visad t" = det äldsta av de två t som projektorerna ritar just nu (efter
+    // varsin anpassade buffert); "nu−10 s" = när allt borde ha kommit fram.
     const w = Date.now();
-    for (const [namn, T] of [["nu−1,5 s", w - 1500], ["nu−6 s", w - 6000]]) {
+    const visad = Math.min(...(await Promise.all([A, B].map((f) => f.js("window.__mspProjektor.t()")))));
+    for (const [namn, T] of [["visad t", visad], ["nu−10 s", w - 10_000]]) {
       const [a, b] = await Promise.all([A, B].map((f) => f.js(`window.__mspProjektor.avtryckVid(${T})`)));
       jamfor.push({ namn, t: T - t0, lika: a.hash === b.hash, a: a.hash, b: b.hash, tillstandLika: a.tillstand === b.tillstand, hA: a.handlingar, hB: b.handlingar });
     }
@@ -240,7 +246,8 @@ try {
     }
     const synlig = ut.filter((x) => x.diffPx > 30).length;
     const hudOlika = ut.filter((x) => !x.hudLika).length;
-    analys.push({ latens: f.latens, samples: r.samples, reviderade: r.reviderade, kollade: ut.length, synligaPx30: synlig, hudOlika, pairs, ut, arr: r.arr });
+    const lev = (await f.js("window.__mspProjektor.stat()")).leverans;
+    analys.push({ latens: f.latens, leverans: lev, samples: r.samples, reviderade: r.reviderade, kollade: ut.length, synligaPx30: synlig, hudOlika, pairs, ut, arr: r.arr });
   }
   // skillnad A visad vs B visad vid samma t (närmaste sampel inom 50 ms) och mot facit
   writeFileSync(`${dir}/analys.json`, JSON.stringify({ skrivTider, analys }, null, 1));
@@ -258,7 +265,8 @@ try {
   const sammanfatt = (namn) => { const l = jamfor.filter((j) => j.namn === namn); return `${l.filter((j) => j.lika).length}/${l.length} identiska`; };
   console.log(JSON.stringify({
     latens: LATENS, sekunder: SEK, historik: historik.length, nyaHandelser: skrivna,
-    "samma t, pixlar": { "nu−1,5 s": sammanfatt("nu−1,5 s"), "nu−6 s": sammanfatt("nu−6 s") },
+    "samma t, pixlar": { "visad t": sammanfatt("visad t"), "nu−10 s": sammanfatt("nu−10 s") },
+    leverans: stat.map((x) => ({ nominell: x.latens, ...x.leverans, sena: x.sena, bakat: x.bakat })),
     projektorer: stat, olika: jamfor.filter((j) => !j.lika),
   }, null, 2));
   wsA.close();

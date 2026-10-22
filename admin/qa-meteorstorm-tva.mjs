@@ -23,8 +23,10 @@
 //      (DevTools Network.emulateNetworkConditions på varje anrop/long-poll,
 //      påslagen när sidan laddat).
 //   4. Var 3:e sekund: båda flikarna ritar bildrutan för SAMMA t i en egen
-//      canvas (__mspProjektor.avtryckVid(t)) – t = nu − 1,5 s (det som ritas
-//      just nu) och t = nu − 6 s – och pixlarnas fingeravtryck jämförs.
+//      canvas (__mspProjektor.avtryckVid(t)) – t = det som visas just nu (den
+//      äldre av flikarnas t) och t = nu − 10 s – och fingeravtrycken jämförs.
+//      Skadescenariot (vad som VISADES och ändrades i efterhand):
+//      admin/qa-meteorstorm-tva-revision.mjs.
 //   5. Slutet: varje fliks stat() – "sena" (handlingar som kom efter att deras
 //      tid redan ritats), "bakat" (bildrutor där t gick bakåt – ska vara 0),
 //      största ryck i t mot verklig tid – och fps. Skärmdumpar av båda flikarna
@@ -202,8 +204,11 @@ try {
   const slut = Date.now() + SEK * 1000;
   while (Date.now() < slut) {
     await sleep(3000);
+    // "visad t" = det äldsta av de två t som projektorerna ritar just nu (efter
+    // varsin anpassade buffert); "nu−10 s" = när allt borde ha kommit fram.
     const w = Date.now();
-    for (const [namn, T] of [["nu−1,5 s", w - 1500], ["nu−6 s", w - 6000]]) {
+    const visad = Math.min(...(await Promise.all([A, B].map((f) => f.js("window.__mspProjektor.t()")))));
+    for (const [namn, T] of [["visad t", visad], ["nu−10 s", w - 10_000]]) {
       const [a, b] = await Promise.all([A, B].map((f) => f.js(`window.__mspProjektor.avtryckVid(${T})`)));
       jamfor.push({ namn, t: T - t0, lika: a.hash === b.hash, a: a.hash, b: b.hash, tillstandLika: a.tillstand === b.tillstand, hA: a.handlingar, hB: b.handlingar });
     }
@@ -225,7 +230,8 @@ try {
   const sammanfatt = (namn) => { const l = jamfor.filter((j) => j.namn === namn); return `${l.filter((j) => j.lika).length}/${l.length} identiska`; };
   console.log(JSON.stringify({
     latens: LATENS, sekunder: SEK, historik: historik.length, nyaHandelser: skrivna,
-    "samma t, pixlar": { "nu−1,5 s": sammanfatt("nu−1,5 s"), "nu−6 s": sammanfatt("nu−6 s") },
+    "samma t, pixlar": { "visad t": sammanfatt("visad t"), "nu−10 s": sammanfatt("nu−10 s") },
+    leverans: stat.map((x) => ({ nominell: x.latens, ...x.leverans, sena: x.sena, bakat: x.bakat })),
     projektorer: stat, olika: jamfor.filter((j) => !j.lika),
   }, null, 2));
   wsA.close();

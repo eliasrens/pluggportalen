@@ -198,7 +198,7 @@ export function samlaEffekter(logg, t, ctx) {
       vagor[i].push({ vinkel: traffVinkel(p, ctx), alder });
     } else if (p.typ === "traff" || p.typ === "flyter") {
       const v = traffVinkel(p, ctx);
-      const rr = (p.typ === "flyter" ? RADIE.bubbla * 0.8 : RADIE.skrov) * st.skala;
+      const rr = RADIE.skrov * st.skala;
       eff.push({ typ: p.typ === "traff" ? "boom" : "puff", x: st.x + Math.cos(v) * rr, y: st.y + Math.sin(v) * rr, r: (METEOR_R[p.storlek] || 14) * 1.2, alder, n: p.meteor });
     } else if (p.typ === "nedskjuten") {
       const geo = meteorGeo(p.meteor, ctx.plan, ctx.kast, ctx.cfg, ctx.index);

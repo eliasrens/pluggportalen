@@ -78,10 +78,12 @@ export function createHud(ram, { namn, farger, pl }) {
         skrov.querySelector("span").textContent = s.skrov > 0 ? `Skrov ${Math.ceil(s.skrov)} %` : "Flyter i rymden";
       });
       const skold = box.querySelector(".msp-mat-skold");
-      satt(skold, "w", Math.round(s.skold * 10), () => {
-        skold.querySelector("i").style.width = pct(s.skold, SKOLD_TAK);
-        skold.querySelector("span").textContent = s.skold >= 0.5 ? `Sköld ${Math.round(s.skold)}/${SKOLD_TAK}` : "Sköld 0";
-        skold.classList.toggle("msp-full", s.skold >= SKOLD_TAK - 0.5);
+      // flyter (skrov 0, §2.7): ingen bubbla, ingen mer skada – mätaren säger det i stället för ett sköldtal
+      const flyter = s.skrov === 0;
+      satt(skold, "w", flyter ? -1 : Math.round(s.skold * 10), () => {
+        skold.querySelector("i").style.width = flyter ? "0%" : pct(s.skold, SKOLD_TAK);
+        skold.querySelector("span").textContent = flyter ? "Ingen mer skada" : s.skold >= 0.5 ? `Sköld ${Math.round(s.skold)}/${SKOLD_TAK}` : "Sköld 0";
+        skold.classList.toggle("msp-full", !flyter && s.skold >= SKOLD_TAK - 0.5);
       });
       satt(box, "laser", s.skott, (v) => { box.querySelector("[data-laser]").textContent = `🔫 ${v}/${LADDNING_TAK} skott`; });
       const drag = !s.drag?.tillaten ? "" : s.drag.armerad ? "🌀 fångar …" : t >= s.drag.redoMs ? `🌀 redo (${s.drag.kostnad} ⚡)` : `🌀 ${Math.ceil((s.drag.redoMs - t) / 1000)} s`;

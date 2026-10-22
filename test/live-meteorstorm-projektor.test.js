@@ -107,6 +107,48 @@ describe("Meteorstormen projektorn: renderingsklockan går aldrig bakåt", () =>
   });
 });
 
+describe("Meteorstormen projektorn: anpassad renderingsbuffert (#822 F1)", () => {
+  it("börjar på RENDER_FORDROJNING_MS (3 s), växer till ≈ p95 + marginal, aldrig över taket, krymper aldrig", async () => {
+    const { skapaBuffert, BUFFERT_MAX_MS, BUFFERT_MARGINAL_MS } = await import("../src/live/formats/meteorstorm/msp-buffert.js");
+    assert.equal(RENDER_FORDROJNING_MS, 3000);
+    const b = skapaBuffert();
+    assert.equal(b.varde(), 3000);
+    for (let i = 0; i < 50; i++) b.matt(800 + (i % 10) * 50); // snabbt nät: ryms i basen
+    assert.equal(b.varde(), 3000);
+    for (let i = 0; i < 100; i++) b.matt(4000 + (i % 20) * 100); // long-poll 4–6 s
+    const vuxen = b.varde();
+    assert.ok(vuxen >= 5800 + BUFFERT_MARGINAL_MS - 1 && vuxen <= BUFFERT_MAX_MS, `buffert ${vuxen}`);
+    for (let i = 0; i < 400; i++) b.matt(200); // nätet blir bra igen – bufferten står kvar
+    assert.equal(b.varde(), vuxen);
+    b.matt(60_000);
+    for (let i = 0; i < 20; i++) b.matt(30_000);
+    assert.equal(b.varde(), BUFFERT_MAX_MS);
+    assert.deepEqual(Object.keys(b.stat()), ["buffertMs", "n", "median", "p95", "max"]);
+  });
+  it("när bufferten växer saktar klockan in (fart ≥ 0,8) – t går aldrig bakåt, inga ryck", async () => {
+    const { skapaBuffert } = await import("../src/live/formats/meteorstorm/msp-buffert.js");
+    const b = skapaBuffert();
+    let nu = 1_000_000;
+    let t = null;
+    let minFart = Infinity;
+    for (let i = 0; i < 6000; i++) {
+      const dt = 16 + (i % 3);
+      nu += dt;
+      if (i % 40 === 0) b.matt(i < 2000 ? 2500 : 4000 + (i % 7) * 500); // leveranserna blir sämre efter en stund
+      const ny = stegaKlocka(t, nu - b.varde(), dt);
+      if (t != null) {
+        assert.ok(ny >= t, `steg ${i}: t bakåt`);
+        minFart = Math.min(minFart, (ny - t) / dt);
+        assert.ok(ny - t <= dt * 1.0801, `steg ${i}: för snabbt`);
+      }
+      t = ny;
+    }
+    assert.ok(minFart >= 0.8 - 1e-9, `fart ${minFart}`);
+    assert.ok(minFart < 0.95, "bufferten växte och klockan saktade in");
+    assert.ok(Math.abs(nu - b.varde() - t) < 300, "ikapp den nya bufferten");
+  });
+});
+
 describe("Meteorstormen projektorn: samma bild oavsett när projektorn startade", () => {
   const s = session();
   const handlingar = handlingarUr(events());
