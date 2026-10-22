@@ -20,7 +20,8 @@
 //   3. Två huvudlösa Chromium-flikar med den RIKTIGA projektorn
 //      (preview/qa-meteorstorm-projektor.html → projector.js → live-feed +
 //      meteorstorm-data.js) – flik A med --latens[0] ms, flik B med --latens[1] ms
-//      (DevTools Network.emulateNetworkConditions på varje anrop/long-poll).
+//      (DevTools Network.emulateNetworkConditions på varje anrop/long-poll,
+//      påslagen när sidan laddat).
 //   4. Var 3:e sekund: båda flikarna ritar bildrutan för SAMMA t i en egen
 //      canvas (__mspProjektor.avtryckVid(t)) – t = nu − 1,5 s (det som ritas
 //      just nu) och t = nu − 6 s – och pixlarnas fingeravtryck jämförs.
@@ -101,18 +102,18 @@ function handelse(e, t) {
 let ws;
 let id = 0;
 const vantar = new Map();
-const send = (method, params = {}, sessionId) => new Promise((res, rej) => {
+const send = (sock, method, params = {}, sessionId) => new Promise((res, rej) => {
   const i = ++id;
   vantar.set(i, (d) => (d.error ? rej(new Error(`${method}: ${d.error.message}`)) : res(d.result)));
-  ws.send(JSON.stringify({ id: i, method, params, sessionId }));
+  sock.send(JSON.stringify({ id: i, method, params, sessionId }));
 });
 async function flik(latens) {
-  const { targetId } = await send("Target.createTarget", { url: "about:blank" });
-  const { sessionId } = await send("Target.attachToTarget", { targetId, flatten: true });
-  const S = (m, p) => send(m, p, sessionId);
+  const sock = ws;
+  const { targetId } = await send(sock, "Target.createTarget", { url: "about:blank" });
+  const { sessionId } = await send(sock, "Target.attachToTarget", { targetId, flatten: true });
+  const S = (m, p) => send(sock, m, p, sessionId);
   await S("Page.enable");
   await S("Network.enable");
-  await S("Network.emulateNetworkConditions", { offline: false, latency: latens, downloadThroughput: -1, uploadThroughput: -1 });
   await S("Emulation.setDeviceMetricsOverride", { width: 1600, height: 900, deviceScaleFactor: 1, mobile: false });
   await S("Page.navigate", { url: `http://127.0.0.1:${PROXY}/preview/qa-meteorstorm-projektor.html?sid=${SID}` });
   const js = async (expr) => {
@@ -120,7 +121,10 @@ async function flik(latens) {
     if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception?.description || r.exceptionDetails.text);
     return r.result.value;
   };
-  return { S, js, latens, targetId };
+  // Fördröjningen slås på när sidan laddat (annars tar 200 moduler × 1,5 s minuter):
+  // det som mäts är händelsernas väg Firestore → projektorn (varje long-poll).
+  const latensPa = () => S("Network.emulateNetworkConditions", { offline: false, latency: latens, downloadThroughput: -1, uploadThroughput: -1 });
+  return { S, js, latens, targetId, latensPa };
 }
 
 try {
@@ -130,7 +134,7 @@ try {
 
   // session: 5 min, startad för ~3 min sedan → finalen inom mätningen
   const nu = Date.now();
-  const forbi = Math.max(0, 300 - SEK + 15) * 1000;
+  const forbi = Math.max(0, 300 - SEK - 40) * 1000; // ~40 s till mätningen börjar → finalen mitt i
   const t0 = nu - forbi;
   await commit([[`liveSessions/${SID}`, {
     name: "QA 4B mot 4D (#822)", format: "meteorstorm", gameMode: "multiplication_0_10", answerKind: "free",
@@ -149,20 +153,35 @@ try {
   }
   await commit(historik);
 
-  const chrome = starta("chromium", ["--headless=new", "--no-sandbox", "--disable-gpu", "--hide-scrollbars", `--remote-debugging-port=${DBG}`, `--user-data-dir=${dir}/profil`, "about:blank"]);
-  let ver = null;
-  for (let i = 0; i < 60 && !ver; i++) { await sleep(250); ver = await fetch(`http://127.0.0.1:${DBG}/json/version`).then((r) => r.json()).catch(() => null); }
-  if (!ver) throw new Error("chromium startade inte");
-  ws = new WebSocket(ver.webSocketDebuggerUrl);
-  await new Promise((r) => ws.addEventListener("open", r, { once: true }));
-  ws.addEventListener("message", (m) => { const d = JSON.parse(m.data); if (d.id && vantar.has(d.id)) { vantar.get(d.id)(d); vantar.delete(d.id); } });
+  // Två webbläsare = två klassrum (en flik i bakgrunden får inga bildrutor).
+  const webblasare = async (n) => {
+    const port = DBG + n;
+    starta("chromium", ["--headless=new", "--no-sandbox", "--disable-gpu", "--hide-scrollbars", `--remote-debugging-port=${port}`, `--user-data-dir=${dir}/profil-${n}`, "about:blank"]);
+    let ver = null;
+    for (let i = 0; i < 60 && !ver; i++) { await sleep(250); ver = await fetch(`http://127.0.0.1:${port}/json/version`).then((r) => r.json()).catch(() => null); }
+    if (!ver) throw new Error("chromium startade inte");
+    const w = new WebSocket(ver.webSocketDebuggerUrl);
+    await new Promise((r) => w.addEventListener("open", r, { once: true }));
+    w.addEventListener("message", (m) => { const d = JSON.parse(m.data); if (d.id && vantar.has(d.id)) { vantar.get(d.id)(d); vantar.delete(d.id); } });
+    return w;
+  };
+  const wsA = await webblasare(0);
+  const wsB = await webblasare(1);
+  ws = wsA;
   const A = await flik(LATENS[0]);
+  ws = wsB;
   const B = await flik(LATENS[1] ?? LATENS[0]);
   for (let i = 0; i < 60; i++) {
     const ok = await Promise.all([A, B].map((f) => f.js("!!window.__mspProjektor && window.__mspProjektor.stat().handlingar > 0").catch(() => false)));
     if (ok.every(Boolean)) break;
     await sleep(500);
   }
+  for (const f of [A, B]) {
+    if (await f.js("!!window.__mspProjektor").catch(() => false)) continue;
+    throw new Error(`projektorn (latens ${f.latens} ms) ritar inte: ${await f.js("document.body.innerText.slice(0, 400)").catch((e) => e.message)}`);
+  }
+  await Promise.all([A, B].map((f) => f.latensPa()));
+  await sleep(4000);
 
   // realtid: nya händelser medan vi jämför
   let skrivna = 0;
@@ -209,7 +228,8 @@ try {
     "samma t, pixlar": { "nu−1,5 s": sammanfatt("nu−1,5 s"), "nu−6 s": sammanfatt("nu−6 s") },
     projektorer: stat, olika: jamfor.filter((j) => !j.lika),
   }, null, 2));
-  ws.close();
+  wsA.close();
+  wsB.close();
 } finally {
   stang();
 }

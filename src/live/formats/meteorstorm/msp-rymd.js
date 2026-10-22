@@ -117,10 +117,11 @@ export function createRymden(host, { st, colors = {}, sound = null, screen = fal
   const onEvents = (events) => {
     for (const e of events) if (e?.uid && e.namn) namn.set(e.uid, String(e.namn));
     handlingar = handlingarUr(events);
+    const forsta = !kanda.size; // första ögonblicksbilden = historiken, inte sen
     for (const h of handlingar) {
       if (kanda.has(h.id)) continue;
       kanda.add(h.id);
-      if (tAnim != null && h.t < tAnim - 100) sena++;
+      if (!forsta && tAnim != null && h.t < tAnim - 100) sena++;
     }
     motor?.satHandlingar(handlingar);
   };
@@ -190,7 +191,7 @@ export function createRymden(host, { st, colors = {}, sound = null, screen = fal
     tAnim = frys ?? stegaKlocka(tAnim, now() - FORDROJNING_MS, dt);
     if (fore != null && frys == null) {
       if (tAnim < fore) bakat++;
-      ryck = Math.max(ryck, Math.abs(tAnim - fore - dt));
+      if (dt <= 100) ryck = Math.max(ryck, Math.abs(tAnim - fore - dt)); // en hängd sida räknas inte som ryck
     }
     const t0 = performance.now();
     const { tillstand, m, tM, klar, fas } = ritaVid(tAnim);
