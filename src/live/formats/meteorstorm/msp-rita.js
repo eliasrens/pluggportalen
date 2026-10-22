@@ -302,7 +302,7 @@ export function ritaFyrverkeri(g, t, sedan, x, y, farg, seed) {
       g.fillStyle = farger[k % 3];
       g.globalAlpha = 0.85 * (1 - f) ** 1.4;
       g.beginPath();
-      g.arc(bx + Math.cos(v) * d, by + Math.sin(v) * d + 40 * f * f, 3.2, 0, TAU);
+      g.arc(bx + Math.cos(v) * d, by + Math.sin(v) * d + 40 * f * f, 4.5, 0, TAU);
       g.fill();
     }
     g.globalAlpha = 1;

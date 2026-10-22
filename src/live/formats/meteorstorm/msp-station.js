@@ -140,6 +140,16 @@ export function ritaStation(g, o) {
   g.scale(skala, skala);
   g.rotate(rot);
 
+  if (o.tand) {
+    // vinnaren tänder alla lampor: varmt sken bakom stationen
+    const sken = g.createRadialGradient(0, 0, R * 0.6, 0, 0, R * 2.6);
+    sken.addColorStop(0, "rgba(255,214,120,.38)");
+    sken.addColorStop(1, "rgba(255,214,120,0)");
+    g.fillStyle = sken;
+    g.beginPath();
+    g.arc(0, 0, R * 2.6, 0, TAU);
+    g.fill();
+  }
   solpanel(g, -1, false);
   solpanel(g, 1, grad >= 2);
   // modulen under och antennen
@@ -239,6 +249,17 @@ export function ritaStation(g, o) {
     }
     g.restore();
   });
+
+  if (o.tand) {
+    // en ljusslinga runt navet (fast sken – ingen blinkning)
+    for (let k = 0; k < 16; k++) {
+      const v = (k / 16) * TAU;
+      g.fillStyle = ["#ffd166", "#9be7ff", farg, "#b6f5a8"][k % 4];
+      g.beginPath();
+      g.arc(Math.cos(v) * (R + 9), Math.sin(v) * (R + 9), 4.5, 0, TAU);
+      g.fill();
+    }
+  }
 
   // skadorna
   if (grad >= 1) {

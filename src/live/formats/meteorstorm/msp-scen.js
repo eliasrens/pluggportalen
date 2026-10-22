@@ -126,11 +126,13 @@ function tillKanten(p, d, marg = 70) {
   return Number.isFinite(best) ? best : 900;
 }
 
+const JATTE_BANA = 0.35;
+
 /** Bubblans/skrovets radie (logiska px, före stationens skala). */
 export const RADIE = { skrov: 74, bubbla: 158 };
 
 /**
- * Meteorens läge. geo = { mal, kastadAv (index | -1), bana, spawnMs, ankomstMs }
+ * Meteorens läge. geo = { mal, kastadAv (index | -1), bana, spawnMs, ankomstMs, jatte? }
  * (index i stationslistan). pos 0 = kanten (eller kastarens station), 1 = framme.
  * pl = platser(n); slutR = radien där den slår ner.
  */
@@ -141,9 +143,10 @@ export function meteorPunkt(geo, t, pl, slutR = RADIE.bubbla) {
   if (geo.kastadAv >= 0 && pl[geo.kastadAv]) {
     const fran = pl[geo.kastadAv];
     const sida = Math.sign(mal.x - fran.x) || 1;
-    const p0 = { x: fran.x + sida * 60 * fran.skala, y: fran.y - 110 * fran.skala };
-    const p2 = { x: mal.x - sida * slutR * mal.skala * 0.7, y: mal.y - slutR * mal.skala * 0.7 };
-    const c = { x: (p0.x + p2.x) / 2, y: Math.min(p0.y, p2.y) - 260 };
+    // ut från kastarens sida (mot målet), en båge genom mitten av bilden
+    const p0 = { x: fran.x + sida * RADIE.bubbla * 0.75 * fran.skala, y: fran.y - RADIE.bubbla * 0.45 * fran.skala };
+    const p2 = { x: mal.x - sida * slutR * mal.skala * 0.75, y: mal.y - slutR * mal.skala * 0.65 };
+    const c = { x: (p0.x + p2.x) / 2, y: Math.min(p0.y, p2.y) - 170 };
     const u = 1 - pos;
     return {
       x: u * u * p0.x + 2 * u * pos * c.x + pos * pos * p2.x,
@@ -153,7 +156,8 @@ export function meteorPunkt(geo, t, pl, slutR = RADIE.bubbla) {
       pos,
     };
   }
-  const d = riktning(geo.mal, n, geo.bana);
+  // jättemeteorn kommer från det yttre övre hörnet – syns hela vägen, aldrig bakom klockan
+  const d = riktning(geo.mal, n, geo.jatte ? JATTE_BANA : geo.bana);
   const r0 = tillKanten(mal, d);
   const r1 = slutR * mal.skala;
   const r = r0 + (r1 - r0) * pos;
@@ -172,7 +176,7 @@ export function meteorGeo(id, plan, kast, cfg, index) {
   if (k) {
     return { mal: index.get(k.mot) ?? 0, kastadAv: index.get(k.classId) ?? -1, bana: pm.bana, spawnMs: k.t, ankomstMs: k.t + KAST_FLYGTID_MS, storlek: k.storlek };
   }
-  return { mal: Number(iStr) || 0, kastadAv: -1, bana: pm.bana, spawnMs: cfg.startMs + pm.spawnMs, ankomstMs: cfg.startMs + pm.ankomstMs, storlek: pm.storlek };
+  return { mal: Number(iStr) || 0, kastadAv: -1, bana: pm.bana, spawnMs: cfg.startMs + pm.spawnMs, ankomstMs: cfg.startMs + pm.ankomstMs, storlek: pm.storlek, jatte: !!pm.jatte };
 }
 
 // ---- Flödet (§4.2: bara det som är bra, högst 4 rader) --------------------------

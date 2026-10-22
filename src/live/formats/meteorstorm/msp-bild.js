@@ -70,7 +70,7 @@ export function skapaBild(canvas) {
         const i = index.get(m.mal);
         if (i === undefined) continue;
         const kastI = m.kastadAv ? index.get(m.kastadAv) ?? -1 : -1;
-        const geo = { mal: i, kastadAv: kastI, bana: m.bana, spawnMs: m.spawnMs, ankomstMs: m.ankomstMs };
+        const geo = { mal: i, kastadAv: kastI, bana: m.bana, spawnMs: m.spawnMs, ankomstMs: m.ankomstMs, jatte: !!m.jatte };
         const p = meteorPunkt(geo, tMotor, pl, slutR[i]);
         ritaMeteor(g, m, p, { t: tMotor, seed, farg: farger[kastI] || "#ffd166", fran: m.kastadAv ? o.namn(m.kastadAv) : "", pl, geo });
       }
