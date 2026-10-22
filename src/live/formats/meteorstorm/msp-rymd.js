@@ -1,0 +1,248 @@
+// ============================================================================
+// Meteorstormen – projektorns huvudvy "☄️ Rymden" (#822, spec §4). Vyn är
+// också slutet (finale): stationerna, slutrutan och fyrverkerierna.
+//
+// RENDERINGSBUFFERTEN (Elias 2026-10-21): vyn ritar motorns tillstånd för
+// t = nu − RENDER_FORDROJNING_MS (nu = server-korrigerad klocka, deps.now()).
+// t följer målet mjukt och går aldrig bakåt (stegaKlocka). Allt som ritas är
+// en funktion av (sessionen, händelseloggen, fröet, t) – två lärare som öppnar
+// projektorn för samma session får samma bild (§4.4). Slutet: t stannar vid
+// stormens slut (lärarens avslut eller 00:00); animationerna fortsätter.
+//
+// DATA (kvoten, docs/METEORSTORMEN.md §9): EN lyssnare på msEvents (watchEvents),
+// ingen omläsning. Händelser med typ "fel" (bara felbufferten) hoppas över.
+// msStationer (aktiva per station) läses ur sessionen – saknas det har ingen
+// handlat än (aktiva 1). Projektorn SKRIVER INGET i formatets samlingar
+// (msPublic/status är serverns). Avsluta → msAvsluta; serverns result gäller.
+// Datalagret: deps.meteorstorm (demot) eller meteorstorm-data.js (latt).
+//
+// API: createRymden(host, { st, colors, sound, actions, screen, deps }) → { update, destroy }
+//   globalThis.__mspProjektor (felsökning/QA): { t(), frys(t|null), avtryck(),
+//   fps(), stat() } – två projektorer jämförs med frys(t) + avtryck().
+// ============================================================================
+
+import { skapaMotor } from "./delat/ms-motor.js";
+import { hashFro } from "./delat/ms-prng.js";
+import { cfgNyckel, normCfg } from "./delat/ms-indata.js";
+import { phaseAt, formatClock } from "../../live-core.js";
+import { prefersReducedMotion } from "../../design/live-reactions.js";
+import {
+  W, H, FORDROJNING_MS, platser, motorIndata, slutVid, handlingarUr, stegaKlocka, skapaLoggminne, flodeVid, banderollVid,
+} from "./msp-scen.js";
+import { skapaBild } from "./msp-bild.js";
+import { createHud } from "./msp-hud.js";
+import { slutModell, slutHtml } from "./msp-slut.js";
+import { createMsLjud } from "./msp-ljud.js";
+
+const CSS = new URL("./meteorstorm-projektor.css", import.meta.url).href;
+const MAX_PX = 2048;
+
+export function ensureMspCss() {
+  if (document.querySelector("link[data-msp-css]")) return;
+  const l = document.createElement("link");
+  l.rel = "stylesheet";
+  l.href = CSS;
+  l.dataset.mspCss = "1";
+  document.head.appendChild(l);
+}
+
+export function createRymden(host, { st, colors = {}, sound = null, screen = false, deps = null, say = () => {} }) {
+  ensureMspCss();
+  let s = st.session;
+  const sid = st.sessionId || s.id;
+  const root = document.createElement("div");
+  root.className = "msp";
+  root.innerHTML = `<div class="msp-ram"><canvas class="msp-canvas" aria-label="Rymdstationerna och meteorstormen"></canvas>
+    <div class="msp-slut" hidden></div>
+    ${screen ? "" : `<div class="msp-kontroll"><button class="lp-btn lp-danger" data-avsluta>Avsluta stormen</button></div>`}
+    <div class="msp-vanta" hidden></div></div>`;
+  host.replaceChildren(root);
+  const ram = root.querySelector(".msp-ram");
+  const canvas = root.querySelector("canvas");
+  const slutEl = root.querySelector(".msp-slut");
+  const vantaEl = root.querySelector(".msp-vanta");
+  const bild = skapaBild(canvas);
+  const ljud = createMsLjud(sound);
+  const now = () => (deps?.now ? deps.now() : Date.now());
+
+  let cfg = null;
+  let nyckel = "";
+  let motor = null;
+  let handlingar = [];
+  const namn = new Map();
+  const klassNamn = (id) => s?.classNames?.[id] || id;
+  let minne = skapaLoggminne({ namn, klass: klassNamn, visaNamn: s.showNames !== false });
+  let hud = null;
+  let farger = [];
+  let tAnim = null;
+  let frys = null;
+  let senastRam = 0;
+  let raf = 0;
+  let dod = false;
+  let rorelse = !prefersReducedMotion();
+  let sedd = 0; // loggposter som redan gett ljud
+  let slutVisad = "";
+  const ramtider = [];
+
+  function byggMotor() {
+    const c = motorIndata(s);
+    const k = cfgNyckel(normCfg(c));
+    if (k === nyckel && motor) return;
+    nyckel = k;
+    cfg = normCfg(c);
+    motor = skapaMotor(c);
+    motor.satHandlingar(handlingar);
+    farger = cfg.stationer.map((x, i) => colors[x.classId] || ["#ff7a3d", "#3d9bff", "#2fd07a", "#ff5fa2"][i % 4]);
+    minne = skapaLoggminne({ namn, klass: klassNamn, visaNamn: s.showNames !== false });
+    hud?.destroy();
+    hud = createHud(ram, { namn: klassNamn, farger, pl: platser(cfg.stationer.length) });
+    sedd = Infinity; // ljud bara för det som händer efter att vyn monterats
+  }
+
+  // --- händelseloggen: EN lyssnare ------------------------------------------------
+  let unsub = () => {};
+  const onEvents = (events) => {
+    for (const e of events) if (e?.uid && e.namn) namn.set(e.uid, String(e.namn));
+    handlingar = handlingarUr(events);
+    motor?.satHandlingar(handlingar);
+  };
+  const onErr = (e) => say(`Händelserna: ${e?.message || e}`);
+  const data = deps?.meteorstorm ? Promise.resolve(deps.meteorstorm) : import("./meteorstorm-data.js");
+  data.then((d) => { if (!dod) unsub = d.watchEvents(sid, onEvents, onErr); }).catch(onErr);
+
+  // --- Avsluta (msAvsluta – serverns result gäller) ----------------------------------
+  const knapp = root.querySelector("[data-avsluta]");
+  knapp?.addEventListener("click", async () => {
+    if (!confirm("Avsluta stormen NU, före tiden? Stationerna räknas som de står.")) return;
+    knapp.disabled = true;
+    knapp.textContent = "Avslutar …";
+    try {
+      await (await data).avsluta(sid);
+    } catch (e) {
+      say(e?.message || String(e));
+      knapp.disabled = false;
+      knapp.textContent = "Avsluta stormen";
+    }
+  });
+
+  // --- storlek: 16:9-ram i scenen ---------------------------------------------------
+  function anpassa() {
+    const r = root.getBoundingClientRect();
+    const w = Math.max(160, Math.min(r.width, (r.height * 16) / 9));
+    const h = (w * 9) / 16;
+    ram.style.width = `${w}px`;
+    ram.style.height = `${h}px`;
+    ram.style.setProperty("--msp-u", `${w / W}px`);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const pxW = Math.min(MAX_PX, Math.round(w * dpr));
+    bild.storlek(pxW, Math.round((pxW * H) / W));
+  }
+  const ro = new ResizeObserver(anpassa);
+  ro.observe(root);
+  const mq = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+  const onMq = () => { rorelse = !prefersReducedMotion(); };
+  mq?.addEventListener?.("change", onMq);
+
+  // --- en bildruta ------------------------------------------------------------------
+  function ritaVid(tA) {
+    const slut = slutVid(s);
+    const tM = slut == null ? Math.min(tA, cfg.startMs) : Math.min(tA, slut);
+    const tillstand = motor.tillstand(tM);
+    const m = minne.las(tillstand.logg);
+    const fas = phaseAt(s, now()).phase;
+    const klar = fas === "finished" && s.result;
+    const firar = !klar ? [] : s.result.lage === "en-klass"
+      ? (s.result.overlevde ? [0] : [])
+      : tillstand.stationer.map((x, i) => (x.classId === s.result.winner ? i : -1)).filter((i) => i >= 0);
+    bild.rita({
+      s: tillstand, tMotor: tM, tAnim: tA, cfg, plan: motor.plan, minne: m, farger, namn: klassNamn,
+      seed: cfg.seed, rorelse, slut: klar ? { sedan: slut ?? tA, firar } : null,
+    });
+    return { tillstand, m, tM, klar, fas };
+  }
+
+  function ram1(nu) {
+    raf = requestAnimationFrame(ram1);
+    if (!motor || !cfg) return;
+    const dt = senastRam ? nu - senastRam : 16;
+    senastRam = nu;
+    ramtider.push(dt);
+    if (ramtider.length > 300) ramtider.shift();
+    tAnim = frys ?? stegaKlocka(tAnim, now() - FORDROJNING_MS, dt);
+    const { tillstand, m, tM, klar, fas } = ritaVid(tAnim);
+    // ljud för NYA loggposter (inte vid montering eller efter en tillbakaspolning)
+    const logg = tillstand.logg;
+    if (sedd === Infinity) sedd = logg.length;
+    if (logg.length < sedd) sedd = logg.length;
+    for (; sedd < logg.length; sedd++) if (tM - logg[sedd].t < 1500) ljud.post(logg[sedd]);
+    // textlagret
+    const ph = phaseAt(s, now());
+    hud.el.hidden = !!klar;
+    if (!klar) {
+      hud.klocka(fas === "lobby" ? "--:--" : formatClock(ph.msLeft), ph.msLeft <= 60_000 && fas === "live");
+      hud.banderoll(fas === "finished" || fas === "ended" ? null : banderollVid(tillstand.handelser[0], tM));
+      hud.stationer(tillstand.stationer, tM);
+      hud.flode(flodeVid(m.poster, tM));
+    }
+    visaSlut(klar, fas);
+  }
+
+  function visaSlut(klar, fas) {
+    const k = klar ? `r|${s.result.computedAt?.seconds ?? 1}` : fas === "finished" || fas === "ended" ? "vanta" : "";
+    if (k === slutVisad) return;
+    slutVisad = k;
+    if (klar) {
+      slutEl.innerHTML = slutHtml(slutModell(s.result, s), Object.fromEntries(cfg.stationer.map((x, i) => [x.classId, farger[i]])));
+      slutEl.hidden = false;
+      vantaEl.hidden = true;
+      ljud.slut();
+    } else {
+      slutEl.hidden = true;
+      vantaEl.hidden = k !== "vanta";
+      vantaEl.textContent = "☄️ Stormen är över! Räknar ihop stationerna …";
+    }
+    if (knapp) knapp.parentElement.hidden = fas !== "live" && fas !== "countdown";
+  }
+
+  function update(next) {
+    st = next;
+    if (next.session) s = next.session;
+    byggMotor();
+  }
+  update(st);
+  anpassa();
+  raf = requestAnimationFrame(ram1);
+
+  const api = {
+    t: () => tAnim,
+    frys(t) { frys = t == null ? null : Number(t); if (frys != null) tAnim = frys; },
+    avtryck() {
+      const c = bild.g.getImageData(0, 0, canvas.width, canvas.height).data;
+      let h = 0x811c9dc5;
+      for (let i = 0; i < c.length; i += 7) h = Math.imul(h ^ c[i], 0x01000193) >>> 0;
+      return { t: tAnim, px: [canvas.width, canvas.height], hash: h.toString(16), tillstand: hashFro(JSON.stringify(motor.tillstand(Math.min(tAnim, slutVid(s) ?? tAnim)).stationer)).toString(16) };
+    },
+    fps() {
+      const l = [...ramtider].sort((a, b) => a - b);
+      const medel = l.reduce((a, b) => a + b, 0) / (l.length || 1);
+      return { fps: Math.round(1000 / medel), medelMs: +medel.toFixed(2), p95Ms: +(l[Math.floor(l.length * 0.95)] || 0).toFixed(2), ramar: l.length };
+    },
+    stat: () => ({ handelser: handlingar.length, cfg, fordrojning: FORDROJNING_MS }),
+  };
+  globalThis.__mspProjektor = api;
+
+  return {
+    update,
+    destroy() {
+      dod = true;
+      cancelAnimationFrame(raf);
+      unsub();
+      ro.disconnect();
+      mq?.removeEventListener?.("change", onMq);
+      ljud.destroy();
+      hud?.destroy();
+      if (globalThis.__mspProjektor === api) delete globalThis.__mspProjektor;
+      root.remove();
+    },
+  };
+}
