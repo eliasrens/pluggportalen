@@ -285,10 +285,10 @@ Fel = HttpsError med svenskt meddelande (`details.vantaMs` vid spärren).
 
 | Fält | |
 | --- | --- |
-| `svar` | Multiplikation `{ factorA, factorB, answer, choiceIndex? }`. Quiz `{ k, q, choiceIndex }` eller `{ k, q, year }` (tidslinje) |
+| `svar` | Multiplikation `{ k, factorA, factorB, answer, choiceIndex? }`. Quiz `{ k, q, choiceIndex }` eller `{ k, q, year }` (tidslinje). `k` = elevens fråga nr k ur kortleken (§7.1 "Frågorna") |
 | `typ` | `"skold" \| "laser" \| "drag" \| "spara"` – valet efter det rätta svaret |
 | `mal` | dragstrålens mål (classId) vid 3–4 stationer; annars väljer motorn |
-| `fel` | de buffrade fel svaren sedan förra anropet (högst `MS_FEL_TAK` = 40), samma form som `svar` + `attemptId` |
+| `fel` | de buffrade fel svaren sedan förra anropet (högst `MS_FEL_TAK` = 40), samma form som `svar` + `attemptId`. **Varje k mellan förra länkens k och svarets måste finnas här** |
 | `nr` | elevens nästa länk i kedjan (förra svarets `nr` + 1). Saknas/fel → servern letar upp den |
 
 **Rätt svar** → EN händelse `msEvents/{uid}_{nr}` (en skrivning):
@@ -307,19 +307,39 @@ dit – D kan läsa elevens `bidrag` i slutet eller visa effekten direkt.
 med `redoMs`; eller `energi` = för lite energi) → händelsen sparas som
 `typ: "spara"` med `onskad`/`nekad`. Energin från svaret går aldrig förlorad.
 
-**Fel svar** (servern rättar om) → `{ correct: false, correctAnswer, correctYear?, k? }`
+**Fel svar** (servern rättar om) → `{ correct: false, correctAnswer, correctYear?, k }`
 och **ingen skrivning**. Klienten buffrar det.
 
-**Utan svar** – `msAgera({ sid, fel })`: bara felbufferten (slutet av matchen,
-eller när den blivit `MS_FEL_SKICKA` = 25 lång) → `msPlayers/{uid}.fel`
-(arrayUnion, en skrivning). Tillåtet till `MS_EFTER_SLUT_MS` (60 s) efter slutet.
+**Utan svar** – `msAgera({ sid, fel, nr? })`, bara felbufferten:
+- *under matchen* bara en hel buffert: minst `MS_FEL_SKICKA` (25) fel svar i
+  följd från förra länkens k → EN länk `msEvents/{uid}_{nr}` med `typ: "fel"`
+  (ingen handling: motorn och projektorn hoppar över den; energin oförändrad,
+  spärren `MS_MIN_GAP_MS` gäller). Färre nekas – de följer med nästa rätta svar.
+  Spärren bor i kedjan, inte i minnet, så flera instanser ger ändå EN skrivning
+  per buffert (#821 F3).
+- *efter slutet* (till `MS_EFTER_SLUT_MS` = 60 s) EN gång per elev →
+  `msPlayers/{uid}.fel` (högst `MS_FEL_TAK` poster; en andra gång → `already-exists`, #821 F5).
+
+**Frågorna** (#821 F1/F2) – varje svar bär `k`, elevens fråga nr k:
+- Multiplikationen: faktorerna ur elevens egen påse `multFor(msSeed, uid, k)`
+  (`delat/ms-anrop.js`: `src/mult/generator.js`-påsen med fröets PRNG – varje
+  kombination 0–10 i varje påse, ×0/×1 en gång och övriga två, aldrig samma
+  fråga eller spegeln två gånger i rad). Andra faktorer → `failed-precondition`
+  – ingen kan svara 0 × 0 om och om igen.
+- Quiz: `fragaFor(msSeed, uid, k, n)` – en blandad kortlek per varv.
+- `k` måste ligga efter förra länkens k och högst `MS_K_FONSTER` (41) före den,
+  och varje k däremellan måste vara ett fel svar i `fel[]`. Annars
+  `failed-precondition` med `details.omsynk` (klienten frågar `msLage` och
+  börjar om efter senaste länken). Ett k före länken med samma `attemptId` är
+  ett omförsök → samma svar (`igen`, #821 F4); med nytt id nekas det.
 
 **Spärrar och säkerhet**
 - Energin: 1 per rätt (Solstorm ×2, Kometsvans +1 via `energiEffekt`), tak 5
   efter handlingen. Ett tryck kostar det man just fick, dragstrålen 3/2.
 - `MS_MIN_GAP_MS` (1 s) mellan två handlingar per elev → `resource-exhausted`
   med `details.vantaMs` (klienten väntar och försöker en gång till).
-- Idempotens: samma `attemptId` igen → samma svar (`igen: true`), ingen ny händelse.
+- Idempotens: samma `attemptId` igen → samma svar (`igen: true`), ingen ny händelse –
+  också efter senare handlingar (#821 F4: k före länken slås upp på `attemptId`).
 - Två anrop samtidigt från samma elev krockar på länken – en vinner.
 - **Dragstrålen:** `kanAgera` körs i SAMMA transaktion som händelsen skrivs,
   mot serverns logg + stationens lås `msLas/{classId}` (senaste dragstrålen)
@@ -327,20 +347,20 @@ eller när den blivit `MS_FEL_SKICKA` = 25 lång) → `msPlayers/{uid}.fel`
   station → den andra ser den första och nekas (`armerad`).
 - Bara deltagare (`players/{uid}` i en av sessionens klasser), bara under
   matchen (`t0 ≤ nu < slut`, status `live`).
-- Quiz: frågan måste vara elevens `k`:te i kortleken (`fragaFor(msSeed, uid, k, n)`
-  – en blandad kortlek per varv, aldrig samma fråga två gånger i rad), och `k`
-  måste växa längs kedjan. Ett `k` som rättats fel (msRatta eller bufferten)
-  kan inte tas tillbaka som rätt.
+- Ett `k` som rättats fel (msRatta eller bufferten) kan inte tas tillbaka som rätt.
 
-### 7.2 `msRatta({ sid, svar: { k, q, choiceIndex | year } })` – bara quiz
+### 7.2 `msRatta({ sid, svar: { k, q, choiceIndex | year }, nr? })` – bara quiz
 
 Klienten kan inte rätta quiz (facit är lärarskyddat), så eleven frågar servern
 först – **utan skrivning**. → `{ correct, correctAnswer, correctYear?, k, nastaQ }`.
 Rätt → eleven väljer handling och skickar `msAgera` med samma `svar` (servern
 rättar igen). Samma `k` rättas bara en gång per instans (minnet): första
-beskedet gäller, så ingen kan pröva sig fram. ⚠️ Med flera instanser (högst 4)
-kan en elev som skriver egna anrop i sällsynta fall få pröva samma `k` en gång
-per instans – priset för att fel svar aldrig skrivs.
+beskedet gäller, så ingen kan pröva sig fram. `k` måste ligga efter elevens
+senaste länk och högst `MS_K_FONSTER` före den (#821 F2 – inget facit för
+frågor långt fram); länken hålls i instansens minne (läses en gång: länk `nr`
+och koll att `nr + 1` saknas). ⚠️ Med flera instanser (högst 4) kan en elev som
+skriver egna anrop i sällsynta fall få pröva samma `k` en gång per instans –
+priset för att fel svar aldrig skrivs.
 
 ### 7.3 `msLage({ sid })` → `{ nr, energi, k, status }`
 
@@ -355,7 +375,8 @@ först efter slutet (status `finished` eller tiden ute), så resultatet kommer
 de sista felbuffrarna, läser HELA loggen och kör `simulera` fram till slutet
 (lärarens avslut eller ordinarie slut – händelser efter det räknas inte).
 Skriver i EN transaktion: `result` (en gång), `msStationer` om det saknas,
-`msPlayers/{uid}`-totalerna och sista `msPublic/status` (`klart`, `resultat`).
+`msPlayers/{uid}`-totalerna (utan merge – slutbufferten `fel` är inräknad och
+försvinner, #821 F5) och sista `msPublic/status` (`klart`, `resultat`).
 Idempotent: finns `result` → `{ result, redan: true }`.
 
 **C/D:** formatets `resultInputs`/projektorn anropar `avsluta(sid)` när tiden
@@ -366,18 +387,23 @@ sedan att `result` finns.
 
 ```js
 const k = skapaKlient({ sid, uid, seed: s.msSeed, gameMode: s.gameMode, antalFragor });
-flow = createQuestionFlow(host, { mode, answerKind, send: k.svara, onCorrect: visaKnapparna, … });
+const fragor = s.gameMode === "multiplication_0_10" ? { ...mode, createSource: k.kalla } : mode;
+flow = createQuestionFlow(host, { mode: fragor, answerKind, send: k.svara, onCorrect: visaKnapparna, … });
 flow.setNextQ(k.fraga());               // quiz: elevens första fråga ur kortleken
 const r = await k.agera("laser");       // eller "skold" | "drag" | "spara" (mal valfritt)
 await k.skickaFel();                    // när matchen tar slut
 ```
 
+`kalla()` delar ut multiplikationens frågor ur elevens påse (`multFor`) – en
+obesvarad fråga visas igen i stället för att hoppas över (annars saknas dess k).
 `svara` rättar multiplikationen själv (fel → bufferten, inget anrop), frågar
 `msRatta` vid quiz, och håller ett rätt svar väntande tills `agera`. Bufferten,
 `nr`, energin och `k` sparas i `sessionStorage` (omladdning). Ett nätfel låter
 svaret och bufferten ligga kvar – samma `agera` igen ger samma `attemptId`.
+Bufferten töms på `attemptId` (inte de första N), så ett fel-anrop som korsar
+ett `agera` tappar inget (#821 F7). `details.omsynk` → `lage()` och börja om.
 Status: `skapaStatusvakt(sid, cb)` – `vakt.fran(r.status)` efter varje svar,
-och bara när inget kommit på 12 s en läsning av `msPublic/status`.
+och bara när inget kommit på 20 s en läsning av `msPublic/status`.
 
 ---
 
@@ -403,8 +429,8 @@ Kärnans fält (som kistformaten) + `msSeed` (heltal 0–2³¹−1),
 
 | Dokument | Vem skriver | Vem läser | Innehåll |
 | --- | --- | --- | --- |
-| `msEvents/{uid}_{nr}` | servern (`msAgera`) | lärare/projektor | en per rätt svar (§7.1) – motorns `handlingar` = `{ id, t, classId, uid, typ, mal? }` |
-| `msPlayers/{uid}` | servern | eleven själv, lärare | `fel[]` (slutbufferten); efter `msAvsluta`: `correct, incorrect, handlingar{skold,laser,drag,spara}, nekade, bidrag{skold,laser,drag,nedskjutna,kast}, energi, klar` |
+| `msEvents/{uid}_{nr}` | servern (`msAgera`) | lärare/projektor | en per rätt svar (§7.1) – motorns `handlingar` = `{ id, t, classId, uid, typ, mal? }`. **`typ: "fel"`** = bara en felbuffert (ingen handling) – C hoppar över den |
+| `msPlayers/{uid}` | servern | eleven själv, lärare | `fel[]` (slutbufferten, en gång, ≤ 40); efter `msAvsluta` ersatt av: `correct, incorrect, handlingar{skold,laser,drag,spara}, nekade, bidrag{skold,laser,drag,nedskjutna,kast}, energi, klar` |
 | `msPublic/status` | servern | deltagare, lärare | §8.3 |
 | `msPublic/questions` | läraren i lobbyn (quiz) | deltagare | `{ questions }` utan facit |
 | `msPrivate/snapshot` | läraren i lobbyn (quiz) | lärare | `{ facit }` |
@@ -466,38 +492,57 @@ desamma i alla format och räknas inte.
 
 ```
 FIRESTORE_EMULATOR_HOST=127.0.0.1:PORT node admin/ms-kvot-sim.mjs --md
-  (--elever 25 --klasser 2 --min 10 --takt 8 --ratt 0.7,0.6 --projektorer 2 --instanser 1 --quiz)
+  (--elever 25 --klasser 2 --min 10 --takt 8 --ratt 0.7,0.6 --projektorer 2 --instanser 1 --quiz --status 20)
 ```
 
 **2 klasser × 25 elever, 10 min, ett svar per ~8 s (±25 %), 70 % / 60 % rätt,
-2 projektorer, Klass mot klass / Milda, multiplikation, en instans:**
+2 projektorer, Klass mot klass / Milda** (rättningsrunda 1, statusvakten 20 s).
+"4 instanser" = varje anrop till en slumpad av fyra instanser (värsta fallet;
+concurrency 80 håller normalt en match på en instans).
 
-| | Antal |
-| --- | --- |
-| Rätta svar (= händelser) / fel svar | 2 287 / 1 240 |
-| **Skrivningar totalt** (2 287 händelser, 61 status, 40 lås, 66 msPlayers, 3 session) | **2 457** |
-| Projektorernas läsningar: `msEvents` (2 × händelserna) | 4 574 (mätt 4 505 – lyssnaren hann inte helt ikapp före stopp) |
-| Projektorernas läsningar: sessionen | 8 |
-| Elevernas läsningar: `msPublic/status` (bara efter 12 s utan svar) | 1 107 |
-| Elevernas läsningar: sessionen + eget `msPlayers` | 300 |
-| **Klienternas läsningar totalt** | **≈ 5 990** |
-| Serverns läsningar (länken 2 237, loggen 2 287 + 2 287 i msAvsluta, sessionen 122, övrigt ~630) | 7 565 |
+| | Multiplikation, 1 instans | Multiplikation, 4 instanser | Quiz, 1 instans |
+| --- | --- | --- | --- |
+| Rätta svar (= händelser) / fel svar | 2 299 / 1 237 | 2 305 / 1 236 | 2 299 / 1 237 |
+| **Skrivningar totalt** | **2 463** | **2 465** | **2 463** |
+| Projektorerna: `msEvents` (2 × händelserna¹) | 4 598 | 4 610 | 4 598 |
+| Projektorerna: sessionen | 8 | 8 | 8 |
+| Elevskärmarna: `msPublic/status` (efter 20 s utan svar) | 350 | 395 | 350 |
+| Elevskärmarna: sessionen + eget `msPlayers` | 300 | 300 | 300 |
+| Skärmarna: `msPublic/questions` (en gång var) | – | – | 52 |
+| **Klienternas läsningar** | **≈ 5 260** | **≈ 5 310** | **≈ 5 310** |
+| **Serverns läsningar** | **7 574** | **15 097** | **7 627** |
+| Läsningar totalt | ≈ 12 830 | ≈ 20 410 | ≈ 12 940 |
 
-- **Skrivningar 2 457** – inom målet 2 200–2 500 (tak 3 000). En skrivning per
-  rätt svar; fel svar skrivs aldrig (de följer med nästa händelse).
-- **Klienternas läsningar ≈ 5 990 < 6 000** (specens räkning: projektorerna
-  på `msEvents` + elevskärmarna). Marginalen är liten: varje extra projektor
-  kostar ~2 300, en elevskärm som laddas om läser sessionen igen. Spakar:
-  statusvaktens intervall (12 s → 20 s ≈ −450), en projektor per match.
-- **Serverns läsningar ~7 600 tillkommer** (Firestore debiterar dem också):
-  föregående länk i kedjan (en per rätt svar – energin och spärren utan
-  skrivning), loggen en gång per instans (sedan bara nya händelser på
-  commit-tiden `at`) och hela loggen en gång i `msAvsluta` (serverns resultat
-  ur hela loggen). Med N instanser läses loggen upp till N gånger (minnet per
-  instans; concurrency 80 håller en klass på en instans). Totalt server +
-  klienter ≈ 13 500 läsningar per match (≈ 0,01 USD; gratisnivån är 50 000 läsningar per dag).
-- Sessionsdokumentet läses av alla elevskärmar vid varje ändring – servern
-  skriver det bara 3 gånger (`msStationer`, `finished`, `result`).
+¹ Varje händelse läses en gång per projektor; lyssnarna i simuleringen hann
+inte helt ikapp före stopp (mätt 4 370–4 394), så tabellen räknar 2 × händelserna.
+
+Serverns läsningar (1 instans): föregående länk i kedjan 2 249 (en per rätt
+svar – energin, spärren och k-ordningen utan skrivning), loggen 2 299 (en gång
+per instans, sedan bara nya händelser på commit-tiden `at`), hela loggen i
+`msAvsluta` 2 299, sessionen 122 (minnet 5 s), övrigt ~600. Med 4 instanser
+läses loggen och sessionen en gång per instans → ~15 000.
+
+- **Skrivningar ≈ 2 460** – inom målet 2 200–2 500 (tak 3 000). En skrivning per
+  rätt svar; fel svar skrivs aldrig (de följer med nästa händelse, en hel
+  buffert på 25 blir en länk). Rättningsrunda 1 (F3): ingen kan längre skriva
+  mer än en länk per sekund och elev – samma gräns som för rätta svar.
+- **Klienternas läsningar ≈ 5 300 < 6 000** – marginal ~700 sedan statusvakten
+  gick från 12 s till 20 s (rättningsrunda 1, F6: −750 läsningar; en elev som
+  svarar får status i varje svar, så bara elever som står still läser). Varje
+  extra projektor kostar ~2 300.
+- **Serverns läsningar 7 600–15 100 tillkommer** (Firestore debiterar dem också).
+  Totalt ≈ 13 000–20 000 per match (≈ 0,01 USD; gratisnivån 50 000 läsningar per dag).
+- Sessionsdokumentet läses av alla skärmar vid varje ändring – servern skriver
+  det bara 3 gånger (`msStationer`, `finished`, `result`).
+
+> ❓ **Fråga till Elias (kvoten):** målet "läsningar < 6 000" nås för
+> klienternas läsningar (specens räkning: projektorerna på `msEvents` +
+> elevskärmarna), men inte om serverns läsningar räknas in (7 600 med en
+> instans, upp till 15 000 med fyra). Räcker det med klienterna? Annars
+> finns två spakar: (1) `msAvsluta` räknar ur instansens logg i minnet i
+> stället för att läsa om hela loggen (−2 300, men resultatet hänger då på att
+> minnet är komplett), (2) `maxInstances: 1` (en match per instans, minnet
+> alltid varmt – men en storm per region åt gången).
 
 ---
 
