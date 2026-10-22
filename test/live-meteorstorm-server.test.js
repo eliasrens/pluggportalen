@@ -6,8 +6,9 @@
 // ============================================================================
 
 import { describe, it } from "node:test";
+import { readdirSync } from "node:fs";
 import assert from "node:assert/strict";
-import { fragaFor, MS_FEL_SKICKA, MS_FEL_TAK } from "../src/live/formats/meteorstorm/delat/ms-anrop.js";
+import { fragaFor, multFor, MS_FEL_SKICKA, MS_FEL_TAK } from "../src/live/formats/meteorstorm/delat/ms-anrop.js";
 import { simulera } from "../src/live/formats/meteorstorm/delat/ms-motor.js";
 import { createMsKlient } from "../src/live/formats/meteorstorm/ms-klient.js";
 import * as klientMynt from "../src/live/live-rewards.js";
@@ -29,6 +30,28 @@ describe("kortleken (fragaFor)", () => {
     assert.notDeepEqual(a, b, "eleverna får olika ordning");
     assert.equal(fragaFor(1, "x", 5, 1), 0);
     assert.equal(fragaFor(1, "x", -1, 5), 0);
+  });
+});
+
+describe("multiplikationens påse (multFor, #821 F1)", () => {
+  it("varje kombination 0–10 i varje påse (×0/×1 en gång, övriga två), aldrig samma eller spegeln två gånger i rad", () => {
+    const PASE = 40 + 81 * 2;
+    const seq = Array.from({ length: PASE * 3 }, (_, k) => multFor(7, "omar", k));
+    const forsta = seq.slice(0, PASE);
+    const antal = new Map();
+    for (const { a, b } of forsta) antal.set(`${a}x${b}`, (antal.get(`${a}x${b}`) || 0) + 1);
+    assert.equal(antal.size, 121);
+    for (const [nyckel, n] of antal) {
+      const [a, b] = nyckel.split("x").map(Number);
+      assert.equal(n, a <= 1 || b <= 1 ? 1 : 2, nyckel);
+    }
+    for (let k = 1; k < seq.length; k++) {
+      const p = seq[k - 1];
+      const q = seq[k];
+      assert.ok(!((p.a === q.a && p.b === q.b) || (p.a === q.b && p.b === q.a)), `k=${k}`);
+    }
+    assert.deepEqual(multFor(7, "omar", 250), seq[250], "samma svar oavsett ordning");
+    assert.notDeepEqual(seq.slice(0, 10), Array.from({ length: 10 }, (_, k) => multFor(7, "alma", k)));
   });
 });
 
@@ -107,6 +130,10 @@ describe("synken till functions/meteorstorm/", () => {
     assert.ok(meteorstormFiles().includes("ms-anrop.js"));
     assert.deepEqual(driftedFiles().filter((f) => f.startsWith("meteorstorm/")), [], "kör npm run sync:meteorstorm");
   });
+  it("#821 F8: functions/meteorstorm/ har exakt samma filer som delat/ (ingen gammal kvar)", () => {
+    const kopior = readdirSync(new URL("../functions/meteorstorm/", import.meta.url)).filter((f) => f.endsWith(".js") || f.endsWith(".json")).sort();
+    assert.deepEqual(kopior, meteorstormFiles(), "en fil i functions/meteorstorm/ saknar källa i delat/ – ta bort den");
+  });
 });
 
 describe("elevklienten (ms-klient.js)", () => {
@@ -136,10 +163,35 @@ describe("elevklienten (ms-klient.js)", () => {
     assert.equal(anrop.length, 1);
     const [namn, d] = anrop[0];
     assert.equal(namn, "msAgera");
-    assert.deepEqual({ typ: d.typ, attemptId: d.attemptId, svar: d.svar, fel: d.fel.length }, { typ: "laser", attemptId: "a3-xxxxxx", svar: { factorA: 3, factorB: 3, answer: "9" }, fel: 2 });
+    assert.deepEqual({ typ: d.typ, attemptId: d.attemptId, svar: d.svar, fel: d.fel.length }, { typ: "laser", attemptId: "a3-xxxxxx", svar: { k: 2, factorA: 3, factorB: 3, answer: "9" }, fel: 2 });
     assert.equal(k.buffert.length, 0);
     assert.equal(k.vantar(), false);
     await assert.rejects(k.agera("skold"), /Svara rätt först/);
+  });
+
+  it("#821 F1: kalla() delar ut elevens kortlek (multFor) med k; en obesvarad fråga visas igen", async () => {
+    const { k, anrop } = rigg();
+    const kalla = k.kalla();
+    const q0 = kalla.next();
+    assert.deepEqual({ a: q0.a, b: q0.b, k: q0.k }, { ...multFor(5, "alma", 0), k: 0 });
+    assert.equal(kalla.next().k, 0, "inte besvarad – samma fråga");
+    await k.svara({ attemptId: "w0-xxxxxx", factorA: q0.a, factorB: q0.b, answer: String(q0.answer + 1) });
+    const q1 = kalla.next();
+    assert.deepEqual({ a: q1.a, b: q1.b, k: q1.k }, { ...multFor(5, "alma", 1), k: 1 });
+    await k.svara({ attemptId: "r1-xxxxxx", factorA: q1.a, factorB: q1.b, answer: String(q1.answer) });
+    await k.agera("skold");
+    assert.deepEqual(anrop[0][1].fel.map((f) => f.k), [0]);
+    assert.equal(anrop[0][1].svar.k, 1);
+  });
+
+  it("omsynk från servern: klienten frågar msLage och börjar efter senaste länken", async () => {
+    const { k, svar } = rigg();
+    svar.msAgera = Object.assign(new Error("ordning"), { code: "failed-precondition", details: { omsynk: true, k: 7 } });
+    svar.msLage = () => ({ nr: 3, energi: 2, k: 7, status: null });
+    await k.svara({ attemptId: "w0-xxxxxx", factorA: 1, factorB: 1, answer: "5" });
+    await k.svara({ attemptId: "r1-xxxxxx", factorA: 1, factorB: 1, answer: "1" });
+    await assert.rejects(k.agera("laser"));
+    assert.deepEqual({ nr: k.nr, energi: k.energi, k: k.k, vantar: k.vantar(), buffert: k.buffert.length }, { nr: 3, energi: 2, k: 8, vantar: false, buffert: 0 });
   });
 
   it("nätfel: svaret och bufferten ligger kvar, samma attemptId nästa gång; väntetid → ett omförsök", async () => {

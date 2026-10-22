@@ -96,7 +96,7 @@ export function createMsKlient({ sid, uid, seed, gameMode, antalFragor = 0, call
 
   async function svara(p) {
     if (!quiz) {
-      const k = st.utdelad ?? st.k - 1;
+      const k = st.utdelad ?? st.k++; // utan kalla(): varje svar sin egen fråga
       const svar = { k, factorA: p.factorA, factorB: p.factorB, answer: p.answer, ...(p.choiceIndex != null ? { choiceIndex: p.choiceIndex } : {}) };
       st.utdelad = null;
       const ratt = parseTal(p.answer) === p.factorA * p.factorB;
@@ -150,7 +150,7 @@ export function createMsKlient({ sid, uid, seed, gameMode, antalFragor = 0, call
     vantande = null;
     if (res.correct) {
       taBort(skickas);
-      st.buffert = st.buffert.filter((f) => f.k > res.k);
+      if (Number.isInteger(res.k)) st.buffert = st.buffert.filter((f) => f.k > res.k);
       st.nr = res.nr;
       st.energi = res.energi;
     } else {

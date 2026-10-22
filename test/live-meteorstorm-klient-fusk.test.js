@@ -2,7 +2,7 @@
 // Meteorstormen (#821) – TESTARENS race-test av elevklienten (ms-klient.js):
 // felbufferten när ett ensamt fel-anrop (bufferten blev MS_FEL_SKICKA lång)
 // fortfarande är på väg och ett rätt svar + handling skickas under tiden.
-// Fynd som inte är rättade står som todo-tester (F-numren i testarens rapport).
+// F7 (testarens rapport) rättad i rättningsrunda 1: bufferten töms på attemptId.
 // Körs via:  node --test test/live-meteorstorm-klient-fusk.test.js
 // ============================================================================
 
@@ -29,7 +29,7 @@ function rigg() {
 }
 
 describe("elevklienten: felbufferten under ett pågående fel-anrop", () => {
-  it("F7: inget fel svar tappas när agera och det ensamma fel-anropet korsar varandra", { todo: "F7 – skickaFel tar bort de första N posterna, inte de den skickade" }, async () => {
+  it("F7: inget fel svar tappas när agera och det ensamma fel-anropet korsar varandra", async () => {
     const { k, skickade, vantande, fel } = rigg();
     const alla = [];
     for (let i = 0; i < MS_FEL_SKICKA; i++) alla.push(await fel()); // → fel-anropet startar och hänger
