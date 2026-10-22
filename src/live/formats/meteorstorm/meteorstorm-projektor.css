@@ -65,10 +65,7 @@
 .msp-rad-text { overflow: hidden; text-overflow: ellipsis; }
 .msp-rad-stor { background: rgba(80, 52, 140, .85); }
 
-/* --- kontrollerna, vänta, slutet ------------------------------------------ */
-.msp-kontroll { position: absolute; left: calc(var(--msp-u) * 14); bottom: calc(var(--msp-u) * 14); opacity: .55; transition: opacity .3s; }
-.msp-kontroll:hover, .msp-kontroll:focus-within { opacity: 1; }
-.msp-kontroll[hidden] { display: none; }
+/* --- vänta, slutet ---------------------------------------------------------- */
 .msp-vanta { position: absolute; left: 50%; top: 66%; transform: translateX(-50%); padding: calc(var(--msp-u) * 14) calc(var(--msp-u) * 30);
   border-radius: calc(var(--msp-u) * 20); background: rgba(10, 16, 52, .85); font-size: calc(var(--msp-u) * 34); font-weight: 800; white-space: nowrap; }
 .msp-vanta[hidden] { display: none; }

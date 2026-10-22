@@ -276,7 +276,7 @@ describe("Meteorstormen projektorn: ramar", () => {
   it("projektorn skriver inget: inga Firestore-skrivningar, EN lyssnare på msEvents", () => {
     for (const f of filer) assert.doesNotMatch(src(f), /setDoc|updateDoc|addDoc|writeBatch|runTransaction|firebase-firestore/, f);
     assert.equal(src("msp-rymd.js").match(/watchEvents\(/g).length, 1);
-    assert.match(src("msp-rymd.js"), /\.avsluta\(sid\)/);
+    assert.doesNotMatch(src("msp-rymd.js"), /avsluta/, "Avsluta går genom kärnans flöde (resultInputs)");
   });
   it("egna CSS-klasser (msp-)", () => {
     const css = src("meteorstorm-projektor.css").replace(/\/\*[\s\S]*?\*\//g, "");

@@ -13,7 +13,9 @@
 // ingen omläsning. Händelser med typ "fel" (bara felbufferten) hoppas över.
 // msStationer (aktiva per station) läses ur sessionen – saknas det har ingen
 // handlat än (aktiva 1). Projektorn SKRIVER INGET i formatets samlingar
-// (msPublic/status är serverns). Avsluta → msAvsluta; serverns result gäller.
+// (msPublic/status är serverns). Avsluta = skalets knapp (kärnans flöde:
+// status finished → format.resultInputs → msAvsluta); slutrutan visar
+// serverns result.
 // Datalagret: deps.meteorstorm (demot) eller meteorstorm-data.js (latt).
 //
 // API: createRymden(host, { st, colors, sound, actions, screen, deps }) → { update, destroy }
@@ -62,7 +64,6 @@ export function createRymden(host, { st, colors = {}, sound = null, screen = fal
   root.className = "msp";
   root.innerHTML = `<div class="msp-ram"><canvas class="msp-canvas" aria-label="Rymdstationerna och meteorstormen"></canvas>
     <div class="msp-slut" hidden></div>
-    ${screen ? "" : `<div class="msp-kontroll"><button class="lp-btn lp-danger" data-avsluta>Avsluta stormen</button></div>`}
     <div class="msp-vanta" hidden></div></div>`;
   host.replaceChildren(root);
   const ram = root.querySelector(".msp-ram");
@@ -128,21 +129,6 @@ export function createRymden(host, { st, colors = {}, sound = null, screen = fal
   const onErr = (e) => say(`Händelserna: ${e?.message || e}`);
   const data = deps?.meteorstorm ? Promise.resolve(deps.meteorstorm) : import("./meteorstorm-data.js");
   data.then((d) => { if (!dod) unsub = d.watchEvents(sid, onEvents, onErr); }).catch(onErr);
-
-  // --- Avsluta (msAvsluta – serverns result gäller) ----------------------------------
-  const knapp = root.querySelector("[data-avsluta]");
-  knapp?.addEventListener("click", async () => {
-    if (!confirm("Avsluta stormen NU, före tiden? Stationerna räknas som de står.")) return;
-    knapp.disabled = true;
-    knapp.textContent = "Avslutar …";
-    try {
-      await (await data).avsluta(sid);
-    } catch (e) {
-      say(e?.message || String(e));
-      knapp.disabled = false;
-      knapp.textContent = "Avsluta stormen";
-    }
-  });
 
   // --- storlek: 16:9-ram i scenen ---------------------------------------------------
   function anpassa() {
@@ -228,7 +214,6 @@ export function createRymden(host, { st, colors = {}, sound = null, screen = fal
       vantaEl.hidden = k !== "vanta";
       vantaEl.textContent = "☄️ Stormen är över! Räknar ihop stationerna …";
     }
-    if (knapp) knapp.parentElement.hidden = fas !== "live" && fas !== "countdown";
   }
 
   function update(next) {

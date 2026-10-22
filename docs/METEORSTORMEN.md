@@ -605,10 +605,10 @@ Del A deployar ingenting själv. Från B (#821), i den här ordningen:
 
 | Fil | Innehåll |
 | --- | --- |
-| `index.js` | Formatobjektet. **C:s del:** `projectorViews`, `resultInputs` (anropar `msAvsluta`), `buildResult` (= serverns `result`, kastar utan det), `computeStandings` (klasser + anslutna elever), `emitOnPlayers`. Setup/elev/historik är minsta möjliga och märkta "D ersätter". `music` saknas tills E lägger in filen (ingen 🎵-knapp, ingen 404) |
-| `meteorstorm-projector.js` | Projektorskalets modul: vyn ☄️ Rymden (`finale`), lobbyn, `ownTimer`, `ownControls` |
+| `index.js` | Formatobjektet = `{ id, …projektordelarna, ...MS_ELEV_DELAR }`. **C:s del:** namn/klassantal/svarssätt/takt, `compatibleGameModes`, `computeStandings` (klasser + anslutna elever), `emitOnPlayers`, `projectorViews`. `MS_ELEV_DELAR` (setup, `resultInputs` → `msAvsluta`, `buildResult` = serverns `result`, elevvyn, historiken) är en lokal platshållare tills D (#823) landar. `music` saknas tills E lägger in filen (ingen 🎵-knapp, ingen 404) |
+| `meteorstorm-projector.js` | Projektorskalets modul: vyn ☄️ Rymden (`finale`), lobbyn, `ownTimer` |
 | `msp-scen.js` | **Ren** logik (node-testad): motorns indata ur sessionen, slutet, `handlingarUr` (hoppar över `typ: "fel"`), renderingsklockan `stegaKlocka`, stationernas platser, meteorernas banor, loggindexet (kast, träffar, flödet), banderollen, besättningens humör, gunget, kosmetisk slump `brus(frö, nyckel)` |
-| `msp-rymd.js` | Vyn: DOM, EN `watchEvents`-lyssnare, bildrutsloopen, Avsluta, ljud, `__mspProjektor` (QA) |
+| `msp-rymd.js` | Vyn: DOM, EN `watchEvents`-lyssnare, bildrutsloopen, ljud, `__mspProjektor` (QA) |
 | `msp-bild.js` | En bildruta på Canvas 2D – används av vyn, lobbyn och motor-previewn |
 | `msp-station.js`, `msp-skold.js`, `msp-besattning.js`, `msp-rita.js` | Stationen + skadenivåerna, sköldbubblan, astronauterna, rymden/meteorerna/explosionerna/fyrverkerierna |
 | `msp-hud.js`, `msp-slut.js`, `msp-lobby.js`, `msp-ljud.js` | Textlagret (klocka, banderoll, mätare, flödet), slutrutan, lobbyn, ljuden |
@@ -644,15 +644,15 @@ Allt laddas latt (`projectorViews()` = `import()`); bootgrafen är 107 filer som
 - EN `onSnapshot` på `msEvents` per projektor (`watchEvents`), ingen omläsning.
   Händelser med `typ: "fel"` blir aldrig handlingar. `aktiva` = sessionens
   `msStationer` (saknas → 1, ingen har handlat).
-- **Avsluta** (egen knapp, `ownControls`) → `msAvsluta`; slutrutan visar serverns
-  `result`. Vid 00:00 gör kärnan som vanligt (`autoFinish` på sessionen), och
-  `resultInputs` anropar `msAvsluta` (idempotent) – kärnans `writeResultIfMissing` ser
-  sedan att `result` redan finns. Projektorn skriver aldrig `msPublic/status`.
-  Kärnans egna sessionsskrivningar (STARTA, `endsAt`, `status: "finished"`) är
-  desamma som i alla format.
+- **Avsluta** = skalets knapp (med bekräftelse), som i övriga format: kärnan
+  sätter `status: "finished"` och kör sedan formatets `resultInputs` →
+  `msAvsluta` (servern läser hela loggen och skriver `result`); kärnans
+  `writeResultIfMissing` ser att `result` redan finns. Samma väg vid 00:00. Slutrutan
+  visar serverns `result`. Projektorn skriver aldrig `msPublic/status`; kärnans
+  egna sessionsskrivningar (STARTA, `endsAt`, `status`) är desamma som i alla format.
 - **Paus finns inte:** stormen följer serverns klocka och är samma för alla elever
   och båda projektorerna – ingen annan Live-projektor har paus heller. Kontrollerna
-  är Avsluta (vyn), ljud, 🎵 musik (när E lagt in filen) och fullskärm (skalet).
+  är skalets: Avsluta, ljud, 🎵 musik (när E lagt in filen) och fullskärm.
 
 ### 11.4 Två projektorer med nätfördröjning (uppmätt)
 
