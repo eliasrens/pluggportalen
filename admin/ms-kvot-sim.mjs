@@ -12,14 +12,14 @@
 //   • projektorernas lyssnare på msEvents och sessionen: riktiga onSnapshot-
 //     lyssnare (Admin SDK), varje dokument i en ögonblicksbild = en läsning
 //   • elevskärmarna: msLage vid start, status ur svaren och en läsning av
-//     msPublic/status bara när inget kommit på 12 s (meteorstorm-data.js
+//     msPublic/status bara när inget kommit på 20 s (meteorstorm-data.js
 //     skapaStatusvakt), sessionsdokumentet, eget msPlayers efter matchen
 //   Kärnans egna dokument (players-puls, lobby, kvitton) räknas inte – de är
 //   desamma i alla format.
 //
 //   FIRESTORE_EMULATOR_HOST=127.0.0.1:PORT node admin/ms-kvot-sim.mjs
 //     --elever 25 --klasser 2 --min 10 --takt 8 --ratt 0.7,0.6 --projektorer 2
-//     --instanser 1 --lage klass-mot-klass --attacker milda --quiz --md --seed 1
+//     --instanser 1 --lage klass-mot-klass --attacker milda --quiz --md --seed 1 --status 20
 // ============================================================================
 
 import admin from "firebase-admin";
@@ -45,7 +45,7 @@ const ATTACKER = arg("attacker", LAGE === "en-klass" ? "av" : "milda");
 const QUIZ = arg("quiz", false) === true;
 const MD = arg("md", false) === true;
 const SEED = Number(arg("seed", 1));
-const STATUS_POLL_MS = 12_000;
+const STATUS_POLL_MS = Number(arg("status", 20)) * 1000; // = meteorstorm-data.js STATUS_INTERVALL_MS
 
 if (!process.env.FIRESTORE_EMULATOR_HOST) {
   console.error("Sätt FIRESTORE_EMULATOR_HOST (kör i emulatorn) – mätningen ska aldrig gå mot produktion.");
@@ -173,7 +173,7 @@ for (const e of elever) {
 }
 
 // Projektorerna: riktiga lyssnare på loggen och sessionen.
-const klient = { projektorEvents: 0, projektorSession: 0, elevSession: 0, elevStatus: 0, elevPlayers: 0 };
+const klient = { projektorEvents: 0, projektorSession: 0, elevSession: 0, elevStatus: 0, elevPlayers: 0, quizFragor: 0 };
 const stopp = [];
 let sessionSnaps = 0;
 for (let i = 0; i < PROJEKTORER; i++) {
@@ -190,6 +190,7 @@ for (const e of elever) {
     call: (namn, d) => (namn === "msRatta" ? import("../functions/meteorstorm-core.js").then((m) => m.ratta(deps(), e.uid, d)) : anrop[namn](d, e.uid)),
     vanta: async (ms) => { klocka += ms; },
   });
+  e.kalla = e.k.kalla();
   e.rng = skapaPrng(SEED, e.uid);
   e.nasta = T0 + Math.floor(e.rng.tal() * TAKT);
   e.status = -Infinity;
@@ -225,8 +226,7 @@ for (let t = T0; t < END; t += 1000) {
       const r = await e.k.svara({ attemptId, q, choiceIndex: ratt ? q % 4 : (q + 1) % 4 });
       if (!r.correct) { felSvar++; continue; }
     } else {
-      const a = Math.floor(e.rng.tal() * 11);
-      const b = Math.floor(e.rng.tal() * 11);
+      const { a, b } = e.kalla.next(); // elevens kortlek (#821 F1)
       const r = await e.k.svara({ attemptId, factorA: a, factorB: b, answer: String(ratt ? a * b : a * b + 1) });
       if (!r.correct) { felSvar++; continue; }
     }
@@ -252,6 +252,7 @@ stopp.forEach((f) => f());
 klient.projektorSession = sessionSnaps * PROJEKTORER;
 klient.elevSession = sessionSnaps * elever.length;
 klient.elevPlayers = elever.length * 2; // lyssnaren: ingen post under matchen, totalerna efteråt
+klient.quizFragor = QUIZ ? elever.length + PROJEKTORER : 0; // msPublic/questions en gång per skärm
 const klientLas = Object.values(klient).reduce((a, b) => a + b, 0);
 
 const rader = [
@@ -260,8 +261,9 @@ const rader = [
   ["Serverns läsningar", server.las],
   ["Projektorernas läsningar (msEvents)", klient.projektorEvents],
   ["Projektorernas läsningar (sessionen)", klient.projektorSession],
-  ["Elevernas läsningar (status 12 s utan svar)", klient.elevStatus],
+  [`Elevernas läsningar (status efter ${STATUS_POLL_MS / 1000} s utan svar)`, klient.elevStatus],
   ["Elevernas läsningar (sessionen, eget msPlayers)", klient.elevSession + klient.elevPlayers],
+  ...(QUIZ ? [["Quizets frågor (msPublic/questions, en gång per skärm)", klient.quizFragor]] : []),
   ["Klienternas läsningar totalt", klientLas],
   ["Läsningar totalt (server + klienter)", klientLas + server.las],
   ["Skrivningar totalt", server.skriv],

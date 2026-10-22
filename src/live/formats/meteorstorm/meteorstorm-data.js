@@ -7,13 +7,14 @@
 //
 // API (elev)
 //   skapaKlient({ sid, uid, seed, gameMode, antalFragor }) → ms-klient.js
-//                                  (svar + handling, felbufferten, nr/energi/k)
+//                                  (svar + handling, felbufferten, nr/energi/k,
+//                                  kalla() = multiplikationens frågekälla)
 //   getQuestions(sid)              → quizets elevsynliga frågor
 //   hamtaStatus(sid)               → msPublic/status | null (en läsning)
 //   skapaStatusvakt(sid, cb, { intervallMs? }) → { fran(status), stop() }
 //                                  cb(status) – status ur msAgera-svaren
 //                                  (fran) och, bara när inget kommit på
-//                                  intervallMs (12 s), en läsning av
+//                                  intervallMs (20 s), en läsning av
 //                                  msPublic/status. En elev som svarar läser
 //                                  alltså aldrig statusdokumentet (kvoten).
 //   watchMe(sid, uid, cb, onErr)   → unsub; cb(msPlayers/{uid} | null) – totalerna efter matchen
@@ -32,7 +33,9 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
 import { createMsKlient } from "./ms-klient.js";
 
 const REGION = "europe-west1";
-const STATUS_INTERVALL_MS = 12_000;
+// Bara elever som inte svarat rätt på en stund läser statusdokumentet (svaren
+// bär status). 20 s ger klienterna marginal under 6 000 läsningar (#821 F6).
+const STATUS_INTERVALL_MS = 20_000;
 
 export class MsError extends Error {
   constructor(code, message, details) {
