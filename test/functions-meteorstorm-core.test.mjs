@@ -15,11 +15,11 @@ import { simulera } from "../src/live/formats/meteorstorm/delat/ms-motor.js";
 import { ENERGI_TAK } from "../src/live/formats/meteorstorm/delat/ms-balans.js";
 import { MS_STATUS_MS } from "../src/live/formats/meteorstorm/delat/ms-anrop.js";
 import {
-  ctl, deps, T0, END, START, makeSession, events, ev, msPlayer, status, session, att, mult, code, Timestamp, db,
+  ctl, deps, T0, END, START, makeSession, events, ev, msPlayer, status, session, att, mult, nasta, code, Timestamp, db,
 } from "./helpers/meteorstorm-core-rig.js";
 
 const steg = (d, ms = 2000) => { ctl.clock += ms; return d; };
-const handla = (d, sid, uid, typ, extra = {}) => agera(d, uid, { sid, attemptId: att(), svar: mult(3, 4), typ, ...extra });
+const handla = (d, sid, uid, typ, extra = {}) => agera(d, uid, { sid, attemptId: att(), svar: nasta(sid, uid), typ, ...extra });
 
 beforeEach(() => { ctl.clock = T0 + 60_000; });
 
@@ -27,7 +27,8 @@ describe("Meteorstormen: svar + handling i ett anrop", () => {
   it("rätt svar + sköld → EN händelse med svaret, energin och serverns tid", async () => {
     const sid = await makeSession();
     const d = deps();
-    const r = await handla(d, sid, "alma", "skold");
+    const svar = nasta(sid, "alma");
+    const r = await agera(d, "alma", { sid, attemptId: att(), svar, typ: "skold" });
     assert.equal(r.correct, true);
     assert.equal(r.nr, 1);
     assert.equal(r.typ, "skold");
@@ -39,32 +40,62 @@ describe("Meteorstormen: svar + handling i ett anrop", () => {
     assert.equal(h.id, "alma_1");
     assert.deepEqual({ uid: h.uid, classId: h.classId, namn: h.namn, typ: h.typ, t: h.t, nr: h.nr },
       { uid: "alma", classId: "4b", namn: "Alma", typ: "skold", t: ctl.clock, nr: 1 });
-    assert.deepEqual(h.svar, { factorA: 3, factorB: 4, answer: 12 });
+    assert.deepEqual(h.svar, { factorA: svar.factorA, factorB: svar.factorB, answer: svar.answer, k: 0 });
     assert.equal(await msPlayer(sid, "alma"), undefined, "ingen msPlayers-skrivning under matchen");
   });
 
   it("fel svar skriver ingenting och påverkar inte spelet", async () => {
     const sid = await makeSession();
-    const r = await agera(deps(), "alma", { sid, attemptId: att(), svar: mult(3, 4, 13), typ: "laser" });
-    assert.deepEqual(r, { correct: false, correctAnswer: 12 });
+    const svar = nasta(sid, "alma", { fel: true });
+    const r = await agera(deps(), "alma", { sid, attemptId: att(), svar, typ: "laser" });
+    assert.deepEqual(r, { correct: false, correctAnswer: svar.factorA * svar.factorB, k: 0 });
     assert.equal((await events(sid)).length, 0);
   });
 
-  it("buffrade fel svar följer med nästa händelse – omrättade, ett påstått fel som är rätt räknas inte", async () => {
+  it("buffrade fel svar följer med nästa händelse – omrättade; skräp hoppas över", async () => {
     const sid = await makeSession();
-    const fel = [{ ...mult(2, 3, 5), attemptId: att() }, { ...mult(7, 8, 54), attemptId: att() }, mult(2, 2, 4), { trams: 1 }];
+    const fel = [{ ...nasta(sid, "alma", { fel: true }), attemptId: att() }, { ...nasta(sid, "alma", { fel: true }), attemptId: att() }, { trams: 1 }, mult(2, 2, 5)];
     await handla(deps(), sid, "alma", "laser", { fel });
     const h = await ev(sid, "alma_1");
     assert.equal(h.fel.length, 2);
     assert.ok(h.fel.every((f) => f.isCorrect === false));
-    assert.deepEqual(h.fel.map((f) => f.answer), [5, 54]);
+    assert.deepEqual(h.fel.map((f) => f.k), [0, 1]);
+    assert.equal(h.k, 2);
   });
 
-  it("utan svar: bara felbufferten → msPlayers/{uid}.fel (en skrivning), inga händelser", async () => {
+  it("ett överhoppat k (saknas i fel[], eller ett 'fel' som är rätt) → nekas med omsynk", async () => {
     const sid = await makeSession();
-    const r = await agera(deps(), "alma", { sid, fel: [mult(2, 3, 5), mult(4, 4, 15)] });
+    nasta(sid, "alma");
+    assert.equal(await code(handla(deps(), sid, "alma", "laser")), "failed-precondition");
+    const sid2 = await makeSession();
+    const ratt = nasta(sid2, "alma");
+    assert.equal(await code(handla(deps(), sid2, "alma", "laser", { fel: [ratt] })), "failed-precondition");
+    assert.equal((await events(sid2)).length, 0);
+  });
+
+  it("utan svar under matchen: färre än MS_FEL_SKICKA nekas; en full buffert blir en länk (typ fel)", async () => {
+    const sid = await makeSession();
+    const d = deps();
+    assert.equal(await code(agera(d, "alma", { sid, fel: [nasta(sid, "alma", { fel: true })] })), "failed-precondition");
+    const sid2 = await makeSession();
+    const fel = Array.from({ length: 25 }, () => ({ ...nasta(sid2, "alma", { fel: true }), attemptId: att() }));
+    const r = await agera(d, "alma", { sid: sid2, fel });
+    assert.deepEqual({ ok: r.ok, fel: r.fel, nr: r.nr, k: r.k }, { ok: true, fel: 25, nr: 1, k: 24 });
+    const h = await ev(sid2, "alma_1");
+    assert.equal(h.typ, "fel");
+    assert.equal(await msPlayer(sid2, "alma"), undefined);
+    const nr2 = await handla(steg(d), sid2, "alma", "laser");
+    assert.equal(nr2.nr, 2);
+    assert.equal(nr2.k, 25);
+  });
+
+  it("utan svar efter slutet: EN gång per elev → msPlayers/{uid}.fel", async () => {
+    const sid = await makeSession();
+    ctl.clock = END + 1000;
+    const r = await agera(deps(), "alma", { sid, fel: [nasta(sid, "alma", { fel: true }), nasta(sid, "alma", { fel: true })] });
     assert.deepEqual(r, { ok: true, fel: 2 });
     assert.equal((await msPlayer(sid, "alma")).fel.length, 2);
+    assert.equal(await code(agera(deps(), "alma", { sid, fel: [nasta(sid, "alma", { fel: true })] })), "already-exists");
     assert.equal((await events(sid)).length, 0);
   });
 });
@@ -147,7 +178,7 @@ describe("Meteorstormen: spärrar och idempotens", () => {
   it("samma anrop igen (samma attemptId) → samma svar, ingen ny händelse", async () => {
     const sid = await makeSession();
     const d = deps();
-    const data = { sid, attemptId: att(), svar: mult(6, 7), typ: "laser", nr: 1 };
+    const data = { sid, attemptId: att(), svar: nasta(sid, "alma"), typ: "laser", nr: 1 };
     const r1 = await agera(d, "alma", data);
     steg(d);
     const r2 = await agera(d, "alma", data);
@@ -262,12 +293,13 @@ describe("Meteorstormen: msAvsluta", () => {
       for (const [u, typ] of plan) await handla(steg(d, 1000), sid, u, typ);
       ctl.clock += 60_000;
     }
-    await agera(d, "cleo", { sid, fel: [mult(2, 3, 5)] });
     return sid;
   }
 
   it("samma resultat som motorn på klienten för samma logg; totaler + status + mynt", async () => {
     const sid = await spelad();
+    ctl.clock = END + 1000;
+    await agera(deps(), "cleo", { sid, fel: [nasta(sid, "cleo", { fel: true })] });
     ctl.clock = END + 5000;
     const { result, redan } = await avsluta(deps(), { uid: "larare1", teacher: true }, { sid });
     assert.equal(redan, false);

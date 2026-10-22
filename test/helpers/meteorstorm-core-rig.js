@@ -12,13 +12,17 @@
 //   makeQuiz(over?)        → sid med quiz (msPublic/msPrivate, 4 frågor)
 //   events(sid) · ev(sid, id) · msPlayer(sid, uid) · status(sid) · session(sid)
 //   att() · code(promise) → "ok" | felkod
-//   mult(a, b, svar?)      → svar-objektet för multiplikation
+//   mult(a, b, svar?)      → svar-objektet för multiplikation (utan k – ogiltigt sedan #821 F1)
+//   nasta(sid, uid, { fel?, seed? }) → elevens nästa fråga ur kortleken (multFor) med k,
+//                            rätt besvarad (eller fel med fel: true); räknaren per sid+elev
+//   kNu(sid, uid)          → nästa k räknaren delar ut
 // ============================================================================
 
 import assert from "node:assert/strict";
 import { after } from "node:test";
 import admin from "firebase-admin";
 import { KsError, nyttMinne } from "../../functions/meteorstorm-core.js";
+import { multFor } from "../../src/live/formats/meteorstorm/delat/ms-anrop.js";
 
 const PROJECT_ID = process.env.GCLOUD_PROJECT || "pluggportalen-so-2026";
 process.env.FIRESTORE_EMULATOR_HOST ||= "127.0.0.1:8080";
@@ -86,6 +90,15 @@ export async function makeQuiz(over = {}) {
 let n = 0;
 export const att = () => `att-${Date.now().toString(36)}-${n++}`;
 export const mult = (a, b, svar = a * b) => ({ factorA: a, factorB: b, answer: svar });
+
+const kRaknare = new Map();
+export const kNu = (sid, uid) => kRaknare.get(`${sid}/${uid}`) ?? 0;
+export function nasta(sid, uid, { fel = false, seed = 4711 } = {}) {
+  const k = kNu(sid, uid);
+  kRaknare.set(`${sid}/${uid}`, k + 1);
+  const { a, b } = multFor(seed, uid, k);
+  return { k, factorA: a, factorB: b, answer: fel ? a * b + 1 : a * b };
+}
 
 export const code = async (p) => {
   try {

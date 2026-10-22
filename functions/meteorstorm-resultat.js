@@ -13,7 +13,8 @@
 //              stationer, installningar })
 //   slutMs     när matchen tog slut (ordinarie slut, eller lärarens avslut)
 //   events     msEvents-dokumenten [{ id, t, classId, uid, namn, typ, mal?, energi,
-//              nekad?, svar, fel[] }] – handlingar efter slutMs räknas inte
+//              nekad?, svar, fel[] }] – handlingar efter slutMs räknas inte;
+//              typ "fel" = bara en felbuffert (inget rätt svar)
 //   extraFel   { uid: [felsvar] } – msPlayers/{uid}.fel (bufferten som skickades i slutet)
 //   players    kärnans spelare [{ uid, classId, name }] (deltagare utan handling)
 //   questions  quizets elevsynliga frågor (texten i perQuestion) | null
@@ -139,12 +140,13 @@ export function byggResultat({ s, cfg, slutMs, events = [], extraFel = {}, playe
   for (const h of iTid) {
     const e = elevFor(h.uid, h.classId, h.namn);
     if (!e) continue;
+    lasFel(e, h.fel);
+    if (h.typ === "fel") continue; // bara en felbuffert (#821 F3), inget rätt svar
     e.correct++;
     if (HANDLINGAR.includes(h.typ)) e.handlingar[h.typ]++;
     if (h.nekad) e.nekade++;
     if (Number.isFinite(h.energi)) e.energi = h.energi;
     if (h.svar) svar.push({ ...h.svar, isCorrect: true, classId: h.classId });
-    lasFel(e, h.fel);
   }
   for (const [uid, lista] of Object.entries(extraFel || {})) {
     const e = elev.get(uid);

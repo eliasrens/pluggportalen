@@ -19,6 +19,11 @@
 //   quizFor(deps, sid)                → { pub, priv }
 //   raknaStationer(s, players) · stationerOk(s) · stationerFor(deps, sid, s)
 //   cfgFor(s)                         → motorns indata utan handlingar
+//   senaste(deps, sid, uid)           → elevens senaste länk (läser elevens händelser)
+//   lankFor(deps, sid, uid, nr?, { farsk? }) → { nr, k, energi, t } ur minnet, eller
+//                                       länk nr + koll att nr+1 saknas (2 läsningar),
+//                                       annars senaste(). Ingen länk = { nr: 0, k: −1 }
+//   minnsLank(deps, sid, uid, h)      efter en commit
 // ============================================================================
 
 import { KsError } from "./kistspel-rattning.js";
@@ -47,7 +52,7 @@ export function fel(code, message, details) {
 export function nyttMinne() {
   return {
     sess: new Map(), quiz: new Map(), spelare: new Map(), logg: new Map(),
-    statusNasta: new Map(), rattat: new Map(), felSkickat: new Map(),
+    statusNasta: new Map(), rattat: new Map(), lank: new Map(),
   };
 }
 const MINNE = nyttMinne();
@@ -187,4 +192,43 @@ export function cfgFor(s) {
     stationer: s.msStationer || (s.participatingClassIds || []).map((classId) => ({ classId, aktiva: 1 })),
     installningar: s.msInstallningar || {},
   };
+}
+
+// --- Elevens länk i händelsekedjan ------------------------------------------------
+
+const INGEN_LANK = Object.freeze({ nr: 0, k: -1, energi: 0, t: -Infinity });
+const somLank = (h) => (h ? { nr: h.nr, k: Number.isInteger(h.k) ? h.k : -1, energi: Number(h.energi) || 0, t: h.t } : INGEN_LANK);
+
+/** Elevens senaste länk – läser alla elevens händelser (omladdning, fel nr). */
+export async function senaste(deps, sid, uid) {
+  const snap = await refs(deps.db, sid).events.where("uid", "==", uid).get();
+  let best = null;
+  for (const d of snap.docs) {
+    const h = d.data();
+    if (Number.isInteger(h.nr) && (!best || h.nr > best.nr)) best = h;
+  }
+  return best;
+}
+
+export function minnsLank(deps, sid, uid, h) {
+  satt(minneOf(deps).lank, `${sid}/${uid}`, somLank(h), 5000);
+}
+
+export async function lankFor(deps, sid, uid, nr, { farsk = false } = {}) {
+  const m = minneOf(deps).lank;
+  const key = `${sid}/${uid}`;
+  if (!farsk && m.has(key)) return m.get(key);
+  let lank = null;
+  if (isInt(nr, 0, 1_000_000)) {
+    const r = refs(deps.db, sid);
+    if (nr === 0) {
+      if (!(await r.ev(uid, 1).get()).exists) lank = INGEN_LANK;
+    } else {
+      const [a, b] = await deps.db.getAll(r.ev(uid, nr), r.ev(uid, nr + 1));
+      if (a.exists && !b.exists) lank = somLank(a.data());
+    }
+  }
+  if (!lank) lank = somLank(await senaste(deps, sid, uid));
+  satt(m, key, lank, 5000);
+  return lank;
 }

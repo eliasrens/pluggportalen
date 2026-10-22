@@ -6,23 +6,26 @@
 // (firestore.rules). index.js kör funktionerna med Admin SDK:t injicerat, så
 // kärnan testas direkt mot Firestore-emulatorn med styrd klocka.
 // Kontraktet: docs/METEORSTORMEN.md §7–§9. Motorn: ./meteorstorm/ (kopia av
-// src/live/formats/meteorstorm/delat/). Delarna: -sess.js (sessionen, minnet),
-// -ratta.js (rättningen, msRatta), -status.js (loggen, msPublic/status),
+// src/live/formats/meteorstorm/delat/). Delarna: -sess.js (sessionen, minnet,
+// länken), -ratta.js (rättningen, msRatta), -status.js (loggen, msPublic/status),
 // -resultat.js (slutet), -mynt.js (pluggmynten).
 //
 // ANROPEN (Elias 2026-10-21: svar och handling i ETT anrop, EN skrivning)
 //   agera   msAgera({ sid, attemptId, svar, typ, mal?, fel?, nr? })
-//           svar = { factorA, factorB, answer, choiceIndex? } (multiplikation)
-//                | { k, q, choiceIndex } | { k, q, year } (quiz, k = kortlekens nr)
+//           svar = { k, factorA, factorB, answer, choiceIndex? } (multiplikation)
+//                | { k, q, choiceIndex } | { k, q, year } (quiz) – k = elevens fråga nr k
 //           typ  = "skold" | "laser" | "drag" | "spara"
 //           Rätt svar → EN händelse msEvents/{uid}_{nr} med svaret, de buffrade
-//           fel svaren (fel[]) och handlingen. En nekad handling (väntetid,
+//           fel svaren (fel[]) och handlingen. Varje k mellan förra länkens k och
+//           svarets måste finnas i fel[] (#821 F2). En nekad handling (väntetid,
 //           dragstrålen inte redo, för lite energi) sparas som "spara" – energin
 //           går aldrig förlorad. Fel svar (servern rättar om) skriver ingenting.
-//           → { correct, nr, typ, energi, vinst, kostnad, handelse, effekt,
-//               onskad?, nekad?, redoMs?, k?, igen?, status }
-//           Utan svar: msAgera({ sid, fel }) skickar bara felbufferten (slutet
-//           av matchen, eller när bufferten blivit lång) → msPlayers/{uid}.fel.
+//           → { correct, nr, typ, energi, vinst, kostnad, handelse, effekt, k,
+//               onskad?, nekad?, redoMs?, igen?, status }
+//           Utan svar: msAgera({ sid, fel, nr? }) skickar bara felbufferten:
+//             under matchen  minst MS_FEL_SKICKA fel svar i följd → en länk med
+//                            typ "fel" i kedjan (ingen handling; #821 F3)
+//             efter slutet   EN gång per elev → msPlayers/{uid}.fel (≤ MS_FEL_TAK)
 //   ratta   msRatta – se meteorstorm-ratta.js (bara quiz, skriver ingenting)
 //   lage    msLage({ sid }) → { nr, energi, k, status } – elevens läge efter omladdning
 //   avsluta msAvsluta({ sid }) – lärare (när som helst; live → avslutas nu) eller
@@ -33,8 +36,9 @@
 // bildar en kedja per elev (id {uid}_{nr}, nr = 1, 2 …): nästa handling läser
 // bara föregående länk i transaktionen – ingen skrivning per svar i msPlayers.
 // Två samtidiga anrop krockar på samma länk; den ena får nästa nr och kör om.
-// Länken ger också idempotens (samma attemptId → samma svar) och spärren
-// MS_MIN_GAP_MS mellan två handlingar.
+// Länken ger också spärren MS_MIN_GAP_MS och k-ordningen. Idempotens: samma
+// attemptId igen → samma svar, även efter senare handlingar (k ≤ länkens k
+// slås upp på attemptId, #821 F4).
 //
 // DRAGSTRÅLEN: kanAgera körs i SAMMA transaktion som händelsen skrivs, mot
 // loggen + stationens låsdokument msLas/{classId} (senaste dragstrålen), som
@@ -48,10 +52,12 @@ import { KsError, yearOut } from "./kistspel-rattning.js";
 import { matchWindow } from "./kistspel-core.js";
 import { kanAgera, energiEffekt, effektPerTryck } from "./meteorstorm/ms-agera.js";
 import { ENERGI_TAK, HANDLINGAR, RENDER_FORDROJNING_MS } from "./meteorstorm/ms-balans.js";
-import { MS_MIN_GAP_MS, MS_EFTER_SLUT_MS, MS_AVSLUTA_VANTA_MS, MS_TYPER } from "./meteorstorm/ms-anrop.js";
 import {
-  minneOf, satt, refs, parseSid, parseAttempt, sessionFor, slutFor, assertLive, playerFor, quizFor,
-  stationerFor, stationerOk, raknaStationer, cfgFor, bad, isInt, fel, QUIZ,
+  MS_MIN_GAP_MS, MS_EFTER_SLUT_MS, MS_AVSLUTA_VANTA_MS, MS_TYPER, MS_FEL_SKICKA, MS_FEL_TAK, MS_K_FONSTER,
+} from "./meteorstorm/ms-anrop.js";
+import {
+  refs, parseSid, parseAttempt, sessionFor, slutFor, assertLive, playerFor, quizFor,
+  stationerFor, stationerOk, raknaStationer, cfgFor, bad, isInt, fel, senaste, minnsLank, QUIZ,
 } from "./meteorstorm-sess.js";
 import { rattaSvar, rattaFel, svarsFalt, ratta } from "./meteorstorm-ratta.js";
 import { uppdateraLogg, laggTillLogg, somHandling, statusFran, statusUrMinnet, kanskeStatus } from "./meteorstorm-status.js";
@@ -61,6 +67,7 @@ export { KsError, ratta };
 export { nyttMinne } from "./meteorstorm-sess.js";
 
 const OMSYNK = Symbol("omsynk");
+const GAMMAL = Symbol("gammal");
 const finnsRedan = (err) => err?.code === 6 || err?.code === "already-exists" || /ALREADY_EXISTS/.test(String(err?.message || ""));
 
 function parseMal(v, s, egen) {
@@ -69,18 +76,8 @@ function parseMal(v, s, egen) {
   return v;
 }
 
-/** Elevens senaste länk (omladdning, eller när klientens nr inte stämmer). */
-async function senaste(deps, sid, uid) {
-  const snap = await refs(deps.db, sid).events.where("uid", "==", uid).get();
-  let best = null;
-  for (const d of snap.docs) {
-    const h = d.data();
-    if (Number.isInteger(h.nr) && (!best || h.nr > best.nr)) best = h;
-  }
-  return best;
-}
-
 function utFran(h, extra = {}) {
+  if (h.typ === "fel") return { ok: true, fel: (h.fel || []).length, nr: h.nr, k: h.k, ...extra };
   return {
     correct: true, nr: h.nr, typ: h.typ, energi: h.energi, vinst: h.vinst, kostnad: h.kostnad, handelse: h.handelse ?? null,
     ...(h.onskad ? { onskad: h.onskad, nekad: h.nekad } : {}),
@@ -90,25 +87,35 @@ function utFran(h, extra = {}) {
   };
 }
 
-async function skickaFel(deps, sid, s, uid, p, felLista, now) {
-  const w = matchWindow(s);
-  if (!w || now < w.t0 || now > slutFor(s) + MS_EFTER_SLUT_MS) throw new KsError("failed-precondition", "Matchen pågår inte.");
+/** Efter slutet: felbufferten EN gång per elev → msPlayers/{uid}.fel. */
+async function felEfterSlut(deps, sid, s, uid, p, felLista) {
+  const r = refs(deps.db, sid);
   if (!felLista.length) return { ok: true, fel: 0 };
-  const m = minneOf(deps).felSkickat;
-  const key = `${sid}/${uid}`;
-  if (now - (m.get(key) ?? -Infinity) < MS_MIN_GAP_MS) throw fel("resource-exhausted", "Ett ögonblick …", { vantaMs: MS_MIN_GAP_MS });
-  satt(m, key, now, 5000);
-  await refs(deps.db, sid).msPlayer(uid).set({
-    uid, classId: p.classId, name: p.name, fel: deps.FieldValue.arrayUnion(...felLista),
-  }, { merge: true });
-  return { ok: true, fel: felLista.length };
+  return deps.db.runTransaction(async (tx) => {
+    const d = await tx.get(r.msPlayer(uid));
+    if (d.exists) throw new KsError("already-exists", "Dina svar är redan skickade.");
+    tx.set(r.msPlayer(uid), { uid, classId: p.classId, name: p.name, fel: felLista.slice(0, MS_FEL_TAK) });
+    return { ok: true, fel: Math.min(felLista.length, MS_FEL_TAK) };
+  });
 }
 
 /**
- * Transaktionens beslut: energi, väntetid, dragstråle → händelsen (eller
- * { igen } om föregående länk redan är det här försöket).
+ * k-ordningen (#821 F2): svaret (eller bufferten) får ligga högst MS_K_FONSTER
+ * efter länkens k, och varje överhoppat k måste vara ett fel svar i fel[].
+ * → fel[] utan poster för redan besvarade k.
  */
-function beslut({ cfg, t, prev, k, typ, mal, p, logg, senastDrag }) {
+function kontrolleraK(prevK, k, felLista) {
+  if (k <= prevK) throw GAMMAL;
+  if (k > prevK + MS_K_FONSTER) throw fel("failed-precondition", "Svara på frågorna i ordning.", { omsynk: true, k: prevK });
+  const har = new Set(felLista.map((f) => f.k));
+  for (let i = prevK + 1; i < k; i++) {
+    if (!har.has(i)) throw fel("failed-precondition", "Svaren kom i fel ordning.", { omsynk: true, k: prevK });
+  }
+  return felLista.filter((f) => f.k > prevK && f.k < k);
+}
+
+/** Energi, väntetid, dragstråle → handlingens fält. */
+function beslut({ cfg, t, prev, typ, mal, p, logg, senastDrag }) {
   const eff = energiEffekt(cfg, t);
   const fore = Number(prev?.energi) || 0;
   let kostnad = 0;
@@ -133,24 +140,27 @@ function beslut({ cfg, t, prev, k, typ, mal, p, logg, senastDrag }) {
   }
   const utfort = nekad ? "spara" : typ;
   return {
-    t, typ: utfort, energi: Math.min(ENERGI_TAK, fore + eff.energi - kostnad), vinst: eff.energi, kostnad, handelse: eff.handelse,
+    typ: utfort, energi: Math.min(ENERGI_TAK, fore + eff.energi - kostnad), vinst: eff.energi, kostnad, handelse: eff.handelse,
     ...(utfort === "drag" && mal ? { mal } : {}),
     ...(nekad ? { onskad: typ, nekad } : {}),
     ...(redoMs != null ? { redoMs } : {}),
-    ...(k != null ? { k } : {}),
   };
 }
 
 export async function agera(deps, uid, raw) {
-  const { db, FieldValue } = deps;
   const sid = parseSid(raw);
   const s = await sessionFor(deps, sid);
   const p = await playerFor(deps, sid, uid, s);
+  const nu = deps.now();
+  const w = matchWindow(s);
   if (raw?.svar == null) {
+    if (!w || nu < w.t0 || nu > slutFor(s) + MS_EFTER_SLUT_MS) throw new KsError("failed-precondition", "Matchen pågår inte.");
     const felLista = await rattaFel(deps, sid, s, uid, raw?.fel);
-    return skickaFel(deps, sid, s, uid, p, felLista, deps.now());
+    if (s.status !== "live" || nu >= w.end) return felEfterSlut(deps, sid, s, uid, p, felLista);
+    if (felLista.length < MS_FEL_SKICKA) throw new KsError("failed-precondition", "Skicka svaren tillsammans med nästa rätta svar.");
+    return kedja(deps, sid, s, uid, p, raw, { felLista });
   }
-  assertLive(s, deps.now());
+  assertLive(s, nu);
   const typ = raw?.typ;
   if (!MS_TYPER.includes(typ)) throw bad("Välj sköld, laser, dragstråle eller spara.");
   const mal = typ === "drag" ? parseMal(raw?.mal, s, p.classId) : null;
@@ -158,9 +168,18 @@ export async function agera(deps, uid, raw) {
   const { k, graded } = await rattaSvar(deps, sid, s, uid, raw.svar);
   if (!graded.isCorrect) {
     // Fel svar påverkar inte spelet och skrivs inte – klienten buffrar det.
-    return { correct: false, correctAnswer: graded.correctAnswer, ...yearOut(graded), ...(k != null ? { k } : {}) };
+    return { correct: false, correctAnswer: graded.correctAnswer, ...yearOut(graded), k };
   }
   const felLista = await rattaFel(deps, sid, s, uid, raw?.fel);
+  return kedja(deps, sid, s, uid, p, raw, { felLista, k, graded, typ, mal, attemptId });
+}
+
+/** Nästa länk i elevens kedja: en handling (svar) eller en felbuffert (typ "fel"). */
+async function kedja(deps, sid, s, uid, p, raw, { felLista, k = null, graded = null, typ = "fel", mal = null, attemptId = null }) {
+  const { db, FieldValue } = deps;
+  const arFel = typ === "fel";
+  const kMax = arFel ? Math.max(...felLista.map((f) => f.k)) : k;
+  const forsokId = attemptId || `fel-${kMax}`;
   await stationerFor(deps, sid, s);
   const cfg = cfgFor(s);
   const r = refs(db, sid);
@@ -180,38 +199,45 @@ export async function agera(deps, uid, raw) {
         const lasSnap = lasRef ? snaps[snaps.length - 1] : null;
         if (prevRef && !prevSnap.exists) throw OMSYNK;
         const prev = prevSnap ? prevSnap.data() : null;
-        if (prev && prev.attemptId === attemptId) return { igen: prev };
+        if (prev && prev.attemptId === forsokId) return { igen: prev };
         const t = Number(deps.now());
         assertLive(s, t);
         if (prev && t - prev.t < MS_MIN_GAP_MS) {
           throw fel("resource-exhausted", "Lugn i stormen – ett svar i taget!", { vantaMs: MS_MIN_GAP_MS - (t - prev.t) });
         }
-        if (k != null && prev && Number.isInteger(prev.k) && k <= prev.k) {
-          throw new KsError("failed-precondition", "Den frågan är redan besvarad.");
+        const prevK = Number.isInteger(prev?.k) ? prev.k : -1;
+        const felHar = arFel ? felLista.filter((f) => f.k > prevK) : kontrolleraK(prevK, k, felLista);
+        if (arFel) {
+          if (felHar.length < MS_FEL_SKICKA) throw new KsError("failed-precondition", "Skicka svaren tillsammans med nästa rätta svar.");
+          kontrolleraK(prevK, kMax + 1, felHar);
         }
-        const b = beslut({ cfg, t, prev, k, typ, mal, p, logg, senastDrag: lasSnap?.exists ? lasSnap.data() : null });
+        const b = arFel
+          ? { typ: "fel", energi: Number(prev?.energi) || 0, vinst: 0, kostnad: 0, handelse: null }
+          : beslut({ cfg, t, prev, typ, mal, p, logg, senastDrag: lasSnap?.exists ? lasSnap.data() : null });
         const h = {
-          uid, classId: p.classId, namn: p.name, nr, attemptId, ...b,
-          svar: svarsFalt(graded, k, null), fel: felLista, at: FieldValue.serverTimestamp(),
+          uid, classId: p.classId, namn: p.name, nr, attemptId: forsokId, t, ...b, k: kMax,
+          ...(graded ? { svar: svarsFalt(graded, k, null) } : {}), fel: felHar, at: FieldValue.serverTimestamp(),
         };
         tx.create(r.ev(uid, nr), h);
-        if (h.typ === "drag") tx.set(lasRef, { id, t: h.t, classId: p.classId, uid, typ: "drag", ...(mal ? { mal } : {}) });
+        if (h.typ === "drag") tx.set(lasRef, { id, t, classId: p.classId, uid, typ: "drag", ...(mal ? { mal } : {}) });
         return { ny: h };
       });
       if (ut.igen) return utFran(ut.igen, { igen: true, status: statusNu() });
       const h = ut.ny;
+      minnsLank(deps, sid, uid, h);
       if (HANDLINGAR.includes(h.typ)) laggTillLogg(deps, sid, id, h);
       const skrev = await kanskeStatus(deps, sid, s, deps.now()).catch(() => null);
       const effekt = h.typ === "skold" || h.typ === "laser" ? { [h.typ]: effektPerTryck(cfg, p.classId)[h.typ] } : null;
-      return utFran(h, { effekt, status: skrev || statusNu() });
+      return utFran(h, { ...(arFel ? {} : { effekt }), status: skrev || statusNu() });
     } catch (err) {
       if (err === OMSYNK) {
         nr = null;
         continue;
       }
+      if (err === GAMMAL) return gammalt(deps, sid, uid, forsokId, statusNu);
       if (finnsRedan(err)) {
         const d = (await r.ev(uid, nr).get()).data();
-        if (d?.attemptId === attemptId) return utFran(d, { igen: true, status: statusNu() });
+        if (d?.attemptId === forsokId) return utFran(d, { igen: true, status: statusNu() });
         nr = null;
         continue;
       }
@@ -221,15 +247,23 @@ export async function agera(deps, uid, raw) {
   throw new KsError("aborted", "Många svar samtidigt – försök igen.");
 }
 
+/** k redan passerat: samma attemptId finns → samma svar (F4), annars nekat. */
+async function gammalt(deps, sid, uid, attemptId, statusNu) {
+  const snap = await refs(deps.db, sid).events.where("uid", "==", uid).where("attemptId", "==", attemptId).get();
+  if (!snap.empty) return utFran(snap.docs[0].data(), { igen: true, status: statusNu() });
+  throw fel("failed-precondition", "Den frågan är redan besvarad.", { omsynk: true });
+}
+
 export async function lage(deps, uid, raw) {
   const sid = parseSid(raw);
   const s = await sessionFor(deps, sid);
   await playerFor(deps, sid, uid, s);
   const h = await senaste(deps, sid, uid);
+  if (h) minnsLank(deps, sid, uid, h);
   let status = statusUrMinnet(deps, sid, cfgFor(s), deps.now());
   if (!status) status = (await refs(deps.db, sid).status.get()).data() || null;
   if (status?.uppdaterad) delete status.uppdaterad;
-  return { nr: h?.nr || 0, energi: h?.energi || 0, k: Number.isInteger(h?.k) ? h.k : null, status };
+  return { nr: h?.nr || 0, energi: h?.energi || 0, k: Number.isInteger(h?.k) ? h.k : -1, status };
 }
 
 /** Läraren som styr matchen (samma som reglernas liveTeacherOf). */
@@ -290,7 +324,8 @@ export async function avsluta(deps, auth, raw) {
       result: { ...result, computedAt: FieldValue.serverTimestamp() },
       ...(stationerOk(d) ? {} : { msStationer: s.msStationer }),
     });
-    for (const [id, tot] of Object.entries(spelare)) tx.set(r.msPlayer(id), { ...tot, klar: true }, { merge: true });
+    // Utan merge (#821 F5): felbufferten är inräknad i totalerna och följer inte med.
+    for (const [id, tot] of Object.entries(spelare)) tx.set(r.msPlayer(id), { ...tot, klar: true });
     tx.set(r.status, { ...slutStatus, uppdaterad: FieldValue.serverTimestamp() });
     return { result, redan: false };
   });
