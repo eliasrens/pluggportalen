@@ -14,6 +14,7 @@ import { initializeApp, deleteApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword, signOut, connectAuthEmulator } from "firebase/auth";
 import { getFunctions, httpsCallable, connectFunctionsEmulator } from "firebase/functions";
 import { getFirestore, connectFirestoreEmulator, doc, getDoc, setDoc, collection, getDocs } from "firebase/firestore";
+import { multFor } from "../src/live/formats/meteorstorm/delat/ms-anrop.js";
 
 const PROJECT_ID = process.env.GCLOUD_PROJECT || "pluggportalen-so-2026";
 const FS_HOST = process.env.FIRESTORE_EMULATOR_HOST || "127.0.0.1:8080";
@@ -53,6 +54,11 @@ let n = 0;
 const att = () => `e2e-${Date.now().toString(36)}-${n++}`;
 const ELEVER = { msalma: "ms4b", msbo: "ms4b", msomar: "ms4d" };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+/** Elevens k:te fråga ur kortleken (frö 821), rätt eller fel besvarad. */
+const m = (uid, k, fel = false) => {
+  const { a, b } = multFor(821, uid, k);
+  return { k, factorA: a, factorB: b, answer: a * b + (fel ? 1 : 0) };
+};
 
 after(async () => {
   await signOut(auth).catch(() => {});
@@ -88,14 +94,14 @@ test("seed: elever i egna klasser, en lärare, en pågående och en slut storm",
 
 test("utloggad nekas", async () => {
   await signOut(auth).catch(() => {});
-  assert.equal(await errCode(call("msAgera", { sid: "ms", attemptId: att(), svar: { factorA: 2, factorB: 2, answer: 4 }, typ: "skold" })), "unauthenticated");
+  assert.equal(await errCode(call("msAgera", { sid: "ms", attemptId: att(), svar: m("msalma", 0), typ: "skold" })), "unauthenticated");
 });
 
 test("rätt svar + handling i ett anrop → en händelse; fel svar skriver inget", async () => {
   await as("msalma");
-  const fel = await call("msAgera", { sid: "ms", attemptId: att(), svar: { factorA: 2, factorB: 2, answer: 5 }, typ: "skold" });
+  const fel = await call("msAgera", { sid: "ms", attemptId: att(), svar: m("msalma", 0, true), typ: "skold" });
   assert.equal(fel.correct, false);
-  const r = await call("msAgera", { sid: "ms", attemptId: att(), svar: { factorA: 2, factorB: 2, answer: 4 }, typ: "skold", fel: [{ factorA: 3, factorB: 3, answer: 8 }] });
+  const r = await call("msAgera", { sid: "ms", attemptId: att(), svar: m("msalma", 1), typ: "skold", fel: [m("msalma", 0, true)] });
   assert.equal(r.correct, true);
   assert.equal(r.typ, "skold");
   assert.ok(r.status.stationer.length === 2);
@@ -106,11 +112,11 @@ test("rätt svar + handling i ett anrop → en händelse; fel svar skriver inget
 
 test("väntetid mellan handlingar (resource-exhausted med vantaMs); efter väntan går det", async () => {
   await as("msbo");
-  await call("msAgera", { sid: "ms", attemptId: att(), svar: { factorA: 5, factorB: 5, answer: 25 }, typ: "laser" });
+  await call("msAgera", { sid: "ms", attemptId: att(), svar: m("msbo", 0), typ: "laser" });
   let kod = null;
   let detaljer = null;
   try {
-    await call("msAgera", { sid: "ms", attemptId: att(), svar: { factorA: 5, factorB: 5, answer: 25 }, typ: "laser" });
+    await call("msAgera", { sid: "ms", attemptId: att(), svar: m("msbo", 1), typ: "laser" });
   } catch (e) {
     kod = String(e.code).replace(/^functions\//, "");
     detaljer = e.details;
@@ -118,13 +124,13 @@ test("väntetid mellan handlingar (resource-exhausted med vantaMs); efter vänta
   assert.equal(kod, "resource-exhausted");
   assert.ok(detaljer?.vantaMs > 0);
   await sleep(detaljer.vantaMs + 50);
-  const r = await call("msAgera", { sid: "ms", attemptId: att(), svar: { factorA: 5, factorB: 5, answer: 25 }, typ: "spara" });
+  const r = await call("msAgera", { sid: "ms", attemptId: att(), svar: m("msbo", 1), typ: "spara" });
   assert.equal(r.energi, 1);
 });
 
 test("dragstrålen utan energi nekas och sparas; msLage efteråt", async () => {
   await as("msomar");
-  const r = await call("msAgera", { sid: "ms", attemptId: att(), svar: { factorA: 6, factorB: 7, answer: 42 }, typ: "drag" });
+  const r = await call("msAgera", { sid: "ms", attemptId: att(), svar: m("msomar", 0), typ: "drag" });
   assert.equal(r.nekad, "energi");
   assert.equal(r.typ, "spara");
   const l = await call("msLage", { sid: "ms" });
@@ -142,7 +148,7 @@ test("eleven skriver inte själv och läser inte loggen, men sitt eget msPlayers
 
 test("efter slutet: handling nekas; msAvsluta (elev) räknar result; läraren får samma", async () => {
   await as("msalma");
-  assert.equal(await errCode(call("msAgera", { sid: "ms-slut", attemptId: att(), svar: { factorA: 1, factorB: 1, answer: 1 }, typ: "skold" })), "failed-precondition");
+  assert.equal(await errCode(call("msAgera", { sid: "ms-slut", attemptId: att(), svar: m("msalma", 0), typ: "skold" })), "failed-precondition");
   const r = await call("msAvsluta", { sid: "ms-slut" });
   assert.equal(r.redan, false);
   assert.equal(r.result.format, "meteorstorm");
