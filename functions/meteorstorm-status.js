@@ -7,12 +7,15 @@
 // med motorn ur serverns logg – elevskärmarna fryser inte när projektorn stängs.
 //
 // Loggen läses EN gång per instans och session (alla msEvents), sedan bara
-// händelser med t ≥ senast sedda t − MS_LOGG_OVERLAPP_MS (sena commits).
-// Egna handlingar läggs till direkt efter commit. Samma logg används av
+// händelser med at ≥ senast sedda at. at = serverns commit-tid, och en fråga
+// läser en konsistent ögonblicksbild: en händelse som saknades i förra
+// läsningen committades efter den och har därför ett senare at – ingen
+// överlappning behövs (en fast överlappning på t kostade ~1 700 läsningar per
+// match). Egna handlingar läggs till direkt efter commit. Samma logg används av
 // dragstrålens kanAgera (meteorstorm-core.js).
 //
 //   somHandling(id, h)               → motorns handling ur ett händelsedokument
-//   loggOf(deps, sid)                → { lista: Map id → handling, cursor, full }
+//   loggOf(deps, sid)                → { lista: Map id → handling, cursor (senaste at), full }
 //   uppdateraLogg(deps, sid)         → loggen efter en läsning av nya händelser
 //   laggTillLogg(deps, sid, id, h)
 //   statusFran(cfg, handlingar, now) → statusdokumentet (utan uppdaterad)
@@ -31,26 +34,26 @@ import { HANDLINGAR, RENDER_FORDROJNING_MS } from "./meteorstorm/ms-balans.js";
 import { MS_STATUS_MS } from "./meteorstorm/ms-anrop.js";
 import { minneOf, satt, refs, cfgFor, MINNE_SESSIONER } from "./meteorstorm-sess.js";
 
-export const MS_LOGG_OVERLAPP_MS = 2000;
-
 export const somHandling = (id, d) => ({ id, t: d.t, classId: d.classId, uid: d.uid, typ: d.typ, ...(d.mal ? { mal: d.mal } : {}) });
 
 export function loggOf(deps, sid) {
   const m = minneOf(deps);
   let e = m.logg.get(sid);
-  if (!e) satt(m.logg, sid, (e = { lista: new Map(), cursor: -Infinity, full: false }), MINNE_SESSIONER);
+  if (!e) satt(m.logg, sid, (e = { lista: new Map(), cursor: null, full: false }), MINNE_SESSIONER);
   return e;
 }
+
+const senare = (a, b) => a.seconds > b.seconds || (a.seconds === b.seconds && a.nanoseconds > b.nanoseconds);
 
 export async function uppdateraLogg(deps, sid) {
   const e = loggOf(deps, sid);
   const col = refs(deps.db, sid).events;
-  const snap = await (e.full ? col.where("t", ">=", e.cursor - MS_LOGG_OVERLAPP_MS) : col).get();
+  const snap = await (e.full && e.cursor ? col.where("at", ">=", e.cursor) : col).get();
   for (const d of snap.docs) {
     const h = d.data();
+    if (h.at && (!e.cursor || senare(h.at, e.cursor))) e.cursor = h.at;
     if (!HANDLINGAR.includes(h.typ) || !Number.isFinite(h.t)) continue;
     e.lista.set(d.id, somHandling(d.id, h));
-    if (h.t > e.cursor) e.cursor = h.t;
   }
   e.full = true;
   return e;
