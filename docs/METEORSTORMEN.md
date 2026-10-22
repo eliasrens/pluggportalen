@@ -636,6 +636,11 @@ Plugga-quiz, skriv själv/flerval, tidslinjefrågor (`timelineQuestions`).
 `avslutaOchBetala`). Kärnans `writeResultIfMissing` skriver aldrig `result` här
 och betalar därför inte – projektorn (C) som själv anropar `avsluta` ska använda
 `avslutaOchBetala`. Historiken betalar det som saknas när läraren öppnar matchen.
+Klasscentret (#823 F2) som i `live-data.js` (bara admin, aldrig demo):
+klasspokalerna och Live-priset till klasskassan (idempotenta) efter varje
+`msAvsluta`; klassbonusen (inte idempotent) bara när svaret är `redan: false`
+(anropet som skrev `result`). Skrev en elevs anrop `result` blir det ingen
+klassbonus.
 
 **Historiken** (`meteorstorm-history.js`): vinnare/stjärnor, stationerna (skrov,
 nedskjutna, träffar, kastade, bästa ögonblicken), handlingar per sort och klass,
