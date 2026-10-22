@@ -580,6 +580,27 @@ läses loggen och sessionen en gång per instans → ~15 000.
 
 ---
 
+## 10. Deploy
+
+Del A deployar ingenting själv. Från B (#821), i den här ordningen:
+**firestore:indexes → (vänta på READY) → rules → functions → webb.**
+
+0. **`firebase deploy --only firestore:indexes`** – `msEvents (uid ↑, nr ↓)` (#821 N4,
+   `msLage` och omsynk). Indexet måste vara **READY** (Firebase-konsolen →
+   Firestore → Index, eller `gcloud firestore indexes composite list`) innan
+   functions deployas: utan det misslyckas `senaste()` med `FAILED_PRECONDITION`,
+   som eleven ser som "internal" (msLage, och msAgera när klientens `nr` inte
+   stämmer). ⚠️ Emulatorn kräver inga sammansatta index – testerna fångar inte
+   ett saknat index.
+1. **`firebase deploy --only firestore:rules`** – regelgrenen "Meteorstormen"
+   (msFormat, ms-samlingarna, kvittot mot `msPlayers`). Utan den nekas varje
+   Meteorstorm-session; den rör inga andra format.
+2. **`firebase deploy --only functions:msAgera,functions:msRatta,functions:msLage,functions:msAvsluta`**
+   – predeploy synkar `delat/` → `functions/meteorstorm/` (`npm run sync:meteorstorm`).
+3. **Webben** (C/D registrerar formatet – först då syns det för lärarna).
+
+Övriga frågor är enkelfälts (`t`, `at`, `uid` + `attemptId`).
+
 ## 11. Elevskärmen och lärarvyerna (D, #823)
 
 **Lärarformuläret** (`setupFields`, ritas av `live-setup-fields.js`): Läge (En
@@ -625,24 +646,3 @@ Utfall + sammanfattning per tabell/kategori.
 **Demo/preview:** `preview/preview-meteorstorm-elev.html` (`?fas=live`,
 `?lage=en-klass`, `?attacker=av|vilda`, `?svar=choice`, `?quiz=1`, `?status=5`)
 och `preview/preview-meteorstorm-historik.html`.
-
-## 10. Deploy
-
-Del A deployar ingenting själv. Från B (#821), i den här ordningen:
-**firestore:indexes → (vänta på READY) → rules → functions → webb.**
-
-0. **`firebase deploy --only firestore:indexes`** – `msEvents (uid ↑, nr ↓)` (#821 N4,
-   `msLage` och omsynk). Indexet måste vara **READY** (Firebase-konsolen →
-   Firestore → Index, eller `gcloud firestore indexes composite list`) innan
-   functions deployas: utan det misslyckas `senaste()` med `FAILED_PRECONDITION`,
-   som eleven ser som "internal" (msLage, och msAgera när klientens `nr` inte
-   stämmer). ⚠️ Emulatorn kräver inga sammansatta index – testerna fångar inte
-   ett saknat index.
-1. **`firebase deploy --only firestore:rules`** – regelgrenen "Meteorstormen"
-   (msFormat, ms-samlingarna, kvittot mot `msPlayers`). Utan den nekas varje
-   Meteorstorm-session; den rör inga andra format.
-2. **`firebase deploy --only functions:msAgera,functions:msRatta,functions:msLage,functions:msAvsluta`**
-   – predeploy synkar `delat/` → `functions/meteorstorm/` (`npm run sync:meteorstorm`).
-3. **Webben** (C/D registrerar formatet – först då syns det för lärarna).
-
-Övriga frågor är enkelfälts (`t`, `at`, `uid` + `attemptId`).
