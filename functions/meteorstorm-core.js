@@ -186,8 +186,12 @@ async function kedja(deps, sid, s, uid, p, raw, { felLista, k = null, graded = n
   const logg = typ === "drag" ? await uppdateraLogg(deps, sid) : null;
   const statusNu = () => statusUrMinnet(deps, sid, cfg, deps.now());
   let nr = isInt(raw?.nr, 1, 1_000_000) ? raw.nr : null;
+  let gissat = nr != null; // klientens nr – länken före kan vara en gammal
   for (let forsok = 0; forsok < 4; forsok++) {
-    if (nr == null) nr = ((await senaste(deps, sid, uid))?.nr || 0) + 1;
+    if (nr == null) {
+      nr = ((await senaste(deps, sid, uid))?.nr || 0) + 1;
+      gissat = false;
+    }
     const id = `${uid}_${nr}`;
     const prevRef = nr > 1 ? r.ev(uid, nr - 1) : null;
     const lasRef = logg ? r.las(p.classId) : null;
@@ -235,6 +239,11 @@ async function kedja(deps, sid, s, uid, p, raw, { felLista, k = null, graded = n
         continue;
       }
       if (err === GAMMAL) return gammalt(deps, sid, uid, forsokId, statusNu);
+      if (gissat && err?.details?.omsynk) {
+        // k-ordningen prövades mot klientens nr: slå upp den verkliga länken först.
+        nr = null;
+        continue;
+      }
       if (finnsRedan(err)) {
         const d = (await r.ev(uid, nr).get()).data();
         if (d?.attemptId === forsokId) return utFran(d, { igen: true, status: statusNu() });
