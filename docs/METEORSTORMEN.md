@@ -5,7 +5,7 @@ försvarar var sin rymdstation mot en **förutbestämd** meteorstorm; rätt svar
 energi som eleven lägger på 🛡️ sköld, 🔫 laser eller 🌀 dragstråle. Specen:
 [`UTVECKLINGSUPPDRAG_METEORSTORMEN.md`](UTVECKLINGSUPPDRAG_METEORSTORMEN.md).
 Det här är **formatets kontraktsdokument** – del A (#820) beskriver motorn,
-B (#821) servern (§7–§10); C (projektorn), D (elevskärmen/lärarvyerna) och E fyller på.
+B (#821) servern (§7–§10), C (#822) projektorn (§11); D (elevskärmen/lärarvyerna) och E fyller på.
 
 ---
 
@@ -205,6 +205,8 @@ varje bildruta. Använd `pos`/`bana` för meteorerna, `logg` för flödet och
 banderollerna, `handelser[0]` för banderollen och nedräkningen,
 `skadeniva(skrov)` för stationens utseende och `bidrag` för "bästa ögonblick".
 Inget ritas om fel svar, för motorn ser dem aldrig.
+
+Genomfört i #822 – se §11.
 
 ---
 
@@ -594,3 +596,131 @@ Del A deployar ingenting själv. Från B (#821), i den här ordningen:
 3. **Webben** (C/D registrerar formatet – först då syns det för lärarna).
 
 Övriga frågor är enkelfälts (`t`, `at`, `uid` + `attemptId`).
+
+---
+
+## 11. Projektorn (C, #822)
+
+### 11.1 Filerna
+
+| Fil | Innehåll |
+| --- | --- |
+| `index.js` | Formatobjektet. **C:s del:** `projectorViews`, `resultInputs` (anropar `msAvsluta`), `buildResult` (= serverns `result`, kastar utan det), `computeStandings` (klasser + anslutna elever), `emitOnPlayers`. Setup/elev/historik är minsta möjliga och märkta "D ersätter". `music` saknas tills E lägger in filen (ingen 🎵-knapp, ingen 404) |
+| `meteorstorm-projector.js` | Projektorskalets modul: vyn ☄️ Rymden (`finale`), lobbyn, `ownTimer`, `ownControls` |
+| `msp-scen.js` | **Ren** logik (node-testad): motorns indata ur sessionen, slutet, `handlingarUr` (hoppar över `typ: "fel"`), renderingsklockan `stegaKlocka`, stationernas platser, meteorernas banor, loggindexet (kast, träffar, flödet), banderollen, besättningens humör, gunget, kosmetisk slump `brus(frö, nyckel)` |
+| `msp-rymd.js` | Vyn: DOM, EN `watchEvents`-lyssnare, bildrutsloopen, Avsluta, ljud, `__mspProjektor` (QA) |
+| `msp-bild.js` | En bildruta på Canvas 2D – används av vyn, lobbyn och motor-previewn |
+| `msp-station.js`, `msp-skold.js`, `msp-besattning.js`, `msp-rita.js` | Stationen + skadenivåerna, sköldbubblan, astronauterna, rymden/meteorerna/explosionerna/fyrverkerierna |
+| `msp-hud.js`, `msp-slut.js`, `msp-lobby.js`, `msp-ljud.js` | Textlagret (klocka, banderoll, mätare, flödet), slutrutan, lobbyn, ljuden |
+| `msp-demo.js` + `preview/preview-meteorstorm-demo.html` | Demoläget (LIVE-FORMAT §8) |
+| `meteorstorm-projektor.css` | Bara `msp-`-klasser |
+| `test/live-meteorstorm-projektor.test.js` | 23 tester (se §11.6) |
+| `admin/qa-meteorstorm-fps.mjs`, `admin/qa-meteorstorm-tva.mjs`, `preview/qa-meteorstorm-projektor.html` | Mätningarna i §11.4–11.5 |
+
+Allt laddas latt (`projectorViews()` = `import()`); bootgrafen är 107 filer som förut.
+
+### 11.2 Renderingsbufferten och samma bild på två projektorer
+
+- Vyn ritar motorns tillstånd för `t = deps.now() − RENDER_FORDROJNING_MS` (1 500 ms,
+  `ms-balans.js`; `deps.now()` = `live-clock.js` `serverNow`). `stegaKlocka` låter `t`
+  följa målet med verklig tid, rättar mjukt (högst 8 % fart) och hoppar bara **framåt**
+  (> 2 s efter, t.ex. flik i bakgrunden). `t` går aldrig bakåt.
+- Allt som ritas är en funktion av (sessionen, loggen, fröet, `t`): explosioner, laser,
+  vågor i skölden, bucklor, rök, gnistor, gung och besättningens humör räknas ur
+  motorns `logg` och postens ålder – ingen partikelstat. Kosmetisk slump kommer ur
+  `brus(frö, nyckel)` (FNV-1a + murmur3-blandning). Ingen `Math.random`/`Date.now`
+  i ritningen (testat: Math.random/Date.now kastar under ritningen, och en projektor
+  som följt matchen ger exakt samma ritanrop som en nyöppnad, även med loggen i omvänd
+  ordning).
+- Meteorer som sprängts eller slagit ner ritas ur stormplanen + loggens `kast`, så
+  effekterna inte beror på vad projektorn råkade se innan.
+- Textlagret (klocka, banderoll, mätare, flödet) sätts ur tillståndet vid `t` utan
+  CSS-övergångar; flödets in-/uttoning räknas ur radens ålder.
+- Slutet: `t` stannar vid stormens slut (lärarens avslut via `finishedAt`, annars
+  00:00); animationerna (fyrverkerier, besättningen) fortsätter.
+
+### 11.3 Projektorn skriver inget i formatets samlingar
+
+- EN `onSnapshot` på `msEvents` per projektor (`watchEvents`), ingen omläsning.
+  Händelser med `typ: "fel"` blir aldrig handlingar. `aktiva` = sessionens
+  `msStationer` (saknas → 1, ingen har handlat).
+- **Avsluta** (egen knapp, `ownControls`) → `msAvsluta`; slutrutan visar serverns
+  `result`. Vid 00:00 gör kärnan som vanligt (`autoFinish` på sessionen), och
+  `resultInputs` anropar `msAvsluta` (idempotent) – kärnans `writeResultIfMissing` ser
+  sedan att `result` redan finns. Projektorn skriver aldrig `msPublic/status`.
+  Kärnans egna sessionsskrivningar (STARTA, `endsAt`, `status: "finished"`) är
+  desamma som i alla format.
+- **Paus finns inte:** stormen följer serverns klocka och är samma för alla elever
+  och båda projektorerna – ingen annan Live-projektor har paus heller. Kontrollerna
+  är Avsluta (vyn), ljud, 🎵 musik (när E lagt in filen) och fullskärm (skalet).
+
+### 11.4 Två projektorer med nätfördröjning (uppmätt)
+
+`flock /tmp/pp-821-emulator.lock node admin/qa-meteorstorm-tva.mjs --latens 300,1500 --sek 90`
+– Firestore-emulatorn (öppna QA-regler; reglerna testas i `test:rules`), en pågående
+Klass mot klass-session (20 + 20 elever, finalen inom mätningen), historiken skriven i
+ett svep och nya `msEvents` i realtid som servern skriver dem. Två **separata**
+huvudlösa Chromium med den riktiga projektorn (`projector.js` → `live-feed` +
+`meteorstorm-data.js`), DevTools-fördröjning på varje anrop/long-poll. Var 3:e s ritar
+båda bildrutan för samma `t` i en egen canvas och pixlarnas fingeravtryck jämförs.
+
+| Fördröjning A / B | Samma `t` = nu − 6 s | Samma `t` = nu − 1,5 s (det som ritas) | Sena handlingar A / B | `t` bakåt | Största ryck i `t` |
+| --- | --- | --- | --- | --- | --- |
+| 300 / 1 500 ms (90 s) | 29/29 identiska | 28/29 | 0 / 318 av 320 | 0 / 0 | 5 / 7 ms |
+| 600 / 1 000 ms (60 s) | 20/20 identiska | 19/20 | 0 / 119 av 228 | 0 / 0 | 8 / 8 ms |
+
+- **Jämn:** `t` gick aldrig bakåt, och steget per bildruta avvek högst 8 ms från
+  verklig tid (bildrutor efter en hängning > 100 ms räknas inte).
+- **Identisk:** när båda har fått samma händelser är bilden pixel för pixel lika.
+- **Men:** "sena" = handlingar som kom fram efter att deras tid redan ritats. Med
+  DevTools-fördröjning ≥ 1 000 ms per anrop blir händelsernas väg (long-poll + nytt
+  anrop) längre än bufferten på 1,5 s, och projektorn ritar då om ett redan visat
+  ögonblick (mätarna hoppar lite; ett laserskott kan komma en bråkdel tidigare än
+  det syntes). Bilden går aldrig bakåt i tid, men den kan "ändra det förflutna" en
+  aning. ❓ **Till Elias:** räcker 1,5 s, eller ska `RENDER_FORDROJNING_MS` upp till
+  ~3 s (allt på projektorn kommer då 3 s efter elevens tryck)? Talet ligger i
+  `ms-balans.js` och styr även serverns `msPublic/status`.
+
+### 11.5 Bilder per sekund (uppmätt)
+
+`node admin/qa-meteorstorm-fps.mjs` – demosidan i huvudlös Chromium (Linux-VM, 6
+kärnor, ingen GPU: `--disable-gpu` = Skia på CPU), 8 s mätning i finalen (flest
+meteorer och explosioner) och mitt i matchen. Mätarna är projektorns egna
+(`__mspProjektor.fps()`): tiden mellan `requestAnimationFrame` och JS-tiden per
+bildruta för motorn + hela ritningen.
+
+| Fönster | Läge | fps | p95 mellan bildrutor | JS per bildruta (medel / p95) |
+| --- | --- | --- | --- | --- |
+| 1920 × 1080 | finalen | 58 | 16,8 ms | 1,6 / 3,4 ms |
+| 1280 × 720 | finalen | 59 | 16,8 ms | 1,5 / 3,8 ms |
+| 1920 × 1080 | mitten | 60 | 16,7 ms | 1,2 / 3,0 ms |
+
+Två projektorer i samma maskin samtidigt (§11.4, 1600 × 900): 52–56 fps, JS 0,7–0,9 ms.
+Budgeten för 60 fps är 16,7 ms; ritningen tar en tiondel. I Barista-webbläsaren
+(SwiftShader, delad med andra flikar) blev det 18 fps i 1920 × 1080 med samma JS-tid
+(2,5 ms) – där är det mjukvarurastret, inte projektorn, som begränsar. En vanlig
+lärardator rastrar Canvas 2D på GPU:n. Bakgrunden (stjärnor, nebulosa, planet)
+ritas en gång per storlek; canvasen är högst 2048 px bred (`devicePixelRatio` ≤ 2).
+
+### 11.6 Testat
+
+`node --test test/live-meteorstorm-projektor.test.js` (23): formatobjektet
+(giltigt, latt, ingen musik än, `buildResult` = serverns result), indata
+(`msStationer` saknas → 1, lärarens avslut), `typ: "fel"` hoppas över, klockan går
+aldrig bakåt (2 000 skakiga steg), loggindexet live = sent öppnad = efter
+tillbakaspolning, flödet (bara positivt, högst 4 rader, specens texter, namn av),
+banderollen, besättningen, gunget, banorna (spegelvända), ritningen är en ren
+funktion (inspelande låtsas-canvas), slutrutan (vinnare, snäll text, tre ögonblick,
+oavgjort, stjärnor, ingen elevlista), ramarna (≤ 400 rader, ingen
+Math.random/Date.now i ritningen, inga Firestore-skrivningar, EN `watchEvents`,
+bara `msp-`-klasser) och demot.
+
+### 11.7 Bilder
+
+`docs/meteorstormen-822/`: `skadenivaer.jpg` (alla fem nivåerna med sköldens
+lägen), `slungad.jpg` (slungad meteor med svans och "från 4B"), `jattemeteor.jpg`
+(banderoll + nedräkning), `en-klass.jpg` (en station, Kometsvans), `finalen.jpg`
+(skador, "⚠️ Skölden är nere!", besättningen i rymddräkter, "🚀 4D får extra
+kraft!"), `slut-kmk.jpg`, `slut-en-klass.jpg`, `lobby.jpg`, `tva-a.jpg`/`tva-b.jpg`
+(två projektorer frysta på samma `t`). Huvudlös Chromium saknar emoji-typsnitt –
+rutorna visas som emoji i en vanlig webbläsare.
