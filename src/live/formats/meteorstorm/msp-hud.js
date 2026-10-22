@@ -28,7 +28,7 @@ export function createHud(ram, { namn, farger, pl }) {
       <div class="msp-band" data-band hidden><span data-bandtext></span><b data-bandkvar></b></div>
     </div>
     ${pl.map((p, i) => `
-      <div class="msp-stn" data-i="${i}" style="left:${(p.x / W) * 100}%;top:${((p.y - 285 * p.skala) / H) * 100}%;--msp-k:${farger[i]}">
+      <div class="msp-stn" data-i="${i}" style="left:${(p.x / W) * 100}%;top:${((p.y - 172 * p.skala) / H) * 100}%;--msp-k:${farger[i]}">
         <div class="msp-stn-namn"></div>
         <div class="msp-mat msp-mat-skrov"><i></i><span></span></div>
         <div class="msp-mat msp-mat-skold"><i></i><span></span></div>

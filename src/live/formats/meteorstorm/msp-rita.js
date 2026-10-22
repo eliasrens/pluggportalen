@@ -261,11 +261,15 @@ export function ritaEffekter(g, eff, ctx) {
         g.fill();
       }
     }
-    const fp = (e.alder - 180) / 1100;
+    const fp = (e.alder - 180) / 1000;
     if (fp > 0 && fp < 1) {
-      g.fillStyle = `rgba(160,160,185,${0.32 * (1 - fp)})`;
+      const R = Math.min(60, e.r) * (0.6 + 0.8 * fp);
+      const rok = g.createRadialGradient(e.x, e.y - 14 * fp, 0, e.x, e.y - 14 * fp, R);
+      rok.addColorStop(0, `rgba(170,170,195,${0.26 * (1 - fp)})`);
+      rok.addColorStop(1, "rgba(170,170,195,0)");
+      g.fillStyle = rok;
       g.beginPath();
-      g.arc(e.x, e.y - 14 * fp, e.r * (0.8 + 1.1 * fp), 0, TAU);
+      g.arc(e.x, e.y - 14 * fp, R, 0, TAU);
       g.fill();
     }
   }
@@ -280,13 +284,13 @@ export function ritaFyrverkeri(g, t, sedan, x, y, farg, seed) {
   for (let b = Math.max(0, sist - 2); b <= sist; b++) {
     const a = alder - b * P;
     const bx = x + (brus(seed, `fv|${b}`) - 0.5) * 420;
-    const by = y - 250 - brus(seed, `fh|${b}`) * 150;
+    const by = y - 110 - brus(seed, `fh|${b}`) * 90;
     const farger = [farg, "#ffd166", "#9be7ff"];
     if (a < 900) {
       const f = a / 900;
       g.fillStyle = "rgba(255,220,160,.8)";
       g.beginPath();
-      g.arc(bx, y + 140 - (y + 140 - by) * (1 - (1 - f) ** 2), 3, 0, TAU);
+      g.arc(bx, y + 90 - (y + 90 - by) * (1 - (1 - f) ** 2), 3, 0, TAU);
       g.fill();
       continue;
     }

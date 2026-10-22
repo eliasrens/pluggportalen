@@ -96,8 +96,8 @@ export function stegaKlocka(prev, mal, dtMs) {
  * slut = true: mindre och högre upp – slutrutan tar nedre delen av bilden.
  */
 export function platser(n, slut = false) {
-  const y = slut ? 285 : 545;
-  const k = slut ? 0.62 : 1;
+  const y = slut ? 265 : 545;
+  const k = slut ? 0.8 : 1;
   if (n <= 1) return [{ x: 800, y, skala: 1.15 * k }];
   if (n === 2) return [{ x: slut ? 520 : 430, y, skala: k }, { x: slut ? 1080 : 1170, y, skala: k }];
   return Array.from({ length: n }, (_, i) => ({ x: (W * (i + 0.5)) / n, y: y + 15, skala: (n === 3 ? 0.8 : 0.66) * k }));
@@ -315,8 +315,17 @@ export function gungVid(minne, classId, t) {
   return { x, y };
 }
 
-/** Deterministisk "slump" i [0,1) ur fröet och en nyckel – för kosmetik. */
-export const brus = (seed, nyckel) => hashFro(`${seed}|${nyckel}`) / 4294967296;
+/**
+ * Deterministisk "slump" i [0,1) ur fröet och en nyckel – för kosmetik.
+ * FNV-1a ensam ger nästan samma tal för "x1", "x2" … – en avalanche-blandning
+ * (murmur3 fmix32) gör följden jämnt utspridd.
+ */
+export function brus(seed, nyckel) {
+  let h = hashFro(`${seed}|${nyckel}`);
+  h = Math.imul(h ^ (h >>> 16), 0x85ebca6b);
+  h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
 
 export function klocktext(msLeft) {
   const s = Math.max(0, Math.ceil(msLeft / 1000));
