@@ -420,13 +420,20 @@ await k.skickaFel();                    // när matchen tar slut
 ```
 
 `kalla()` delar ut multiplikationens frågor ur elevens påse (`multFor`) – en
-obesvarad fråga visas igen i stället för att hoppas över (annars saknas dess k).
+obesvarad fråga visas igen efter en omladdning i stället för att hoppas över
+(annars saknas dess k). Frågar UI:t igen i samma sida efter att frågan redan
+visats går eleven vidare (skriv själv hämtar nästa fråga FÖRE svaret på den
+förra): den visade frågan väntar på sitt svar och en ny delas ut, och `svara`
+hittar frågans k på faktorerna (#822 F2 – förut visades samma fråga igen och
+svaret hamnade på nästa k, som servern nekade).
 `svara` rättar multiplikationen själv (fel → bufferten, inget anrop), frågar
 `msRatta` vid quiz, och håller ett rätt svar väntande tills `agera`. Bufferten,
 `nr`, energin och `k` sparas i `sessionStorage` (omladdning). Ett nätfel låter
 svaret och bufferten ligga kvar – samma `agera` igen ger samma `attemptId`.
 Bufferten töms på `attemptId` (inte de första N), så ett fel-anrop som korsar
-ett `agera` tappar inget (#821 F7). `details.omsynk` → `lage()` och börja om.
+ett `agera` tappar inget (#821 F7). `details.omsynk` eller `failed-precondition`
+från `msAgera` → `lage()` och börja om (#822 F2: valet släpps, `vantar()` blir
+false och elevskärmen visar nästa fråga – ingen fastnar; energin är serverns).
 **D anropar `lage()` när elevskärmen monteras.** `lage()` sätter nästa k =
 serverns senaste k + 1 och behåller bara den del av bufferten som är en obruten
 följd därifrån – ett rätt svar som väntade på handling när sidan laddades om
