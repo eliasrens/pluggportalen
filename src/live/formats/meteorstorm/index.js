@@ -17,8 +17,9 @@
 //   Avsluta: skalets knapp → kärnans flöde (status finished → resultInputs =
 //     avslutaOchBetala → msAvsluta + settleLiveRewards). Samma väg vid 00:00.
 //     Serverns result gäller; kärnans writeResultIfMissing ser att det finns.
-//   E (#824) – `music` (assets/meteorstormen-loop.ogg). Fältet saknas tills
-//     filen finns: ingen 🎵-knapp och ingen 404.
+//   E (#824): `music` → assets/meteorstormen-loop.ogg (80,0 s sömlös loop,
+//     Vorbis 44,1 kHz) – spelas av projektorskalet (proj-music.js) som i
+//     Guldrushen; filen hämtas först i lobbyn (inte i bootgrafen).
 //
 // API: export default METEORSTORM (format-objekt, oregistrerat).
 // ============================================================================
@@ -36,6 +37,8 @@ const METEORSTORM = {
   maxClasses: MS_MAX_CLASSES,
   answerKinds: ["free", "choice"],
   pacing: "tid",
+  // Tyst lobby (läraren pratar), matchen ≈ 30 % av effekternas volym – som Guldrushen.
+  music: { src: new URL("./assets/meteorstormen-loop.ogg", import.meta.url).href, level: 0.3, lobby: 0 },
 
   ...MS_ELEV_DELAR,
 

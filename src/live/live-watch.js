@@ -5,8 +5,15 @@
 // direkt när en lärare skapar/avslutar en match, utan omladdning.
 // Laddas DYNAMISKT av ui.js (getLiveVisible) – aldrig i bootgrafen (#271).
 //
+// Menyns "Live pågår!" (#824) följer bannerSessions: bara lobby eller en match
+// vars klocka går – borta vid 00:00 (fas "ended") och när status blir
+// finished/raderas, för alla format. Sidan #/elev/live använder
+// relevantSessions (+ marginal), så en elev som laddar om just efter 00:00
+// ändå ser slutet.
+//
 // API
 //   relevantSessions(all, myClassIds, now) → sessioner eleven ska se
+//   bannerSessions(all, myClassIds, now) → sessioner som gör att menyn visar Live
 //   liveVisibleFor(meId)  → Promise<boolean> (startar bevakningen första gången)
 //   onLiveVisibleChange(fn) → fn(visible, sessions) vid ändring
 //   stopLiveWatch()
@@ -31,7 +38,21 @@ export function relevantSessions(all, myClassIds, now) {
   });
 }
 
-let watch = null; // { meId, unsub, iv, ready, sessions, myClassIds }
+/** Sessioner som gör att menyn visar "Live pågår!": lobby, eller live med klockan kvar. */
+export function bannerSessions(all, myClassIds, now) {
+  return relevantSessions(all, myClassIds, now).filter((s) => {
+    const { endMs } = sessionTimes(s);
+    return s.status === "lobby" || endMs == null || now < endMs;
+  });
+}
+
+/** Ms till nästa matchslut (00:00) bland sessionerna, eller null. */
+export function msTillNastaSlut(sessions, now) {
+  const slut = (sessions || []).map((s) => sessionTimes(s).endMs).filter((e) => e != null && e > now);
+  return slut.length ? Math.min(...slut) - now : null;
+}
+
+let watch = null; // { meId, unsub, iv, slutT, ready, sessions, myClassIds }
 let visible = false;
 const lyssnare = new Set();
 
@@ -42,7 +63,12 @@ export function onLiveVisibleChange(fn) {
 
 function recompute() {
   if (!watch) return;
-  const mine = relevantSessions(watch.sessions, watch.myClassIds, serverNow());
+  const now = serverNow();
+  const mine = bannerSessions(watch.sessions, watch.myClassIds, now);
+  // Rita om precis vid 00:00 – inte först vid nästa 20 s-tick.
+  clearTimeout(watch.slutT);
+  const kvar = msTillNastaSlut(mine, now);
+  watch.slutT = kvar == null ? 0 : setTimeout(recompute, kvar + 250);
   const next = mine.length > 0;
   if (next === visible) return;
   visible = next;
@@ -53,6 +79,7 @@ export function stopLiveWatch() {
   if (!watch) return;
   watch.unsub?.();
   clearInterval(watch.iv);
+  clearTimeout(watch.slutT);
   watch = null;
   visible = false;
 }
@@ -68,7 +95,7 @@ export async function liveVisibleFor(meId) {
     return visible;
   }
   stopLiveWatch();
-  const w = { meId, sessions: [], myClassIds: [], unsub: null, iv: null };
+  const w = { meId, sessions: [], myClassIds: [], unsub: null, iv: null, slutT: 0 };
   watch = w;
   w.ready = (async () => {
     const klasser = await getClasses().catch(() => []);

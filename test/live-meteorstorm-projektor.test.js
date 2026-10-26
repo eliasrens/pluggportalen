@@ -43,11 +43,10 @@ function events(n = 400) {
 }
 
 describe("Meteorstormen projektorn: formatobjektet (C:s del)", () => {
-  it("registrerat, giltigt interface, lata vyer, ingen musikfil än (E lägger in den – ingen 404)", () => {
+  it("registrerat, giltigt interface, lata vyer", () => {
     assert.deepEqual(validateFormat(MS), []);
     assert.equal(formatOf({ format: "meteorstorm" }), MS);
     assert.equal(typeof MS.projectorViews, "function");
-    assert.equal(MS.music, undefined);
     assert.equal(MS.pacing, "tid");
   });
   it("slutet går genom D:s resultInputs (avslutaOchBetala: msAvsluta + pluggmynt); buildResult = serverns result", async () => {
