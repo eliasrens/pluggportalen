@@ -76,14 +76,14 @@ export function namnUr(events) {
   return m;
 }
 
-/** Renderingsklockans fart: högst 20 % långsammare (bufferten växer), 8 % snabbare. */
+/** Renderingsklockans rättning: högst 20 % långsammare, 8 % snabbare. */
 export const KLOCKA_BROMS = 0.2;
 export const KLOCKA_GAS = 0.08;
 
 /**
- * Renderingstiden: följer mal (= nu − bufferten) med verklig tid och rättar
- * mjukt – saktar in (fart ≥ 0,8) när målet ligger efter, t.ex. när bufferten
- * växer, och skyndar högst 8 %. Hoppar bara FRAMÅT vid stora avvikelser
+ * Renderingstiden: följer mal (= nu − RENDER_FORDROJNING_MS) med verklig tid och
+ * rättar mjukt – saktar in (fart ≥ 0,8) när målet ligger efter (klocksynk) och
+ * skyndar högst 8 %. Hoppar bara FRAMÅT vid stora avvikelser
  * (flik i bakgrunden, ny klocksynk). Aldrig bakåt.
  */
 export function stegaKlocka(prev, mal, dtMs) {

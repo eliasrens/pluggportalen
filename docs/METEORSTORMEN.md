@@ -77,7 +77,7 @@ rendering).
 - `resultat` (när `klart`): se §3.7
 
 **Billig varje bildruta (Elias 2026-10-21):** projektorn ritar `nu − RENDER_FORDROJNING_MS`
-(3000 ms – #822 F1; projektorn växer bufferten vid sämre nät, §12.2). `simulera` återanvänder en motor per frö/klasser/inställningar och
+(2000 ms, konstant – Elias 2026-10-21; sena händelser: §12.2). `simulera` återanvänder en motor per frö/klasser/inställningar och
 stegar vidare från senaste tid. Bara om loggen ändrats *före* den redan beräknade
 tiden spolas den tillbaka till närmaste kontrollpunkt (var 5:e s). En hel match
 med 4000 handlingar tar några ms i node. `skapaMotor(cfg)` ger samma motor direkt
@@ -665,7 +665,7 @@ och `preview/preview-meteorstorm-historik.html`.
 | --- | --- |
 | `index.js` | Formatobjektet = `{ id, …projektordelarna, ...MS_ELEV_DELAR }` (D:s `ms-format-elev.js`, §11). **C:s del:** namn/ikon/svarssätt/takt, `compatibleGameModes`, `computeStandings` (klasser + anslutna elever), `emitOnPlayers`, `projectorViews`. `music` saknas tills E lägger in filen (ingen 🎵-knapp, ingen 404) |
 | `meteorstorm-projector.js` | Projektorskalets modul: vyn ☄️ Rymden (`finale`), lobbyn, `ownTimer` |
-| `msp-buffert.js` | **Ren**: den anpassade renderingsbufferten (§12.2) |
+| `msp-senvakt.js` | **Ren**: händelserna → motorns handlingar; en sen händelse verkar "från nu" (§12.2), leveranstiderna |
 | `msp-scen.js` | **Ren** logik (node-testad): motorns indata ur sessionen, slutet, `handlingarUr` (hoppar över `typ: "fel"`), renderingsklockan `stegaKlocka`, stationernas platser, meteorernas banor, loggindexet (kast, träffar, flödet), banderollen, besättningens humör, gunget, kosmetisk slump `brus(frö, nyckel)` |
 | `msp-rymd.js` | Vyn: DOM, EN `watchEvents`-lyssnare, bildrutsloopen, ljud, `__mspProjektor` (QA) |
 | `msp-bild.js` | En bildruta på Canvas 2D – används av vyn, lobbyn och motor-previewn |
@@ -680,18 +680,21 @@ Allt laddas latt (`projectorViews()` = `import()`); bootgrafen är 107 filer som
 
 ### 12.2 Renderingsbufferten och samma bild på två projektorer
 
-- Vyn ritar motorns tillstånd för `t = deps.now() − buffert` (`deps.now()` =
-  `live-clock.js` `serverNow`). **Bufferten** (`msp-buffert.js`, #822 F1) börjar på
-  `RENDER_FORDROJNING_MS` = **3 000 ms** (`ms-balans.js`, samma tal i serverns
-  `msPublic/status`) och **växer** när händelserna når just den här projektorn sent:
-  varje ny händelses leveranstid mäts (ankomst på den server-korrigerade klockan −
-  händelsens serverstämpel `t`; historiken i första ögonblicksbilden räknas inte) och
-  bufferten blir ≈ p95 + 0,5 s, högst **8 s**. Den **krymper aldrig** under matchen.
-- `stegaKlocka` låter `t` följa målet med verklig tid: när bufferten växer saktar
-  klockan in (fart ≥ 0,8, aldrig ett hopp bakåt), annars rättar den högst 8 % och
-  hoppar bara **framåt** (> 2 s efter, t.ex. flik i bakgrunden). `t` går aldrig bakåt.
-- **Avvägningen:** på ett dåligt nät ligger bilden längre efter elevernas tryck (upp
-  till 8 s), och över taket kan en händelse fortfarande ändra en redan visad ruta.
+- Vyn ritar motorns tillstånd för `t = deps.now() − RENDER_FORDROJNING_MS`
+  (`deps.now()` = `live-clock.js` `serverNow`). Bufferten är **2 000 ms och konstant**
+  (Elias 2026-10-21: 1–2 s; `ms-balans.js`, samma tal i serverns `msPublic/status`).
+- `stegaKlocka` låter `t` följa målet med verklig tid, rättar mjukt (högst 20 %
+  långsammare / 8 % snabbare) och hoppar bara **framåt** (> 2 s efter, t.ex. flik i
+  bakgrunden). `t` går aldrig bakåt.
+- **En händelse som kommer efter bufferten** (leveransen tog > 2 s – utanför specen)
+  ändrar aldrig det som redan visats: `msp-senvakt.js` stämplar om den till "strax
+  efter det som visats" och den verkar därifrån – en meteor som redan flugit vidare
+  fortsätter, den sena dragstrålen fångar nästa, den sena skölden fyller på från nu.
+  Omstämplingen minns per händelse. Priset: den projektorn räknar då lite annorlunda
+  än den andra (och än servern) **tills slutrutan** – slutet är alltid serverns
+  `msAvsluta`-result, och elevskärmarna visar serverns status.
+- Inget ritas förrän historiken (första ögonblicksbilden) kommit, så en projektor som
+  öppnas mitt i matchen aldrig "ändrar" sina första rutor.
 - Allt som ritas är en funktion av (sessionen, loggen, fröet, `t`): explosioner, laser,
   vågor i skölden, bucklor, rök, gnistor, gung och besättningens humör räknas ur
   motorns `logg` och postens ålder – ingen partikelstat. Kosmetisk slump kommer ur
@@ -726,7 +729,7 @@ Allt laddas latt (`projectorViews()` = `import()`); bootgrafen är 107 filer som
 
 ```
 flock /tmp/pp-821-emulator.lock node admin/qa-meteorstorm-tva-revision.mjs \
-  --latens 300,700 --sek 90 --p4b 0.3 --p4d 0.22 --attacker vilda      # och 1000,1500 · 1500,3000
+  --latens 300,1000 --sek 90 --p4b 0.3 --p4d 0.22 --attacker vilda      # och 300,1500
 ```
 
 Testarens rigg (bygger på `admin/qa-meteorstorm-tva.mjs`): Firestore-emulatorn (öppna
@@ -735,40 +738,43 @@ elever) som spelas **dåligt** (30 % / 22 % rätt, Vilda) så att skölden går 
 skrovet tar skada och dragstrålar flyger – finalen inom mätningen. Historiken skrivs i
 ett svep, nya `msEvents` i realtid som servern skriver dem. Två **separata** huvudlösa
 Chromium med den riktiga projektorn (`projector.js` → `live-feed` +
-`meteorstorm-data.js`), DevTools-fördröjning på varje anrop/long-poll (QA-proxyn tvingar
-long-poll, så den verkliga leveranstiden blir längre än den nominella).
+`meteorstorm-data.js`), DevTools-fördröjning på varje anrop/long-poll. QA-proxyn tvingar
+long-poll, så den **verkliga leveranstiden** (projektorns egen mätning: ankomst på den
+server-korrigerade klockan − händelsens `t`) blir längre än den nominella.
 
-- **Visade rutor ändrade i efterhand:** var 0,5 s sparas den ruta som faktiskt ritades
-  (tillståndets fingeravtryck + bild + textlagret); i slutet ritas samma `t` om med hela
-  loggen. "Ändrade" = tillståndet skilde sig, "synligt" = > 30 px skiljer sig.
+- **Visade rutor ändrade i efterhand:** var 0,5 s sparas den ruta som faktiskt ritades;
+  i slutet ritas samma `t` om. "Ändrade" = tillståndet skilde sig, "synligt" = > 30 px.
 - **Identiskt vid samma `t`:** var 3:e s ritar båda samma `t` i en egen canvas – det `t`
   som visas just nu (den äldre av de två) och nu − 10 s.
+- **Sena** = händelser som kom efter bufferten och verkade "från nu" (§12.2).
 
-| Nominell fördröjning | Uppmätt leverans median / p95 / max | Buffert i slutet | Visade rutor ändrade i efterhand (tillstånd / synligt / text) | Identiskt vid visad `t` · nu − 10 s | `t` bakåt |
+Konstant buffert 2 s:
+
+| Nominell | Verklig leverans median / p95 / max | Sena | Visade rutor ändrade i efterhand | Identiskt vid visad `t` · nu − 10 s (mot 300 ms-projektorn) | `t` bakåt |
 | --- | --- | --- | --- | --- | --- |
-| 300 ms | 0,6 / 0,8 / 1,2 s | 3,0 s | 0 av 185 | 29/29 · 29/29 (med 700) | 0 |
-| 700 ms | 1,3 / 1,6 / 1,8 s | 3,0 s | 0 av 196 | (se 300) | 0 |
-| 1 000 ms | 1,7 / 2,3 / 2,5 s | 3,0 s | 0 av 186 | 29/29 · 29/29 (med 1 500) | 0 |
-| 1 500 ms | 2,4 / 3,2 / 3,4 s | 3,9 s | 1 av 200 (0 synliga, 0 text) | (se 1 000) | 0 |
-| 1 500 ms (andra körningen) | 2,6 / 3,9 / 7,9 s | 4,7 s | 2 av 186 (0 synliga, 0 text) | 25/29 · 29/29 (med 3 000) | 0 |
-| 3 000 ms | 4,9 / 6,2 / 6,5 s | 7,0 s | 20 av 199 (1 synlig, 15 text) | (se 1 500) | 0 |
+| 300 ms | 0,6 / 0,7–0,9 / 0,9–1,9 s | 0 | 0 av 187–189 | – | 0 |
+| 1 000 ms | 1,7 / 2,3 / 3,0 s | 17 av 151 | 0 av 194 | 29/29 · 29/29 | 0 |
+| 1 500 ms | 2,4 / 3,1 / 3,5 s | 80 av 146 | 0 av 197 | 14/30 · 21/30 | 0 |
 
-(Före F1, med fast buffert 1,5 s, mätte testaren 88 av 203 ändrade rutor vid 1 500 ms,
-16 synliga – t.ex. "⚠️ Skölden är nere!" utan bubbla där facit hade 1/60.)
+(Före F1, med fast buffert 1,5 s och utan senvakten, mätte testaren 88 av 203 ändrade
+rutor vid 1 500 ms, 16 synliga – t.ex. "⚠️ Skölden är nere!" utan bubbla där facit hade
+1/60.)
 
-- **Leverans ≤ ~3 s (nominellt ≤ 1 000 ms):** inga visade rutor ändras, de två
+- **Det som visats ändras aldrig** – inte ens när leveransen tar 3,5 s.
+- **Leverans under 2 s** (nominellt 300 ms, och de flesta vid 1 000 ms): de två
   projektorerna är identiska vid samma `t`.
-- **Leverans 3–4 s:** bufferten växer till ~4–5 s; enstaka rutor ändras i
-  tillståndet men inget syns.
-- **Leverans 5–6 s (nominellt 3 000 ms):** bufferten växer till ~7 s, men medan den
-  växer (fart 0,8 → ~20 s för +4 s) ritas ~10 % av rutorna om, ett fåtal synligt.
-  Ovanför taket (8 s) garanteras ingen identitet.
-- **Jämn:** `t` gick aldrig bakåt. Steget per bildruta avviker från verklig tid bara
-  när klockan bromsar (högst 20 % av bildrutan, ≤ 20 ms vid långa bildrutor).
-- ❓ **Till Elias:** 3 s fast bas + växande buffert (tak 8 s) ger identiska projektorer
-  upp till ~3 s verklig leverans. Priset är att allt på projektorn kommer 3 s efter
-  elevens tryck – och mer på ett dåligt nät. Är 3 s / 8 s rätt nivå, eller hellre
-  kortare bas (snabbare respons, men enstaka ritas om på långsamma nät)?
+- **Leverans över 2 s** (nominellt 1 500 ms i den här riggen: hälften av händelserna):
+  den sena projektorn verkar händelserna en stund senare än den snabba, och bilderna
+  skiljer sig (14/30) **tills slutrutan**, som alltid är serverns `msAvsluta`.
+- En konstant 2 s klarar alltså inte "identiskt" vid nominella 1 500 ms i den här riggen,
+  eftersom den verkliga leveransen där är 2,4 s i median. QA-proxyn tvingar long-poll
+  (varje händelse väntar på ett nytt anrop med fördröjningen); i produktionen strömmar
+  Firestore och leveransen är normalt kortare.
+- **Jämn:** `t` gick aldrig bakåt; steget per bildruta avvek högst 8 ms från verklig tid.
+- ❓ **Till Elias:** bufferten är 2 s och konstant. Vid sämre nät än så kan två
+  projektorer visa lite olika förlopp (aldrig en "ångrad" bild) tills slutrutan, där
+  serverns resultat gäller. Räcker det, eller ska bufferten vara längre (allt kommer då
+  så mycket senare efter elevens tryck)?
 
 ### 12.5 Bilder per sekund (uppmätt)
 
@@ -797,11 +803,10 @@ ritas en gång per storlek; canvasen är högst 2048 px bred (`devicePixelRatio`
 ### 12.6 Testat
 
 `node --test test/live-meteorstorm-projektor.test.js` (25): formatobjektet
-(giltigt, latt, ingen musik än, slutet via D:s `resultInputs`/`buildResult`), den
-anpassade bufferten (3 s, växer till p95 + marginal, tak, krymper aldrig; klockan
-saktar in med fart ≥ 0,8 och går aldrig bakåt), indata
+(giltigt, latt, ingen musik än, slutet via D:s `resultInputs`/`buildResult`), indata
 (`msStationer` saknas → 1, lärarens avslut), `typ: "fel"` hoppas över, klockan går
-aldrig bakåt (2 000 skakiga steg), loggindexet live = sent öppnad = efter
+aldrig bakåt (2 000 skakiga steg), konstant buffert 2 s och att en sen händelse aldrig
+ändrar en visad ruta (stämplas om, `t` monoton), loggindexet live = sent öppnad = efter
 tillbakaspolning, flödet (bara positivt, högst 4 rader, specens texter, namn av),
 banderollen, besättningen, gunget, banorna (spegelvända), ritningen är en ren
 funktion (inspelande låtsas-canvas), slutrutan (vinnare, snäll text, tre ögonblick,
