@@ -88,11 +88,11 @@ export function handlingarHtml(s, result) {
   const h = result?.handlingar || {};
   const ids = s?.participatingClassIds || [];
   const perKlass = ids.length > 1
-    ? `<table class="live-table msh-handl"><thead><tr><th>Klass</th><th class="num">🛡️ Sköld</th><th class="num">🔫 Laser</th><th class="num">🌀 Drag</th><th class="num">⚡ Sparat</th></tr></thead>
+    ? `<div class="msh-scroll"><table class="live-table msh-handl"><thead><tr><th>Klass</th><th class="num">🛡️ Sköld</th><th class="num">🔫 Laser</th><th class="num">🌀 Drag</th><th class="num">⚡ Sparat</th></tr></thead>
       <tbody>${ids.map((id) => {
         const k = result?.perClass?.[id]?.handlingar || {};
         return `<tr><th scope="row">${esc(className(s, id))}</th><td class="num">${tal(k.skold)}</td><td class="num">${tal(k.laser)}</td><td class="num">${tal(k.drag)}</td><td class="num">${tal(k.spara)}</td></tr>`;
-      }).join("")}</tbody></table>`
+      }).join("")}</tbody></table></div>`
     : "";
   return `<ul class="msh-summor" aria-label="Handlingar per sort">
       <li><span>🛡️ Sköld</span><b>${tal(h.skold)}</b></li>
@@ -140,10 +140,10 @@ function kategorierHtml(mode, perQuestions, classId = null, tag = "h3") {
   const rows = categoryRates(perQuestions, mode?.statCategories, { classId });
   if (!rows.length) return "";
   return `<${tag}>${isMult(mode) ? "Andel rätt per tabell" : "Andel rätt per kategori"}</${tag}>
-    <table class="live-table msh-kat"><thead><tr><th>${isMult(mode) ? "Tabell" : "Kategori"}</th>
+    <div class="msh-scroll"><table class="live-table msh-kat"><thead><tr><th>${isMult(mode) ? "Tabell" : "Kategori"}</th>
       <th class="num">Svar</th><th class="num">Rätt</th><th>Andel rätt</th></tr></thead>
     <tbody>${rows.map((r) => `<tr><th scope="row">${esc(r.label)}</th><td class="num">${r.answered}</td><td class="num">${r.correct}</td>
-      <td class="msh-andel">${bar(r.rate)}</td></tr>`).join("")}</tbody></table>`;
+      <td class="msh-andel">${bar(r.rate)}</td></tr>`).join("")}</tbody></table></div>`;
 }
 
 export function detailHtml(s, result) {
@@ -232,9 +232,9 @@ export function classSummaryHtml(entries, classId) {
     if (!tab && !svar.length) continue;
     parts.push(`<div class="msh-klass"><h4>☄️ Meteorstormen – ${esc(mode ? mode.displayName : modeId)}</h4>
       ${tab}
-      ${svar.length ? `<h5>Klassens svåraste ${isMult(mode) ? "uppgifter" : "frågor"}</h5><table class="live-table"><thead><tr><th>${isMult(mode) ? "Uppgift" : "Fråga"}</th>${isMult(mode) ? "" : "<th>Match</th>"}<th class="num">Svar</th><th>Andel rätt</th></tr></thead>
+      ${svar.length ? `<h5>Klassens svåraste ${isMult(mode) ? "uppgifter" : "frågor"}</h5><div class="msh-scroll"><table class="live-table"><thead><tr><th>${isMult(mode) ? "Uppgift" : "Fråga"}</th>${isMult(mode) ? "" : "<th>Match</th>"}<th class="num">Svar</th><th>Andel rätt</th></tr></thead>
         <tbody>${svar.map((x) => `<tr><th scope="row">${esc(x.text)}</th>${isMult(mode) ? "" : `<td>${esc(x.match)}</td>`}
-          <td class="num">${x.answered}</td><td class="msh-andel">${bar(x.correct / x.answered)}</td></tr>`).join("")}</tbody></table>` : ""}</div>`);
+          <td class="num">${x.answered}</td><td class="msh-andel">${bar(x.correct / x.answered)}</td></tr>`).join("")}</tbody></table></div>` : ""}</div>`);
   }
   return parts.join("");
 }

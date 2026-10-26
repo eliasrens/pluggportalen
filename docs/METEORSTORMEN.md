@@ -5,7 +5,8 @@ försvarar var sin rymdstation mot en **förutbestämd** meteorstorm; rätt svar
 energi som eleven lägger på 🛡️ sköld, 🔫 laser eller 🌀 dragstråle. Specen:
 [`UTVECKLINGSUPPDRAG_METEORSTORMEN.md`](UTVECKLINGSUPPDRAG_METEORSTORMEN.md).
 Det här är **formatets kontraktsdokument** – del A (#820) beskriver motorn,
-B (#821) servern (§7–§10), C (#822) projektorn (§12), D (#823) elevskärmen och lärarvyerna (§11); E fyller på.
+B (#821) servern (§7–§10), C (#822) projektorn (§12), D (#823) elevskärmen och lärarvyerna (§11), E (#824)
+musiken, finputsen och checklistan (§13). **Alla öppna frågor till Elias: §14.**
 
 ---
 
@@ -19,6 +20,7 @@ B (#821) servern (§7–§10), C (#822) projektorn (§12), D (#823) elevskärmen
 | `delat/ms-indata.js` | Normalisering av indata, ordningen på handlingar (t, sedan id) |
 | `delat/ms-station.js` | En stations mekanik: sköldmätaren, laserladdningen, nedslag |
 | `delat/ms-motor.js` | Motorn: `simulera`, `skapaMotor` (fasta steg, kontrollpunkter, cache) |
+| `delat/ms-steg.js`, `delat/ms-utdata.js` | **E:** motorns steg 1–6 och tillståndet ut – utbrutna ur `ms-motor.js` (#824, ingen beteendeändring) |
 | `delat/ms-resultat.js` | Slutet: vinnare, oavgjort, stjärnor |
 | `delat/ms-agera.js` | Det servern behöver: `energiEffekt`, `kanAgera`, `effektPerTryck`, `stormPlan` |
 | `functions/meteorstorm/` | **Genererad** kopia av `delat/` (`npm run sync:meteorstorm`, predeploy). Redigera aldrig |
@@ -670,7 +672,7 @@ och `preview/preview-meteorstorm-historik.html`.
 
 | Fil | Innehåll |
 | --- | --- |
-| `index.js` | Formatobjektet = `{ id, …projektordelarna, ...MS_ELEV_DELAR }` (D:s `ms-format-elev.js`, §11). **C:s del:** namn/ikon/svarssätt/takt, `compatibleGameModes`, `computeStandings` (klasser + anslutna elever), `emitOnPlayers`, `projectorViews`. `music` saknas tills E lägger in filen (ingen 🎵-knapp, ingen 404) |
+| `index.js` | Formatobjektet = `{ id, …projektordelarna, ...MS_ELEV_DELAR }` (D:s `ms-format-elev.js`, §11). **C:s del:** namn/ikon/svarssätt/takt, `compatibleGameModes`, `computeStandings` (klasser + anslutna elever), `emitOnPlayers`, `projectorViews`. `music` (E, §13.1) |
 | `meteorstorm-projector.js` | Projektorskalets modul: vyn ☄️ Rymden (`finale`), lobbyn, `ownTimer` |
 | `msp-senvakt.js` | **Ren**: händelserna → motorns handlingar; en sen händelse verkar "från nu" (§12.2), leveranstiderna |
 | `msp-scen.js` | **Ren** logik (node-testad): motorns indata ur sessionen, slutet, `handlingarUr` (hoppar över `typ: "fel"`), renderingsklockan `stegaKlocka`, stationernas platser, meteorernas banor, loggindexet (kast, träffar, flödet), banderollen, besättningens humör, gunget, kosmetisk slump `brus(frö, nyckel)` |
@@ -730,7 +732,7 @@ Allt laddas latt (`projectorViews()` = `import()`); bootgrafen är 107 filer som
   egna sessionsskrivningar (STARTA, `endsAt`, `status`) är desamma som i alla format.
 - **Paus finns inte:** stormen följer serverns klocka och är samma för alla elever
   och båda projektorerna – ingen annan Live-projektor har paus heller. Kontrollerna
-  är skalets: Avsluta, ljud, 🎵 musik (när E lagt in filen) och fullskärm.
+  är skalets: Avsluta, ljud, 🎵 musik (§13.1) och fullskärm.
 
 ### 12.4 Två projektorer med nätfördröjning (uppmätt, skadescenariot)
 
@@ -810,7 +812,7 @@ ritas en gång per storlek; canvasen är högst 2048 px bred (`devicePixelRatio`
 ### 12.6 Testat
 
 `node --test test/live-meteorstorm-projektor.test.js` (25): formatobjektet
-(giltigt, latt, ingen musik än, slutet via D:s `resultInputs`/`buildResult`), indata
+(giltigt, latt, slutet via D:s `resultInputs`/`buildResult`), indata
 (`msStationer` saknas → 1, lärarens avslut), `typ: "fel"` hoppas över, klockan går
 aldrig bakåt (2 000 skakiga steg), konstant buffert 2 s och att en sen händelse aldrig
 ändrar en visad ruta (stämplas om, `t` monoton), loggindexet live = sent öppnad = efter
@@ -830,3 +832,113 @@ lägen), `slungad.jpg` (slungad meteor med svans och "från 4B"), `jattemeteor.j
 skada", besättningen i rymddräkter), `slut-kmk.jpg`, `slut-en-klass.jpg`, `lobby.jpg`, `tva-a.jpg`/`tva-b.jpg`
 (två projektorer frysta på samma `t`). Huvudlös Chromium saknar emoji-typsnitt –
 rutorna visas som emoji i en vanlig webbläsare.
+
+---
+
+## 13. Musiken, finputsen och checklistan (E, #824)
+
+### 13.1 Musiken
+
+- **Filen:** `src/live/formats/meteorstorm/assets/meteorstormen-loop.ogg` (Elias låt
+  2026-10-21, `meteorstormen-loop-v2.ogg`). Ogg Vorbis, 44,1 kHz stereo, 1,26 MB,
+  **exakt 80,0 s** (3 528 000 sampel – testat), en loop.
+- **Kopplingen** är densamma som i Guldrushen: `music: { src: new URL("./assets/meteorstormen-loop.ogg",
+  import.meta.url).href, level: 0.3, lobby: 0 }` i `index.js`. Projektorskalet
+  (`proj-music.js`) sköter resten: filen hämtas först när projektorn öppnar lobbyn (inte
+  i bootgrafen – `index.js` innehåller bara en URL, bootgrafen är 107 filer som förut),
+  avkodas med Web Audio och loopas **sampelexakt** (`AudioBufferSourceNode`, `loop = true`
+  över hela bufferten – inget `<audio loop>`-hack vid skarven). Tyst i lobbyn och under
+  3-2-1, tonas in efter KÖR!, ut vid 00:00. Formatets egna ljud (`msp-ljud.js`, via
+  `sound.play`) sänker musiken till 70 % en kort stund, som Guldrushens kistljud.
+- **Lärarens knapp:** 🎵 Musik på/av i projektorns kontroller (`pp:live:musik`, sparas per
+  webbläsare, standard på) – samma knapp som i Guldrushen och Datakuppen, och den följer med
+  till elevskärmsfönstret. Ingen musik på elevernas datorer.
+- **Safari:** precis som Guldrushen finns ingen MP3-reserv. Äldre Safari (macOS/iPad) kan
+  inte avkoda Ogg Vorbis – där blir musiken tyst (en varning i konsolen) medan ljudeffekterna
+  fungerar. Projektorn körs normalt i Chrome/Edge på lärardatorn, och Chromebooks spelar
+  OGG. (Fråga 14.6.)
+
+### 13.2 "Live pågår!" i elevens sidomeny (delad Live-kod)
+
+C:s e2e visade att rutan "Live pågår!" låg kvar efter matchen. Det fanns två orsaker, och
+båda gällde alla format:
+
+1. Sidomenyn (`src/ui.js`) visar en villkorad länk även när villkoret är falskt **om eleven
+   står på länkens sida**, och eleven står kvar på slutskärmen i `#/elev/live`. Nu gäller
+   undantaget inte Live-rutan (`villkorSynlig`). Prov och Mattematchen beter sig som förut.
+2. Menyns bevakare (`src/live/live-watch.js`) räknade en match som "pågår" i 2 min efter
+   00:00 (marginalen för en session som ingen hunnit avsluta). Menyn följer nu
+   `bannerSessions`: lobby, eller en match vars klocka går. Rutan försvinner **vid 00:00**
+   (en timer ritar om menyn exakt då, inte först vid nästa 20 s-tick) och när status blir
+   `finished`/sessionen raderas. Sidan `#/elev/live` använder fortfarande `relevantSessions`
+   med marginalen, så en elev som laddar om just efter 00:00 ändå ser slutskärmen.
+
+Testat i `test/live-watch.test.js` (alla fem formaten, lärarstyrt format utan klocka,
+undantaget för Prov kvar).
+
+### 13.3 Motorn delad
+
+`delat/ms-motor.js` (403 rader) är delad utan beteendeändring: stegen 1–6 (handlingar,
+meteorer, dragstrålar, lasrar, nedslag, hjälpen) ligger i `delat/ms-steg.js`, och
+tillståndet ut i `delat/ms-utdata.js`. Motorn har kvar orkestreringen, kontrollpunkterna,
+cachen och API:t (`simulera`, `skapaMotor`, `buildResultat`) – inga importer ändrades.
+Kontroll: en "golden"-körning (simulera + skapaMotor med satHandlingar/laggTill/tillbakaspolning
+över 36 matcher, alla lägen och attacker) gav samma SHA-256 före och efter. Synken
+(`npm run sync:meteorstorm`) kopierar de två nya filerna till `functions/meteorstorm/`, och
+drifttestet är grönt.
+
+### 13.4 Kopplat demoläge (projektorn + elevskärmen)
+
+`preview/preview-meteorstorm-demolage.html`: projektorn (1920 × 1080) och en elevskärm i
+mobil (375 × 812) sida vid sida i **samma** påhittade match. Elevskärmen är
+`preview-meteorstorm-elev.html?koppla=1` (D:s riktiga elevvy mot låtsasservern
+`ms-elev-demo.js`). Projektorn är `preview-meteorstorm-demo.html?koppla=1`. Den ritar
+låtsasserverns match via `ms-demolage.js` (`projektorDeps`: sessionen som live-feed, loggen
+som `msEvents`, `msAvsluta`). Det "Jag" trycker (🛡️/🔫/🌀) syns på projektorn efter 2 s.
+Slutrutan, elevens slutskärm och pluggmynten kommer ur samma resultat. Panelen har knappar
+för klockan (nästa händelse, +60 s, 20 s kvar), för att svara rätt eller fel och välja
+handling, och för En klass och Vilda. Ingen Firestore, inga Cloud Functions, inga
+pluggmynt. Testat i `test/live-meteorstorm-finputs.test.js`. De fristående demosidorna
+finns kvar.
+
+### 13.5 Finputs
+
+- **Texterna:** genomgångna på elevskärmen, projektorn och i historiken. Den enda
+  ändringen gäller en elev med 0 rätt: "Svara rätt nästa gång – …" blev "Varje rätt svar ger
+  stationen energi – nästa storm är din! 🚀". Flödet visar bara det som är bra, och
+  slutskärmen har ingen placering som nummer.
+- **Formatväljaren:** ☄️ Meteorstormen – "Försvara rymdstationen – sköld, laser och
+  dragstråle." står sist bland formaten, med fälten Läge, Attacker, speltid, namn och
+  pluggmynt. Förhandsvisningen är `preview/preview-meteorstorm-formatval.html` (lärarens
+  riktiga formulär med minnes-stubbar).
+- **Ingen blinkning:** inga vita blixtar. Varningslampan pulserar långsamt (3,2 s på
+  elevskärmen, 2,4 s i lobbyn), och explosionerna är mjuka. `prefers-reduced-motion`
+  ger stilla besättning, inget gung och inga CSS-animationer eller övergångar (projektorn,
+  elevskärmen och lobbyn). Bild: `docs/meteorstormen-824/projektor-reducerad.jpg`.
+- **Mobil 375 px:** elevskärmen, lobbyn och slutskärmen ryms utan vågrät scroll.
+  Historikens tabeller (handlingar per klass, kategorier, klassens svåraste) ligger nu i
+  `.msh-scroll` som eleverna-tabellen, så sidan inte scrollar i sidled på en telefon.
+- **Skärmdumparna:** `node admin/qa-meteorstorm-skarmdumpar.mjs` (egen huvudlös Chromium,
+  rapporterar fel i konsolen och vågrät scroll) → `docs/meteorstormen-824/`.
+
+### 13.6 LIVE-FORMAT §10 – checklistan
+
+| Punkt | Status |
+| --- | --- |
+| `src/live/formats/meteorstorm/` med `index.js`, ren kärna, lata vyer | ✅ Ren kärna = `delat/` (+ rena `msp-scen.js`/`ms-elev.js`/`ms-klient.js`), vyer via `import()` |
+| Kistformat → `src/live/kistspel/` | – Inget kistformat. Egen motor; frågeflödet återanvänder `createQuestionFlow` |
+| En rad i `BUILTIN_FORMATS` | ✅ `src/live/formats/index.js` |
+| Regelgren i `firestore.rules` + routning | ✅ "Meteorstormen" (B, §8) |
+| `test/live-meteorstorm*.test.js` + `test/firestore-rules-live-meteorstorm*.test.js` i `test:rules` | ✅ Båda regelfilerna står i `test:rules`, och functions-testerna i `test:functions` |
+| Pluggmynt (§6) | ✅ Placeringspris per klass (−15 %/plats), per rätt svar, stjärnor i En klass (D, §11) |
+| Projektorvyer, elevskärm, historik | ✅ C §12, D §11 |
+| Demoläge + `preview/preview-meteorstorm-demo.html` | ✅ Plus kopplat demoläge (§13.4) |
+| Egen CSS per format, reducerad rörelse | ✅ Bara `msp-`/`mse-`/`msh-`-klasser (testat), §13.5 |
+| `docs/DATAMODELL.md` | ✅ Underdokumenten listas där, och fälten och `result` beskrivs i §8 här (länkat) |
+| Bootgrafen orörd | ✅ 107 filer (`test/live-formats.test.js`) |
+| Alla sviter gröna | ✅ Se §13.7 |
+| Deploy före merge till `main` | ⏳ Kräver Elias OK: indexes → rules → functions → webb (§10) |
+
+### 13.7 Sviterna (E)
+
+Se §13.8 (fylls i efter körningen).

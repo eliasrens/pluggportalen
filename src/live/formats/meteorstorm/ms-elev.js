@@ -279,7 +279,7 @@ export function bidragText(row) {
   if (int(b.kast)) delar.push(`slungade ${int(b.kast)} ${int(b.kast) === 1 ? "meteor" : "meteorer"} med dragstrålen`);
   if (delar.length) return `Du ${lista(delar)}.`;
   if (int(row.correct)) return `Du svarade rätt ${ggr(int(row.correct))} och sparade energin.`;
-  return "Svara rätt nästa gång – varje rätt svar ger stationen energi!";
+  return "Varje rätt svar ger stationen energi – nästa storm är din! 🚀";
 }
 
 /** Myntens rader – placeringspriset heter stationens pris (aldrig "2:a"). */

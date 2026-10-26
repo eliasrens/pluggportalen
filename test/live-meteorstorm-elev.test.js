@@ -307,7 +307,7 @@ describe("slutskärmen – ingen placering som nummer (ms-skarmar.js)", () => {
   });
   it("bidraget och myntens rader", () => {
     assert.equal(bidragText({ correct: 3, handlingar: { spara: 3 }, bidrag: {} }), "Du svarade rätt 3 gånger och sparade energin.");
-    assert.equal(bidragText({ correct: 0, handlingar: {}, bidrag: {} }), "Svara rätt nästa gång – varje rätt svar ger stationen energi!");
+    assert.equal(bidragText({ correct: 0, handlingar: {}, bidrag: {} }), "Varje rätt svar ger stationen energi – nästa storm är din! 🚀");
     assert.equal(bidragText({ handlingar: { laser: 1 }, bidrag: {} }), "Du laddade lasern en gång.");
     assert.deepEqual(myntRader({ prize: 100, correct: 4, correctCoins: 20 }, "en-klass").map((r) => r.label), ["⭐ Stjärnpris", "4 rätt svar"]);
     assert.deepEqual(myntRader(null), []);

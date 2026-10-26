@@ -48,7 +48,7 @@
       <div class="pv-body">
         <span class="pv-note">Simulerad storm i webbläsaren – ingen Firestore, inga Cloud Functions, inga riktiga elever,
           resultat eller pluggmynt. Stormen och stationerna räknas av den riktiga motorn. Projektorn ritar
-          3 s efter "nu" (renderingsbufferten). Ljud: klicka i sidan en gång.</span>
+          2 s efter "nu" (renderingsbufferten). Ljud: klicka i sidan en gång.</span>
         <b>Börja i (startar om)</b>
         <button data-go="fas=lobby">Tom lobby</button>
         <button data-go="fas=storm">Pågående storm</button>
@@ -94,66 +94,80 @@
       const logEl = document.querySelector("[data-log]");
       const log = (t) => { logEl.textContent = `${new Date().toLocaleTimeString("sv-SE")} ${t}\n${logEl.textContent}`.slice(0, 3000); };
 
-      const ratt = (q.get("ratt") || "0.75,0.6").split(",").map(Number);
-      const demo = createMsDemo({
-        sid, klasser: q.get("klasser") === "1" ? 1 : 2, attacker: q.get("attacker") || "milda",
-        seed: Number(q.get("seed")) || 819, ratt, onLog: log,
-      });
-      if (FAS === "storm") demo.gaTill(Number(q.get("sek")) || 150);
-      if (FAS === "final") demo.jumpToFinal();
-      if (FAS === "lobby" && q.get("anslut") !== "nej") demo.join(30, 120);
-
       const ctx = { app: document.getElementById("app"), go: (h) => log(`navigera till ${h}`) };
       let cleanups = [];
-      function mount() {
-        cleanups.forEach((c) => c());
-        cleanups = [];
-        mountProjector(ctx, sid, { cleanups, uid: "demo-larare", deps: demo.deps });
-      }
       let reduced = q.get("rorelse") === "reducerad";
       if (reduced) forceReducedMotion(true);
-      mount();
+      // ?koppla=1 (#824): projektorn i preview-meteorstorm-demolage.html – samma match som
+      // elevskärmen bredvid (elevdemots låtsasserver via ms-demolage.js), ingen egen demo.
+      if (q.get("koppla") === "1") {
+        panel.hidden = true;
+        const { projektorDeps } = await import("../src/live/formats/meteorstorm/ms-demolage.js");
+        let E = null;
+        while (!(E = parent.__msKoppling)) await new Promise((r) => setTimeout(r, 100));
+        const k = projektorDeps(E, { onLog: (t) => parent.__msLogg?.(t) });
+        mountProjector(ctx, E.session.id, { cleanups, uid: "demo-larare", deps: k.deps });
+        window.__msKopplad = k;
+      } else fristaende();
 
-      const press = (name, on) => document.querySelector(`[data-act="${name}"]`)?.setAttribute("aria-pressed", String(on));
-      const act = {
-        anslut: () => demo.join(30, 140),
-        auto: () => { demo.setAuto(!demo.auto); press("auto", demo.auto); },
-        h: (b) => demo.nastaHandelse(b.dataset.typ),
-        kast0: () => demo.kasta(0),
-        kast1: () => demo.kasta(1),
-        snart: () => demo.soonOut(15),
-        rorelse: () => {
-          reduced = !reduced;
-          forceReducedMotion(reduced);
-          press("rorelse", reduced);
-          const p = new URLSearchParams(location.search);
-          if (reduced) p.set("rorelse", "reducerad"); else p.delete("rorelse");
-          history.replaceState(null, "", `?${p}${location.hash}`);
-          mount();
-        },
-        frys: () => press("frys", demo.toggleFreeze()),
-        omladd: () => mount(),
-        dolj: () => { panel.classList.add("pv-dold"); setTimeout(() => panel.classList.remove("pv-dold"), 5000); },
-      };
-      press("rorelse", reduced);
-      const go = (qs) => {
-        const old = new URLSearchParams(location.search);
-        const p = new URLSearchParams(qs);
-        if (old.has("rorelse")) p.set("rorelse", old.get("rorelse"));
-        location.search = p.toString();
-      };
-      document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => go(b.dataset.go)));
-      document.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => act[b.dataset.act](b)));
-      setInterval(() => {
-        press("auto", demo.auto);
-        const { session: s, players, events } = demo.state();
-        const blocked = window.__msDemoBlocked.length;
-        const fps = window.__mspProjektor?.fps?.();
-        document.querySelector("[data-stat]").innerHTML = `fas ${s.status} · elever ${players.length} · händelser ${events.length}
-          · auto ${demo.auto ? "på" : "av"}${fps ? ` · ${fps.fps} fps (p95 ${fps.p95Ms} ms)` : ""}<br>
-          Firebase-anrop: <span class="${blocked ? "pv-bad" : "pv-ok"}">${blocked ? `${blocked} BLOCKERADE` : "0 ✓"}</span>`;
-      }, 500);
-      window.__msDemo = { demo, act, mount };
+      function fristaende() {
+        const ratt = (q.get("ratt") || "0.75,0.6").split(",").map(Number);
+        const demo = createMsDemo({
+          sid, klasser: q.get("klasser") === "1" ? 1 : 2, attacker: q.get("attacker") || "milda",
+          seed: Number(q.get("seed")) || 819, ratt, onLog: log,
+        });
+        if (FAS === "storm") demo.gaTill(Number(q.get("sek")) || 150);
+        if (FAS === "final") demo.jumpToFinal();
+        if (FAS === "lobby" && q.get("anslut") !== "nej") demo.join(30, 120);
+
+        function mount() {
+          cleanups.forEach((c) => c());
+          cleanups = [];
+          mountProjector(ctx, sid, { cleanups, uid: "demo-larare", deps: demo.deps });
+        }
+        mount();
+
+        const press = (name, on) => document.querySelector(`[data-act="${name}"]`)?.setAttribute("aria-pressed", String(on));
+        const act = {
+          anslut: () => demo.join(30, 140),
+          auto: () => { demo.setAuto(!demo.auto); press("auto", demo.auto); },
+          h: (b) => demo.nastaHandelse(b.dataset.typ),
+          kast0: () => demo.kasta(0),
+          kast1: () => demo.kasta(1),
+          snart: () => demo.soonOut(15),
+          rorelse: () => {
+            reduced = !reduced;
+            forceReducedMotion(reduced);
+            press("rorelse", reduced);
+            const p = new URLSearchParams(location.search);
+            if (reduced) p.set("rorelse", "reducerad"); else p.delete("rorelse");
+            history.replaceState(null, "", `?${p}${location.hash}`);
+            mount();
+          },
+          frys: () => press("frys", demo.toggleFreeze()),
+          omladd: () => mount(),
+          dolj: () => { panel.classList.add("pv-dold"); setTimeout(() => panel.classList.remove("pv-dold"), 5000); },
+        };
+        press("rorelse", reduced);
+        const go = (qs) => {
+          const old = new URLSearchParams(location.search);
+          const p = new URLSearchParams(qs);
+          if (old.has("rorelse")) p.set("rorelse", old.get("rorelse"));
+          location.search = p.toString();
+        };
+        document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => go(b.dataset.go)));
+        document.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => act[b.dataset.act](b)));
+        setInterval(() => {
+          press("auto", demo.auto);
+          const { session: s, players, events } = demo.state();
+          const blocked = window.__msDemoBlocked.length;
+          const fps = window.__mspProjektor?.fps?.();
+          document.querySelector("[data-stat]").innerHTML = `fas ${s.status} · elever ${players.length} · händelser ${events.length}
+            · auto ${demo.auto ? "på" : "av"}${fps ? ` · ${fps.fps} fps (p95 ${fps.p95Ms} ms)` : ""}<br>
+            Firebase-anrop: <span class="${blocked ? "pv-bad" : "pv-ok"}">${blocked ? `${blocked} BLOCKERADE` : "0 ✓"}</span>`;
+        }, 500);
+        window.__msDemo = { demo, act, mount };
+      }
     </script>
   </body>
 </html>

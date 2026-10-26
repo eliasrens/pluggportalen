@@ -25,7 +25,7 @@
 .msh-tagg { display: inline-block; margin-left: 6px; padding: 0 7px; border-radius: 999px; font-size: 0.75rem; font-weight: 700;
   background: rgba(226, 85, 79, 0.18); color: #e2554f; }
 .msh-fragor summary { cursor: pointer; font-weight: 700; margin: 8px 0; }
-.msh-scroll { overflow-x: auto; }
+.msh-scroll { overflow-x: auto; max-width: 100%; }
 .msh-klass h5 { margin: 10px 0 4px; font-size: 0.95rem; }
 @media (max-width: 520px) {
   .msh-bar { width: 70px; }

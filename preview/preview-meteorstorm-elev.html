@@ -75,6 +75,11 @@
         statusMs: (Number(qs.get("status")) || 20) * 1000,
       });
       window.__msDemo = demo;
+      // ?koppla=1 (#824): preview-meteorstorm-demolage.html – projektorn bredvid ritar samma match.
+      if (qs.get("koppla") === "1" && parent !== window) {
+        parent.__msKoppling = demo;
+        $("[data-panel]").hidden = true;
+      }
       const session = demo.session;
       const answerKind = quizOn || qs.get("svar") === "choice" ? "choice" : "free";
       session.answerKind = answerKind;
