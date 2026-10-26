@@ -64,11 +64,19 @@ export function slutModell(result, s) {
         : `${k ? k.namn : "Klassen"} kämpade ända till slutet – nästa storm tar ni! 🚀`,
     };
   }
+  // Serverns ordning (ms-resultat.js buildResultat): mest skrov, sedan flest nedskjutna, annars oavgjort.
   const vinnare = klasser.find((k) => k.vann);
+  const [a, b] = placering;
+  const likaSkrov = !!a && !!b && Number(a.skrov) === Number(b.skrov);
+  const under = vinnare
+    ? likaSkrov ? "Lika mycket skrov – flest nedskjutna meteorer avgjorde." : "Mest skrov kvar när stormen var över."
+    : Number(a?.skrov) > 0
+      ? "Lika mycket skrov och lika många nedskjutna – båda stationerna klarade stormen!"
+      : "Lika mycket skrov och lika många nedskjutna – båda klasserna kämpade ända till slutet!";
   return {
     lage: "klass-mot-klass", klasser,
     rubrik: vinnare ? `${vinnare.namn} vann Meteorstormen!` : "Oavgjort!",
-    under: vinnare ? "Mest skrov kvar när stormen var över." : "Lika mycket skrov och lika många nedskjutna – båda stationerna klarade stormen!",
+    under,
   };
 }
 

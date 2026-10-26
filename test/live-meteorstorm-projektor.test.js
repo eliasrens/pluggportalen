@@ -294,6 +294,17 @@ describe("Meteorstormen projektorn: slutrutan bygger på serverns result", () =>
     assert.doesNotMatch(html, /Ska inte synas/);
     assert.match(html, /62 %/);
   });
+  it("lika skrov: flest nedskjutna avgjorde (serverns ordning); oavgjort vid 0 % säger inte 'klarade stormen' (#822 F3)", () => {
+    const lika = (skrov, ned) => ({ ...result, winner: "4d",
+      placering: [{ classId: "4d", skrov, nedskjutna: ned[0], plats: 1 }, { classId: "4b", skrov, nedskjutna: ned[1], plats: 2 }] });
+    assert.equal(slutModell(lika(0, [1, 0]), session()).under, "Lika mycket skrov – flest nedskjutna meteorer avgjorde.");
+    assert.equal(slutModell(lika(100, [2, 1]), session()).under, "Lika mycket skrov – flest nedskjutna meteorer avgjorde.");
+    assert.equal(slutModell(result, session()).under, "Mest skrov kvar när stormen var över.");
+    const oavgjort = (skrov) => ({ ...result, winner: null, draw: true,
+      placering: [{ classId: "4b", skrov, nedskjutna: 3, plats: 1 }, { classId: "4d", skrov, nedskjutna: 3, plats: 1 }] });
+    assert.match(slutModell(oavgjort(40), session()).under, /båda stationerna klarade stormen/);
+    assert.doesNotMatch(slutModell(oavgjort(0), session()).under, /klarade stormen/);
+  });
   it("namn av → ögonblicken utan namn; oavgjort; En klass med stjärnor", () => {
     assert.doesNotMatch(slutModell(result, session({ showNames: false })).klasser[0].ogonblick.join(), /Ahlaam/);
     assert.equal(slutModell({ ...result, winner: null, draw: true }, session()).rubrik, "Oavgjort!");
