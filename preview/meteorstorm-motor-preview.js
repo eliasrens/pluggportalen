@@ -1,18 +1,20 @@
 // ============================================================================
-// Meteorstormen (#820): motor-previewn – en ENKEL debug-rendering av motorns
-// tillstånd (den riktiga grafiken byggs i C). Tidsreglage, "Samma frö"-knapp
+// Meteorstormen (#820): motor-previewn – motorns tillstånd ritat med
+// projektorns riktiga bild (msp-bild.js, #822). Tidsreglage, "Samma frö"-knapp
 // (två nya motorer, samma indata → samma fingeravtryck) och skrovreglage som
-// visar skadenivåerna (§4.1.1). Ingen Firebase, inget format registreras.
+// visar skadenivåerna (§4.1.1) på riktigt: skrovet styrs för alla stationer. Ingen Firebase, inget format registreras.
 // ============================================================================
 
 import { skapaMotor } from "../src/live/formats/meteorstorm/delat/ms-motor.js";
 import { stormPlan } from "../src/live/formats/meteorstorm/delat/ms-agera.js";
 import { skapaPrng, hashFro } from "../src/live/formats/meteorstorm/delat/ms-prng.js";
 import { STEG_MS, SKOLD_TAK, LADDNING_TAK, ATTACKER, skadeniva, RENDER_FORDROJNING_MS } from "../src/live/formats/meteorstorm/delat/ms-balans.js";
+import { skapaBild } from "../src/live/formats/meteorstorm/msp-bild.js";
+import { skapaLoggminne } from "../src/live/formats/meteorstorm/msp-scen.js";
 
 const START = 1_700_000_000_000;
 const $ = (id) => document.getElementById(id);
-const FARG = ["#ffb347", "#7ad3ff", "#b48cff", "#8ee59b"];
+const FARG = ["#ff7a3d", "#3d9bff", "#2fd07a", "#ff5fa2"];
 const IKON = { solstorm: "☀️ SOLSTORM! Dubbel energi", jattemeteor: "☄️ JÄTTEMETEOR – skjut ner den!", kometsvans: "✨ Kometsvans: +1 energi", lugnet: "🌌 Lugnet – andas!" };
 
 /**
@@ -56,11 +58,15 @@ let cfg = indata();
 let motor = null;
 let spelar = false;
 let skrovOverride = null;
+const bild = skapaBild($("rymd"));
+bild.storlek(1600, 900);
+let loggminne = skapaLoggminne();
 
 function bygg() {
   cfg = indata();
   motor = skapaMotor(cfg);
   motor.satHandlingar(cfg.handlingar);
+  loggminne = skapaLoggminne();
   $("t").max = String(cfg.varaktighetMs);
   const plan = stormPlan(cfg);
   $("plan").textContent = `${plan.meteorer.length} meteorer per station · händelser: ${plan.handelser.map((h) => `${h.typ} ${Math.round(h.startMs / 1000)} s`).join(", ")} · ${cfg.handlingar.length} handlingar i loggen`;
@@ -84,67 +90,16 @@ function sammaFro() {
   $("samma").dataset.lika = String(lika);
 }
 
-function stationPos(i, n, W, H) {
-  if (n === 1) return [W / 2, H * 0.55];
-  return [W * (0.25 + (0.5 * i) / (n - 1)), H * 0.55];
-}
-
 function rita() {
   const t = Number($("t").value);
   const s = motor.tillstand(START + t);
   $("tLabel").textContent = `${(t / 1000).toFixed(1)} s / ${cfg.varaktighetMs / 1000} s`;
-  const cv = $("rymd");
-  const g = cv.getContext("2d");
-  const W = cv.width;
-  const H = cv.height;
-  g.fillStyle = "#0d1640";
-  g.fillRect(0, 0, W, H);
-  const rng = skapaPrng("stjarnor");
-  g.fillStyle = "#fff";
-  for (let i = 0; i < 90; i++) g.fillRect(rng.tal() * W, rng.tal() * H, 1.5, 1.5);
-  const idx = new Map(s.stationer.map((st, i) => [st.classId, i]));
-  s.stationer.forEach((st, i) => {
-    const [x, y] = stationPos(i, s.stationer.length, W, H);
-    const skrov = skrovOverride ?? st.skrov;
-    const niva = skadeniva(skrov);
-    g.globalAlpha = 0.15 + (0.6 * st.skold) / SKOLD_TAK;
-    g.strokeStyle = "#8fd8ff";
-    g.lineWidth = 6;
-    g.beginPath(); g.arc(x, y, 62, 0, Math.PI * 2); g.stroke();
-    g.globalAlpha = niva.id === "flyter" ? 0.45 : 1;
-    g.fillStyle = FARG[i];
-    g.beginPath(); g.arc(x, y, 34, 0, Math.PI * 2); g.fill();
-    g.globalAlpha = 1;
-    g.fillStyle = "#fff";
-    g.font = "bold 16px system-ui";
-    g.textAlign = "center";
-    g.fillText(st.classId, x, y + 5);
-    g.font = "12px system-ui";
-    g.fillText(`skrov ${skrov.toFixed(1)} · sköld ${st.skold.toFixed(1)} · laser ${st.laddning.toFixed(2)}`, x, y + 88);
-    g.fillText(`${niva.id}${st.hjalp ? " · 🚀 extra kraft" : ""}${st.drag.tillaten ? ` · 🌀 ${st.drag.armerad ? "väntar" : t + START >= st.drag.redoMs ? "redo" : `${Math.ceil((st.drag.redoMs - START - t) / 1000)} s`} (${st.drag.kostnad})` : ""}`, x, y + 104);
+  // Projektorns riktiga ritning (#822): skadenivåerna, skölden, besättningen, meteorerna.
+  bild.rita({
+    s, tMotor: START + t, tAnim: START + t, cfg: motor.cfg, plan: motor.plan, minne: loggminne.las(s.logg),
+    farger: s.stationer.map((_, i) => FARG[i]), namn: (id) => id, seed: motor.cfg.seed, rorelse: true, slut: null,
+    skrov: skrovOverride == null ? null : s.stationer.map(() => skrovOverride),
   });
-  for (const m of s.meteorer) {
-    const i = idx.get(m.mal);
-    const [x, y] = stationPos(i, s.stationer.length, W, H);
-    let fx;
-    let fy;
-    if (m.kastadAv) [fx, fy] = stationPos(idx.get(m.kastadAv), s.stationer.length, W, H);
-    else {
-      const vinkel = Math.PI * (0.15 + 0.7 * m.bana) * (i % 2 ? -1 : 1) - Math.PI / 2;
-      fx = x + Math.cos(vinkel) * 260;
-      fy = y + Math.sin(vinkel) * 260;
-    }
-    const px = fx + (x - fx) * m.pos;
-    const py = fy + (y - fy) * m.pos;
-    const r = { liten: 5, mellan: 8, stor: 12, jatte: 20 }[m.storlek];
-    if (m.kastadAv) {
-      g.strokeStyle = FARG[idx.get(m.kastadAv)];
-      g.lineWidth = 3;
-      g.beginPath(); g.moveTo(fx, fy); g.lineTo(px, py); g.stroke();
-    }
-    g.fillStyle = m.jatte ? "#ff6b6b" : "#c9a27a";
-    g.beginPath(); g.arc(px, py, r, 0, Math.PI * 2); g.fill();
-  }
   const h = s.handelser[0];
   $("banderoll").textContent = h ? `${IKON[h.typ]} (${Math.ceil((h.slutMs - START - t) / 1000)} s)` : "";
   $("logg").innerHTML = s.logg.slice(-8).reverse().map((l) => `<li>${((l.t - START) / 1000).toFixed(1)} s · ${l.typ} ${l.classId || l.handelse || ""}${l.uid ? ` (${l.uid})` : ""}${l.fran ? ` från ${l.fran}` : ""}${l.storlek ? ` ${l.storlek}` : ""}</li>`).join("");

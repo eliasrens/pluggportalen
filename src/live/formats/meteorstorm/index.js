@@ -2,17 +2,23 @@
 // Live-format `meteorstorm` – Meteorstormen ☄️ (epic #819)
 // ----------------------------------------------------------------------------
 // Klasser försvarar var sin rymdstation mot en förutbestämd meteorstorm; rätt
-// svar ger energi till 🛡️ sköld, 🔫 laser eller 🌀 dragstråle. Motorn (A,
-// #820) och servern (B, #821): docs/METEORSTORMEN.md.
+// svar ger energi till 🛡️ sköld, 🔫 laser eller 🌀 dragstråle. Kontraktet:
+// docs/METEORSTORMEN.md. Motorn och balansen: ./delat/ (#820), servern:
+// functions/meteorstorm-*.js + ms-klient.js/meteorstorm-data.js (#821).
 //
-// Formatobjektet byggs av två delar:
-//   ms-format-elev.js  (D, #823) lärarformuläret, sessionen, quizets
-//                      ögonblicksbild, resultatet/pluggmynten, elevskärmen,
-//                      historiken
-//   projektordelen     (C, #822) computeStandings, projectorViews, music …
-//                      – tills C landar: en minimal ställning och en lat
-//                      projektorvy (meteorstorm-projector.js)
-// Registreras i src/live/formats/index.js (C).
+// Formatobjektet = { id, …projektordelarna (C, #822), ...MS_ELEV_DELAR (D, #823) }.
+//   C (#822): id/namn/ikon/klassantal/svarssätt/takt, compatibleGameModes,
+//     computeStandings (klasserna + anslutna elever till lobbyn och skalet),
+//     emitOnPlayers, projectorViews (meteorstorm-projector.js), registreringen
+//     (src/live/formats/index.js).
+//   D (#823): ms-format-elev.js – lärarformuläret, sessionen, quizets
+//     ögonblicksbild, resultInputs/buildResult (ms-avslut.js: msAvsluta +
+//     pluggmynten), elevskärmen och historiken.
+//   Avsluta: skalets knapp → kärnans flöde (status finished → resultInputs =
+//     avslutaOchBetala → msAvsluta + settleLiveRewards). Samma väg vid 00:00.
+//     Serverns result gäller; kärnans writeResultIfMissing ser att det finns.
+//   E (#824) – `music` (assets/meteorstormen-loop.ogg). Fältet saknas tills
+//     filen finns: ingen 🎵-knapp och ingen 404.
 //
 // API: export default METEORSTORM (format-objekt, oregistrerat).
 // ============================================================================
@@ -37,8 +43,16 @@ const METEORSTORM = {
     return MS_MODES.includes(mode?.id) && answerKindsFor(METEORSTORM, mode).length > 0;
   },
 
-  // Projektordelen (C, #822) ersätter de här två.
-  computeStandings: (s) => ({ classes: (s?.participatingClassIds || []).map((classId) => ({ classId, name: s?.classNames?.[classId] || classId })), totalCorrect: 0, leaderIds: [], winnerId: null, draw: false }),
+  /** Klasserna + anslutna elever (lobbyn); stationerna räknar projektorn själv ur loggen. */
+  computeStandings(s, { players = [] } = {}) {
+    const classes = (s?.participatingClassIds || []).map((classId) => ({
+      classId, name: s?.classNames?.[classId] || classId,
+      joined: (players || []).filter((p) => p?.classId === classId).length,
+    }));
+    return { classes, totalCorrect: 0, leaderIds: [], winnerId: null, draw: false };
+  },
+
+  emitOnPlayers: true,
   projectorViews: () => import("./meteorstorm-projector.js"),
 };
 

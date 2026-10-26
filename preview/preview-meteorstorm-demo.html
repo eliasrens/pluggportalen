@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Demoläge – Meteorstormen ☄️ (#822)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <script>
+      // Isolering (LIVE-FORMAT §8): demot får ALDRIG nå Firestore/Firebase/Cloud Functions.
+      // Varje försök blockeras och räknas – panelen visar räknaren (ska vara 0).
+      (() => {
+        const FB = /firestore\.googleapis|firebaseio\.com|identitytoolkit|securetoken\.googleapis|firebasestorage|cloudfunctions\.net|run\.app/;
+        window.__msDemoBlocked = [];
+        const block = (url) => { window.__msDemoBlocked.push(String(url)); console.error("[demo] blockerat Firebase-anrop:", url); };
+        const f = window.fetch;
+        window.fetch = (u, o) => (FB.test(String(u?.url || u)) ? (block(u?.url || u), Promise.reject(new Error("demo: Firebase blockerat"))) : f(u, o));
+        const open = XMLHttpRequest.prototype.open;
+        XMLHttpRequest.prototype.open = function (m, u, ...r) { if (FB.test(String(u))) { block(u); throw new Error("demo: Firebase blockerat"); } return open.call(this, m, u, ...r); };
+        const WS = window.WebSocket;
+        window.WebSocket = function (u, p) { if (FB.test(String(u))) { block(u); throw new Error("demo: Firebase blockerat"); } return new WS(u, p); };
+      })();
+    </script>
+    <style>
+      @font-face { font-family: "Baloo 2"; src: url(../qa-fonts/NotoColorEmoji.ttf); font-weight: 100 900;
+        unicode-range: U+00A9, U+00AE, U+203C, U+2049, U+2122-2139, U+2190-21FF, U+2300-23FF, U+24C2, U+25A0-27BF, U+2900-297F, U+2B00-2BFF, U+3030, U+FE0F, U+200D, U+1F000-1FAFF; }
+      .pv { position: fixed; left: 10px; bottom: 10px; z-index: 100; width: 340px; font: 13px/1.35 system-ui, sans-serif;
+        background: rgba(255, 255, 255, 0.96); color: #2c2230; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,.35); }
+      .pv summary { cursor: pointer; padding: 8px 12px; font-weight: 700; }
+      .pv-body { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 12px; max-height: 62vh; overflow: auto; }
+      .pv-body b { width: 100%; margin-top: 6px; }
+      .pv button { font: inherit; padding: 4px 8px; border-radius: 8px; border: 1px solid #c9cde0; background: #f1f3fb; cursor: pointer; color: inherit; }
+      .pv button:hover { background: #e2e6f6; }
+      .pv button[aria-pressed="true"] { background: #23306b; color: #fff; border-color: #23306b; }
+      .pv-note, .pv-stat { width: 100%; color: #4a4f66; }
+      .pv-stat { font-family: ui-monospace, monospace; font-size: 11px; color: #2c2230; }
+      .pv-ok { color: #1e8a4c; font-weight: 700; } .pv-bad { color: #c0392b; font-weight: 700; }
+      .pv-log { width: 100%; font: 11px/1.3 ui-monospace, monospace; color: #33415c; white-space: pre-wrap; max-height: 80px; overflow: auto;
+        background: #f1f3fb; border-radius: 8px; padding: 6px; }
+      .pv-dold { display: none; }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <details class="pv" open>
+      <summary>☄️ Demoläge – Meteorstormen (projektorn)</summary>
+      <div class="pv-body">
+        <span class="pv-note">Simulerad storm i webbläsaren – ingen Firestore, inga Cloud Functions, inga riktiga elever,
+          resultat eller pluggmynt. Stormen och stationerna räknas av den riktiga motorn. Projektorn ritar
+          3 s efter "nu" (renderingsbufferten). Ljud: klicka i sidan en gång.</span>
+        <b>Börja i (startar om)</b>
+        <button data-go="fas=lobby">Tom lobby</button>
+        <button data-go="fas=storm">Pågående storm</button>
+        <button data-go="fas=storm&klasser=1">En klass</button>
+        <button data-go="fas=storm&attacker=vilda">Vilda attacker</button>
+        <button data-go="fas=storm&sek=500">Sent i matchen</button>
+        <b>Lobby &amp; svar</b>
+        <button data-act="anslut">+30 elever ansluter</button>
+        <button data-act="auto">Svar strömmar in</button>
+        <b>Händelser (hoppar dit)</b>
+        <button data-act="h" data-typ="solstorm">☀️ Solstorm</button>
+        <button data-act="h" data-typ="jattemeteor">☄️ Jättemeteor</button>
+        <button data-act="h" data-typ="kometsvans">✨ Kometsvans</button>
+        <button data-act="h" data-typ="lugnet">🌌 Lugnet</button>
+        <button data-act="kast0">🌀 4B slungar</button>
+        <button data-act="kast1">🌀 4D slungar</button>
+        <button data-act="snart">⏰ 15 s kvar (finalen)</button>
+        <b>Slutet</b>
+        <button data-go="fas=final">Klass mot klass</button>
+        <button data-go="fas=final&klasser=1">En klass</button>
+        <button data-go="fas=final&ratt=0.9,0.2">Stor seger</button>
+        <b>Visning</b>
+        <button data-act="rorelse">Reducerad rörelse</button>
+        <button data-act="frys">Frys tiden</button>
+        <button data-act="omladd">Omladdning</button>
+        <button data-act="dolj">Dölj panelen (5 s)</button>
+        <div class="pv-stat" data-stat></div>
+        <div class="pv-log" data-log></div>
+      </div>
+    </details>
+
+    <script type="module">
+      import { mountProjector } from "../src/live/projector.js";
+      import { createMsDemo } from "../src/live/formats/meteorstorm/msp-demo.js";
+      import { forceReducedMotion } from "../src/live/formats/snilleblixt/sb-demo.js";
+
+      const q = new URLSearchParams(location.search);
+      const FAS = q.get("fas") || "lobby";
+      const panel = document.querySelector(".pv");
+      if (q.get("panel") === "av") panel.hidden = true;
+      const sid = `demo822-${[...q].filter(([k]) => k !== "rorelse").map(([k, v]) => `${k}${v}`).join("-") || "lobby"}`;
+      localStorage.setItem("pp:live:vy", "ms-rymden");
+      const logEl = document.querySelector("[data-log]");
+      const log = (t) => { logEl.textContent = `${new Date().toLocaleTimeString("sv-SE")} ${t}\n${logEl.textContent}`.slice(0, 3000); };
+
+      const ratt = (q.get("ratt") || "0.75,0.6").split(",").map(Number);
+      const demo = createMsDemo({
+        sid, klasser: q.get("klasser") === "1" ? 1 : 2, attacker: q.get("attacker") || "milda",
+        seed: Number(q.get("seed")) || 819, ratt, onLog: log,
+      });
+      if (FAS === "storm") demo.gaTill(Number(q.get("sek")) || 150);
+      if (FAS === "final") demo.jumpToFinal();
+      if (FAS === "lobby" && q.get("anslut") !== "nej") demo.join(30, 120);
+
+      const ctx = { app: document.getElementById("app"), go: (h) => log(`navigera till ${h}`) };
+      let cleanups = [];
+      function mount() {
+        cleanups.forEach((c) => c());
+        cleanups = [];
+        mountProjector(ctx, sid, { cleanups, uid: "demo-larare", deps: demo.deps });
+      }
+      let reduced = q.get("rorelse") === "reducerad";
+      if (reduced) forceReducedMotion(true);
+      mount();
+
+      const press = (name, on) => document.querySelector(`[data-act="${name}"]`)?.setAttribute("aria-pressed", String(on));
+      const act = {
+        anslut: () => demo.join(30, 140),
+        auto: () => { demo.setAuto(!demo.auto); press("auto", demo.auto); },
+        h: (b) => demo.nastaHandelse(b.dataset.typ),
+        kast0: () => demo.kasta(0),
+        kast1: () => demo.kasta(1),
+        snart: () => demo.soonOut(15),
+        rorelse: () => {
+          reduced = !reduced;
+          forceReducedMotion(reduced);
+          press("rorelse", reduced);
+          const p = new URLSearchParams(location.search);
+          if (reduced) p.set("rorelse", "reducerad"); else p.delete("rorelse");
+          history.replaceState(null, "", `?${p}${location.hash}`);
+          mount();
+        },
+        frys: () => press("frys", demo.toggleFreeze()),
+        omladd: () => mount(),
+        dolj: () => { panel.classList.add("pv-dold"); setTimeout(() => panel.classList.remove("pv-dold"), 5000); },
+      };
+      press("rorelse", reduced);
+      const go = (qs) => {
+        const old = new URLSearchParams(location.search);
+        const p = new URLSearchParams(qs);
+        if (old.has("rorelse")) p.set("rorelse", old.get("rorelse"));
+        location.search = p.toString();
+      };
+      document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => go(b.dataset.go)));
+      document.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => act[b.dataset.act](b)));
+      setInterval(() => {
+        press("auto", demo.auto);
+        const { session: s, players, events } = demo.state();
+        const blocked = window.__msDemoBlocked.length;
+        const fps = window.__mspProjektor?.fps?.();
+        document.querySelector("[data-stat]").innerHTML = `fas ${s.status} · elever ${players.length} · händelser ${events.length}
+          · auto ${demo.auto ? "på" : "av"}${fps ? ` · ${fps.fps} fps (p95 ${fps.p95Ms} ms)` : ""}<br>
+          Firebase-anrop: <span class="${blocked ? "pv-bad" : "pv-ok"}">${blocked ? `${blocked} BLOCKERADE` : "0 ✓"}</span>`;
+      }, 500);
+      window.__msDemo = { demo, act, mount };
+    </script>
+  </body>
+</html>

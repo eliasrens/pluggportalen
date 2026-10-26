@@ -169,14 +169,15 @@ describe("elevklienten (ms-klient.js)", () => {
     await assert.rejects(k.agera("skold"), /Svara rätt först/);
   });
 
-  it("#821 F1: kalla() delar ut elevens kortlek (multFor) med k; en obesvarad fråga visas igen", async () => {
+  it("#821 F1: kalla() delar ut elevens kortlek (multFor) med k; en obesvarad fråga visas igen efter omladdning", async () => {
     const { k, anrop } = rigg();
     const kalla = k.kalla();
     const q0 = kalla.next();
     assert.deepEqual({ a: q0.a, b: q0.b, k: q0.k }, { ...multFor(5, "alma", 0), k: 0 });
-    assert.equal(kalla.next().k, 0, "inte besvarad – samma fråga");
-    await k.svara({ attemptId: "w0-xxxxxx", factorA: q0.a, factorB: q0.b, answer: String(q0.answer + 1) });
+    // #822 F2: ett andra next() i samma sida = UI:t går vidare (skriv själv hämtar
+    // nästa fråga före svaret) – q0 väntar på sitt svar, nästa fråga är k 1.
     const q1 = kalla.next();
+    await k.svara({ attemptId: "w0-xxxxxx", factorA: q0.a, factorB: q0.b, answer: String(q0.answer + 1) });
     assert.deepEqual({ a: q1.a, b: q1.b, k: q1.k }, { ...multFor(5, "alma", 1), k: 1 });
     await k.svara({ attemptId: "r1-xxxxxx", factorA: q1.a, factorB: q1.b, answer: String(q1.answer) });
     await k.agera("skold");

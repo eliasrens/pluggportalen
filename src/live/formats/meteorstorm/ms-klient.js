@@ -58,13 +58,16 @@ export function createMsKlient({ sid, uid, seed, gameMode, antalFragor = 0, call
   const quiz = gameMode !== MULT;
   const nyckel = `pp:ms:${sid}:${uid}`;
   const paus = vanta || ((ms) => new Promise((res) => setTimeout(res, ms)));
-  // k = nästa frågas nummer; utdelad = multiplikationens obesvarade fråga (k).
-  let st = { nr: 0, energi: 0, k: 0, utdelad: null, buffert: [] };
+  // k = nästa frågas nummer; utdelad = multiplikationens obesvarade fråga (k);
+  // obesvarade = visade frågor som UI:t gått förbi innan svaret kom (#822 F2).
+  let st = { nr: 0, energi: 0, k: 0, utdelad: null, obesvarade: [], buffert: [] };
+  // Frågor (k) som next() redan lämnat ut i den här sidan (inte i lagringen).
+  const visade = new Set();
   let vantande = null;
   let skickar = null;
   try {
     const sparat = JSON.parse(lagring?.getItem(nyckel) || "null");
-    if (sparat && Array.isArray(sparat.buffert)) st = { ...st, ...sparat };
+    if (sparat && Array.isArray(sparat.buffert)) st = { ...st, ...sparat, obesvarade: Array.isArray(sparat.obesvarade) ? sparat.obesvarade : [] };
   } catch { /* privat läge / tom lagring – börja om */ }
   const spara = () => {
     try { lagring?.setItem(nyckel, JSON.stringify(st)); } catch { /* ingen lagring – bara minnet */ }
@@ -76,18 +79,41 @@ export function createMsKlient({ sid, uid, seed, gameMode, antalFragor = 0, call
 
   const fraga = () => fragaFor(seed, uid, st.k, antalFragor);
 
+  /**
+   * Multiplikationens frågekälla. En obesvarad fråga visas igen (t.ex. efter en
+   * omladdning) – men frågar UI:t igen efter att frågan redan visats i den här
+   * sidan går eleven vidare: fast-answer (skriv själv) hämtar nästa fråga FÖRE
+   * svaret på den förra. Då väntar den visade frågan på sitt svar
+   * (obesvarade) och en ny delas ut (#822 F2) – annars visades samma fråga
+   * igen och svaret på den hamnade på nästa k, som servern nekar.
+   */
   function kalla() {
     return {
       next() {
+        if (st.utdelad != null && visade.has(st.utdelad)) {
+          st.obesvarade.push(st.utdelad);
+          st.utdelad = null;
+        }
         if (st.utdelad == null) {
           st.utdelad = st.k;
           st.k += 1;
-          spara();
         }
+        visade.add(st.utdelad);
+        spara();
         const { a, b } = multFor(seed, uid, st.utdelad);
         return multFraga(a, b, st.utdelad);
       },
     };
+  }
+
+  /** Vilken utdelad fråga (k) svaret gäller – den äldsta med samma faktorer. */
+  function besvarad(a, b) {
+    const kandidater = [...st.obesvarade, ...(st.utdelad != null ? [st.utdelad] : [])].sort((x, y) => x - y);
+    const k = kandidater.find((n) => { const f = multFor(seed, uid, n); return f.a === a && f.b === b; });
+    if (k == null) return null;
+    if (k === st.utdelad) st.utdelad = null;
+    else st.obesvarade = st.obesvarade.filter((n) => n !== k);
+    return k;
   }
 
   function buffra(fel) {
@@ -98,10 +124,12 @@ export function createMsKlient({ sid, uid, seed, gameMode, antalFragor = 0, call
 
   async function svara(p) {
     if (!quiz) {
-      const k = st.utdelad ?? st.k++; // utan kalla(): varje svar sin egen fråga
+      const k = besvarad(p.factorA, p.factorB) ?? st.k++; // utan kalla(): varje svar sin egen fråga
       const svar = { k, factorA: p.factorA, factorB: p.factorB, answer: p.answer, ...(p.choiceIndex != null ? { choiceIndex: p.choiceIndex } : {}) };
-      st.utdelad = null;
       const ratt = parseTal(p.answer) === p.factorA * p.factorB;
+      // Rätt svar: frågeflödet stänger svarsfältet, så frågan fast-answer redan
+      // hämtat syns aldrig – den visas på nytt när eleven valt handling.
+      if (ratt && st.utdelad != null) visade.delete(st.utdelad);
       if (!ratt) {
         buffra({ ...svar, attemptId: p.attemptId });
         return { correct: false, correctAnswer: p.factorA * p.factorB };
@@ -141,9 +169,11 @@ export function createMsKlient({ sid, uid, seed, gameMode, antalFragor = 0, call
         res = await call("msAgera", data);
       }
     } catch (err) {
-      if (err?.details?.omsynk) {
-        // Ordningen stämmer inte med servern (annan flik, tappad buffert):
-        // börja om efter senaste länken – svaret och bufferten släpps.
+      if (err?.details?.omsynk || err?.code === "failed-precondition") {
+        // Ordningen stämmer inte med servern (annan flik, tappad buffert, en
+        // fråga servern inte delat ut): börja om efter senaste länken – svaret
+        // och bufferten släpps, energin finns kvar på servern. Eleven fastnar
+        // aldrig i valet (vyn ser vantar() === false och visar nästa fråga).
         vantande = null;
         await lage().catch(() => {});
       }
@@ -198,12 +228,15 @@ export function createMsKlient({ sid, uid, seed, gameMode, antalFragor = 0, call
       }
     }
     st.buffert = foljd;
-    if (st.utdelad === nasta) {
+    if (st.utdelad === nasta || st.obesvarade.includes(nasta)) {
+      st.utdelad = nasta;
       st.k = nasta + 1;
     } else {
       st.utdelad = null;
       st.k = nasta;
     }
+    st.obesvarade = [];
+    visade.clear();
     vantande = null;
     spara();
     return res;

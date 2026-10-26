@@ -22,11 +22,13 @@
 export const STEG_MS = 100;
 
 /**
- * Projektorn ritar tillståndet för nu − RENDER_FORDROJNING_MS (Elias 2026-10-21):
- * handlingar som når projektorn sent (nät, Firestore-lyssnare) hinner in i
- * loggen innan deras tid ritas, så bilden behöver nästan aldrig "ångras".
+ * Projektorn ritar tillståndet för nu − RENDER_FORDROJNING_MS (Elias 2026-10-21:
+ * 1–2 s, KONSTANT): handlingar som når projektorn sent (nät, Firestore-lyssnare)
+ * hinner in i loggen innan deras tid ritas. Kommer en ändå senare ändrar
+ * projektorn aldrig det som redan visats – den verkar "från nu" (#822 F1,
+ * msp-senvakt.js). Servern visar status för samma tid.
  */
-export const RENDER_FORDROJNING_MS = 1500;
+export const RENDER_FORDROJNING_MS = 2000;
 
 /** Heltalsenheter: 1 sköld = 1000 milli, 1 laserskott = 1000 milli. */
 export const MILLI = 1000;
