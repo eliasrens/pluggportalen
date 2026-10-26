@@ -174,7 +174,7 @@ try {
     const sm = document.createElement('canvas'); sm.width = 480; sm.height = 270; const g = sm.getContext('2d');
     const R = window.__rec = { samples: [], arr: [], last: P.stat().handlingar };
     let nxt = 0;
-    (function f() { requestAnimationFrame(f); const n = P.stat().handlingar; if (n !== R.last) { R.arr.push({ at: Date.now(), n, tA: P.t() }); R.last = n; }
+    (function f() { requestAnimationFrame(f); const n = P.stat().handlingar; if (n !== R.last) { const sp = n - R.last; R.arr.push({ at: Date.now(), n, tA: P.t() }); R.last = n; const sn = P.stat().sena; if (sp >= 3 && sn > (R.sn || 0) && (R.skurar ||= []).length < 3) { const sk = { n: sp, bilder: [] }; R.skurar.push(sk); const ta = () => { const k = document.createElement('canvas'); k.width = 480; k.height = 270; k.getContext('2d').drawImage(c, 0, 0, 480, 270); sk.bilder.push(k.toDataURL('image/jpeg', 0.7)); }; [0, 150, 300, 500, 800, 1200].forEach((d, i) => setTimeout(ta, d)); } R.sn = sn; }
       const now = performance.now(); if (now < nxt) return; nxt = now + 500; const tA = P.t();
       g.drawImage(c, 0, 0, 480, 270);
       R.samples.push({ tA, st: P.avtryckVid(tA).tillstand, img: sm.toDataURL('image/png'), hud: [...document.querySelectorAll('.msp-hud .msp-stn, .msp-hud .msp-flode')].map((e) => e.innerText.replace(/\\s+/g, ' ')).join(' | ') || document.querySelector('.msp-hud')?.innerText.replace(/\\s+/g, ' ') }); })();
@@ -234,7 +234,9 @@ try {
         ut.push({ tA: x.tA, diffPx: n, bbox: n ? [x0, y0, x1, y1] : null, hudVisad: x.hud, hudRatt: hudR, hudLika: x.hud === hudR, visad: x.img, ratt: sm.toDataURL('image/png') });
       }
       P.frys(null);
-      return { samples: R.samples.length, reviderade: rev.length, ut, arr: R.arr }; })()`);
+      return { samples: R.samples.length, reviderade: rev.length, ut, arr: R.arr, skurar: R.skurar || [] }; })()`);
+    for (const [j, sk] of (r.skurar || []).entries()) sk.bilder.forEach((b, i) => writeFileSync(`${dir}/skur-${f.latens}-${j}-${i}.jpg`, Buffer.from(b.split(",")[1], "base64")));
+    console.error("SKURAR", f.latens, (r.skurar || []).map((x) => x.n));
     const ut = r.ut.map(({ visad, ratt, ...x }) => x);
     const topp = [...r.ut].sort((p, q) => q.diffPx - p.diffPx).slice(0, 4);
     const pairs = [];
