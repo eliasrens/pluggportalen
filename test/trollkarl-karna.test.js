@@ -6,7 +6,10 @@ import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { defaultWizards, validWizards, resolveWizards, swapWizards } from "../src/live/trollkarl/trollkarl-val.js";
+import {
+  defaultWizards, validWizards, resolveWizards, swapWizards, chooseWizard, wizardName, TROLLKARLAR, WIZARDS, WIZARD_NAMES,
+} from "../src/live/trollkarl/trollkarl-val.js";
+import { THEME, FACE } from "../src/live/trollkarl/trollkarl-delar.js";
 import {
   magicState, attackSeed, seededRandom, createMagicTracker, ATTACK_THRESHOLD,
 } from "../src/live/trollkarl/trollkarl-magi.js";
@@ -16,6 +19,8 @@ import {
 } from "../src/live/trollkarl/trollkarl-register.js";
 import { createDirector, PRIORITY } from "../src/live/trollkarl/trollkarl-regi.js";
 import { classStandings, decideWinner, buildSessionDoc, formatClock } from "../src/live/live-core.js";
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 const memStore = () => {
   const m = new Map();
@@ -48,6 +53,57 @@ describe("Trollkarlsval (§5)", () => {
       { "4b": "elias", "5e": "rasmus" });
     const tre = { ...input, classIds: ["4b", "5e", "3a"], divisors: { "4b": 1, "5e": 1, "3a": 1 } };
     assert.equal("wizards" in buildSessionDoc(tre, { uid: "u" }), false);
+  });
+});
+
+describe("Trollkarlsregistret (#818)", () => {
+  it("Elias, Rasmus och Emre finns; WIZARDS/WIZARD_NAMES härleds ur registret", () => {
+    assert.deepEqual(TROLLKARLAR.map((t) => t.id), ["rasmus", "elias", "emre"]);
+    assert.deepEqual(WIZARDS, ["rasmus", "elias", "emre"]);
+    assert.deepEqual(WIZARD_NAMES, { rasmus: "Rasmus", elias: "Elias", emre: "Emre" });
+    assert.equal(wizardName("emre"), "Emre");
+    assert.equal(wizardName("merlin"), "?");
+  });
+  it("varje trollkarl har tema, ansiktsplacering, tre ansiktslager, CSS-färger och står i reglerna", () => {
+    const css = readFileSync(join(ROOT, "src/live/trollkarl/trollkarl.css"), "utf8");
+    const rules = readFileSync(join(ROOT, "firestore.rules"), "utf8");
+    const regelLista = rules.match(/d\.wizards\.values\(\)\.hasOnly\(\[([^\]]*)\]\)/);
+    assert.ok(regelLista, "liveWizardsOk:s id-lista hittades inte");
+    assert.deepEqual(regelLista[1].split(",").map((x) => x.trim().replace(/'/g, "")).sort(), [...WIZARDS].sort());
+    for (const id of WIZARDS) {
+      assert.ok(THEME[id], id + ": THEME");
+      assert.ok(FACE[id]?.w > 0, id + ": FACE");
+      for (const n of ["happy", "angry", "sad"]) {
+        assert.ok(Array.isArray(FACE[id][n]), id + ": FACE." + n);
+        const f = join(ROOT, "src/live/trollkarl/ref", `${id}-${n}.webp`);
+        assert.ok(readFileSync(f).length > 5000, f);
+      }
+      for (const sel of [".tk-slot", ".tkh-side", ".tk-result-row"]) {
+        assert.ok(css.includes(`${sel}[data-who="${id}"]`), id + ": CSS " + sel);
+      }
+    }
+  });
+  it("Emre kan väljas på endera sidan, aldrig på båda", () => {
+    assert.ok(validWizards({ "4b": "emre", "5e": "elias" }, ["4b", "5e"]));
+    assert.ok(validWizards({ "4b": "rasmus", "5e": "emre" }, ["4b", "5e"]));
+    assert.equal(validWizards({ "4b": "emre", "5e": "emre" }, ["4b", "5e"]), false);
+    const s = { participatingClassIds: ["4b", "5e"], wizards: { "4b": "emre", "5e": "elias" } };
+    assert.deepEqual(resolveWizards(s), { "4b": "emre", "5e": "elias" });
+    assert.deepEqual(swapWizards({ "4b": "emre", "5e": "elias" }), { "4b": "elias", "5e": "emre" });
+  });
+  it("chooseWizard: ny trollkarl ersätter; krock = klasserna byter", () => {
+    const m = { "4b": "rasmus", "5e": "elias" };
+    assert.deepEqual(chooseWizard(m, "4b", "emre"), { "4b": "emre", "5e": "elias" });
+    assert.deepEqual(chooseWizard(m, "4b", "elias"), { "4b": "elias", "5e": "rasmus" });
+    assert.deepEqual(chooseWizard(m, "5e", "elias"), m);
+    assert.deepEqual(chooseWizard(m, "4b", "merlin"), m, "okänd trollkarl ignoreras");
+    assert.deepEqual(chooseWizard(m, "3a", "emre"), m, "okänd klass ignoreras");
+    assert.notEqual(chooseWizard(m, "4b", "emre"), m, "ny map, muterar inte");
+  });
+  it("gamla sessioner med rasmus/elias fungerar som förut", () => {
+    const gammal = { participatingClassIds: ["4b", "5e"], wizards: { "4b": "elias", "5e": "rasmus" } };
+    assert.deepEqual(resolveWizards(gammal), { "4b": "elias", "5e": "rasmus" });
+    assert.deepEqual(resolveWizards({ participatingClassIds: ["4b", "5e"] }), { "4b": "rasmus", "5e": "elias" });
   });
 });
 
@@ -143,6 +199,13 @@ describe("Matchdata-adaptern (§19) – ingen egen poänglogik", () => {
     return { sessionId: "s", session, phase: "live", status: "live", msLeft: 125_000, clock: formatClock(125_000),
       classes, leaderIds: w.leaderIds, winnerId: w.winnerId, draw: w.draw, result: null, ...extra };
   };
+
+  it("#818: Emre-sidan får who=emre och namnet ur registret (vinnartexten)", () => {
+    const emreSession = { ...session, wizards: { "4b": "emre", "5e": "elias" } };
+    const classes = classStandings(emreSession, { "4b": 400, "5e": 100 });
+    const d = duelData({ ...st({}), session: emreSession, classes });
+    assert.deepEqual(d.sides.map((s) => [s.who, s.wizardName]), [["emre", "Emre"], ["elias", "Elias"]]);
+  });
 
   it("poäng = classStandings (snitt, en decimal), trollkarlen följer klassen", () => {
     const d = duelData(st({ "4b": 340, "5e": 440 }));

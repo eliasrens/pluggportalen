@@ -1,7 +1,7 @@
 // ============================================================================
 // Regel-tester: Trollkarlsduellen (#536) – liveSessions/{sid}.wizards
-//   • valfritt; bara i tvåklassmatcher, exakt de två klasserna, en av varje
-//     ("rasmus"/"elias"), aldrig samma på båda,
+//   • valfritt; bara i tvåklassmatcher, exakt de två klasserna, två olika
+//     trollkarlar ur registret (#818: "rasmus"/"elias"/"emre"), aldrig samma på båda,
 //   • läraren kan byta i lobbyn – men inte när matchen startat/är slut,
 //   • elever kan aldrig ändra valet.
 // Körs av `npm run test:rules` (kräver emulatorn).
@@ -76,6 +76,26 @@ describe("Trollkarlsduellen: wizards i liveSessions", () => {
     await assertFails(updateDoc(doc(teacher(), "liveSessions", "pagar"), { wizards: deleteField() }));
     await assertFails(updateDoc(doc(teacher(), "liveSessions", "slut"), { wizards: { "4b": "elias", "5e": "rasmus" } }));
     await assertSucceeds(updateDoc(doc(teacher(), "liveSessions", "pagar"), { "classDivisors.4b": 16 }));
+  });
+
+  it("#818 Emre: skapa och byta i lobbyn med Emre på endera sidan; aldrig Emre på båda", async () => {
+    const base = sessionDoc({ createdBy: "larare1" });
+    await assertSucceeds(create({ ...base, wizards: { "4b": "emre", "5e": "elias" } }));
+    await assertSucceeds(create({ ...base, wizards: { "4b": "rasmus", "5e": "emre" } }));
+    await assertFails(create({ ...base, wizards: { "4b": "emre", "5e": "emre" } }));
+    await assertSucceeds(updateDoc(doc(teacher(), "liveSessions", "lobby"), { wizards: { "4b": "emre", "5e": "elias" } }));
+    await assertSucceeds(updateDoc(doc(teacher(), "liveSessions", "lobby"), { wizards: { "4b": "emre", "5e": "rasmus" } }));
+    await assertFails(updateDoc(doc(teacher(), "liveSessions", "lobby"), { wizards: { "4b": "emre", "5e": "emre" } }));
+    await assertFails(updateDoc(doc(elev("alma"), "liveSessions", "lobby"), { wizards: { "4b": "emre", "5e": "elias" } }));
+    await assertFails(updateDoc(doc(teacher(), "liveSessions", "pagar"), { wizards: { "4b": "emre", "5e": "elias" } }));
+  });
+
+  it("#818 en Emre-match startar och kan ändra nämnaren efter start", async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "liveSessions", "emre"), sessionDoc({}, { wizards: { "4b": "elias", "5e": "emre" } }));
+    });
+    await assertSucceeds(updateDoc(doc(teacher(), "liveSessions", "emre"), { status: "live", startedAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(doc(teacher(), "liveSessions", "emre"), { "classDivisors.5e": 21 }));
   });
 
   it("STARTA med wizards i dokumentet fungerar som förut", async () => {

@@ -901,14 +901,15 @@ service cloud.firestore {
     function liveFormatOk(d) {
       return !('format' in d) || d.format in ['klassmatch'];
     }
-    // Trollkarlsduellen (#536): vem som är Rasmus/Elias – valfritt, bara i
-    // tvåklassmatcher, exakt de två klasserna, en av varje trollkarl.
+    // Trollkarlsduellen (#536): vilken trollkarl varje klass har – valfritt,
+    // bara i tvåklassmatcher, exakt de två klasserna, aldrig samma på båda.
+    // Id:na = registret TROLLKARLAR i src/live/trollkarl/trollkarl-val.js (#818).
     // Får bara ändras i lobbyn (liveSessionUpdateOk).
     function liveWizardsOk(d) {
       return !('wizards' in d) || (
         d.wizards is map && d.participatingClassIds.size() == 2 &&
         d.wizards.size() == 2 && d.wizards.keys().hasOnly(d.participatingClassIds) &&
-        d.wizards.values().hasOnly(['rasmus', 'elias']) &&
+        d.wizards.values().hasOnly(['rasmus', 'elias', 'emre']) &&
         d.wizards[d.participatingClassIds[0]] != d.wizards[d.participatingClassIds[1]]);
     }
     // Mynt-pris till vinnarklassens klasskassa (#526): valfritt heltal

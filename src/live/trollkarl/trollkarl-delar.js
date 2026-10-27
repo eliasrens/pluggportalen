@@ -2,8 +2,9 @@
 // Trollkarlsduellen (#537): ritdelar för de två trollkarlarna.
 // Kropp/mantel/hatt/armar/stav/ben ritas i kod; ANSIKTET är ett friskuret
 // WebP-lager från referensbilderna (ref/<who>-<uttryck>.webp) – identiteten
-// (Elias guldglasögon+mustasch, Rasmus svarta glasögon+stubb+rufs) kommer
-// därifrån och får ALDRIG blandas ihop.
+// (Elias guldglasögon+mustasch, Rasmus svarta glasögon+stubb+rufs, Emre
+// lockigt hår+helskägg) kommer därifrån och får ALDRIG blandas ihop.
+// En ny trollkarl behöver en rad i THEME och FACE (registret: trollkarl-val.js).
 // Figurens koordinatsystem: viewBox 0 0 400 560, fötter vid y≈540, vänd höger.
 // Allt här är rena stränghjälpare – ingen DOM.
 // ============================================================================
@@ -31,7 +32,8 @@ export const ANCHOR = {
   feet: [200, 540],
 };
 
-// Färgtema per trollkarl (§3: Rasmus blå/turkos, Elias lila/guld).
+// Färgtema per trollkarl (§3: Rasmus blå/turkos, Elias lila/guld; #818: Emre
+// skogsgrön/koppar – efter den gröna tröjan i referensbilden).
 export const THEME = {
   rasmus: {
     robe: "#1d3b7a", robe2: "#15295a", trim: "#2dd4bf", star: "#7ae7d8",
@@ -42,6 +44,11 @@ export const THEME = {
     robe: "#5b21b6", robe2: "#471c8f", trim: "#f0b429", star: "#ffd56b",
     hat: "#5b21b6", hatBand: "#f0b429", glow: "#d9a7ff", wand: "#8a5a26",
     skin: "#f2c091", boot: "#3a2a1c",
+  },
+  emre: {
+    robe: "#1f6b45", robe2: "#164f33", trim: "#f2994a", star: "#ffc58a",
+    hat: "#1f6b45", hatBand: "#f2994a", glow: "#8dffb0", wand: "#6b4226",
+    skin: "#e9b07e", boot: "#2e241c",
   },
 };
 
@@ -55,6 +62,12 @@ export const FACE = {
   elias: {
     w: 265, happy: [-5, 6, 1], angry: [2, 0, 1.0], sad: [0, -6, 1],
   },
+  // Emre (#818): lagren är 285 breda och huvudet fyller mindre av rutan →
+  // skala 1.18 så huvudet blir lika stort som de andras; sad-panelens huvud
+  // sitter längre åt höger i originalet.
+  emre: {
+    w: 285, happy: [-35, -16, 1.18], angry: [-40, -18, 1.18], sad: [-44, -22, 1.18],
+  },
 };
 
 function stars(t, pts) {
@@ -67,6 +80,10 @@ function stars(t, pts) {
 export function bodySvg(t, who) {
   const deco = who === "rasmus"
     ? stars(t, [[160, 390, 1.2], [238, 430, 0.9], [185, 470, 1], [228, 350, 0.7]])
+    : who === "emre"
+    // Emre: dragkedja ner mitten (som zip-tröjan) + ett par stjärnor.
+    ? `<path d="M200 334 v164" stroke="${t.trim}" stroke-width="4" stroke-dasharray="3 4" opacity=".85"/>
+       ${stars(t, [[166, 404, 1], [236, 452, 0.85], [232, 372, 0.6]])}`
     : `<path d="M200 336 v150" stroke="${t.trim}" stroke-width="3" opacity=".7"/>
        <path d="M171 362 h22 M207 362 h22" stroke="${t.trim}" stroke-width="3" stroke-linecap="round"/>
        ${stars(t, [[160, 420, 0.8], [240, 420, 0.8]])}`;
@@ -110,7 +127,7 @@ export function collarSvg(t, who) {
       <path d="M114 264 Q200 288 286 264 L283 275 Q200 300 117 275Z" fill="#00000026"/>
     </g>`;
   }
-  // Rasmus: skägget flödar ner – kragen får sitta lägre och dippa i mitten.
+  // Rasmus/Emre: skägget flödar ner – kragen får sitta lägre och dippa i mitten.
   return `<g aria-hidden="true">
     <path d="M106 304 L117 248 Q200 290 283 248 L294 304 Q200 338 106 304Z" fill="${t.trim}"/>
     <path d="M117 248 Q200 290 283 248 L280 260 Q200 300 120 260Z" fill="#00000026"/>
