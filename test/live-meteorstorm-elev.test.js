@@ -142,7 +142,7 @@ describe("resultatet och pluggmynten (ms-avslut.js)", () => {
     await avslutaOchBetala({ id: "s1", demo: true }, deps(RES));
     await avslutaOchBetala({ id: "s1" }, deps({ ...RES, rewards: undefined }));
     assert.equal(betalt, 0);
-    await assert.rejects(avslutaOchBetala({ id: "s1" }, { avsluta: async () => { throw new Error("nät"); }, settle: async () => {} }));
+    await assert.rejects(avslutaOchBetala({ id: "s1" }, { avsluta: async () => { throw new Error("nät"); }, settle: async () => {}, vanta: async () => {} }));
   });
   it("#823 F2: klassbonus (bara anropet som SKREV result), pokaler och kassapris som i live-data.js – bara admin, aldrig demo", async () => {
     const R2 = { ...RES, perClass: { "4b": { players: 3 }, "4d": { players: 2 } } };

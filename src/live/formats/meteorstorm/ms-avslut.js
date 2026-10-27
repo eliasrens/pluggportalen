@@ -33,7 +33,8 @@
 //                     result utan rewards (om servern inte kunde nås)
 //   resultInputs(s) → { result } – msAvsluta + utbetalning (lärare)
 //   avslutaOchBetala(s, deps?) → result | null
-//     deps = { avsluta(sid), settle(sid, session), admin(), klass } (testerna)
+//     deps = { avsluta(sid), settle(sid, session), admin(), klass, vanta(ms)? } (testerna)
+//   avslutaMedForsok(avsluta, sid, vanta?) → msAvsluta-svaret, två nya försök vid tillfälliga fel
 //     klass = kc-koppling.js (liveKlassBonus, pokalerEfterAvslut, livePrisEfterAvslut)
 // ============================================================================
 
@@ -62,15 +63,33 @@ async function klasscenter(d, s, svar) {
   }
 }
 
+/** Fel som inte blir bättre av ett nytt försök (MsError.code). */
+const SLUTGILTIGA = new Set(["permission-denied", "unauthenticated", "invalid-argument", "not-found", "failed-precondition"]);
+/** Väntan före försök 2 och 3 (#825: ett enda misslyckat anrop lämnade slutrutan på "Räknar ihop …"). */
+export const AVSLUTA_FORSOK_MS = [2000, 5000];
+
+/** msAvsluta med två nya försök vid tillfälliga fel (idempotent – samma result). */
+export async function avslutaMedForsok(avsluta, sid, vanta = (ms) => new Promise((r) => setTimeout(r, ms))) {
+  for (let i = 0; ; i++) {
+    try {
+      return await avsluta(sid);
+    } catch (err) {
+      if (i >= AVSLUTA_FORSOK_MS.length || SLUTGILTIGA.has(err?.code)) throw err;
+      await vanta(AVSLUTA_FORSOK_MS[i]);
+    }
+  }
+}
+
 /**
  * msAvsluta (idempotent – finns result får vi det) och sedan pluggmynten ur
- * det resultatet. Kastar om servern inte kan nås; själva utbetalningen kastar
- * aldrig (settleLiveRewards sväljer och loggar).
+ * det resultatet. Tillfälliga fel försöks igen (avslutaMedForsok); kastar om
+ * servern ändå inte kan nås. Själva utbetalningen kastar aldrig
+ * (settleLiveRewards sväljer och loggar).
  */
 export async function avslutaOchBetala(s, deps = null) {
   if (!s?.id) return null;
   const d = deps || (await standardDeps());
-  const svar = await d.avsluta(s.id);
+  const svar = await avslutaMedForsok(d.avsluta, s.id, d.vanta);
   const result = svar?.result || null;
   if (!result || s.demo === true) return result;
   if (result.rewards) await d.settle(s.id, { ...s, status: "finished", result });

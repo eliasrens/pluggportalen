@@ -126,8 +126,8 @@ export async function renderHistoryDetail(ctx, host, sid) {
       ${s.status !== "finished" ? " · pågår ännu" : ""}</p>
     ${detail}
     ${hist.ownPlayerTable ? "" : `<h3>Elevresultat</h3>
-    ${players.length ? `<table class="live-table"><thead><tr><th>Elev</th><th>Klass</th><th class="num">Rätt</th><th class="num">Fel</th>
-      <th class="num">Totalt</th><th class="num">Rätt %</th></tr></thead><tbody>${playerRows}</tbody></table>` : `<p class="hint">Inga elever anslöt.</p>`}`}
+    ${players.length ? `<div class="table-scroll"><table class="live-table"><thead><tr><th>Elev</th><th>Klass</th><th class="num">Rätt</th><th class="num">Fel</th>
+      <th class="num">Totalt</th><th class="num">Rätt %</th></tr></thead><tbody>${playerRows}</tbody></table></div>` : `<p class="hint">Inga elever anslöt.</p>`}`}
   </div>`);
   view.querySelector("[data-back]").addEventListener("click", () => ctx.go("#/larare/live"));
   host.replaceChildren(view);
@@ -188,11 +188,11 @@ export async function renderClassLiveStats(ctx, host, { classId, students = [] }
       <td class="num">${r.c + r.w}</td><td class="num">${pct(r.c, r.w)}</td></tr>`).join("");
   const view = el(`<div class="live-class-stats">
     <h4>Matcher</h4>
-    <table class="live-table"><thead><tr><th>Match</th><th>Datum</th>${head?.stats.head ?? ""}<th class="num">Elever</th></tr></thead><tbody>${matchRows.join("")}</tbody></table>
+    <div class="table-scroll"><table class="live-table"><thead><tr><th>Match</th><th>Datum</th>${head?.stats.head ?? ""}<th class="num">Elever</th></tr></thead><tbody>${matchRows.join("")}</tbody></table></div>
     ${summaryHtml}
     <h4>Elever (alla Live-matcher)</h4>
-    <table class="live-table"><thead><tr><th>Elev</th><th class="num">Matcher</th><th class="num">Rätt</th><th class="num">Fel</th>
-      <th class="num">Totalt</th><th class="num">Rätt %</th></tr></thead><tbody>${studentRows}</tbody></table>
+    <div class="table-scroll"><table class="live-table"><thead><tr><th>Elev</th><th class="num">Matcher</th><th class="num">Rätt</th><th class="num">Fel</th>
+      <th class="num">Totalt</th><th class="num">Rätt %</th></tr></thead><tbody>${studentRows}</tbody></table></div>
   </div>`);
   view.querySelectorAll("[data-sid]").forEach((a) => a.addEventListener("click", () => ctx.go(`#/larare/live?historik=${a.dataset.sid}`)));
   host.replaceChildren(view);
