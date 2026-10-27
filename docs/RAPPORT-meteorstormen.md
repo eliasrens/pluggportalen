@@ -145,6 +145,26 @@ Klass mot klass, Attacker av, 5 min, 2 elever i webbläsaren + 8 botar via calla
 - Historiken i 375 px: ingen vågrät scroll (`meteorstormen-825/historik-375.jpg`). **Statistik → Live** (Mina klasser → Hur går det? → Live) i 375 px: ingen vågrät scroll, tabellerna i `.table-scroll` (F2; `statistik-live-375.jpg`).
 - En elev vars sida hamnade på Hem i stället för Live (riggens navigering direkt efter inloggningen) gick med **mitt i matchen** via "Live pågår!" i sidomenyn och kunde svara och agera direkt ("🛡️ +3,2 – skölden 60/60").
 
+### 5.2 Checklista mot #825
+
+| Punkt | Status | Var |
+| --- | --- | --- |
+| Konstant buffert 2 s: jämn bild, inga hopp bakåt | ✅ `t` bakåt 0 i alla körningar, 0 ändrade visade rutor | §5 S1–S3, §6 |
+| Identiskt på två projektorer | ✅ under 2 s leverans (S1 21/21); över 2 s skiljer det till slutrutan – beslut §12.4 | §6 |
+| Kvot ≤ 3 000 skriv / < 6 000 läs | ✅ 2 452 / ≈ 5 240 | §4 |
+| `msPublic/status` throttlat, elevskärmar fryser inte utan projektor | ✅ 61 skrivningar/10 min; S2/S4 | §4, §5 |
+| Båda lägena, attacker Av/Milda/Vilda, 5 min + standard | ✅ S1 (KmK Vilda 5), S2 (En klass Av 5), S3 (KmK Milda 10, avbruten 5:44 av miljön), S4 (KmK Av 5); 10 min helt i kvotmätningen | §5 |
+| Sköld, laser, dragstråle (väntetid, nekad), händelser, skadenivåer, flyter, slutrutor, stjärnor | ✅ i webbläsaren; skadenivåerna och kostnaden/hjälpen vid ≥ 20 dessutom i motortesterna + C:s bilder | §5, `meteorstormen-822/` |
+| Hjälp vid ≥ 20 efter | ✅ motortesterna (`live-meteorstorm-tester.test.js` "på vid exakt 20 …, av under 20", `-regler.test.js`) – syntes inte i webbläsarmatcherna (klasserna låg jämnt) | §3 |
+| Pluggmynt utbetalda, historik/Statistik → Live | ✅ S1 direkt, S4 via historiken; 375 px efter F2 | §5, §5.1 |
+| Musiken: loop, tyst i lobbyn, 🎵-knappen | ✅ | §5 S1 |
+| "Live pågår!" försvinner vid 00:00 | ✅ i webbläsaren (Meteorstormen); alla fem format i `test/live-watch.test.js` (grön) | §5 S1 |
+| Kopplat demoläge, formatval-preview, historik 375 px | ✅ skärmdumpsriggen (0 konsolfel), F2 | §3, §7 |
+| Snällt flöde, ingen blinkning, reducerad rörelse, 375 px | ✅ | §5 |
+| Säkerhet: regler + callables | ✅ 22 prov i webbläsarmiljön + sviterna | §5 |
+| fps | ✅ 46–56 (lugn maskin) | §8 |
+| Alla sviter gröna | ✅ | §3 |
+
 ## 6. Två projektorer med nätfördröjning (Elias beslut 1)
 
 `flock … node admin/qa-meteorstorm-tva-revision.mjs --latens 300,X --sek 90 --p4b 0.3 --p4d 0.22 --attacker vilda`
