@@ -55,3 +55,15 @@ Rigg: `ENKEL_ARBETARE=1 bash admin/qa-meteorstorm-e2e-preview.sh` (functions + a
 - Projektorerna identiska (lika vid alla jämförelser före stängningen); musikknappen som i S1.
 - Elevskärmarna fortsatte efter att projektorerna stängts (svar räknades vidare 18 → 26 rätt), sessionen blev `finished` vid 00:00 av elevernas egen avslutning, och elevens `msAvsluta` skrev result (stjärnor 0, stationen flöt): "Bra kämpat! 🛰️ Stationen flyter i rymden – nästa storm klarar ni!".
 - Utan lärare betalas mynten först när läraren öppnar matchen i historiken (design, §11).
+
+**Två projektorer med nätfördröjning** (`flock … node admin/qa-meteorstorm-tva-revision.mjs --latens 300,X --sek 90 --p4b 0.3 --p4d 0.22 --attacker vilda`, skadescenariot, två separata Chromium, DevTools-fördröjning; QA-proxyn tvingar long-poll så verklig leverans > nominell):
+
+| Nominell | Verklig leverans median / p95 / max | Sena (> 2 s, verkar "från nu") | Visade rutor ändrade i efterhand | Identiskt vid visad `t` · nu − 10 s | `t` bakåt |
+| --- | --- | --- | --- | --- | --- |
+| 300 ms | 0,85–0,95 / 1,7–2,0 / 2,2–3,4 s | 0–3 | **0** av 177–181 | – | **0** |
+| 1 000 ms | 2,1 / 3,2 / 4,4 s | 28 av 175 | **0** av 193 | 24/26 · 24/26 | **0** |
+| 1 500 ms | 3,2 / 4,7 / 5,2 s | 135 av 211 | **0** av 191 | 12/26 · 13/26 | **0** |
+
+- **Jämn bild:** `t` gick aldrig bakåt, och ingen ruta som redan visats ritades om (0 synliga ändringar) – inte ens vid 5 s leverans.
+- **Identiskt** när leveransen är under bufferten (2 s). Över 2 s (här redan vid nominella 1 000 ms, eftersom maskinen var hårt lastad – median 2,1 s mot C:s 1,7 s) verkar den sena projektorn händelserna lite senare och bilderna skiljer sig **fram till slutrutan**, som alltid är serverns `msAvsluta`. Det är beslutet i §12.4 (konstant 2 s, adaptiv avvisad) – redovisat, inte en bugg. I S1/S2 ovan (riktig Firestore-strömning utan påtvingad long-poll, samma maskin) var projektorerna identiska vid alla jämförelser.
+- fps i den här riggen: 10–17 (två Chromium + emulatorn på en maskin med last 11–13 från andra jobb; JS per bildruta 3–5 ms). Se fps-avsnittet.
