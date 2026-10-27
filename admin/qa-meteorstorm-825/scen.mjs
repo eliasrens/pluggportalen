@@ -183,6 +183,8 @@ try {
     if (i === 30) { await T.shot(`${UT}/projektor-mitt.jpg`); await elever[0].p.shot(`${UT}/elev-mobil-mitt.jpg`); }
   }
   L("matchen slut");
+  // Utan projektor (--stang) skriver elevernas msAvsluta result efter 20–35 s (+ omförsök).
+  for (let k = 0; STANG && k < 30; k++) { if (doc(await fsGet(`liveSessions/${sid}`)).result) { L("result finns", k * 3, "s efter"); break; } await sleep(3000); }
   resultat.prov = prov;
   resultat.statusSkrivningar = statusSkriv;
   await sleep(12000);

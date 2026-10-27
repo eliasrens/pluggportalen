@@ -34,7 +34,7 @@ servern). Dragstrålen skalas inte (en i taget per station + väntetid). Hjälpe
 
 | Svit | Resultat |
 | --- | --- |
-| Enhetstester (`node --test`, alla filer utom rules/functions/e2e) | **SE §3.1** |
+| Enhetstester (`node --test`, alla 274 filer utom rules/functions/e2e, efter #825) | **4 056: 4 055 ✅, 1 överhoppad, 0 fel** |
 | `test:rules` (76 filer, sex delar, `flock`, slumpade portar) | **884/884 ✅** |
 | `test:functions` (**alla 37 filer**, fem delar) | **441 ✅, 0 fel, 2 todo** (schack F9, sedan tidigare) |
 | `test:e2e` | **5/5 ✅** |
@@ -48,7 +48,9 @@ servern). Dragstrålen skalas inte (en i taget per station + väntetid). Hjälpe
 Före #825-ändringarna: **4 048 tester, 4 047 ✅, 1 överhoppad, 0 fel** (en körning, 3
 parallellt, med riggens `node_modules`). De sju fel E såg i en tidigare körning (fyra
 `admin-credential` utan `firebase-admin`, `adventure-flee` och två schack-tidsgränser under
-last) uppstod inte – de är miljö, inte Meteorstormen. Efter #825: se §3.2.
+last) uppstod inte – de är miljö, inte Meteorstormen. Efter #825-ändringarna (F1, F2, 8 nya
+tester): **4 056 tester, 4 055 ✅, 1 överhoppad, 0 fel**. Regel- och functions-sviterna kördes
+före F1/F2 – de rör bara webbkod (`ms-avslut.js`, `ms-elev-vy.js`, `teacher-live-history.js`).
 
 ## 4. Kvoten – uppmätt i emulatorn
 
