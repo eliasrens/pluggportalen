@@ -267,7 +267,7 @@ Simulerade klasser med 25 elever, där varje elev svarar en fråga per ~8 s
 - Att blanda slår ren sköld och ren laser tydligt.
 - Per elev håller: 19 och 25 elever ger samma utfall.
 - I Klass mot klass vinner 60 % mot 70 % i ~31–35 % av matcherna, så målet
-  ≥ 25 % nås. **Balansfråga till Elias:** målet nås även när båda spelar
+  ≥ 25 % nås. **Balansfråga till Elias (§14.1):** målet nås även när båda spelar
   **naivt** (30 %), och "smart" ger bara ~+2 procentenheter. Upsetchansen kommer
   alltså från att dragstrålen gör matchen slumpigare (16 % utan dragstråle),
   inte från smart spel. Ska smart spel löna sig mer behöver dragstrålen ett
@@ -275,7 +275,7 @@ Simulerade klasser med 25 elever, där varje elev svarar en fråga per ~8 s
 - **Dragstrålen är mycket stark mot en klass som aldrig använder den:** 60 % som
   drar vinner alltid mot 70 % som inte drar. Den byter skada åt båda håll, och
   med en gles storm är var tredje meteor en möjlig fångst. Det är en fråga för
-  Elias: ska den vara så avgörande? Spakar i `ms-balans.js`: `ATTACKER.milda`
+  Elias (§14.2): ska den vara så avgörande? Spakar i `ms-balans.js`: `ATTACKER.milda`
   (kostnad, väntetid) eller en kortare `KAST_FLYGTID_MS`.
 - **Vilda** gör matcherna tuffa (skrov ~25/40 kvar), som tänkt.
 - Mitten av matchen är lugn (en meteor per ~18 s och station). C kan göra den
@@ -573,7 +573,7 @@ läses loggen och sessionen en gång per instans → ~15 000.
 - Sessionsdokumentet läses av alla skärmar vid varje ändring – servern skriver
   det bara 3 gånger (`msStationer`, `finished`, `result`).
 
-> ❓ **Fråga till Elias (kvoten):** målet "läsningar < 6 000" nås för
+> ❓ **Fråga till Elias (kvoten, §14.3):** målet "läsningar < 6 000" nås för
 > klienternas läsningar (specens räkning: projektorerna på `msEvents` +
 > elevskärmarna), men inte om serverns läsningar räknas in (7 600 med en
 > instans, upp till 15 000 med fyra). Räcker det med klienterna? Annars
@@ -582,7 +582,7 @@ läses loggen och sessionen en gång per instans → ~15 000.
 > minnet är komplett), (2) `maxInstances: 1` (minnet alltid varmt – men taket blir
 > 80 samtidiga anrop för alla stormar på en gång).
 >
-> ❓ **Fråga till Elias (skrivningar och skript):** takten (§7.1, `MS_K_TAKT_MS`
+> ❓ **Fråga till Elias (skrivningar och skript, §14.4):** takten (§7.1, `MS_K_TAKT_MS`
 > 1,5 s) håller en elev som skriver egna anrop till en snabb människas takt,
 > ~441 skrivningar per 10 min. Två sådana elever i en match tar den över
 > 3 000 skrivningar (~3 250). Godtar vi det (kräver att eleven skriver ett
@@ -652,7 +652,7 @@ klasspokalerna och Live-priset till klasskassan (idempotenta) efter varje
 `msAvsluta`; klassbonusen (inte idempotent) bara när svaret är `redan: false`
 (anropet som skrev `result`). Skrev en elevs anrop `result` (projektorn stängd)
 delar historikens `settle(s)` ut pokalerna och priset när en admin öppnar
-matchen – bara klassbonusen går då förlorad.
+matchen – bara klassbonusen går då förlorad (§14.6).
 
 **Historiken** (`meteorstorm-history.js`): vinnare/stjärnor, stationerna (skrov,
 nedskjutna, träffar, kastade, bästa ögonblicken), handlingar per sort och klass,
@@ -780,7 +780,7 @@ rutor vid 1 500 ms, 16 synliga – t.ex. "⚠️ Skölden är nere!" utan bubbla
   (varje händelse väntar på ett nytt anrop med fördröjningen); i produktionen strömmar
   Firestore och leveransen är normalt kortare.
 - **Jämn:** `t` gick aldrig bakåt; steget per bildruta avvek högst 8 ms från verklig tid.
-- ❓ **Till Elias:** bufferten är 2 s och konstant. Vid sämre nät än så kan två
+- ❓ **Till Elias (§14.5):** bufferten är 2 s och konstant. Vid sämre nät än så kan två
   projektorer visa lite olika förlopp (aldrig en "ångrad" bild) tills slutrutan, där
   serverns resultat gäller. Räcker det, eller ska bufferten vara längre (allt kommer då
   så mycket senare efter elevens tryck)?
@@ -941,4 +941,22 @@ finns kvar.
 
 ### 13.7 Sviterna (E)
 
-Se §13.8 (fylls i efter körningen).
+SVITER_PLATSHALLARE
+
+---
+
+## 14. Öppna frågor till Elias – samlade
+
+Alla frågor från A–E står här. Varje fråga har ett **standardval**, och det är så formatet
+fungerar nu. Inget av svaren kräver ett nytt bygge: det handlar om ett tal i
+`delat/ms-balans.js` eller `delat/ms-anrop.js`, eller om en inställning i `functions/index.js`.
+
+| # | Fråga | Standardval nu | Spak om svaret blir ett annat |
+| --- | --- | --- | --- |
+| 14.1 | **Balans – smart spel (§6):** i Klass mot klass vinner 60 % mot 70 % i ~31–35 % av matcherna, men det beror på att dragstrålen gör matchen slumpigare. Att spela "smart" ger bara ~+2 procentenheter. Ska smart spel löna sig mer? | Oförändrat: dragstrålen fångar närmaste inkommande stormmeteor oavsett storlek | Bara mellanstora och stora meteorer går att fånga (ms-steg.js `dragstralar`) |
+| 14.2 | **Balans – dragstrålens styrka (§6):** en klass med 60 % rätt som använder dragstrålen vinner alltid mot en klass med 70 % som aldrig använder den. Ska den vara så avgörande? | Milda: 3 ⚡, 10 s väntetid, samma storlek. Vilda: 2 ⚡, 6 s, en storlek större. Flygtid 6 s | `ATTACKER.milda`/`vilda` (kostnad, väntetid), `KAST_FLYGTID_MS` |
+| 14.3 | **Kvoten – serverns läsningar (§9):** målet "läsningar < 6 000" nås för klienterna (≈ 5 300), men inte om serverns läsningar räknas in (7 600 med en instans, upp till 15 000 med fyra). Räcker det att klienterna ligger under målet? | Ja: `msAvsluta` läser om hela loggen (resultatet beror inte på minnet), `maxInstances: 4` | (1) räkna ur instansens minne (−2 300) (2) `maxInstances: 1` |
+| 14.4 | **Skriptad elev (§7.1/§9):** en elev som skriver egna anrop mot callable-API:t når ~441 skrivningar per 10 min. Två sådana elever tar matchen över 3 000 skrivningar. | Behåll takten `MS_K_TAKT_MS` = 1,5 s per fråga (en snabb människas takt) | 2,5 s per fråga (~280 per elev), som också bromsar de snabbaste ärliga eleverna |
+| 14.5 | **Renderingsbufferten (§12.4):** bufferten är 2 s och konstant. Vid sämre nät kan två projektorer visa lite olika förlopp (aldrig en "ångrad" bild) fram till slutrutan, där serverns resultat gäller. Räcker 2 s? | 2 s (`RENDER_FORDROJNING_MS`, Elias 2026-10-21: "1–2 s") | Längre buffert = identiskt vid sämre nät, men allt kommer så mycket senare efter elevens tryck |
+| 14.6 | **Klassbonusen vid elevens avslut (§11):** om projektorn är stängd vid 00:00 skriver en elevs `msAvsluta` resultatet. Pokalerna och Live-priset delas ut när en admin öppnar matchen i historiken, men klassbonusen (som inte är idempotent) delas inte ut. | Godtas: klassbonusen går förlorad i det fallet. Pluggmynten betalas | Gör klassbonusen idempotent (kvitto per session) i klasscentret – delad kod utanför formatet |
+| 14.7 | **Musiken i Safari (§13.1, ny i E):** OGG utan MP3-reserv, som i Guldrushen. Äldre Safari spelar ingen musik (ljudeffekterna fungerar). | Bara OGG | Lägg en MP3 bredvid och välj den efter `canPlayType` i `proj-music.js` (gäller alla format) |

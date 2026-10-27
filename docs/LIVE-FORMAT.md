@@ -627,3 +627,86 @@ Tester i `test/functions-<id>*.test.mjs`, tillagda i `test:functions` i
       `npm run test:functions`, `npm run test:e2e`
 - [ ] Rules-deploy (och ev. functions-deploy) **före** merge till `main` –
       kräver Elias OK
+- [ ] Format där servern räknar och projektorn ritar en simulering: följ
+      mönstren i §11 (Meteorstormen)
+
+Elevmenyns "Live pågår!" kräver inget av formatet. Den syns för lobby och
+för en match vars klocka går, och försvinner vid 00:00 och när status blir
+`finished` (`live-watch.js` `bannerSessions`, #824).
+
+---
+
+## 11. Mönster från Meteorstormen (#819) – för servertunga realtidsformat
+
+Meteorstormen ([`METEORSTORMEN.md`](METEORSTORMEN.md)) är det första formatet där
+**servern äger allt** och projektorn ritar en deterministisk simulering. De här mönstren
+bör nästa sådant format följa, och för vart och ett finns en förebild att kopiera.
+
+### 11.1 Deterministisk motor i `delat/`, synkad till `functions/`
+
+All spellogik ligger i en ren motor (`delat/`): ingen DOM, ingen Firebase och ingen
+`Math.random`/`Date.now` (seedad PRNG ur sessionens frö). Den kopieras ordagrant till
+`functions/<id>/` (`npm run sync:<id>`, predeploy), och ett drifttest håller kopian lika.
+Servern, projektorn, elevskärmen, demot och balanssimuleringen räknar då med **samma kod**.
+Förebild: `meteorstorm/delat/` och `admin/sync-guldrush-functions.mjs`.
+
+### 11.2 Konstant renderingsbuffert
+
+Projektorn ritar tillståndet för `t = serverNow() − BUFFERT`. Bufferten är **konstant**
+(2 s), och talet står i den delade balansfilen, så att servern och klienterna använder
+samma tal. Händelser som kommer inom bufferten ritas alltså i rätt ordning, och två
+projektorer visar samma bild vid samma `t`.
+- Renderingsklockan går aldrig bakåt: den rättar mjukt och hoppar bara framåt
+  (`msp-scen.js` `stegaKlocka`).
+- En händelse som kommer **efter** bufferten ändrar aldrig det som redan visats. Den
+  stämplas om till "strax efter det som visats" och verkar därifrån (`msp-senvakt.js`).
+  Slutrutan använder alltid serverns resultat.
+- Varje bildruta är en ren funktion av (sessionen, loggen, fröet, `t`), utan
+  partikelstat. Kosmetisk slump kommer ur `brus(frö, nyckel)`. En projektor som öppnas
+  mitt i matchen ritar då samma bild som en som varit igång sedan start (testat).
+- Mät fps i en riktig Chromium (`admin/qa-meteorstorm-fps.mjs`) och nätfördröjning med två
+  projektorer (`admin/qa-meteorstorm-tva*.mjs`).
+
+### 11.3 Hopslagna anrop: svar + handling i ETT anrop
+
+Ett rätt svar och elevens val (sköld/laser/dragstråle/spara) skickas i **samma** callable
+(`msAgera`). Det ger en skrivning per rätt svar i stället för två, och inget mellanläge
+"rätt men inget val ännu" finns på servern. Klienten håller en väntande plats
+(`ms-klient.js` `agera`).
+- **Idempotent:** varje svar bär ett `attemptId`. Ett omförsök efter nätfel får samma
+  svar, och handlingen görs inte två gånger.
+- **Kedja:** händelsen skrivs create-only som `{uid}_{nr}` och bär elevens energi efter
+  handlingen. Transaktionen läser bara förra länken. En klient som är osynkad får
+  `failed-precondition` med `details.omsynk` och synkar om med ett lägesanrop
+  (`msLage`).
+- Spärr per elev (en länk per sekund, takt per fråga) med `resource-exhausted` och
+  `details.vantaMs`. Elevvyn väntar lugnt i stället för att visa ett fel.
+
+### 11.4 Serverskriven status
+
+Elevskärmarna läser **inte** händelseloggen. Servern skriver ett litet statusdokument
+(`msPublic/status`: stationerna vid `nu − BUFFERT`, pågående händelse). Eleven som svarar
+får statusen i svaret, och en elev som står still läser statusdokumentet var 20:e s.
+Klienter skriver aldrig i formatets samlingar (reglerna nekar). Sessionsdokumentet, som
+alla skärmar lyssnar på, skrivs bara några få gånger per match. Det som kan räknas ur
+fröet (händelserna, energins vinst) räknar klienten själv utan läsningar. Mät kvoten mot
+emulatorn (`admin/ms-kvot-sim.mjs`) och redovisa skrivningar och läsningar per match.
+
+### 11.5 Buffrade fel svar
+
+Fel svar skrivs **inte** när de händer. Klienten buffrar dem (tak 40) och skickar dem med
+nästa rätta svar (`fel: [...]`). Servern kräver att varje fråga mellan två länkar finns
+med, så att inget kan hoppas över. När matchen är slut skickas bufferten ensam
+(`skickaFel`). Totalerna (rätt, svar, andel rätt per fråga) räknas i avslutet
+(`msAvsluta`), som läser hela loggen en gång. Effekten är att en klass som svarar mycket
+fel inte kostar fler skrivningar, och att projektorns flöde ändå aldrig visar fel svar.
+
+### 11.6 Avslut och demo
+
+- Skalets Avsluta och 00:00 går genom kärnans `resultInputs`, som anropar serverns
+  avslut (idempotent) och sedan pluggmynten. Eleven anropar samma avslut som reserv om
+  inget resultat finns efter 20–35 s.
+- Ett kopplat demoläge (`preview-meteorstorm-demolage.html` + `ms-demolage.js`) låter en
+  låtsasserver med de delade reglerna driva både elevskärmen och projektorn. Det som
+  trycks på elevskärmen syns då på projektorn i samma match.
+
