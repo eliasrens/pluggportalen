@@ -52,8 +52,8 @@
         </div>
         <div class="panel"><h2 class="live-h2">Statistik → Live (klass 4B)</h2>
           <h4>Matcher</h4>
-          <table class="live-table"><thead><tr><th>Match</th><th>Datum</th>${H.classStats.head}<th class="num">Elever</th></tr></thead>
-          <tbody><tr><th scope="row">${s.name}</th><td>${fmt(s.startedAt)}</td>${H.classStats.cells(s, result, "4b")}<td class="num">${result.perClass["4b"].players}</td></tr></tbody></table>
+          <div class="table-scroll"><table class="live-table"><thead><tr><th>Match</th><th>Datum</th>${H.classStats.head}<th class="num">Elever</th></tr></thead>
+          <tbody><tr><th scope="row">${s.name}</th><td>${fmt(s.startedAt)}</td>${H.classStats.cells(s, result, "4b")}<td class="num">${result.perClass["4b"].players}</td></tr></tbody></table></div>
           ${H.classSummaryHtml([{ s, result }], "4b")}
         </div>`;
       window.__msHistorik = { result };
