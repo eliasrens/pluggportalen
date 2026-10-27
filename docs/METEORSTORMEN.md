@@ -842,6 +842,11 @@ rutorna visas som emoji i en vanlig webbläsare.
 - **Filen:** `src/live/formats/meteorstorm/assets/meteorstormen-loop.ogg` (Elias låt
   2026-10-21, `meteorstormen-loop-v2.ogg`). Ogg Vorbis, 44,1 kHz stereo, 1,26 MB,
   **exakt 80,0 s** (3 528 000 sampel – testat), en loop.
+- **Skarven är mätt:** Chromium avkodar filen till exakt 80,000 s (`decodeAudioData`). Vid
+  skarven går vågformen från sista sampel (−0,042) till första (0,049). Steget på 0,09 är
+  lika stort som stegen mellan grannsampel just där (0,09–0,11 i slutet och början, där
+  ett anslag ligger). Vågformen fortsätter alltså, och det blir inget klick och ingen
+  tystnad i skarven.
 - **Kopplingen** är densamma som i Guldrushen: `music: { src: new URL("./assets/meteorstormen-loop.ogg",
   import.meta.url).href, level: 0.3, lobby: 0 }` i `index.js`. Projektorskalet
   (`proj-music.js`) sköter resten: filen hämtas först när projektorn öppnar lobbyn (inte
