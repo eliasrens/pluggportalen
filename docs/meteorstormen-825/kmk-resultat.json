@@ -1,0 +1,3313 @@
+{
+ "scenario": {
+  "LAGE": "klass-mot-klass",
+  "ATT": "vilda",
+  "MIN": "5",
+  "KLASSER": [
+   "4b",
+   "5e"
+  ],
+  "RIKTIGA": 4,
+  "BOTAR": 12,
+  "LATENS_B": 0,
+  "MODE": "multiplication_0_10",
+  "SVAR": "free"
+ },
+ "sid": "2soDCaWSna3Qxer8DbDb",
+ "ljudLobby": "[]",
+ "musikLobby": "[\"🎵 Musik på\"]",
+ "felvag": [
+  {
+   "namn": "projektor A",
+   "avsluta": 2,
+   "felade": 1
+  },
+  {
+   "namn": "b01",
+   "avsluta": 0,
+   "felade": 0
+  }
+ ],
+ "fpsA": {
+  "fps": 55,
+  "medelMs": 18.11,
+  "p95Ms": 33.3,
+  "ramar": 300,
+  "ritaMedelMs": 0.95,
+  "ritaP95Ms": 2.4,
+  "ritaMaxMs": 12.6,
+  "px": [
+   1600,
+   900
+  ]
+ },
+ "fpsB": {
+  "fps": 55,
+  "medelMs": 18.33,
+  "p95Ms": 16.8,
+  "ramar": 300,
+  "ritaMedelMs": 1.04,
+  "ritaP95Ms": 2.7,
+  "ritaMaxMs": 15.7,
+  "px": [
+   1600,
+   900
+  ]
+ },
+ "sidoLiveUnderMatch": [
+  "[{\"t\":\"⚡\\n        Live pågår!Gå med i klassens m\",\"syns\":true}]",
+  "[{\"t\":\"⚡\\n        Live pågår!Gå med i klassens m\",\"syns\":true}]",
+  "[{\"t\":\"⚡\\n        Live pågår!Gå med i klassens m\",\"syns\":true}]",
+  "[{\"t\":\"⚡\\n        Live pågår!Gå med i klassens m\",\"syns\":true}]"
+ ],
+ "musikUnderMatch": "[\"🎵 Musik på\"]",
+ "prov": [
+  {
+   "s": 5,
+   "A": {
+    "t": 1793131723148.5588,
+    "h": 0,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131723112.7942,
+    "h": 0,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 10,
+   "A": {
+    "t": 1793131728346.6968,
+    "h": 3,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131728312.2983,
+    "h": 3,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 16,
+   "A": {
+    "t": 1793131733374.4373,
+    "h": 5,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131733341.2979,
+    "h": 5,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": {
+    "tt": 1793131732841.2979,
+    "lika": true,
+    "tillstandLika": true,
+    "hA": 5,
+    "hB": 5
+   }
+  },
+  {
+   "s": 21,
+   "A": {
+    "t": 1793131738476.135,
+    "h": 7,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131738442.1328,
+    "h": 7,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 26,
+   "A": {
+    "t": 1793131743503.9988,
+    "h": 8,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131743486.055,
+    "h": 8,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 31,
+   "A": {
+    "t": 1793131748544.0522,
+    "h": 10,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131748508.2576,
+    "h": 10,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": {
+    "tt": 1793131748008.2576,
+    "lika": true,
+    "tillstandLika": true,
+    "hA": 10,
+    "hB": 10
+   }
+  },
+  {
+   "s": 36,
+   "A": {
+    "t": 1793131753603.7683,
+    "h": 12,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131753569.729,
+    "h": 12,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 41,
+   "A": {
+    "t": 1793131758632.6392,
+    "h": 15,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131758625.0942,
+    "h": 15,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 46,
+   "A": {
+    "t": 1793131763721.861,
+    "h": 17,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131763704.717,
+    "h": 17,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": {
+    "tt": 1793131763204.717,
+    "lika": true,
+    "tillstandLika": true,
+    "hA": 17,
+    "hB": 17
+   }
+  },
+  {
+   "s": 51,
+   "A": {
+    "t": 1793131768819.606,
+    "h": 19,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131768803.0212,
+    "h": 19,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 56,
+   "A": {
+    "t": 1793131773869.9736,
+    "h": 22,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131773835.8726,
+    "h": 22,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 61,
+   "A": {
+    "t": 1793131778908.2476,
+    "h": 23,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131778888.5828,
+    "h": 23,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": {
+    "tt": 1793131778388.5828,
+    "lika": true,
+    "tillstandLika": true,
+    "hA": 23,
+    "hB": 23
+   }
+  },
+  {
+   "s": 66,
+   "A": {
+    "t": 1793131784040.9902,
+    "h": 25,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131784023.8486,
+    "h": 25,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 71,
+   "A": {
+    "t": 1793131789069.6123,
+    "h": 25,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131789053.0015,
+    "h": 25,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 76,
+   "A": {
+    "t": 1793131794134.997,
+    "h": 28,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131794117.8755,
+    "h": 28,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": {
+    "tt": 1793131793617.8755,
+    "lika": true,
+    "tillstandLika": true,
+    "hA": 28,
+    "hB": 28
+   }
+  },
+  {
+   "s": 81,
+   "A": {
+    "t": 1793131799235.3105,
+    "h": 29,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131799217.9111,
+    "h": 29,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 87,
+   "A": {
+    "t": 1793131804954.0928,
+    "h": 31,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131804937.783,
+    "h": 31,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 92,
+   "A": {
+    "t": 1793131810009.4482,
+    "h": 34,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131809988.3625,
+    "h": 34,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": {
+    "tt": 1793131809488.3625,
+    "lika": true,
+    "tillstandLika": true,
+    "hA": 34,
+    "hB": 34
+   }
+  },
+  {
+   "s": 97,
+   "A": {
+    "t": 1793131815068.21,
+    "h": 35,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131815034.7656,
+    "h": 35,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 102,
+   "A": {
+    "t": 1793131820083.906,
+    "h": 37,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131820049.8142,
+    "h": 37,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 107,
+   "A": {
+    "t": 1793131825118.5098,
+    "h": 38,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131825100.894,
+    "h": 38,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": {
+    "tt": 1793131824600.894,
+    "lika": true,
+    "tillstandLika": true,
+    "hA": 38,
+    "hB": 38
+   }
+  },
+  {
+   "s": 112,
+   "A": {
+    "t": 1793131830251.8254,
+    "h": 41,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131830216.005,
+    "h": 41,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 117,
+   "A": {
+    "t": 1793131835306.3542,
+    "h": 43,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131835272.856,
+    "h": 43,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 122,
+   "A": {
+    "t": 1793131840337.4253,
+    "h": 45,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131840303.9985,
+    "h": 45,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": {
+    "tt": 1793131839803.9985,
+    "lika": true,
+    "tillstandLika": true,
+    "hA": 45,
+    "hB": 45
+   }
+  },
+  {
+   "s": 127,
+   "A": {
+    "t": 1793131845384.949,
+    "h": 45,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131845349.889,
+    "h": 45,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 132,
+   "A": {
+    "t": 1793131850403.0984,
+    "h": 47,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131850383.756,
+    "h": 47,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 138,
+   "A": {
+    "t": 1793131855433.1765,
+    "h": 47,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131855416.146,
+    "h": 47,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": {
+    "tt": 1793131854916.146,
+    "lika": true,
+    "tillstandLika": true,
+    "hA": 47,
+    "hB": 47
+   }
+  },
+  {
+   "s": 143,
+   "A": {
+    "t": 1793131860551.2302,
+    "h": 49,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131860533.3704,
+    "h": 49,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 148,
+   "A": {
+    "t": 1793131865589.311,
+    "h": 51,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131865568.8042,
+    "h": 51,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 153,
+   "A": {
+    "t": 1793131870648.3623,
+    "h": 53,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131870614.3755,
+    "h": 53,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": {
+    "tt": 1793131870114.3755,
+    "lika": true,
+    "tillstandLika": true,
+    "hA": 53,
+    "hB": 53
+   }
+  },
+  {
+   "s": 158,
+   "A": {
+    "t": 1793131875850.0952,
+    "h": 56,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131875833.487,
+    "h": 56,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 163,
+   "A": {
+    "t": 1793131880915.248,
+    "h": 58,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131880880.7632,
+    "h": 58,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 168,
+   "A": {
+    "t": 1793131885935.1824,
+    "h": 58,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131885914.8281,
+    "h": 58,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": {
+    "tt": 1793131885414.8281,
+    "lika": true,
+    "tillstandLika": true,
+    "hA": 58,
+    "hB": 58
+   }
+  },
+  {
+   "s": 173,
+   "A": {
+    "t": 1793131891002.7788,
+    "h": 61,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131890969.004,
+    "h": 61,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 178,
+   "A": {
+    "t": 1793131896037.9575,
+    "h": 64,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131896003.8047,
+    "h": 64,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 183,
+   "A": {
+    "t": 1793131901153.0676,
+    "h": 66,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131901119.7937,
+    "h": 66,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": {
+    "tt": 1793131900619.7937,
+    "lika": true,
+    "tillstandLika": true,
+    "hA": 66,
+    "hB": 66
+   }
+  },
+  {
+   "s": 188,
+   "A": {
+    "t": 1793131906234.7961,
+    "h": 67,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131906197.4534,
+    "h": 67,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 193,
+   "A": {
+    "t": 1793131911269.5886,
+    "h": 70,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131911251.75,
+    "h": 70,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 198,
+   "A": {
+    "t": 1793131916313.2153,
+    "h": 72,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131916279.2388,
+    "h": 72,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": {
+    "tt": 1793131915779.2388,
+    "lika": true,
+    "tillstandLika": true,
+    "hA": 72,
+    "hB": 72
+   }
+  },
+  {
+   "s": 203,
+   "A": {
+    "t": 1793131921380.8083,
+    "h": 73,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131921348.0073,
+    "h": 73,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 208,
+   "A": {
+    "t": 1793131926398.5625,
+    "h": 75,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131926363.288,
+    "h": 75,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 214,
+   "A": {
+    "t": 1793131931412.3105,
+    "h": 77,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131931395.4983,
+    "h": 77,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": {
+    "tt": 1793131930895.4983,
+    "lika": true,
+    "tillstandLika": true,
+    "hA": 77,
+    "hB": 77
+   }
+  },
+  {
+   "s": 219,
+   "A": {
+    "t": 1793131936479.1143,
+    "h": 80,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131936445.559,
+    "h": 80,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 224,
+   "A": {
+    "t": 1793131941496.5378,
+    "h": 81,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131941463.5588,
+    "h": 81,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 229,
+   "A": {
+    "t": 1793131946513.0652,
+    "h": 82,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131946495.2,
+    "h": 82,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": {
+    "tt": 1793131945995.2,
+    "lika": true,
+    "tillstandLika": true,
+    "hA": 82,
+    "hB": 82
+   }
+  },
+  {
+   "s": 234,
+   "A": {
+    "t": 1793131951580.2207,
+    "h": 84,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131951561.9937,
+    "h": 84,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 239,
+   "A": {
+    "t": 1793131956613.0142,
+    "h": 86,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131956597.2297,
+    "h": 86,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 244,
+   "A": {
+    "t": 1793131961661.5188,
+    "h": 88,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131961644.4648,
+    "h": 88,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": {
+    "tt": 1793131961144.4648,
+    "lika": true,
+    "tillstandLika": true,
+    "hA": 88,
+    "hB": 88
+   }
+  },
+  {
+   "s": 249,
+   "A": {
+    "t": 1793131966711.5093,
+    "h": 90,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131966694.729,
+    "h": 90,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 254,
+   "A": {
+    "t": 1793131971744.5503,
+    "h": 93,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131971727.6653,
+    "h": 93,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 259,
+   "A": {
+    "t": 1793131976778.231,
+    "h": 93,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131976744.1787,
+    "h": 93,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": {
+    "tt": 1793131976244.1787,
+    "lika": true,
+    "tillstandLika": true,
+    "hA": 93,
+    "hB": 93
+   }
+  },
+  {
+   "s": 264,
+   "A": {
+    "t": 1793131981831.87,
+    "h": 96,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131981815.067,
+    "h": 96,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 269,
+   "A": {
+    "t": 1793131986861.507,
+    "h": 98,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131986845.0425,
+    "h": 98,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 274,
+   "A": {
+    "t": 1793131991915.4353,
+    "h": 98,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131991912.942,
+    "h": 99,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": {
+    "tt": 1793131991412.942,
+    "lika": true,
+    "tillstandLika": true,
+    "hA": 99,
+    "hB": 99
+   }
+  },
+  {
+   "s": 279,
+   "A": {
+    "t": 1793131996996.9302,
+    "h": 101,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793131996963.0552,
+    "h": 101,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 284,
+   "A": {
+    "t": 1793132002026.9343,
+    "h": 102,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793132002011.0999,
+    "h": 102,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 289,
+   "A": {
+    "t": 1793132007077.241,
+    "h": 104,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793132007043.915,
+    "h": 104,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": {
+    "tt": 1793132006543.915,
+    "lika": true,
+    "tillstandLika": true,
+    "hA": 104,
+    "hB": 104
+   }
+  },
+  {
+   "s": 294,
+   "A": {
+    "t": 1793132012128.6313,
+    "h": 108,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793132012111.5908,
+    "h": 108,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 299,
+   "A": {
+    "t": 1793132017176.674,
+    "h": 109,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793132017158.3142,
+    "h": 109,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 304,
+   "A": {
+    "t": 1793132022213.6548,
+    "h": 110,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793132022180.4531,
+    "h": 110,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": {
+    "tt": 1793132021680.4531,
+    "lika": true,
+    "tillstandLika": true,
+    "hA": 110,
+    "hB": 110
+   }
+  },
+  {
+   "s": 309,
+   "A": {
+    "t": 1793132027301.6538,
+    "h": 110,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793132027283.0886,
+    "h": 110,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 314,
+   "A": {
+    "t": 1793132032324.864,
+    "h": 110,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793132032308.5989,
+    "h": 110,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": null
+  },
+  {
+   "s": 319,
+   "A": {
+    "t": 1793132037358.2415,
+    "h": 110,
+    "bakat": 0,
+    "sena": 0
+   },
+   "B": {
+    "t": 1793132037324.701,
+    "h": 110,
+    "bakat": 0,
+    "sena": 0
+   },
+   "jamfor": {
+    "tt": 1793132036824.701,
+    "lika": true,
+    "tillstandLika": true,
+    "hA": 110,
+    "hB": 110
+   }
+  }
+ ],
+ "statusSkrivningar": [
+  "2026-10-27T20:08:45.674307Z",
+  "2026-10-27T20:08:57.993815Z",
+  "2026-10-27T20:09:09.212700Z",
+  "2026-10-27T20:09:19.280285Z",
+  "2026-10-27T20:09:32.020697Z",
+  "2026-10-27T20:09:43.531181Z",
+  "2026-10-27T20:09:53.709534Z",
+  "2026-10-27T20:10:04.472031Z",
+  "2026-10-27T20:10:17.448601Z",
+  "2026-10-27T20:10:29.063498Z",
+  "2026-10-27T20:10:39.678237Z",
+  "2026-10-27T20:11:00.955373Z",
+  "2026-10-27T20:11:14.689232Z",
+  "2026-10-27T20:11:28.486668Z",
+  "2026-10-27T20:11:41.078192Z",
+  "2026-10-27T20:11:54.923102Z",
+  "2026-10-27T20:12:06.920668Z",
+  "2026-10-27T20:12:17.454316Z",
+  "2026-10-27T20:12:28.950888Z",
+  "2026-10-27T20:12:41.217170Z",
+  "2026-10-27T20:12:51.417479Z",
+  "2026-10-27T20:13:03.271360Z",
+  "2026-10-27T20:13:13.915740Z",
+  "2026-10-27T20:13:26.439556Z",
+  "2026-10-27T20:13:37.444777Z",
+  "2026-10-27T20:13:48.177511Z"
+ ],
+ "slutA": "☄️ 4B vann Meteorstormen!\n\nLika mycket skrov – flest nedskjutna meteorer avgjorde.\n\n🏆 4B\n0 %\nskrov kvar\n \n5\nnedskjutna meteorer\n🔫 Flest nedskjutna: Ali 4B (4)\n🛡️ Flest sköldtryck: Saga 4B (10)\n🌀 Flest dragstrålar: Saga 4B (3)\n5E\n0 %\nskrov kvar\n \n4\nnedskjutna meteorer\n\n5E kämpade ända till slutet – besättningen vinkar från rymden! 👋\n\n🔫 Flest nedskjutna: Elias 5E (2)\n🛡️ Flest sköldtryck: Elias 5E (13)\n🌀 Flest dragstrålar: Elias 5E (2)",
+ "slutB": "☄️ 4B vann Meteorstormen!\n\nLika mycket skrov – flest nedskjutna meteorer avgjorde.\n\n🏆 4B\n0 %\nskrov kvar\n \n5\nnedskjutna meteorer\n🔫 Flest nedskjutna: Ali 4B (4)\n🛡️ Flest sköldtryck: Saga 4B (10)\n🌀 Flest dragstrålar: Saga 4B (3)\n5E\n0 %\nskrov kvar\n \n4\nnedskjutna meteorer\n\n5E kämpade ända till slutet – besättningen vinkar från rymden! 👋\n\n🔫 Flest nedskjutna: Elias 5E (2)\n🛡️ Flest sköldtryck: Elias 5E (13)\n🌀 Flest dragstrålar: Elias 5E (2)",
+ "elevSlut": [
+  {
+   "u": "b01",
+   "text": "Ni vann! 🚀\n\nSkrov kvar: 4B 0 % · 5E 0 %\n\nDu sköt ner 1 meteor, laddade skölden 10 gånger och slungade 3 meteorer med dragstrålen.\n\n29 rätt svar\n136 \n\nTotalt: 136 pluggmynt 🎉",
+   "qa": {
+    "ratt": 29,
+    "fel": 15,
+    "val": {
+     "skold": 18,
+     "laser": 32,
+     "drag": 8
+    },
+    "kvitton": [
+     "🛡️ +2 – skölden 4/60",
+     "🔫 Lasern laddas – 0,2 skott redo",
+     "🔫 Lasern laddas – 0,5 skott redo",
+     "🔫 Lasern laddas – 0,7 skott redo",
+     "🔫 Lasern laddas – 1 skott redo",
+     "🔫 Lasern laddas – 1,2 skott redo",
+     "🛡️ +2 – skölden 2/60",
+     "🔫 Lasern laddas – 0,4 skott redo"
+    ],
+    "felrader": [],
+    "banderoller": [
+     "🌌 Lugnet – inga meteorer. Andas! · 15 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 14 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 13 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 12 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 11 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 10 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 9 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 8 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 7 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 6 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 5 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 4 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 3 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 2 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 1 s",
+     "☀️ Solstorm! Dubbel energi · 20 s",
+     "☀️ Solstorm! Dubbel energi · 19 s",
+     "☀️ Solstorm! Dubbel energi · 18 s",
+     "☀️ Solstorm! Dubbel energi · 17 s",
+     "☀️ Solstorm! Dubbel energi · 16 s",
+     "☀️ Solstorm! Dubbel energi · 15 s",
+     "☀️ Solstorm! Dubbel energi · 14 s",
+     "☀️ Solstorm! Dubbel energi · 13 s",
+     "☀️ Solstorm! Dubbel energi · 12 s",
+     "☀️ Solstorm! Dubbel energi · 11 s",
+     "☀️ Solstorm! Dubbel energi · 10 s",
+     "☀️ Solstorm! Dubbel energi · 9 s",
+     "☀️ Solstorm! Dubbel energi · 8 s",
+     "☀️ Solstorm! Dubbel energi · 7 s",
+     "☀️ Solstorm! Dubbel energi · 6 s",
+     "☀️ Solstorm! Dubbel energi · 5 s",
+     "☀️ Solstorm! Dubbel energi · 4 s",
+     "☀️ Solstorm! Dubbel energi · 3 s",
+     "☀️ Solstorm! Dubbel energi · 2 s",
+     "☀️ Solstorm! Dubbel energi · 1 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 10 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 9 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 8 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 7 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 6 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 5 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 4 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 3 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 2 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 1 s"
+    ],
+    "fast": 0,
+    "sistaSvar": 1793132016835,
+    "joined": true,
+    "placeringar": [],
+    "vantaMax": 0,
+    "vantaFran": 0,
+    "logg": [
+     "join 2026-10-27T20:08:23.078Z"
+    ]
+   },
+   "sidoLive": "[]",
+   "konsol": []
+  },
+  {
+   "u": "b02",
+   "text": "Ni vann! 🚀\n\nSkrov kvar: 4B 0 % · 5E 0 %\n\nDu sköt ner 4 meteorer, laddade skölden 10 gånger och slungade 3 meteorer med dragstrålen.\n\n29 rätt svar\n136 \n\nTotalt: 136 pluggmynt 🎉",
+   "qa": {
+    "ratt": 30,
+    "fel": 14,
+    "val": {
+     "laser": 27,
+     "skold": 26,
+     "drag": 7
+    },
+    "kvitton": [
+     "🛡️ +2 – skölden 2/60",
+     "🔫 Lasern laddas – 0,3 skott redo",
+     "✨ Extra energi! 🛡️ +2 – skölden 2/60",
+     "🌀 Din dragstråle fångar nästa meteor och slungar den mot 5E!",
+     "🔫 Lasern laddas – 1 skott redo",
+     "🛡️ +2 – skölden 4/60",
+     "🌀 Din dragstråle fångar nästa meteor och slungar den mot 5E!",
+     "🛡️ +2 – skölden 2/60"
+    ],
+    "felrader": [],
+    "banderoller": [
+     "🌌 Lugnet – inga meteorer. Andas! · 15 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 14 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 13 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 12 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 11 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 10 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 9 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 8 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 7 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 6 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 5 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 4 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 3 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 2 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 1 s",
+     "☀️ Solstorm! Dubbel energi · 20 s",
+     "☀️ Solstorm! Dubbel energi · 19 s",
+     "☀️ Solstorm! Dubbel energi · 18 s",
+     "☀️ Solstorm! Dubbel energi · 17 s",
+     "☀️ Solstorm! Dubbel energi · 16 s",
+     "☀️ Solstorm! Dubbel energi · 15 s",
+     "☀️ Solstorm! Dubbel energi · 14 s",
+     "☀️ Solstorm! Dubbel energi · 13 s",
+     "☀️ Solstorm! Dubbel energi · 12 s",
+     "☀️ Solstorm! Dubbel energi · 11 s",
+     "☀️ Solstorm! Dubbel energi · 10 s",
+     "☀️ Solstorm! Dubbel energi · 9 s",
+     "☀️ Solstorm! Dubbel energi · 8 s",
+     "☀️ Solstorm! Dubbel energi · 7 s",
+     "☀️ Solstorm! Dubbel energi · 6 s",
+     "☀️ Solstorm! Dubbel energi · 5 s",
+     "☀️ Solstorm! Dubbel energi · 4 s",
+     "☀️ Solstorm! Dubbel energi · 3 s",
+     "☀️ Solstorm! Dubbel energi · 2 s",
+     "☀️ Solstorm! Dubbel energi · 1 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 10 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 9 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 8 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 7 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 6 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 5 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 4 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 3 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 2 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 1 s"
+    ],
+    "fast": 0,
+    "sistaSvar": 1793132023621,
+    "joined": true,
+    "placeringar": [],
+    "vantaMax": 0,
+    "vantaFran": 0,
+    "logg": [
+     "join 2026-10-27T20:08:25.907Z"
+    ]
+   },
+   "sidoLive": "[]",
+   "konsol": []
+  },
+  {
+   "u": "e01",
+   "text": "Bra kämpat – 4B vann den här gången\n\nSkrov kvar: 4B 0 % · 5E 0 %\n\nDu sköt ner 2 meteorer, laddade skölden 13 gånger och slungade 2 meteorer med dragstrålen.\n\n25 rätt svar\n120 \n\nTotalt: 120 pluggmynt 🎉",
+   "qa": {
+    "ratt": 25,
+    "fel": 16,
+    "val": {
+     "laser": 25,
+     "skold": 21,
+     "drag": 5
+    },
+    "kvitton": [
+     "✨ Extra energi! 🛡️ +2 – skölden 5/60",
+     "🌀 Din dragstråle fångar nästa meteor och slungar den mot 4B!",
+     "🛡️ +2 – skölden 2/60",
+     "🔫 Lasern laddas – 0,3 skott redo",
+     "🛡️ +2 – skölden 7/60",
+     "🌀 Din dragstråle fångar nästa meteor och slungar den mot 4B!",
+     "🔫 Lasern laddas – 0,3 skott redo",
+     "🛡️ +2 – skölden 2/60"
+    ],
+    "felrader": [],
+    "banderoller": [
+     "🌌 Lugnet – inga meteorer. Andas! · 15 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 14 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 13 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 12 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 11 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 10 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 9 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 8 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 7 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 6 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 5 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 4 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 3 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 2 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 1 s",
+     "☀️ Solstorm! Dubbel energi · 20 s",
+     "☀️ Solstorm! Dubbel energi · 19 s",
+     "☀️ Solstorm! Dubbel energi · 18 s",
+     "☀️ Solstorm! Dubbel energi · 17 s",
+     "☀️ Solstorm! Dubbel energi · 16 s",
+     "☀️ Solstorm! Dubbel energi · 15 s",
+     "☀️ Solstorm! Dubbel energi · 14 s",
+     "☀️ Solstorm! Dubbel energi · 13 s",
+     "☀️ Solstorm! Dubbel energi · 12 s",
+     "☀️ Solstorm! Dubbel energi · 11 s",
+     "☀️ Solstorm! Dubbel energi · 10 s",
+     "☀️ Solstorm! Dubbel energi · 9 s",
+     "☀️ Solstorm! Dubbel energi · 8 s",
+     "☀️ Solstorm! Dubbel energi · 7 s",
+     "☀️ Solstorm! Dubbel energi · 6 s",
+     "☀️ Solstorm! Dubbel energi · 5 s",
+     "☀️ Solstorm! Dubbel energi · 4 s",
+     "☀️ Solstorm! Dubbel energi · 3 s",
+     "☀️ Solstorm! Dubbel energi · 2 s",
+     "☀️ Solstorm! Dubbel energi · 1 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 10 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 9 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 8 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 7 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 6 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 5 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 4 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 3 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 2 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 1 s"
+    ],
+    "fast": 0,
+    "sistaSvar": 1793132020096,
+    "joined": true,
+    "placeringar": [],
+    "vantaMax": 0,
+    "vantaFran": 0,
+    "logg": [
+     "join 2026-10-27T20:08:28.852Z"
+    ]
+   },
+   "sidoLive": "[]",
+   "konsol": []
+  },
+  {
+   "u": "e02",
+   "text": "Bra kämpat – 4B vann den här gången\n\nSkrov kvar: 4B 0 % · 5E 0 %\n\nDu sköt ner 2 meteorer, laddade skölden 12 gånger och slungade 1 meteor med dragstrålen.\n\n27 rätt svar\n128 \n\nTotalt: 128 pluggmynt 🎉",
+   "qa": {
+    "ratt": 27,
+    "fel": 15,
+    "val": {
+     "skold": 23,
+     "laser": 28,
+     "drag": 3
+    },
+    "kvitton": [
+     "🛡️ +2 – skölden 10/60",
+     "🛡️ +2 – skölden 5/60",
+     "🔫 Lasern laddas – 0,6 skott redo",
+     "🔫 Lasern laddas – 0,8 skott redo",
+     "🔫 Lasern laddas – 1 skott redo",
+     "🔫 Lasern laddas – 0,3 skott redo",
+     "🔫 Lasern laddas – 0,8 skott redo",
+     "🛡️ +2 – skölden 5/60"
+    ],
+    "felrader": [],
+    "banderoller": [
+     "🌌 Lugnet – inga meteorer. Andas! · 15 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 14 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 13 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 12 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 11 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 10 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 9 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 8 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 7 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 6 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 5 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 4 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 3 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 2 s",
+     "🌌 Lugnet – inga meteorer. Andas! · 1 s",
+     "☀️ Solstorm! Dubbel energi · 20 s",
+     "☀️ Solstorm! Dubbel energi · 19 s",
+     "☀️ Solstorm! Dubbel energi · 18 s",
+     "☀️ Solstorm! Dubbel energi · 17 s",
+     "☀️ Solstorm! Dubbel energi · 16 s",
+     "☀️ Solstorm! Dubbel energi · 15 s",
+     "☀️ Solstorm! Dubbel energi · 14 s",
+     "☀️ Solstorm! Dubbel energi · 13 s",
+     "☀️ Solstorm! Dubbel energi · 12 s",
+     "☀️ Solstorm! Dubbel energi · 11 s",
+     "☀️ Solstorm! Dubbel energi · 10 s",
+     "☀️ Solstorm! Dubbel energi · 9 s",
+     "☀️ Solstorm! Dubbel energi · 8 s",
+     "☀️ Solstorm! Dubbel energi · 7 s",
+     "☀️ Solstorm! Dubbel energi · 6 s",
+     "☀️ Solstorm! Dubbel energi · 5 s",
+     "☀️ Solstorm! Dubbel energi · 4 s",
+     "☀️ Solstorm! Dubbel energi · 3 s",
+     "☀️ Solstorm! Dubbel energi · 2 s",
+     "☀️ Solstorm! Dubbel energi · 1 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 10 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 9 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 8 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 7 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 6 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 5 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 4 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 3 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 2 s",
+     "✨ Kometsvans! +1 energi per rätt svar · 1 s"
+    ],
+    "fast": 0,
+    "sistaSvar": 1793132019584,
+    "joined": true,
+    "placeringar": [],
+    "vantaMax": 0,
+    "vantaFran": 0,
+    "logg": [
+     "join 2026-10-27T20:08:30.325Z"
+    ]
+   },
+   "sidoLive": "[]",
+   "konsol": []
+  }
+ ],
+ "ljudA": "[{\"s\":31.02,\"typ\":\"start\",\"loop\":true,\"dur\":80},{\"s\":31.02,\"typ\":\"ramp\",\"v\":0.3},{\"s\":55.097,\"typ\":\"ramp\",\"v\":0.7},{\"s\":55.097,\"typ\":\"ramp\",\"v\":0.7},{\"s\":55.097,\"typ\":\"ramp\",\"v\":1},{\"s\":55.097,\"typ\":\"ramp\",\"v\":0.7},{\"s\":55.097,\"typ\":\"ramp\",\"v\":0.7},{\"s\":55.097,\"typ\":\"ramp\",\"v\":1},{\"s\":60.671,\"typ\":\"ramp\",\"v\":0.7},{\"s\":60.671,\"typ\":\"ramp\",\"v\":0.7},{\"s\":60.671,\"typ\":\"ramp\",\"v\":1},{\"s\":74.469,\"typ\":\"ramp\",\"v\":0.7},{\"s\":74.469,\"typ\":\"ramp\",\"v\":0.7},{\"s\":74.469,\"typ\":\"ramp\",\"v\":1},{\"s\":87.37,\"typ\":\"ramp\",\"v\":0.7},{\"s\":87.37,\"typ\":\"ramp\",\"v\":0.7},{\"s\":87.37,\"typ\":\"ramp\",\"v\":1},{\"s\":87.37,\"typ\":\"ramp\",\"v\":0.7},{\"s\":87.37,\"typ\":\"ramp\",\"v\":0.7},{\"s\":87.37,\"typ\":\"ramp\",\"v\":1},{\"s\":93.883,\"typ\":\"ramp\",\"v\":0.7},{\"s\":93.883,\"typ\":\"ramp\",\"v\":0.7},{\"s\":93.883,\"typ\":\"ramp\",\"v\":1},{\"s\":128.283,\"typ\":\"ramp\",\"v\":0.7},{\"s\":128.283,\"typ\":\"ramp\",\"v\":0.7},{\"s\":128.283,\"typ\":\"ramp\",\"v\":1},{\"s\":128.283,\"typ\":\"ramp\",\"v\":0.7},{\"s\":128.283,\"typ\":\"ramp\",\"v\":0.7},{\"s\":128.283,\"typ\":\"ramp\",\"v\":1},{\"s\":129.006,\"typ\":\"ramp\",\"v\":0},{\"s\":129.607,\"typ\":\"stop-loop\"},{\"s\":139.176,\"typ\":\"start\",\"loop\":true,\"dur\":80},{\"s\":139.176,\"typ\":\"ramp\",\"v\":0.3},{\"s\":142.483,\"typ\":\"ramp\",\"v\":0.7},{\"s\":142.483,\"typ\":\"ramp\",\"v\":0.7},{\"s\":142.483,\"typ\":\"ramp\",\"v\":1},{\"s\":142.483,\"typ\":\"ramp\",\"v\":0.7},{\"s\":142.483,\"typ\":\"ramp\",\"v\":0.7},{\"s\":142.483,\"typ\":\"ramp\",\"v\":1},{\"s\":169.38,\"typ\":\"ramp\",\"v\":0.7},{\"s\":169.38,\"typ\":\"ramp\",\"v\":0.7},{\"s\":169.38,\"typ\":\"ramp\",\"v\":1},{\"s\":170.365,\"typ\":\"ramp\",\"v\":0.7},{\"s\":170.365,\"typ\":\"ramp\",\"v\":0.7},{\"s\":170.365,\"typ\":\"ramp\",\"v\":1},{\"s\":177.783,\"typ\":\"ramp\",\"v\":0.7},{\"s\":177.783,\"typ\":\"ramp\",\"v\":0.7},{\"s\":177.783,\"typ\":\"ramp\",\"v\":1},{\"s\":183.781,\"typ\":\"ramp\",\"v\":0.7},{\"s\":183.781,\"typ\":\"ramp\",\"v\":0.7},{\"s\":183.781,\"typ\":\"ramp\",\"v\":1},{\"s\":185.802,\"typ\":\"ramp\",\"v\":0.7},{\"s\":185.802,\"typ\":\"ramp\",\"v\":0.7},{\"s\":185.802,\"typ\":\"ramp\",\"v\":1},{\"s\":194.383,\"typ\":\"ramp\",\"v\":0.7},{\"s\":194.383,\"typ\":\"ramp\",\"v\":0.7},{\"s\":194.383,\"typ\":\"ramp\",\"v\":1},{\"s\":197.381,\"typ\":\"ramp\",\"v\":0.7},{\"s\":197.381,\"typ\":\"ramp\",\"v\":0.7},{\"s\":197.381,\"typ\":\"ramp\",\"v\":1},{\"s\":200.382,\"typ\":\"ramp\",\"v\":0.7},{\"s\":200.382,\"typ\":\"ramp\",\"v\":0.7},{\"s\":200.382,\"typ\":\"ramp\",\"v\":1},{\"s\":203.398,\"typ\":\"ramp\",\"v\":0.7},{\"s\":203.398,\"typ\":\"ramp\",\"v\":0.7},{\"s\":203.398,\"typ\":\"ramp\",\"v\":1},{\"s\":207.179,\"typ\":\"ramp\",\"v\":0.7},{\"s\":207.179,\"typ\":\"ramp\",\"v\":0.7},{\"s\":207.179,\"typ\":\"ramp\",\"v\":1},{\"s\":213.18,\"typ\":\"ramp\",\"v\":0.7},{\"s\":213.18,\"typ\":\"ramp\",\"v\":0.7},{\"s\":213.18,\"typ\":\"ramp\",\"v\":1},{\"s\":215.183,\"typ\":\"ramp\",\"v\":0.7},{\"s\":215.183,\"typ\":\"ramp\",\"v\":0.7},{\"s\":215.183,\"typ\":\"ramp\",\"v\":1},{\"s\":230.583,\"typ\":\"ramp\",\"v\":0.7},{\"s\":230.583,\"typ\":\"ramp\",\"v\":0.7},{\"s\":230.583,\"typ\":\"ramp\",\"v\":1},{\"s\":238.278,\"typ\":\"ramp\",\"v\":0.7},{\"s\":238.278,\"typ\":\"ramp\",\"v\":0.7},{\"s\":238.278,\"typ\":\"ramp\",\"v\":1},{\"s\":239.877,\"typ\":\"ramp\",\"v\":0.7},{\"s\":239.877,\"typ\":\"ramp\",\"v\":0.7},{\"s\":239.877,\"typ\":\"ramp\",\"v\":1},{\"s\":239.878,\"typ\":\"ramp\",\"v\":0.7},{\"s\":239.878,\"typ\":\"ramp\",\"v\":0.7},{\"s\":239.878,\"typ\":\"ramp\",\"v\":1},{\"s\":240.587,\"typ\":\"ramp\",\"v\":0.7},{\"s\":240.587,\"typ\":\"ramp\",\"v\":0.7},{\"s\":240.587,\"typ\":\"ramp\",\"v\":1},{\"s\":244.285,\"typ\":\"ramp\",\"v\":0.7},{\"s\":244.285,\"typ\":\"ramp\",\"v\":0.7},{\"s\":244.285,\"typ\":\"ramp\",\"v\":1},{\"s\":260.878,\"typ\":\"ramp\",\"v\":0.7},{\"s\":260.878,\"typ\":\"ramp\",\"v\":0.7},{\"s\":260.878,\"typ\":\"ramp\",\"v\":1},{\"s\":266.88,\"typ\":\"ramp\",\"v\":0.7},{\"s\":266.88,\"typ\":\"ramp\",\"v\":0.7},{\"s\":266.88,\"typ\":\"ramp\",\"v\":1},{\"s\":288.176,\"typ\":\"ramp\",\"v\":0.7},{\"s\":288.176,\"typ\":\"ramp\",\"v\":0.7},{\"s\":288.176,\"typ\":\"ramp\",\"v\":1},{\"s\":288.176,\"typ\":\"ramp\",\"v\":0.7},{\"s\":288.176,\"typ\":\"ramp\",\"v\":0.7},{\"s\":288.176,\"typ\":\"ramp\",\"v\":1},{\"s\":301.276,\"typ\":\"ramp\",\"v\":0.7},{\"s\":301.276,\"typ\":\"ramp\",\"v\":0.7},{\"s\":301.276,\"typ\":\"ramp\",\"v\":1},{\"s\":307.278,\"typ\":\"ramp\",\"v\":0.7},{\"s\":307.278,\"typ\":\"ramp\",\"v\":0.7},{\"s\":307.278,\"typ\":\"ramp\",\"v\":1},{\"s\":307.375,\"typ\":\"ramp\",\"v\":0.7},{\"s\":307.375,\"typ\":\"ramp\",\"v\":0.7},{\"s\":307.375,\"typ\":\"ramp\",\"v\":1},{\"s\":309.175,\"typ\":\"ramp\",\"v\":0.7},{\"s\":309.175,\"typ\":\"ramp\",\"v\":0.7},{\"s\":309.175,\"typ\":\"ramp\",\"v\":1},{\"s\":309.175,\"typ\":\"ramp\",\"v\":0.7},{\"s\":309.175,\"typ\":\"ramp\",\"v\":0.7},{\"s\":309.175,\"typ\":\"ramp\",\"v\":1},{\"s\":309.674,\"typ\":\"ramp\",\"v\":0.7},{\"s\":309.674,\"typ\":\"ramp\",\"v\":0.7},{\"s\":309.675,\"typ\":\"ramp\",\"v\":1},{\"s\":309.675,\"typ\":\"ramp\",\"v\":0.7},{\"s\":309.675,\"typ\":\"ramp\",\"v\":0.7},{\"s\":309.675,\"typ\":\"ramp\",\"v\":1},{\"s\":315.274,\"typ\":\"ramp\",\"v\":0.7},{\"s\":315.274,\"typ\":\"ramp\",\"v\":0.7},{\"s\":315.274,\"typ\":\"ramp\",\"v\":1},{\"s\":317.375,\"typ\":\"ramp\",\"v\":0.7},{\"s\":317.375,\"typ\":\"ramp\",\"v\":0.7},{\"s\":317.375,\"typ\":\"ramp\",\"v\":1},{\"s\":319.788,\"typ\":\"ramp\",\"v\":0.7},{\"s\":319.788,\"typ\":\"ramp\",\"v\":0.7},{\"s\":319.788,\"typ\":\"ramp\",\"v\":1},{\"s\":322.074,\"typ\":\"ramp\",\"v\":0.7},{\"s\":322.075,\"typ\":\"ramp\",\"v\":0.7},{\"s\":322.075,\"typ\":\"ramp\",\"v\":1},{\"s\":323.174,\"typ\":\"ramp\",\"v\":0.7},{\"s\":323.174,\"typ\":\"ramp\",\"v\":0.7},{\"s\":323.174,\"typ\":\"ramp\",\"v\":1},{\"s\":324.177,\"typ\":\"ramp\",\"v\":0.7},{\"s\":324.177,\"typ\":\"ramp\",\"v\":0.7},{\"s\":324.177,\"typ\":\"ramp\",\"v\":1},{\"s\":325.176,\"typ\":\"ramp\",\"v\":0.7},{\"s\":325.176,\"typ\":\"ramp\",\"v\":0.7},{\"s\":325.176,\"typ\":\"ramp\",\"v\":1},{\"s\":331.019,\"typ\":\"ramp\",\"v\":0},{\"s\":332.219,\"typ\":\"stop-loop\"}]",
+ "synlighet": {
+  "A": "visible",
+  "B": "visible"
+ },
+ "konsolA": [
+  "exception: TypeError: Failed to construct 'URL': Invalid URL\n    at http://127.0.0.1:29513/src/pages-varld.js:76:15\n    at HTMLFormElement.<anonymous> (http://127.0.0.1:29513/src/teacher-gate.js:56:18)"
+ ],
+ "konsolB": [
+  "exception: TypeError: Failed to construct 'URL': Invalid URL\n    at http://127.0.0.1:29513/src/pages-varld.js:76:15\n    at HTMLFormElement.<anonymous> (http://127.0.0.1:29513/src/teacher-gate.js:56:18)"
+ ],
+ "botar": [
+  "{\"uids\":6,\"raknare\":{\"anrop\":{\"msLage\":6},\"fel\":{}},\"res\":[{\"ratt\":0,\"fel\":0,\"handl\":{},\"nekad\":0},{\"ratt\":0,\"fel\":0,\"handl\":{},\"nekad\":0},{\"ratt\":0,\"fel\":0,\"handl\":{},\"nekad\":0}],\"summaRatt\":0,\"summaFel\":0}\n",
+  "{\"uids\":6,\"raknare\":{\"anrop\":{\"msLage\":6},\"fel\":{}},\"res\":[{\"ratt\":0,\"fel\":0,\"handl\":{},\"nekad\":0},{\"ratt\":0,\"fel\":0,\"handl\":{},\"nekad\":0},{\"ratt\":0,\"fel\":0,\"handl\":{},\"nekad\":0}],\"summaRatt\":0,\"summaFel\":0}\n"
+ ],
+ "session": {
+  "status": "finished",
+  "result": {
+   "format": "meteorstorm",
+   "lage": "klass-mot-klass",
+   "winner": "4b",
+   "draw": false,
+   "placering": [
+    {
+     "classId": "4b",
+     "skrov": 0,
+     "nedskjutna": 5,
+     "plats": 1
+    },
+    {
+     "classId": "5e",
+     "skrov": 0,
+     "nedskjutna": 4,
+     "plats": 2
+    }
+   ],
+   "startMs": 1793131724070,
+   "slutMs": 1793132024070,
+   "players": 4,
+   "totalCorrect": 110,
+   "totalAnswered": 170,
+   "handlingar": {
+    "skold": 45,
+    "laser": 55,
+    "drag": 9,
+    "spara": 1
+   },
+   "nekade": 1,
+   "perClass": {
+    "4b": {
+     "name": "4B",
+     "players": 2,
+     "aktiva": 8,
+     "skrov": 0,
+     "skold": 0,
+     "nedskjutna": 5,
+     "traffar": 12,
+     "kastade": 6,
+     "handlingar": {
+      "skold": 20,
+      "laser": 31,
+      "drag": 6,
+      "spara": 1
+     },
+     "correct": 58,
+     "answered": 87,
+     "ogonblick": [
+      {
+       "typ": "nedskjutna",
+       "uid": "b02",
+       "namn": "Ali 4B",
+       "antal": 4
+      },
+      {
+       "typ": "skold",
+       "uid": "b01",
+       "namn": "Saga 4B",
+       "antal": 10
+      },
+      {
+       "typ": "kast",
+       "uid": "b01",
+       "namn": "Saga 4B",
+       "antal": 3
+      }
+     ]
+    },
+    "5e": {
+     "name": "5E",
+     "players": 2,
+     "aktiva": 8,
+     "skrov": 0,
+     "skold": 4.5,
+     "nedskjutna": 4,
+     "traffar": 13,
+     "kastade": 3,
+     "handlingar": {
+      "skold": 25,
+      "laser": 24,
+      "drag": 3,
+      "spara": 0
+     },
+     "correct": 52,
+     "answered": 83,
+     "ogonblick": [
+      {
+       "typ": "nedskjutna",
+       "uid": "e01",
+       "namn": "Elias 5E",
+       "antal": 2
+      },
+      {
+       "typ": "skold",
+       "uid": "e01",
+       "namn": "Elias 5E",
+       "antal": 13
+      },
+      {
+       "typ": "kast",
+       "uid": "e01",
+       "namn": "Elias 5E",
+       "antal": 2
+      }
+     ]
+    }
+   },
+   "ranking": [
+    {
+     "uid": "b01",
+     "name": "Saga 4B",
+     "classId": "4b",
+     "correct": 29,
+     "answered": 44,
+     "handlingar": {
+      "skold": 10,
+      "laser": 16,
+      "drag": 3,
+      "spara": 0
+     },
+     "bidrag": {
+      "skold": 10,
+      "laser": 16,
+      "drag": 3,
+      "nedskjutna": 1,
+      "kast": 3
+     },
+     "rank": 1
+    },
+    {
+     "uid": "b02",
+     "name": "Ali 4B",
+     "classId": "4b",
+     "correct": 29,
+     "answered": 43,
+     "handlingar": {
+      "skold": 10,
+      "laser": 15,
+      "drag": 3,
+      "spara": 1
+     },
+     "bidrag": {
+      "skold": 10,
+      "laser": 15,
+      "drag": 3,
+      "nedskjutna": 4,
+      "kast": 3
+     },
+     "rank": 1
+    },
+    {
+     "uid": "b03",
+     "name": "Nora 4B",
+     "classId": "4b",
+     "correct": 0,
+     "answered": 0,
+     "handlingar": {
+      "skold": 0,
+      "laser": 0,
+      "drag": 0,
+      "spara": 0
+     },
+     "bidrag": {
+      "skold": 0,
+      "laser": 0,
+      "drag": 0,
+      "nedskjutna": 0,
+      "kast": 0
+     },
+     "rank": 1
+    },
+    {
+     "uid": "b04",
+     "name": "Ivar 4B",
+     "classId": "4b",
+     "correct": 0,
+     "answered": 0,
+     "handlingar": {
+      "skold": 0,
+      "laser": 0,
+      "drag": 0,
+      "spara": 0
+     },
+     "bidrag": {
+      "skold": 0,
+      "laser": 0,
+      "drag": 0,
+      "nedskjutna": 0,
+      "kast": 0
+     },
+     "rank": 1
+    },
+    {
+     "uid": "b05",
+     "name": "Clara 4B",
+     "classId": "4b",
+     "correct": 0,
+     "answered": 0,
+     "handlingar": {
+      "skold": 0,
+      "laser": 0,
+      "drag": 0,
+      "spara": 0
+     },
+     "bidrag": {
+      "skold": 0,
+      "laser": 0,
+      "drag": 0,
+      "nedskjutna": 0,
+      "kast": 0
+     },
+     "rank": 1
+    },
+    {
+     "uid": "b06",
+     "name": "Elias 4B",
+     "classId": "4b",
+     "correct": 0,
+     "answered": 0,
+     "handlingar": {
+      "skold": 0,
+      "laser": 0,
+      "drag": 0,
+      "spara": 0
+     },
+     "bidrag": {
+      "skold": 0,
+      "laser": 0,
+      "drag": 0,
+      "nedskjutna": 0,
+      "kast": 0
+     },
+     "rank": 1
+    },
+    {
+     "uid": "b07",
+     "name": "Agnes 4B",
+     "classId": "4b",
+     "correct": 0,
+     "answered": 0,
+     "handlingar": {
+      "skold": 0,
+      "laser": 0,
+      "drag": 0,
+      "spara": 0
+     },
+     "bidrag": {
+      "skold": 0,
+      "laser": 0,
+      "drag": 0,
+      "nedskjutna": 0,
+      "kast": 0
+     },
+     "rank": 1
+    },
+    {
+     "uid": "b08",
+     "name": "Otto 4B",
+     "classId": "4b",
+     "correct": 0,
+     "answered": 0,
+     "handlingar": {
+      "skold": 0,
+      "laser": 0,
+      "drag": 0,
+      "spara": 0
+     },
+     "bidrag": {
+      "skold": 0,
+      "laser": 0,
+      "drag": 0,
+      "nedskjutna": 0,
+      "kast": 0
+     },
+     "rank": 1
+    },
+    {
+     "uid": "e02",
+     "name": "Agnes 5E",
+     "classId": "5e",
+     "correct": 27,
+     "answered": 42,
+     "handlingar": {
+      "skold": 12,
+      "laser": 14,
+      "drag": 1,
+      "spara": 0
+     },
+     "bidrag": {
+      "skold": 12,
+      "laser": 14,
+      "drag": 1,
+      "nedskjutna": 2,
+      "kast": 1
+     },
+     "rank": 2
+    },
+    {
+     "uid": "e01",
+     "name": "Elias 5E",
+     "classId": "5e",
+     "correct": 25,
+     "answered": 41,
+     "handlingar": {
+      "skold": 13,
+      "laser": 10,
+      "drag": 2,
+      "spara": 0
+     },
+     "bidrag": {
+      "skold": 13,
+      "laser": 10,
+      "drag": 2,
+      "nedskjutna": 2,
+      "kast": 2
+     },
+     "rank": 2
+    },
+    {
+     "uid": "e03",
+     "name": "Otto 5E",
+     "classId": "5e",
+     "correct": 0,
+     "answered": 0,
+     "handlingar": {
+      "skold": 0,
+      "laser": 0,
+      "drag": 0,
+      "spara": 0
+     },
+     "bidrag": {
+      "skold": 0,
+      "laser": 0,
+      "drag": 0,
+      "nedskjutna": 0,
+      "kast": 0
+     },
+     "rank": 2
+    },
+    {
+     "uid": "e04",
+     "name": "Siri 5E",
+     "classId": "5e",
+     "correct": 0,
+     "answered": 0,
+     "handlingar": {
+      "skold": 0,
+      "laser": 0,
+      "drag": 0,
+      "spara": 0
+     },
+     "bidrag": {
+      "skold": 0,
+      "laser": 0,
+      "drag": 0,
+      "nedskjutna": 0,
+      "kast": 0
+     },
+     "rank": 2
+    },
+    {
+     "uid": "e05",
+     "name": "Liam 5E",
+     "classId": "5e",
+     "correct": 0,
+     "answered": 0,
+     "handlingar": {
+      "skold": 0,
+      "laser": 0,
+      "drag": 0,
+      "spara": 0
+     },
+     "bidrag": {
+      "skold": 0,
+      "laser": 0,
+      "drag": 0,
+      "nedskjutna": 0,
+      "kast": 0
+     },
+     "rank": 2
+    },
+    {
+     "uid": "e06",
+     "name": "Ebba 5E",
+     "classId": "5e",
+     "correct": 0,
+     "answered": 0,
+     "handlingar": {
+      "skold": 0,
+      "laser": 0,
+      "drag": 0,
+      "spara": 0
+     },
+     "bidrag": {
+      "skold": 0,
+      "laser": 0,
+      "drag": 0,
+      "nedskjutna": 0,
+      "kast": 0
+     },
+     "rank": 2
+    },
+    {
+     "uid": "e07",
+     "name": "Sam 5E",
+     "classId": "5e",
+     "correct": 0,
+     "answered": 0,
+     "handlingar": {
+      "skold": 0,
+      "laser": 0,
+      "drag": 0,
+      "spara": 0
+     },
+     "bidrag": {
+      "skold": 0,
+      "laser": 0,
+      "drag": 0,
+      "nedskjutna": 0,
+      "kast": 0
+     },
+     "rank": 2
+    },
+    {
+     "uid": "e08",
+     "name": "Selma 5E",
+     "classId": "5e",
+     "correct": 0,
+     "answered": 0,
+     "handlingar": {
+      "skold": 0,
+      "laser": 0,
+      "drag": 0,
+      "spara": 0
+     },
+     "bidrag": {
+      "skold": 0,
+      "laser": 0,
+      "drag": 0,
+      "nedskjutna": 0,
+      "kast": 0
+     },
+     "rank": 2
+    }
+   ],
+   "perQuestion": [
+    {
+     "index": 0,
+     "key": "m:0x1",
+     "text": "0 × 1",
+     "statKeys": [
+      "t0",
+      "t1"
+     ],
+     "answered": 2,
+     "correct": 1,
+     "byClass": {
+      "5e": {
+       "answered": 2,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 1,
+     "key": "m:0x2",
+     "text": "0 × 2",
+     "statKeys": [
+      "t0",
+      "t2"
+     ],
+     "answered": 1,
+     "correct": 1,
+     "byClass": {
+      "5e": {
+       "answered": 1,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 2,
+     "key": "m:0x3",
+     "text": "0 × 3",
+     "statKeys": [
+      "t0",
+      "t3"
+     ],
+     "answered": 1,
+     "correct": 1,
+     "byClass": {
+      "4b": {
+       "answered": 1,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 3,
+     "key": "m:0x4",
+     "text": "0 × 4",
+     "statKeys": [
+      "t0",
+      "t4"
+     ],
+     "answered": 1,
+     "correct": 0,
+     "byClass": {
+      "4b": {
+       "answered": 1,
+       "correct": 0
+      }
+     }
+    },
+    {
+     "index": 4,
+     "key": "m:0x5",
+     "text": "0 × 5",
+     "statKeys": [
+      "t0",
+      "t5"
+     ],
+     "answered": 1,
+     "correct": 1,
+     "byClass": {
+      "4b": {
+       "answered": 1,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 5,
+     "key": "m:0x6",
+     "text": "0 × 6",
+     "statKeys": [
+      "t0",
+      "t6"
+     ],
+     "answered": 1,
+     "correct": 1,
+     "byClass": {
+      "4b": {
+       "answered": 1,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 6,
+     "key": "m:0x7",
+     "text": "0 × 7",
+     "statKeys": [
+      "t0",
+      "t7"
+     ],
+     "answered": 1,
+     "correct": 0,
+     "byClass": {
+      "5e": {
+       "answered": 1,
+       "correct": 0
+      }
+     }
+    },
+    {
+     "index": 7,
+     "key": "m:0x9",
+     "text": "0 × 9",
+     "statKeys": [
+      "t0",
+      "t9"
+     ],
+     "answered": 3,
+     "correct": 1,
+     "byClass": {
+      "5e": {
+       "answered": 3,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 8,
+     "key": "m:0x10",
+     "text": "0 × 10",
+     "statKeys": [
+      "t0",
+      "t10"
+     ],
+     "answered": 4,
+     "correct": 4,
+     "byClass": {
+      "4b": {
+       "answered": 2,
+       "correct": 2
+      },
+      "5e": {
+       "answered": 2,
+       "correct": 2
+      }
+     }
+    },
+    {
+     "index": 9,
+     "key": "m:1x2",
+     "text": "1 × 2",
+     "statKeys": [
+      "t1",
+      "t2"
+     ],
+     "answered": 1,
+     "correct": 1,
+     "byClass": {
+      "5e": {
+       "answered": 1,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 10,
+     "key": "m:1x3",
+     "text": "1 × 3",
+     "statKeys": [
+      "t1",
+      "t3"
+     ],
+     "answered": 2,
+     "correct": 2,
+     "byClass": {
+      "4b": {
+       "answered": 1,
+       "correct": 1
+      },
+      "5e": {
+       "answered": 1,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 11,
+     "key": "m:1x5",
+     "text": "1 × 5",
+     "statKeys": [
+      "t1",
+      "t5"
+     ],
+     "answered": 3,
+     "correct": 2,
+     "byClass": {
+      "4b": {
+       "answered": 3,
+       "correct": 2
+      }
+     }
+    },
+    {
+     "index": 12,
+     "key": "m:1x6",
+     "text": "1 × 6",
+     "statKeys": [
+      "t1",
+      "t6"
+     ],
+     "answered": 1,
+     "correct": 0,
+     "byClass": {
+      "4b": {
+       "answered": 1,
+       "correct": 0
+      }
+     }
+    },
+    {
+     "index": 13,
+     "key": "m:1x7",
+     "text": "1 × 7",
+     "statKeys": [
+      "t1",
+      "t7"
+     ],
+     "answered": 1,
+     "correct": 1,
+     "byClass": {
+      "4b": {
+       "answered": 1,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 14,
+     "key": "m:1x8",
+     "text": "1 × 8",
+     "statKeys": [
+      "t1",
+      "t8"
+     ],
+     "answered": 3,
+     "correct": 1,
+     "byClass": {
+      "5e": {
+       "answered": 1,
+       "correct": 0
+      },
+      "4b": {
+       "answered": 2,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 15,
+     "key": "m:1x9",
+     "text": "1 × 9",
+     "statKeys": [
+      "t1",
+      "t9"
+     ],
+     "answered": 4,
+     "correct": 4,
+     "byClass": {
+      "4b": {
+       "answered": 1,
+       "correct": 1
+      },
+      "5e": {
+       "answered": 3,
+       "correct": 3
+      }
+     }
+    },
+    {
+     "index": 16,
+     "key": "m:1x10",
+     "text": "1 × 10",
+     "statKeys": [
+      "t1",
+      "t10"
+     ],
+     "answered": 3,
+     "correct": 3,
+     "byClass": {
+      "5e": {
+       "answered": 3,
+       "correct": 3
+      }
+     }
+    },
+    {
+     "index": 17,
+     "key": "m:2x2",
+     "text": "2 × 2",
+     "statKeys": [
+      "t2"
+     ],
+     "answered": 3,
+     "correct": 2,
+     "byClass": {
+      "4b": {
+       "answered": 1,
+       "correct": 0
+      },
+      "5e": {
+       "answered": 2,
+       "correct": 2
+      }
+     }
+    },
+    {
+     "index": 18,
+     "key": "m:2x3",
+     "text": "2 × 3",
+     "statKeys": [
+      "t2",
+      "t3"
+     ],
+     "answered": 5,
+     "correct": 1,
+     "byClass": {
+      "4b": {
+       "answered": 1,
+       "correct": 0
+      },
+      "5e": {
+       "answered": 4,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 19,
+     "key": "m:2x4",
+     "text": "2 × 4",
+     "statKeys": [
+      "t2",
+      "t4"
+     ],
+     "answered": 4,
+     "correct": 3,
+     "byClass": {
+      "4b": {
+       "answered": 4,
+       "correct": 3
+      }
+     }
+    },
+    {
+     "index": 20,
+     "key": "m:2x5",
+     "text": "2 × 5",
+     "statKeys": [
+      "t2",
+      "t5"
+     ],
+     "answered": 2,
+     "correct": 1,
+     "byClass": {
+      "5e": {
+       "answered": 2,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 21,
+     "key": "m:2x6",
+     "text": "2 × 6",
+     "statKeys": [
+      "t2",
+      "t6"
+     ],
+     "answered": 5,
+     "correct": 3,
+     "byClass": {
+      "4b": {
+       "answered": 2,
+       "correct": 1
+      },
+      "5e": {
+       "answered": 3,
+       "correct": 2
+      }
+     }
+    },
+    {
+     "index": 22,
+     "key": "m:2x7",
+     "text": "2 × 7",
+     "statKeys": [
+      "t2",
+      "t7"
+     ],
+     "answered": 2,
+     "correct": 1,
+     "byClass": {
+      "4b": {
+       "answered": 1,
+       "correct": 1
+      },
+      "5e": {
+       "answered": 1,
+       "correct": 0
+      }
+     }
+    },
+    {
+     "index": 23,
+     "key": "m:2x8",
+     "text": "2 × 8",
+     "statKeys": [
+      "t2",
+      "t8"
+     ],
+     "answered": 2,
+     "correct": 0,
+     "byClass": {
+      "5e": {
+       "answered": 1,
+       "correct": 0
+      },
+      "4b": {
+       "answered": 1,
+       "correct": 0
+      }
+     }
+    },
+    {
+     "index": 24,
+     "key": "m:2x9",
+     "text": "2 × 9",
+     "statKeys": [
+      "t2",
+      "t9"
+     ],
+     "answered": 1,
+     "correct": 0,
+     "byClass": {
+      "5e": {
+       "answered": 1,
+       "correct": 0
+      }
+     }
+    },
+    {
+     "index": 25,
+     "key": "m:2x10",
+     "text": "2 × 10",
+     "statKeys": [
+      "t2",
+      "t10"
+     ],
+     "answered": 4,
+     "correct": 3,
+     "byClass": {
+      "5e": {
+       "answered": 1,
+       "correct": 1
+      },
+      "4b": {
+       "answered": 3,
+       "correct": 2
+      }
+     }
+    },
+    {
+     "index": 26,
+     "key": "m:3x3",
+     "text": "3 × 3",
+     "statKeys": [
+      "t3"
+     ],
+     "answered": 3,
+     "correct": 2,
+     "byClass": {
+      "4b": {
+       "answered": 1,
+       "correct": 1
+      },
+      "5e": {
+       "answered": 2,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 27,
+     "key": "m:3x4",
+     "text": "3 × 4",
+     "statKeys": [
+      "t3",
+      "t4"
+     ],
+     "answered": 4,
+     "correct": 3,
+     "byClass": {
+      "4b": {
+       "answered": 3,
+       "correct": 2
+      },
+      "5e": {
+       "answered": 1,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 28,
+     "key": "m:3x5",
+     "text": "3 × 5",
+     "statKeys": [
+      "t3",
+      "t5"
+     ],
+     "answered": 2,
+     "correct": 2,
+     "byClass": {
+      "4b": {
+       "answered": 1,
+       "correct": 1
+      },
+      "5e": {
+       "answered": 1,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 29,
+     "key": "m:3x6",
+     "text": "3 × 6",
+     "statKeys": [
+      "t3",
+      "t6"
+     ],
+     "answered": 3,
+     "correct": 2,
+     "byClass": {
+      "4b": {
+       "answered": 3,
+       "correct": 2
+      }
+     }
+    },
+    {
+     "index": 30,
+     "key": "m:3x7",
+     "text": "3 × 7",
+     "statKeys": [
+      "t3",
+      "t7"
+     ],
+     "answered": 4,
+     "correct": 4,
+     "byClass": {
+      "5e": {
+       "answered": 3,
+       "correct": 3
+      },
+      "4b": {
+       "answered": 1,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 31,
+     "key": "m:3x8",
+     "text": "3 × 8",
+     "statKeys": [
+      "t3",
+      "t8"
+     ],
+     "answered": 4,
+     "correct": 1,
+     "byClass": {
+      "4b": {
+       "answered": 3,
+       "correct": 1
+      },
+      "5e": {
+       "answered": 1,
+       "correct": 0
+      }
+     }
+    },
+    {
+     "index": 32,
+     "key": "m:3x10",
+     "text": "3 × 10",
+     "statKeys": [
+      "t3",
+      "t10"
+     ],
+     "answered": 3,
+     "correct": 0,
+     "byClass": {
+      "5e": {
+       "answered": 2,
+       "correct": 0
+      },
+      "4b": {
+       "answered": 1,
+       "correct": 0
+      }
+     }
+    },
+    {
+     "index": 33,
+     "key": "m:4x4",
+     "text": "4 × 4",
+     "statKeys": [
+      "t4"
+     ],
+     "answered": 1,
+     "correct": 0,
+     "byClass": {
+      "4b": {
+       "answered": 1,
+       "correct": 0
+      }
+     }
+    },
+    {
+     "index": 34,
+     "key": "m:4x5",
+     "text": "4 × 5",
+     "statKeys": [
+      "t4",
+      "t5"
+     ],
+     "answered": 3,
+     "correct": 3,
+     "byClass": {
+      "4b": {
+       "answered": 2,
+       "correct": 2
+      },
+      "5e": {
+       "answered": 1,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 35,
+     "key": "m:4x6",
+     "text": "4 × 6",
+     "statKeys": [
+      "t4",
+      "t6"
+     ],
+     "answered": 4,
+     "correct": 4,
+     "byClass": {
+      "4b": {
+       "answered": 3,
+       "correct": 3
+      },
+      "5e": {
+       "answered": 1,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 36,
+     "key": "m:4x7",
+     "text": "4 × 7",
+     "statKeys": [
+      "t4",
+      "t7"
+     ],
+     "answered": 2,
+     "correct": 0,
+     "byClass": {
+      "4b": {
+       "answered": 2,
+       "correct": 0
+      }
+     }
+    },
+    {
+     "index": 37,
+     "key": "m:4x8",
+     "text": "4 × 8",
+     "statKeys": [
+      "t4",
+      "t8"
+     ],
+     "answered": 4,
+     "correct": 3,
+     "byClass": {
+      "5e": {
+       "answered": 2,
+       "correct": 1
+      },
+      "4b": {
+       "answered": 2,
+       "correct": 2
+      }
+     }
+    },
+    {
+     "index": 38,
+     "key": "m:4x9",
+     "text": "4 × 9",
+     "statKeys": [
+      "t4",
+      "t9"
+     ],
+     "answered": 3,
+     "correct": 2,
+     "byClass": {
+      "4b": {
+       "answered": 1,
+       "correct": 0
+      },
+      "5e": {
+       "answered": 2,
+       "correct": 2
+      }
+     }
+    },
+    {
+     "index": 39,
+     "key": "m:4x10",
+     "text": "4 × 10",
+     "statKeys": [
+      "t4",
+      "t10"
+     ],
+     "answered": 6,
+     "correct": 2,
+     "byClass": {
+      "5e": {
+       "answered": 5,
+       "correct": 2
+      },
+      "4b": {
+       "answered": 1,
+       "correct": 0
+      }
+     }
+    },
+    {
+     "index": 40,
+     "key": "m:5x5",
+     "text": "5 × 5",
+     "statKeys": [
+      "t5"
+     ],
+     "answered": 3,
+     "correct": 3,
+     "byClass": {
+      "5e": {
+       "answered": 2,
+       "correct": 2
+      },
+      "4b": {
+       "answered": 1,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 41,
+     "key": "m:5x6",
+     "text": "5 × 6",
+     "statKeys": [
+      "t5",
+      "t6"
+     ],
+     "answered": 2,
+     "correct": 1,
+     "byClass": {
+      "5e": {
+       "answered": 1,
+       "correct": 1
+      },
+      "4b": {
+       "answered": 1,
+       "correct": 0
+      }
+     }
+    },
+    {
+     "index": 42,
+     "key": "m:5x7",
+     "text": "5 × 7",
+     "statKeys": [
+      "t5",
+      "t7"
+     ],
+     "answered": 2,
+     "correct": 0,
+     "byClass": {
+      "5e": {
+       "answered": 2,
+       "correct": 0
+      }
+     }
+    },
+    {
+     "index": 43,
+     "key": "m:5x8",
+     "text": "5 × 8",
+     "statKeys": [
+      "t5",
+      "t8"
+     ],
+     "answered": 3,
+     "correct": 1,
+     "byClass": {
+      "4b": {
+       "answered": 3,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 44,
+     "key": "m:5x9",
+     "text": "5 × 9",
+     "statKeys": [
+      "t5",
+      "t9"
+     ],
+     "answered": 4,
+     "correct": 2,
+     "byClass": {
+      "5e": {
+       "answered": 2,
+       "correct": 0
+      },
+      "4b": {
+       "answered": 2,
+       "correct": 2
+      }
+     }
+    },
+    {
+     "index": 45,
+     "key": "m:5x10",
+     "text": "5 × 10",
+     "statKeys": [
+      "t5",
+      "t10"
+     ],
+     "answered": 2,
+     "correct": 2,
+     "byClass": {
+      "5e": {
+       "answered": 2,
+       "correct": 2
+      }
+     }
+    },
+    {
+     "index": 46,
+     "key": "m:6x7",
+     "text": "6 × 7",
+     "statKeys": [
+      "t6",
+      "t7"
+     ],
+     "answered": 3,
+     "correct": 2,
+     "byClass": {
+      "4b": {
+       "answered": 2,
+       "correct": 1
+      },
+      "5e": {
+       "answered": 1,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 47,
+     "key": "m:6x8",
+     "text": "6 × 8",
+     "statKeys": [
+      "t6",
+      "t8"
+     ],
+     "answered": 2,
+     "correct": 2,
+     "byClass": {
+      "4b": {
+       "answered": 2,
+       "correct": 2
+      }
+     }
+    },
+    {
+     "index": 48,
+     "key": "m:6x9",
+     "text": "6 × 9",
+     "statKeys": [
+      "t6",
+      "t9"
+     ],
+     "answered": 2,
+     "correct": 1,
+     "byClass": {
+      "4b": {
+       "answered": 1,
+       "correct": 1
+      },
+      "5e": {
+       "answered": 1,
+       "correct": 0
+      }
+     }
+    },
+    {
+     "index": 49,
+     "key": "m:6x10",
+     "text": "6 × 10",
+     "statKeys": [
+      "t6",
+      "t10"
+     ],
+     "answered": 4,
+     "correct": 4,
+     "byClass": {
+      "5e": {
+       "answered": 3,
+       "correct": 3
+      },
+      "4b": {
+       "answered": 1,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 50,
+     "key": "m:7x7",
+     "text": "7 × 7",
+     "statKeys": [
+      "t7"
+     ],
+     "answered": 2,
+     "correct": 1,
+     "byClass": {
+      "5e": {
+       "answered": 1,
+       "correct": 0
+      },
+      "4b": {
+       "answered": 1,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 51,
+     "key": "m:7x8",
+     "text": "7 × 8",
+     "statKeys": [
+      "t7",
+      "t8"
+     ],
+     "answered": 6,
+     "correct": 4,
+     "byClass": {
+      "4b": {
+       "answered": 4,
+       "correct": 2
+      },
+      "5e": {
+       "answered": 2,
+       "correct": 2
+      }
+     }
+    },
+    {
+     "index": 52,
+     "key": "m:7x9",
+     "text": "7 × 9",
+     "statKeys": [
+      "t7",
+      "t9"
+     ],
+     "answered": 5,
+     "correct": 4,
+     "byClass": {
+      "4b": {
+       "answered": 3,
+       "correct": 3
+      },
+      "5e": {
+       "answered": 2,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 53,
+     "key": "m:7x10",
+     "text": "7 × 10",
+     "statKeys": [
+      "t7",
+      "t10"
+     ],
+     "answered": 6,
+     "correct": 6,
+     "byClass": {
+      "4b": {
+       "answered": 3,
+       "correct": 3
+      },
+      "5e": {
+       "answered": 3,
+       "correct": 3
+      }
+     }
+    },
+    {
+     "index": 54,
+     "key": "m:8x8",
+     "text": "8 × 8",
+     "statKeys": [
+      "t8"
+     ],
+     "answered": 1,
+     "correct": 1,
+     "byClass": {
+      "5e": {
+       "answered": 1,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 55,
+     "key": "m:8x9",
+     "text": "8 × 9",
+     "statKeys": [
+      "t8",
+      "t9"
+     ],
+     "answered": 3,
+     "correct": 1,
+     "byClass": {
+      "5e": {
+       "answered": 2,
+       "correct": 1
+      },
+      "4b": {
+       "answered": 1,
+       "correct": 0
+      }
+     }
+    },
+    {
+     "index": 56,
+     "key": "m:8x10",
+     "text": "8 × 10",
+     "statKeys": [
+      "t8",
+      "t10"
+     ],
+     "answered": 5,
+     "correct": 3,
+     "byClass": {
+      "4b": {
+       "answered": 3,
+       "correct": 2
+      },
+      "5e": {
+       "answered": 2,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 57,
+     "key": "m:9x9",
+     "text": "9 × 9",
+     "statKeys": [
+      "t9"
+     ],
+     "answered": 2,
+     "correct": 2,
+     "byClass": {
+      "5e": {
+       "answered": 1,
+       "correct": 1
+      },
+      "4b": {
+       "answered": 1,
+       "correct": 1
+      }
+     }
+    },
+    {
+     "index": 58,
+     "key": "m:9x10",
+     "text": "9 × 10",
+     "statKeys": [
+      "t9",
+      "t10"
+     ],
+     "answered": 4,
+     "correct": 2,
+     "byClass": {
+      "4b": {
+       "answered": 3,
+       "correct": 2
+      },
+      "5e": {
+       "answered": 1,
+       "correct": 0
+      }
+     }
+    },
+    {
+     "index": 59,
+     "key": "m:10x10",
+     "text": "10 × 10",
+     "statKeys": [
+      "t10"
+     ],
+     "answered": 2,
+     "correct": 2,
+     "byClass": {
+      "4b": {
+       "answered": 2,
+       "correct": 2
+      }
+     }
+    }
+   ],
+   "rewards": {
+    "b01": {
+     "rank": 1,
+     "correct": 29,
+     "prize": 0,
+     "correctCoins": 136,
+     "total": 136
+    },
+    "b02": {
+     "rank": 1,
+     "correct": 29,
+     "prize": 0,
+     "correctCoins": 136,
+     "total": 136
+    },
+    "e02": {
+     "rank": 2,
+     "correct": 27,
+     "prize": 0,
+     "correctCoins": 128,
+     "total": 128
+    },
+    "e01": {
+     "rank": 2,
+     "correct": 25,
+     "prize": 0,
+     "correctCoins": 120,
+     "total": 120
+    }
+   },
+   "computedAt": "2026-10-27T20:13:48.169Z"
+  },
+  "msStationer": [
+   {
+    "classId": "4b",
+    "aktiva": 8
+   },
+   {
+    "classId": "5e",
+    "aktiva": 8
+   }
+  ],
+  "rewards": {
+   "firstPrize": 0,
+   "perCorrect": 5,
+   "cap": 300
+  }
+ },
+ "status": {
+  "tMs": 1793132026070,
+  "visarMs": 1793132024070,
+  "kvarMs": 0,
+  "klart": true,
+  "handelse": null,
+  "stationer": [
+   {
+    "classId": "4b",
+    "skrov": 0,
+    "skold": 0,
+    "laddning": 0.44,
+    "skott": 0,
+    "nedskjutna": 5,
+    "flyter": true,
+    "hjalp": false,
+    "drag": {
+     "tillaten": true,
+     "kostnad": 2,
+     "armerad": false,
+     "redoMs": 1793131998370
+    }
+   },
+   {
+    "classId": "5e",
+    "skrov": 0,
+    "skold": 4.5,
+    "laddning": 0.76,
+    "skott": 0,
+    "nedskjutna": 4,
+    "flyter": true,
+    "hjalp": false,
+    "drag": {
+     "tillaten": true,
+     "kostnad": 2,
+     "armerad": false,
+     "redoMs": 1793132004470
+    }
+   }
+  ],
+  "resultat": {
+   "lage": "klass-mot-klass",
+   "winner": "4b",
+   "draw": false,
+   "placering": [
+    {
+     "classId": "4b",
+     "skrov": 0,
+     "nedskjutna": 5,
+     "plats": 1
+    },
+    {
+     "classId": "5e",
+     "skrov": 0,
+     "nedskjutna": 4,
+     "plats": 2
+    }
+   ]
+  },
+  "uppdaterad": "2026-10-27T20:13:48.169Z"
+ },
+ "antal": {
+  "msEvents": 110,
+  "msPlayers": 16,
+  "players": 16,
+  "msPublic": 1,
+  "msPrivate": 0,
+  "msLas": 2
+ },
+ "mynt": {
+  "b01": 236,
+  "b02": 236,
+  "e01": 220,
+  "e02": 228,
+  "b03": 100,
+  "b04": 100,
+  "b05": 100,
+  "b06": 100,
+  "b07": 100,
+  "b08": 100,
+  "e03": 100,
+  "e04": 100,
+  "e05": 100,
+  "e06": 100,
+  "e07": 100,
+  "e08": 100
+ }
+}

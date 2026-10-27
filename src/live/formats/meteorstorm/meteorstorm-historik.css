@@ -1,0 +1,32 @@
+/* Meteorstormen – historiken och Statistik → Live (#823). Laddas av
+   meteorstorm-history.js (ensureLiveCss). Genomskinliga toner – fungerar i
+   lärarsidans ljusa och mörka tema. Egna msh-klasser (inga delade). */
+.msh-stationer { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 14px; padding: 0; }
+.msh-station { flex: 1 1 260px; display: flex; flex-direction: column; gap: 4px; padding: 10px 14px; border-radius: 14px;
+  background: rgba(74, 168, 255, 0.10); border: 1px solid rgba(74, 168, 255, 0.45); }
+.msh-station.msh-vann { background: rgba(241, 196, 15, 0.14); border-color: rgba(241, 196, 15, 0.7); }
+.msh-station-namn { font-weight: 800; font-size: 1.15rem; }
+.msh-station small { opacity: 0.8; }
+.msh-skrov { white-space: nowrap; }
+.msh-ogonblick { list-style: none; margin: 4px 0 0; padding: 0; font-size: 0.9rem; }
+.msh-ogonblick li { padding: 1px 0; }
+.msh-summor { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 10px; padding: 0; }
+.msh-summor li { display: flex; flex-direction: column; min-width: 110px; padding: 8px 14px; border-radius: 12px;
+  background: rgba(127, 140, 170, 0.12); border: 1px solid var(--t-border, rgba(127, 140, 170, 0.35)); }
+.msh-summor b { font-size: 1.2rem; }
+.msh-summor small { opacity: 0.75; }
+.msh-andel { white-space: nowrap; }
+.msh-bar { display: inline-block; vertical-align: middle; width: 120px; height: 10px; border-radius: 6px;
+  background: rgba(127, 140, 170, 0.25); overflow: hidden; }
+.msh-bar i { display: block; height: 100%; background: #27ae60; border-radius: inherit; }
+.msh-bar.msh-mellan i { background: #f2a33a; }
+.msh-bar.msh-lag i { background: #e2554f; }
+.msh-svar th { color: #e2554f; }
+.msh-tagg { display: inline-block; margin-left: 6px; padding: 0 7px; border-radius: 999px; font-size: 0.75rem; font-weight: 700;
+  background: rgba(226, 85, 79, 0.18); color: #e2554f; }
+.msh-fragor summary { cursor: pointer; font-weight: 700; margin: 8px 0; }
+.msh-scroll { overflow-x: auto; max-width: 100%; }
+.msh-klass h5 { margin: 10px 0 4px; font-size: 0.95rem; }
+@media (max-width: 520px) {
+  .msh-bar { width: 70px; }
+}

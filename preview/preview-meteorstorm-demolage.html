@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Demoläge – Meteorstormen ☄️ projektorn + elevskärmen (#824)</title>
+    <!--
+      Kopplat demoläge (#824, LIVE-FORMAT §8): EN påhittad match, projektorn och
+      en elevskärm sida vid sida. Elevskärmen = preview-meteorstorm-elev.html?koppla=1
+      (formatets riktiga elevvy mot låtsasservern ms-elev-demo.js: 4B och 4D med
+      simulerade elever). Projektorn = preview-meteorstorm-demo.html?koppla=1, som
+      ritar SAMMA match (ms-demolage.js gör om låtsasservern till projektorns deps):
+      det "Jag" trycker syns på projektorn efter renderingsbufferten (2 s), och
+      slutrutan, elevens slutskärm och pluggmynten kommer ur samma resultat.
+      Ingen Firestore, inga Cloud Functions, inga pluggmynt (demo: true).
+    -->
+    <style>
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; background: #070b1f; color: #dfe6ff; font: 14px/1.35 system-ui, sans-serif; }
+      body { display: grid; grid-template-columns: 270px 1fr; height: 100vh; overflow: hidden; }
+      aside { padding: 12px; overflow: auto; background: #0e1430; border-right: 1px solid #222c5c; }
+      aside h1 { font-size: 16px; margin: 0 0 4px; }
+      aside p { margin: 0 0 8px; color: #9aa6d6; font-size: 12px; }
+      aside b { display: block; margin: 10px 0 4px; font-size: 12px; color: #9aa6d6; }
+      .knappar { display: flex; gap: 6px; flex-wrap: wrap; }
+      button { font: inherit; padding: 5px 10px; border-radius: 8px; border: 1px solid #34407a; background: #1a2350; color: #dfe6ff; cursor: pointer; }
+      button:hover { background: #24306a; }
+      .logg { margin-top: 10px; font: 11px/1.4 ui-monospace, monospace; color: #9aa6d6; white-space: pre-line; max-height: 40vh; overflow: auto; }
+      main { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; padding: 12px; min-width: 0; min-height: 0; align-items: center; }
+      .ruta { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+      .ruta h2 { margin: 0 0 6px; font-size: 13px; color: #9aa6d6; font-weight: 600; }
+      .ram { position: relative; overflow: hidden; border-radius: 10px; background: #000; }
+      .proj .ram { aspect-ratio: 16 / 9; width: 100%; }
+      .elev .ram { width: calc(min(86vh, 812px) * 375 / 812); aspect-ratio: 375 / 812; border-radius: 22px; outline: 6px solid #222c5c; }
+      .ram iframe { position: absolute; left: 0; top: 0; border: 0; transform-origin: 0 0; background: #fff; }
+      @media (max-width: 900px) {
+        body { grid-template-columns: 1fr; grid-template-rows: auto 1fr; height: auto; overflow: auto; }
+        main { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <aside>
+      <h1>☄️ Meteorstormen – demoläge</h1>
+      <p>En påhittad match: 4B mot 4D med simulerade elever (ingen riktig data, inga pluggmynt). Projektorn till vänster,
+        elevskärmen ("Jag" i 4B) till höger – samma match. Svara i telefonen och välj 🛡️ / 🔫 / 🌀: handlingen syns
+        på projektorn efter 2 s (renderingsbufferten).</p>
+      <b>Klockan</b>
+      <div class="knappar">
+        <button data-act="handelse">⏩ Nästa händelse</button>
+        <button data-act="hoppa">⏩ +60 s</button>
+        <button data-act="snart">⏩ 20 s kvar</button>
+      </div>
+      <b>Jag (elevskärmen)</b>
+      <div class="knappar">
+        <button data-act="ratt">✔ Svara rätt</button>
+        <button data-act="fel">✖ Svara fel</button>
+        <button data-val="skold">🛡️</button>
+        <button data-val="laser">🔫</button>
+        <button data-val="drag">🌀</button>
+        <button data-val="spara">⚡ Spara</button>
+      </div>
+      <b>Matchen</b>
+      <div class="knappar">
+        <button data-act="om">↺ Börja om</button>
+        <button data-lage="en-klass">En klass</button>
+        <button data-lage="vilda">Vilda attacker</button>
+      </div>
+      <div class="logg" data-logg></div>
+    </aside>
+    <main>
+      <section class="ruta proj"><h2>Projektorn (1920 × 1080)</h2><div class="ram"><iframe data-proj title="Projektorn" width="1920" height="1080"></iframe></div></section>
+      <section class="ruta elev"><h2>Elevskärmen – mobil (375 × 812)</h2><div class="ram"><iframe data-elev title="Elevskärmen" width="375" height="812"></iframe></div></section>
+    </main>
+    <script type="module">
+      const $ = (s) => document.querySelector(s);
+      const projF = $("[data-proj]");
+      const elevF = $("[data-elev]");
+      const q = new URLSearchParams(location.search);
+      const loggEl = $("[data-logg]");
+      window.__msLogg = (t) => { loggEl.textContent = `${new Date().toLocaleTimeString("sv-SE")} ${t}\n${loggEl.textContent}`.slice(0, 3000); };
+
+      // Iframes i sin riktiga storlek, skalade till rutan.
+      function fit() {
+        for (const f of [projF, elevF]) {
+          const box = f.parentElement.getBoundingClientRect();
+          f.style.transform = `scale(${Math.min(box.width / f.width, box.height / f.height)})`;
+        }
+      }
+      addEventListener("resize", fit);
+      fit();
+
+      // Elevsidan skapar matchen (parent.__msKoppling) – projektorn väntar på den.
+      const extra = q.get("lage") === "en-klass" ? "&lage=en-klass" : q.get("attacker") ? `&attacker=${q.get("attacker")}` : "";
+      elevF.src = `preview-meteorstorm-elev.html?koppla=1&fas=live${extra}`;
+      projF.src = "preview-meteorstorm-demo.html?koppla=1";
+
+      const E = () => window.__msKoppling;
+      const act = {
+        handelse: () => window.__msLogg(`hoppar till ${E()?.tillHandelse() || "– ingen fler händelse"}`),
+        hoppa: () => { E()?.hoppa(60_000); window.__msLogg("+60 s"); },
+        snart: () => { E()?.snartSlut(20); window.__msLogg("20 s kvar"); },
+        ratt: () => elevF.contentWindow.__msSvara?.(true),
+        fel: () => elevF.contentWindow.__msSvara?.(false),
+        om: () => location.reload(),
+      };
+      document.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => act[b.dataset.act]()));
+      document.querySelectorAll("[data-val]").forEach((b) => b.addEventListener("click", () => {
+        const k = elevF.contentDocument?.querySelector(`[data-typ="${b.dataset.val}"]:not([disabled])`);
+        if (k) { k.click(); window.__msLogg(`Jag väljer ${b.textContent}`); } else window.__msLogg("svara rätt först (eller knappen är grå)");
+      }));
+      document.querySelectorAll("[data-lage]").forEach((b) => b.addEventListener("click", () => {
+        location.search = b.dataset.lage === "en-klass" ? "lage=en-klass" : "attacker=vilda";
+      }));
+    </script>
+  </body>
+</html>
