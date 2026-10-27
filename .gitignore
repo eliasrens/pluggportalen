@@ -19,3 +19,7 @@ serviceAccountKey.json
 .DS_Store
 Thumbs.db
 .firebase-emu-779.json
+
+# #825 slut-QA-riggen (adresser till den körande Chromium)
+admin/qa-meteorstorm-825/sidor.json
+admin/qa-meteorstorm-825/dbgport

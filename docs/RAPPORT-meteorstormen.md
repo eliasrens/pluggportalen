@@ -36,3 +36,22 @@
 - `msPublic/status` skrevs **61 gånger på 10 min** = högst en gång per 10 s (60) + slutstatusen i `msAvsluta`. ✅ Throttlingen håller.
 - Fel svar skrivs aldrig ensamma i onödan: 1 261 fel svar blev 0 egna dokument (de följer med nästa händelse; "fel"-länkar bara vid full buffert).
 - Fyra instanser och quiz mättes inte om (B: 2 465 / 2 463 skrivningar, klienter ≈ 5 310) – samma kod, och körningen tar ~15 min var.
+
+## I webbläsaren (UTKAST – fylls på)
+
+Rigg: `ENKEL_ARBETARE=1 bash admin/qa-meteorstorm-e2e-preview.sh` (functions + auth + firestore med grenens regler och callables) och `admin/qa-meteorstorm-825/scen.mjs`: läraren skapar matchen i det riktiga formuläret, två projektorer (två inloggade lärarflikar), riktiga elevsidor som svarar och väljer handling i UI:t, STARTA, mätning var 5:e s.
+
+**S1 – Klass mot klass, Vilda, 5 min, 4B mot 5E** (4 elever i webbläsaren, en i 375 px; projektor A:s första `msAvsluta` felad med flit):
+- Projektorerna identiska vid samma `t`: **21/21** jämförelser (pixlar + tillstånd), `t` bakåt **0**, sena händelser **0**.
+- fps under matchen (1600 × 900, två projektorer + fyra elevsidor i samma Chromium, ingen GPU): **55 / 55**, JS per bildruta 0,95 / 1,04 ms (p95 2,4 / 2,7 ms).
+- Musiken: ingen ljudkälla i lobbyn; vid KÖR! startar en loop (`loop = true`, 80,000 s) och tonas till 0,3; ljudeffekter sänker till 0,7 och tillbaka; 🎵 av → 0 och loopen stoppas, 🎵 på → loopen startar om på 0,3; vid 00:00 → 0 och stopp.
+- "Live pågår!" i elevens sidomeny: syns under matchen (4/4), borta vid slutet (0/4).
+- `msPublic/status`: en skrivning per ~10–13 s, sista vid slutet (`klart: true`, `resultat`).
+- Slutrutan (båda projektorerna samma): "☄️ 4B vann Meteorstormen! Lika mycket skrov – flest nedskjutna meteorer avgjorde." – "5E kämpade ända till slutet – besättningen vinkar från rymden! 👋". Elevernas slutskärm: "Ni vann! 🚀" / "Bra kämpat – 4B vann den här gången", eget bidrag, pluggmynt – ingen placering som nummer.
+- Pluggmynt utbetalda: b01/b02 +136, e01 +120, e02 +128 = `result.rewards` (studentData.coins före/efter).
+- Felvägen: projektorns första `msAvsluta` felade (nätfel) → nytt försök efter 2 s → result + mynt. **Före #825-rättningen (F1) fastnade slutrutan på "Räknar ihop stationerna …"** (sett i en tidigare körning).
+
+**S2 – En klass (4B), Attacker av, 5 min, flerval** (2 elever i webbläsaren; projektorerna stängdes efter 150 s):
+- Projektorerna identiska (lika vid alla jämförelser före stängningen); musikknappen som i S1.
+- Elevskärmarna fortsatte efter att projektorerna stängts (svar räknades vidare 18 → 26 rätt), sessionen blev `finished` vid 00:00 av elevernas egen avslutning, och elevens `msAvsluta` skrev result (stjärnor 0, stationen flöt): "Bra kämpat! 🛰️ Stationen flyter i rymden – nästa storm klarar ni!".
+- Utan lärare betalas mynten först när läraren öppnar matchen i historiken (design, §11).

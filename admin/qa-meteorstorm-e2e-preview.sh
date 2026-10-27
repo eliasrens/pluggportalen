@@ -14,6 +14,10 @@
 #   Driv i en egen headless chromium (CDP): lärare #u/#p på #/larare → Live → Meteorstormen;
 #   elev #u/#p på #/ → #/elev/live → "Gå med"; testaren #822 körde så 2026-10-22.
 #   Städa: kill $(cat $DIR/pids)
+#   ENKEL_ARBETARE=1 (#825): functions-emulatorn kör ALLA anrop i en enda
+#   arbetsprocess (--inspect-functions). Utan den startar emulatorn en ny
+#   arbetare per samtidigt anrop – ~40 elever som börjar samtidigt gav en
+#   last > 100 på den delade maskinen och "Failed to load function".
 # Kräver node_modules i repo-roten (firebase-admin) och functions/node_modules
 # (symlänkar, gitignorerade – se docs/METEORSTORMEN.md §9-receptet).
 # ============================================================================
@@ -36,7 +40,7 @@ cat > "$DIR/firebase.json" <<EOT
     "functions": { "port": $FN }, "hub": { "port": $((R + 5)) }, "logging": { "port": $((R + 6)) },
     "eventarc": { "port": $((R + 7)) }, "tasks": { "port": $((R + 8)) }, "ui": { "enabled": false }, "singleProjectMode": true } }
 EOT
-(cd "$DIR" && setsid -f firebase emulators:start --config "$DIR/firebase.json" --project pluggportalen-so-2026 --only functions,auth,firestore > "$DIR/emu.log" 2>&1 < /dev/null)
+(cd "$DIR" && setsid -f firebase emulators:start --config "$DIR/firebase.json" --project pluggportalen-so-2026 --only functions,auth,firestore ${ENKEL_ARBETARE:+--inspect-functions $((R + 9))} > "$DIR/emu.log" 2>&1 < /dev/null)
 for _ in $(seq 1 90); do grep -q "All emulators ready" "$DIR/emu.log" 2>/dev/null && break; sleep 2; done
 grep -q "All emulators ready" "$DIR/emu.log" || { echo "Emulatorerna startade inte – se $DIR/emu.log"; exit 1; }
 cd "$REPO"
