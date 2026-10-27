@@ -47,6 +47,7 @@ const PART_OF = { laddar: "vanta", fraga: "svar", val: "val", slut: null };
 const KVITTO_MS = 2600;
 const VANTA_MAX_MS = 30_000;
 const AVSLUTA_EFTER_MS = [20_000, 35_000];
+const AVSLUTA_IGEN_MS = 15_000;
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const paus = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -312,9 +313,13 @@ export function createMsStage({ view, host, uid, classId, session, mode, answerK
       vakt?.stop();
       klient.skickaFel().catch(() => {});
       const [a, b] = AVSLUTA_EFTER_MS;
-      avslutaT = setTimeout(() => {
-        if (!destroyed && !st?.result && player) api.avsluta(sid).catch(() => {});
-      }, a + Math.random() * (b - a));
+      // Misslyckas anropet (tillfälligt fel) försöker eleven igen – annars kan
+      // slutskärmen stå kvar på "räknas ihop" om ingen annan når servern (#825).
+      const forsok = (kvar) => {
+        if (destroyed || st?.result || !player) return;
+        api.avsluta(sid).catch(() => { if (kvar > 0) avslutaT = setTimeout(() => forsok(kvar - 1), AVSLUTA_IGEN_MS); });
+      };
+      avslutaT = setTimeout(() => forsok(2), a + Math.random() * (b - a));
     }
     if (st?.result && !coinTimers && myReward(st.result, uid)) {
       const refresh = () => { if (!destroyed) onCoins(); };
