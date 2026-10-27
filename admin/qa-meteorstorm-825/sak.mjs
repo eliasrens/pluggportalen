@@ -53,7 +53,7 @@ prov("msLage elev utanför klasserna", !!r.fel, r.fel + " " + r.msg);
 // --- Under en PÅGÅENDE match (LIVE=<sid> UID=<elev>): energi, fel svar, fusk-faktorer ---
 if (process.env.LIVE) {
   const { multFor } = await import(`${process.env.REPO}/src/live/formats/meteorstorm/delat/ms-anrop.js`);
-  const uid = process.env.UID || "b03";
+  const uid = process.env.ELEV || "b03";
   const t = await login(uid);
   const sess = await (await fetch(`${FS}/liveSessions/${process.env.LIVE}`, { headers: H(t) })).json();
   const seed = Number(sess.fields.msSeed.integerValue ?? sess.fields.msSeed.doubleValue);
@@ -61,6 +61,12 @@ if (process.env.LIVE) {
   prov(`msLage (${uid})`, !!L.ok, JSON.stringify(L).slice(0, 120));
   let { nr, energi, k } = L.ok;
   let nasta = (Number.isInteger(k) ? k : -1) + 1;
+  if (process.env.BARA_DRAG) {
+    const g0 = multFor(seed, uid, nasta);
+    const r0 = await call(t, "msAgera", { sid: process.env.LIVE, attemptId: `drag0-${Date.now()}`, svar: { k: nasta, factorA: g0.a, factorB: g0.b, answer: String(g0.a * g0.b) }, typ: "drag", fel: [], ...(nr ? { nr: nr + 1 } : {}) });
+    prov(`msAgera dragstråle med energi ${energi} (+1) – kostnad 3 i Milda → nekas, energin sparas`, !!r0.ok?.nekad, JSON.stringify(r0.ok ? { correct: r0.ok.correct, energi: r0.ok.energi, nekad: r0.ok.nekad, onskad: r0.ok.onskad } : r0).slice(0, 200));
+    console.log(JSON.stringify(ut, null, 1)); process.exit(0);
+  }
   const f = multFor(seed, uid, nasta);
   // Fusk: rätt svar på en fråga eleven inte fått (fel faktorer)
   let r = await call(t, "msAgera", { sid: process.env.LIVE, attemptId: `fusk-${Date.now()}`, svar: { k: nasta, factorA: f.a === 7 ? 8 : 7, factorB: 9, answer: String((f.a === 7 ? 8 : 7) * 9) }, typ: "skold", fel: [], ...(nr ? { nr: nr + 1 } : {}) });
