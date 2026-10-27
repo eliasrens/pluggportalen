@@ -89,6 +89,13 @@ projektorn, mätning var 5:e s. Projektorernas egna mätare (`__mspProjektor`: `
 `stat()` – bakåt-steg, sena, leverans – `avtryckVid(t)`, `fps()`), ljudet via en krok på
 Web Audio (`ljudhook.js`).
 
+**Elevantalet i webbläsaren:** 2–4 riktiga elevsidor + 8–16 botar per match (S1: 4 riktiga; botarna
+deltog först från S4 efter en riggrättning). Fler gick inte på testmaskinen: functions-emulatorn
+startar en arbetsprocess per samtidigt anrop, och ~40 elever som började samtidigt gav en last
+> 100 och "Failed to load function" (O3). Siffrorna för **2 × 25 elever** (kvoten, §4) kommer
+därför från servermätningen `ms-kvot-sim.mjs` (samma serverkod och elevklient, styrd klocka), inte
+från webbläsarmatcherna.
+
 **S1 – Klass mot klass, Vilda, 5 min, 4B mot 5E** (4 elever i webbläsaren; projektor A:s första `msAvsluta` felad med flit):
 - Projektorerna **identiska** vid samma `t`: 21/21 jämförelser (pixlar + tillstånd); `t` bakåt **0**; sena **0**.
 - fps under matchen (1600 × 900, två projektorer + fyra elevsidor i samma Chromium, ingen GPU): **55 / 55**, JS per bildruta 0,95 / 1,04 ms (p95 2,4 / 2,7 ms).
@@ -219,7 +226,11 @@ Ritningen tar ~1 ms av budgeten 16,7 ms. När fps sjunker är det maskinen (mjuk
 | 14.6 | Klassbonusen går förlorad om projektorn är stängd vid 00:00 (en elevs `msAvsluta` skriver result; pokaler och pris delas ut när en admin öppnar historiken). | Godtas |
 | 14.7 | Musiken: bara OGG – äldre Safari spelar ingen musik (ljudeffekterna fungerar). | Bara OGG |
 
-Ny från F: ingen. (F1 rättades utan att röra något beslut.)
+Ny från F:
+
+| # | Fråga | Standardval nu |
+| --- | --- | --- |
+| F-1 | Kärnans `live-feed.js` kör `resultInputs` en gång vid matchslut och försöker aldrig igen om det kastar (O1, delad Live-kod – gäller alla format med server-result). Meteorstormen klarar sig nu via omförsöken i formatet (F1). Ska kärnan också få omförsök (en uppföljnings-issue)? | Oförändrad kärna; formatet försöker själv |
 
 ## 10. Deploy – i den här ordningen
 
