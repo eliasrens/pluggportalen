@@ -180,7 +180,7 @@ Inga fel hittades i motorn, servern, reglerna, projektorn eller elevskärmen ut�
 | --- | --- | --- |
 | S1, riktig match, 1600 × 900, två projektorer + fyra elevsidor i en Chromium (ingen GPU, maskinen lugn) | **55 / 55** | 0,95 / 2,4 ms |
 | C (#822), demosidan, 1920 × 1080 finalen / 1280 × 720 / mitten (lugn maskin) | 58 / 59 / 60 | 1,6 / 3,4 ms |
-| UTFYLLS – `node admin/qa-meteorstorm-fps.mjs` nu | | |
+| #825, `node admin/qa-meteorstorm-fps.mjs` (demosidan, Chromium 156, `--disable-gpu`, last 2–6): 1920 × 1080 finalen / 1280 × 720 finalen / 1920 × 1080 mitten | **55 / 56 / 46** | 1,8–2,3 / 4,0–5,2 ms |
 | Samma maskin under hög last från andra jobb (last 8–18) | 8–34 | 3–7 ms |
 
 Ritningen tar ~1 ms av budgeten 16,7 ms. När fps sjunker är det maskinen (mjukvarurastret utan GPU, delad CPU), inte projektorn – JS-tiden per bildruta är fortfarande liten. En lärardator rastrar Canvas 2D på GPU:n.
