@@ -139,7 +139,11 @@ dessutom i `test:functions` (`functions-meteorstorm-fusk*.test.mjs`) och reglern
 
 ### 5.1 Utan lärare i slutet + historiken (S4)
 
-UTFYLLS
+Klass mot klass, Attacker av, 5 min, 2 elever i webbläsaren + 8 botar via callables (0 fel på 202 `msAgera`), projektorerna stängda efter 120 s:
+- Elevskärmarna fortsatte; vid 00:00 skrev elevernas `msAvsluta` result **9 s efter slutet** (4B vann på flest nedskjutna, 25 mot 21, båda 100 % skrov). Slutskärmarna: "Ni vann! 🚀" / "Bra kämpat – 4B vann den här gången".
+- Pluggmynten: **inte** utbetalda direkt (läraren var borta – design, §11/§14.6). När läraren sedan öppnade matchen i historiken betalades de: b01 100 → 244 (+144), e01 100 → 200 (+100), b04 100 → 232 (+132) = `result.rewards`.
+- Historiken i 375 px: ingen vågrät scroll (`meteorstormen-825/historik-375.jpg`). **Statistik → Live** (Mina klasser → Hur går det? → Live) i 375 px: ingen vågrät scroll, tabellerna i `.table-scroll` (F2; `statistik-live-375.jpg`).
+- En elev vars sida hamnade på Hem i stället för Live (riggens navigering direkt efter inloggningen) gick med **mitt i matchen** via "Live pågår!" i sidomenyn och kunde svara och agera direkt ("🛡️ +3,2 – skölden 60/60").
 
 ## 6. Två projektorer med nätfördröjning (Elias beslut 1)
 
