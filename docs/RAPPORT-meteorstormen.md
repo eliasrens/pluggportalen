@@ -90,7 +90,7 @@ projektorn, mätning var 5:e s. Projektorernas egna mätare (`__mspProjektor`: `
 Web Audio (`ljudhook.js`).
 
 **Elevantalet i webbläsaren:** 2–4 riktiga elevsidor + 8–16 botar per match (S1: 4 riktiga; botarna
-deltog först från S4 efter en riggrättning). Fler gick inte på testmaskinen: functions-emulatorn
+spelade först från S3 efter en riggrättning). Fler gick inte på testmaskinen: functions-emulatorn
 startar en arbetsprocess per samtidigt anrop, och ~40 elever som började samtidigt gav en last
 > 100 och "Failed to load function" (O3). Siffrorna för **2 × 25 elever** (kvoten, §4) kommer
 därför från servermätningen `ms-kvot-sim.mjs` (samma serverkod och elevklient, styrd klocka), inte
