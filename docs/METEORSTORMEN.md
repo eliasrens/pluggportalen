@@ -941,7 +941,36 @@ finns kvar.
 
 ### 13.7 Sviterna (E)
 
-SVITER_PLATSHALLARE
+Körda på grenen efter E:s ändringar (6c3b7f2), en emulator åt gången (`flock`, slumpade
+portar, egen config):
+
+| Svit | Resultat |
+| --- | --- |
+| Enhetstester (`node --test`, alla utom rules/functions/e2e, i tre delar) | **4 048: 4 047 ✅, 1 överhoppad, 0 fel** |
+| `test:rules` (76 filer, i sex delar) | **884/884 ✅** |
+| `test:functions`, Meteorstormens sex filer | **77/77 ✅** (de andra formatens servrar är orörda – `functions/` ändrades bara i `functions/meteorstorm/`) |
+| `test:e2e` | **5/5 ✅** |
+| Bootgrafen (`test/live-formats.test.js`) | ✅ 107 filer |
+| Synken: `npm run sync:meteorstorm` + `git diff functions/meteorstorm` | 0 rader diff, drifttestet ✅ |
+
+En första körning av enhetstesterna i en enda omgång (4 parallella, medan annat gick) gav
+7 fel. Fyra av dem var `test/admin-credential.test.mjs` ("service_account → cert",
+"authorized_user → ADC …", "ingen fil men ADC …", "inget alls → tydligt fel …"), som faller
+utan `firebase-admin` i `node_modules`. De faller likadant på 03831ae (före E). De övriga
+tre var tidsgränser som slår till under last: `test/adventure-flee.test.js` "pickRespawn
+faller tillbaka snyggt …" och två i Schack, "tidsgränsen (§3.1 …)" i
+`test/schack-motor.test.js` och `test/schack-tester-776.test.js`. Med riggens `node_modules`
+går alla fyra filerna igenom (90/90), både på E-grenen och på 03831ae. E rör inget av det.
+
+**Observationer i delad kod (utanför formatet, inte ändrat):** i 375 px bryts spellägets
+chip "✖ Multiplikation 0–10 – snabbmatch" i lärarformuläret (`.live-chip`, gäller alla
+format), och kärnans tabell i Statistik → Live (`teacher-live-history.js`) scrollar i sidled.
+Formatets egna tabeller i historiken scrollar inuti `.msh-scroll`.
+
+Bilderna ligger i `docs/meteorstormen-824/`: `projektor-storm`, `projektor-slut`,
+`projektor-reducerad`, `elev-375-fraga`/`-val`/`-quiz`/`-lobby`/`-slut`, `historik-375`,
+`demolage` och `formatval`/`formatval-375`. Huvudlös Chromium saknar emoji-typsnitt, så
+emojierna syns som rutor.
 
 ---
 
