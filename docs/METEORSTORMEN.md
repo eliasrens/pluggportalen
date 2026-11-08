@@ -127,11 +127,22 @@ Dragstrålen skalas inte – den begränsas per station (en i taget + väntetid)
 ### 3.3 Stormen
 Spegelvänd: varje station får en kopia av varje meteor (id `"<n>.<station>"`).
 Storlekar liten 5 / mellan 10 / stor 20 skada (stor = 2 skott). Andelen stora
-ökar från 4 % till 15 %. Flygtid 8 s. Intensiteten (meteorer/s per station):
+ökar från 4 % till 15 %. Flygtid 8 s. Intensiteten (meteorer/s per station)
+är en kurva över andelen av speltiden (`INTENSITET`) plus **slutstormen** i
+fasta sekunder före slutet (`SLUTSTORM`, #828):
 
-| Andel av speltiden | 0 | 0,45 | 0,55 | 0,90 | 0,94–1,0 |
-| --- | --- | --- | --- | --- | --- |
-| Meteorer/s | 0,05 | 0,062 | 0,055 | 0,055 | 0,72 |
+| Andel av speltiden | 0 | 0,45 | 0,55 | → slutstormen |
+| --- | --- | --- | --- | --- |
+| Meteorer/s | 0,05 | 0,062 | 0,055 | 0,055 |
+
+| Slutstormen (alla speltider 5–20 min) | 60–36 s kvar | sista 36 s |
+| --- | --- | --- |
+| Meteorer/s | upptrappning 0,055 → 0,72 | 0,72 |
+
+Vid 10 min är det exakt den gamla kurvan (0,90 → 0,94 → 1,0). Förr var
+finalen en **andel** av speltiden: 72 s full storm på 20 min, och stationen
+dog nästan alltid de sista sekunderna (80 % rätt: 0 stjärnor på 15 och 20 min).
+Nu är den lika lång vid alla speltider, så 5–20 min ger samma utfall (§6.1).
 
 Det blir en lugn storm med en liten topp strax före mitten, ett andrum och en
 **kort, hård final** de sista ~35 s. Varför formen ser ut så: en klass som
@@ -145,7 +156,8 @@ storlekarna. Då blir två frön nästan lika svåra.
 ### 3.4 Händelser
 Ur en blandad "påse" med alla fyra, högst en i taget, start→start 70–110 s
 (~5 per 10 min). Ingen jättemeteor före 2,5 min. Inga händelser efter 78 % av
-speltiden: en händelse precis före finalen avgjorde annars matchen.
+speltiden och aldrig närmare slutstormens upptrappning än 10 s (spelar roll
+vid 5 min): en händelse precis före finalen avgjorde annars matchen.
 
 | Händelse | Effekt | Var |
 | --- | --- | --- |
@@ -176,6 +188,10 @@ Klass mot klass: mest skrov vinner (alla börjar på 100, så det är detsamma s
 andel). Lika skrov → flest nedskjutna; lika igen → oavgjort. `placering` delar
 plats vid lika. En klass: ⭐ med skrov kvar, ⭐⭐ ≥ 50, ⭐⭐⭐ ≥ 80. En station
 på 0 **flyter**: den tar ingen mer skada men skjuter och drar som vanligt.
+Avslutar läraren **under nedräkningen** (`result.slutMs ≤ startMs`,
+`avslutadForeStormen` i `ms-resultat.js`) visar slutrutan, elevskärmen och
+historiken bara en neutral rad – inga stjärnor och ingen "Stationen överlevde!"
+(#828; serverns result är oförändrat).
 
 ```
 resultat = { lage, vinnare: classId|null, oavgjort, placering: [{ classId, skrov, nedskjutna, plats }],
@@ -230,7 +246,8 @@ Simulerade klasser med 25 elever, där varje elev svarar en fråga per ~8 s
 | **smart** | som naiv, men väntar in en större meteor och laddar lasern mot slungade meteorer och jättemeteorer |
 
 "Nästan inget" = 5 % rätt. Kör: `node admin/ms-balans-sim.mjs` (200 frön,
-`--n 50` snabbare, `--md` markdown, `--kmk` bara Klass mot klass).
+`--n 50` snabbare, `--md` markdown, `--kmk` bara Klass mot klass, `--speltid`
+bara tabellerna per speltid i §6.1).
 
 **En klass, 25 elever, en fråga per ~8 s, 10 min, 200 frön:**
 
@@ -281,6 +298,64 @@ Simulerade klasser med 25 elever, där varje elev svarar en fråga per ~8 s
 - Mitten av matchen är lugn (en meteor per ~18 s och station). C kan göra den
   levande med ofarliga effekter. Fler riktiga meteorer går inte utan att målet
   "nästan inget → slut vid halva tiden" flyttas.
+
+### 6.1 Per speltid (#828)
+
+Slutstormen har fast längd (§3.3), så samma klass ska klara sig lika bra på
+5, 10, 15 och 20 min. Kurvan före slutstormen skalas fortfarande med speltiden
+men har samma meteorer/s, så mitten är lika lugn vid alla längder: i simuleringen
+har klasserna med 40–80 % rätt fullt skrov och full sköld när upptrappningen
+börjar, vid alla fyra speltider (en meteor per ~18 s och station).
+`node admin/ms-balans-sim.mjs --speltid --md --n 100`:
+
+**En klass, 25 elever, en fråga per ~8 s, 100 frön:**
+
+| Klass | Speltid | Mål | Skrov (medel) | Skrov p10–p90 | Stjärnor 0/1/2/3 |
+| --- | --- | --- | --- | --- | --- |
+| 80 % rätt, blandar | 5 min | 70–90 (⭐⭐⭐) | 86 | 68–100 | 0 / 0 / 31 / 69 |
+| 80 % rätt, blandar | 10 min | 70–90 (⭐⭐⭐) | 83 | 67–100 | 0 / 1 / 39 / 60 |
+| 80 % rätt, blandar | 15 min | 70–90 (⭐⭐⭐) | 84 | 70–100 | 0 / 0 / 38 / 62 |
+| 80 % rätt, blandar | 20 min | 70–90 (⭐⭐⭐) | 85 | 70–100 | 0 / 0 / 28 / 72 |
+| 60 % rätt, blandar | 5 min | 45–65 (⭐⭐) | 61 | 45–80 | 1 / 22 / 66 / 11 |
+| 60 % rätt, blandar | 10 min | 45–65 (⭐⭐) | 66 | 47–88 | 0 / 12 / 73 / 15 |
+| 60 % rätt, blandar | 15 min | 45–65 (⭐⭐) | 65 | 50–81 | 0 / 11 / 79 / 10 |
+| 60 % rätt, blandar | 20 min | 45–65 (⭐⭐) | 65 | 53–84 | 0 / 8 / 82 / 10 |
+| 40 % rätt, blandar | 5 min | 10–30 (⭐) | 0 | 0–0 | 97 / 3 / 0 / 0 |
+| 40 % rätt, blandar | 10 min | 10–30 (⭐) | 17 | 0–42 | 28 / 67 / 5 / 0 |
+| 40 % rätt, blandar | 15 min | 10–30 (⭐) | 32 | 15–51 | 6 / 84 / 10 / 0 |
+| 40 % rätt, blandar | 20 min | 10–30 (⭐) | 39 | 23–57 | 0 / 77 / 23 / 0 |
+| Nästan inget (5 % rätt) | 5 min | 0 vid ~halva tiden | 0 | 0–0 | 100 / 0 / 0 / 0 |
+| Nästan inget (5 % rätt) | 10 min | 0 vid ~halva tiden | 0 | 0–0 | 100 / 0 / 0 / 0 |
+| Nästan inget (5 % rätt) | 15 min | 0 vid ~halva tiden | 0 | 0–0 | 100 / 0 / 0 / 0 |
+| Nästan inget (5 % rätt) | 20 min | 0 vid ~halva tiden | 0 | 0–0 | 100 / 0 / 0 / 0 |
+
+**Klass mot klass (milda attacker), 25 + 25 elever, 100 frön:**
+
+| Match | Speltid | A vinner | B vinner | Skrov A / B | Skrov 0 A / B |
+| --- | --- | --- | --- | --- | --- |
+| 60 % smart mot 70 % naiv (milda) | 5 min | 6 % | 94 % | 31 / 75 | 19 % / 0 % |
+| 60 % smart mot 70 % naiv (milda) | 10 min | 35 % | 65 % | 55 / 65 | 3 % / 0 % |
+| 60 % smart mot 70 % naiv (milda) | 15 min | 32 % | 68 % | 56 / 66 | 0 % / 0 % |
+| 60 % smart mot 70 % naiv (milda) | 20 min | 37 % | 63 % | 56 / 63 | 0 % / 0 % |
+| 60 % blandar mot 70 % blandar (milda) | 5 min | 5 % | 95 % | 57 / 76 | 0 % / 0 % |
+| 60 % blandar mot 70 % blandar (milda) | 10 min | 16 % | 84 % | 67 / 76 | 0 % / 0 % |
+| 60 % blandar mot 70 % blandar (milda) | 15 min | 14 % | 85 % | 65 / 75 | 0 % / 0 % |
+| 60 % blandar mot 70 % blandar (milda) | 20 min | 13 % | 86 % | 65 / 75 | 0 % / 0 % |
+
+**Läsning:**
+
+- **15 och 20 min når samma mål som 10 min.** 80 % rätt: medel 84–85 och nästan
+  alltid ⭐⭐–⭐⭐⭐ (förut 0 stjärnor i 28 av 30 matcher på 15 min och 30 av 30 på
+  20 min). I Klass mot klass överlever båda stationerna (förut 0 % skrov i 20/20).
+- **40 % rätt får aldrig ⭐⭐⭐** vid någon speltid. På 20 min klarar 40 % sig något
+  bättre (39 i medel, ⭐–⭐⭐), eftersom fler händelser (Solstorm, Kometsvans) hinner
+  ge extra energi före finalen.
+- **5 min är tuffare än förut:** finalen är nu 36 s även på 5 min (förut 18 s,
+  så att 40 % rätt fick ⭐⭐⭐ i 26 av 30 matcher). 40 % rätt går nu under i
+  finalen (laserladdningen hinner inte bli full på 4 minuter), och i Klass mot
+  klass vinner 60 % mot 70 % bara ~5 %. Fråga till Elias: ska 5 min vara så
+  hård, eller ska slutstormen kortas för korta matcher?
+- 10 min är exakt samma storm som förut (tabellerna ovan gäller fortfarande).
 
 ---
 
