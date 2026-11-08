@@ -7,6 +7,7 @@
 //                    bästa ögonblick, och en snäll avslutning för den andra
 //                    stationen ("4D:s station klarade sig igenom stormen!").
 //   En klass         stjärnorna och "Stationen överlevde!".
+//   Avslutad under nedräkningen: bara en neutral rad (#828).
 // Ingen lista över alla elever med placering. Ren modell (slutModell, testad i
 // node) + html (slutHtml).
 //
@@ -17,6 +18,7 @@
 // ============================================================================
 
 import { klassGenitiv } from "./msp-scen.js";
+import { stoppadForeStormen } from "./delat/ms-resultat.js";
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
@@ -33,6 +35,9 @@ export function snallText(klassnamn, skrov) {
     ? `${klassGenitiv(klassnamn)} station klarade sig igenom stormen!`
     : `${klassnamn} kämpade ända till slutet – besättningen vinkar från rymden! 👋`;
 }
+
+/** Läraren avslutade under nedräkningen (#828) – neutralt, inga stjärnor. */
+export const FORE_STORMEN = "Matchen avslutades innan stormen hann börja.";
 
 export function slutModell(result, s) {
   const visaNamn = s?.showNames !== false;
@@ -53,6 +58,9 @@ export function slutModell(result, s) {
       ogonblick,
     };
   });
+  if (stoppadForeStormen(result)) {
+    return { lage: enKlass ? "en-klass" : "klass-mot-klass", stjarnor: 0, foreStormen: true, klasser, rubrik: "Stormen är över!", under: FORE_STORMEN };
+  }
   if (enKlass) {
     const k = klasser[0];
     const stjarnor = Number(result.stjarnor) || 0;
@@ -89,7 +97,7 @@ export function slutHtml(m, farger) {
       ${k.snall ? `<p class="msp-snall">${esc(k.snall)}</p>` : ""}
       ${k.ogonblick.length ? `<ul class="msp-ogon">${k.ogonblick.map((o) => `<li>${esc(o)}</li>`).join("")}</ul>` : ""}
     </div>`).join("");
-  const stj = m.lage === "en-klass"
+  const stj = m.lage === "en-klass" && !m.foreStormen
     ? `<div class="msp-stjarnor" aria-label="${m.stjarnor} av 3 stjärnor">${[1, 2, 3].map((n) => `<span class="${n <= m.stjarnor ? "msp-pa" : ""}">★</span>`).join("")}</div>`
     : "";
   return `<div class="msp-slutruta">
