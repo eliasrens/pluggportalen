@@ -46,6 +46,7 @@
 
 import { KOSTNAD, SKOLD_TAK, LADDNING_TAK, ENERGI_TAK, HANDELSE } from "./delat/ms-balans.js";
 import { energiEffekt, stormPlan } from "./delat/ms-agera.js";
+import { avslutadForeStormen } from "./delat/ms-resultat.js";
 import { toMs } from "../../live-time.js";
 
 export const KNAPPAR = [
@@ -252,6 +253,7 @@ const STJARNA = (n) => "⭐".repeat(int(n)) + "☆".repeat(Math.max(0, 3 - int(n
 /** Slutrubriken – ingen placering som nummer. */
 export function slutet(result, classId, session) {
   if (!result) return { titel: "⏰ Stormen är över!", rad: "Stationerna räknas ihop …", vann: false };
+  if (avslutadForeStormen(result)) return { titel: "⏰ Matchen är slut", rad: "Läraren avslutade innan stormen hann börja.", vann: false };
   if (result.lage === "en-klass") {
     const n = int(result.stjarnor);
     return result.overlevde !== false && n > 0

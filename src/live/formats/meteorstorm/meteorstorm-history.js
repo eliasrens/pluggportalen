@@ -27,6 +27,7 @@ import { getGameMode } from "../../modes/index.js";
 import { ensureLiveCss } from "../../live-css.js";
 import { categoryRates } from "../snilleblixt/sb-historik-data.js";
 import { hardestQuestions, playerCounts as counts } from "../../kistspel/ks-historik-data.js";
+import { avslutadForeStormen } from "./delat/ms-resultat.js";
 
 const CSS = "src/live/formats/meteorstorm/meteorstorm-historik.css";
 const tal = (n) => (Number(n) || 0).toLocaleString("sv-SE");
@@ -34,6 +35,8 @@ const procent = (r) => (r == null ? "–" : `${Math.round(r * 100)} %`);
 const int = (v) => Math.max(0, Math.floor(Number(v) || 0));
 const className = (s, id) => s?.classNames?.[id] || id || "";
 const isMult = (mode) => !!mode?.id?.startsWith("multiplication");
+const plural = (n, en, flera) => `${tal(n)} ${int(n) === 1 ? en : flera}`;
+const FORE = "⏹️ Avslutad före stormen";
 const STJ = (n) => "⭐".repeat(int(n)) + "☆".repeat(Math.max(0, 3 - int(n)));
 const KIND = { choice: "🔘 Flerval", free: "✍️ Skriv själv" };
 const ATTACKER = { av: "attacker av", milda: "milda attacker", vilda: "vilda attacker" };
@@ -52,6 +55,7 @@ function bar(r) {
 
 export function winnerText(s, result) {
   if (!result?.placering?.length) return "–";
+  if (avslutadForeStormen(result)) return FORE;
   if (result.lage === "en-klass") {
     const id = result.placering[0].classId;
     return result.overlevde === false || !int(result.stjarnor) ? `🛰️ ${esc(className(s, id))}` : `${STJ(result.stjarnor)} ${esc(className(s, id))}`;
@@ -62,7 +66,7 @@ export function winnerText(s, result) {
 
 /** Klassens utfall: "Vann" / "Oavgjort" / "2:a av 2" (lärarvyn) / "⭐⭐☆". */
 export function utfallText(_s, result, classId) {
-  if (!result?.placering?.length) return "–";
+  if (!result?.placering?.length || avslutadForeStormen(result)) return "–";
   if (result.lage === "en-klass") return int(result.stjarnor) ? STJ(result.stjarnor) : "🛰️";
   if (result.draw) return "Oavgjort";
   if (result.winner === classId) return "🏆 Vann";
@@ -78,7 +82,7 @@ export function stationerHtml(s, result) {
     return `<li class="msh-station${vann ? " msh-vann" : ""}">
       <span class="msh-station-namn">${vann ? "🏆 " : ""}${esc(className(s, p.classId))}</span>
       <span class="msh-skrov"><span class="msh-bar${p.skrov <= 25 ? " msh-lag" : p.skrov <= 50 ? " msh-mellan" : ""}" role="img" aria-label="Skrov ${int(p.skrov)} av 100"><i style="width:${int(p.skrov)}%"></i></span> <b>${int(p.skrov)} %</b> skrov kvar</span>
-      <small>☄️ ${tal(p.nedskjutna)} nedskjutna · 💥 ${tal(c.traffar)} träffar · 🌀 ${tal(c.kastade)} kastade · ${tal(c.players)} elever</small>
+      <small>☄️ ${tal(p.nedskjutna)} nedskjutna · 💥 ${plural(c.traffar, "träff", "träffar")} · 🌀 ${tal(c.kastade)} kastade · ${plural(c.players, "elev", "elever")}</small>
       ${ogon ? `<ul class="msh-ogonblick">${ogon}</ul>` : ""}</li>`;
   }).join("");
   return rader ? `<ul class="msh-stationer">${rader}</ul>` : "";
@@ -153,7 +157,7 @@ export function detailHtml(s, result) {
   const inst = s.msInstallningar || {};
   const lage = result.lage === "en-klass" ? "En klass" : `Klass mot klass · ${ATTACKER[inst.attacker] || ""}`;
   const info = `<small class="hint">${KIND[s.answerKind] || ""} · ${lage} · totalt ${tal(result.totalCorrect)} rätt av ${tal(result.totalAnswered)} svar</small>`;
-  const rubrik = result.lage === "en-klass"
+  const rubrik = avslutadForeStormen(result) ? FORE : result.lage === "en-klass"
     ? `${winnerText(s, result)} ${result.overlevde === false ? "Stationen flyter i rymden" : "Stationen överlevde!"}`
     : result.draw || !result.winner ? "🤝 Oavgjort" : `☄️ ${esc(className(s, result.winner))} vann Meteorstormen!`;
   return `<p class="live-history-winner">${rubrik} ${info}</p>
