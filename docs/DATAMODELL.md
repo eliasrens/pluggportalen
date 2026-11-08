@@ -983,7 +983,14 @@ liveSessions/{sid}/dkEvents/{id}                     ← Datakuppen: händelsefl
 liveSessions/{sid}/dkMeta/leader                     ← Datakuppen: vem som leder (bara servern skriver)
 liveSessions/{sid}/dkSelf/{uid}                      ← Datakuppen: elevens EGEN kod + förslag (bara eleven själv läser)
 liveSessions/{sid}/dkSecret/{uid}                    ← Datakuppen: koder, lockkoder, strukna (INGEN klient läser)
+liveSessions/{sid}/msEvents/{uid}_{nr}               ← Meteorstormen: handlingsloggen, en per rätt svar (bara servern skriver, elever läser aldrig)
+liveSessions/{sid}/msPlayers/{uid}                   ← Meteorstormen: felbufferten + totaler efter matchen (bara servern skriver)
+liveSessions/{sid}/msPublic/status|questions         ← Meteorstormen: stationernas status (servern) / quizets frågor
+liveSessions/{sid}/msPrivate/snapshot                ← Meteorstormen (quiz): facit (bara lärare + servern)
+liveSessions/{sid}/msLas/{classId}                   ← Meteorstormen: stationens senaste dragstråle (INGEN klient)
 ```
+
+Meteorstormens fält, anrop och kvot: **[docs/METEORSTORMEN.md](METEORSTORMEN.md)** §7–§10.
 
 Hur ett nytt Live-format läggs till (filer, regelgren, tester, vyer,
 demoläge): **[docs/LIVE-FORMAT.md](LIVE-FORMAT.md)**.

@@ -53,6 +53,15 @@
 // Damen + pokal), schackLektionMynt (5 per lektion), schackPusselMynt (5 per pussel).
 // Logiken: schack-mynt.js.
 //
+// Meteorstormen (#821, epic #819) – servern avgör energin, handlingarna (serverns
+// tid), dragstrålen och slutresultatet (docs/METEORSTORMEN.md §7–§9):
+//   msAgera   rätt svar + vald handling i ETT anrop → EN händelse i msEvents
+//             (de buffrade fel svaren följer med); utan svar = bara felbufferten
+//   msRatta   quiz: rätt/fel utan skrivning (klienten kan inte rätta quiz)
+//   msLage    elevens energi/nr efter omladdning
+//   msAvsluta lärare eller deltagare efter slutet: motorn med hela loggen → result
+// Logiken: meteorstorm-core.js (+ -sess/-ratta/-status/-resultat/-mynt).
+//
 // ⚠️ DEPLOY KRÄVS: firebase deploy --only functions (Blaze-planen). Klienten
 // (src/data-student-login.js, src/live/formats/guldrush/guldrush-data.js) visar
 // ett tydligt fel tills funktionerna finns.
@@ -88,6 +97,7 @@ import {
 import { drag as scDrag, geUpp as scGeUpp, remi as scRemi, kravaVinst as scKravaVinst } from "./schack-parti.js";
 import { larareAvsluta as scLarareAvsluta, larareTopplista as scLarareTopplista } from "./schack-larare.js";
 import { datorVinst as scDatorVinst, lektionMynt as scLektionMynt, pusselMynt as scPusselMynt } from "./schack-mynt.js";
+import { KsError as MsFel, agera as msAgeraCore, ratta as msRattaCore, lage as msLageCore, avsluta as msAvslutaCore } from "./meteorstorm-core.js";
 
 initializeApp();
 
@@ -312,3 +322,33 @@ const SC_MYNT_OPTS = { region: "europe-west1", memory: "1GiB", cpu: 1, concurren
 export const schackDatorVinst = schackCall("schackDatorVinst", scDatorVinst, SC_MYNT_OPTS);
 export const schackLektionMynt = schackCall("schackLektionMynt", scLektionMynt);
 export const schackPusselMynt = schackCall("schackPusselMynt", scPusselMynt);
+
+// --- Meteorstormen (#821) -----------------------------------------------------------
+// Ett anrop per rätt svar (svar + handling), inget per fel svar. Minnet i
+// meteorstorm-*.js (sessionen, quizet, loggen) gör att en varm instans nästan
+// bara läser föregående länk i elevens kedja – därför hög concurrency och få
+// instanser. msAvsluta väntar in de sista felbuffrarna (≤ 4 s) och kör hela loggen.
+const MS_OPTS = { region: "europe-west1", memory: "512MiB", cpu: 1, concurrency: 80, maxInstances: 4 };
+const msDeps = () => ({
+  db: getFirestore(), FieldValue, Timestamp, now: Date.now,
+  roll: (auth) => (auth?.token?.teacher === true ? callerRole(getFirestore(), auth) : null),
+});
+
+function meteorstormCall(name, core, { auth = false } = {}) {
+  return onCall(MS_OPTS, async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) throw new HttpsError("unauthenticated", "Logga in först.");
+    try {
+      return await core(msDeps(), auth ? request.auth : uid, request.data || {});
+    } catch (err) {
+      if (err instanceof MsFel) throw new HttpsError(err.code, err.message, err.details);
+      logger.error(`${name} oväntat fel`, err);
+      throw new HttpsError("internal", "Något gick fel på servern – försök igen.");
+    }
+  });
+}
+
+export const msAgera = meteorstormCall("msAgera", msAgeraCore);
+export const msRatta = meteorstormCall("msRatta", msRattaCore);
+export const msLage = meteorstormCall("msLage", msLageCore);
+export const msAvsluta = meteorstormCall("msAvsluta", msAvslutaCore, { auth: true });

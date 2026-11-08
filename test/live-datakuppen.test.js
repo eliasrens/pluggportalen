@@ -36,8 +36,9 @@ const input = (over = {}) => ({
 });
 
 describe("Datakuppen: formatet (§3)", () => {
-  it("registrerat sist i väljaren: inom-klass, 1–3 klasser, pacing tid, free+choice, giltigt interface", () => {
-    assert.equal(listFormats().at(-1), DK);
+  it("registrerat efter Guldrushen i väljaren: inom-klass, 1–3 klasser, pacing tid, free+choice, giltigt interface", () => {
+    const ids = listFormats().map((f) => f.id);
+    assert.equal(ids.indexOf("datakuppen"), ids.indexOf("guldrush") + 1);
     assert.deepEqual(validateFormat(DK), []);
     assert.equal(DK.scope, "inom-klass");
     assert.deepEqual([DK.minClasses, DK.maxClasses], [1, 3]);

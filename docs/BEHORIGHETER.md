@@ -53,6 +53,8 @@ tabellerna, om en rad saknar test, eller om en testfil inte körs av
 | HR | `test/functions-hitta-ratt.test.mjs` |
 | BR | `test/firestore-rules-brakresan.test.js` |
 | BF | `test/functions-brakresan.test.mjs` |
+| MR | `test/firestore-rules-live-meteorstorm.test.js` |
+| MF | `test/functions-meteorstorm.test.mjs` |
 | SA | `test/firestore-rules-season.test.js` |
 | PV | `test/firestore-rules-prov.test.js` |
 | PD | `test/firestore-rules-prov-rattning.test.js` |
@@ -100,6 +102,8 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `liveSessions` | L/S | L (som alla inloggade). Skapa och styra: Klassmatchen med minst en egen klass och motståndare valfri, men utan `coinPrize`. Övriga format: alla klasser egna. Klasserna får inte bytas till andras. Radera: en lobby med en egen klass. En Klassmatch får aldrig ha `rewards` (gäller även admin). | LE test 15–16, LE #682 H1 |
 | `liveSessions/{sid}/players`, `answers`, `counters`, `coinReceipts`, `sbPrivate`, `sbAnswers`, `sbScores`, `grPrivate`, `grPublic`, `dkPrivate`, `dkPublic` | L/S | Som läraren i sessionen: läsa, skapa facit, poäng och pluggmyntskvitton, och radera lobbyns dokument. Allt annat: bara admin. Ett pluggmyntskvitto (även admins) kräver en startad match och elevens egen `players/{uid}`. Rätt-mynten får vara högst `perCorrect` × serverns rätt i `grPlayers`/`dkPlayers` (minst ett svar), och i Snilleblixten högst `perCorrect` × antal frågor. | LE test 16 och 18, LE #682 H2 |
 | `liveSessions/{sid}/grPlayers`, `grEvents`, `grMeta`, `dkPlayers`, `dkEvents`, `dkMeta` | L/radera (servern skriver) | L som läraren i sessionen. S: aldrig. | RO serverdata |
+| `liveSessions/{sid}/msEvents`, `msPlayers`, `msLas` (Meteorstormen, #821) | L/radera (servern skriver) | L som läraren i sessionen (`msLas`: ingen klient). S: aldrig. Eleven läser sitt eget `msPlayers`, aldrig loggen `msEvents`. Pluggmyntskvittots rätt-mynt ≤ `perCorrect` × serverns `msPlayers.correct`. | MR |
+| `liveSessions/{sid}/msPublic`, `msPrivate` (Meteorstormen, #821) | L/S | Som läraren i sessionen: skapa quizets `msPublic/questions` + `msPrivate/snapshot` i lobbyn. `msPublic/status` skriver bara servern; deltagare läser `msPublic`, bara lärare `msPrivate`. | MR |
 | `liveSessions/{sid}/dkSelf`, `dkSecret` | radera (bara eleven själv läser `dkSelf`, ingen klient `dkSecret`) | nekas | RO hemliga koder |
 | `liveClock` | bara sitt eget dokument | bara sitt eget dokument | LC liveClock, RO Live-klockan |
 | `{**}/answers` (collection group) | L | L: `classId` i egna klasser, eller `uid` = egen elev (träningstotalen) | SM test 1–2 |
@@ -133,6 +137,8 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `brakresaStartRound`, `brakresaAnswer`, `brakresaRework`, `brakresaFinishRound`, `brakresaAbortRound`, `brakresaAckDragon`, `brakresaRenameDragon`, `brakresaHunt` | nej – elevfunktioner; lärarkonton nekas (testläget körs i klienten och skriver aldrig, #708) | nej | BF |
 | `schackVanta`, `schackSlutaVanta`, `schackGaMed`, `schackUtmana`, `schackSvara`, `schackDrag`, `schackGeUpp`, `schackRemi`, `schackKravaVinst` (#779) | nej – elevfunktioner: anroparen måste stå i klassens `studentIds`, klassen ha `schack` i `enabledModules` och inget aktivt fokuslås (kärnan: `test/functions-schack-core.test.mjs`, `test/functions-schack-parti.test.mjs`) | nej | SF |
 | `schackDatorVinst`, `schackLektionMynt`, `schackPusselMynt` (#798) | nej – elevfunktioner: anroparen måste stå i en klass med `schack` i `enabledModules` (inte dold) och ingen av elevens klasser får ha ett aktivt fokuslås. Servern kontrollerar partiet/lösningen och betalar en gång per nivå/lektion/pussel (kvittot `schackMynt/{uid}`) | nej | SX |
+| `msAgera`, `msRatta`, `msLage` (#821) | nej – elevfunktioner: anroparen måste ha gått med (`players/{uid}`) i en av sessionens klasser | nej | MF |
+| `msAvsluta` (#821) | ja (alla sessioner; en pågående avslutas nu) | ja, sessioner med en egen klass (kontot läses färskt). Deltagare (elev) först efter slutet. | MF |
 | `schackLarareAvsluta`, `schackLarareTopplista` (#779) | ja (som `hasClass`: alla klasser) | ja, bara egna klasser (kontot läses färskt). Elever nekas. | SF |
 
 Migreringsskriptet `admin/migrate-teacher-admins.mjs` (Admin SDK, förbi reglerna)

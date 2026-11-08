@@ -1,0 +1,189 @@
+/* ==========================================================================
+   Meteorstormen – elevens skärm (#823, spec §5). Egen fil (laddas av
+   ms-elev-vy.js). Mörkblå rymd med stilla stjärnor; varma, tydliga knappar
+   för 🛡️ Sköld (blå), 🔫 Laser (orange) och 🌀 Dragstråle (lila). Mobil
+   375 px och Chromebook 1366×768: allt viktigt utan scroll. Ingen blinkning,
+   inga vita blixtar; reducerad rörelse → inga animationer.
+   Inga z-index (DESIGNSYSTEM §1): kvittensen ligger sist i DOM:en.
+   ========================================================================== */
+.mse-elev-vy {
+  --mse-natt: #0b1433;
+  --mse-panel: #16224d;
+  --mse-panel-ljus: #213168;
+  --mse-linje: #334a8f;
+  --mse-text: #eef3ff;
+  --mse-svag: #aebbe0;
+  --mse-skold: #4aa8ff;
+  --mse-laser: #ff8a3d;
+  --mse-drag: #a77bff;
+  --mse-energi: #ffd84a;
+  --mse-gron: #48d597;
+  --mse-orange: #ffa94d;
+  --mse-rod: #ff6b6b;
+  --mse-fokus: #ffe066;
+  min-height: calc(100vh - 90px);
+  min-height: calc(100dvh - 90px);
+}
+.mse-elev-vy .live-elev-stage {
+  --text: var(--mse-text);
+  --text-svag: var(--mse-svag);
+  align-items: stretch;
+  padding: clamp(8px, 1.6vh, 18px) clamp(8px, 1.6vw, 22px);
+  color: var(--mse-text);
+  background:
+    radial-gradient(circle at 8% 14%, rgba(255, 255, 255, 0.7) 0 1px, transparent 2px),
+    radial-gradient(circle at 23% 72%, rgba(255, 255, 255, 0.5) 0 1px, transparent 2px),
+    radial-gradient(circle at 47% 28%, rgba(255, 255, 255, 0.6) 0 1px, transparent 2px),
+    radial-gradient(circle at 71% 84%, rgba(255, 255, 255, 0.45) 0 1px, transparent 2px),
+    radial-gradient(circle at 88% 22%, rgba(255, 255, 255, 0.65) 0 1.5px, transparent 2.5px),
+    radial-gradient(ellipse at 80% 110%, rgba(167, 123, 255, 0.22), transparent 55%),
+    linear-gradient(180deg, #13205a 0%, var(--mse-natt) 100%);
+  box-shadow: var(--skugga-mjuk), inset 0 0 0 2px rgba(74, 168, 255, 0.3);
+}
+.mse-elev-vy .live-elev-lobby,
+.mse-elev-vy .live-elev-end,
+.mse-elev-vy .live-elev-count { align-self: center; }
+.mse-elev-vy .live-elev-count { margin: auto; color: var(--mse-energi); }
+.mse-elev-vy .live-elev-wait { color: var(--mse-skold); }
+.mse-elev-vy .live-elev-play { width: 100%; display: flex; flex-direction: column; min-height: 0; }
+.mse-elev-vy .live-elev-lobby { width: min(760px, 100%); }
+
+.mse-elev { flex: 1; display: flex; flex-direction: column; gap: clamp(6px, 1.2vh, 12px); min-height: 0; width: 100%; max-width: 1100px; margin: 0 auto; }
+
+/* --- Toppraden ------------------------------------------------------------- */
+.mse-topp { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.mse-energi { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 6px 12px; border-radius: 14px;
+  background: rgba(255, 216, 74, 0.12); box-shadow: inset 0 0 0 2px rgba(255, 216, 74, 0.5); }
+.mse-energi-tal { font-size: clamp(22px, 3.6vh, 32px); font-weight: 800; color: var(--mse-energi); line-height: 1; }
+.mse-prickar { display: flex; gap: 4px; }
+.mse-prickar i { width: 10px; height: 10px; border-radius: 50%; background: rgba(255, 216, 74, 0.2); box-shadow: inset 0 0 0 1px rgba(255, 216, 74, 0.6); }
+.mse-prickar i.pa { background: var(--mse-energi); }
+.mse-egen { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.mse-egen-bild { width: clamp(64px, 11vh, 92px); flex: none; }
+.mse-egen-text { display: flex; flex-direction: column; min-width: 0; text-align: left; }
+.mse-egen-text b { font-size: 1.05rem; }
+.mse-egen-rad { font-size: 0.9rem; color: var(--mse-svag); }
+.mse-andra { display: flex; flex-direction: column; gap: 4px; flex: 1 1 140px; min-width: 120px; max-width: 260px; }
+.mse-klocka { margin-left: auto; font-weight: 800; font-size: 1.1rem; font-variant-numeric: tabular-nums; color: var(--mse-svag); }
+
+.mse-matare { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 6px; font-size: 0.9rem; }
+.mse-matare-namn { font-weight: 700; }
+.mse-matare-bar { height: 10px; border-radius: 6px; background: rgba(174, 187, 224, 0.2); overflow: hidden; }
+.mse-matare-bar i { display: block; height: 100%; border-radius: inherit; background: var(--mse-gron); transition: width 0.6s ease; }
+.mse-matare-mellan .mse-matare-bar i { background: var(--mse-orange); }
+.mse-matare-lag .mse-matare-bar i { background: var(--mse-rod); }
+.mse-matare-tal { min-width: 2ch; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* --- Den lilla stationen (ms-station-mini.js) ------------------------------ */
+.mse-st { width: 100%; height: auto; display: block; overflow: visible; }
+.mse-st-bubbla { fill: rgba(74, 168, 255, 0.18); stroke: var(--mse-skold); stroke-width: 2.5; transition: opacity 0.6s ease; }
+.mse-st-panel { fill: #3c5bb5; stroke: #cfe0ff; stroke-width: 2; }
+.mse-st-arm, .mse-st-antenn { stroke: #cfe0ff; stroke-width: 3; stroke-linecap: round; }
+.mse-st-topp { fill: var(--mse-energi); }
+.mse-st-skrov { fill: #e8edf8; stroke: #1b2559; stroke-width: 2.5; }
+.mse-st-fonster { fill: #ffd84a; stroke: #1b2559; stroke-width: 1.5; }
+.mse-st-slackt { fill: #56607d; }
+.mse-st-repa, .mse-st-spricka { fill: none; stroke: #4d5674; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.mse-st-lampa { fill: var(--mse-rod); animation: mse-lampa 3.2s ease-in-out infinite; }
+.mse-st-rok { fill: rgba(150, 160, 185, 0.55); }
+.mse-st-flyter .mse-st-kropp { opacity: 0.7; transform-origin: 50px 50px; animation: mse-driv 8s ease-in-out infinite; }
+@keyframes mse-lampa { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+@keyframes mse-driv { 0%, 100% { transform: rotate(-4deg) translateY(0); } 50% { transform: rotate(4deg) translateY(2px); } }
+
+/* --- Banderoll, läge, fel -------------------------------------------------- */
+.mse-banderoll { margin: 0; padding: 6px 12px; border-radius: 12px; text-align: center; font-weight: 800;
+  background: rgba(255, 216, 74, 0.16); color: var(--mse-energi); box-shadow: inset 0 0 0 2px rgba(255, 216, 74, 0.45); }
+.mse-banderoll[data-typ="jattemeteor"] { background: rgba(255, 138, 61, 0.16); color: var(--mse-laser); box-shadow: inset 0 0 0 2px rgba(255, 138, 61, 0.5); }
+.mse-banderoll[data-typ="lugnet"] { background: rgba(74, 168, 255, 0.14); color: #9fd0ff; box-shadow: inset 0 0 0 2px rgba(74, 168, 255, 0.4); }
+.mse-lagesrad { margin: 0; text-align: center; font-weight: 700; color: #c9b5ff; }
+.mse-felrad { margin: 0; text-align: center; color: var(--mse-svag); font-weight: 700; }
+
+/* --- Mitten: frågan eller valet -------------------------------------------- */
+.mse-mitt { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; }
+.mse-mitt > [hidden] { display: none !important; }
+.mse-svar { position: relative; display: flex; flex-direction: column; justify-content: center; }
+.mse-svar .ca-status:empty, .mse-svar .ca-fraga:empty { display: none; }
+.mse-elev-vy .ca-kontext { background: rgba(238, 243, 255, 0.08); box-shadow: inset 0 0 0 1px rgba(74, 168, 255, 0.3); }
+.mse-elev-vy .fa-input { color: var(--mse-natt); border-color: var(--mse-skold); caret-color: var(--mse-natt); }
+.mse-elev-vy .fa-feedback.ok { color: var(--mse-gron); }
+.mse-elev-vy .fa-feedback.fel { color: var(--mse-orange); }
+/* Fel svar: ett lugnt kryss som tonar bort (rätt svar visar frågeflödet). */
+.mse-svar[data-fel]::after { content: "✖"; position: absolute; inset: 0; display: grid; place-items: center;
+  font-size: clamp(70px, 16vh, 150px); color: rgba(255, 169, 77, 0.8); pointer-events: none; animation: mse-kryss 0.75s ease-out forwards; }
+@keyframes mse-kryss { 0% { opacity: 0; } 25% { opacity: 0.9; } 100% { opacity: 0; } }
+.mse-svar[data-tl] > :not(.mse-svar-tl),
+.mse-svar:not([data-tl]) > .mse-svar-tl { display: none; }
+.mse-svar-tl { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; width: 100%; max-width: 1100px; margin: 0 auto; }
+.mse-svar-tl .tl-fraga:empty, .mse-svar-tl .tl-kontext:empty { display: none; }
+.mse-vanta { margin: auto; font-size: 1.3rem; font-weight: 700; color: var(--mse-svag); }
+
+.mse-val:focus { outline: none; }
+.mse-val { display: flex; flex-direction: column; gap: clamp(8px, 1.6vh, 16px); align-items: stretch; }
+.mse-val-rubrik { margin: 0; text-align: center; font-size: clamp(20px, 3.2vh, 28px); font-weight: 800; color: var(--mse-gron); }
+.mse-knappar { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(8px, 1.4vw, 16px); }
+.mse-knappar[data-antal="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.mse-knapp { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  min-height: clamp(110px, 22vh, 190px); padding: 10px 6px; border-radius: 20px; border: 0; cursor: pointer;
+  font: inherit; color: #fff; background: var(--mse-knapp, var(--mse-panel-ljus));
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.35), inset 0 0 0 3px rgba(255, 255, 255, 0.25);
+  transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.15s ease; }
+.mse-knapp-skold { --mse-knapp: linear-gradient(180deg, #4aa8ff, #2a6fd6); }
+.mse-knapp-laser { --mse-knapp: linear-gradient(180deg, #ff9d54, #e2622a); }
+.mse-knapp-drag { --mse-knapp: linear-gradient(180deg, #b48dff, #7a4fe0); }
+.mse-knapp-ikon { font-size: clamp(34px, 6vh, 56px); line-height: 1.1; }
+.mse-knapp b { font-size: clamp(17px, 2.6vh, 24px); }
+.mse-knapp small { font-size: 0.95rem; font-weight: 700; opacity: 0.95; }
+.mse-knapp kbd, .mse-spara kbd { position: absolute; top: 8px; right: 10px; padding: 0 6px; border-radius: 6px; font: 700 0.8rem/1.4 inherit;
+  background: rgba(0, 0, 0, 0.25); color: #fff; }
+.mse-knapp:not([disabled]):hover { filter: brightness(1.08); }
+.mse-knapp:not([disabled]):active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35), inset 0 0 0 3px rgba(255, 255, 255, 0.25); }
+.mse-knapp[disabled] { cursor: not-allowed; filter: grayscale(0.85) brightness(0.7); }
+.mse-knapp.mse-skickar, .mse-spara.mse-skickar { filter: none; outline: 3px solid var(--mse-energi); outline-offset: 3px; }
+.mse-knapp:focus-visible, .mse-spara:focus-visible { outline: 3px solid var(--mse-fokus); outline-offset: 3px; }
+.mse-spara { display: inline-flex; align-items: center; justify-content: center; gap: 10px; align-self: center; min-width: min(360px, 100%); padding: 12px 18px; border-radius: 999px; cursor: pointer;
+  font: inherit; font-weight: 800; font-size: 1.05rem; color: var(--mse-text); background: rgba(255, 216, 74, 0.12);
+  border: 2px solid rgba(255, 216, 74, 0.6); }
+.mse-spara kbd { position: static; }
+.mse-spara[disabled] { opacity: 0.6; cursor: wait; }
+
+/* --- Kvittensen ------------------------------------------------------------- */
+.mse-kvitto { align-self: center; max-width: 100%; padding: 8px 16px; border-radius: 14px; text-align: center; font-weight: 800;
+  font-size: clamp(16px, 2.4vh, 21px); background: rgba(72, 213, 151, 0.16); color: #bff5dc; box-shadow: inset 0 0 0 2px rgba(72, 213, 151, 0.5);
+  pointer-events: none; animation: mse-in 0.25s ease-out; }
+.mse-kvitto[data-ton="lugn"] { background: rgba(174, 187, 224, 0.14); color: var(--mse-text); box-shadow: inset 0 0 0 2px rgba(174, 187, 224, 0.45); }
+@keyframes mse-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* --- Lobby och slut ----------------------------------------------------------- */
+.mse-lobby, .mse-final { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.mse-lobby-station, .mse-final-station { width: clamp(90px, 18vh, 150px); }
+.mse-lobby-text { margin: 0; font-size: 1.15rem; font-weight: 700; }
+.mse-lobby-knappar { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; }
+.mse-lobby-knappar li { padding: 4px 10px; border-radius: 10px; background: rgba(238, 243, 255, 0.08); }
+.mse-lobby-tips { margin: 0; }
+.mse-final h2 { margin: 4px 0 0; }
+.mse-final-vann .mse-st-fonster { fill: #fff3a8; }
+.mse-final-stjarnor { margin: 0; font-size: 2.2rem; letter-spacing: 4px; }
+.mse-final-rad { margin: 0; color: var(--mse-svag); font-weight: 700; }
+.mse-final-bidrag { margin: 2px 0; font-size: 1.1rem; font-weight: 700; }
+.mse-mynt { list-style: none; margin: 4px 0 0; padding: 0; min-width: min(320px, 100%); }
+.mse-mynt li { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; border-bottom: 1px dashed rgba(174, 187, 224, 0.35); }
+.mse-mynt-tot { margin: 4px 0 0; font-size: 1.1rem; }
+
+/* --- Mobil ------------------------------------------------------------------- */
+@media (max-width: 520px) {
+  .mse-topp { gap: 6px 10px; }
+  .mse-andra { flex-basis: 100%; max-width: none; order: 5; }
+  .mse-egen-rad { font-size: 0.8rem; }
+  .mse-knappar { gap: 8px; }
+  .mse-knapp { min-height: 118px; border-radius: 16px; padding: 8px 4px; }
+  .mse-knapp b { font-size: 16px; }
+  .mse-knapp small { font-size: 0.85rem; }
+  .mse-knapp kbd { display: none; }
+  .mse-spara kbd { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mse-st-lampa, .mse-st-flyter .mse-st-kropp, .mse-kvitto { animation: none; }
+  .mse-svar[data-fel]::after { animation: none; opacity: 0.6; }
+  .mse-matare-bar i, .mse-st-bubbla, .mse-knapp { transition: none; }
+}

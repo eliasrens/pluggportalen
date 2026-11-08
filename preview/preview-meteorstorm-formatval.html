@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Meteorstormen i formatväljaren (#824)</title>
+    <!-- Lärarens RIKTIGA "Skapa Live-match" (teacher-live-form.js) med Meteorstormen vald:
+         formatkortet, spelläget, klasserna och formatets fält (ms-setup.js). Firebase byts mot
+         förhandsvisningens minnes-stubbar (som preview-mina-klasser.html) – inget sparas.
+         ?format=guldrush osv. visar ett annat format. -->
+    <script type="importmap">
+      {
+        "imports": {
+          "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js": "./larare-klasser/fb-app.js",
+          "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js": "./mina-klasser-stubs/fb-auth.js",
+          "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js": "./mina-klasser-stubs/fb-firestore.js",
+          "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js": "./mina-klasser-stubs/fb-functions.js"
+        }
+      }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      @font-face { font-family: "Baloo 2"; src: url(../qa-fonts/NotoColorEmoji.ttf); font-weight: 100 900;
+        unicode-range: U+00A9, U+00AE, U+203C, U+2049, U+2122-2139, U+2190-21FF, U+2300-23FF, U+24C2, U+25A0-27BF, U+2900-297F, U+2B00-2BFF, U+3030, U+FE0F, U+200D, U+1F000-1FAFF; }
+      body { margin: 0; padding: 16px; }
+      .wrap { max-width: 760px; margin: 0 auto; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap" id="app"></div>
+    <script type="module">
+      import { renderCreateForm } from "../src/live/teacher-live-form.js";
+      import { ensureLiveCss } from "../src/live/live-css.js";
+
+      ensureLiveCss(); // lärarsidan laddar Live-stilarna latt
+
+      const elever = (n, k) => Array.from({ length: n }, (_, i) => `${k}-${i}`);
+      const host = document.getElementById("app");
+      renderCreateForm(host, {
+        uid: "larare1", createdByName: "Lärare", role: { admin: true }, onCreated: () => {},
+        classes: [
+          { id: "4b", name: "4B", studentIds: elever(25, "4b") },
+          { id: "4d", name: "4D", studentIds: elever(19, "4d") },
+          { id: "5e", name: "5E", studentIds: elever(22, "5e") },
+        ],
+      });
+      const vald = new URLSearchParams(location.search).get("format") || "meteorstorm";
+      const r = host.querySelector(`input[name="format"][value="${vald}"]`);
+      if (r) { r.checked = true; r.dispatchEvent(new Event("change", { bubbles: true })); }
+      host.querySelector('input[name="klass"][value="4b"]')?.click();
+    </script>
+  </body>
+</html>

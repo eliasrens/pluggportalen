@@ -22,8 +22,9 @@ import KLASSMATCH from "./klassmatch/index.js";
 import SNILLEBLIXT from "./snilleblixt/index.js";
 import GULDRUSH from "./guldrush/index.js";
 import DATAKUPPEN from "./datakuppen/index.js";
+import METEORSTORM from "./meteorstorm/index.js";
 
-const BUILTIN_FORMATS = [KLASSMATCH, SNILLEBLIXT, GULDRUSH, DATAKUPPEN];
+const BUILTIN_FORMATS = [KLASSMATCH, SNILLEBLIXT, GULDRUSH, DATAKUPPEN, METEORSTORM];
 
 for (const f of BUILTIN_FORMATS) if (!getFormat(f.id)) registerFormat(f);
 

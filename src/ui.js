@@ -257,13 +257,14 @@ export async function getProvVisible() {
 
 // Villkorade menylänkar (#458/#460): `villkor` i NAV_LANKAR = nyckel här. Länken
 // syns bara när villkoret (en dynamiskt laddad bevakare som själv ritar om
-// menyn vid ändring) svarar sant – eller när eleven redan står på sidan.
+// menyn vid ändring) svarar sant – eller när eleven står på sidan (ej Live, #824).
 // Nästa villkorade modul = en rad här + `villkor` på sin rad i STUDENT_MODULES.
 const NAV_VILLKOR = {
   mattematchen: async () => !!(await getMattematch()),
   live: getLiveVisible,
   prov: getProvVisible,
 };
+export const villkorSynlig = (l, v, path) => !l.villkor || !!v[l.villkor] || (l.grupp !== "live" && l.hash.slice(1) === path);
 
 // Elevens huvuddestinationer i sidomenyn. Menyn ritas grupp för grupp i
 // NAV_GRUPPER-ordning (#701), inom gruppen i listans ordning.
@@ -342,7 +343,7 @@ export async function renderTopbar() {
   // Fokusläget (#436) styr när det är aktivt: målet syns alltid (även om dess
   // modul annars är dold), resten bara om låset och modul-valet tillåter.
   const lankar = NAV_LANKAR.filter((l) => {
-    if (l.villkor && !villkor[l.villkor] && l.hash.slice(1) !== path) return false;
+    if (!villkorSynlig(l, villkor, path)) return false;
     const synlig = !l.modul || !dolda.has(l.modul);
     if (!las) return synlig;
     const p = l.hash.slice(1);

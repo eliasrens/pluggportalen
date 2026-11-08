@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Meteorstormens historik i lärarvyn (#823)</title>
+    <!-- Lärarsidans esc utan auth/Firebase (samma stubb som #557). -->
+    <script type="importmap">
+      { "imports": { "../src/teacher-shared.js": "./pluggmynt-stubs/teacher-shared.js" } }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      body { margin: 0; padding: 16px 20px 40px; }
+      .wrap { max-width: 1100px; margin: 0 auto; }
+    </style>
+  </head>
+  <body>
+    <!--
+      Meteorstormens RIKTIGA historikvy (meteorstorm-history.js) som lärarsidan
+      ritar den (teacher-live-history.js: rubrik + detailHtml, Statistik → Live:
+      classStats + classSummaryHtml). Matchen spelas till slut i elevdemot
+      (ms-elev-demo.js, formatets riktiga regler). ?lage=en-klass · ?quiz=1.
+      Ingen Firestore, inga pluggmynt.
+    -->
+    <div class="wrap" id="app"><div class="spinner">Laddar …</div></div>
+    <script type="module">
+      import * as H from "../src/live/formats/meteorstorm/meteorstorm-history.js";
+      import { createMsElevDemo } from "../src/live/formats/meteorstorm/ms-elev-demo.js";
+
+      const qs = new URLSearchParams(location.search);
+      const QUIZ = [
+        { text: "Vilken planet är närmast solen?", options: ["Venus", "Merkurius", "Mars", "Jorden"], a: 1 },
+        { text: "Vad heter vår galax?", options: ["Andromeda", "Vintergatan", "Orion", "Karlavagnen"], a: 1 },
+        { text: "Hur många planeter har vårt solsystem?", options: ["7", "8", "9", "10"], a: 1 },
+      ];
+      let t = Date.now() - 700_000;
+      const demo = createMsElevDemo({
+        lage: qs.get("lage") === "en-klass" ? "en-klass" : "klass-mot-klass",
+        quiz: qs.get("quiz") === "1" ? QUIZ : null, klocka: () => t, latens: () => 0,
+      });
+      t += 660_000;
+      demo.tick();
+      const result = demo.avsluta();
+      const s = { ...demo.session, status: "finished" };
+      const fmt = (x) => new Date(x).toLocaleString("sv-SE", { dateStyle: "medium", timeStyle: "short" });
+      document.getElementById("app").innerHTML = `<div class="panel live-history-detail">
+          <a class="back-link">← Till Live</a>
+          <h2 class="live-h2">☄️ ${s.name} <small class="hint">${H.winnerText(s, result)}</small></h2>
+          <p class="hint">${fmt(s.startedAt)} · ${s.gameMode === "plugga_quiz" ? "Quiz" : "Multiplikation 0–10"} · ${Math.round(s.durationSeconds / 60)} min · demo</p>
+          ${H.detailHtml(s, result)}
+        </div>
+        <div class="panel"><h2 class="live-h2">Statistik → Live (klass 4B)</h2>
+          <h4>Matcher</h4>
+          <div class="table-scroll"><table class="live-table"><thead><tr><th>Match</th><th>Datum</th>${H.classStats.head}<th class="num">Elever</th></tr></thead>
+          <tbody><tr><th scope="row">${s.name}</th><td>${fmt(s.startedAt)}</td>${H.classStats.cells(s, result, "4b")}<td class="num">${result.perClass["4b"].players}</td></tr></tbody></table></div>
+          ${H.classSummaryHtml([{ s, result }], "4b")}
+        </div>`;
+      window.__msHistorik = { result };
+    </script>
+  </body>
+</html>

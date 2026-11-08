@@ -1,0 +1,18 @@
+20:36:40 formulär {"out":["ok","ok","ok","ok","ok"],"tid":["5","10","15","20","__egen"],"fel":""}
+20:36:40 sid fetUzSrIJsH29Ezjw1UO
+20:36:41 session {"format":"meteorstorm","ms":{"lage":"klass-mot-klass","attacker":"milda"},"dur":600,"mode":"multiplication_0_10","ak":"free","klasser":["4b","5e"]}
+20:37:16 i lobbyn 20
+20:37:17 STARTA
+20:37:50 prov {"s":33,"A":{"t":1793133468381.9902,"h":36,"bakat":0,"sena":0},"B":{"t":1793133468447.1511,"h":36,"bakat":0,"sena":8},"jamfor":{"tt":1793133467881.9902,"lika":true,"tillstandLika":true,"hA":36,"hB":36}} elever 3/1 4/0 1/3 1/4
+20:38:25 prov {"s":68,"A":{"t":1793133501685.765,"h":93,"bakat":0,"sena":0},"B":{"t":1793133501238.856,"h":93,"bakat":0,"sena":17},"jamfor":{"tt":1793133500738.856,"lika":true,"tillstandLika":true,"hA":93,"hB":93}} elever 5/3 8/1 4/5 4/5
+20:38:46 fps {"fps":8,"medelMs":122.66,"p95Ms":366.7,"ramar":300,"ritaMedelMs":6.67,"ritaP95Ms":30.6,"ritaMaxMs":115.8,"px":[1600,900]} {"fps":8,"medelMs":127.27,"p95Ms":383.3,"ramar":300,"ritaMedelMs":5.78,"ritaP95Ms":28.4,"ritaMaxMs":206.4,"px":[1600,900]}
+20:39:02 prov {"s":105,"A":{"t":1793133538775.6177,"h":147,"bakat":0,"sena":0},"B":{"t":1793133538574.3228,"h":146,"bakat":0,"sena":28},"jamfor":{"tt":1793133538074.3228,"lika":true,"tillstandLika":true,"hA":149,"hB":147}} elever 7/6 10/4 8/6 6/8
+20:39:12 musikknapp 🎵 Musik av ljud [{"s":153.311,"typ":"ramp","v":0.7},{"s":153.311,"typ":"ramp","v":0.7},{"s":153.311,"typ":"ramp","v":1},{"s":160.986,"typ":"ramp","v":0}]
+20:39:24 musikknapp 🎵 Musik på ljud [{"s":160.986,"typ":"ramp","v":0},{"s":161.664,"typ":"stop-loop"},{"s":172.965,"typ":"start","loop":true,"dur":80},{"s":172.965,"typ":"ramp","v":0.3}]
+20:39:36 prov {"s":139,"A":{"t":1793133573190.072,"h":206,"bakat":0,"sena":2},"B":{"t":1793133574005.9766,"h":200,"bakat":0,"sena":35},"jamfor":{"tt":1793133572690.072,"lika":true,"tillstandLika":false,"hA":207,"hB":205}} elever 10/9 13/6 10/8 9/11
+20:40:09 prov {"s":172,"A":{"t":1793133606887.7302,"h":256,"bakat":0,"sena":2},"B":{"t":1793133606256.3342,"h":254,"bakat":0,"sena":41},"jamfor":{"tt":1793133605756.3342,"lika":true,"tillstandLika":false,"hA":257,"hB":255}} elever 11/12 17/7 14/8 10/14
+20:40:44 prov {"s":207,"A":{"t":1793133642362.6946,"h":313,"bakat":0,"sena":2},"B":{"t":1793133640833.7837,"h":310,"bakat":0,"sena":58},"jamfor":{"tt":1793133640333.7837,"lika":true,"tillstandLika":true,"hA":313,"hB":310}} elever 14/15 21/8 16/10 12/17
+20:41:20 prov {"s":243,"A":{"t":1793133677268.8564,"h":374,"bakat":0,"sena":4},"B":{"t":1793133676290.5825,"h":368,"bakat":0,"sena":83},"jamfor":{"tt":1793133675790.5825,"lika":true,"tillstandLika":true,"hA":375,"hB":372}} elever 18/15 24/9 19/13 16/19
+20:41:55 prov {"s":278,"A":{"t":1793133712133.6865,"h":435,"bakat":0,"sena":4},"B":{"t":1793133712238.6047,"h":431,"bakat":0,"sena":112},"jamfor":{"tt":1793133711633.6865,"lika":false,"tillstandLika":false,"hA":436,"hB":432}} elever 21/17 27/11 21/15 18/22
+20:42:27 prov {"s":311,"A":{"t":1793133745487.5615,"h":492,"bakat":0,"sena":4},"B":{"t":1793133744590.687,"h":488,"bakat":0,"sena":132},"jamfor":{"tt":1793133744090.687,"lika":false,"tillstandLika":false,"hA":492,"hB":490}} elever 24/18 30/13 25/16 22/23
+20:43:01 prov {"s":344,"A":{"t":1793133778845.8887,"h":541,"bakat":0,"sena":4},"B":{"t":1793133778869.6985,"h":539,"bakat":0,"sena":150},"jamfor":{"tt":1793133778345.8887,"lika":true,"tillstandLika":false,"hA":541,"hB":539}} elever 27/20 35/13 28/18 23/27
