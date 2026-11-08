@@ -16,6 +16,8 @@ import {
 } from "./art-furniture-badrum.js";
 
 const GLAS = `fill="#E8F6FC" fill-opacity="0.45"`;
+// Ogenomskinlig ljus botten bakom glaset – annars lyser trägolvet igenom i rummet.
+const GLAS_BOTTEN = `fill="#EAF7FD"`;
 
 /** id → { sida, bak, sida2? } där varje vy är { viewBox, art } (eller bak: "spegel"). */
 export const VYER_BADRUM = {
@@ -48,6 +50,7 @@ export const VYER_BADRUM = {
       viewBox: "0 0 60 118",
       art:
         shadow(30, 112, 25) +
+        `<rect x="6" y="8" width="48" height="92" rx="4" ${GLAS_BOTTEN} stroke="none"/>` +
         `<rect x="6" y="8" width="9" height="92" rx="3" fill="${VATTEN_LJUS}" ${LINE}/>` +
         limb("M19 98 L19 24 Q19 16 27 16 L35 16", KROM_MORK, 4) +
         `<circle cx="19" cy="64" r="4" fill="#F7C948" ${THIN}/>` +
@@ -62,7 +65,7 @@ export const VYER_BADRUM = {
       viewBox: "0 0 76 118",
       art:
         shadow(38, 112, 32) +
-        `<rect x="6" y="8" width="32" height="92" rx="4" ${GLAS} ${LINE}/>` +
+        `<rect x="6" y="8" width="32" height="92" rx="4" ${GLAS_BOTTEN} ${LINE}/>` +
         `<rect x="8" y="8" width="60" height="92" rx="4" fill="${PORSLIN_SKUGGA}" ${LINE}/>` +
         `<path d="M12 40 H64 M12 72 H64" fill="none" stroke="${KROM_MORK}" stroke-width="1.8" stroke-linecap="round"/>` +
         `<path d="M14 14 L14 34" ${HOGDAGER}/>` +
