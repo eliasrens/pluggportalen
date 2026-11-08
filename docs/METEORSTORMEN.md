@@ -189,7 +189,7 @@ andel). Lika skrov → flest nedskjutna; lika igen → oavgjort. `placering` del
 plats vid lika. En klass: ⭐ med skrov kvar, ⭐⭐ ≥ 50, ⭐⭐⭐ ≥ 80. En station
 på 0 **flyter**: den tar ingen mer skada men skjuter och drar som vanligt.
 Avslutar läraren **under nedräkningen** (`result.slutMs ≤ startMs`,
-`avslutadForeStormen` i `ms-resultat.js`) visar slutrutan, elevskärmen och
+`stoppadForeStormen` i `ms-resultat.js`) visar slutrutan, elevskärmen och
 historiken bara en neutral rad – inga stjärnor och ingen "Stationen överlevde!"
 (#828; serverns result är oförändrat).
 

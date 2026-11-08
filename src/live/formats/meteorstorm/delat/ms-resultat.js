@@ -35,7 +35,7 @@ export function buildResultat(stationer, lage) {
  * (serverns result: slutMs ≤ startMs). Skrovet är orört – slutrutan, elevskärmen
  * och historiken visar då ingen ⭐⭐⭐ och ingen "Stationen överlevde!".
  */
-export function avslutadForeStormen(result) {
+export function stoppadForeStormen(result) {
   const start = Number(result?.startMs);
   const slut = Number(result?.slutMs);
   return Number.isFinite(start) && Number.isFinite(slut) && slut <= start;

@@ -30,6 +30,7 @@
 import { skapaMotor } from "./delat/ms-motor.js";
 import { hashFro } from "./delat/ms-prng.js";
 import { cfgNyckel, normCfg } from "./delat/ms-indata.js";
+import { stoppadForeStormen } from "./delat/ms-resultat.js";
 import { phaseAt, formatClock } from "../../live-core.js";
 import { prefersReducedMotion } from "../../design/live-reactions.js";
 import {
@@ -155,7 +156,7 @@ export function createRymden(host, { st, colors = {}, sound = null, screen = fal
     const m = minne.las(tillstand.logg);
     const fas = phaseAt(s, now()).phase;
     const klar = fas === "finished" && s.result;
-    const firar = !klar ? [] : s.result.lage === "en-klass"
+    const firar = !klar || stoppadForeStormen(s.result) ? [] : s.result.lage === "en-klass"
       ? (s.result.overlevde ? [0] : [])
       : tillstand.stationer.map((x, i) => (x.classId === s.result.winner ? i : -1)).filter((i) => i >= 0);
     b.rita({

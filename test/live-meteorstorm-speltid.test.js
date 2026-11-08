@@ -11,7 +11,7 @@ import assert from "node:assert/strict";
 import { register } from "node:module";
 import { intensitetVid, slutstormStartMs, skapaPlan, handelsePlan } from "../src/live/formats/meteorstorm/delat/ms-storm.js";
 import { SLUTSTORM, HANDELSE_PAUS_MS, SPELTID_MIN_MS, SPELTID_MAX_MS } from "../src/live/formats/meteorstorm/delat/ms-balans.js";
-import { avslutadForeStormen } from "../src/live/formats/meteorstorm/delat/ms-resultat.js";
+import { stoppadForeStormen } from "../src/live/formats/meteorstorm/delat/ms-resultat.js";
 import { slutModell, FORE_STORMEN } from "../src/live/formats/meteorstorm/msp-slut.js";
 import { slutet } from "../src/live/formats/meteorstorm/ms-elev.js";
 import { korEnKlass, SCENARIER } from "../admin/ms-balans-sim.mjs";
@@ -91,12 +91,12 @@ describe("Meteorstormen – avslut under nedräkningen (#828)", () => {
     placering: [{ classId: "4b", skrov: 100, nedskjutna: 0, plats: 1 }, { classId: "4d", skrov: 100, nedskjutna: 0, plats: 1 }] };
   const S = { classNames: { "4b": "4B", "4d": "4D" }, participatingClassIds: ["4b", "4d"] };
 
-  it("avslutadForeStormen: slutMs ≤ startMs (inte efter ordinarie start eller utan tider)", () => {
-    assert.equal(avslutadForeStormen(enKlass), true);
-    assert.equal(avslutadForeStormen(kmk), true);
-    assert.equal(avslutadForeStormen({ ...enKlass, slutMs: 5100 }), false);
-    assert.equal(avslutadForeStormen({ lage: "en-klass" }), false);
-    assert.equal(avslutadForeStormen(null), false);
+  it("stoppadForeStormen: slutMs ≤ startMs (inte efter ordinarie start eller utan tider)", () => {
+    assert.equal(stoppadForeStormen(enKlass), true);
+    assert.equal(stoppadForeStormen(kmk), true);
+    assert.equal(stoppadForeStormen({ ...enKlass, slutMs: 5100 }), false);
+    assert.equal(stoppadForeStormen({ lage: "en-klass" }), false);
+    assert.equal(stoppadForeStormen(null), false);
   });
 
   it("projektorn: ingen ⭐⭐⭐, ingen 'överlevde', ingen 'Fantastiskt försvar'", () => {

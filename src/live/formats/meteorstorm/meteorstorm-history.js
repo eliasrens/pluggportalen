@@ -27,7 +27,7 @@ import { getGameMode } from "../../modes/index.js";
 import { ensureLiveCss } from "../../live-css.js";
 import { categoryRates } from "../snilleblixt/sb-historik-data.js";
 import { hardestQuestions, playerCounts as counts } from "../../kistspel/ks-historik-data.js";
-import { avslutadForeStormen } from "./delat/ms-resultat.js";
+import { stoppadForeStormen } from "./delat/ms-resultat.js";
 
 const CSS = "src/live/formats/meteorstorm/meteorstorm-historik.css";
 const tal = (n) => (Number(n) || 0).toLocaleString("sv-SE");
@@ -55,7 +55,7 @@ function bar(r) {
 
 export function winnerText(s, result) {
   if (!result?.placering?.length) return "–";
-  if (avslutadForeStormen(result)) return FORE;
+  if (stoppadForeStormen(result)) return FORE;
   if (result.lage === "en-klass") {
     const id = result.placering[0].classId;
     return result.overlevde === false || !int(result.stjarnor) ? `🛰️ ${esc(className(s, id))}` : `${STJ(result.stjarnor)} ${esc(className(s, id))}`;
@@ -66,7 +66,7 @@ export function winnerText(s, result) {
 
 /** Klassens utfall: "Vann" / "Oavgjort" / "2:a av 2" (lärarvyn) / "⭐⭐☆". */
 export function utfallText(_s, result, classId) {
-  if (!result?.placering?.length || avslutadForeStormen(result)) return "–";
+  if (!result?.placering?.length || stoppadForeStormen(result)) return "–";
   if (result.lage === "en-klass") return int(result.stjarnor) ? STJ(result.stjarnor) : "🛰️";
   if (result.draw) return "Oavgjort";
   if (result.winner === classId) return "🏆 Vann";
@@ -157,7 +157,7 @@ export function detailHtml(s, result) {
   const inst = s.msInstallningar || {};
   const lage = result.lage === "en-klass" ? "En klass" : `Klass mot klass · ${ATTACKER[inst.attacker] || ""}`;
   const info = `<small class="hint">${KIND[s.answerKind] || ""} · ${lage} · totalt ${tal(result.totalCorrect)} rätt av ${tal(result.totalAnswered)} svar</small>`;
-  const rubrik = avslutadForeStormen(result) ? FORE : result.lage === "en-klass"
+  const rubrik = stoppadForeStormen(result) ? FORE : result.lage === "en-klass"
     ? `${winnerText(s, result)} ${result.overlevde === false ? "Stationen flyter i rymden" : "Stationen överlevde!"}`
     : result.draw || !result.winner ? "🤝 Oavgjort" : `☄️ ${esc(className(s, result.winner))} vann Meteorstormen!`;
   return `<p class="live-history-winner">${rubrik} ${info}</p>

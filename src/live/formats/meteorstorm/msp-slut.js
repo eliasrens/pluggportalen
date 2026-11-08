@@ -18,7 +18,7 @@
 // ============================================================================
 
 import { klassGenitiv } from "./msp-scen.js";
-import { avslutadForeStormen } from "./delat/ms-resultat.js";
+import { stoppadForeStormen } from "./delat/ms-resultat.js";
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
@@ -58,7 +58,7 @@ export function slutModell(result, s) {
       ogonblick,
     };
   });
-  if (avslutadForeStormen(result)) {
+  if (stoppadForeStormen(result)) {
     return { lage: enKlass ? "en-klass" : "klass-mot-klass", stjarnor: 0, klasser, rubrik: "Stormen är över!", under: FORE_STORMEN };
   }
   if (enKlass) {
