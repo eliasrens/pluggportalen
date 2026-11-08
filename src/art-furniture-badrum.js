@@ -12,22 +12,23 @@
 
 import { LINE, THIN, limb, shadow, stjarna } from "./art-style.js";
 
-const WOOD = "#B0805A";
-const WOOD_DARK = "#8A6242";
-const WOOD_LIGHT = "#E0B98C";
-const PORSLIN = "#FFFFFF";
-const PORSLIN_SKUGGA = "#DCE7F2";
-const KROM = "#C6D6E8";
-const KROM_MORK = "#A9C2DE";
-const VATTEN = "#7FC7E8";
-const VATTEN_LJUS = "#C9EEFB";
-const HOGDAGER = `fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity="0.85"`;
+// Färger och delar delas med sidovyerna (art-furniture-vyer-badrum.js).
+export const WOOD = "#B0805A";
+export const WOOD_DARK = "#8A6242";
+export const WOOD_LIGHT = "#E0B98C";
+export const PORSLIN = "#FFFFFF";
+export const PORSLIN_SKUGGA = "#DCE7F2";
+export const KROM = "#C6D6E8";
+export const KROM_MORK = "#A9C2DE";
+export const VATTEN = "#7FC7E8";
+export const VATTEN_LJUS = "#C9EEFB";
+export const HOGDAGER = `fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity="0.85"`;
 
 // Vattendroppe med spetsen uppåt.
-const droppe = (x, y) =>
+export const droppe = (x, y) =>
   `<path d="M${x} ${y} Q${x - 3.2} ${y + 5} ${x} ${y + 6.5} Q${x + 3.2} ${y + 5} ${x} ${y} Z" fill="${VATTEN}" ${THIN}/>`;
 // Skumbubbla/såpbubbla med liten glans.
-const bubbla = (x, y, r, fill = "#fff") =>
+export const bubbla = (x, y, r, fill = "#fff") =>
   `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" ${THIN}/>` +
   (r >= 4 ? `<circle cx="${x - r * 0.35}" cy="${y - r * 0.35}" r="${(r * 0.22).toFixed(1)}" fill="#fff" stroke="none"/>` : "");
 

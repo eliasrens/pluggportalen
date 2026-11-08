@@ -17,10 +17,12 @@ import { SHOP_ITEMS } from "../src/shop-items.js";
 await loadCollectionArt();
 
 const FYRA = ["sang", "bokhylla", "dator", "tv", "byra", "skrivbord", "fatolj",
-  "enkelsang", "soffa", "gungstol", "garderob", "kylskap", "nattduksbord"];
+  "enkelsang", "soffa", "gungstol", "garderob", "kylskap", "nattduksbord",
+  // Badrumsmöblerna (#829).
+  "badkar", "dusch", "toalett", "handfat", "handdukstork", "tvattkorg", "badrumsmatta", "tvattmaskin"];
 const TEXT = ["vaggklocka", "poster-varld", "parkering", "hw-buu-skylt"];
 
-test("de 13 utvalda möblerna har fyra riktningar, inga andra", () => {
+test("de 21 utvalda möblerna har fyra riktningar, inga andra", () => {
   const rot = SHOP_ITEMS.map((i) => i.id).filter(kanRoteras).sort();
   assert.deepEqual(rot, [...FYRA].sort());
 });

@@ -3,6 +3,7 @@
 // Tvättmaskinen ägs inte – köp den i butiken (Möbler & prylar) och placera.
 //   Rum 1: badrumsmatta (platt, under badkaret), badkar, dusch, toalett,
 //          handfat, handdukstork, tvättkorg + säng, soffa, kylskåp
+//   Redan vridna (⟳/↔, sparas som rot/flip): toaletten rot 1, badkaret flip.
 export const SEED = {
   "students/elev1": { namn: "Elev Ett", username: "elev1", classId: "4a" },
   "classes/4a": { name: "4A", by: "Björkby", order: 1, studentIds: ["elev1"] },
@@ -18,9 +19,9 @@ export const SEED = {
       paletteId: "mint",
       placements: {
         badrumsmatta: { x: 28, y: 84 },
-        badkar: { x: 28, y: 80 },
+        badkar: { x: 28, y: 80, flip: true },
         dusch: { x: 8, y: 62 },
-        toalett: { x: 50, y: 66 },
+        toalett: { x: 50, y: 66, rot: 1 },
         handfat: { x: 62, y: 62 },
         handdukstork: { x: 74, y: 64 },
         tvattkorg: { x: 52, y: 88 },
