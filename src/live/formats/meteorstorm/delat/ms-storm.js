@@ -4,7 +4,7 @@
 // och är spegelvänd: varje station får exakt samma lista. Ren, delas med
 // servern (functions/meteorstorm/).
 //
-//   intensitetVid(andel)            → meteorer/s (per station) ur INTENSITET
+//   intensitetVid(relMs, varaktighet) → meteorer/s (per station) ur INTENSITET + SLUTSTORM
 //   handelsePlan(seed, varaktighet) → [{ id, typ, startMs, slutMs }] relativt start
 //   meteorPlan(seed, varaktighet, handelser)
 //                                   → [{ n, spawnMs, ankomstMs, storlek, bana, jatte? }]
@@ -16,7 +16,7 @@
 // ============================================================================
 
 import {
-  STEG_MS, INTENSITET, STORM_FORDROJNING_MS, STORM_SPRIDNING, METEOR_FLYGTID_MS,
+  STEG_MS, INTENSITET, SLUTSTORM, STORM_FORDROJNING_MS, STORM_SPRIDNING, METEOR_FLYGTID_MS,
   STORLEK_VIKTER_START, STORLEK_VIKTER_SLUT, HANDELSE, HANDELSE_TYPER,
   HANDELSE_FORSTA_MS, HANDELSE_AVSTAND_MS, HANDELSE_PAUS_MS, HANDELSE_SENAST_ANDEL, JATTEMETEOR_TIDIGAST_MS,
 } from "./ms-balans.js";
@@ -24,8 +24,8 @@ import { skapaPrng } from "./ms-prng.js";
 
 const tillSteg = (ms) => Math.round(ms / STEG_MS) * STEG_MS;
 
-/** Styckvis linjär intensitet (meteorer/s) vid andel ∈ [0,1] av speltiden. */
-export function intensitetVid(andel) {
+/** Styckvis linjär intensitet (meteorer/s) vid andel ∈ [0,1] av speltiden, utan slutstormen. */
+function kurvaVid(andel) {
   const a = Math.min(1, Math.max(0, andel));
   for (let i = 1; i < INTENSITET.length; i++) {
     const [x1, y1] = INTENSITET[i];
@@ -33,6 +33,21 @@ export function intensitetVid(andel) {
     if (a <= x1) return x1 === x0 ? y1 : y0 + ((y1 - y0) * (a - x0)) / (x1 - x0);
   }
   return INTENSITET[INTENSITET.length - 1][1];
+}
+
+/** Var slutstormens upptrappning börjar (ms relativt start) – samma längd vid alla speltider. */
+export function slutstormStartMs(varaktighetMs) {
+  return varaktighetMs - SLUTSTORM.langdMs - SLUTSTORM.upptrappningMs;
+}
+
+/** Intensiteten (meteorer/s) vid relMs: kurvan, och slutstormen i fasta ms före slutet. */
+export function intensitetVid(relMs, varaktighetMs) {
+  const kvar = varaktighetMs - relMs;
+  if (kvar <= SLUTSTORM.langdMs) return SLUTSTORM.intensitet;
+  const start = slutstormStartMs(varaktighetMs);
+  if (relMs <= start) return kurvaVid(relMs / varaktighetMs);
+  const y0 = kurvaVid(start / varaktighetMs);
+  return y0 + ((SLUTSTORM.intensitet - y0) * (relMs - start)) / SLUTSTORM.upptrappningMs;
 }
 
 /**
@@ -46,6 +61,7 @@ export function handelsePlan(seed, varaktighetMs) {
   let pase = [];
   let t = tillSteg(rng.mellan(...HANDELSE_FORSTA_MS));
   let forra = null;
+  const senast = Math.min(varaktighetMs * HANDELSE_SENAST_ANDEL, slutstormStartMs(varaktighetMs) - HANDELSE_PAUS_MS);
   while (true) {
     if (!pase.length) {
       pase = HANDELSE_TYPER.filter((typ) => HANDELSE[typ].vikt > 0);
@@ -58,7 +74,7 @@ export function handelsePlan(seed, varaktighetMs) {
     if (pase[0] === "jattemeteor" && t < JATTEMETEOR_TIDIGAST_MS && pase.length > 1) pase.push(pase.shift());
     const typ = pase.shift();
     const slut = t + HANDELSE[typ].langdMs;
-    if (slut > varaktighetMs * HANDELSE_SENAST_ANDEL) break;
+    if (slut > senast) break;
     ut.push({ id: `h${ut.length + 1}`, typ, startMs: t, slutMs: slut });
     forra = typ;
     t = tillSteg(Math.max(t + rng.mellan(...HANDELSE_AVSTAND_MS), slut + HANDELSE_PAUS_MS));
@@ -112,7 +128,7 @@ export function meteorPlan(seed, varaktighetMs, handelser = handelsePlan(seed, v
       ut.push({ spawnMs: h.startMs, ankomstMs: h.slutMs, storlek: "jatte", bana: Math.round(rng.tal() * 1000) / 1000, jatte: true });
     }
     const andel = t / varaktighetMs;
-    acc += (intensitetVid(andel) * STEG_MS) / 1000;
+    acc += (intensitetVid(t, varaktighetMs) * STEG_MS) / 1000;
     if (acc < trosk) continue;
     acc -= trosk;
     trosk = 1 + STORM_SPRIDNING * (rng.tal() * 2 - 1);

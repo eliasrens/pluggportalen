@@ -78,18 +78,23 @@ export const SKOTT_PER_STEG = 1;
  * speltiden, styckvis linjär. Spegelvänd: alla stationer får samma lista.
  * Formen kommer ur balanssimuleringen (admin/ms-balans-sim.mjs, §2.3.2):
  * en lugn storm som växer till en topp strax före mitten (där en klass som
- * nästan inte svarar går under), ett andrum, och en kort, hård final de sista
- * ~35 s som avgör hur mycket skrov som är kvar. Finalen måste vara kort: en
- * full sköld + laddning (~145 skada) tar annars hela skillnaden mellan klasserna.
+ * nästan inte svarar går under) och ett andrum fram till slutstormen.
  */
 export const INTENSITET = [
   [0.0, 0.05],
   [0.45, 0.062],
   [0.55, 0.055],
-  [0.9, 0.055],
-  [0.94, 0.72],
-  [1.0, 0.72],
+  [1.0, 0.055],
 ];
+/**
+ * Slutstormen (#828): en kort, hård final som avgör hur mycket skrov som är
+ * kvar – i FASTA ms från slutet, oavsett matchlängd (5–20 min): upptrappning
+ * från INTENSITET-kurvan till full styrka, sedan full styrka de sista langdMs.
+ * Finalen måste vara kort: en full sköld + laddning (~145 skada) tar annars
+ * hela skillnaden mellan klasserna. Som andel av speltiden blev den 72 s på
+ * 20 min och stationen dog nästan alltid de sista sekunderna.
+ */
+export const SLUTSTORM = { upptrappningMs: 24_000, langdMs: 36_000, intensitet: 0.72 };
 /** Inga nya meteorer de första ms (de sista släpps så att de hinner fram före slutet). */
 export const STORM_FORDROJNING_MS = 4000;
 /** Spridning i avståndet mellan meteorer (0 = jämnt, 1 = mycket ojämnt). */
@@ -107,8 +112,9 @@ export const HANDELSE = {
 export const HANDELSE_FORSTA_MS = [50_000, 80_000];
 export const HANDELSE_AVSTAND_MS = [70_000, 110_000];
 export const HANDELSE_PAUS_MS = 10_000; // minst så här länge mellan två händelser
-/** Händelser bara före toppen (andel av speltiden) – annars avgör en händelse precis
- *  före finalen matchen och två frön blir olika svåra. */
+/** Händelser bara före toppen (andel av speltiden) och aldrig närmare slutstormen än
+ *  HANDELSE_PAUS_MS – annars avgör en händelse precis före finalen matchen och två
+ *  frön blir olika svåra. */
 export const HANDELSE_SENAST_ANDEL = 0.78;
 /** Ingen jättemeteor innan klasserna hunnit bygga upp något försvar. */
 export const JATTEMETEOR_TIDIGAST_MS = 150_000;

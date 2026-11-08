@@ -7,6 +7,7 @@
 //   node admin/ms-balans-sim.mjs            → tabellen (200 frön per rad)
 //   node admin/ms-balans-sim.mjs --n 50     → färre frön (snabbare)
 //   node admin/ms-balans-sim.mjs --md       → tabellen som markdown (docs/METEORSTORMEN.md)
+//   node admin/ms-balans-sim.mjs --speltid  → bara tabellen per speltid (5/10/15/20 min, #828)
 //
 // Exporterar spelaMatch/SCENARIER så att testerna kan köra en kort variant.
 // ============================================================================
@@ -142,12 +143,12 @@ const percentil = (xs, p) => {
   return s[Math.min(s.length - 1, Math.floor(p * s.length))];
 };
 
-export function korEnKlass(sc, n) {
+export function korEnKlass(sc, n, varaktighetMs = 600_000) {
   const skrov = [];
   const noll = [];
   const stjarnor = [0, 0, 0, 0];
   for (let i = 0; i < n; i++) {
-    const { tillstand } = spelaMatch({ seed: `sim-${i}`, klasser: sc.klasser });
+    const { tillstand } = spelaMatch({ seed: `sim-${i}`, klasser: sc.klasser, varaktighetMs });
     const st = tillstand.stationer[0];
     skrov.push(st.skrov);
     if (st.nollVidMs !== null) noll.push((st.nollVidMs - START) / 1000);
@@ -156,14 +157,14 @@ export function korEnKlass(sc, n) {
   return { skrov: medel(skrov), p10: percentil(skrov, 0.1), p90: percentil(skrov, 0.9), noll, stjarnor };
 }
 
-export function korKmk(sc, n, attacker = "milda") {
+export function korKmk(sc, n, attacker = "milda", varaktighetMs = 600_000) {
   let vinstA = 0;
   let vinstB = 0;
   let lika = 0;
   const a = [];
   const b = [];
   for (let i = 0; i < n; i++) {
-    const { tillstand } = spelaMatch({ seed: `kmk-${i}`, klasser: sc.klasser, lage: "klass-mot-klass", attacker });
+    const { tillstand } = spelaMatch({ seed: `kmk-${i}`, klasser: sc.klasser, lage: "klass-mot-klass", attacker, varaktighetMs });
     const r = tillstand.resultat;
     if (r.oavgjort) lika++;
     else if (r.vinnare === "A") vinstA++;
@@ -171,8 +172,17 @@ export function korKmk(sc, n, attacker = "milda") {
     a.push(tillstand.stationer[0].skrov);
     b.push(tillstand.stationer[1].skrov);
   }
-  return { vinstA: vinstA / n, vinstB: vinstB / n, lika: lika / n, skrovA: medel(a), skrovB: medel(b) };
+  return {
+    vinstA: vinstA / n, vinstB: vinstB / n, lika: lika / n, skrovA: medel(a), skrovB: medel(b),
+    nollA: a.filter((x) => x <= 0).length / n, nollB: b.filter((x) => x <= 0).length / n,
+  };
 }
+
+// ---- Per speltid (#828): slutstormen har fast längd, så 5–20 min ska ge samma utfall ----
+
+export const SPELTIDER_MIN = [5, 10, 15, 20];
+export const SPELTID_EN_KLASS = SCENARIER.filter((sc) => sc.klasser[0].strategi === "blandar" && sc.klasser[0].elever === 25);
+export const SPELTID_KMK = [KMK[0], KMK[3]];
 
 const f0 = (x) => Math.round(x).toString();
 const pct = (x) => `${Math.round(x * 100)} %`;
@@ -181,24 +191,45 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const iN = process.argv.indexOf("--n");
   const n = iN > 0 ? Number(process.argv[iN + 1]) : 200;
   const md = process.argv.includes("--md");
+  const bara = process.argv.includes("--speltid");
+  const tabell = (huvud, rr) => md
+    ? [`| ${huvud.join(" | ")} |`, `| ${huvud.map(() => "---").join(" | ")} |`, ...rr.map((r) => `| ${r.join(" | ")} |`)].join("\n")
+    : [huvud, ...rr].map((r) => r.map((c) => String(c).padEnd(30)).join("")).join("\n");
   const rader = [];
-  for (const sc of process.argv.includes("--kmk") ? [] : SCENARIER) {
+  for (const sc of process.argv.includes("--kmk") || bara ? [] : SCENARIER) {
     const r = korEnKlass(sc, n);
     const noll = r.noll.length ? `${r.noll.length}/${n}, median ${f0(percentil(r.noll, 0.5))} s` : "–";
     rader.push([sc.namn, sc.mal, f0(r.skrov), `${f0(r.p10)}–${f0(r.p90)}`, noll, r.stjarnor.join(" / ")]);
   }
   const kmk = [];
-  for (const sc of KMK) {
+  for (const sc of bara ? [] : KMK) {
     for (const attacker of ["milda", "vilda"]) {
       const r = korKmk(sc, n, attacker);
       kmk.push([`${sc.namn} (${attacker})`, sc.mal, pct(r.vinstA), pct(r.vinstB), pct(r.lika), `${f0(r.skrovA)} / ${f0(r.skrovB)}`]);
     }
   }
-  const tabell = (huvud, rr) => md
-    ? [`| ${huvud.join(" | ")} |`, `| ${huvud.map(() => "---").join(" | ")} |`, ...rr.map((r) => `| ${r.join(" | ")} |`)].join("\n")
-    : [huvud, ...rr].map((r) => r.map((c) => String(c).padEnd(30)).join("")).join("\n");
-  console.log(`En klass, 25 elever, en fråga per ~8 s, 10 min, ${n} frön:\n`);
-  console.log(tabell(["Klass", "Mål", "Skrov (medel)", "Skrov p10–p90", "Skrov 0 (antal, median)", "Stjärnor 0/1/2/3"], rader));
-  console.log(`\nKlass mot klass, 25 + 25 elever, ${n} frön:\n`);
-  console.log(tabell(["Match", "Mål", "A vinner", "B vinner", "Oavgjort", "Skrov A / B"], kmk));
+  if (!bara) {
+    console.log(`En klass, 25 elever, en fråga per ~8 s, 10 min, ${n} frön:\n`);
+    console.log(tabell(["Klass", "Mål", "Skrov (medel)", "Skrov p10–p90", "Skrov 0 (antal, median)", "Stjärnor 0/1/2/3"], rader));
+    console.log(`\nKlass mot klass, 25 + 25 elever, ${n} frön:\n`);
+    console.log(tabell(["Match", "Mål", "A vinner", "B vinner", "Oavgjort", "Skrov A / B"], kmk));
+  }
+  const tid = [];
+  for (const sc of SPELTID_EN_KLASS) {
+    for (const min of SPELTIDER_MIN) {
+      const r = korEnKlass(sc, n, min * 60_000);
+      tid.push([sc.namn, `${min} min`, sc.mal, f0(r.skrov), `${f0(r.p10)}–${f0(r.p90)}`, r.stjarnor.join(" / ")]);
+    }
+  }
+  console.log(`\nPer speltid – En klass, 25 elever, ${n} frön:\n`);
+  console.log(tabell(["Klass", "Speltid", "Mål", "Skrov (medel)", "Skrov p10–p90", "Stjärnor 0/1/2/3"], tid));
+  const tidKmk = [];
+  for (const sc of SPELTID_KMK) {
+    for (const min of SPELTIDER_MIN) {
+      const r = korKmk(sc, n, "milda", min * 60_000);
+      tidKmk.push([`${sc.namn} (milda)`, `${min} min`, pct(r.vinstA), pct(r.vinstB), `${f0(r.skrovA)} / ${f0(r.skrovB)}`, `${pct(r.nollA)} / ${pct(r.nollB)}`]);
+    }
+  }
+  console.log(`\nPer speltid – Klass mot klass, 25 + 25 elever, ${n} frön:\n`);
+  console.log(tabell(["Match", "Speltid", "A vinner", "B vinner", "Skrov A / B", "Skrov 0 A / B"], tidKmk));
 }
