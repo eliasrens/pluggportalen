@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – badrumsmöbler (#829)</title>
+    <style>
+      /* Fristående testyta för issue #829: de 8 badrumsmöblerna bredvid seriens
+         säng/soffa/kylskåp/nattduksbord, ritade med samma itemSvg/itemSize som
+         rummet (1 rem ≈ 26 px), och varje badrumsmöbel i alla fyra riktningar +
+         ↔ vänd. Streckad linje = golvet: möbeln ska stå på samma punkt. */
+      body { margin: 0; font-family: "Baloo 2", system-ui, sans-serif; background: #fdf6ec; color: #4a3b2a; }
+      header { padding: 16px 16px 4px; }
+      header h1 { margin: 0 0 4px; font-size: 1.3rem; }
+      header p { margin: 0; font-size: 0.9rem; opacity: 0.85; max-width: 70ch; }
+      .rad { display: flex; flex-wrap: wrap; gap: 12px; padding: 10px 16px 24px; align-items: flex-end; }
+      .kort { background: #fff; border: 3px solid #ffe0b3; border-radius: 14px; padding: 10px 10px 0; text-align: center; }
+      .kort.ref { border-color: #c9b3ec; }
+      .golv { display: flex; align-items: flex-end; justify-content: center; height: 210px; min-width: 90px; border-bottom: 2px dashed #b0805a; }
+      .bild svg { display: block; width: 100%; height: 100%; }
+      .kort small { display: block; font-size: 0.75rem; padding: 4px 0 6px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Badrumsmöbler (#829)</h1>
+      <p>Orange ram = nya badrumsmöbler, lila ram = befintliga möbler i serien som jämförelse.</p>
+    </header>
+    <div class="rad" id="rad"></div>
+    <h2 style="font-size:1.05rem;margin:8px 16px 0">⟳ Fyra riktningar och ↔ vänd</h2>
+    <div id="vyer"></div>
+    <script type="module">
+      import { itemSvg, itemSize, itemRiktning, loadCollectionArt } from "../src/art-items.js";
+      import { getItem } from "../src/shop-items.js";
+
+      const REM = 26;
+      const NYA = ["badkar", "dusch", "toalett", "handfat", "handdukstork", "tvattkorg", "badrumsmatta", "tvattmaskin"];
+      const REF = ["sang", "soffa", "kylskap", "nattduksbord", "matta"];
+      await loadCollectionArt();
+      const rad = document.getElementById("rad");
+      for (const id of [...NYA, ...REF]) {
+        const { w, h } = itemSize(id);
+        const it = getItem(id);
+        rad.insertAdjacentHTML("beforeend",
+          `<div class="kort${REF.includes(id) ? " ref" : ""}" data-id="${id}"><div class="golv">` +
+          `<span class="bild" style="width:${(w * REM).toFixed(0)}px;height:${(h * REM).toFixed(0)}px">${itemSvg(id)}</span>` +
+          `</div><small>${it.name} · ${it.price} 🪙</small></div>`);
+      }
+      // ⟳ Rotera: varje badrumsmöbel i alla fyra riktningar + ↔ vänd (som #699).
+      const vyer = document.getElementById("vyer");
+      for (const id of NYA) {
+        let html = `<div class="rad" data-id="${id}">`;
+        for (const [rot, flip, txt] of [[0, false, "framifrån"], [1, false, "sidan"], [2, false, "bakifrån"], [3, false, "andra sidan"], [0, true, "↔ vänd"]]) {
+          const { spegel } = itemRiktning(id, { rot, flip });
+          const { w, h } = itemSize(id, rot);
+          html += `<div class="kort${flip ? " ref" : ""}"><div class="golv">` +
+            `<span class="bild" style="width:${(w * REM).toFixed(0)}px;height:${(h * REM).toFixed(0)}px${spegel ? ";transform:scaleX(-1)" : ""}">${itemSvg(id, { rot })}</span>` +
+            `</div><small>${getItem(id).name} · ${txt}</small></div>`;
+        }
+        vyer.insertAdjacentHTML("beforeend", html + "</div>");
+      }
+      document.body.dataset.klar = "1";
+    </script>
+  </body>
+</html>

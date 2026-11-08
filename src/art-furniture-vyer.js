@@ -18,12 +18,13 @@
 // NY FYRRIKTNINGSMÖBEL: rita sida + bak här och lägg in posten nedan – inget
 // annat behöver ändras (art-items.js läser FURNITURE_VYER via loadCollectionArt).
 // Sitt- och sovmöblerna ligger här; förvaring, bord och elektronik i
-// art-furniture-vyer-forvaring.js.
+// art-furniture-vyer-forvaring.js, badrumsmöblerna (#829) i art-furniture-vyer-badrum.js.
 // Laddas LAZY (#271) – modulen får aldrig importeras statiskt från bootgrafen.
 // ============================================================================
 
 import { LINE, THIN, limb, shadow } from "./art-style.js";
 import { VYER_FORVARING } from "./art-furniture-vyer-forvaring.js";
+import { VYER_BADRUM } from "./art-furniture-vyer-badrum.js";
 
 const WOOD = "#B0805A";
 const WOOD_DARK = "#8A6242";
@@ -186,4 +187,5 @@ export const FURNITURE_VYER = {
 
 
   ...VYER_FORVARING,
+  ...VYER_BADRUM,
 };
