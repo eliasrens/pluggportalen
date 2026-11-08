@@ -95,6 +95,15 @@ export const SHOP_ITEMS = [
   { id: "garderob", name: "Garderob", emoji: "🚪", category: "mobler", price: 130 },
   { id: "kylskap", name: "Kylskåp", emoji: "🧊", category: "mobler", price: 140 },
   { id: "nattduksbord", name: "Nattduksbord", emoji: "🛎️", category: "mobler", price: 60 },
+  // Badrumsmöbler (#829, elevönskemål) – konsten laddas lazy (art-furniture-badrum.js).
+  { id: "badrumsmatta", name: "Badrumsmatta", emoji: "🧼", category: "mobler", price: 25, flat: true },
+  { id: "tvattkorg", name: "Tvättkorg", emoji: "🧺", category: "mobler", price: 30 },
+  { id: "handdukstork", name: "Handdukstork", emoji: "🧻", category: "mobler", price: 45 },
+  { id: "toalett", name: "Toalett", emoji: "🚽", category: "mobler", price: 70 },
+  { id: "handfat", name: "Handfat med spegel", emoji: "🪞", category: "mobler", price: 90 },
+  { id: "dusch", name: "Duschhörna", emoji: "🚿", category: "mobler", price: 140 },
+  { id: "badkar", name: "Badkar", emoji: "🛁", category: "mobler", price: 150 },
+  { id: "tvattmaskin", name: "Tvättmaskin", emoji: "🫧", category: "mobler", price: 160 },
 
   // --- Husdjur (placeras i rummet) -----------------------------------------
   // Mystiskt ägg + värmelampa hör till de kläckbara husdjuren (bor i Mitt rum).
@@ -279,10 +288,7 @@ for (const it of MYSTERY_ITEMS) {
 export const ROOM_UPGRADE_IDS = ["rum-2", "rum-3", "rum-4"];
 
 /** Är saken en rums-uppgradering (låser upp ett extra rum)? */
-export function isRoomUpgrade(id) {
-  const it = getItem(id);
-  return !!(it && it.roomUpgrade);
-}
+export function isRoomUpgrade(id) { return !!getItem(id)?.roomUpgrade; }
 
 /** Hur många EXTRA rum en ownedItems-lista låst upp (0 = bara grundrummet). */
 export function roomUpgradeCount(ownedItems) {
@@ -296,23 +302,14 @@ export function getItem(id) {
 }
 
 /** Är saken en klädsak som bärs på avataren? */
-export function isWearable(id) {
-  const it = getItem(id);
-  return !!(it && it.category === "klader");
-}
+export function isWearable(id) { return getItem(id)?.category === "klader"; }
 
 /** Är saken en platt golvsak (matta) som alltid ska ligga underst i rummet? */
-export function isFlatItem(id) {
-  const it = getItem(id);
-  return !!(it && it.flat);
-}
+export function isFlatItem(id) { return !!getItem(id)?.flat; }
 
 /** HUS-sak (kategori "hus": husskal + rums-uppgraderingar)? varld-rum.js
  * filtrerar bort dem ur room.placements med !isHouseItem(id). */
-export function isHouseItem(id) {
-  const it = getItem(id);
-  return !!(it && it.category === "hus");
-}
+export function isHouseItem(id) { return getItem(id)?.category === "hus"; }
 
 /** VANLIGT djur (hund/katt …)? Blir levande djur i roomAnimals (data-animals.js),
  * inte statiska möbler. Ägget/värmelampan (mystery, data-pet.js) räknas inte. */
@@ -323,37 +320,22 @@ export function isAnimalItem(id) {
 
 /** BONDGÅRDSDJUR (häst/ko/gris, #330)? Bor i farm.animals (data-farm.js) och
  * placeras via "Mina djur" – helt isär från roomAnimals och mystery-pets. */
-export function isFarmAnimalItem(id) {
-  const it = getItem(id);
-  return !!(it && it.farmAnimal);
-}
+export function isFarmAnimalItem(id) { return !!getItem(id)?.farmAnimal; }
 
 /** TRÄDGÅRDS-sak (kategori "tradgard")? Placeras UTE (studentData.garden,
  * varld-tradgard.js), aldrig i rummet (varld-rum.js filtrerar !isGardenItem). */
-export function isGardenItem(id) {
-  const it = getItem(id);
-  return !!(it && it.category === "tradgard");
-}
+export function isGardenItem(id) { return getItem(id)?.category === "tradgard"; }
 
 /** FRÖ (#329)? tradgard-multi (antal i ownedCounts) men sås i gårdens odlings-
  * bädd (varld-odling.js) – varld-tradgard.js döljer dem med !isSeedItem. */
-export function isSeedItem(id) {
-  const it = getItem(id);
-  return !!(it && it.seed);
-}
+export function isSeedItem(id) { return !!getItem(id)?.seed; }
 
 /** GÅRDS-UPPGRADERING (#333)? Nivån bor i farm.gardenTier/barnLevel (köps via
  * buyFarmUpgrade) – aldrig ownedItems/ownedCounts, aldrig placerbar, ej multi. */
-export function isFarmUpgradeItem(id) {
-  const it = getItem(id);
-  return !!(it && it.farmUpgrade);
-}
+export function isFarmUpgradeItem(id) { return !!getItem(id)?.farmUpgrade; }
 
 /** Är saken en förbrukningsvara (mat) som köps i antal, inte ägs en gång? */
-export function isConsumable(id) {
-  const it = getItem(id);
-  return !!(it && it.consumable);
-}
+export function isConsumable(id) { return !!getItem(id)?.consumable; }
 
 // Kategorier där man får äga/placera FLERA exemplar (antal per id i
 // studentData.ownedCounts, data.js). Vanliga djur får också flera (roomAnimals).
@@ -367,10 +349,7 @@ export function isMultiItem(id) {
 }
 
 /** Är saken själva mysteryboxen (köp & öppna → slumpad kosmetik)? */
-export function isMysteryBox(id) {
-  const it = getItem(id);
-  return !!(it && it.mysteryBox);
-}
+export function isMysteryBox(id) { return !!getItem(id)?.mysteryBox; }
 
 /** Sak-id ur en placerings-NYCKEL: "soffa" eller "soffa#2" (extra exemplar).
  * Sak-id:n innehåller aldrig "#" (nycklar: varld-rum.js). */

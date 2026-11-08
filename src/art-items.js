@@ -242,9 +242,9 @@ export function registerCategoryIcons(reg) {
 let samlingsKonst = null;
 
 /**
- * Ladda (en gång) säsongssamlingarnas konst OCH möblernas rotations-vyer
- * (#699, art-furniture-vyer.js). Löses alltid, även vid fel – utan vyerna
- * ritas varje möbel framifrån (rot ignoreras) och ⟳ visas inte.
+ * Ladda (en gång) säsongssamlingarnas konst, möblernas rotations-vyer
+ * (#699, art-furniture-vyer.js) och badrumsmöblerna (#829). Löses alltid, även
+ * vid fel – utan vyerna ritas varje möbel framifrån (rot ignoreras) och ⟳ visas inte.
  */
 export function loadCollectionArt() {
   samlingsKonst ||= Promise.all([
@@ -255,6 +255,10 @@ export function loadCollectionArt() {
     import("./art-furniture-vyer.js").then(
       (m) => registerItemViews(m.FURNITURE_VYER),
       (err) => console.warn("Möblernas vyer kunde inte laddas", err)
+    ),
+    import("./art-furniture-badrum.js").then(
+      (m) => registerItemArt(m.FURNITURE_BADRUM), // badrumsmöblerna (#829)
+      (err) => console.warn("Badrumsmöblerna kunde inte laddas", err)
     ),
   ]);
   return samlingsKonst;
