@@ -59,7 +59,7 @@ export function slutModell(result, s) {
     };
   });
   if (stoppadForeStormen(result)) {
-    return { lage: enKlass ? "en-klass" : "klass-mot-klass", stjarnor: 0, klasser, rubrik: "Stormen är över!", under: FORE_STORMEN };
+    return { lage: enKlass ? "en-klass" : "klass-mot-klass", stjarnor: 0, foreStormen: true, klasser, rubrik: "Stormen är över!", under: FORE_STORMEN };
   }
   if (enKlass) {
     const k = klasser[0];
@@ -97,7 +97,7 @@ export function slutHtml(m, farger) {
       ${k.snall ? `<p class="msp-snall">${esc(k.snall)}</p>` : ""}
       ${k.ogonblick.length ? `<ul class="msp-ogon">${k.ogonblick.map((o) => `<li>${esc(o)}</li>`).join("")}</ul>` : ""}
     </div>`).join("");
-  const stj = m.lage === "en-klass"
+  const stj = m.lage === "en-klass" && !m.foreStormen
     ? `<div class="msp-stjarnor" aria-label="${m.stjarnor} av 3 stjärnor">${[1, 2, 3].map((n) => `<span class="${n <= m.stjarnor ? "msp-pa" : ""}">★</span>`).join("")}</div>`
     : "";
   return `<div class="msp-slutruta">

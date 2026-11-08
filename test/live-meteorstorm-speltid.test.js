@@ -12,7 +12,7 @@ import { register } from "node:module";
 import { intensitetVid, slutstormStartMs, skapaPlan, handelsePlan } from "../src/live/formats/meteorstorm/delat/ms-storm.js";
 import { SLUTSTORM, HANDELSE_PAUS_MS, SPELTID_MIN_MS, SPELTID_MAX_MS } from "../src/live/formats/meteorstorm/delat/ms-balans.js";
 import { stoppadForeStormen } from "../src/live/formats/meteorstorm/delat/ms-resultat.js";
-import { slutModell, FORE_STORMEN } from "../src/live/formats/meteorstorm/msp-slut.js";
+import { slutModell, slutHtml, FORE_STORMEN } from "../src/live/formats/meteorstorm/msp-slut.js";
 import { slutet } from "../src/live/formats/meteorstorm/ms-elev.js";
 import { korEnKlass, SCENARIER } from "../admin/ms-balans-sim.mjs";
 
@@ -106,6 +106,7 @@ describe("Meteorstormen – avslut under nedräkningen (#828)", () => {
       assert.equal(m.rubrik, "Stormen är över!");
       assert.equal(m.under, FORE_STORMEN);
       assert.doesNotMatch(`${m.rubrik} ${m.under}`, /överlevde|Fantastiskt|klarade/);
+      assert.doesNotMatch(slutHtml(m, {}), /msp-stjarnor/, "ingen stjärnrad alls");
     }
     assert.match(slutModell({ ...enKlass, slutMs: 605_000 }, S).under, /Fantastiskt/, "vanligt slut oförändrat");
   });
