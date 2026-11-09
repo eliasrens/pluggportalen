@@ -77,7 +77,8 @@ export function lasCsv(text) {
   const rader = [];
   for (let i = 1; i < linjer.length; i++) {
     if (!linjer[i].trim()) continue;
-    const f = delaRad(linjer[i]).map((s) => s.trim());
+    // Lösenordet trimmas inte: blanksteg runt det stoppas i planera (det vore ett annat lösenord).
+    const f = delaRad(linjer[i]).map((s, j) => (j === 3 ? s : s.trim()));
     const rad = i + 1;
     if (f.length !== KOLUMNER.length) {
       fel.push(`Rad ${rad}: ${f.length} fält, ska vara ${KOLUMNER.length}.`);
@@ -112,7 +113,9 @@ export function planera(rader) {
     if (sedda.has(username)) {
       fel.push(`Rad ${r.rad}: användarnamnet "${r.anvandarnamn}" finns redan på rad ${sedda.get(username)}.`);
     } else sedda.set(username, r.rad);
-    if (r.losenord.length < MIN_PASSWORD_LEN || r.losenord.length > MAX_PASSWORD_LEN) {
+    if (r.losenord !== r.losenord.trim()) {
+      fel.push(`Rad ${r.rad}: lösenordet för "${r.anvandarnamn}" börjar eller slutar med blanksteg.`);
+    } else if (r.losenord.length < MIN_PASSWORD_LEN || r.losenord.length > MAX_PASSWORD_LEN) {
       // Lösenordet självt skrivs aldrig ut – bara vems det är.
       fel.push(`Rad ${r.rad}: lösenordet för "${r.anvandarnamn}" måste vara ${MIN_PASSWORD_LEN}–${MAX_PASSWORD_LEN} tecken.`);
     }
@@ -190,11 +193,13 @@ export async function kontrollera({ auth, db }, plan) {
       fanns.length === 1 &&
       fanns[0].namn === e.visningsnamn &&
       (klass.studentIds.includes(fanns[0].id) || (fanns[0].classIds || []).includes(klass.id)) &&
-      (!authUid || authUid === fanns[0].id);
+      authUid === fanns[0].id;
     if (samma) return { ...e, klassId: klass.id, status: "fanns", uid: fanns[0].id };
-    const vem = fanns.length
-      ? fanns.map((s) => `"${s.namn}" (${klassNamnFor(s, befintliga)})`).join(", ")
-      : "ett inloggningskonto utan elevdokument (radera det med admin/delete-student.mjs)";
+    const vem = !fanns.length
+      ? "ett inloggningskonto utan elevdokument (radera det med admin/delete-student.mjs)"
+      : fanns.length === 1 && !authUid
+        ? `"${fanns[0].namn}" (${klassNamnFor(fanns[0], befintliga)}), men utan inloggningskonto`
+        : fanns.map((s) => `"${s.namn}" (${klassNamnFor(s, befintliga)})`).join(", ");
     krockar.push(`Användarnamnet "${e.anvandarnamn}" (${e.namn}, ${e.klass}) finns redan för ${vem}.`);
     return { ...e, klassId: klass.id, status: "krock" };
   });
@@ -282,7 +287,18 @@ export async function importera(deps, kontroll, { batch, paus = 0, logg = () => 
       logg(`  ✓ ${e.klass}  ${e.visningsnamn} (${e.anvandarnamn})`);
     } catch (err) {
       let orsak = felText(err);
-      if (uid) {
+      // Ett commit-fel kan komma EFTER att batchen landat (tidsgräns/nätavbrott):
+      // finns elevdokumentet är kontot helt och Auth-kontot får inte raderas.
+      const landade = uid ? await db.collection("students").doc(uid).get().then((d) => d.exists, () => null) : false;
+      if (landade === true) {
+        elever.push({ ...e, status: "skapad", uid });
+        logg(`  ✓ ${e.klass}  ${e.visningsnamn} (${e.anvandarnamn}) – skapad trots svarsfel: ${orsak}`);
+        if (paus) await vanta(paus);
+        continue;
+      }
+      if (landade === null) {
+        orsak += " – OBS: oklart om dokumenten skrevs; inloggningskontot behölls, kontrollera eleven";
+      } else if (uid) {
         const borta = await auth.deleteUser(uid).then(() => true, () => false);
         if (!borta) orsak += " – OBS: inloggningskontot kunde inte tas bort igen, radera det med admin/delete-student.mjs";
       }

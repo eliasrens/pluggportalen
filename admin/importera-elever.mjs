@@ -138,6 +138,11 @@ async function korAngra(batch, kor) {
 }
 
 async function main() {
+  // Bara EN emulatorvariabel = halva skriptet mot emulatorn, halva mot produktion.
+  if (!process.env.FIRESTORE_EMULATOR_HOST !== !process.env.FIREBASE_AUTH_EMULATOR_HOST) {
+    console.error("✗ Sätt BÅDA FIRESTORE_EMULATOR_HOST och FIREBASE_AUTH_EMULATOR_HOST (emulatorn) eller ingen (produktion).");
+    return 1;
+  }
   const { flaggor, varden } = argument(process.argv.slice(2));
   const batch = varden.batch || STANDARD_BATCH;
   const kor = flaggor.has("kor");

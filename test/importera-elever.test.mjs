@@ -324,6 +324,44 @@ test("test 11: fel mitt i körningen lämnar inget halvt konto, och nästa körn
   assert.ok(await aAuth.getUserByEmail(elevEmail("fel802")));
 });
 
+test("test 11b: svarsfel EFTER att batchen landat – kontot behålls helt", async () => {
+  const fil = csv([rad("9G", "Sen", "Sen811")]);
+  const plan = planera(lasCsv(await import("node:fs").then((f) => f.readFileSync(fil, "utf8"))).rader);
+  const senDb = new Proxy(aDb, {
+    get(t, k) {
+      if (k !== "batch") return typeof t[k] === "function" ? t[k].bind(t) : t[k];
+      return () => {
+        const b = t.batch();
+        const commit = b.commit.bind(b);
+        b.commit = async () => { await commit(); throw new Error("deadline-exceeded (påhittat)"); };
+        return b;
+      };
+    },
+  });
+  const senDeps = { ...deps, db: senDb };
+  const res = await importera(senDeps, await kontrollera(senDeps, plan), { batch: "test-g" });
+  assert.deepEqual(res.fel, []);
+  const s = await elevAv("sen811");
+  assert.ok(s);
+  assert.equal((await aAuth.getUserByEmail(elevEmail("sen811"))).uid, s.id);
+});
+
+test("elev utan inloggningskonto eller halv emulator-miljö stoppar innan något skrivs", async () => {
+  const s = await elevAv("sen811");
+  await aAuth.deleteUser(s.id);
+  const fore = await bild();
+  const r = cli(["--fil", csv([rad("9G", "Sen", "Sen811")]), "--kor"]);
+  assert.equal(r.kod, 3, r.out);
+  assert.match(r.out, /finns redan för "Sen" \(klass 9G\), men utan inloggningskonto/);
+  const halv = spawnSync(process.execPath, [SKRIPT, "--fil", "x.csv"], {
+    cwd: ROT, encoding: "utf8", env: { ...process.env, FIREBASE_AUTH_EMULATOR_HOST: "" },
+  });
+  assert.equal(halv.status, 1);
+  assert.match(halv.stderr, /Sätt BÅDA/);
+  assert.deepEqual(await bild(), fore);
+  assert.match(planera(lasCsv(`${RUBRIK}\n9G,A,blank901,Hemlis901 `).rader).fel[0], /blanksteg/);
+});
+
 test("test 12: ångra tar bort exakt det importen skapade och inget annat", async () => {
   const fore = await bild();
   const torr = cli(["--angra", "--batch", "test-a"]);
