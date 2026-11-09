@@ -23,3 +23,6 @@ Thumbs.db
 # #825 slut-QA-riggen (adresser till den körande Chromium)
 admin/qa-meteorstorm-825/sidor.json
 admin/qa-meteorstorm-825/dbgport
+
+# #831 elevimport: CSV:er med riktiga elevers namn och lösenord – checka ALDRIG in
+admin/import/

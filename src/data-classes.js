@@ -29,6 +29,7 @@ import {
   normalizeHiddenModules, normalizeEnabledModules,
 } from "./gamemode-visibility.js";
 import { createTtlCache } from "./class-projection.js";
+import { newClassDoc } from "./klass-membership.js";
 import {
   normalizeClassProject,
   normalizeClassProjects,
@@ -79,13 +80,10 @@ export async function getClasses() {
 export async function upsertClass(classId, { name, order } = {}) {
   const ref = doc(db, "classes", classId);
   const snap = await getDoc(ref);
-  const payload = { name: String(name || "").trim() };
-  if (order !== undefined) payload.order = Number(order) || 0;
-  // Sätt createdAt + tom elevlista bara första gången klassen skapas.
-  if (!snap.exists()) {
-    payload.createdAt = serverTimestamp();
-    payload.studentIds = [];
-  }
+  // Samma klassdokument som importskriptet (klass-membership.newClassDoc, #831).
+  // createdAt + tom elevlista sätts bara första gången klassen skapas.
+  const { createdAt, studentIds, ...payload } = newClassDoc({ name, order }, serverTimestamp());
+  if (!snap.exists()) Object.assign(payload, { createdAt, studentIds });
   await setDoc(ref, payload, { merge: true });
   _classCache.invalidate("classes");
   return classId;
