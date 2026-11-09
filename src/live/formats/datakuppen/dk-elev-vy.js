@@ -11,8 +11,10 @@
 //   mitten   fråga (kistspelets frågeflöde: multiplikation skriv själv/flerval,
 //            quiz, tidslinje) ELLER tre filer (dk-filer.js) ELLER hacket i två
 //            steg (dk-hack-vy.js: målväljaren, sedan kodkorten)
-//   notis    "💻 Omar knäckte din kod och tog 45 MB!" ~2 s, blockerar aldrig.
-//            Koden behålls hela matchen (#719) – inget nytt kodval efter hack.
+//   ny kod   "Välj ny kod" som en smal rad efter ett hack eller en kodläcka
+//            (dk-kod-vy.js, #832 §6) – frågan under fortsätter
+//   notis    "💻 Omar knäckte din kod och tog 45 MB!" / "🔓 Din kod har läckt!
+//            Välj en ny." ~2 s, blockerar aldrig
 // Lobbyn: fyra kodförslag (dk-kod-vy.js) + roterande säkerhetstips.
 // Omladdning: en oöppnad fil (attemptId i localStorage) visas igen; ett
 // väntande hack öppnar målväljaren, ett valt mål kodkorten (dkSelf.hack).
@@ -63,6 +65,7 @@ export function createDkStage({ view, host, uid, classId, session, mode, answerK
         <button type="button" class="dk-ljud" aria-pressed="false"></button>
         <span class="dk-horn"></span>
       </div>
+      <div class="dk-nykod" hidden></div>
       <p class="dk-felrad" role="alert" hidden></p>
       <div class="dk-mitt">
         <div class="dk-svar"></div>
@@ -115,6 +118,7 @@ export function createDkStage({ view, host, uid, classId, session, mode, answerK
   const hits = createHitWatcher();
   const data = createGoldCounter($(".dk-data"), { reduced });
   const notis = createDkNotice($(".dk-notis"), { pool, roster });
+  let noticeUntil = 0;
   const tips = createTipRotator(() => view.querySelector(".live-elev-lobby [data-dk-tips]"), { reduced });
   const mood = (m) => react(me, m).catch(() => {});
   let protT = 0;
@@ -177,8 +181,9 @@ export function createDkStage({ view, host, uid, classId, session, mode, answerK
   });
 
   const code = createCodeArea({
-    view, api, sid, sound,
+    view, box: $(".dk-nykod"), api, sid, sound, reduced, now,
     onError: (err) => { if (!destroyed) problem(err?.message); },
+    onLeak: (text) => { if (!over()) notis.show({ text }); },
   });
 
   function clearMiddle() {
@@ -268,6 +273,7 @@ export function createDkStage({ view, host, uid, classId, session, mode, answerK
     const hit = hits.take(mine);
     if (hit && !over()) {
       notis.show(hit, list.find((p) => p.uid === hit.byUid));
+      noticeUntil = Date.now() + notis.ms;
       mood(hit.mood);
     }
     hack.update(mine, dkPlayers);
@@ -275,7 +281,7 @@ export function createDkStage({ view, host, uid, classId, session, mode, answerK
     if (hack.settled(mine)) nextQuestion();
     else if (!over() && ready && mine?.pending && (mode_ === "fraga" || mode_ === "laddar")) hack.resume(mine, self, dkPlayers);
     drawTop();
-    if (!over() && gotSelf) code.live(self);
+    if (!over() && gotSelf) code.live(self, { noticeUntil });
     if (first) begin();
   }
 
@@ -285,7 +291,7 @@ export function createDkStage({ view, host, uid, classId, session, mode, answerK
     drawTop();
     if (stageAction(st?.phase) === "lobby") code.lobby(self);
     else if (!over()) {
-      code.live(self);
+      code.live(self, { noticeUntil });
       // Steg 2 efter omladdning: koderna kom efter dkPlayers.
       if (ready && mode_ === "laddar" && mine?.pending) hack.resume(mine, self, dkPlayers);
     }
@@ -311,7 +317,7 @@ export function createDkStage({ view, host, uid, classId, session, mode, answerK
     const a = open ? await api.getMyAnswer(sid, open) : null;
     ready = true;
     if (over()) return;
-    code.live(self);
+    code.live(self, { noticeUntil });
     if (mine?.pending) return hack.resume(mine, self, dkPlayers);
     if (a && a.uid === uid && a.isCorrect === true && !a.chest) return startFiles(open, Promise.resolve({ correct: true }));
     if (open) try { localStorage.removeItem(chestKey(sid, uid)); } catch {}
@@ -328,6 +334,7 @@ export function createDkStage({ view, host, uid, classId, session, mode, answerK
       flow.hide();
       clearMiddle();
       minKod.hide();
+      code.hide();
       show("slut");
     }
     place(view.querySelector(".live-elev-end [data-dk-av]"));

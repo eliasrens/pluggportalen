@@ -11,24 +11,28 @@
 // test/live-datakuppen.test.js fäller en kopia som glidit isär.
 // Lövmodul – inga importer (Cloud Functions laddar den utan resten av src/).
 //
-// Servern läser BARA id, weight och effect (+ fallback). Visuella fält (icon,
-// label, rarity, look, sound, eventText, feedText) ignoreras där. Emojierna i
-// icon är bara beskrivning – elevvyn/projektorn ritar egna SVG:er per id.
+// Servern läser BARA id, weight, sannolikhet och effect (+ fallback). Visuella
+// fält (icon, label, rarity, look, sound, eventText, feedText) ignoreras där.
+// Emojierna i icon är bara beskrivning – elevvyn/projektorn ritar egna SVG:er.
 //
-// FIL = { id, icon, label, rarity, weight, effect, look, sound, eventText,
-//         feedText, fallback? } – kistmotorns "kista" (src/live/kistspel/delat/
-//   ks-regler.js). Saldot heter `gold` i motorn; Datakuppen visar det som MB.
-//   effect  "gold" { amount } +MB · "double" { cap } dubblar, högst +cap ·
-//           "lose" { share } virus, ≤ 10 % · "empty" · "shield" brandvägg
-//           (DK_RULES.shieldMs) · "steal" { share } HACK: välj mål och knäck
-//           koden (servern, functions/datakuppen-core.js), ≤ 15 %
+// FIL = { id, icon, label, rarity, weight, sannolikhet?, effect, look, sound,
+//         eventText, feedText, fallback? } – kistmotorns "kista" (src/live/
+//   kistspel/delat/ks-regler.js). Saldot heter `gold` i motorn; Datakuppen
+//   visar det som MB. Slumpen och effekterna: delat/dk-filregler.js (#832).
+//   effect  "gold" { amount } +MB · "double" { factor, cap } saldot × factor,
+//           högst +cap · "lose" { min, max } virus, fast min–max MB (bara
+//           efter en felsvit) · "shield" brandvägg (DK_RULES.shieldMs) ·
+//           "steal" { share } HACK: välj mål och knäck koden (servern,
+//           functions/datakuppen-core.js), ≤ 15 %
+//   sannolikhet  fast andel (Superservern 1 %), tas från vanlig mapp
 //   fallback  (hack) filens id när ingen kan väljas (alla skyddade …)
 //   eventText {namn} öppnaren, {belopp}, {offer} målet; feedText = projektorns
-//           terminalrad (högst en kort rad)
+//           terminalrad (högst en kort rad). eventText null = syns inte på
+//           projektorn (viruset, #832 §15)
 //
 // HACKNING AV (lärarens val, session.hacking = false): Hack kan inte komma –
-// dess vikt fördelas på datafilerna (effect "gold") i proportion till deras
-// egna vikter (kistmotorns chestTable), som Guldrushens "Stöld och byte av".
+// dess andel fördelas på datafilerna (effect "gold", utom Superservern) i
+// proportion till deras andelar, som Guldrushens "Stöld och byte av".
 // ============================================================================
 
 // Valutan (§1.1) – namn, enhet och ikon kan bytas här.
@@ -70,16 +74,20 @@ export const DK_BALANS = Object.freeze({
   }),
 });
 
+const { litenMapp, vanligMapp, superserver } = DK_BALANS.filer;
+
+// Vikter (andel = vikt / summan, 97). Tomma mappens vikt 13 fördelad på liten
+// och vanlig mapp i proportion till deras vikter 22 och 20 (#832 §3.1).
 export const DK_FILES = Object.freeze([
   {
-    id: "liten_fil", icon: "📄", label: "Liten fil", rarity: "vanlig", weight: 22,
-    effect: { kind: "gold", amount: 10 },
+    id: litenMapp.id, icon: "📄", label: "Liten fil", rarity: "vanlig", weight: 22 + (13 * 22) / 42,
+    effect: { kind: "gold", amount: litenMapp.mb },
     look: "fil-liten", sound: "beep", eventText: "📄 {namn} laddade ner {belopp} MB",
     feedText: "> {namn} laddade ner {belopp} MB",
   },
   {
-    id: "mapp", icon: "📁", label: "Mapp", rarity: "vanlig", weight: 20,
-    effect: { kind: "gold", amount: 25 },
+    id: vanligMapp.id, icon: "📁", label: "Mapp", rarity: "vanlig", weight: 20 + (13 * 20) / 42,
+    effect: { kind: "gold", amount: vanligMapp.mb },
     look: "mapp", sound: "beep", eventText: "📁 {namn} laddade ner {belopp} MB",
     feedText: "> {namn} laddade ner {belopp} MB",
   },
@@ -96,22 +104,25 @@ export const DK_FILES = Object.freeze([
     feedText: "> {namn}: serverhall +{belopp} MB",
   },
   {
+    // Jackpotten (#832 §3.3): fast 1 % per fil, tas från vanlig mapp.
+    id: superserver.id, icon: "🚀", label: "Superserver", rarity: "jackpott", weight: 0,
+    sannolikhet: superserver.sannolikhet,
+    effect: { kind: "gold", amount: superserver.mb },
+    look: "superserver", sound: "treklang", eventText: "🚀 {namn} hittade en Superserver: +{belopp} MB!",
+    feedText: "🚀 {namn} hittade en Superserver: +{belopp} MB!",
+  },
+  {
     id: "overklockning", icon: "⚡", label: "Överklockning", rarity: "ovanlig", weight: 7,
-    effect: { kind: "double", cap: 150 },
-    look: "overklockning", sound: "laddning", eventText: "⚡ {namn} överklockade och dubblade sin data (+{belopp} MB)",
+    effect: { kind: "double", factor: DK_BALANS.overklockning.multiplikator, cap: DK_BALANS.overklockning.tak },
+    look: "overklockning", sound: "laddning",
+    eventText: `⚡ {namn} överklockade ×${DK_BALANS.overklockning.multiplikator} (+{belopp} MB)`,
     feedText: "> {namn} överklockade: +{belopp} MB",
   },
   {
-    id: "virus", icon: "🐛", label: "Virus", rarity: "ovanlig", weight: 8,
-    effect: { kind: "lose", share: 0.1 },
-    look: "virus", sound: "glitch", eventText: "🐛 Hoppsan! {namn} fick ett virus: −{belopp} MB",
-    feedText: "> {namn} fick ett virus: −{belopp} MB",
-  },
-  {
-    id: "tom_mapp", icon: "🗂️", label: "Tom mapp", rarity: "vanlig", weight: 13,
-    effect: { kind: "empty" },
-    look: "tom-mapp", sound: "puff", eventText: "🗂️ {namn} hittade en tom mapp.",
-    feedText: "> {namn}: tom mapp",
+    // Bara efter en felsvit (DK_BALANS.virus) – syns aldrig på projektorn (#832 §4, §15).
+    id: "virus", icon: "🦠", label: "Virus", rarity: "ovanlig", weight: 8,
+    effect: { kind: "lose", min: DK_BALANS.virus.minMb, max: DK_BALANS.virus.maxMb },
+    look: "virus", sound: "glitch", eventText: null, feedText: null,
   },
   {
     id: "brandvagg", icon: "🧱", label: "Brandvägg", rarity: "ovanlig", weight: 6,
@@ -121,7 +132,7 @@ export const DK_FILES = Object.freeze([
   },
   {
     id: "hack", icon: "💻", label: "Hack", rarity: "ovanlig", weight: 9,
-    effect: { kind: "steal", share: 0.15 }, fallback: "mapp",
+    effect: { kind: "steal", share: 0.15 }, fallback: DK_BALANS.filer[DK_BALANS.hack.ersattningOmIngetMal].id,
     look: "hack", sound: "access", eventText: "💻 {namn} hackade {offer}: +{belopp} MB",
     feedText: "> {namn} hackade {offer}: +{belopp} MB",
   },
@@ -133,6 +144,12 @@ export const DK_EVENT_TEXTS = Object.freeze({
   leadFeed: "> {namn} leder!",
   // Målets egen notis när koden knäckts (elevskärmen, §1.5).
   victimSteal: "💻 {namn} knäckte din kod och tog {belopp} MB!",
+  // Elevens egna meddelanden efter klassrådet (#832 §8) – aldrig på projektorn.
+  superserver: "🚀 Superserver! +{belopp} MB",
+  virus: "🦠 Ett virus åt upp {belopp} MB. Det kan hända när man gissar många gånger i rad. Läs frågan noga!",
+  virusTomt: "🦠 Ett virus försökte, men det fanns ingen data att ta. Läs frågan noga!",
+  ingetMal: "Ingen gick att hacka just nu, du fick {belopp} MB i stället.",
+  kodlacka: "🔓 Din kod har läckt! Välj en ny.",
 });
 
 // Namn i händelseflödet AV (session.showNames = false): mallarnas namn byts.

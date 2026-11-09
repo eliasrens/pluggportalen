@@ -4,10 +4,12 @@
 // så att Cloud Functionen och elevens målväljare avgör EXAKT samma sak.
 // Servern är ändå den enda som skriver data, koder och hack.
 //
-// FILERNA, SKYDDET OCH TRYGGHETEN = den gemensamma kistmotorn (#651,
-// src/live/kistspel/delat/ks-regler.js) med Datakuppens filtabell: virus
-// ≤ 10 %, hack ≤ 15 %, ingen förlorar allt, skyddad (brandvägg 60 s, hackad
-// 30 s) går inte att välja, inte samma mål två gånger i rad.
+// SKYDDET OCH TRYGGHETEN = den gemensamma kistmotorn (#651,
+// src/live/kistspel/delat/ks-regler.js) med Datakuppens filtabell: hack
+// ≤ 15 %, ingen förlorar allt, skyddad (brandvägg 60 s, hackad 30 s) går inte
+// att välja, inte samma mål två gånger i rad. FILERNAS SLUMP OCH EFFEKT är
+// Datakuppens egna efter klassrådet (#832, ./dk-filregler.js): chestTable,
+// rollChest och applySelfEffect nedan ersätter motorns (Guldrushen orörd).
 //
 // KODERNA (§1.2, §1.4) – bara ur listan (koder.json), aldrig något eleven
 // skriver. Rena hjälpare; servern (functions/datakuppen-core.js) väljer vad
@@ -31,6 +33,7 @@
 
 import { DK_FILES, DK_EVENT_TEXTS, DK_ANON, DK_RULES } from "./files-config.js";
 import { createKistRegler } from "../../../kistspel/delat/ks-regler.js";
+import { fileTable, rollFile, applyFile } from "./dk-filregler.js";
 
 // Målväljarens/serverns förklaring när ett val nekas ({namn} = målets förnamn).
 const MESSAGES = {
@@ -39,14 +42,23 @@ const MESSAGES = {
   "skyddad": "🛡️ {namn} hann starta en brandvägg!",
   "samma-igen": "Du kan inte hacka samma elev två gånger i rad.",
   "for-lite-guld": "Den eleven har för lite data att hacka.",
+  // Gissningen avbröts (#832 §5.2, §7.3) – hacket ligger kvar, välj mål igen.
+  "brandvagg-under-hack": "🛡️ {namn} fick en brandvägg! Välj någon annan.",
+  "bytte-kod": "{namn} bytte kod precis! Välj igen.",
 };
 
-export const DK_REGLER = createKistRegler({
-  chests: DK_FILES,
-  rules: DK_RULES,
-  eventTexts: DK_EVENT_TEXTS,
-  anon: DK_ANON,
-  messages: MESSAGES,
+export const DK_REGLER = Object.freeze({
+  ...createKistRegler({
+    chests: DK_FILES,
+    rules: DK_RULES,
+    eventTexts: DK_EVENT_TEXTS,
+    anon: DK_ANON,
+    messages: MESSAGES,
+  }),
+  // #832: sannolikheter (summa 1) och klassrådets effekter. virus = felsvit nådd.
+  chestTable: (hacking, virus = false) => fileTable({ hacking, virus }),
+  rollChest: (hacking, rng = Math.random, virus = false) => rollFile({ hacking, virus }, rng),
+  applySelfEffect: (chest, gold, rng = Math.random) => applyFile(chest, gold, rng),
 });
 
 export const {

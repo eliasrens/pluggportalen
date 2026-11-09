@@ -57,8 +57,11 @@ export const DK_SCEN = createProjScen({
     // Datakuppen har inget byte – posten krävs av motorn men används aldrig.
     swap: { cue: "dkAccess", banner: ingenBanderoll },
     steal: { cue: "dkAccess" },
-    bigChests: { serverhall: { cue: "dkUpp", banner: ingenBanderoll } },
-    small: ["liten_fil", "tom_mapp"],
+    bigChests: {
+      serverhall: { cue: "dkUpp", banner: ingenBanderoll },
+      superserver: { cue: "dkUpp", banner: ingenBanderoll }, // #832: bara en rad i flödet
+    },
+    small: ["liten_fil"],
   },
 });
 

@@ -12,8 +12,17 @@
 //   avoidSets(all, uid) → { codes, offers, decoys } – andras aktuella koder,
 //                         andras utestående förslag, alla lockkoder
 //   ensureCode(tx, r, uid, sec, { all, rng, Timestamp, t }) → kodläget; väljer
-//                         åt eleven om koden saknas (#719: koden behålls sedan
-//                         hela matchen – inget kodbyte efter ett hack)
+//                         åt eleven om koden saknas eller förslagen efter ett
+//                         hack/en läcka gått ut (#832 §6.1 – återinfört efter #719)
+//   giveOffers(tx, r, uid, sec, { all, rng, Timestamp, t, orsak, extra? }) → "Välj ny
+//                         kod": 4 förslag (aldrig en tidigare egen kod eller
+//                         någons aktuella), ~10 s, orsak "hack" | "lacka"
+//
+// KODBYTET (#832 §6.5): ny kod → codeVersion + 1 (minnet mot eleven börjar om
+// för alla), kodKannsAv töms, den gamla koden läggs i tidigareKoder.
+// dkSecret: { code, codeVersion, offers, offersExpiresAt, tidigareKoder,
+// kodKannsAv, felIRad, virusFor, hacks, hack } – dkSelf speglar BARA code,
+// codeVersion, offers, offersExpiresAt, kodbyte (aldrig räknarna).
 // ============================================================================
 
 import { readFileSync } from "node:fs";
@@ -49,24 +58,48 @@ export function avoidSets(all, uid) {
   return { codes, offers, decoys };
 }
 
-/** Elevens kod (en gång per match): codeVersion + 1, förslagen bort. */
+const expired = (sec, t) => toMs(sec?.offersExpiresAt) != null && t >= toMs(sec.offersExpiresAt);
+
+/** Koder eleven inte får få: andras aktuella + alla egna tidigare (§6.5). */
+function hardAvoid(all, uid, sec) {
+  const { codes, offers, decoys } = avoidSets(all, uid);
+  const mine = [...(sec?.tidigareKoder || []), sec?.code].filter(Boolean);
+  return [new Set([...codes, ...mine]), offers, decoys];
+}
+
+/** Ny aktuell kod: codeVersion + 1 (minnet mot eleven nollställs), förslagen bort. */
 function writeCode(tx, r, uid, sec, code, Timestamp, t) {
-  const st = { uid, code, codeVersion: (Number(sec?.codeVersion) || 0) + 1, offers: null, offersExpiresAt: null, codeAt: Timestamp.fromMillis(t) };
-  tx.set(r.secret(uid), st, { merge: true });
+  const st = {
+    uid, code, codeVersion: (Number(sec?.codeVersion) || 0) + 1, offers: null, offersExpiresAt: null,
+    codeAt: Timestamp.fromMillis(t), kodbyte: null,
+  };
+  const tidigareKoder = sec?.code ? [...new Set([...(sec.tidigareKoder || []), sec.code])] : sec?.tidigareKoder || [];
+  tx.set(r.secret(uid), { ...st, tidigareKoder, kodKannsAv: [] }, { merge: true });
   tx.set(r.self(uid), st, { merge: true });
-  return st;
+  return { ...sec, ...st, tidigareKoder, kodKannsAv: [] };
 }
 
 /**
- * Elevens kod när någon behöver den (matchen igång): saknas den väljer
- * servern nu (bland lobbyns förslag om de finns). Finns den behålls den.
+ * Elevens kod när någon behöver den (matchen igång): saknas den, eller har
+ * förslagen efter ett hack/en läcka gått ut, väljer servern nu.
  */
 export function ensureCode(tx, r, uid, sec, { all, rng, Timestamp, t }) {
-  if (sec?.code) return sec;
-  const { codes, offers, decoys } = avoidSets(all, uid);
+  if (sec?.code && !(sec.offers && expired(sec, t))) return sec;
   const code = sec?.offers?.length ? pickRandom(sec.offers, rng)
-    : codeOffers(DK_CODES, [codes, offers, decoys], rng, 1, sec?.code ?? null)[0];
+    : codeOffers(DK_CODES, hardAvoid(all, uid, sec), rng, 1, sec?.code ?? null)[0];
   return writeCode(tx, r, uid, sec, code, Timestamp, t);
+}
+
+/** "Välj ny kod" (efter hack eller läcka): fyra förslag, ~10 s, sedan väljer servern. */
+export function giveOffers(tx, r, uid, sec, { all, rng, Timestamp, t, orsak, extra = {} }) {
+  const fresh = {
+    offers: codeOffers(DK_CODES, hardAvoid(all, uid, sec), rng, DK_RULES.codeOffers, sec?.code ?? null),
+    offersExpiresAt: Timestamp.fromMillis(t + DK_RULES.codePickMs),
+    kodbyte: { orsak, at: Timestamp.fromMillis(t) },
+  };
+  tx.set(r.secret(uid), { ...fresh, ...extra }, { merge: true });
+  tx.set(r.self(uid), fresh, { merge: true });
+  return { ...sec, ...fresh, ...extra };
 }
 
 export async function pickCode(deps, uid, raw) {
@@ -94,15 +127,17 @@ export async function pickCode(deps, uid, raw) {
       code: st.code ?? null, offers: st.offers ?? null, expiresAtMs: toMs(st.offersExpiresAt), ...extra,
     });
     if (index !== null) {
-      // #719: koden väljs EN gång (lobbyn/vid start) och gäller hela matchen.
-      if (sec.code) throw new KsError("failed-precondition", "Du har redan din kod – den gäller hela matchen.");
+      // Lobbyn, eller "Välj ny kod" efter ett hack/en läcka (#832 §6.1).
+      if (sec.code && started && expired(sec, t)) {
+        return state(ensureCode(tx, r, uid, sec, { all, rng, Timestamp, t }), { auto: true });
+      }
       const code = sec.offers?.[index];
       if (!sec.offers) throw new KsError("failed-precondition", "Det finns inga kodförslag att välja just nu.");
       if (!code) throw bad("Välj en av kodförslagen.");
       return state(writeCode(tx, r, uid, sec, code, Timestamp, t));
     }
-    // Matchen igång utan kod → servern väljer.
-    if (started && !sec.code) {
+    // Matchen igång utan kod, eller förslagen har gått ut → servern väljer.
+    if (started && (!sec.code || (sec.offers && expired(sec, t)))) {
       return state(ensureCode(tx, r, uid, sec, { all, rng, Timestamp, t }), { auto: true });
     }
     if (sec.offers || sec.code) return state(sec);

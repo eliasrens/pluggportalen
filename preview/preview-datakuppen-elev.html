@@ -43,7 +43,9 @@
         <button data-act="svara">✔ Svara rätt nu</button>
         <button data-act="hack">💻 Nästa fil = Hack</button>
         <button data-act="igen">↺ Tillåt samma mål igen</button>
-        <button data-act="hackad">Bli hackad (notis + skydd, koden kvar)</button>
+        <button data-act="fel">✘ Svara fel nu</button>
+        <button data-act="hackad">Bli hackad (notis + skydd + Välj ny kod)</button>
+        <button data-act="lacka">🔓 Koden läcker</button>
         <button data-act="skydda">🛡️ Skydda de 3 rikaste</button>
         <b>Inställningar</b>
         <label>Serverns svarstid <select data-lat><option>50</option><option selected>150</option><option>600</option><option>2000</option><option>8000</option></select> ms</label>
@@ -195,10 +197,30 @@
             btns.find((x) => (code(x) === sim.secret[target.targetUid]) === right)?.click();
             return { shown: btns.length, struck: document.querySelectorAll(".dkk-borta").length };
           },
-          /** Bli hackad → notis + skydd; koden ligger kvar (#719). */
+          /** Svara fel n gånger i rad (felsviten, #832 §4.1). */
+          async svaraFel(n = 3) {
+            for (let i = 0; i < n; i++) {
+              await wait(".dk-svar .fa-input, .dk-svar .ca-knapp");
+              const before = sim.state.felIRad;
+              $("[data-act=fel]").click();
+              await wait(() => sim.state.felIRad > before, 4000);
+              await sleep(1300);
+            }
+          },
+          /** Bli hackad → notis + skydd, sedan "Välj ny kod" (#832 §6.1). */
           async hackedBy(uid) {
             sim.hackMe(uid);
             await wait(".dk-notis:not([hidden])", 6000);
+          },
+          /** Koden läcker (#832 §6.4) → notisen; → texten i notisen. */
+          async leaked() {
+            sim.leakMe();
+            return (await wait(".dk-notis:not([hidden])", 6000)).textContent;
+          },
+          /** "Välj ny kod"-raden: klicka förslag i; → den nya koden. */
+          async pickNewCode(i = 0) {
+            (await wait(".dk-nykod:not([hidden]) .dkv-kort", 9000)).parentElement.children[i]?.click();
+            return wait(() => !sim.state.self.offers && sim.state.self.code, 4000);
           },
           /** "Visa kod" i toppraden → { code } som syns (dold igen efter några sekunder). */
           async revealCode() {
@@ -224,6 +246,19 @@
       $("[data-act=hack]").addEventListener("click", () => { forcedFile = "hack"; });
       $("[data-act=igen]").addEventListener("click", () => { sim.state.me.lastVictimUid = null; sim.emit(); });
       $("[data-act=hackad]").addEventListener("click", () => sim.hackMe("e2"));
+      $("[data-act=lacka]").addEventListener("click", () => sim.leakMe());
+      $("[data-act=fel]").addEventListener("click", () => {
+        const fa = document.querySelector(".dk-svar .fa-input");
+        const q = document.querySelector(".dk-svar .fa-question")?.textContent || "";
+        const m = q.match(/(\d+)\s*[·×x*]\s*(\d+)/);
+        if (fa && m) {
+          fa.value = String(Number(m[1]) * Number(m[2]) + 1);
+          fa.form?.requestSubmit?.();
+          return;
+        }
+        const knappar = [...document.querySelectorAll(".dk-svar .ca-knapp")];
+        knappar[knappar.length - 1]?.click();
+      });
       $("[data-act=skydda]").addEventListener("click", () => {
         [...sim.state.players].sort((a, b) => b.gold - a.gold).slice(0, 3).forEach((p, i) => sim.protect(p.uid, [8_000, 30_000, 60_000][i]));
       });

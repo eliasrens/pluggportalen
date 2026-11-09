@@ -29,7 +29,10 @@ test("terminalen: en kort rad per händelse, som i specen (§4.2)", () => {
   assert.equal(t({ type: "steal", chest: "hack", victimUid: "u2", victimName: "Leo", amount: 45 }), "> Omar hackade Leo: +45 MB");
   assert.equal(t({ type: "chest", chest: "stor_fil", name: "Alma", amount: 50 }), "> Alma laddade ner 50 MB");
   assert.equal(t({ type: "chest", chest: "brandvagg", name: "Ines", amount: 0 }), "> Ines aktiverade brandvägg");
-  assert.equal(t({ type: "chest", chest: "virus", name: "Clara", amount: -12 }), "> Clara fick ett virus: −12 MB");
+  // #832 §15: viruset syns aldrig på projektorn; Superservern med uppdragets text (§8).
+  assert.equal(t({ type: "chest", chest: "virus", name: "Clara", amount: -12 }), "");
+  assert.equal(t({ type: "chest", chest: "superserver", name: "Alma", amount: 1000 }), "🚀 Alma hittade en Superserver: +1 000 MB!");
+  assert.equal(t({ type: "chest", chest: "superserver", name: "Alma", amount: 1000 }, false), "🚀 Någon hittade en Superserver: +1 000 MB!");
   assert.equal(t({ type: "lead", name: "Alma" }), "> Alma leder!");
 });
 
@@ -43,7 +46,7 @@ test("terminalen: Visa namn av → 'Någon'/'en klasskamrat' och inga avatarer",
 });
 
 test("terminalraderna är korta (≤ 32 tecken med ett sexbokstavsnamn och 3-siffrigt belopp)", () => {
-  for (const chest of ["liten_fil", "mapp", "stor_fil", "serverhall", "overklockning", "virus", "tom_mapp", "brandvagg"]) {
+  for (const chest of ["liten_fil", "mapp", "stor_fil", "serverhall", "overklockning", "brandvagg"]) {
     const s = nb(feedItem(ev({ type: "chest", chest, name: "Selmaa", amount: 100 }), { names: true }).short);
     assert.ok(s.length <= 32, `${chest}: "${s}" (${s.length})`);
   }

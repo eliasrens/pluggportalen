@@ -6,7 +6,9 @@
 //
 // API
 //   db, deps, ctl { clock, roll, rng? }, START/T0/END, reset()
-//   rngFor(fileId, hacking?) → slumptal som ger just den filen
+//   rngFor(fileId, hacking?, virus?) → slumptal som ger just den filen (virus =
+//                 felsviten nådd, #832 – annars finns viruset inte i tabellen)
+//   wrongAnswer(sid, uid) · streak(sid, uid, n?) → n fel svar i rad (felsvit)
 //   makeSession(over?, players?) → sid (live, 10 min, startad för 1 min sedan)
 //   setGold(sid, uid, gold, extra?) · setCode(sid, uid, code, version?, extra?)
 //   hackPending(at?) · giveHack(sid, uid, gold?, extra?)
@@ -40,8 +42,8 @@ export function reset() {
 }
 
 // Slumptal som ger filen `id` (mitten av dess intervall i tabellen).
-export function rngFor(id, hacking = true) {
-  const rows = chestTable(hacking);
+export function rngFor(id, hacking = true, virus = false) {
+  const rows = chestTable(hacking, virus);
   const total = rows.reduce((n, r) => n + r.weight, 0);
   let acc = 0;
   for (const r of rows) {
@@ -113,4 +115,17 @@ export async function rightAnswer(s, uid) {
   const r = await answerQuestion(deps, uid, { sid: s, attemptId: id, factorA: 3, factorB: 4, answer: 12 });
   assert.equal(r.correct, true);
   return id;
+}
+
+/** Ett fel multiplikationssvar via servern → attemptId. */
+export async function wrongAnswer(s, uid) {
+  const id = att();
+  const r = await answerQuestion(deps, uid, { sid: s, attemptId: id, factorA: 3, factorB: 4, answer: 11 });
+  assert.equal(r.correct, false);
+  return id;
+}
+
+/** n fel svar i rad (felsviten, #832 §4.1). */
+export async function streak(s, uid, n = 3) {
+  for (let i = 0; i < n; i++) await wrongAnswer(s, uid);
 }

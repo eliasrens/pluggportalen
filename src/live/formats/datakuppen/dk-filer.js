@@ -213,12 +213,13 @@ export function playFiles(host, { open, onError = () => {}, onReveal = () => {},
 // Filtypens effekt: små tecken/former som CSS animerar (datakuppen-filer.css).
 function fxHtml(view) {
   const k = view.chest?.effect?.kind;
-  const many = view.chest?.id === "serverhall" ? 14 : view.chest?.id === "stor_fil" ? 10 : 7;
+  const id = view.chest?.id;
+  const many = id === "superserver" ? 16 : id === "serverhall" ? 14 : id === "stor_fil" ? 10 : 7;
   if (k === "gold" || k === "double") {
-    return Array.from({ length: many }, (_, i) => `<i style="--x:${((i * 37) % 90) + 5}%;--d:${(i % 5) * 0.06}s">${i % 2 ? "1" : "0"}</i>`).join("");
+    return (id === "superserver" ? `<b class="dkf-glod"></b>` : "") + Array.from({ length: many }, (_, i) => `<i style="--x:${((i * 37) % 90) + 5}%;--d:${(i % 5) * 0.06}s">${i % 2 ? "1" : "0"}</i>`).join("");
   }
   if (k === "lose") return Array.from({ length: 5 }, (_, i) => `<i style="--x:${12 + i * 18}%;--d:${i * 0.05}s">${["#", "%", "?", "!", "*"][i]}</i>`).join("");
   if (k === "shield") return `<b class="dkf-ring"></b>`;
   if (k === "steal") return `<b class="dkf-prompt">&gt; hack_</b>`;
-  return `<b class="dkf-puff"></b>`;
+  return "";
 }

@@ -39,6 +39,9 @@
 //     texts,          { wrongFormat, modeUnsupported, pendingFirst, noPending }
 //     toggle?,        sessionens på/av-fält för offer-kistorna (standard
 //                     "stealSwap"; Datakuppen: "hacking", #652)
+//     answerHook?,    formatets tillägg i svarets transaktion (Datakuppens
+//                     felsvit, #832): { refs(r, uid) → [ref], write(tx, snaps,
+//                     { ok, attemptId, FieldValue }) } – utan = som förut
 //   }) → { answerQuestion, openChest, chooseVictim, noteLeader, matchWindow, refs,
 //          sessionOf, assertLive, parseSid, victimsOn }
 //     answerQuestion(deps, uid, { sid, attemptId, factorA?, factorB?, answer?,
@@ -102,7 +105,7 @@ function playerOf(snap, s) {
   return p;
 }
 
-export function createKistServer({ format, regler, rules, collections: col, fallbackChest, texts, toggle = "stealSwap" }) {
+export function createKistServer({ format, regler, rules, collections: col, fallbackChest, texts, toggle = "stealSwap", answerHook = null }) {
   const {
     chestById, isVictimKind, rollChest, applySelfEffect, victimProblem, victimMessage,
     eligibleVictims, resolveVictim, shieldUntil, hitProtectionUntil,
@@ -146,8 +149,9 @@ export function createKistServer({ format, regler, rules, collections: col, fall
     // Spelardokumentet (deltagare + namn) läses UTANFÖR transaktionen: elevens
     // närvaropuls skriver dit hela tiden och skulle annars krocka med svaret.
     const pSnap = await r.player.get();
+    const hookRefs = answerHook ? answerHook.refs(r, uid) : [];
     return db.runTransaction(async (tx) => {
-      const [sSnap, gSnap, aSnap] = await tx.getAll(r.sess, r.gp, r.answer(attemptId));
+      const [sSnap, gSnap, aSnap, ...hookSnaps] = await tx.getAll(r.sess, r.gp, r.answer(attemptId), ...hookRefs);
       const s = sessionOf(sSnap);
       const g = gSnap.exists ? gSnap.data() : null;
       if (aSnap.exists) {
@@ -186,6 +190,7 @@ export function createKistServer({ format, regler, rules, collections: col, fall
         lastAnswerAt: FieldValue.serverTimestamp(),
         ...(nextQ != null ? { nextQ } : {}),
       }, { merge: true });
+      answerHook?.write(tx, hookSnaps, { ok, attemptId, FieldValue });
       return { attemptId, correct: ok, correctAnswer: graded.correctAnswer, nextQ, ...yearOut(graded) };
     });
   }
