@@ -16,14 +16,17 @@ avsnittet *Datakuppen*.
 
 | Moment | Vad händer | Var det avgörs |
 | --- | --- | --- |
-| **Kod** | I lobbyn väljer eleven en hemlig kod bland **4 förslag** ur kodlistan. Eleven skriver aldrig in en egen kod. Inget val före start → servern väljer en. Koden gäller **hela matchen** (#719): ett nytt val avvisas (`failed-precondition`) | `pickCode` (server), `dk-kodval.js` / `dk-kod-vy.js` |
+| **Kod** | I lobbyn väljer eleven en hemlig kod bland **4 förslag** ur kodlistan. Eleven skriver aldrig in en egen kod. Inget val före start → servern väljer en. Under matchen byts koden bara via **"Välj ny kod"** (efter att någon knäckt den, eller vid kodläcka – #832 §6, ersätter #719): 4 nya förslag, ~10 s, aldrig en tidigare egen kod; inget val → servern väljer. Utan förslag avvisas ett nytt val (`failed-precondition`) | `pickCode` (server), `dk-kodval.js` / `dk-kod-vy.js` |
 | **Egen kod dold** | Elevens kod syns inte hela tiden: "Din kod: •••• [👁 Visa kod]" i toppraden. Knappen visar koden ~5 s (eller tills nästa tryck). Direkt efter valet i lobbyn syns den ~6 s så att eleven hinner läsa den. Projektorn visar aldrig koder | `createCodeReveal` i `dk-kodval.js` |
 | **Rätt svar** | Tre krypterade filer – eleven öppnar en. Servern avgör innehållet (vikterna i filtabellen) | `openFile` (server), `dk-filer.js` |
-| **Filerna** | Data (+MB), Överklockning (dubblar, högst +150), Virus (−10 %, aldrig allt), Tom mapp, Brandvägg (skydd 60 s), Hack | `delat/files-config.js` |
-| **Hack, steg 1** | Välj en klasskamrat (~10 s, annars slumpar servern). Skyddade, den du hackade senast och de med för lite data går inte att välja. Ingen att välja → Mapp i stället | `chooseTarget`, `dk-offer.js` |
-| **Hack, steg 2** | Tre koder – en är rätt. **En gissning.** Rätt → 15 % av målets data flyttas i en transaktion, målet får 30 s skydd – koden ligger kvar. Fel → inget flyttas, koden **stryks** | `guessCode`, `dk-kodkort.js` |
-| **Minnesmomentet** | Nästa gång samma elev hackar samma mål visas samma koder **minus de strukna**, i ny ordning. Målets kod byts aldrig, så minnet (och den som en gång knäckt koden) gäller hela matchen | `dkSecret/{hackare}.hacks[mål]` (server), `createHackMemory` i `dk-elev.js` |
-| **Bli hackad** | Notis ("Omar knäckte din kod och tog 45 MB!") och 30 s skydd – **ingen ny kod** (#719). Den som knäckt (eller sett) koden kan hacka igen när skyddet är slut; därför är koden dold på elevskärmen. Spelet stannar aldrig | `dk-notis.js`, `guessCode` |
+| **Filerna** | Data (+MB; Liten fil 50 MB), Superserver (+1 000 MB, fast 1 % per fil), Överklockning (tredubblar, högst +300), Virus (se nedan), Brandvägg (skydd 60 s), Hack. Tom mapp finns inte längre (#832) | `delat/files-config.js` (`DK_BALANS`, `DK_FILES`), `delat/dk-filregler.js` |
+| **Virus** | Bara på ett rätt svar efter **minst 3 fel i rad** (felsviten räknas på servern i `dkSecret.felIRad`). Tar fast 10–20 MB, aldrig under 0. Syns bara för eleven – inte i flödet på projektorn | `FELSVIT` i `datakuppen-server.js`, `openFile` |
+| **Hack, steg 1** | Välj en klasskamrat (~10 s, annars slumpar servern). Skyddade, den du hackade senast och de med för lite data går inte att välja. Ingen att välja → Liten fil (50 MB) i stället | `chooseTarget`, `dk-offer.js` |
+| **Hack, steg 2** | Tre koder – en är rätt. **En gissning.** Rätt → 15 % av målets data flyttas i en transaktion, målet får 30 s skydd och **"Välj ny kod"**. Fel → inget flyttas, koden **stryks**. Får målet Brandvägg eller byter kod medan hackaren gissar → hacket **avbryts** (förbrukas inte, inget stryks) och hackaren väljer mål igen (~10 s) | `guessCode`, `dk-kodkort.js` |
+| **Minnesmomentet** | Nästa gång samma elev hackar samma mål visas samma koder **minus de strukna**, i ny ordning. Byter målet kod börjar minnet om för alla |
+| **Kodläcka** | Har så många olika klasskamrater strukit allt utom rätt kod att de i praktiken vet koden – **5**, eller **3** i matcher med färre än 12 elever – får målet "Välj ny kod" med texten om läckan | `dkSecret/{mål}.kodKannsAv`, `guessCode` | `dkSecret/{hackare}.hacks[mål]` (server), `createHackMemory` i `dk-elev.js` |
+| **Bli hackad** | Notis ("Omar knäckte din kod och tog 45 MB!") och 30 s skydd, sedan "Välj ny kod" (#832 §6.1). Koden är fortfarande dold på elevskärmen ("Visa kod"). Spelet stannar aldrig |
+| **Lärarens räknare** | Superservrar, virus, avbrutna hack och kodläckor räknas för **hela klassen** (aldrig per elev) och visas i historiken | `dkPrivate/stats`, `getStats` i `datakuppen-data.js` | `dk-notis.js`, `guessCode` |
 | **Trygghet** | Inget nollställer, ingen förlorar allt, ingen kan hackas när den är skyddad, inte samma mål två gånger i rad. Ingen placering som nummer på elevskärmen | kistmotorns `victimProblem` (delad med servern) |
 | **Lockkoderna** | Kommer ur samma lista, har ungefär samma längd som rätt kod och är aldrig någon spelares aktuella kod. Klienten kan inte se vilken som är rätt | `pickDecoys`, `hackOptions` i `delat/datakuppen-regler.js` |
 | **Pluggmynt** | Bara efter matchen, enligt `live-rewards` (placering ur data + rätt svar). Data blir aldrig pluggmynt under matchen | `src/live/live-rewards.js` |
@@ -80,8 +83,10 @@ med servern. `functions/datakuppen/` är en **genererad kopia** – ändra bara 
 | `minChestGapMs` | 1 000 | minsta tid mellan två filer per elev |
 | `maxGold` | 1 000 000 | tak för data |
 
-Andelarna sitter på filerna: Hack `effect.share` 0.15, Virus `effect.share`
-0.1, Överklockning `effect.cap` 150.
+Andelarna sitter på filerna: Hack `effect.share` 0.15. Klassrådets värden (#832)
+står samlade i `DK_BALANS` i `files-config.js` (liten mapp, superserver,
+överklockning ×3/tak 300, virus 10–20 MB efter 3 fel i rad, kodläckans gräns).
+Effekten av en ändring: `npm run balans:datakuppen` (`--md` ger tabeller).
 
 ---
 

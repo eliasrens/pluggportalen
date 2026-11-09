@@ -168,7 +168,11 @@ test("hela flödet: rätt svar → fil → (Hack) → rätt kod → 15 % flyttas
   assert.deepEqual([await gold("dk", "dkalma"), await gold("dk", "dkomar")], [85, 15]);
   await as("dkalma");
   const almaSelf = (await getDoc(doc(cdb, "liveSessions/dk/dkSelf/dkalma"))).data();
-  assert.deepEqual([almaSelf.code, almaSelf.offers ?? null], ["f0tb01l", null], "#719: Alma behåller koden");
+  // #832 §6.1: kodbytet efter hack är tillbaka – koden ligger kvar tills Alma väljer en ny.
+  assert.equal(almaSelf.code, "f0tb01l");
+  assert.equal(almaSelf.offers.length, 4, "Alma får fyra nya kodförslag");
+  assert.ok(!almaSelf.offers.includes("f0tb01l"), "aldrig den gamla koden");
+  assert.equal(almaSelf.kodbyte.orsak, "hack");
 });
 
 test("§2.1 + §2.2: samma fil två gånger, fil utan rätt svar", async () => {
