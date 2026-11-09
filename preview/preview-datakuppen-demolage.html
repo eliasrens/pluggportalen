@@ -163,7 +163,7 @@
             await D.openFile(f.id);
             await sleep(2800);
           }
-          return typer.map((f) => f.icon).join(" ") + " + 🦠 och 💻 nedan (ingen tom mapp)";
+          return typer.map((f) => f.icon).join(" ") + " + 🐛 och 💻 nedan (ingen tom mapp)";
         } },
         { id: "virus", text: "Virus efter en felsvit (3 fel i rad) – och mot 0 MB", async run() {
           await D.svaraFel(3);

@@ -43,7 +43,7 @@ export function klassradHtml(result) {
   if (!k) return "";
   return `<ul class="dkh-hack dkh-klassrad" aria-label="Händelser – hela klassen">
       <li><span>🚀 Superservrar</span><b>${tal(k.superservrar)}</b><small>hela klassen</small></li>
-      <li><span>🦠 Virus</span><b>${tal(k.virus)}</b><small>efter flera fel i rad</small></li>
+      <li><span>🐛 Virus</span><b>${tal(k.virus)}</b><small>efter flera fel i rad</small></li>
       <li><span>🛡️ Avbrutna hack</span><b>${tal(k.avbrutnaHack)}</b><small>brandvägg eller ny kod</small></li>
       <li><span>🔓 Kodläckor</span><b>${tal(k.kodlackor)}</b><small>fick byta kod</small></li>
     </ul>`;

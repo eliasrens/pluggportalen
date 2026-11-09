@@ -57,7 +57,7 @@ test("ingen banderoll i Datakuppen – stora händelser har ljud men aldrig en n
     ev({ type: "lead" }),
     ev({ type: "steal", chest: "hack", victimUid: "u2", victimName: "Leo", amount: 10 }),
     ev({ type: "chest", chest: "serverhall", amount: 100 }),
-    ev({ type: "chest", chest: "mapp", amount: 25 }),
+    ev({ type: "chest", chest: "mapp", amount: 100 }),
   ].map((e) => feedItem(e, { names: true }));
   for (const it of all) assert.equal(it.banner, null);
   assert.equal(all[0].cue, "dkLedare");

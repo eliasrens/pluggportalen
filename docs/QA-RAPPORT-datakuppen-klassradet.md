@@ -96,12 +96,12 @@ inte efter minst 3 fel i rad (viruset finns då inte i tabellen).
 | Fil | Före | Efter | Sannolikhet före | Efter (felsvit) | Efter (utan felsvit) |
 | --- | --- | --- | ---: | ---: | ---: |
 | Liten fil ("liten mapp") | +10 MB | **+50 MB** | 22,7 % | 29,7 % | 34,0 % |
-| Mapp ("vanlig mapp") | +25 MB | +25 MB (oförändrad) | 20,6 % | 26,0 % | 29,9 % |
+| Mapp ("vanlig mapp") | +25 MB | **+100 MB** (Elias F1) | 20,6 % | 26,0 % | 29,9 % |
 | Stor fil | +50 MB | +50 MB | 9,3 % | 9,3 % | 9,3 % |
 | Serverhall | +100 MB | +100 MB | 3,1 % | 3,1 % | 3,1 % |
 | **Superserver** (ny) | – | **+1 000 MB**, påverkas aldrig av Överklockning | – | 1,0 % | 1,0 % |
 | Överklockning | saldot ×2, högst +150 | **saldot ×3, högst +300** | 7,2 % | 7,2 % | 7,2 % |
-| Virus | −10 % av saldot, varje fil | **−10–20 MB fast** (aldrig under 0), **bara efter ≥ 3 fel i rad**, inte på projektorn | 8,2 % | 8,2 % | – |
+| Virus (🐛) | −10 % av saldot, varje fil | **−10–20 MB fast** (aldrig under 0), **bara efter ≥ 3 fel i rad**, inte på projektorn | 8,2 % | 8,2 % | – |
 | Tom mapp | ingenting | **borttagen** | 13,4 % | – | – |
 | Brandvägg | skydd 60 s | skydd 60 s | 6,2 % | 6,2 % | 6,2 % |
 | Hack | 15 % av målets data | 15 % (oförändrat) | 9,3 % | 9,3 % | 9,3 % |
@@ -175,17 +175,17 @@ frysta i skriptet). Test 40 kör båda regeluppsättningarna.
 | tom_mapp | 13,4 % |
 | brandvagg | 6,2 % |
 | hack | 9,3 % |
-#### EFTER
+#### EFTER (med Elias beslut F1: Mapp 100 MB)
 
 | Mått | Värde |
 | --- | ---: |
-| MB per rätt svar (utan hack) | 66,3 |
+| MB per rätt svar (utan hack) | 91,6 |
 | Virus vid 50 % rätt | 1,0 % av filerna, 0,33/elev och match |
 | Virus vid 70 % rätt | 0,2 % av filerna, 0,10/elev och match |
 | Virus vid 90 % rätt | 0,0 % av filerna, 0,01/elev och match |
-| Superserver: andel av all data | 16,0 % |
-| Superserver: andel av vinnarens | 26,9 % |
-| Vinnaren hade ≥ 1 Superserver | 89,5 % |
+| Superserver: andel av all data | 11,8 % |
+| Superserver: andel av vinnarens | 18,6 % |
+| Vinnaren hade ≥ 1 Superserver | 84,5 % |
 | Hack/match (lyckade) | 114,8 (38,6) |
 | Avbrutna hack/match | 5,3 |
 | Kodläckor/match | 0,0 |
@@ -201,19 +201,21 @@ frysta i skriptet). Test 40 kör båda regeluppsättningarna.
 | brandvagg | 6,2 % | 6,2 % |
 | hack | 9,3 % | 9,3 % |
 | superserver | 1,0 % | 1,0 % |
-⚠️ Superservrar står för mer än 25 % av vinnarens poäng (26,9 %) – redovisas, värdet ändras inte (§11).
+
+Första körningen (Mapp 25 MB) gav 66,3 MB per rätt svar och en
+Superserver-andel av vinnarens poäng på **26,9 %** (över riktmärket). Med Mapp
+100 MB blir andelen **18,6 %** – under 25 %, skriptet varnar inte längre.
 
 **Slutsatser**
 
-- MB per rätt svar (utan hack) går från 22,4 till 66,3. Det mesta kommer från
-  Superservern (1 000 MB × 1 %) och den större lilla mappen. Det gör även
-  hackets 15 % värt mer i absoluta tal.
+- MB per rätt svar (utan hack) går från 22,4 till 91,6. Det kommer från
+  Mapp (100 MB), Superservern (1 000 MB × 1 %) och den större lilla mappen.
+  Det gör även hackets 15 % värt mer i absoluta tal.
 - Virus: från 8 % av alla filer till ~1 % för en elev med 50 % rätt och
   nästan 0 för den som har 90 % rätt – viruset träffar nu bara gissande.
-- **Riktmärket överskrids:** Superservrar står i snitt för **26,9 %** av
-  vinnarens poäng (gränsen är 25 %), och vinnaren hade minst en Superserver i
-  89,5 % av matcherna. Enligt §11 redovisas det och värdet ändras inte – se
-  fråga F3 i §8.
+- **Riktmärket hålls:** Superservrar står i snitt för **18,6 %** av
+  vinnarens poäng (gränsen är 25 %). Vinnaren hade minst en Superserver i
+  84,5 % av matcherna. Superservern behålls (Elias F3).
 - Kodläckor blir sällsynta med gränsen 5 (simuleringen ser i snitt 0,0 per
   match). Avbrutna hack: ~5 per match.
 
@@ -259,14 +261,14 @@ projektorn i 1920 × 1080. Skärmbilder i `docs/qa-datakuppen-klassradet/`:
 | 1. Ingen tom mapp | `demolage-1920-filer.png` | ingen tom mapp i filerna eller demostegen (test "inga ikoner, texter, ljud eller demosteg för tom mapp") |
 | 2. Superserver – elev | `380-superserver.png` | "🚀 Superserver! +1000 MB", glöd + treklang, saldot +1000 |
 | 2. Superserver – projektor | `1920-projektor-superserver.png` | "🚀 Alma hittade en Superserver: +1 000 MB!" i flödet, täcker varken timern eller topplistan. **Rättat under QA:** raden kortades med "…" (`…-FORE-fix-avkortad.png`), se §7 |
-| 3. Virus efter felsvit | `380-virus-efter-felsvit.png` | 3 fel → rätt → "🦠 Ett virus åt upp 11 MB. Det kan hända när man gissar många gånger i rad. Läs frågan noga!" |
+| 3. Virus efter felsvit | `380-virus-efter-felsvit.png` (tagen med 🦠, före F5) | 3 fel → rätt → "🐛 Ett virus åt upp 11 MB. Det kan hända när man gissar många gånger i rad. Läs frågan noga!" |
 | 4. Brandvägg under hack | `380-brandvagg-under-hack.png`, `380-brandvagg-tillbaka-till-malvaljaren.png` | beskedet, sedan samma målväljare med ny nedräkning; målet visas skyddat |
 | 5. Kodläcka | `380-kodlacka-valj-ny-kod.png` | "🔓 Din kod har läckt! Välj en ny." + raden "Välj ny kod" (4 förslag, 0:08); inget på projektorn |
 | 6. Målet byter kod | `380-malet-bytte-kod.png` | "Alva bytte kod precis! Välj igen." → tillbaka till målväljaren |
 | Ingen går att hacka | `380-ingen-gick-att-hacka.png` | "Ingen gick att hacka just nu, du fick 50 MB i stället." |
 | Överklockning | `380-overklockning-x3.png` | "⚡ ×3: +300 MB" |
 | Lärarens räknare | `1920-historik-klassens-raknare.png` | Superservrar, Virus, Avbrutna hack, Kodläckor – hela klassen |
-| 8. Ikoner på Windows 10 | – | 🚀 🔓 🛡️ ⚡ är gamla emoji (Unicode ≤ 7) och filkorten använder SVG (`dk-ikoner.js`). Uppdragets 🦠 är Emoji 11 och kräver Windows 10 1809 eller senare – på äldre Windows 10 blir det en ruta (fråga F5). Testmaskinen saknar emojitypsnitt, därför syns rutor i skärmbilderna |
+| 8. Ikoner på Windows 10 | – | 🚀 🔓 🛡️ ⚡ 🐛 är gamla emoji (Unicode ≤ 7) och filkorten använder SVG (`dk-ikoner.js`). Uppdragets 🦠 (Emoji 11, kräver Windows 10 1809+) är utbytt mot 🐛 (Elias F5). Testmaskinen saknar emojitypsnitt, därför syns rutor i skärmbilderna |
 
 Punkt 5 med sänkt gräns (2) i flera riktiga elevflikar är inte gjord i
 webbläsaren. Kodläckan med flera hackare täcks av functions-testerna mot
@@ -277,8 +279,9 @@ emulatorn (test 20–25).
 ## 7. Avvikelser
 
 - **Liten/vanlig mapp** tolkas som Liten fil / Mapp (§1.1). §3.2:s stoppregel
-  slår till för varje tolkning. Det rapporterades till leaden och arbetet
-  fortsatte med denna tolkning.
+  slår till för varje tolkning. Elias beslut (F1): Mapp 25 → **100 MB**, trots
+  §15 ("ändra inte värdet för vanlig mapp"), så att liten mapp åter är mindre.
+- **Virusikonen** är 🐛 i stället för uppdragets 🦠 (Elias F5).
 - **#719 återkallat** för kodbytet efter hack (§6.1 går före). "Visa kod"
   (koden dold) från #719 behålls.
 - **§7.1 nås knappt i praktiken:** skyddet efter hack (30 s) är längre än
@@ -301,14 +304,16 @@ emulatorn (test 20–25).
 
 ---
 
-## 8. Öppna frågor till Elias
+## 8. Elias beslut (2026-11-09)
 
-- **F1.** Är "liten mapp" = Liten fil (10 → 50 MB) och "vanlig mapp" = Mapp
-  (25 MB) rätt tolkning? Liten mapp ger nu mer än vanlig mapp.
-- **F2.** Räcker Överklockning ×3 direkt på saldot (tak +300), eller ska den bli
-  en effekt med varaktighet?
-- **F3.** Superservrar står för 26,9 % av vinnarens poäng (över riktmärket
-  25 %). Ska 1 000 MB eller 1 % sänkas?
-- **F4.** Ska viruset synas på projektorn igen någon gång? (Nu bara för eleven
-  och i lärarens räknare, enligt §9.1.)
-- **F5.** 🦠 (uppdragets virustext) syns inte på Windows 10 äldre än 1809. Behålla, eller byta till 🐛 som förut?
+Alla frågor är besvarade och genomförda:
+
+- **F1. Mappnamnen:** tolkningen gäller. **Mapp 25 → 100 MB**, Liten fil
+  stannar på 50 MB (alltså mindre igen). Sannolikheterna är oförändrade.
+- **F2. Överklockning:** ×3 direkt på saldot, tak +300, behålls som byggd.
+- **F3. Superserver:** 1 000 MB och 1 % behålls. Med F1 står Superservrar för
+  18,6 % av vinnarens poäng (under riktmärket 25 %), §5.
+- **F4. Viruset** syns inte på projektorn (bara för eleven och i lärarens
+  räknare).
+- **F5. 🐛 i stället för 🦠** i alla virustexter (elevvy, filkort, historik,
+  demoläge, tester, docs).

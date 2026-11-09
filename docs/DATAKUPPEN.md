@@ -19,7 +19,7 @@ avsnittet *Datakuppen*.
 | **Kod** | I lobbyn väljer eleven en hemlig kod bland **4 förslag** ur kodlistan. Eleven skriver aldrig in en egen kod. Inget val före start → servern väljer en. Under matchen byts koden bara via **"Välj ny kod"** (efter att någon knäckt den, eller vid kodläcka – #832 §6, ersätter #719): 4 nya förslag, ~10 s, aldrig en tidigare egen kod; inget val → servern väljer. Utan förslag avvisas ett nytt val (`failed-precondition`) | `pickCode` (server), `dk-kodval.js` / `dk-kod-vy.js` |
 | **Egen kod dold** | Elevens kod syns inte hela tiden: "Din kod: •••• [👁 Visa kod]" i toppraden. Knappen visar koden ~5 s (eller tills nästa tryck). Direkt efter valet i lobbyn syns den ~6 s så att eleven hinner läsa den. Projektorn visar aldrig koder | `createCodeReveal` i `dk-kodval.js` |
 | **Rätt svar** | Tre krypterade filer – eleven öppnar en. Servern avgör innehållet (vikterna i filtabellen) | `openFile` (server), `dk-filer.js` |
-| **Filerna** | Data (+MB; Liten fil 50 MB), Superserver (+1 000 MB, fast 1 % per fil), Överklockning (tredubblar, högst +300), Virus (se nedan), Brandvägg (skydd 60 s), Hack. Tom mapp finns inte längre (#832) | `delat/files-config.js` (`DK_BALANS`, `DK_FILES`), `delat/dk-filregler.js` |
+| **Filerna** | Data (+MB; Liten fil 50 MB, Mapp 100 MB), Superserver (+1 000 MB, fast 1 % per fil), Överklockning (tredubblar, högst +300), Virus (se nedan), Brandvägg (skydd 60 s), Hack. Tom mapp finns inte längre (#832) | `delat/files-config.js` (`DK_BALANS`, `DK_FILES`), `delat/dk-filregler.js` |
 | **Virus** | Bara på ett rätt svar efter **minst 3 fel i rad** (felsviten räknas på servern i `dkSecret.felIRad`). Tar fast 10–20 MB, aldrig under 0. Syns bara för eleven – inte i flödet på projektorn | `FELSVIT` i `datakuppen-server.js`, `openFile` |
 | **Hack, steg 1** | Välj en klasskamrat (~10 s, annars slumpar servern). Skyddade, den du hackade senast och de med för lite data går inte att välja. Ingen att välja → Liten fil (50 MB) i stället | `chooseTarget`, `dk-offer.js` |
 | **Hack, steg 2** | Tre koder – en är rätt. **En gissning.** Rätt → 15 % av målets data flyttas i en transaktion, målet får 30 s skydd och **"Välj ny kod"**. Fel → inget flyttas, koden **stryks**. Får målet Brandvägg eller byter kod medan hackaren gissar → hacket **avbryts** (förbrukas inte, inget stryks) och hackaren väljer mål igen (~10 s) | `guessCode`, `dk-kodkort.js` |
@@ -84,7 +84,7 @@ med servern. `functions/datakuppen/` är en **genererad kopia** – ändra bara 
 | `maxGold` | 1 000 000 | tak för data |
 
 Andelarna sitter på filerna: Hack `effect.share` 0.15. Klassrådets värden (#832)
-står samlade i `DK_BALANS` i `files-config.js` (liten mapp, superserver,
+står samlade i `DK_BALANS` i `files-config.js` (liten mapp 50, vanlig mapp 100, superserver,
 överklockning ×3/tak 300, virus 10–20 MB efter 3 fel i rad, kodläckans gräns).
 Effekten av en ändring: `npm run balans:datakuppen` (`--md` ger tabeller).
 

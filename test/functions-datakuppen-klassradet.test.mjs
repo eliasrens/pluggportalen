@@ -29,10 +29,10 @@ const stats = async (s) => (await db.doc(`liveSessions/${s}/dkPrivate/stats`).ge
 const rightIndex = (options, kod) => options.indexOf(kod);
 
 describe("filerna (test 4, 5, §3)", () => {
-  it("test 4: liten mapp ger 50 MB, vanlig mapp 25 MB som förut; ingen tom mapp", async () => {
+  it("test 4: liten mapp ger 50 MB, vanlig mapp 100 MB (Elias F1); ingen tom mapp", async () => {
     const s = await makeSession();
     assert.equal((await open(s, "alma", rngFor("liten_fil"))).delta, 50);
-    assert.equal((await open(s, "alma", rngFor("mapp"))).delta, 25);
+    assert.equal((await open(s, "alma", rngFor("mapp"))).delta, 100);
     assert.throws(() => rngFor("tom_mapp"), /ingen fil/);
   });
 

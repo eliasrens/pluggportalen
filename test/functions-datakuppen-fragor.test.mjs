@@ -52,7 +52,7 @@ describe("test 16: frågetyperna i Datakuppen", () => {
     // Skriv själv tar inget alternativ.
     assert.equal(await code(answerQuestion(deps, "alma", { sid: s, attemptId: att(), factorA: 2, factorB: 2, answer: 4, choiceIndex: 0 })), "invalid-argument");
     const p = await gp(s, "alma");
-    assert.deepEqual([p.correct, p.incorrect, p.gold], [1, 1, 25]);
+    assert.deepEqual([p.correct, p.incorrect, p.gold], [1, 1, 100]);
   });
 
   it("multiplikation, flerval: choiceIndex krävs, rätt → fil", async () => {

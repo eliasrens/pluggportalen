@@ -51,9 +51,9 @@ describe("Datakuppen elevvy: filerna (§1.3)", () => {
     assert.equal(seen.size, DK_FILES.length, "eget utseende per filtyp");
     // Klassrådets texter (#832 §8).
     assert.equal(fileView({ file: "virus", delta: -12, gold: 108 }).caption,
-      "🦠 Ett virus åt upp 12 MB. Det kan hända när man gissar många gånger i rad. Läs frågan noga!");
+      "🐛 Ett virus åt upp 12 MB. Det kan hända när man gissar många gånger i rad. Läs frågan noga!");
     assert.equal(fileView({ file: "virus", delta: 0, gold: 0 }).caption,
-      "🦠 Ett virus försökte, men det fanns ingen data att ta. Läs frågan noga!");
+      "🐛 Ett virus försökte, men det fanns ingen data att ta. Läs frågan noga!");
     assert.equal(fileView({ file: "superserver", delta: 1000, gold: 1200 }).caption, "🚀 Superserver! +1\u202f000 MB");
     assert.equal(fileView({ file: "overklockning", delta: 240, gold: 360 }).caption, "⚡ ×3: +240 MB");
     assert.equal(fileView({ file: "brandvagg", delta: 0, gold: 1 }).caption, `Brandvägg i ${DK_RULES.shieldMs / 1000} s!`);

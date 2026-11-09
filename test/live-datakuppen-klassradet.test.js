@@ -75,10 +75,10 @@ describe("filtabellen (test 1, 3)", () => {
 
 describe("filernas värden (test 4–6)", () => {
   const f = (id) => DK_FILES.find((x) => x.id === id);
-  it("test 4: liten mapp 50 MB, vanlig mapp 25 MB som förut", () => {
+  it("test 4: liten mapp 50 MB, vanlig mapp 100 MB (Elias F1)", () => {
     assert.equal(applyFile(f(DK_BALANS.filer.litenMapp.id), 100).delta, 50);
-    assert.equal(applyFile(f(DK_BALANS.filer.vanligMapp.id), 100).delta, 25);
-    assert.ok(DK_BALANS.filer.vanligMapp.mb === 25);
+    assert.equal(applyFile(f(DK_BALANS.filer.vanligMapp.id), 100).delta, 100);
+    assert.ok(DK_BALANS.filer.vanligMapp.mb === 100);
   });
 
   it("test 5: Superserver ger 1000 MB oavsett saldo; overklockas false i konfigurationen", () => {

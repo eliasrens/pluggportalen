@@ -46,8 +46,9 @@ export const DK_BALANS = Object.freeze({
   filer: Object.freeze({
     // "Liten mapp" i uppdraget = filen Liten fil: ger 50 MB (var 10).
     litenMapp: Object.freeze({ id: "liten_fil", mb: 50 }),
-    // "Vanlig mapp" = filen Mapp: oförändrat värde. Superserverns procent tas härifrån.
-    vanligMapp: Object.freeze({ id: "mapp", mb: 25 }),
+    // "Vanlig mapp" = filen Mapp: 100 MB (var 25; Elias #832 F1 – större än liten mapp).
+    // Superserverns procent tas härifrån.
+    vanligMapp: Object.freeze({ id: "mapp", mb: 100 }),
     // Jackpotten: 1000 MB med exakt 1 % per fil, oavsett lärarens val och felsvit.
     // overklockas false = ger alltid exakt mb (Överklockningen rör den aldrig).
     superserver: Object.freeze({ id: "superserver", mb: 1000, sannolikhet: 0.01, overklockas: false }),
@@ -120,7 +121,7 @@ export const DK_FILES = Object.freeze([
   },
   {
     // Bara efter en felsvit (DK_BALANS.virus) – syns aldrig på projektorn (#832 §4, §15).
-    id: "virus", icon: "🦠", label: "Virus", rarity: "ovanlig", weight: 8,
+    id: "virus", icon: "🐛", label: "Virus", rarity: "ovanlig", weight: 8,
     effect: { kind: "lose", min: DK_BALANS.virus.minMb, max: DK_BALANS.virus.maxMb },
     look: "virus", sound: "glitch", eventText: null, feedText: null,
   },
@@ -146,8 +147,8 @@ export const DK_EVENT_TEXTS = Object.freeze({
   victimSteal: "💻 {namn} knäckte din kod och tog {belopp} MB!",
   // Elevens egna meddelanden efter klassrådet (#832 §8) – aldrig på projektorn.
   superserver: "🚀 Superserver! +{belopp} MB",
-  virus: "🦠 Ett virus åt upp {belopp} MB. Det kan hända när man gissar många gånger i rad. Läs frågan noga!",
-  virusTomt: "🦠 Ett virus försökte, men det fanns ingen data att ta. Läs frågan noga!",
+  virus: "🐛 Ett virus åt upp {belopp} MB. Det kan hända när man gissar många gånger i rad. Läs frågan noga!",
+  virusTomt: "🐛 Ett virus försökte, men det fanns ingen data att ta. Läs frågan noga!",
   ingetMal: "Ingen gick att hacka just nu, du fick {belopp} MB i stället.",
   kodlacka: "🔓 Din kod har läckt! Välj en ny.",
 });
