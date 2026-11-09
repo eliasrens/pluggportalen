@@ -186,7 +186,7 @@ describe("Datakuppen: koderna (§1.2, test 2b, 12)", () => {
 
 describe("Datakuppen: delat med servern", () => {
   it("functions/datakuppen/ är en exakt kopia (även koder.json) och läser motorn ur functions/kistspel/", () => {
-    assert.deepEqual(datakuppenFiles(), ["datakuppen-regler.js", "files-config.js", "koder.json"]);
+    assert.deepEqual(datakuppenFiles(), ["datakuppen-regler.js", "dk-filregler.js", "files-config.js", "koder.json"]);
     assert.deepEqual(driftedFiles(), [], "kör npm run sync:kistspel");
     const src = readFileSync(new URL("../src/live/formats/datakuppen/delat/datakuppen-regler.js", import.meta.url), "utf8");
     const copy = readFileSync(new URL("../functions/datakuppen/datakuppen-regler.js", import.meta.url), "utf8");

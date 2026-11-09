@@ -34,6 +34,42 @@
 // Valutan (§1.1) – namn, enhet och ikon kan bytas här.
 export const DK_CURRENCY = Object.freeze({ name: "data", unit: "MB", icon: "💾" });
 
+// KLASSRÅDETS ÄNDRINGAR (#832, uppdraget datakuppen-klassradet.md §2). Alla
+// värden här – servern läser samma kopia (functions/datakuppen/). Filernas
+// effekter i DK_FILES nedan hämtar sina värden härifrån; reglerna läses av
+// delat/dk-filregler.js (tabellen, viruset) och servern (hack, kodläcka).
+export const DK_BALANS = Object.freeze({
+  filer: Object.freeze({
+    // "Liten mapp" i uppdraget = filen Liten fil: ger 50 MB (var 10).
+    litenMapp: Object.freeze({ id: "liten_fil", mb: 50 }),
+    // "Vanlig mapp" = filen Mapp: oförändrat värde. Superserverns procent tas härifrån.
+    vanligMapp: Object.freeze({ id: "mapp", mb: 25 }),
+    // Jackpotten: 1000 MB med exakt 1 % per fil, oavsett lärarens val och felsvit.
+    // overklockas false = ger alltid exakt mb (Överklockningen rör den aldrig).
+    superserver: Object.freeze({ id: "superserver", mb: 1000, sannolikhet: 0.01, overklockas: false }),
+    // Tom mapp är borttagen: dess vikt (13) gick proportionellt till liten och vanlig mapp.
+    tomMapp: null,
+  }),
+  overklockning: Object.freeze({
+    multiplikator: 3, // ett steg högre (×2 → ×3): saldot tredubblas när filen öppnas …
+    tak: 300, // … högst +300 MB (var +150 vid ×2 – samma brytpunkt, 150 MB saldo)
+  }),
+  virus: Object.freeze({
+    efterFelIRad: 3, // viruset kan bara komma på ett rätt svar efter minst så här många fel i rad
+    minMb: 10, // fast förlust, heltal min–max (slumpas av servern), aldrig under 0 MB
+    maxMb: 20,
+  }),
+  hack: Object.freeze({
+    ersattningOmIngetMal: "litenMapp", // ingen går att hacka → en liten mapp (50 MB) i stället
+    nyttMalvalSekunder: 10, // brandvägg/kodbyte under hacket → ny tid att välja mål
+  }),
+  kodlacka: Object.freeze({
+    grans: 5, // så många olika klasskamrater som listat ut ens kod → man får byta
+    gransSmaKlasser: 3, // gränsen när matchen har färre än smaKlassUnder elever
+    smaKlassUnder: 12,
+  }),
+});
+
 export const DK_FILES = Object.freeze([
   {
     id: "liten_fil", icon: "📄", label: "Liten fil", rarity: "vanlig", weight: 22,
@@ -111,7 +147,8 @@ export const DK_RULES = Object.freeze({
   victimPickMs: 10_000, // tid att välja mål innan servern slumpar (§1.4 steg 1)
   victimGraceMs: 5_000, // nätverksmarginal efter varje nedräkning
   codeGuessMs: 10_000, // tid att välja kod; ute = hacket misslyckas (§1.4 steg 2)
-  codeOffers: 4, // kodförslag att välja bland i lobbyn (koden gäller sedan hela matchen, #719)
+  codeOffers: 4, // kodförslag att välja bland (lobbyn, efter ett hack och efter en kodläcka)
+  codePickMs: 10_000, // tid att välja ny kod efter hack/läcka innan servern väljer (#832 §6.4)
   codeOptions: 3, // koder i ett hackförsök (1 rätt + 2 lockkoder)
   minChestGapMs: 1_000, // minsta tid mellan två filer per elev (skript-spärr)
   maxGold: 1_000_000, // tak för data
