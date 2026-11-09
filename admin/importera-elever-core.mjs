@@ -67,7 +67,7 @@ function delaRad(rad) {
  * @returns {{ rader: Array<{rad:number, klass:string, namn:string, anvandarnamn:string, losenord:string}>, fel: string[] }}
  */
 export function lasCsv(text) {
-  const linjer = String(text ?? "").replace(/^﻿/, "").split(/\r?\n/);
+  const linjer = String(text ?? "").replace(/^\uFEFF/, "").split(/\r?\n/);
   const fel = [];
   const rubrik = delaRad(linjer[0] || "").map((s) => s.trim().toLowerCase());
   if (rubrik.length !== KOLUMNER.length || rubrik.some((k, i) => k !== KOLUMNER[i])) {

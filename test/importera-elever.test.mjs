@@ -140,7 +140,7 @@ test("test 14: admin/import/ är ignorerad av git", () => {
 });
 
 test("filen läses som text: inledande nollor och BOM/CRLF", () => {
-  const { rader, fel } = lasCsv(`﻿${RUBRIK}\r\n3X,Nolla,Test023,Hemlis023\r\n\r\n`);
+  const { rader, fel } = lasCsv(`\uFEFF${RUBRIK}\r\n3X,Nolla,Test023,Hemlis023\r\n\r\n`);
   assert.deepEqual(fel, []);
   assert.deepEqual(rader[0], { rad: 2, klass: "3X", namn: "Nolla", anvandarnamn: "Test023", losenord: "Hemlis023" });
   assert.match(lasCsv("klass,namn,user,losenord\n3X,A,b123,Hemlis123").fel[0], /Rubrikraden/);
