@@ -15,15 +15,21 @@
 //   createSim({ codes, me, players, latency(), forced(), shared?, onAction? }) → {
 //     api,                    datakuppen-data.js-formen (answer, openFile, …)
 //     state,                  { me, players, self, secret }
-//     hackMe(byUid),          en klasskamrat knäcker min kod (notis + skydd; koden kvar, #719)
+//     hackMe(byUid),          en klasskamrat knäcker min kod (notis + skydd + "Välj ny kod", #832)
+//     leakMe(),               min kod har läckt (#832 §6.4) → "Välj ny kod"
+//     changeCode(uid),        en kamrat byter kod (mitt i mitt hack → avbrutet, §7.3)
 //     protect(uid, ms),       skydda en kamrat
 //     emit()                  skicka nya ögonblicksbilder
 //   }
+// Klassrådets regler (#832) som servern: felsvit → virus (fast 10–20 MB),
+// Superserver, Överklockning ×3, liten mapp när ingen går att hacka,
+// brandvägg/kodbyte under gissningen → tillbaka till målväljaren.
 // ============================================================================
 
-import { DK_RULES } from "../src/live/formats/datakuppen/delat/files-config.js";
+import { DK_RULES, DK_BALANS } from "../src/live/formats/datakuppen/delat/files-config.js";
+import { rollFile, applyFile, virusAllowed, hackFallbackId } from "../src/live/formats/datakuppen/delat/dk-filregler.js";
 import {
-  chestById, rollChest, applySelfEffect, shieldUntil, hitProtectionUntil, victimProblem, victimMessage, eligibleVictims,
+  chestById, shieldUntil, hitProtectionUntil, victimProblem, victimMessage, eligibleVictims,
   resolveVictim, codeOffers, pickDecoys, hackOptions,
 } from "../src/live/formats/datakuppen/delat/datakuppen-regler.js";
 
@@ -39,7 +45,10 @@ export function createSim({
   const versions = {};
   const taken = () => new Set(Object.values(secret));
   for (const p of players) secret[p.uid] = codeOffers(codes, [taken()], Math.random, 1)[0];
-  const state = { me: shared ? Object.assign(me, { pending: null, lastHit: null }) : { ...me, pending: null, lastHit: null }, players, self: { code: null, offers: null, offersExpiresAt: null, hack: null } };
+  const state = {
+    me: shared ? Object.assign(me, { pending: null, lastHit: null }) : { ...me, pending: null, lastHit: null }, players,
+    self: { code: null, offers: null, offersExpiresAt: null, hack: null, kodbyte: null }, felIRad: 0, virusOk: false, tidigare: [],
+  };
   const pl = new Set();
   const sl = new Set();
   const all = () => [state.me, ...state.players];
@@ -51,10 +60,19 @@ export function createSim({
   const net = async () => { await sleep(latency()); };
 
   function writeCode(code) {
+    if (state.self.code) state.tidigare.push(state.self.code);
     secret[me.uid] = code;
     versions[me.uid] = (versions[me.uid] || 0) + 1;
-    state.self = { ...state.self, code, offers: null, offersExpiresAt: null };
+    state.self = { ...state.self, code, offers: null, offersExpiresAt: null, kodbyte: null };
   }
+  /** "Välj ny kod" (efter hack/läcka): fyra förslag, aldrig en tidigare egen eller andras kod. */
+  function giveOffers(orsak) {
+    if (state.self.offers) return; // ett kodbyte pågår redan (§7.1/§7.2)
+    const avoid = new Set([...taken(), ...state.tidigare]);
+    state.self = { ...state.self, offers: codeOffers(codes, [avoid], Math.random, DK_RULES.codeOffers, state.self.code),
+      offersExpiresAt: now() + DK_RULES.codePickMs, kodbyte: { orsak, at: now() } };
+  }
+  const expired = () => state.self.offersExpiresAt != null && now() >= state.self.offersExpiresAt;
 
   const api = {
     async answer({ attemptId, factorA, factorB, answer, q, choiceIndex }) {
@@ -69,6 +87,8 @@ export function createSim({
         correctAnswer = factorA * factorB;
       }
       state.me.correct = (state.me.correct || 0) + (correct ? 1 : 0);
+      // Felsviten (#832 §4.1): rätt svar efter ≥ 3 fel i rad → viruset möjligt.
+      if (correct) { state.virusOk = virusAllowed(state.felIRad); state.felIRad = 0; } else state.felIRad++;
       if (shared && !correct) state.me.incorrect = (state.me.incorrect || 0) + 1;
       const nextQ = quiz ? Math.floor(Math.random() * quiz.length) : null;
       return { attemptId, correct, correctAnswer, nextQ };
@@ -76,30 +96,31 @@ export function createSim({
     async openFile() {
       await net();
       if (state.me.pending) throw err("failed-precondition", "Välj först vem du hackar.");
-      const file = chestById(forced()) || rollChest(true);
+      const file = chestById(forced()) || rollFile({ hacking: true, virus: state.virusOk });
+      state.virusOk = false;
       if (file.effect.kind === "steal") {
         const expiresAtMs = now() + DK_RULES.victimPickMs;
         state.me.pending = { kind: "steal", chest: "hack", expiresAt: expiresAtMs };
         setTimeout(emit, 30);
         return { file: file.id, kind: "steal", delta: 0, gold: state.me.gold, protectedUntil: null, pending: { kind: "steal", expiresAtMs } };
       }
-      const eff = applySelfEffect(file, state.me.gold);
+      const eff = applyFile(file, state.me.gold);
       const prev = state.me.gold;
       state.me.gold = eff.gold;
       if (eff.protect) state.me.protectedUntil = shieldUntil(now());
       setTimeout(emit, 30);
-      onAction("fil", { file: file.id, delta: eff.gold - prev, gold: eff.gold });
+      // Viruset syns aldrig på projektorn (#832 §15).
+      if (file.effect.kind !== "lose") onAction("fil", { file: file.id, delta: eff.gold - prev, gold: eff.gold });
       return { file: file.id, kind: file.effect.kind, delta: eff.gold - prev, gold: eff.gold, protectedUntil: state.me.protectedUntil ?? null };
     },
     async pickCode({ index = null } = {}) {
       await net();
       const s = state.self;
       if (index != null) {
-        if (s.code) throw err("failed-precondition", "Du har redan din kod – den gäller hela matchen.");
         const code = s.offers?.[index];
         if (!code) throw err("failed-precondition", "Det finns inga kodförslag att välja just nu.");
         writeCode(code);
-      } else if (phase() === "live" && !s.code) {
+      } else if (phase() === "live" && (!s.code || (s.offers && expired()))) {
         writeCode(s.offers?.length ? s.offers[Math.floor(Math.random() * s.offers.length)] : codeOffers(codes, [taken()], Math.random, 1)[0]);
         setTimeout(emit, 30);
         return { code: state.self.code, offers: null, expiresAtMs: null, auto: true };
@@ -124,8 +145,8 @@ export function createSim({
         v = c[Math.floor(Math.random() * c.length)] || null;
       }
       if (!v) {
-        const fb = chestById("mapp");
-        const eff = applySelfEffect(fb, state.me.gold);
+        const fb = chestById(hackFallbackId());
+        const eff = applyFile(fb, state.me.gold);
         const prev = state.me.gold;
         state.me.gold = eff.gold;
         state.me.pending = null;
@@ -141,9 +162,9 @@ export function createSim({
       const options = hackOptions(right, mem.decoys, mem.struck, Math.random, mem.shown);
       mem.shown = options;
       const expiresAtMs = t + DK_RULES.codeGuessMs;
-      state.me.pending = { ...p, stage: "guess", targetUid: v.uid, targetName: v.name };
+      state.me.pending = { ...p, stage: "guess", targetUid: v.uid, targetName: v.name, prevVictimUid: state.me.lastVictimUid ?? null };
       state.me.lastVictimUid = v.uid;
-      state.self = { ...state.self, hack: { targetUid: v.uid, targetName: v.name, options, expiresAt: expiresAtMs } };
+      state.self = { ...state.self, hack: { targetUid: v.uid, targetName: v.name, options, expiresAt: expiresAtMs, version: versions[v.uid] || 0 } };
       setTimeout(emit, 30);
       return { result: "target", targetUid: v.uid, targetName: v.name, options, expiresAtMs, auto: !targetUid };
     },
@@ -155,6 +176,29 @@ export function createSim({
       if (index == null || now() > h.expiresAt + DK_RULES.victimGraceMs) { done(); return { result: "timeout", targetUid: h.targetUid }; }
       const guess = h.options[index];
       const v = state.players.find((x) => x.uid === h.targetUid);
+      // Brandvägg eller kodbyte hos målet (#832 §5.2, §7.3) → hacket ligger kvar.
+      const changed = (versions[h.targetUid] || 0) !== h.version;
+      if (changed || (v.protectedUntil ?? 0) > now()) {
+        const first = String(v.name || "").split(/\s+/)[0];
+        const message = changed ? `${first} bytte kod precis! Välj igen.` : `🛡️ ${first} fick en brandvägg! Välj någon annan.`;
+        state.me.lastVictimUid = state.me.pending?.prevVictimUid ?? null;
+        state.self = { ...state.self, hack: null };
+        const result = changed ? "changed" : "protected";
+        if (!eligibleVictims("steal", state.me, state.players, now()).length) {
+          const fb = chestById(hackFallbackId());
+          const eff = applyFile(fb, state.me.gold);
+          const prev = state.me.gold;
+          state.me.gold = eff.gold;
+          state.me.pending = null;
+          setTimeout(emit, 30);
+          onAction("fil", { file: fb.id, delta: eff.gold - prev, gold: eff.gold });
+          return { result, targetUid: h.targetUid, message, back: false, fallback: { file: fb.id, delta: eff.gold - prev, gold: eff.gold } };
+        }
+        const expiresAtMs = now() + DK_BALANS.hack.nyttMalvalSekunder * 1000;
+        state.me.pending = { kind: "steal", chest: "hack", expiresAt: expiresAtMs };
+        setTimeout(emit, 30);
+        return { result, targetUid: h.targetUid, message, back: true, expiresAtMs };
+      }
       if (guess !== secret[h.targetUid]) {
         memory[h.targetUid].struck.push(guess);
         done();
@@ -165,7 +209,10 @@ export function createSim({
       const prev = state.me.gold;
       state.me.gold = res.thiefGold;
       v.gold = res.victimGold;
-      v.protectedUntil = hitProtectionUntil(v, now()); // koden ligger kvar (#719)
+      v.protectedUntil = hitProtectionUntil(v, now());
+      // Målet väljer ny kod (#832 §6.1) – i låtsasservern direkt.
+      secret[v.uid] = codeOffers(codes, [taken()], Math.random, 1)[0];
+      versions[v.uid] = (versions[v.uid] || 0) + 1;
       done();
       onAction("hack", { targetUid: v.uid, amount: res.amount });
       return { result: "hacked", targetUid: v.uid, amount: res.amount, delta: res.thiefGold - prev, gold: res.thiefGold, victimGold: res.victimGold };
@@ -194,7 +241,17 @@ export function createSim({
       if (p) p.protectedUntil = now() + ms;
       emit();
     },
-    /** En klasskamrat knäcker min kod: 15 % flyttas, skydd 30 s – koden ligger kvar (#719). */
+    /** Min kod har läckt (#832 §6.4): notisen + "Välj ny kod" – ingen data, inget skydd. */
+    leakMe() {
+      giveOffers("lacka");
+      emit();
+    },
+    /** En kamrat byter kod (efter en läcka) – ett hack mot hen avbryts (§7.3). */
+    changeCode(uid) {
+      secret[uid] = codeOffers(codes, [taken()], Math.random, 1)[0];
+      versions[uid] = (versions[uid] || 0) + 1;
+    },
+    /** En klasskamrat knäcker min kod: 15 % flyttas, skydd 30 s och "Välj ny kod" (#832 §6.1). */
     hackMe(byUid) {
       const by = state.players.find((x) => x.uid === byUid) || state.players[0];
       const res = resolveVictim("steal", by, state.me);
@@ -202,6 +259,7 @@ export function createSim({
       state.me.gold = res.victimGold;
       state.me.protectedUntil = hitProtectionUntil(state.me, now());
       state.me.lastHit = { kind: "steal", chest: "hack", byUid: by.uid, byName: by.name, amount: res.amount, at: now() };
+      giveOffers("hack");
       emit();
       onAction("hackad", { byUid: by.uid, amount: res.amount });
     },

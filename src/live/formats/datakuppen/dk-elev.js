@@ -18,8 +18,13 @@
 //   DK_ELEV                      temat (standingText, victimRows, pendingLeftMs,
 //                                chestView, createHitWatcher, chestKey …)
 //   fileView(openFile-svar)      → chestView med filens id (svaret heter `file`)
+//                                + klassrådets texter (#832 §8): Superserver,
+//                                virus (verklig förlust), Överklockning ×3
+//   fileText(id, delta)          → elevens text för filen (§8) | null
 //   targetView(chooseTarget-svar, names?) → { hack?, caption, … }  steg 1:s utfall
-//   guessView(guessCode-svar, name) → { tone, title, text, mood, sound }
+//   guessView(guessCode-svar, name) → { tone, title, text, mood, sound, back?,
+//                                expiresAtMs?, gold? } – back = tillbaka till
+//                                målväljaren (brandvägg/kodbyte under hacket)
 //   codeChars(kod)               → [{ ch, digit }] – siffrorna ritas tydligt
 //                                skilda från bokstäverna (0/o, 1/l)
 //   codeSlots(options, struck)   → [{ code, gone }] tre platser: koderna att
@@ -27,7 +32,9 @@
 //   createHackMemory(store?)     → { struck(target), strike(target, kod), seen(target, options) }
 //                                vilka koder JAG strukit per mål (bara för att
 //                                visa dem som borta – servern avgör alltid)
-//   codePickState(self, phase)   → { show, offers, code, lobby } (lobbyns kodval)
+//   codePickState(self, phase, now?) → { show, offers, leftMs, code, lobby, orsak }
+//                                lobbyns kodval eller "Välj ny kod" efter ett
+//                                hack/en läcka (#832 §6, nedräkning ~10 s)
 //   hackState(self, me, now)     → steg 2 pågår (omladdning) | null
 //   tipAt(i)                     → säkerhetstipset nr i (roterar)
 //   formatMb(n)                  → "1 240" (= formatGold)
@@ -35,12 +42,12 @@
 //   endStanding, stageAction, countUp (kistspelsmodulen)
 // ============================================================================
 
-import { DK_EVENT_TEXTS, DK_RULES, DK_TIPS } from "./delat/files-config.js";
+import { DK_EVENT_TEXTS, DK_RULES, DK_TIPS, DK_BALANS } from "./delat/files-config.js";
 import { DK_REGLER } from "./delat/datakuppen-regler.js";
 import {
   firstName, formatGold, goldStanding, protectionText, myProtection, endStanding, stageAction, countUp, createKistElev,
 } from "../../kistspel/ks-elev.js";
-import { toMs } from "../../kistspel/delat/ks-regler.js";
+import { toMs, fill } from "../../kistspel/delat/ks-regler.js";
 
 export { firstName, formatGold, goldStanding, protectionText, myProtection, endStanding, stageAction, countUp };
 export const formatMb = formatGold;
@@ -60,11 +67,10 @@ export const DK_ELEV = createKistElev({
     gain: (x) => `+${x} MB`,
     lose: (x) => `Virus! −${x} MB`,
     loseEmpty: "Viruset hittade ingen data!",
-    empty: "Tom mapp …",
     shield: (sek) => `Brandvägg i ${sek} s!`,
     steal: "Hack! Välj vem",
     swap: "Hack! Välj vem",
-    fallback: (x) => `Ingen att hacka just nu – +${x} MB`,
+    fallback: (x) => fill(DK_EVENT_TEXTS.ingetMal, { belopp: x }),
     swapped: (who) => `Hack mot ${who}`,
     stole: (x, who) => `💻 +${x} MB från ${who}!`,
   },
@@ -72,17 +78,29 @@ export const DK_ELEV = createKistElev({
 
 export const { standingText, victimRows, pendingLeftMs, chestView, createHitWatcher, chestKey } = DK_ELEV;
 
+/** Klassrådets elevtexter (#832 §8) för en öppnad fil – null = kistmotorns text. */
+export function fileText(id, delta) {
+  const d = Number(delta) || 0;
+  if (id === DK_BALANS.filer.superserver.id) return fill(DK_EVENT_TEXTS.superserver, { belopp: formatGold(d) });
+  if (id === "virus") return d < 0 ? fill(DK_EVENT_TEXTS.virus, { belopp: formatGold(-d) }) : DK_EVENT_TEXTS.virusTomt;
+  if (id === "overklockning") return `⚡ ×${DK_BALANS.overklockning.multiplikator}: +${formatGold(d)} MB`;
+  return null;
+}
+
 /** openFile svarar { file, … } – kistmotorns visning vill ha { chest, … }. */
 export function fileView(res) {
-  return chestView({ ...res, chest: res?.file ?? res?.chest });
+  const id = res?.file ?? res?.chest;
+  const v = chestView({ ...res, chest: id });
+  const text = fileText(id, res?.delta);
+  return text ? { ...v, caption: text, long: id === "virus" } : v;
 }
 
 /**
  * Steg 1:s utfall (chooseTarget): målet valt → { hack } (steg 2 tar över),
- * ingen gick att välja → filens fallback (Mapp) som en vanlig fil.
+ * ingen gick att välja → liten mapp (50 MB) som en vanlig fil (#832 §5.3).
  */
 export function targetView(res, names = {}) {
-  if (res?.result === "fallback") return { ...fileView(res), caption: `Ingen att hacka just nu – +${formatGold(res.delta)} MB` };
+  if (res?.result === "fallback") return { ...fileView(res), caption: fill(DK_EVENT_TEXTS.ingetMal, { belopp: formatGold(res.delta) }) };
   const name = firstName(res?.targetName) || names[res?.targetUid] || "en klasskompis";
   return {
     hack: {
@@ -104,9 +122,18 @@ export function guessView(res, name = "") {
     case "timeout":
       return { tone: "tid", title: "⏰ Tiden tog slut", text: "Hacket misslyckades – ingen fara.", mood: null, sound: "nekad" };
     case "changed":
-      return { tone: "tid", title: "🔑 Ny kod!", text: `${who} hann byta kod.`, mood: null, sound: "nekad" };
-    case "protected":
-      return { tone: "tid", title: "🛡️ Skyddad", text: res?.message || `${who} hann starta en brandvägg!`, mood: null, sound: "nekad" };
+    case "protected": {
+      // #832 §5.2/§7.3: hacket ligger kvar – tillbaka till målväljaren (back),
+      // eller liten mapp om ingen annan går att hacka (fallback).
+      const fb = res?.fallback;
+      const title = res?.result === "changed" ? "🔑 Ny kod!" : "🛡️ Brandvägg!";
+      const text = fb ? `${res?.message || ""} ${fill(DK_EVENT_TEXTS.ingetMal, { belopp: formatGold(fb.delta) })}`.trim()
+        : res?.message || (res?.result === "changed" ? `${who} bytte kod precis! Välj igen.` : `🛡️ ${who} fick en brandvägg! Välj någon annan.`);
+      return {
+        tone: "tid", title, text, mood: null, sound: "nekad", back: res?.back === true,
+        expiresAtMs: Number(res?.expiresAtMs) || null, gold: fb ? fb.gold : null,
+      };
+    }
     default:
       return { tone: "tid", title: "Hacket misslyckades", text: "", mood: null, sound: "nekad" };
   }
@@ -154,14 +181,18 @@ export function createHackMemory(store = null) {
 }
 
 /**
- * Lobbyns kodval ur dkSelf: förslagen visas tills eleven har en kod. Koden
- * gäller sedan hela matchen (#719) – i spelet finns inget kodval.
+ * Kodvalet ur dkSelf: lobbyn (förslag, ingen kod än) eller "Välj ny kod" efter
+ * ett hack/en läcka (kod + förslag + nedräkning, #832 §6). leftMs null = ingen
+ * nedräkning (lobbyn). orsak "hack" | "lacka" | null.
  */
-export function codePickState(self, phase = "lobby") {
+export function codePickState(self, phase = "lobby", now = Date.now()) {
   const offers = Array.isArray(self?.offers) ? self.offers.filter(Boolean) : [];
   const code = self?.code || null;
+  const end = toMs(self?.offersExpiresAt);
+  const leftMs = end == null ? null : Math.max(0, end - now);
   const lobby = phase !== "live";
-  return { show: lobby && offers.length > 0 && !code, offers, code, lobby };
+  const show = offers.length > 0 && (lobby ? !code : !!code);
+  return { show, offers, leftMs, code, lobby, orsak: self?.kodbyte?.orsak ?? null };
 }
 
 /** Ett påbörjat steg 2 (omladdning mitt i hacket): dkSelf.hack + dkPlayers.pending. */

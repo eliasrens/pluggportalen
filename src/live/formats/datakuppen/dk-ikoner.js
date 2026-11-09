@@ -2,7 +2,8 @@
 // Datakuppen 💾 (#653): IKONERNA som SVG (spec §1.1, §1.3, §4.1). Emojierna i
 // filtabellen är bara beskrivning – här ritas varje filtyp med EGEN ikon i
 // formatets neonfärger, så att de ser likadana ut på alla datorer (inga
-// Emoji 13+). Projektorn kan använda samma ikoner.
+// Emoji 13+). Projektorn kan använda samma ikoner. Superservern (#832) har
+// egen ikon; Tom mapp finns inte längre.
 //
 // API
 //   dataIcon(size?)        → disketten (valutan "💾 250 MB")
@@ -60,6 +61,15 @@ const FILES = {
     <rect x="12" y="${y}" width="40" height="12" rx="3" fill="${C.natt}" stroke="${C.varm}" stroke-width="2.6"/>
     <circle cx="20" cy="${y + 6}" r="2.2" fill="${C.gron}"/><circle cx="27" cy="${y + 6}" r="2.2" fill="${i === 1 ? C.varm : C.cyan}"/>
     <path d="M34 ${y + 6}h12" stroke="${C.varm}" stroke-width="2.4" stroke-linecap="round"/>`).join(""),
+  // Superservern (#832 §3.3): ett högt serverskåp med lysande guldlinjer –
+  // tydligt "större" än Serverhallen (fyra enheter, glöd bakom skåpet).
+  superserver: () => `
+    <defs><radialGradient id="dk-super-glod"><stop offset="0" stop-color="${C.varm}" stop-opacity=".55"/><stop offset="1" stop-color="${C.varm}" stop-opacity="0"/></radialGradient></defs>
+    <circle cx="32" cy="32" r="31" fill="url(#dk-super-glod)"/>
+    <rect x="14" y="3" width="36" height="58" rx="4" fill="${C.natt}" stroke="${C.varm}" stroke-width="3"/>
+    ${[9, 22, 35, 48].map((y) => `<rect x="19" y="${y}" width="26" height="9" rx="2" fill="${C.mork}" stroke="${C.varm}" stroke-width="1.6"/>
+    <path d="M30 ${y + 4.5}h12" stroke="${C.varm}" stroke-width="2.4" stroke-linecap="round"/>
+    <circle cx="24" cy="${y + 4.5}" r="1.9" fill="${C.cyan}"/>`).join("")}`,
   overklockning: () => `
     <rect x="12" y="12" width="40" height="40" rx="6" fill="${C.natt}" stroke="${C.varm}" stroke-width="3"/>
     ${[20, 32, 44].map((x) => `<path d="M${x} 5v7M${x} 52v7M5 ${x}h7M52 ${x}h7" stroke="${C.varm}" stroke-width="2.6" stroke-linecap="round"/>`).join("")}
@@ -70,7 +80,6 @@ const FILES = {
     <path d="M28 11 L23 5M36 11 L41 5M19 30 H9M19 40 H9M45 30 H55M45 40 H55M21 49 L14 56M43 49 L50 56" stroke="${C.rosa}" stroke-width="3" stroke-linecap="round"/>
     <circle cx="29" cy="16" r="1.8" fill="${C.vit}"/><circle cx="35" cy="16" r="1.8" fill="${C.vit}"/>
     <path d="M23 34h18M24 41h16" stroke="${C.rosa}" stroke-width="2.4" opacity=".7"/>`,
-  tom_mapp: () => `${folder("#7f93b8")}<path d="M24 41 Q32 35 40 41" fill="none" stroke="#7f93b8" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="3 4"/>`,
   brandvagg: () => `
     <rect x="6" y="10" width="52" height="44" rx="4" fill="${C.natt}" stroke="${C.gron}" stroke-width="3"/>
     <path d="M6 24.5H58M6 39.5H58M22 10v14.5M42 10v14.5M14 24.5V39.5M32 24.5V39.5M50 24.5V39.5M22 39.5V54M42 39.5V54" stroke="${C.gron}" stroke-width="2.8"/>`,

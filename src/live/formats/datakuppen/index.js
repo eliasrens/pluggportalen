@@ -13,7 +13,7 @@
 //                  (facit, bara lärare/servern) i SAMMA batch som sessionen.
 //   timelineQuestions   true – "Ta med tidslinjefrågor"
 //   privateDocs    dkPrivate + dkPublic – raderas med en lobby
-//   resultInputs(s) → { dkPlayers, answers, questions }
+//   resultInputs(s) → { dkPlayers, answers, questions, stats }
 //
 // Lärarens inställningar (§3): innehåll + svarssätt (kärnan), speltid
 // (snabbknappar 3–30 + egen tid 1–60), Hackning på/av, namn i flödet,
@@ -99,13 +99,14 @@ const DATAKUPPEN = {
   },
 
   async resultInputs(s) {
-    const { getDkPlayers, getAnswers, getQuestions } = await import("./datakuppen-data.js");
-    const [dkPlayers, answers, questions] = await Promise.all([
+    const { getDkPlayers, getAnswers, getQuestions, getStats } = await import("./datakuppen-data.js");
+    const [dkPlayers, answers, questions, stats] = await Promise.all([
       getDkPlayers(s.id),
       getAnswers(s.id).catch(() => null),
       s.gameMode === "plugga_quiz" ? getQuestions(s.id).catch(() => null) : null,
+      getStats(s.id).catch(() => null),
     ]);
-    return { dkPlayers, answers, questions };
+    return { dkPlayers, answers, questions, stats };
   },
 
   emitOnPlayers: true,

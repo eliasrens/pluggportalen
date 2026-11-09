@@ -68,7 +68,7 @@ describe("#655 projektordemon", () => {
   });
 });
 
-describe("#655 elevskärmen kopplad till projektorn (minnesmomentet, koden kvar)", () => {
+describe("#655 elevskärmen kopplad till projektorn (minnesmomentet, #832 nytt kodval)", () => {
   it("delar spelardokument, skriver händelser via onAction och visar en struken kod andra gången", async () => {
     const d = mk();
     d.join(30, 0);
@@ -109,7 +109,7 @@ describe("#655 elevskärmen kopplad till projektorn (minnesmomentet, koden kvar)
     assert.equal(d.state().events.filter((e) => e.type !== "lead").length, n, "fel kod = ingen händelse");
     const e7kod = sim.secret.e7;
     await hack("e7", true); // inte samma mål direkt efter
-    assert.equal(sim.secret.e7, e7kod, "#719: målets kod ligger kvar efter ett lyckat hack");
+    assert.notEqual(sim.secret.e7, e7kod, "#832 §6.1: målet väljer ny kod efter ett lyckat hack");
     assert.deepEqual([senaste().type, senaste().victimUid], ["steal", "e7"]);
     assert.ok(gp("e7").protectedUntil > Date.now(), "målet skyddas");
     const again = await hack("e5", true);
@@ -117,15 +117,68 @@ describe("#655 elevskärmen kopplad till projektorn (minnesmomentet, koden kvar)
     assert.ok(!again.t.options.includes(first.r.code));
     assert.equal(again.r.result, "hacked");
 
-    // #719: koden behålls hela matchen – bli hackad = skydd, ingen ny kod.
+    // #832 §6.1: bli hackad = skydd + "Välj ny kod".
     const kod = (await sim.api.pickCode({})).code;
     sim.hackMe("e9");
-    assert.ok(!sim.state.self.offers?.length, "inga nya kodförslag efter hack");
+    assert.equal(sim.state.self.offers.length, 4, "fyra nya kodförslag efter hack");
+    assert.equal(sim.state.self.kodbyte.orsak, "hack");
     assert.ok(me.protectedUntil > Date.now(), "skyddad efter hacket");
-    await assert.rejects(sim.api.pickCode({ index: 0 }), /hela matchen|kodförslag/);
-    assert.equal(sim.state.self.code, kod, "samma kod");
+    const ny = (await sim.api.pickCode({ index: 0 })).code;
+    assert.notEqual(ny, kod);
     assert.equal(senaste().victimUid, "e1");
     assert.deepEqual(d.hackStats().attempts - d.hackStats().success >= 1, true);
+  });
+
+  it("test 39 (#832 §10.1): Superserver i flödet, virus bara för eleven, brandvägg/kodbyte under hack, ingen att hacka, kodläcka", async () => {
+    const d = mk();
+    d.join(12, 0);
+    d.playHistory(40);
+    d.state().grPlayers.forEach((g) => { g.protectedUntil = null; g.gold = Math.max(g.gold, 200); });
+    const senaste = () => d.state().events.find((e) => e.type !== "lead");
+    const me = d.state().grPlayers.find((g) => g.uid === "e1");
+    let forced = null;
+    const sim = createSim({
+      codes: CODES, me, players: d.state().grPlayers.filter((g) => g.uid !== "e1"), latency: () => 0, shared: true,
+      forced: () => forced,
+      onAction(kind, x) { if (kind === "fil") d.logFile("e1", x.file, x.delta, x.gold); },
+    });
+    forced = "superserver";
+    assert.equal((await sim.api.openFile()).delta, 1000);
+    assert.equal(senaste().chest, "superserver");
+    const n = d.state().events.length;
+    forced = null;
+    for (let i = 0; i < 3; i++) await sim.api.answer({ factorA: 2, factorB: 2, answer: 5 });
+    assert.equal(sim.state.felIRad, 3);
+    await sim.api.answer({ factorA: 2, factorB: 2, answer: 4 });
+    assert.equal(sim.state.virusOk, true, "felsviten gör viruset möjligt");
+    forced = "virus";
+    const v = await sim.api.openFile();
+    assert.ok(v.delta <= -10 && v.delta >= -20);
+    assert.equal(d.state().events.length, n, "viruset syns inte på projektorn");
+    // Brandvägg under hacket → tillbaka till målväljaren.
+    forced = "hack";
+    await sim.api.openFile();
+    const t = await sim.api.chooseTarget({ targetUid: "e5" });
+    sim.protect("e5", 60_000);
+    const r = await sim.api.guessCode({ index: t.options.indexOf(sim.secret.e5) });
+    assert.deepEqual([r.result, r.back], ["protected", true]);
+    assert.match(r.message, /fick en brandvägg! Välj någon annan\./);
+    assert.ok(me.pending, "hacket ligger kvar");
+    // Målet byter kod mitt i hacket.
+    const t2 = await sim.api.chooseTarget({ targetUid: "e6" });
+    sim.changeCode("e6");
+    const r2 = await sim.api.guessCode({ index: 0 });
+    assert.deepEqual([r2.result, r2.back], ["changed", true]);
+    assert.match(r2.message, /bytte kod precis! Välj igen\./);
+    assert.equal(t2.options.length, 3);
+    // Ingen går att hacka → 50 MB.
+    sim.state.players.forEach((p) => { p.protectedUntil = Date.now() + 60_000; });
+    const fb = await sim.api.chooseTarget({ targetUid: null });
+    assert.deepEqual([fb.result, fb.file, fb.delta], ["fallback", "liten_fil", 50]);
+    // Kodläckan → "Välj ny kod" med orsak lacka.
+    await sim.api.pickCode({});
+    sim.leakMe();
+    assert.deepEqual([sim.state.self.offers.length, sim.state.self.kodbyte.orsak], [4, "lacka"]);
   });
 });
 
@@ -136,7 +189,8 @@ describe("#655 isolering", () => {
       assert.doesNotMatch(imports, /datakuppen-data|firebase|live-data|live-rewards-data|teacher-shared/, f);
     }
     const lage = read("../preview/preview-datakuppen-demolage.html");
-    for (const steg of ["lobby", "kod", "filer", "fel", "ratt", "minne", "byt", "skydd", "milstolpe", "snart", "pall", "historik"]) {
+    for (const steg of ["lobby", "kod", "filer", "virus", "fel", "ratt", "minne", "brandvagg", "bytte", "ingen", "byt", "lacka",
+      "skydd", "milstolpe", "snart", "pall", "historik"]) {
       assert.match(lage, new RegExp(`id: "${steg}"`), steg);
     }
     assert.match(lage, /__dkDemoBlocked/);

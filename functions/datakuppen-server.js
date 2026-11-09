@@ -8,12 +8,19 @@
 //   SERVER        createKistServer(…) – answerQuestion, openChest, noteLeader,
 //                 matchWindow, sessionOf, assertLive, parseSid, victimsOn
 //   DK_FORMAT, DK_MODES, COL (samlingarna), HACK ("hack")
-//   dkRefs(db, sid, uid) → kistmotorns refs + self(id?) (dkSelf) + secret(id?) (dkSecret)
+//   dkRefs(db, sid, uid) → kistmotorns refs + self(id?) (dkSelf) + secret(id?)
+//                 (dkSecret) + stats (dkPrivate/stats – lärarens räknare, #832)
+//   bumpStats(tx, r, FieldValue, fält) – +1 på klassens räknare (superservrar,
+//                 virus, avbrutnaHack, kodlackor; aldrig per elev, §10.2)
+//   FELSVIT       svarets tillägg (kistmotorns answerHook): felIRad i elevens
+//                 dkSecret (bara servern läser, §4.3). Fel → +1; rätt →
+//                 virusFor = attemptId om felsviten nått gränsen, felIRad = 0
 //   joinedPlayer(snap, s) · pickRandom(list, rng) · parseUid(v, msg) · bad(msg) · isInt(v, lo, hi)
 // ============================================================================
 
 import { DK_RULES } from "./datakuppen/files-config.js";
 import { DK_REGLER } from "./datakuppen/datakuppen-regler.js";
+import { virusAllowed, hackFallbackId } from "./datakuppen/dk-filregler.js";
 import { KsError } from "./kistspel-rattning.js";
 import { createKistServer } from "./kistspel-core.js";
 
@@ -24,13 +31,23 @@ export const COL = { players: "dkPlayers", private: "dkPrivate", public: "dkPubl
 const UID_RE = /^[A-Za-z0-9_-]{1,128}$/;
 export const HACK = "hack"; // filens id = hackets markör i pending/händelser
 
+// Felsviten (#832 §4.1): räknas i svarets transaktion, i elevens dkSecret.
+const FELSVIT = {
+  refs: (r, uid) => [r.sess.collection("dkSecret").doc(uid)],
+  write(tx, [sec], { ok, attemptId }) {
+    const n = Number(sec?.data()?.felIRad) || 0;
+    tx.set(sec.ref, ok ? { felIRad: 0, virusFor: virusAllowed(n) ? attemptId : null } : { felIRad: n + 1 }, { merge: true });
+  },
+};
+
 export const SERVER = createKistServer({
   format: DK_FORMAT,
   regler: DK_REGLER,
   rules: DK_RULES,
   collections: COL,
-  fallbackChest: "mapp",
+  fallbackChest: hackFallbackId(),
   toggle: "hacking",
+  answerHook: FELSVIT,
   texts: {
     wrongFormat: "Det här är ingen Datakupp.",
     modeUnsupported: "Spelläget stöds inte i Datakuppen.",
@@ -56,7 +73,12 @@ export function dkRefs(db, sid, uid) {
     ...r,
     self: (id = uid) => r.sess.collection("dkSelf").doc(id),
     secret: (id = uid) => r.sess.collection("dkSecret").doc(id),
+    stats: r.sess.collection(COL.private).doc("stats"),
   };
+}
+
+export function bumpStats(tx, r, FieldValue, field) {
+  tx.set(r.stats, { [field]: FieldValue.increment(1) }, { merge: true });
 }
 
 export const pickRandom = (list, rng) => list[Math.min(list.length - 1, Math.floor((Number(rng()) || 0) * list.length))];

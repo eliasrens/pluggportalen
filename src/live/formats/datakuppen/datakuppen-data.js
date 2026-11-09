@@ -23,7 +23,8 @@
 // API (alla deltagare)
 //   watchDkPlayers(sid, cb, onErr) · watchEvents(sid, cb, onErr, n=30) · getDkPlayers(sid)
 // API (lärare)
-//   getAnswers(sid)
+//   getAnswers(sid) · getStats(sid) → dkPrivate/stats { superservrar, virus,
+//                                 avbrutnaHack, kodlackor } (#832 §10.2) | null
 // ============================================================================
 
 import { app, db } from "../../../firebase-config.js";
@@ -81,6 +82,12 @@ export async function getDkPlayers(sid) {
 
 export async function getAnswers(sid) {
   return (await getDocs(collection(db, "liveSessions", sid, "answers"))).docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+/** Klassens räknare efter klassrådet (#832) – bara läraren läser dkPrivate. */
+export async function getStats(sid) {
+  const snap = await getDoc(doc(db, "liveSessions", sid, "dkPrivate", "stats"));
+  return snap.exists() ? snap.data() : null;
 }
 
 export function watchMe(sid, uid, cb, onErr) {

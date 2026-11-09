@@ -11,8 +11,11 @@
 // createKistServer) med Datakuppens filtabell (./datakuppen/ = GENERERAD
 // kopia av src/live/formats/datakuppen/delat/, npm run sync:kistspel):
 //   answerQuestion  rättar (multiplikation/quiz/tidslinje), answers/{attemptId}
-//   openFile        ett RÄTT svar → EN fil (slumpen här). Hack-filen → spelarens
-//                   pending { kind: "steal", chest: "hack", expiresAt }.
+//                   + felsviten (#832): felIRad i elevens dkSecret
+//   openFile        ett RÄTT svar → EN fil (datakuppen-filer.js, Datakuppens
+//                   egen slump, #832). Hack-filen → spelarens pending
+//                   { kind: "steal", chest: "hack", expiresAt }. Viruset bara
+//                   efter en felsvit, fast 10–20 MB, aldrig i flödet.
 //   Spärrar: ett svar per fråga, en fil per rätt svar, minsta tid mellan
 //   filer, tak för data, inga anrop utanför matchtiden.
 //
@@ -50,7 +53,8 @@
 // läser), dkSecret/{uid} (kod, förslag, lockkoder, strukna – BARA servern).
 //
 // FILERNA: datakuppen-server.js (kistspelsservern + delade hjälpare),
-// datakuppen-koder.js (koderna), datakuppen-hack.js (hacket), den här (API:t).
+// datakuppen-filer.js (filen), datakuppen-koder.js (koderna),
+// datakuppen-hack.js (hacket), den här (API:t).
 //
 // API (deps = { db, FieldValue, Timestamp, now?(), rng?() })
 //   answerQuestion(deps, uid, { sid, attemptId, factorA?, factorB?, answer?,
@@ -71,14 +75,6 @@ export { KsError as DkError } from "./kistspel-rattning.js";
 export { DK_FORMAT, DK_MODES } from "./datakuppen-server.js";
 export { DK_CODES, pickCode } from "./datakuppen-koder.js";
 export { chooseTarget, guessCode } from "./datakuppen-hack.js";
+export { openFile } from "./datakuppen-filer.js";
 
 export const { answerQuestion, noteLeader, matchWindow } = SERVER;
-
-// --- Filen -------------------------------------------------------------------------
-
-/** Ett rätt svar → en av tre filer (kistmotorns openChest). */
-export async function openFile(deps, uid, raw) {
-  const out = await SERVER.openChest(deps, uid, { sid: raw?.sid, attemptId: raw?.attemptId, chestIndex: raw?.fileIndex ?? 0 });
-  const { chest, ...rest } = out;
-  return { file: chest, ...rest };
-}

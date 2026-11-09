@@ -139,8 +139,8 @@ kistformat – byt tema, inte motor:
 **Hemligheter per elev** (Datakuppens koder) är ett mönster värt att
 återanvända: ett dokument bara eleven själv läser (`dkSelf/{uid}`) och ett
 bara servern läser (`dkSecret/{uid}`) – det publika spelardokumentet bär aldrig
-hemligheten. Elevskärmen visar hemligheten dold ("Visa kod", #719) eftersom
-den gäller hela matchen. Händelser som inte flyttar saldo (misslyckat hack) skrivs inte
+hemligheten. Elevskärmen visar hemligheten dold ("Visa kod", #719); den byts via
+"Välj ny kod" efter hack eller kodläcka (#832). Händelser som inte flyttar saldo (misslyckat hack) skrivs inte
 som händelser utan räknas på spelardokumentet (`hackAttempts`).
 
 ---

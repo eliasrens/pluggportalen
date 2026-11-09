@@ -96,9 +96,9 @@ describe("Datakuppen: formatet (§3)", () => {
 });
 
 describe("Datakuppen: filerna (§1.3)", () => {
-  it("filtabellen: alla nio filer, valutan och säkerhetstipsen i konfigurationen", () => {
+  it("filtabellen: alla nio filer (#832: Tom mapp bort, Superserver ny), valutan och säkerhetstipsen i konfigurationen", () => {
     assert.deepEqual(DK_FILES.map((f) => f.id),
-      ["liten_fil", "mapp", "stor_fil", "serverhall", "overklockning", "virus", "tom_mapp", "brandvagg", "hack"]);
+      ["liten_fil", "mapp", "stor_fil", "serverhall", "superserver", "overklockning", "virus", "brandvagg", "hack"]);
     assert.deepEqual(DK_CURRENCY, { name: "data", unit: "MB", icon: "💾" });
     assert.ok(DK_TIPS.length >= 4);
     assert.deepEqual([DK_RULES.shieldMs, DK_RULES.protectionMs, DK_RULES.codeOffers, DK_RULES.codeOptions], [60_000, 30_000, 4, 3]);
@@ -112,11 +112,11 @@ describe("Datakuppen: filerna (§1.3)", () => {
     for (let i = 0; i < 2000; i++) assert.notEqual(rollChest(false, rng).id, "hack");
   });
 
-  it("test 11: virus högst 10 % och aldrig allt; hack högst 15 % och aldrig allt", () => {
+  it("test 11 (#832): virus fast 10–20 MB och aldrig under 0; hack högst 15 % och aldrig allt", () => {
     const virus = DK_FILES.find((f) => f.id === "virus");
     for (const g of [0, 1, 9, 10, 100, 1234, 999_999]) {
       const e = applySelfEffect(virus, g);
-      assert.ok(-e.delta <= g * 0.1 && (g === 0 || e.gold > 0), String(g));
+      assert.ok(-e.delta <= Math.min(g, 20) && e.gold >= 0 && (g <= 20 || -e.delta >= 10), String(g));
       const h = resolveVictim("steal", { gold: 0 }, { gold: g });
       assert.ok(h.amount <= g * 0.15 && (g === 0 || h.victimGold > 0), String(g));
     }
@@ -186,7 +186,7 @@ describe("Datakuppen: koderna (§1.2, test 2b, 12)", () => {
 
 describe("Datakuppen: delat med servern", () => {
   it("functions/datakuppen/ är en exakt kopia (även koder.json) och läser motorn ur functions/kistspel/", () => {
-    assert.deepEqual(datakuppenFiles(), ["datakuppen-regler.js", "files-config.js", "koder.json"]);
+    assert.deepEqual(datakuppenFiles(), ["datakuppen-regler.js", "dk-filregler.js", "files-config.js", "koder.json"]);
     assert.deepEqual(driftedFiles(), [], "kör npm run sync:kistspel");
     const src = readFileSync(new URL("../src/live/formats/datakuppen/delat/datakuppen-regler.js", import.meta.url), "utf8");
     const copy = readFileSync(new URL("../functions/datakuppen/datakuppen-regler.js", import.meta.url), "utf8");

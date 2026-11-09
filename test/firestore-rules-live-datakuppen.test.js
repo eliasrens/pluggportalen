@@ -263,3 +263,34 @@ describe("Datakuppen: läsning", () => {
     await assertSucceeds(deleteDoc(sub(teacher(), "lobby", "dkSecret", "alma")));
   });
 });
+
+// Klassrådets ändringar (#832): felsviten och läckräknaren ligger i dkSecret,
+// klassens räknare i dkPrivate/stats – inga regeländringar behövdes.
+describe("Datakuppen #832: felIRad, läckräknaren och lärarens räknare (test 15, 27)", () => {
+  beforeEach(async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore();
+      await updateDoc(sub(db, "pagar", "dkSecret", "alma"), { felIRad: 2, kodKannsAv: ["omar"], tidigareKoder: ["gml-kod1"] });
+      await setDoc(sub(db, "pagar", "dkPrivate", "stats"), { superservrar: 1, virus: 2, avbrutnaHack: 3, kodlackor: 1 });
+    });
+  });
+
+  it("test 15: eleven kan varken läsa eller skriva felIRad (egen eller andras)", async () => {
+    await assertFails(getDoc(sub(elev("alma"), "pagar", "dkSecret", "alma")));
+    await assertFails(updateDoc(sub(elev("alma"), "pagar", "dkSecret", "alma"), { felIRad: 0 }));
+    await assertFails(setDoc(sub(elev("alma"), "pagar", "dkSecret", "alma"), { felIRad: 0 }, { merge: true }));
+    await assertFails(setDoc(sub(elev("alma"), "pagar", "dkSelf", "alma"), { felIRad: 9 }, { merge: true }));
+    await assertFails(getDoc(sub(elev("omar"), "pagar", "dkSecret", "alma")));
+  });
+
+  it("test 27: ingen elev läser läckräknaren (kodKannsAv) eller klassens räknare; läraren läser räknarna", async () => {
+    for (const u of ["alma", "omar"]) {
+      await assertFails(getDoc(sub(elev(u), "pagar", "dkSecret", "alma")));
+      await assertFails(getDoc(sub(elev(u), "pagar", "dkPrivate", "stats")));
+    }
+    await assertFails(updateDoc(sub(elev("omar"), "pagar", "dkSecret", "alma"), { kodKannsAv: [] }));
+    await assertFails(getDoc(sub(teacher(), "pagar", "dkSecret", "alma")), "inte ens läraren ser vem som känner till koden");
+    await assertSucceeds(getDoc(sub(teacher(), "pagar", "dkPrivate", "stats")));
+    await assertFails(setDoc(sub(teacher(), "pagar", "dkPrivate", "stats"), { superservrar: 99 }));
+  });
+});

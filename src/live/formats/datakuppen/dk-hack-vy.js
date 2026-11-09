@@ -1,7 +1,10 @@
 // ============================================================================
 // Datakuppen 💾 (#653): HACKET på spelytan i två steg (spec §1.4, §4.3).
 //   steg 1  målväljaren (dk-offer.js) – chooseTarget; ingen att välja →
-//           filens fallback (Mapp) och tillbaka till frågorna
+//           liten mapp (50 MB) och tillbaka till frågorna
+//   åter    målet fick brandvägg/bytte kod under gissningen (#832 §5.2, §7.3)
+//           → kodkortens besked, sedan SAMMA målväljare igen med ny
+//           nedräkning (ingen ny laddning); ingen kvar → liten mapp
 //   steg 2  kodkorten (dk-kodkort.js) – guessCode; fel kod stryks och sparas
 //           i minnet (createHackMemory, localStorage per match) så att nästa
 //           försök mot samma mål visar den som borta
@@ -28,6 +31,7 @@ export function createHackFlow({ parts, api, sid, uid, now, pool, roster, stage,
   let chosen = false;
   let cards = null;
   let guessing = false;
+  let latest = { me: null, players: [] }; // senaste dkPlayers – målväljaren efter en återgång
   const key = `pp:dk:minne:${sid}:${uid}`;
   const memory = createHackMemory({
     get: () => { try { return localStorage.getItem(key); } catch { return null; } },
@@ -45,6 +49,7 @@ export function createHackFlow({ parts, api, sid, uid, now, pool, roster, stage,
 
   function target(pending, me, players) {
     if (offer || cards) return;
+    latest = { me, players };
     show("offer");
     chosen = false;
     const o = pickTarget(parts.offer, {
@@ -79,6 +84,7 @@ export function createHackFlow({ parts, api, sid, uid, now, pool, roster, stage,
     show("kod");
     memory.seen(t.targetUid, t.options);
     guessing = false;
+    let back = null;
     const c = playCodeCards(parts.kod, {
       target: t, struck: memory.struck(t.targetUid), now, sound, reduced,
       guess: (index) => {
@@ -88,13 +94,17 @@ export function createHackFlow({ parts, api, sid, uid, now, pool, roster, stage,
       onResult(v, res) {
         if (res?.result === "wrong") memory.strike(t.targetUid, res.code);
         if (res?.result === "hacked") onGold(res.gold);
+        if (v.gold != null) onGold(v.gold); // ingen kvar att hacka → liten mapp
         if (v.mood) onMood(v.mood);
+        back = v.back ? { kind: "steal", chest: "hack", expiresAtMs: v.expiresAtMs } : null;
       },
     });
     cards = c;
     c.done.then(() => {
       if (cards !== c) return;
       cards = null;
+      // Återgång: hacket ligger kvar – samma målväljare, nedräkningen börjar om.
+      if (back) return target(back, latest.me, latest.players);
       onDone();
     });
   }
@@ -115,6 +125,7 @@ export function createHackFlow({ parts, api, sid, uid, now, pool, roster, stage,
       return true;
     },
     update(me, players) {
+      latest = { me, players };
       offer?.update(me, players);
     },
     /** Avgjort på annat håll (pending borta utan att eleven valt/gissat) → stäng. */

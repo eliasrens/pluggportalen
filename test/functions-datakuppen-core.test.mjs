@@ -6,7 +6,8 @@
 //   test 2   ingen kod vald före start → servern väljer ur listan
 //   test 4   rätt svar → tre filer, servern avgör innehållet
 //   test 10  hackning av → aldrig Hack
-//   test 11  virus högst 10 %, aldrig allt
+//   test 11  virus (#832: fast 10–20 MB efter en felsvit, aldrig under 0)
+// Klassrådets regler i detalj (#832): functions-datakuppen-klassradet*.test.mjs.
 //   §2       öppna samma fil två gånger, fil utan rätt svar, svar/fil efter
 //            tiden, egen påhittad kod som "vald kod"
 // Hacket (test 5–9, 12, resten av §2): functions-datakuppen-hack.test.mjs.
@@ -19,7 +20,7 @@ import { answerQuestion, openFile, pickCode, chooseTarget, DK_CODES } from "../f
 import { DK_FILES, DK_RULES } from "../src/live/formats/datakuppen/delat/files-config.js";
 import {
   db, deps, ctl, Timestamp, START, END, reset, rngFor, makeSession, setGold, setCode, giveHack, gp, self, secret,
-  events, rightAnswer, att, code,
+  events, rightAnswer, att, code, streak,
 } from "./helpers/datakuppen-core-rig.js";
 
 beforeEach(reset);
@@ -72,7 +73,7 @@ describe("koderna (test 1, 2, §1.2)", () => {
     assert.equal(await gp(s, "alma"), undefined, "inget spelardokument (det andra läser) får koden");
   });
 
-  it("#719: koden väljs EN gång – ett nytt val i lobbyn eller under matchen avvisas", async () => {
+  it("koden väljs EN gång i lobbyn – ett nytt val utan nya förslag avvisas", async () => {
     const s = await lobby();
     await pickCode(deps, "alma", { sid: s });
     const r = await pickCode(deps, "alma", { sid: s, index: 1 });
@@ -134,24 +135,24 @@ describe("koderna (test 1, 2, §1.2)", () => {
 describe("filerna (test 4, 10, 11, §1.3)", () => {
   it("test 4: rätt svar → en fil; SERVERN avgör innehållet (samma slump = samma fil, oavsett vilken fil eleven klickar)", async () => {
     const s = await makeSession();
-    for (const f of DK_FILES.filter((x) => x.id !== "hack")) {
+    for (const f of DK_FILES.filter((x) => x.id !== "hack" && x.id !== "virus")) {
       ctl.roll = rngFor(f.id);
       ctl.clock += 2_000;
       const r = await openFile(deps, "alma", { sid: s, attemptId: await rightAnswer(s, "alma"), fileIndex: ctl.clock % 3 });
       assert.equal(r.file, f.id);
     }
-    assert.equal((await gp(s, "alma")).chests, DK_FILES.length - 1);
+    assert.equal((await gp(s, "alma")).chests, DK_FILES.length - 2);
     const ev = await events(s);
     assert.ok(ev.some((e) => e.chest === "serverhall" && e.amount === 100));
     assert.ok(ev.every((e) => !("code" in e)), "inga koder i händelserna");
   });
 
-  it("filen ger +MB, brandvägg 60 s, överklockning högst +150, tak för data", async () => {
+  it("filen ger +MB, brandvägg 60 s, överklockning ×3 högst +300 (#832), tak för data", async () => {
     const s = await makeSession();
     await setGold(s, "alma", 400);
     ctl.roll = rngFor("overklockning");
     const r = await openFile(deps, "alma", { sid: s, attemptId: await rightAnswer(s, "alma"), fileIndex: 0 });
-    assert.deepEqual([r.delta, r.gold], [150, 550]);
+    assert.deepEqual([r.delta, r.gold], [300, 700]);
     ctl.roll = rngFor("brandvagg");
     ctl.clock += 2_000;
     const b = await openFile(deps, "alma", { sid: s, attemptId: await rightAnswer(s, "alma"), fileIndex: 1 });
@@ -163,16 +164,18 @@ describe("filerna (test 4, 10, 11, §1.3)", () => {
     assert.equal(m.gold, DK_RULES.maxGold);
   });
 
-  it("test 11: virus tappar högst 10 % och aldrig allt", async () => {
+  it("test 11 (#832): virus efter en felsvit tar ett fast belopp 10–20 MB, aldrig under 0", async () => {
     const s = await makeSession();
-    for (const [före, efter] of [[100, 90], [255, 230], [9, 9], [1, 1], [0, 0]]) {
+    ctl.roll = rngFor("virus", true, true);
+    const mb = 10 + Math.floor(ctl.roll * 11); // samma slump ger beloppet
+    for (const [före, efter] of [[100, 100 - mb], [255, 255 - mb], [8, 0], [0, 0]]) {
       await setGold(s, "alma", före);
-      ctl.roll = rngFor("virus");
+      await streak(s, "alma");
       ctl.clock += 2_000;
       const r = await openFile(deps, "alma", { sid: s, attemptId: await rightAnswer(s, "alma"), fileIndex: 0 });
-      assert.equal(r.gold, efter, `${före} MB`);
-      assert.ok(r.gold > 0 || före === 0, "ingen förlorar allt");
+      assert.deepEqual([r.file, r.gold, r.virusMb], ["virus", efter, mb], `${före} MB`);
     }
+    assert.ok((await events(s)).every((e) => e.chest !== "virus"), "viruset syns aldrig i flödet");
   });
 
   it("Hack-filen → väntande hack (inget flyttas än); en ny fil går inte förrän hacket är klart", async () => {
@@ -186,7 +189,7 @@ describe("filerna (test 4, 10, 11, §1.3)", () => {
     assert.equal(await code(openFile(deps, "alma", { sid: s, attemptId: await rightAnswer(s, "alma"), fileIndex: 0 })), "failed-precondition");
   });
 
-  it("test 10: hackning av → ingen fil kan bli Hack, vikten går till datafilerna; ett manipulerat väntande hack ger en Mapp", async () => {
+  it("test 10: hackning av → ingen fil kan bli Hack, vikten går till datafilerna; ett manipulerat väntande hack ger en liten mapp", async () => {
     const s = await makeSession({ hacking: false });
     for (const x of [0, 0.1, 0.25, 0.5, 0.75, 0.9, 0.999]) {
       ctl.roll = x;
@@ -199,7 +202,7 @@ describe("filerna (test 4, 10, 11, §1.3)", () => {
     await setGold(s, "leo", 100);
     await setCode(s, "leo", "r0b0t");
     const r = await chooseTarget(deps, "omar", { sid: s, targetUid: "leo" });
-    assert.deepEqual([r.result, r.file, r.delta], ["fallback", "mapp", 25]);
+    assert.deepEqual([r.result, r.file, r.delta], ["fallback", "liten_fil", 50]);
     assert.equal((await gp(s, "leo")).gold, 100, "ingen hackning när den är avstängd");
   });
 });

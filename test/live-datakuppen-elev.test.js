@@ -49,7 +49,13 @@ describe("Datakuppen elevvy: filerna (§1.3)", () => {
       seen.add(v.look);
     }
     assert.equal(seen.size, DK_FILES.length, "eget utseende per filtyp");
-    assert.equal(fileView({ file: "virus", delta: -12, gold: 108 }).caption, "Virus! −12 MB");
+    // Klassrådets texter (#832 §8).
+    assert.equal(fileView({ file: "virus", delta: -12, gold: 108 }).caption,
+      "🐛 Ett virus åt upp 12 MB. Det kan hända när man gissar många gånger i rad. Läs frågan noga!");
+    assert.equal(fileView({ file: "virus", delta: 0, gold: 0 }).caption,
+      "🐛 Ett virus försökte, men det fanns ingen data att ta. Läs frågan noga!");
+    assert.equal(fileView({ file: "superserver", delta: 1000, gold: 1200 }).caption, "🚀 Superserver! +1\u202f000 MB");
+    assert.equal(fileView({ file: "overklockning", delta: 240, gold: 360 }).caption, "⚡ ×3: +240 MB");
     assert.equal(fileView({ file: "brandvagg", delta: 0, gold: 1 }).caption, `Brandvägg i ${DK_RULES.shieldMs / 1000} s!`);
     assert.equal(fileView({ file: "serverhall", delta: 100, gold: 1 }).mood, "jubel");
   });
@@ -61,13 +67,13 @@ describe("Datakuppen elevvy: filerna (§1.3)", () => {
 });
 
 describe("Datakuppen elevvy: hacket (§1.4)", () => {
-  it("steg 1 → kodkorten med kompisens förnamn; ingen att välja → Mapp", () => {
+  it("steg 1 → kodkorten med kompisens förnamn; ingen att välja → liten mapp (#832 §5.3)", () => {
     const v = targetView({ result: "target", targetUid: "o", targetName: "Omar 4B", options: ["a1bc", "d2ef", "g3hi"], expiresAtMs: 5 });
     assert.deepEqual(v.hack, { targetUid: "o", targetName: "Omar", options: ["a1bc", "d2ef", "g3hi"], expiresAtMs: 5 });
     assert.equal(v.run, false);
-    const fb = targetView({ result: "fallback", file: "mapp", delta: 25, gold: 125 });
+    const fb = targetView({ result: "fallback", file: "liten_fil", delta: 50, gold: 150 });
     assert.equal(fb.hack, undefined);
-    assert.match(fb.caption, /\+25 MB/);
+    assert.equal(fb.caption, "Ingen gick att hacka just nu, du fick 50 MB i stället.");
   });
 
   it("steg 2: rätt, fel, tiden ute, ny kod och skyddad ger var sitt besked – lekfullt", () => {
@@ -143,16 +149,19 @@ describe("Datakuppen elevvy: koden (§1.2, §1.5)", () => {
 
   it("lobbyn: förslagen tills eleven valt, sedan bara koden", () => {
     assert.deepEqual(codePickState({ offers: ["a1bc", "d2ef", "g3hi", "j4kl"], code: null }, "lobby"),
-      { show: true, offers: ["a1bc", "d2ef", "g3hi", "j4kl"], code: null, lobby: true });
+      { show: true, offers: ["a1bc", "d2ef", "g3hi", "j4kl"], leftMs: null, code: null, lobby: true, orsak: null });
     assert.equal(codePickState({ offers: null, code: "a1bc" }, "lobby").show, false);
     assert.equal(codePickState(null, "lobby").show, false);
   });
 
-  it("#719: inget kodval i spelet – koden gäller hela matchen, även med gamla förslag kvar", () => {
-    assert.equal(codePickState({ code: "a1bc", offers: ["d2ef", "g3hi", "j4kl", "m5no"], offersExpiresAt: 10_000 }, "live").show, false);
-    assert.equal(codePickState({ code: null, offers: ["d2ef"] }, "live").show, false);
+  it("#832 §6: Välj ny kod i spelet efter ett hack/en läcka, med nedräkning och orsak", () => {
+    const st = codePickState({ code: "a1bc", offers: ["d2ef", "g3hi", "j4kl", "m5no"], offersExpiresAt: 10_000, kodbyte: { orsak: "lacka" } }, "live", 4_000);
+    assert.deepEqual([st.show, st.leftMs, st.orsak], [true, 6_000, "lacka"]);
+    assert.equal(codePickState({ code: "a1bc", offers: null }, "live", 0).show, false);
+    assert.equal(codePickState({ code: null, offers: ["d2ef"] }, "live", 0).show, false);
     const src = ["dk-kod-vy.js", "dk-kodval.js", "dk-elev-vy.js"].map((f) => readFileSync(new URL(f, DIR), "utf8")).join("\n");
-    assert.doesNotMatch(src, /Välj ny kod|välj en ny|dk-nykod|codePickMs/i);
+    assert.match(src, /Välj ny kod/);
+    assert.match(src, /dk-nykod/);
   });
 
   it("eleven kan aldrig skriva en egen kod: kodvalet har inga textfält och skickar bara index", () => {

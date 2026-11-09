@@ -11,7 +11,8 @@
 //
 // API
 //   DK_SOUNDS  { [id]: (tone) => void }  beep, beep-dubbel, uppladdning,
-//              laddning, glitch, puff, vosh, access, dekryptera, nekad, klick
+//              laddning, glitch, treklang (Superservern, #832), vosh, access,
+//              dekryptera, nekad, klick
 //   createDkSound() → proj-sound createSound med elevens inställning
 //   playDkSound(sound, id) → bool (tyst om av, okänt id eller ej upplåst)
 // ============================================================================
@@ -26,7 +27,8 @@ export const DK_SOUNDS = Object.freeze({
   "uppladdning": (t) => [784, 988, 1175, 1568].forEach((f, i) => t(f, i * 0.07, 0.09, "triangle", 0.06)),
   "laddning": (t) => t(330, 0, 0.32, "triangle", 0.06, 1320),
   "glitch": (t) => { t(260, 0, 0.07, "square", 0.025, 180); t(200, 0.09, 0.08, "square", 0.025, 140); },
-  "puff": (t) => t(170, 0, 0.16, "sine", 0.06, 80),
+  // Superservern (#832 §3.3): mjuk stigande treklang (C–E–G–C), inget gällt.
+  "treklang": (t) => [523, 659, 784, 1047].forEach((f, i) => t(f, i * 0.1, 0.18, "sine", 0.06)),
   "vosh": (t) => { t(220, 0, 0.26, "sine", 0.07, 620); t(660, 0.15, 0.22, "sine", 0.04, 990); },
   "access": (t) => { t(392, 0, 0.12, "triangle", 0.07); t(523, 0.12, 0.12, "triangle", 0.07); t(784, 0.24, 0.2, "triangle", 0.06); },
   "dekryptera": (t) => t(500, 0, 0.5, "sine", 0.025, 1500),

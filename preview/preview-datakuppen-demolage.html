@@ -125,6 +125,9 @@
         return ok[Math.min(3, ok.length - 1)];
       }
       const namn = (uid) => gp(uid)?.name || uid;
+      const elevText = (sel) => elevF.contentDocument.querySelector(sel)?.textContent?.trim() || "";
+      /** Kodkortens besked efter gissningen (#832: brandvägg/kodbyte → tillbaka). */
+      const beskedEfter = () => waitFor(() => elevText("[data-utfall]:not([data-utfall='']) .dkk-svar"), 8000).catch(() => "");
 
       const STEG = [
         { id: "lobby", text: "30 elever med avatarer loggar in", async run() {
@@ -153,14 +156,31 @@
           await sleep(2500);
           return `${P.state().answers.length} svar`;
         } },
-        { id: "filer", text: "Varje filtyp (Alma öppnar dem en i taget)", async run() {
-          const typer = DK_FILES.filter((f) => f.id !== "hack");
+        { id: "filer", text: "Varje filtyp – Superserver och Överklockning ×3 (Alma öppnar dem en i taget)", async run() {
+          const typer = DK_FILES.filter((f) => f.id !== "hack" && f.id !== "virus");
           for (const f of typer) {
             sub("filer", `${f.icon} ${f.label} …`);
             await D.openFile(f.id);
             await sleep(2800);
           }
-          return typer.map((f) => f.icon).join(" ") + " + 💻 i hacken nedan";
+          return typer.map((f) => f.icon).join(" ") + " + 🐛 och 💻 nedan (ingen tom mapp)";
+        } },
+        { id: "virus", text: "Virus efter en felsvit (3 fel i rad) – och mot 0 MB", async run() {
+          await D.svaraFel(3);
+          await D.openFile("virus");
+          const a = await waitFor(() => elevText(".dkf-text").includes("virus") && elevText(".dkf-text"));
+          await sleep(3200);
+          const mig = gp(ME);
+          const kvar = mig.gold;
+          mig.gold = 0;
+          P.emit(true);
+          await D.svaraFel(3);
+          await D.openFile("virus");
+          const b = await waitFor(() => elevText(".dkf-text").includes("försökte") && elevText(".dkf-text"));
+          await sleep(3200);
+          mig.gold = kvar;
+          P.emit(true);
+          return `"${a}" · "${b}" – inget på projektorn`;
         } },
         { id: "fel", text: "Misslyckat hack (fel kod – stryks)", async run() {
           await D.openFile("hack");
@@ -177,7 +197,7 @@
           await D.pickTarget(mal.ratt);
           await D.guess(true);
           await sleep(3500);
-          return `${namn(mal.ratt)} hackad – skyddad 30 s, koden ligger kvar`;
+          return `${namn(mal.ratt)} hackad – skyddad 30 s, väljer ny kod`;
         } },
         { id: "minne", text: "Minnesmomentet – samma mål igen, en kod struken", async run() {
           await D.openFile("hack");
@@ -187,15 +207,64 @@
           await sleep(3500);
           return `mot ${namn(mal.fel)}: ${r.shown} koder kvar + ${r.struck} struken → rätt`;
         } },
-        { id: "byt", text: "Alma blir hackad → skydd, koden kvar (Visa kod)", async run() {
+        { id: "brandvagg", text: "Brandvägg under hack → tillbaka till målväljaren", async run() {
+          await D.openFile("hack");
+          const m = await valbartMal([mal.fel, mal.ratt]);
+          await D.pickTarget(m);
+          await sleep(800);
+          D.sim.protect(m, 60_000);
+          await D.guess(true);
+          const besked = await beskedEfter();
+          await waitFor(() => elevF.contentDocument.querySelector(".dko-kamrat"), 8000);
+          await sleep(1500);
+          const annan = await valbartMal([m]);
+          await D.pickTarget(annan);
+          await D.guess(true);
+          await sleep(3000);
+          return `"${besked}" → samma målväljare, ny nedräkning → ${namn(annan)} hackad`;
+        } },
+        { id: "bytte", text: "Målet byter kod mitt i hacket", async run() {
+          await D.openFile("hack");
+          const m = await valbartMal();
+          await D.pickTarget(m);
+          await sleep(800);
+          D.sim.changeCode(m);
+          await D.guess(false);
+          const besked = await beskedEfter();
+          await waitFor(() => elevF.contentDocument.querySelector(".dko-kamrat"), 8000);
+          await sleep(1200);
+          await D.pickTarget(m);
+          await D.guess(true);
+          await sleep(3000);
+          return `"${besked}" → samma mål igen, hacket lyckas`;
+        } },
+        { id: "ingen", text: "Ingen går att hacka → 50 MB i stället", async run() {
+          const skyddade = D.sim.state.players.map((p) => [p, p.protectedUntil]);
+          D.sim.state.players.forEach((p) => { p.protectedUntil = Date.now() + 60_000; });
+          D.sim.emit();
+          await D.openFile("hack");
+          const t = await waitFor(() => elevText(".dko").includes("Ingen gick") && elevText(".dko"), 15000).catch(() => elevText(".dko"));
+          await sleep(3000);
+          skyddade.forEach(([p, u]) => { p.protectedUntil = u; });
+          D.sim.emit();
+          return t.includes("50 MB") ? "Ingen gick att hacka just nu, du fick 50 MB i stället." : t;
+        } },
+        { id: "byt", text: "Alma blir hackad → skydd och Välj ny kod", async run() {
           const by = P.state().grPlayers.filter((g) => g.uid !== ME && g.gold > 0).sort((a, b) => b.gold - a.gold)[2]?.uid || "e5";
           const fore = D.sim.state.self.code;
           await D.hackedBy(by);
+          const ny = await D.pickNewCode(1);
           await sleep(2500);
-          const { code } = await D.revealCode();
+          if (ny === fore) throw new Error("koden byttes inte efter hacket");
+          return `${namn(by)} knäckte koden – skyddad 30 s, ny kod vald (${D.sim.state.self.code.length} tecken)`;
+        } },
+        { id: "lacka", text: "Din kod har läckt → välj en ny (inget på projektorn)", async run() {
+          const fore = D.sim.state.self.code;
+          const notis = await D.leaked();
+          const ny = await D.pickNewCode(2);
           await sleep(2500);
-          if (D.sim.state.self.code !== fore || code !== fore) throw new Error("koden ändrades efter hacket");
-          return `${namn(by)} knäckte koden – skyddad 30 s, samma kod (visad med 👁 Visa kod)`;
+          if (ny === fore) throw new Error("koden byttes inte efter läckan");
+          return `"${notis}" → ny kod, inget skydd, ingen data flyttad`;
         } },
         { id: "skydd", text: "Brandvägg och skydd", async run() {
           await D.openFile("brandvagg");

@@ -16,6 +16,8 @@
 // API: som guldrush-history.js – winnerText, detailHtml, ownPlayerTable,
 //      playerCounts, classStats, classSummaryHtml
 //      + hackHtml(s, result) (hackrutan, exporterad för testerna)
+//      + klassradHtml(result) – Superservrar, virus, avbrutna hack och
+//        kodläckor för hela klassen (#832 §10.2, result.klassrad)
 // ============================================================================
 
 import { createKistHistory, tal } from "../../kistspel/ks-historik.js";
@@ -35,6 +37,18 @@ export function hackHtml(s, result) {
     </ul>`;
 }
 
+/** Klassrådets räknare efter matchen (#832 §10.2) – hela klassen, aldrig per elev. */
+export function klassradHtml(result) {
+  const k = result?.klassrad;
+  if (!k) return "";
+  return `<ul class="dkh-hack dkh-klassrad" aria-label="Händelser – hela klassen">
+      <li><span>🚀 Superservrar</span><b>${tal(k.superservrar)}</b><small>hela klassen</small></li>
+      <li><span>🐛 Virus</span><b>${tal(k.virus)}</b><small>efter flera fel i rad</small></li>
+      <li><span>🛡️ Avbrutna hack</span><b>${tal(k.avbrutnaHack)}</b><small>brandvägg eller ny kod</small></li>
+      <li><span>🔓 Kodläckor</span><b>${tal(k.kodlackor)}</b><small>fick byta kod</small></li>
+    </ul>`;
+}
+
 const H = createKistHistory({
   css: [CSS],
   icon: "💾",
@@ -46,7 +60,7 @@ const H = createKistHistory({
   summaryTitle: "💾 Datakuppen",
   klasserCls: "dkh-klasser",
   loadAnswers: async () => (await import("./datakuppen-data.js")).getAnswers,
-  extraHtml: hackHtml,
+  extraHtml: (s, result) => hackHtml(s, result) + klassradHtml(result),
   classStatsExtra: {
     cols: 1,
     head: `<th class="num">Hack</th>`,

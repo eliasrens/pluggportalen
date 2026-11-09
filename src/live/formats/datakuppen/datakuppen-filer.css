@@ -75,7 +75,8 @@
 .dkf-text { margin: 0; min-height: 1.3em; font-size: clamp(22px, 4vh, 36px); font-weight: 800; color: var(--dk-gron, #3dffa2); opacity: 0; }
 .dkf-text.syns { animation: dkf-in 0.25s ease-out forwards; }
 .dkf-text[data-kind="lose"] { color: var(--dk-rosa, #ff6fb5); }
-.dkf-text[data-kind="empty"] { color: var(--dk-svag, #a9bfdf); }
+/* Virusets tips (#832 §4.4) är en hel mening – mindre text, högst ~3 rader. */
+.dkf-text[data-kind="lose"] { font-size: clamp(16px, 2.6vh, 22px); max-width: 40em; text-align: center; line-height: 1.3; }
 .dkf-text[data-kind="shield"], .dkf-text[data-kind="steal"] { color: var(--dk-varm, #ffb347); }
 @keyframes dkf-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
@@ -87,12 +88,27 @@
   box-shadow: 0 6px 0 #06101f, 0 0 34px rgba(255, 179, 71, 0.45);
 }
 .dkf-fil[data-look="virus"] { border-color: var(--dk-rosa, #ff6fb5); background: #2a1f4a; }
-.dkf-fil[data-look="tom-mapp"] { border-color: #5d6f93; background: #0f1b36; }
+.dkf-fil[data-look="superserver"] {
+  border-color: var(--dk-varm, #ffb347);
+  background: #1c1a10;
+  box-shadow: 0 6px 0 #06101f, 0 0 40px rgba(255, 179, 71, 0.55);
+}
+/* Superservern (#832 §3.3): EN mjuk glödande puls efter dekrypteringen
+   (≤ 1,5 s totalt med dekrypteringen) – ingen blinkning. */
+.dkf-glod {
+  position: absolute;
+  inset: -12%;
+  border-radius: 24px;
+  background: radial-gradient(circle, rgba(255, 179, 71, 0.5), transparent 68%);
+  opacity: 0;
+  animation: dkf-glod 0.55s ease-out forwards;
+}
+@keyframes dkf-glod { 0% { opacity: 0; transform: scale(0.85); } 45% { opacity: 1; } 100% { opacity: 0; transform: scale(1.1); } }
 .dkf-fil[data-look="brandvagg"] { border-color: var(--dk-gron, #3dffa2); box-shadow: 0 6px 0 #06101f, 0 0 0 6px rgba(61, 255, 162, 0.2); }
 .dkf-fil[data-look="hack"] { border-color: var(--dk-gron, #3dffa2); background: #071a14; }
 
 /* Effekterna (dk-filer.js fxHtml): ettor och nollor stiger, virusets tecken
-   ryser till, brandväggens ring, hackets prompt, den tomma mappens puff. */
+   ryser till, brandväggens ring, hackets prompt, Superserverns glöd. */
 .dkf-fx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .dkf-fx i {
   position: absolute;
@@ -106,7 +122,8 @@
   opacity: 0;
   animation: dkf-stig 0.85s ease-out var(--d) forwards;
 }
-.dkf-fil[data-look="serverhall"] .dkf-fx i, .dkf-fil[data-look="overklockning"] .dkf-fx i { color: var(--dk-varm, #ffb347); }
+.dkf-fil[data-look="serverhall"] .dkf-fx i, .dkf-fil[data-look="overklockning"] .dkf-fx i,
+.dkf-fil[data-look="superserver"] .dkf-fx i { color: var(--dk-varm, #ffb347); }
 .dkf-fil[data-look="virus"] .dkf-fx i { color: var(--dk-rosa, #ff6fb5); bottom: 40%; animation: dkf-rys 0.6s ease-out var(--d) forwards; }
 @keyframes dkf-stig { 0% { opacity: 0; transform: translateY(0); } 25% { opacity: 1; } 100% { opacity: 0; transform: translateY(-160%); } }
 @keyframes dkf-rys { 0% { opacity: 0; } 30% { opacity: 1; transform: translateX(-4px); } 60% { transform: translateX(4px); } 100% { opacity: 0; transform: none; } }
@@ -131,22 +148,11 @@
   opacity: 0;
   animation: dkf-in 0.3s ease-out forwards;
 }
-.dkf-puff {
-  position: absolute;
-  left: 30%;
-  right: 30%;
-  top: 30%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(169, 191, 223, 0.45), transparent 70%);
-  opacity: 0;
-  animation: dkf-ring 0.7s ease-out forwards;
-}
 
 @media (prefers-reduced-motion: reduce) {
   .dkf-fil, .dkf-fil.vald, .dkf-fil.bort, .dkf-fil:hover:not(:disabled) { transform: none; transition: opacity 0.3s ease; }
   .dkf-fx i { animation: dkf-tona 0.8s ease var(--d) forwards; }
-  .dkf-ring, .dkf-puff { animation: dkf-tona 0.7s ease forwards; transform: none; }
+  .dkf-ring, .dkf-glod { animation: dkf-tona 0.7s ease forwards; transform: none; }
   .dkf-text.syns, .dkf-prompt { animation: dkf-tona-in 0.25s ease forwards; }
 }
 @keyframes dkf-tona { 0% { opacity: 0; } 40% { opacity: 0.9; } 100% { opacity: 0; } }

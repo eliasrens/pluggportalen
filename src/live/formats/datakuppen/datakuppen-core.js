@@ -48,9 +48,12 @@
 //   computeStandings(s, { players, dkPlayers }) → ks-core-ställningen
 //   hackStats(dkPlayers) → { attempts, success } – hela klassen (lärarstatistik)
 //   hackStatsByClass(dkPlayers, players) → { [classId]: { attempts, success } }
-//   buildResult(s, _classes, players, _mode, { dkPlayers, answers?, questions? })
+//   buildResult(s, _classes, players, _mode, { dkPlayers, answers?, questions?, stats? })
 //                         → historikens result (+ hacks: hackStats,
-//                         hacksByClass – Statistik → Live per klass, #655)
+//                         hacksByClass – Statistik → Live per klass, #655;
+//                         + klassrad: klassStats(stats) – #832 §10.2)
+//   klassStats(stats)     → { superservrar, virus, avbrutnaHack, kodlackor } hela
+//                         klassen (dkPrivate/stats, bara läraren läser)
 //   createEventCursor()
 // ============================================================================
 
@@ -129,10 +132,19 @@ export function hackStatsByClass(dkPlayers = [], players = []) {
   return out;
 }
 
-export function buildResult(s, _classes, players = [], _mode = null, { dkPlayers = [], answers = null, questions = null } = {}) {
+/** Klassrådets räknare för hela klassen (#832 §10.2) – aldrig per elev. */
+export function klassStats(stats) {
+  return {
+    superservrar: int(stats?.superservrar), virus: int(stats?.virus),
+    avbrutnaHack: int(stats?.avbrutnaHack), kodlackor: int(stats?.kodlackor),
+  };
+}
+
+export function buildResult(s, _classes, players = [], _mode = null, { dkPlayers = [], answers = null, questions = null, stats = null } = {}) {
   return {
     ...ksBuildResult(DK_FORMAT, s, players, { grPlayers: dkPlayers, answers, questions }),
     hacks: hackStats(dkPlayers),
     hacksByClass: hackStatsByClass(dkPlayers, players),
+    klassrad: klassStats(stats),
   };
 }

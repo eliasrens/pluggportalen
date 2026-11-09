@@ -19,7 +19,9 @@
 import { createFlode } from "../../kistspel/ks-flode.js";
 import { trimPending } from "./dk-proj-scen.js";
 
-const MIN_FIT = 0.75;
+// 0.65: Superserverns exakta text (#832 §8, "🚀 Alma hittade en Superserver:
+// +1 000 MB!") behöver 0,65–0,75 vid 1920 × 1080 med namn upp till ~10 tecken.
+const MIN_FIT = 0.65;
 
 /** Krymp radens text så att den ryms (ellipsen tar resten). */
 function fit(li) {

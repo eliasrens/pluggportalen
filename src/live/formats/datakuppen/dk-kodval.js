@@ -1,11 +1,14 @@
 // ============================================================================
-// Datakuppen 💾 (#653, #719): KODVALET i lobbyn och den DOLDA egna koden.
-// Eleven väljer sin kod bland 4 förslag (spec §1.2, §4.3) EN gång – koden
-// gäller sedan hela matchen, även efter ett hack (#719). Eleven SKRIVER ALDRIG
-// en egen kod: knapparna skickar bara ett index i förslagen (pickCode),
-// servern skriver koden.
+// Datakuppen 💾 (#653, #719, #832): KODVALET och den DOLDA egna koden.
+// Eleven väljer sin kod bland 4 förslag (spec §1.2, §4.3) i lobbyn – och en
+// ny efter ett hack eller en kodläcka (#832 §6, återinfört efter #719).
+// Eleven SKRIVER ALDRIG en egen kod: knapparna skickar bara ett index i
+// förslagen (pickCode), servern skriver koden.
 //   lobby   "Välj din hemliga kod" – fyra stora kort; sedan "Din kod: f0tb01l"
 //           en kort stund (eleven hinner läsa den), därefter dold
+//   live    "Välj ny kod" – en smal rad med fyra koder och nedräkning (~10 s,
+//           serverns offersExpiresAt). Spelet stoppas inte: frågan ligger
+//           kvar under, och inget tar tangentbordsfokus.
 //   dold    "Din kod: •••• [👁 Visa kod]" – knappen visar koden i några
 //           sekunder (eller tills nästa tryck). Vanlig <button>: fungerar med
 //           touch, mus och tangentbord (Tab + Enter/blanksteg).
@@ -15,11 +18,11 @@
 // API
 //   codeHtml(kod)  → (escapad) HTML: <span class="dk-kod">f<b>0</b>tb<b>0</b><b>1</b>l</span>
 //   createCodeReveal(host, { label?, showMs? }) → { set(kod), show(ms?), hide(), destroy() }
-//   createCodePicker(host, { pick(index) → Promise, sound? })
-//     → { set({ offers, code }), error(msg), destroy() }
+//   createCodePicker(host, { lobby?, pick(index) → Promise, sound? })
+//     → { set({ offers, code, leftMs?, show? }), error(msg), destroy() }
 // ============================================================================
 
-import { codeChars } from "./dk-elev.js";
+import { codeChars, protectionText } from "./dk-elev.js";
 import { playDkSound } from "./dk-ljud.js";
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -82,21 +85,22 @@ export function createCodeReveal(host, { label = "Din kod:", showMs = REVEAL_MS 
   };
 }
 
-export function createCodePicker(host, { pick, sound = null }) {
+export function createCodePicker(host, { lobby = true, pick, sound = null }) {
   let busy = false;
   let offersKey = "";
   let destroyed = false;
   let hadCode = null; // null = inget ritat än (omladdning med kod → dold direkt)
-  host.innerHTML = `<div class="dkv dkv-lobby">
-      <p class="dkv-rubrik">🔑 Välj din hemliga kod</p>
+  host.innerHTML = `<div class="dkv ${lobby ? "dkv-lobby" : "dkv-ny"}">
+      <p class="dkv-rubrik">${lobby ? "🔑 Välj din hemliga kod" : "🔑 Välj ny kod"}<span class="dkv-tid" hidden></span></p>
       <div class="dkv-rad" role="group" aria-label="Kodförslag"></div>
-      <p class="dkv-min" hidden><span class="dkv-visa"></span> <span class="dkv-bock">✓</span><small>Den är hemlig – berätta den inte för någon. Den gäller hela matchen.</small></p>
+      <p class="dkv-min" hidden><span class="dkv-visa"></span> <span class="dkv-bock">✓</span><small>Den är hemlig – berätta den inte för någon.</small></p>
       <p class="dkv-fel" role="alert" hidden></p>
     </div>`;
   const root = host.firstElementChild;
   const row = root.querySelector(".dkv-rad");
   const mine = root.querySelector(".dkv-min");
   const fel = root.querySelector(".dkv-fel");
+  const tid = root.querySelector(".dkv-tid");
   const reveal = createCodeReveal(root.querySelector(".dkv-visa"));
 
   async function choose(i, btn) {
@@ -118,9 +122,9 @@ export function createCodePicker(host, { pick, sound = null }) {
   }
 
   return {
-    set({ offers = [], code = null } = {}) {
+    set({ offers = [], code = null, leftMs = null, show = !code } = {}) {
       if (destroyed) return;
-      const picking = !code && offers.length > 0;
+      const picking = show && offers.length > 0;
       row.hidden = !picking;
       root.querySelector(".dkv-rubrik").hidden = !picking;
       const key = offers.join("|");
@@ -129,7 +133,9 @@ export function createCodePicker(host, { pick, sound = null }) {
         row.innerHTML = offers.map((o, i) => `<button type="button" class="dkv-kort" data-i="${i}">${codeHtml(o)}</button>`).join("");
         row.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => choose(Number(b.dataset.i), b)));
       }
-      mine.hidden = !code;
+      tid.hidden = leftMs == null || !picking;
+      if (leftMs != null) tid.textContent = protectionText(leftMs);
+      mine.hidden = !code || !lobby;
       reveal.set(code);
       // Nyss vald → syns en stund så att eleven hinner läsa den, sedan dold.
       if (code && hadCode === false) reveal.show(LOBBY_SHOW_MS);

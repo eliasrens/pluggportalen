@@ -2,13 +2,13 @@
 // Datakuppen (#652): HACKET på servern (functions/datakuppen-core.js
 // chooseTarget/guessCode/pickCode) mot Firestore-emulatorn – styrd klocka och
 // slump. Spec docs/UTVECKLINGSUPPDRAG_DATAKUPPEN.md §6:
-//   test 5   rätt kod → 15 % flyttas i EN transaktion, målet 30 s skydd; koden
-//            ligger kvar hela matchen (#719) – inga nya förslag, inget nytt val
+//   test 5   rätt kod → 15 % flyttas i EN transaktion, målet 30 s skydd och
+//            "Välj ny kod" (#832 §6.1 – återinfört efter #719)
 //   test 6   fel kod → inget flyttas, koden stryks
 //   test 7   samma mål igen (inte direkt efter) → samma koder minus strukna, ny ordning
-//   test 8   (#719) koden byts aldrig → efter skyddet hackar samma kod igen,
-//            strukna lockkoder ligger kvar
-//   test 9   mål med brandvägg → nekas (även manipulerat), valbart när skyddet gått ut
+//   test 8   målet bytte kod efter hacket → minnet mot målet börjar om
+//   test 9   mål med brandvägg → nekas (även manipulerat), valbart när skyddet
+//            gått ut; brandvägg under gissningen → tillbaka till målväljaren (#832)
 //   test 12  lockkoder ur listan, ungefär samma längd, aldrig någons aktuella
 //            kod, och inget i svaret/dokumenten visar vilken som är rätt
 //   §2       gissa utan Hack, mot ett annat mål, flera gånger, hacka skyddad
@@ -38,7 +38,7 @@ const rightIndex = (options, kod) => options.indexOf(kod);
 const wrongIndex = (options, kod) => options.findIndex((c) => c !== kod);
 
 describe("hacket (test 5–8)", () => {
-  it("test 5: Omar hackar Alma med rätt kod → Alma 85, Omar +15 i samma transaktion, skydd 30 s, koden kvar", async () => {
+  it("test 5: Omar hackar Alma med rätt kod → Alma 85, Omar +15 i samma transaktion, skydd 30 s, Välj ny kod", async () => {
     const s = await setup();
     const t = await chooseTarget(deps, "omar", { sid: s, targetUid: "alma" });
     assert.equal(t.result, "target");
@@ -52,23 +52,37 @@ describe("hacket (test 5–8)", () => {
     assert.equal(alma.protectedUntil.toMillis(), ctl.clock + DK_RULES.protectionMs);
     assert.deepEqual([alma.lastHit.kind, alma.lastHit.chest, alma.lastHit.byName, alma.lastHit.amount], ["steal", "hack", "Omar", 15]);
     const almaSelf = await self(s, "alma");
-    assert.ok(!almaSelf.offers?.length, "#719: inga nya kodförslag efter hacket");
-    assert.deepEqual([almaSelf.code, (await secret(s, "alma")).code], ["p4nnk4k4", "p4nnk4k4"], "koden ligger kvar");
+    assert.equal(almaSelf.offers.length, 4, "#832 §6.1: fyra nya kodförslag efter hacket");
+    assert.ok(!almaSelf.offers.includes("p4nnk4k4"));
+    assert.equal(almaSelf.offersExpiresAt.toMillis(), ctl.clock + DK_RULES.codePickMs);
+    assert.equal(almaSelf.kodbyte.orsak, "hack");
     const ev = (await events(s)).find((e) => e.chest === "hack");
     assert.deepEqual([ev.type, ev.uid, ev.victimUid, ev.amount, ev.victimName], ["steal", "omar", "alma", 15, "Alma"]);
     assert.equal((await self(s, "omar")).hack, null);
   });
 
-  it("test 5 (#719): ingen ny kod efter hacket – pickCode med index avvisas, utan index ger samma kod", async () => {
-    const s = await setup();
+  it("test 26 (#832 §6.1): den hackade väljer ny kod – index tar ett förslag, tiden ute → servern väljer", async () => {
+    const s = await setup({}, ["alma", "omar", "leo", "ines"]);
     const t = await chooseTarget(deps, "omar", { sid: s, targetUid: "alma" });
     await guessCode(deps, "omar", { sid: s, index: rightIndex(t.options, "p4nnk4k4") });
-    const before = (await secret(s, "alma")).codeVersion;
-    for (const index of [0, 3]) assert.equal(await code(pickCode(deps, "alma", { sid: s, index })), "failed-precondition");
-    ctl.clock += 60_000;
-    const r = await pickCode(deps, "alma", { sid: s });
-    assert.deepEqual([r.code, r.offers, r.auto], ["p4nnk4k4", null, undefined], "servern väljer aldrig åt eleven");
-    assert.deepEqual([(await secret(s, "alma")).code, (await secret(s, "alma")).codeVersion], ["p4nnk4k4", before]);
+    const offers = (await self(s, "alma")).offers;
+    const r = await pickCode(deps, "alma", { sid: s, index: 2 });
+    assert.equal(r.code, offers[2]);
+    const sec = await secret(s, "alma");
+    assert.deepEqual([sec.code, sec.codeVersion, sec.offers, sec.kodKannsAv, sec.tidigareKoder], [offers[2], 2, null, [], ["p4nnk4k4"]]);
+    assert.equal((await self(s, "alma")).code, offers[2]);
+    assert.equal((await self(s, "alma")).tidigareKoder, undefined, "räknare och historik bara på servern");
+    // Ett nytt hack, ingen väljer: tiden ute → servern väljer bland förslagen.
+    ctl.clock += DK_RULES.protectionMs;
+    await giveHack(s, "leo", 0);
+    const l = await chooseTarget(deps, "leo", { sid: s, targetUid: "alma" });
+    await guessCode(deps, "leo", { sid: s, index: rightIndex(l.options, offers[2]) });
+    const fresh = (await self(s, "alma")).offers;
+    ctl.clock += DK_RULES.codePickMs;
+    const auto = await pickCode(deps, "alma", { sid: s });
+    assert.equal(auto.auto, true);
+    assert.ok(fresh.includes(auto.code));
+    assert.equal((await secret(s, "alma")).codeVersion, 3);
   });
 
   it("test 6: fel kod → inget flyttas, 'Fel kod!' och koden stryks för just det paret", async () => {
@@ -117,32 +131,22 @@ describe("hacket (test 5–8)", () => {
     assert.equal((await chooseTarget(deps, "ines", { sid: s, targetUid: "alma" })).options.length, 3);
   });
 
-  it("test 8 (#719): samma kod hela matchen → efter skyddet lyckas ett nytt hack med samma kod; strukna ligger kvar", async () => {
+  it("test 8: målet byter kod efter hacket → minnet mot målet börjar om (nya lockkoder, inga strukna)", async () => {
     const s = await setup({}, ["alma", "omar", "leo"]);
     const t = await chooseTarget(deps, "omar", { sid: s, targetUid: "alma" });
     const w = t.options[wrongIndex(t.options, "p4nnk4k4")];
     await guessCode(deps, "omar", { sid: s, index: t.options.indexOf(w) });
-    // Leo knäcker Almas kod → skydd 30 s, koden kvar.
+    // Leo knäcker Almas kod → skydd 30 s, Alma väljer ny kod.
     await giveHack(s, "leo", 0);
     const l = await chooseTarget(deps, "leo", { sid: s, targetUid: "alma" });
     await guessCode(deps, "leo", { sid: s, index: rightIndex(l.options, "p4nnk4k4") });
-    // Under skyddet nekas Omar …
-    await giveHack(s, "omar", 0, { lastVictimUid: "leo" });
-    assert.equal(await code(chooseTarget(deps, "omar", { sid: s, targetUid: "alma" })), "failed-precondition");
-    // … när skyddet gått ut: samma koder minus den strukna, och samma rätta kod.
+    const ny = (await pickCode(deps, "alma", { sid: s, index: 0 })).code;
     ctl.clock += DK_RULES.protectionMs;
     await giveHack(s, "omar", 0, { lastVictimUid: "leo" });
     const again = await chooseTarget(deps, "omar", { sid: s, targetUid: "alma" });
-    assert.equal(again.options.length, 2, "den strukna lockkoden är fortfarande borta");
-    assert.ok(again.options.includes("p4nnk4k4") && !again.options.includes(w));
-    assert.deepEqual((await secret(s, "omar")).hacks.alma.struck, [w]);
-    const r = await guessCode(deps, "omar", { sid: s, index: rightIndex(again.options, "p4nnk4k4") });
-    assert.equal(r.result, "hacked");
-    // Leo minns koden och hackar igen efter nästa skydd (inte direkt efter = Omar var emellan).
-    ctl.clock += DK_RULES.protectionMs;
-    await giveHack(s, "leo", 0, { lastVictimUid: "omar" });
-    const l2 = await chooseTarget(deps, "leo", { sid: s, targetUid: "alma" });
-    assert.equal((await guessCode(deps, "leo", { sid: s, index: rightIndex(l2.options, "p4nnk4k4") })).result, "hacked");
+    assert.equal(again.options.length, 3, "inga strukna mot den nya koden");
+    assert.ok(again.options.includes(ny), "den nya koden är den rätta");
+    assert.deepEqual((await secret(s, "omar")).hacks.alma.struck, []);
   });
 });
 
@@ -157,15 +161,17 @@ describe("skydd och trygghet (test 9, §1.6)", () => {
     assert.equal((await chooseTarget(deps, "omar", { sid: s, targetUid: "alma" })).result, "target");
   });
 
-  it("test 9: målet startar en brandvägg medan hackaren gissar → hacket stoppas, inget flyttas", async () => {
+  it("test 9: målet startar en brandvägg medan hackaren gissar → avbrutet, inget flyttas (#832: hacket ligger kvar)", async () => {
     const s = await setup();
+    await setGold(s, "leo", 100); // någon annan går att hacka (annars liten mapp, §5.3)
     const t = await chooseTarget(deps, "omar", { sid: s, targetUid: "alma" });
     ctl.roll = rngFor("brandvagg");
     ctl.clock += 2_000;
     await openFile(deps, "alma", { sid: s, attemptId: await rightAnswer(s, "alma"), fileIndex: 0 });
     const r = await guessCode(deps, "omar", { sid: s, index: rightIndex(t.options, "p4nnk4k4") });
-    assert.equal(r.result, "protected");
+    assert.deepEqual([r.result, r.back], ["protected", true]);
     assert.equal((await gp(s, "alma")).gold, 100);
+    assert.equal((await gp(s, "omar")).pending.chest, "hack");
   });
 
   it("väljartiden ute → servern slumpar aldrig en skyddad, aldrig sig själv, aldrig någon med för lite data", async () => {
@@ -183,12 +189,12 @@ describe("skydd och trygghet (test 9, §1.6)", () => {
     }
   });
 
-  it("ingen kan väljas → Hack-filens fallback (Mapp +25 MB)", async () => {
+  it("ingen kan väljas → Hack-filens fallback (liten mapp +50 MB, #832 §5.3)", async () => {
     const s = await setup();
     await setGold(s, "alma", 100, { protectedUntil: Timestamp.fromMillis(ctl.clock + 60_000) });
     const r = await chooseTarget(deps, "omar", { sid: s, targetUid: null });
-    assert.deepEqual([r.result, r.file, r.gold], ["fallback", "mapp", 25]);
-    assert.ok((await events(s)).some((e) => e.chest === "mapp" && e.fallbackFrom === "hack"));
+    assert.deepEqual([r.result, r.file, r.gold], ["fallback", "liten_fil", 50]);
+    assert.ok((await events(s)).some((e) => e.chest === "liten_fil" && e.fallbackFrom === "hack"));
   });
 
   it("hack tar högst 15 % och aldrig allt", async () => {
@@ -314,12 +320,12 @@ describe("attacker mot hacket (§2)", () => {
     assert.equal((await gp(s, "alma")).gold, 100);
   });
 
-  it("målets kod byts mellan valet och gissningen → hacket misslyckas, inget flyttas", async () => {
+  it("målets kod byts mellan valet och gissningen → avbrutet, inget flyttas (#832 §7.3)", async () => {
     const s = await setup();
     const t = await chooseTarget(deps, "omar", { sid: s, targetUid: "alma" });
     await setCode(s, "alma", "r0b0t", 2);
     const r = await guessCode(deps, "omar", { sid: s, index: rightIndex(t.options, "p4nnk4k4") });
-    assert.equal(r.result, "changed");
+    assert.deepEqual([r.result, r.back, r.message], ["changed", true, "Alma bytte kod precis! Välj igen."]);
     assert.equal((await gp(s, "alma")).gold, 100);
   });
 });
