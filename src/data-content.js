@@ -22,6 +22,7 @@ import {
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { ensureStudentData } from "./data.js";
+import { newStudentDoc, studentCredentialsDoc } from "./klass-membership.js";
 import { createStudentAuthAccount, getSession } from "./auth.js";
 import {
   createClassProjectionStore,
@@ -268,17 +269,14 @@ export async function upsertStudent(studentId, { namn, username, password, avata
     return studentId;
   }
   // Ny elev: skapa Auth-kontot först; uid:t blir dokumentets id.
+  // Dokumentens form delas med admin/importera-elever.mjs (klass-membership, #831).
   const uid = await createStudentAuthAccount(username, password);
-  const uname = String(username).trim().toLowerCase();
-  await setDoc(doc(db, "students", uid), { namn, username: uname, avatarId: avatarId || "fox" });
+  await setDoc(doc(db, "students", uid), newStudentDoc({ namn, username, avatarId }));
   await ensureStudentData(uid, avatarId);
   // Spara lösenordet för läraren. Aldrig kastande: före regel-deployen nekas
   // skrivningen, och då ska kontoskapandet ändå lyckas (lösenordet blir "okänt").
-  await setDoc(doc(db, "studentCredentials", uid), {
-    username: uname,
-    password: String(password),
-    updatedAt: serverTimestamp(),
-  }).catch((err) => console.warn("Kunde inte spara elevens lösenord:", err?.message || err));
+  await setDoc(doc(db, "studentCredentials", uid), studentCredentialsDoc({ username, password }, serverTimestamp()))
+    .catch((err) => console.warn("Kunde inte spara elevens lösenord:", err?.message || err));
   return uid;
 }
 

@@ -177,6 +177,26 @@ node admin/backfill-projection-names.mjs --commit  # fyller saknat namn
 Idempotent (bara namnlösa poster rörs, källa = `students/{uid}.namn`), säkert att
 köra om. Kör helst mot emulatorn först (§5). Kräver ingen regel-deploy.
 
+**Importera klasser + elever ur en CSV (#831).** Skapar klasser och elevkonton
+exakt som lärarsidans "Skapa klass" + "Lägg till elev" (formen på dokumenten
+delas via `src/klass-membership.js`). Filen: `klass,namn,anvandarnamn,losenord`
+(UTF-8, rubrikrad, allt läses som text). Lägg den i `admin/import/` – mappen är
+.gitignore:ad, checka ALDRIG in elevdata – och radera den när importen är klar.
+
+```bash
+node admin/importera-elever.mjs --fil admin/import/elever.csv               # TORRKÖRNING
+node admin/importera-elever.mjs --fil admin/import/elever.csv --kor         # skapar (kräver "ja" mot live)
+node admin/importera-elever.mjs --angra --batch ak3-2026-11 [--kor]         # tar bort exakt importen
+```
+
+Allt kontrolleras innan något skrivs (rubrik, tomma fält, dubbletter, tecken,
+lösenordslängd, krockar med befintliga konton). Samma namn två gånger i samma
+klass blir "namn + siffrorna i användarnamnet". Idempotent: en ny körning hoppar
+över konton som redan finns (samma namn, samma klass). Märker skapade klasser och
+elever med `importBatch` (standard `ak3-2026-11`, byt med `--batch`). Lösenord
+skrivs aldrig ut. Kör mot emulatorn först (§5). Test: `npm run test:import`.
+Rapport från första körningen: docs/QA-RAPPORT-elevimport-ak3.md.
+
 `seed/seed.html` (webbläsar-seedern) är **avstängd** – den kan inte skriva mot
 stängda regler eller skapa Auth-konton.
 
@@ -205,6 +225,7 @@ npm run test:rules   # regel-tester mot Firestore-emulatorn (bevisar §3.4)
 npm run test:e2e     # auth→regler→data end-to-end mot emulatorerna
 npm --prefix functions install   # en gång (Cloud Functions-beroenden)
 npm run test:functions           # updateStudentLogin + Guldrushen mot functions+auth+firestore
+npm run test:import              # elevimporten (admin/importera-elever.mjs) mot auth+firestore
 ```
 
 Båda startar/river emulatorerna själva via `firebase emulators:exec`. Kräver

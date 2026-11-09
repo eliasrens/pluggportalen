@@ -35,7 +35,7 @@ import {
   isLoggedIn,
 } from "./auth.js";
 import { isMultiItem } from "./shop-items.js";
-import { defaultFarm } from "./farm-core.js";
+import { defaultStudentData } from "./klass-membership.js";
 import { createTtlCache } from "./class-projection.js";
 import { clearContentCache, clearProjectionCache } from "./data-content.js";
 import { clearClassCache } from "./data-classes.js";
@@ -115,29 +115,8 @@ export function clearStudentDataCache() {
   _studentDataCache.clear();
 }
 
-export function defaultStudentData(avatarId) {
-  return {
-    coins: 0,
-    xp: 0, // kumulativt erfarenhets-XP (nivån härleds ur detta – se leveling.js)
-    progress: {}, // { [areaId]: { [gamemode]: { completed, bestScore, stars, lastPlayed } } }
-    questionRotation: {}, // { [areaId]: { [mode]: [frågenycklar serverade i pågående varv] } } – se question-rotation.js
-    ownedItems: [], // shop-sak-id:n (binärt "ägd" – single-kategorier & legacy)
-    ownedCounts: {}, // { [id]: antal } för multi-saker (möbler/dekor) – se buyItem/ownedCount
-    avatarItems: [], // burna klädsaker (delmängd av ownedItems)
-    room: { placements: {} }, // { [itemId]: { x, y } }
-    garden: { placements: {} }, // utomhussaker placerade runt huset i ute-vyn – { [key]: { x, y } }
-    husSkalId: null, // aktivt husskal (byter husets exteriör); null = default-stugan
-    husLast: false, // true = huset är låst → klasskamrater ser "🔒 Låst" i stället för rummet
-    avatarId: avatarId || "fox",
-    avatarChosen: false, // sätts true när eleven själv valt en grundavatar
-    // Gården (epic gård-expansion, #327): { barnLevel, gardenTier, gardenSlots,
-    // inventoryHarvest, placedAnimals } – nivåerna är SPARADE FÄLT (se
-    // DATAMODELL.md, till skillnad från rummens härledda roomUpgradeCount).
-    // Logik i data-farm.js (Firestore) + farm-core.js (ren kärna). Bakåtkompat:
-    // gamla dokument utan `farm` default-mergas vid läsning (farmFromData).
-    farm: defaultFarm(),
-  };
-}
+// Standardvärdena bor i klass-membership.js (delas med admin/importera-elever.mjs, #831).
+export { defaultStudentData };
 
 /** Skapar studentData-dokumentet om det saknas. Returnerar datan. */
 export async function ensureStudentData(studentId, avatarId) {

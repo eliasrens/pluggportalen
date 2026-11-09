@@ -11,6 +11,7 @@
 
 import * as data from "./data.js";
 import { slugify } from "./validate.js";
+import { nextClassOrder } from "./klass-membership.js";
 import { el, esc, icon } from "./teacher-shared.js";
 import { credentialsPanel, usernamePrefix } from "./teacher-class-accounts.js";
 import { renderAccountEditor } from "./teacher-login-cards.js";
@@ -57,7 +58,7 @@ export function renderCreateClass(ctx, store, host) {
       newMsg.innerHTML = `<div class="msg error">Det finns redan en klass som heter "${esc(name)}".</div>`;
       return;
     }
-    const nextOrder = store.classes.reduce((m, c) => Math.max(m, Number(c.order) || 0), 0) + 1;
+    const nextOrder = nextClassOrder(store.classes);
     const submitBtn = form.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
     const cls = { id, name, order: nextOrder, studentIds: [] };
