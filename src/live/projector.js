@@ -32,10 +32,12 @@
 // efter slut (då bara förklaringen – låst). Lobbyn har egna nämnarfält.
 // RADERA (#543): lobbyns "Radera matchen" (bara ej startad) → tillbaka till Live.
 // Vy-post (formatets views): { id, label, create(host, { st, colors, sound,
-//   actions, screen, deps }) → { update, destroy }, only2?: bara två klasser,
+//   music, actions, screen, deps }) → { update, destroy }, only2?: bara två klasser,
 //   finale?: vyn visar själv slutet (ingen vinnarskärm), preload?() }
 //   actions = skalets lärarhandlingar (start/cancel/finish …), deps = datalagret
-//   ovan (förhandsvisning: formatets låtsasdata), screen = elevskärmen.
+//   ovan (förhandsvisning: formatets låtsasdata), screen = elevskärmen,
+//   music = skalets proj-music (#839: duck(name) och skala(k) för en vy som vill
+//   sänka musiken en stund – Kurragömmas gömfas).
 // Formatets projectorViews()-modul kan sätta ownControls: true – vyn har egna
 // lärarkontroller (Snilleblixten #559: Avsluta spelet m.m.), skalets
 // "Avsluta" göms. ownTimer: true – vyerna visar matchens klocka själva
@@ -358,7 +360,7 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
         mountKind(kind, key, () => ui.createLobby(stage, { st, colors, modeName: mode ? mode.displayName : s.gameMode, actions, say, readonly: screen, sound, deps: d }));
       } else if (kind === "game") {
         const v = views().find((x) => x.id === viewId);
-        mountKind(kind, key, () => v.create(stage, { st, colors, sound, actions, screen, deps: d }));
+        mountKind(kind, key, () => v.create(stage, { st, colors, sound, music, actions, screen, deps: d }));
       } else if (kind === "winner") {
         const fin = toMs(s.finishedAt);
         const celebrate = sawLive || (fin != null && d.now() - fin < CELEBRATE_MS);

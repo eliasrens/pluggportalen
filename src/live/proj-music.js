@@ -29,10 +29,12 @@
 //
 // API
 //   createMusic({ sound, key? }) → { on, unlocked(), toggle() → on, setOn(on),
-//     mute(m), load(music), update({ phase, msLeft }), duck(name), destroy() }
+//     mute(m), load(music), update({ phase, msLeft }), duck(name), skala(k), destroy() }
+//     skala(k)     vyns egen faktor 0–1 på matchnivån (Kurragömma #839: lägre
+//                  volym under gömfasen) – 1 = formatets nivå; nollställs vid load
 //     load(music)  formatets { src, level?, lobby? } – hämtar filen (lat)
 //     update(...)  10 ggr/s ur skalets timer: fas + ms kvar (null = ingen klocka)
-//   musicTarget({ on, muted, phase, msLeft, level, lobby }) → { gain, fade }
+//   musicTarget({ on, muted, phase, msLeft, level, lobby, skala? }) → { gain, fade }
 //   duckFor(name) → { depth, attack, hold, release } | null
 //   nextDuck(state, plan, now) → { state, points: [{ t, v }] }
 // ============================================================================
@@ -61,10 +63,10 @@ const DUR_S = {
 const clamp01 = (x) => Math.min(1, Math.max(0, Number(x) || 0));
 
 /** Musikens målnivå just nu (ren). msLeft null = sessionen saknar matchklocka. */
-export function musicTarget({ on, muted = false, phase, msLeft = null, level = DEFAULT_LEVEL, lobby = LOBBY_LEVEL }) {
+export function musicTarget({ on, muted = false, phase, msLeft = null, level = DEFAULT_LEVEL, lobby = LOBBY_LEVEL, skala = 1 }) {
   if (!on || muted) return { gain: 0, fade: FADE_TOGGLE_S };
   if (phase === "lobby") return { gain: clamp01(level) * clamp01(lobby), fade: FADE_TOGGLE_S };
-  if (phase === "live" && (msLeft == null || msLeft > 0)) return { gain: clamp01(level), fade: FADE_IN_S };
+  if (phase === "live" && (msLeft == null || msLeft > 0)) return { gain: clamp01(level) * clamp01(skala), fade: FADE_IN_S };
   // countdown (3-2-1-KÖR!), ended (00:00), finished, cancelled
   return { gain: 0, fade: phase === "countdown" ? FADE_TOGGLE_S : FADE_OUT_S };
 }
@@ -104,6 +106,7 @@ export function createMusic({ sound, key = MUSIC_KEY }) {
   let chain = null; // { ctx, src, duck, fade }
   let last = { phase: "lobby", msLeft: null };
   let target = 0;
+  let skala = 1; // vyns faktor (skala) – Kurragömma sänker under gömfasen
   let duckState = null;
   let stopT = 0;
   let dead = false;
@@ -152,7 +155,7 @@ export function createMusic({ sound, key = MUSIC_KEY }) {
 
   // Målnivån → mjuk ramp. Tyst en stund → källan stoppas (startar om vid behov).
   function apply() {
-    const t = musicTarget({ on, muted, ...last, level: music?.level ?? DEFAULT_LEVEL, lobby: music?.lobby ?? LOBBY_LEVEL });
+    const t = musicTarget({ on, muted, ...last, level: music?.level ?? DEFAULT_LEVEL, lobby: music?.lobby ?? LOBBY_LEVEL, skala });
     if (t.gain > 0) {
       clearTimeout(stopT);
       stopT = 0;
@@ -211,6 +214,7 @@ export function createMusic({ sound, key = MUSIC_KEY }) {
     load(m) {
       if (!m?.src || music?.src === m.src) return;
       music = { level: DEFAULT_LEVEL, lobby: LOBBY_LEVEL, ...m };
+      skala = 1;
       bytes = fetch(m.src).then((r) => {
         if (!r.ok) throw new Error(`${m.src}: ${r.status}`);
         return r.arrayBuffer();
@@ -223,6 +227,13 @@ export function createMusic({ sound, key = MUSIC_KEY }) {
       apply();
     },
     duck,
+    /** Vyns faktor 0–1 på matchnivån (1 = formatets nivå). Mjuk ramp som in-/uttoningen. */
+    skala(k) {
+      const v = clamp01(k);
+      if (v === skala) return;
+      skala = v;
+      apply();
+    },
     destroy() {
       dead = true;
       off();
