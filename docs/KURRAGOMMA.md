@@ -337,16 +337,144 @@ efter test i klassrum (etapp 2). Det är där siffrorna ska bekräftas.
    start? Med långsamma quizfrågor (15 s) blir 43–54 % gömda kvar, alltså över 40 %. Ska
    balansen ställas för multiplikation eller för quiz?
 4. Ska en tyst elev (45 s utan svar) få vissla oftare än den som svarar fel (200 s)?
-5. **En deltagande elev får anropa `kgStarta` och `kgTick`** (§9.1) – de gör bara det lata
+5. **En deltagande elev får anropa `kgStarta` och `kgTick`** (§10.1) – de gör bara det lata
    fasbytet och tick-frågorna, som ändå körs i varje elevanrop. Det gör att en match med en
    projektor som tappat kontakten ändå rullar vidare. Är det okej, eller ska bara läraren få?
 6. **Hittad-händelsen bär namnen** (sökarens och den hittades, enligt `showNames`) och
    gömställets plats, eftersom den hittade just blivit sökare och platsen inte längre är hemlig
-   (§9.4). Visslingen bär aldrig namn. Okej?
+   (§10.4). Visslingen bär aldrig namn. Okej?
+
 
 ---
 
-## 9. Servern (del C, #838)
+## 9. 3D-scenen (del B, #837)
+
+Scenen är en fristående modul i `src/live/formats/kurragomma/scen/` som D monterar i en
+container. Den körs utan server i `preview/preview-kurragomma-scen.html` (`?2d=1` tvingar
+2D-reserven, `?lage=projektor`, `?niva=0|1|2`, `?namn=0`, `?auto=0`) och
+`preview/preview-kurragomma-prestanda.html` (30 figurer, fps, ritanrop, nivå).
+
+### 9.1 Filerna
+
+| Fil | Innehåll |
+| --- | --- |
+| `scen/kg-scen.js` | **API:t** (§9.2): tillståndet, bildrutans loop, pausen vid dold flik, nivåvakten och bytet till 2D |
+| `scen/kg-ritare-3d.js` | 3D-ritaren: sätter ihop kg-tre, kg-figur, kg-effekter och kg-kamera till ritar-gränssnittet |
+| `scen/kg-2d.js` | **2D-reserven**: samma ritar-gränssnitt på en vanlig canvas (ovanifrån) |
+| `scen/kg-tre.js` | `laddaThree()` – **den enda** platsen som når `src/vendor/three/` (med `import()`); renderer, ljus, dimma, gradientkartan |
+| `scen/kg-varld.js` | Ön och alla föremål ur `kg-karta.js` sammanslagna till få ritanrop (vertexfärger, kontur, blob-skuggor) |
+| `scen/kg-modeller.js` | Modellerna per `typ` som ren data (ingen three.js), paletten ur `art-style.js`/`art-gard.js` |
+| `scen/kg-figur.js` | Figurerna: billboard-sprite med avatarbilden, studs, namnskylt, blob-skuggor (ett InstancedMesh) |
+| `scen/kg-avatar-bild.js` | `avatarMarkup(avatarId, avatarItems)` → **en canvas per elev** (cache), delas av 3D och 2D |
+| `scen/kg-effekter.js` | Vissling (ringar, noter, "Vissling!", sökarens markör), hittad (konfetti), gömställena i finalen |
+| `scen/kg-kamera.js` | Ren kameralogik: tredjeperson, "aldrig inne i ett träd", projektorns rotation och glidning |
+| `scen/kg-rorelse.js` | Ren rörelselogik: steget, "gå dit", interpoleringen av sökarnas positioner |
+| `scen/kg-styrning.js` | Tangenter, dra, joystick, tryck på marken, fokusregeln |
+| `scen/kg-niva.js` | Nivåerna Låg/Mellan/Hög, automatisk sänkning, localStorage (try/catch), valet 3D/2D |
+| `scen/kg-overlagg.js` | DOM ovanpå bilden: pilen i kanten, hjärtslagets kant, notisraden |
+| `scen/kurragomma-scen.css` | Klasserna `kg-*` (D laddar filen) |
+| `src/vendor/three/` | three.js **r170** (`three@0.170.0`, MIT, `LICENSE`), bara `three.module.min.js` – inget CDN, inte i `package.json` |
+| `test/live-kurragomma-scen.test.js` | Rörelsen, kameran, nivåerna, modellerna, filerna (≤ 400 rader, bara `import()`, inga Emoji 13+) |
+| `test/live-kurragomma-scen-reserv.test.js` | §13.4: hela `kg-scen.js` mot en mini-DOM utan WebGL → 2D, tangenter, fokusregeln |
+| `test/live-kurragomma-kamera.test.js` | Kameran mot modellerna (raycast med three): aldrig inne i ett föremål, figuren aldrig inne i ett fast föremål |
+
+`test/live-formats.test.js` bevisar att `src/vendor/` aldrig nås statiskt från `app.js`, och att
+`kg-tre.js` är den enda filen i `src/` som laddar three (dynamiskt).
+
+### 9.2 API:t (`kg-scen.js`)
+
+```js
+import { skapaKgScen } from "./scen/kg-scen.js";
+const scen = await skapaKgScen({
+  yta,                 // containern (får klassen kg-scen; canvasen fyller den)
+  lage: "elev-gom",    // elev-gom | elev-gomd | elev-sokare | projektor
+  roster,              // createAvatarRoster(...) – scenen läser roster.info(uid) och lyssnar på onChange
+  jagUid: "jag",       // den egna elevens uid (för avatarbilden)
+  namnPa: true,        // lärarens namninställning (skyltar ovanför sökare)
+  tvinga2d: false,     // ?2d=1
+  niva: null,          // 0–2, annars localStorage, annars Mellan
+  karta: ON,           // valfri, standard Ön
+});
+```
+
+| Anrop | |
+| --- | --- |
+| `scen.typ` | `"3d"` eller `"2d"` – D behöver inte bry sig, API:t är detsamma |
+| `scen.lage(l?)` | Lägena: **elev-gom** fri rörelse (tangenter, joystick, tryck på marken, dra), **elev-gomd** stilla, bara titta runt, **elev-sokare** fri rörelse, **projektor** ovanifrån med rotation och glidning; ingen egen figur |
+| `scen.jag(p?)` | Sätt startplatsen `{ x, z, yaw }` (ur `gomStart`, eller gömstället efter en omladdning) / läs var figuren står. Kameran hoppar dit |
+| `scen.skydd()` | Mätarens värde 0–3 (`skydd` ur motorn). Händelsen `"skydd"` när det ändras |
+| `scen.on("flytt", fn)` | `{ x, z, yaw }` varje bildruta figuren rör sig – D skriver `pos` (högst 5/s, se `POS_*`) |
+| `scen.sokare([{ uid, x, z, yaw, t, namn }])` | Sökarnas positioner ur rörelsekanalen (`t` = avsändarens `Date.now()`; scenen räknar om till sin klocka). Ritas ~150 ms bakåt och interpoleras. Skylt med namn bara när namn är på |
+| `scen.sokareBort(uid)` | |
+| `scen.vissling({ x, z })` | Den **ungefärliga** platsen. Projektorn: ringar, noter, "Vissling!" och en glidning. Sökaren: markör som syns genom dimman i 4 s och en pil i skärmkanten när platsen är utanför bilden. Gömda: inget (D visar raden överst) |
+| `scen.hopp()` | Den egna figuren hoppar till (egen vissling) |
+| `scen.hittad({ x, z })` | Konfetti; "Hittad!" och glidning på projektorn |
+| `scen.gomstallen([{ uid, x, z }])` | Finalen på projektorn: elevernas figurer på sina gömställen med en gyllene ring |
+| `scen.hjartslag(bool)` | Kanten pulserar. D räknar med `hjartslag(gomstalle, sokare)` ur motorn |
+| `scen.namnPa(bool)` | |
+| `scen.niva(n?)`, `scen.nivaInfo()` | Nivån 0–2; `{ niva, namn, fps, ritanrop, typ }` |
+| `scen.on("niva" \| "reserv", fn)` | Automatisk sänkning (`{ niva, namn, automatisk }`), bytet till 2D (`{ typ, fps }`) |
+| `scen.paus(bool)`, `scen.destroy()` | Loopen pausar själv när fliken är dold |
+
+Scenen äger **joysticken**, pilen i kanten, hjärtslagskanten och notisraden vid sänkning.
+Mätaren, låsknappen, timern och frågepanelen är D:s (utanför ytan eller ovanpå den).
+Tangenterna styr inte figuren när ett formulärfält har fokus (`formularHarFokus`).
+
+### 9.3 Val och avvikelser
+
+- **Kameran inne i träd/vägg: kameran dras in** (billigast: ingen genomskinlighet, inga
+  materialbyten, ingen sortering av genomskinliga ytor). `kg-kamera.js` har en tabell per typ
+  med **modellens verkliga fotavtryck** (cirkel + höjd, ladan en vriden låda) och klipper
+  sträckan figur→kamera mot dem med 0,45 m marginal (near-planet), minst 2 m. Står figuren
+  intill ett hinder och kameran skulle hamna i det, lyfts kameran över det. Den mjuka följningen
+  (lerp i `kg-ritare-3d.js`) klipps en gång till, så inte heller mellanlägena skär genom en krona.
+  Undantaget är **lov-föremål** figuren står inne i (buskage, höstack, granen, eken): de hindrar
+  inte, och i stället ritas just det föremålet halvgenomskinligt (de ligger som egna meshar – 6 st).
+  `test/live-kurragomma-kamera.test.js` bygger modellerna med three och raycastar: kameran och
+  near-planet är aldrig inne i någon del (statiskt och under en slumpvandring).
+- **Modellerna ryms i motorns kollisionscirklar** (A:s geometri är kanon): ladan 4,6 × 3,8 m
+  (hörnet 2,98 < fast 3,3), stenen 0,9 × fast, vagnen, vedtraven och tältet nedskalade, buskagens
+  lövklot inom `r`, och trädkronorna börjar över huvudhöjd. Bron har ingen kollision (man går på
+  den och kan stå i en räckesstolpe) – det är motorns val, inte scenens.
+- **Ritanrop:** världen är ett vertexfärgat `MeshToonMaterial`-mesh + ett konturmesh (bakåtvänd,
+  0,085 m större kopia per del) + dekor (+ kontur) + ett skuggmesh + lov-föremålen (6 × 2).
+  Figurerna är en sprite var (egen textur = eget ritanrop) + en skylt var + **ett** instanserat
+  skuggmesh. **Prestandasidan med 30 figurer på Mellan: 60–62 ritanrop** (gränsen är 150).
+- **Nivåvakten gäller bara 3D.** I 2D-reserven mäts fps för `nivaInfo`, men nivån sänks inte och
+  inget sparas i `localStorage` – reserven är redan sista steget.
+- **Nivåerna:** Låg ×0,6 utan kontur och utan dekor (blommor, moln, stigen), Mellan ×1, Hög upp
+  till skärmens `devicePixelRatio` (högst 2). "Färre träd" på Låg är **inte** gjort: träden är
+  spelföremål (kollision, skydd, platsnamn) och får inte försvinna ur bilden; dekoren tas bort i
+  stället. Sänkning efter 3 s under 24 fps med en rad till eleven; Låg under 15 fps i 3 s → 2D.
+  Valet sparas i `localStorage` (`pp:kg:niva`) i try/catch.
+- **2D-reserven** (`kg-2d.js`) delar karta, rörelse, kollision, skydd, interpolering, styrning
+  och API med 3D – bara ritandet skiljer. Startar utan WebGL, vid `?2d=1`, om three inte kan
+  laddas, eller när Låg ligger under 15 fps.
+- **Avatarbilden:** `avatarMarkup` läggs i ett `<foreignObject>` med CSS-reglerna för
+  `.avatar-figure`/`.af-*` ur sidans stilmallar (reserv: en inbyggd kopia av slot-måtten) och
+  ritas till en 256 × 308-canvas. Kan webbläsaren inte rita foreignObject till canvas (Safari)
+  ritas figuren utan kläder (`avatarSvg`) – aldrig tom.
+- **Figurhöjd** 2,6 m (skissen hade 3,4) så att figurerna står i proportion till brunnen och ladan.
+- Ingen kollision mellan figurer (spec §3). En sökare som går rakt in i kameran kan täcka bilden ett ögonblick.
+
+### 9.4 Uppmätt på den här maskinen
+
+Utvecklingsmaskinen saknar GPU: Chromium faller tillbaka på **SwiftShader (mjukvaru-WebGL)**, så
+siffrorna säger inget om elevernas HP-datorer – bara att allt renderar och att ritanropen håller:
+
+| Sida | Nivå | fps | Ritanrop |
+| --- | --- | --- | --- |
+| prestanda (30 figurer, elevvy 1366 × 768) | Mellan | **1–7** (SwiftShader) | **60–62** |
+| scen (6 robotar, elevvy) | Mellan | 2 | 27–41 (med effekter) |
+| scen 2D-reserven | Låg | 39–47 | – |
+
+Den automatiska sänkningen gick här hela vägen Mellan → Låg → 2D inom ~8 s, vilket är avsett
+beteende på en dator utan GPU. **Elias kör prestandasidan på elevernas HP-datorer** (spec §4.4) –
+med inbyggd grafik förväntas Mellan ligga klart över 30 fps vid 60 ritanrop.
+
+---
+
+## 10. Servern (del C, #838)
 
 Servern avgör allt som påverkar spelet (spec §5): rollerna, gömställena, rättningen,
 visslingarna, sökningen, poängen och slutet. Klienten skriver **aldrig** i `kg*`-samlingarna
@@ -364,10 +492,10 @@ skriver om importvägarna). Filerna:
 | `functions/kurragomma-rtdb.js` | Realtime Database via Admin SDK (`kgDatabaseUrl`) |
 | `functions/index.js` | exporten (`kurragommaCall`, `KG_OPTS`: europe-west1, 512 MiB, 80 samtidiga, högst 4 instanser) |
 | `firestore.rules` | `kgFormat`, `kgSettingsOk`, `kgSessionCreateOk/UpdateOk`, match `kg*`, `liveCoinPlayerOk` |
-| `database.rules.json` | Realtime Database-reglerna (§9.4) |
-| `src/live/formats/kurragomma/kg-rorelse.js` | rörelsekanalen i klienten (§9.5) |
+| `database.rules.json` | Realtime Database-reglerna (§10.4) |
+| `src/live/formats/kurragomma/kg-rorelse.js` | rörelsekanalen i klienten (§10.5) |
 
-### 9.1 Anropen (callables, `europe-west1`)
+### 10.1 Anropen (callables, `europe-west1`)
 
 Alla kräver inloggning. **Lat fasbyte**: varje anrop kör `redo` först – startar matchen om
 `kgFas` saknas (KÖR! har kommit), byter till letfasen när `kgGomSlut` passerats, och placerar
@@ -384,9 +512,9 @@ olåsta gömmare efter `kgGomSlut + LAS_MARGINAL_MS` (2 s). Fel kastas som `Http
 | `kgSvara({ sid, attemptId, factorA, factorB, answer, choiceIndex?, q?, year? })` | deltagare, letfasen (en gömmare i gömfasen nekas; en sökare får ladda under blundandet) | rättas som kistspelen (`gradeMult`/`gradeQuiz`, `answers/{attemptId}` för statistiken, `pickNextQ`); `svarsEffekt` ger poäng/laddning/vissling. Vid vissling: `visslingsplats` (osäkerhet `VISSLING_OSAKERHET_M`), `platsNamn` på den ungefärliga platsen, `kgEvents` + `hand`. Samma `attemptId` igen → samma svar (`igen: true`). | `{ attemptId, correct, correctAnswer, nextQ, poang, laddningar, vissling, plats?, correctYear? }` |
 | `kgLeta({ sid, x, z })` | sökare, letfasen | **en transaktion**: `kontrolleraSokning` (laddning, 2 s spärr, rimlighet från startpunkten/senaste sökningen), `sok` mot alla gömda (`kgSecret.gomd == true`), varje hittad blir sökare (`gorTillSokare`: `poangVidHittad`, `laddningarNySokare`, startpunkt = gömstället), sökaren får `poangForHittad` per hittad. Efteråt `nySokare` + `hittad`-händelser i RTDB; en miss ger `miss`-händelse högst var `FLODE_MISS_SPARR_MS`. | `{ hittade: [{ uid, namn, x, z, plats }], laddningar, poang, plats, flode }` |
 | `kgTick({ sid })` | som `kgStarta` (projektorn var `TICK_MS` = 5 s; en deltagare får också) | letfasen: tystnadsregeln, "alltid en sökare", `hand`-städning; slutet (`arSlut`: tiden ute eller alla hittade) → `kgAvsluta` internt. | `{ fas, klart, visslade, nySokare, rensade }` eller `{ fas, klart: true, result }` |
-| `kgAvsluta({ sid })` | läraren som styr matchen när som helst; en deltagare först när tiden är ute, alla är hittade eller matchen redan är avslutad | `status: "finished"` + `finishedAt`, `result` på sessionen (§9.3), `klar: true` + sluttotaler i `kgPlayers`, tar bort `/kg/{sid}`. Idempotent (`redan`). | `{ result, redan }` |
+| `kgAvsluta({ sid })` | läraren som styr matchen när som helst; en deltagare först när tiden är ute, alla är hittade eller matchen redan är avslutad | `status: "finished"` + `finishedAt`, `result` på sessionen (§10.3), `klar: true` + sluttotaler i `kgPlayers`, tar bort `/kg/{sid}`. Idempotent (`redan`). | `{ result, redan }` |
 
-### 9.2 Datamodellen i Firestore (spec §5.1)
+### 10.2 Datamodellen i Firestore (spec §5.1)
 
 Tider lagras som **ms-tal på serverns klocka**, utom `kgGomSlut`/`kgLetStart` (Timestamp, som
 kärnans `startedAt`). `letStart = kgGomSlut` (inte tiden då fasbytet råkade köras).
@@ -410,7 +538,7 @@ kärnans `startedAt`). `letStart = kgGomSlut` (inte tiden då fasbytet råkade k
 - Kärnans `players/{uid}` (närvaropulsen `lastSeenAt`) och `answers/{attemptId}` (statistiken) används som
   i de andra kistspelen.
 
-### 9.3 Resultatet (`result`, spec §10–§11.2)
+### 10.3 Resultatet (`result`, spec §10–§11.2)
 
 ```
 { format: "kurragomma", winner: null, draw: false, startMs, letStartMs, slutMs,
@@ -426,7 +554,7 @@ kärnans `startedAt`). `letStart = kgGomSlut` (inte tiden då fasbytet råkade k
 `placering` (delad). `rewards` räknas på servern ur `rewardRader(rader)` och kvittona skrivs av klienten
 (`withRewards`, regeln `liveCoinPlayerOk` kontrollerar mot `kgPlayers.ratt`).
 
-### 9.4 Realtime Database (`/kg/{sid}`, spec §5.3)
+### 10.4 Realtime Database (`/kg/{sid}`, spec §5.3)
 
 | Väg | Skrivs av | Innehåll |
 | --- | --- | --- |
@@ -446,7 +574,7 @@ servern når den med Admin SDK via `kgDatabaseUrl()`: `KG_DATABASE_URL` (functio
 `firebase emulators` laddar `database.rules.json` i) → `FIREBASE_CONFIG.databaseURL` →
 `https://{projekt}-default-rtdb.europe-west1.firebasedatabase.app` (= prod-adressen). Testerna kör mot emulatorn.
 
-### 9.5 Rörelsekanalen i klienten (`kg-rorelse.js`)
+### 10.5 Rörelsekanalen i klienten (`kg-rorelse.js`)
 
 `skapaRorelsekanal({ sid, uid, lage: "rtdb" | "lokal", app, url?, sdk?, buss?, nu? })` →
 `{ start(), skickaPos({ x, z, yaw }) → bool, paPos(cb), paHandelse(cb), paStatus(cb), stang() }`.
@@ -461,7 +589,7 @@ servern når den med Admin SDK via `kgDatabaseUrl()`: `KG_DATABASE_URL` (functio
   demolägets "server" (D) skriver via `buss.server`, varje robot/elev har sin `kanalFor(uid)`.
   Samma gränssnitt, samma filter.
 
-### 9.6 Matchklockan (spec §0.1)
+### 10.6 Matchklockan (spec §0.1)
 
 Ingen kärnändring. `buildSessionDoc` (`live-core.js`) sätter `durationSeconds` ur `durationMin` och sprider
 **sedan** formatets `buildSessionFields`, så Kurragömma sätter `durationSeconds = matchSekunder({ gomtid, speltidMin })`
@@ -469,9 +597,9 @@ själv (E). Kärnans klocka (`sessionTimes`, `phaseAt`, `endsAt`) täcker då g�
 `test/live-kurragomma-klocka.test.js` visar det för ett Kurragömma-likt format och att Klassmatchens,
 Guldrushens och Meteorstormens klocka är oförändrad.
 
-### 9.7 Deployordning
+### 10.7 Deployordning
 
-Realtime Database finns redan i prod (`pluggportalen-so-2026-default-rtdb`, europe-west1, §9.4) –
+Realtime Database finns redan i prod (`pluggportalen-so-2026-default-rtdb`, europe-west1, §10.4) –
 den skapas inte igen.
 
 1. `firebase deploy --only firestore:rules,database` (Firestore-grenen + `database.rules.json` – låser upp RTDB).
@@ -482,7 +610,7 @@ den skapas inte igen.
 Reserv: pekar `FIREBASE_CONFIG.databaseURL` i prod på fel instans, sätt
 `KG_DATABASE_URL=https://pluggportalen-so-2026-default-rtdb.europe-west1.firebasedatabase.app` i `functions/.env`.
 
-### 9.8 Kvoten – uppskattning för 10 min och 25 elever (spec §5.5)
+### 10.8 Kvoten – uppskattning för 10 min och 25 elever (spec §5.5)
 
 Antaganden: ~1 000 svar (25 elever × ~8 s per fråga, men inte alla svarar hela tiden), ~100 sökningar,
 120 ticks (var 5:e s), 20 gömda som mest, sessionen skrivs ~5 gånger (start, letfas, placering,
@@ -503,7 +631,7 @@ Realtime Database: `pos` – i snitt ~8 sökare × ≤ 2 skrivningar/s (filtret)
 `status` försumbart. Serverns tick-läsning (`roll` + `pos`) ≈ 120 × 1 kB. Totalt under 20 MB per match –
 gratisnivån (10 GB/mån) räcker för hundratals matcher. Slut-QA mäter.
 
-### 9.9 Antaganden och beslut (del C)
+### 10.9 Antaganden och beslut (del C)
 
 - **Lat fasbyte överallt**: `kgTick` behövs inte för att matchen ska gå framåt, bara för tystnaden,
   "alltid en sökare", städningen och slutet. Därför får även en deltagare anropa `kgStarta`/`kgTick` (§8 fråga 5).
@@ -520,9 +648,9 @@ gratisnivån (10 GB/mån) räcker för hundratals matcher. Slut-QA mäter.
 - **`rewards` räknas på servern** (`meteorstorm-mynt.js`), `rank` = `placering` (delad).
 - **Gömtiden är högst 60 s** (`GOMTIDER_S`), så fasbytet kommer tidigt; e2e-testet skapar matchen i
   gömfasen i samma test som använder den.
-- **Ingen kärnändring för klockan** (§9.6).
+- **Ingen kärnändring för klockan** (§10.6).
 
-### 9.10 Testerna (spec §13.2–§13.3)
+### 10.10 Testerna (spec §13.2–§13.3)
 
 | Fil | Kör | Visar |
 | --- | --- | --- |
@@ -532,7 +660,7 @@ gratisnivån (10 GB/mån) räcker för hundratals matcher. Slut-QA mäter.
 | `test/firestore-rules-live-kurragomma.test.js` | `test:rules` | Firestore-grenen (§5.4) |
 | `test/rtdb-rules-kurragomma.test.js` | `test:rules:rtdb` | `database.rules.json` (§5.3) |
 | `test/live-kurragomma-rorelse.test.js` | `npm test` | `skapaPosFilter`, lokal buss, rtdb-kanalen mot en SDK-stub (10) |
-| `test/live-kurragomma-klocka.test.js` | `npm test` | matchklockan (§9.6) |
+| `test/live-kurragomma-klocka.test.js` | `npm test` | matchklockan (§10.6) |
 
 Emulatorerna (functions, auth, firestore, **database**) startas av `npm run test:functions`;
 `firebase.json` har `emulators.database` på port 9000 och `database.rules` → `database.rules.json`.

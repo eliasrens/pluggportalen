@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kurragömma – prestandasidan (#837)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <link rel="stylesheet" href="../src/live/formats/kurragomma/scen/kurragomma-scen.css" />
+    <style>
+      /* Bara prestandasidan (spec §4.4): scenen med 30 figurer + stora siffror. Elias kör den på elevernas HP-datorer. */
+      html, body { margin: 0; height: 100%; }
+      body { font-family: "Baloo 2", system-ui, sans-serif; color: #22314a; }
+      .pv-stage { position: fixed; inset: 0; }
+      .pv-tal { position: absolute; top: 12px; left: 12px; display: flex; gap: 10px; flex-wrap: wrap; pointer-events: none; }
+      .pv-tal div { background: rgba(11,15,46,.78); color: #fff; border-radius: 14px; padding: 8px 16px; font-weight: 800; font-size: 15px; }
+      .pv-tal b { display: block; font-size: 30px; line-height: 1.05; }
+      .pv-tal .varning b { color: #ffb020; }
+      .pv-tal .ok b { color: #7ee2a0; }
+      .pv-knappar { position: absolute; right: 12px; bottom: 12px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; max-width: calc(100% - 24px); }
+      .pv-knappar button, .pv-knappar select { font: inherit; font-weight: 800; border: 0; border-radius: 14px; padding: 8px 14px; background: #fff; color: #22314a; box-shadow: 0 5px 0 rgba(0,0,0,.12); cursor: pointer; }
+      .pv-knappar button.pa { background: #2f80ed; color: #fff; }
+      .pv-note code { background: rgba(255,255,255,.18); border-radius: 4px; padding: 0 4px; }
+      .pv-note { position: absolute; left: 12px; bottom: 12px; max-width: 46%; font-size: 13px; color: #fff; background: rgba(11,15,46,.6); border-radius: 12px; padding: 8px 12px; line-height: 1.35; }
+      @media (max-width: 700px) { .pv-note { display: none; } .pv-tal b { font-size: 22px; } }
+    </style>
+  </head>
+  <body>
+    <div class="pv-stage" id="scen"></div>
+    <div class="pv-tal">
+      <div id="fps">fps <b>–</b></div>
+      <div id="ritanrop">ritanrop <b>–</b></div>
+      <div id="niva">nivå <b>–</b></div>
+      <div id="typ">ritare <b>–</b></div>
+      <div id="figurer">figurer <b>30</b></div>
+    </div>
+    <div class="pv-note">30 figurer (29 robot-sökare + du). Mål: minst 30 fps på Mellan på elevernas HP-datorer, minst 40 på projektorn (§4.4). Under 24 fps i 3 s sänks nivån automatiskt. Min/medel/max räknas sedan sidan laddades (eller senaste nivåbytet). Adressen: <code>?lage=projektor</code>, <code>?niva=0|1|2</code>, <code>?2d=1</code>, <code>?auto=0</code>.</div>
+    <div class="pv-knappar">
+      <button data-lage="elev-sokare">Elevvy</button>
+      <button data-lage="projektor">Projektorvy</button>
+      <select data-niva><option value="0">Låg</option><option value="1">Mellan</option><option value="2">Hög</option></select>
+      <button data-act="nollstall">Nollställ mätningen</button>
+    </div>
+
+    <script type="module">
+      import { skapaKgScen } from "../src/live/formats/kurragomma/scen/kg-scen.js";
+      import { skapaRosterStub, skapaRobotar } from "./kurragomma-robotar.js";
+
+      const qs = new URLSearchParams(location.search);
+      const $ = (s) => document.querySelector(s);
+      const roster = await skapaRosterStub(30);
+      const scen = await skapaKgScen({
+        yta: $("#scen"), roster, jagUid: "jag",
+        lage: qs.get("lage") === "projektor" ? "projektor" : "elev-sokare",
+        tvinga2d: qs.get("2d") === "1",
+        niva: qs.has("niva") ? Number(qs.get("niva")) : null,
+        auto: qs.get("auto") !== "0",
+        storage: null,
+      });
+      window.__kgScen = scen;
+      scen.jag({ x: 1, z: 6, yaw: Math.PI });
+      skapaRobotar(scen, { antal: 29, fro: 3, fart: 0.5 });
+
+      const matt = { n: 0, sum: 0, min: Infinity, max: 0 };
+      const nollstall = () => { matt.n = 0; matt.sum = 0; matt.min = Infinity; matt.max = 0; };
+      window.__kgMatt = matt;
+      scen.on("niva", ({ niva }) => { $("[data-niva]").value = String(niva); nollstall(); });
+      for (const b of document.querySelectorAll("[data-lage]")) b.onclick = () => { scen.lage(b.dataset.lage); visa(); nollstall(); };
+      $("[data-niva]").onchange = (e) => scen.niva(Number(e.target.value));
+      $("[data-niva]").value = String(scen.niva());
+      $("[data-act=nollstall]").onclick = nollstall;
+      function visa() { for (const b of document.querySelectorAll("[data-lage]")) b.classList.toggle("pa", b.dataset.lage === scen.lage()); }
+      visa();
+      setInterval(() => {
+        const i = scen.nivaInfo();
+        if (i.fps > 0) { matt.n++; matt.sum += i.fps; matt.min = Math.min(matt.min, i.fps); matt.max = Math.max(matt.max, i.fps); }
+        const medel = matt.n ? Math.round(matt.sum / matt.n) : 0;
+        $("#fps").className = i.fps < 30 ? "varning" : "ok";
+        $("#fps").innerHTML = `fps <b>${i.fps}</b>min ${matt.min === Infinity ? "–" : matt.min} · medel ${medel} · max ${matt.max}`;
+        $("#ritanrop").className = i.ritanrop >= 150 ? "varning" : "ok";
+        $("#ritanrop").innerHTML = `ritanrop <b>${i.ritanrop}</b>`;
+        $("#niva").innerHTML = `nivå <b>${i.namn}</b>`;
+        $("#typ").innerHTML = `ritare <b>${i.typ.toUpperCase()}</b>`;
+      }, 1000);
+    </script>
+  </body>
+</html>
