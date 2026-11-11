@@ -28,6 +28,11 @@ export function skapa3dRitare({ T, yta, karta, niva, bilder }) {
   const hinder = kameraHinder(karta);
   let lage = "elev-gom";
   let forstaKamera = true;
+  // Den mjuka följningen: kameran och blickpunkten glider mot det önskade läget
+  // (k = 1 − e^(−7·dt)), och det lerpade läget klipps mot hindren en gång till
+  // så inte heller mellanlägena skär genom en krona eller en vägg.
+  const nu = { x: 0, y: 0, z: 0, mal: { x: 0, y: 0, z: 0 } };
+  const lerp = (a, b, k) => a + (b - a) * k;
 
   return {
     typ: "3d",
@@ -45,7 +50,19 @@ export function skapa3dRitare({ T, yta, karta, niva, bilder }) {
       } else {
         p = placeraKamera({ jag, hinder, inneI });
       }
-      if (forstaKamera) { tre.kameraHopp(p); forstaKamera = false; } else tre.kameraSatt(p, dt);
+      if (forstaKamera) {
+        nu.x = p.x; nu.y = p.y; nu.z = p.z; Object.assign(nu.mal, p.mal);
+        forstaKamera = false;
+      } else {
+        const k = 1 - Math.exp(-dt * 7);
+        nu.x = lerp(nu.x, p.x, k); nu.y = lerp(nu.y, p.y, k); nu.z = lerp(nu.z, p.z, k);
+        nu.mal.x = lerp(nu.mal.x, p.mal.x, k); nu.mal.y = lerp(nu.mal.y, p.mal.y, k); nu.mal.z = lerp(nu.mal.z, p.mal.z, k);
+        if (lage !== "projektor") {
+          const q = placeraKamera({ jag, hinder, inneI, fullt: { x: nu.x, y: nu.y, z: nu.z } });
+          nu.x = q.x; nu.y = q.y; nu.z = q.z;
+        }
+      }
+      tre.kameraSatt(nu);
     },
     kameraHopp() { forstaKamera = true; },
     figur: figurer.satt,

@@ -36,22 +36,25 @@ function hash(id) {
 export const skugga = (r) => ({ r });
 
 const MODELLER = {
+  // Lådan 4,6 × 3,8 ryms i fast 3,3 (hörnet 2,98 < 3,3 − figurens 0,5 − lite luft);
+  // taket hänger över men ligger ovanför huvudhöjd (y ≥ 3,3).
   lada: () => [
-    d("box", [6, 4, 5], F.rod, 0, 2, 0),
-    d("cyl", [3.6, 3.6, 5.4, 3], F.rodMork, 0, 4.9, 0, { rx: Math.PI / 2, sx: 1.15, sz: 0.5 }),
-    d("box", [2.2, 2.8, 0.1], F.vit, 0, 1.4, 2.52),
-    d("box", [1.8, 2.4, 0.12], F.rodMork, 0, 1.3, 2.55),
-    d("box", [1, 0.9, 0.12], F.gul, 0, 3.4, 2.55),
+    d("box", [4.6, 4, 3.8], F.rod, 0, 2, 0),
+    d("cyl", [2.7, 2.7, 4.6, 3], F.rodMork, 0, 4.9, 0, { rx: Math.PI / 2, sx: 1.15, sz: 0.55 }),
+    d("box", [2, 2.6, 0.1], F.vit, 0, 1.3, 1.92),
+    d("box", [1.6, 2.2, 0.12], F.rodMork, 0, 1.2, 1.95),
+    d("box", [0.9, 0.8, 0.12], F.gul, 0, 3.3, 1.95),
   ],
   hostack: () => [
     d("cyl", [1.7, 1.9, 1.8, 10], F.gul, 0, 0.9, 0),
     d("kon", [1.8, 1.5, 10], F.barnsten, 0, 2.5, 0),
   ],
+  // Stenen: dodekaederns omkretsradie × 1,2 i bredd = 0,9 × fast, så den ryms i kollisionen.
   sten: (f) => {
-    const r = f.fast * 0.87;
+    const r = f.fast * 0.75;
     return [
-      d("dod", [r], F.grabla, 0, r * 0.65, 0, { sx: 1.3, sy: 0.95 }),
-      d("dod", [r * 0.45], F.stal, r * 1.1, r * 0.3, r * 0.5, { ry: 1 }),
+      d("dod", [r], F.grabla, 0, r * 0.65, 0, { sx: 1.2, sy: 0.95 }),
+      d("dod", [r * 0.4], F.stal, r * 0.75, r * 0.28, r * 0.5, { ry: 1 }),
     ];
   },
   gran: () => [
@@ -66,18 +69,20 @@ const MODELLER = {
     d("iko", [1.7], F.gras, 1.6, 3.2, 0.8),
     d("iko", [1.5], F.grasMork, -1.5, 3.4, -0.6),
   ],
+  // Vanliga träd: kronan börjar över huvudhöjd (≥ 1,7 m) så man kan stå under den.
   trad: (f) => {
     const s = 0.85 + (hash(f.id) % 5) * 0.06;
-    const stam = d("cyl", [0.25 * s, 0.35 * s, 1.3 * s, 6], F.jord, 0, 0.65 * s, 0);
+    const stam = d("cyl", [0.25 * s, 0.35 * s, 2 * s, 6], F.jord, 0, s, 0);
     if (hash(f.id) % 2) {
       return [stam,
-        d("kon", [1.6 * s, 2.4 * s, 7], F.grasMork, 0, 2.1 * s, 0),
-        d("kon", [1.1 * s, 1.8 * s, 7], F.gron, 0, 3.2 * s, 0)];
+        d("kon", [1.6 * s, 2.4 * s, 7], F.grasMork, 0, 3.0 * s, 0),
+        d("kon", [1.1 * s, 1.8 * s, 7], F.gron, 0, 4.1 * s, 0)];
     }
-    return [stam, d("iko", [1.6 * s], hash(f.id) % 3 ? F.gron : F.gras, 0, 2.4 * s, 0)];
+    return [stam, d("iko", [1.5 * s], hash(f.id) % 3 ? F.gron : F.gras, 0, 3.3 * s, 0)];
   },
+  // Buskaget ryms i sin lov-radie r (lövklotens kant ≤ r).
   buskage: (f) => {
-    const s = f.r / 2.6;
+    const s = (f.r / 2.6) * 0.9;
     const klot = [[0, 1.2, 0, 1.6], [1.6, 0.9, 0.6, 1.2], [-1.4, 0.9, 0.4, 1.3], [0.4, 0.8, 1.5, 1]]
       .map(([x, y, z, r]) => d("iko", [r * s], F.gron, x * s, y * s, z * s));
     return [...klot,
@@ -104,29 +109,31 @@ const MODELLER = {
     d("kon", [1.7, 1, 4], F.rod, 0, 3.3, 0, { ry: Math.PI / 4 }),
     d("cyl", [0.3, 0.25, 0.4, 8], F.jord, 0, 1.9, 0),
   ],
+  // Vedtraven ryms i fast 1,6 (hörnet 1,58).
   vedtrave: () => {
     const delar = [];
-    [[4, 0.35], [3, 1.0], [2, 1.65]].forEach(([n, y]) => {
+    [[4, 0.33], [3, 0.92], [2, 1.5]].forEach(([n, y]) => {
       for (let i = 0; i < n; i++) {
-        delar.push(d("cyl", [0.36, 0.36, 2.6, 7], i % 2 ? F.tra : F.traLjus, (i - (n - 1) / 2) * 0.74, y, 0, { rx: Math.PI / 2 }));
+        delar.push(d("cyl", [0.33, 0.33, 1.9, 7], i % 2 ? F.tra : F.traLjus, (i - (n - 1) / 2) * 0.62, y, 0, { rx: Math.PI / 2 }));
       }
     });
     return delar;
   },
+  // Vagnen ryms i fast 1,8 (hörnet 1,75); dragstången är låg (under knähöjd).
   vagn: () => [
-    d("box", [3.4, 1, 2], F.tra, 0, 1.1, 0),
-    d("box", [3, 0.6, 1.6], F.gul, 0, 1.8, 0),
-    ...[[-1.1, 1.05], [1.1, 1.05], [-1.1, -1.05], [1.1, -1.05]].map(([x, z]) =>
-      d("cyl", [0.6, 0.6, 0.2, 10], F.mork, x, 0.6, z, { rx: Math.PI / 2 })),
-    d("box", [1.8, 0.15, 0.15], F.jord, 2.5, 0.8, 0),
+    d("box", [3, 1, 1.8], F.tra, 0, 1.1, 0),
+    d("box", [2.6, 0.6, 1.4], F.gul, 0, 1.8, 0),
+    ...[[-0.95, 0.95], [0.95, 0.95], [-0.95, -0.95], [0.95, -0.95]].map(([x, z]) =>
+      d("cyl", [0.55, 0.55, 0.2, 10], F.mork, x, 0.55, z, { rx: Math.PI / 2 })),
+    d("box", [1.4, 0.15, 0.15], F.jord, 2.1, 0.5, 0),
   ],
   tunnor: () => [[-0.7, 0, 0], [0.7, 0, 0.2], [0, 1.25, 0.1]].flatMap(([x, y, z]) => [
     d("cyl", [0.6, 0.6, 1.2, 10], F.tra, x, 0.6 + y, z),
     d("cyl", [0.62, 0.62, 0.12, 10], F.jord, x, 0.9 + y, z),
   ]),
   talt: () => [
-    d("kon", [2.2, 2.8, 4], F.orange, 0, 1.4, 0, { ry: Math.PI / 4 }),
-    d("box", [0.9, 1.3, 0.05], F.jord, 0, 0.65, 1.12, { rx: -0.45 }),
+    d("kon", [1.9, 2.8, 4], F.orange, 0, 1.4, 0, { ry: Math.PI / 4 }),
+    d("box", [0.9, 1.3, 0.05], F.jord, 0, 0.65, 0.95, { rx: -0.45 }),
     d("cyl", [0.05, 0.05, 1.2, 4], F.mork, 0, 3.2, 0),
     d("box", [0.7, 0.4, 0.04], F.lila, 0.35, 3.5, 0),
   ],

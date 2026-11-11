@@ -13,8 +13,7 @@
 //     rita()            → antal ritanrop
 //     storlek()         → { w, h }
 //     nivaSatt(n)
-//     kameraSatt({ x, y, z, mal })   mjukt (lerp) – kg-scen räknar var den ska stå
-//     kameraHopp(p)                  direkt (vid lägesbyte)
+//     kameraSatt({ x, y, z, mal })   direkt – lerp och hinderklippning görs i kg-ritare-3d.js
 //     skarmPunkt(x, y, z)            → { sx, sy, inne, framfor } i CSS-px
 //     markPunkt(sx, sy)              → { x, z } på marken (y = 0) eller null
 //     dimma(lage)
@@ -31,7 +30,11 @@ const HIMMEL = 0xbfe6ff;
 export function harWebGL() {
   try {
     const c = document.createElement("canvas");
-    return !!(c.getContext("webgl2") || c.getContext("webgl"));
+    const gl = c.getContext("webgl2") || c.getContext("webgl");
+    if (!gl) return false;
+    const ext = gl.getExtension("WEBGL_lose_context"); // släpp provkontexten direkt
+    if (ext) ext.loseContext();
+    return true;
   } catch {
     return false;
   }
@@ -96,19 +99,9 @@ export function skapaTreRitare({ T, yta, karta, niva = 1 }) {
 
   const v = new T.Vector3();
   const mal = new T.Vector3(0, KAMERA.tittaPaY, 0);
-  const onskad = new T.Vector3();
-  const onskatMal = new T.Vector3();
 
-  function kameraSatt({ x, y, z, mal: m }, dt = 1 / 60) {
-    onskad.set(x, y, z);
-    onskatMal.set(m.x, m.y, m.z);
-    const k = 1 - Math.exp(-dt * 7);
-    kamera.position.lerp(onskad, k);
-    mal.lerp(onskatMal, k);
-    kamera.lookAt(mal);
-  }
-
-  function kameraHopp({ x, y, z, mal: m }) {
+  /** Sätter kameran direkt – den mjuka följningen (och klippningen mot hinder) görs i kg-ritare-3d.js. */
+  function kameraSatt({ x, y, z, mal: m }) {
     kamera.position.set(x, y, z);
     mal.set(m.x, m.y, m.z);
     kamera.lookAt(mal);
@@ -150,7 +143,6 @@ export function skapaTreRitare({ T, yta, karta, niva = 1 }) {
     storlek: () => ({ w, h }),
     nivaSatt,
     kameraSatt,
-    kameraHopp,
     skarmPunkt,
     markPunkt,
     dimma,

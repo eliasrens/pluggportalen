@@ -109,8 +109,9 @@ describe("kameran (kg-kamera.js)", () => {
     for (const { f, jag } of fall) {
       const k = placeraKamera({ jag, hinder });
       const h = hinder.find((x) => x.id === f.id);
-      const d = Math.hypot(k.x - f.x, k.z - f.z);
-      assert.ok(d > h.r || k.y >= h.h, `kameran inne i ${f.id} vid ${JSON.stringify(jag)} → ${JSON.stringify(k)}`);
+      // Ladan är en låda (hx, hz), träden cirklar (r) – se också live-kurragomma-kamera.test.js mot modellerna.
+      const ute = h.hx != null ? Math.abs(k.x - f.x) > h.hx || Math.abs(k.z - f.z) > h.hz : Math.hypot(k.x - f.x, k.z - f.z) > h.r;
+      assert.ok(ute || k.y >= h.h, `kameran inne i ${f.id} vid ${JSON.stringify(jag)} → ${JSON.stringify(k)}`);
       assert.ok(k.avstand >= KAMERA_MIN_M - 1e-9 && k.avstand <= KAMERA.bakom + 1e-9);
     }
   });

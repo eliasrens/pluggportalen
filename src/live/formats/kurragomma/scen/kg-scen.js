@@ -91,7 +91,13 @@ export async function skapaKgScen({
   const interp = skapaInterpolering();
   const glid = skapaGlid();
   let stilla = false;
-  try { stilla = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { /* ingen matchMedia */ }
+  let rorelseMq = null;
+  const stillaByt = () => { stilla = !!(rorelseMq && rorelseMq.matches); };
+  try {
+    rorelseMq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    stillaByt();
+    if (rorelseMq.addEventListener) rorelseMq.addEventListener("change", stillaByt);
+  } catch { /* ingen matchMedia */ }
   const lyssnare = new Map();
   const emit = (h, v) => { for (const fn of lyssnare.get(h) || []) { try { fn(v); } catch (e) { console.warn("Kurragömma scen:", e); } } };
 
@@ -122,7 +128,7 @@ export async function skapaKgScen({
     aktuellNiva = normNiva(n);
     vakt.satt(aktuellNiva, performance.now());
     ritare.nivaSatt(aktuellNiva);
-    if (sparad) sparaNiva(lagret, aktuellNiva);
+    if (sparad && typ === "3d") sparaNiva(lagret, aktuellNiva); // 2D-reservens nivå är inget 3D-val
     emit("niva", { niva: aktuellNiva, namn: NIVAER[aktuellNiva].namn, automatisk });
   }
 
@@ -187,7 +193,9 @@ export async function skapaKgScen({
     } else overlagg.pil(null);
 
     ritanrop = ritare.rita(nu, dt);
+    // Nivåvakten mäter fps alltid (nivaInfo), men sänker bara i 3D – 2D-reserven är redan sista steget.
     const h = vakt.bildruta(nu);
+    if (typ !== "3d") return;
     if (h && h.typ === "sankt") {
       nivaSatt(h.niva, { automatisk: true });
       overlagg.notis(`Grafiken sänktes till ${h.namn} så att det går mjukare.`);
@@ -263,6 +271,7 @@ export async function skapaKgScen({
       st.paus = true;
       if (raf) cancelAnimationFrame(raf);
       document.removeEventListener("visibilitychange", synlighet);
+      if (rorelseMq && rorelseMq.removeEventListener) rorelseMq.removeEventListener("change", stillaByt);
       styrning.destroy();
       overlagg.destroy();
       ritare.dispose();

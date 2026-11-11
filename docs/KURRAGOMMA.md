@@ -369,6 +369,7 @@ container. Den körs utan server i `preview/preview-kurragomma-scen.html` (`?2d=
 | `src/vendor/three/` | three.js **r170** (`three@0.170.0`, MIT, `LICENSE`), bara `three.module.min.js` – inget CDN, inte i `package.json` |
 | `test/live-kurragomma-scen.test.js` | Rörelsen, kameran, nivåerna, modellerna, filerna (≤ 400 rader, bara `import()`, inga Emoji 13+) |
 | `test/live-kurragomma-scen-reserv.test.js` | §13.4: hela `kg-scen.js` mot en mini-DOM utan WebGL → 2D, tangenter, fokusregeln |
+| `test/live-kurragomma-kamera.test.js` | Kameran mot modellerna (raycast med three): aldrig inne i ett föremål, figuren aldrig inne i ett fast föremål |
 
 `test/live-formats.test.js` bevisar att `src/vendor/` aldrig nås statiskt från `app.js`, och att
 `kg-tre.js` är den enda filen i `src/` som laddar three (dynamiskt).
@@ -416,14 +417,24 @@ Tangenterna styr inte figuren när ett formulärfält har fokus (`formularHarFok
 
 - **Kameran inne i träd/vägg: kameran dras in** (billigast: ingen genomskinlighet, inga
   materialbyten, ingen sortering av genomskinliga ytor). `kg-kamera.js` har en tabell per typ
-  (radie och höjd) och klipper sträckan figur→kamera mot cylindrarna, minst 2 m. Står figuren
-  intill ett hinder och kameran skulle hamna i det, lyfts kameran över det. Undantaget är
-  **lov-föremål** figuren står inne i (buskage, höstack, granen, eken): de hindrar inte, och i
-  stället ritas just det föremålet halvgenomskinligt (de ligger som egna meshar – 6 st).
+  med **modellens verkliga fotavtryck** (cirkel + höjd, ladan en vriden låda) och klipper
+  sträckan figur→kamera mot dem med 0,45 m marginal (near-planet), minst 2 m. Står figuren
+  intill ett hinder och kameran skulle hamna i det, lyfts kameran över det. Den mjuka följningen
+  (lerp i `kg-ritare-3d.js`) klipps en gång till, så inte heller mellanlägena skär genom en krona.
+  Undantaget är **lov-föremål** figuren står inne i (buskage, höstack, granen, eken): de hindrar
+  inte, och i stället ritas just det föremålet halvgenomskinligt (de ligger som egna meshar – 6 st).
+  `test/live-kurragomma-kamera.test.js` bygger modellerna med three och raycastar: kameran och
+  near-planet är aldrig inne i någon del (statiskt och under en slumpvandring).
+- **Modellerna ryms i motorns kollisionscirklar** (A:s geometri är kanon): ladan 4,6 × 3,8 m
+  (hörnet 2,98 < fast 3,3), stenen 0,9 × fast, vagnen, vedtraven och tältet nedskalade, buskagens
+  lövklot inom `r`, och trädkronorna börjar över huvudhöjd. Bron har ingen kollision (man går på
+  den och kan stå i en räckesstolpe) – det är motorns val, inte scenens.
 - **Ritanrop:** världen är ett vertexfärgat `MeshToonMaterial`-mesh + ett konturmesh (bakåtvänd,
   0,085 m större kopia per del) + dekor (+ kontur) + ett skuggmesh + lov-föremålen (6 × 2).
   Figurerna är en sprite var (egen textur = eget ritanrop) + en skylt var + **ett** instanserat
   skuggmesh. **Prestandasidan med 30 figurer på Mellan: 60–62 ritanrop** (gränsen är 150).
+- **Nivåvakten gäller bara 3D.** I 2D-reserven mäts fps för `nivaInfo`, men nivån sänks inte och
+  inget sparas i `localStorage` – reserven är redan sista steget.
 - **Nivåerna:** Låg ×0,6 utan kontur och utan dekor (blommor, moln, stigen), Mellan ×1, Hög upp
   till skärmens `devicePixelRatio` (högst 2). "Färre träd" på Låg är **inte** gjort: träden är
   spelföremål (kollision, skydd, platsnamn) och får inte försvinna ur bilden; dekoren tas bort i
