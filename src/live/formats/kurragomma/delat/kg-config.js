@@ -123,6 +123,12 @@ export const TICK_MS = 5000;
 export const POS_MIN_INTERVALL_MS = 200;
 export const POS_MIN_FLYTT_M = 0.15;
 export const POS_MIN_VRID_RAD = 0.05;
+/** … men minst så här ofta även när sökaren står stilla – pulsen för regeln "det finns alltid en sökare" (C läser pos.t). */
+export const POS_PULS_MS = 10_000;
+/** Klienten lyssnar på de så här många senaste realtidshändelserna (limitToLast). */
+export const HAND_LIMIT = 20;
+/** kgLas tas emot så här länge efter gömfasens slut (klientens automatiska skick vid 0:00 hinner fram). */
+export const LAS_MARGINAL_MS = 2000;
 /** Klienterna ritar andras positioner så här långt bakåt i tiden (interpolering). */
 export const POS_INTERPOLERING_MS = 150;
 /** Realtidshändelser äldre än så här struntar klienten i; servern rensar äldre än HAND_RENSA_MS. */
