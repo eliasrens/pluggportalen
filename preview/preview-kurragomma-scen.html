@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Kurragömma 3D-scenen (#837)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <link rel="stylesheet" href="../src/live/formats/kurragomma/scen/kurragomma-scen.css" />
+    <style>
+      /* Bara förhandsvisningen: scenen fyller fönstret, en enkel HUD som D:s elevskärm (mätare, lås, pil) + demopanel. */
+      html, body { margin: 0; height: 100%; }
+      body { font-family: "Baloo 2", system-ui, sans-serif; color: #22314a; }
+      .pv-stage { position: fixed; inset: 0; }
+      .pv-hud { position: absolute; inset: 0; pointer-events: none; }
+      .pv-matare { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px;
+        background: #fff; border-radius: 999px; padding: 6px 16px; font-weight: 800; font-size: 16px; box-shadow: 0 6px 0 rgba(0,0,0,.12); white-space: nowrap; }
+      .pv-matare svg { width: 16px; height: 16px; }
+      .pv-las { position: absolute; left: 50%; bottom: 64px; transform: translateX(-50%); pointer-events: auto; border: 0; font: inherit; cursor: pointer;
+        background: #27ae60; color: #fff; border-radius: 18px; padding: 10px 22px; font-weight: 800; font-size: 20px; box-shadow: 0 5px 0 #1e8e4e; white-space: nowrap; }
+      .pv-las[hidden] { display: none; }
+      .pv-rad { position: absolute; top: 56px; left: 50%; transform: translateX(-50%); background: rgba(11,15,46,.72); color: #fff; font-size: 14px;
+        font-weight: 700; padding: 5px 14px; border-radius: 999px; white-space: nowrap; transition: opacity .4s; opacity: 0; }
+      .pv-rad.pa { opacity: 1; }
+      .pv { position: fixed; right: 10px; top: 10px; width: 300px; max-height: calc(100vh - 20px); overflow: auto;
+        font: 13px/1.35 system-ui, sans-serif; background: rgba(255, 255, 255, 0.96); color: #1b2559; border-radius: 12px;
+        box-shadow: 0 8px 30px rgba(0,0,0,.3); }
+      .pv:not([open]) { width: auto; }
+      .pv summary { cursor: pointer; padding: 8px 12px; font-weight: 700; }
+      .pv-body { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 12px; }
+      .pv-body b { width: 100%; margin-top: 6px; }
+      .pv button, .pv label, .pv select { font: inherit; padding: 4px 8px; border-radius: 8px; border: 1px solid #c5cde0; background: #f3f6fc; cursor: pointer; }
+      .pv button.pa { background: #2f80ed; color: #fff; border-color: #2f80ed; }
+      .pv-note, .pv-stat { width: 100%; color: #5a6585; }
+      .pv-stat { font-family: ui-monospace, monospace; font-size: 12px; color: #1b2559; white-space: pre-line; }
+      @media (max-width: 600px) { .pv { width: calc(100vw - 20px); max-height: 45vh; top: auto; bottom: 10px; } .pv-matare { font-size: 14px; top: 8px; } .pv-las { font-size: 16px; bottom: 140px; } }
+    </style>
+  </head>
+  <body>
+    <div class="pv-stage" id="scen"></div>
+    <div class="pv-hud">
+      <div class="pv-matare" id="matare"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#EF6F6C" stroke="#3B3350" stroke-width="1.5" id="prick"/></svg><span id="matareText">Syns lätt</span></div>
+      <div class="pv-rad" id="rad"></div>
+      <button class="pv-las" id="las">Lås gömstället här</button>
+    </div>
+
+    <details class="pv" data-panel open>
+      <summary>Demo (#837, bara förhandsvisning)</summary>
+      <div class="pv-body">
+        <span class="pv-note">Scenen utan server: lokal roster-stub (ingen Firebase), robot-sökare ur motorn. Adressen: <code>?2d=1</code> tvingar 2D-reserven, <code>?lage=projektor</code>, <code>?niva=0|1|2</code>, <code>?namn=0</code>, <code>?auto=0</code> (ingen automatisk sänkning).</span>
+        <b>Läge</b>
+        <button data-lage="elev-gom">Gömmare (gömfasen)</button>
+        <button data-lage="elev-gomd">Gömd (titta runt)</button>
+        <button data-lage="elev-sokare">Sökare</button>
+        <button data-lage="projektor">Projektor</button>
+        <b>Händelser</b>
+        <button data-act="vissling">Vissling (slumpad plats)</button>
+        <button data-act="vissling-nara">Vissling nära mig</button>
+        <button data-act="hopp">Egen vissling (hopp)</button>
+        <button data-act="hittad">Hittad (vid en robot)</button>
+        <button data-act="hjartslag">Hjärtslag på/av</button>
+        <button data-act="final">Final: gömställen</button>
+        <b>Sökare</b>
+        <button data-act="robotar">Robotar på/av</button>
+        <label>Namn <select data-namn><option value="1">på</option><option value="0">av</option></select></label>
+        <b>Grafik</b>
+        <label>Nivå <select data-niva><option value="0">Låg</option><option value="1" selected>Mellan</option><option value="2">Hög</option></select></label>
+        <span class="pv-note">Styrning: W/S eller pil upp/ned, A/D eller pil vänster/höger svänger, dra för att titta, tryck på marken för att gå dit. Joysticken syns på pekskärm. Skriv i fältet nedan: tangenterna styr då inte figuren.</span>
+        <label>Fokusregeln: <input type="text" placeholder="skriv här" size="10" /></label>
+        <div class="pv-stat" data-stat></div>
+      </div>
+    </details>
+
+    <script type="module">
+      import { skapaKgScen } from "../src/live/formats/kurragomma/scen/kg-scen.js";
+      import { skyddText, platsNamn } from "../src/live/formats/kurragomma/delat/kg-geometri.js";
+      import { ON } from "../src/live/formats/kurragomma/delat/kg-karta.js";
+      import { skapaRosterStub, skapaRobotar } from "./kurragomma-robotar.js";
+
+      const qs = new URLSearchParams(location.search);
+      const $ = (s) => document.querySelector(s);
+      const FARG = ["#EF6F6C", "#F7C948", "#8FCB74", "#27AE60"];
+      const roster = await skapaRosterStub(12);
+      const scen = await skapaKgScen({
+        yta: $("#scen"), roster, jagUid: "jag",
+        lage: qs.get("lage") || "elev-gom",
+        tvinga2d: qs.get("2d") === "1",
+        niva: qs.has("niva") ? Number(qs.get("niva")) : null,
+        namnPa: qs.get("namn") !== "0",
+        auto: qs.get("auto") !== "0",
+      });
+      window.__kgScen = scen;
+      scen.jag({ ...ON.gomStart[5] });
+      let robotar = skapaRobotar(scen, { antal: 6 });
+      let robotarPa = true;
+
+      function visaLage() {
+        for (const b of document.querySelectorAll("[data-lage]")) b.classList.toggle("pa", b.dataset.lage === scen.lage());
+        $("#las").hidden = scen.lage() !== "elev-gom";
+        $("#matare").style.display = scen.lage() === "projektor" ? "none" : "";
+      }
+      function visaSkydd(s) {
+        $("#matareText").textContent = skyddText(s) + (scen.lage() === "elev-gomd" ? ` · Du är gömd ${platsNamn(scen.jag().x, scen.jag().z)}` : "");
+        $("#prick").setAttribute("fill", FARG[s]);
+      }
+      scen.on("skydd", visaSkydd);
+      scen.on("niva", ({ niva, namn, automatisk }) => { $("[data-niva]").value = String(niva); if (automatisk) rad(`Nivån sänktes automatiskt till ${namn}`); });
+      scen.on("reserv", () => rad("2D-reserven tog över"));
+      let radT = 0;
+      function rad(text) { $("#rad").textContent = text; $("#rad").classList.add("pa"); clearTimeout(radT); radT = setTimeout(() => $("#rad").classList.remove("pa"), 3000); }
+
+      for (const b of document.querySelectorAll("[data-lage]")) b.onclick = () => { scen.lage(b.dataset.lage); visaLage(); visaSkydd(scen.skydd()); };
+      $("#las").onclick = () => { scen.lage("elev-gomd"); visaLage(); visaSkydd(scen.skydd()); rad(`Låst – du är gömd ${platsNamn(scen.jag().x, scen.jag().z)}`); };
+      $("[data-niva]").onchange = (e) => scen.niva(Number(e.target.value));
+      $("[data-namn]").onchange = (e) => scen.namnPa(e.target.value === "1");
+      $("[data-namn]").value = qs.get("namn") !== "0" ? "1" : "0";
+      $("[data-niva]").value = String(scen.niva());
+      const slumpPlats = () => { const a = Math.random() * 6.28, r = Math.random() * 26; return { x: Math.cos(a) * r, z: Math.sin(a) * r }; };
+      const ACT = {
+        vissling: () => { const p = slumpPlats(); scen.vissling(p); rad(`Det visslar ${platsNamn(p.x, p.z)}`); },
+        "vissling-nara": () => { const j = scen.jag(); const p = { x: j.x + Math.sin(j.yaw) * 6, z: j.z + Math.cos(j.yaw) * 6 }; scen.vissling(p); rad(`Det visslar ${platsNamn(p.x, p.z)}`); },
+        hopp: () => { scen.hopp(); rad("Fel svar – det visslade där du gömmer dig!"); },
+        hittad: () => { const r = robotar.slumpad(); scen.hittad({ x: r.x, z: r.z }); rad(`${r.namn} hittade någon ${platsNamn(r.x, r.z)}!`); },
+        hjartslag: (b) => { b.classList.toggle("pa"); scen.hjartslag(b.classList.contains("pa")); },
+        final: () => { scen.lage("projektor"); visaLage(); scen.gomstallen([{ uid: "e7", x: 15, z: 6 }, { uid: "e8", x: 5, z: -3 }, { uid: "e9", x: -8, z: 0 }, { uid: "e10", x: 9, z: 17 }, { uid: "e11", x: -14, z: -11 }]); },
+        robotar: (b) => { robotarPa = !robotarPa; robotar.pa(robotarPa); b.classList.toggle("pa", !robotarPa); },
+      };
+      for (const b of document.querySelectorAll("[data-act]")) b.onclick = () => ACT[b.dataset.act](b);
+      visaLage();
+      visaSkydd(scen.skydd());
+      setInterval(() => {
+        const i = scen.nivaInfo();
+        const j = scen.jag();
+        $("[data-stat]").textContent = `${i.typ.toUpperCase()} · ${i.namn} · ${i.fps} fps · ${i.ritanrop} ritanrop\nx ${j.x.toFixed(1)} z ${j.z.toFixed(1)} yaw ${j.yaw.toFixed(2)} · ${platsNamn(j.x, j.z)}`;
+      }, 500);
+    </script>
+  </body>
+</html>
