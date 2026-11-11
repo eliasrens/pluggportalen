@@ -142,17 +142,14 @@ export async function svara(deps, uid, raw) {
   const quiz = s.gameMode === QUIZ ? await quizFor(deps, sid) : null;
   const r = refs(db, sid);
   const karta = kartaFor(s);
+  // Kvoten (§5.5): svaret läses INTE i förväg – tx.create fäller vid ett upprepat
+  // attemptId (ALREADY_EXISTS), och först då läses svaret (sällsynt). kgSecret
+  // läses bara för gömmare (bara de kan vissla).
   const ut = await db.runTransaction(async (tx) => {
-    const [kpSnap, aSnap, secSnap] = await tx.getAll(r.kgPlayer(uid), r.answer(attemptId), r.secret(uid));
-    const kp = kpSnap.data();
+    const kp = (await tx.get(r.kgPlayer(uid))).data();
     if (!kp) throw new KsError("failed-precondition", "Anslut till matchen först.");
-    if (aSnap.exists) {
-      const a = aSnap.data();
-      if (a.uid !== uid) throw new KsError("already-exists", "Svaret finns redan.");
-      if (a.answerKind === "timeline" && raw?.year !== a.year) throw new KsError("already-exists", "Ditt årtal är redan låst.");
-      return { igen: true, attemptId, correct: a.isCorrect === true, correctAnswer: a.correctAnswer, nextQ: kp.nextQ ?? null, poang: kp.poang | 0, laddningar: kp.laddningar | 0, vissling: false, ...yearOut(a) };
-    }
     if (kp.roll === "gomd" && s.kgFas !== "leta") throw new KsError("failed-precondition", "Inga frågor under gömfasen – göm dig!");
+    const secSnap = kp.roll === "gomd" ? await tx.get(r.secret(uid)) : null;
     let graded;
     let nextQ = null;
     if (quiz) {
@@ -161,7 +158,7 @@ export async function svara(deps, uid, raw) {
     } else {
       graded = gradeMult(s, raw);
     }
-    const sec = secSnap.exists ? secSnap.data() : null;
+    const sec = secSnap?.exists ? secSnap.data() : null;
     const eff = svarsEffekt({ roll: kp.roll, ratt: graded.isCorrect, fas: s.kgFas, laddningar: kp.laddningar | 0, senastVisslingAt: sec?.senastVisslingAt ?? null, nu });
     const visslar = eff.vissling && sec?.gomd === true;
     tx.create(r.answer(attemptId), { ...graded, uid, classId: p.classId, format: FORMAT, at: FieldValue.serverTimestamp() });
@@ -180,11 +177,22 @@ export async function svara(deps, uid, raw) {
       attemptId, correct: graded.isCorrect, correctAnswer: graded.correctAnswer, nextQ, poang: (kp.poang | 0) + eff.poang,
       laddningar: eff.laddningar, vissling: !!vissling, ...(vissling ? { plats: vissling.plats } : {}), ...yearOut(graded), handelse: vissling,
     };
+  }).catch(async (err) => {
+    if (!arRedanSkapad(err)) throw err;
+    const [aSnap, kpSnap] = await db.getAll(r.answer(attemptId), r.kgPlayer(uid));
+    const a = aSnap.data();
+    const kp = kpSnap.data() || {};
+    if (a.uid !== uid) throw new KsError("already-exists", "Svaret finns redan.");
+    if (a.answerKind === "timeline" && raw?.year !== a.year) throw new KsError("already-exists", "Ditt årtal är redan låst.");
+    return { igen: true, attemptId, correct: a.isCorrect === true, correctAnswer: a.correctAnswer, nextQ: kp.nextQ ?? null, poang: kp.poang | 0, laddningar: kp.laddningar | 0, vissling: false, ...yearOut(a) };
   });
   const { handelse, ...svar } = ut;
   if (handelse) await rt.handelse(deps.rtdb, sid, { typ: "vissling", ...handelse });
   return svar;
 }
+
+/** Firestores ALREADY_EXISTS (gRPC 6) från tx.create – svaret med det attemptId:t finns redan. */
+const arRedanSkapad = (err) => err?.code === 6 || /ALREADY_EXISTS/i.test(String(err?.message || ""));
 
 const SOK_FEL = {
   "inte-sokare": ["failed-precondition", "Bara sökare letar."],

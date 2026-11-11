@@ -19,7 +19,7 @@
 import { KsError } from "./kistspel-rattning.js";
 import { tystnadVisslar, arFrankopplad, visslingsplats, behoverNySokare, valjSlumpade, arSlut } from "./kurragomma/kg-regler.js";
 import { platsNamn } from "./kurragomma/kg-geometri.js";
-import { TYSTNAD_MS } from "./kurragomma/kg-config.js";
+import { TYSTNAD_MS, FRANKOPPLAD_MS } from "./kurragomma/kg-config.js";
 import { toMs } from "./kistspel/ks-regler.js";
 import { refs, parseSid, tider, playerFor, instFor, kartaFor, namnFor, larareFor, gomdaKvar } from "./kurragomma-sess.js";
 import { redo, gorTillSokare } from "./kurragomma-fas.js";
@@ -70,7 +70,12 @@ async function tystnad(deps, sid, s, nu) {
   return visslade;
 }
 
-/** Regeln "det finns alltid en sökare" (spec §1.1): ingen sökare med puls → en slumpad gömmare blir sökare. */
+/**
+ * Regeln "det finns alltid en sökare" (spec §1.1): ingen sökare med puls → en slumpad
+ * gömmare blir sökare. Idempotent: pulserna läses utanför transaktionen, så sessionens
+ * kgNySokareAt (sätts i transaktionen) spärrar samtidiga ticks – en ny sökare räknas
+ * som vid liv i FRANKOPPLAD_MS innan regeln får slå till igen.
+ */
 async function alltidEnSokare(deps, sid, s, nu, gomdaKvar) {
   const { db, FieldValue } = deps;
   const r = refs(db, sid);
@@ -81,9 +86,11 @@ async function alltidEnSokare(deps, sid, s, nu, gomdaKvar) {
   if (!vald) return null;
   const { letStart } = tider(s);
   const ut = await db.runTransaction(async (tx) => {
-    const [k, sec] = await tx.getAll(r.kgPlayer(vald), r.secret(vald));
+    const [k, sec, sd] = await tx.getAll(r.kgPlayer(vald), r.secret(vald), r.sess);
     const kp = k.data();
-    if (!kp || kp.roll !== "gomd") return null;
+    const senast = Number(sd.data()?.kgNySokareAt) || 0;
+    if (!kp || kp.roll !== "gomd" || nu - senast < FRANKOPPLAD_MS) return null;
+    tx.update(r.sess, { kgNySokareAt: nu });
     const pl = gorTillSokare(tx, r, { uid: vald, kp, sec: sec.data(), nu, letStart, FieldValue });
     tx.create(r.events.doc(), { t: nu, typ: "nySokare", x: pl.x, z: pl.z, plats: pl.plats, sokare: vald });
     return { uid: vald, namn: namnFor(s, kp.name), ...pl };

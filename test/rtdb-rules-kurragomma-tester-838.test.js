@@ -1,6 +1,6 @@
 // ============================================================================
 // Testarens extra RTDB-tester för Kurragömma (#838): database.rules.json mot
-// den RIKTIGA rörelsekanalen (kg-rorelse.js med Firebase-klientens modulära
+// den RIKTIGA rörelsekanalen (kg-kanal.js med Firebase-klientens modulära
 // SDK, inte en falsk). Varje elevs kanal startas (start() → onDisconnect
 // på egen pos), sökaren skickar pos, de andra lyssnar.
 //   • en GÖMMARE startar kanalen (den lyssnar på sökare/visslingar) – start()
@@ -16,7 +16,7 @@ import { readFileSync } from "node:fs";
 import { assertFails, assertSucceeds, initializeTestEnvironment } from "@firebase/rules-unit-testing";
 import { initializeApp, deleteApp } from "firebase/app";
 import * as fbdb from "firebase/database";
-import { skapaRorelsekanal } from "../src/live/formats/kurragomma/kg-rorelse.js";
+import { skapaRorelsekanal } from "../src/live/formats/kurragomma/kg-kanal.js";
 
 const PROJECT = "pluggportalen-rtdb-test-kurragomma-838";
 const SID = "match838";

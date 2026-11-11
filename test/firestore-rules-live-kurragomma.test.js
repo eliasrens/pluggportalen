@@ -111,7 +111,7 @@ describe("Kurragömma: skapa sessionen", () => {
       { durationSeconds: 30 + 490 }, // inte hela minuter
       { participatingClassIds: [], classNames: {} },
       { gameMode: "plugga_quiz", answerKind: "free", questionCount: 2 },
-      { kgFas: "gom" }, { kgGomSlut: serverTimestamp() }, { kgLetStart: serverTimestamp() }, { kgPlacerade: true },
+      { kgFas: "gom" }, { kgGomSlut: serverTimestamp() }, { kgLetStart: serverTimestamp() }, { kgPlacerade: true }, { kgNySokareAt: 1 },
       { result: { winner: null } },
       { startedAt: serverTimestamp() },
     ];

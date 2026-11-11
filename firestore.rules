@@ -1151,7 +1151,7 @@ service cloud.firestore {
     //  • quiz: kgPublic/questions + kgPrivate/snapshot (facit – bara lärare) i
     //    samma batch som sessionen, som Meteorstormen.
     //  • sessionen: kgInstallningar låses vid skapandet; kgFas, kgGomSlut,
-    //    kgLetStart, kgPlacerade och result skriver bara servern. Matchklockan
+    //    kgLetStart, kgPlacerade, kgNySokareAt och result skriver bara servern. Matchklockan
     //    durationSeconds = gömtid + speltid (1–60 hela minuter), spec §0.1.
     //  • svar: answers/{attemptId} skapas bara av servern (liveAnswerCreate nekar).
     // Realtidsdelen (positioner, händelser, status) ligger i Realtime Database
@@ -1163,7 +1163,7 @@ service cloud.firestore {
       let spel = d.durationSeconds - inst.gomtid;
       return d.keys().hasOnly(['name', 'format', 'gameMode', 'answerKind', 'participatingClassIds',
           'classNames', 'durationSeconds', 'countdownSeconds', 'status', 'createdBy', 'createdByName',
-          'createdAt', 'kgInstallningar', 'kgFas', 'kgGomSlut', 'kgLetStart', 'kgPlacerade', 'showNames',
+          'createdAt', 'kgInstallningar', 'kgFas', 'kgGomSlut', 'kgLetStart', 'kgPlacerade', 'kgNySokareAt', 'showNames',
           'quiz', 'questionCount', 'rewards', 'startedAt', 'endsAt', 'finishedAt', 'result']) && liveRewardsOk(d) &&
         d.name is string && d.name.size() > 0 && d.name.size() <= 80 &&
         d.gameMode in ['multiplication_0_10', 'plugga_quiz'] && d.answerKind in ['free', 'choice'] &&
@@ -1375,12 +1375,12 @@ service cloud.firestore {
       }
       // Kurragömma (#838): som Meteorstormen – fasen, tiderna och result skriver bara servern.
       function kgSessionCreateOk() {
-        return !request.resource.data.keys().hasAny(['kgFas', 'kgGomSlut', 'kgLetStart', 'kgPlacerade']) &&
+        return !request.resource.data.keys().hasAny(['kgFas', 'kgGomSlut', 'kgLetStart', 'kgPlacerade', 'kgNySokareAt']) &&
           kistSessionCreateOk(kgSettingsOk(request.resource.data), 'kgPrivate', 'kgPublic');
       }
       function kgSessionUpdateOk() {
         return !request.resource.data.diff(resource.data).affectedKeys()
-            .hasAny(['result', 'kgFas', 'kgGomSlut', 'kgLetStart', 'kgPlacerade']) &&
+            .hasAny(['result', 'kgFas', 'kgGomSlut', 'kgLetStart', 'kgPlacerade', 'kgNySokareAt']) &&
           kgSettingsOk(request.resource.data) && kistSessionUpdateOk();
       }
       function grSessionUpdateOk() {

@@ -159,7 +159,7 @@ serverns medlemslista `med/{uid}`; inget här läser Firestore.
 | Väg | Läsa | Skriva | Test |
 | --- | --- | --- | --- |
 | `/kg/{sid}/roll`, `med`, `hand`, `status` | den som står i `med/{uid}` eller ett konto med `teacher`-claimet (admin och årskurskonto) | ingen klient – bara servern (Admin SDK) | KD |
-| `/kg/{sid}/pos/{uid}` | som ovan (hela `pos`) | bara `uid` själv och bara när `roll/{uid}` = `sokare`; exakt fälten `x`, `z` (±40), `yaw` (±7), `t` (±2 min från serverns klocka). Borttagning (`onDisconnect().remove()`) går. Gömmare skriver aldrig. | KD |
+| `/kg/{sid}/pos/{uid}` | som ovan (hela `pos`) | bara `uid` själv och bara när `roll/{uid}` = `sokare`; exakt fälten `x`, `z` (±40), `yaw` (±7), `t` (±2 min från serverns klocka). Att ta bort sin egen pos (`onDisconnect().remove()`, `stang()`) får alla, även gömmare och projektor. Gömmare skriver aldrig en position. | KD |
 
 Utloggad nekas allt. `kgAvsluta` tar bort hela `/kg/{sid}`.
 

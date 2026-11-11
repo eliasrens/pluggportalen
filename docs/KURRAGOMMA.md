@@ -343,7 +343,9 @@ efter test i klassrum (etapp 2). Det är där siffrorna ska bekräftas.
 6. **Hittad-händelsen bär namnen** (sökarens och den hittades, enligt `showNames`) och
    gömställets plats, eftersom den hittade just blivit sökare och platsen inte längre är hemlig
    (§10.4). Visslingen bär aldrig namn. Okej?
-
+7. **Kvoten** (§10.8): uppskattningen är ≈ 7 100 Firestore-läsningar för 10 min/25 elever (budget 8 000),
+   men det är en räkning, inte en mätning – slut-QA (F, #841) mäter. Om den landar över: ska `perQuestion`
+   räknas ur en aggregering i `kgSvara` (−1 000) i stället för att `answers` läses vid slutet?
 
 ---
 
@@ -493,7 +495,7 @@ skriver om importvägarna). Filerna:
 | `functions/index.js` | exporten (`kurragommaCall`, `KG_OPTS`: europe-west1, 512 MiB, 80 samtidiga, högst 4 instanser) |
 | `firestore.rules` | `kgFormat`, `kgSettingsOk`, `kgSessionCreateOk/UpdateOk`, match `kg*`, `liveCoinPlayerOk` |
 | `database.rules.json` | Realtime Database-reglerna (§10.4) |
-| `src/live/formats/kurragomma/kg-rorelse.js` | rörelsekanalen i klienten (§10.5) |
+| `src/live/formats/kurragomma/kg-kanal.js` | rörelsekanalen i klienten (§10.5) – inte att blanda ihop med `scen/kg-rorelse.js` (B: gåendet i scenen) |
 
 ### 10.1 Anropen (callables, `europe-west1`)
 
@@ -521,7 +523,7 @@ kärnans `startedAt`). `letStart = kgGomSlut` (inte tiden då fasbytet råkade k
 
 - **Sessionen** (`liveSessions/{sid}`): kärnans fält + `kgInstallningar { gomtid, startsokare, tystnad, karta }`
   (läraren), och serverns `kgFas` (`"gom"` | `"leta"`), `kgGomSlut`, `kgLetStart`, `kgPlacerade`
-  (olåsta placerade), `result`. Reglerna (`kgSettingsOk`): 1–4 klasser, `gomtid ∈ {20,30,45,60}`,
+  (olåsta placerade), `kgNySokareAt` (spärren för "alltid en sökare", §10.9), `result`. Reglerna (`kgSettingsOk`): 1–4 klasser, `gomtid ∈ {20,30,45,60}`,
   `karta == "on"`, `durationSeconds − gomtid` = 60–3600 s och delbart med 60, `showNames` valfri bool.
 - **`kgPlayers/{uid}`** (eleven läser sitt eget, läraren/projektorn alla): `uid, classId, name, roll,
   poang, ratt, besvarade, hittade, laddningar, harLast, senastSvarAt, sokareSedan, nextQ`; gömda har
@@ -560,7 +562,7 @@ kärnans `startedAt`). `letStart = kgGomSlut` (inte tiden då fasbytet råkade k
 | --- | --- | --- |
 | `roll/{uid}` | servern | `"sokare"` för sökarna (gömda saknas – rollen går inte att läsa ut) |
 | `med/{uid}` | servern | `true` för alla som gått med (läsrätten) |
-| `pos/{uid}` | **sökaren själv** (reglerna: `roll/{uid} == "sokare"`, exakt `x, z, yaw, t`, ±40 m, yaw ±7, `t` ±2 min); servern skriver den **första** posten (`yaw: 0`) för varje ny sökare, och sätter om startsökarnas `t` vid letfasens början | positionen – också pulsen för "alltid en sökare" |
+| `pos/{uid}` | **sökaren själv** (reglerna: `roll/{uid} == "sokare"`, exakt `x, z, yaw, t`, ±40 m, yaw ±7, `t` ±2 min); att **ta bort sin egen** pos får alla (`onDisconnect().remove()` och `stang()`); servern skriver den **första** posten (`yaw: 0`) för varje ny sökare, och sätter om startsökarnas `t` vid letfasens början | positionen – också pulsen för "alltid en sökare" |
 | `hand/{autoId}` | servern | `{ typ: "vissling" \| "hittad" \| "miss" \| "nySokare", x, z, plats, t, namn?, hittad? }` – `namn` = sökaren (`hittad`, `miss`, `nySokare`: den nya sökaren), `hittad` = den hittades namn; båda enligt `showNames`. **Visslingen bär aldrig namn eller uid.** Fält som är null **saknas** i RTDB. Rensas efter `HAND_RENSA_MS` (60 s) av `kgTick`; klienten ignorerar händelser äldre än `HAND_MAX_ALDER_MS` (10 s). `.indexOn: t`. |
 | `status` | servern | `{ fas, lasta, gomda, sokare }` (räknare med `ServerValue.increment`) |
 
@@ -568,20 +570,23 @@ Läsa `roll`, `med`, `pos`, `hand`, `status`: den som står i `med/{uid}` eller 
 Auth-claimet `teacher` (projektorn). Utloggad nekas allt. `kgAvsluta` tar bort hela `/kg/{sid}`.
 Databasen i prod: instansen `pluggportalen-so-2026-default-rtdb` i **europe-west1**,
 `https://pluggportalen-so-2026-default-rtdb.europe-west1.firebasedatabase.app` (reglerna är låsta tills
-`database.rules.json` deployats). Klienten använder den adressen (`KG_DATABASE_URL` i `kg-rorelse.js`) och
+`database.rules.json` deployats). Klienten använder den adressen (`KG_DATABASE_URL` i `kg-kanal.js`) och
 servern når den med Admin SDK via `kgDatabaseUrl()`: `KG_DATABASE_URL` (functions/.env, bara som reserv)
 → i emulatorn `http://{FIREBASE_DATABASE_EMULATOR_HOST}/?ns={projekt}-default-rtdb` (namnrymden som
 `firebase emulators` laddar `database.rules.json` i) → `FIREBASE_CONFIG.databaseURL` →
 `https://{projekt}-default-rtdb.europe-west1.firebasedatabase.app` (= prod-adressen). Testerna kör mot emulatorn.
 
-### 10.5 Rörelsekanalen i klienten (`kg-rorelse.js`)
+### 10.5 Rörelsekanalen i klienten (`kg-kanal.js`)
 
 `skapaRorelsekanal({ sid, uid, lage: "rtdb" | "lokal", app, url?, sdk?, buss?, nu? })` →
 `{ start(), skickaPos({ x, z, yaw }) → bool, paPos(cb), paHandelse(cb), paStatus(cb), stang() }`.
 
 - **rtdb**: SDK:n (`firebase-database.js`, samma gstatic-källa och version som appens övriga
-  Firebase-moduler) laddas med `import()` först i `start()` – bootgrafen rörs inte. Egen `pos` får
-  `onDisconnect().remove()`; `hand` lyssnas med `limitToLast(HAND_LIMIT)` och händelser äldre än
+  Firebase-moduler) laddas med `import()` först i `start()` – bootgrafen rörs inte. `start()` skriver
+  inget (gömmare och projektor saknar skrivrätt); det **första** `skickaPos` armerar `onDisconnect().remove()`
+  på egen `pos`, så även den som blir sökare mitt i matchen får sin pos städad. Klockan: kanalen lyssnar på
+  `.info/serverTimeOffset` och skriver `t` samt räknar åldersgränsen på **serverns** klocka – en elevdator
+  som går fel sparkar inte bort händelserna. `hand` lyssnas med `limitToLast(HAND_LIMIT)` och händelser äldre än
   `HAND_MAX_ALDER_MS` ignoreras. `skickaPos` följer `skapaPosFilter`: högst var `POS_MIN_INTERVALL_MS`
   (5/s), bara vid flytt ≥ `POS_MIN_FLYTT_M` eller vridning ≥ `POS_MIN_VRID_RAD` – men **minst var
   `POS_PULS_MS`** (10 s) så att pulsen för "alltid en sökare" hålls vid liv när sökaren står still.
@@ -616,15 +621,20 @@ Antaganden: ~1 000 svar (25 elever × ~8 s per fråga, men inte alla svarar hela
 120 ticks (var 5:e s), 20 gömda som mest, sessionen skrivs ~5 gånger (start, letfas, placering,
 slut, resultat) och alla 25 lyssnar på den. Sessionen och quizet ligger i serverns minne (5 s TTL).
 
-| Del | Läsningar | Skrivningar |
-| --- | --- | --- |
-| `kgSvara` 1 000 × (kgPlayers + answers + kgSecret; +kgEvents/kgSecret vid vissling) | ~3 000 | ~2 300 |
-| `kgLeta` 100 × (2 + alla gömda ~15; +2 per hittad) | ~1 800 | ~250 |
-| `kgTick` 120 × (session + räknefråga + tystnadsfråga + ~2 kandidater × 2) | ~900 | ~150 |
-| `kgStarta`/`kgAnslut` 25–50 × ~3 | ~150 | ~110 |
-| `kgAvsluta` (kgPlayers 25, kgSecret 25, kgEvents ~150, **answers ~1 000** för `perQuestion`) | ~1 200 | ~30 |
-| Klientlyssnare: sessionen 5 × 25, eget `kgPlayers` ~1 200, `kgSelf` 25, projektorn `kgPlayers` ~1 200 | ~2 700 | – |
-| **Summa Firestore** | **≈ 10 000** | **≈ 2 900** |
+| Del | Läsningar före | Läsningar nu | Skrivningar |
+| --- | --- | --- | --- |
+| `kgSvara` 1 000 × (kgPlayers; kgSecret bara för gömmare ~60 %; svaret läses inte i förväg – `tx.create` fäller ett upprepat attemptId och först då läses det) | ~3 000 | ~1 600 | ~2 300 |
+| `kgLeta` 100 × (kgPlayers + kgSecret + alla gömda ~15; +1 per hittad) | ~1 800 | ~1 800 | ~250 |
+| `kgTick` 120 × (session 1 + räknefråga 1 + tystnadsfråga 1 (oftast 0 träffar) + ~2 kandidater × 2) | ~900 | ~900 | ~150 |
+| `kgStarta`/`kgAnslut` 25–50 × ~3 (sessionen och spelarna ligger i serverns minne) | ~150 | ~150 | ~110 |
+| `kgAvsluta` (kgPlayers 25, kgSecret 25, kgEvents ~150, **answers ~1 000** för `perQuestion`) | ~1 200 | ~1 200 | ~30 |
+| Klientlyssnare: sessionen 6 × 25, eget `kgPlayers` ~1 200, `kgSelf` 25 (projektorn lyssnar **inte** på `kgPlayers` – §5.5; ställningen kommer ur RTDB `status` och `hand`) | ~2 700 | ~1 400 | – |
+| **Summa Firestore** | **≈ 9 800** | **≈ 7 100** | **≈ 2 900** |
+
+"Före" = första versionen (svaret och kgSecret lästes i varje `kgSvara`, projektorn lyssnade på `kgPlayers`).
+Nu ligger uppskattningen under §5.5:s 8 000 med ~900 i marginal. Nästa besparing om slut-QA (F, #841)
+mäter högre: räkna `perQuestion` ur en liten aggregering som `kgSvara` uppdaterar i stället för att läsa
+`answers` vid slutet (−1 000). Slut-QA mäter på riktigt.
 
 Realtime Database: `pos` – i snitt ~8 sökare × ≤ 2 skrivningar/s (filtret) × 600 s ≈ 10 000 skrivningar
 à ~60 B, var och en till ~25 lyssnare ≈ **15 MB** nedladdning; `hand` ~200 händelser × 25 × ~120 B ≈ 0,6 MB;
@@ -642,7 +652,9 @@ gratisnivån (10 GB/mån) räcker för hundratals matcher. Slut-QA mäter.
   Pulsen är kärnans `players.lastSeenAt`.
 - **"Alltid en sökare" läser RTDB `pos.t`** – inga Firestore-läsningar. Servern skriver första `pos` för varje
   ny sökare och sätter om startsökarnas `pos.t` vid letfasens början; klienten pulsar minst var
-  `POS_PULS_MS`. Den som blir "Ny sökare" får överlevnadspoäng som om hittad nu.
+  `POS_PULS_MS`. Den som blir "Ny sökare" får överlevnadspoäng som om hittad nu. Pulserna läses utanför
+  transaktionen, så sessionens `kgNySokareAt` sätts i transaktionen och spärrar samtidiga ticks: en ny
+  sökare räknas som vid liv i `FRANKOPPLAD_MS` (30 s) innan regeln får slå till igen.
 - **Hittad/nySokare-händelsen bär gömställets plats** (eleven är nu sökare, platsen är inte längre hemlig)
   och namn enligt `showNames`; visslingen aldrig namn (§8 fråga 6).
 - **`rewards` räknas på servern** (`meteorstorm-mynt.js`), `rank` = `placering` (delad).
@@ -657,10 +669,13 @@ gratisnivån (10 GB/mån) räcker för hundratals matcher. Slut-QA mäter.
 | `test/functions-kurragomma-core.test.mjs` | `test:functions` | starta/anslut/lås/svara med styrd klocka och slump (13) |
 | `test/functions-kurragomma-leta.test.mjs` | `test:functions` | sökning, fasbyte, placering, tick, avslut (12) |
 | `test/functions-kurragomma.test.mjs` | `test:functions` | e2e genom callables, Auth, Firestore- och RTDB-reglerna (5) |
+| `test/functions-kurragomma-tester-838.test.mjs` | `test:functions` | testarens: samtidiga kgTick/kgStarta/kgLeta/kgAvsluta, visslingen med riktig slump |
 | `test/firestore-rules-live-kurragomma.test.js` | `test:rules` | Firestore-grenen (§5.4) |
+| `test/firestore-rules-live-kurragomma-tester-838.test.js` | `test:rules` | testarens: hemligheten i Firestore-reglerna |
 | `test/rtdb-rules-kurragomma.test.js` | `test:rules:rtdb` | `database.rules.json` (§5.3) |
-| `test/live-kurragomma-rorelse.test.js` | `npm test` | `skapaPosFilter`, lokal buss, rtdb-kanalen mot en SDK-stub (10) |
-| `test/live-kurragomma-klocka.test.js` | `npm test` | matchklockan (§10.6) |
+| `test/rtdb-rules-kurragomma-tester-838.test.js` | `test:rules:rtdb` | testarens: den riktiga kanalen (modulära SDK:n) mot reglerna |
+| `test/live-kurragomma-kanal.test.js` | `node --test` | `skapaPosFilter`, lokal buss, rtdb-kanalen mot en SDK-stub, serverklockan (12) |
+| `test/live-kurragomma-klocka.test.js` | `node --test` | matchklockan (§10.6) |
 
 Emulatorerna (functions, auth, firestore, **database**) startas av `npm run test:functions`;
 `firebase.json` har `emulators.database` på port 9000 och `database.rules` → `database.rules.json`.

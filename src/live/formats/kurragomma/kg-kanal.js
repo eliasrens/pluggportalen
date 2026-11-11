@@ -1,5 +1,6 @@
 // ============================================================================
-// Kurragömma (#838): RÖRELSEKANALEN – ett gränssnitt, två implementationer
+// Kurragömma (#838): RÖRELSEKANALEN (kg-kanal.js; scen/kg-rorelse.js är gåendet
+// i 3D-scenen) – ett gränssnitt, två implementationer
 // (spec §5.3). Sökarnas positioner, realtidshändelserna (vissling, hittad,
 // miss, nySokare) och statusen överst går här, inte i Firestore.
 //   • "rtdb"  Firebase Realtime Database. SDK:n laddas med import() från samma
@@ -10,10 +11,13 @@
 // Resten av formatet känner inte till vilken som används.
 //
 //   skapaRorelsekanal({ sid, uid, lage, app, url?, sdk?, buss?, nu? }) → kanal
-//     kanal.start()                 ansluter (rtdb: onDisconnect().remove() på egen pos)
+//     kanal.start()                 ansluter (rtdb: lyssnar på .info/serverTimeOffset, så t
+//                                   och åldersgränsen räknas på SERVERNS klocka)
 //     kanal.skickaPos({ x, z, yaw }) → bool  sökarens egen pos: högst 5/s, bara vid flytt
 //                                   > 0,15 m eller vridning > 0,05 rad – men minst var
-//                                   POS_PULS_MS (pulsen för "det finns alltid en sökare")
+//                                   POS_PULS_MS (pulsen för "det finns alltid en sökare").
+//                                   Första skicket armerar onDisconnect().remove() på egen
+//                                   pos (bara sökare skriver – gömmare/projektor rör den aldrig)
 //     kanal.paPos(cb)               cb(uid, { x, z, yaw, t } | null) – andras positioner
 //     kanal.paHandelse(cb)          cb(h) – bara händelser yngre än HAND_MAX_ALDER_MS,
 //                                   lyssnar på de HAND_LIMIT senaste (limitToLast)
@@ -64,18 +68,25 @@ function skapaRtdbKanal({ sid, uid, app, url = KG_DATABASE_URL, sdk = null, emul
   const av = [];
   let fb = null;
   let db = null;
+  let offset = 0; // serverns klocka − klientens (.info/serverTimeOffset)
+  let armad = false;
   const rot = () => `kg/${sid}`;
   const egen = () => fb.ref(db, `${rot()}/pos/${uid}`);
+  const serverNu = () => nu() + offset;
   return {
     async start() {
       fb = sdk || (await import(/* webpackIgnore: true */ SDK_URL));
       db = fb.getDatabase(app, url);
       if (emulator) fb.connectDatabaseEmulator(db, emulator.host, emulator.port);
-      await fb.onDisconnect(egen()).remove();
+      av.push(fb.onValue(fb.ref(db, ".info/serverTimeOffset"), (snap) => { offset = Number(snap.val()) || 0; }));
     },
     skickaPos(p) {
       if (!db || !filter.prova(p)) return false;
-      fb.set(egen(), posDoc(p, nu())).catch(() => null);
+      if (!armad) {
+        armad = true;
+        fb.onDisconnect(egen()).remove().catch(() => null);
+      }
+      fb.set(egen(), posDoc(p, serverNu())).catch(() => null);
       return true;
     },
     paPos(cb) {
@@ -92,7 +103,7 @@ function skapaRtdbKanal({ sid, uid, app, url = KG_DATABASE_URL, sdk = null, emul
       const q = fb.query(fb.ref(db, `${rot()}/hand`), fb.orderByChild("t"), fb.limitToLast(HAND_LIMIT));
       const u = fb.onChildAdded(q, (snap) => {
         const h = snap.val();
-        if (h && Number(h.t) >= nu() - HAND_MAX_ALDER_MS) cb({ id: snap.key, ...h });
+        if (h && Number(h.t) >= serverNu() - HAND_MAX_ALDER_MS) cb({ id: snap.key, ...h });
       });
       av.push(u);
       return u;
@@ -104,7 +115,7 @@ function skapaRtdbKanal({ sid, uid, app, url = KG_DATABASE_URL, sdk = null, emul
     },
     stang() {
       for (const u of av.splice(0)) u();
-      if (db) fb.remove(egen()).catch(() => null);
+      if (db && armad) fb.remove(egen()).catch(() => null);
     },
   };
 }

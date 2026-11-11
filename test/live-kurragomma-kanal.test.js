@@ -1,10 +1,13 @@
 // ============================================================================
-// Kurragömma (#838): rörelsekanalen kg-rorelse.js – ren Node, ingen emulator.
+// Kurragömma (#838): rörelsekanalen kg-kanal.js – ren Node, ingen emulator.
 //   • posfiltret: högst 5/s, bara vid flytt > 0,15 m eller vridning, men pulsen
 //     minst var POS_PULS_MS
-//   • RTDB-implementationen mot en falsk SDK (injicerad): onDisconnect().remove()
-//     på egen pos, egna positioner filtreras bort i paPos, händelser äldre än
-//     10 s ignoreras, limitToLast(HAND_LIMIT), stang() tar bort egen pos
+//   • RTDB-implementationen mot en falsk SDK (injicerad): start() skriver inget
+//     (gömmare/projektor har ingen skrivrätt), första skickaPos armerar
+//     onDisconnect().remove() på egen pos, t och åldersgränsen följer serverns
+//     klocka (.info/serverTimeOffset), egna positioner filtreras bort i paPos,
+//     händelser äldre än 10 s ignoreras, limitToLast(HAND_LIMIT), stang() tar
+//     bort egen pos bara om den skrivits
 //   • den lokala bussen: samma gränssnitt, bara sökare skriver pos
 //   • SDK:n nås bara via import() (ingen statisk import av gstatic/firebase)
 // ============================================================================
@@ -14,7 +17,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   skapaPosFilter, skapaRorelsekanal, skapaLokalBuss, KG_DATABASE_URL,
-} from "../src/live/formats/kurragomma/kg-rorelse.js";
+} from "../src/live/formats/kurragomma/kg-kanal.js";
 import {
   POS_MIN_INTERVALL_MS, POS_MIN_FLYTT_M, POS_PULS_MS, HAND_MAX_ALDER_MS, HAND_LIMIT,
 } from "../src/live/formats/kurragomma/delat/kg-config.js";
@@ -79,20 +82,36 @@ describe("RTDB-kanalen (falsk SDK)", () => {
     await kanal.start();
     return { k, sdk, kanal };
   }
-  it("start: databasen i europe-west1 och onDisconnect().remove() på egen pos", async () => {
-    const { sdk } = await rigg();
-    assert.deepEqual(sdk.skrivet, [["onDisconnect.remove", "kg/m1/pos/alma"]]);
+  it("start: databasen i europe-west1, inget skrivs (gömmare/projektor saknar skrivrätt), klockskillnaden lyssnas", async () => {
+    const { sdk, kanal } = await rigg();
+    assert.deepEqual(sdk.skrivet, []);
+    assert.ok(sdk.lyss.value.has(".info/serverTimeOffset"));
     assert.ok(KG_DATABASE_URL.includes("europe-west1"));
+    kanal.stang();
+    assert.deepEqual(sdk.skrivet, [], "ingen remove av en pos som aldrig skrivits");
   });
-  it("skickaPos skriver egen pos filtrerat, med t = nu", async () => {
+  it("skickaPos skriver egen pos filtrerat, med t = nu; första skicket armerar onDisconnect().remove()", async () => {
     const { k, sdk, kanal } = await rigg();
     assert.equal(kanal.skickaPos({ x: 1, z: 2, yaw: 0.5 }), true);
+    assert.deepEqual(sdk.skrivet[0], ["onDisconnect.remove", "kg/m1/pos/alma"]);
+    assert.equal(sdk.skrivet.filter((s) => s[0] === "onDisconnect.remove").length, 1);
     assert.equal(kanal.skickaPos({ x: 1, z: 2, yaw: 0.5 }), false);
     k.ga(POS_MIN_INTERVALL_MS);
     assert.equal(kanal.skickaPos({ x: 1.01, z: 2, yaw: 0.5 }), false);
     assert.equal(kanal.skickaPos({ x: 3, z: 2, yaw: 0.5 }), true);
     const sets = sdk.skrivet.filter((s) => s[0] === "set");
     assert.deepEqual(sets, [["set", "kg/m1/pos/alma", { x: 1, z: 2, yaw: 0.5, t: 1_000_000 }], ["set", "kg/m1/pos/alma", { x: 3, z: 2, yaw: 0.5, t: 1_000_000 + POS_MIN_INTERVALL_MS }]]);
+  });
+  it("serverns klocka: t = nu + serverTimeOffset, och åldersgränsen för händelser följer den", async () => {
+    const { k, sdk, kanal } = await rigg();
+    sdk.skjutIn("value", ".info/serverTimeOffset", "serverTimeOffset", 20_000);
+    kanal.skickaPos({ x: 1, z: 2, yaw: 0 });
+    assert.deepEqual(sdk.skrivet.at(-1), ["set", "kg/m1/pos/alma", { x: 1, z: 2, yaw: 0, t: k.nu() + 20_000 }]);
+    const sett = [];
+    kanal.paHandelse((h) => sett.push(h.id));
+    sdk.skjutIn("added", "kg/m1/hand", "h1", { typ: "vissling", x: 1, z: 2, plats: "x", t: k.nu() + 20_000 - 500 });
+    sdk.skjutIn("added", "kg/m1/hand", "h2", { typ: "vissling", x: 1, z: 2, plats: "x", t: k.nu() + 500 });
+    assert.deepEqual(sett, ["h1"], "klienten 20 s efter servern: serverns färska händelse tas, den 'gamla' (klientens klocka) inte");
   });
   it("paPos ger andras positioner och borttagningar – aldrig den egna", async () => {
     const { sdk, kanal } = await rigg();
@@ -122,12 +141,13 @@ describe("RTDB-kanalen (falsk SDK)", () => {
     kanal.paPos(() => {});
     sdk.skjutIn("value", "kg/m1/status", "status", { fas: "leta", lasta: 3, gomda: 3, sokare: 1 });
     assert.deepEqual(st, [{ fas: "leta", lasta: 3, gomda: 3, sokare: 1 }]);
+    kanal.skickaPos({ x: 1, z: 1, yaw: 0 });
     kanal.stang();
     assert.equal(sdk.lyss.value.size + sdk.lyss.added.size + sdk.lyss.changed.size + sdk.lyss.removed.size, 0);
     assert.deepEqual(sdk.skrivet.at(-1), ["remove", "kg/m1/pos/alma"]);
   });
   it("SDK:n nås bara via import() från gstatic – ingen statisk import", () => {
-    const src = readFileSync(new URL("../src/live/formats/kurragomma/kg-rorelse.js", import.meta.url), "utf8");
+    const src = readFileSync(new URL("../src/live/formats/kurragomma/kg-kanal.js", import.meta.url), "utf8");
     assert.doesNotMatch(src, /^import .*firebase/m);
     assert.match(src, /await import\([^)]*SDK_URL\)/);
     assert.match(src, /gstatic\.com\/firebasejs\/10\.12\.2\/firebase-database\.js/);
