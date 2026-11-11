@@ -6,7 +6,7 @@
 // (firestore.rules) och aldrig annat än sin egen pos i Realtime Database
 // (database.rules.json). index.js kör funktionerna med Admin SDK:t injicerat,
 // så kärnan testas direkt mot emulatorerna med styrd klocka och slump.
-// Kontraktet: docs/KURRAGOMMA.md §8. Motorn: ./kurragomma/ (kopia av
+// Kontraktet: docs/KURRAGOMMA.md §9. Motorn: ./kurragomma/ (kopia av
 // src/live/formats/kurragomma/delat/ – npm run sync:kurragomma).
 // Delarna: -sess.js (sessionen, minnet), -fas.js (starten, fasbytet),
 // -rtdb.js (rörelsekanalen), -tick.js (kgTick), -resultat.js (kgAvsluta).

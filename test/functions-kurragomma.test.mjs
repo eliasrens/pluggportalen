@@ -27,12 +27,15 @@ process.env.FIRESTORE_EMULATOR_HOST = FS_HOST;
 process.env.FIREBASE_AUTH_EMULATOR_HOST = AUTH_HOST;
 process.env.FIREBASE_DATABASE_EMULATOR_HOST = DB_HOST;
 const hp = (h) => [h.split(":")[0], Number(h.split(":")[1])];
+// Emulatorn laddar database.rules.json i namnrymden {projekt}-default-rtdb – samma som servern
+// väljer (kurragomma-rtdb.js kgDatabaseUrl) – så klientens läsningar går genom reglerna.
+const DB_URL = `http://${DB_HOST}?ns=${PROJECT_ID}-default-rtdb`;
 
-const adminApp = admin.initializeApp({ projectId: PROJECT_ID, databaseURL: `http://${DB_HOST}?ns=${PROJECT_ID}` }, "kg-fn-admin");
+const adminApp = admin.initializeApp({ projectId: PROJECT_ID, databaseURL: DB_URL }, "kg-fn-admin");
 const adb = adminApp.firestore();
 const { Timestamp } = admin.firestore;
 
-const app = initializeApp({ apiKey: "fake-api-key", projectId: PROJECT_ID, databaseURL: `http://${DB_HOST}?ns=${PROJECT_ID}` }, "kg-fn-client");
+const app = initializeApp({ apiKey: "fake-api-key", projectId: PROJECT_ID, databaseURL: DB_URL }, "kg-fn-client");
 const auth = getAuth(app);
 connectAuthEmulator(auth, `http://${AUTH_HOST}`, { disableWarnings: true });
 const cdb = getFirestore(app);
@@ -69,7 +72,9 @@ after(async () => {
   await adminApp.delete().catch(() => {});
 });
 
-async function session(sid, { sedan = 2000, gomtid = 20 } = {}) {
+// gomtid är högst 60 s (GOMTIDER_S) – matchen i gömfasen skapas först i sitt eget test,
+// så att emulatorns kallstart inte äter upp gömfasen.
+async function session(sid, { sedan = 2000, gomtid = 60 } = {}) {
   await adb.doc(`liveSessions/${sid}`).set({
     name: "Kurragömma", format: "kurragomma", gameMode: "multiplication_0_10", answerKind: "free",
     participatingClassIds: ["kg4b"], classNames: { kg4b: "4B" }, durationSeconds: gomtid + 300, countdownSeconds: 0,
@@ -82,7 +87,7 @@ async function session(sid, { sedan = 2000, gomtid = 20 } = {}) {
   }
 }
 
-test("seed: elever i klassen, en lärare, en match i gömfasen och en i letfasen", async () => {
+test("seed: elever i klassen, en lärare och en match i letfasen", async () => {
   for (const uid of ELEVER) {
     await admin.auth(adminApp).createUser({ uid, email: email(uid), password: PW }).catch(() => {});
     await adb.doc(`students/${uid}`).set({ namn: uid });
@@ -90,8 +95,7 @@ test("seed: elever i klassen, en lärare, en match i gömfasen och en i letfasen
   await admin.auth(adminApp).createUser({ uid: "kglarare", email: email("kglarare"), password: PW }).catch(() => {});
   await admin.auth(adminApp).setCustomUserClaims("kglarare", { teacher: true, admin: true });
   await adb.doc("classes/kg4b").set({ name: "4B", studentIds: ELEVER });
-  await session("kg");
-  await session("kg-leta", { sedan: 40_000 });
+  await session("kg-leta", { sedan: 200_000 });
 });
 
 test("utloggad nekas", async () => {
@@ -100,6 +104,7 @@ test("utloggad nekas", async () => {
 });
 
 test("läraren startar: startsökare, gömfasen; eleven läser sitt eget kgPlayers men inte andras", async () => {
+  await session("kg", { sedan: 0 });
   await as("kglarare");
   const r = await call("kgStarta", { sid: "kg" });
   assert.equal(r.fas, "gom");

@@ -27,7 +27,7 @@ const PROJECT_ID = process.env.GCLOUD_PROJECT || "pluggportalen-so-2026";
 process.env.FIRESTORE_EMULATOR_HOST ||= "127.0.0.1:8080";
 process.env.FIREBASE_DATABASE_EMULATOR_HOST ||= "127.0.0.1:9000";
 const app = admin.initializeApp({
-  projectId: PROJECT_ID, databaseURL: `http://${process.env.FIREBASE_DATABASE_EMULATOR_HOST}?ns=${PROJECT_ID}`,
+  projectId: PROJECT_ID, databaseURL: `http://${process.env.FIREBASE_DATABASE_EMULATOR_HOST}?ns=${PROJECT_ID}-default-rtdb`,
 }, `kg-core-${process.pid}-${Math.random()}`);
 export const db = app.firestore();
 export const rtdb = app.database();

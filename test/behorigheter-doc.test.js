@@ -8,7 +8,7 @@
 //     "Cloud Functions",
 //   • en rad saknar en testnyckel, eller nyckeln saknas i "Testerna",
 //   • en testfil i "Testerna" inte finns eller inte körs av test:rules /
-//     test:functions i package.json.
+//     test:rules:rtdb / test:functions i package.json.
 // Ren Node, ingen emulator: node --test test/behorigheter-doc.test.js
 // ============================================================================
 
@@ -77,11 +77,11 @@ test("varje rad har en testreferens med en känd nyckel", () => {
   }
 });
 
-test("varje testfil finns och körs av test:rules eller test:functions", () => {
+test("varje testfil finns och körs av test:rules, test:rules:rtdb eller test:functions", () => {
   assert.ok(keys.size >= 5);
-  const suites = `${scripts["test:rules"]} ${scripts["test:functions"]}`;
+  const suites = `${scripts["test:rules"]} ${scripts["test:rules:rtdb"]} ${scripts["test:functions"]}`;
   for (const [k, file] of keys) {
     assert.ok(existsSync(new URL(`../${file}`, import.meta.url)), `${k}: ${file} finns inte`);
-    assert.ok(suites.includes(file), `${k}: ${file} körs inte av test:rules/test:functions`);
+    assert.ok(suites.includes(file), `${k}: ${file} körs inte av test:rules/test:rules:rtdb/test:functions`);
   }
 });

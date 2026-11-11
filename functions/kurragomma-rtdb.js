@@ -32,8 +32,12 @@ export function kgDatabaseUrl(env = process.env) {
   } catch {
     cfg = {};
   }
-  if (cfg.databaseURL) return cfg.databaseURL;
   const projekt = cfg.projectId || env.GCLOUD_PROJECT || env.PROJECT_ID || "pluggportalen-so-2026";
+  // Emulatorn laddar database.rules.json i namnrymden {projekt}-default-rtdb (firebase-tools
+  // rulesConfig), men FIREBASE_CONFIG.databaseURL pekar på ?ns={projekt} när CLI:t inte är
+  // inloggat – välj regelnamnrymden så att klient- och servertester ser samma data.
+  if (env.FIREBASE_DATABASE_EMULATOR_HOST) return `http://${env.FIREBASE_DATABASE_EMULATOR_HOST}/?ns=${projekt}-default-rtdb`;
+  if (cfg.databaseURL) return cfg.databaseURL;
   return `https://${projekt}-default-rtdb.europe-west1.firebasedatabase.app`;
 }
 

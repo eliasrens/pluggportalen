@@ -1,7 +1,7 @@
 // ============================================================================
 // Kurragömma på SERVERN – sessionen, referenserna, tiderna och minnet
 // (functions/kurragomma-sess.js, #838). Används av kurragomma-fas.js,
-// -core.js, -tick.js och -resultat.js. Kontraktet: docs/KURRAGOMMA.md §8.
+// -core.js, -tick.js och -resultat.js. Kontraktet: docs/KURRAGOMMA.md §9.
 //
 // MINNET (per instans, deps.minne – testerna ger var sitt): sessionen (högst
 // KG_SESSION_TTL_MS gammal), quizet (oföränderligt) och spelarnas namn/klass.

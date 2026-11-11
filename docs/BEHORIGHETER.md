@@ -33,7 +33,7 @@ Kolumnen **Test** pekar ut testet som bevisar raden (nyckel + testnummer i spec 
 eller testets namn). Kontrolltestet `test/behorigheter-doc.test.js` fäller om en
 samling i `firestore.rules` eller en callable i `functions/index.js` saknas i
 tabellerna, om en rad saknar test, eller om en testfil inte körs av
-`npm run test:rules` / `npm run test:functions`.
+`npm run test:rules` / `npm run test:rules:rtdb` (Realtime Database) / `npm run test:functions`.
 
 | Nyckel | Testfil |
 | --- | --- |
@@ -55,6 +55,9 @@ tabellerna, om en rad saknar test, eller om en testfil inte körs av
 | BF | `test/functions-brakresan.test.mjs` |
 | MR | `test/firestore-rules-live-meteorstorm.test.js` |
 | MF | `test/functions-meteorstorm.test.mjs` |
+| KR | `test/firestore-rules-live-kurragomma.test.js` |
+| KF | `test/functions-kurragomma.test.mjs` |
+| KD | `test/rtdb-rules-kurragomma.test.js` |
 | SA | `test/firestore-rules-season.test.js` |
 | PV | `test/firestore-rules-prov.test.js` |
 | PD | `test/firestore-rules-prov-rattning.test.js` |
@@ -104,6 +107,9 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `liveSessions/{sid}/grPlayers`, `grEvents`, `grMeta`, `dkPlayers`, `dkEvents`, `dkMeta` | L/radera (servern skriver) | L som läraren i sessionen. S: aldrig. | RO serverdata |
 | `liveSessions/{sid}/msEvents`, `msPlayers`, `msLas` (Meteorstormen, #821) | L/radera (servern skriver) | L som läraren i sessionen (`msLas`: ingen klient). S: aldrig. Eleven läser sitt eget `msPlayers`, aldrig loggen `msEvents`. Pluggmyntskvittots rätt-mynt ≤ `perCorrect` × serverns `msPlayers.correct`. | MR |
 | `liveSessions/{sid}/msPublic`, `msPrivate` (Meteorstormen, #821) | L/S | Som läraren i sessionen: skapa quizets `msPublic/questions` + `msPrivate/snapshot` i lobbyn. `msPublic/status` skriver bara servern; deltagare läser `msPublic`, bara lärare `msPrivate`. | MR |
+| `liveSessions/{sid}/kgPlayers`, `kgEvents` (Kurragömma, #838) | L/radera (servern skriver) | L som läraren i sessionen (projektorn). S: aldrig. Eleven läser sitt eget `kgPlayers` (roll, poäng, laddningar), aldrig loggen `kgEvents`. Pluggmyntskvittots rätt-mynt ≤ `perCorrect` × serverns `kgPlayers.ratt`. | KR |
+| `liveSessions/{sid}/kgSelf`, `kgSecret` (Kurragömma, #838) | radera (bara eleven själv läser `kgSelf` = det egna gömstället; ingen klient `kgSecret` – inte ens läraren, §5.4) | nekas | KR |
+| `liveSessions/{sid}/kgPublic`, `kgPrivate` (Kurragömma, #838) | L/S | Som läraren i sessionen: skapa quizets `kgPublic/questions` + `kgPrivate/snapshot` i lobbyn. Deltagare läser `kgPublic`, bara lärare `kgPrivate`. Sessionen: `kgInstallningar` (gömtid 20–60 s, startsökare, tystnad, karta) och `durationSeconds` = gömtid + 1–60 hela speltidsminuter låses i reglerna. | KR |
 | `liveSessions/{sid}/dkSelf`, `dkSecret` | radera (bara eleven själv läser `dkSelf`, ingen klient `dkSecret`) | nekas | RO hemliga koder |
 | `liveClock` | bara sitt eget dokument | bara sitt eget dokument | LC liveClock, RO Live-klockan |
 | `{**}/answers` (collection group) | L | L: `classId` i egna klasser, eller `uid` = egen elev (träningstotalen) | SM test 1–2 |
@@ -138,8 +144,24 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `schackVanta`, `schackSlutaVanta`, `schackGaMed`, `schackUtmana`, `schackSvara`, `schackDrag`, `schackGeUpp`, `schackRemi`, `schackKravaVinst` (#779) | nej – elevfunktioner: anroparen måste stå i klassens `studentIds`, klassen ha `schack` i `enabledModules` och inget aktivt fokuslås (kärnan: `test/functions-schack-core.test.mjs`, `test/functions-schack-parti.test.mjs`) | nej | SF |
 | `schackDatorVinst`, `schackLektionMynt`, `schackPusselMynt` (#798) | nej – elevfunktioner: anroparen måste stå i en klass med `schack` i `enabledModules` (inte dold) och ingen av elevens klasser får ha ett aktivt fokuslås. Servern kontrollerar partiet/lösningen och betalar en gång per nivå/lektion/pussel (kvittot `schackMynt/{uid}`) | nej | SX |
 | `msAgera`, `msRatta`, `msLage` (#821) | nej – elevfunktioner: anroparen måste ha gått med (`players/{uid}`) i en av sessionens klasser | nej | MF |
+| `kgAnslut`, `kgLas`, `kgSvara`, `kgLeta` (#838) | nej – elevfunktioner: anroparen måste ha gått med (`players/{uid}`) i en av sessionens klasser. Fasbytet sker lat i varje anrop. | nej | KF |
+| `kgStarta`, `kgTick` (#838) | ja (alla sessioner) | ja, sessioner med en egen klass (kontot läses färskt). En deltagare (elev) får också anropa dem: de gör bara det lata fasbytet och frågorna som ändå körs i varje anrop. | KF |
+| `kgAvsluta` (#838) | ja (alla sessioner; en pågående avslutas nu) | ja, sessioner med en egen klass (kontot läses färskt). Deltagare (elev) först efter slutet eller när alla är hittade. | KF |
 | `msAvsluta` (#821) | ja (alla sessioner; en pågående avslutas nu) | ja, sessioner med en egen klass (kontot läses färskt). Deltagare (elev) först efter slutet. | MF |
 | `schackLarareAvsluta`, `schackLarareTopplista` (#779) | ja (som `hasClass`: alla klasser) | ja, bara egna klasser (kontot läses färskt). Elever nekas. | SF |
+
+## Realtime Database (Kurragömma, #838)
+
+Rörelsekanalen ligger i Realtime Database under `/kg/{sid}` (`database.rules.json`,
+spec §5.3). Rollen avgörs av Auth-claimet `teacher` (samma custom claim som ovan) och av
+serverns medlemslista `med/{uid}`; inget här läser Firestore.
+
+| Väg | Läsa | Skriva | Test |
+| --- | --- | --- | --- |
+| `/kg/{sid}/roll`, `med`, `hand`, `status` | den som står i `med/{uid}` eller ett konto med `teacher`-claimet (admin och årskurskonto) | ingen klient – bara servern (Admin SDK) | KD |
+| `/kg/{sid}/pos/{uid}` | som ovan (hela `pos`) | bara `uid` själv och bara när `roll/{uid}` = `sokare`; exakt fälten `x`, `z` (±40), `yaw` (±7), `t` (±2 min från serverns klocka). Borttagning (`onDisconnect().remove()`) går. Gömmare skriver aldrig. | KD |
+
+Utloggad nekas allt. `kgAvsluta` tar bort hela `/kg/{sid}`.
 
 Migreringsskriptet `admin/migrate-teacher-admins.mjs` (Admin SDK, förbi reglerna)
 bevisas av FM test 24.
