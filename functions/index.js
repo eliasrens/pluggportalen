@@ -62,6 +62,11 @@
 //   msAvsluta lärare eller deltagare efter slutet: motorn med hela loggen → result
 // Logiken: meteorstorm-core.js (+ -sess/-ratta/-status/-resultat/-mynt).
 //
+// Kurragömma (#838, epic #835) – servern avgör roller, gömställen, rättning,
+// visslingar, sökning och poäng; rörelsekanalen i Realtime Database:
+//   kgStarta / kgAnslut / kgLas / kgSvara / kgLeta / kgTick / kgAvsluta
+// Logiken: kurragomma-core.js (+ -sess/-fas/-rtdb/-tick/-resultat), docs/KURRAGOMMA.md §8.
+//
 // ⚠️ DEPLOY KRÄVS: firebase deploy --only functions (Blaze-planen). Klienten
 // (src/data-student-login.js, src/live/formats/guldrush/guldrush-data.js) visar
 // ett tydligt fel tills funktionerna finns.
@@ -72,6 +77,7 @@ import { logger } from "firebase-functions";
 import { initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore, FieldPath, FieldValue, Timestamp } from "firebase-admin/firestore";
+import { getDatabaseWithUrl } from "firebase-admin/database";
 import { randomInt } from "node:crypto";
 import { LoginError, updateStudentLogin as updateLogin } from "./login-core.js";
 import { GrError, answerQuestion, openChest, chooseVictim } from "./guldrush-core.js";
@@ -98,6 +104,11 @@ import { drag as scDrag, geUpp as scGeUpp, remi as scRemi, kravaVinst as scKrava
 import { larareAvsluta as scLarareAvsluta, larareTopplista as scLarareTopplista } from "./schack-larare.js";
 import { datorVinst as scDatorVinst, lektionMynt as scLektionMynt, pusselMynt as scPusselMynt } from "./schack-mynt.js";
 import { KsError as MsFel, agera as msAgeraCore, ratta as msRattaCore, lage as msLageCore, avsluta as msAvslutaCore } from "./meteorstorm-core.js";
+import {
+  starta as kgStartaCore, anslut as kgAnslutCore, las as kgLasCore, svara as kgSvaraCore, leta as kgLetaCore,
+  tick as kgTickCore, avsluta as kgAvslutaCore,
+} from "./kurragomma-core.js";
+import { kgDatabaseUrl } from "./kurragomma-rtdb.js";
 
 initializeApp();
 
@@ -352,3 +363,36 @@ export const msAgera = meteorstormCall("msAgera", msAgeraCore);
 export const msRatta = meteorstormCall("msRatta", msRattaCore);
 export const msLage = meteorstormCall("msLage", msLageCore);
 export const msAvsluta = meteorstormCall("msAvsluta", msAvslutaCore, { auth: true });
+
+// --- Kurragömma (#838) ---------------------------------------------------------------
+// Ett anrop per svar/sökning/låsning + projektorns kgTick var 5:e s. Realtime Database
+// i europe-west1 (pluggportalen-so-2026-default-rtdb): KG_DATABASE_URL i functions/.env (reserv),
+// annars FIREBASE_CONFIG.databaseURL (kurragomma-rtdb.js kgDatabaseUrl).
+const KG_OPTS = { region: "europe-west1", memory: "512MiB", cpu: 1, concurrency: 80, maxInstances: 4 };
+let kgRtdb = null;
+const kgDeps = () => ({
+  db: getFirestore(), rtdb: (kgRtdb ||= getDatabaseWithUrl(kgDatabaseUrl())), FieldValue, Timestamp, now: Date.now, rng: grRng,
+  roll: (auth) => (auth?.token?.teacher === true ? callerRole(getFirestore(), auth) : null),
+});
+
+function kurragommaCall(name, core, { auth = false } = {}) {
+  return onCall(KG_OPTS, async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) throw new HttpsError("unauthenticated", "Logga in först.");
+    try {
+      return await core(kgDeps(), auth ? request.auth : uid, request.data || {});
+    } catch (err) {
+      if (err instanceof MsFel) throw new HttpsError(err.code, err.message, err.details);
+      logger.error(`${name} oväntat fel`, err);
+      throw new HttpsError("internal", "Något gick fel på servern – försök igen.");
+    }
+  });
+}
+
+export const kgStarta = kurragommaCall("kgStarta", kgStartaCore, { auth: true });
+export const kgAnslut = kurragommaCall("kgAnslut", kgAnslutCore);
+export const kgLas = kurragommaCall("kgLas", kgLasCore);
+export const kgSvara = kurragommaCall("kgSvara", kgSvaraCore);
+export const kgLeta = kurragommaCall("kgLeta", kgLetaCore);
+export const kgTick = kurragommaCall("kgTick", kgTickCore, { auth: true });
+export const kgAvsluta = kurragommaCall("kgAvsluta", kgAvslutaCore, { auth: true });

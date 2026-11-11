@@ -69,8 +69,8 @@ function describe(key, a, questions) {
   };
 }
 
-/** Andel rätt per fråga – samma form som kistspelets perQuestion. */
-function fragestatistik(svar, questions) {
+/** Andel rätt per fråga – samma form som kistspelets perQuestion (Kurragömma #838 återanvänder den). */
+export function fragestatistik(svar, questions) {
   const by = new Map();
   for (const a of svar) {
     const key = questionKey(a);
