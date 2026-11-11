@@ -11,6 +11,7 @@
 //   npm run balans:kurragomma           → tabellen (200 frön per rad)
 //   node admin/kg-balans-sim.mjs --n 50 → färre frön (snabbare)
 //   node admin/kg-balans-sim.mjs --md   → tabellen som markdown (docs/KURRAGOMMA.md)
+//   node admin/kg-balans-sim.mjs --takt 15,20 → robotarnas takt (s/fråga gömd, sökare) – känsligheten
 //
 // Robotarnas beteende (antaganden, inte spelregler – står i docs/KURRAGOMMA.md §6):
 //   ROBOT nedan. Exporterar spelaMatch/korBalans så att testerna kan köra en kort variant.
@@ -270,8 +271,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const arg = process.argv.slice(2);
   const ni = arg.indexOf("--n");
   const n = ni >= 0 ? Number(arg[ni + 1]) : 200;
+  const ti = arg.indexOf("--takt");
+  if (ti >= 0) [ROBOT.gomdTakt, ROBOT.sokarTakt] = arg[ti + 1].split(",").map(Number);
   const rader = NIVAER.map((andelRatt) => korBalans({ andelRatt, n }));
   console.log(`Kurragömma – balans: 25 elever, 8 min, gömtid 30 s, startsökare auto, ${n} frön per rad`);
+  console.log(`Robotarnas takt: gömd ${ROBOT.gomdTakt} s/fråga, sökare ${ROBOT.sokarTakt} s/fråga`);
   console.log(`Riktmärken: gömda kvar 15–40 %, visslingar/min ≤ 6, poäng från rätt svar ≥ ${pct(0.6)}`);
   console.log(`(${POANG.ratt} p per rätt, ${POANG.hittade} p per hittad, ${POANG.overlevnad} p per 10 s gömd, ${POANG.gomdVidSlut} p gömd vid slutet)\n`);
   console.log(tabell(rader, arg.includes("--md")));

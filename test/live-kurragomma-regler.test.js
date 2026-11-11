@@ -260,6 +260,8 @@ describe("rollerna och inställningarna (spec §1.1, §9, §0.1)", () => {
     assert.equal(R.normSpeltidMin(7.6), 8);
     assert.equal(R.normSpeltidMin(99), 60);
     assert.equal(R.normSpeltidMin("x"), null);
+    for (const saknas of [undefined, null, "", "  "]) assert.equal(R.normSpeltidMin(saknas), null, JSON.stringify(saknas));
+    assert.equal(R.normSpeltidMin("12"), 12);
     assert.deepEqual(C.SPELTIDER_MIN, [3, 5, 10, 15, 20, 30]);
     assert.equal(C.SPELTID_REKOMMENDERAD_MIN, 8);
   });

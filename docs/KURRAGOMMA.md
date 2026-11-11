@@ -133,7 +133,7 @@ Platsnamnet väljs så här:
 | `rollVidAnslutning(fas)` | `"gom"` ger `"gomd"`, annars `"sokare"` |
 | `behoverNySokare({ fas, sokare: [{ pulsAt }], gomdaKvar, nu })` | i letfasen, när ingen sökare har puls och det finns gömda kvar |
 | `normInstallningar(inst)` | `{ gomtid ∈ 20/30/45/60 (30), startsokare "auto"\|1–4, tystnad (true), karta ("on") }` |
-| `normSpeltidMin(min)` | 1–60 hela minuter |
+| `normSpeltidMin(min)` | 1–60 hela minuter. Saknat värde (`undefined`, `null`, `""`) eller inte ett tal ger `null` |
 | `matchSekunder({ gomtid, speltidMin })` | kärnans `durationSeconds` = gömtid + speltid |
 
 ---
@@ -205,8 +205,8 @@ att läsa det ur konfigen.
 
 ## 6. Balansen (spec §11.5)
 
-Kör `npm run balans:kurragomma` (200 frön per rad). Det finns också `--n 50` för en snabbare körning och
-`--md` för markdown. Simuleringen har 25 elever, 8 minuters speltid, 30 s gömtid och Auto-startsökare (3). Den
+Kör `npm run balans:kurragomma` (200 frön per rad). Det finns också `--n 50` för en snabbare körning,
+`--md` för markdown och `--takt 15,20` för att sätta robotarnas takt (s/fråga för gömd och sökare). Simuleringen har 25 elever, 8 minuters speltid, 30 s gömtid och Auto-startsökare (3). Den
 kör de riktiga funktionerna i `delat/`.
 
 **Med de slutliga värdena (200 frön per rad):**
@@ -218,7 +218,25 @@ kör de riktiga funktionerna i `delat/`.
 | 90 % | 458 | 485 | 673 | 22 % (5 %–41 %) | 3,6 | 84 % | 55 % |
 
 Riktmärkena är gömda kvar 15–40 %, högst 6 visslingar per minut och minst 60 % av poängen från rätt svar.
-**Alla nås i medel vid alla tre nivåerna.**
+**Alla nås i medel vid alla tre nivåerna, men bara med robotarnas takt (8 s per fråga för en gömd, 12 s för en sökare).**
+Andelen gömda kvar beror starkt på hur snabbt klassen svarar (se känsligheten nedan).
+
+**Känsligheten för takten (slutliga värden, 200 frön per rad, `--takt gömd,sökare`):**
+
+| Takt (s/fråga, gömd/sökare) | Gömda kvar 60 / 75 / 90 % | Visslingar/min 60 / 75 / 90 % | Från rätt svar 60 / 75 / 90 % |
+| --- | --- | --- | --- |
+| 6 / 10 | 28 / 21 / 17 % | 5,6 / 4,8 / 3,7 | 81 / 85 / 87 % |
+| **8 / 12 (tabellen ovan)** | **32 / 26 / 22 %** | **5,6 / 4,8 / 3,6** | **77 / 81 / 84 %** |
+| 12 / 16 | 44 / 37 / 32 % | 5,7 / 4,8 / 3,5 | 68 / 73 / 77 % |
+| 15 / 20 | **54 / 45 / 43 %** | 5,6 / 4,7 / 3,3 | 62 / 68 / 72 % |
+
+- **Gömda kvar** går över 40 % när klassen svarar långsamt (quizfrågor för en trea kan ta
+  15 s). Sökarna får färre laddningar, och då hittar de färre. Riktmärket 15–40 % nås alltså bara
+  för snabba frågor, till exempel multiplikation. Med långsamma frågor behöver sökradierna eller
+  laddningarna justeras efter testet i klassrum.
+- **Visslingar per minut** påverkas nästan inte av takten. Med 200 s spärr bestäms takten av
+  spärren och inte av svaren: ungefär antalet gömda ÷ 200 s. Med ~18–20 gömda i snitt
+  blir det ~5,5/min. Siffran sjunker vid 90 % bara för att fler blir hittade.
 
 **Med specens värden (100 frön):**
 
@@ -229,7 +247,8 @@ Riktmärkena är gömda kvar 15–40 %, högst 6 visslingar per minut och minst 
 | 90 % | 258 | 186 | – | 0 % | 5,6 | 77 % |
 
 Med specens värden hittades alla. I medianmatchen var hälften hittade efter 40–50 s och alla efter 2–3 minuter.
-Klassen visslade 13–19 gånger per minut vid 60–75 % rätt.
+Klassen visslade 13–19 gånger per minut vid 60–75 % rätt. Med specens värden och den långsamma takten
+15/20 s blev det 11,9 visslingar/min vid 60 % (7,3 vid 75 %), och fortfarande 0 % gömda kvar (100 frön).
 
 **Vad som justerades och varför (bara `kg-config.js`):**
 
@@ -275,11 +294,18 @@ efter test i klassrum (etapp 2). Det är där siffrorna ska bekräftas.
 ## 7. Antaganden och avvikelser (del A)
 
 - **Balansen** ändrade tre värden mot specen (§6). Spärren på 200 s betyder att en gömd som
-  svarar fel visslar högst ungefär var 3:e minut. Den skyddar alltså mer än specens 20 s.
+  svarar fel visslar högst ungefär var 3:e minut.
+- **Risk med 200 s spärr: fri gissning.** Bara det **första** felet i varje 200 s-fönster
+  visslar. Efter en vissling kan en gömd gissa fritt i 200 s, vilket är ~42 % av en runda på
+  8 minuter, utan att det kostar något mer än uteblivna +10. Den som svarar fel ofta tillbringar
+  alltså större delen av rundan i spärr. Visslingarna styrs då av spärren (≈ gömda ÷ 200 s) och
+  inte av hur många fel klassen gör, så ett fel säger sökarna lite om **vem** som har svårt.
+  Spärren skyddar en elev som har det svårt, men den tar också bort det mesta av
+  visslingens poäng ("svara rätt, annars visslar det"). Det är en fråga till Elias (§8, fråga 2).
 - **Tystnadsregeln** räknas från det senaste av svaret, visslingen och letfasens början.
   En tyst elev visslar därför högst var 45:e s, och aldrig de första 45 s av letfasen.
   Med spärren på 200 s visslar en tyst elev oftare än en som svarar fel. Det är
-  avsiktligt, eftersom det är att svara som ska löna sig. Det är en fråga till Elias (§8).
+  avsiktligt, eftersom det är att svara som ska löna sig. Det är en fråga till Elias (§8, fråga 4).
 - **Vanliga träd är inte `lov`.** Specen §2.1 nämner bara buskage, höstack, granens och ekens
   krona. Skissen räknade alla träd som lov. Nära ett träd ger skydd 2 och namnet "vid ett träd".
 - **Dammen går att gå i.** Den har ingen kollision och inget skydd (`r: 0`), bara ett
@@ -297,6 +323,17 @@ efter test i klassrum (etapp 2). Det är där siffrorna ska bekräftas.
 
 ## 8. Frågor till Elias
 
-1. Balansen (§6): är 200 s visslingsspärr, sökradierna 2,0/1,7/1,3/0,9 och en
-   visslingsosäkerhet på 5 m okej som start, i väntan på testet i klassrum?
-2. Ska en tyst elev (45 s utan svar) få vissla oftare än den som svarar fel (200 s)?
+1. **Specens 20 s spärr och riktmärket ≤ 6 visslingar/min går inte att nå samtidigt** med ~22
+   gömmare. Varje gömd kan vissla en gång per spärrtid, så taket är ungefär gömda ÷ spärrtid.
+   Med 20 s och ~20 gömda blir taket ~60/min. I simuleringen gav specens värden 19,4/min vid 60 % rätt
+   (8 s/fråga) och 11,9/min även med långsam takt (15 s/fråga). För ≤ 6/min krävs en spärr på
+   minst ~180–200 s. **Vilket ska gälla: spärren på 20 s eller ≤ 6 visslingar/min?** Ett alternativ
+   som bara kan göras med en regeländring och inte i konfigen är ett tak för hela klassen,
+   till exempel högst en vissling per 10 s på projektorn.
+2. **Fri gissning med 200 s spärr** (§7): efter en vissling är fel svar gratis i 200 s, ~42 % av
+   en runda på 8 min. Är det okej, eller ska spärren vara kortare och riktmärket för
+   visslingar högre?
+3. Balansen (§6): är sökradierna 2,0/1,7/1,3/0,9 och en visslingsosäkerhet på 5 m okej som
+   start? Med långsamma quizfrågor (15 s) blir 43–54 % gömda kvar, alltså över 40 %. Ska
+   balansen ställas för multiplikation eller för quiz?
+4. Ska en tyst elev (45 s utan svar) få vissla oftare än den som svarar fel (200 s)?

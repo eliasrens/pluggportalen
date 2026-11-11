@@ -264,8 +264,9 @@ export function normInstallningar(inst = {}) {
   };
 }
 
-/** Speltiden i minuter, klämd till "Egen tid" 1–60 hela minuter. */
+/** Speltiden i minuter, klämd till "Egen tid" 1–60 hela minuter. Saknas (undefined/null/"") eller inget tal → null. */
 export function normSpeltidMin(min) {
+  if (min == null || (typeof min === "string" && min.trim() === "")) return null;
   const m = Math.round(Number(min));
   if (!Number.isFinite(m)) return null;
   return Math.max(SPELTID_EGEN_MIN.min, Math.min(SPELTID_EGEN_MIN.max, m));
