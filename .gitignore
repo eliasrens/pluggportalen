@@ -26,3 +26,4 @@ admin/qa-meteorstorm-825/dbgport
 
 # #831 elevimport: CSV:er med riktiga elevers namn och lösenord – checka ALDRIG in
 admin/import/
+admin/.qa-proxy-kg.mjs
