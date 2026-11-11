@@ -17,6 +17,7 @@ import { assertFails, assertSucceeds, initializeTestEnvironment } from "@firebas
 import { initializeApp, deleteApp } from "firebase/app";
 import * as fbdb from "firebase/database";
 import { skapaRorelsekanal } from "../src/live/formats/kurragomma/kg-kanal.js";
+import { POS_MIN_INTERVALL_MS } from "../src/live/formats/kurragomma/delat/kg-config.js";
 
 const PROJECT = "pluggportalen-rtdb-test-kurragomma-838";
 const SID = "match838";
@@ -165,5 +166,29 @@ describe("Rättningsrunda 1: onDisconnect vid första skicket och regeln för bo
     await assertFails(ref(b, "pos/bo").update({ x: 1 }));
     await assertSucceeds(ref(b, "pos/bo").remove()); // egen pos får tas bort
     await assertSucceeds(ref(b, "pos/bo").remove()); // även tom
+  });
+});
+
+describe("Rättningsrunda 2 (F5): onDisconnect armeras om efter ett nätavbrott", () => {
+  it("goOffline → goOnline → skickaPos → goOffline ⇒ pos borta", async () => {
+    const a = kanal("alma");
+    assert.equal(await medTimeout(a.start()), "ok");
+    await vanta(300);
+    assert.equal(a.skickaPos({ x: 7, z: 7, yaw: 0 }), true);
+    await vanta(800);
+    assert.equal((await admin("pos/alma"))?.x, 7);
+    fbdb.goOffline(a.db());
+    await vanta(1500);
+    assert.equal(await admin("pos/alma"), null, "första avbrottet: onDisconnect tog bort pos");
+    fbdb.goOnline(a.db());
+    await vanta(1500);
+    await vanta(POS_MIN_INTERVALL_MS);
+    assert.equal(a.skickaPos({ x: 9, z: 9, yaw: 0 }), true);
+    await vanta(800);
+    assert.equal((await admin("pos/alma"))?.x, 9, "pos skrevs igen efter återanslutningen");
+    fbdb.goOffline(a.db());
+    await vanta(1500);
+    assert.equal(await admin("pos/alma"), null, "andra avbrottet: onDisconnect var armerad om");
+    a.stang();
   });
 });

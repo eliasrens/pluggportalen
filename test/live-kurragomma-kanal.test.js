@@ -4,7 +4,8 @@
 //     minst var POS_PULS_MS
 //   • RTDB-implementationen mot en falsk SDK (injicerad): start() skriver inget
 //     (gömmare/projektor har ingen skrivrätt), första skickaPos armerar
-//     onDisconnect().remove() på egen pos, t och åldersgränsen följer serverns
+//     onDisconnect().remove() på egen pos (armeras om vid återanslutning), t och
+//     åldersgränsen följer serverns
 //     klocka (.info/serverTimeOffset), egna positioner filtreras bort i paPos,
 //     händelser äldre än 10 s ignoreras, limitToLast(HAND_LIMIT), stang() tar
 //     bort egen pos bara om den skrivits
@@ -101,6 +102,17 @@ describe("RTDB-kanalen (falsk SDK)", () => {
     assert.equal(kanal.skickaPos({ x: 3, z: 2, yaw: 0.5 }), true);
     const sets = sdk.skrivet.filter((s) => s[0] === "set");
     assert.deepEqual(sets, [["set", "kg/m1/pos/alma", { x: 1, z: 2, yaw: 0.5, t: 1_000_000 }], ["set", "kg/m1/pos/alma", { x: 3, z: 2, yaw: 0.5, t: 1_000_000 + POS_MIN_INTERVALL_MS }]]);
+  });
+  it("återanslutning: onDisconnect armeras om när .info/connected blir sann igen – bara om pos skickats", async () => {
+    const { sdk, kanal } = await rigg();
+    const armeringar = () => sdk.skrivet.filter((s) => s[0] === "onDisconnect.remove").length;
+    sdk.skjutIn("value", ".info/connected", "connected", true);
+    assert.equal(armeringar(), 0, "ingen pos skickad än (gömmare/projektor)");
+    kanal.skickaPos({ x: 1, z: 1, yaw: 0 });
+    assert.equal(armeringar(), 1);
+    sdk.skjutIn("value", ".info/connected", "connected", false);
+    sdk.skjutIn("value", ".info/connected", "connected", true);
+    assert.equal(armeringar(), 2, "armerad om efter avbrottet");
   });
   it("serverns klocka: t = nu + serverTimeOffset, och åldersgränsen för händelser följer den", async () => {
     const { k, sdk, kanal } = await rigg();

@@ -343,9 +343,10 @@ efter test i klassrum (etapp 2). Det är där siffrorna ska bekräftas.
 6. **Hittad-händelsen bär namnen** (sökarens och den hittades, enligt `showNames`) och
    gömställets plats, eftersom den hittade just blivit sökare och platsen inte längre är hemlig
    (§10.4). Visslingen bär aldrig namn. Okej?
-7. **Kvoten** (§10.8): uppskattningen är ≈ 7 100 Firestore-läsningar för 10 min/25 elever (budget 8 000),
-   men det är en räkning, inte en mätning – slut-QA (F, #841) mäter. Om den landar över: ska `perQuestion`
-   räknas ur en aggregering i `kgSvara` (−1 000) i stället för att `answers` läses vid slutet?
+7. **Kvoten** (§10.8): uppskattningen är ≈ 7 500–7 800 Firestore-läsningar för 10 min/25 elever (budget
+   8 000) – under, men med liten marginal och det är en räkning, inte en mätning; slut-QA (F, #841) mäter.
+   Om den landar över: ska `perQuestion` räknas ur en aggregering i `kgSvara` (−1 000) i stället för att
+   `answers` läses vid slutet?
 
 ---
 
@@ -584,7 +585,9 @@ servern når den med Admin SDK via `kgDatabaseUrl()`: `KG_DATABASE_URL` (functio
 - **rtdb**: SDK:n (`firebase-database.js`, samma gstatic-källa och version som appens övriga
   Firebase-moduler) laddas med `import()` först i `start()` – bootgrafen rörs inte. `start()` skriver
   inget (gömmare och projektor saknar skrivrätt); det **första** `skickaPos` armerar `onDisconnect().remove()`
-  på egen `pos`, så även den som blir sökare mitt i matchen får sin pos städad. Klockan: kanalen lyssnar på
+  på egen `pos`, så även den som blir sökare mitt i matchen får sin pos städad; ett onDisconnect gäller bara
+  den anslutningen, så det armeras om varje gång `.info/connected` blir sann igen (nätavbrott – annars blir
+  nästa avbrott en frusen figur för de andra). Klockan: kanalen lyssnar på
   `.info/serverTimeOffset` och skriver `t` samt räknar åldersgränsen på **serverns** klocka – en elevdator
   som går fel sparkar inte bort händelserna. `hand` lyssnas med `limitToLast(HAND_LIMIT)` och händelser äldre än
   `HAND_MAX_ALDER_MS` ignoreras. `skickaPos` följer `skapaPosFilter`: högst var `POS_MIN_INTERVALL_MS`
@@ -625,16 +628,19 @@ slut, resultat) och alla 25 lyssnar på den. Sessionen och quizet ligger i serve
 | --- | --- | --- | --- |
 | `kgSvara` 1 000 × (kgPlayers; kgSecret bara för gömmare ~60 %; svaret läses inte i förväg – `tx.create` fäller ett upprepat attemptId och först då läses det) | ~3 000 | ~1 600 | ~2 300 |
 | `kgLeta` 100 × (kgPlayers + kgSecret + alla gömda ~15; +1 per hittad) | ~1 800 | ~1 800 | ~250 |
-| `kgTick` 120 × (session 1 + räknefråga 1 + tystnadsfråga 1 (oftast 0 träffar) + ~2 kandidater × 2) | ~900 | ~900 | ~150 |
-| `kgStarta`/`kgAnslut` 25–50 × ~3 (sessionen och spelarna ligger i serverns minne) | ~150 | ~150 | ~110 |
+| `kgTick` 120 × (räknefråga 1 + tystnadsfråga 1 (oftast 0 träffar) + ~2 kandidater × 4: puls + kgSecret, sedan båda igen i transaktionen) | ~900 | ~1 200 | ~150 |
+| Sessionen i serverns minne: 5 s TTL, en läsning per instans och TTL-fönster – 120 per instans, upp till 4 instanser | ~120 | ~120–480 | – |
+| `kgStarta`/`kgAnslut` 25–50 × ~3 (spelarna och quizet ligger i minnet) | ~150 | ~150 | ~110 |
 | `kgAvsluta` (kgPlayers 25, kgSecret 25, kgEvents ~150, **answers ~1 000** för `perQuestion`) | ~1 200 | ~1 200 | ~30 |
 | Klientlyssnare: sessionen 6 × 25, eget `kgPlayers` ~1 200, `kgSelf` 25 (projektorn lyssnar **inte** på `kgPlayers` – §5.5; ställningen kommer ur RTDB `status` och `hand`) | ~2 700 | ~1 400 | – |
-| **Summa Firestore** | **≈ 9 800** | **≈ 7 100** | **≈ 2 900** |
+| **Summa Firestore** | **≈ 9 900** | **≈ 7 500–7 800** | **≈ 2 900** |
 
 "Före" = första versionen (svaret och kgSecret lästes i varje `kgSvara`, projektorn lyssnade på `kgPlayers`).
-Nu ligger uppskattningen under §5.5:s 8 000 med ~900 i marginal. Nästa besparing om slut-QA (F, #841)
-mäter högre: räkna `perQuestion` ur en liten aggregering som `kgSvara` uppdaterar i stället för att läsa
-`answers` vid slutet (−1 000). Slut-QA mäter på riktigt.
+Nu ligger uppskattningen under §5.5:s 8 000, men marginalen är bara ~200–500 läsningar och beror på hur
+många instanser som är varma och hur många tysta kandidater tystnadsfrågan ger (en tyst gömmare kostar
+4 läsningar per 45 s, en som svarar inget). Det är en räkning, inte en mätning: slut-QA (F, #841) mäter.
+Nästa besparing om den landar över: räkna `perQuestion` ur en liten aggregering som `kgSvara` uppdaterar i
+stället för att läsa `answers` vid slutet (−1 000).
 
 Realtime Database: `pos` – i snitt ~8 sökare × ≤ 2 skrivningar/s (filtret) × 600 s ≈ 10 000 skrivningar
 à ~60 B, var och en till ~25 lyssnare ≈ **15 MB** nedladdning; `hand` ~200 händelser × 25 × ~120 B ≈ 0,6 MB;

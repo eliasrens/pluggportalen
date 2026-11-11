@@ -17,7 +17,8 @@
 //                                   > 0,15 m eller vridning > 0,05 rad – men minst var
 //                                   POS_PULS_MS (pulsen för "det finns alltid en sökare").
 //                                   Första skicket armerar onDisconnect().remove() på egen
-//                                   pos (bara sökare skriver – gömmare/projektor rör den aldrig)
+//                                   pos (bara sökare skriver – gömmare/projektor rör den aldrig),
+//                                   och den armeras om varje gång .info/connected blir sann igen
 //     kanal.paPos(cb)               cb(uid, { x, z, yaw, t } | null) – andras positioner
 //     kanal.paHandelse(cb)          cb(h) – bara händelser yngre än HAND_MAX_ALDER_MS,
 //                                   lyssnar på de HAND_LIMIT senaste (limitToLast)
@@ -73,18 +74,22 @@ function skapaRtdbKanal({ sid, uid, app, url = KG_DATABASE_URL, sdk = null, emul
   const rot = () => `kg/${sid}`;
   const egen = () => fb.ref(db, `${rot()}/pos/${uid}`);
   const serverNu = () => nu() + offset;
+  const armera = () => fb.onDisconnect(egen()).remove().catch(() => null);
   return {
     async start() {
       fb = sdk || (await import(/* webpackIgnore: true */ SDK_URL));
       db = fb.getDatabase(app, url);
       if (emulator) fb.connectDatabaseEmulator(db, emulator.host, emulator.port);
       av.push(fb.onValue(fb.ref(db, ".info/serverTimeOffset"), (snap) => { offset = Number(snap.val()) || 0; }));
+      // Ett onDisconnect gäller bara den anslutningen: efter ett nätavbrott måste
+      // sökaren armera om, annars blir nästa avbrott en frusen figur för de andra.
+      av.push(fb.onValue(fb.ref(db, ".info/connected"), (snap) => { if (snap.val() === true && armad) armera(); }));
     },
     skickaPos(p) {
       if (!db || !filter.prova(p)) return false;
       if (!armad) {
         armad = true;
-        fb.onDisconnect(egen()).remove().catch(() => null);
+        armera();
       }
       fb.set(egen(), posDoc(p, serverNu())).catch(() => null);
       return true;
