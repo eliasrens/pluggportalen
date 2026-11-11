@@ -153,3 +153,42 @@ describe("visslingen läcker aldrig platsen eller namnet", () => {
     assert.ok(ev.filter((h) => avst(h, exakt) > 0.01).length >= 38, "nästan aldrig exakt");
   });
 });
+
+describe("kgSvara utan förläsning (rättningsrunda 1, F3)", () => {
+  it("samma attemptId tre gånger samtidigt → ETT svar loggat, +10 och ratt +1 en gång; alla får samma svar", async () => {
+    const { sid } = await letfas();
+    ctl.clock = GOMSLUT + 8000;
+    const id = att();
+    const fore = await kgPlayer(sid, "bo");
+    const ut = await Promise.all([1, 2, 3].map(() => svara(deps(), "bo", { sid, attemptId: id, ...mult(6, 7) })));
+    assert.ok(ut.every((r) => r.correct === true && r.attemptId === id));
+    assert.equal(ut.filter((r) => r.igen).length, 2, "två fick det redan sparade svaret");
+    const bo = await kgPlayer(sid, "bo");
+    assert.deepEqual({ poang: bo.poang - fore.poang, ratt: bo.ratt - fore.ratt, besvarade: bo.besvarade - fore.besvarade }, { poang: 10, ratt: 1, besvarade: 1 });
+    const a = (await db.collection(`liveSessions/${sid}/answers`).where("uid", "==", "bo").get()).docs;
+    assert.equal(a.length, 1);
+    assert.deepEqual({ uid: a[0].data().uid, isCorrect: a[0].data().isCorrect, format: a[0].data().format, classId: a[0].data().classId }, { uid: "bo", isCorrect: true, format: "kurragomma", classId: "4b" });
+  });
+  it("en annan elev med samma attemptId nekas (already-exists); ett fel svar igen visslar inte två gånger", async () => {
+    const { sid } = await letfas();
+    ctl.clock = GOMSLUT + 8000;
+    const id = att();
+    await svara(deps(), "bo", { sid, attemptId: id, ...mult(6, 7) });
+    await assert.rejects(svara(deps(), "cleo", { sid, attemptId: id, ...mult(6, 7) }), (e) => e.code === "already-exists");
+    const fel = att();
+    const r = await Promise.all([1, 2].map(() => svara(deps(), "dina", { sid, attemptId: fel, ...mult(6, 7, 41) })));
+    assert.equal(r.filter((x) => x.vissling).length, 1);
+    assert.equal((await events(sid)).filter((e) => e.typ === "vissling").length, 1);
+    assert.equal((await kgPlayer(sid, "cleo")).besvarade, 0);
+  });
+  it("sökarens svar läser inte kgSecret men ger laddning; gömmarens svar fungerar med kgSecret", async () => {
+    const { sid } = await letfas();
+    ctl.clock = GOMSLUT + 8000;
+    const fore = (await kgPlayer(sid, "alma")).laddningar;
+    const r = await svara(deps(), "alma", { sid, attemptId: att(), ...mult(2, 2, 5) });
+    assert.equal(r.vissling, false);
+    assert.equal(r.laddningar, fore);
+    const r2 = await svara(deps(), "alma", { sid, attemptId: att(), ...mult(2, 2) });
+    assert.equal(r2.laddningar, Math.min(3, fore + 1));
+  });
+});

@@ -35,8 +35,13 @@ function kanal(uid, claims = {}) {
     ...fbdb,
     connectDatabaseEmulator: (db, h, p) => fbdb.connectDatabaseEmulator(db, h, p, { mockUserToken: { sub: uid, user_id: uid, ...claims } }),
   };
-  return skapaRorelsekanal({ sid: SID, uid, app, url: `http://${HOST}:${PORT}?ns=${PROJECT}`, sdk, emulator: { host: HOST, port: Number(PORT) } });
+  const k = skapaRorelsekanal({ sid: SID, uid, app, url: URL_NS, sdk, emulator: { host: HOST, port: Number(PORT) } });
+  k.db = () => fbdb.getDatabase(app, URL_NS);
+  return k;
 }
+const URL_NS = `http://${HOST}:${PORT}?ns=${PROJECT}`;
+const admin = async (p) => { let v; await testEnv.withSecurityRulesDisabled(async (ctx) => { v = (await ctx.database().ref(`kg/${SID}/${p}`).once("value")).val(); }); return v; };
+const adminSet = (p, v) => testEnv.withSecurityRulesDisabled((ctx) => ctx.database().ref(`kg/${SID}/${p}`).set(v));
 const vanta = (ms) => new Promise((r) => setTimeout(r, ms));
 async function medTimeout(p, ms = 4000) {
   return Promise.race([p.then(() => "ok", (e) => `fel: ${e?.code || e?.message || e}`), vanta(ms).then(() => "timeout")]);
@@ -115,5 +120,50 @@ describe("Gränserna i pos", () => {
   it("en lärare utan klass i matchen läser ändå (claim teacher räcker – spec §5.3)", async () => {
     const d = testEnv.authenticatedContext("annanLarare", { teacher: true }).database();
     await assertSucceeds(ref(d, "pos").once("value"));
+  });
+});
+
+describe("Rättningsrunda 1: onDisconnect vid första skicket och regeln för borttagning", () => {
+  it("en gömmare som BLIR sökare: första skickaPos armerar onDisconnect – pos försvinner när den kopplas från", async () => {
+    const b = kanal("bo");
+    assert.equal(await medTimeout(b.start()), "ok");
+    await vanta(300);
+    await adminSet("roll/bo", "sokare"); // servern: bo hittades
+    assert.equal(b.skickaPos({ x: 5, z: 5, yaw: 0 }), true);
+    await vanta(800);
+    assert.equal((await admin("pos/bo"))?.x, 5, "bo:s pos skrevs");
+    fbdb.goOffline(b.db());
+    await vanta(1500);
+    assert.equal(await admin("pos/bo"), null, "onDisconnect tog bort pos/bo");
+  });
+  it("projektorn (lärare) och en gömmare skriver ingenting: varken pos eller onDisconnect", async () => {
+    const fore = JSON.stringify(await admin(""));
+    const l = kanal("larare9", { teacher: true });
+    const b = kanal("bo");
+    assert.equal(await medTimeout(l.start()), "ok");
+    assert.equal(await medTimeout(b.start()), "ok");
+    l.paPos(() => {}); l.paStatus(() => {}); l.paHandelse(() => {});
+    b.paPos(() => {}); b.paStatus(() => {}); b.paHandelse(() => {});
+    await vanta(500);
+    l.stang(); b.stang();
+    fbdb.goOffline(l.db()); fbdb.goOffline(b.db());
+    await vanta(1500);
+    assert.equal(JSON.stringify(await admin("")), fore, "databasen orörd");
+  });
+  it("borttagning öppnar inget annat: inte andras pos, inte hela pos/kg, inte ett fält, inte skriva som gömmare", async () => {
+    const b = elev("bo");
+    await assertFails(ref(b, "pos/alma").remove());
+    await assertFails(ref(b, "pos").remove());
+    await assertFails(ref(b, "").remove());
+    await assertFails(b.ref("kg").remove());
+    await assertFails(ref(b, "pos/bo").set(posOk()));
+    await assertFails(ref(elev("cleo"), "pos/alma").remove());
+    await assertFails(ref(testEnv.unauthenticatedContext().database(), "pos/alma").remove());
+    await assertFails(ref(elev("alma"), "pos/alma/x").remove()); // sökaren: pos utan x nekas av validate
+    await adminSet("pos/bo", posOk()); // en gammal pos (bo var sökare)
+    await assertFails(ref(b, "pos/bo/x").set(null)); // ett fält = noden finns kvar → kräver sokare
+    await assertFails(ref(b, "pos/bo").update({ x: 1 }));
+    await assertSucceeds(ref(b, "pos/bo").remove()); // egen pos får tas bort
+    await assertSucceeds(ref(b, "pos/bo").remove()); // även tom
   });
 });
