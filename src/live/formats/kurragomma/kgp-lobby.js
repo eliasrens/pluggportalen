@@ -63,7 +63,7 @@ export function createLobby(host, { st, modeName = "", actions = {}, say = () =>
       roster = deps.kurragomma?.roster || (await import("../../design/live-avatars.js")).createAvatarRoster();
       roster.prefetch?.(s.participatingClassIds || []);
       const { skapaKgScen } = await import("./scen/kg-scen.js");
-      const sc = await skapaKgScen({ yta, lage: "projektor", roster, jagUid: "projektor", namnPa: s.showNames !== false });
+      const sc = await skapaKgScen({ yta, lage: "projektor", roster, jagUid: "projektor", namnPa: s.showNames !== false, tvinga2d: !!deps.kurragomma?.tvinga2d });
       if (destroyed) return sc.destroy();
       scen = sc;
       figurer(senaste);

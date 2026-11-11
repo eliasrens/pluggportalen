@@ -685,3 +685,85 @@ gratisnivån (10 GB/mån) räcker för hundratals matcher. Slut-QA mäter.
 
 Emulatorerna (functions, auth, firestore, **database**) startas av `npm run test:functions`;
 `firebase.json` har `emulators.database` på port 9000 och `database.rules` → `database.rules.json`.
+## 11. Projektorn, elevskärmen och demot (del D, #839)
+
+D kopplar ihop motorn (A), scenen (B) och servern (C) till ett spelbart Live-format.
+Formatet är registrerat sist i `src/live/formats/index.js`; bootgrafen når bara
+`index.js`, `kg-setup.js`, `kg-avslut.js` och `delat/` – allt med DOM, Firebase, scen eller
+rörelsekanal laddas med `import()` (`projectorViews`/`studentView`/`historyRenderer`).
+
+### 11.1 Filerna
+
+| Fil | Innehåll |
+| --- | --- |
+| `index.js` | format-objektet (spec §0.1): 🙈, `inom-klass` 1–1, free + choice, tidslinje, pacing `tid`, `music` (`assets/kurragomma-loop.ogg` – **filen levereras separat**; saknas den är formatet tyst, proj-music sväljer 404), `emitOnPlayers`, `resultInputs`/`buildResult` |
+| `kg-setup.js` | speltid 3/5/10/15/20/30 + Egen 1–60 (standard 10, ledtexten rekommenderar 8), namn i flödet, `kgInstallningar` med standardvärden tills E:s fält finns, `durationSeconds = gömtid + speltid` (§10.6), quiz-dokumenten, `computeStandings` |
+| `kg-avslut.js` | `resultInputs` = `kgAvsluta` (med två nya försök) → `settleLiveRewards` bara när `result.rewards` finns; `s.demo` betalar aldrig; klasscentret som Meteorstormen |
+| `kurragomma-data.js` | callables (`europe-west1`), `getQuestions`, `watchMe` (eget `kgPlayers`), `kanal()` = `kg-kanal.js` i rtdb-läge mot prod-instansen (`KG_DATABASE_URL`) – `globalThis.__PP_RTDB_URL`/`__PP_RTDB_EMULATOR` i QA |
+| `kurragomma-projector.js` | `views` = [🙈 Ön (`finale: true`)], `createLobby`, `createWinner`, `ownTimer` |
+| `kgp-on.js` | huvudvyn: toppraden, scenen (projektorläge), händelseflödet (≤ 4 rader), effekter + ljud, `kgStarta` efter KÖR! och `kgTick` var 5 s (bara projektorn, aldrig elevskärmsfönstret), finalen |
+| `kgp-logik.js` | ren: `toppText`, `flodesRad`, `finalModell`, `lobbyPlatser`, `FINAL_TITLE`, `LOBBY_TEXT`, `minutKvar` |
+| `kgp-ljud.js` | riktad vissling (`StereoPannerNode` + volym efter plats i bilden, `visslingPan` ren), pling, gömfasens slut, ny sökare, fanfar; ducking bara när effekten hördes |
+| `kgp-final.js` | finalen i tre steg: lugn rad → pall → gömställena på kartan (`scen.gomstallen`) |
+| `kgp-lobby.js` | lobbyn: ön + en figur per ansluten elev på stranden vid bron, förklaringen, STARTA |
+| `kurragomma-projektor.css` | `kgp-*`, enheten `--kgp-u` = bredd/1920 |
+| `kurragomma-student.js` | elevens koppling: `createStage` → `kge-elev-vy.js` med callables, `serverNow`, avatar-roster, pluggmynt-uppdatering |
+| `kge-elev-vy.js` | elevens spelyta utan Firebase (api injiceras): faserna, 🔒 Lås, auto-lås vid 0:00, hittad-rutan (≤ 2 s), sessionStorage för platsen, reserv-avsluta |
+| `kge-spel.js` | `createQuestionFlow` (kistspelet, återanvänd) med `kgSvara` som `send`, sökningen med 2 s spärr, rörelsekanalen → scenen, hjärtslaget |
+| `kge-logik.js` | ren: texterna, `elevLage`, `laddningarHtml` (SVG), `startplats`, `sparaPos`/`lasPos`, `letaTangent`, `panelLage` |
+| `kge-skarmar.js` | lobby- och slutskärmens HTML (ingen placering som nummer utanför pallen) |
+| `kurragomma-elev.css` | `kge-*`, frågepanelen till höger över 1100 px, annars ett hopfällbart kort längst ned |
+| `kurragomma-history.js` | minimal historik (E bygger fullt) |
+| `kg-demo.js`, `kg-demo-server.js`, `kg-demo-robotar.js`, `kg-demo-resultat.js` | demoläget (§11.4) |
+
+### 11.2 Faserna som vyerna ser dem
+
+- **Lobby** – projektorn: ön roterar, figurer på stranden, "N elever redo", STARTA; elevskärmen: kärnans lobby + förklaringen. Tyst.
+- **KÖR!** – kärnans 3-2-1. Projektorn anropar `kgStarta` när `phase === "live"`; elevskärmen monterar spelytan och `kgAnslut` ger roll, fas, tider, gömställe.
+- **Gömfasen** – toppraden "Göm: 0:24" · "Låsta 12/21" (RTDB `status`); musiken sänks till hälften (`music.skala(0.5)`). Eleven: gömmare går (platsen sparas i `sessionStorage` `pp:kg:pos:{sid}`, aldrig på servern) och låser; vid 0:00 skickas platsen automatiskt (`LAS_MARGINAL_MS`). Sökare: täckt skärm "🙈 Du blundar – räkna till N!" + frågor som laddar lampan.
+- **Letfasen** – fasbytet kommer ur RTDB `status.fas` eller klientklockan (gömslut + `LAS_MARGINAL_MS` + 0,5 s). Projektorn: klockan · "Gömda 14 · Sökare 6", visslingar (ringar + riktat ljud, aldrig namn), hittade (konfetti, pling), missar, "1 minut kvar!". Eleven: frågor; gömd → poäng/egen vissling/"Det visslar vid …"/hjärtslag; sökare → tre ficklampor, 🔦 Leta (mellanslag/E, 2 s spärr), pil mot senaste visslingen. Hittad → ruta ≤ 2 s → sökare från gömstället (rollbytet kommer ur det egna `kgPlayers`).
+- **Slutet** – 00:00/alla hittade (`kgTick` → `kgAvsluta` på servern) eller Avsluta-knappen → kärnan `status finished` → `resultInputs` → `kgAvsluta` + `settleLiveRewards`. Finalen: lugn rad → "🏆 Kurragömma – Prispall" (pallen utan tomma platser, mynt under) → gömställena på kartan ur `result.gomstallen`. Eleven: slutskärmen ur samma `result`.
+
+### 11.3 Ljud och musik (spec §8)
+
+Bara projektorn låter. Visslingen pannas efter var platsen syns i bilden (`scen.skarm(p)` →
+`visslingPan`): vänster/höger, svagare mot kanten och utanför bilden, speglad bakom kameran.
+Musiken är `format.music` (🎵-knappen är skalets), tyst i lobbyn, 30 % i matchen, 15 % under
+gömfasen, ducking bara när en effekt faktiskt hördes. Utan `assets/kurragomma-loop.ogg` är det tyst.
+
+### 11.4 Demoläget (spec §11.4, LIVE-FORMAT §8)
+
+`createKgDemo()` är en hel match i minnet: 30 påhittade elever (Snilleblixtens demonamn),
+en **låtsasserver** (`kg-demo-server.js`) som fattar samma beslut som `functions/kurragomma-*.js`
+med de riktiga reglerna i `delat/`, **robotar** (`kg-demo-robotar.js`) som går till ett gömställe nära
+ett föremål och låser, svarar rätt/fel (fel → vissling), vandrar som sökare mot visslingar och letar,
+och den **lokala rörelsekanalen** (`skapaLokalBuss`). Resultatet byggs som serverns
+(`kg-demo-resultat.js`, med `result.rewards`) men sessionen är `demo: true` – ingenting betalas,
+ingen Firestore, inga Cloud Functions, ingen RTDB (sidorna blockerar och räknar varje försök).
+
+- `preview/preview-kurragomma-demo.html` – projektorn (`mountProjector` med `demo.deps`): lobby/gömfas/letfas/final, namn av, 2D-reserven, knappar för varje moment i §11.4 (vissling, sökning, hittad, tystnad, "sökarna borta" → ny sökare, 1 min kvar, alla hittade, tiden ute).
+- `preview/preview-kurragomma-elev.html` – elevskärmen (`createKgStage` med `demo.api`): `?roll=sokare`, `?2d=1`, `?svar=choice`, `?quiz=1`; svara/lås/leta/bli hittad.
+- `preview/preview-kurragomma-demolage.html` – **kopplat demo**: projektorn och elevskärmen i samma match (elevsidan skapar demot i `parent.__kgKoppling`, projektorn läser det). `?roll=sokare`, `?2d=1`, `?elev=380`.
+
+### 11.5 Val och avvikelser (del D)
+
+- **Scenen ligger under toppraden i DOM:en** (`.kgp-scen { top: var(--kgp-topp) }`), inte bakom – ingen effekt kan täcka raden (§0.2). Finalen ritas i samma yta.
+- **Projektorn lyssnar inte på `kgPlayers`/`kgEvents`** under matchen (§5.5): siffrorna kommer ur RTDB `status`, händelserna ur `hand`. Hittad-beskedet till den hittade går via det egna `kgPlayers` (`watchMe`), eftersom `hand` bär namn men inte uid.
+- **Skriv själv** (`fast-answer.js`) håller fokus i svarsfältet permanent. Sökaren går därför med klick på marken/joystick/drag (scenens styrning) – pilarna/WASD går inte när fältet har fokus. Mellanslag och E letar även med fokus i fältet (siffrorna rörs inte); E i ett annat textfält lämnas i fred.
+- **Kärnändringar**: `proj-music.js` fick `music.skala(k)` (vyns faktor på matchnivån, nollställs vid `load`) och `projector.js` ger vyerna `music` i `create`-opts; `scen/kg-scen.js` fick `scen.skarm(p)` (B:s fil) för det riktade ljudet. Inget annat i kärnan rördes.
+- **Speltidens standard är 10 min** (kistspelens fält) med rekommendationen 8 min i ledtexten tills E bygger lärarformulärets egna fält; `kgInstallningar` får standardvärden ur `kg-config.js`.
+- **Demots "Tystnad"-knapp** flyttar bara den valda gömmarens tystnadsreferens – inte letfasens start – så exakt en visslar.
+- **Musikfilen** `assets/kurragomma-loop.ogg` finns inte i repot; formatet behöver bara filen på plats.
+
+### 11.6 Testerna (spec §13.4)
+
+| Fil | Täcker |
+| --- | --- |
+| `test/live-kurragomma-format.test.js` | registreringen, sessionsdokumentet (gömtid + speltid), avslutet (settle bara med rewards, demo betalar aldrig, nya försök), toppraden, flödet (namn av → "Någon", visslingen aldrig med namn), finalen (exakt rubrik, pall utan tomma platser), lobbyplatserna inom ön, det riktade ljudet, elevens texter/lägen/sessionStorage/tangenter, ≤ 400 rader, inga Emoji 13+, bootgrafen |
+| `test/live-kurragomma-demo.test.js` | en hel match i node: 30 ansluter, KÖR!, låsning, fasbyte, fel svar → vissling utan namn/uid, leta → hittad → sökare (`watchMe`), tystnadsregeln, "alltid en sökare", alla hittade/tiden ute → result + rewards; låtsasserverns fel; isoleringen |
+| `test/live-music.test.js` | `musicTarget` med `skala` |
+| `test/live-formats.test.js`, `test/live-kurragomma-scen.test.js` | bootgrafen (formatet + three nås inte statiskt), 2D-reserven utan WebGL |
+
+Verifierat i webbläsaren (headless Chromium): projektorn 1920×1080 och 1280×720 (toppraden täcks aldrig av scen,
+flöde eller final), elevskärmen 1366×768 (panel till höger) och 380 px (hopfällbart kort), det kopplade demot
+lobby → KÖR! → gömfas → letfas (vissling från elevens fel svar syns i projektorns flöde) → hittad → final.

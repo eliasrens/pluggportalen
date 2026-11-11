@@ -18,7 +18,7 @@
 // stänger av rotation och glidning själv.
 //
 //   createOn(host, { st, sound, music, screen, deps }) → { update(st), destroy() }
-//     deps.kurragomma (demot) = { kanal({ sid, uid }), starta(sid), tick(sid), roster? }
+//     deps.kurragomma (demot) = { kanal({ sid, uid }), starta(sid), tick(sid), roster?, tvinga2d? }
 //     – annars kurragomma-data.js (riktiga callables + RTDB) och createAvatarRoster().
 // ============================================================================
 
@@ -91,15 +91,17 @@ export function createOn(host, { st, sound = null, music = null, screen = false,
     flodeEl.appendChild(li);
     const post = { li, t: setTimeout(() => bort(post), RAD_MS) };
     rader.push(post);
-    while (rader.length > FLODE_MAX_RADER) bort(rader[0]);
+    while (rader.length > FLODE_MAX_RADER) bort(rader[0], true);
     requestAnimationFrame(() => li.classList.add("kgp-synlig"));
   }
-  function bort(post) {
+  /** direkt = trängs ut av en nyare rad (aldrig fler än FLODE_MAX_RADER synliga, även vid en skur). */
+  function bort(post, direkt = false) {
     const i = rader.indexOf(post);
     if (i >= 0) rader.splice(i, 1);
     clearTimeout(post.t);
     post.li.classList.remove("kgp-synlig");
-    setTimeout(() => post.li.remove(), 450);
+    if (direkt) post.li.remove();
+    else setTimeout(() => post.li.remove(), 450);
   }
 
   // --- toppraden ---------------------------------------------------------------------
@@ -150,7 +152,7 @@ export function createOn(host, { st, sound = null, music = null, screen = false,
       if (destroyed) return;
       koppling.roster?.prefetch?.(state.session?.participatingClassIds || []);
       const { skapaKgScen } = await import("./scen/kg-scen.js");
-      scen = await skapaKgScen({ yta, lage: "projektor", roster: koppling.roster || null, jagUid: PROJEKTOR_UID, namnPa: state.session?.showNames !== false });
+      scen = await skapaKgScen({ yta, lage: "projektor", roster: koppling.roster || null, jagUid: PROJEKTOR_UID, namnPa: state.session?.showNames !== false, tvinga2d: !!koppling.tvinga2d });
       if (destroyed) { scen.destroy(); scen = null; return; }
       kanal = koppling.kanal({ sid, uid: PROJEKTOR_UID });
       await kanal.start();

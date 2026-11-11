@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Demoläge – Kurragömma 🙈 projektorn (#839)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <script>
+      // Isolering (LIVE-FORMAT §8): demot får ALDRIG nå Firestore/Firebase/Cloud Functions/RTDB.
+      // Varje försök blockeras och räknas – panelen visar räknaren (ska vara 0).
+      (() => {
+        const FB = /firestore\.googleapis|firebaseio\.com|firebasedatabase\.app|identitytoolkit|securetoken\.googleapis|firebasestorage|cloudfunctions\.net|run\.app/;
+        window.__kgDemoBlocked = [];
+        const block = (url) => { window.__kgDemoBlocked.push(String(url)); console.error("[demo] blockerat Firebase-anrop:", url); };
+        const f = window.fetch;
+        window.fetch = (u, o) => (FB.test(String(u?.url || u)) ? (block(u?.url || u), Promise.reject(new Error("demo: Firebase blockerat"))) : f(u, o));
+        const open = XMLHttpRequest.prototype.open;
+        XMLHttpRequest.prototype.open = function (m, u, ...r) { if (FB.test(String(u))) { block(u); throw new Error("demo: Firebase blockerat"); } return open.call(this, m, u, ...r); };
+        const WS = window.WebSocket;
+        window.WebSocket = function (u, p) { if (FB.test(String(u))) { block(u); throw new Error("demo: Firebase blockerat"); } return new WS(u, p); };
+      })();
+    </script>
+    <style>
+      @font-face { font-family: "Baloo 2"; src: url(../qa-fonts/NotoColorEmoji.ttf); font-weight: 100 900;
+        unicode-range: U+00A9, U+00AE, U+203C, U+2049, U+2122-2139, U+2190-21FF, U+2300-23FF, U+24C2, U+25A0-27BF, U+2900-297F, U+2B00-2BFF, U+3030, U+FE0F, U+200D, U+1F000-1FAFF; }
+      .pv { position: fixed; left: 10px; bottom: 10px; z-index: 100; width: 340px; font: 13px/1.35 system-ui, sans-serif;
+        background: rgba(255, 255, 255, 0.96); color: #2c2230; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,.35); }
+      .pv summary { cursor: pointer; padding: 8px 12px; font-weight: 700; }
+      .pv-body { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 12px; max-height: 62vh; overflow: auto; }
+      .pv-body b { width: 100%; margin-top: 6px; }
+      .pv button { font: inherit; padding: 4px 8px; border-radius: 8px; border: 1px solid #c9cde0; background: #f1f3fb; cursor: pointer; color: inherit; }
+      .pv button:hover { background: #e2e6f6; }
+      .pv button[aria-pressed="true"] { background: #23306b; color: #fff; border-color: #23306b; }
+      .pv-note, .pv-stat { width: 100%; color: #4a4f66; }
+      .pv-stat { font-family: ui-monospace, monospace; font-size: 11px; color: #2c2230; }
+      .pv-ok { color: #1e8a4c; font-weight: 700; } .pv-bad { color: #c0392b; font-weight: 700; }
+      .pv-log { width: 100%; font: 11px/1.3 ui-monospace, monospace; color: #33415c; white-space: pre-wrap; max-height: 80px; overflow: auto;
+        background: #f1f3fb; border-radius: 8px; padding: 6px; }
+      .pv-dold { display: none; }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <details class="pv" open>
+      <summary>🙈 Demoläge – Kurragömma (projektorn)</summary>
+      <div class="pv-body">
+        <span class="pv-note">Simulerad match i webbläsaren – ingen Firestore, inga Cloud Functions, ingen Realtime Database,
+          inga riktiga elever eller pluggmynt. 30 robotar spelar mot en låtsasserver med de riktiga reglerna. Ljud: klicka i sidan en gång.</span>
+        <b>Börja i (startar om)</b>
+        <button data-go="fas=lobby">Tom lobby</button>
+        <button data-go="fas=gom">Gömfasen</button>
+        <button data-go="fas=leta">Letfasen</button>
+        <button data-go="fas=final">Finalen</button>
+        <button data-go="fas=leta&namn=av">Namn av</button>
+        <button data-go="fas=leta&2d=1">2D-reserven</button>
+        <b>Lobby &amp; start</b>
+        <button data-act="anslut">+30 elever ansluter</button>
+        <button data-act="start">▶ KÖR!</button>
+        <b>Händelser (§11.4)</b>
+        <button data-act="vissling">🎵 Vissling</button>
+        <button data-act="sokning">🔦 Sökning</button>
+        <button data-act="hittad">🔎 Hittad</button>
+        <button data-act="tystnad">🤫 Tystnad</button>
+        <button data-act="borta">Sökarna borta</button>
+        <button data-act="minut">⏱ 1 min kvar</button>
+        <button data-act="alla">Alla hittade</button>
+        <button data-act="slut">Tiden ute</button>
+        <b>Visning</b>
+        <button data-act="auto">Robotarna spelar</button>
+        <button data-act="rorelse">Reducerad rörelse</button>
+        <button data-act="frys">Frys tiden</button>
+        <button data-act="omladd">Omladdning</button>
+        <button data-act="dolj">Dölj panelen (5 s)</button>
+        <div class="pv-stat" data-stat></div>
+        <div class="pv-log" data-log></div>
+      </div>
+    </details>
+
+    <script type="module">
+      import { mountProjector } from "../src/live/projector.js";
+      import { createKgDemo } from "../src/live/formats/kurragomma/kg-demo.js";
+      import { forceReducedMotion } from "../src/live/formats/snilleblixt/sb-demo.js";
+      import { skapaRosterStub } from "./kurragomma-robotar.js";
+
+      const q = new URLSearchParams(location.search);
+      const FAS = q.get("fas") || "lobby";
+      const panel = document.querySelector(".pv");
+      if (q.get("panel") === "av") panel.hidden = true;
+      const sid = `demo839-${[...q].filter(([k]) => k !== "rorelse").map(([k, v]) => `${k}${v}`).join("-") || "lobby"}`;
+      localStorage.setItem("pp:live:vy", "kg-on");
+      const logEl = document.querySelector("[data-log]");
+      const log = (t) => { logEl.textContent = `${new Date().toLocaleTimeString("sv-SE")} ${t}\n${logEl.textContent}`.slice(0, 3000); };
+
+      const ctx = { app: document.getElementById("app"), go: (h) => log(`navigera till ${h}`) };
+      let cleanups = [];
+      let reduced = q.get("rorelse") === "reducerad";
+      if (reduced) forceReducedMotion(true);
+      const roster = await skapaRosterStub();
+      const tvinga2d = q.get("2d") === "1";
+
+      // ?koppla=1: projektorn i preview-kurragomma-demolage.html – samma match som elevskärmen
+      // bredvid (elevsidan skapar demot och lägger det i parent.__kgKoppling), ingen egen demo.
+      if (q.get("koppla") === "1") {
+        panel.hidden = true;
+        let D = null;
+        while (!(D = parent.__kgKoppling)) await new Promise((r) => setTimeout(r, 100));
+        const deps = { ...D.deps, kurragomma: { ...D.deps.kurragomma, roster, tvinga2d } };
+        mountProjector(ctx, D.session.id, { cleanups, uid: "demo-larare", deps });
+        window.__kgKopplad = D;
+      } else fristaende();
+
+      async function fristaende() {
+        const demo = createKgDemo({
+          sid, seed: Number(q.get("seed")) || 839, onLog: log, minuter: Number(q.get("min")) || 8, gomtid: Number(q.get("gomtid")) || 30, roster,
+        });
+        if (q.get("namn") === "av") demo.session.showNames = false;
+        demo.deps.kurragomma.tvinga2d = tvinga2d;
+        if (FAS === "gom") await demo.gaTill(3);
+        if (FAS === "leta") await demo.gaTill(demo.session.kgInstallningar.gomtid + 20);
+        if (FAS === "final") await demo.jumpToFinal();
+        if (FAS === "lobby" && q.get("anslut") !== "nej") demo.join(30, 120);
+
+        function mount() {
+          cleanups.forEach((c) => c());
+          cleanups = [];
+          mountProjector(ctx, sid, { cleanups, uid: "demo-larare", deps: demo.deps });
+        }
+        mount();
+
+        const press = (name, on) => document.querySelector(`[data-act="${name}"]`)?.setAttribute("aria-pressed", String(on));
+        const act = {
+          anslut: () => demo.join(30, 140),
+          start: () => demo.start(0),
+          vissling: () => demo.vissling(),
+          sokning: () => demo.sokning(),
+          hittad: () => demo.hittad(demo.robotar.gomda()[0]),
+          tystnad: () => demo.tystnad(),
+          borta: () => { const v = !demo.robotar.lista().length || !document.querySelector('[data-act="borta"]').matches('[aria-pressed="true"]'); demo.sokareBorta(v); press("borta", v); },
+          minut: () => demo.soonOut(62),
+          alla: () => demo.allaHittade(),
+          slut: () => demo.jumpToFinal(),
+          auto: () => { demo.setAuto(!demo.auto); press("auto", demo.auto); },
+          rorelse: () => {
+            reduced = !reduced;
+            forceReducedMotion(reduced);
+            press("rorelse", reduced);
+            const p = new URLSearchParams(location.search);
+            if (reduced) p.set("rorelse", "reducerad"); else p.delete("rorelse");
+            history.replaceState(null, "", `?${p}${location.hash}`);
+            mount();
+          },
+          frys: () => press("frys", demo.toggleFreeze()),
+          omladd: () => mount(),
+          dolj: () => { panel.classList.add("pv-dold"); setTimeout(() => panel.classList.remove("pv-dold"), 5000); },
+        };
+        press("rorelse", reduced);
+        press("auto", true);
+        const go = (qs) => {
+          const old = new URLSearchParams(location.search);
+          const p = new URLSearchParams(qs);
+          if (old.has("rorelse")) p.set("rorelse", old.get("rorelse"));
+          location.search = p.toString();
+        };
+        document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => go(b.dataset.go)));
+        document.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => act[b.dataset.act](b)));
+        setInterval(() => {
+          const s = demo.state();
+          const blocked = window.__kgDemoBlocked.length;
+          const st = s.status || {};
+          document.querySelector("[data-stat]").innerHTML = `status ${s.session.status} · fas ${s.fas || "–"} · elever ${s.players.length}
+            · låsta ${st.lasta ?? 0} · gömda ${st.gomda ?? 0} · sökare ${st.sokare ?? 0} · händelser ${s.events.length}<br>
+            Firebase-anrop: <span class="${blocked ? "pv-bad" : "pv-ok"}">${blocked ? `${blocked} BLOCKERADE` : "0 ✓"}</span>`;
+        }, 500);
+        window.__kgDemo = { demo, act, mount };
+      }
+    </script>
+  </body>
+</html>

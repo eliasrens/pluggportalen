@@ -20,7 +20,7 @@
 // Rollbyte och poäng kommer ur det egna kgPlayers (watchMe) – inget annat lyssnas på.
 //
 //   createKgStage({ view, host, uid, classId, session, mode, answerKind },
-//                 { api, now, roster, onCoins?, storage?, css? }) → { update(st, player), destroy() }
+//                 { api, now, roster, onCoins?, storage?, css?, tvinga2d? }) → { update(st, player), destroy() }
 //     api = { anslut, las, svara, leta, avsluta, getQuestions, watchMe, kanal({ sid, uid }) }
 // ============================================================================
 
@@ -39,7 +39,7 @@ export const KGE_CSS = ["src/live/formats/kurragomma/kurragomma-elev.css", "src/
 const AVSLUTA_EFTER_MS = [20_000, 35_000];
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
-export function createKgStage({ view, host, uid, session, mode, answerKind }, { api, now, roster = null, onCoins = () => {}, storage = undefined, css = KGE_CSS }) {
+export function createKgStage({ view, host, uid, session, mode, answerKind }, { api, now, roster = null, onCoins = () => {}, storage = undefined, css = KGE_CSS, tvinga2d = false }) {
   ensureLiveCss(css);
   view.classList.add("kge-elev-vy");
   const sid = session.id;
@@ -47,8 +47,8 @@ export function createKgStage({ view, host, uid, session, mode, answerKind }, { 
   const lagring = storage === undefined ? (() => { try { return window.sessionStorage; } catch { return null; } })() : storage;
   host.innerHTML = `<div class="kge" data-panel="sida">
     <div class="kge-huvud">
-      <div class="kge-topp"><span class="kge-fastext" data-fastext></span><b class="kge-timer" data-timer></b><span class="kge-poang" data-poang></span></div>
       <div class="kge-scen"></div>
+      <div class="kge-topp"><span class="kge-fastext" data-fastext></span><b class="kge-timer" data-timer></b><span class="kge-poang" data-poang></span></div>
       <div class="kge-matare" data-matare hidden></div>
       <div class="kge-rad" data-rad role="status" hidden></div>
       <button type="button" class="kge-las" data-las hidden>${TEXT.las}</button>
@@ -249,7 +249,7 @@ export function createKgStage({ view, host, uid, session, mode, answerKind }, { 
       if (Number.isInteger(info.nextQ)) spel.setNextQ(info.nextQ);
       const { skapaKgScen } = await import("./scen/kg-scen.js");
       const l0 = elevLage({ roll, fas });
-      scen = await skapaKgScen({ yta, lage: scenLage(l0, harLast), roster, jagUid: uid, namnPa: st?.session?.showNames !== false });
+      scen = await skapaKgScen({ yta, lage: scenLage(l0, harLast), roster, jagUid: uid, namnPa: st?.session?.showNames !== false, tvinga2d });
       if (destroyed) { scen.destroy(); return; }
       // Startplatsen: gömstället (låst/omladdning), serverns start (sökare), sparad plats (omladdning i gömfasen) eller kanten.
       if (gomstalle) scen.jag({ x: gomstalle.x, z: gomstalle.z, yaw: 0 });

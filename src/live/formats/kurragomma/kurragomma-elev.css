@@ -3,7 +3,7 @@
    kge-elev-vy.js), bara kge-*. 3D-vyn fyller ytan; frågepanelen till höger
    (~360 px) över 1100 px (data-panel="sida"), annars ett hopfällbart kort
    längst ned (data-panel="kort"). Fungerar på 1366×768 och ~380 px.
-   Inga z-index: överlägget ligger efter scenen i DOM:en.
+   Inga z-index: överlägget (toppraden m.m.) ligger efter scenen i DOM:en.
    ========================================================================== */
 .kge-elev-vy { min-height: calc(100vh - 90px); min-height: calc(100dvh - 90px); }
 .kge-elev-vy .live-elev-stage { align-items: stretch; padding: 6px; }
@@ -25,7 +25,8 @@
 }
 .kge[data-panel="kort"] {
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) auto;
+  /* Kortet tar sin innehållshöjd men högst 46 % av ytan (en procentsats på kortet själv skulle räknas mot dess egen rad). */
+  grid-template-rows: minmax(0, 1fr) minmax(auto, 46%);
   min-height: 0;
 }
 
@@ -105,7 +106,8 @@
 
 /* --- kortet längst ned (smalt) --------------------------------------------- */
 .kge[data-panel="kort"] .kge-fall { display: block; }
-.kge[data-panel="kort"] .kge-panel { max-height: 46%; }
+/* Kortet växer med frågan (skriv själv ≈ 190 px) i stället för att klämma den till en rullist. */
+.kge[data-panel="kort"] .kge-svar { flex: none; min-height: auto; }
 .kge[data-panel="kort"].kge-ihop .kge-panel-inre { display: none; }
 .kge[data-panel="kort"].kge-ihop .kge-fall i { transform: rotate(-135deg); margin-top: 8px; }
 .kge[data-panel="kort"] .kge-topp { padding: 4px 8px; }
