@@ -366,7 +366,7 @@ export const msAvsluta = meteorstormCall("msAvsluta", msAvslutaCore, { auth: tru
 
 // --- Kurragömma (#838) ---------------------------------------------------------------
 // Ett anrop per svar/sökning/låsning + projektorns kgTick var 5:e s. Realtime Database
-// i europe-west1 (Elias skapar den före deploy): KG_DATABASE_URL i functions/.env,
+// i europe-west1 (pluggportalen-so-2026-default-rtdb): KG_DATABASE_URL i functions/.env (reserv),
 // annars FIREBASE_CONFIG.databaseURL (kurragomma-rtdb.js kgDatabaseUrl).
 const KG_OPTS = { region: "europe-west1", memory: "512MiB", cpu: 1, concurrency: 80, maxInstances: 4 };
 let kgRtdb = null;

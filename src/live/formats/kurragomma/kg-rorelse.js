@@ -21,7 +21,7 @@
 //     kanal.stang()                 slutar lyssna och tar bort egen pos
 //   skapaPosFilter({ nu })          den rena takt-/flyttregeln (testad)
 //   skapaLokalBuss({ nu })          → { kanalFor(uid), server: { roll, med, handelse, status, pos } }
-//   KG_DATABASE_URL                 databasen i europe-west1 (Elias skapar den före deploy)
+//   KG_DATABASE_URL                 databasen i prod (pluggportalen-so-2026-default-rtdb, europe-west1)
 // ============================================================================
 
 import {

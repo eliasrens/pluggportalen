@@ -337,13 +337,10 @@ efter test i klassrum (etapp 2). Det är där siffrorna ska bekräftas.
    start? Med långsamma quizfrågor (15 s) blir 43–54 % gömda kvar, alltså över 40 %. Ska
    balansen ställas för multiplikation eller för quiz?
 4. Ska en tyst elev (45 s utan svar) få vissla oftare än den som svarar fel (200 s)?
-5. **Realtime Database-instansen** antas heta `pluggportalen-so-2026-default-rtdb` i
-   `europe-west1` (§9.7). Heter den något annat: sätt `KG_DATABASE_URL` i `functions/.env` och
-   ändra `KG_DATABASE_URL` i `kg-rorelse.js` före deploy.
-6. **En deltagande elev får anropa `kgStarta` och `kgTick`** (§9.1) – de gör bara det lata
+5. **En deltagande elev får anropa `kgStarta` och `kgTick`** (§9.1) – de gör bara det lata
    fasbytet och tick-frågorna, som ändå körs i varje elevanrop. Det gör att en match med en
    projektor som tappat kontakten ändå rullar vidare. Är det okej, eller ska bara läraren få?
-7. **Hittad-händelsen bär namnen** (sökarens och den hittades, enligt `showNames`) och
+6. **Hittad-händelsen bär namnen** (sökarens och den hittades, enligt `showNames`) och
    gömställets plats, eftersom den hittade just blivit sökare och platsen inte längre är hemlig
    (§9.4). Visslingen bär aldrig namn. Okej?
 
@@ -441,10 +438,13 @@ kärnans `startedAt`). `letStart = kgGomSlut` (inte tiden då fasbytet råkade k
 
 Läsa `roll`, `med`, `pos`, `hand`, `status`: den som står i `med/{uid}` eller ett konto med
 Auth-claimet `teacher` (projektorn). Utloggad nekas allt. `kgAvsluta` tar bort hela `/kg/{sid}`.
-Databasen finns inte i prod än – servern når den med Admin SDK via `kgDatabaseUrl()`:
-`KG_DATABASE_URL` (functions/.env) → i emulatorn `http://{FIREBASE_DATABASE_EMULATOR_HOST}/?ns={projekt}-default-rtdb`
-(namnrymden som `firebase emulators` laddar `database.rules.json` i) → `FIREBASE_CONFIG.databaseURL`
-→ `https://{projekt}-default-rtdb.europe-west1.firebasedatabase.app`.
+Databasen i prod: instansen `pluggportalen-so-2026-default-rtdb` i **europe-west1**,
+`https://pluggportalen-so-2026-default-rtdb.europe-west1.firebasedatabase.app` (reglerna är låsta tills
+`database.rules.json` deployats). Klienten använder den adressen (`KG_DATABASE_URL` i `kg-rorelse.js`) och
+servern når den med Admin SDK via `kgDatabaseUrl()`: `KG_DATABASE_URL` (functions/.env, bara som reserv)
+→ i emulatorn `http://{FIREBASE_DATABASE_EMULATOR_HOST}/?ns={projekt}-default-rtdb` (namnrymden som
+`firebase emulators` laddar `database.rules.json` i) → `FIREBASE_CONFIG.databaseURL` →
+`https://{projekt}-default-rtdb.europe-west1.firebasedatabase.app` (= prod-adressen). Testerna kör mot emulatorn.
 
 ### 9.5 Rörelsekanalen i klienten (`kg-rorelse.js`)
 
@@ -471,13 +471,16 @@ Guldrushens och Meteorstormens klocka är oförändrad.
 
 ### 9.7 Deployordning
 
-1. **Skapa Realtime Database** i Firebase-konsolen: instansen `pluggportalen-so-2026-default-rtdb`,
-   region **europe-west1** (Belgien). Heter den något annat: `KG_DATABASE_URL=https://…firebasedatabase.app`
-   i `functions/.env` och `KG_DATABASE_URL` i `kg-rorelse.js`.
-2. `firebase deploy --only firestore:rules,database` (Firestore-grenen + `database.rules.json`).
-3. `firebase deploy --only functions:kgStarta,functions:kgAnslut,functions:kgLas,functions:kgSvara,functions:kgLeta,functions:kgTick,functions:kgAvsluta`.
-4. Index: inga nya (`kgPlayers`-frågorna är enfältsfrågor; `hand`-indexet ligger i `database.rules.json`).
-5. Webben (B/D/E) sist.
+Realtime Database finns redan i prod (`pluggportalen-so-2026-default-rtdb`, europe-west1, §9.4) –
+den skapas inte igen.
+
+1. `firebase deploy --only firestore:rules,database` (Firestore-grenen + `database.rules.json` – låser upp RTDB).
+2. `firebase deploy --only functions:kgStarta,functions:kgAnslut,functions:kgLas,functions:kgSvara,functions:kgLeta,functions:kgTick,functions:kgAvsluta`.
+3. Index: inga nya (`kgPlayers`-frågorna är enfältsfrågor; `hand`-indexet ligger i `database.rules.json`).
+4. Webben (B/D/E) sist.
+
+Reserv: pekar `FIREBASE_CONFIG.databaseURL` i prod på fel instans, sätt
+`KG_DATABASE_URL=https://pluggportalen-so-2026-default-rtdb.europe-west1.firebasedatabase.app` i `functions/.env`.
 
 ### 9.8 Kvoten – uppskattning för 10 min och 25 elever (spec §5.5)
 
@@ -503,7 +506,7 @@ gratisnivån (10 GB/mån) räcker för hundratals matcher. Slut-QA mäter.
 ### 9.9 Antaganden och beslut (del C)
 
 - **Lat fasbyte överallt**: `kgTick` behövs inte för att matchen ska gå framåt, bara för tystnaden,
-  "alltid en sökare", städningen och slutet. Därför får även en deltagare anropa `kgStarta`/`kgTick` (§8 fråga 6).
+  "alltid en sökare", städningen och slutet. Därför får även en deltagare anropa `kgStarta`/`kgTick` (§8 fråga 5).
 - **Låsning tas emot till `kgGomSlut + LAS_MARGINAL_MS`** (2 s); olåsta placeras av servern först efter
   marginalen (`kgPlacerade` på sessionen hindrar att frågan körs igen).
 - **Tystnadsregeln** frågar på `kgPlayers.tystRef` (bara gömda har fältet; svar, vissling och letfasens
@@ -513,7 +516,7 @@ gratisnivån (10 GB/mån) räcker för hundratals matcher. Slut-QA mäter.
   ny sökare och sätter om startsökarnas `pos.t` vid letfasens början; klienten pulsar minst var
   `POS_PULS_MS`. Den som blir "Ny sökare" får överlevnadspoäng som om hittad nu.
 - **Hittad/nySokare-händelsen bär gömställets plats** (eleven är nu sökare, platsen är inte längre hemlig)
-  och namn enligt `showNames`; visslingen aldrig namn (§8 fråga 7).
+  och namn enligt `showNames`; visslingen aldrig namn (§8 fråga 6).
 - **`rewards` räknas på servern** (`meteorstorm-mynt.js`), `rank` = `placering` (delad).
 - **Gömtiden är högst 60 s** (`GOMTIDER_S`), så fasbytet kommer tidigt; e2e-testet skapar matchen i
   gömfasen i samma test som använder den.
