@@ -337,3 +337,130 @@ efter test i klassrum (etapp 2). Det är där siffrorna ska bekräftas.
    start? Med långsamma quizfrågor (15 s) blir 43–54 % gömda kvar, alltså över 40 %. Ska
    balansen ställas för multiplikation eller för quiz?
 4. Ska en tyst elev (45 s utan svar) få vissla oftare än den som svarar fel (200 s)?
+
+---
+
+## 9. 3D-scenen (del B, #837)
+
+Scenen är en fristående modul i `src/live/formats/kurragomma/scen/` som D monterar i en
+container. Den körs utan server i `preview/preview-kurragomma-scen.html` (`?2d=1` tvingar
+2D-reserven, `?lage=projektor`, `?niva=0|1|2`, `?namn=0`, `?auto=0`) och
+`preview/preview-kurragomma-prestanda.html` (30 figurer, fps, ritanrop, nivå).
+
+### 9.1 Filerna
+
+| Fil | Innehåll |
+| --- | --- |
+| `scen/kg-scen.js` | **API:t** (§9.2): tillståndet, bildrutans loop, pausen vid dold flik, nivåvakten och bytet till 2D |
+| `scen/kg-ritare-3d.js` | 3D-ritaren: sätter ihop kg-tre, kg-figur, kg-effekter och kg-kamera till ritar-gränssnittet |
+| `scen/kg-2d.js` | **2D-reserven**: samma ritar-gränssnitt på en vanlig canvas (ovanifrån) |
+| `scen/kg-tre.js` | `laddaThree()` – **den enda** platsen som når `src/vendor/three/` (med `import()`); renderer, ljus, dimma, gradientkartan |
+| `scen/kg-varld.js` | Ön och alla föremål ur `kg-karta.js` sammanslagna till få ritanrop (vertexfärger, kontur, blob-skuggor) |
+| `scen/kg-modeller.js` | Modellerna per `typ` som ren data (ingen three.js), paletten ur `art-style.js`/`art-gard.js` |
+| `scen/kg-figur.js` | Figurerna: billboard-sprite med avatarbilden, studs, namnskylt, blob-skuggor (ett InstancedMesh) |
+| `scen/kg-avatar-bild.js` | `avatarMarkup(avatarId, avatarItems)` → **en canvas per elev** (cache), delas av 3D och 2D |
+| `scen/kg-effekter.js` | Vissling (ringar, noter, "Vissling!", sökarens markör), hittad (konfetti), gömställena i finalen |
+| `scen/kg-kamera.js` | Ren kameralogik: tredjeperson, "aldrig inne i ett träd", projektorns rotation och glidning |
+| `scen/kg-rorelse.js` | Ren rörelselogik: steget, "gå dit", interpoleringen av sökarnas positioner |
+| `scen/kg-styrning.js` | Tangenter, dra, joystick, tryck på marken, fokusregeln |
+| `scen/kg-niva.js` | Nivåerna Låg/Mellan/Hög, automatisk sänkning, localStorage (try/catch), valet 3D/2D |
+| `scen/kg-overlagg.js` | DOM ovanpå bilden: pilen i kanten, hjärtslagets kant, notisraden |
+| `scen/kurragomma-scen.css` | Klasserna `kg-*` (D laddar filen) |
+| `src/vendor/three/` | three.js **r170** (`three@0.170.0`, MIT, `LICENSE`), bara `three.module.min.js` – inget CDN, inte i `package.json` |
+| `test/live-kurragomma-scen.test.js` | Rörelsen, kameran, nivåerna, modellerna, filerna (≤ 400 rader, bara `import()`, inga Emoji 13+) |
+| `test/live-kurragomma-scen-reserv.test.js` | §13.4: hela `kg-scen.js` mot en mini-DOM utan WebGL → 2D, tangenter, fokusregeln |
+| `test/live-kurragomma-kamera.test.js` | Kameran mot modellerna (raycast med three): aldrig inne i ett föremål, figuren aldrig inne i ett fast föremål |
+
+`test/live-formats.test.js` bevisar att `src/vendor/` aldrig nås statiskt från `app.js`, och att
+`kg-tre.js` är den enda filen i `src/` som laddar three (dynamiskt).
+
+### 9.2 API:t (`kg-scen.js`)
+
+```js
+import { skapaKgScen } from "./scen/kg-scen.js";
+const scen = await skapaKgScen({
+  yta,                 // containern (får klassen kg-scen; canvasen fyller den)
+  lage: "elev-gom",    // elev-gom | elev-gomd | elev-sokare | projektor
+  roster,              // createAvatarRoster(...) – scenen läser roster.info(uid) och lyssnar på onChange
+  jagUid: "jag",       // den egna elevens uid (för avatarbilden)
+  namnPa: true,        // lärarens namninställning (skyltar ovanför sökare)
+  tvinga2d: false,     // ?2d=1
+  niva: null,          // 0–2, annars localStorage, annars Mellan
+  karta: ON,           // valfri, standard Ön
+});
+```
+
+| Anrop | |
+| --- | --- |
+| `scen.typ` | `"3d"` eller `"2d"` – D behöver inte bry sig, API:t är detsamma |
+| `scen.lage(l?)` | Lägena: **elev-gom** fri rörelse (tangenter, joystick, tryck på marken, dra), **elev-gomd** stilla, bara titta runt, **elev-sokare** fri rörelse, **projektor** ovanifrån med rotation och glidning; ingen egen figur |
+| `scen.jag(p?)` | Sätt startplatsen `{ x, z, yaw }` (ur `gomStart`, eller gömstället efter en omladdning) / läs var figuren står. Kameran hoppar dit |
+| `scen.skydd()` | Mätarens värde 0–3 (`skydd` ur motorn). Händelsen `"skydd"` när det ändras |
+| `scen.on("flytt", fn)` | `{ x, z, yaw }` varje bildruta figuren rör sig – D skriver `pos` (högst 5/s, se `POS_*`) |
+| `scen.sokare([{ uid, x, z, yaw, t, namn }])` | Sökarnas positioner ur rörelsekanalen (`t` = avsändarens `Date.now()`; scenen räknar om till sin klocka). Ritas ~150 ms bakåt och interpoleras. Skylt med namn bara när namn är på |
+| `scen.sokareBort(uid)` | |
+| `scen.vissling({ x, z })` | Den **ungefärliga** platsen. Projektorn: ringar, noter, "Vissling!" och en glidning. Sökaren: markör som syns genom dimman i 4 s och en pil i skärmkanten när platsen är utanför bilden. Gömda: inget (D visar raden överst) |
+| `scen.hopp()` | Den egna figuren hoppar till (egen vissling) |
+| `scen.hittad({ x, z })` | Konfetti; "Hittad!" och glidning på projektorn |
+| `scen.gomstallen([{ uid, x, z }])` | Finalen på projektorn: elevernas figurer på sina gömställen med en gyllene ring |
+| `scen.hjartslag(bool)` | Kanten pulserar. D räknar med `hjartslag(gomstalle, sokare)` ur motorn |
+| `scen.namnPa(bool)` | |
+| `scen.niva(n?)`, `scen.nivaInfo()` | Nivån 0–2; `{ niva, namn, fps, ritanrop, typ }` |
+| `scen.on("niva" \| "reserv", fn)` | Automatisk sänkning (`{ niva, namn, automatisk }`), bytet till 2D (`{ typ, fps }`) |
+| `scen.paus(bool)`, `scen.destroy()` | Loopen pausar själv när fliken är dold |
+
+Scenen äger **joysticken**, pilen i kanten, hjärtslagskanten och notisraden vid sänkning.
+Mätaren, låsknappen, timern och frågepanelen är D:s (utanför ytan eller ovanpå den).
+Tangenterna styr inte figuren när ett formulärfält har fokus (`formularHarFokus`).
+
+### 9.3 Val och avvikelser
+
+- **Kameran inne i träd/vägg: kameran dras in** (billigast: ingen genomskinlighet, inga
+  materialbyten, ingen sortering av genomskinliga ytor). `kg-kamera.js` har en tabell per typ
+  med **modellens verkliga fotavtryck** (cirkel + höjd, ladan en vriden låda) och klipper
+  sträckan figur→kamera mot dem med 0,45 m marginal (near-planet), minst 2 m. Står figuren
+  intill ett hinder och kameran skulle hamna i det, lyfts kameran över det. Den mjuka följningen
+  (lerp i `kg-ritare-3d.js`) klipps en gång till, så inte heller mellanlägena skär genom en krona.
+  Undantaget är **lov-föremål** figuren står inne i (buskage, höstack, granen, eken): de hindrar
+  inte, och i stället ritas just det föremålet halvgenomskinligt (de ligger som egna meshar – 6 st).
+  `test/live-kurragomma-kamera.test.js` bygger modellerna med three och raycastar: kameran och
+  near-planet är aldrig inne i någon del (statiskt och under en slumpvandring).
+- **Modellerna ryms i motorns kollisionscirklar** (A:s geometri är kanon): ladan 4,6 × 3,8 m
+  (hörnet 2,98 < fast 3,3), stenen 0,9 × fast, vagnen, vedtraven och tältet nedskalade, buskagens
+  lövklot inom `r`, och trädkronorna börjar över huvudhöjd. Bron har ingen kollision (man går på
+  den och kan stå i en räckesstolpe) – det är motorns val, inte scenens.
+- **Ritanrop:** världen är ett vertexfärgat `MeshToonMaterial`-mesh + ett konturmesh (bakåtvänd,
+  0,085 m större kopia per del) + dekor (+ kontur) + ett skuggmesh + lov-föremålen (6 × 2).
+  Figurerna är en sprite var (egen textur = eget ritanrop) + en skylt var + **ett** instanserat
+  skuggmesh. **Prestandasidan med 30 figurer på Mellan: 60–62 ritanrop** (gränsen är 150).
+- **Nivåvakten gäller bara 3D.** I 2D-reserven mäts fps för `nivaInfo`, men nivån sänks inte och
+  inget sparas i `localStorage` – reserven är redan sista steget.
+- **Nivåerna:** Låg ×0,6 utan kontur och utan dekor (blommor, moln, stigen), Mellan ×1, Hög upp
+  till skärmens `devicePixelRatio` (högst 2). "Färre träd" på Låg är **inte** gjort: träden är
+  spelföremål (kollision, skydd, platsnamn) och får inte försvinna ur bilden; dekoren tas bort i
+  stället. Sänkning efter 3 s under 24 fps med en rad till eleven; Låg under 15 fps i 3 s → 2D.
+  Valet sparas i `localStorage` (`pp:kg:niva`) i try/catch.
+- **2D-reserven** (`kg-2d.js`) delar karta, rörelse, kollision, skydd, interpolering, styrning
+  och API med 3D – bara ritandet skiljer. Startar utan WebGL, vid `?2d=1`, om three inte kan
+  laddas, eller när Låg ligger under 15 fps.
+- **Avatarbilden:** `avatarMarkup` läggs i ett `<foreignObject>` med CSS-reglerna för
+  `.avatar-figure`/`.af-*` ur sidans stilmallar (reserv: en inbyggd kopia av slot-måtten) och
+  ritas till en 256 × 308-canvas. Kan webbläsaren inte rita foreignObject till canvas (Safari)
+  ritas figuren utan kläder (`avatarSvg`) – aldrig tom.
+- **Figurhöjd** 2,6 m (skissen hade 3,4) så att figurerna står i proportion till brunnen och ladan.
+- Ingen kollision mellan figurer (spec §3). En sökare som går rakt in i kameran kan täcka bilden ett ögonblick.
+
+### 9.4 Uppmätt på den här maskinen
+
+Utvecklingsmaskinen saknar GPU: Chromium faller tillbaka på **SwiftShader (mjukvaru-WebGL)**, så
+siffrorna säger inget om elevernas HP-datorer – bara att allt renderar och att ritanropen håller:
+
+| Sida | Nivå | fps | Ritanrop |
+| --- | --- | --- | --- |
+| prestanda (30 figurer, elevvy 1366 × 768) | Mellan | **1–7** (SwiftShader) | **60–62** |
+| scen (6 robotar, elevvy) | Mellan | 2 | 27–41 (med effekter) |
+| scen 2D-reserven | Låg | 39–47 | – |
+
+Den automatiska sänkningen gick här hela vägen Mellan → Låg → 2D inom ~8 s, vilket är avsett
+beteende på en dator utan GPU. **Elias kör prestandasidan på elevernas HP-datorer** (spec §4.4) –
+med inbyggd grafik förväntas Mellan ligga klart över 30 fps vid 60 ritanrop.
