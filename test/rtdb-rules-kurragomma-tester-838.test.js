@@ -192,3 +192,46 @@ describe("Rättningsrunda 2 (F5): onDisconnect armeras om efter ett nätavbrott"
     a.stang();
   });
 });
+
+describe("Testaren runda 2 (F5): flera avbrott, gömmare/projektor, ingen läcka efter stang()", () => {
+  const cykel = async (k) => { fbdb.goOffline(k.db()); await vanta(1200); fbdb.goOnline(k.db()); await vanta(1200); };
+  it("tre avbrott i rad: varje gång tas sökarens pos bort, och skrivs igen efter återanslutningen", async () => {
+    const a = kanal("alma");
+    await a.start();
+    await vanta(300);
+    for (let i = 1; i <= 3; i++) {
+      assert.equal(a.skickaPos({ x: i * 3, z: 1, yaw: 0 }), true, `skick ${i}`);
+      await vanta(800);
+      assert.equal((await admin("pos/alma"))?.x, i * 3, `pos skrevs (varv ${i})`);
+      await cykel(a);
+      assert.equal(await admin("pos/alma"), null, `avbrott ${i}: pos borta`);
+    }
+    a.stang();
+  });
+  it("gömmare och projektor: avbrott och återanslutningar skriver och armerar ingenting", async () => {
+    const fore = JSON.stringify(await admin(""));
+    const b = kanal("bo");
+    const l = kanal("larare9", { teacher: true });
+    await b.start();
+    await l.start();
+    b.paPos(() => {}); l.paStatus(() => {});
+    await vanta(300);
+    for (let i = 0; i < 2; i++) { await cykel(b); await cykel(l); }
+    fbdb.goOffline(b.db()); fbdb.goOffline(l.db());
+    await vanta(1200);
+    assert.equal(JSON.stringify(await admin("")), fore, "databasen orörd");
+  });
+  it("efter stang(): en återanslutning armerar inte om – en pos som servern skriver ligger kvar vid nästa avbrott", async () => {
+    const a = kanal("alma");
+    await a.start();
+    await vanta(300);
+    a.skickaPos({ x: 4, z: 4, yaw: 0 });
+    await vanta(800);
+    a.stang();
+    await cykel(a); // den gamla anslutningens onDisconnect förbrukas här
+    await adminSet("pos/alma", posOk({ x: 11 })); // t.ex. serverns första pos för en ny sökare
+    fbdb.goOffline(a.db());
+    await vanta(1500);
+    assert.equal((await admin("pos/alma"))?.x, 11, "ingen läckt .info/connected-lyssnare armerade om");
+  });
+});
