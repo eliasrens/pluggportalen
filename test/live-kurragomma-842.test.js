@@ -14,7 +14,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { LAS_MARGINAL_MS, LAS_AUTO_FORE_MS } from "../src/live/formats/kurragomma/delat/kg-config.js";
 import { autoLasDags, sattSidomeny, SIDOMENY_KLASS } from "../src/live/formats/kurragomma/kge-logik.js";
-import { faltTyp, faltMedFokus, styrTangent } from "../src/live/formats/kurragomma/scen/kg-styrning.js";
+import { faltTyp, faltMedFokus, styrTangent, tangentUr } from "../src/live/formats/kurragomma/scen/kg-styrning.js";
 import { fragaFalt, fragaUrFalt, fragorOkning, fragestatistikUrSpelare } from "../functions/kurragomma-fragor.js";
 import { fragestatistik, questionKey } from "../functions/meteorstorm-resultat.js";
 import { skapaPrng } from "../src/live/formats/kurragomma/delat/kg-prng.js";
@@ -78,6 +78,17 @@ describe("#842 2: tangenterna när svarsfältet har fokus", () => {
 
   it("textfält med fokus (fritext): ingen tangent styr – bokstäverna är svar", () => {
     for (const k of ["w", "a", "s", "d", "W", "ArrowUp", "ArrowLeft"]) assert.equal(styrTangent(k, "text"), null, k);
+  });
+
+  it("kortkommandon styr aldrig: Ctrl+A/Cmd+A i sifferfältet markerar allt, Alt+W rör inget; utan modifierare som styrTangent", () => {
+    assert.equal(tangentUr({ key: "a", ctrlKey: true }, "siffer"), null);
+    assert.equal(tangentUr({ key: "a", metaKey: true }, "siffer"), null);
+    assert.equal(tangentUr({ key: "w", altKey: true }, null), null);
+    assert.equal(tangentUr({ key: "ArrowUp", ctrlKey: true }, null), null);
+    assert.equal(tangentUr({ key: "a", ctrlKey: false, metaKey: false, altKey: false }, "siffer"), "vanster");
+    assert.equal(tangentUr({ key: "W", shiftKey: true }, "siffer"), "fram", "Shift är ingen kortkommando-modifierare");
+    assert.equal(tangentUr({ key: "ArrowUp" }, null), "fram");
+    assert.equal(tangentUr(null, null), null);
   });
 
   it("inget fält: alla styr; andra tangenter styr aldrig", () => {

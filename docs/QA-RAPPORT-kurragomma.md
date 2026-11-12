@@ -230,7 +230,9 @@ Rekommendation: sätt `KG_DATABASE_URL=https://pluggportalen-so-2026-default-rtd
 1. **Regler:** `firebase deploy --only firestore:rules,database` – Firestore-grenen (kg-samlingarna + `liveCoinPlayerOk`-grenen
    `deltog`, E) och `database.rules.json` (låser upp RTDB för `/kg/{sid}`).
 2. **Functions:** `firebase deploy --only functions:kgStarta,functions:kgAnslut,functions:kgLas,functions:kgSvara,functions:kgLeta,functions:kgTick,functions:kgAvsluta,functions:kgLarareVissla`
-   (`kgLarareVissla` är ny i E; `kgTick/kgSvara/kgAvsluta` ändrade i D/E). Kör `npm run sync:kurragomma` före så `functions/kurragomma/` = `delat/`.
+   (`kgLarareVissla` är ny i E; `kgTick/kgSvara/kgAvsluta` ändrade i D/E/G). Kör `npm run sync:kurragomma` före så `functions/kurragomma/` = `delat/`.
+   **Deploya functions mellan matcher** (G #842): `perQuestion` räknas nu i `kgPlayers.fragor` vid varje svar – en match som
+   pågår när functions byts får bara svaren efter bytet i historikens "andel rätt per fråga" (poäng och mynt påverkas inte).
 3. **Index:** inga nya (`kgPlayers`-frågorna är enfältsfrågor; `hand`-indexet ligger i `database.rules.json`).
 4. **Webben** sist (B/D/E + `src/vendor/three/`). Tills webben är ute visar den gamla webben inget Kurragömma-format.
 

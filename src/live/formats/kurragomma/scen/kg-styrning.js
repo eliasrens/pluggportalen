@@ -27,6 +27,7 @@
 //   }
 //   faltTyp(el) → "siffer" | "text" | null · faltMedFokus(doc) → faltTyp(activeElement)
 //   styrTangent(key, falt) → "fram" | "bak" | "vanster" | "hoger" | null
+//   tangentUr(e, falt)     → samma, men null med Ctrl/Alt/Meta (Ctrl+A i fältet = markera allt)
 // ============================================================================
 
 const DRAG_PX = 8; // kortare rörelse än så räknas som ett tryck
@@ -56,6 +57,12 @@ export function styrTangent(key, falt = null) {
   const k = KEYS[String(key || "").toLowerCase()];
   if (!k || !falt) return k || null;
   return falt === "siffer" && !String(key).startsWith("Arrow") ? k : null;
+}
+
+/** Tangenten ur en keydown-händelse: kortkommandon (Ctrl/Alt/Meta + tangent) styr aldrig figuren. */
+export function tangentUr(e, falt = null) {
+  if (!e || e.ctrlKey || e.metaKey || e.altKey) return null;
+  return styrTangent(e.key, falt);
 }
 
 /** Joysticken som DOM: en ring med en knopp. */
@@ -97,7 +104,7 @@ export function skapaStyrning({ yta, onTryck = null, onDra = null } = {}) {
   function keydown(e) {
     if (!aktiv) return;
     const falt = faltMedFokus(yta.ownerDocument || document);
-    const k = styrTangent(e.key, falt);
+    const k = tangentUr(e, falt);
     if (!k) return;
     tangenter.add(k);
     if (falt || e.key.startsWith("Arrow")) e.preventDefault(); // W/A/S/D i ett sifferfält skrivs inte in
