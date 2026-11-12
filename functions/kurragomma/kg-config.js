@@ -132,8 +132,14 @@ export const POS_MIN_VRID_RAD = 0.05;
 export const POS_PULS_MS = 10_000;
 /** Klienten lyssnar på de så här många senaste realtidshändelserna (limitToLast). */
 export const HAND_LIMIT = 20;
-/** kgLas tas emot så här länge efter gömfasens slut (klientens automatiska skick vid 0:00 hinner fram). */
-export const LAS_MARGINAL_MS = 2000;
+/**
+ * kgLas tas emot så här länge efter gömfasens slut; servern placerar olåsta först därefter.
+ * #842 (slut-QA obs. 5): 2 s räckte inte under last – klientens auto-skick kom efter marginalen och
+ * gömmaren fick serverns plats. Nu 5 s, och klienten skickar LAS_AUTO_FORE_MS FÖRE 0:00.
+ */
+export const LAS_MARGINAL_MS = 5000;
+/** Gömmaren som inte låst får sin nuvarande plats skickad automatiskt så här långt före gömfasens slut. */
+export const LAS_AUTO_FORE_MS = 300;
 /**
  * Klienterna ritar andras positioner så här långt bakåt i tiden (interpolering). Måste vara
  * längre än POS_MIN_INTERVALL_MS + leveransjittret, annars står figuren still mellan proverna

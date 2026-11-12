@@ -14,8 +14,9 @@
 //   avslutaIntern(deps, sid, s, { nu })  → { result, redan } (kgTick när arSlut)
 //   avsluta → { result, redan, avslutade }: avslutade = !redan, sant bara för det anrop vars
 //     transaktion skrev result (klassbonusens engångsgate, #839 N5)
-//   byggResultat({ s, spelare, secrets, events, answers, questions, t0, letStart, slut })
+//   byggResultat({ s, spelare, secrets, events, questions, t0, letStart, slut })
 //     → { result, totaler: { uid: kgPlayers-fälten efter slutet } }
+//     perQuestion ur kgPlayers.fragor (kurragomma-fragor.js, #842) – answers läses INTE (kvoten §5.5)
 //
 // result = { format: "kurragomma", winner: null, draw: false, startMs, letStartMs, slutMs,
 //   players (deltagare: svarat, låst eller hittat), totalCorrect, totalAnswered, klaradeSig, hittade, visslingar,
@@ -27,7 +28,7 @@
 
 import { KsError } from "./kistspel-rattning.js";
 import { poangGomdVidSlut, placering, rewardRader, deltog } from "./kurragomma/kg-regler.js";
-import { fragestatistik } from "./meteorstorm-resultat.js";
+import { fragestatistikUrSpelare } from "./kurragomma-fragor.js";
 import { sessionRewards, placementPrize, perCorrectCoins } from "./meteorstorm-mynt.js";
 import {
   refs, parseSid, sessionFor, sattSession, tider, playerFor, quizFor, larareFor, gomdaKvar, glomGomstallen, QUIZ, FORMAT,
@@ -52,7 +53,7 @@ function rewardsFor(s, rows) {
   return out;
 }
 
-export function byggResultat({ s, spelare, secrets = {}, events = [], answers = [], questions = null, t0, letStart, slut }) {
+export function byggResultat({ s, spelare, secrets = {}, events = [], questions = null, t0, letStart, slut }) {
   const letStartAt = letStart ?? slut;
   const rader = spelare.map((p) => {
     const gomd = p.roll === "gomd";
@@ -80,7 +81,7 @@ export function byggResultat({ s, spelare, secrets = {}, events = [], answers = 
     // Historiken räknar kgEvents med larare: true (bara lärare läser samlingen).
     flestHittade: flest ? { uid: flest.uid, name: flest.name, antal: flest.hittade } : null,
     ranking, gomstallen,
-    perQuestion: fragestatistik(answers, s?.gameMode === QUIZ ? questions : null),
+    perQuestion: fragestatistikUrSpelare(spelare, s?.gameMode === QUIZ ? questions : null),
   };
   const rewards = rewardsFor(s, rewardRader(rader.filter((r) => r.deltog)));
   if (rewards) result.rewards = rewards;
@@ -102,13 +103,12 @@ export async function avslutaIntern(deps, sid, s, { nu = deps.now() } = {}) {
     s = await sessionFor(deps, sid, { farsk: true });
   }
   const { t0, letStart, slut } = tider(s);
-  const [plSnap, secSnap, evSnap, aSnap] = await Promise.all([r.kgPlayers.get(), r.secrets.get(), r.events.get(), r.answers.get()]);
+  const [plSnap, secSnap, evSnap] = await Promise.all([r.kgPlayers.get(), r.secrets.get(), r.events.get()]);
   const spelare = plSnap.docs.map((d) => ({ uid: d.id, ...d.data() }));
   const { result, totaler } = byggResultat({
     s, spelare, t0, letStart, slut,
     secrets: Object.fromEntries(secSnap.docs.map((d) => [d.id, d.data()])),
     events: evSnap.docs.map((d) => d.data()),
-    answers: aSnap.docs.map((d) => d.data()),
     questions: s.gameMode === QUIZ ? (await quizFor(deps, sid)).pub.questions || [] : null,
   });
   const ut = await db.runTransaction(async (tx) => {

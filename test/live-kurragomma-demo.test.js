@@ -12,7 +12,7 @@ import { skapaKgServer } from "../src/live/formats/kurragomma/kg-demo-server.js"
 import { byggDemoResultat } from "../src/live/formats/kurragomma/kg-demo-resultat.js";
 import { skapaLokalBuss } from "../src/live/formats/kurragomma/kg-kanal.js";
 import { skapaPrng } from "../src/live/formats/kurragomma/delat/kg-prng.js";
-import { TYSTNAD_MS, LADDNING_START, POANG } from "../src/live/formats/kurragomma/delat/kg-config.js";
+import { TYSTNAD_MS, LADDNING_START, POANG, LAS_MARGINAL_MS } from "../src/live/formats/kurragomma/delat/kg-config.js";
 
 const T0 = 1_800_000_000_000;
 /** Placeringen bland dem som svarat (live-rewards rankByScore: lika poäng → samma plats). */
@@ -59,7 +59,7 @@ describe("demot: en hel match i minnet", () => {
   it("letfasen: olåsta placeras, startsökarna får laddningar, fel svar → vissling utan namn/uid, jag får raden", async () => {
     const demo = nyttDemo();
     demo.join(30, 0);
-    await demo.gaTill(24); // gömtid 20 + LAS_MARGINAL
+    await demo.gaTill(20 + LAS_MARGINAL_MS / 1000 + 2); // gömtid 20 + LAS_MARGINAL (5 s, #842) + marginal
     const s = demo.state();
     assert.equal(s.fas, "leta");
     assert.equal(s.status.fas, "leta");
@@ -91,7 +91,7 @@ describe("demot: en hel match i minnet", () => {
   it("leta: hittad blir sökare (watchMe ser rollbytet med hittadAvNamn), händelsen bär sökarens namn, poäng till sökaren", async () => {
     const demo = nyttDemo({ jagSokare: true });
     demo.join(30, 0);
-    await demo.gaTill(25);
+    await demo.gaTill(20 + LAS_MARGINAL_MS / 1000 + 3);
     const sid = demo.session.id;
     const jag = demo.state().spelare.find((p) => p.uid === "jag");
     assert.equal(jag.roll, "sokare");
@@ -126,7 +126,7 @@ describe("demot: en hel match i minnet", () => {
   it("tystnadsregeln (demoknappen) visslar i nästa tick, 'sökarna borta' drar en ny sökare", async () => {
     const demo = nyttDemo();
     demo.join(30, 0);
-    await demo.gaTill(25);
+    await demo.gaTill(20 + LAS_MARGINAL_MS / 1000 + 3);
     const hand = [];
     demo.api.kanal({ sid: demo.session.id, uid: "projektor" }).paHandelse((h) => hand.push(h));
     const n0 = hand.filter((h) => h.typ === "vissling").length;
@@ -153,7 +153,7 @@ describe("demot: en hel match i minnet", () => {
   it("alla hittade → matchen slut: result som servern (ranking, gomstallen, rewards), 'Sökarna hittade alla!'", async () => {
     const demo = nyttDemo({ jagSokare: true });
     demo.join(30, 0);
-    await demo.gaTill(25);
+    await demo.gaTill(20 + LAS_MARGINAL_MS / 1000 + 3);
     const h = await demo.allaHittade();
     assert.ok(h.length >= 25);
     const st = demo.st();

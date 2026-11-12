@@ -19,7 +19,8 @@
 //   las     kgLas({ sid, x, z })  gömmaren låser (gömfasen, + LAS_MARGINAL_MS)
 //           → { gomstalle: { x, z, skydd, namn }, flyttad, redan }
 //   svara   kgSvara({ sid, attemptId, factorA, factorB, answer, choiceIndex?, q?, year? })
-//           rättas som kistspelen (answers/{attemptId} för statistiken)
+//           rättas som kistspelen (answers/{attemptId} = idempotensen; perQuestion räknas
+//           i kgPlayers.fragor – kurragomma-fragor.js, #842)
 //           → { attemptId, correct, correctAnswer, nextQ, poang, laddningar, vissling, plats?, correctYear? }
 //   leta    kgLeta({ sid, x, z })  EN transaktion: kontroll, sökning, hittade blir sökare
 //           → { hittade: [{ uid, namn, x, z, plats }], laddningar, poang, plats, flode }
@@ -39,6 +40,7 @@ import {
   namnFor, larareFor, gomstallenFor, fel, FORMAT, MULT, QUIZ,
 } from "./kurragomma-sess.js";
 import { startaIntern, redo, spelareDoc, gorTillSokare } from "./kurragomma-fas.js";
+import { fragorOkning } from "./kurragomma-fragor.js";
 import * as rt from "./kurragomma-rtdb.js";
 import { visslingsHandelse } from "./kurragomma-vissling.js";
 
@@ -164,9 +166,11 @@ export async function svara(deps, uid, raw) {
     const eff = svarsEffekt({ roll: kp.roll, ratt: graded.isCorrect, fas: s.kgFas, laddningar: kp.laddningar | 0, senastVisslingAt: sec?.senastVisslingAt ?? null, nu });
     const visslar = eff.vissling && sec?.gomd === true;
     tx.create(r.answer(attemptId), { ...graded, uid, classId: p.classId, format: FORMAT, at: FieldValue.serverTimestamp() });
+    // Räknarna per fråga (fragor.*) i samma update – kgAvsluta bygger perQuestion ur dem i stället för answers (#842).
     tx.update(r.kgPlayer(uid), {
       poang: FieldValue.increment(eff.poang), laddningar: eff.laddningar, ratt: FieldValue.increment(graded.isCorrect ? 1 : 0),
       besvarade: FieldValue.increment(1), senastSvarAt: nu, ...(kp.roll === "gomd" ? { tystRef: nu } : {}), ...(nextQ != null ? { nextQ } : {}),
+      ...fragorOkning(graded, FieldValue),
     });
     let vissling = null;
     if (visslar) {
