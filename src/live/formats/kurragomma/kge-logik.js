@@ -21,6 +21,8 @@
 //   panelLage(bredd)            → "sida" (> 1100 px) | "kort"
 //   letaFel(err)                → elevens text för ett nekat kgLeta
 //   mittenText({ lage, fas, laddningar }) → raden under knappen
+//   skapaEgenVisslingar()       → tystnadsregelns egna visslingar: referens (kgPlayers.tystRef)
+//                                 möter hand-händelsen med samma t, i valfri ordning
 // ============================================================================
 
 import { ON } from "./delat/kg-karta.js";
@@ -34,6 +36,7 @@ export const TEXT = Object.freeze({
   leta: "🔦 Leta",
   ladda: "Svara rätt för att ladda ficklampan",
   egenVissling: "Fel svar – det visslade där du gömmer dig!",
+  tystVissling: "Tystnad – det visslade där du gömmer dig!",
   sokareLeta: "Leta efter de gömda – tryck på marken för att gå dit",
   vantaFragor: "Frågorna kommer när sökarna börjar leta.",
   hittadeIngen: "Ingen här – leta vidare!",
@@ -125,4 +128,36 @@ export function mittenText({ lage, laddningar = 0 }) {
   if (lage === "gom-sokare") return "Svara rätt – varje rätt svar laddar ficklampan.";
   if (lage === "gom-gomd") return TEXT.gom;
   return "";
+}
+
+/**
+ * Tystnadsregelns egna vissling (§1.2): hand-händelsen bär aldrig uid, men servern
+ * sätter kgPlayers.tystRef = visslingens t. tystRef flyttas också UTAN vissling
+ * (kgLas → letStart, tick: frånkopplad/inte tyst länge nog), så en referens ensam
+ * visar inget – bara en hand-vissling med exakt samma t räknas som min, och den
+ * visas en gång oavsett om referensen eller händelsen kom först.
+ *   referens(t)  → h | null  (händelsen att visa om den redan setts)
+ *   vissling(h)  → h | null  (händelsen att visa om referensen redan finns)
+ *   arEgen(t)    → bool
+ */
+export function skapaEgenVisslingar({ maxAlderMs = 60_000 } = {}) {
+  const referenser = new Set();
+  const sedda = new Map(); // t → h
+  const visade = new Set();
+  const rensa = (nu) => { for (const [t, h] of sedda) if (nu - (Number(h.sett) || 0) > maxAlderMs) sedda.delete(t); };
+  const visa = (t) => {
+    if (visade.has(t) || !referenser.has(t) || !sedda.has(t)) return null;
+    visade.add(t);
+    return sedda.get(t).h;
+  };
+  return {
+    referens(t) { const n = Number(t); if (!(n > 0)) return null; referenser.add(n); return visa(n); },
+    vissling(h, nu = Date.now()) {
+      const t = Number(h?.t); if (!(t > 0)) return null;
+      rensa(nu);
+      sedda.set(t, { h, sett: nu });
+      return visa(t);
+    },
+    arEgen: (t) => referenser.has(Number(t)),
+  };
 }

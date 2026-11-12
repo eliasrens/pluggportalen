@@ -312,9 +312,10 @@ export function skapaKgServer({ session, buss, now, rng, quiz = null, latens = (
         p.tystRef = Math.max(Number(p.senastSvarAt) || 0, Number(s.senastVisslingAt) || 0, letStart || 0, Number(p.tystRef) || 0);
         continue;
       }
-      vissla(p.uid, nu, true);
-      p.tystRef = nu;
+      p.tystRef = nu; // före händelsen: kgPlayers-referensen får gärna vara på plats när hand-visslingen kommer
       delete p.tvingadTystAt;
+      rora(p.uid);
+      vissla(p.uid, nu, true);
       n++;
     }
     return n;

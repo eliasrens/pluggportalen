@@ -191,7 +191,9 @@
 .kgp-plats-1 { order: 2; }
 .kgp-plats-2 { order: 1; }
 .kgp-plats-3 { order: 3; }
-.kgp-pallnamn { display: flex; flex-direction: column; align-items: center; gap: calc(var(--kgp-u) * 2); margin-bottom: calc(var(--kgp-u) * 8); font-size: calc(var(--kgp-u) * 30); text-shadow: 0 calc(var(--kgp-u) * 2) 0 #3b3350; }
+/* Namnen och mynten står mot himlen (och krympta i hörnet vid steg 3) – en mörk plupp bakom ger kontrast. */
+.kgp-pallnamn { display: flex; flex-direction: column; align-items: center; gap: calc(var(--kgp-u) * 4); margin-bottom: calc(var(--kgp-u) * 8); font-size: calc(var(--kgp-u) * 30); }
+.kgp-pallnamn b, .kgp-pallmynt { padding: calc(var(--kgp-u) * 2) calc(var(--kgp-u) * 14); border-radius: 999px; background: rgba(12, 18, 58, 0.86); }
 .kgp-pallbox {
   display: flex; flex-direction: column; align-items: center; justify-content: flex-end; width: 100%;
   border-radius: calc(var(--kgp-u) * 16) calc(var(--kgp-u) * 16) 0 0; background: #ffd166; color: #3b3350;
@@ -203,12 +205,12 @@
 .kgp-pallmedalj { font-size: calc(var(--kgp-u) * 44); }
 .kgp-pallplats { font-size: calc(var(--kgp-u) * 54); font-weight: 800; line-height: 1; }
 .kgp-pallpoang { font-size: calc(var(--kgp-u) * 22); font-weight: 700; margin-bottom: calc(var(--kgp-u) * 8); }
-.kgp-pallmynt { margin-top: calc(var(--kgp-u) * 6); font-size: calc(var(--kgp-u) * 24); font-weight: 700; color: #ffd166; text-shadow: 0 calc(var(--kgp-u) * 2) 0 #3b3350; }
+.kgp-pallmynt { display: inline-block; margin-top: calc(var(--kgp-u) * 6); font-size: calc(var(--kgp-u) * 24); font-weight: 700; color: #ffd166; }
 .kgp-final-karta { margin: calc(var(--kgp-u) * 14) 0 0; font-size: calc(var(--kgp-u) * 26); font-weight: 700; text-shadow: 0 calc(var(--kgp-u) * 2) 0 #3b3350; }
 /* Steg 3 (kgp-karta-visas): pallen krymper upp i vänstra hörnet så ön med gömställena syns;
    raden står kvar i toppen och "Här var alla gömda" flyttar till nederkanten. translateX räknar
    från pallens centrerade flödesplats (50 % = halva pallen) till 30 enheter från kanten. */
-.kgp-final.kgp-karta-visas .kgp-final-pall { transform: translateX(calc(50% - var(--kgp-u) * 930)) scale(0.62); transform-origin: top left; transition: transform 0.8s ease-in-out; }
+.kgp-final.kgp-karta-visas .kgp-final-pall { transform: translateX(calc(50% - var(--kgp-u) * 930)) scale(0.68); transform-origin: top left; transition: transform 0.8s ease-in-out; }
 .kgp-final.kgp-karta-visas .kgp-final-karta {
   position: absolute; left: 0; right: 0; bottom: calc(var(--kgp-u) * 22); margin: 0 auto; width: max-content; max-width: 90%;
   padding: calc(var(--kgp-u) * 6) calc(var(--kgp-u) * 24); border-radius: 999px; background: rgba(12, 18, 58, 0.86);

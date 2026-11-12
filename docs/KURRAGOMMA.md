@@ -351,11 +351,12 @@ efter test i klassrum (etapp 2). Det är där siffrorna ska bekräftas.
    gömmare som befordras när ingen sökare finns har inte hittats av någon men får inte
    överlevnadspoängen och visas som hittad i finalen. Ska `result` skilja på "hittad" och
    "befordrad" (en ändring i functions), eller är det okej så?
-9. **Klassbonusen vid serverslut** (§11.5): när servern avslutar matchen (00:00 / alla hittade)
-   avslutade `kgTick`, och klienten betalar klassbonusen bara ur det `kgAvsluta`-anrop som
-   avslutade (`redan === false`) – så ingen klassbonus betalas (elevpriserna och pokalerna betalas
-   av projektorn, idempotent); med Avsluta-knappen betalas den. Ska E lägga klassbonusen i `kgAvsluta`/projektorns utbetalning, eller slopas den
-   för Kurragömma?
+9. **Klassbonusen** (§11.5): Kurragömmas `result` har inget `perClass` och `winner: null`, så
+   kärnans `liveKlassBonus` delar aldrig ut klass-EXP för en Kurragömma-match – varken vid
+   Avsluta-knappen eller serverslut (Meteorstormen har `perClass` och får bonusen när klienten
+   avslutade). Ska Kurragömma ge klassbonus? Då behövs `perClass` i `functions/kurragomma-resultat.js`
+   (+ idempotens när servern avslutade: ett märke i sessionsdokumentet = regeländring, eller
+   utdelningen i `kgAvsluta` på servern) – eller slopas den för Kurragömma?
 
 ---
 
@@ -763,9 +764,9 @@ ingen Firestore, inga Cloud Functions, ingen RTDB (sidorna blockerar och räknar
 - **Speltidens standard är 10 min** (kistspelens fält) med rekommendationen 8 min i ledtexten tills E bygger lärarformulärets egna fält; `kgInstallningar` får standardvärden ur `kg-config.js`.
 - **Demots "Tystnad"-knapp** flyttar bara den valda gömmarens tystnadsreferens – inte letfasens start – så exakt en visslar.
 - **Musikfilen** `assets/kurragomma-loop.ogg` finns inte i repot; formatet behöver bara filen på plats.
-- **Pluggmynten när servern avslutar matchen** (00:00 / alla hittade via `kgTick` → `kgAvsluta`): servern skriver `finished` + `result` i samma transaktion, så kärnans `resultInputs`-väg (bara när `result` saknas) körs aldrig. Projektorn (`kgp-on.js betala()`, inte elevskärmsfönstret) anropar då `avslutaOchBetala` en gång – `kgAvsluta` svarar `redan`, `settleLiveRewards` är idempotent via `coinReceipts/{uid}`, så dubbel utbetalning är omöjlig. **Klassbonusen** (`liveKlassBonus`) betalas bara av det `kgAvsluta`-anrop som faktiskt avslutade (`redan === false`) – Avsluta-knappen gör det, men vid serverslut avslutade `kgTick`, så ingen klassbonus betalas. Öppen fråga till Elias/E (§8.9).
+- **Pluggmynten när servern avslutar matchen** (00:00 / alla hittade via `kgTick` → `kgAvsluta`): servern skriver `finished` + `result` i samma transaktion, så kärnans `resultInputs`-väg (bara när `result` saknas) körs aldrig. Projektorn (`kgp-on.js betala()`, inte elevskärmsfönstret) anropar då `avslutaOchBetala` en gång – `kgAvsluta` svarar `redan`, `settleLiveRewards` är idempotent via `coinReceipts/{uid}`, så dubbel utbetalning är omöjlig. **Klassbonusen** (`liveKlassBonus`) anropas bara av det `kgAvsluta`-anrop som faktiskt avslutade (`redan === false`) – men den delar ändå aldrig ut något för Kurragömma: `liveBonusar(result)` bygger på `result.perClass`/`result.winner`, och Kurragömmas `result` (C) har inget `perClass` och `winner: null`. Att betala den på klienten kräver antingen `perClass` i `functions/kurragomma-resultat.js` eller ett idempotent märke (en ny nyckel i sessionsdokumentet = regeländring; `awardClassBonus` är en increment-skrivning, inte idempotent). Öppen fråga till Elias/E (§8.9).
 - **Återanslutning till RTDB** (`kg-kanal.js`): `connectDatabaseEmulator` körs en gång per db-instans (WeakSet); projektorn försöker starta om rörelsekanalen efter 4 s vid fel. Ingen kärnändring.
-- **Egen vissling (tystnadsregeln)**: visslingen i `hand` bär aldrig uid, så eleven känner igen sin egen via `kgPlayers.tystRef` (servern sätter den vid tystnadsvissling, `senastSvarAt` rörs inte): `hand.t === tystRef` → "Du visslade!"-raden och hoppet.
+- **Egen vissling (tystnadsregeln)**: visslingen i `hand` bär aldrig uid, så eleven känner igen sin egen via `kgPlayers.tystRef` (servern sätter den till visslingens t, `senastSvarAt` rörs inte). `tystRef` flyttas också UTAN vissling (`kgLas` → letStart, ticken vid frånkopplad/inte tyst länge nog), så referensen ensam visar inget: raden "Tystnad – det visslade där du gömmer dig!" och hoppet kommer först när hand-visslingen med exakt samma t finns (`kge-logik.js skapaEgenVisslingar`, i valfri ordning, en gång). Fel svar ger "Fel svar – det visslade där du gömmer dig!" direkt ur kgSvara-svaret. Kantfall: ticken sätter `tystRef = nu` för en frånkopplad gömmare, och en annan gömmares tystnadsvissling i samma tick har samma t – en frånkopplad elev får inga hand-händelser, så det syns inte i praktiken.
 - **Sökare som står stilla** pulsar sin plats var `POS_PULS_MS` (kge-spel.js) så servern inte befordrar en ny sökare var 30 s.
 - **Lobbyrutan** (`.kgp-lobbyruta`) ligger på den sida av bilden där bron och figurerna på stranden inte är (`lobbyrutaSida`, kontrolleras varje sekund eftersom ön roterar). **Finalen** krymper pallen upp i vänstra hörnet vid steg 3 (`.kgp-karta-visas`) så ön med gömställena syns; "Här var alla gömda" står i nederkanten.
 - **Elevskärmens kort** (under 1100 px, t.ex. 1366×768 med sidomenyn): kortet är högst 52 % av ytan (`52cqh` – `minmax(auto, 46 %)` gav ingen gräns eftersom min vinner över max) och fast-answer skalas ned i kortet; i sidopanelen skalas frågan efter panelens bredd (`cqi`) i stället för viewporten.

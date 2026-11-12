@@ -136,6 +136,11 @@ describe("demot: en hel match i minnet", () => {
     assert.equal(v.length, n0 + 1);
     assert.equal(v.at(-1).namn, undefined);
     assert.ok(demo.state().events.some((e) => e.typ === "vissling" && e.tyst));
+    // N3: den egna kgPlayers-referensen (tystRef = visslingens t) når watchMe så elevskärmen känner igen sin vissling
+    const sedda = [];
+    demo.api.watchMe(demo.session.id, uid, (d) => sedda.push(d));
+    await new Promise((r) => setTimeout(r, 5));
+    assert.equal(sedda.at(-1)?.tystRef, v.at(-1).t, "kgPlayers.tystRef = hand-visslingens t");
     const sokareFore = demo.state().spelare.filter((p) => p.roll === "sokare").length;
     await demo.sokareBorta(true);
     const ny = hand.find((h) => h.typ === "nySokare");

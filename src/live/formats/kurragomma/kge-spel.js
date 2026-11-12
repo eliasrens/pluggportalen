@@ -13,15 +13,16 @@
 //     spel.gomstalle(p | null)          den egna låsta platsen (hjärtslaget)
 //     spel.fragor(on)                   visa/dölj frågorna
 //     spel.leta()                       🔦 Leta (knapp, mellanslag, E)
-//     spel.egenVissling(t)              tystnadsregelns vissling (ur eget kgPlayers) = min
+//     spel.egenVissling(t)              tystnadsregelns referens (ur eget kgPlayers.tystRef): hand-
+//                                       visslingen med samma t är min → ui.egenVissling(h) en gång
 //     spel.setNextQ(n) · spel.laddningar · spel.destroy()
-//   ui = { svar(res), fel(text), vissling(h, egen), hittade(lista), laddningar(n) }
+//   ui = { svar(res), fel(text), vissling(h, egen), egenVissling(h), hittade(lista), laddningar(n) }
 // ============================================================================
 
 import { createQuestionFlow } from "../../kistspel/ks-fraga.js";
 import { hjartslag } from "./delat/kg-regler.js";
 import { LETA_SPARR_MS, POS_PULS_MS } from "./delat/kg-config.js";
-import { letaFel } from "./kge-logik.js";
+import { letaFel, skapaEgenVisslingar } from "./kge-logik.js";
 
 const VISA_IGEN_MS = 550; // skriv själv visar ✅ en halv sekund innan nästa fråga
 
@@ -39,7 +40,7 @@ export function skapaSpel({ sid, uid, api, mode, answerKind, questions = () => [
   let egenVisslingAt = -Infinity;
   let visaT = 0;
   let pulsT = 0;
-  const egenT = new Set(); // tider (hand.t) för egna visslingar ur det egna kgPlayers (tystnadsregeln)
+  const egna = skapaEgenVisslingar(); // tystnadsregelns egna visslingar (kgPlayers.tystRef ↔ hand.t)
   const sokare = new Map(); // uid → { x, z }
   const av = [];
 
@@ -87,9 +88,11 @@ export function skapaSpel({ sid, uid, api, mode, answerKind, questions = () => [
     if (!h || destroyed) return;
     if (h.typ === "vissling") {
       const p = { x: Number(h.x) || 0, z: Number(h.z) || 0 };
-      const egen = egenT.has(Number(h.t)) || Date.now() - egenVisslingAt < 2500;
+      const tyst = egna.vissling(h);
+      const egen = egna.arEgen(h.t) || Date.now() - egenVisslingAt < 2500;
       if (lage === "leta-sokare") scen?.vissling(p);
       ui.vissling(h, egen);
+      if (tyst) ui.egenVissling?.(tyst);
     }
   }
   const arSokare = () => lage === "leta-sokare" || lage === "gom-sokare";
@@ -143,8 +146,8 @@ export function skapaSpel({ sid, uid, api, mode, answerKind, questions = () => [
       clearInterval(pulsT);
       pulsT = setInterval(puls_, POS_PULS_MS / 2);
     },
-    /** Egen vissling som servern utlöste (tystnadsregeln, ur det egna kgPlayers): hand-händelsen med samma t är min. */
-    egenVissling(t) { egenT.add(Number(t)); egenVisslingAt = Date.now(); },
+    /** Referens ur det egna kgPlayers.tystRef: hand-händelsen med samma t är min (kom den redan visas den nu). */
+    egenVissling(t) { const h = egna.referens(t); if (h) ui.egenVissling?.(h); },
     lage(l) { lage = l; puls(); },
     gomstalle(p) { gomstalle = p ? { x: p.x, z: p.z } : null; puls(); },
     fragor(on) {

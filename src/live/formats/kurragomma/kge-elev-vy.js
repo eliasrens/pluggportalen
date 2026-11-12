@@ -14,7 +14,8 @@
 //               Tar tiden slut skickas platsen automatiskt.
 //   gom-sokare  täckt skärm "🙈 Du blundar – räkna till 30!" + frågor (laddar lampan)
 //   leta-gomd   frågor, "Du är gömd i buskaget", poäng, hjärtslaget, egen
-//               vissling (text + hopp) och raden "Det visslar vid ladan" (3 s)
+//               vissling (text + hopp: fel svar direkt, tystnadsregeln när hand-
+//               visslingen med tystRef:s t kommer) och "Det visslar vid ladan" (3 s)
 //   leta-sokare frågor, tre ficklampor, 🔦 Leta (mellanslag/E, 2 s spärr), pilen
 //   hittad      ruta ≤ 2 s "Leo hittade dig! Nu letar du också." → sökare från gömstället
 // Rollbyte och poäng kommer ur det egna kgPlayers (watchMe) – inget annat lyssnas på.
@@ -110,6 +111,7 @@ export function createKgStage({ view, host, uid, session, mode, answerKind }, { 
       },
       fel,
       vissling(h, egen) { if (!egen && lage === "leta-gomd") rad(andraVisslingText(h.plats)); },
+      egenVissling() { if (lage === "leta-gomd") { rad(TEXT.tystVissling, "egen"); scen?.hopp(); } },
       hittade(lista, r) {
         if (Number.isFinite(r?.poang)) { poang = r.poang; ritaTopp(); }
         rad(lista.length ? lista.map((h) => hittadeText(h.namn)).join(" ") : TEXT.hittadeIngen, lista.length ? "hittade" : "");
@@ -244,13 +246,11 @@ export function createKgStage({ view, host, uid, session, mode, answerKind }, { 
     if (!me || destroyed || !ready) return;
     if (Number.isFinite(me.poang)) poang = me.poang;
     // Servern visslade åt mig (tystnadsregeln): tystRef flyttas till visslingens t utan att
-    // senastSvarAt rörs (ett svar sätter båda). Första läsningen är bara en referens.
+    // senastSvarAt rörs (ett svar sätter båda). tystRef flyttas också utan vissling (kgLas,
+    // frånkopplad, inte tyst länge nog), så detta är bara en REFERENS – texten och hoppet
+    // kommer när hand-visslingen med samma t finns (spel → ui.egenVissling).
     const tr = Number(me.tystRef) || 0;
-    if (tystRef != null && me.roll === "gomd" && tr > tystRef && tr !== Number(me.senastSvarAt) && tr > (toMs(info?.tider?.letStart) || 0)) {
-      spel.egenVissling(tr);
-      rad(TEXT.egenVissling, "egen");
-      scen?.hopp();
-    }
+    if (tystRef != null && me.roll === "gomd" && tr > tystRef && tr !== Number(me.senastSvarAt)) spel.egenVissling(tr);
     tystRef = tr;
     if (Number.isFinite(me.laddningar) && !spel.letar) ritaLampor(me.laddningar);
     if (me.roll === "sokare" && roll === "gomd") {

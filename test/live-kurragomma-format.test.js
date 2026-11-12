@@ -19,7 +19,7 @@ import {
 import { visslingPan } from "../src/live/formats/kurragomma/kgp-ljud.js";
 import {
   TEXT, elevLage, scenLage, gomdText, hittadText, blundText, nedrakning, laddningarHtml, skyddPrickSvg, startplats,
-  sparaPos, lasPos, glomPos, posNyckel, letaTangent, panelLage, letaFel, mittenText,
+  sparaPos, lasPos, glomPos, posNyckel, letaTangent, panelLage, letaFel, mittenText, skapaEgenVisslingar,
 } from "../src/live/formats/kurragomma/kge-logik.js";
 import { slutRad, endHtml } from "../src/live/formats/kurragomma/kge-skarmar.js";
 import { innanforOn } from "../src/live/formats/kurragomma/delat/kg-geometri.js";
@@ -187,6 +187,27 @@ describe("projektorn – rena delar (spec §7, §11, §0.2)", () => {
 });
 
 describe("elevskärmen – rena delar (spec §6)", () => {
+  it("tystnadsregelns egna vissling: referensen ensam visar inget (kgLas/tick flyttar tystRef utan vissling), bara hand-visslingen med samma t, en gång, i valfri ordning", () => {
+    const e = skapaEgenVisslingar();
+    assert.equal(e.referens(1000), null, "letStart ur kgLas – ingen vissling");
+    assert.equal(e.vissling({ typ: "vissling", t: 2000, x: 1, z: 2 }), null, "någon annans vissling");
+    assert.equal(e.arEgen(2000), false);
+    // referensen först, sedan händelsen
+    assert.equal(e.referens(3000), null);
+    const h3 = { typ: "vissling", t: 3000, x: 1, z: 2 };
+    assert.equal(e.vissling(h3), h3);
+    assert.equal(e.vissling(h3), null, "visas en gång");
+    assert.equal(e.referens(3000), null, "samma referens igen visar inget");
+    assert.ok(e.arEgen(3000));
+    // händelsen först (RTDB före Firestore), sedan referensen
+    const h4 = { typ: "vissling", t: 4000, x: 3, z: 4 };
+    assert.equal(e.vissling(h4), null);
+    assert.equal(e.referens(4000), h4);
+    assert.equal(e.referens(4000), null);
+    assert.equal(e.referens(0), null);
+    assert.equal(e.vissling({ typ: "vissling" }), null);
+  });
+
   it("texterna exakt som specen, lägena och scenens läge", () => {
     assert.equal(TEXT.gom, "Göm dig! Ingen annan ser var du går.");
     assert.equal(blundText(30), "🙈 Du blundar – räkna till 30!");
@@ -194,6 +215,7 @@ describe("elevskärmen – rena delar (spec §6)", () => {
     assert.equal(hittadText("Leo"), "Leo hittade dig! Nu letar du också.");
     assert.equal(hittadText(null), "Någon hittade dig! Nu letar du också.");
     assert.equal(TEXT.egenVissling, "Fel svar – det visslade där du gömmer dig!");
+    assert.equal(TEXT.tystVissling, "Tystnad – det visslade där du gömmer dig!");
     assert.equal(TEXT.ladda, "Svara rätt för att ladda ficklampan");
     assert.equal(TEXT.leta, "🔦 Leta");
     assert.deepEqual(["gomd", "sokare"].flatMap((roll) => ["gom", "leta"].map((fas) => elevLage({ roll, fas }))), ["gom-gomd", "leta-gomd", "gom-sokare", "leta-sokare"]);
