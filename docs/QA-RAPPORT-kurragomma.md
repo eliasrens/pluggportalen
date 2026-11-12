@@ -196,7 +196,15 @@ Rekommendation: sätt `KG_DATABASE_URL=https://pluggportalen-so-2026-default-rtd
    tappades vid omladdning i finalen (N8), `?screen` betalade vid 00:00 (N9). Kvar som avvägning: är bara `skarm=elev`-fönstret
    öppet vid 00:00 står matchen på "Räknar ihop" tills ett lärarfönster öppnas (Meteorstormens reserv, §8 fråga 9).
 4. Lärarens Vissla-panel kostar en läsning per gömd varje gång den öppnas (`getGomda`, ingen lyssnare) – räknat i §2.1.
-5. Emulatorn: `kgLeta`/`kgSvara`-transaktioner från 25 robotar i samma klocksteg gav `ABORTED: Transaction lock timeout` i
+5. **Auto-låsningen vid 0:00 förlorar ofta mot serverns placering.** Spec §1.2: den som inte låst får sin
+   nuvarande plats skickad av klienten när tiden går ut; servern väljer bara för frånkopplade. I e2e fick de olåsta
+   (c03 match 1, c01+c02 match 5) ändå `kgSecret.auto: true` – en gömmare som gått in i buskaget hamnade "vid ett träd"
+   på andra sidan ön. Emulatorloggen visar klientens `kgLas` strax efter 0:00 följd av `kgAnslut` (= nekad "Gömfasen är
+   slut" → `hamtaGomstalle`): anropet kom > `LAS_MARGINAL_MS` (2 s) efter `kgGomSlut`, troligen för att sidans 250 ms-ticker
+   och anropet fördröjdes under last (SwiftShader/CPU 27+). På en HP-dator vid 24 fps är fördröjningen liten, men marginalen
+   är tunn. Förslag: `LAS_MARGINAL_MS` 2 → 5 s (servern placerar olåsta först efter 5 s) eller auto-skick ~300 ms före
+   `gomSlut`. Inte rättat (konfig delad av server, klient och tester).
+6. Emulatorn: `kgLeta`/`kgSvara`-transaktioner från 25 robotar i samma klocksteg gav `ABORTED: Transaction lock timeout` i
    Firestore-emulatorn (serialiserat i mätningen). Produktionens Firestore har inte den begränsningen, men det är värt att
    titta i functions-loggen efter första klassrumsmatchen.
 
@@ -204,8 +212,15 @@ Rekommendation: sätt `KG_DATABASE_URL=https://pluggportalen-so-2026-default-rtd
 `kgStarta/kgTick`, 6 hittad-händelsen bär namn, 7 kvoten/`perQuestion`, 8 befordrad = hittad, 9 klassbonusen utan projektor,
 10 pluggmyntens deltagare, 11 den neutrala raden)
 
-1. Kvoten: gör a–c (§2.1) före släppet, eller godta budgetöverdraget tills etapp 2?
-2. Ska fps-målen (≥ 30 Mellan på eleverna, ≥ 40 projektorn) mätas av dig på HP-datorerna med `preview-kurragomma-prestanda.html`
+1. Kvoten: (a) kgLeta-cachen och (c) pos-takten görs av en Coder i #841 (före/efter-mätning i §2.1 när den landat).
+   (b) `perQuestion` ur en aggregering i `kgSvara` i stället för att läsa alla `answers` i `kgAvsluta` = §8 fråga 7 –
+   uppmätt besparing ≈ 1 500 läsningar per match (1 467 svar i seed 1). Vill du ha den?
+2. **Musikfilen `kurragomma-loop.ogg` är inte levererad** (D #839 spelar projektorns musik via `kgp-ljud.js` när filen finns;
+   utan den är matchen tyst) – ska den levereras före släppet eller lämnas till etapp 2?
+3. **Klassbonusen tappas om inget lärar-/projektorfönster är öppet vid 00:00** (§8 fråga 9, Meteorstormens reserv): är bara
+   `skarm=elev`-fönstret öppet står matchen på "Räknar ihop" tills ett lärarfönster öppnas. Okej, eller ska `kgTick`/`kgAvsluta`
+   dela ut den på servern?
+4. Ska fps-målen (≥ 30 Mellan på eleverna, ≥ 40 projektorn) mätas av dig på HP-datorerna med `preview-kurragomma-prestanda.html`
    innan formatet visas för en klass? Nivåvakten sänker annars av sig själv till Låg/2D.
-3. Sidomenyn under matchen (avvikelse 3) och WASD-fokus (observation 1): ändra nu eller i etapp 2?
-4. Etapp 2 (§12) är inte påbörjad – klartecken krävs.
+5. Sidomenyn under matchen (avvikelse 3), WASD-fokus (observation 1) och auto-låsningens marginal (observation 5): ändra nu eller i etapp 2?
+6. Etapp 2 (§12) är inte påbörjad – klartecken krävs.
