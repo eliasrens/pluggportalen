@@ -13,7 +13,9 @@
 //                  answerKind?, latens?, roster?, screen?, now?, onLog?, jagSokare? }) → demo
 //     demo.session      sessionsdokumentet (muteras av låtsasservern)
 //     demo.deps         mountProjector-deps: subscribe, now, start, finish, remove,
-//                       kurragomma: { kanal, starta, tick, roster }
+//                       kurragomma: { kanal, starta, tick, roster, getGomda, larareVissla }
+//                       (getGomda/larareVissla = lärarens Vissla-panel, #840: i demot en
+//                       tystnadsvissling på vald elev via nästa tick – samma händelse)
 //     demo.api          elevskärmens api: anslut, las, svara, leta, avsluta, getQuestions, watchMe, kanal
 //     demo.st()         live-feed-liknande tillstånd (elevsidan: stage.update(st, player))
 //     demo.join(n, staggerMs)   n elever ansluter (lobbyn) · demo.start(sekIn?) KÖR!
@@ -25,7 +27,7 @@
 import { phaseAt, formatClock } from "../../live-core.js";
 import { DEMO_NAMES } from "../snilleblixt/sb-demo.js";
 import { skapaPrng } from "./delat/kg-prng.js";
-import { TICK_MS } from "./delat/kg-config.js";
+import { TICK_MS, LARARE_VISSLA_SPARR_MS } from "./delat/kg-config.js";
 import { skapaLokalBuss } from "./kg-kanal.js";
 import { skapaKgServer } from "./kg-demo-server.js";
 import { skapaDemoRobotar } from "./kg-demo-robotar.js";
@@ -142,13 +144,25 @@ export function createKgDemo({
 
   // --- det projektorn och elevskärmen får --------------------------------------------------
   const kanal = ({ uid }) => buss.kanalFor(uid);
+  const larareVisslat = new Map(); // uid → när (demots spamskydd, LARARE_VISSLA_SPARR_MS)
+  async function larareVissla(_sid, uid) {
+    const fel = (code, message) => Object.assign(new Error(message), { code });
+    if (session.kgFas !== "leta") throw fel("failed-precondition", "Visslingar finns bara under letfasen.");
+    if (now() - (larareVisslat.get(uid) || 0) < LARARE_VISSLA_SPARR_MS) throw fel("resource-exhausted", "Vänta några sekunder.");
+    if (!server.tystnadNu(uid)) throw fel("failed-precondition", "Eleven är inte gömd just nu.");
+    larareVisslat.set(uid, now());
+    const r = await tick();
+    onLog(`lärarens vissling: ${uid} (${r?.visslade ?? 0})`);
+    return { visslade: true };
+  }
+  const getGomda = async () => server.state().spelare.filter((p) => p.roll === "gomd").map((p) => ({ uid: p.uid, name: p.name }));
   const deps = {
     subscribe(_sid, fn) { cb = fn; lastKey = ""; emit(true); return () => { if (cb === fn) cb = null; }; },
     now,
     async start() { await new Promise((r) => setTimeout(r, 200)); await start(0); },
     finish: async () => { const r = await server.avsluta(); onLog("kgAvsluta (demo) – resultatet räknat i minnet"); emit(true); return r; },
     async remove() { onLog("radera (demo – ingenting raderas)"); },
-    kurragomma: { kanal, starta: async () => server.starta(), tick: () => tick(), roster },
+    kurragomma: { kanal, starta: async () => server.starta(), tick: () => tick(), roster, getGomda, larareVissla },
   };
   const api = {
     anslut: () => server.anslut(me.uid),
