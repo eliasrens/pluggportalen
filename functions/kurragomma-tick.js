@@ -16,8 +16,10 @@
 //   tick(deps, auth, raw) → { fas, klart, visslade, nySokare, rensade, result?, avslutade? }
 //     avslutade: true bara i DET anrop som avslutade matchen (klassbonusen, #839 N5);
 //     en redan avslutad match svarar klart: true, avslutade: false.
-//   Tystnadsvisslingen sätter kgPlayers.tystVissladAt = t (bara visslingsgrenen –
-//     tystRef flyttas även utan vissling) så eleven känner igen sin egen (#839 N1b).
+//   Tystnadsvisslingen skrivs i hand under en i förväg vald nyckel och samma id
+//     läggs i den visslades kgPlayers.tystVissling (bara visslingsgrenen – tystRef
+//     flyttas även utan vissling) så eleven känner igen sin egen vissling på id:t,
+//     aldrig på en tidsstämpel (#839 N1b). Händelsen bär aldrig uid.
 // ============================================================================
 
 import { KsError } from "./kistspel-rattning.js";
@@ -48,6 +50,7 @@ async function tystnad(deps, sid, s, nu) {
     const visslar = tystnadVisslar({
       roll: kp.roll, fas: s.kgFas, tystnadPa: true, senastSvarAt: kp.senastSvarAt, senastVisslingAt: sd.senastVisslingAt, letStartAt: letStart, pulsAt, nu,
     });
+    const id = rt.handelseId(deps.rtdb, sid);
     const h = await db.runTransaction(async (tx) => {
       const [k2, s2] = await tx.getAll(d.ref, r.secret(d.id));
       const kp2 = k2.data();
@@ -62,12 +65,12 @@ async function tystnad(deps, sid, s, nu) {
       const pl = visslingsplats(sd2.x, sd2.z, deps.rng(), deps.rng(), karta);
       const ev = { typ: "vissling", x: pl.x, z: pl.z, plats: platsNamn(pl.x, pl.z, karta), t: nu };
       tx.update(r.secret(d.id), { senastVisslingAt: nu });
-      tx.update(d.ref, { tystRef: nu, tystVissladAt: nu });
+      tx.update(d.ref, { tystRef: nu, tystVissling: id });
       tx.create(r.events.doc(), { t: nu, typ: "vissling", x: pl.x, z: pl.z, plats: ev.plats, tyst: true });
       return ev;
     });
     if (h) {
-      await rt.handelse(deps.rtdb, sid, h);
+      await rt.handelseMedId(deps.rtdb, sid, id, h);
       visslade++;
     }
   }

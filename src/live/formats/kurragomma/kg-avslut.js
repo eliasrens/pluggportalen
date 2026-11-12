@@ -15,11 +15,12 @@
 // Projektorns Avsluta-knapp, 00:00 och "alla hittade" (kgTick → kgAvsluta på
 // servern, sedan status finished → kärnans resultTimer → hit) går alla denna väg.
 // Klasscentret: pokaler och kassapriset är idempotenta och körs varje gång;
-// klassbonusen (ökar klassens EXP, inte idempotent) som i Meteorstormen bara av
-// den som AVSLUTADE: kgAvsluta med redan === false (Avsluta-knappen), eller
-// projektorn vars kgTick avslutade matchen (avslutadeNu – kgp-on.js; en
-// projektor per match). Stängd projektor vid slutet → ingen klassbonus (som
-// Meteorstormens elevavslut). Kurragömmas result saknar perClass (en klass),
+// klassbonusen (ökar klassens EXP, inte idempotent) bara av den som AVSLUTADE:
+// servern svarar avslutade: true (kgAvsluta/kgTick) ENBART i det anrop vars
+// transaktion skrev result – engångsgaten är själva result-skrivningen, så två
+// projektorflikar eller tick + Avsluta kan inte båda få den. Projektorn tar med
+// sin ticks svar (avslutadeNu – kgp-on.js). Stängd projektor vid slutet (en
+// elevs tick avslutar) → ingen klassbonus, som Meteorstormens elevavslut. Kurragömmas result saknar perClass (en klass),
 // så medPerClass bygger det ur sessionen för kc-koppling liveBonusar.
 //
 // API
@@ -56,7 +57,7 @@ async function klasscenter(d, s, svar, avslutadeNu) {
   try {
     const m = await d.klass();
     const skrev = { ...s, status: "finished", result: svar.result };
-    if (svar.redan === false || avslutadeNu) await m.liveKlassBonus(medPerClass(s, svar.result));
+    if (svar.avslutade === true || svar.redan === false || avslutadeNu) await m.liveKlassBonus(medPerClass(s, svar.result));
     await m.pokalerEfterAvslut("live", s.id, skrev);
     await m.livePrisEfterAvslut(s.id, skrev);
   } catch (err) {

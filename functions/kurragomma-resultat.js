@@ -12,6 +12,8 @@
 //
 //   avsluta(deps, auth, raw)             → { result, redan }
 //   avslutaIntern(deps, sid, s, { nu })  → { result, redan } (kgTick när arSlut)
+//   avsluta → { result, redan, avslutade }: avslutade = !redan, sant bara för det anrop vars
+//     transaktion skrev result (klassbonusens engångsgate, #839 N5)
 //   byggResultat({ s, spelare, secrets, events, answers, questions, t0, letStart, slut })
 //     → { result, totaler: { uid: kgPlayers-fälten efter slutet } }
 //
@@ -117,12 +119,13 @@ export async function avsluta(deps, auth, raw) {
   const s = await sessionFor(deps, sid, { farsk: true });
   const { t0, slut } = tider(s);
   if (t0 == null) throw new KsError("failed-precondition", "Matchen har inte startat.");
-  if (s.result) return { result: s.result, redan: true };
+  if (s.result) return { result: s.result, redan: true, avslutade: false };
   const nu = deps.now();
   if (!larareFor(deps.roll ? await deps.roll(auth) : null, s)) {
     await playerFor(deps, sid, auth?.uid, s);
     const kvar = s.kgFas === "leta" ? await gomdaKvar(deps, sid) : null;
     if (s.status !== "finished" && nu < slut && kvar !== 0) throw new KsError("failed-precondition", "Matchen pågår fortfarande.");
   }
-  return avslutaIntern(deps, sid, s, { nu });
+  const ut = await avslutaIntern(deps, sid, s, { nu });
+  return { ...ut, avslutade: !ut.redan }; // bara det anrop som skrev result (klassbonusen, #839 N5)
 }

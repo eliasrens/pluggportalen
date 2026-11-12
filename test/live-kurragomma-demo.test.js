@@ -140,7 +140,8 @@ describe("demot: en hel match i minnet", () => {
     const sedda = [];
     demo.api.watchMe(demo.session.id, uid, (d) => sedda.push(d));
     await new Promise((r) => setTimeout(r, 5));
-    assert.equal(sedda.at(-1)?.tystVissladAt, v.at(-1).t, "kgPlayers.tystVissladAt = hand-visslingens t (N1b: inte tystRef)");
+    assert.ok(v.at(-1).id && sedda.at(-1)?.tystVissling === v.at(-1).id, "kgPlayers.tystVissling = hand-visslingens id (N1b: inte tystRef/t)");
+    assert.ok(!("uid" in v.at(-1)) && !v.at(-1).id.includes(uid), "händelsen avslöjar inte vem");
     const sokareFore = demo.state().spelare.filter((p) => p.roll === "sokare").length;
     await demo.sokareBorta(true);
     const ny = hand.find((h) => h.typ === "nySokare");

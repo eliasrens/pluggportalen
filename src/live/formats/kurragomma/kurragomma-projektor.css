@@ -227,6 +227,7 @@
   font-size: calc(var(--kgp-u) * 46); font-weight: 800; text-shadow: none;
 }
 .kgp-final.kgp-karta-visas .kgp-pallrad .kgp-pallmedalj { font-size: calc(var(--kgp-u) * 46); }
+.kgp-final.kgp-karta-visas .kgp-pallrad-plats { font-size: calc(var(--kgp-u) * 30); color: #ffd166; }
 .kgp-final.kgp-karta-visas .kgp-pallrad .kgp-pallpoang { margin: 0; font-size: calc(var(--kgp-u) * 40); opacity: 0.9; }
 .kgp-final.kgp-karta-visas .kgp-pallrad .kgp-pallmynt { margin: 0; padding: 0; background: none; font-size: calc(var(--kgp-u) * 40); }
 .kgp-final.kgp-karta-visas .kgp-final-karta {

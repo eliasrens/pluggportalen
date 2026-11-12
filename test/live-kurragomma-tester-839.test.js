@@ -5,7 +5,8 @@
 //       händelser blir alla "h21", projektorns dedupe (sedda) släpper sedan inget mer.
 // Runda 3 (35407dc), rättat: N1b samma tick – functions/kurragomma-tick.js sätter tystRef = nu för en
 //   FRÅNKOPPLAD gömd (ingen vissling) i samma kgTick som en annan gömd visslas med hand.t = nu.
-//   Referensen är nu kgPlayers.tystVissladAt (bara visslingsgrenen sätter den), inte tystRef.
+//   Referensen är nu kgPlayers.tystVissling = hand-händelsens id (bara visslingsgrenen sätter den),
+//   aldrig tystRef eller en tidsstämpel.
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { slutRad } from "../src/live/formats/kurragomma/kge-skarmar.js";
@@ -52,19 +53,22 @@ describe("tester #839 runda 3: tystnadsregelns egna vissling", () => {
   // och hand { typ: "vissling", t: nu }. Samma nu för alla kandidater i ett anrop.
   it("en tystRef som flyttats utan vissling matchar inte någon annans vissling med samma t (N1b)", () => {
     const nu = 1_794_447_108_599;
+    const hand = { id: "-NxQ7c03", typ: "vissling", t: nu, x: -3.85, z: -14.58, plats: "i granen" }; // c03:s vissling, utan uid
     const c01 = skapaEgenVisslingar();
-    // c01 (frånkopplad): kgPlayers.tystRef = nu men ingen tystVissladAt → ingen referens.
-    const ref = egenVisslingsReferens(0, { roll: "gomd", tystRef: nu, senastSvarAt: null });
+    // c01 (frånkopplad): kgPlayers.tystRef = nu men ingen tystVissling → ingen referens.
+    const ref = egenVisslingsReferens("", { roll: "gomd", tystRef: nu, senastSvarAt: null });
     assert.equal(ref, null, "tystRef ensam är ingen referens");
-    const visad = (ref && c01.referens(ref)) || c01.vissling({ typ: "vissling", t: nu, x: -3.85, z: -14.58, plats: "i granen" });
-    assert.equal(visad, null, "c01 visslades inte – ingen 'Du var tyst länge'");
-    // c03 (visslad i samma tick): tystVissladAt = nu → referens, hand-visslingen med t = nu är dess egen.
+    assert.equal((ref && c01.referens(ref)) || c01.vissling(hand), null, "c01 visslades inte – ingen 'Du var tyst länge'");
+    assert.equal(c01.referens(nu), null, "en tidsstämpel är aldrig en referens");
+    assert.equal(c01.vissling(hand), null);
+    // c03 (visslad i samma tick): tystVissling = händelsens id → referens; samma id i hand är dess egen.
     const c03 = skapaEgenVisslingar();
-    const ref3 = egenVisslingsReferens(0, { roll: "gomd", tystRef: nu, tystVissladAt: nu });
-    assert.equal(ref3, nu);
+    const ref3 = egenVisslingsReferens("", { roll: "gomd", tystRef: nu, tystVissling: "-NxQ7c03" });
+    assert.equal(ref3, "-NxQ7c03");
     assert.equal(c03.referens(ref3), null);
-    assert.ok(c03.vissling({ typ: "vissling", t: nu, x: -3.85, z: -14.58, plats: "i granen" }), "c03: 'Du var tyst länge'");
-    assert.equal(egenVisslingsReferens(nu, { roll: "gomd", tystVissladAt: nu }), null, "samma referens igen – inget nytt");
-    assert.equal(egenVisslingsReferens(0, { roll: "sokare", tystVissladAt: nu }), null, "sökare visslas aldrig");
+    assert.equal(c03.vissling(hand), hand, "c03: 'Du var tyst länge'");
+    assert.equal(c03.vissling({ ...hand, id: "-NxQ7bo" }), null, "bo:s vissling i samma tick (samma t) är inte c03:s");
+    assert.equal(egenVisslingsReferens("-NxQ7c03", { roll: "gomd", tystVissling: "-NxQ7c03" }), null, "samma referens igen – inget nytt");
+    assert.equal(egenVisslingsReferens("", { roll: "sokare", tystVissling: "-NxQ7c03" }), null, "sökare visslas aldrig");
   });
 });

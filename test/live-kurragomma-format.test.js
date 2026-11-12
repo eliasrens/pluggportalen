@@ -211,25 +211,25 @@ describe("projektorn – rena delar (spec §7, §11, §0.2)", () => {
 });
 
 describe("elevskärmen – rena delar (spec §6)", () => {
-  it("tystnadsregelns egna vissling: referensen ensam visar inget (kgLas/tick flyttar tystRef utan vissling), bara hand-visslingen med samma t, en gång, i valfri ordning", () => {
+  it("tystnadsregelns egna vissling: referensen (hand-id) ensam visar inget, bara hand-visslingen med samma id, en gång, i valfri ordning", () => {
     const e = skapaEgenVisslingar();
-    assert.equal(e.referens(1000), null, "letStart ur kgLas – ingen vissling");
-    assert.equal(e.vissling({ typ: "vissling", t: 2000, x: 1, z: 2 }), null, "någon annans vissling");
-    assert.equal(e.arEgen(2000), false);
+    assert.equal(e.referens("a1"), null, "referens utan händelse");
+    assert.equal(e.vissling({ id: "x9", typ: "vissling", t: 2000 }), null, "någon annans vissling");
+    assert.equal(e.arEgen("x9"), false);
     // referensen först, sedan händelsen
-    assert.equal(e.referens(3000), null);
-    const h3 = { typ: "vissling", t: 3000, x: 1, z: 2 };
+    const h3 = { id: "a1", typ: "vissling", t: 3000, x: 1, z: 2 };
     assert.equal(e.vissling(h3), h3);
     assert.equal(e.vissling(h3), null, "visas en gång");
-    assert.equal(e.referens(3000), null, "samma referens igen visar inget");
-    assert.ok(e.arEgen(3000));
+    assert.equal(e.referens("a1"), null, "samma referens igen visar inget");
+    assert.ok(e.arEgen("a1"));
     // händelsen först (RTDB före Firestore), sedan referensen
-    const h4 = { typ: "vissling", t: 4000, x: 3, z: 4 };
+    const h4 = { id: "b2", typ: "vissling", t: 3000, x: 3, z: 4 }; // samma t som en annans – spelar ingen roll
     assert.equal(e.vissling(h4), null);
-    assert.equal(e.referens(4000), h4);
-    assert.equal(e.referens(4000), null);
-    assert.equal(e.referens(0), null);
-    assert.equal(e.vissling({ typ: "vissling" }), null);
+    assert.equal(e.referens("b2"), h4);
+    assert.equal(e.referens("b2"), null);
+    assert.equal(e.referens(3000), null, "tidsstämplar är inga referenser");
+    assert.equal(e.referens(""), null);
+    assert.equal(e.vissling({ typ: "vissling", t: 5 }), null, "utan id");
   });
 
   it("texterna exakt som specen, lägena och scenens läge", () => {

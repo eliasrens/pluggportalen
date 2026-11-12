@@ -78,7 +78,7 @@ export function skapaKgServer({ session, buss, now, rng, quiz = null, latens = (
       roll: "sokare", laddningar: laddningarNySokare(), sokareSedan: nu, poang: (p.poang | 0) + poangVidHittad({ letStartAt: letStart ?? nu, hittadAt: nu }),
       ...(hittadAv ? { hittadAv, hittadAvNamn, hittadAt: nu } : { nySokareAt: nu }),
     });
-    delete p.tystRef; delete p.tystVissladAt;
+    delete p.tystRef; delete p.tystVissling;
     sec.set(uid, { ...s, gomd: false, startpunkt: { x, z, at: nu }, senasteSok: null });
     buss.server.roll(uid, "sokare");
     buss.server.pos(uid, { x, z, yaw: 0 });
@@ -248,11 +248,11 @@ export function skapaKgServer({ session, buss, now, rng, quiz = null, latens = (
     };
   }
   /** En vissling vid den gömdas ungefärliga plats – aldrig uid/namn i händelsen (§1.5). */
-  function vissla(uid, nu, tyst = false) {
+  function vissla(uid, nu, tyst = false, id = null) {
     const s = sec.get(uid);
     const pl = visslingsplats(s.x, s.z, rng(), rng(), karta);
     s.senastVisslingAt = nu;
-    const ev = { typ: "vissling", x: pl.x, z: pl.z, plats: platsNamn(pl.x, pl.z, karta), t: nu };
+    const ev = { ...(id ? { id } : {}), typ: "vissling", x: pl.x, z: pl.z, plats: platsNamn(pl.x, pl.z, karta), t: nu };
     events.push({ ...ev, ...(tyst ? { tyst: true } : {}) });
     buss.server.handelse(ev);
     return ev;
@@ -312,10 +312,10 @@ export function skapaKgServer({ session, buss, now, rng, quiz = null, latens = (
         p.tystRef = Math.max(Number(p.senastSvarAt) || 0, Number(s.senastVisslingAt) || 0, letStart || 0, Number(p.tystRef) || 0);
         continue;
       }
-      p.tystRef = nu; p.tystVissladAt = nu; // före händelsen: referensen får gärna vara på plats när hand-visslingen kommer
-      delete p.tvingadTystAt;
+      const id = `tv${Math.floor(rng() * 1e9).toString(36)}${n}`; // som servern: händelsens id i kgPlayers.tystVissling, aldrig uid i händelsen
+      p.tystRef = nu; p.tystVissling = id; delete p.tvingadTystAt;
       rora(p.uid);
-      vissla(p.uid, nu, true);
+      vissla(p.uid, nu, true, id);
       n++;
     }
     return n;

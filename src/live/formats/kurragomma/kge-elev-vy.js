@@ -244,13 +244,12 @@ export function createKgStage({ view, host, uid, session, mode, answerKind }, { 
   function meUppdaterad(me) {
     if (!me || destroyed || !ready) return;
     if (Number.isFinite(me.poang)) poang = me.poang;
-    // Servern visslade åt mig (tystnadsregeln): tystVissladAt = visslingens t – sätts BARA i
-    // visslingsgrenen (tystRef flyttas även utan vissling: kgLas, frånkopplad, inte tyst länge
-    // nog – och en frånkopplad får tystRef = nu i samma tick som någon annan visslas, N1b).
-    // Bara en REFERENS: texten och hoppet kommer när hand-visslingen med samma t finns.
+    // Servern visslade åt mig (tystnadsregeln): tystVissling = hand-händelsens id – sätts BARA i
+    // visslingsgrenen (tystRef flyttas även utan vissling, och tidsstämplar delas i en tick, N1b).
+    // Bara en REFERENS: texten och hoppet kommer när hand-visslingen med samma id finns.
     const tv = egenVisslingsReferens(tystVisslad, me);
     if (tystVisslad != null && tv) spel.egenVissling(tv);
-    tystVisslad = Number(me.tystVissladAt) || 0;
+    tystVisslad = typeof me.tystVissling === "string" ? me.tystVissling : "";
     if (Number.isFinite(me.laddningar) && !spel.letar) ritaLampor(me.laddningar);
     if (me.roll === "sokare" && roll === "gomd") {
       roll = "sokare";
