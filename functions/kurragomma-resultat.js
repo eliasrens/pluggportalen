@@ -18,25 +18,31 @@
 //     → { result, totaler: { uid: kgPlayers-fälten efter slutet } }
 //
 // result = { format: "kurragomma", winner: null, draw: false, startMs, letStartMs, slutMs,
-//   players, totalCorrect, totalAnswered, klaradeSig, hittade, visslingar,
+//   players (deltagare: svarat, låst eller hittat), totalCorrect, totalAnswered, klaradeSig, hittade, visslingar,
+//   visslingarLarare (varav lärarens – bara lärarens historik visar den),
 //   flestHittade: { uid, name, antal } | null,
 //   ranking [{ uid, name, classId, poang, ratt, besvarade, hittade, roll, klaradeSig, rank }],
 //   gomstallen [{ uid, x, z, skydd, namn, hittad }], perQuestion [...], rewards? }
 // ============================================================================
 
 import { KsError } from "./kistspel-rattning.js";
-import { poangGomdVidSlut, placering, rewardRader } from "./kurragomma/kg-regler.js";
+import { poangGomdVidSlut, placering, rewardRader, deltog } from "./kurragomma/kg-regler.js";
 import { fragestatistik } from "./meteorstorm-resultat.js";
 import { sessionRewards, placementPrize, perCorrectCoins } from "./meteorstorm-mynt.js";
 import { refs, parseSid, sessionFor, sattSession, tider, playerFor, quizFor, larareFor, gomdaKvar, QUIZ, FORMAT } from "./kurragomma-sess.js";
 import * as rt from "./kurragomma-rtdb.js";
 
-/** result.rewards ur rows (samma regel som live-rewards computeRewards: bara den som svarat). */
+/**
+ * result.rewards ur rows – bara DELTAGARNA (#840): live-rewards computeRewards räknar den som
+ * svarat; i Kurragömma också den som låst ett gömställe eller hittat någon (kg-regler deltog),
+ * så den som klarade sig gömd hela matchen utan att svara får sitt placeringspris. Rätt-mynten
+ * är ändå perCorrect × ratt (0 utan svar). Samma villkor i firestore.rules liveCoinPlayerOk.
+ */
 function rewardsFor(s, rows) {
   const cfg = sessionRewards(s);
   if (!cfg) return null;
   const out = {};
-  for (const r of placering(rows.filter((x) => x.answered > 0).map((x) => ({ ...x, poang: x.score })))) {
+  for (const r of placering(rows.map((x) => ({ ...x, poang: x.score })))) {
     const prize = placementPrize(cfg.firstPrize, r.plats);
     const correctCoins = perCorrectCoins(r.correct, cfg.perCorrect, cfg.cap);
     out[r.uid] = { rank: r.plats, correct: r.correct, prize, correctCoins, total: prize + correctCoins };
@@ -51,10 +57,10 @@ export function byggResultat({ s, spelare, secrets = {}, events = [], answers = 
     return {
       uid: p.uid, name: String(p.name || ""), classId: p.classId, roll: p.roll, klaradeSig: gomd,
       poang: (p.poang | 0) + (gomd ? poangGomdVidSlut({ letStartAt, slutAt: slut }) : 0),
-      ratt: p.ratt | 0, besvarade: p.besvarade | 0, hittade: p.hittade | 0,
+      ratt: p.ratt | 0, besvarade: p.besvarade | 0, hittade: p.hittade | 0, deltog: deltog(p),
     };
   });
-  const ranking = placering(rader).map(({ plats, ...r }) => ({ ...r, rank: plats }));
+  const ranking = placering(rader).map(({ plats, deltog: _d, ...r }) => ({ ...r, rank: plats }));
   const flest = [...rader].filter((r) => r.hittade > 0).sort((a, b) => b.hittade - a.hittade || a.uid.localeCompare(b.uid))[0] || null;
   const gomstallen = Object.entries(secrets)
     .filter(([, d]) => Number.isFinite(d?.x) && Number.isFinite(d?.z))
@@ -62,17 +68,18 @@ export function byggResultat({ s, spelare, secrets = {}, events = [], answers = 
     .sort((a, b) => a.uid.localeCompare(b.uid));
   const result = {
     format: FORMAT, winner: null, draw: false, startMs: t0, letStartMs: letStart, slutMs: slut,
-    players: rader.filter((r) => r.besvarade > 0).length,
+    players: rader.filter((r) => r.deltog).length,
     totalCorrect: rader.reduce((n, r) => n + r.ratt, 0),
     totalAnswered: rader.reduce((n, r) => n + r.besvarade, 0),
     klaradeSig: rader.filter((r) => r.klaradeSig).length,
     hittade: rader.filter((r) => !r.klaradeSig && Number.isFinite(secrets[r.uid]?.x)).length,
     visslingar: events.filter((e) => e.typ === "vissling").length,
+    visslingarLarare: events.filter((e) => e.typ === "vissling" && e.larare === true).length, // bara en summa – vilka står i kgEvents (lärare)
     flestHittade: flest ? { uid: flest.uid, name: flest.name, antal: flest.hittade } : null,
     ranking, gomstallen,
     perQuestion: fragestatistik(answers, s?.gameMode === QUIZ ? questions : null),
   };
-  const rewards = rewardsFor(s, rewardRader(rader));
+  const rewards = rewardsFor(s, rewardRader(rader.filter((r) => r.deltog)));
   if (rewards) result.rewards = rewards;
   const totaler = {};
   for (const r of rader) totaler[r.uid] = { poang: r.poang, klaradeSig: r.klaradeSig, klar: true };

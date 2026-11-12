@@ -6,8 +6,8 @@
 // finalen (prispall, pluggmynt, gömställena på kartan). Kontraktet:
 // docs/KURRAGOMMA.md. Motorn: ./delat/ (A, #836), 3D-scenen: ./scen/ (B, #837),
 // servern + rörelsekanalen: functions/kurragomma-*.js + kg-kanal.js (C, #838),
-// projektorn, elevskärmen och demot: D (#839, det här). Lärarformulärets egna
-// fält, historiken och statistiken: E (#840).
+// projektorn, elevskärmen och demot: D (#839). Lärarformulärets egna fält,
+// historiken, pluggmynten och lärarens vissling: E (#840).
 //
 // Allt DOM/Firebase laddas LATT (projectorViews/studentView/historyRenderer =
 // import()) – bootgrafen (#271) når bara det här objektet, kg-setup.js och
@@ -28,7 +28,8 @@ import { answerKindsFor } from "../../live-formats.js";
 import { rewardsSetupField, validateRewards, rewardSessionFields } from "../../live-rewards.js";
 import {
   KG_FORMAT, KG_MODES, KG_MIN_CLASSES, KG_MAX_CLASSES, KG_PUBLIC_DOC, KG_PRIVATE_DOC,
-  durationField, namesField, validateSetup, buildSessionFields, sessionTitle, defaultSessionName, prepareCreate, computeStandings,
+  durationField, namesField, gomtidField, startsokareField, tystnadField, kartaField,
+  validateSetup, buildSessionFields, sessionTitle, defaultSessionName, prepareCreate, computeStandings,
 } from "./kg-setup.js";
 import { resultInputs, buildResult } from "./kg-avslut.js";
 
@@ -47,7 +48,8 @@ const KURRAGOMMA = {
   // Tyst lobby, matchen ≈ 30 % av effekterna – som Guldrushen. Lägre under gömfasen (vyn: music.skala).
   music: { src: new URL("./assets/kurragomma-loop.ogg", import.meta.url).href, level: 0.3, lobby: 0 },
 
-  setupFields: [durationField(), namesField(), rewardsSetupField()],
+  // Frågor, speltid, namn, pluggmynt som Guldrushen (spec §9) + gömtid, startsökare, tystnad, karta → kgInstallningar (E, #840).
+  setupFields: [durationField(), gomtidField(), startsokareField(), tystnadField(), kartaField(), namesField(), rewardsSetupField()],
   compatibleGameModes(mode) {
     return KG_MODES.includes(mode?.id) && answerKindsFor(KURRAGOMMA, mode).length > 0;
   },
