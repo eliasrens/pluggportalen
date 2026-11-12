@@ -365,7 +365,8 @@ efter test i klassrum (etapp 2). Det är där siffrorna ska bekräftas.
    tystnadsregeln – D:s id-matchning (`kgPlayers.tystVissling`) utan någon ny text. Raden är sedan
    E:s rättningsrunda 1 (F2) den neutrala "Det visslade där du gömmer dig!" för båda (den gamla
    "Du var tyst länge – …" avslöjade läraren direkt efter ett rätt svar eller med tystnadsregeln av).
-   "Fel svar – det visslade där du gömmer dig!" står kvar för fel svar. Löst – kvar bara som information.
+   "Fel svar – det visslade där du gömmer dig!" står kvar för fel svar. **Beslutat av issue-leaden** (rättningsrunda 1) –
+   Elias kan byta ordalydelsen (`TEXT.tystVissling` i `kge-logik.js`, ett ställe; testet i `live-kurragomma-format.test.js`).
 9. **Klassbonusen** (§11.5): betalas av projektorn vars `kgTick` avslutade matchen (eller Avsluta-knappen),
    med `perClass` byggt på klienten ur sessionen eftersom Kurragömmas `result` saknar det. Är projektorn
    stängd vid slutet (en elevs `kgTick` avslutar) går klassbonusen förlorad – samma reserv som Meteorstormen.
