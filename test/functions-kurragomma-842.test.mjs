@@ -6,7 +6,7 @@
 //   4. perQuestion ur kgPlayers.fragor: kgSvara räknar per fråga i samma update,
 //      kgAvsluta ger SAMMA siffror som fragestatistik(answers) gav – multiplikation
 //      och quiz (text/statKeys) – och läser INTE answers (räknande Firestore ur
-//      admin/kvot-raknare.mjs); ett upprepat attemptId räknas inte två gånger.
+//      admin/kvot-raknare.mjs); ett upprepat attemptId (klientens omförsök) räknas inte två gånger.
 // Körs via:  npm run test:functions
 // ============================================================================
 
@@ -69,13 +69,19 @@ describe("Kurragömma #842 (1): låsmarginalen 5 s", () => {
 });
 
 describe("Kurragömma #842 (4): perQuestion ur kgPlayers.fragor", () => {
-  it("multiplikation: en fast serie svar ger samma perQuestion som fragestatistik(answers), räknarna ligger i kgPlayers och kgAvsluta läser inte answers", async () => {
+  it("multiplikation: en fast serie svar ger samma perQuestion som fragestatistik(answers), räknarna ligger i kgPlayers, ett upprepat attemptId räknas en gång och kgAvsluta läser inte answers", async () => {
     const sid = await makeSession();
     const d = deps();
     await letfas(sid, d);
     // Fast serie: 3×4 (alma rätt, bo fel, cleo rätt), 4×3 (samma nyckel: dina rätt), 7×8 (alma fel ×2), 0×0 (emil rätt).
     const serie = [["alma", 3, 4, true], ["bo", 3, 4, false], ["cleo", 3, 4, true], ["dina", 4, 3, true], ["alma", 7, 8, false], ["alma", 7, 8, false], ["emil", 0, 0, true]];
     for (const [u, a, b, ratt] of serie) { ctl.clock += 3000; await svar(d, sid, u, a, b, ratt); }
+    const igen = att();
+    ctl.clock += 3000;
+    await svara(d, "emil", { sid, attemptId: igen, ...mult(0, 0, 1) });
+    ctl.clock += 3000;
+    assert.equal((await svara(d, "emil", { sid, attemptId: igen, ...mult(0, 0, 1) })).igen, true, "samma svar igen");
+    assert.deepEqual((await kgPlayer(sid, "emil")).fragor, { m0x0: { a: 2, r: 1 } });
     const alma = await kgPlayer(sid, "alma");
     assert.deepEqual(alma.fragor, { m3x4: { a: 1, r: 1 }, m7x8: { a: 2, r: 0 } });
     assert.deepEqual((await kgPlayer(sid, "bo")).fragor, { m3x4: { a: 1, r: 0 } });
@@ -86,34 +92,35 @@ describe("Kurragömma #842 (4): perQuestion ur kgPlayers.fragor", () => {
     ctl.clock = END + 1000;
     const { result } = await avsluta({ ...deps(), db: raknande }, LARARE, { sid });
     assert.deepEqual(result.perQuestion, fore);
-    assert.deepEqual(result.perQuestion.map((q) => [q.text, q.answered, q.correct]), [["0 × 0", 1, 1], ["3 × 4", 4, 3], ["7 × 8", 2, 0]]);
+    assert.deepEqual(result.perQuestion.map((q) => [q.text, q.answered, q.correct]), [["0 × 0", 2, 1], ["3 × 4", 4, 3], ["7 × 8", 2, 0]]);
     assert.deepEqual(result.perQuestion[1].byClass, { "4b": { answered: 4, correct: 3 } });
-    assert.deepEqual({ totalAnswered: result.totalAnswered, totalCorrect: result.totalCorrect }, { totalAnswered: 7, totalCorrect: 4 });
+    assert.deepEqual({ totalAnswered: result.totalAnswered, totalCorrect: result.totalCorrect }, { totalAnswered: 8, totalCorrect: 4 });
     const lasta = Object.keys(server.perSort).filter((k) => k.startsWith("läs"));
     assert.ok(lasta.some((k) => k.includes("kgPlayers")), lasta.join(", "));
     assert.ok(!lasta.some((k) => k.includes("answers")), `answers lästes: ${lasta.join(", ")}`);
   });
 
-  it("quiz: text och statKeys ur frågorna, byClass, samma som förr; ett upprepat attemptId räknas en gång", async () => {
+  it("quiz: text och statKeys ur frågorna, byClass, samma som förr (första frågan är fri, sedan nextQ)", async () => {
     const sid = await makeQuiz();
     const d = deps();
     await letfas(sid, d);
-    const q = (u, i, choiceIndex, id = att()) => svara(d, u, { sid, attemptId: id, q: i, choiceIndex });
+    const q = (u, i, choiceIndex) => svara(d, u, { sid, attemptId: att(), q: i, choiceIndex });
     ctl.clock += 3000; await q("alma", 0, 0); // rätt
     ctl.clock += 3000; await q("bo", 0, 1); // fel
     ctl.clock += 3000; await q("cleo", 1, 1); // rätt
-    const igen = att();
-    ctl.clock += 3000; await q("dina", 2, 0, igen); // fel
     ctl.clock += 3000;
-    const r2 = await q("dina", 2, 0, igen); // samma svar igen
-    assert.equal(r2.igen, true);
-    assert.deepEqual((await kgPlayer(sid, "dina")).fragor, { q2: { a: 1, r: 0 } });
+    const r1 = await q("dina", 2, 0); // fel
+    ctl.clock += 3000;
+    const r2 = await q("dina", r1.nextQ, r1.nextQ); // frågan servern gav, rätt (facit = index)
+    assert.equal(r2.correct, true);
+    assert.deepEqual((await kgPlayer(sid, "dina")).fragor, { q2: { a: 1, r: 0 }, [`q${r1.nextQ}`]: { a: 1, r: 1 } });
     const fore = fragestatistik(await answers(sid), QUESTIONS);
     ctl.clock = END + 1000;
     const { result } = await avsluta(d, LARARE, { sid });
     assert.deepEqual(result.perQuestion, fore);
-    assert.deepEqual(result.perQuestion.map((x) => [x.key, x.text, x.statKeys, x.answered, x.correct]), [
-      ["q:0", "Fråga 0", ["k0"], 2, 1], ["q:1", "Fråga 1", [], 1, 1], ["q:2", "Fråga 2", [], 1, 0],
-    ]);
+    const vantat = [["q:0", "Fråga 0", ["k0"], 2, 1], ["q:1", "Fråga 1", [], 1, 1], ["q:2", "Fråga 2", [], 1, 0]];
+    vantat[r1.nextQ][3]++;
+    vantat[r1.nextQ][4]++;
+    assert.deepEqual(result.perQuestion.map((x) => [x.key, x.text, x.statKeys, x.answered, x.correct]), vantat);
   });
 });

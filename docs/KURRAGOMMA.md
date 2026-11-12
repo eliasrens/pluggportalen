@@ -349,7 +349,9 @@ efter test i klassrum (etapp 2). Det är där siffrorna ska bekräftas.
 7. **Kvoten** (§10.8): uppskattningen är ≈ 7 500–7 800 Firestore-läsningar för 10 min/25 elever (budget
    8 000) – under, men med liten marginal och det är en räkning, inte en mätning; slut-QA (F, #841) mäter.
    Om den landar över: ska `perQuestion` räknas ur en aggregering i `kgSvara` (−1 000) i stället för att
-   `answers` läses vid slutet?
+   `answers` läses vid slutet? **Gjort i G (#842):** `kgSvara` räknar per fråga i elevens eget
+   `kgPlayers.fragor` (samma update), `kgAvsluta` bygger `perQuestion` ur dem (`kurragomma-fragor.js`) –
+   `answers` läses inte längre (uppmätt i QA-rapporten §2.1).
 8. **"Alltid en sökare"-befordran räknas som hittad** (`hittad: true` i `result.gomstallen`, C): den
    gömmare som befordras när ingen sökare finns har inte hittats av någon men får inte
    överlevnadspoängen och visas som hittad i finalen. Ska `result` skilja på "hittad" och
@@ -446,7 +448,10 @@ const scen = await skapaKgScen({
 
 Scenen äger **joysticken**, pilen i kanten, hjärtslagskanten och notisraden vid sänkning.
 Mätaren, låsknappen, timern och frågepanelen är D:s (utanför ytan eller ovanpå den).
-Tangenterna styr inte figuren när ett formulärfält har fokus (`formularHarFokus`).
+Tangenterna och svarsfältet (`kg-styrning.js` `faltTyp`/`styrTangent`, #842): i ett **sifferfält** (inputmode
+numeric/decimal/tel eller type number – "skriv själv" i Multiplikation, som får fokus igen efter varje svar) styr
+W/A/S/D figuren och bokstäverna skrivs inte in; pilarna lämnas åt fältet. I ett **textfält** (fritext i ett quiz,
+textarea, select, contenteditable) styr inga tangenter – bokstäverna är svar.
 
 ### 9.3 Val och avvikelser
 
@@ -528,7 +533,8 @@ skriver om importvägarna). Filerna:
 
 Alla kräver inloggning. **Lat fasbyte**: varje anrop kör `redo` först – startar matchen om
 `kgFas` saknas (KÖR! har kommit), byter till letfasen när `kgGomSlut` passerats, och placerar
-olåsta gömmare efter `kgGomSlut + LAS_MARGINAL_MS` (2 s). Fel kastas som `HttpsError`
+olåsta gömmare efter `kgGomSlut + LAS_MARGINAL_MS` (5 s, #842 – klienten skickar auto-låsningen
+`LAS_AUTO_FORE_MS` = 300 ms före 0:00). Fel kastas som `HttpsError`
 (`failed-precondition`, `invalid-argument`, `not-found`, `permission-denied`, `resource-exhausted`), med
 `details.skal` där klienten behöver skilja (`kgLeta`: `inte-sokare`, `ingen-laddning`, `sparr` + `vantaMs`,
 `orimlig`, `utanfor`).
@@ -537,8 +543,8 @@ olåsta gömmare efter `kgGomSlut + LAS_MARGINAL_MS` (2 s). Fel kastas som `Http
 | --- | --- | --- | --- |
 | `kgStarta({ sid })` | läraren som styr matchen (admin: alla; årskurskonto: en egen klass) eller en deltagare | drar startsökarna (`antalStartsokare`, `valjSlumpade`), skriver `kgPlayers` + `kgSecret` för alla som gått med, `kgFas: "gom"`, `kgGomSlut = t0 + gomtid`, och `/kg/{sid}` (roll, med, pos för sökarna, status). Idempotent. | `{ fas, tider }` |
 | `kgAnslut({ sid })` | deltagare (`players/{uid}` i en av sessionens klasser) | den som inte fanns vid starten får `rollVidAnslutning` (gömd i gömfasen, sökare i letfasen – en sen sökare får startpunkten `sokarStart`); läggs i `med`. | `{ roll, fas, laddningar, poang, ratt, besvarade, harLast, gomstalle, start, nextQ, hittadAvNamn, tider: { t0, gomSlut, letStart, slut }, inst, showNames }` |
-| `kgLas({ sid, x, z })` | gömmare, i gömfasen (+ 2 s marginal) | `narmasteGiltiga` → `skydd` + `platsNamn`; skriver `kgSelf.gomstalle`, `kgSecret` (x, z, skydd, gomd, lastAt) och `kgPlayers.harLast`; `status.lasta` +1. Redan låst → samma gömställe tillbaka. | `{ gomstalle: { x, z, skydd, namn }, flyttad, redan }` |
-| `kgSvara({ sid, attemptId, factorA, factorB, answer, choiceIndex?, q?, year? })` | deltagare, letfasen (en gömmare i gömfasen nekas; en sökare får ladda under blundandet) | rättas som kistspelen (`gradeMult`/`gradeQuiz`, `answers/{attemptId}` för statistiken, `pickNextQ`); `svarsEffekt` ger poäng/laddning/vissling. Vid vissling: `visslingsplats` (osäkerhet `VISSLING_OSAKERHET_M`), `platsNamn` på den ungefärliga platsen, `kgEvents` + `hand`. Samma `attemptId` igen → samma svar (`igen: true`). | `{ attemptId, correct, correctAnswer, nextQ, poang, laddningar, vissling, plats?, correctYear? }` |
+| `kgLas({ sid, x, z })` | gömmare, i gömfasen (+ 5 s marginal, `LAS_MARGINAL_MS`) | `narmasteGiltiga` → `skydd` + `platsNamn`; skriver `kgSelf.gomstalle`, `kgSecret` (x, z, skydd, gomd, lastAt) och `kgPlayers.harLast`; `status.lasta` +1. Redan låst → samma gömställe tillbaka. | `{ gomstalle: { x, z, skydd, namn }, flyttad, redan }` |
+| `kgSvara({ sid, attemptId, factorA, factorB, answer, choiceIndex?, q?, year? })` | deltagare, letfasen (en gömmare i gömfasen nekas; en sökare får ladda under blundandet) | rättas som kistspelen (`gradeMult`/`gradeQuiz`, `answers/{attemptId}` = idempotensen, `pickNextQ`); räknarna per fråga i `kgPlayers.fragor.{m3x4|q7}.{a,r}` i samma update (`kurragomma-fragor.js`, #842 – `perQuestion` vid slutet utan att läsa `answers`); `svarsEffekt` ger poäng/laddning/vissling. Vid vissling: `visslingsplats` (osäkerhet `VISSLING_OSAKERHET_M`), `platsNamn` på den ungefärliga platsen, `kgEvents` + `hand`. Samma `attemptId` igen → samma svar (`igen: true`). | `{ attemptId, correct, correctAnswer, nextQ, poang, laddningar, vissling, plats?, correctYear? }` |
 | `kgLeta({ sid, x, z })` | sökare, letfasen | **en transaktion**: `kontrolleraSokning` (laddning, 2 s spärr, rimlighet från startpunkten/senaste sökningen), `sok` mot de gömda inom `maxSokradie` (kandidaterna ur instansens minne av gömställena, `gomstallenFor` – läses en gång per instans när `kgPlacerade` är satt; dessförinnan alla `kgSecret.gomd == true`; färska `kgSecret`/`kgPlayers` avgör, F #841), varje hittad blir sökare (`gorTillSokare`: `poangVidHittad`, `laddningarNySokare`, startpunkt = gömstället), sökaren får `poangForHittad` per hittad. Efteråt `nySokare` + `hittad`-händelser i RTDB; en miss ger `miss`-händelse högst var `FLODE_MISS_SPARR_MS`. | `{ hittade: [{ uid, namn, x, z, plats }], laddningar, poang, plats, flode }` |
 | `kgTick({ sid })` | som `kgStarta` (projektorn var `TICK_MS` = 5 s; en deltagare får också) | letfasen: tystnadsregeln, "alltid en sökare", `hand`-städning; slutet (`arSlut`: tiden ute eller alla hittade) → `kgAvsluta` internt. | `{ fas, klart, visslade, nySokare, rensade }` eller `{ fas, klart: true, result, avslutade }` – `avslutade: true` bara i det anrop vars transaktion skrev `result` (klassbonusens engångsgate, §11.5); `kgAvsluta` svarar likadant |
 | `kgAvsluta({ sid })` | läraren som styr matchen när som helst; en deltagare först när tiden är ute, alla är hittade eller matchen redan är avslutad | `status: "finished"` + `finishedAt`, `result` på sessionen (§10.3), `klar: true` + sluttotaler i `kgPlayers`, tar bort `/kg/{sid}`. Idempotent (`redan`). | `{ result, redan }` |
@@ -579,7 +585,7 @@ kärnans `startedAt`). `letStart = kgGomSlut` (inte tiden då fasbytet råkade k
   flestHittade: { uid, name, antal } | null,
   ranking: [{ uid, name, classId, poang, ratt, besvarade, hittade, roll, klaradeSig, rank }],
   gomstallen: [{ uid, x, z, skydd, namn, hittad }],   // exakta platser – matchen är slut
-  perQuestion: [...],                                 // fragestatistik (meteorstorm-resultat.js)
+  perQuestion: [...],                                 // samma form som fragestatistik (meteorstorm-resultat.js), ur kgPlayers.fragor (#842)
   rewards?: { ... } }                                 // som live-rewards: meteorstorm-mynt.js
 ```
 
@@ -661,16 +667,16 @@ slut, resultat) och alla 25 lyssnar på den. Sessionen och quizet ligger i serve
 | `kgTick` 120 × (räknefråga 1 + tystnadsfråga 1 (oftast 0 träffar) + ~2 kandidater × 4: puls + kgSecret, sedan båda igen i transaktionen) | ~900 | ~1 200 | ~150 |
 | Sessionen i serverns minne: 5 s TTL, en läsning per instans och TTL-fönster – 120 per instans, upp till 4 instanser | ~120 | ~120–480 | – |
 | `kgStarta`/`kgAnslut` 25–50 × ~3 (spelarna och quizet ligger i minnet) | ~150 | ~150 | ~110 |
-| `kgAvsluta` (kgPlayers 25, kgSecret 25, kgEvents ~150, **answers ~1 000** för `perQuestion`) | ~1 200 | ~1 200 | ~30 |
+| `kgAvsluta` (kgPlayers 25, kgSecret 25, kgEvents ~150; `perQuestion` ur `kgPlayers.fragor` – **answers läses inte**, G #842; förr ~1 000) | ~1 200 | ~200 | ~30 |
 | Klientlyssnare: sessionen 6 × 25, eget `kgPlayers` ~1 200, `kgSelf` 25 (projektorn lyssnar **inte** på `kgPlayers` – §5.5; ställningen kommer ur RTDB `status` och `hand`) | ~2 700 | ~1 400 | – |
-| **Summa Firestore** | **≈ 9 900** | **≈ 7 500–7 800** | **≈ 2 900** |
+| **Summa Firestore** | **≈ 9 900** | **≈ 6 500–6 800** | **≈ 2 900** |
 
 "Före" = första versionen (svaret och kgSecret lästes i varje `kgSvara`, projektorn lyssnade på `kgPlayers`).
 Nu ligger uppskattningen under §5.5:s 8 000, men marginalen är bara ~200–500 läsningar och beror på hur
 många instanser som är varma och hur många tysta kandidater tystnadsfrågan ger (en tyst gömmare kostar
 4 läsningar per 45 s, en som svarar inget). Det är en räkning, inte en mätning: slut-QA (F, #841) mäter.
-Nästa besparing om den landar över: räkna `perQuestion` ur en liten aggregering som `kgSvara` uppdaterar i
-stället för att läsa `answers` vid slutet (−1 000).
+Besparingen `perQuestion` ur en aggregering i stället för `answers` vid slutet (−1 000 räknat, −1 500 uppmätt)
+gjordes i G (#842, `kurragomma-fragor.js`); mätningen före/efter står i QA-rapporten §2.1.
 
 Realtime Database: `pos` – i snitt ~8 sökare × ≤ 2 skrivningar/s (filtret) × 600 s ≈ 10 000 skrivningar
 à ~60 B, var och en till ~25 lyssnare ≈ **15 MB** nedladdning; `hand` ~200 händelser × 25 × ~120 B ≈ 0,6 MB;
@@ -681,8 +687,9 @@ gratisnivån (10 GB/mån) räcker för hundratals matcher. Slut-QA mäter.
 
 - **Lat fasbyte överallt**: `kgTick` behövs inte för att matchen ska gå framåt, bara för tystnaden,
   "alltid en sökare", städningen och slutet. Därför får även en deltagare anropa `kgStarta`/`kgTick` (§8 fråga 5).
-- **Låsning tas emot till `kgGomSlut + LAS_MARGINAL_MS`** (2 s); olåsta placeras av servern först efter
-  marginalen (`kgPlacerade` på sessionen hindrar att frågan körs igen).
+- **Låsning tas emot till `kgGomSlut + LAS_MARGINAL_MS`** (5 s – G #842, förr 2 s: under last kom klientens
+  auto-skick efter marginalen); olåsta placeras av servern först efter marginalen (`kgPlacerade` på sessionen
+  hindrar att frågan körs igen). Klienten skickar auto-låsningen `LAS_AUTO_FORE_MS` (300 ms) före 0:00.
 - **Tystnadsregeln** frågar på `kgPlayers.tystRef` (bara gömda har fältet; svar, vissling och letfasens
   början flyttar fram det). En frånkopplad kandidat får `tystRef = nu` och prövas igen efter 45 s.
   Pulsen är kärnans `players.lastSeenAt`.
@@ -754,8 +761,8 @@ rörelsekanal laddas med `import()` (`projectorViews`/`studentView`/`historyRend
 
 - **Lobby** – projektorn: ön roterar, figurer på stranden, "N elever redo", STARTA; elevskärmen: kärnans lobby + förklaringen. Tyst.
 - **KÖR!** – kärnans 3-2-1. Projektorn anropar `kgStarta` när `phase === "live"`; elevskärmen monterar spelytan och `kgAnslut` ger roll, fas, tider, gömställe.
-- **Gömfasen** – toppraden "Göm: 0:24" · "Låsta 12/21" (RTDB `status`); musiken sänks till hälften (`music.skala(0.5)`). Eleven: gömmare går (platsen sparas i `sessionStorage` `pp:kg:pos:{sid}`, aldrig på servern) och låser; vid 0:00 skickas platsen automatiskt (`LAS_MARGINAL_MS`). Sökare: täckt skärm "🙈 Du blundar – räkna till N!" + frågor som laddar lampan.
-- **Letfasen** – fasbytet kommer ur RTDB `status.fas` eller klientklockan (gömslut + `LAS_MARGINAL_MS` + 0,5 s). Projektorn: klockan · "Gömda 14 · Sökare 6", visslingar (ringar + riktat ljud, aldrig namn), hittade (konfetti, pling), missar, "1 minut kvar!". Eleven: frågor; gömd → poäng/egen vissling/"Det visslar vid …"/hjärtslag; sökare → tre ficklampor, 🔦 Leta (mellanslag/E, 2 s spärr), pil mot senaste visslingen. Hittad → ruta ≤ 2 s → sökare från gömstället (rollbytet kommer ur det egna `kgPlayers`).
+- **Gömfasen** – toppraden "Göm: 0:24" · "Låsta 12/21" (RTDB `status`); musiken sänks till hälften (`music.skala(0.5)`). Eleven: gömmare går (platsen sparas i `sessionStorage` `pp:kg:pos:{sid}`, aldrig på servern) och låser; den som inte låst får platsen skickad automatiskt 300 ms före 0:00 (`LAS_AUTO_FORE_MS`; servern tar emot till `LAS_MARGINAL_MS` = 5 s efter, #842). Sökare: täckt skärm "🙈 Du blundar – räkna till N!" + frågor som laddar lampan.
+- **Letfasen** – fasbytet kommer ur RTDB `status.fas` eller klientklockan (gömslut + `LAS_MARGINAL_MS` + 0,5 s). Under fasen "live" sätter elevskärmen `body.kge-match`: sidomenyn fälls ihop och ytan tar hela bredden (> 820 px, som Prov i helskärm; #842 – 1366×768 får panelen till höger), tillbaka när matchen är slut. Projektorn: klockan · "Gömda 14 · Sökare 6", visslingar (ringar + riktat ljud, aldrig namn), hittade (konfetti, pling), missar, "1 minut kvar!". Eleven: frågor; gömd → poäng/egen vissling/"Det visslar vid …"/hjärtslag; sökare → tre ficklampor, 🔦 Leta (mellanslag/E, 2 s spärr), pil mot senaste visslingen. Hittad → ruta ≤ 2 s → sökare från gömstället (rollbytet kommer ur det egna `kgPlayers`).
 - **Slutet** – 00:00/alla hittade (`kgTick` → `kgAvsluta` på servern) eller Avsluta-knappen → kärnan `status finished` → `resultInputs` → `kgAvsluta` + `settleLiveRewards`. Finalen: lugn rad → "🏆 Kurragömma – Prispall" (pallen utan tomma platser, mynt under) → gömställena på kartan ur `result.gomstallen`. Eleven: slutskärmen ur samma `result`.
 
 ### 11.3 Ljud och musik (spec §8)
