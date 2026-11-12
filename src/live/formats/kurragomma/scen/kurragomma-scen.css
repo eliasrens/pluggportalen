@@ -1,0 +1,102 @@
+/* ==========================================================================
+   Kurragömma – 3D-scenen och 2D-reserven (#837, spec §3, §4). Egen fil som
+   D:s vyer laddar; bara kg-*-klasser (inga delade). Himlen är en CSS-gradient
+   bakom en genomskinlig canvas (billigare än en himmelskupol). Inga z-index:
+   överlägget ligger efter canvasen i DOM:en.
+   ========================================================================== */
+.kg-scen {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(#9fd6f2, #ddf1fb 70%, #e9f6fd);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  font-family: "Baloo 2", "Segoe UI Rounded", system-ui, sans-serif;
+}
+.kg-scen .kg-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+.kg-scen .kg-canvas:active { cursor: grabbing; }
+
+/* Hjärtslaget (§1.3): kanten pulserar mjukt när en sökare är nära. */
+.kg-scen .kg-kant {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  box-shadow: inset 0 0 0 0 rgba(239, 111, 108, 0);
+}
+.kg-scen .kg-kant-hjartslag {
+  opacity: 1;
+  animation: kg-hjartslag 1.1s ease-in-out infinite;
+}
+@keyframes kg-hjartslag {
+  0%, 100% { box-shadow: inset 0 0 18px 4px rgba(239, 111, 108, 0.15); }
+  35% { box-shadow: inset 0 0 44px 14px rgba(239, 111, 108, 0.55); }
+}
+
+/* Pilen i kanten mot visslingen (§1.5) – roteras av kg-overlagg.js. */
+.kg-scen .kg-pil {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 44px;
+  height: 44px;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.25));
+}
+.kg-scen .kg-pil svg { display: block; }
+
+/* Notisraden vid automatisk sänkning (§4.4). */
+.kg-scen .kg-notis {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  max-width: calc(100% - 28px);
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(11, 15, 46, 0.78);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* Joysticken (§3): nere till vänster, bara på pekskärm. */
+.kg-scen .kg-joystick {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  touch-action: none;
+  display: none;
+}
+.kg-scen .kg-joystick-synlig { display: block; }
+.kg-scen .kg-joystick-knopp {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 48px;
+  height: 48px;
+  margin: -24px 0 0 -24px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kg-scen .kg-kant-hjartslag {
+    animation: none;
+    box-shadow: inset 0 0 30px 8px rgba(239, 111, 108, 0.4);
+  }
+}

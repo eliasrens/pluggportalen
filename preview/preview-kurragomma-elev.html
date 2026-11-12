@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Kurragömma 🙈 elevskärmen (#839)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      /* Bara förhandsvisningen: en låtsad toppmeny (~64 px som appens) + demopanel. */
+      body { margin: 0; min-height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; }
+      .pv-topbar { flex: none; height: 64px; display: flex; align-items: center; padding: 0 18px; gap: 14px; background: #fff;
+        box-shadow: 0 2px 8px rgba(0,0,0,.08); font-weight: 800; color: #1b2559; }
+      .pv-main { flex: 1; display: flex; flex-direction: column; padding: 12px 16px; min-height: 0; }
+      .pv { position: fixed; right: 10px; bottom: 10px; z-index: 100; width: 330px; max-height: 72vh; overflow: auto;
+        font: 13px/1.35 system-ui, sans-serif; background: rgba(255, 255, 255, 0.97); color: #1b2559; border-radius: 12px;
+        box-shadow: 0 8px 30px rgba(0,0,0,.35); }
+      .pv:not([open]) { width: auto; }
+      .pv summary { cursor: pointer; padding: 8px 12px; font-weight: 700; }
+      .pv-body { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 12px; }
+      .pv-body b { width: 100%; margin-top: 6px; }
+      .pv button, .pv label, .pv select { font: inherit; padding: 4px 8px; border-radius: 8px; border: 1px solid #c5cde0; background: #f3f6fc; cursor: pointer; }
+      .pv-note, .pv-stat { width: 100%; color: #5a6585; }
+      .pv-stat { font-family: ui-monospace, monospace; font-size: 12px; color: #1b2559; white-space: pre-line; }
+    </style>
+  </head>
+  <body>
+    <div class="pv-topbar">🏠 Pluggporten <span style="margin-left:auto;font-weight:600">Elev: Jag (4B)</span></div>
+    <div class="pv-main" id="app"></div>
+
+    <details class="pv" data-panel>
+      <summary>🧪 Demo (#839, bara förhandsvisning)</summary>
+      <div class="pv-body">
+        <span class="pv-note">Isolerad match i minnet (kg-demo.js): formatets riktiga regler, 29 robotar som gömmer sig, svarar och letar.
+          Ingen Firestore, ingen Realtime Database, inga pluggmynt.</span>
+        <b>Fas</b>
+        <button data-fas="lobby">Lobby</button>
+        <button data-fas="live">Spel</button>
+        <button data-fas="slut">Slut (kgAvsluta)</button>
+        <b>Klockan</b>
+        <button data-act="gomslut">⏩ Gömfasen slut</button>
+        <button data-act="hoppa">⏩ +60 s</button>
+        <button data-act="snart">⏩ 20 s kvar</button>
+        <b>Jag</b>
+        <button data-act="svara">✔ Svara rätt nu</button>
+        <button data-act="fel">✖ Svara fel nu</button>
+        <button data-act="las">🔒 Lås</button>
+        <button data-act="leta">🔦 Leta</button>
+        <button data-act="hittad">🔎 Jag blir hittad</button>
+        <b>Matchen</b>
+        <button data-act="vissling">🎵 Någon visslar</button>
+        <button data-act="tystnad">🤫 Tystnad</button>
+        <button data-act="alla">Alla hittade</button>
+        <label>Serverns svarstid <select data-lat><option>0</option><option selected>150</option><option>600</option><option>2500</option></select> ms</label>
+        <span class="pv-note">Adressen: ?roll=sokare · ?2d=1 · ?svar=choice · ?quiz=1 · ?fas=lobby|live · ?gomtid=20 · ?min=5 · ?sidomeny=1 (appens layout med sidomenyn, #842)</span>
+        <div class="pv-stat" data-stat></div>
+      </div>
+    </details>
+
+    <script type="module">
+      import { createKgStage } from "../src/live/formats/kurragomma/kge-elev-vy.js";
+      import { lobbyHtml, endHtml, joinedText } from "../src/live/formats/kurragomma/kge-skarmar.js";
+      import { createKgDemo } from "../src/live/formats/kurragomma/kg-demo.js";
+      import { sessionTitle } from "../src/live/formats/kurragomma/kg-setup.js";
+      import { requireGameMode } from "../src/live/modes/index.js";
+      import { skapaRosterStub } from "./kurragomma-robotar.js";
+
+      const qs = new URLSearchParams(location.search);
+      const $ = (s) => document.querySelector(s);
+      // ?sidomeny=1 (#842): appens riktiga layout (body.med-sidomeny, .layout > .sidebar + .container) i stället för
+      // låtsastoppmenyn – visar att sidomenyn fälls ihop under matchen (body.kge-match) och kommer tillbaka efteråt.
+      if (qs.get("sidomeny") === "1") {
+        document.body.classList.add("med-sidomeny", "live-lage");
+        $(".pv-topbar").remove();
+        $(".pv-main").outerHTML = `<div class="layout"><aside class="sidebar" aria-label="Sidomeny">
+            <button class="brand" type="button"><span class="brand-text">Pluggporten</span></button>
+            <p style="font-weight:700">Jag · 4B</p><p>🏠 Hem</p><p>📚 Plugga</p><p>⚡ Live</p><p>🏡 Huset</p>
+          </aside><main id="app" class="container"></main></div>`;
+      }
+      const QUIZ = [
+        { id: "q1", key: "0:q1", text: "Vilket djur gömmer sig helst i ett träd?", options: ["Ugglan", "Grodan", "Hästen", "Kon"], answerIndex: 0 },
+        { id: "q2", key: "1:q2", text: "Vad växer på en äng?", options: ["Tång", "Blommor", "Koraller", "Is"], answerIndex: 1 },
+        { id: "q3", key: "2:q3", text: "Vad är en lada?", options: ["En båt", "En bil", "En byggnad på en gård", "En fisk"], answerIndex: 2 },
+        { id: "q4", key: "3:q4", text: "Hur många ben har en spindel?", options: ["4", "6", "10", "8"], answerIndex: 3 },
+        { id: "q5", key: "4:q5", text: "Vilken årstid kommer efter sommaren?", options: ["Hösten", "Vintern", "Våren", "Sommaren"], answerIndex: 0 },
+      ];
+      const quizOn = qs.get("quiz") === "1";
+      const roster = await skapaRosterStub();
+      const demo = createKgDemo({
+        quiz: quizOn ? QUIZ : null,
+        answerKind: qs.get("svar") === "choice" ? "choice" : "free",
+        latens: () => Number($("[data-lat]").value) || 0,
+        gomtid: Number(qs.get("gomtid")) || 30, minuter: Number(qs.get("min")) || 8,
+        jagSokare: qs.get("roll") === "sokare", roster,
+        onLog: (t) => parent.__kgLogg?.(t),
+      });
+      window.__kgDemo = demo;
+      // ?koppla=1: preview-kurragomma-demolage.html – projektorn bredvid ritar samma match.
+      const kopplad = qs.get("koppla") === "1" && parent !== window;
+      if (kopplad) {
+        parent.__kgKoppling = demo;
+        $("[data-panel]").hidden = true;
+      }
+      const session = demo.session;
+      const mode = requireGameMode(session.gameMode);
+      const answerKind = session.answerKind;
+
+      // Kärnans elevvy (page-elev-live.js) i liten skala: lobby / nedräkning / spel / slut.
+      $("#app").innerHTML = `<div class="live-elev">
+          <header class="live-elev-head"><span class="live-elev-badge">⚡ LIVE</span>
+            <h1 class="live-elev-title">${sessionTitle(session)}</h1><span class="live-elev-me"></span></header>
+          <div class="live-elev-stage">
+            <div class="live-elev-lobby" hidden><p class="live-elev-wait">${joinedText}</p>${lobbyHtml(session)}</div>
+            <div class="live-elev-count" hidden></div>
+            <div class="live-elev-play" hidden></div>
+            <div class="live-elev-end" hidden></div>
+          </div></div>`;
+      const view = $(".live-elev");
+      const player = { uid: demo.me.uid, name: demo.me.name, classId: "4b" };
+      const stage = createKgStage(
+        { view, host: $(".live-elev-play"), uid: player.uid, classId: "4b", session, mode, answerKind },
+        { api: demo.api, now: demo.now, roster, tvinga2d: qs.get("2d") === "1" },
+      );
+      window.__kgStage = stage;
+
+      demo.join(30, 0);
+      if (qs.get("fas") !== "lobby" && !kopplad) await demo.start(0);
+      let lobby = qs.get("fas") === "lobby" || kopplad;
+      function render() {
+        const st = demo.st();
+        if (lobby && st.phase !== "lobby") lobby = false;
+        const ph = lobby ? "lobby" : st.phase;
+        const part = ph === "lobby" ? "lobby" : ph === "countdown" ? "count" : ph === "live" ? "play" : "end";
+        for (const k of ["lobby", "count", "play", "end"]) $(`.live-elev-${k}`).hidden = k !== part;
+        if (part === "count") $(".live-elev-count").textContent = st.countdown > 0 ? String(st.countdown) : "KÖR!";
+        if (part === "end") {
+          const html = endHtml(st, player, "4b");
+          if ($(".live-elev-end").dataset.html !== html) { $(".live-elev-end").innerHTML = html; $(".live-elev-end").dataset.html = html; }
+        }
+        stage.update(st, player);
+      }
+      setInterval(render, 250);
+      render();
+
+      document.querySelectorAll("[data-fas]").forEach((b) => b.addEventListener("click", async () => {
+        const f = b.dataset.fas;
+        if (f === "lobby") lobby = true;
+        else if (f === "live") { lobby = false; await demo.start(0); }
+        else { lobby = false; await demo.jumpToFinal(); }
+        render();
+      }));
+      const gomSlut = () => demo.gaTill(demo.session.kgInstallningar.gomtid + 1);
+      $("[data-act=gomslut]").addEventListener("click", () => gomSlut().then(render));
+      $("[data-act=hoppa]").addEventListener("click", () => demo.hoppa(60_000).then(render));
+      $("[data-act=snart]").addEventListener("click", () => demo.soonOut(20).then(render));
+      $("[data-act=las]").addEventListener("click", () => document.querySelector(".kge [data-las]:not([hidden])")?.click());
+      $("[data-act=leta]").addEventListener("click", () => document.querySelector(".kge [data-leta]:not([disabled])")?.click());
+      $("[data-act=hittad]").addEventListener("click", () => demo.hittad());
+      $("[data-act=vissling]").addEventListener("click", () => demo.vissling());
+      $("[data-act=tystnad]").addEventListener("click", () => demo.tystnad());
+      $("[data-act=alla]").addEventListener("click", () => demo.allaHittade());
+      function svara(ratt) {
+        const fa = document.querySelector(".kge-svar .fa-input");
+        const q = document.querySelector(".kge-svar .fa-question")?.textContent || "";
+        const m = q.match(/(\d+)\s*[·×x*]\s*(\d+)/);
+        if (fa && m) {
+          fa.value = String(Number(m[1]) * Number(m[2]) + (ratt ? 0 : 1));
+          fa.form?.requestSubmit?.();
+          return;
+        }
+        const knappar = [...document.querySelectorAll(".kge-svar .ca-knapp")];
+        const fraga = document.querySelector(".kge-svar .ca-fraga")?.textContent || "";
+        const quizRatt = QUIZ.findIndex((x) => fraga.includes(x.text));
+        const mm = fraga.match(/(\d+)\s*[·×x*]\s*(\d+)/);
+        const facit = mm ? String(Number(mm[1]) * Number(mm[2])) : quizRatt >= 0 ? QUIZ[quizRatt].options[QUIZ[quizRatt].answerIndex] : null;
+        const b = knappar.find((k) => (k.querySelector(".ca-text")?.textContent === facit) === ratt);
+        b?.click();
+      }
+      $("[data-act=svara]").addEventListener("click", () => svara(true));
+      $("[data-act=fel]").addEventListener("click", () => svara(false));
+      window.__kgSvara = svara;
+      window.__kgGomSlut = gomSlut;
+
+      const stat = $("[data-stat]");
+      setInterval(() => {
+        const s = demo.state();
+        const jag = s.spelare.find((p) => p.uid === demo.me.uid);
+        const st = s.status || {};
+        stat.textContent = `fas: ${s.fas || "–"} · låsta ${st.lasta ?? 0} · gömda ${st.gomda ?? 0} · sökare ${st.sokare ?? 0}
+jag: ${jag ? `${jag.roll} · ${jag.poang} p · laddningar ${jag.laddningar} · ${jag.harLast ? "låst" : "olåst"}` : "–"}
+händelser: ${s.events.length} · robotar som letar: ${s.robotar.filter((r) => r.roll === "sokare").length}`;
+      }, 500);
+    </script>
+  </body>
+</html>

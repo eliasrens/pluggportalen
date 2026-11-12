@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Demoläge – Kurragömma 🙈 projektorn + elevskärmen (#839)</title>
+    <!--
+      Kopplat demoläge (#839, spec §11.4, LIVE-FORMAT §8): EN påhittad match, projektorn och
+      en elevskärm sida vid sida. Elevskärmen = preview-kurragomma-elev.html?koppla=1 (formatets
+      riktiga elevvy mot låtsasservern kg-demo.js: 29 robotar som gömmer sig, svarar och letar).
+      Projektorn = preview-kurragomma-demo.html?koppla=1, som ritar SAMMA match (demots deps):
+      det "Jag" gör (går, låser, svarar fel → visslar, letar) syns på projektorn, och finalen,
+      elevens slutskärm och pluggmynten kommer ur samma resultat.
+      Ingen Firestore, inga Cloud Functions, ingen Realtime Database, inga pluggmynt (demo: true).
+      ?roll=sokare → Jag är startsökare. ?2d=1 → 2D-reserven. ?elev=380 → smal elevskärm.
+    -->
+    <style>
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; background: #0d1a12; color: #e3f0e6; font: 14px/1.35 system-ui, sans-serif; }
+      body { display: grid; grid-template-columns: 270px 1fr; height: 100vh; overflow: hidden; }
+      aside { padding: 12px; overflow: auto; background: #132619; border-right: 1px solid #27442f; }
+      aside h1 { font-size: 16px; margin: 0 0 4px; }
+      aside p { margin: 0 0 8px; color: #9cc3a6; font-size: 12px; }
+      aside b { display: block; margin: 10px 0 4px; font-size: 12px; color: #9cc3a6; }
+      .knappar { display: flex; gap: 6px; flex-wrap: wrap; }
+      button { font: inherit; padding: 5px 10px; border-radius: 8px; border: 1px solid #35624a; background: #1c3a27; color: #e3f0e6; cursor: pointer; }
+      button:hover { background: #28503a; }
+      .logg { margin-top: 10px; font: 11px/1.4 ui-monospace, monospace; color: #9cc3a6; white-space: pre-line; max-height: 40vh; overflow: auto; }
+      main { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; padding: 12px; min-width: 0; min-height: 0; align-items: center; }
+      .ruta { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+      .ruta h2 { margin: 0 0 6px; font-size: 13px; color: #9cc3a6; font-weight: 600; }
+      .ram { position: relative; overflow: hidden; border-radius: 10px; background: #000; }
+      .proj .ram { aspect-ratio: 16 / 9; width: 100%; }
+      .elev .ram { width: min(42vw, 620px); aspect-ratio: 1366 / 768; outline: 4px solid #27442f; }
+      body[data-elev="380"] .elev .ram { width: calc(min(86vh, 812px) * 380 / 812); aspect-ratio: 380 / 812; border-radius: 22px; outline: 6px solid #27442f; }
+      .ram iframe { position: absolute; left: 0; top: 0; border: 0; transform-origin: 0 0; background: #fff; }
+      @media (max-width: 900px) {
+        body { grid-template-columns: 1fr; grid-template-rows: auto 1fr; height: auto; overflow: auto; }
+        main { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <aside>
+      <h1>🙈 Kurragömma – demoläge</h1>
+      <p>En påhittad match: 4B med 29 robotar (ingen riktig data, inga pluggmynt). Projektorn till vänster, elevskärmen
+        ("Jag" i 4B) till höger – samma match. Gå med klick/pilar i elevskärmen, lås, svara (fel svar visslar på
+        projektorn – riktat ljud), leta som sökare.</p>
+      <b>Matchen</b>
+      <div class="knappar">
+        <button data-act="start">▶ KÖR!</button>
+        <button data-act="gomslut">⏩ Gömfasen slut</button>
+        <button data-act="hoppa">⏩ +60 s</button>
+        <button data-act="minut">⏱ 1 min kvar</button>
+        <button data-act="slut">Tiden ute (final)</button>
+      </div>
+      <b>Jag (elevskärmen)</b>
+      <div class="knappar">
+        <button data-act="ratt">✔ Svara rätt</button>
+        <button data-act="fel">✖ Svara fel (visslar)</button>
+        <button data-act="las">🔒 Lås</button>
+        <button data-act="leta">🔦 Leta</button>
+        <button data-act="hittad">🔎 Jag blir hittad</button>
+      </div>
+      <b>Händelser (§11.4)</b>
+      <div class="knappar">
+        <button data-act="vissling">🎵 Vissling</button>
+        <button data-act="sokning">🔦 Sökning</button>
+        <button data-act="robothittad">🔎 Robot hittad</button>
+        <button data-act="tystnad">🤫 Tystnad</button>
+        <button data-act="borta">Sökarna borta</button>
+        <button data-act="alla">Alla hittade</button>
+      </div>
+      <b>Visning</b>
+      <div class="knappar">
+        <button data-act="om">↺ Börja om</button>
+        <button data-url="roll=sokare">Jag är sökare</button>
+        <button data-url="2d=1">2D-reserven</button>
+        <button data-url="elev=380">Elev 380 px</button>
+      </div>
+      <div class="logg" data-logg></div>
+    </aside>
+    <main>
+      <section class="ruta proj"><h2>Projektorn (1920 × 1080)</h2><div class="ram"><iframe data-proj title="Projektorn" width="1920" height="1080"></iframe></div></section>
+      <section class="ruta elev"><h2 data-elevrubrik>Elevskärmen (1366 × 768)</h2><div class="ram"><iframe data-elev title="Elevskärmen" width="1366" height="768"></iframe></div></section>
+    </main>
+    <script type="module">
+      const $ = (s) => document.querySelector(s);
+      const projF = $("[data-proj]");
+      const elevF = $("[data-elev]");
+      const q = new URLSearchParams(location.search);
+      const loggEl = $("[data-logg]");
+      window.__kgLogg = (t) => { loggEl.textContent = `${new Date().toLocaleTimeString("sv-SE")} ${t}\n${loggEl.textContent}`.slice(0, 3000); };
+      if (q.get("elev") === "380") {
+        document.body.dataset.elev = "380";
+        elevF.width = 380; elevF.height = 812;
+        $("[data-elevrubrik]").textContent = "Elevskärmen (380 × 812)";
+      }
+
+      // Iframes i sin riktiga storlek, skalade till rutan.
+      function fit() {
+        for (const f of [projF, elevF]) {
+          const box = f.parentElement.getBoundingClientRect();
+          f.style.transform = `scale(${Math.min(box.width / f.width, box.height / f.height)})`;
+        }
+      }
+      addEventListener("resize", fit);
+      fit();
+
+      // Elevsidan skapar matchen (parent.__kgKoppling) – projektorn väntar på den.
+      const extra = [q.get("roll") === "sokare" ? "roll=sokare" : "", q.get("2d") === "1" ? "2d=1" : "", q.get("svar") ? `svar=${q.get("svar")}` : ""].filter(Boolean).map((x) => `&${x}`).join("");
+      elevF.src = `preview-kurragomma-elev.html?koppla=1&fas=lobby${extra}`;
+      projF.src = `preview-kurragomma-demo.html?koppla=1${q.get("2d") === "1" ? "&2d=1" : ""}`;
+
+      const D = () => window.__kgKoppling;
+      const klick = (sel) => { const k = elevF.contentDocument?.querySelector(sel); if (k) k.click(); else window.__kgLogg(`knappen finns inte just nu (${sel})`); };
+      const act = {
+        start: () => { const b = projF.contentDocument?.querySelector("[data-start]"); if (b) b.click(); else D()?.start(0); },
+        gomslut: () => elevF.contentWindow.__kgGomSlut?.().then(() => window.__kgLogg("gömfasen slut")),
+        hoppa: () => D()?.hoppa(60_000).then(() => window.__kgLogg("+60 s")),
+        minut: () => D()?.soonOut(62).then(() => window.__kgLogg("62 s kvar")),
+        slut: () => D()?.jumpToFinal().then(() => window.__kgLogg("tiden ute – finalen")),
+        ratt: () => elevF.contentWindow.__kgSvara?.(true),
+        fel: () => elevF.contentWindow.__kgSvara?.(false),
+        las: () => klick(".kge [data-las]:not([hidden])"),
+        leta: () => klick(".kge [data-leta]:not([disabled])"),
+        hittad: () => D()?.hittad(),
+        vissling: () => D()?.vissling(),
+        sokning: () => D()?.sokning(),
+        robothittad: () => D()?.hittad(D().robotar.gomda()[0]),
+        tystnad: () => D()?.tystnad(),
+        borta: (b) => { const v = b.dataset.pa !== "1"; b.dataset.pa = v ? "1" : "0"; b.textContent = v ? "Sökarna tillbaka" : "Sökarna borta"; D()?.sokareBorta(v); },
+        alla: () => D()?.allaHittade(),
+        om: () => location.reload(),
+      };
+      document.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => act[b.dataset.act](b)));
+      document.querySelectorAll("[data-url]").forEach((b) => b.addEventListener("click", () => {
+        const p = new URLSearchParams(location.search);
+        const [k, v] = b.dataset.url.split("=");
+        if (p.get(k) === v) p.delete(k); else p.set(k, v);
+        location.search = p.toString();
+      }));
+    </script>
+  </body>
+</html>

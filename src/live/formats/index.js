@@ -23,8 +23,9 @@ import SNILLEBLIXT from "./snilleblixt/index.js";
 import GULDRUSH from "./guldrush/index.js";
 import DATAKUPPEN from "./datakuppen/index.js";
 import METEORSTORM from "./meteorstorm/index.js";
+import KURRAGOMMA from "./kurragomma/index.js";
 
-const BUILTIN_FORMATS = [KLASSMATCH, SNILLEBLIXT, GULDRUSH, DATAKUPPEN, METEORSTORM];
+const BUILTIN_FORMATS = [KLASSMATCH, SNILLEBLIXT, GULDRUSH, DATAKUPPEN, METEORSTORM, KURRAGOMMA];
 
 for (const f of BUILTIN_FORMATS) if (!getFormat(f.id)) registerFormat(f);
 

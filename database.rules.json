@@ -1,0 +1,39 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "kg": {
+      "$sid": {
+        "roll": {
+          ".read": "auth != null && (root.child('kg/' + $sid + '/med/' + auth.uid).val() === true || auth.token.teacher === true)",
+          ".write": false
+        },
+        "med": {
+          ".read": "auth != null && (root.child('kg/' + $sid + '/med/' + auth.uid).val() === true || auth.token.teacher === true)",
+          ".write": false
+        },
+        "pos": {
+          ".read": "auth != null && (root.child('kg/' + $sid + '/med/' + auth.uid).val() === true || auth.token.teacher === true)",
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid && (!newData.exists() || root.child('kg/' + $sid + '/roll/' + $uid).val() === 'sokare')",
+            ".validate": "newData.hasChildren(['x', 'z', 'yaw', 't'])",
+            "x": { ".validate": "newData.isNumber() && newData.val() >= -40 && newData.val() <= 40" },
+            "z": { ".validate": "newData.isNumber() && newData.val() >= -40 && newData.val() <= 40" },
+            "yaw": { ".validate": "newData.isNumber() && newData.val() >= -7 && newData.val() <= 7" },
+            "t": { ".validate": "newData.isNumber() && newData.val() >= now - 120000 && newData.val() <= now + 120000" },
+            "$other": { ".validate": false }
+          }
+        },
+        "hand": {
+          ".read": "auth != null && (root.child('kg/' + $sid + '/med/' + auth.uid).val() === true || auth.token.teacher === true)",
+          ".write": false,
+          ".indexOn": ["t"]
+        },
+        "status": {
+          ".read": "auth != null && (root.child('kg/' + $sid + '/med/' + auth.uid).val() === true || auth.token.teacher === true)",
+          ".write": false
+        }
+      }
+    }
+  }
+}

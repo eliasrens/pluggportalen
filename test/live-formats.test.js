@@ -5,7 +5,7 @@
 // live-core före refaktorn (fryst kopia i test/fixtures/live-core-fore-547.js).
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -245,5 +245,25 @@ describe("Bootgrafen: formaten bara dynamiskt (#271)", () => {
     }
     assert.ok(seen.has(join(SRC, "game-shared.js")), "BFS:en hittar kända bootfiler");
     assert.deepEqual([...seen].filter((f) => f.startsWith(join(SRC, "live"))), []);
+    // Kurragömma (#837): three.js i src/vendor/three/ nås aldrig statiskt – bara med import() i kg-tre.js.
+    assert.deepEqual([...seen].filter((f) => f.startsWith(join(SRC, "vendor"))), []);
+  });
+
+  it("src/vendor/three/ (#837) importeras aldrig statiskt någonstans i src/ – bara via import()", () => {
+    const SRC = resolve(dirname(fileURLToPath(import.meta.url)), "..", "src");
+    const filer = [];
+    const gaIgenom = (dir) => {
+      for (const n of readdirSync(dir)) {
+        const p = join(dir, n);
+        if (statSync(p).isDirectory()) { if (!p.startsWith(join(SRC, "vendor"))) gaIgenom(p); } else if (/\.(js|mjs)$/.test(n)) filer.push(p);
+      }
+    };
+    gaIgenom(SRC);
+    const statiska = filer.filter((f) => /\b(?:import|export)\s+[^(;]*?from\s+["'][^"']*vendor\/three\//.test(readFileSync(f, "utf8")));
+    assert.deepEqual(statiska, []);
+    const dynamiska = filer.filter((f) => /import\(\s*["'][^"']*vendor\/three\/three\.module\.min\.js["']\s*\)/.test(readFileSync(f, "utf8")));
+    assert.deepEqual(dynamiska.map((f) => f.slice(SRC.length + 1)), ["live/formats/kurragomma/scen/kg-tre.js"]);
+    assert.ok(statSync(join(SRC, "vendor", "three", "three.module.min.js")).size > 100_000);
+    assert.ok(readFileSync(join(SRC, "vendor", "three", "LICENSE"), "utf8").includes("MIT"));
   });
 });

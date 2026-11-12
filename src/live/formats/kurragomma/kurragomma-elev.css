@@ -1,0 +1,153 @@
+/* ==========================================================================
+   Kurragömma – elevens skärm (#839, spec §6). Egen fil (laddas av
+   kge-elev-vy.js), bara kge-*. 3D-vyn fyller ytan; frågepanelen till höger
+   (~360 px) över 1100 px (data-panel="sida"), annars ett hopfällbart kort
+   längst ned (data-panel="kort"). Fungerar på 1366×768 och ~380 px.
+   Inga z-index: överlägget (toppraden m.m.) ligger efter scenen i DOM:en.
+   ========================================================================== */
+.kge-elev-vy { min-height: calc(100vh - 90px); min-height: calc(100dvh - 90px); }
+/* Under matchen (#842, slut-QA avvikelse 3): kge-elev-vy.js sätter body.kge-match i fasen "live" (bara Kurragömma).
+   Sidomenyn fälls ihop och innehållsytan tar hela bredden – som Prov i helskärm – så 1366×768 får panelen till
+   höger (> 1100 px) i stället för ett kort under en 265 px hög scen. Under 820 px (off-canvas-meny + hamburger) rörs
+   inget. Tillbaka när matchen är slut eller vyn lämnas. */
+@media (min-width: 821px) {
+  body.kge-match.med-sidomeny .sidebar { display: none; }
+  body.kge-match.med-sidomeny .container { max-width: none; }
+}
+.kge-elev-vy .live-elev-stage { align-items: stretch; padding: 6px; }
+.kge-elev-vy .live-elev-play { width: 100%; display: flex; flex-direction: column; min-height: 0; flex: 1; }
+.kge-elev-vy .live-elev-lobby, .kge-elev-vy .live-elev-end, .kge-elev-vy .live-elev-count { align-self: center; }
+.kge-elev-vy .live-elev-lobby { width: min(760px, 100%); }
+
+.kge {
+  --kge-panel: 360px;
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--kge-panel);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 8px;
+  min-height: 0;
+  height: calc(100dvh - 150px);
+  min-height: 420px;
+  /* Egen höjd → kortets tak kan mätas i cqh (en procentsats på kortet räknas mot dess egen auto-rad = ingen gräns). */
+  container-type: size;
+  font-family: "Baloo 2", "Segoe UI Rounded", system-ui, sans-serif;
+}
+.kge[data-panel="kort"] {
+  grid-template-columns: minmax(0, 1fr);
+  /* Kortet tar sin innehållshöjd men högst 52 % av ytan (minmax(auto, 46%) gav ingen gräns: min vinner över max). */
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 0;
+}
+.kge[data-panel="kort"] .kge-panel { max-height: 52cqh; }
+
+/* --- huvudytan: scenen + överlägget --------------------------------------- */
+.kge-huvud { position: relative; min-height: 0; border-radius: 16px; overflow: hidden; background: #9fd6f2; box-shadow: 0 6px 0 rgba(0, 0, 0, 0.12); }
+.kge-huvud .kge-scen { position: absolute; inset: 0; }
+.kge-topp {
+  position: absolute; left: 0; right: 0; top: 0; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  padding: 6px 12px; background: rgba(11, 15, 46, 0.72); color: #fff; font-weight: 800; pointer-events: none;
+}
+.kge-fastext { font-size: 15px; opacity: 0.9; }
+.kge-timer { font-size: 22px; font-variant-numeric: tabular-nums; }
+.kge-poang { justify-self: end; font-size: 16px; color: #ffd166; }
+.kge-matare {
+  position: absolute; top: 48px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px;
+  max-width: calc(100% - 24px); padding: 6px 14px; border-radius: 999px; background: #fff; color: #22314a;
+  font-weight: 800; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 5px 0 rgba(0, 0, 0, 0.12); pointer-events: none;
+}
+.kge-matare[hidden] { display: none; }
+.kge-matare svg { flex: none; }
+.kge-rad {
+  position: absolute; top: 92px; left: 50%; transform: translateX(-50%); max-width: calc(100% - 24px);
+  padding: 6px 14px; border-radius: 999px; background: rgba(11, 15, 46, 0.78); color: #fff; font-weight: 700; font-size: 15px; text-align: center; pointer-events: none;
+}
+.kge-rad[hidden] { display: none; }
+.kge-rad[data-typ="egen"] { background: #ef6f6c; }
+.kge-rad[data-typ="last"], .kge-rad[data-typ="hittade"] { background: #27ae60; }
+.kge-las {
+  position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); border: 0; font: inherit; cursor: pointer;
+  background: #27ae60; color: #fff; border-radius: 18px; padding: 12px 24px; font-weight: 800; font-size: 20px; box-shadow: 0 5px 0 #1e8e4e; white-space: nowrap;
+}
+.kge-las[hidden] { display: none; }
+.kge-las:disabled { opacity: 0.6; }
+.kge-blund {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  background: #1b2559; color: #fff; text-align: center; padding: 16px;
+}
+.kge-blund[hidden] { display: none; }
+.kge-blund p { margin: 0; font-size: clamp(20px, 3.4vw, 34px); font-weight: 800; }
+.kge-blund b { font-size: clamp(44px, 9vw, 96px); font-variant-numeric: tabular-nums; color: #ffd166; line-height: 1; }
+.kge-blund small { font-size: 15px; opacity: 0.85; }
+.kge-hittad {
+  position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); max-width: calc(100% - 32px);
+  padding: 16px 24px; border-radius: 20px; background: #ffd166; color: #3b3350; font-weight: 800; font-size: clamp(18px, 3vw, 28px); text-align: center;
+  box-shadow: 0 6px 0 #3b3350; pointer-events: none;
+}
+.kge-hittad[hidden] { display: none; }
+.kge-vanta { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); margin: 0; padding: 8px 16px; border-radius: 999px; background: rgba(11, 15, 46, 0.78); color: #fff; font-weight: 700; }
+.kge-vanta[hidden] { display: none; }
+
+/* --- frågepanelen ---------------------------------------------------------- */
+.kge-panel { display: flex; flex-direction: column; min-height: 0; border-radius: 16px; background: #fff; box-shadow: 0 6px 0 rgba(0, 0, 0, 0.12); overflow: hidden; }
+.kge-fall { display: none; border: 0; font: inherit; font-weight: 800; padding: 8px 14px; background: #eef3ff; color: #1b2559; text-align: left; cursor: pointer; }
+.kge-fall i { float: right; width: 10px; height: 10px; border-right: 3px solid #1b2559; border-bottom: 3px solid #1b2559; transform: rotate(45deg); margin-top: 4px; }
+.kge-panel-inre { flex: 1; display: flex; flex-direction: column; gap: 8px; padding: 10px; min-height: 0; overflow: auto; }
+.kge-sokare { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.kge-sokare[hidden] { display: none; }
+.kge-lampor { display: flex; gap: 4px; }
+.kge-lampa { opacity: 0.45; }
+.kge-lampa-pa { opacity: 1; }
+.kge-leta {
+  flex: 1; border: 0; font: inherit; cursor: pointer; background: #f7c948; color: #3b3350; border-radius: 14px; padding: 10px 16px;
+  font-weight: 800; font-size: 18px; box-shadow: 0 4px 0 #c99a1a; white-space: nowrap;
+}
+.kge-leta kbd { font: inherit; font-size: 11px; opacity: 0.7; }
+.kge-leta:disabled { background: #d9dde8; color: #6b7390; box-shadow: 0 4px 0 #b8bdcc; cursor: default; }
+.kge-leta.kge-skickar { opacity: 0.7; }
+.kge-mitten { margin: 0; font-size: 14px; color: #5a6585; min-height: 1.2em; }
+.kge[data-lage="leta-sokare"] .kge-leta:disabled ~ .kge-mitten, .kge-panel-inre:has(.kge-leta:disabled) .kge-mitten { color: #c0392b; font-weight: 700; }
+.kge-svar { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; container-type: inline-size; }
+/* fast-answer skalar efter viewporten (1366 px → 95 px-siffror); i den 360 px smala panelen ska frågan rymmas på en rad. */
+.kge-svar .fa-question { font-size: clamp(28px, 16cqi, 64px); }
+.kge-svar .fa-input { font-size: clamp(24px, 13cqi, 56px); }
+.kge-svar .fa-feedback { font-size: clamp(16px, 6cqi, 28px); }
+.kge-svar .fa-form { gap: 8px; }
+.kge-svar[data-fel] { animation: kge-skak 0.3s; }
+@keyframes kge-skak { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.kge-fel { margin: 0; font-size: 14px; font-weight: 700; color: #c0392b; }
+.kge-fel[hidden] { display: none; }
+.kge[data-lage="gom-gomd"] .kge-svar { display: none; }
+.kge[data-lage="gom-gomd"] .kge-panel-inre::after { content: "Frågorna kommer när sökarna börjar leta."; color: #5a6585; font-size: 14px; }
+
+/* --- kortet längst ned (smalt) --------------------------------------------- */
+.kge[data-panel="kort"] .kge-fall { display: block; }
+/* Kortet växer med frågan (skriv själv ≈ 190 px) i stället för att klämma den till en rullist. */
+.kge[data-panel="kort"] .kge-svar { flex: none; min-height: auto; }
+/* …men lågt nog att rymmas på 1366×768 (kortet ≤ 52 % av ~620 px) utan rullist. */
+.kge[data-panel="kort"] .kge-svar .fa-question { font-size: clamp(26px, 6.5vh, 48px); }
+.kge[data-panel="kort"] .kge-svar .fa-input { font-size: clamp(22px, 5.5vh, 40px); }
+.kge[data-panel="kort"] .kge-svar .fa-feedback { font-size: clamp(15px, 3vh, 22px); }
+.kge[data-panel="kort"] .kge-svar .fa-form { gap: 6px; }
+.kge[data-panel="kort"].kge-ihop .kge-panel-inre { display: none; }
+.kge[data-panel="kort"].kge-ihop .kge-fall i { transform: rotate(-135deg); margin-top: 8px; }
+.kge[data-panel="kort"] .kge-topp { padding: 4px 8px; }
+.kge[data-panel="kort"] .kge-timer { font-size: 18px; }
+.kge[data-panel="kort"] .kge-fastext, .kge[data-panel="kort"] .kge-poang { font-size: 13px; }
+.kge[data-panel="kort"] .kge-matare { top: 40px; font-size: 13px; padding: 4px 10px; }
+.kge[data-panel="kort"] .kge-rad { top: 76px; font-size: 13px; }
+.kge[data-panel="kort"] .kge-las { bottom: 12px; font-size: 17px; padding: 10px 18px; }
+
+/* --- lobbyn och slutet (kärnans ram) ---------------------------------------- */
+.kge-lobby-text { font-size: 18px; font-weight: 700; }
+.kge-lobby-steg { text-align: left; padding-left: 20px; }
+.kge-lobby-steg li { margin: 4px 0; }
+.kge-final-rad { font-size: 18px; font-weight: 700; }
+.kge-final-poang { font-size: 16px; }
+.kge-mynt { list-style: none; padding: 0; margin: 10px auto; max-width: 320px; }
+.kge-mynt li { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; border-bottom: 1px solid #e3e8f4; }
+.kge-mynt-tot { font-size: 18px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .kge-svar[data-fel] { animation: none; }
+}

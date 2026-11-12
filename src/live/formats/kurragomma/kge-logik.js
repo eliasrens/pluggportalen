@@ -1,0 +1,212 @@
+// ============================================================================
+// Kurragömma 🙈 – elevskärmens RENA LOGIK (#839, spec §1.2–§1.6, §6). Ingen
+// DOM, ingen Firebase – testas i test/live-kurragomma-format.test.js. Texterna
+// är exakt specens: "Göm dig! Ingen annan ser var du går.", "🙈 Du blundar –
+// räkna till 30!", "Du är gömd i buskaget", "Leo hittade dig! Nu letar du
+// också.", "Fel svar – det visslade där du gömmer dig!", "Det visslar vid
+// ladan", "Svara rätt för att ladda ficklampan". Ikonerna är SVG (inga
+// emojier från Emoji 13+; 🙈 🔒 🔦 är Emoji 1.0).
+//
+// API
+//   elevLage({ roll, fas })     → "gom-gomd" | "gom-sokare" | "leta-gomd" | "leta-sokare"
+//   scenLage(lage, harLast)     → scenens läge: elev-gom | elev-gomd | elev-sokare
+//   TEXT                        alla fasta texter
+//   gomdText(namn) · hittadText(namn) · andraVisslingText(plats) · blundText(gomtid)
+//   nedrakning(gomSlutMs, now)  → "0:24"
+//   autoLasDags(gomSlutMs, now) → sant från LAS_AUTO_FORE_MS före gömfasens slut (auto-kgLas, #842)
+//   sattSidomeny(body, phase)   → body.kge-match under fasen "live" (sidomenyn fälls ihop, #842)
+//   laddningarHtml(n, max)      → tre ficklampor som SVG (tända/släckta)
+//   skyddPrickSvg(niva)         → färgad prick (SVG) till mätaren
+//   startplats(uid, karta)      → gömmarens start i kanten, deterministisk ur uid
+//   posNyckel(sid) · sparaPos(storage, sid, p) · lasPos(storage, sid) · glomPos(storage, sid)
+//   letaTangent(e)              → sant för mellanslag/E (inte med Ctrl/Alt/Meta)
+//   panelLage(bredd)            → "sida" (> 1100 px) | "kort"
+//   letaFel(err)                → elevens text för ett nekat kgLeta
+//   mittenText({ lage, fas, laddningar }) → raden under knappen
+//   radFarBytas({ visadTyp, visadSedan, typ, nu }) → false när en "egen"-rad fortfarande visas
+//                                 och en vanlig vissling-rad vill ta över (N7)
+//   egenVisslingsReferens(forra, me) → id | null: ny kgPlayers.tystVissling (hand-händelsens id –
+//                                 bara visslingsgrenen sätter den; aldrig en tidsstämpel)
+//   skapaEgenVisslingar()       → tystnadsregelns egna visslingar: referensen möter
+//                                 hand-händelsen med samma id, i valfri ordning
+// ============================================================================
+
+import { ON } from "./delat/kg-karta.js";
+import { LADDNING_MAX, SKYDD_TEXT, VISSLING_RAD_MS, LAS_AUTO_FORE_MS } from "./delat/kg-config.js";
+
+export const TEXT = Object.freeze({
+  gom: "Göm dig! Ingen annan ser var du går.",
+  las: "🔒 Lås gömstället här",
+  last: "Låst – nu står du still",
+  blund: "🙈 Du blundar",
+  leta: "🔦 Leta",
+  ladda: "Svara rätt för att ladda ficklampan",
+  egenVissling: "Fel svar – det visslade där du gömmer dig!",
+  // EN neutral rad för både tystnadsregelns och lärarens vissling (#840 F2): texten får
+  // inte avslöja orsaken – "Du var tyst länge" efter ett rätt svar skvallrade om läraren.
+  tystVissling: "Det visslade där du gömmer dig!",
+  sokareLeta: "Leta efter de gömda – tryck på marken för att gå dit",
+  vantaFragor: "Frågorna kommer när sökarna börjar leta.",
+  hittadeIngen: "Ingen här – leta vidare!",
+});
+export const PANEL_SIDA_PX = 1100;
+export const SKYDD_FARG = ["#EF6F6C", "#F7C948", "#8FCB74", "#27AE60"];
+
+export function elevLage({ roll, fas }) {
+  const r = roll === "sokare" ? "sokare" : "gomd";
+  return `${fas === "leta" ? "leta" : "gom"}-${r}`;
+}
+
+/** Scenens läge ur elevens: gömmaren går fritt tills den låst, sedan stilla; sökaren går fritt. */
+export function scenLage(lage, harLast = false) {
+  if (lage === "gom-gomd") return harLast ? "elev-gomd" : "elev-gom";
+  if (lage === "leta-gomd") return "elev-gomd";
+  return "elev-sokare";
+}
+
+export const gomdText = (namn) => `Du är gömd ${namn || "ute på ängen"}`;
+export const hittadText = (namn) => `${namn || "Någon"} hittade dig! Nu letar du också.`;
+export const andraVisslingText = (plats) => `Det visslar ${plats || "ute på ängen"}`;
+export const blundText = (gomtid) => `${TEXT.blund} – räkna till ${Number(gomtid) || 30}!`;
+export const hittadeText = (namn) => (namn ? `Du hittade ${namn}!` : "Du hittade någon!");
+export const skyddText = (niva) => SKYDD_TEXT[Math.max(0, Math.min(3, niva | 0))];
+
+/** "0:24" – aldrig under 0. */
+export function nedrakning(gomSlutMs, now) {
+  const s = Math.max(0, Math.ceil(((gomSlutMs ?? now) - now) / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+
+/**
+ * Auto-låsningen (#842, slut-QA obs. 5): den som inte låst får sin plats skickad LAS_AUTO_FORE_MS
+ * FÖRE gömfasens slut – inte vid 0:00 – så kgLas är framme långt innan servern placerar olåsta
+ * (kgGomSlut + LAS_MARGINAL_MS).
+ */
+export function autoLasDags(gomSlutMs, now) {
+  return Number.isFinite(gomSlutMs) && now >= gomSlutMs - LAS_AUTO_FORE_MS;
+}
+
+/**
+ * Sidomenyn under matchen (#842, slut-QA avvikelse 3): på 1366×768 tog sidomenyn ~260 px och scenen blev
+ * ett kort. Under fasen "live" får body klassen SIDOMENY_KLASS (kurragomma-elev.css fäller ihop menyn,
+ * som Prov i helskärm); i alla andra faser och när vyn lämnas tas den bort. Bara Kurragömma sätter den.
+ */
+export const SIDOMENY_KLASS = "kge-match";
+export function sattSidomeny(body, phase) {
+  const pa = phase === "live";
+  body?.classList?.toggle(SIDOMENY_KLASS, pa);
+  return pa;
+}
+
+const FICKLAMPA = (pa) => `<svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+  <path d="M5 4h8l2 4v3l-2 2v7H7v-7L5 11V8z" fill="${pa ? "#F7C948" : "#cfd5e3"}" stroke="#3B3350" stroke-width="1.6" stroke-linejoin="round"/>
+  ${pa ? '<path d="M15 6l5-2M15 9h5M15 12l5 2" stroke="#F7C948" stroke-width="1.8" stroke-linecap="round"/>' : ""}</svg>`;
+
+/** Laddningarna som tre ficklampor (tända = laddade). */
+export function laddningarHtml(n, max = LADDNING_MAX) {
+  const k = Math.max(0, Math.min(max, n | 0));
+  return Array.from({ length: max }, (_, i) => `<span class="kge-lampa${i < k ? " kge-lampa-pa" : ""}">${FICKLAMPA(i < k)}</span>`).join("");
+}
+
+export function skyddPrickSvg(niva) {
+  const f = SKYDD_FARG[Math.max(0, Math.min(3, niva | 0))];
+  return `<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="${f}" stroke="#3B3350" stroke-width="1.5"/></svg>`;
+}
+
+/** Gömmarens start (§1.2): en av kartans platser i kanten, samma för samma uid. */
+export function startplats(uid, karta = ON) {
+  let h = 0;
+  for (const c of String(uid || "")) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return { ...karta.gomStart[h % karta.gomStart.length] };
+}
+
+export const posNyckel = (sid) => `pp:kg:pos:${sid}`;
+export function sparaPos(storage, sid, p) {
+  try { storage?.setItem(posNyckel(sid), JSON.stringify({ x: p.x, z: p.z, yaw: p.yaw })); } catch { /* privat läge */ }
+}
+export function lasPos(storage, sid) {
+  try {
+    const p = JSON.parse(storage?.getItem(posNyckel(sid)) || "null");
+    return p && Number.isFinite(p.x) && Number.isFinite(p.z) ? { x: p.x, z: p.z, yaw: Number(p.yaw) || 0 } : null;
+  } catch { return null; }
+}
+export function glomPos(storage, sid) {
+  try { storage?.removeItem(posNyckel(sid)); } catch { /* inget */ }
+}
+
+/** Mellanslag eller E letar (§1.4) – även när frågefältet har fokus (siffror och 1–4 rör dem inte). */
+export function letaTangent(e) {
+  if (!e || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return false;
+  return e.key === " " || e.key === "e" || e.key === "E";
+}
+
+export const panelLage = (bredd) => (bredd > PANEL_SIDA_PX ? "sida" : "kort");
+
+const LETA_FEL = {
+  "ingen-laddning": TEXT.ladda,
+  sparr: "Vänta lite mellan sökningarna.",
+  orimlig: "Du kan inte ha hunnit dit – gå lugnare.",
+  utanfor: "Platsen ligger utanför ön.",
+  "inte-sokare": "Bara sökare letar.",
+};
+export const letaFel = (err) => LETA_FEL[err?.details?.skal] || err?.message || "Sökningen kom inte fram – försök igen.";
+
+/** Raden under knappen: sökare utan laddning uppmanas att svara rätt. */
+export function mittenText({ lage, laddningar = 0 }) {
+  if (lage === "leta-sokare") return laddningar > 0 ? TEXT.sokareLeta : TEXT.ladda;
+  if (lage === "gom-sokare") return "Svara rätt – varje rätt svar laddar ficklampan.";
+  if (lage === "gom-gomd") return TEXT.gom;
+  return "";
+}
+
+/**
+ * Raden (§1.2): den egna visslingen ("egen", fel svar/tystnad) står kvar hela VISSLING_RAD_MS
+ * även om andras "Det visslar vid …" (typ "") kommer i samma tick. Lås/hittad-rader byter alltid.
+ */
+export function radFarBytas({ visadTyp, visadSedan, typ = "", nu = Date.now(), ms = VISSLING_RAD_MS }) {
+  if (typ !== "" || visadTyp !== "egen") return true;
+  return nu - (Number(visadSedan) || 0) >= ms;
+}
+
+/**
+ * Referensen ur det egna kgPlayers: tystVissling = hand-händelsens id, satt bara när servern
+ * visslade åt mig (functions/kurragomma-tick.js). Aldrig en tidsstämpel: tystRef flyttas även
+ * utan vissling, och två gömmare kan visslas i samma tick med samma t (N1b).
+ */
+export function egenVisslingsReferens(forra, me) {
+  if (!me || me.roll !== "gomd") return null;
+  const id = typeof me.tystVissling === "string" ? me.tystVissling : "";
+  return id && id !== forra ? id : null;
+}
+
+/**
+ * Tystnadsregelns egna vissling (§1.2): hand-händelsen bär aldrig uid, men servern lägger
+ * dess id i mitt kgPlayers.tystVissling. En referens ensam visar inget – bara en hand-vissling
+ * med exakt samma id räknas som min, och den visas en gång oavsett om referensen eller
+ * händelsen kom först.
+ *   referens(id) → h | null  (händelsen att visa om den redan setts)
+ *   vissling(h)  → h | null  (händelsen att visa om referensen redan finns)
+ *   arEgen(id)   → bool
+ */
+export function skapaEgenVisslingar({ maxAlderMs = 60_000 } = {}) {
+  const referenser = new Set();
+  const sedda = new Map(); // id → { h, sett }
+  const visade = new Set();
+  const rensa = (nu) => { for (const [id, v] of sedda) if (nu - v.sett > maxAlderMs) sedda.delete(id); };
+  const visa = (id) => {
+    if (visade.has(id) || !referenser.has(id) || !sedda.has(id)) return null;
+    visade.add(id);
+    return sedda.get(id).h;
+  };
+  const nyckel = (v) => (typeof v === "string" && v ? v : null);
+  return {
+    referens(id) { const k = nyckel(id); if (!k) return null; referenser.add(k); return visa(k); },
+    vissling(h, nu = Date.now()) {
+      const k = nyckel(h?.id); if (!k) return null;
+      rensa(nu);
+      sedda.set(k, { h, sett: nu });
+      return visa(k);
+    },
+    arEgen: (id) => referenser.has(nyckel(id)),
+  };
+}
