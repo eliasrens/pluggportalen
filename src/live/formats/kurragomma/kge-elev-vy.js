@@ -11,7 +11,8 @@
 //   gom-gomd    "Göm dig! Ingen annan ser var du går.", nedräkning, mätaren,
 //               🔒 Lås → kgLas (ångras inte). Platsen sparas i sessionStorage
 //               (aldrig på servern) så en omladdning fortsätter där eleven var.
-//               Tar tiden slut skickas platsen automatiskt.
+//               Platsen skickas automatiskt LAS_AUTO_FORE_MS före 0:00 (#842).
+// Under fasen "live" får body klassen kge-match: sidomenyn fälls ihop (#842, 1366×768).
 //   gom-sokare  täckt skärm "🙈 Du blundar – räkna till 30!" + frågor (laddar lampan)
 //   leta-gomd   frågor, "Du är gömd i buskaget", poäng, hjärtslaget, egen
 //               vissling (text + hopp: fel svar direkt, tystnadsregeln när hand-
@@ -32,7 +33,8 @@ import { LAS_MARGINAL_MS, HITTAD_RUTA_MS, VISSLING_RAD_MS } from "./delat/kg-con
 import { platsNamn } from "./delat/kg-geometri.js";
 import {
   TEXT, elevLage, scenLage, gomdText, hittadText, hittadeText, andraVisslingText, blundText, nedrakning, laddningarHtml,
-  skyddPrickSvg, skyddText, startplats, sparaPos, lasPos, glomPos, letaTangent, panelLage, mittenText, egenVisslingsReferens, radFarBytas } from "./kge-logik.js";
+  skyddPrickSvg, skyddText, startplats, sparaPos, lasPos, glomPos, letaTangent, panelLage, mittenText, egenVisslingsReferens, radFarBytas,
+  autoLasDags, sattSidomeny } from "./kge-logik.js";
 import { skapaSpel } from "./kge-spel.js";
 
 export const KGE_CSS = ["src/live/formats/kurragomma/kurragomma-elev.css", "src/live/formats/kurragomma/scen/kurragomma-scen.css"];
@@ -309,13 +311,14 @@ export function createKgStage({ view, host, uid, session, mode, answerKind }, { 
   }
 
   // Gömfasens slut på klientens klocka – servern byter fas lat i nästa anrop ändå.
+  // Olåst gömmare: platsen skickas LAS_AUTO_FORE_MS före 0:00 (autoLasDags, #842).
   const ticker = setInterval(() => {
     if (destroyed || !ready) return;
     ritaTopp();
     const gomSlut = toMs(info?.tider?.gomSlut);
     if (fas === "gom" && gomSlut) {
       const t = now();
-      if (t >= gomSlut && roll === "gomd" && !harLast) lasNu();
+      if (roll === "gomd" && !harLast && autoLasDags(gomSlut, t)) lasNu();
       if (t >= gomSlut + LAS_MARGINAL_MS + 500) sattFas("leta");
     }
   }, 250);
@@ -361,6 +364,7 @@ export function createKgStage({ view, host, uid, session, mode, answerKind }, { 
   function sync() {
     if (destroyed || !st) return;
     const ph = st.phase;
+    sattSidomeny(host.ownerDocument?.body, ph); // sidomenyn ihop bara under matchen (#842)
     if (ph === "ended" || ph === "finished" || ph === "cancelled") return drawEnd();
     if (ph !== "live") return;
     if (!player) return;
@@ -380,6 +384,7 @@ export function createKgStage({ view, host, uid, session, mode, answerKind }, { 
       [radT, felT, hittadT, sparT, avslutaT].forEach(clearTimeout);
       (coinTimers || []).forEach(clearTimeout);
       ro?.disconnect();
+      sattSidomeny(host.ownerDocument?.body, null);
       host.ownerDocument.removeEventListener("keydown", onKey, true);
       unMe?.();
       spel.destroy();

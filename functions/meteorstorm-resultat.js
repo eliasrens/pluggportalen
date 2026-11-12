@@ -55,7 +55,8 @@ export function questionKey(a) {
   return Number.isInteger(a.q) ? `q:${a.q}` : null;
 }
 
-function describe(key, a, questions) {
+/** Raden för en fråga (text, order, statKeys) ur nyckeln – delad med Kurragömmas aggregat (kurragomma-fragor.js, #842). */
+export function describe(key, a, questions) {
   if (key.startsWith("m:")) {
     const [x, y] = key.slice(2).split("x").map(Number);
     return { order: x * 100 + y, text: `${x} × ${y}`, statKeys: [...new Set([`t${x}`, `t${y}`])] };

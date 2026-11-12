@@ -13,6 +13,8 @@
 //   TEXT                        alla fasta texter
 //   gomdText(namn) · hittadText(namn) · andraVisslingText(plats) · blundText(gomtid)
 //   nedrakning(gomSlutMs, now)  → "0:24"
+//   autoLasDags(gomSlutMs, now) → sant från LAS_AUTO_FORE_MS före gömfasens slut (auto-kgLas, #842)
+//   sattSidomeny(body, phase)   → body.kge-match under fasen "live" (sidomenyn fälls ihop, #842)
 //   laddningarHtml(n, max)      → tre ficklampor som SVG (tända/släckta)
 //   skyddPrickSvg(niva)         → färgad prick (SVG) till mätaren
 //   startplats(uid, karta)      → gömmarens start i kanten, deterministisk ur uid
@@ -30,7 +32,7 @@
 // ============================================================================
 
 import { ON } from "./delat/kg-karta.js";
-import { LADDNING_MAX, SKYDD_TEXT, VISSLING_RAD_MS } from "./delat/kg-config.js";
+import { LADDNING_MAX, SKYDD_TEXT, VISSLING_RAD_MS, LAS_AUTO_FORE_MS } from "./delat/kg-config.js";
 
 export const TEXT = Object.freeze({
   gom: "Göm dig! Ingen annan ser var du går.",
@@ -73,6 +75,27 @@ export const skyddText = (niva) => SKYDD_TEXT[Math.max(0, Math.min(3, niva | 0))
 export function nedrakning(gomSlutMs, now) {
   const s = Math.max(0, Math.ceil(((gomSlutMs ?? now) - now) / 1000));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+
+/**
+ * Auto-låsningen (#842, slut-QA obs. 5): den som inte låst får sin plats skickad LAS_AUTO_FORE_MS
+ * FÖRE gömfasens slut – inte vid 0:00 – så kgLas är framme långt innan servern placerar olåsta
+ * (kgGomSlut + LAS_MARGINAL_MS).
+ */
+export function autoLasDags(gomSlutMs, now) {
+  return Number.isFinite(gomSlutMs) && now >= gomSlutMs - LAS_AUTO_FORE_MS;
+}
+
+/**
+ * Sidomenyn under matchen (#842, slut-QA avvikelse 3): på 1366×768 tog sidomenyn ~260 px och scenen blev
+ * ett kort. Under fasen "live" får body klassen SIDOMENY_KLASS (kurragomma-elev.css fäller ihop menyn,
+ * som Prov i helskärm); i alla andra faser och när vyn lämnas tas den bort. Bara Kurragömma sätter den.
+ */
+export const SIDOMENY_KLASS = "kge-match";
+export function sattSidomeny(body, phase) {
+  const pa = phase === "live";
+  body?.classList?.toggle(SIDOMENY_KLASS, pa);
+  return pa;
 }
 
 const FICKLAMPA = (pa) => `<svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">

@@ -6,6 +6,14 @@
    Inga z-index: överlägget (toppraden m.m.) ligger efter scenen i DOM:en.
    ========================================================================== */
 .kge-elev-vy { min-height: calc(100vh - 90px); min-height: calc(100dvh - 90px); }
+/* Under matchen (#842, slut-QA avvikelse 3): kge-elev-vy.js sätter body.kge-match i fasen "live" (bara Kurragömma).
+   Sidomenyn fälls ihop och innehållsytan tar hela bredden – som Prov i helskärm – så 1366×768 får panelen till
+   höger (> 1100 px) i stället för ett kort under en 265 px hög scen. Under 820 px (off-canvas-meny + hamburger) rörs
+   inget. Tillbaka när matchen är slut eller vyn lämnas. */
+@media (min-width: 821px) {
+  body.kge-match.med-sidomeny .sidebar { display: none; }
+  body.kge-match.med-sidomeny .container { max-width: none; }
+}
 .kge-elev-vy .live-elev-stage { align-items: stretch; padding: 6px; }
 .kge-elev-vy .live-elev-play { width: 100%; display: flex; flex-direction: column; min-height: 0; flex: 1; }
 .kge-elev-vy .live-elev-lobby, .kge-elev-vy .live-elev-end, .kge-elev-vy .live-elev-count { align-self: center; }

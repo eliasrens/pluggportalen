@@ -10,9 +10,14 @@
 //   tryck på marken       kort tryck utan drag → onTryck(sx, sy) i CSS-pixlar
 //                         relativt ytan; ritaren räknar om till en punkt på ön
 //
-// Fokusregeln: när ett formulärfält har fokus (input/textarea/select/
-// contenteditable) styr tangenterna inte figuren – "skriv själv" med siffror
-// och pilar måste fungera i frågepanelen.
+// Fokusregeln (#842, slut-QA obs. 1): efter varje svar får svarsfältet fokus igen,
+// så tangenterna måste fungera även då.
+//   • sifferfält (inputmode numeric/decimal/tel eller type number – "skriv
+//     själv" i Multiplikation): W/A/S/D styr figuren och bokstäverna skrivs
+//     INTE in i fältet; pilarna lämnas åt fältet (markören)
+//   • textfält (fritext i ett quiz, textarea, select, contenteditable): inga
+//     tangenter styr – bokstäverna är svar
+//   • inget fält: alla tangenter styr
 //
 // API
 //   skapaStyrning({ yta, onTryck, onDra }) → {
@@ -20,16 +25,37 @@
 //     aktiv(bool)                       (av = ingen styrning, joystick dold)
 //     destroy()
 //   }
+//   faltTyp(el) → "siffer" | "text" | null · faltMedFokus(doc) → faltTyp(activeElement)
+//   styrTangent(key, falt) → "fram" | "bak" | "vanster" | "hoger" | null
 // ============================================================================
 
 const DRAG_PX = 8; // kortare rörelse än så räknas som ett tryck
 const DRA_KANSLIGHET = 0.008; // rad per px
+const KEYS = {
+  w: "fram", arrowup: "fram", s: "bak", arrowdown: "bak",
+  a: "vanster", arrowleft: "vanster", d: "hoger", arrowright: "hoger",
+};
+const SIFFER_INPUTMODE = ["numeric", "decimal", "tel"];
 
-export function formularHarFokus(doc = document) {
-  const el = doc.activeElement;
-  if (!el) return false;
+/** Vilket slags fält är det? "siffer" (bara siffror väntas), "text" (bokstäver är giltiga) eller null (inget fält). */
+export function faltTyp(el) {
+  if (!el) return null;
   const tag = el.tagName;
-  return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable === true;
+  if (tag === "INPUT") {
+    const im = String(el.inputMode || el.getAttribute?.("inputmode") || "").toLowerCase();
+    const typ = String(el.type || "").toLowerCase();
+    return typ === "number" || SIFFER_INPUTMODE.includes(im) ? "siffer" : "text";
+  }
+  return tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable === true ? "text" : null;
+}
+
+export const faltMedFokus = (doc = document) => faltTyp(doc.activeElement);
+
+/** Styr tangenten figuren när fältet `falt` (faltTyp) har fokus? Pilarna aldrig i ett fält; WASD bara i ett sifferfält. */
+export function styrTangent(key, falt = null) {
+  const k = KEYS[String(key || "").toLowerCase()];
+  if (!k || !falt) return k || null;
+  return falt === "siffer" && !String(key).startsWith("Arrow") ? k : null;
 }
 
 /** Joysticken som DOM: en ring med en knopp. */
@@ -68,15 +94,13 @@ export function skapaStyrning({ yta, onTryck = null, onDra = null } = {}) {
   const visaJoystick = () => { joy.el.classList.toggle("kg-joystick-synlig", aktiv && pek); };
   visaJoystick();
 
-  const KEYS = {
-    w: "fram", arrowup: "fram", s: "bak", arrowdown: "bak",
-    a: "vanster", arrowleft: "vanster", d: "hoger", arrowright: "hoger",
-  };
   function keydown(e) {
-    const k = KEYS[e.key.toLowerCase()];
-    if (!k || !aktiv || formularHarFokus()) return;
+    if (!aktiv) return;
+    const falt = faltMedFokus(yta.ownerDocument || document);
+    const k = styrTangent(e.key, falt);
+    if (!k) return;
     tangenter.add(k);
-    if (e.key.startsWith("Arrow")) e.preventDefault();
+    if (falt || e.key.startsWith("Arrow")) e.preventDefault(); // W/A/S/D i ett sifferfält skrivs inte in
   }
   function keyup(e) {
     const k = KEYS[e.key.toLowerCase()];
