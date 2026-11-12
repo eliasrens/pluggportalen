@@ -29,7 +29,9 @@ import { KsError } from "./kistspel-rattning.js";
 import { poangGomdVidSlut, placering, rewardRader, deltog } from "./kurragomma/kg-regler.js";
 import { fragestatistik } from "./meteorstorm-resultat.js";
 import { sessionRewards, placementPrize, perCorrectCoins } from "./meteorstorm-mynt.js";
-import { refs, parseSid, sessionFor, sattSession, tider, playerFor, quizFor, larareFor, gomdaKvar, QUIZ, FORMAT } from "./kurragomma-sess.js";
+import {
+  refs, parseSid, sessionFor, sattSession, tider, playerFor, quizFor, larareFor, gomdaKvar, glomGomstallen, QUIZ, FORMAT,
+} from "./kurragomma-sess.js";
 import * as rt from "./kurragomma-rtdb.js";
 
 /**
@@ -117,6 +119,7 @@ export async function avslutaIntern(deps, sid, s, { nu = deps.now() } = {}) {
     return { result, redan: false };
   });
   sattSession(deps, sid, { ...s, result: ut.result });
+  glomGomstallen(deps, sid);
   if (!ut.redan) await rt.taBort(deps.rtdb, sid);
   return ut;
 }

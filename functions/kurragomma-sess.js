@@ -4,12 +4,16 @@
 // -core.js, -tick.js och -resultat.js. Kontraktet: docs/KURRAGOMMA.md §9.
 //
 // MINNET (per instans, deps.minne – testerna ger var sitt): sessionen (högst
-// KG_SESSION_TTL_MS gammal), quizet (oföränderligt) och spelarnas namn/klass.
-// Sessionen ändras under matchen (kgFas, kgGomSlut, kgLetStart, kgPlacerade,
-// status) – den som skriver uppdaterar minnet (sattSession), och ett fasbyte
-// prövas alltid i en transaktion som läser färskt.
+// KG_SESSION_TTL_MS gammal), quizet (oföränderligt), spelarnas namn/klass och
+// gömställena (#841: oföränderliga när kgPlacerade är satt – kgLeta sållar
+// kandidater ur dem i stället för att läsa alla kgSecret). Sessionen ändras
+// under matchen (kgFas, kgGomSlut, kgLetStart, kgPlacerade, status) – den som
+// skriver uppdaterar minnet (sattSession), och ett fasbyte prövas alltid i en
+// transaktion som läser färskt.
 //
 //   nyttMinne() · minneOf(deps) · satt(map, key, value, max)
+//   gomstallenFor(deps, sid, s)   → Map uid → { x, z } (bara när s.kgPlacerade) | null
+//   glomGomstallen(deps, sid)     vid slutet
 //   refs(db, sid)                 → dokument och samlingar (kg* + kärnans players/answers)
 //   parseSid(raw) · parseAttempt(raw) · parsePunkt(raw) · bad(msg) · isInt · fel(code, msg, details?)
 //   sessionFor(deps, sid, { farsk? }) → sessionen (formatet kontrollerat)
@@ -51,7 +55,7 @@ export function fel(code, message, details) {
 }
 
 export function nyttMinne() {
-  return { sess: new Map(), quiz: new Map(), spelare: new Map() };
+  return { sess: new Map(), quiz: new Map(), spelare: new Map(), gomstallen: new Map() };
 }
 const MINNE = nyttMinne();
 export const minneOf = (deps) => deps.minne || MINNE;
@@ -185,6 +189,36 @@ export function larareFor(roll, s) {
   if (!roll) return false;
   if (roll.role === "admin") return true;
   return (s.participatingClassIds || []).some((c) => (roll.classIds || []).includes(c));
+}
+
+/**
+ * Gömställena i minnet (#841, kvoten §5.5). När sessionen har kgPlacerade har
+ * alla gömmare harLast (kgLas ger "redan"), så inga nya gömställen kan komma
+ * till och ett låst gömställe flyttas aldrig: mängden uid → { x, z } är
+ * oföränderlig för resten av matchen. Den läses EN gång per instans (alla
+ * kgSecret med gomd == true) och kgLeta sållar kandidater ur den med
+ * maxSokradie – utfallet avgörs ändå alltid i transaktionen ur färska
+ * kgPlayers/kgSecret (rollen, visslingsfönstret), så en gömmare som blivit
+ * sökare på en annan instans hittas inte igen. Före kgPlacerade → null
+ * (kgLeta läser alla gömda som förr). Högst MINNE_SESSIONER matcher.
+ */
+export async function gomstallenFor(deps, sid, s) {
+  if (!s.kgPlacerade) return null;
+  const m = minneOf(deps).gomstallen;
+  let g = m.get(sid);
+  if (!g) {
+    const snap = await refs(deps.db, sid).secrets.where("gomd", "==", true).get();
+    g = new Map(snap.docs.map((d) => {
+      const v = d.data();
+      return [d.id, { x: Number(v.x) || 0, z: Number(v.z) || 0 }];
+    }));
+    satt(m, sid, g, MINNE_SESSIONER);
+  }
+  return g;
+}
+
+export function glomGomstallen(deps, sid) {
+  minneOf(deps).gomstallen.delete(sid);
 }
 
 /** Antal gömda kvar – en räknefråga (1 läsning). */

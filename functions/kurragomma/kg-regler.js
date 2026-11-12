@@ -33,6 +33,9 @@ export function sokradie(skyddNiva, { senastVisslingAt = null, nu = 0 } = {}) {
   return harVisslatNyligen(senastVisslingAt, nu) ? bas * VISSLING_RADIE_FAKTOR : bas;
 }
 
+/** Den största sökradien som alls kan gälla (öppet läge, nyss visslat) – servern sållar kandidater med den (#841). */
+export const maxSokradie = () => Math.max(...SOKRADIE) * VISSLING_RADIE_FAKTOR;
+
 /**
  * Vilka gömmare hittas av en sökning i (x, z) vid tiden nu? Deterministiskt:
  * alla inom sin sökradie (≤). gomda: [{ uid, x, z, skydd?, senastVisslingAt? }]

@@ -13,7 +13,7 @@
 //   skapaRorelsekanal({ sid, uid, lage, app, url?, sdk?, buss?, nu? }) → kanal
 //     kanal.start()                 ansluter (rtdb: lyssnar på .info/serverTimeOffset, så t
 //                                   och åldersgränsen räknas på SERVERNS klocka)
-//     kanal.skickaPos({ x, z, yaw }) → bool  sökarens egen pos: högst 5/s, bara vid flytt
+//     kanal.skickaPos({ x, z, yaw }) → bool  sökarens egen pos: högst 3/s, bara vid flytt
 //                                   > 0,15 m eller vridning > 0,05 rad – men minst var
 //                                   POS_PULS_MS (pulsen för "det finns alltid en sökare").
 //                                   Första skicket armerar onDisconnect().remove() på egen
@@ -57,7 +57,9 @@ export function skapaPosFilter({ nu = Date.now } = {}) {
   };
 }
 
-const posDoc = (p, t) => ({ x: Number(p.x) || 0, z: Number(p.z) || 0, yaw: Number(p.yaw) || 0, t });
+/** Två decimaler (1 cm, ~0,01 rad) – kortare JSON till alla lyssnare (#841 kvoten); interpoleringen märker inget. */
+const avr = (v) => Math.round((Number(v) || 0) * 100) / 100;
+const posDoc = (p, t) => ({ x: avr(p.x), z: avr(p.z), yaw: avr(p.yaw), t });
 
 function lyssnare() {
   const set = new Set();

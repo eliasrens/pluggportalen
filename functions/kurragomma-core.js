@@ -30,13 +30,13 @@
 
 import { KsError, gradeMult, gradeQuiz, pickNextQ, yearOut } from "./kistspel-rattning.js";
 import {
-  rollVidAnslutning, laddningarNySokare, svarsEffekt, kontrolleraSokning, sok, poangForHittad, missFlodeTillats,
+  rollVidAnslutning, laddningarNySokare, svarsEffekt, kontrolleraSokning, sok, maxSokradie, poangForHittad, missFlodeTillats,
 } from "./kurragomma/kg-regler.js";
 import { narmasteGiltiga, skydd, platsNamn } from "./kurragomma/kg-geometri.js";
 import { LAS_MARGINAL_MS, LETA_SPARR_MS } from "./kurragomma/kg-config.js";
 import {
   refs, parseSid, parseAttempt, parsePunkt, sessionFor, tider, assertLive, playerFor, quizFor, instFor, kartaFor,
-  namnFor, larareFor, fel, FORMAT, MULT, QUIZ,
+  namnFor, larareFor, gomstallenFor, fel, FORMAT, MULT, QUIZ,
 } from "./kurragomma-sess.js";
 import { startaIntern, redo, spelareDoc, gorTillSokare } from "./kurragomma-fas.js";
 import * as rt from "./kurragomma-rtdb.js";
@@ -204,7 +204,12 @@ const SOK_FEL = {
   orimlig: ["failed-precondition", "Du kan inte ha hunnit dit."],
 };
 
-/** kgLeta – sökningen i EN transaktion (spec §1.6). Två sökare på samma gömmare: bara en får poängen. */
+/**
+ * kgLeta – sökningen i EN transaktion (spec §1.6). Två sökare på samma gömmare: bara en får poängen.
+ * Kvoten (#841): gömställena ligger i instansens minne (gomstallenFor) när kgPlacerade är satt –
+ * bara gömmare inom maxSokradie läses (kgSecret färskt, sedan kgPlayers för träffarna) i stället
+ * för alla gömdas kgSecret; utfallet avgörs alltid ur de färska dokumenten i transaktionen.
+ */
 export async function leta(deps, uid, raw) {
   const { db, FieldValue } = deps;
   const sid = parseSid(raw);
@@ -217,6 +222,7 @@ export async function leta(deps, uid, raw) {
   const r = refs(db, sid);
   const karta = kartaFor(s);
   const { letStart } = tider(s);
+  const gomstallen = await gomstallenFor(deps, sid, s);
   const ut = await db.runTransaction(async (tx) => {
     const [kpSnap, secSnap] = await tx.getAll(r.kgPlayer(uid), r.secret(uid));
     const kp = kpSnap.data();
@@ -227,8 +233,16 @@ export async function leta(deps, uid, raw) {
       const [code, msg] = SOK_FEL[k.skal];
       throw fel(code, msg, { skal: k.skal, ...(k.skal === "sparr" ? { vantaMs: LETA_SPARR_MS - (nu - sec.senasteSok.at) } : {}) });
     }
-    const gomdaSnap = await tx.get(r.secrets.where("gomd", "==", true));
-    const gomda = gomdaSnap.docs.filter((d) => d.id !== uid).map((d) => ({ uid: d.id, ...d.data() }));
+    let gomda;
+    if (gomstallen) {
+      const maxR = maxSokradie();
+      const kandidater = [...gomstallen].filter(([u, g]) => u !== uid && Math.hypot(g.x - x, g.z - z) <= maxR).map(([u]) => u);
+      const snaps = kandidater.length ? await tx.getAll(...kandidater.map((u) => r.secret(u))) : [];
+      gomda = snaps.filter((d) => d.exists && d.data().gomd === true).map((d) => ({ uid: d.id, ...d.data() }));
+    } else {
+      const gomdaSnap = await tx.get(r.secrets.where("gomd", "==", true));
+      gomda = gomdaSnap.docs.filter((d) => d.id !== uid).map((d) => ({ uid: d.id, ...d.data() }));
+    }
     const traff = new Set(sok({ x, z, nu }, gomda, karta));
     const hittadeSnaps = traff.size ? await tx.getAll(...[...traff].map((h) => r.kgPlayer(h))) : [];
     const hittade = [];
@@ -249,6 +263,7 @@ export async function leta(deps, uid, raw) {
   });
   const namn = namnFor(s, p.name);
   for (const h of ut.hittade) {
+    gomstallen?.delete(h.uid); // en hittad blir aldrig gömd igen – färre kandidater på den här instansen
     await rt.nySokare(deps.rtdb, sid, { uid: h.uid, x: h.x, z: h.z, t: nu, varGomd: true });
     await rt.handelse(deps.rtdb, sid, { typ: "hittad", x: h.x, z: h.z, plats: h.plats, t: nu, namn, hittad: h.namn });
   }
