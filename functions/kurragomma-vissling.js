@@ -19,7 +19,8 @@
 //   • VISSLING_SPARR_MS gäller INTE; eget spamskydd LARARE_VISSLA_SPARR_MS per
 //     elev (kgSecret.larareVisslaAt – ingen klient läser kgSecret).
 //   • markeringen "utlöst av läraren" finns BARA i kgEvents (larare: true – bara
-//     lärare läser samlingen) och som en summa i result.visslingarLarare.
+//     lärare läser samlingen). Aldrig i result (sessionen läses av eleverna, #840 F1):
+//     lärarens historik räknar kgEvents själv.
 //     Aldrig i hand, aldrig i kgPlayers.
 //
 //   visslingsHandelse(deps, karta, sec, nu)      → { typ, x, z, plats, t }

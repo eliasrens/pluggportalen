@@ -19,7 +19,7 @@
 //
 // result = { format: "kurragomma", winner: null, draw: false, startMs, letStartMs, slutMs,
 //   players (deltagare: svarat, låst eller hittat), totalCorrect, totalAnswered, klaradeSig, hittade, visslingar,
-//   visslingarLarare (varav lärarens – bara lärarens historik visar den),
+//   (INTE "varav lärarens" – sessionen läses av eleverna; lärarens historik räknar kgEvents.larare, #840 F1),
 //   flestHittade: { uid, name, antal } | null,
 //   ranking [{ uid, name, classId, poang, ratt, besvarade, hittade, roll, klaradeSig, rank }],
 //   gomstallen [{ uid, x, z, skydd, namn, hittad }], perQuestion [...], rewards? }
@@ -74,7 +74,8 @@ export function byggResultat({ s, spelare, secrets = {}, events = [], answers = 
     klaradeSig: rader.filter((r) => r.klaradeSig).length,
     hittade: rader.filter((r) => !r.klaradeSig && Number.isFinite(secrets[r.uid]?.x)).length,
     visslingar: events.filter((e) => e.typ === "vissling").length,
-    visslingarLarare: events.filter((e) => e.typ === "vissling" && e.larare === true).length, // bara en summa – vilka står i kgEvents (lärare)
+    // "varav lärarens" skrivs ALDRIG hit: result ligger på sessionen som eleverna läser (#840 F1).
+    // Historiken räknar kgEvents med larare: true (bara lärare läser samlingen).
     flestHittade: flest ? { uid: flest.uid, name: flest.name, antal: flest.hittade } : null,
     ranking, gomstallen,
     perQuestion: fragestatistik(answers, s?.gameMode === QUIZ ? questions : null),

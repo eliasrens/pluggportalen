@@ -40,7 +40,9 @@ export const TEXT = Object.freeze({
   leta: "🔦 Leta",
   ladda: "Svara rätt för att ladda ficklampan",
   egenVissling: "Fel svar – det visslade där du gömmer dig!",
-  tystVissling: "Du var tyst länge – det visslade där du gömmer dig!",
+  // EN neutral rad för både tystnadsregelns och lärarens vissling (#840 F2): texten får
+  // inte avslöja orsaken – "Du var tyst länge" efter ett rätt svar skvallrade om läraren.
+  tystVissling: "Det visslade där du gömmer dig!",
   sokareLeta: "Leta efter de gömda – tryck på marken för att gå dit",
   vantaFragor: "Frågorna kommer när sökarna börjar leta.",
   hittadeIngen: "Ingen här – leta vidare!",

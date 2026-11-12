@@ -1,7 +1,11 @@
 // ============================================================================
 // Kurragömma 🙈 – HISTORIKEN och Statistik → Live (#840, spec §11.3). Laddas
 // LATT av teacher-live-history.js via historyRenderer(). Allt ur serverns
-// result (kgAvsluta, docs/KURRAGOMMA.md §10.3) – inga extra läsningar.
+// result (kgAvsluta, docs/KURRAGOMMA.md §10.3) – utom "varav utlösta av
+// läraren": result ligger på sessionen som eleverna läser, så den summan
+// skrivs aldrig dit (#840 F1). Historiken räknar i stället kgEvents med
+// larare: true (EN räknefråga = 1 läsning per öppnad match; bara lärare får
+// läsa kgEvents – elever nekas av reglerna).
 //
 // En match, som Guldrushens: pallplats (delad placering), topplista med
 // pluggmynt, andel rätt per uppgift/fråga och per tabell/kategori (statKeys)
@@ -11,11 +15,13 @@
 // Visslingar + sammanfattning per tabell/kategori och klassens svåraste frågor.
 //
 // API (historyRenderer-kontraktet, teacher-live-history.js)
-//   winnerText(s, result) · detailHtml(s, result) · ownPlayerTable
-//   playerCounts(s, result) · classStats · classSummaryHtml(entries, classId)
+//   winnerText(s, result) · detailHtml(s, result, deps?) → Promise<html>
+//     deps.visslingarLarare: färdig summa (testerna); annars kurragomma-data
+//     antalLarareVisslingar(s.id) – misslyckas läsningen visas "–"
+//   ownPlayerTable · playerCounts(s, result) · classStats · classSummaryHtml(entries, classId)
 //   settle(s)  → kgAvsluta + pluggmynten om lärarfliken stängdes vid slutet
-//   + utfallText(result, uid), summorHtml, pallHtml, topplistaHtml, fragorHtml
-//     (exporterade för testerna)
+//   + utfallText(result, uid), summorHtml(result, visslingarLarare), pallHtml,
+//     topplistaHtml, fragorHtml (exporterade för testerna)
 // ============================================================================
 
 import { esc } from "../../../teacher-shared.js";
@@ -58,15 +64,16 @@ export function utfallText(result, uid) {
   return "🔦 Sökare";
 }
 
-/** Rutorna: klarade sig, hittade, visslingar (varav läraren), den som hittade flest. */
-export function summorHtml(result) {
+/** Rutorna: klarade sig, hittade, visslingar (varav läraren – ur kgEvents, null = kunde inte läsas), den som hittade flest. */
+export function summorHtml(result, visslingarLarare = null) {
   const n = (result?.ranking || []).length;
-  const larare = int(result?.visslingarLarare);
+  const larare = visslingarLarare == null ? null : int(visslingarLarare);
   const flest = result?.flestHittade;
+  const varav = larare == null ? "varav läraren: –" : larare ? `varav ${tal(larare)} av läraren` : "ingen av läraren";
   return `<ul class="kgh-summor" aria-label="Matchen i siffror">
       <li><span>🙈 Klarade sig</span><b>${tal(result?.klaradeSig)}</b><small>av ${tal(n)} elever</small></li>
       <li><span>🔎 Hittade</span><b>${tal(result?.hittade)}</b><small>gömmare</small></li>
-      <li><span>🎵 Visslingar</span><b>${tal(result?.visslingar)}</b><small>${larare ? `varav ${tal(larare)} av läraren` : "ingen av läraren"}</small></li>
+      <li><span>🎵 Visslingar</span><b>${tal(result?.visslingar)}</b><small>${varav}</small></li>
       <li><span>🏅 Hittade flest</span><b>${flest ? esc(flest.name || "Någon") : "–"}</b><small>${flest ? `${tal(flest.antal)} st` : "ingen hittade någon"}</small></li>
     </ul>`;
 }
@@ -119,15 +126,26 @@ function kategorierHtml(mode, perQuestions, classId = null, tag = "h3") {
       <td class="kgh-andel">${bar(r.rate)}</td></tr>`).join("")}</tbody></table></div>`;
 }
 
-export function detailHtml(s, result) {
+/** "Varav läraren" ur kgEvents (bara lärare får läsa) – null när läsningen misslyckas. */
+async function larareVisslingar(s, deps) {
+  if (deps?.visslingarLarare != null) return deps.visslingarLarare;
+  try {
+    return await (await import("./kurragomma-data.js")).antalLarareVisslingar(s.id);
+  } catch {
+    return null;
+  }
+}
+
+export async function detailHtml(s, result, deps) {
   ensureLiveCss([CSS]);
   if (!result?.ranking) return `<p class="live-history-winner">🙈</p><p class="hint">Inget resultat ännu – servern räknar ihop matchen när den är slut.</p>`;
+  const larare = await larareVisslingar(s, deps);
   const mode = getGameMode(s?.gameMode);
   const inst = s?.kgInstallningar || {};
   const info = `<small class="hint">${KIND[s?.answerKind] || ""} · gömtid ${tal(inst.gomtid)} s · startsökare ${inst.startsokare === "auto" || inst.startsokare == null ? "auto" : tal(inst.startsokare)}
     · tystnadsregeln ${inst.tystnad === false ? "av" : "på"} · totalt ${tal(result.totalCorrect)} rätt av ${tal(result.totalAnswered)} svar</small>`;
   return `<p class="live-history-winner">🙈 ${esc(lugnRad(result))} ${info}</p>
-    ${summorHtml(result)}
+    ${summorHtml(result, larare)}
     ${pallHtml(result)}
     <h3>Topplista</h3>
     ${topplistaHtml(s, result)}

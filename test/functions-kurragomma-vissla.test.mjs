@@ -8,7 +8,8 @@
 //     vissling – aldrig uid/namn, ungefärlig plats; eleven känner igen den på
 //     id:t (kgPlayers.tystVissling), 1,5× sökradie (senastVisslingAt)
 //   • spamskyddet LARARE_VISSLA_SPARR_MS; VISSLING_SPARR_MS blockerar INTE
-//   • statistiken: visslingar räknar alla, visslingarLarare bara lärarens
+//   • statistiken: visslingar räknar alla; "varav lärarens" står ALDRIG i result
+//     (sessionen läses av eleverna, F1) – bara som larare: true i kgEvents
 //   • deltagare = svarat, låst eller hittat: den gömda utan svar får sitt pris
 // Körs via:  npm run test:functions
 // ============================================================================
@@ -136,7 +137,7 @@ describe("Kurragömma: kgLarareVissla – visslingen", () => {
     assert.equal(sec.senastVisslingAt, ctl.clock);
   });
 
-  it("statistiken: visslingar räknar alla, visslingarLarare bara lärarens; tystnad + fel svar + lärare", async () => {
+  it("statistiken: visslingar räknar alla; 'varav lärarens' finns bara i kgEvents (larare: true), aldrig i result (F1)", async () => {
     const { sid, d } = await letfas();
     await svar(d, sid, "cleo", false);
     await larareVissla(d, LARARE, { sid, uid: "bo" });
@@ -144,9 +145,13 @@ describe("Kurragömma: kgLarareVissla – visslingen", () => {
     await larareVissla(d, LARARE, { sid, uid: "dina" });
     ctl.clock = END + 1000;
     const { result } = await avsluta(deps(), LARARE, { sid });
-    assert.deepEqual({ visslingar: result.visslingar, visslingarLarare: result.visslingarLarare }, { visslingar: 3, visslingarLarare: 2 });
-    assert.ok(!result.ranking.some((r) => "larare" in r));
-    assert.ok(!JSON.stringify(result.gomstallen).includes("larare"));
+    assert.equal(result.visslingar, 3);
+    assert.ok(!("visslingarLarare" in result), "summan skrivs inte till sessionen");
+    assert.ok(!JSON.stringify(result).includes("larare"), "inget i result pekar ut läraren");
+    assert.ok(!JSON.stringify(await session(sid)).includes("visslingarLarare"));
+    const ev = await events(sid);
+    assert.equal(ev.filter((e) => e.typ === "vissling").length, 3);
+    assert.equal(ev.filter((e) => e.typ === "vissling" && e.larare === true).length, 2, "historiken räknar dessa (bara lärare läser kgEvents)");
   });
 });
 

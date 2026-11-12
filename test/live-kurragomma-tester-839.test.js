@@ -58,7 +58,7 @@ describe("tester #839 runda 3: tystnadsregelns egna vissling", () => {
     // c01 (frånkopplad): kgPlayers.tystRef = nu men ingen tystVissling → ingen referens.
     const ref = egenVisslingsReferens("", { roll: "gomd", tystRef: nu, senastSvarAt: null });
     assert.equal(ref, null, "tystRef ensam är ingen referens");
-    assert.equal((ref && c01.referens(ref)) || c01.vissling(hand), null, "c01 visslades inte – ingen 'Du var tyst länge'");
+    assert.equal((ref && c01.referens(ref)) || c01.vissling(hand), null, "c01 visslades inte – ingen egen vissling-rad");
     assert.equal(c01.referens(nu), null, "en tidsstämpel är aldrig en referens");
     assert.equal(c01.vissling(hand), null);
     // c03 (visslad i samma tick): tystVissling = händelsens id → referens; samma id i hand är dess egen.
@@ -66,7 +66,7 @@ describe("tester #839 runda 3: tystnadsregelns egna vissling", () => {
     const ref3 = egenVisslingsReferens("", { roll: "gomd", tystRef: nu, tystVissling: "-NxQ7c03" });
     assert.equal(ref3, "-NxQ7c03");
     assert.equal(c03.referens(ref3), null);
-    assert.equal(c03.vissling(hand), hand, "c03: 'Du var tyst länge'");
+    assert.equal(c03.vissling(hand), hand, "c03: egen vissling-rad (TEXT.tystVissling)");
     assert.equal(c03.vissling({ ...hand, id: "-NxQ7bo" }), null, "bo:s vissling i samma tick (samma t) är inte c03:s");
     assert.equal(egenVisslingsReferens("-NxQ7c03", { roll: "gomd", tystVissling: "-NxQ7c03" }), null, "samma referens igen – inget nytt");
     assert.equal(egenVisslingsReferens("", { roll: "sokare", tystVissling: "-NxQ7c03" }), null, "sökare visslas aldrig");

@@ -98,7 +98,7 @@ describe("historiken (spec §11.3)", () => {
   }`;
   const S = { id: "m1", name: "Kurragömma 4B", gameMode: "multiplication_0_10", answerKind: "free", participatingClassIds: ["4b"], classNames: { "4b": "4B" }, kgInstallningar: { gomtid: 20, startsokare: 2, tystnad: false, karta: "on" } };
   const R = {
-    format: "kurragomma", winner: null, players: 3, totalCorrect: 5, totalAnswered: 8, klaradeSig: 1, hittade: 1, visslingar: 3, visslingarLarare: 1,
+    format: "kurragomma", winner: null, players: 3, totalCorrect: 5, totalAnswered: 8, klaradeSig: 1, hittade: 1, visslingar: 3,
     flestHittade: { uid: "a", name: "Alma", antal: 1 },
     ranking: [
       { uid: "c", name: "Cleo <3", classId: "4b", poang: 170, ratt: 0, besvarade: 0, hittade: 0, roll: "gomd", klaradeSig: true, rank: 1 },
@@ -125,8 +125,9 @@ describe("historiken (spec §11.3)", () => {
     assert.equal(H.ownPlayerTable, true);
     assert.deepEqual(H.playerCounts(S, R).get("a"), { correct: 3, incorrect: 1 });
   });
-  it("en match: pall, siffrorna (varav läraren – bara här), topplista med pluggmynt, andel rätt per uppgift och tabell; inställningarna i raden", async () => {
-    const html = await H.detailHtml(S, R);
+  it("en match: pall, siffrorna (varav läraren – ur kgEvents, bara här), topplista med pluggmynt, andel rätt per uppgift och tabell; inställningarna i raden", async () => {
+    assert.ok(!("visslingarLarare" in R), "summan står aldrig i result (sessionen läses av eleverna, F1)");
+    const html = await H.detailHtml(S, R, { visslingarLarare: 1 });
     assert.match(html, /1 av 3 klarade sig gömda hela matchen/);
     assert.match(html, /gömtid 20 s · startsökare 2\s*· tystnadsregeln av/);
     assert.ok(html.includes("🥇") && html.includes("Cleo &lt;3") && !html.includes("Cleo <3"), "pallen, escapad");
@@ -139,9 +140,12 @@ describe("historiken (spec §11.3)", () => {
     assert.match(html, /Andel rätt per tabell/);
     assert.match(html, /svår/);
     assert.ok(html.includes("7 × 8"));
-    const utan = await H.detailHtml(S, { ...R, visslingarLarare: 0, rewards: undefined });
+    const utan = await H.detailHtml(S, { ...R, rewards: undefined }, { visslingarLarare: 0 });
     assert.match(utan, /ingen av läraren/);
     assert.ok(!utan.includes("Pluggmynt"));
+    assert.match(H.summorHtml(R, null), /varav läraren: –/, "kunde inte läsas (eller inte lärare) → streck");
+    // utan deps: historiken hämtar själv ur kurragomma-data (Firebase saknas här → streck, aldrig ett kast)
+    assert.match(await H.detailHtml(S, R), /varav läraren: –/);
     assert.match(await H.detailHtml(S, null), /Inget resultat ännu/);
   });
   it("Statistik → Live: klassens rad och sammanfattningen", () => {

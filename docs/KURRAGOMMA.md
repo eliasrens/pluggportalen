@@ -361,10 +361,11 @@ efter test i klassrum (etapp 2). Det är där siffrorna ska bekräftas.
    (frånkopplad under gömfasen, `harLast: true`) räknas alltså också; den som anslöt sent som sökare och varken
    svarade eller hittade någon får inget. **Är det rätt avgränsning**, eller ska bara den som svarat minst en
    gång få placeringspriset (då står 0 mynt till den som gömde sig tyst hela matchen)?
-11. **Lärarens vissling och elevens egen rad** (E, §12.4): den visslade eleven ser samma neutrala rad som vid
-   tystnadsregeln ("Du var tyst länge – det visslade där du gömmer dig!") – det är D:s id-matchning
-   (`kgPlayers.tystVissling`) utan någon ny text, så ingen klient kan skilja lärarens vissling från en
-   tystnadsvissling. Vill du ha en egen, ännu neutralare rad ("Det visslade där du gömmer dig!") för båda?
+11. **Lärarens vissling och elevens egen rad** (E, §12.4): den visslade eleven ser samma rad som vid
+   tystnadsregeln – D:s id-matchning (`kgPlayers.tystVissling`) utan någon ny text. Raden är sedan
+   E:s rättningsrunda 1 (F2) den neutrala "Det visslade där du gömmer dig!" för båda (den gamla
+   "Du var tyst länge – …" avslöjade läraren direkt efter ett rätt svar eller med tystnadsregeln av).
+   "Fel svar – det visslade där du gömmer dig!" står kvar för fel svar. Löst – kvar bara som information.
 9. **Klassbonusen** (§11.5): betalas av projektorn vars `kgTick` avslutade matchen (eller Avsluta-knappen),
    med `perClass` byggt på klienten ur sessionen eftersom Kurragömmas `result` saknar det. Är projektorn
    stängd vid slutet (en elevs `kgTick` avslutar) går klassbonusen förlorad – samma reserv som Meteorstormen.
@@ -563,7 +564,7 @@ kärnans `startedAt`). `letStart = kgGomSlut` (inte tiden då fasbytet råkade k
   `senasteSok { x, z, at }` (sökaren), `senastMissFlodeAt`.
 - **`kgEvents/{id}`** (bara lärare – historiken): `{ t, typ: "vissling" | "hittad" | "nySokare", x, z, plats,
   tyst?, larare?, sokare?, hittad? }`. Visslingens `x, z` är den **ungefärliga** platsen. `larare: true` = utlöst av
-  läraren (E) – markeringen finns **bara** här (och som summan `result.visslingarLarare`), aldrig i `hand`.
+  läraren (E) – markeringen finns **bara** här (historiken räknar den, §12.2), aldrig i `hand` eller `result`.
 - **`kgPublic/questions`, `kgPrivate/snapshot`**: quizet, som i Guldrushen (`kistQuizDocCreate`).
 - Kärnans `players/{uid}` (närvaropulsen `lastSeenAt`) och `answers/{attemptId}` (statistiken) används som
   i de andra kistspelen.
@@ -574,7 +575,6 @@ kärnans `startedAt`). `letStart = kgGomSlut` (inte tiden då fasbytet råkade k
 { format: "kurragomma", winner: null, draw: false, startMs, letStartMs, slutMs,
   players,                                           // deltagare: svarat, låst eller hittat (deltog, E §12.3)
   totalCorrect, totalAnswered, klaradeSig, hittade, visslingar,
-  visslingarLarare,                                  // varav lärarens (E) – bara lärarens historik visar den
   flestHittade: { uid, name, antal } | null,
   ranking: [{ uid, name, classId, poang, ratt, besvarade, hittade, roll, klaradeSig, rank }],
   gomstallen: [{ uid, x, z, skydd, namn, hittad }],   // exakta platser – matchen är slut
@@ -706,7 +706,7 @@ gratisnivån (10 GB/mån) räcker för hundratals matcher. Slut-QA mäter.
 | `test/functions-kurragomma.test.mjs` | `test:functions` | e2e genom callables, Auth, Firestore- och RTDB-reglerna (5) |
 | `test/functions-kurragomma-tester-838.test.mjs` | `test:functions` | testarens: samtidiga kgTick/kgStarta/kgLeta/kgAvsluta, visslingen med riktig slump |
 | `test/functions-kurragomma-vissla.test.mjs` | `test:functions` | E: `kgLarareVissla` (behörighet, bara gömd, bara letfasen, identisk händelse, id-matchning, spamskydd, `VISSLING_SPARR_MS` spärrar inte, statistiken) + pluggmynt åt gömd utan svar (§12) |
-| `test/firestore-rules-live-kurragomma-840.test.js` | `test:rules` | E: formulärets sessionsdokument släpps igenom; kvittot för deltagare utan svar (låst/hittat), nekat för den som inte deltog |
+| `test/firestore-rules-live-kurragomma-840.test.js` | `test:rules` | E: formulärets sessionsdokument släpps igenom; kvittot för deltagare utan svar (låst/hittat), nekat för den som inte deltog; "varav lärarens" (F1): eleven nekas kgEvents och räknefrågan, läraren räknar |
 | `test/live-kurragomma-larare.test.js` | `node --test` | E: formulärets fält → `kgInstallningar`, `deltog`, historiken, Vissla-panelens logik, filkraven |
 | `test/firestore-rules-live-kurragomma.test.js` | `test:rules` | Firestore-grenen (§5.4) |
 | `test/firestore-rules-live-kurragomma-tester-838.test.js` | `test:rules` | testarens: hemligheten i Firestore-reglerna |
@@ -789,7 +789,7 @@ ingen Firestore, inga Cloud Functions, ingen RTDB (sidorna blockerar och räknar
 - **Musikfilen** `assets/kurragomma-loop.ogg` finns inte i repot; formatet behöver bara filen på plats.
 - **Pluggmynten när servern avslutar matchen** (00:00 / alla hittade via `kgTick` → `kgAvsluta`): servern skriver `finished` + `result` i samma transaktion, så kärnans `resultInputs`-väg (bara när `result` saknas) körs aldrig. Projektorn (`kgp-on.js betala()`, inte elevskärmsfönstret) anropar då `avslutaOchBetala` en gång – `kgAvsluta` svarar `redan`, `settleLiveRewards` är idempotent via `coinReceipts/{uid}`, så dubbel utbetalning är omöjlig. **Klassbonusen** (`liveKlassBonus`, ökar klassens EXP – inte idempotent) betalas som i Meteorstormen bara av den som AVSLUTADE: `kgAvsluta` med `redan === false` (Avsluta-knappen) eller projektorn vars eget `kgTick` avslutade matchen (svaret `avslutade: true`). Engångsgaten är `result`-skrivningen själv: `kgTick`/`kgAvsluta` svarar `avslutade: true` enbart i det anrop vars transaktion skrev `result`, alla andra (andra projektorflikar, tick + Avsluta samtidigt, omladdning, historiken) får `false`/`redan` – samma mönster som pluggmyntkvittot, fast kvittot är `result` och skrivs av servern, så ingen klientskrivning och ingen regeländring behövs. Snapshoten med `result` når projektorn före tick-svaret (servern städar RTDB först), så `betala()` väntar in den pågående ticken innan utbetalningen avgör om bonusen ska med. Kurragömmas `result` saknar `perClass` (en klass), så `kg-avslut.js medPerClass` bygger det ur sessionen (`{ classId: { name, players } }`) – bara deltagarbonusen "live", ingen vinstbonus (`winner: null`). Är projektorn stängd vid slutet (en elevs `kgTick` avslutar) går klassbonusen förlorad – som Meteorstormens elevavslut (§8.9).
 - **Återanslutning till RTDB** (`kg-kanal.js`): `connectDatabaseEmulator` körs en gång per db-instans (WeakSet); projektorn försöker starta om rörelsekanalen efter 4 s vid fel. Ingen kärnändring.
-- **Egen vissling (tystnadsregeln)**: visslingen i `hand` bär aldrig uid, så eleven känner igen sin egen på händelsens **id**: ticken väljer hand-nyckeln i förväg (`rt.handelseId`) och skriver den i den visslades `kgPlayers.tystVissling` i samma transaktion som visslingen – bara i visslingsgrenen (`tystRef` duger inte: den flyttas även utan vissling, och tidsstämplar delas av alla kandidater i en tick, N1b). Referensen ensam visar inget: raden "Du var tyst länge – det visslade där du gömmer dig!" och hoppet kommer först när hand-visslingen med exakt samma id finns (`kge-logik.js egenVisslingsReferens` + `skapaEgenVisslingar`, i valfri ordning, en gång). Händelsen avslöjar fortfarande ingen: id:t är en slumpnyckel. Fel svar ger "Fel svar – det visslade där du gömmer dig!" direkt ur kgSvara-svaret.
+- **Egen vissling (tystnadsregeln)**: visslingen i `hand` bär aldrig uid, så eleven känner igen sin egen på händelsens **id**: ticken väljer hand-nyckeln i förväg (`rt.handelseId`) och skriver den i den visslades `kgPlayers.tystVissling` i samma transaktion som visslingen – bara i visslingsgrenen (`tystRef` duger inte: den flyttas även utan vissling, och tidsstämplar delas av alla kandidater i en tick, N1b). Referensen ensam visar inget: raden "Det visslade där du gömmer dig!" (`TEXT.tystVissling`, neutral – samma vid lärarens vissling, #840 F2) och hoppet kommer först när hand-visslingen med exakt samma id finns (`kge-logik.js egenVisslingsReferens` + `skapaEgenVisslingar`, i valfri ordning, en gång). Händelsen avslöjar fortfarande ingen: id:t är en slumpnyckel. Fel svar ger "Fel svar – det visslade där du gömmer dig!" direkt ur kgSvara-svaret.
 - **Sökare som står stilla** pulsar sin plats var `POS_PULS_MS` (kge-spel.js) så servern inte befordrar en ny sökare var 30 s.
 - **Elevskärmsfönstret** (`&skarm=elev`) kör kärnans `resultInputs`-flöde som alla lärarfeeds, men Kurragömmas `resultInputs` ser fönstret (`arElevskarmsfonster`) och varken anropar `kgAvsluta` eller betalar där – det väntar in `result` (`vantaPaResult`, högst 60 s) som projektorn/servern skriver (N9). Ingen kärnändring.
 - **Omladdning i finalen**: projektorns scen laddas asynkront, så finalen får scenen som getter och `scenKlar()` ritar gömställena när scenen (eller återanslutningen) är klar (N8). **Egen vissling-raden** står kvar hela `VISSLING_RAD_MS` även om andras visslingar ur samma tick kommer strax efter (`radFarBytas`, N7).
@@ -842,11 +842,14 @@ regeländring för formuläret (`test/firestore-rules-live-kurragomma-840.test.j
 
 ### 12.2 Historiken (spec §11.3)
 
-`kurragomma-history.js` (lätt, `historyRenderer`) – allt ur serverns `result`, inga extra läsningar:
+`kurragomma-history.js` (lätt, `historyRenderer`) – allt ur serverns `result` utom **varav läraren**:
+den summan skrivs aldrig till `result` (sessionen läses av eleverna, F1) utan räknas ur `kgEvents` med
+`larare: true` (`kurragomma-data.js antalLarareVisslingar`, `getCountFromServer` = **1 läsning** per öppnad
+match; eleven nekas samlingen av reglerna, misslyckas läsningen visas "–"). Inga andra extra läsningar:
 
 - Matchraden: "N av M klarade sig gömda hela matchen" / "Sökarna hittade alla!" + svarssätt, gömtid,
   startsökare, tystnadsregeln, rätt av svar.
-- Rutorna: klarade sig (av M), hittade, visslingar **varav N av läraren**, den som hittade flest.
+- Rutorna: klarade sig (av M), hittade, visslingar **varav N av läraren** (ur `kgEvents`), den som hittade flest.
 - Pallplats (delad placering, `podiumGroups` på poängen) och topplistan: plats, elev, utfall
   (🙈 Klarade sig / 🔎 Hittad / 🔦 Sökare), poäng, rätt, svar, hittade, pluggmynt (`result.rewards`).
 - Andel rätt per uppgift/fråga (`result.perQuestion`, svårast markerade) och per tabell/kategori
@@ -886,11 +889,12 @@ bygger sin händelse med samma `visslingsHandelse` – det finns en enda form p�
   ljud), sökarna (markör + pil) och gömmarna ("Det visslar vid …") ser exakt en vanlig vissling.
 - Den visslade: `kgSecret.senastVisslingAt = nu` (1,5× sökradie i 10 s), `kgPlayers.tystRef = nu` och
   `kgPlayers.tystVissling = id` (hand-nyckeln vald i förväg, i samma transaktion – D:s N1b), så elevens
-  egen skärm visar den neutrala raden "Du var tyst länge – det visslade där du gömmer dig!" + hoppet,
-  aldrig "Fel svar". `VISSLING_SPARR_MS` blockerar inte läraren, men lärarens vissling sätter elevens
+  egen skärm visar den neutrala raden "Det visslade där du gömmer dig!" (`TEXT.tystVissling` – samma för
+  tystnadsregeln, F2) + hoppet, aldrig "Fel svar". `VISSLING_SPARR_MS` blockerar inte läraren, men lärarens vissling sätter elevens
   spärr (ett fel svar direkt efteråt visslar inte igen – samma som efter en tystnadsvissling).
-- Markeringen: `kgEvents` får `larare: true` (bara lärare läser samlingen) och `result.visslingarLarare`
-  är summan. Aldrig i `hand`, aldrig i `kgPlayers`, aldrig i något svar till en elev.
+- Markeringen: `kgEvents` får `larare: true` (bara lärare läser samlingen) – **bara där**. Summan "varav
+  läraren" står inte i `result` (sessionen läses av varje inloggad elev, F1) utan räknas av historiken
+  (§12.2). Aldrig i `hand`, aldrig i `kgPlayers`, aldrig i något svar till en elev.
 - Spamskydd: `LARARE_VISSLA_SPARR_MS` (5 s, `kg-config.js`, synkad) per elev via `kgSecret.larareVisslaAt`;
   ett andra anrop inom tiden → `resource-exhausted` med `details { skal: "sparr", vantaMs }`.
 - Behörighet och fas: `larareFor` (admin, eller årskurskonto med klassen) annars `permission-denied`;
@@ -934,8 +938,8 @@ läsningar, inom §10.8:s marginal; `panel.lasningar()` håller räkningen för 
 
 | Fil | Kör | Visar |
 | --- | --- | --- |
-| `test/live-kurragomma-larare.test.js` | `node --test` | fälten och deras värden → `kgInstallningar`/`durationSeconds` (även via `buildSessionDoc`), `deltog`, historiken (pall, varav läraren, pluggmynt, per uppgift/tabell, Statistik → Live), Vissla-panelens logik, ≤ 400 rader, CSS-prefix `kg-`, synken, lata importer |
-| `test/functions-kurragomma-vissla.test.mjs` | `test:functions` | `kgLarareVissla`: elev nekas, sökare/hittad/okänd nekas, gömfasen/efter slutet nekas, händelsen identisk med en fel-svar-vissling (fält i `hand` och `kgEvents`), id-matchningen, 1,5× sökradie, spamskyddet (inom 5 s nekat, efter 5 s OK, annan elev OK), `VISSLING_SPARR_MS` spärrar inte, `visslingar`/`visslingarLarare`; pluggmynt åt gömd utan svar och åt serverplacerad, inget åt den som inte deltog |
+| `test/live-kurragomma-larare.test.js` | `node --test` | fälten och deras värden → `kgInstallningar`/`durationSeconds` (även via `buildSessionDoc`), `deltog`, historiken (pall, varav läraren ur `deps`/kgEvents, pluggmynt, per uppgift/tabell, Statistik → Live), Vissla-panelens logik, ≤ 400 rader, CSS-prefix `kg-`, synken, lata importer |
+| `test/functions-kurragomma-vissla.test.mjs` | `test:functions` | `kgLarareVissla`: elev nekas, sökare/hittad/okänd nekas, gömfasen/efter slutet nekas, händelsen identisk med en fel-svar-vissling (fält i `hand` och `kgEvents`), id-matchningen, 1,5× sökradie, spamskyddet (inom 5 s nekat, efter 5 s OK, annan elev OK), `VISSLING_SPARR_MS` spärrar inte, `visslingar` räknar alla och `visslingarLarare` finns inte i `result` (bara `larare: true` i `kgEvents`); pluggmynt åt gömd utan svar och åt serverplacerad, inget åt den som inte deltog |
 | `test/functions-kurragomma.test.mjs` (tillägg) | `test:functions` | e2e genom callables: elev nekas, läraren visslar, `hand` har exakt `{ plats, t, typ, x, z }`, spamskyddet |
-| `test/firestore-rules-live-kurragomma-840.test.js` | `test:rules` | formulärets dokument (gömtid 20, startsökare 2, tystnad av, 3 min) släpps igenom; kvittot för gömd utan svar (låst) och sökare utan svar (hittade) betalas, den som inte deltog nekas, rätt-mynt > `perCorrect × ratt` nekas |
+| `test/firestore-rules-live-kurragomma-840.test.js` | `test:rules` | formulärets dokument (gömtid 20, startsökare 2, tystnad av, 3 min) släpps igenom; kvittot för gömd utan svar (låst) och sökare utan svar (hittade) betalas, den som inte deltog nekas, rätt-mynt > `perCorrect × ratt` nekas; F1: elevens session saknar `visslingarLarare`, eleven nekas `kgEvents` (listning, filtrerad fråga, `getCountFromServer`, enskilt dokument), läraren räknar 2 |
 | `test/functions-kurragomma-leta.test.mjs` (ändrat) | `test:functions` | `players`/`rewards` räknar låsta gömmare utan svar |
