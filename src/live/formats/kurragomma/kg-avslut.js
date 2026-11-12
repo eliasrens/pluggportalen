@@ -15,13 +15,19 @@
 // Projektorns Avsluta-knapp, 00:00 och "alla hittade" (kgTick → kgAvsluta på
 // servern, sedan status finished → kärnans resultTimer → hit) går alla denna väg.
 // Klasscentret: pokaler och kassapriset är idempotenta och körs varje gång;
-// klassbonusen bara av det anrop som SKREV result (redan === false).
+// klassbonusen (ökar klassens EXP, inte idempotent) som i Meteorstormen bara av
+// den som AVSLUTADE: kgAvsluta med redan === false (Avsluta-knappen), eller
+// projektorn vars kgTick avslutade matchen (avslutadeNu – kgp-on.js; en
+// projektor per match). Stängd projektor vid slutet → ingen klassbonus (som
+// Meteorstormens elevavslut). Kurragömmas result saknar perClass (en klass),
+// så medPerClass bygger det ur sessionen för kc-koppling liveBonusar.
 //
 // API
 //   buildResult(s, classes, players, mode, extra?) → extra.result | tomt result utan rewards
 //   resultInputs(s) → { result } – kgAvsluta + utbetalning (lärare)
-//   avslutaOchBetala(s, deps?) → result | null
+//   avslutaOchBetala(s, deps?, { avslutadeNu? }) → result | null
 //     deps = { avsluta(sid), settle(sid, session), admin(), klass, vanta(ms)? } (testerna)
+//   medPerClass(s, result) → result med perClass { classId: { name, players } }
 //   avslutaMedForsok(avsluta, sid, vanta?) → kgAvsluta-svaret, två nya försök vid tillfälliga fel
 // ============================================================================
 
@@ -36,13 +42,21 @@ async function standardDeps() {
   return { avsluta, settle: settleLiveRewards, admin: isAdmin, klass: () => import("../../../klasscenter/kc-koppling.js") };
 }
 
+/** Kurragömmas result har inget perClass (en klass): klassbonusen (liveBonusar) behöver det. */
+export function medPerClass(s, result) {
+  if (!result || result.perClass) return result;
+  const perClass = {};
+  for (const cid of s?.participatingClassIds || []) perClass[cid] = { name: s?.classNames?.[cid] || cid, players: Number(result.players) || 0 };
+  return { ...result, perClass };
+}
+
 /** Klasscentret som i live-data.js writeResultIfMissing – aldrig kastande. */
-async function klasscenter(d, s, svar) {
+async function klasscenter(d, s, svar, avslutadeNu) {
   if (!d.admin?.() || !d.klass) return;
   try {
     const m = await d.klass();
     const skrev = { ...s, status: "finished", result: svar.result };
-    if (svar.redan === false) await m.liveKlassBonus(svar.result);
+    if (svar.redan === false || avslutadeNu) await m.liveKlassBonus(medPerClass(s, svar.result));
     await m.pokalerEfterAvslut("live", s.id, skrev);
     await m.livePrisEfterAvslut(s.id, skrev);
   } catch (err) {
@@ -67,14 +81,14 @@ export async function avslutaMedForsok(avsluta, sid, vanta = (ms) => new Promise
 }
 
 /** kgAvsluta (idempotent) och sedan pluggmynten ur det resultatet. Demo (s.demo) betalar aldrig. */
-export async function avslutaOchBetala(s, deps = null) {
+export async function avslutaOchBetala(s, deps = null, { avslutadeNu = false } = {}) {
   if (!s?.id) return null;
   const d = deps || (await standardDeps());
   const svar = await avslutaMedForsok(d.avsluta, s.id, d.vanta);
   const result = svar?.result || null;
   if (!result || s.demo === true) return result;
   if (result.rewards) await d.settle(s.id, { ...s, status: "finished", result });
-  await klasscenter(d, s, svar);
+  await klasscenter(d, s, svar, avslutadeNu);
   return result;
 }
 

@@ -12,7 +12,7 @@ import KURRAGOMMA from "../src/live/formats/kurragomma/index.js";
 import { getFormat, registerFormat, validateFormat, listFormats } from "../src/live/live-formats.js";
 import { buildSessionDoc } from "../src/live/live-core.js";
 import { buildSessionFields, validateSetup, computeStandings, sessionTitle, defaultSessionName, durationField } from "../src/live/formats/kurragomma/kg-setup.js";
-import { avslutaOchBetala, buildResult, avslutaMedForsok } from "../src/live/formats/kurragomma/kg-avslut.js";
+import { avslutaOchBetala, buildResult, avslutaMedForsok, medPerClass } from "../src/live/formats/kurragomma/kg-avslut.js";
 import {
   toppText, flodesRad, finalModell, lugnRad, lobbyPlatser, lobbyrutaSida, minutKvar, fasAv, gomKlocka, FINAL_TITLE, NAGON,
 } from "../src/live/formats/kurragomma/kgp-logik.js";
@@ -95,6 +95,29 @@ describe("format-objektet (spec §0.1)", () => {
     assert.equal(buildResult(s, [], [], null, { result: { format: "kurragomma", klaradeSig: 3 } }).klaradeSig, 3);
     assert.equal(buildResult(s, [], [{ uid: "a" }]).players, 1);
     assert.equal(buildResult(s, [], []).rewards, undefined);
+  });
+  it("klassbonusen: bara den som avslutade (redan false eller projektorns tick: avslutadeNu), med perClass ur sessionen; pokaler och pris varje gång", async () => {
+    const logg = [];
+    const klass = async () => ({
+      liveKlassBonus: async (r) => { logg.push(`bonus ${Object.keys(r.perClass || {}).join(",")}:${r.perClass?.["4b"]?.players}`); return 1; },
+      pokalerEfterAvslut: async () => { logg.push("pokaler"); }, livePrisEfterAvslut: async () => { logg.push("pris"); },
+    });
+    const deps = (redan) => ({ avsluta: async () => ({ result: { format: "kurragomma", players: 24, rewards: { a: { total: 5 } } }, redan }), settle: async () => { logg.push("settle"); }, admin: () => true, klass });
+    const s = { id: "s1", status: "finished", participatingClassIds: ["4b"], classNames: { "4b": "4B" } };
+    await avslutaOchBetala(s, deps(false));
+    assert.deepEqual(logg, ["settle", "bonus 4b:24", "pokaler", "pris"], "Avsluta-knappen: avslutade → bonus");
+    logg.length = 0;
+    await avslutaOchBetala(s, deps(true));
+    assert.deepEqual(logg, ["settle", "pokaler", "pris"], "servern avslutade, någon annans tick → ingen bonus (inte idempotent)");
+    logg.length = 0;
+    await avslutaOchBetala(s, deps(true), { avslutadeNu: true });
+    assert.deepEqual(logg, ["settle", "bonus 4b:24", "pokaler", "pris"], "projektorns egen tick avslutade → bonus");
+    logg.length = 0;
+    await avslutaOchBetala(s, { ...deps(false), admin: () => false });
+    assert.deepEqual(logg, ["settle"], "årskurskonto: inget klasscenter");
+    assert.deepEqual(medPerClass(s, { players: 3 }).perClass, { "4b": { name: "4B", players: 3 } });
+    assert.deepEqual(medPerClass(s, { perClass: { x: 1 } }).perClass, { x: 1 }, "befintligt perClass rörs inte");
+    assert.equal(medPerClass(s, null), null);
   });
 });
 
@@ -215,7 +238,7 @@ describe("elevskärmen – rena delar (spec §6)", () => {
     assert.equal(hittadText("Leo"), "Leo hittade dig! Nu letar du också.");
     assert.equal(hittadText(null), "Någon hittade dig! Nu letar du också.");
     assert.equal(TEXT.egenVissling, "Fel svar – det visslade där du gömmer dig!");
-    assert.equal(TEXT.tystVissling, "Tystnad – det visslade där du gömmer dig!");
+    assert.equal(TEXT.tystVissling, "Du var tyst länge – det visslade där du gömmer dig!");
     assert.equal(TEXT.ladda, "Svara rätt för att ladda ficklampan");
     assert.equal(TEXT.leta, "🔦 Leta");
     assert.deepEqual(["gomd", "sokare"].flatMap((roll) => ["gom", "leta"].map((fas) => elevLage({ roll, fas }))), ["gom-gomd", "leta-gomd", "gom-sokare", "leta-sokare"]);

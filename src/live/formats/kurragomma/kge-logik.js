@@ -36,7 +36,7 @@ export const TEXT = Object.freeze({
   leta: "🔦 Leta",
   ladda: "Svara rätt för att ladda ficklampan",
   egenVissling: "Fel svar – det visslade där du gömmer dig!",
-  tystVissling: "Tystnad – det visslade där du gömmer dig!",
+  tystVissling: "Du var tyst länge – det visslade där du gömmer dig!",
   sokareLeta: "Leta efter de gömda – tryck på marken för att gå dit",
   vantaFragor: "Frågorna kommer när sökarna börjar leta.",
   hittadeIngen: "Ingen här – leta vidare!",

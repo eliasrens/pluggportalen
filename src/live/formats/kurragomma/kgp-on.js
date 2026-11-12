@@ -74,6 +74,7 @@ export function createOn(host, { st, sound = null, music = null, screen = false,
   let tickar = false;
   let final = null;
   let betalat = false;
+  let avslutadeNu = false; // den här projektorns kgTick avslutade matchen → klassbonusen (kg-avslut.js)
   let destroyed = false;
   const sedda = new Set();
   const namn = new Map();
@@ -185,7 +186,10 @@ export function createOn(host, { st, sound = null, music = null, screen = false,
       if (destroyed || state.phase !== "live") return;
       try {
         const r = await koppling.tick(sid);
-        if (r?.klart) return; // servern har avslutat – kärnan ser status finished
+        if (r?.klart) { // servern har avslutat – kärnan ser status finished
+          if (state.phase === "live") avslutadeNu = true; // den här ticken avslutade (ingen annan hann före)
+          return;
+        }
       } catch (e) { console.warn("[kurragomma] kgTick", e?.message || e); }
       if (!destroyed && state.phase === "live") tickT = setTimeout(tick, TICK_MS);
     };
@@ -195,12 +199,13 @@ export function createOn(host, { st, sound = null, music = null, screen = false,
   // Slutade servern matchen (kgTick → kgAvsluta: alla hittade / 00:00) skrivs finished och
   // result i samma transaktion, och kärnans resultInputs-väg (bara när result saknas) körs
   // aldrig – pluggmynten betalas då här, en gång, av projektorn (inte elevskärmsfönstret).
-  // avslutaOchBetala är idempotent (kgAvsluta → redan, kvittot coinReceipts/{uid}).
+  // avslutaOchBetala är idempotent (kgAvsluta → redan, kvittot coinReceipts/{uid}); klassbonusen
+  // bara när den här projektorns tick avslutade (avslutadeNu), som Meteorstormens avslutare.
   function betala() {
     if (betalat || screen || deps.kurragomma || state.session?.demo === true) return;
     betalat = true;
     import("./kg-avslut.js")
-      .then(({ avslutaOchBetala }) => avslutaOchBetala({ ...state.session, status: "finished", result: state.result }))
+      .then(({ avslutaOchBetala }) => avslutaOchBetala({ ...state.session, status: "finished", result: state.result }, null, { avslutadeNu }))
       .catch((e) => { console.warn("[kurragomma] utbetalningen efter serverns avslut", e?.message || e); betalat = false; });
   }
 
