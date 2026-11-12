@@ -71,6 +71,7 @@ export function createOn(host, { st, sound = null, music = null, screen = false,
   let tickT = 0;
   let tickar = false;
   let final = null;
+  let betalat = false;
   let destroyed = false;
   const sedda = new Set();
   const namn = new Map();
@@ -183,6 +184,18 @@ export function createOn(host, { st, sound = null, music = null, screen = false,
     tickT = setTimeout(tick, 400);
   }
 
+  // Slutade servern matchen (kgTick → kgAvsluta: alla hittade / 00:00) skrivs finished och
+  // result i samma transaktion, och kärnans resultInputs-väg (bara när result saknas) körs
+  // aldrig – pluggmynten betalas då här, en gång, av projektorn (inte elevskärmsfönstret).
+  // avslutaOchBetala är idempotent (kgAvsluta → redan, kvittot coinReceipts/{uid}).
+  function betala() {
+    if (betalat || screen || deps.kurragomma || state.session?.demo === true) return;
+    betalat = true;
+    import("./kg-avslut.js")
+      .then(({ avslutaOchBetala }) => avslutaOchBetala({ ...state.session, status: "finished", result: state.result }))
+      .catch((e) => { console.warn("[kurragomma] utbetalningen efter serverns avslut", e?.message || e); betalat = false; });
+  }
+
   function vanta(text) {
     const v = $(".kgp-vanta");
     v.textContent = text || "";
@@ -213,6 +226,7 @@ export function createOn(host, { st, sound = null, music = null, screen = false,
         flodeEl.hidden = true;
         final = createFinal(root, { result: state.result, session: s, scen, ljud });
       } else if (!state.result) vanta("Räknar ihop …");
+      if (state.result) betala();
     }
     ritaTopp();
   }
