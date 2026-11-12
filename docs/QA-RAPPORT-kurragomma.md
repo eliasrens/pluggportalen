@@ -151,8 +151,8 @@ Ritanropen ligger långt under spec:ens tak 150 på alla nivåer (B:s mätning 4
 | `node --test` (alla `test/*.test.*` utom emulatorsviterna; repot saknar `npm test`) | 4 097 tester, 4 096 ok, 0 fel, 1 skippad (278 filer, 374 s) | **4 255 tester, 4 254 ok, 0 fel, 1 skippad** (290 filer, 261 s) – samma skippade (`demo: en stubbe vägras`) |
 | `npm run test:rules` (Firestore-reglerna) | – | **910 tester, 910 ok, 0 fel** |
 | `npm run test:rules:rtdb` (Realtime Database-reglerna) | – | **23 tester, 23 ok, 0 fel** |
-| `npm run test:functions` | – | FUNCTIONS_PLACEHOLDER |
-| `npm run test:e2e` | – | E2E_PLACEHOLDER |
+| `npm run test:functions` (färska emulatorer functions+auth+firestore+database på slumpportar, `--test-concurrency=1`) | – | **528 tester, 526 ok, 0 fel, 2 TODO** (485 s) – de två TODO är förbefintliga, markerade schack-F9 i `functions-schack-fusk-aktivt.test.mjs` (docs/SCHACK.md §12.1); inkl. nya `functions-kurragomma-leta-minne-841` |
+| `npm run test:e2e` (auth + firestore) | – | **5 tester, 5 ok, 0 fel** |
 | `npm run balans:kurragomma` | – | kör, tabellen i §2.2 |
 
 Spec §13.1–§13.4 täcks av `test/live-kurragomma-*.test.js` (motorn, kartan, reglerna, balansen, scenen + 2D-reserven,
