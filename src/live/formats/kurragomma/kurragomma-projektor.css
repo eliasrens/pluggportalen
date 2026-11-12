@@ -239,3 +239,30 @@
   .kgp-flodrad, .kgp-final [data-steg], .kgp-lobbyruta { transition: none; }
   .kgp-puls { animation: none; }
 }
+
+/* --- lärarens Vissla-panel (#840, kgp-vissla.js) ---------------------------------
+   Bara i lärarens fönster (inte elevskärmsfönstret), bara i letfasen. Px-mått så
+   att den fungerar på en surfplatta/mobil (~380 px) lika väl som på 1920 px. */
+.kgp-vissla { position: absolute; right: 12px; bottom: 12px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; font-size: 15px; }
+.kgp-vissla[hidden] { display: none; }
+.kgp-vissla-knapp, .kgp-vissla-en, .kgp-vissla-ladda, .kgp-vissla-stang {
+  font: inherit; font-weight: 700; color: #fff; cursor: pointer; border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35); background: rgba(12, 18, 58, 0.78); padding: 6px 14px;
+}
+.kgp-vissla-knapp { opacity: 0.72; }
+.kgp-vissla-knapp:hover, .kgp-vissla-oppen .kgp-vissla-knapp { opacity: 1; }
+.kgp-vissla-panel { width: min(340px, calc(100vw - 24px)); max-height: min(60vh, 420px); overflow: auto; padding: 10px 12px;
+  border-radius: 14px; background: rgba(12, 18, 58, 0.94); border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4); }
+.kgp-vissla-panel[hidden] { display: none; }
+.kgp-vissla-topp { display: flex; align-items: center; gap: 6px; }
+.kgp-vissla-topp b { flex: 1; }
+.kgp-vissla-ladda, .kgp-vissla-stang { padding: 2px 9px; }
+.kgp-vissla-hint, .kgp-vissla-msg { margin: 4px 0 6px; font-size: 13px; opacity: 0.8; }
+.kgp-vissla-msg[hidden] { display: none; }
+.kgp-vissla-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.kgp-vissla-lista li { display: flex; align-items: center; gap: 8px; padding: 2px 0; }
+.kgp-vissla-namn { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kgp-vissla-rad-msg { font-size: 12px; opacity: 0.85; }
+.kgp-vissla-en { padding: 4px 10px; font-size: 14px; }
+.kgp-vissla-en:disabled { opacity: 0.55; cursor: default; }
+.kgp-vissla-tom { opacity: 0.75; }

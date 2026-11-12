@@ -18,6 +18,7 @@
 //   lobbyPlatser(uids, karta)         → [{ uid, x, z, yaw }] på stranden vid bron
 //   lobbyrutaSida(skarm, forra)       → "hoger" | "vanster" – rutan på motsatt sida om bron
 //   minutKvar(prevMs, msLeft)         → true när 1:00 just passerats (en rad i flödet)
+//   visslaPanelSynlig(…) · visslaFelText(err) · visslaLista(gomda)  lärarens Vissla-panel (#840)
 // ============================================================================
 
 import { toMs } from "../../live-time.js";
@@ -148,3 +149,25 @@ export function lobbyrutaSida(skarm, forra = "hoger") {
 
 /** Matchklockan som text ur kärnans msLeft (ownTimer). */
 export const klocka = (msLeft) => formatClock(msLeft);
+
+// ---- Lärarens Vissla-panel (#840, kgp-vissla.js) ----------------------------------------
+/** Panelen finns bara i lärarens fönster (inte elevskärmsfönstret), bara i letfasen medan matchen pågår, bara med en riktig server. */
+export function visslaPanelSynlig({ screen = false, fas = null, phase = null, harServer = false } = {}) {
+  return !screen && harServer && phase === "live" && fas === "leta";
+}
+
+/** Felet från kgLarareVissla som en kort rad i panelen. rad.bort = ta bort raden (eleven är inte gömd längre). */
+export function visslaFelText(err) {
+  const code = String(err?.code || "");
+  if (code === "resource-exhausted") return { text: "Vänta några sekunder", bort: false };
+  if (code === "failed-precondition") return { text: "Inte gömd längre", bort: true };
+  if (code === "permission-denied") return { text: "Bara läraren som styr matchen", bort: false };
+  return { text: "Gick inte – försök igen", bort: false };
+}
+
+/** Listan: namn i bokstavsordning (sv), tomt namn sist som "Någon". */
+export function visslaLista(gomda) {
+  return [...(gomda || [])].map((g) => ({ uid: g.uid, namn: String(g.name || g.namn || "") }))
+    .sort((a, b) => (a.namn ? 0 : 1) - (b.namn ? 0 : 1) || a.namn.localeCompare(b.namn, "sv"));
+}
+

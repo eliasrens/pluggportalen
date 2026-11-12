@@ -11,6 +11,8 @@
 //   effekter + ljud          scen.vissling/hittad (ringar, noter, konfetti, glidning –
 //                            en glidning vid täta händelser), kgp-ljud.js (riktat)
 //   finalen                  kgp-final.js ur serverns result (finale: true)
+//   Vissla-panelen (#840)    kgp-vissla.js – bara i LÄRARENS fönster (inte screen), bara i
+//                            letfasen; läser de gömda vid öppning (ingen lyssnare)
 // Projektorn (inte elevskärmsfönstret) anropar kgStarta efter KÖR! och kgTick var
 // TICK_MS – och lyssnar INTE på kgPlayers/kgEvents under matchen (kvoten, §5.5):
 // siffrorna kommer ur status, händelserna ur hand. Ingen topplista före finalen.
@@ -28,6 +30,7 @@ import { TICK_MS, FLODE_MAX_RADER } from "./delat/kg-config.js";
 import { fasAv, gomSlutMs, toppText, flodesRad, FAS_LETA_RAD, MINUT_KVAR_RAD, minutKvar } from "./kgp-logik.js";
 import { createKgLjud } from "./kgp-ljud.js";
 import { createFinal } from "./kgp-final.js";
+import { visslaPanelSynlig } from "./kgp-logik.js";
 
 export const KGP_CSS = ["src/live/formats/kurragomma/kurragomma-projektor.css", "src/live/formats/kurragomma/scen/kurragomma-scen.css"];
 const RAD_MS = 14_000;
@@ -73,6 +76,7 @@ export function createOn(host, { st, sound = null, music = null, screen = false,
   let startT = 0;
   let tickar = false;
   let final = null;
+  let vissla = null; // lärarens Vissla-panel (kgp-vissla.js), skapas när kopplingen finns
   let betalat = false;
   let avslutadeNu = false; // den här projektorns kgTick avslutade matchen (svaret avslutade) → klassbonusen
   let tickLofte = null; // pågående kgTick – betala() väntar in den (snapshoten kommer före svaret)
@@ -147,7 +151,9 @@ export function createOn(host, { st, sound = null, music = null, screen = false,
     if (ny === "leta" && var_ === "gom") { rad(FAS_LETA_RAD); ljud.gomSlut(); }
     music?.skala?.(ny === "gom" ? GOM_MUSIK : 1);
     ritaTopp();
+    ritaVissla();
   }
+  const ritaVissla = () => vissla?.visa(visslaPanelSynlig({ screen, fas, phase: state.phase, harServer: !!koppling?.larareVissla }));
 
   async function starta() {
     if (startad || destroyed) return;
@@ -155,6 +161,11 @@ export function createOn(host, { st, sound = null, music = null, screen = false,
     try {
       koppling = deps.kurragomma || (await standardKoppling());
       if (destroyed) return;
+      if (!screen && !vissla && koppling.larareVissla && koppling.getGomda) {
+        const { createVisslaPanel } = await import("./kgp-vissla.js");
+        if (destroyed) return;
+        vissla = createVisslaPanel(root, { sid, koppling });
+      }
       koppling.roster?.prefetch?.(state.session?.participatingClassIds || []);
       const { skapaKgScen } = await import("./scen/kg-scen.js");
       scen = await skapaKgScen({ yta, lage: "projektor", roster: koppling.roster || null, jagUid: PROJEKTOR_UID, namnPa: state.session?.showNames !== false, tvinga2d: !!koppling.tvinga2d });
@@ -230,6 +241,7 @@ export function createOn(host, { st, sound = null, music = null, screen = false,
     koppling?.roster?.ensure?.((state.players || []).map((p) => ({ uid: p.uid, classId: p.classId })));
     scen?.namnPa(s.showNames !== false);
     const ph = state.phase;
+    ritaVissla();
     if (ph === "live") {
       bytFas(fasAv(s, status));
       if (koppling) tickaIgang();
@@ -267,6 +279,7 @@ export function createOn(host, { st, sound = null, music = null, screen = false,
       rader.forEach((p) => clearTimeout(p.t));
       ro?.disconnect();
       final?.destroy();
+      vissla?.destroy();
       try { kanal?.stang(); } catch { /* redan stängd */ }
       scen?.destroy();
       ljud.destroy();
