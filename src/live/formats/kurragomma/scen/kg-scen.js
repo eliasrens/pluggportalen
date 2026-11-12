@@ -18,6 +18,8 @@
 //   scen.hittad({ x, z })         konfetti; glidning på projektorn
 //   scen.gomstallen([{ uid, x, z }])   finalen: figurer på sina gömställen
 //   scen.hjartslag(bool)          kanten pulserar (sökare inom HJARTSLAG_M – D räknar)
+//   scen.skarm({ x, z })          → { sx, sy, inne, framfor?, w, h } – var punkten syns i bilden
+//                                 (D: visslingens riktade ljud på projektorn, #839)
 //   scen.namnPa(bool)
 //   scen.niva(n?) / scen.nivaInfo() → { niva, namn, fps, ritanrop, typ }
 //   scen.on("skydd" | "flytt" | "niva" | "reserv", fn) → av
@@ -256,6 +258,7 @@ export async function skapaKgScen({
       ritare.figurerBehall([jagUid, ...interp.alla(), ...st.gomstallen.map((g) => g.uid)]);
     },
     hjartslag(v) { st.hjartslag = !!v; overlagg.hjartslag(st.hjartslag); },
+    skarm(p) { const q = ritare.skarmPunkt(Number(p?.x) || 0, Number(p?.z) || 0) || {}; return { ...q, ...ritare.storlek() }; },
     namnPa(v) { st.namnPa = !!v; ritare.namnPa(st.namnPa); },
     niva(n) { if (n !== undefined) nivaSatt(n); return aktuellNiva; },
     nivaInfo: () => ({ niva: aktuellNiva, namn: NIVAER[aktuellNiva].namn, fps: Math.round(vakt.fps()), ritanrop, typ }),

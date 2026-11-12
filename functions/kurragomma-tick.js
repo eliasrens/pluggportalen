@@ -13,7 +13,13 @@
 //     första posten när någon blir sökare, klienten pulsar minst var POS_PULS_MS),
 //     så regeln kostar inga Firestore-läsningar.
 //
-//   tick(deps, auth, raw) → { fas, klart, visslade, nySokare, rensade, result? }
+//   tick(deps, auth, raw) → { fas, klart, visslade, nySokare, rensade, result?, avslutade? }
+//     avslutade: true bara i DET anrop som avslutade matchen (klassbonusen, #839 N5);
+//     en redan avslutad match svarar klart: true, avslutade: false.
+//   Tystnadsvisslingen skrivs i hand under en i förväg vald nyckel och samma id
+//     läggs i den visslades kgPlayers.tystVissling (bara visslingsgrenen – tystRef
+//     flyttas även utan vissling) så eleven känner igen sin egen vissling på id:t,
+//     aldrig på en tidsstämpel (#839 N1b). Händelsen bär aldrig uid.
 // ============================================================================
 
 import { KsError } from "./kistspel-rattning.js";
@@ -44,6 +50,7 @@ async function tystnad(deps, sid, s, nu) {
     const visslar = tystnadVisslar({
       roll: kp.roll, fas: s.kgFas, tystnadPa: true, senastSvarAt: kp.senastSvarAt, senastVisslingAt: sd.senastVisslingAt, letStartAt: letStart, pulsAt, nu,
     });
+    const id = rt.handelseId(deps.rtdb, sid);
     const h = await db.runTransaction(async (tx) => {
       const [k2, s2] = await tx.getAll(d.ref, r.secret(d.id));
       const kp2 = k2.data();
@@ -58,12 +65,12 @@ async function tystnad(deps, sid, s, nu) {
       const pl = visslingsplats(sd2.x, sd2.z, deps.rng(), deps.rng(), karta);
       const ev = { typ: "vissling", x: pl.x, z: pl.z, plats: platsNamn(pl.x, pl.z, karta), t: nu };
       tx.update(r.secret(d.id), { senastVisslingAt: nu });
-      tx.update(d.ref, { tystRef: nu });
+      tx.update(d.ref, { tystRef: nu, tystVissling: id });
       tx.create(r.events.doc(), { t: nu, typ: "vissling", x: pl.x, z: pl.z, plats: ev.plats, tyst: true });
       return ev;
     });
     if (h) {
-      await rt.handelse(deps.rtdb, sid, h);
+      await rt.handelseMedId(deps.rtdb, sid, id, h);
       visslade++;
     }
   }
@@ -106,12 +113,12 @@ export async function tick(deps, auth, raw) {
   let s = await redo(deps, sid);
   if (!larareFor(deps.roll ? await deps.roll(auth) : null, s)) await playerFor(deps, sid, auth?.uid, s);
   const nu = deps.now();
-  if (s.status !== "live") return { fas: s.kgFas, klart: true, result: s.result || null };
+  if (s.status !== "live") return { fas: s.kgFas, klart: true, result: s.result || null, avslutade: false };
   const { slut } = tider(s);
   const kvar = s.kgFas === "leta" ? await gomdaKvar(deps, sid) : null;
   if (arSlut({ fas: s.kgFas, nu, slutAt: slut, gomdaKvar: kvar })) {
-    const { result } = await avslutaIntern(deps, sid, s, { nu });
-    return { fas: s.kgFas, klart: true, result };
+    const { result, redan } = await avslutaIntern(deps, sid, s, { nu });
+    return { fas: s.kgFas, klart: true, result, avslutade: !redan };
   }
   const ut = { fas: s.kgFas, klart: false, visslade: 0, nySokare: null, rensade: 0 };
   if (s.kgFas === "leta") {

@@ -347,6 +347,15 @@ efter test i klassrum (etapp 2). Det är där siffrorna ska bekräftas.
    8 000) – under, men med liten marginal och det är en räkning, inte en mätning; slut-QA (F, #841) mäter.
    Om den landar över: ska `perQuestion` räknas ur en aggregering i `kgSvara` (−1 000) i stället för att
    `answers` läses vid slutet?
+8. **"Alltid en sökare"-befordran räknas som hittad** (`hittad: true` i `result.gomstallen`, C): den
+   gömmare som befordras när ingen sökare finns har inte hittats av någon men får inte
+   överlevnadspoängen och visas som hittad i finalen. Ska `result` skilja på "hittad" och
+   "befordrad" (en ändring i functions), eller är det okej så?
+9. **Klassbonusen** (§11.5): betalas av projektorn vars `kgTick` avslutade matchen (eller Avsluta-knappen),
+   med `perClass` byggt på klienten ur sessionen eftersom Kurragömmas `result` saknar det. Är projektorn
+   stängd vid slutet (en elevs `kgTick` avslutar) går klassbonusen förlorad – samma reserv som Meteorstormen.
+   Vill du ha den garanterad behöver `kgAvsluta`/ticken dela ut den på servern (eller `perClass` + ett
+   idempotent märke i `result`). Okej med Meteorstormens reserv?
 
 ---
 
@@ -514,7 +523,7 @@ olåsta gömmare efter `kgGomSlut + LAS_MARGINAL_MS` (2 s). Fel kastas som `Http
 | `kgLas({ sid, x, z })` | gömmare, i gömfasen (+ 2 s marginal) | `narmasteGiltiga` → `skydd` + `platsNamn`; skriver `kgSelf.gomstalle`, `kgSecret` (x, z, skydd, gomd, lastAt) och `kgPlayers.harLast`; `status.lasta` +1. Redan låst → samma gömställe tillbaka. | `{ gomstalle: { x, z, skydd, namn }, flyttad, redan }` |
 | `kgSvara({ sid, attemptId, factorA, factorB, answer, choiceIndex?, q?, year? })` | deltagare, letfasen (en gömmare i gömfasen nekas; en sökare får ladda under blundandet) | rättas som kistspelen (`gradeMult`/`gradeQuiz`, `answers/{attemptId}` för statistiken, `pickNextQ`); `svarsEffekt` ger poäng/laddning/vissling. Vid vissling: `visslingsplats` (osäkerhet `VISSLING_OSAKERHET_M`), `platsNamn` på den ungefärliga platsen, `kgEvents` + `hand`. Samma `attemptId` igen → samma svar (`igen: true`). | `{ attemptId, correct, correctAnswer, nextQ, poang, laddningar, vissling, plats?, correctYear? }` |
 | `kgLeta({ sid, x, z })` | sökare, letfasen | **en transaktion**: `kontrolleraSokning` (laddning, 2 s spärr, rimlighet från startpunkten/senaste sökningen), `sok` mot alla gömda (`kgSecret.gomd == true`), varje hittad blir sökare (`gorTillSokare`: `poangVidHittad`, `laddningarNySokare`, startpunkt = gömstället), sökaren får `poangForHittad` per hittad. Efteråt `nySokare` + `hittad`-händelser i RTDB; en miss ger `miss`-händelse högst var `FLODE_MISS_SPARR_MS`. | `{ hittade: [{ uid, namn, x, z, plats }], laddningar, poang, plats, flode }` |
-| `kgTick({ sid })` | som `kgStarta` (projektorn var `TICK_MS` = 5 s; en deltagare får också) | letfasen: tystnadsregeln, "alltid en sökare", `hand`-städning; slutet (`arSlut`: tiden ute eller alla hittade) → `kgAvsluta` internt. | `{ fas, klart, visslade, nySokare, rensade }` eller `{ fas, klart: true, result }` |
+| `kgTick({ sid })` | som `kgStarta` (projektorn var `TICK_MS` = 5 s; en deltagare får också) | letfasen: tystnadsregeln, "alltid en sökare", `hand`-städning; slutet (`arSlut`: tiden ute eller alla hittade) → `kgAvsluta` internt. | `{ fas, klart, visslade, nySokare, rensade }` eller `{ fas, klart: true, result, avslutade }` – `avslutade: true` bara i det anrop vars transaktion skrev `result` (klassbonusens engångsgate, §11.5); `kgAvsluta` svarar likadant |
 | `kgAvsluta({ sid })` | läraren som styr matchen när som helst; en deltagare först när tiden är ute, alla är hittade eller matchen redan är avslutad | `status: "finished"` + `finishedAt`, `result` på sessionen (§10.3), `klar: true` + sluttotaler i `kgPlayers`, tar bort `/kg/{sid}`. Idempotent (`redan`). | `{ result, redan }` |
 
 ### 10.2 Datamodellen i Firestore (spec §5.1)
@@ -528,7 +537,8 @@ kärnans `startedAt`). `letStart = kgGomSlut` (inte tiden då fasbytet råkade k
   `karta == "on"`, `durationSeconds − gomtid` = 60–3600 s och delbart med 60, `showNames` valfri bool.
 - **`kgPlayers/{uid}`** (eleven läser sitt eget, läraren/projektorn alla): `uid, classId, name, roll,
   poang, ratt, besvarade, hittade, laddningar, harLast, senastSvarAt, sokareSedan, nextQ`; gömda har
-  `tystRef` (tystnadsregelns referens – tas bort när de blir sökare); `autoPlacerad` (placerad av servern);
+  `tystRef` (tystnadsregelns referens – tas bort när de blir sökare) och `tystVissling` (hand-nyckeln för den senaste
+  tystnadsvisslingen – sätts bara när servern visslade, så eleven känner igen sin egen vissling på id:t); `autoPlacerad` (placerad av servern);
   `hittadAv, hittadAvNamn, hittadAt` eller `nySokareAt` ("Ny sökare"); efter slutet `klar: true`,
   `klaradeSig` och slutpoängen. Pluggmyntskvittot får högst `perCorrect × ratt`.
 - **`kgSelf/{uid}`** (bara eleven själv): `gomstalle { x, z, skydd, namn }` (sätts av `kgLas`).
@@ -685,3 +695,93 @@ gratisnivån (10 GB/mån) räcker för hundratals matcher. Slut-QA mäter.
 
 Emulatorerna (functions, auth, firestore, **database**) startas av `npm run test:functions`;
 `firebase.json` har `emulators.database` på port 9000 och `database.rules` → `database.rules.json`.
+## 11. Projektorn, elevskärmen och demot (del D, #839)
+
+D kopplar ihop motorn (A), scenen (B) och servern (C) till ett spelbart Live-format.
+Formatet är registrerat sist i `src/live/formats/index.js`; bootgrafen når bara
+`index.js`, `kg-setup.js`, `kg-avslut.js` och `delat/` – allt med DOM, Firebase, scen eller
+rörelsekanal laddas med `import()` (`projectorViews`/`studentView`/`historyRenderer`).
+
+### 11.1 Filerna
+
+| Fil | Innehåll |
+| --- | --- |
+| `index.js` | format-objektet (spec §0.1): 🙈, `inom-klass` 1–1, free + choice, tidslinje, pacing `tid`, `music` (`assets/kurragomma-loop.ogg` – **filen levereras separat**; saknas den är formatet tyst, proj-music sväljer 404), `emitOnPlayers`, `resultInputs`/`buildResult` |
+| `kg-setup.js` | speltid 3/5/10/15/20/30 + Egen 1–60 (standard 10, ledtexten rekommenderar 8), namn i flödet, `kgInstallningar` med standardvärden tills E:s fält finns, `durationSeconds = gömtid + speltid` (§10.6), quiz-dokumenten, `computeStandings` |
+| `kg-avslut.js` | `resultInputs` = `kgAvsluta` (med två nya försök) → `settleLiveRewards` bara när `result.rewards` finns; `s.demo` betalar aldrig; klasscentret som Meteorstormen |
+| `kurragomma-data.js` | callables (`europe-west1`), `getQuestions`, `watchMe` (eget `kgPlayers`), `kanal()` = `kg-kanal.js` i rtdb-läge mot prod-instansen (`KG_DATABASE_URL`) – `globalThis.__PP_RTDB_URL`/`__PP_RTDB_EMULATOR` i QA |
+| `kurragomma-projector.js` | `views` = [🙈 Ön (`finale: true`)], `createLobby`, `createWinner`, `ownTimer` |
+| `kgp-on.js` | huvudvyn: toppraden, scenen (projektorläge), händelseflödet (≤ 4 rader), effekter + ljud, `kgStarta` efter KÖR! och `kgTick` var 5 s (bara projektorn, aldrig elevskärmsfönstret), finalen |
+| `kgp-logik.js` | ren: `toppText`, `flodesRad`, `finalModell`, `lobbyPlatser`, `FINAL_TITLE`, `LOBBY_TEXT`, `minutKvar` |
+| `kgp-ljud.js` | riktad vissling (`StereoPannerNode` + volym efter plats i bilden, `visslingPan` ren), pling, gömfasens slut, ny sökare, fanfar; ducking bara när effekten hördes |
+| `kgp-final.js` | finalen i tre steg: lugn rad → pall → gömställena på kartan (`scen.gomstallen`) |
+| `kgp-lobby.js` | lobbyn: ön + en figur per ansluten elev på stranden vid bron, förklaringen, STARTA |
+| `kurragomma-projektor.css` | `kgp-*`, enheten `--kgp-u` = bredd/1920 |
+| `kurragomma-student.js` | elevens koppling: `createStage` → `kge-elev-vy.js` med callables, `serverNow`, avatar-roster, pluggmynt-uppdatering |
+| `kge-elev-vy.js` | elevens spelyta utan Firebase (api injiceras): faserna, 🔒 Lås, auto-lås vid 0:00, hittad-rutan (≤ 2 s), sessionStorage för platsen, reserv-avsluta |
+| `kge-spel.js` | `createQuestionFlow` (kistspelet, återanvänd) med `kgSvara` som `send`, sökningen med 2 s spärr, rörelsekanalen → scenen, hjärtslaget |
+| `kge-logik.js` | ren: texterna, `elevLage`, `laddningarHtml` (SVG), `startplats`, `sparaPos`/`lasPos`, `letaTangent`, `panelLage` |
+| `kge-skarmar.js` | lobby- och slutskärmens HTML (ingen placering som nummer utanför pallen) |
+| `kurragomma-elev.css` | `kge-*`, frågepanelen till höger över 1100 px, annars ett hopfällbart kort längst ned |
+| `kurragomma-history.js` | minimal historik (E bygger fullt) |
+| `kg-demo.js`, `kg-demo-server.js`, `kg-demo-robotar.js`, `kg-demo-resultat.js` | demoläget (§11.4) |
+
+### 11.2 Faserna som vyerna ser dem
+
+- **Lobby** – projektorn: ön roterar, figurer på stranden, "N elever redo", STARTA; elevskärmen: kärnans lobby + förklaringen. Tyst.
+- **KÖR!** – kärnans 3-2-1. Projektorn anropar `kgStarta` när `phase === "live"`; elevskärmen monterar spelytan och `kgAnslut` ger roll, fas, tider, gömställe.
+- **Gömfasen** – toppraden "Göm: 0:24" · "Låsta 12/21" (RTDB `status`); musiken sänks till hälften (`music.skala(0.5)`). Eleven: gömmare går (platsen sparas i `sessionStorage` `pp:kg:pos:{sid}`, aldrig på servern) och låser; vid 0:00 skickas platsen automatiskt (`LAS_MARGINAL_MS`). Sökare: täckt skärm "🙈 Du blundar – räkna till N!" + frågor som laddar lampan.
+- **Letfasen** – fasbytet kommer ur RTDB `status.fas` eller klientklockan (gömslut + `LAS_MARGINAL_MS` + 0,5 s). Projektorn: klockan · "Gömda 14 · Sökare 6", visslingar (ringar + riktat ljud, aldrig namn), hittade (konfetti, pling), missar, "1 minut kvar!". Eleven: frågor; gömd → poäng/egen vissling/"Det visslar vid …"/hjärtslag; sökare → tre ficklampor, 🔦 Leta (mellanslag/E, 2 s spärr), pil mot senaste visslingen. Hittad → ruta ≤ 2 s → sökare från gömstället (rollbytet kommer ur det egna `kgPlayers`).
+- **Slutet** – 00:00/alla hittade (`kgTick` → `kgAvsluta` på servern) eller Avsluta-knappen → kärnan `status finished` → `resultInputs` → `kgAvsluta` + `settleLiveRewards`. Finalen: lugn rad → "🏆 Kurragömma – Prispall" (pallen utan tomma platser, mynt under) → gömställena på kartan ur `result.gomstallen`. Eleven: slutskärmen ur samma `result`.
+
+### 11.3 Ljud och musik (spec §8)
+
+Bara projektorn låter. Visslingen pannas efter var platsen syns i bilden (`scen.skarm(p)` →
+`visslingPan`): vänster/höger, svagare mot kanten och utanför bilden, speglad bakom kameran.
+Musiken är `format.music` (🎵-knappen är skalets), tyst i lobbyn, 30 % i matchen, 15 % under
+gömfasen, ducking bara när en effekt faktiskt hördes. Utan `assets/kurragomma-loop.ogg` är det tyst.
+
+### 11.4 Demoläget (spec §11.4, LIVE-FORMAT §8)
+
+`createKgDemo()` är en hel match i minnet: 30 påhittade elever (Snilleblixtens demonamn),
+en **låtsasserver** (`kg-demo-server.js`) som fattar samma beslut som `functions/kurragomma-*.js`
+med de riktiga reglerna i `delat/`, **robotar** (`kg-demo-robotar.js`) som går till ett gömställe nära
+ett föremål och låser, svarar rätt/fel (fel → vissling), vandrar som sökare mot visslingar och letar,
+och den **lokala rörelsekanalen** (`skapaLokalBuss`). Resultatet byggs som serverns
+(`kg-demo-resultat.js`, med `result.rewards`) men sessionen är `demo: true` – ingenting betalas,
+ingen Firestore, inga Cloud Functions, ingen RTDB (sidorna blockerar och räknar varje försök).
+
+- `preview/preview-kurragomma-demo.html` – projektorn (`mountProjector` med `demo.deps`): lobby/gömfas/letfas/final, namn av, 2D-reserven, knappar för varje moment i §11.4 (vissling, sökning, hittad, tystnad, "sökarna borta" → ny sökare, 1 min kvar, alla hittade, tiden ute).
+- `preview/preview-kurragomma-elev.html` – elevskärmen (`createKgStage` med `demo.api`): `?roll=sokare`, `?2d=1`, `?svar=choice`, `?quiz=1`; svara/lås/leta/bli hittad.
+- `preview/preview-kurragomma-demolage.html` – **kopplat demo**: projektorn och elevskärmen i samma match (elevsidan skapar demot i `parent.__kgKoppling`, projektorn läser det). `?roll=sokare`, `?2d=1`, `?elev=380`.
+
+### 11.5 Val och avvikelser (del D)
+
+- **Scenen ligger under toppraden i DOM:en** (`.kgp-scen { top: var(--kgp-topp) }`), inte bakom – ingen effekt kan täcka raden (§0.2). Finalen ritas i samma yta.
+- **Projektorn lyssnar inte på `kgPlayers`/`kgEvents`** under matchen (§5.5): siffrorna kommer ur RTDB `status`, händelserna ur `hand`. Hittad-beskedet till den hittade går via det egna `kgPlayers` (`watchMe`), eftersom `hand` bär namn men inte uid.
+- **Skriv själv** (`fast-answer.js`) håller fokus i svarsfältet permanent. Sökaren går därför med klick på marken/joystick/drag (scenens styrning) – pilarna/WASD går inte när fältet har fokus. Mellanslag och E letar även med fokus i fältet (siffrorna rörs inte); E i ett annat textfält lämnas i fred.
+- **Kärnändringar**: `proj-music.js` fick `music.skala(k)` (vyns faktor på matchnivån, nollställs vid `load`) och `projector.js` ger vyerna `music` i `create`-opts; `scen/kg-scen.js` fick `scen.skarm(p)` (B:s fil) för det riktade ljudet. Inget annat i kärnan rördes.
+- **Speltidens standard är 10 min** (kistspelens fält) med rekommendationen 8 min i ledtexten tills E bygger lärarformulärets egna fält; `kgInstallningar` får standardvärden ur `kg-config.js`.
+- **Demots "Tystnad"-knapp** flyttar bara den valda gömmarens tystnadsreferens – inte letfasens start – så exakt en visslar.
+- **Musikfilen** `assets/kurragomma-loop.ogg` finns inte i repot; formatet behöver bara filen på plats.
+- **Pluggmynten när servern avslutar matchen** (00:00 / alla hittade via `kgTick` → `kgAvsluta`): servern skriver `finished` + `result` i samma transaktion, så kärnans `resultInputs`-väg (bara när `result` saknas) körs aldrig. Projektorn (`kgp-on.js betala()`, inte elevskärmsfönstret) anropar då `avslutaOchBetala` en gång – `kgAvsluta` svarar `redan`, `settleLiveRewards` är idempotent via `coinReceipts/{uid}`, så dubbel utbetalning är omöjlig. **Klassbonusen** (`liveKlassBonus`, ökar klassens EXP – inte idempotent) betalas som i Meteorstormen bara av den som AVSLUTADE: `kgAvsluta` med `redan === false` (Avsluta-knappen) eller projektorn vars eget `kgTick` avslutade matchen (svaret `avslutade: true`). Engångsgaten är `result`-skrivningen själv: `kgTick`/`kgAvsluta` svarar `avslutade: true` enbart i det anrop vars transaktion skrev `result`, alla andra (andra projektorflikar, tick + Avsluta samtidigt, omladdning, historiken) får `false`/`redan` – samma mönster som pluggmyntkvittot, fast kvittot är `result` och skrivs av servern, så ingen klientskrivning och ingen regeländring behövs. Snapshoten med `result` når projektorn före tick-svaret (servern städar RTDB först), så `betala()` väntar in den pågående ticken innan utbetalningen avgör om bonusen ska med. Kurragömmas `result` saknar `perClass` (en klass), så `kg-avslut.js medPerClass` bygger det ur sessionen (`{ classId: { name, players } }`) – bara deltagarbonusen "live", ingen vinstbonus (`winner: null`). Är projektorn stängd vid slutet (en elevs `kgTick` avslutar) går klassbonusen förlorad – som Meteorstormens elevavslut (§8.9).
+- **Återanslutning till RTDB** (`kg-kanal.js`): `connectDatabaseEmulator` körs en gång per db-instans (WeakSet); projektorn försöker starta om rörelsekanalen efter 4 s vid fel. Ingen kärnändring.
+- **Egen vissling (tystnadsregeln)**: visslingen i `hand` bär aldrig uid, så eleven känner igen sin egen på händelsens **id**: ticken väljer hand-nyckeln i förväg (`rt.handelseId`) och skriver den i den visslades `kgPlayers.tystVissling` i samma transaktion som visslingen – bara i visslingsgrenen (`tystRef` duger inte: den flyttas även utan vissling, och tidsstämplar delas av alla kandidater i en tick, N1b). Referensen ensam visar inget: raden "Du var tyst länge – det visslade där du gömmer dig!" och hoppet kommer först när hand-visslingen med exakt samma id finns (`kge-logik.js egenVisslingsReferens` + `skapaEgenVisslingar`, i valfri ordning, en gång). Händelsen avslöjar fortfarande ingen: id:t är en slumpnyckel. Fel svar ger "Fel svar – det visslade där du gömmer dig!" direkt ur kgSvara-svaret.
+- **Sökare som står stilla** pulsar sin plats var `POS_PULS_MS` (kge-spel.js) så servern inte befordrar en ny sökare var 30 s.
+- **Elevskärmsfönstret** (`&skarm=elev`) kör kärnans `resultInputs`-flöde som alla lärarfeeds, men Kurragömmas `resultInputs` ser fönstret (`arElevskarmsfonster`) och varken anropar `kgAvsluta` eller betalar där – det väntar in `result` (`vantaPaResult`, högst 60 s) som projektorn/servern skriver (N9). Ingen kärnändring.
+- **Omladdning i finalen**: projektorns scen laddas asynkront, så finalen får scenen som getter och `scenKlar()` ritar gömställena när scenen (eller återanslutningen) är klar (N8). **Egen vissling-raden** står kvar hela `VISSLING_RAD_MS` även om andras visslingar ur samma tick kommer strax efter (`radFarBytas`, N7).
+- **Lobbyrutan** (`.kgp-lobbyruta`) ligger på den sida av bilden där bron och figurerna på stranden inte är (`lobbyrutaSida`, kontrolleras varje sekund eftersom ön roterar). **Finalen** gör pallen till en kompakt lista i vänstra hörnet vid steg 3 (`.kgp-karta-visas`: en rad per elev – medalj · namn · poäng · mynt, delad plats = flera rader, namn ≈ 31 px på 1280×720) så ön med gömställena syns; "Här var alla gömda" står i nederkanten.
+- **Elevskärmens kort** (under 1100 px, t.ex. 1366×768 med sidomenyn): kortet är högst 52 % av ytan (`52cqh` – `minmax(auto, 46 %)` gav ingen gräns eftersom min vinner över max) och fast-answer skalas ned i kortet; i sidopanelen skalas frågan efter panelens bredd (`cqi`) i stället för viewporten.
+
+### 11.6 Testerna (spec §13.4)
+
+| Fil | Täcker |
+| --- | --- |
+| `test/live-kurragomma-format.test.js` | registreringen, sessionsdokumentet (gömtid + speltid), avslutet (settle bara med rewards, demo betalar aldrig, nya försök), toppraden, flödet (namn av → "Någon", visslingen aldrig med namn), finalen (exakt rubrik, pall utan tomma platser), lobbyplatserna inom ön, det riktade ljudet, elevens texter/lägen/sessionStorage/tangenter, ≤ 400 rader, inga Emoji 13+, bootgrafen |
+| `test/live-kurragomma-demo.test.js` | en hel match i node: 30 ansluter, KÖR!, låsning, fasbyte, fel svar → vissling utan namn/uid, leta → hittad → sökare (`watchMe`), tystnadsregeln, "alltid en sökare", alla hittade/tiden ute → result + rewards; låtsasserverns fel; isoleringen |
+| `test/live-music.test.js` | `musicTarget` med `skala` |
+| `test/live-formats.test.js`, `test/live-kurragomma-scen.test.js` | bootgrafen (formatet + three nås inte statiskt), 2D-reserven utan WebGL |
+
+Verifierat i webbläsaren (headless Chromium): projektorn 1920×1080 och 1280×720 (toppraden täcks aldrig av scen,
+flöde eller final), elevskärmen 1366×768 (panel till höger) och 380 px (hopfällbart kort), det kopplade demot
+lobby → KÖR! → gömfas → letfas (vissling från elevens fel svar syns i projektorns flöde) → hittad → final.

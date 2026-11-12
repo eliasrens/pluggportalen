@@ -80,6 +80,16 @@ export async function handelse(rtdb, sid, h) {
   await rot(rtdb, sid).child("hand").push(h);
 }
 
+/** En hand-nyckel i förväg (ingen skrivning) – tystnadsvisslingens id skrivs i den visslades kgPlayers. */
+export function handelseId(rtdb, sid) {
+  return rot(rtdb, sid).child("hand").push().key;
+}
+
+/** Händelsen under en i förväg vald nyckel (handelseId). */
+export async function handelseMedId(rtdb, sid, id, h) {
+  await rot(rtdb, sid).child("hand").child(id).set(h);
+}
+
 export async function status(rtdb, sid, patch) {
   await rot(rtdb, sid).child("status").update(patch);
 }

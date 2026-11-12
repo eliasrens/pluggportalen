@@ -16,6 +16,12 @@ import GULDRUSH from "../src/live/formats/guldrush/index.js";
 
 describe("musicTarget – nivån per fas (ren)", () => {
   const on = { on: true, level: 0.3, lobby: 0 };
+  it("vyns skala (Kurragömma #839: lägre under gömfasen) skalar bara matchnivån, 0–1", () => {
+    assert.ok(Math.abs(musicTarget({ ...on, phase: "live", msLeft: 90_000, skala: 0.5 }).gain - 0.15) < 1e-9);
+    assert.equal(musicTarget({ ...on, phase: "live", msLeft: 90_000, skala: 7 }).gain, 0.3);
+    assert.equal(musicTarget({ ...on, lobby: 0.5, phase: "lobby", skala: 0.5 }).gain, 0.15, "lobbynivån rörs inte");
+    assert.equal(musicTarget({ ...on, phase: "live", msLeft: 90_000 }).gain, 0.3, "utan skala = 1");
+  });
   it("lobbyn är tyst (vårt val), 3-2-1-KÖR! tyst", () => {
     assert.equal(LOBBY_LEVEL, 0);
     assert.equal(musicTarget({ ...on, phase: "lobby" }).gain, 0);

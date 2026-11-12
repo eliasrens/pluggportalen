@@ -1,0 +1,241 @@
+/* ==========================================================================
+   Kurragömma – PROJEKTORN (#839, spec §7, §11.1, §11.2, §0.2). Bara kgp-*.
+   Enheten --kgp-u = bredden/1920 (kgp-on.js/kgp-lobby.js sätter den), så
+   1920×1080 och 1280×720 ritas lika. Toppraden är FREDAD: scenen (3D-ytan)
+   börjar under den i DOM:en och flödet ligger nederst – ingen effekt eller
+   notis kan hamna över logga, timer eller siffrorna.
+   ========================================================================== */
+.kgp {
+  --kgp-u: 1px;
+  --kgp-topp: calc(var(--kgp-u) * 92);
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #0b0f2e;
+  color: #fff;
+  font-family: "Baloo 2", "Segoe UI Rounded", system-ui, sans-serif;
+}
+.kgp .kgp-scen {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--kgp-topp);
+  bottom: 0;
+}
+.kgp-lobby .kgp-scen { top: 0; }
+
+/* --- toppraden (fredad) ---------------------------------------------------- */
+.kgp-topp {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: var(--kgp-topp);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 calc(var(--kgp-u) * 28);
+  background: linear-gradient(#141a4a, #0b0f2e);
+  border-bottom: calc(var(--kgp-u) * 3) solid rgba(255, 255, 255, 0.12);
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+.kgp-logga {
+  font-size: calc(var(--kgp-u) * 34);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #ffd166;
+}
+.kgp-timer b {
+  display: inline-block;
+  min-width: calc(var(--kgp-u) * 220);
+  text-align: center;
+  padding: calc(var(--kgp-u) * 2) calc(var(--kgp-u) * 26);
+  border-radius: calc(var(--kgp-u) * 18);
+  background: rgba(255, 255, 255, 0.1);
+  font-size: calc(var(--kgp-u) * 48);
+  font-weight: 800;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+.kgp-slutet .kgp-timer b { color: #ffcf5a; }
+.kgp-rad {
+  justify-self: end;
+  font-size: calc(var(--kgp-u) * 30);
+  font-weight: 700;
+  opacity: 0.95;
+}
+
+/* --- händelseflödet (≤ 4 rader, nederst, aldrig över raden) ----------------- */
+.kgp-flode {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--kgp-u) * 16);
+  transform: translateX(-50%);
+  width: calc(var(--kgp-u) * 820);
+  height: calc(var(--kgp-u) * 4 * 50);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: calc(var(--kgp-u) * 6);
+  pointer-events: none;
+}
+.kgp-flode[hidden] { display: none; }
+.kgp-flodrad {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--kgp-u) * 10);
+  padding: calc(var(--kgp-u) * 5) calc(var(--kgp-u) * 18);
+  border-radius: calc(var(--kgp-u) * 14);
+  background: rgba(12, 18, 58, 0.82);
+  font-size: calc(var(--kgp-u) * 26);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(calc(var(--kgp-u) * 12));
+  transition: opacity 0.4s, transform 0.4s;
+}
+.kgp-flodrad.kgp-synlig { opacity: 1; transform: none; }
+.kgp-flodtext { overflow: hidden; text-overflow: ellipsis; }
+.kgp-flodrad-vissling { background: rgba(108, 75, 244, 0.85); }
+.kgp-flodrad-hittad { background: rgba(39, 174, 96, 0.85); }
+.kgp-flodrad-fas, .kgp-flodrad-tid { background: rgba(255, 176, 32, 0.9); color: #2c2230; }
+
+.kgp-vanta {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--kgp-topp) + var(--kgp-u) * 30);
+  transform: translateX(-50%);
+  padding: calc(var(--kgp-u) * 8) calc(var(--kgp-u) * 24);
+  border-radius: 999px;
+  background: rgba(12, 18, 58, 0.82);
+  font-size: calc(var(--kgp-u) * 26);
+  font-weight: 700;
+}
+.kgp-vanta[hidden] { display: none; }
+
+/* --- lobbyn ---------------------------------------------------------------- */
+/* Rutan ligger till höger eller vänster om mitten (data-sida, kgp-lobby.js) –
+   på den sida där bron och figurerna på stranden inte är. */
+.kgp-lobby { --kgp-ruta-x: calc(var(--kgp-u) * 470); }
+.kgp-lobby[data-sida="vanster"] { --kgp-ruta-x: calc(var(--kgp-u) * -470); }
+.kgp-lobbyruta {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(calc(-50% + var(--kgp-ruta-x)), -50%);
+  transition: transform 0.8s ease-in-out;
+  width: calc(var(--kgp-u) * 760);
+  max-width: 48%;
+  padding: calc(var(--kgp-u) * 28) calc(var(--kgp-u) * 40);
+  border-radius: calc(var(--kgp-u) * 26);
+  background: rgba(12, 18, 58, 0.86);
+  text-align: center;
+  box-sizing: border-box;
+}
+.kgp-lobbyruta .kgp-logga { font-size: calc(var(--kgp-u) * 30); }
+.kgp-lobbytitel { margin: calc(var(--kgp-u) * 6) 0; font-size: calc(var(--kgp-u) * 64); font-weight: 800; color: #ffd166; }
+.kgp-lobbymeta { font-size: calc(var(--kgp-u) * 24); opacity: 0.85; }
+.kgp-lobbypris { margin-top: calc(var(--kgp-u) * 8); font-size: calc(var(--kgp-u) * 22); color: #ffd166; }
+.kgp-lobbytext { margin: calc(var(--kgp-u) * 18) auto; max-width: calc(var(--kgp-u) * 720); font-size: calc(var(--kgp-u) * 26); line-height: 1.35; }
+.kgp-lobbyklass b { display: block; font-size: calc(var(--kgp-u) * 30); }
+.kgp-prickar { display: flex; flex-wrap: wrap; justify-content: center; gap: calc(var(--kgp-u) * 6); margin: calc(var(--kgp-u) * 8) 0; min-height: calc(var(--kgp-u) * 18); }
+.kgp-prickar i { width: calc(var(--kgp-u) * 16); height: calc(var(--kgp-u) * 16); border-radius: 50%; background: #8fcb74; box-shadow: 0 0 0 calc(var(--kgp-u) * 2) #3b3350; }
+.kgp-lobbystatus { margin: calc(var(--kgp-u) * 8) 0; font-size: calc(var(--kgp-u) * 22); opacity: 0.85; }
+.kgp-puls { display: inline-block; width: calc(var(--kgp-u) * 12); height: calc(var(--kgp-u) * 12); margin-right: calc(var(--kgp-u) * 8); border-radius: 50%; background: #ffd166; animation: kgp-puls 1.4s ease-in-out infinite; }
+@keyframes kgp-puls { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+.kgp-start {
+  margin-top: calc(var(--kgp-u) * 10);
+  padding: calc(var(--kgp-u) * 14) calc(var(--kgp-u) * 54);
+  border: 0;
+  border-radius: calc(var(--kgp-u) * 22);
+  background: #27ae60;
+  color: #fff;
+  font: inherit;
+  font-size: calc(var(--kgp-u) * 40);
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 calc(var(--kgp-u) * 7) 0 #1e8e4e;
+}
+.kgp-start:disabled { opacity: 0.6; cursor: default; }
+.kgp-lobbyfot { margin-top: calc(var(--kgp-u) * 14); display: flex; justify-content: center; gap: calc(var(--kgp-u) * 20); font-size: calc(var(--kgp-u) * 20); opacity: 0.85; }
+
+/* --- finalen --------------------------------------------------------------- */
+.kgp-finalyta {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--kgp-topp);
+  bottom: 0;
+  pointer-events: none;
+}
+.kgp-final { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; }
+.kgp-final [data-steg] { opacity: 0; transform: translateY(calc(var(--kgp-u) * 16)); transition: opacity 0.6s, transform 0.6s; }
+.kgp-final .kgp-synlig { opacity: 1; transform: none; }
+.kgp-final-rad {
+  margin: calc(var(--kgp-u) * 26) 0 0;
+  padding: calc(var(--kgp-u) * 8) calc(var(--kgp-u) * 30);
+  border-radius: 999px;
+  background: rgba(12, 18, 58, 0.86);
+  font-size: calc(var(--kgp-u) * 34);
+  font-weight: 700;
+}
+.kgp-final-pall { margin-top: calc(var(--kgp-u) * 18); text-align: center; }
+.kgp-final-titel { margin: 0 0 calc(var(--kgp-u) * 14); font-size: calc(var(--kgp-u) * 52); font-weight: 800; color: #ffd166; text-shadow: 0 calc(var(--kgp-u) * 3) 0 #3b3350; }
+.kgp-pall { display: flex; align-items: flex-end; justify-content: center; gap: calc(var(--kgp-u) * 18); }
+.kgp-pallsteg { display: flex; flex-direction: column; align-items: center; width: calc(var(--kgp-u) * 260); }
+.kgp-plats-1 { order: 2; }
+.kgp-plats-2 { order: 1; }
+.kgp-plats-3 { order: 3; }
+/* Namnen och mynten står mot himlen (och krympta i hörnet vid steg 3) – en mörk plupp bakom ger kontrast. */
+.kgp-pallnamn { display: flex; flex-direction: column; align-items: center; gap: calc(var(--kgp-u) * 4); margin-bottom: calc(var(--kgp-u) * 8); font-size: calc(var(--kgp-u) * 30); }
+.kgp-pallnamn b, .kgp-pallmynt { padding: calc(var(--kgp-u) * 2) calc(var(--kgp-u) * 14); border-radius: 999px; background: rgba(12, 18, 58, 0.86); }
+.kgp-pallbox {
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end; width: 100%;
+  border-radius: calc(var(--kgp-u) * 16) calc(var(--kgp-u) * 16) 0 0; background: #ffd166; color: #3b3350;
+  border: calc(var(--kgp-u) * 4) solid #3b3350; border-bottom: 0; box-sizing: border-box;
+}
+.kgp-plats-1 .kgp-pallbox { height: calc(var(--kgp-u) * 190); }
+.kgp-plats-2 .kgp-pallbox { height: calc(var(--kgp-u) * 150); background: #dfe6f5; }
+.kgp-plats-3 .kgp-pallbox { height: calc(var(--kgp-u) * 120); background: #f2b27a; }
+.kgp-pallmedalj { font-size: calc(var(--kgp-u) * 44); }
+.kgp-pallplats { font-size: calc(var(--kgp-u) * 54); font-weight: 800; line-height: 1; }
+.kgp-pallpoang { font-size: calc(var(--kgp-u) * 22); font-weight: 700; margin-bottom: calc(var(--kgp-u) * 8); }
+.kgp-pallmynt { display: inline-block; margin-top: calc(var(--kgp-u) * 6); font-size: calc(var(--kgp-u) * 24); font-weight: 700; color: #ffd166; }
+.kgp-final-karta { margin: calc(var(--kgp-u) * 14) 0 0; font-size: calc(var(--kgp-u) * 26); font-weight: 700; text-shadow: 0 calc(var(--kgp-u) * 2) 0 #3b3350; }
+/* Steg 3 (kgp-karta-visas): pallen blir en kompakt lista i vänstra hörnet (utanför ön) så ön med
+   gömställena syns – en rad per elev (.kgp-pallrad: medalj · namn · poäng · mynt; delad plats = flera
+   rader), namnen 46 enheter (≈ 31 px på 1280×720, som Guldrushens pall) och mynten 40.
+   Raden står kvar i toppen och "Här var alla gömda" flyttar till nederkanten. */
+.kgp-pallrader { display: none; }
+.kgp-final.kgp-karta-visas .kgp-final-pall { position: absolute; left: calc(var(--kgp-u) * 24); top: calc(var(--kgp-u) * 96); margin: 0; text-align: left; }
+.kgp-final.kgp-karta-visas .kgp-final-titel { margin-bottom: calc(var(--kgp-u) * 10); font-size: calc(var(--kgp-u) * 40); }
+.kgp-final.kgp-karta-visas .kgp-pall { flex-direction: column; align-items: flex-start; gap: calc(var(--kgp-u) * 8); }
+.kgp-final.kgp-karta-visas .kgp-pallsteg { display: contents; }
+.kgp-final.kgp-karta-visas :is(.kgp-pallnamn, .kgp-pallbox, .kgp-pallsteg > .kgp-pallmynt) { display: none; }
+.kgp-final.kgp-karta-visas .kgp-pallrader { display: flex; flex-direction: column; gap: calc(var(--kgp-u) * 8); }
+.kgp-final.kgp-karta-visas .kgp-plats-1 .kgp-pallrader { order: 1; }
+.kgp-final.kgp-karta-visas .kgp-plats-2 .kgp-pallrader { order: 2; }
+.kgp-final.kgp-karta-visas .kgp-plats-3 .kgp-pallrader { order: 3; }
+.kgp-final.kgp-karta-visas .kgp-pallrad {
+  display: flex; align-items: center; gap: calc(var(--kgp-u) * 10); width: max-content;
+  padding: calc(var(--kgp-u) * 4) calc(var(--kgp-u) * 18); border-radius: 999px; background: rgba(12, 18, 58, 0.86);
+  font-size: calc(var(--kgp-u) * 46); font-weight: 800; text-shadow: none;
+}
+.kgp-final.kgp-karta-visas .kgp-pallrad .kgp-pallmedalj { font-size: calc(var(--kgp-u) * 46); }
+.kgp-final.kgp-karta-visas .kgp-pallrad-plats { font-size: calc(var(--kgp-u) * 30); color: #ffd166; }
+.kgp-final.kgp-karta-visas .kgp-pallrad .kgp-pallpoang { margin: 0; font-size: calc(var(--kgp-u) * 40); opacity: 0.9; }
+.kgp-final.kgp-karta-visas .kgp-pallrad .kgp-pallmynt { margin: 0; padding: 0; background: none; font-size: calc(var(--kgp-u) * 40); }
+.kgp-final.kgp-karta-visas .kgp-final-karta {
+  position: absolute; left: 0; right: 0; bottom: calc(var(--kgp-u) * 22); margin: 0 auto; width: max-content; max-width: 90%;
+  padding: calc(var(--kgp-u) * 6) calc(var(--kgp-u) * 24); border-radius: 999px; background: rgba(12, 18, 58, 0.86);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kgp-flodrad, .kgp-final [data-steg], .kgp-lobbyruta { transition: none; }
+  .kgp-puls { animation: none; }
+}
