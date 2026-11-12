@@ -203,6 +203,16 @@ export function rewardRader(spelare) {
   return spelare.map((p) => ({ uid: p.uid, score: p.poang | 0, correct: p.ratt | 0, answered: p.besvarade | 0 }));
 }
 
+/**
+ * Deltog eleven i matchen (pluggmyntens "deltagare", #840)? live-rewards räknar bara den
+ * som svarat – i Kurragömma räknas också den som låst ett gömställe eller hittat någon,
+ * annars får den som gömde sig hela matchen utan att svara (poäng från överlevnaden) inget pris.
+ * Samma villkor i firestore.rules (liveCoinPlayerOk, Kurragömma-grenen).
+ */
+export function deltog(p) {
+  return (p?.besvarade | 0) > 0 || p?.harLast === true || (p?.hittade | 0) > 0;
+}
+
 /** Slutar matchen? Speltiden är ute, eller (i letfasen) alla gömmare är hittade. */
 export function arSlut({ fas, nu, slutAt, gomdaKvar }) {
   if (Number.isFinite(slutAt) && nu >= slutAt) return true;

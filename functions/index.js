@@ -64,7 +64,7 @@
 //
 // Kurragömma (#838, epic #835) – servern avgör roller, gömställen, rättning,
 // visslingar, sökning och poäng; rörelsekanalen i Realtime Database:
-//   kgStarta / kgAnslut / kgLas / kgSvara / kgLeta / kgTick / kgAvsluta
+//   kgStarta / kgAnslut / kgLas / kgSvara / kgLeta / kgTick / kgAvsluta / kgLarareVissla
 // Logiken: kurragomma-core.js (+ -sess/-fas/-rtdb/-tick/-resultat), docs/KURRAGOMMA.md §8.
 //
 // ⚠️ DEPLOY KRÄVS: firebase deploy --only functions (Blaze-planen). Klienten
@@ -106,7 +106,7 @@ import { datorVinst as scDatorVinst, lektionMynt as scLektionMynt, pusselMynt as
 import { KsError as MsFel, agera as msAgeraCore, ratta as msRattaCore, lage as msLageCore, avsluta as msAvslutaCore } from "./meteorstorm-core.js";
 import {
   starta as kgStartaCore, anslut as kgAnslutCore, las as kgLasCore, svara as kgSvaraCore, leta as kgLetaCore,
-  tick as kgTickCore, avsluta as kgAvslutaCore,
+  tick as kgTickCore, avsluta as kgAvslutaCore, larareVissla as kgLarareVisslaCore,
 } from "./kurragomma-core.js";
 import { kgDatabaseUrl } from "./kurragomma-rtdb.js";
 
@@ -396,3 +396,5 @@ export const kgSvara = kurragommaCall("kgSvara", kgSvaraCore);
 export const kgLeta = kurragommaCall("kgLeta", kgLetaCore);
 export const kgTick = kurragommaCall("kgTick", kgTickCore, { auth: true });
 export const kgAvsluta = kurragommaCall("kgAvsluta", kgAvslutaCore, { auth: true });
+// Lärarens vissling på en gömd elev som bryter mot reglerna (#840) – samma händelse som en vanlig vissling.
+export const kgLarareVissla = kurragommaCall("kgLarareVissla", kgLarareVisslaCore, { auth: true });

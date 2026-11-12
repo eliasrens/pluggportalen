@@ -23,20 +23,19 @@
 // ============================================================================
 
 import { KsError } from "./kistspel-rattning.js";
-import { tystnadVisslar, arFrankopplad, visslingsplats, behoverNySokare, valjSlumpade, arSlut } from "./kurragomma/kg-regler.js";
-import { platsNamn } from "./kurragomma/kg-geometri.js";
+import { tystnadVisslar, arFrankopplad, behoverNySokare, valjSlumpade, arSlut } from "./kurragomma/kg-regler.js";
 import { TYSTNAD_MS, FRANKOPPLAD_MS } from "./kurragomma/kg-config.js";
 import { toMs } from "./kistspel/ks-regler.js";
-import { refs, parseSid, tider, playerFor, instFor, kartaFor, namnFor, larareFor, gomdaKvar } from "./kurragomma-sess.js";
+import { refs, parseSid, tider, playerFor, instFor, namnFor, larareFor, gomdaKvar } from "./kurragomma-sess.js";
 import { redo, gorTillSokare } from "./kurragomma-fas.js";
 import { avslutaIntern } from "./kurragomma-resultat.js";
+import { visslaGomd } from "./kurragomma-vissling.js";
 import * as rt from "./kurragomma-rtdb.js";
 
-/** Tystnadsregeln (spec §1.3): gömda utan svar på TYSTNAD_MS visslar – inte frånkopplade. */
+/** Tystnadsregeln (spec §1.3): gömda utan svar på TYSTNAD_MS visslar – inte frånkopplade. Visslingen: kurragomma-vissling.js. */
 async function tystnad(deps, sid, s, nu) {
   const { db } = deps;
   const r = refs(db, sid);
-  const karta = kartaFor(s);
   const { letStart } = tider(s);
   const kand = await r.kgPlayers.where("tystRef", "<", nu - TYSTNAD_MS).get();
   let visslade = 0;
@@ -50,29 +49,14 @@ async function tystnad(deps, sid, s, nu) {
     const visslar = tystnadVisslar({
       roll: kp.roll, fas: s.kgFas, tystnadPa: true, senastSvarAt: kp.senastSvarAt, senastVisslingAt: sd.senastVisslingAt, letStartAt: letStart, pulsAt, nu,
     });
-    const id = rt.handelseId(deps.rtdb, sid);
-    const h = await db.runTransaction(async (tx) => {
-      const [k2, s2] = await tx.getAll(d.ref, r.secret(d.id));
-      const kp2 = k2.data();
-      const sd2 = s2.data();
-      if (!kp2 || kp2.roll !== "gomd" || !sd2?.gomd) return null;
-      if (!visslar || (Number(kp2.tystRef) || 0) >= nu - TYSTNAD_MS) {
-        // Inte tyst länge nog, eller frånkopplad: flytta fram referensen så kandidaten
-        // inte läses varje tick (frånkopplad → prövas igen om TYSTNAD_MS).
-        tx.update(d.ref, { tystRef: arFrankopplad(pulsAt, nu) ? nu : Math.max(ref, Number(kp2.tystRef) || 0) });
-        return null;
-      }
-      const pl = visslingsplats(sd2.x, sd2.z, deps.rng(), deps.rng(), karta);
-      const ev = { typ: "vissling", x: pl.x, z: pl.z, plats: platsNamn(pl.x, pl.z, karta), t: nu };
-      tx.update(r.secret(d.id), { senastVisslingAt: nu });
-      tx.update(d.ref, { tystRef: nu, tystVissling: id });
-      tx.create(r.events.doc(), { t: nu, typ: "vissling", x: pl.x, z: pl.z, plats: ev.plats, tyst: true });
-      return ev;
+    const { ev } = await visslaGomd(deps, sid, s, {
+      uid: d.id, nu, event: { tyst: true },
+      far: (kp2) => (visslar && (Number(kp2.tystRef) || 0) < nu - TYSTNAD_MS ? true : "inte-tyst"),
+      // Inte tyst länge nog, eller frånkopplad: flytta fram referensen så kandidaten
+      // inte läses varje tick (frånkopplad → prövas igen om TYSTNAD_MS).
+      farPatch: (kp2) => ({ tystRef: arFrankopplad(pulsAt, nu) ? nu : Math.max(ref, Number(kp2.tystRef) || 0) }),
     });
-    if (h) {
-      await rt.handelseMedId(deps.rtdb, sid, id, h);
-      visslade++;
-    }
+    if (ev) visslade++;
   }
   return visslade;
 }

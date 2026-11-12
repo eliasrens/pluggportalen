@@ -23,14 +23,14 @@
 //           → { attemptId, correct, correctAnswer, nextQ, poang, laddningar, vissling, plats?, correctYear? }
 //   leta    kgLeta({ sid, x, z })  EN transaktion: kontroll, sökning, hittade blir sökare
 //           → { hittade: [{ uid, namn, x, z, plats }], laddningar, poang, plats, flode }
+//   larareVissla  kgLarareVissla({ sid, uid })  lärarens vissling (kurragomma-vissling.js, #840)
 //
 // deps = { db, rtdb, FieldValue, Timestamp, now(), rng(), minne?, roll?(auth) }
 // ============================================================================
 
 import { KsError, gradeMult, gradeQuiz, pickNextQ, yearOut } from "./kistspel-rattning.js";
 import {
-  rollVidAnslutning, laddningarNySokare, svarsEffekt, visslingsplats, kontrolleraSokning, sok, poangForHittad,
-  missFlodeTillats,
+  rollVidAnslutning, laddningarNySokare, svarsEffekt, kontrolleraSokning, sok, poangForHittad, missFlodeTillats,
 } from "./kurragomma/kg-regler.js";
 import { narmasteGiltiga, skydd, platsNamn } from "./kurragomma/kg-geometri.js";
 import { LAS_MARGINAL_MS, LETA_SPARR_MS } from "./kurragomma/kg-config.js";
@@ -40,11 +40,13 @@ import {
 } from "./kurragomma-sess.js";
 import { startaIntern, redo, spelareDoc, gorTillSokare } from "./kurragomma-fas.js";
 import * as rt from "./kurragomma-rtdb.js";
+import { visslingsHandelse } from "./kurragomma-vissling.js";
 
 export { KsError };
 export { nyttMinne } from "./kurragomma-sess.js";
 export { tick } from "./kurragomma-tick.js";
 export { avsluta } from "./kurragomma-resultat.js";
+export { larareVissla } from "./kurragomma-vissling.js";
 
 const tiderUt = (s) => {
   const t = tider(s);
@@ -168,10 +170,10 @@ export async function svara(deps, uid, raw) {
     });
     let vissling = null;
     if (visslar) {
-      const pl = visslingsplats(sec.x, sec.z, deps.rng(), deps.rng(), karta);
-      vissling = { x: pl.x, z: pl.z, plats: platsNamn(pl.x, pl.z, karta), t: nu };
+      const { typ: _typ, ...ev } = visslingsHandelse(deps, karta, sec, nu); // samma form som tystnads-/lärarvisslingen
+      vissling = ev;
       tx.update(r.secret(uid), { senastVisslingAt: nu });
-      tx.create(r.events.doc(), { t: nu, typ: "vissling", x: pl.x, z: pl.z, plats: vissling.plats });
+      tx.create(r.events.doc(), { t: nu, typ: "vissling", x: ev.x, z: ev.z, plats: ev.plats });
     }
     return {
       attemptId, correct: graded.isCorrect, correctAnswer: graded.correctAnswer, nextQ, poang: (kp.poang | 0) + eff.poang,

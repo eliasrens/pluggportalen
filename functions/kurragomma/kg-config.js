@@ -79,6 +79,11 @@ export const FRANKOPPLAD_MS = 30_000;
 export const VISSLING_MARKOR_MS = 4000;
 /** Övriga gömmare ser raden "Det visslar vid …" så här länge. */
 export const VISSLING_RAD_MS = 3000;
+/**
+ * Lärarens vissling (kgLarareVissla, #840): VISSLING_SPARR_MS gäller inte den, men
+ * samma gömda elev kan inte visslas igen av läraren inom så här lång tid (spamskydd).
+ */
+export const LARARE_VISSLA_SPARR_MS = 5000;
 
 // ---- Poängen (spec §1.3, §1.4) -----------------------------------------------
 export const POANG = {
