@@ -196,3 +196,35 @@ describe("Kurragömma: pluggmynten åt deltagare (svarat, låst eller hittat)", 
     assert.equal(s.result.players, 5);
   });
 });
+
+describe("Kurragömma: kgLarareVissla – testarens kantfall (#840)", () => {
+  it("två samtidiga tryck på samma elev: exakt ett visslar, det andra nekas av spamskyddet", async () => {
+    const { sid, d } = await letfas();
+    const koder = await Promise.all([code(larareVissla(d, LARARE, { sid, uid: "bo" })), code(larareVissla(d, LARARE, { sid, uid: "bo" }))]);
+    assert.deepEqual(koder.sort(), ["ok", "resource-exhausted"]);
+    assert.equal((await hand(sid)).length, 1);
+  });
+
+  it("tystnadsregeln av: läraren kan ändå vissla; händelsen har samma form", async () => {
+    const { sid, d } = await letfas({ kgInstallningar: { gomtid: 30, startsokare: 1, tystnad: false, karta: "on" } });
+    assert.equal((await larareVissla(d, LARARE, { sid, uid: "cleo" })).visslade, true);
+    const h = await hand(sid);
+    assert.equal(h.length, 1);
+    assert.deepEqual(Object.keys(h[0]).sort(), ["id", "plats", "t", "typ", "x", "z"]);
+  });
+
+  it("en lärare utan roll (ej lärare för klassen) nekas", async () => {
+    const { sid } = await letfas();
+    const d2 = { ...deps(), roll: async () => ({ role: "arskurs", classIds: ["5a"] }) };
+    assert.equal(await code(larareVissla(d2, { uid: "annan" }, { sid, uid: "bo" })), "permission-denied");
+    const d3 = { ...deps(), roll: async () => ({ role: "arskurs", classIds: ["4b"] }) };
+    assert.equal(await code(larareVissla(d3, { uid: "klassens" }, { sid, uid: "bo" })), "ok");
+  });
+
+  it("efter slutAt men innan någon tick avslutat: nekas och skriver ingen händelse", async () => {
+    const { sid, d } = await letfas();
+    ctl.clock = END + 1;
+    assert.equal(await code(larareVissla(d, LARARE, { sid, uid: "bo" })), "failed-precondition");
+    assert.equal((await hand(sid)).length, 0);
+  });
+});

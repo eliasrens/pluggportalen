@@ -206,3 +206,23 @@ test("lärarens vissling (#840): eleven nekas, läraren visslar – händelsen s
   // Läraren läser de gömda (Vissla-panelen) men aldrig kgSelf/kgSecret
   assert.equal(await errCode(getDoc(doc(cdb, "liveSessions", "kg-vissla", "kgSecret", gomd))), "permission-denied");
 });
+
+test("lärarens vissling (#840, testaren): årskurslärare för en ANNAN klass nekas, klassens årskurslärare får vissla", async () => {
+  await session("kg-vissla-ak", { sedan: 200_000 });
+  for (const [uid, classIds] of [["kgak5", ["kg5a"]], ["kgak4", ["kg4b"]]]) {
+    await admin.auth(adminApp).createUser({ uid, email: email(uid), password: PW }).catch(() => {});
+    await admin.auth(adminApp).setCustomUserClaims(uid, { teacher: true, role: "arskurs" });
+    await adb.doc(`teacherAccounts/${uid}`).set({ role: "arskurs", active: true, classIds });
+  }
+  await as("kgalma");
+  await call("kgAnslut", { sid: "kg-vissla-ak" }); // lat start + placering
+  const roller = {};
+  for (const u of ELEVER) roller[u] = (await adb.doc(`liveSessions/kg-vissla-ak/kgPlayers/${u}`).get()).data().roll;
+  const gomd = ELEVER.find((u) => roller[u] === "gomd");
+  await as("kgak5");
+  assert.equal(await errCode(call("kgLarareVissla", { sid: "kg-vissla-ak", uid: gomd })), "permission-denied", "annan klass");
+  await as("kgak4");
+  assert.equal((await call("kgLarareVissla", { sid: "kg-vissla-ak", uid: gomd })).visslade, true, "klassens lärare");
+  const hand = Object.values((await adminApp.database().ref("kg/kg-vissla-ak/hand").once("value")).val() || {});
+  assert.equal(hand.length, 1, "bara klassens lärare skrev en händelse");
+});
