@@ -32,8 +32,7 @@ import { LAS_MARGINAL_MS, HITTAD_RUTA_MS, VISSLING_RAD_MS } from "./delat/kg-con
 import { platsNamn } from "./delat/kg-geometri.js";
 import {
   TEXT, elevLage, scenLage, gomdText, hittadText, hittadeText, andraVisslingText, blundText, nedrakning, laddningarHtml,
-  skyddPrickSvg, skyddText, startplats, sparaPos, lasPos, glomPos, letaTangent, panelLage, mittenText,
-} from "./kge-logik.js";
+  skyddPrickSvg, skyddText, startplats, sparaPos, lasPos, glomPos, letaTangent, panelLage, mittenText, egenVisslingsReferens } from "./kge-logik.js";
 import { skapaSpel } from "./kge-spel.js";
 
 export const KGE_CSS = ["src/live/formats/kurragomma/kurragomma-elev.css", "src/live/formats/kurragomma/scen/kurragomma-scen.css"];
@@ -241,17 +240,17 @@ export function createKgStage({ view, host, uid, session, mode, answerKind }, { 
   }
 
   /** Det egna kgPlayers: hittad → sökare, poäng, laddningar – och tystnadsregelns egna vissling. */
-  let tystRef = null;
+  let tystVisslad = null;
   function meUppdaterad(me) {
     if (!me || destroyed || !ready) return;
     if (Number.isFinite(me.poang)) poang = me.poang;
-    // Servern visslade åt mig (tystnadsregeln): tystRef flyttas till visslingens t utan att
-    // senastSvarAt rörs (ett svar sätter båda). tystRef flyttas också utan vissling (kgLas,
-    // frånkopplad, inte tyst länge nog), så detta är bara en REFERENS – texten och hoppet
-    // kommer när hand-visslingen med samma t finns (spel → ui.egenVissling).
-    const tr = Number(me.tystRef) || 0;
-    if (tystRef != null && me.roll === "gomd" && tr > tystRef && tr !== Number(me.senastSvarAt)) spel.egenVissling(tr);
-    tystRef = tr;
+    // Servern visslade åt mig (tystnadsregeln): tystVissladAt = visslingens t – sätts BARA i
+    // visslingsgrenen (tystRef flyttas även utan vissling: kgLas, frånkopplad, inte tyst länge
+    // nog – och en frånkopplad får tystRef = nu i samma tick som någon annan visslas, N1b).
+    // Bara en REFERENS: texten och hoppet kommer när hand-visslingen med samma t finns.
+    const tv = egenVisslingsReferens(tystVisslad, me);
+    if (tystVisslad != null && tv) spel.egenVissling(tv);
+    tystVisslad = Number(me.tystVissladAt) || 0;
     if (Number.isFinite(me.laddningar) && !spel.letar) ritaLampor(me.laddningar);
     if (me.roll === "sokare" && roll === "gomd") {
       roll = "sokare";

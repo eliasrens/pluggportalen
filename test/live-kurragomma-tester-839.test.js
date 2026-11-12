@@ -3,17 +3,16 @@
 //       är ELEVENS namn (servern), inte platsen → "Du blev hittad Theo 3A och letade sedan."
 //   F4  lokala bussen (demot): händelse-id = h${hand.length + 1} – efter HAND_LIMIT
 //       händelser blir alla "h21", projektorns dedupe (sedda) släpper sedan inget mer.
-// Runda 3 (35407dc), todo tills rättat:
-//   N1b samma tick: functions/kurragomma-tick.js:55 sätter tystRef = nu för en FRÅNKOPPLAD gömd
-//       (ingen vissling) i samma kgTick som en annan gömd visslas med hand.t = nu → den
-//       frånkopplades skärm visar "Du var tyst länge – …" + hopp (e2e 2026-11-12, c01).
+// Runda 3 (35407dc), rättat: N1b samma tick – functions/kurragomma-tick.js sätter tystRef = nu för en
+//   FRÅNKOPPLAD gömd (ingen vissling) i samma kgTick som en annan gömd visslas med hand.t = nu.
+//   Referensen är nu kgPlayers.tystVissladAt (bara visslingsgrenen sätter den), inte tystRef.
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { slutRad } from "../src/live/formats/kurragomma/kge-skarmar.js";
 import { skapaLokalBuss } from "../src/live/formats/kurragomma/kg-kanal.js";
 import { platsNamn } from "../src/live/formats/kurragomma/delat/kg-geometri.js";
 import { HAND_LIMIT } from "../src/live/formats/kurragomma/delat/kg-config.js";
-import { skapaEgenVisslingar } from "../src/live/formats/kurragomma/kge-logik.js";
+import { skapaEgenVisslingar, egenVisslingsReferens } from "../src/live/formats/kurragomma/kge-logik.js";
 
 describe("tester #839: slutskärmen", () => {
   // Serverns result.gomstallen (functions/kurragomma-resultat.js) som e2e-matchen 2026-11-11 gav det.
@@ -51,10 +50,21 @@ describe("tester #839: lokala bussen (demot)", () => {
 describe("tester #839 runda 3: tystnadsregelns egna vissling", () => {
   // kgTick: c01 frånkopplad → kgPlayers.tystRef = nu (ingen vissling); c03 tyst → tystRef = nu
   // och hand { typ: "vissling", t: nu }. Samma nu för alla kandidater i ett anrop.
-  it("en tystRef som flyttats utan vissling matchar inte någon annans vissling med samma t (N1b)", { todo: "N1b: tick.js:55 frånkopplad-grenen ger tystRef = nu" }, () => {
+  it("en tystRef som flyttats utan vissling matchar inte någon annans vissling med samma t (N1b)", () => {
     const nu = 1_794_447_108_599;
     const c01 = skapaEgenVisslingar();
-    const visad = c01.referens(nu) || c01.vissling({ typ: "vissling", t: nu, x: -3.85, z: -14.58, plats: "i granen" });
+    // c01 (frånkopplad): kgPlayers.tystRef = nu men ingen tystVissladAt → ingen referens.
+    const ref = egenVisslingsReferens(0, { roll: "gomd", tystRef: nu, senastSvarAt: null });
+    assert.equal(ref, null, "tystRef ensam är ingen referens");
+    const visad = (ref && c01.referens(ref)) || c01.vissling({ typ: "vissling", t: nu, x: -3.85, z: -14.58, plats: "i granen" });
     assert.equal(visad, null, "c01 visslades inte – ingen 'Du var tyst länge'");
+    // c03 (visslad i samma tick): tystVissladAt = nu → referens, hand-visslingen med t = nu är dess egen.
+    const c03 = skapaEgenVisslingar();
+    const ref3 = egenVisslingsReferens(0, { roll: "gomd", tystRef: nu, tystVissladAt: nu });
+    assert.equal(ref3, nu);
+    assert.equal(c03.referens(ref3), null);
+    assert.ok(c03.vissling({ typ: "vissling", t: nu, x: -3.85, z: -14.58, plats: "i granen" }), "c03: 'Du var tyst länge'");
+    assert.equal(egenVisslingsReferens(nu, { roll: "gomd", tystVissladAt: nu }), null, "samma referens igen – inget nytt");
+    assert.equal(egenVisslingsReferens(0, { roll: "sokare", tystVissladAt: nu }), null, "sökare visslas aldrig");
   });
 });

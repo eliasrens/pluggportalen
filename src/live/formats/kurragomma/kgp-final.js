@@ -6,7 +6,8 @@
 //      platser, pluggmyntpriset under varje plats (inga klassnamn)
 //   3. gömställena som små figurer på kartan (scen.gomstallen – matchen är slut)
 // Stegen tonas in efter varandra (STEG_MS); reducerad rörelse visar allt direkt.
-// Vid steg 3 blir pallen en kompakt lista i vänstra hörnet (.kgp-karta-visas) så ön syns.
+// Vid steg 3 blir pallen en kompakt lista i vänstra hörnet (.kgp-karta-visas) så ön syns:
+// en rad per elev (.kgp-pallrader, dold i pallen) – delad plats ger flera rader med samma medalj.
 // Inga emojier från Emoji 13+ (🏆 🥇 🥈 🥉 är Emoji 1.0).
 //
 //   finalHtml(modell) → html (betrodd – texterna escapas här)
@@ -27,6 +28,7 @@ export function finalHtml(m) {
       <div class="kgp-pallbox"><span class="kgp-pallmedalj" aria-hidden="true">${MEDALJ[p.plats] || ""}</span><span class="kgp-pallplats">${p.plats}</span>
         <span class="kgp-pallpoang">${p.rader.map((r) => `${r.poang} p`).join(" · ")}</span></div>
       ${p.rader.some((r) => r.mynt != null) ? `<div class="kgp-pallmynt">${p.rader.map((r) => r.mynt != null ? `${r.mynt} ${coinIcon("1em")}` : "").filter(Boolean).join(" · ")}</div>` : ""}
+      <div class="kgp-pallrader">${p.rader.map((r) => `<div class="kgp-pallrad"><span class="kgp-pallmedalj" aria-hidden="true">${MEDALJ[p.plats] || ""}</span><b>${esc(r.namn)}</b><span class="kgp-pallpoang">${r.poang} p</span>${r.mynt != null ? `<span class="kgp-pallmynt">${r.mynt} ${coinIcon("1em")}</span>` : ""}</div>`).join("")}</div>
     </div>`).join("");
   return `<div class="kgp-final">
     <p class="kgp-final-rad" data-steg="0">${esc(m.rad)}</p>

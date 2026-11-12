@@ -21,8 +21,10 @@
 //   panelLage(bredd)            → "sida" (> 1100 px) | "kort"
 //   letaFel(err)                → elevens text för ett nekat kgLeta
 //   mittenText({ lage, fas, laddningar }) → raden under knappen
-//   skapaEgenVisslingar()       → tystnadsregelns egna visslingar: referens (kgPlayers.tystRef)
-//                                 möter hand-händelsen med samma t, i valfri ordning
+//   egenVisslingsReferens(forra, me) → t | null: ny kgPlayers.tystVissladAt (bara visslingsgrenen
+//                                 sätter den – aldrig tystRef, som flyttas även utan vissling)
+//   skapaEgenVisslingar()       → tystnadsregelns egna visslingar: referensen möter
+//                                 hand-händelsen med samma t, i valfri ordning
 // ============================================================================
 
 import { ON } from "./delat/kg-karta.js";
@@ -128,6 +130,17 @@ export function mittenText({ lage, laddningar = 0 }) {
   if (lage === "gom-sokare") return "Svara rätt – varje rätt svar laddar ficklampan.";
   if (lage === "gom-gomd") return TEXT.gom;
   return "";
+}
+
+/**
+ * Referensen ur det egna kgPlayers: tystVissladAt sätts bara när servern visslade åt mig
+ * (functions/kurragomma-tick.js). tystRef duger inte – den flyttas även utan vissling, och en
+ * frånkopplad gömmare får tystRef = nu i samma tick som någon annan visslas med t = nu (N1b).
+ */
+export function egenVisslingsReferens(forra, me) {
+  if (!me || me.roll !== "gomd") return null;
+  const t = Number(me.tystVissladAt) || 0;
+  return t > (Number(forra) || 0) ? t : null;
 }
 
 /**

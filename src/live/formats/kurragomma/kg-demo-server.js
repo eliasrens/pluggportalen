@@ -78,7 +78,7 @@ export function skapaKgServer({ session, buss, now, rng, quiz = null, latens = (
       roll: "sokare", laddningar: laddningarNySokare(), sokareSedan: nu, poang: (p.poang | 0) + poangVidHittad({ letStartAt: letStart ?? nu, hittadAt: nu }),
       ...(hittadAv ? { hittadAv, hittadAvNamn, hittadAt: nu } : { nySokareAt: nu }),
     });
-    delete p.tystRef;
+    delete p.tystRef; delete p.tystVissladAt;
     sec.set(uid, { ...s, gomd: false, startpunkt: { x, z, at: nu }, senasteSok: null });
     buss.server.roll(uid, "sokare");
     buss.server.pos(uid, { x, z, yaw: 0 });
@@ -312,7 +312,7 @@ export function skapaKgServer({ session, buss, now, rng, quiz = null, latens = (
         p.tystRef = Math.max(Number(p.senastSvarAt) || 0, Number(s.senastVisslingAt) || 0, letStart || 0, Number(p.tystRef) || 0);
         continue;
       }
-      p.tystRef = nu; // före händelsen: kgPlayers-referensen får gärna vara på plats när hand-visslingen kommer
+      p.tystRef = nu; p.tystVissladAt = nu; // före händelsen: referensen får gärna vara på plats när hand-visslingen kommer
       delete p.tvingadTystAt;
       rora(p.uid);
       vissla(p.uid, nu, true);

@@ -171,6 +171,7 @@ describe("projektorn – rena delar (spec §7, §11, §0.2)", () => {
     // kgp-final.js (DOM) ritar rubriken ur samma konstant – ingen egen text.
     const final = readFileSync(`${MAPP}/kgp-final.js`, "utf8");
     assert.ok(final.includes("esc(FINAL_TITLE)"), "rubriken ur konstanten");
+    assert.ok(final.includes("kgp-pallrader") && final.includes("kgp-pallrad\""), "en rad per elev för den kompakta listan (N6)");
     assert.equal(finalModell({ ranking: [{ uid: "a", name: "A", poang: 5, rank: 1 }] }).pall[0].rader[0].mynt, null, "inga rewards → inga mynt");
   });
 

@@ -189,6 +189,11 @@ describe("Kurragömma: kgTick och det lata fasbytet", () => {
     const ev = (await events(sid)).filter((e) => e.typ === "vissling");
     assert.equal(ev.length, 2);
     assert.ok(ev.every((e) => e.tyst === true && !("uid" in e) && !("namn" in e)));
+    // N1b: bara den som visslades får tystVissladAt = t; den frånkopplade (cleo) får tystRef = nu utan det.
+    const kpAv = async (u) => (await db.doc(`liveSessions/${sid}/kgPlayers/${u}`).get()).data();
+    assert.equal((await kpAv("bo")).tystVissladAt, nu());
+    assert.equal((await kpAv("cleo")).tystRef, nu(), "frånkopplad: referensen flyttas …");
+    assert.equal((await kpAv("cleo")).tystVissladAt, undefined, "… men ingen vissling");
     assert.equal((await tickMedPuls(deps())).visslade, 0, "idempotent");
     ctl.clock += TYSTNAD_MS - 1000;
     await puls(sid, "bo", nu());
@@ -293,14 +298,21 @@ describe("Kurragömma: kgAvsluta", () => {
     ctl.clock = GOMSLUT + 30_000;
     const t = await tick(d, LARARE, { sid });
     assert.equal(t.klart, true);
+    assert.equal(t.avslutade, true, "ticken som avslutade säger det (klassbonusen)");
     assert.equal(t.result.klaradeSig, 0);
     assert.equal((await session(sid)).status, "finished");
+    const igen = await tick(deps(), LARARE, { sid });
+    assert.equal(igen.klart, true);
+    assert.equal(igen.avslutade, false, "redan avslutad → inte avslutade");
+    assert.equal(igen.result.klaradeSig, 0);
     const sid2 = (await letfas()).sid;
     ctl.clock = GOMSLUT + 100_000;
     const { result } = await avsluta(deps(), LARARE, { sid: sid2 });
     assert.equal(result.slutMs, ctl.clock);
     assert.equal(result.ranking.find((r) => r.uid === "cleo").poang, Math.floor(100_000 / POANG.overlevnadPerMs) * POANG.overlevnad + POANG.gomdVidSlut);
     assert.equal((await session(sid2)).finishedAt.toMillis(), ctl.clock);
-    assert.equal((await tick(deps(), LARARE, { sid: sid2 })).klart, true);
+    const efter = await tick(deps(), LARARE, { sid: sid2 });
+    assert.equal(efter.klart, true);
+    assert.equal(efter.avslutade, false, "kgAvsluta avslutade, inte ticken");
   });
 });

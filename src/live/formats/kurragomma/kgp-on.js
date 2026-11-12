@@ -74,7 +74,8 @@ export function createOn(host, { st, sound = null, music = null, screen = false,
   let tickar = false;
   let final = null;
   let betalat = false;
-  let avslutadeNu = false; // den här projektorns kgTick avslutade matchen → klassbonusen (kg-avslut.js)
+  let avslutadeNu = false; // den här projektorns kgTick avslutade matchen (svaret avslutade) → klassbonusen
+  let tickLofte = null; // pågående kgTick – betala() väntar in den (snapshoten kommer före svaret)
   let destroyed = false;
   const sedda = new Set();
   const namn = new Map();
@@ -185,12 +186,14 @@ export function createOn(host, { st, sound = null, music = null, screen = false,
     const tick = async () => {
       if (destroyed || state.phase !== "live") return;
       try {
-        const r = await koppling.tick(sid);
+        tickLofte = koppling.tick(sid);
+        const r = await tickLofte;
         if (r?.klart) { // servern har avslutat – kärnan ser status finished
-          if (state.phase === "live") avslutadeNu = true; // den här ticken avslutade (ingen annan hann före)
+          if (r.avslutade) avslutadeNu = true; // DEN HÄR ticken avslutade (servern avgör i sin transaktion)
           return;
         }
       } catch (e) { console.warn("[kurragomma] kgTick", e?.message || e); }
+      finally { tickLofte = null; }
       if (!destroyed && state.phase === "live") tickT = setTimeout(tick, TICK_MS);
     };
     tickT = setTimeout(tick, 400);
@@ -200,11 +203,14 @@ export function createOn(host, { st, sound = null, music = null, screen = false,
   // result i samma transaktion, och kärnans resultInputs-väg (bara när result saknas) körs
   // aldrig – pluggmynten betalas då här, en gång, av projektorn (inte elevskärmsfönstret).
   // avslutaOchBetala är idempotent (kgAvsluta → redan, kvittot coinReceipts/{uid}); klassbonusen
-  // bara när den här projektorns tick avslutade (avslutadeNu), som Meteorstormens avslutare.
+  // bara när den här projektorns tick avslutade (svaret avslutade: true), som Meteorstormens
+  // avslutare. Snapshoten med result kommer före tick-svaret (servern städar RTDB först), så
+  // en pågående tick väntas in innan utbetalningen avgör om bonusen ska med.
   function betala() {
     if (betalat || screen || deps.kurragomma || state.session?.demo === true) return;
     betalat = true;
-    import("./kg-avslut.js")
+    Promise.resolve(tickLofte).catch(() => null)
+      .then(() => import("./kg-avslut.js"))
       .then(({ avslutaOchBetala }) => avslutaOchBetala({ ...state.session, status: "finished", result: state.result }, null, { avslutadeNu }))
       .catch((e) => { console.warn("[kurragomma] utbetalningen efter serverns avslut", e?.message || e); betalat = false; });
   }
