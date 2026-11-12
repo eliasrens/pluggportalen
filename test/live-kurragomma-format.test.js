@@ -260,7 +260,8 @@ describe("elevskärmen – rena delar (spec §6)", () => {
     assert.equal(hittadText("Leo"), "Leo hittade dig! Nu letar du också.");
     assert.equal(hittadText(null), "Någon hittade dig! Nu letar du också.");
     assert.equal(TEXT.egenVissling, "Fel svar – det visslade där du gömmer dig!");
-    assert.equal(TEXT.tystVissling, "Du var tyst länge – det visslade där du gömmer dig!");
+    assert.equal(TEXT.tystVissling, "Det visslade där du gömmer dig!", "neutral: samma rad för tystnadsregeln och lärarens vissling (#840 F2)");
+    assert.ok(!/tyst|lärar/i.test(TEXT.tystVissling), "raden avslöjar inte orsaken");
     assert.equal(TEXT.ladda, "Svara rätt för att ladda ficklampan");
     assert.equal(TEXT.leta, "🔦 Leta");
     assert.deepEqual(["gomd", "sokare"].flatMap((roll) => ["gom", "leta"].map((fas) => elevLage({ roll, fas }))), ["gom-gomd", "leta-gomd", "gom-sokare", "leta-sokare"]);

@@ -1,0 +1,30 @@
+/* Kurragömma – historiken och Statistik → Live (#840). Laddas av
+   kurragomma-history.js (ensureLiveCss). Genomskinliga toner – fungerar i
+   lärarsidans ljusa och mörka tema. Egna kgh-klasser (inga delade). */
+.kgh-summor { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 12px; padding: 0; }
+.kgh-summor li { display: flex; flex-direction: column; min-width: 130px; flex: 1 1 130px; padding: 8px 14px; border-radius: 12px;
+  background: rgba(127, 140, 170, 0.12); border: 1px solid var(--t-border, rgba(127, 140, 170, 0.35)); }
+.kgh-summor b { font-size: 1.2rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kgh-summor small { opacity: 0.75; }
+.kgh-pall { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 12px; padding: 0; }
+.kgh-pall li { display: flex; flex-direction: column; align-items: center; min-width: 120px; padding: 10px 14px; border-radius: 14px;
+  background: rgba(241, 196, 15, 0.10); border: 1px solid rgba(241, 196, 15, 0.5); }
+.kgh-pall-2 { border-color: rgba(170, 180, 200, 0.6) !important; background: rgba(170, 180, 200, 0.12) !important; }
+.kgh-pall-3 { border-color: rgba(205, 127, 50, 0.6) !important; background: rgba(205, 127, 50, 0.12) !important; }
+.kgh-medalj { font-size: 1.6rem; }
+.kgh-pall small { opacity: 0.8; }
+.kgh-andel { white-space: nowrap; }
+.kgh-bar { display: inline-block; vertical-align: middle; width: 120px; height: 10px; border-radius: 6px;
+  background: rgba(127, 140, 170, 0.25); overflow: hidden; }
+.kgh-bar i { display: block; height: 100%; background: #27ae60; border-radius: inherit; }
+.kgh-bar.kgh-mellan i { background: #f2a33a; }
+.kgh-bar.kgh-lag i { background: #e2554f; }
+.kgh-svar th { color: #e2554f; }
+.kgh-tagg { display: inline-block; margin-left: 6px; padding: 0 7px; border-radius: 999px; font-size: 0.75rem; font-weight: 700;
+  background: rgba(226, 85, 79, 0.18); color: #e2554f; }
+.kgh-fragor summary { cursor: pointer; font-weight: 700; margin: 8px 0; }
+.kgh-scroll { overflow-x: auto; max-width: 100%; }
+.kgh-klass h5 { margin: 10px 0 4px; font-size: 0.95rem; }
+@media (max-width: 520px) {
+  .kgh-bar { width: 70px; }
+}

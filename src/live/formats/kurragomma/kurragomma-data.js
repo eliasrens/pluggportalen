@@ -11,7 +11,12 @@
 //   watchMe(sid, uid, cb, onErr)   → unsub; cb(kgPlayers/{uid} | null) – roll, poäng, laddningar, hittadAvNamn
 // API (lärare/projektor)
 //   starta(sid) · tick(sid) · avsluta(sid) → { result, redan }
+//   larareVissla(sid, uid)         → { visslade, plats } – lärarens vissling (kgLarareVissla, #840)
+//   getGomda(sid)                  → [{ uid, name }] de gömda just nu (EN läsning per gömd –
+//                                  Vissla-panelen, kgp-vissla.js; ingen lyssnare)
 //   getKgPlayers(sid) · getEvents(sid)   (historiken, E)
+//   antalLarareVisslingar(sid)     → antal kgEvents med larare: true (EN räknefråga; bara
+//                                  lärare får läsa kgEvents – därför står summan aldrig i result, #840 F1)
 //   vantaPaResult(sid, ms?)         → result | null (elevskärmsfönstret, kg-avslut.js)
 // API (båda)
 //   kanal({ sid, uid })            → kg-kanal.js skapaRorelsekanal i rtdb-läge mot prod-
@@ -21,7 +26,7 @@
 // ============================================================================
 
 import { app, db } from "../../../firebase-config.js";
-import { doc, getDoc, getDocs, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, getDocs, getCountFromServer, collection, query, orderBy, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 import { skapaRorelsekanal, KG_DATABASE_URL } from "./kg-kanal.js";
 
@@ -62,6 +67,7 @@ export const svara = (sid, payload) => call("kgSvara", { sid, ...payload });
 export const leta = (sid, p) => call("kgLeta", { sid, x: p.x, z: p.z });
 export const tick = (sid) => call("kgTick", { sid });
 export const avsluta = (sid) => call("kgAvsluta", { sid });
+export const larareVissla = (sid, uid) => call("kgLarareVissla", { sid, uid });
 
 /** Rörelsekanalen (RTDB). QA mot emulatorn: __PP_RTDB_URL (hela adressen med ?ns=) eller __PP_RTDB_EMULATOR { host, port }. */
 export function kanal({ sid, uid }) {
@@ -91,10 +97,20 @@ export function watchMe(sid, uid, cb, onErr) {
   return onSnapshot(doc(db, "liveSessions", sid, "kgPlayers", uid), (s) => cb(s.exists() ? { uid, ...s.data() } : null), onErr);
 }
 
+/** De gömda just nu (lärarens Vissla-panel): namn och uid – aldrig gömställen (kgSelf/kgSecret läses inte). */
+export async function getGomda(sid) {
+  return (await getDocs(query(sub(sid, "kgPlayers"), where("roll", "==", "gomd")))).docs
+    .map((d) => ({ uid: d.id, name: String(d.data().name || "") }));
+}
+
 export async function getKgPlayers(sid) {
   return (await getDocs(sub(sid, "kgPlayers"))).docs.map((d) => ({ uid: d.id, ...d.data() }));
 }
 
 export async function getEvents(sid) {
   return (await getDocs(query(sub(sid, "kgEvents"), orderBy("t")))).docs.map(withId);
+}
+
+export async function antalLarareVisslingar(sid) {
+  return (await getCountFromServer(query(sub(sid, "kgEvents"), where("larare", "==", true)))).data().count;
 }

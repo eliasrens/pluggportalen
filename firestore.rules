@@ -1446,14 +1446,17 @@ service cloud.firestore {
       // Snilleblixten: rätt-mynten högst perCorrect × antal frågor.
       // Gäller alla lärare (admin också) – riktiga utbetalningar uppfyller
       // det redan (live-rewards computeRewards: bara deltagare med svar).
-      // Kurragömma (#838): serverns kgPlayers (ratt/besvarade) på samma sätt.
+      // Kurragömma (#838): serverns kgPlayers på samma sätt – deltagare är den som
+      // svarat, låst ett gömställe eller hittat någon (#840, kg-regler deltog), så
+      // den som klarade sig gömd utan att svara får sitt placeringspris.
       function liveCoinPlayerOk(s, uid, d, cfg) {
         let gp = livePath(grFormat(s) ? 'grPlayers' : msFormat(s) ? 'msPlayers' : kgFormat(s) ? 'kgPlayers' : 'dkPlayers', uid);
         return exists(livePath('players', uid)) && (
           sbFormat(s)
             ? d.correctCoins <= cfg.perCorrect * s.questionCount
             : kgFormat(s)
-              ? exists(gp) && get(gp).data.get('besvarade', 0) >= 1 &&
+              ? exists(gp) && (get(gp).data.get('besvarade', 0) >= 1 || get(gp).data.get('harLast', false) == true ||
+                  get(gp).data.get('hittade', 0) >= 1) &&
                 d.correctCoins <= cfg.perCorrect * get(gp).data.get('ratt', 0)
               : (grFormat(s) || dkFormat(s) || msFormat(s)) && exists(gp) &&
                 get(gp).data.get('correct', 0) + get(gp).data.get('incorrect', 0) >= 1 &&
