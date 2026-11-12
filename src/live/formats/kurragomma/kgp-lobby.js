@@ -6,6 +6,8 @@
 // förklaringen och STARTA → skalets 3–2–1–KÖR!. Lobbyn är tyst (ingen musik,
 // inget ljud). Elevskärmen (#533, readonly): inga knappar.
 //
+// Rutan ligger på motsatt sida om bron (lobbyrutaSida) så figurerna aldrig
+// göms – ön roterar, så sidan kontrolleras varje sekund (RUTA_SIDA_MS).
 // API: createLobby(host, { st, modeName, actions, say, readonly, deps }) → { update(st), destroy() }
 // ============================================================================
 
@@ -14,11 +16,13 @@ import { coinIcon } from "../../../icons.js";
 import { ensureLiveCss } from "../../live-css.js";
 import { sessionRewards, placementPrize } from "../../live-rewards.js";
 import { normInstallningar } from "./delat/kg-regler.js";
-import { lobbyPlatser, LOBBY_TEXT } from "./kgp-logik.js";
+import { lobbyPlatser, lobbyrutaSida, LOBBY_TEXT } from "./kgp-logik.js";
+import { ON } from "./delat/kg-karta.js";
 import { KGP_CSS } from "./kgp-on.js";
 
 const KIND = { choice: "🔘 Flerval", free: "✍️ Skriv själv" };
 const MAX_PRICKAR = 40;
+const RUTA_SIDA_MS = 1000;
 
 export function createLobby(host, { st, modeName = "", actions = {}, say = () => {}, readonly = false, deps = {} }) {
   ensureLiveCss(KGP_CSS);
@@ -30,6 +34,7 @@ export function createLobby(host, { st, modeName = "", actions = {}, say = () =>
   const speltid = Math.round(((Number(s.durationSeconds) || 0) - inst.gomtid) / 60);
   const root = document.createElement("div");
   root.className = "kgp kgp-lobby";
+  root.dataset.sida = "hoger";
   root.innerHTML = `
     <div class="kgp-scen"></div>
     <div class="kgp-lobbyruta">
@@ -57,6 +62,13 @@ export function createLobby(host, { st, modeName = "", actions = {}, say = () =>
   let destroyed = false;
   let visade = new Set();
   let senaste = st;
+  let sidaTimer = 0;
+  const bro = ON.foremal.find((f) => f.typ === "bro") || { x: -10, z: 8 };
+  /** Rutan på den sida där bron (figurerna) inte syns. */
+  function rutaSida() {
+    const sida = lobbyrutaSida(scen?.skarm?.(bro), root.dataset.sida);
+    if (sida !== root.dataset.sida) root.dataset.sida = sida;
+  }
 
   (async () => {
     try {
@@ -67,6 +79,8 @@ export function createLobby(host, { st, modeName = "", actions = {}, say = () =>
       if (destroyed) return sc.destroy();
       scen = sc;
       figurer(senaste);
+      rutaSida();
+      sidaTimer = setInterval(rutaSida, RUTA_SIDA_MS);
     } catch (err) {
       console.warn("[kurragomma] lobbyn: scenen kunde inte startas", err);
     }
@@ -118,6 +132,7 @@ export function createLobby(host, { st, modeName = "", actions = {}, say = () =>
     update,
     destroy() {
       destroyed = true;
+      clearInterval(sidaTimer);
       ro?.disconnect();
       scen?.destroy();
       root.remove();

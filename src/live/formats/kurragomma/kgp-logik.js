@@ -16,6 +16,7 @@
 //   finalModell(result, s)            → { rad, pall: [{ plats, rader: [{ uid, namn, poang, mynt }] }],
 //                                        gomstallen: [{ uid, x, z }] }
 //   lobbyPlatser(uids, karta)         → [{ uid, x, z, yaw }] på stranden vid bron
+//   lobbyrutaSida(skarm, forra)       → "hoger" | "vanster" – rutan på motsatt sida om bron
 //   minutKvar(prevMs, msLeft)         → true när 1:00 just passerats (en rad i flödet)
 // ============================================================================
 
@@ -129,6 +130,20 @@ export function lobbyPlatser(uids, karta = ON) {
     const z = Math.sin(vinkel) * r;
     return { uid, x, z, yaw: Math.atan2(-x, -z) };
   });
+}
+
+/**
+ * Lobbyrutan ligger på den sida av bilden där bron (och figurerna) INTE är –
+ * ön roterar långsamt, så sidan byts med ett dödband (±8 % av bredden) runt
+ * mitten så rutan inte fladdrar. skarm = scen.skarm(bron) ({ sx, w }); null → förra.
+ */
+export function lobbyrutaSida(skarm, forra = "hoger") {
+  const w = Number(skarm?.w) || 0;
+  const sx = Number(skarm?.sx);
+  if (!w || !Number.isFinite(sx)) return forra;
+  if (sx < w * 0.42) return "hoger";
+  if (sx > w * 0.58) return "vanster";
+  return forra;
 }
 
 /** Matchklockan som text ur kärnans msLeft (ownTimer). */

@@ -21,14 +21,17 @@
   min-height: 0;
   height: calc(100dvh - 150px);
   min-height: 420px;
+  /* Egen höjd → kortets tak kan mätas i cqh (en procentsats på kortet räknas mot dess egen auto-rad = ingen gräns). */
+  container-type: size;
   font-family: "Baloo 2", "Segoe UI Rounded", system-ui, sans-serif;
 }
 .kge[data-panel="kort"] {
   grid-template-columns: minmax(0, 1fr);
-  /* Kortet tar sin innehållshöjd men högst 46 % av ytan (en procentsats på kortet själv skulle räknas mot dess egen rad). */
-  grid-template-rows: minmax(0, 1fr) minmax(auto, 46%);
+  /* Kortet tar sin innehållshöjd men högst 52 % av ytan (minmax(auto, 46%) gav ingen gräns: min vinner över max). */
+  grid-template-rows: minmax(0, 1fr) auto;
   min-height: 0;
 }
+.kge[data-panel="kort"] .kge-panel { max-height: 52cqh; }
 
 /* --- huvudytan: scenen + överlägget --------------------------------------- */
 .kge-huvud { position: relative; min-height: 0; border-radius: 16px; overflow: hidden; background: #9fd6f2; box-shadow: 0 6px 0 rgba(0, 0, 0, 0.12); }
@@ -96,7 +99,12 @@
 .kge-leta.kge-skickar { opacity: 0.7; }
 .kge-mitten { margin: 0; font-size: 14px; color: #5a6585; min-height: 1.2em; }
 .kge[data-lage="leta-sokare"] .kge-leta:disabled ~ .kge-mitten, .kge-panel-inre:has(.kge-leta:disabled) .kge-mitten { color: #c0392b; font-weight: 700; }
-.kge-svar { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.kge-svar { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; container-type: inline-size; }
+/* fast-answer skalar efter viewporten (1366 px → 95 px-siffror); i den 360 px smala panelen ska frågan rymmas på en rad. */
+.kge-svar .fa-question { font-size: clamp(28px, 16cqi, 64px); }
+.kge-svar .fa-input { font-size: clamp(24px, 13cqi, 56px); }
+.kge-svar .fa-feedback { font-size: clamp(16px, 6cqi, 28px); }
+.kge-svar .fa-form { gap: 8px; }
 .kge-svar[data-fel] { animation: kge-skak 0.3s; }
 @keyframes kge-skak { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 .kge-fel { margin: 0; font-size: 14px; font-weight: 700; color: #c0392b; }
@@ -108,6 +116,11 @@
 .kge[data-panel="kort"] .kge-fall { display: block; }
 /* Kortet växer med frågan (skriv själv ≈ 190 px) i stället för att klämma den till en rullist. */
 .kge[data-panel="kort"] .kge-svar { flex: none; min-height: auto; }
+/* …men lågt nog att rymmas på 1366×768 (kortet ≤ 52 % av ~620 px) utan rullist. */
+.kge[data-panel="kort"] .kge-svar .fa-question { font-size: clamp(26px, 6.5vh, 48px); }
+.kge[data-panel="kort"] .kge-svar .fa-input { font-size: clamp(22px, 5.5vh, 40px); }
+.kge[data-panel="kort"] .kge-svar .fa-feedback { font-size: clamp(15px, 3vh, 22px); }
+.kge[data-panel="kort"] .kge-svar .fa-form { gap: 6px; }
 .kge[data-panel="kort"].kge-ihop .kge-panel-inre { display: none; }
 .kge[data-panel="kort"].kge-ihop .kge-fall i { transform: rotate(-135deg); margin-top: 8px; }
 .kge[data-panel="kort"] .kge-topp { padding: 4px 8px; }

@@ -14,7 +14,7 @@ import { buildSessionDoc } from "../src/live/live-core.js";
 import { buildSessionFields, validateSetup, computeStandings, sessionTitle, defaultSessionName, durationField } from "../src/live/formats/kurragomma/kg-setup.js";
 import { avslutaOchBetala, buildResult, avslutaMedForsok } from "../src/live/formats/kurragomma/kg-avslut.js";
 import {
-  toppText, flodesRad, finalModell, lugnRad, lobbyPlatser, minutKvar, fasAv, gomKlocka, FINAL_TITLE, NAGON,
+  toppText, flodesRad, finalModell, lugnRad, lobbyPlatser, lobbyrutaSida, minutKvar, fasAv, gomKlocka, FINAL_TITLE, NAGON,
 } from "../src/live/formats/kurragomma/kgp-logik.js";
 import { visslingPan } from "../src/live/formats/kurragomma/kgp-ljud.js";
 import {
@@ -162,6 +162,15 @@ describe("projektorn – rena delar (spec §7, §11, §0.2)", () => {
     }
     assert.deepEqual(lobbyPlatser(uids), p);
     assert.equal(new Set(p.map((q) => `${q.x.toFixed(2)},${q.z.toFixed(2)}`)).size, 30, "inga två på samma plats");
+  });
+
+  it("lobbyn: rutan ligger på motsatt sida om bron, med dödband runt mitten och förra sidan utan bild", () => {
+    assert.equal(lobbyrutaSida({ sx: 300, w: 1920 }), "hoger", "bron till vänster → rutan till höger");
+    assert.equal(lobbyrutaSida({ sx: 1600, w: 1920 }), "vanster");
+    assert.equal(lobbyrutaSida({ sx: 960, w: 1920 }, "vanster"), "vanster", "mitt i bilden → förra sidan");
+    assert.equal(lobbyrutaSida({ sx: 960, w: 1920 }, "hoger"), "hoger");
+    assert.equal(lobbyrutaSida(null, "vanster"), "vanster", "ingen bild (scenen inte klar) → förra");
+    assert.equal(lobbyrutaSida(undefined), "hoger", "standard höger");
   });
 
   it("det riktade ljudet: vänster/höger ur bildens x, svagare mot kanten och utanför bilden, bakom kameran speglas", () => {

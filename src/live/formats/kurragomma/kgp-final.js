@@ -6,6 +6,7 @@
 //      platser, pluggmyntpriset under varje plats (inga klassnamn)
 //   3. gömställena som små figurer på kartan (scen.gomstallen – matchen är slut)
 // Stegen tonas in efter varandra (STEG_MS); reducerad rörelse visar allt direkt.
+// Vid steg 3 krymper pallen upp i vänstra hörnet (.kgp-karta-visas) så ön syns.
 // Inga emojier från Emoji 13+ (🏆 🥇 🥈 🥉 är Emoji 1.0).
 //
 //   finalHtml(modell) → html (betrodd – texterna escapas här)
@@ -49,7 +50,11 @@ export function createFinal(host, { result, session, scen = null, ljud = null })
   const visa = (n) => {
     el.querySelector(`[data-steg="${n}"]`)?.classList.add("kgp-synlig");
     if (n === 1) ljud?.final?.();
-    if (n === 2 && scen) scen.gomstallen(m.gomstallen);
+    if (n === 2) {
+      // Pallen krymper undan (CSS) så ön och gömställena syns.
+      el.querySelector(".kgp-final")?.classList.add("kgp-karta-visas");
+      scen?.gomstallen(m.gomstallen);
+    }
   };
   STEG_MS.forEach((ms, n) => { if (stilla || ms === 0) visa(n); else timers.push(setTimeout(() => visa(n), ms)); });
   return {
