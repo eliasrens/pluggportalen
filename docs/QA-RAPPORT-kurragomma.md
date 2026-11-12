@@ -69,7 +69,7 @@ gömställen, ~20 st), `kgPlayers` 1 981, `answers` 1 467 (alla svar läses i `k
 ändå kandidaternas färska `kgSecret`/`kgPlayers`, så utfallet blir detsamma); (b) `perQuestion` ur en aggregering som
 `kgSvara` uppdaterar i stället för att läsa `answers` vid slutet (§8 fråga 7) ≈ −1 500; (c) pos-takten 5/s → 3/s
 (`POS_MIN_INTERVALL_MS` 200 → 333) och x/z/yaw med 2 decimaler i `kg-kanal.js posDoc`. **(a) och (c) gjordes i F
-(`de6a0fc`), (b) är kvar som fråga (§6).**
+(`de6a0fc`), (b) i G (#842) – mätningen "Efter (b)" nedan.**
 
 **Vad som ändrades (Coder i #841, `de6a0fc`):** (a) `kgLeta` läser bara kandidater inom `maxSokradie` (3 m = största
 sökradien × 1,5) ur instansens minne av gömställena (`gomstallenFor` i `kurragomma-sess.js`: fylls EN gång per instans,
@@ -108,6 +108,30 @@ ger exakt samma utfall på gammal och ny kod, så (a) ändrar inte spelet.
   att återskapa på den nya koden; uppskattat ur kostnaden per svar (~2,6) och per sökning (~2,3) plus klienterna (2 496)
   hamnar det på ≈ 8 500–9 000 läsningar (strax över 8 000) och ≈ 45 MB. Förslag (b) ger −1 500 och skulle ta det under budget med marginal.
 - Gratisnivån (50 000 läsningar/dag) räcker alltså till ~6 matcher per dag med (a)+(c), ~8 med (b).
+
+#### Efter (b) – `perQuestion` ur `kgPlayers.fragor` (G, #842): mätt på `f21ab1a` (före, = de6a0fc + fix 1–3) och koden efter
+
+`kgSvara` räknar per fråga i elevens eget `kgPlayers` (`fragor.{m3x4|q7}.{a,r}`, samma update som poängen – ingen extra
+skrivning, ingen "het" delad räknare) och `kgAvsluta` bygger `perQuestion` ur de `kgPlayers` det ändå läser
+(`functions/kurragomma-fragor.js`; samma form som förr, `test/live-kurragomma-842.test.js` jämför mot `fragestatistik`
+på slumpade svar, `test/functions-kurragomma-842.test.mjs` mot emulatorn). `answers/{attemptId}` skrivs fortfarande
+(idempotensen) men läses inte. Mätt med `--logg` (ny flagga i `kg-kvot-sim.mjs`): två körningar per sida och frö, alla
+fyra loggarna per frö identiska (145 resp. 321 sökningar, samma träffar) – samma förlopp som tabellen ovan.
+
+| 25 elever, 10 min + 30 s gömtid | seed 1 före (b) | **seed 1 efter (b)** | seed 3 (321 / 9) före (b) | **seed 3 efter (b)** |
+| --- | --- | --- | --- | --- |
+| Svar · visslingar · sökningar (träffar) | 1 467 · 70 · 145 (4) | samma | 1 521 · 63 · 321 (9) | samma |
+| Serverns Firestore-läsningar | 5 318 | **3 851** | 5 621 | **4 125** |
+| – varav `answers` i `kgAvsluta` | 1 467 | **0** | 1 521 | **0** |
+| Klienternas läsningar | 2 022 | 2 022 | 2 250 | 2 250 |
+| **Läsningar totalt** (budget 8 000) | 7 340 ✅ | **5 873 ✅** | 7 871 ✅ | **6 375 ✅** |
+| **Skrivningar totalt** (budget 6 000) | 3 529 ✅ | 3 529 ✅ | 3 990 ✅ | 3 990 ✅ |
+| Realtime Database, 26 lyssnare (budget 50 MB) | 13,8 MB ✅ | 13,8 MB ✅ | 29,7 MB ✅ | 29,7 MB ✅ |
+
+- Besparingen är exakt antalet svar (−1 467 / −1 496; seed 3 fick +24 `kgSecret`- och +1 sessionsläsning ur emulatorns
+  transaktionsomförsök – samma utfall, samma logg). Skrivningarna är oförändrade: räknarna ligger i en update som redan görs.
+- Marginalen till budgeten är nu ~1 600–2 100 läsningar; det värsta uppmätta förloppet (503 sökningar / 18 hittade,
+  1 583 svar, uppskattat ≈ 8 500–9 000 före) hamnar på ≈ 7 000–7 500. Gratisnivån räcker till ~8 matcher per dag.
 
 ### 2.2 Balansen (spec §11.5) – `npm run balans:kurragomma`
 
