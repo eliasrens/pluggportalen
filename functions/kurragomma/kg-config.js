@@ -124,8 +124,8 @@ export const FLODE_MISS_SPARR_MS = 15_000;
 export const FLODE_MAX_RADER = 4;
 /** Servern kör kgTick så här ofta (projektorn). */
 export const TICK_MS = 5000;
-/** Rörelsekanalen: sökaren skriver högst så här ofta, och bara vid flytt > POS_MIN_FLYTT_M eller vridning. */
-export const POS_MIN_INTERVALL_MS = 200;
+/** Rörelsekanalen: sökaren skriver högst så här ofta (3/s, #841 kvoten), och bara vid flytt > POS_MIN_FLYTT_M eller vridning. */
+export const POS_MIN_INTERVALL_MS = 333;
 export const POS_MIN_FLYTT_M = 0.15;
 export const POS_MIN_VRID_RAD = 0.05;
 /** … men minst så här ofta även när sökaren står stilla – pulsen för regeln "det finns alltid en sökare" (C läser pos.t). */
@@ -134,8 +134,12 @@ export const POS_PULS_MS = 10_000;
 export const HAND_LIMIT = 20;
 /** kgLas tas emot så här länge efter gömfasens slut (klientens automatiska skick vid 0:00 hinner fram). */
 export const LAS_MARGINAL_MS = 2000;
-/** Klienterna ritar andras positioner så här långt bakåt i tiden (interpolering). */
-export const POS_INTERPOLERING_MS = 150;
+/**
+ * Klienterna ritar andras positioner så här långt bakåt i tiden (interpolering). Måste vara
+ * längre än POS_MIN_INTERVALL_MS + leveransjittret, annars står figuren still mellan proverna
+ * (#841: 150 ms mot 333 ms-takten gav stillastående i hälften av bildrutorna och 0,3 m-hopp).
+ */
+export const POS_INTERPOLERING_MS = 400;
 /** Realtidshändelser äldre än så här struntar klienten i; servern rensar äldre än HAND_RENSA_MS. */
 export const HAND_MAX_ALDER_MS = 10_000;
 export const HAND_RENSA_MS = 60_000;

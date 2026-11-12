@@ -51,7 +51,7 @@ function falskSdk() {
 }
 
 describe("posfiltret", () => {
-  it("första alltid; sedan högst var 200 ms och bara vid flytt > 0,15 m eller vridning", () => {
+  it("första alltid; sedan högst var POS_MIN_INTERVALL_MS (333 ms, 3/s) och bara vid flytt > 0,15 m eller vridning", () => {
     const k = klocka();
     const f = skapaPosFilter({ nu: k.nu });
     assert.equal(f.prova({ x: 0, z: 0, yaw: 0 }), true);

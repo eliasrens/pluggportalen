@@ -70,11 +70,11 @@ describe("rörelsen (kg-rorelse.js)", () => {
     assert.ok(y < -3, "vrider åt det håll som är närmast");
   });
 
-  it("interpoleringen ritar ~150 ms bakåt och glider mellan proverna", () => {
+  it("interpoleringen ritar POS_INTERPOLERING_MS bakåt och glider mellan proverna", () => {
     const ip = skapaInterpolering(POS_INTERPOLERING_MS);
     ip.satt("a", { x: 0, z: 0, yaw: 0, t: 1000 });
     ip.satt("a", { x: 2, z: 0, yaw: 0, t: 1200 });
-    const p = ip.lage("a", 1250); // ritar vid 1100 → halvvägs
+    const p = ip.lage("a", 1100 + POS_INTERPOLERING_MS); // ritar vid 1100 → halvvägs
     assert.ok(Math.abs(p.x - 1) < 1e-9 && p.gar);
     const q = ip.lage("a", 2000); // efter sista provet → står still på det
     assert.equal(q.x, 2); assert.equal(q.gar, false);

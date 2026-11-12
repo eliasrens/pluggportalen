@@ -160,7 +160,7 @@ Platsnamnet väljs så här:
 | `STARTSOKARE` | 1 per 10, 1–4 | samma | |
 | `HJARTSLAG_M` | 6 m | 6 | |
 | `FLODE_MISS_SPARR_MS`, `FLODE_MAX_RADER` | 15 s, 4 | samma | |
-| `POS_MIN_INTERVALL_MS`, `POS_MIN_FLYTT_M`, `POS_INTERPOLERING_MS` | 200 ms (5/s), 0,15 m, 150 ms | samma | rörelsekanalen (C/D) |
+| `POS_MIN_INTERVALL_MS`, `POS_MIN_FLYTT_M`, `POS_INTERPOLERING_MS` | 333 ms (3/s, F #841 – var 200 ms/5 s), 0,15 m, 400 ms (F #841 – var 150 ms; måste vara > takten + jitter, annars står figuren still mellan proverna) | samma | rörelsekanalen (C/D); `pos` skrivs med två decimaler |
 | `HAND_MAX_ALDER_MS`, `HAND_RENSA_MS` | 10 s, 60 s | samma | |
 | `VISSLING_MARKOR_MS`, `VISSLING_RAD_MS`, `HITTAD_RUTA_MS`, `KAMERA_GLID_MS` | 4 s, 3 s, 2 s, 3 s | samma | |
 | `LARARE_VISSLA_SPARR_MS` | 5 s | – | lärarens vissling, spamskydd per elev (E, §12.4) |
@@ -431,8 +431,8 @@ const scen = await skapaKgScen({
 | `scen.lage(l?)` | Lägena: **elev-gom** fri rörelse (tangenter, joystick, tryck på marken, dra), **elev-gomd** stilla, bara titta runt, **elev-sokare** fri rörelse, **projektor** ovanifrån med rotation och glidning; ingen egen figur |
 | `scen.jag(p?)` | Sätt startplatsen `{ x, z, yaw }` (ur `gomStart`, eller gömstället efter en omladdning) / läs var figuren står. Kameran hoppar dit |
 | `scen.skydd()` | Mätarens värde 0–3 (`skydd` ur motorn). Händelsen `"skydd"` när det ändras |
-| `scen.on("flytt", fn)` | `{ x, z, yaw }` varje bildruta figuren rör sig – D skriver `pos` (högst 5/s, se `POS_*`) |
-| `scen.sokare([{ uid, x, z, yaw, t, namn }])` | Sökarnas positioner ur rörelsekanalen (`t` = avsändarens `Date.now()`; scenen räknar om till sin klocka). Ritas ~150 ms bakåt och interpoleras. Skylt med namn bara när namn är på |
+| `scen.on("flytt", fn)` | `{ x, z, yaw }` varje bildruta figuren rör sig – D skriver `pos` (högst 3/s, se `POS_*`) |
+| `scen.sokare([{ uid, x, z, yaw, t, namn }])` | Sökarnas positioner ur rörelsekanalen (`t` = avsändarens `Date.now()`; scenen räknar om till sin klocka). Ritas `POS_INTERPOLERING_MS` (400 ms) bakåt och interpoleras. Skylt med namn bara när namn är på |
 | `scen.sokareBort(uid)` | |
 | `scen.vissling({ x, z })` | Den **ungefärliga** platsen. Projektorn: ringar, noter, "Vissling!" och en glidning. Sökaren: markör som syns genom dimman i 4 s och en pil i skärmkanten när platsen är utanför bilden. Gömda: inget (D visar raden överst) |
 | `scen.hopp()` | Den egna figuren hoppar till (egen vissling) |
@@ -539,7 +539,7 @@ olåsta gömmare efter `kgGomSlut + LAS_MARGINAL_MS` (2 s). Fel kastas som `Http
 | `kgAnslut({ sid })` | deltagare (`players/{uid}` i en av sessionens klasser) | den som inte fanns vid starten får `rollVidAnslutning` (gömd i gömfasen, sökare i letfasen – en sen sökare får startpunkten `sokarStart`); läggs i `med`. | `{ roll, fas, laddningar, poang, ratt, besvarade, harLast, gomstalle, start, nextQ, hittadAvNamn, tider: { t0, gomSlut, letStart, slut }, inst, showNames }` |
 | `kgLas({ sid, x, z })` | gömmare, i gömfasen (+ 2 s marginal) | `narmasteGiltiga` → `skydd` + `platsNamn`; skriver `kgSelf.gomstalle`, `kgSecret` (x, z, skydd, gomd, lastAt) och `kgPlayers.harLast`; `status.lasta` +1. Redan låst → samma gömställe tillbaka. | `{ gomstalle: { x, z, skydd, namn }, flyttad, redan }` |
 | `kgSvara({ sid, attemptId, factorA, factorB, answer, choiceIndex?, q?, year? })` | deltagare, letfasen (en gömmare i gömfasen nekas; en sökare får ladda under blundandet) | rättas som kistspelen (`gradeMult`/`gradeQuiz`, `answers/{attemptId}` för statistiken, `pickNextQ`); `svarsEffekt` ger poäng/laddning/vissling. Vid vissling: `visslingsplats` (osäkerhet `VISSLING_OSAKERHET_M`), `platsNamn` på den ungefärliga platsen, `kgEvents` + `hand`. Samma `attemptId` igen → samma svar (`igen: true`). | `{ attemptId, correct, correctAnswer, nextQ, poang, laddningar, vissling, plats?, correctYear? }` |
-| `kgLeta({ sid, x, z })` | sökare, letfasen | **en transaktion**: `kontrolleraSokning` (laddning, 2 s spärr, rimlighet från startpunkten/senaste sökningen), `sok` mot alla gömda (`kgSecret.gomd == true`), varje hittad blir sökare (`gorTillSokare`: `poangVidHittad`, `laddningarNySokare`, startpunkt = gömstället), sökaren får `poangForHittad` per hittad. Efteråt `nySokare` + `hittad`-händelser i RTDB; en miss ger `miss`-händelse högst var `FLODE_MISS_SPARR_MS`. | `{ hittade: [{ uid, namn, x, z, plats }], laddningar, poang, plats, flode }` |
+| `kgLeta({ sid, x, z })` | sökare, letfasen | **en transaktion**: `kontrolleraSokning` (laddning, 2 s spärr, rimlighet från startpunkten/senaste sökningen), `sok` mot de gömda inom `maxSokradie` (kandidaterna ur instansens minne av gömställena, `gomstallenFor` – läses en gång per instans när `kgPlacerade` är satt; dessförinnan alla `kgSecret.gomd == true`; färska `kgSecret`/`kgPlayers` avgör, F #841), varje hittad blir sökare (`gorTillSokare`: `poangVidHittad`, `laddningarNySokare`, startpunkt = gömstället), sökaren får `poangForHittad` per hittad. Efteråt `nySokare` + `hittad`-händelser i RTDB; en miss ger `miss`-händelse högst var `FLODE_MISS_SPARR_MS`. | `{ hittade: [{ uid, namn, x, z, plats }], laddningar, poang, plats, flode }` |
 | `kgTick({ sid })` | som `kgStarta` (projektorn var `TICK_MS` = 5 s; en deltagare får också) | letfasen: tystnadsregeln, "alltid en sökare", `hand`-städning; slutet (`arSlut`: tiden ute eller alla hittade) → `kgAvsluta` internt. | `{ fas, klart, visslade, nySokare, rensade }` eller `{ fas, klart: true, result, avslutade }` – `avslutade: true` bara i det anrop vars transaktion skrev `result` (klassbonusens engångsgate, §11.5); `kgAvsluta` svarar likadant |
 | `kgAvsluta({ sid })` | läraren som styr matchen när som helst; en deltagare först när tiden är ute, alla är hittade eller matchen redan är avslutad | `status: "finished"` + `finishedAt`, `result` på sessionen (§10.3), `klar: true` + sluttotaler i `kgPlayers`, tar bort `/kg/{sid}`. Idempotent (`redan`). | `{ result, redan }` |
 | `kgLarareVissla({ sid, uid })` (E, #840, §12.4) | **bara** läraren som styr matchen | visslar åt en gömd elev (`roll: "gomd"`, `kgSecret.gomd`) under letfasen – samma väg som tystnadsvisslingen (`visslaGomd`): `senastVisslingAt` (1,5× sökradie), `tystRef`, `tystVissling` = hand-nyckeln, `kgEvents` med `larare: true`, `hand` utan något som avslöjar. Inte gömd/fel fas → `failed-precondition`; elev → `permission-denied`; samma elev inom `LARARE_VISSLA_SPARR_MS` → `resource-exhausted` (`details.skal: "sparr"`, `vantaMs`). `VISSLING_SPARR_MS` gäller inte. | `{ visslade: true, plats }` |
@@ -621,7 +621,7 @@ servern når den med Admin SDK via `kgDatabaseUrl()`: `KG_DATABASE_URL` (functio
   `.info/serverTimeOffset` och skriver `t` samt räknar åldersgränsen på **serverns** klocka – en elevdator
   som går fel sparkar inte bort händelserna. `hand` lyssnas med `limitToLast(HAND_LIMIT)` och händelser äldre än
   `HAND_MAX_ALDER_MS` ignoreras. `skickaPos` följer `skapaPosFilter`: högst var `POS_MIN_INTERVALL_MS`
-  (5/s), bara vid flytt ≥ `POS_MIN_FLYTT_M` eller vridning ≥ `POS_MIN_VRID_RAD` – men **minst var
+  (3/s), bara vid flytt ≥ `POS_MIN_FLYTT_M` eller vridning ≥ `POS_MIN_VRID_RAD` – men **minst var
   `POS_PULS_MS`** (10 s) så att pulsen för "alltid en sökare" hålls vid liv när sökaren står still.
 - **lokal**: `skapaLokalBuss({ nu })` → `{ kanalFor(uid), server: { roll, med, handelse, status, pos } }` –
   demolägets "server" (D) skriver via `buss.server`, varje robot/elev har sin `kanalFor(uid)`.
@@ -657,7 +657,7 @@ slut, resultat) och alla 25 lyssnar på den. Sessionen och quizet ligger i serve
 | Del | Läsningar före | Läsningar nu | Skrivningar |
 | --- | --- | --- | --- |
 | `kgSvara` 1 000 × (kgPlayers; kgSecret bara för gömmare ~60 %; svaret läses inte i förväg – `tx.create` fäller ett upprepat attemptId och först då läses det) | ~3 000 | ~1 600 | ~2 300 |
-| `kgLeta` 100 × (kgPlayers + kgSecret + alla gömda ~15; +1 per hittad) | ~1 800 | ~1 800 | ~250 |
+| `kgLeta` ~500 × (kgPlayers + kgSecret + kandidater inom 3 m ur minnet ~0–2; +1 per hittad) + gömställena 1 × ~20 per instans (F #841; förr alla gömda ~15 per sökning = 4 600–15 000 uppmätt) | ~1 800 | ~1 500 | ~700 |
 | `kgTick` 120 × (räknefråga 1 + tystnadsfråga 1 (oftast 0 träffar) + ~2 kandidater × 4: puls + kgSecret, sedan båda igen i transaktionen) | ~900 | ~1 200 | ~150 |
 | Sessionen i serverns minne: 5 s TTL, en läsning per instans och TTL-fönster – 120 per instans, upp till 4 instanser | ~120 | ~120–480 | – |
 | `kgStarta`/`kgAnslut` 25–50 × ~3 (spelarna och quizet ligger i minnet) | ~150 | ~150 | ~110 |
