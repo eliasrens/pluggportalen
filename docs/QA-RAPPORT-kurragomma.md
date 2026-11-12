@@ -7,9 +7,12 @@ Huvudlös Chromium saknar emoji-typsnitt – rutorna i bilderna är emojier i en
 (three.js går på SwiftShader, 1–3 bilder/s), så elevflikarna i e2e-matcherna sänktes automatiskt till 2D-reserven efter
 ~8 s precis som spec §4.4 säger att de ska – riktiga fps mäts av Elias på HP-datorerna (§3).
 
-**Kort:** formatet fungerar end-to-end mot emulatorerna (alla 10 QA-punkter gröna, alla sviter gröna, 0 nya buggar
-rättade i kod), men **kvotbudgeten §5.5 hålls inte** i mätningen: Firestore-läsningarna hamnar på 9 100–14 800 per match
-(budget 8 000) och Realtime Database på 16–87 MB (budget 50 MB) beroende på hur många som hittas. Förslag i §2.3 och §6.
+**Kort:** formatet fungerar end-to-end mot emulatorerna (alla 10 QA-punkter gröna, alla sviter gröna). Första mätningen
+visade att **kvotbudgeten §5.5 inte hölls**: Firestore-läsningarna hamnade på 9 100–14 800 per match (budget 8 000) och
+Realtime Database på 16–87 MB (budget 50 MB) beroende på hur många som hittas. Kvotfixen (a)+(c) i F (`de6a0fc`:
+`kgLeta` sållar kandidater ur instansens minne, pos 3/s med två decimaler) mättes om på samma matchförlopp:
+**läsningar 10 452 → 7 340 (seed 1) och 13 535 → 7 871 (seed 3), Realtime Database 26,6 → 13,8 MB och 57,8 → 29,7 MB** –
+under budget, med liten marginal i matcher där många hittas (§2.1).
 
 ## 1. Vad som byggdes och vad som återanvändes
 
@@ -20,7 +23,7 @@ rättade i kod), men **kvotbudgeten §5.5 hålls inte** i mätningen: Firestore-
 | C | #838 | Servern: `kgStarta/kgAnslut/kgLas/kgSvara/kgLeta/kgTick/kgAvsluta` (`functions/kurragomma-*.js`), Firestore-grenen (`kgPlayers/kgSelf/kgSecret/kgEvents/kgPublic/kgPrivate`), Realtime Database `/kg/{sid}` med `database.rules.json`, rörelsekanalen `kg-kanal.js` (rtdb + lokal buss), synk `delat/` → `functions/kurragomma/` | **Rättningen** (`kistspel-rattning.js`: `gradeMult/gradeQuiz/pickNextQ`, `answers/{attemptId}` som i kistspelen), **pluggmynten** (`meteorstorm-mynt.js` räknar `rewards` på servern, `withRewards`), `perQuestion` ur `meteorstorm-resultat.js fragestatistik`, kärnans matchklocka (oförändrad) |
 | D | #839 | Projektorn (`kgp-*.js`: lobby, ön, flöde, vissling med riktat ljud, final med gömställena, musik), elevskärmen (`kge-*.js`: faser, mätare, lås, frågepanel, ficklampor, hittad-ruta, återanslutning via sessionStorage), demoläget (`kg-demo*.js`, 30 robotar mot låtsasservern över den lokala bussen), tre förhandsvisningar | **Frågeflödet** (`createQuestionFlow` från kistspelet: skriv själv, flerval, tidslinje), projektorramen (`mountProjector`, `live-feed`, ljud/musik som Guldrushen), **demoramverket** (Datakuppens kopplade demo, Snilleblixtens `DEMO_NAMES`), `elevskarm-kanal` (`&skarm=elev`-fönstret) |
 | E | #840 | Lärarformuläret (gömtid, startsökare, tystnadsregeln, karta), historiken + Statistik → Live (`kurragomma-history.js`), pluggmynten i klienten (`kg-avslut.js`, `liveCoinPlayerOk`-grenen `deltog`), **lärarens vissling** `kgLarareVissla` + diskret panel `kgp-vissla.js` (5 s spärr, "varav N av läraren" bara i historiken via `getCountFromServer` på `kgEvents.larare`) | Historikens mall (Guldrushens), `live-rewards`-vägen för utbetalningen, lärarformulärets `sf-*`-fält |
-| F | #841 | Den här rapporten, `admin/kg-kvot-sim.mjs` + `admin/kvot-raknare.mjs` (kvotmätningen), e2e-rigg `admin/qa-kurragomma-e2e.sh` (D) | `admin/ms-kvot-sim.mjs` som förebild |
+| F | #841 | Den här rapporten, `admin/kg-kvot-sim.mjs` + `admin/kvot-raknare.mjs` (kvotmätningen), e2e-rigg `admin/qa-kurragomma-e2e.sh` (D), **kvotfixen** `de6a0fc` (kgLeta-cachen `gomstallenFor`, pos 3/s med två decimaler, interpolering 400 ms) | `admin/ms-kvot-sim.mjs` som förebild |
 
 ## 2. Kvotbudgeten och balansen
 
@@ -62,12 +65,49 @@ gömställen, ~20 st), `kgPlayers` 1 981, `answers` 1 467 (alla svar läses i `k
   verkligt värde i en match där många hittas – fortfarande över budget.
 - Writes ligger klart under budget i alla körningar.
 
-**Förslag (inte gjorda – serverändringar, beslut hos Elias, §6):**
-(a) cacha gömställena per instans i `kgLeta` (de ändras bara vid lås och hittad; transaktionen läser ändå träffarnas
-`kgPlayers`, så en gammal cache ger rätt utfall) ≈ −4 000 till −14 000 läsningar;
-(b) `perQuestion` ur en aggregering som `kgSvara` uppdaterar i stället för att läsa `answers` vid slutet (§8 fråga 7) ≈ −1 500;
-(c) pos-takten 5/s → 3/s (`POS_MIN_INTERVALL_MS` 200 → 333) och avrunda x/z/yaw till 2 decimaler i `kg-kanal.js posDoc`
-(−30 % byte, 1 cm räcker) ≈ 87 → ~40 MB. Med a–c hamnar läsningarna på ≈ 4 000–6 000 och RTDB under 50 MB även i seed 3.
+**Förslag:** (a) cacha gömställena per instans i `kgLeta` (oföränderliga när `kgPlacerade` är satt; transaktionen läser
+ändå kandidaternas färska `kgSecret`/`kgPlayers`, så utfallet blir detsamma); (b) `perQuestion` ur en aggregering som
+`kgSvara` uppdaterar i stället för att läsa `answers` vid slutet (§8 fråga 7) ≈ −1 500; (c) pos-takten 5/s → 3/s
+(`POS_MIN_INTERVALL_MS` 200 → 333) och x/z/yaw med 2 decimaler i `kg-kanal.js posDoc`. **(a) och (c) gjordes i F
+(`de6a0fc`), (b) är kvar som fråga (§6).**
+
+**Vad som ändrades (Coder i #841, `de6a0fc`):** (a) `kgLeta` läser bara kandidater inom `maxSokradie` (3 m = största
+sökradien × 1,5) ur instansens minne av gömställena (`gomstallenFor` i `kurragomma-sess.js`: fylls EN gång per instans,
+först när `kgPlacerade` är satt – då nekas `kgLas` och mängden är oföränderlig; tak `MINNE_SESSIONER`; rensas i
+`avslutaIntern`). Rollen och visslingsfönstret avgörs ändå ur färska `kgSecret`/`kgPlayers` i transaktionen, så en
+gömmare som blivit sökare på en annan instans hittas inte igen (`test/functions-kurragomma-leta-minne-841.test.mjs`).
+(c) `POS_MIN_INTERVALL_MS` 200 → 333 (3/s), `pos` med två decimaler, och `POS_INTERPOLERING_MS` 150 → 400 – nödvändigt
+vid 3/s (150 ms frös figurerna i 41 % av bildrutorna i Chromium enligt Codern), men **andras figurer ritas nu ~250 ms
+längre bakåt i tiden** (sökarna på projektorn och för varandra). Elias bör titta på det på HP-datorerna – märks det, är
+alternativet 5/s igen med 2 decimaler (RTDB ≈ 0,85 × före i stället för 0,5 ×).
+
+#### Före/efter kvotfixen (a)+(c) – samma matchförlopp, mätt på `8266d65` (före) och `de6a0fc` (efter)
+
+Mätningen är inte helt deterministisk mellan körningar: fröet styr robotarna och servern, men `kgPlayers`-lyssnarnas
+leverans avgör i vilket klocksteg en hittad robot byter roll, så seed 3 gav två olika förlopp (503 sökningar / 18 hittade
+ovan; 321 / 9 här). Före/efter jämförs därför bara på körningar med **identiskt förlopp** (samma svar, visslingar,
+sökningar och träffar), verifierat med en loggning av varje sökning (`uid, x, z, hittade`) – de 321 sökningarna i seed 3
+ger exakt samma utfall på gammal och ny kod, så (a) ändrar inte spelet.
+
+| 25 elever, 10 min + 30 s gömtid | seed 1 före | **seed 1 efter** | seed 3 (321 / 9) före | **seed 3 efter** |
+| --- | --- | --- | --- | --- |
+| Svar · visslingar · sökningar (träffar) | 1 467 · 70 · 145 (4) | samma | 1 521 · 63 · 321 (9) | samma |
+| Serverns Firestore-läsningar | 8 430 | **5 318** | 11 285 | **5 621** |
+| – varav `kgSecret` i `kgLeta`-transaktionen | 4 629 | 1 493 | – | 1 510 |
+| Klienternas läsningar | 2 022 | 2 022 | 2 250 | 2 250 |
+| **Läsningar totalt** (budget 8 000) | 10 452 ❌ | **7 340 ✅** | 13 535 ❌ | **7 871 ✅** |
+| **Skrivningar totalt** (budget 6 000) | 3 529 ✅ | 3 529 ✅ | 3 990 ✅ | 3 990 ✅ |
+| Realtime Database, 26 lyssnare (budget 50 MB) | 26,6 MB ✅ | **13,8 MB ✅** | 57,8 MB ❌ | **29,7 MB ✅** |
+| pos-skick från sökarna | 7 277 | 3 651 | 15 989 | 8 019 |
+
+- (a) tar bort ~20 läsningar per sökning: `kgLeta` kostar nu ~2 läsningar + kandidaterna inom 3 m (oftast 0–1). Det som
+  återstår skalar med **svaren**: `answers` läses i `kgAvsluta` (1 467–1 521 = §8 fråga 7, förslag b) och `kgPlayers`/`kgSecret`
+  per svar i transaktionen.
+- (c) halverar Realtime Database (3/5 av takten × kortare JSON).
+- **Marginalen är liten i matcher där många hittas:** det värsta förloppet (503 sökningar / 18 hittade, 1 583 svar) gick inte
+  att återskapa på den nya koden; uppskattat ur kostnaden per svar (~2,6) och per sökning (~2,3) plus klienterna (2 496)
+  hamnar det på ≈ 8 500–9 000 läsningar (strax över 8 000) och ≈ 45 MB. Förslag (b) ger −1 500 och skulle ta det under budget med marginal.
+- Gratisnivån (50 000 läsningar/dag) räcker alltså till ~6 matcher per dag med (a)+(c), ~8 med (b).
 
 ### 2.2 Balansen (spec §11.5) – `npm run balans:kurragomma`
 
@@ -104,11 +144,11 @@ Ritanropen ligger långt under spec:ens tak 150 på alla nivåer (B:s mätning 4
 
 ## 4. Testresultat och skärmbilder
 
-### 4.1 Sviterna (epic-grenen `8266d65` + F, sekventiellt – maskinen har begränsat RAM)
+### 4.1 Sviterna (epic-grenen + F inkl. kvotfixen `de6a0fc`, sekventiellt – maskinen har begränsat RAM)
 
 | Svit | Epic-basen `d2ee009` (main före epicen) | Nu |
 | --- | --- | --- |
-| `node --test` (alla `test/*.test.*` utom emulatorsviterna; repot saknar `npm test`) | 4 097 tester, 4 096 ok, 0 fel, 1 skippad (278 filer, 374 s) | **4 255 tester, 4 254 ok, 0 fel, 1 skippad** (290 filer, 355 s) – samma skippade (`demo: en stubbe vägras`) |
+| `node --test` (alla `test/*.test.*` utom emulatorsviterna; repot saknar `npm test`) | 4 097 tester, 4 096 ok, 0 fel, 1 skippad (278 filer, 374 s) | **4 255 tester, 4 254 ok, 0 fel, 1 skippad** (290 filer, 261 s) – samma skippade (`demo: en stubbe vägras`) |
 | `npm run test:rules` (Firestore-reglerna) | – | **910 tester, 910 ok, 0 fel** |
 | `npm run test:rules:rtdb` (Realtime Database-reglerna) | – | **23 tester, 23 ok, 0 fel** |
 | `npm run test:functions` | – | FUNCTIONS_PLACEHOLDER |
@@ -133,7 +173,7 @@ Elevflikarna sänktes till 2D-reserven av nivåvakten (SwiftShader); i match 4 �
 | 1 | Lobby → STARTA → gömfasen: gå runt, mätaren, lås | ✅ "4 elever redo" → 3-2-1 → gömfasen med nedräkning "Göm: 0:25"; sökaren blundar ("Du blundar", frågor laddar lampan); mätaren visar "Syns lätt" ute på ängen och "Bra gömställe" vid ett träd; 🔒 Lås → `kgLas` → "Du är gömd ute på ängen" och knappen försvinner | `01-lobby-projektor-1920`, `02-gomfas-c01-1366`, `02-gomfas-c02-380`, `03-last-c01` |
 | 2 | En elev som inte låser | ✅ c03 låste aldrig: när gömtiden tog slut skickade klienten platsen (auto, `skydd 2`, "Du är gömd vid ett träd"); c04 stängdes under gömfasen och placerades av **servern** (`harLast: true`, `kgSecret.auto`), och fick platsen vid återanslutningen ("Du är gömd ute på ängen") | `match1-dump` |
 | 3 | Fel svar → vissling på projektorn och markör hos sökaren; fel igen inom spärren → ingen vissling | ✅ Projektorn: "🎵 Det visslar ute på ängen!" (platsnamn, aldrig namn; händelsen i `kgEvents` saknar uid). Sökaren: markören ritas i scenen och kantpilen (`.kg-pil`) syns i **4,2 s** (`VISSLING_MARKOR_MS` 4 000), ingen textrad. Gömmaren: "Fel svar – det visslade där du gömmer dig!". Andra felsvaret 20 s senare: ingen ny rad, `kgEvents` oförändrat (spärren 200 s) | `04-vissling-projektor`, `03-vissling-markor-c03-1s` (pilen nere till höger), `03-vissling-projektor-m3` |
-| 4 | Sök: miss, träff, en elev i ett buskage som kräver närhet | ✅ Miss vid brunnen (25 m från alla): "Ingen här – leta vidare!" / projektorn "🔦 Leo 3A letade vid brunnen men hittade ingen". Träff: sökaren gick ("tryck på marken") till gömstället ute på ängen → "🔎 Leo 3A hittade Tyra 3A ute på ängen! Tyra 3A blir sökare." Närhet: gömd vid ett träd (`skydd 2`, sökradie 1,3 m) – miss på 2,65 m ("letade vid ett träd men hittade ingen"), träff på 0,22 m. MATCH4_PLACEHOLDER | `04-miss-nara-c03`, `05-hittad-projektor` |
+| 4 | Sök: miss, träff, en elev i ett buskage som kräver närhet | ✅ Miss vid brunnen (25 m från alla): "Ingen här – leta vidare!" / projektorn "🔦 Leo 3A letade vid brunnen men hittade ingen". Träff: sökaren gick ("tryck på marken") till gömstället ute på ängen → "🔎 Leo 3A hittade Tyra 3A ute på ängen! Tyra 3A blir sökare." Närhet: gömd vid ett träd (`skydd 2`, sökradie 1,3 m) – miss på 2,65 m ("letade vid ett träd men hittade ingen"), träff på 0,22 m. **Buskaget (`skydd 3`, 0,9 m) nåddes inte i e2e:** gömmaren rörde sig ~0,3 m/s på SwiftShader och hann aldrig in i ett buskage och låsa inom 60 s – radien 0,9 m täcks av `test/live-kurragomma-regler.test.js` (`sok`: inne/kant/ute för skydd 0–3, 1,5× efter vissling), inte av en skärmbild. | `04-miss-nara-c03`, `05-hittad-projektor` |
 | 5 | Hittad → sökare, med start på gömstället | ✅ Rutan "Theo 3A hittade dig! Nu letar du också." visades i 2,1 s (poll var 100 ms), vyn bytte till `leta-sokare` och den nya sökarens första `pos` i RTDB = gömstället (16,94 / 20,64) | `05-hittad-ruta-c01`, `05-hittad-c02-380` |
 | 6 | Stäng en elevflik och öppna igen: samma roll och plats | ✅ Gömmare (c04, match 1): samma roll och gömställe. Sökare (c02 efter att ha hittats, match 2): `pos` togs bort av `onDisconnect`, efter ny inloggning + "Gå med"-sidan var hon sökare igen med start på sitt gömställe (12,59 / 23,55) och samma laddningar/poäng | `06-ateranslut-c02-sokare` |
 | 7 | Final med gömställena på kartan | ✅ "2 av 4 klarade sig gömda hela matchen", prispall (delad etta 110 p, 20 mynt), figurerna på gömställena, "Här var alla gömda"; `result.gomstallen` med `hittad`-flagga; `coinReceipts` 4 per match (utbetalt en gång, med både lärar- och projektorfönster öppna) | `07-final-projektor-match2-1920`, `07-final-c01-1366`, `07-final-c02-380`, `07-final-larare` |
@@ -174,10 +214,12 @@ Rekommendation: sätt `KG_DATABASE_URL=https://pluggportalen-so-2026-default-rtd
 
 **Avvikelser**
 
-1. **Kvotbudgeten §5.5 hålls inte** (§2.1): läsningar 9 100–14 800 per match (budget 8 000, varav servern 7 200–12 300),
-   Realtime Database 16–87 MB (budget 50 MB). Skrivningarna håller. Orsak: `kgLeta` läser alla gömdas `kgSecret` per sökning
-   och antalet sökningar växer med antalet hittade; pos-takten 5/s till 26 lyssnare. Förslag a–c i §2.1 – **beslut:** ska
-   de göras före släppet eller räcker gratisnivån (50 000 läsningar/dag ≈ 3–5 matcher per dag) tills etapp 2?
+1. **Kvotbudgeten §5.5 hölls inte i första mätningen** (§2.1): läsningar 9 100–14 800 per match (budget 8 000),
+   Realtime Database 16–87 MB (budget 50 MB). Orsak: `kgLeta` läste alla gömdas `kgSecret` per sökning och antalet sökningar
+   växer med antalet hittade; pos-takten 5/s till 26 lyssnare. **Rättat i F (`de6a0fc`, förslag a+c):** 7 340 / 7 871
+   läsningar och 13,8 / 29,7 MB på samma förlopp – under budget, men med liten marginal i matcher där många hittas
+   (uppskattat ≈ 8 500–9 000 i det värsta uppmätta förloppet). Förslag (b) `perQuestion` ur en aggregering (−1 500) är
+   kvar som fråga 1 nedan. Gratisnivån 50 000 läsningar/dag ≈ 6 matcher per dag.
 2. **Balansen** nås bara med spärren 200 s (spec 20 s) och mindre sökradier – A:s frågor 1–4 i KURRAGOMMA.md §8 är fortfarande
    obesvarade; etapp 2:s "balansjustering efter test i klassrum" avgör.
 3. Spec §6 "en panel till höger ~360 px bredare än 1100 px": på en HP-dator 1366 × 768 är elevens spelyta ~840 px bred
@@ -212,9 +254,10 @@ Rekommendation: sätt `KG_DATABASE_URL=https://pluggportalen-so-2026-default-rtd
 `kgStarta/kgTick`, 6 hittad-händelsen bär namn, 7 kvoten/`perQuestion`, 8 befordrad = hittad, 9 klassbonusen utan projektor,
 10 pluggmyntens deltagare, 11 den neutrala raden)
 
-1. Kvoten: (a) kgLeta-cachen och (c) pos-takten görs av en Coder i #841 (före/efter-mätning i §2.1 när den landat).
+1. Kvoten: (a) kgLeta-cachen och (c) pos-takten är gjorda i #841 (`de6a0fc`, före/efter i §2.1).
    (b) `perQuestion` ur en aggregering i `kgSvara` i stället för att läsa alla `answers` i `kgAvsluta` = §8 fråga 7 –
-   uppmätt besparing ≈ 1 500 läsningar per match (1 467 svar i seed 1). Vill du ha den?
+   uppmätt besparing ≈ 1 500 läsningar per match (1 467–1 583 svar). Den skulle ge marginal även i matcher där många
+   hittas (≈ 8 500–9 000 → ≈ 7 000–7 500). Vill du ha den före släppet?
 2. **Musikfilen `kurragomma-loop.ogg` är inte levererad** (D #839 spelar projektorns musik via `kgp-ljud.js` när filen finns;
    utan den är matchen tyst) – ska den levereras före släppet eller lämnas till etapp 2?
 3. **Klassbonusen tappas om inget lärar-/projektorfönster är öppet vid 00:00** (§8 fråga 9, Meteorstormens reserv): är bara
@@ -223,4 +266,6 @@ Rekommendation: sätt `KG_DATABASE_URL=https://pluggportalen-so-2026-default-rtd
 4. Ska fps-målen (≥ 30 Mellan på eleverna, ≥ 40 projektorn) mätas av dig på HP-datorerna med `preview-kurragomma-prestanda.html`
    innan formatet visas för en klass? Nivåvakten sänker annars av sig själv till Låg/2D.
 5. Sidomenyn under matchen (avvikelse 3), WASD-fokus (observation 1) och auto-låsningens marginal (observation 5): ändra nu eller i etapp 2?
-6. Etapp 2 (§12) är inte påbörjad – klartecken krävs.
+6. Kvotfixen (c) ritar sökarnas figurer 400 ms bakåt (förr 150) – kontrollera på HP-datorerna att sökarna på projektorn
+   inte känns "sega"; annars 5/s igen med två decimaler (§2.1).
+7. Etapp 2 (§12) är inte påbörjad – klartecken krävs.
