@@ -273,15 +273,17 @@ describe("Kurragömma: kgAvsluta", () => {
     assert.equal(rad.bo.klaradeSig, false);
     assert.equal(rad.alma.poang, 10 * 2 + 40, "2 rätt under blundandet + hittade bo");
     assert.deepEqual(result.ranking.map((r) => r.rank), [1, 1, 1, 4, 5]);
-    assert.deepEqual({ klaradeSig: result.klaradeSig, hittade: result.hittade, visslingar: result.visslingar, players: result.players }, { klaradeSig: 3, hittade: 1, visslingar: 1, players: 3 });
+    // players = deltagare (#840): svarat, låst eller hittat – dina och emil låste utan att svara.
+    assert.deepEqual({ klaradeSig: result.klaradeSig, hittade: result.hittade, visslingar: result.visslingar, players: result.players }, { klaradeSig: 3, hittade: 1, visslingar: 1, players: 5 });
     assert.deepEqual(result.flestHittade, { uid: "alma", name: "Alma", antal: 1 });
     assert.equal(result.gomstallen.length, 4);
     const gb = result.gomstallen.find((g) => g.uid === "bo");
     assert.deepEqual({ x: gb.x, z: gb.z, hittad: gb.hittad, namn: gb.namn }, { x: BO.x, z: BO.z, hittad: true, namn: "Bo" });
     assert.equal(result.perQuestion.length, 1);
     assert.deepEqual({ answered: result.perQuestion[0].answered, correct: result.perQuestion[0].correct }, { answered: 4, correct: 3 });
-    assert.deepEqual(Object.keys(result.rewards).sort(), ["alma", "bo", "cleo"]);
+    assert.deepEqual(Object.keys(result.rewards).sort(), ["alma", "bo", "cleo", "dina", "emil"], "låsta gömmare utan svar får pris (#840)");
     assert.equal(result.rewards.cleo.rank, 1);
+    assert.deepEqual({ rank: result.rewards.dina.rank, correctCoins: result.rewards.dina.correctCoins }, { rank: 1, correctCoins: 0 });
     assert.equal(result.rewards.alma.correctCoins, 10);
     const s = await session(sid);
     assert.equal(s.status, "finished");
