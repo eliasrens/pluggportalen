@@ -3,12 +3,17 @@
 //       är ELEVENS namn (servern), inte platsen → "Du blev hittad Theo 3A och letade sedan."
 //   F4  lokala bussen (demot): händelse-id = h${hand.length + 1} – efter HAND_LIMIT
 //       händelser blir alla "h21", projektorns dedupe (sedda) släpper sedan inget mer.
+// Runda 3 (35407dc), todo tills rättat:
+//   N1b samma tick: functions/kurragomma-tick.js:55 sätter tystRef = nu för en FRÅNKOPPLAD gömd
+//       (ingen vissling) i samma kgTick som en annan gömd visslas med hand.t = nu → den
+//       frånkopplades skärm visar "Du var tyst länge – …" + hopp (e2e 2026-11-12, c01).
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { slutRad } from "../src/live/formats/kurragomma/kge-skarmar.js";
 import { skapaLokalBuss } from "../src/live/formats/kurragomma/kg-kanal.js";
 import { platsNamn } from "../src/live/formats/kurragomma/delat/kg-geometri.js";
 import { HAND_LIMIT } from "../src/live/formats/kurragomma/delat/kg-config.js";
+import { skapaEgenVisslingar } from "../src/live/formats/kurragomma/kge-logik.js";
 
 describe("tester #839: slutskärmen", () => {
   // Serverns result.gomstallen (functions/kurragomma-resultat.js) som e2e-matchen 2026-11-11 gav det.
@@ -40,5 +45,16 @@ describe("tester #839: lokala bussen (demot)", () => {
     assert.equal(visade, N);
     const ids = buss.server.tillstand.hand.map((h) => h.id);
     assert.equal(new Set(ids).size, ids.length, ids.join(","));
+  });
+});
+
+describe("tester #839 runda 3: tystnadsregelns egna vissling", () => {
+  // kgTick: c01 frånkopplad → kgPlayers.tystRef = nu (ingen vissling); c03 tyst → tystRef = nu
+  // och hand { typ: "vissling", t: nu }. Samma nu för alla kandidater i ett anrop.
+  it("en tystRef som flyttats utan vissling matchar inte någon annans vissling med samma t (N1b)", { todo: "N1b: tick.js:55 frånkopplad-grenen ger tystRef = nu" }, () => {
+    const nu = 1_794_447_108_599;
+    const c01 = skapaEgenVisslingar();
+    const visad = c01.referens(nu) || c01.vissling({ typ: "vissling", t: nu, x: -3.85, z: -14.58, plats: "i granen" });
+    assert.equal(visad, null, "c01 visslades inte – ingen 'Du var tyst länge'");
   });
 });
