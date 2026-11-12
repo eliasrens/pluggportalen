@@ -53,7 +53,7 @@
         <button data-act="tystnad">🤫 Tystnad</button>
         <button data-act="alla">Alla hittade</button>
         <label>Serverns svarstid <select data-lat><option>0</option><option selected>150</option><option>600</option><option>2500</option></select> ms</label>
-        <span class="pv-note">Adressen: ?roll=sokare · ?2d=1 · ?svar=choice · ?quiz=1 · ?fas=lobby|live · ?gomtid=20 · ?min=5</span>
+        <span class="pv-note">Adressen: ?roll=sokare · ?2d=1 · ?svar=choice · ?quiz=1 · ?fas=lobby|live · ?gomtid=20 · ?min=5 · ?sidomeny=1 (appens layout med sidomenyn, #842)</span>
         <div class="pv-stat" data-stat></div>
       </div>
     </details>
@@ -68,6 +68,16 @@
 
       const qs = new URLSearchParams(location.search);
       const $ = (s) => document.querySelector(s);
+      // ?sidomeny=1 (#842): appens riktiga layout (body.med-sidomeny, .layout > .sidebar + .container) i stället för
+      // låtsastoppmenyn – visar att sidomenyn fälls ihop under matchen (body.kge-match) och kommer tillbaka efteråt.
+      if (qs.get("sidomeny") === "1") {
+        document.body.classList.add("med-sidomeny", "live-lage");
+        $(".pv-topbar").remove();
+        $(".pv-main").outerHTML = `<div class="layout"><aside class="sidebar" aria-label="Sidomeny">
+            <button class="brand" type="button"><span class="brand-text">Pluggporten</span></button>
+            <p style="font-weight:700">Jag · 4B</p><p>🏠 Hem</p><p>📚 Plugga</p><p>⚡ Live</p><p>🏡 Huset</p>
+          </aside><main id="app" class="container"></main></div>`;
+      }
       const QUIZ = [
         { id: "q1", key: "0:q1", text: "Vilket djur gömmer sig helst i ett träd?", options: ["Ugglan", "Grodan", "Hästen", "Kon"], answerIndex: 0 },
         { id: "q2", key: "1:q2", text: "Vad växer på en äng?", options: ["Tång", "Blommor", "Koraller", "Is"], answerIndex: 1 },

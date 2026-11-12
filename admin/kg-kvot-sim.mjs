@@ -28,7 +28,11 @@
 //
 //   FIRESTORE_EMULATOR_HOST=127.0.0.1:P FIREBASE_DATABASE_EMULATOR_HOST=127.0.0.1:Q \
 //     node admin/kg-kvot-sim.mjs --elever 25 --min 10 --ratt 0.65 --gomtid 30 \
-//       --startsokare 1 --tystnad 1 --instanser 1 --seed 1 --steg 200 --md
+//       --startsokare 1 --tystnad 1 --instanser 1 --seed 1 --steg 200 --md [--logg]
+//   --logg skriver varje sökning (t, uid, x, z, hittade) till stderr: mätningen är
+//   INTE deterministisk mellan körningar (kgPlayers-lyssnarnas leverans avgör i
+//   vilket klocksteg en hittad robot byter roll), så före/efter en kodändring
+//   jämförs bara körningar med identisk logg (#841 §2.1, #842).
 // ============================================================================
 
 import admin from "firebase-admin";
@@ -57,6 +61,8 @@ const SEED = Number(arg("seed", 1));
 const STEG_MS = Number(arg("steg", 200));
 const MD = arg("md", false) === true;
 const DEBUG = arg("debug", false) === true;
+const LOGG = arg("logg", false) === true;
+const logg = (rad) => { if (LOGG) console.error(rad); };
 
 const PROJECT_ID = process.env.GCLOUD_PROJECT || "pluggportalen-so-2026";
 if (!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_DATABASE_EMULATOR_HOST) {
@@ -245,10 +251,11 @@ async function sokare(r, nu, dt) {
     stat.sokningar++;
     try {
       const u = await leta(deps(), r.uid, { sid, x: r.x, z: r.z });
+      logg(`LETA t+${((nu - T0) / 1000) | 0} ${r.uid} ${r.x.toFixed(2)} ${r.z.toFixed(2)} -> ${(u?.hittade || []).map((h) => h.uid).join(",") || "-"}`);
       if (Number.isFinite(u?.laddningar)) r.laddningar = u.laddningar;
       stat.traffar += u?.hittade?.length || 0;
       for (const h of u?.hittade || []) { const hr = robotar.get(h.uid); if (hr && hr.roll !== "sokare") blirSokare(hr, { x: h.x, z: h.z }); }
-    } catch (e) { stat.nekade++; felet(e); }
+    } catch (e) { stat.nekade++; felet(e); logg(`LETA t+${((nu - T0) / 1000) | 0} ${r.uid} FEL ${e?.code || e?.message}`); }
   }
 }
 

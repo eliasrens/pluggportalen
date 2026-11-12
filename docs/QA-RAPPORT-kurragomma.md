@@ -69,7 +69,7 @@ gömställen, ~20 st), `kgPlayers` 1 981, `answers` 1 467 (alla svar läses i `k
 ändå kandidaternas färska `kgSecret`/`kgPlayers`, så utfallet blir detsamma); (b) `perQuestion` ur en aggregering som
 `kgSvara` uppdaterar i stället för att läsa `answers` vid slutet (§8 fråga 7) ≈ −1 500; (c) pos-takten 5/s → 3/s
 (`POS_MIN_INTERVALL_MS` 200 → 333) och x/z/yaw med 2 decimaler i `kg-kanal.js posDoc`. **(a) och (c) gjordes i F
-(`de6a0fc`), (b) är kvar som fråga (§6).**
+(`de6a0fc`), (b) i G (#842) – mätningen "Efter (b)" nedan.**
 
 **Vad som ändrades (Coder i #841, `de6a0fc`):** (a) `kgLeta` läser bara kandidater inom `maxSokradie` (3 m = största
 sökradien × 1,5) ur instansens minne av gömställena (`gomstallenFor` i `kurragomma-sess.js`: fylls EN gång per instans,
@@ -108,6 +108,30 @@ ger exakt samma utfall på gammal och ny kod, så (a) ändrar inte spelet.
   att återskapa på den nya koden; uppskattat ur kostnaden per svar (~2,6) och per sökning (~2,3) plus klienterna (2 496)
   hamnar det på ≈ 8 500–9 000 läsningar (strax över 8 000) och ≈ 45 MB. Förslag (b) ger −1 500 och skulle ta det under budget med marginal.
 - Gratisnivån (50 000 läsningar/dag) räcker alltså till ~6 matcher per dag med (a)+(c), ~8 med (b).
+
+#### Efter (b) – `perQuestion` ur `kgPlayers.fragor` (G, #842): mätt på `f21ab1a` (före, = de6a0fc + fix 1–3) och koden efter
+
+`kgSvara` räknar per fråga i elevens eget `kgPlayers` (`fragor.{m3x4|q7}.{a,r}`, samma update som poängen – ingen extra
+skrivning, ingen "het" delad räknare) och `kgAvsluta` bygger `perQuestion` ur de `kgPlayers` det ändå läser
+(`functions/kurragomma-fragor.js`; samma form som förr, `test/live-kurragomma-842.test.js` jämför mot `fragestatistik`
+på slumpade svar, `test/functions-kurragomma-842.test.mjs` mot emulatorn). `answers/{attemptId}` skrivs fortfarande
+(idempotensen) men läses inte. Mätt med `--logg` (ny flagga i `kg-kvot-sim.mjs`): två körningar per sida och frö, alla
+fyra loggarna per frö identiska (145 resp. 321 sökningar, samma träffar) – samma förlopp som tabellen ovan.
+
+| 25 elever, 10 min + 30 s gömtid | seed 1 före (b) | **seed 1 efter (b)** | seed 3 (321 / 9) före (b) | **seed 3 efter (b)** |
+| --- | --- | --- | --- | --- |
+| Svar · visslingar · sökningar (träffar) | 1 467 · 70 · 145 (4) | samma | 1 521 · 63 · 321 (9) | samma |
+| Serverns Firestore-läsningar | 5 318 | **3 851** | 5 621 | **4 125** |
+| – varav `answers` i `kgAvsluta` | 1 467 | **0** | 1 521 | **0** |
+| Klienternas läsningar | 2 022 | 2 022 | 2 250 | 2 250 |
+| **Läsningar totalt** (budget 8 000) | 7 340 ✅ | **5 873 ✅** | 7 871 ✅ | **6 375 ✅** |
+| **Skrivningar totalt** (budget 6 000) | 3 529 ✅ | 3 529 ✅ | 3 990 ✅ | 3 990 ✅ |
+| Realtime Database, 26 lyssnare (budget 50 MB) | 13,8 MB ✅ | 13,8 MB ✅ | 29,7 MB ✅ | 29,7 MB ✅ |
+
+- Besparingen är exakt antalet svar (−1 467 / −1 496; seed 3 fick +24 `kgSecret`- och +1 sessionsläsning ur emulatorns
+  transaktionsomförsök – samma utfall, samma logg). Skrivningarna är oförändrade: räknarna ligger i en update som redan görs.
+- Marginalen till budgeten är nu ~1 600–2 100 läsningar; det värsta uppmätta förloppet (503 sökningar / 18 hittade,
+  1 583 svar, uppskattat ≈ 8 500–9 000 före) hamnar på ≈ 7 000–7 500. Gratisnivån räcker till ~8 matcher per dag.
 
 ### 2.2 Balansen (spec §11.5) – `npm run balans:kurragomma`
 
@@ -206,7 +230,9 @@ Rekommendation: sätt `KG_DATABASE_URL=https://pluggportalen-so-2026-default-rtd
 1. **Regler:** `firebase deploy --only firestore:rules,database` – Firestore-grenen (kg-samlingarna + `liveCoinPlayerOk`-grenen
    `deltog`, E) och `database.rules.json` (låser upp RTDB för `/kg/{sid}`).
 2. **Functions:** `firebase deploy --only functions:kgStarta,functions:kgAnslut,functions:kgLas,functions:kgSvara,functions:kgLeta,functions:kgTick,functions:kgAvsluta,functions:kgLarareVissla`
-   (`kgLarareVissla` är ny i E; `kgTick/kgSvara/kgAvsluta` ändrade i D/E). Kör `npm run sync:kurragomma` före så `functions/kurragomma/` = `delat/`.
+   (`kgLarareVissla` är ny i E; `kgTick/kgSvara/kgAvsluta` ändrade i D/E/G). Kör `npm run sync:kurragomma` före så `functions/kurragomma/` = `delat/`.
+   **Deploya functions mellan matcher** (G #842): `perQuestion` räknas nu i `kgPlayers.fragor` vid varje svar – en match som
+   pågår när functions byts får bara svaren efter bytet i historikens "andel rätt per fråga" (poäng och mynt påverkas inte).
 3. **Index:** inga nya (`kgPlayers`-frågorna är enfältsfrågor; `hand`-indexet ligger i `database.rules.json`).
 4. **Webben** sist (B/D/E + `src/vendor/three/`). Tills webben är ute visar den gamla webben inget Kurragömma-format.
 
@@ -218,20 +244,29 @@ Rekommendation: sätt `KG_DATABASE_URL=https://pluggportalen-so-2026-default-rtd
    Realtime Database 16–87 MB (budget 50 MB). Orsak: `kgLeta` läste alla gömdas `kgSecret` per sökning och antalet sökningar
    växer med antalet hittade; pos-takten 5/s till 26 lyssnare. **Rättat i F (`de6a0fc`, förslag a+c):** 7 340 / 7 871
    läsningar och 13,8 / 29,7 MB på samma förlopp – under budget, men med liten marginal i matcher där många hittas
-   (uppskattat ≈ 8 500–9 000 i det värsta uppmätta förloppet). Förslag (b) `perQuestion` ur en aggregering (−1 500) är
-   kvar som fråga 1 nedan. Gratisnivån 50 000 läsningar/dag ≈ 6 matcher per dag.
+   (uppskattat ≈ 8 500–9 000 i det värsta uppmätta förloppet). **Förslag (b) gjort i G (#842):** `perQuestion` ur
+   `kgPlayers.fragor` som `kgSvara` räknar upp – `answers` läses inte längre i `kgAvsluta`; före/efter i §2.1
+   ("Efter (b)"). ✅ Klart.
 2. **Balansen** nås bara med spärren 200 s (spec 20 s) och mindre sökradier – A:s frågor 1–4 i KURRAGOMMA.md §8 är fortfarande
    obesvarade; etapp 2:s "balansjustering efter test i klassrum" avgör.
 3. Spec §6 "en panel till höger ~360 px bredare än 1100 px": på en HP-dator 1366 × 768 är elevens spelyta ~840 px bred
    (sidomenyn tar resten), så frågorna blir ett kort längst ned och 3D-vyn ~265 px hög. Fungerar, men scenen är liten –
    vill du att sidomenyn fälls ihop automatiskt under en Live-match (som Prov i helskärm) eller att brytpunkten sänks?
+   **Rättat i G (#842):** under fasen "live" sätter elevskärmen `body.kge-match` (bara Kurragömma) – sidomenyn fälls
+   ihop och ytan tar hela bredden över 820 px, tillbaka när matchen är slut eller vyn lämnas (`kge-logik.js sattSidomeny`,
+   `kurragomma-elev.css`). 1366×768: panelen till höger och scenen 645 px hög i stället för ett kort och 380 px –
+   `qa-kurragomma/842-sidomeny-fore-1366.png`, `842-sidomeny-efter-1366.png`, `842-sidomeny-slut-1366.png`
+   (förhandsvisningen `?sidomeny=1` med appens layout). Test: `test/live-kurragomma-842.test.js`. ✅ Klart.
 
 **Observationer (inte rättade)**
 
 1. Sökarens tangenter (WASD/pilar) ignoreras medan svarsfältet har fokus (`formularHarFokus`), och efter varje svar får
    nästa fråga fokus igen. På en dator måste eleven alltså klicka på marken (eller på scenen) innan W/A/S/D fungerar –
    "tryck på marken för att gå dit" fungerar alltid. Liten ändring om du vill: släpp igenom WASD (inte pilarna) även när
-   ett sifferfält har fokus.
+   ett sifferfält har fokus. **Rättat i G (#842):** `kg-styrning.js` `faltTyp`/`styrTangent` – i ett sifferfält
+   (inputmode numeric/decimal/tel, type number) styr W/A/S/D och bokstäverna skrivs inte in (preventDefault), pilarna
+   lämnas åt fältet; i ett textfält (quizets fritext) styr inget. Kontrollerat i Chromium (2D-reserven, sökare, svarsfältet
+   i fokus): W flyttade figuren 9 m på 1,5 s, pil upp 0 m, W i ett textfält 0 m. Test: `test/live-kurragomma-842.test.js`. ✅ Klart.
 2. Visslingens plats på projektorn kommer ur den osäkra punkten (±5 m): c02 ute på ängen gav "Det visslar vid eken!" i en
    match – avsiktligt enligt spec §1.5, men läraren kan undra.
 3. Kända låga fynd från D (#839 runda 5) som är rättade och inte återkom: egen visslingsrad skrevs över (N7), figurerna
@@ -245,7 +280,10 @@ Rekommendation: sätt `KG_DATABASE_URL=https://pluggportalen-so-2026-default-rtd
    slut" → `hamtaGomstalle`): anropet kom > `LAS_MARGINAL_MS` (2 s) efter `kgGomSlut`, troligen för att sidans 250 ms-ticker
    och anropet fördröjdes under last (SwiftShader/CPU 27+). På en HP-dator vid 24 fps är fördröjningen liten, men marginalen
    är tunn. Förslag: `LAS_MARGINAL_MS` 2 → 5 s (servern placerar olåsta först efter 5 s) eller auto-skick ~300 ms före
-   `gomSlut`. Inte rättat (konfig delad av server, klient och tester).
+   `gomSlut`. Inte rättat (konfig delad av server, klient och tester). **Rättat i G (#842), båda:** `LAS_MARGINAL_MS`
+   2 → 5 s (`delat/kg-config.js`, synkad till `functions/kurragomma/`) och klienten skickar auto-låsningen
+   `LAS_AUTO_FORE_MS` = 300 ms **före** `gomSlut` (`kge-logik.js autoLasDags`, tickern 250 ms). Server-test: kgLas 4 s
+   efter gömslutet tas emot, 6 s efter nekas och servern placerar (`test/functions-kurragomma-842.test.mjs`). ✅ Klart.
 6. Emulatorn: `kgLeta`/`kgSvara`-transaktioner från 25 robotar i samma klocksteg gav `ABORTED: Transaction lock timeout` i
    Firestore-emulatorn (serialiserat i mätningen). Produktionens Firestore har inte den begränsningen, men det är värt att
    titta i functions-loggen efter första klassrumsmatchen.
@@ -257,7 +295,8 @@ Rekommendation: sätt `KG_DATABASE_URL=https://pluggportalen-so-2026-default-rtd
 1. Kvoten: (a) kgLeta-cachen och (c) pos-takten är gjorda i #841 (`de6a0fc`, före/efter i §2.1).
    (b) `perQuestion` ur en aggregering i `kgSvara` i stället för att läsa alla `answers` i `kgAvsluta` = §8 fråga 7 –
    uppmätt besparing ≈ 1 500 läsningar per match (1 467–1 583 svar). Den skulle ge marginal även i matcher där många
-   hittas (≈ 8 500–9 000 → ≈ 7 000–7 500). Vill du ha den före släppet?
+   hittas (≈ 8 500–9 000 → ≈ 7 000–7 500). Vill du ha den före släppet? **Gjord i G (#842)** – mätningen i §2.1
+   "Efter (b)". ✅ Klart.
 2. **Musikfilen `kurragomma-loop.ogg` är inte levererad** (D #839 spelar projektorns musik via `kgp-ljud.js` när filen finns;
    utan den är matchen tyst) – ska den levereras före släppet eller lämnas till etapp 2?
 3. **Klassbonusen tappas om inget lärar-/projektorfönster är öppet vid 00:00** (§8 fråga 9, Meteorstormens reserv): är bara
@@ -266,6 +305,7 @@ Rekommendation: sätt `KG_DATABASE_URL=https://pluggportalen-so-2026-default-rtd
 4. Ska fps-målen (≥ 30 Mellan på eleverna, ≥ 40 projektorn) mätas av dig på HP-datorerna med `preview-kurragomma-prestanda.html`
    innan formatet visas för en klass? Nivåvakten sänker annars av sig själv till Låg/2D.
 5. Sidomenyn under matchen (avvikelse 3), WASD-fokus (observation 1) och auto-låsningens marginal (observation 5): ändra nu eller i etapp 2?
+   **Ändrade nu, i G (#842)** – se respektive punkt. ✅ Klart.
 6. Kvotfixen (c) ritar sökarnas figurer 400 ms bakåt (förr 150) – kontrollera på HP-datorerna att sökarna på projektorn
    inte känns "sega"; annars 5/s igen med två decimaler (§2.1).
 7. Etapp 2 (§12) är inte påbörjad – klartecken krävs.

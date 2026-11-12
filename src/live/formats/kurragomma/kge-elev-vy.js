@@ -11,7 +11,8 @@
 //   gom-gomd    "Göm dig! Ingen annan ser var du går.", nedräkning, mätaren,
 //               🔒 Lås → kgLas (ångras inte). Platsen sparas i sessionStorage
 //               (aldrig på servern) så en omladdning fortsätter där eleven var.
-//               Tar tiden slut skickas platsen automatiskt.
+//               Platsen skickas automatiskt LAS_AUTO_FORE_MS före 0:00 (#842).
+// Under fasen "live" får body klassen kge-match: sidomenyn fälls ihop (#842, 1366×768).
 //   gom-sokare  täckt skärm "🙈 Du blundar – räkna till 30!" + frågor (laddar lampan)
 //   leta-gomd   frågor, "Du är gömd i buskaget", poäng, hjärtslaget, egen
 //               vissling (text + hopp: fel svar direkt, tystnadsregeln när hand-
@@ -28,15 +29,17 @@
 import { ensureLiveCss } from "../../live-css.js";
 import { myReward } from "../../live-rewards.js";
 import { toMs } from "../../live-time.js";
-import { LAS_MARGINAL_MS, HITTAD_RUTA_MS, VISSLING_RAD_MS } from "./delat/kg-config.js";
+import { HITTAD_RUTA_MS, VISSLING_RAD_MS } from "./delat/kg-config.js";
 import { platsNamn } from "./delat/kg-geometri.js";
 import {
   TEXT, elevLage, scenLage, gomdText, hittadText, hittadeText, andraVisslingText, blundText, nedrakning, laddningarHtml,
-  skyddPrickSvg, skyddText, startplats, sparaPos, lasPos, glomPos, letaTangent, panelLage, mittenText, egenVisslingsReferens, radFarBytas } from "./kge-logik.js";
+  skyddPrickSvg, skyddText, startplats, sparaPos, lasPos, glomPos, letaTangent, panelLage, mittenText, egenVisslingsReferens, radFarBytas,
+  autoLasDags, sattSidomeny } from "./kge-logik.js";
 import { skapaSpel } from "./kge-spel.js";
 
 export const KGE_CSS = ["src/live/formats/kurragomma/kurragomma-elev.css", "src/live/formats/kurragomma/scen/kurragomma-scen.css"];
 const AVSLUTA_EFTER_MS = [20_000, 35_000];
+const LETA_RESERV_MS = 2500; // klientens reservfasbyte om RTDB status.fas dröjer (servern byter lat vid första anropet)
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
 export function createKgStage({ view, host, uid, session, mode, answerKind }, { api, now, roster = null, onCoins = () => {}, storage = undefined, css = KGE_CSS, tvinga2d = false }) {
@@ -119,7 +122,7 @@ export function createKgStage({ view, host, uid, session, mode, answerKind }, { 
       letar(v) { $("[data-leta]").classList.toggle("kge-skickar", v); },
       flytt(p) {
         // Gömmarens plats sparas bara lokalt (sessionStorage) under gömfasen – aldrig på servern.
-        if (lage !== "gom-gomd" || harLast) return;
+        if (lage !== "gom-gomd" || harLast || laser) return;
         clearTimeout(sparT);
         sparT = setTimeout(() => sparaPos(lagring, sid, p), 200);
       },
@@ -185,7 +188,7 @@ export function createKgStage({ view, host, uid, session, mode, answerKind }, { 
     lage = ny;
     root.dataset.lage = lage;
     spel.lage(lage);
-    scen?.lage(scenLage(lage, harLast));
+    scen?.lage(scenLage(lage, harLast || laser)); // stilla redan medan kgLas är på väg (platsen är skickad)
     $("[data-las]").hidden = lage !== "gom-gomd" || harLast;
     $("[data-blund]").hidden = lage !== "gom-sokare";
     $("[data-sokare]").hidden = !(lage === "leta-sokare" || lage === "gom-sokare");
@@ -208,6 +211,7 @@ export function createKgStage({ view, host, uid, session, mode, answerKind }, { 
     if (laser || harLast || !scen || roll !== "gomd") return;
     laser = true;
     $("[data-las]").disabled = true;
+    scen.lage(scenLage(lage, true));
     try {
       const r = await api.las(sid, scen.jag());
       if (destroyed) return;
@@ -225,6 +229,7 @@ export function createKgStage({ view, host, uid, session, mode, answerKind }, { 
       if (err?.code === "failed-precondition" && (await hamtaGomstalle())) return;
       fel(err?.message || "Kunde inte låsa – försök igen.");
       $("[data-las]").disabled = false;
+      scen.lage(scenLage(lage, harLast));
     } finally { laser = false; }
   }
   async function hamtaGomstalle() {
@@ -309,14 +314,15 @@ export function createKgStage({ view, host, uid, session, mode, answerKind }, { 
   }
 
   // Gömfasens slut på klientens klocka – servern byter fas lat i nästa anrop ändå.
+  // Olåst gömmare: platsen skickas LAS_AUTO_FORE_MS före 0:00 (autoLasDags, #842).
   const ticker = setInterval(() => {
     if (destroyed || !ready) return;
     ritaTopp();
     const gomSlut = toMs(info?.tider?.gomSlut);
     if (fas === "gom" && gomSlut) {
       const t = now();
-      if (t >= gomSlut && roll === "gomd" && !harLast) lasNu();
-      if (t >= gomSlut + LAS_MARGINAL_MS + 500) sattFas("leta");
+      if (roll === "gomd" && !harLast && autoLasDags(gomSlut, t)) lasNu();
+      if (t >= gomSlut + LETA_RESERV_MS) sattFas("leta");
     }
   }, 250);
 
@@ -361,6 +367,7 @@ export function createKgStage({ view, host, uid, session, mode, answerKind }, { 
   function sync() {
     if (destroyed || !st) return;
     const ph = st.phase;
+    sattSidomeny(host.ownerDocument?.body, ph); // sidomenyn ihop bara under matchen (#842)
     if (ph === "ended" || ph === "finished" || ph === "cancelled") return drawEnd();
     if (ph !== "live") return;
     if (!player) return;
@@ -380,6 +387,7 @@ export function createKgStage({ view, host, uid, session, mode, answerKind }, { 
       [radT, felT, hittadT, sparT, avslutaT].forEach(clearTimeout);
       (coinTimers || []).forEach(clearTimeout);
       ro?.disconnect();
+      sattSidomeny(host.ownerDocument?.body, null);
       host.ownerDocument.removeEventListener("keydown", onKey, true);
       unMe?.();
       spel.destroy();
