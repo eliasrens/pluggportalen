@@ -6,8 +6,9 @@ Kurragömma är ett Live-format i 3D (`format: "kurragomma"`, epic #835). Specen
 sig gäller specen.
 
 Det här är **formatets kontraktsdokument**. Del A (#836) beskriver den delade
-motorn i `delat/`. B (3D-scenen), C (servern) och D (projektorn och elevskärmen)
-bygger mot API:t i §2–§4 och lägger till sina egna avsnitt längre ned.
+motorn i `delat/`. B (3D-scenen), C (servern), D (projektorn och elevskärmen) och
+E (lärarformuläret, historiken, pluggmynten och lärarens vissling, §12) bygger mot
+API:t i §2–§4 och lägger till sina egna avsnitt längre ned.
 
 ---
 
@@ -18,7 +19,7 @@ bygger mot API:t i §2–§4 och lägger till sina egna avsnitt längre ned.
 | `src/live/formats/kurragomma/delat/kg-config.js` | **Alla tal**: fart, skydd, sökradier, visslingar, spärrtider, poäng, lärarens val, klientens tal (hjärtslag, rörelsekanalen, flödet) och kameran |
 | `delat/kg-karta.js` | Kartan **Ön** som data: radie, startplatser, 40 föremål |
 | `delat/kg-geometri.js` | `skydd`, `kollidera`, `giltigtGomstalle`, `narmasteGiltiga`, `platsNamn`, `gomstalleNaraForemal` |
-| `delat/kg-regler.js` | Sökningen, rimlighetskontrollen, visslingar (spärrtid, tystnad, frånkopplad), poäng, överlevnad, placering, startsökare, inställningar och matchklockan |
+| `delat/kg-regler.js` | Sökningen, rimlighetskontrollen, visslingar (spärrtid, tystnad, frånkopplad), poäng, överlevnad, placering, startsökare, inställningar, matchklockan och `deltog` (pluggmyntens deltagare, §12.3) |
 | `delat/kg-prng.js` | Seedad slump för simuleringen, testerna och demots robotar |
 | `functions/kurragomma/` | **Genererad** kopia av `delat/` (`npm run sync:kurragomma`, körs också som predeploy). Redigera den aldrig |
 | `admin/kg-balans-sim.mjs` | Balanssimuleringen (`npm run balans:kurragomma`, §6) |
@@ -122,6 +123,7 @@ Platsnamnet väljs så här:
 | `poangGomdVidSlut({ letStartAt, slutAt })` | överlevnaden + 50 |
 | `placering(rader)` | `[{ …, plats }]` med högst poäng först. Lika poäng ger delad placering (1, 1, 3) och ordnas sedan på uid |
 | `rewardRader(spelare)` | `[{ uid, score, correct, answered }]` ur `{ uid, poang, ratt, besvarade }` |
+| `deltog(p)` | pluggmyntens deltagare (E, §12.3): `besvarade > 0`, eller `harLast`, eller `hittade > 0` |
 | `arSlut({ fas, nu, slutAt, gomdaKvar })` | tiden är ute, eller alla är hittade i letfasen |
 
 **Rollerna, inställningarna och klockan (§1.1, §9, §0.1)**
@@ -161,6 +163,7 @@ Platsnamnet väljs så här:
 | `POS_MIN_INTERVALL_MS`, `POS_MIN_FLYTT_M`, `POS_INTERPOLERING_MS` | 200 ms (5/s), 0,15 m, 150 ms | samma | rörelsekanalen (C/D) |
 | `HAND_MAX_ALDER_MS`, `HAND_RENSA_MS` | 10 s, 60 s | samma | |
 | `VISSLING_MARKOR_MS`, `VISSLING_RAD_MS`, `HITTAD_RUTA_MS`, `KAMERA_GLID_MS` | 4 s, 3 s, 2 s, 3 s | samma | |
+| `LARARE_VISSLA_SPARR_MS` | 5 s | – | lärarens vissling, spamskydd per elev (E, §12.4) |
 | `KAMERA` | 8,5 m bakom, 4,5 m upp, 60° | samma | B |
 | `FIGUR_RADIE_M` | 0,5 m | – | minsta passage mellan fasta föremål är 1 m (testat) |
 
@@ -351,6 +354,17 @@ efter test i klassrum (etapp 2). Det är där siffrorna ska bekräftas.
    gömmare som befordras när ingen sökare finns har inte hittats av någon men får inte
    överlevnadspoängen och visas som hittad i finalen. Ska `result` skilja på "hittad" och
    "befordrad" (en ändring i functions), eller är det okej så?
+10. **Pluggmyntens deltagare** (E, §12.3): live-rewards betalar bara den som svarat, så den som gömde
+   sig hela matchen utan att svara (guldplats på överlevnaden) fick 0 mynt i D:s test. Kurragömma räknar nu
+   **svarat, låst ett gömställe eller hittat någon** som deltagare (`deltog` i `kg-regler.js` + Kurragömma-grenen
+   av `liveCoinPlayerOk`; den gemensamma regeln för andra format är orörd). Den som placerades av servern
+   (frånkopplad under gömfasen, `harLast: true`) räknas alltså också; den som anslöt sent som sökare och varken
+   svarade eller hittade någon får inget. **Är det rätt avgränsning**, eller ska bara den som svarat minst en
+   gång få placeringspriset (då står 0 mynt till den som gömde sig tyst hela matchen)?
+11. **Lärarens vissling och elevens egen rad** (E, §12.4): den visslade eleven ser samma neutrala rad som vid
+   tystnadsregeln ("Du var tyst länge – det visslade där du gömmer dig!") – det är D:s id-matchning
+   (`kgPlayers.tystVissling`) utan någon ny text, så ingen klient kan skilja lärarens vissling från en
+   tystnadsvissling. Vill du ha en egen, ännu neutralare rad ("Det visslade där du gömmer dig!") för båda?
 9. **Klassbonusen** (§11.5): betalas av projektorn vars `kgTick` avslutade matchen (eller Avsluta-knappen),
    med `perClass` byggt på klienten ur sessionen eftersom Kurragömmas `result` saknar det. Är projektorn
    stängd vid slutet (en elevs `kgTick` avslutar) går klassbonusen förlorad – samma reserv som Meteorstormen.
@@ -500,6 +514,7 @@ skriver om importvägarna). Filerna:
 | `functions/kurragomma-fas.js` | starten (`startaIntern`), fasbytet (`bytTillLeta`), placering av olåsta, `redo` (lat fasbyte), `gorTillSokare` |
 | `functions/kurragomma-tick.js` | `kgTick`: tystnaden, "alltid en sökare", städning, slutet |
 | `functions/kurragomma-resultat.js` | `kgAvsluta`, `byggResultat` |
+| `functions/kurragomma-vissling.js` | **visslingen** (E, #840): `visslingsHandelse` (händelsens form, delas med `kgSvara`), `visslaGomd` (tystnadsregeln och läraren – en transaktion + `hand` under vald nyckel), `kgLarareVissla` |
 | `functions/kurragomma-sess.js` | sessionen, referenserna, tiderna, minnet per instans, behörigheten |
 | `functions/kurragomma-rtdb.js` | Realtime Database via Admin SDK (`kgDatabaseUrl`) |
 | `functions/index.js` | exporten (`kurragommaCall`, `KG_OPTS`: europe-west1, 512 MiB, 80 samtidiga, högst 4 instanser) |
@@ -525,6 +540,7 @@ olåsta gömmare efter `kgGomSlut + LAS_MARGINAL_MS` (2 s). Fel kastas som `Http
 | `kgLeta({ sid, x, z })` | sökare, letfasen | **en transaktion**: `kontrolleraSokning` (laddning, 2 s spärr, rimlighet från startpunkten/senaste sökningen), `sok` mot alla gömda (`kgSecret.gomd == true`), varje hittad blir sökare (`gorTillSokare`: `poangVidHittad`, `laddningarNySokare`, startpunkt = gömstället), sökaren får `poangForHittad` per hittad. Efteråt `nySokare` + `hittad`-händelser i RTDB; en miss ger `miss`-händelse högst var `FLODE_MISS_SPARR_MS`. | `{ hittade: [{ uid, namn, x, z, plats }], laddningar, poang, plats, flode }` |
 | `kgTick({ sid })` | som `kgStarta` (projektorn var `TICK_MS` = 5 s; en deltagare får också) | letfasen: tystnadsregeln, "alltid en sökare", `hand`-städning; slutet (`arSlut`: tiden ute eller alla hittade) → `kgAvsluta` internt. | `{ fas, klart, visslade, nySokare, rensade }` eller `{ fas, klart: true, result, avslutade }` – `avslutade: true` bara i det anrop vars transaktion skrev `result` (klassbonusens engångsgate, §11.5); `kgAvsluta` svarar likadant |
 | `kgAvsluta({ sid })` | läraren som styr matchen när som helst; en deltagare först när tiden är ute, alla är hittade eller matchen redan är avslutad | `status: "finished"` + `finishedAt`, `result` på sessionen (§10.3), `klar: true` + sluttotaler i `kgPlayers`, tar bort `/kg/{sid}`. Idempotent (`redan`). | `{ result, redan }` |
+| `kgLarareVissla({ sid, uid })` (E, #840, §12.4) | **bara** läraren som styr matchen | visslar åt en gömd elev (`roll: "gomd"`, `kgSecret.gomd`) under letfasen – samma väg som tystnadsvisslingen (`visslaGomd`): `senastVisslingAt` (1,5× sökradie), `tystRef`, `tystVissling` = hand-nyckeln, `kgEvents` med `larare: true`, `hand` utan något som avslöjar. Inte gömd/fel fas → `failed-precondition`; elev → `permission-denied`; samma elev inom `LARARE_VISSLA_SPARR_MS` → `resource-exhausted` (`details.skal: "sparr"`, `vantaMs`). `VISSLING_SPARR_MS` gäller inte. | `{ visslade: true, plats }` |
 
 ### 10.2 Datamodellen i Firestore (spec §5.1)
 
@@ -538,15 +554,16 @@ kärnans `startedAt`). `letStart = kgGomSlut` (inte tiden då fasbytet råkade k
 - **`kgPlayers/{uid}`** (eleven läser sitt eget, läraren/projektorn alla): `uid, classId, name, roll,
   poang, ratt, besvarade, hittade, laddningar, harLast, senastSvarAt, sokareSedan, nextQ`; gömda har
   `tystRef` (tystnadsregelns referens – tas bort när de blir sökare) och `tystVissling` (hand-nyckeln för den senaste
-  tystnadsvisslingen – sätts bara när servern visslade, så eleven känner igen sin egen vissling på id:t); `autoPlacerad` (placerad av servern);
+  tystnads- **eller lärarvisslingen** – sätts bara när servern visslade, så eleven känner igen sin egen vissling på id:t); `autoPlacerad` (placerad av servern);
   `hittadAv, hittadAvNamn, hittadAt` eller `nySokareAt` ("Ny sökare"); efter slutet `klar: true`,
   `klaradeSig` och slutpoängen. Pluggmyntskvittot får högst `perCorrect × ratt`.
 - **`kgSelf/{uid}`** (bara eleven själv): `gomstalle { x, z, skydd, namn }` (sätts av `kgLas`).
 - **`kgSecret/{uid}`** (ingen klient, inte ens läraren): `x, z, skydd, gomd, lastAt, auto`
-  (gömstället), `senastVisslingAt`, `startpunkt { x, z, at }` och `senasteSok { x, z, at }` (sökaren),
-  `senastMissFlodeAt`.
+  (gömstället), `senastVisslingAt`, `larareVisslaAt` (lärarens spamskydd, E), `startpunkt { x, z, at }` och
+  `senasteSok { x, z, at }` (sökaren), `senastMissFlodeAt`.
 - **`kgEvents/{id}`** (bara lärare – historiken): `{ t, typ: "vissling" | "hittad" | "nySokare", x, z, plats,
-  tyst?, sokare?, hittad? }`. Visslingens `x, z` är den **ungefärliga** platsen.
+  tyst?, larare?, sokare?, hittad? }`. Visslingens `x, z` är den **ungefärliga** platsen. `larare: true` = utlöst av
+  läraren (E) – markeringen finns **bara** här (och som summan `result.visslingarLarare`), aldrig i `hand`.
 - **`kgPublic/questions`, `kgPrivate/snapshot`**: quizet, som i Guldrushen (`kistQuizDocCreate`).
 - Kärnans `players/{uid}` (närvaropulsen `lastSeenAt`) och `answers/{attemptId}` (statistiken) används som
   i de andra kistspelen.
@@ -555,7 +572,9 @@ kärnans `startedAt`). `letStart = kgGomSlut` (inte tiden då fasbytet råkade k
 
 ```
 { format: "kurragomma", winner: null, draw: false, startMs, letStartMs, slutMs,
-  players, totalCorrect, totalAnswered, klaradeSig, hittade, visslingar,
+  players,                                           // deltagare: svarat, låst eller hittat (deltog, E §12.3)
+  totalCorrect, totalAnswered, klaradeSig, hittade, visslingar,
+  visslingarLarare,                                  // varav lärarens (E) – bara lärarens historik visar den
   flestHittade: { uid, name, antal } | null,
   ranking: [{ uid, name, classId, poang, ratt, besvarade, hittade, roll, klaradeSig, rank }],
   gomstallen: [{ uid, x, z, skydd, namn, hittad }],   // exakta platser – matchen är slut
@@ -564,8 +583,8 @@ kärnans `startedAt`). `letStart = kgGomSlut` (inte tiden då fasbytet råkade k
 ```
 
 `poang` i rankingen är slutpoängen inklusive `poangGomdVidSlut` för dem som klarade sig; `rank` =
-`placering` (delad). `rewards` räknas på servern ur `rewardRader(rader)` och kvittona skrivs av klienten
-(`withRewards`, regeln `liveCoinPlayerOk` kontrollerar mot `kgPlayers.ratt`).
+`placering` (delad). `rewards` räknas på servern ur `rewardRader(rader.filter(deltog))` och kvittona skrivs av klienten
+(`withRewards`, regeln `liveCoinPlayerOk` kontrollerar mot `kgPlayers.ratt` och att eleven deltog – §12.3).
 
 ### 10.4 Realtime Database (`/kg/{sid}`, spec §5.3)
 
@@ -621,7 +640,7 @@ Realtime Database finns redan i prod (`pluggportalen-so-2026-default-rtdb`, euro
 den skapas inte igen.
 
 1. `firebase deploy --only firestore:rules,database` (Firestore-grenen + `database.rules.json` – låser upp RTDB).
-2. `firebase deploy --only functions:kgStarta,functions:kgAnslut,functions:kgLas,functions:kgSvara,functions:kgLeta,functions:kgTick,functions:kgAvsluta`.
+2. `firebase deploy --only functions:kgStarta,functions:kgAnslut,functions:kgLas,functions:kgSvara,functions:kgLeta,functions:kgTick,functions:kgAvsluta,functions:kgLarareVissla` (E: `kgLarareVissla` är ny, `kgTick`/`kgSvara`/`kgAvsluta` ändrade).
 3. Index: inga nya (`kgPlayers`-frågorna är enfältsfrågor; `hand`-indexet ligger i `database.rules.json`).
 4. Webben (B/D/E) sist.
 
@@ -686,6 +705,9 @@ gratisnivån (10 GB/mån) räcker för hundratals matcher. Slut-QA mäter.
 | `test/functions-kurragomma-leta.test.mjs` | `test:functions` | sökning, fasbyte, placering, tick, avslut (12) |
 | `test/functions-kurragomma.test.mjs` | `test:functions` | e2e genom callables, Auth, Firestore- och RTDB-reglerna (5) |
 | `test/functions-kurragomma-tester-838.test.mjs` | `test:functions` | testarens: samtidiga kgTick/kgStarta/kgLeta/kgAvsluta, visslingen med riktig slump |
+| `test/functions-kurragomma-vissla.test.mjs` | `test:functions` | E: `kgLarareVissla` (behörighet, bara gömd, bara letfasen, identisk händelse, id-matchning, spamskydd, `VISSLING_SPARR_MS` spärrar inte, statistiken) + pluggmynt åt gömd utan svar (§12) |
+| `test/firestore-rules-live-kurragomma-840.test.js` | `test:rules` | E: formulärets sessionsdokument släpps igenom; kvittot för deltagare utan svar (låst/hittat), nekat för den som inte deltog |
+| `test/live-kurragomma-larare.test.js` | `node --test` | E: formulärets fält → `kgInstallningar`, `deltog`, historiken, Vissla-panelens logik, filkraven |
 | `test/firestore-rules-live-kurragomma.test.js` | `test:rules` | Firestore-grenen (§5.4) |
 | `test/firestore-rules-live-kurragomma-tester-838.test.js` | `test:rules` | testarens: hemligheten i Firestore-reglerna |
 | `test/rtdb-rules-kurragomma.test.js` | `test:rules:rtdb` | `database.rules.json` (§5.3) |
@@ -707,7 +729,7 @@ rörelsekanal laddas med `import()` (`projectorViews`/`studentView`/`historyRend
 | Fil | Innehåll |
 | --- | --- |
 | `index.js` | format-objektet (spec §0.1): 🙈, `inom-klass` 1–1, free + choice, tidslinje, pacing `tid`, `music` (`assets/kurragomma-loop.ogg` – **filen levereras separat**; saknas den är formatet tyst, proj-music sväljer 404), `emitOnPlayers`, `resultInputs`/`buildResult` |
-| `kg-setup.js` | speltid 3/5/10/15/20/30 + Egen 1–60 (standard 10, ledtexten rekommenderar 8), namn i flödet, `kgInstallningar` med standardvärden tills E:s fält finns, `durationSeconds = gömtid + speltid` (§10.6), quiz-dokumenten, `computeStandings` |
+| `kg-setup.js` | speltid 3/5/10/15/20/30 + Egen 1–60 (standard 10, ledtexten rekommenderar 8), gömtid, startsökare, tystnad, karta (E, §12.1) → `kgInstallningar`, namn i flödet, `durationSeconds = gömtid + speltid` (§10.6), quiz-dokumenten, `computeStandings` |
 | `kg-avslut.js` | `resultInputs` = `kgAvsluta` (med två nya försök) → `settleLiveRewards` bara när `result.rewards` finns; `s.demo` betalar aldrig; klasscentret som Meteorstormen |
 | `kurragomma-data.js` | callables (`europe-west1`), `getQuestions`, `watchMe` (eget `kgPlayers`), `kanal()` = `kg-kanal.js` i rtdb-läge mot prod-instansen (`KG_DATABASE_URL`) – `globalThis.__PP_RTDB_URL`/`__PP_RTDB_EMULATOR` i QA |
 | `kurragomma-projector.js` | `views` = [🙈 Ön (`finale: true`)], `createLobby`, `createWinner`, `ownTimer` |
@@ -723,7 +745,8 @@ rörelsekanal laddas med `import()` (`projectorViews`/`studentView`/`historyRend
 | `kge-logik.js` | ren: texterna, `elevLage`, `laddningarHtml` (SVG), `startplats`, `sparaPos`/`lasPos`, `letaTangent`, `panelLage` |
 | `kge-skarmar.js` | lobby- och slutskärmens HTML (ingen placering som nummer utanför pallen) |
 | `kurragomma-elev.css` | `kge-*`, frågepanelen till höger över 1100 px, annars ett hopfällbart kort längst ned |
-| `kurragomma-history.js` | minimal historik (E bygger fullt) |
+| `kurragomma-history.js` | historiken och Statistik → Live (E, §12.2) + `kurragomma-historik.css` (`kgh-*`) |
+| `kgp-vissla.js` | lärarens Vissla-panel (E, §12.4), laddas lätt av `kgp-on.js` i lärarens fönster |
 | `kg-demo.js`, `kg-demo-server.js`, `kg-demo-robotar.js`, `kg-demo-resultat.js` | demoläget (§11.4) |
 
 ### 11.2 Faserna som vyerna ser dem
@@ -785,3 +808,134 @@ ingen Firestore, inga Cloud Functions, ingen RTDB (sidorna blockerar och räknar
 Verifierat i webbläsaren (headless Chromium): projektorn 1920×1080 och 1280×720 (toppraden täcks aldrig av scen,
 flöde eller final), elevskärmen 1366×768 (panel till höger) och 380 px (hopfällbart kort), det kopplade demot
 lobby → KÖR! → gömfas → letfas (vissling från elevens fel svar syns i projektorns flöde) → hittad → final.
+
+---
+
+## 12. Lärarformulär, historik, mynt och lärarens vissling (del E, #840)
+
+E gör Kurragömma komplett som Live-format enligt LIVE-FORMAT §2, §6 och §10, och lägger till
+lärarens vissling (nytt krav från Elias 2026-11-11). Inga ändringar i 3D-scenen eller i
+projektorns/elevskärmens spelvyer utöver Vissla-panelen (§12.4).
+
+### 12.1 Lärarformuläret (spec §0.2, §9)
+
+Fälten ritas generiskt av `live-setup-fields.js` ur `KURRAGOMMA.setupFields` (`kg-setup.js`):
+
+| Fält | Nyckel | Sort | Värden | Standard |
+| --- | --- | --- | --- | --- |
+| Speltid | `durationMin` | chips + Egen tid | 3/5/10/15/20/30 min, Egen 1–60 (`SPELTIDER_MIN`, `SPELTID_EGEN_MIN`) | 10 (ledtexten rekommenderar 8 – 8 är ingen snabbknapp enligt specen, så det står i ledtexten) |
+| Gömtid | `gomtid` | chips | 20/30/45/60 s (`GOMTIDER_S`) | 30 |
+| Startsökare | `startsokare` | chips | Auto, 1–4 (strängar i formuläret – `normInstallningar` gör tal) | Auto |
+| Tystnadsregeln | `tystnad` | kryssruta | på/av | på |
+| Karta | `karta` | chips | bara Ön (`KARTOR`) – fältet finns så fler kartor kan läggas till | Ön |
+| Namn i händelseflödet | `showNames` | kryssruta | | på |
+| Pluggmynt | `rewards` | live-rewards | | |
+
+Frågorna (spelläge, svarssätt, quizområde, tidslinjefrågor) är kärnans steg – samma källor som
+Guldrushen (`KG_MODES`). `buildSessionFields` → `installningarUr(input)`: fälten vinner över ett
+färdigt `input.kgInstallningar` (äldre anropare/tester), allt normaliseras med `normInstallningar`,
+och `durationSeconds = matchSekunder({ gomtid, speltidMin })` (§10.6). Servern läser
+`kgInstallningar` (`instFor`) – gömtid i `kgStarta`, startsökare i dragningen, tystnad i `kgTick`,
+karta i `kartaFor`. Reglerna (`kgSettingsOk`, C) släppte redan igenom exakt dessa värden – ingen
+regeländring för formuläret (`test/firestore-rules-live-kurragomma-840.test.js` skriver
+`buildSessionDoc`-dokumentet som läraren).
+
+### 12.2 Historiken (spec §11.3)
+
+`kurragomma-history.js` (lätt, `historyRenderer`) – allt ur serverns `result`, inga extra läsningar:
+
+- Matchraden: "N av M klarade sig gömda hela matchen" / "Sökarna hittade alla!" + svarssätt, gömtid,
+  startsökare, tystnadsregeln, rätt av svar.
+- Rutorna: klarade sig (av M), hittade, visslingar **varav N av läraren**, den som hittade flest.
+- Pallplats (delad placering, `podiumGroups` på poängen) och topplistan: plats, elev, utfall
+  (🙈 Klarade sig / 🔎 Hittad / 🔦 Sökare), poäng, rätt, svar, hittade, pluggmynt (`result.rewards`).
+- Andel rätt per uppgift/fråga (`result.perQuestion`, svårast markerade) och per tabell/kategori
+  (`categoryRates` på `statKeys`).
+- Statistik → Live: klassens rad Rätt · Klarade sig · Hittade · Visslingar, sammanfattningen per
+  tabell/kategori och klassens svåraste frågor (`classSummaryHtml`).
+- `settle(s)` = `avslutaOchBetala` (kgAvsluta + pluggmynten om lärarfliken stängdes vid slutet).
+
+"Varav av läraren" visas **bara** här – inte i finalen och inte på elevens slutskärm (de läser
+samma `result` men ritar inte fältet; summan avslöjar inte vilken vissling det gällde).
+
+### 12.3 Pluggmynten (spec §10, LIVE-FORMAT §6)
+
+`withRewards`-vägen är D:s (`kg-avslut.js`): servern räknar `result.rewards` ur
+`rewardRader(rader)` (rows ur **serverns** `kgPlayers`), `winner: null`, klienten skriver kvittona
+(`settleLiveRewards`, idempotent), demot betalar aldrig, elevskärmsfönstret avslutar/betalar aldrig.
+
+**D:s fråga – gömd med 0 besvarade fick 0 mynt.** Orsaken var båda: serverns `rewardsFor`
+kopierade live-rewards regel "bara den som svarat" (`answered > 0`), **och** Kurragömma-grenen av
+`liveCoinPlayerOk` krävde `kgPlayers.besvarade >= 1`. Lösningen är lokal för Kurragömma (den
+gemensamma regeln för Guldrushen/Datakuppen/Meteorstormen/Snilleblixten är orörd): deltagare =
+`deltog(p)` i `kg-regler.js` – **svarat, låst ett gömställe (`harLast`, även serverns placering) eller
+hittat någon** – i `byggResultat` (`result.players`, `result.rewards`) och i reglernas Kurragömma-gren
+(`besvarade >= 1 || harLast == true || hittade >= 1`). Rätt-mynten är fortfarande `perCorrect × ratt`
+(0 utan svar), placeringspriset räknas bland deltagarna. Specens §0.2 ("poängen kan aldrig bli
+pluggmynt under matchen") gäller oförändrat – allt räknas i `kgAvsluta`. Avgränsningen är en fråga
+till Elias (§8 fråga 10). Deploy: `firestore:rules` före webben (§10.7).
+
+### 12.4 Lärarens vissling (Elias 2026-11-11)
+
+Lagd i E (inte #838) eftersom #838 redan var i slutverifiering. Servern: `functions/kurragomma-vissling.js`
+(§10.1 `kgLarareVissla`). Tystnadsregeln i `kgTick` går nu genom samma `visslaGomd`, och `kgSvara`
+bygger sin händelse med samma `visslingsHandelse` – det finns en enda form på en vissling:
+
+- `hand/{id}`: `{ typ: "vissling", x, z, plats, t }` – den ungefärliga platsen (`VISSLING_OSAKERHET_M`),
+  platsnamnet på den, inget uid, inget namn, ingen lärarmarkering. Projektorn (ringar, noter, riktat
+  ljud), sökarna (markör + pil) och gömmarna ("Det visslar vid …") ser exakt en vanlig vissling.
+- Den visslade: `kgSecret.senastVisslingAt = nu` (1,5× sökradie i 10 s), `kgPlayers.tystRef = nu` och
+  `kgPlayers.tystVissling = id` (hand-nyckeln vald i förväg, i samma transaktion – D:s N1b), så elevens
+  egen skärm visar den neutrala raden "Du var tyst länge – det visslade där du gömmer dig!" + hoppet,
+  aldrig "Fel svar". `VISSLING_SPARR_MS` blockerar inte läraren, men lärarens vissling sätter elevens
+  spärr (ett fel svar direkt efteråt visslar inte igen – samma som efter en tystnadsvissling).
+- Markeringen: `kgEvents` får `larare: true` (bara lärare läser samlingen) och `result.visslingarLarare`
+  är summan. Aldrig i `hand`, aldrig i `kgPlayers`, aldrig i något svar till en elev.
+- Spamskydd: `LARARE_VISSLA_SPARR_MS` (5 s, `kg-config.js`, synkad) per elev via `kgSecret.larareVisslaAt`;
+  ett andra anrop inom tiden → `resource-exhausted` med `details { skal: "sparr", vantaMs }`.
+- Behörighet och fas: `larareFor` (admin, eller årskurskonto med klassen) annars `permission-denied`;
+  `assertLive` + `kgFas === "leta"` + eleven `roll: "gomd"` med `kgSecret.gomd` annars `failed-precondition`
+  (sökare, hittad, okänd, gömfasen, avslutad).
+
+**Panelen** (`kgp-vissla.js`, CSS `kgp-vissla*` i `kurragomma-projektor.css`): D lämnade ingen egen
+krok utöver `createOn(host, { screen, deps })` – panelen monteras där, av `kgp-on.js`, **bara när
+`screen` är falskt** (lärarens fönster `#/larare/live?id=…`, aldrig elevskärmsfönstret `&skarm=elev`
+som klassen ser) och bara när kopplingen har `larareVissla` (demot har det inte). Den syns i letfasen
+medan matchen pågår (`visslaPanelSynlig`): en diskret knapp "🔔 Vissla" nere till höger (ovanför inget –
+händelseflödet ligger i mitten, toppraden rörs inte) som fäller ut listan över de gömda med en
+Vissla-knapp var, ↻ och ✕. Px-mått, `min(340px, 100vw − 24px)` bred och rullbar – fungerar på ~380 px.
+Efter ett tryck står "Visslade ✓" i 5 s; "Vänta några sekunder" / "Inte gömd längre" (raden tas bort)
+vid fel.
+
+**Kvoten (§10.8):** panelen har **ingen lyssnare** och projektorn lyssnar fortfarande inte på
+`kgPlayers`. Listan läses vid öppning och vid ↻: `kgPlayers where roll == "gomd"` = en läsning per
+gömd (≤ ~20 i en klass på 25). Öppnar läraren panelen 3–5 gånger per match blir det ~50–100
+läsningar, inom §10.8:s marginal; `panel.lasningar()` håller räkningen för slut-QA:s mätning.
+`kgLarareVissla` själv kostar 1 sessionsläsning (minnet) + 2 i transaktionen + 1 `kgEvents`-skrivning.
+
+### 12.5 LIVE-FORMAT §10 – checklistan
+
+- [x] `src/live/formats/kurragomma/` med `index.js`, ren logik (`kg-setup.js`, `kg-avslut.js`, `kgp-logik.js`, `kge-logik.js`, `delat/`), lata vyer
+- [x] Inget kistformat – ingen kistmotor (egen 3D-motor i `delat/` + `scen/`)
+- [x] En rad sist i `BUILTIN_FORMATS`
+- [x] Regelgren i `firestore.rules` (+ `database.rules.json`) + routning i `allow create`/`allow update`
+- [x] `test/live-kurragomma-*.test.js` + `test/firestore-rules-live-kurragomma*.test.js` (i `test:rules`), `test/rtdb-rules-kurragomma*.test.js` (`test:rules:rtdb`)
+- [x] Pluggmynt kopplat (§6): `rewardsSetupField`, `validateRewards`, `rewardSessionFields`, `withRewards`-rows ur serverns data, `winner: null`, demot betalar aldrig
+- [x] Projektorvyer, elevskärm och historik
+- [x] Demoläge + `preview/preview-kurragomma-demo.html` (+ elev, kopplat)
+- [x] Egen CSS per format (`kurragomma-*.css`, `scen/kurragomma-scen.css`), reducerad rörelse
+- [x] `docs/KURRAGOMMA.md` §10.2–§10.3: formatets fält, underdokument och `result` (DATAMODELL pekar hit via LIVE-FORMAT)
+- [x] Bootgrafen orörd (`node --test test/live-formats.test.js`)
+- [x] Alla sviter gröna: `node --test`, `npm run test:rules`, `npm run test:rules:rtdb`, `npm run test:functions`
+- [ ] Rules-deploy (Firestore + RTDB) → functions-deploy (inkl. `kgLarareVissla`) → webb **före** merge till `main` – kräver Elias OK (§10.7)
+- [x] Serverstyrt format: mönstren i §11 (deterministisk motor i `delat/`, synkad till `functions/`, hopslagna anrop, serverskriven status)
+
+### 12.6 Testerna (del E)
+
+| Fil | Kör | Visar |
+| --- | --- | --- |
+| `test/live-kurragomma-larare.test.js` | `node --test` | fälten och deras värden → `kgInstallningar`/`durationSeconds` (även via `buildSessionDoc`), `deltog`, historiken (pall, varav läraren, pluggmynt, per uppgift/tabell, Statistik → Live), Vissla-panelens logik, ≤ 400 rader, CSS-prefix `kg-`, synken, lata importer |
+| `test/functions-kurragomma-vissla.test.mjs` | `test:functions` | `kgLarareVissla`: elev nekas, sökare/hittad/okänd nekas, gömfasen/efter slutet nekas, händelsen identisk med en fel-svar-vissling (fält i `hand` och `kgEvents`), id-matchningen, 1,5× sökradie, spamskyddet (inom 5 s nekat, efter 5 s OK, annan elev OK), `VISSLING_SPARR_MS` spärrar inte, `visslingar`/`visslingarLarare`; pluggmynt åt gömd utan svar och åt serverplacerad, inget åt den som inte deltog |
+| `test/functions-kurragomma.test.mjs` (tillägg) | `test:functions` | e2e genom callables: elev nekas, läraren visslar, `hand` har exakt `{ plats, t, typ, x, z }`, spamskyddet |
+| `test/firestore-rules-live-kurragomma-840.test.js` | `test:rules` | formulärets dokument (gömtid 20, startsökare 2, tystnad av, 3 min) släpps igenom; kvittot för gömd utan svar (låst) och sökare utan svar (hittade) betalas, den som inte deltog nekas, rätt-mynt > `perCorrect × ratt` nekas |
+| `test/functions-kurragomma-leta.test.mjs` (ändrat) | `test:functions` | `players`/`rewards` räknar låsta gömmare utan svar |

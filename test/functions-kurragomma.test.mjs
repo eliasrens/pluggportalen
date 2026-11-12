@@ -182,3 +182,27 @@ test("letfasen (lat start i kgAnslut): placering, vissling utan namn, sökning, 
   const igen = await call("kgAvsluta", { sid: "kg-leta" });
   assert.equal(igen.redan, true);
 });
+
+test("lärarens vissling (#840): eleven nekas, läraren visslar – händelsen ser ut som en vanlig vissling; spamskyddet 5 s", async () => {
+  await session("kg-vissla", { sedan: 200_000 });
+  await as("kgalma");
+  await call("kgAnslut", { sid: "kg-vissla" }); // lat start + placering
+  const roller = {};
+  for (const u of ELEVER) roller[u] = (await adb.doc(`liveSessions/kg-vissla/kgPlayers/${u}`).get()).data().roll;
+  const gomd = ELEVER.find((u) => roller[u] === "gomd");
+  const sokare = ELEVER.find((u) => roller[u] === "sokare");
+  assert.equal(await errCode(call("kgLarareVissla", { sid: "kg-vissla", uid: gomd })), "permission-denied", "en elev");
+  await as("kglarare");
+  assert.equal(await errCode(call("kgLarareVissla", { sid: "kg-vissla", uid: sokare })), "failed-precondition", "inte gömd");
+  const r = await call("kgLarareVissla", { sid: "kg-vissla", uid: gomd });
+  assert.equal(r.visslade, true);
+  assert.equal(await errCode(call("kgLarareVissla", { sid: "kg-vissla", uid: gomd })), "resource-exhausted", "inom 5 s");
+  const hand = Object.values((await adminApp.database().ref("kg/kg-vissla/hand").once("value")).val() || {});
+  assert.equal(hand.length, 1);
+  assert.deepEqual(Object.keys(hand[0]).sort(), ["plats", "t", "typ", "x", "z"], "identisk form – inget uid, namn eller lärarmarkering");
+  const ev = (await adb.collection("liveSessions/kg-vissla/kgEvents").get()).docs.map((d) => d.data());
+  assert.equal(ev.filter((e) => e.typ === "vissling" && e.larare === true).length, 1);
+  assert.equal((await adb.doc(`liveSessions/kg-vissla/kgPlayers/${gomd}`).get()).data().roll, "gomd");
+  // Läraren läser de gömda (Vissla-panelen) men aldrig kgSelf/kgSecret
+  assert.equal(await errCode(getDoc(doc(cdb, "liveSessions", "kg-vissla", "kgSecret", gomd))), "permission-denied");
+});
