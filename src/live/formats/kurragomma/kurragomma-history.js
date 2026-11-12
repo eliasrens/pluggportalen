@@ -155,8 +155,10 @@ export const classStats = {
   cells(_s, res, classId) {
     if (!res?.ranking) return `<td class="num">–</td><td class="num">–</td><td class="num">–</td><td class="num">–</td>`;
     const mine = res.ranking.filter((p) => p.classId === classId);
+    const hittade = mine.filter((p) => (res.gomstallen || []).find((g) => g.uid === p.uid)?.hittad).length;
+    // Visslingarna är matchens (en klass per match – ingen klass på händelserna).
     return `<td class="num">${tal(mine.reduce((n, p) => n + int(p.ratt), 0))}</td><td class="num">${tal(mine.filter((p) => p.klaradeSig).length)}</td>
-      <td class="num">${tal(res.hittade)}</td><td class="num">${tal(res.visslingar)}</td>`;
+      <td class="num">${tal(hittade)}</td><td class="num">${tal(res.visslingar)}</td>`;
   },
 };
 

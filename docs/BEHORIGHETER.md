@@ -147,6 +147,7 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `kgAnslut`, `kgLas`, `kgSvara`, `kgLeta` (#838) | nej – elevfunktioner: anroparen måste ha gått med (`players/{uid}`) i en av sessionens klasser. Fasbytet sker lat i varje anrop. | nej | KF |
 | `kgStarta`, `kgTick` (#838) | ja (alla sessioner) | ja, sessioner med en egen klass (kontot läses färskt). En deltagare (elev) får också anropa dem: de gör bara det lata fasbytet och frågorna som ändå körs i varje anrop. | KF |
 | `kgAvsluta` (#838) | ja (alla sessioner; en pågående avslutas nu) | ja, sessioner med en egen klass (kontot läses färskt). Deltagare (elev) först efter slutet eller när alla är hittade. | KF |
+| `kgLarareVissla` (#840) | ja (alla sessioner) | ja, sessioner med en egen klass (kontot läses färskt). Elever nekas alltid. Visslar åt en gömd elev under letfasen – händelsen ser ut som en vanlig vissling (docs/KURRAGOMMA.md §12.4). | KF |
 | `msAvsluta` (#821) | ja (alla sessioner; en pågående avslutas nu) | ja, sessioner med en egen klass (kontot läses färskt). Deltagare (elev) först efter slutet. | MF |
 | `schackLarareAvsluta`, `schackLarareTopplista` (#779) | ja (som `hasClass`: alla klasser) | ja, bara egna klasser (kontot läses färskt). Elever nekas. | SF |
 
