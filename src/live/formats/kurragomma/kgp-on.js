@@ -166,6 +166,7 @@ export function createOn(host, { st, sound = null, music = null, screen = false,
       kanal.paHandelse(handelse);
       kanal.paPos(pos);
       sync();
+      final?.scenKlar(); // omladdning/återanslutning i finalen: gömställena ritas när scenen finns (N8)
     } catch (err) {
       console.warn("[kurragomma] projektorn kunde inte ansluta", err);
       vanta(`Projektorn kunde inte ansluta till ön (${err?.message || err}) – försöker igen …`);
@@ -243,7 +244,7 @@ export function createOn(host, { st, sound = null, music = null, screen = false,
       if (state.result && !final) {
         vanta("");
         flodeEl.hidden = true;
-        final = createFinal(root, { result: state.result, session: s, scen, ljud });
+        final = createFinal(root, { result: state.result, session: s, scen: () => scen, ljud });
       } else if (!state.result) vanta("Räknar ihop …");
       if (state.result) betala();
     }

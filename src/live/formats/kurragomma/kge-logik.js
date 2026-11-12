@@ -21,6 +21,8 @@
 //   panelLage(bredd)            → "sida" (> 1100 px) | "kort"
 //   letaFel(err)                → elevens text för ett nekat kgLeta
 //   mittenText({ lage, fas, laddningar }) → raden under knappen
+//   radFarBytas({ visadTyp, visadSedan, typ, nu }) → false när en "egen"-rad fortfarande visas
+//                                 och en vanlig vissling-rad vill ta över (N7)
 //   egenVisslingsReferens(forra, me) → id | null: ny kgPlayers.tystVissling (hand-händelsens id –
 //                                 bara visslingsgrenen sätter den; aldrig en tidsstämpel)
 //   skapaEgenVisslingar()       → tystnadsregelns egna visslingar: referensen möter
@@ -28,7 +30,7 @@
 // ============================================================================
 
 import { ON } from "./delat/kg-karta.js";
-import { LADDNING_MAX, SKYDD_TEXT } from "./delat/kg-config.js";
+import { LADDNING_MAX, SKYDD_TEXT, VISSLING_RAD_MS } from "./delat/kg-config.js";
 
 export const TEXT = Object.freeze({
   gom: "Göm dig! Ingen annan ser var du går.",
@@ -130,6 +132,15 @@ export function mittenText({ lage, laddningar = 0 }) {
   if (lage === "gom-sokare") return "Svara rätt – varje rätt svar laddar ficklampan.";
   if (lage === "gom-gomd") return TEXT.gom;
   return "";
+}
+
+/**
+ * Raden (§1.2): den egna visslingen ("egen", fel svar/tystnad) står kvar hela VISSLING_RAD_MS
+ * även om andras "Det visslar vid …" (typ "") kommer i samma tick. Lås/hittad-rader byter alltid.
+ */
+export function radFarBytas({ visadTyp, visadSedan, typ = "", nu = Date.now(), ms = VISSLING_RAD_MS }) {
+  if (typ !== "" || visadTyp !== "egen") return true;
+  return nu - (Number(visadSedan) || 0) >= ms;
 }
 
 /**

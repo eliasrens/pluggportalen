@@ -25,7 +25,9 @@
 //
 // API
 //   buildResult(s, classes, players, mode, extra?) → extra.result | tomt result utan rewards
-//   resultInputs(s) → { result } – kgAvsluta + utbetalning (lärare)
+//   resultInputs(s, { skarm?, vanta? }) → { result } – kgAvsluta + utbetalning (lärare);
+//     elevskärmsfönstret (skarm) avslutar/betalar aldrig, väntar in result (vantaPaResult)
+//   arElevskarmsfonster(location?) → bool (#/larare/live?id=…&skarm=elev)
 //   avslutaOchBetala(s, deps?, { avslutadeNu? }) → result | null
 //     deps = { avsluta(sid), settle(sid, session), admin(), klass, vanta(ms)? } (testerna)
 //   medPerClass(s, result) → result med perClass { classId: { name, players } }
@@ -93,7 +95,20 @@ export async function avslutaOchBetala(s, deps = null, { avslutadeNu = false } =
   return result;
 }
 
-export async function resultInputs(s) {
+/** Elevskärmsfönstret (#/larare/live?id=…&skarm=elev) – kärnans flöde körs även där. */
+export function arElevskarmsfonster(loc = globalThis.location) {
+  return /[?&]skarm=elev(?:&|$)/.test(String(loc?.hash || ""));
+}
+
+/**
+ * Kärnans resultInputs: avsluta + betala – men ALDRIG i elevskärmsfönstret (N9): det varken
+ * anropar kgAvsluta eller betalar, det väntar bara in result som projektorn/servern skriver.
+ */
+export async function resultInputs(s, { skarm = arElevskarmsfonster(), vanta = null } = {}) {
+  if (skarm) {
+    const v = vanta || (await import("./kurragomma-data.js")).vantaPaResult;
+    return { result: s?.result || (await v(s.id)) };
+  }
   return { result: await avslutaOchBetala(s) };
 }
 

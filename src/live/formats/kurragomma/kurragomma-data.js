@@ -12,6 +12,7 @@
 // API (lärare/projektor)
 //   starta(sid) · tick(sid) · avsluta(sid) → { result, redan }
 //   getKgPlayers(sid) · getEvents(sid)   (historiken, E)
+//   vantaPaResult(sid, ms?)         → result | null (elevskärmsfönstret, kg-avslut.js)
 // API (båda)
 //   kanal({ sid, uid })            → kg-kanal.js skapaRorelsekanal i rtdb-läge mot prod-
 //                                  instansen (KG_DATABASE_URL) – eller emulatorn när
@@ -74,6 +75,16 @@ const withId = (d) => ({ id: d.id, ...d.data() });
 export async function getQuestions(sid) {
   const snap = await getDoc(doc(db, "liveSessions", sid, "kgPublic", "questions"));
   return snap.exists() ? snap.data().questions || [] : [];
+}
+
+/** Sessionens result när det finns (elevskärmsfönstret väntar på projektorn/servern), null efter ms. */
+export function vantaPaResult(sid, ms = 60_000) {
+  return new Promise((resolve) => {
+    let av = () => {};
+    const klar = (r) => { clearTimeout(t); av(); resolve(r); };
+    const t = setTimeout(() => klar(null), ms);
+    av = onSnapshot(doc(db, "liveSessions", sid), (s) => { const r = s.data()?.result; if (r) klar(r); }, () => klar(null));
+  });
 }
 
 export function watchMe(sid, uid, cb, onErr) {

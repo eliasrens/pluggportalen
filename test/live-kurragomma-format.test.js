@@ -12,19 +12,19 @@ import KURRAGOMMA from "../src/live/formats/kurragomma/index.js";
 import { getFormat, registerFormat, validateFormat, listFormats } from "../src/live/live-formats.js";
 import { buildSessionDoc } from "../src/live/live-core.js";
 import { buildSessionFields, validateSetup, computeStandings, sessionTitle, defaultSessionName, durationField } from "../src/live/formats/kurragomma/kg-setup.js";
-import { avslutaOchBetala, buildResult, avslutaMedForsok, medPerClass } from "../src/live/formats/kurragomma/kg-avslut.js";
+import { avslutaOchBetala, buildResult, avslutaMedForsok, medPerClass, resultInputs, arElevskarmsfonster } from "../src/live/formats/kurragomma/kg-avslut.js";
 import {
   toppText, flodesRad, finalModell, lugnRad, lobbyPlatser, lobbyrutaSida, minutKvar, fasAv, gomKlocka, FINAL_TITLE, NAGON,
 } from "../src/live/formats/kurragomma/kgp-logik.js";
 import { visslingPan } from "../src/live/formats/kurragomma/kgp-ljud.js";
 import {
   TEXT, elevLage, scenLage, gomdText, hittadText, blundText, nedrakning, laddningarHtml, skyddPrickSvg, startplats,
-  sparaPos, lasPos, glomPos, posNyckel, letaTangent, panelLage, letaFel, mittenText, skapaEgenVisslingar,
+  sparaPos, lasPos, glomPos, posNyckel, letaTangent, panelLage, letaFel, mittenText, skapaEgenVisslingar, radFarBytas,
 } from "../src/live/formats/kurragomma/kge-logik.js";
 import { slutRad, endHtml } from "../src/live/formats/kurragomma/kge-skarmar.js";
 import { innanforOn } from "../src/live/formats/kurragomma/delat/kg-geometri.js";
 import { ON } from "../src/live/formats/kurragomma/delat/kg-karta.js";
-import { GOMTID_STANDARD_S, SPELTID_REKOMMENDERAD_MIN } from "../src/live/formats/kurragomma/delat/kg-config.js";
+import { GOMTID_STANDARD_S, SPELTID_REKOMMENDERAD_MIN, VISSLING_RAD_MS } from "../src/live/formats/kurragomma/delat/kg-config.js";
 
 const MAPP = "src/live/formats/kurragomma";
 const INPUT = { name: "Kurragömma 4B", gameMode: "multiplication_0_10", answerKind: "free", durationMin: 8, classIds: ["4b"], classNames: { "4b": "4B" }, format: "kurragomma", rewards: { firstPrize: 100, perCorrect: 2, cap: 300 } };
@@ -230,6 +230,27 @@ describe("elevskärmen – rena delar (spec §6)", () => {
     assert.equal(e.referens(3000), null, "tidsstämplar är inga referenser");
     assert.equal(e.referens(""), null);
     assert.equal(e.vissling({ typ: "vissling", t: 5 }), null, "utan id");
+  });
+
+  it("raden: den egna visslingen står kvar hela tiden även om andras visslingar kommer strax efter (N7)", () => {
+    assert.equal(radFarBytas({ visadTyp: "egen", visadSedan: 1000, typ: "", nu: 1100 }), false, "andras vissling 100 ms senare");
+    assert.equal(radFarBytas({ visadTyp: "egen", visadSedan: 1000, typ: "", nu: 1000 + VISSLING_RAD_MS }), true, "efter radens tid");
+    assert.equal(radFarBytas({ visadTyp: "egen", visadSedan: 1000, typ: "egen", nu: 1100 }), true, "en ny egen rad byter");
+    assert.equal(radFarBytas({ visadTyp: "egen", visadSedan: 1000, typ: "hittade", nu: 1100 }), true, "hittad/låst byter alltid");
+    assert.equal(radFarBytas({ visadTyp: "", visadSedan: 1000, typ: "", nu: 1100 }), true, "andras rad byts av andras");
+  });
+
+  it("elevskärmsfönstret avslutar och betalar aldrig – det väntar in result (N9)", async () => {
+    assert.equal(arElevskarmsfonster({ hash: "#/larare/live?id=s1&skarm=elev" }), true);
+    assert.equal(arElevskarmsfonster({ hash: "#/larare/live?id=s1" }), false);
+    assert.equal(arElevskarmsfonster({ hash: "#/larare/live?id=s1&skarm=elevx" }), false);
+    assert.equal(arElevskarmsfonster(undefined), false);
+    const logg = [];
+    const r1 = await resultInputs({ id: "s1" }, { skarm: true, vanta: async (sid) => { logg.push(`vanta ${sid}`); return { format: "kurragomma", players: 3 }; } });
+    assert.deepEqual(logg, ["vanta s1"]);
+    assert.equal(r1.result.players, 3);
+    const r2 = await resultInputs({ id: "s1", result: { players: 9 } }, { skarm: true, vanta: async () => { throw new Error("ska inte anropas"); } });
+    assert.equal(r2.result.players, 9, "finns result redan används det");
   });
 
   it("texterna exakt som specen, lägena och scenens läge", () => {

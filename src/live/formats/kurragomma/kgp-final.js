@@ -11,7 +11,9 @@
 // Inga emojier från Emoji 13+ (🏆 🥇 🥈 🥉 är Emoji 1.0).
 //
 //   finalHtml(modell) → html (betrodd – texterna escapas här)
-//   createFinal(host, { result, session, scen, sound, ljud }) → { destroy() }
+//   createFinal(host, { result, session, scen, ljud }) → { scenKlar(), destroy() }
+//     scen = scenen eller en getter () => scen (projektorn laddar scenen asynkront – vid
+//     omladdning i finalen finns den inte än; scenKlar() ritar gömställena i efterhand, N8)
 // ============================================================================
 
 import { esc } from "../../../teacher-shared.js";
@@ -42,6 +44,9 @@ export function finalHtml(m) {
 
 export function createFinal(host, { result, session, scen = null, ljud = null }) {
   const m = finalModell(result, session);
+  const scenNu = () => (typeof scen === "function" ? scen() : scen);
+  let kartaVisad = false;
+  const karta = () => { const sc = scenNu(); if (kartaVisad && sc) sc.gomstallen(m.gomstallen); };
   const el = document.createElement("div");
   el.className = "kgp-finalyta";
   el.innerHTML = finalHtml(m);
@@ -55,14 +60,17 @@ export function createFinal(host, { result, session, scen = null, ljud = null })
     if (n === 2) {
       // Pallen blir en kompakt lista i hörnet (CSS) så ön och gömställena syns.
       el.querySelector(".kgp-final")?.classList.add("kgp-karta-visas");
-      scen?.gomstallen(m.gomstallen);
+      kartaVisad = true;
+      karta();
     }
   };
   STEG_MS.forEach((ms, n) => { if (stilla || ms === 0) visa(n); else timers.push(setTimeout(() => visa(n), ms)); });
   return {
+    /** Scenen blev klar efter finalen (omladdning/återanslutning): rita gömställena nu. */
+    scenKlar: karta,
     destroy() {
       timers.forEach(clearTimeout);
-      scen?.gomstallen([]);
+      scenNu()?.gomstallen([]);
       el.remove();
     },
   };

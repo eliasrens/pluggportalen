@@ -32,7 +32,7 @@ import { LAS_MARGINAL_MS, HITTAD_RUTA_MS, VISSLING_RAD_MS } from "./delat/kg-con
 import { platsNamn } from "./delat/kg-geometri.js";
 import {
   TEXT, elevLage, scenLage, gomdText, hittadText, hittadeText, andraVisslingText, blundText, nedrakning, laddningarHtml,
-  skyddPrickSvg, skyddText, startplats, sparaPos, lasPos, glomPos, letaTangent, panelLage, mittenText, egenVisslingsReferens } from "./kge-logik.js";
+  skyddPrickSvg, skyddText, startplats, sparaPos, lasPos, glomPos, letaTangent, panelLage, mittenText, egenVisslingsReferens, radFarBytas } from "./kge-logik.js";
 import { skapaSpel } from "./kge-spel.js";
 
 export const KGE_CSS = ["src/live/formats/kurragomma/kurragomma-elev.css", "src/live/formats/kurragomma/scen/kurragomma-scen.css"];
@@ -127,8 +127,12 @@ export function createKgStage({ view, host, uid, session, mode, answerKind }, { 
   });
 
   // --- små ritare -----------------------------------------------------------------------
+  let radVisad = { typ: "", sedan: 0 };
   function rad(text, typ = "") {
     const r = $("[data-rad]");
+    // Den egna visslingen står kvar även om andras visslingar ur samma tick kommer strax efter (N7).
+    if (!r.hidden && !radFarBytas({ visadTyp: radVisad.typ, visadSedan: radVisad.sedan, typ })) return;
+    radVisad = { typ, sedan: Date.now() };
     r.textContent = text;
     r.dataset.typ = typ;
     r.hidden = false;
