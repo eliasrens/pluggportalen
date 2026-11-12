@@ -214,14 +214,44 @@ export function createKgStage({ view, host, uid, session, mode, answerKind }, { 
       rad(gomdText(gomstalle?.namn), "last");
       sattLage();
     } catch (err) {
-      if (!destroyed) { fel(err?.message || "Kunde inte låsa – försök igen."); $("[data-las]").disabled = false; }
+      if (destroyed) return;
+      // Nekad för att gömfasen är slut: servern har (eller får strax) ett gömställe åt mig –
+      // hämta det med kgAnslut, annars står figuren fel och hjärtslaget räknas mot fel plats.
+      if (err?.code === "failed-precondition" && (await hamtaGomstalle())) return;
+      fel(err?.message || "Kunde inte låsa – försök igen.");
+      $("[data-las]").disabled = false;
     } finally { laser = false; }
   }
+  async function hamtaGomstalle() {
+    try {
+      const i2 = await api.anslut(sid);
+      if (destroyed || i2.roll !== "gomd" || !i2.gomstalle) return false;
+      info = i2;
+      gomstalle = i2.gomstalle;
+      harLast = true;
+      glomPos(lagring, sid);
+      scen?.jag({ x: gomstalle.x, z: gomstalle.z, yaw: scen.jag().yaw });
+      spel.gomstalle(gomstalle);
+      rad(gomdText(gomstalle.namn), "last");
+      sattLage();
+      return true;
+    } catch { return false; }
+  }
 
-  /** Det egna kgPlayers: hittad → sökare, poäng och laddningar. */
+  /** Det egna kgPlayers: hittad → sökare, poäng, laddningar – och tystnadsregelns egna vissling. */
+  let tystRef = null;
   function meUppdaterad(me) {
     if (!me || destroyed || !ready) return;
     if (Number.isFinite(me.poang)) poang = me.poang;
+    // Servern visslade åt mig (tystnadsregeln): tystRef flyttas till visslingens t utan att
+    // senastSvarAt rörs (ett svar sätter båda). Första läsningen är bara en referens.
+    const tr = Number(me.tystRef) || 0;
+    if (tystRef != null && me.roll === "gomd" && tr > tystRef && tr !== Number(me.senastSvarAt) && tr > (toMs(info?.tider?.letStart) || 0)) {
+      spel.egenVissling(tr);
+      rad(TEXT.egenVissling, "egen");
+      scen?.hopp();
+    }
+    tystRef = tr;
     if (Number.isFinite(me.laddningar) && !spel.letar) ritaLampor(me.laddningar);
     if (me.roll === "sokare" && roll === "gomd") {
       roll = "sokare";

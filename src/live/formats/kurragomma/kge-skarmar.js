@@ -13,6 +13,7 @@
 //   slutRad(row, gomstalle) → text (ren, testad)
 // ============================================================================
 
+import { platsNamn } from "./delat/kg-geometri.js";
 import { coinIcon } from "../../../icons.js";
 import { myReward, sessionRewards, placeText } from "../../live-rewards.js";
 import { normInstallningar } from "./delat/kg-regler.js";
@@ -38,7 +39,8 @@ export function lobbyHtml(s) {
 export function slutRad(row, gomstalle = null) {
   if (!row) return "Du var inte med i den här matchen.";
   if (row.klaradeSig) return "Du klarade dig gömd hela matchen!";
-  if (gomstalle && gomstalle.hittad) return `Du blev hittad ${gomstalle.namn || "på ön"} och letade sedan.`;
+  // result.gomstallen[].namn är ELEVENS namn (servern) – platsen räknas ur x/z.
+  if (gomstalle && gomstalle.hittad) return `Du blev hittad ${Number.isFinite(gomstalle.x) ? platsNamn(gomstalle.x, gomstalle.z) : "på ön"} och letade sedan.`;
   if (row.hittade > 0) return `Du var sökare och hittade ${row.hittade} ${row.hittade === 1 ? "gömd" : "gömda"}!`;
   return "Du var sökare hela matchen.";
 }

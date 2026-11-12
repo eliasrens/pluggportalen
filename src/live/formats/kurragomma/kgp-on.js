@@ -33,6 +33,7 @@ export const KGP_CSS = ["src/live/formats/kurragomma/kurragomma-projektor.css", 
 const RAD_MS = 14_000;
 const GOM_MUSIK = 0.5;
 const PROJEKTOR_UID = "projektor";
+const START_IGEN_MS = 4000;
 
 async function standardKoppling() {
   const [api, { createAvatarRoster }] = await Promise.all([import("./kurragomma-data.js"), import("../../design/live-avatars.js")]);
@@ -69,6 +70,7 @@ export function createOn(host, { st, sound = null, music = null, screen = false,
   let prevMs = null;
   let startad = false;
   let tickT = 0;
+  let startT = 0;
   let tickar = false;
   let final = null;
   let betalat = false;
@@ -164,7 +166,13 @@ export function createOn(host, { st, sound = null, music = null, screen = false,
       sync();
     } catch (err) {
       console.warn("[kurragomma] projektorn kunde inte ansluta", err);
-      vanta(`Projektorn kunde inte ansluta till ön (${err?.message || err}).`);
+      vanta(`Projektorn kunde inte ansluta till ön (${err?.message || err}) – försöker igen …`);
+      try { kanal?.stang(); } catch { /* inte startad */ }
+      kanal = null;
+      scen?.destroy();
+      scen = null;
+      startad = false;
+      if (!destroyed) startT = setTimeout(() => starta(), START_IGEN_MS);
     }
   }
 
@@ -243,6 +251,7 @@ export function createOn(host, { st, sound = null, music = null, screen = false,
       destroyed = true;
       clearInterval(toppT);
       clearTimeout(tickT);
+      clearTimeout(startT);
       rader.forEach((p) => clearTimeout(p.t));
       ro?.disconnect();
       final?.destroy();

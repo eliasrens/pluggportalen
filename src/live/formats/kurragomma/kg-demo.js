@@ -169,7 +169,11 @@ export function createKgDemo({
     async jumpToFinal() { await start(0); await framTill(tider().slut + 500); await tick(); emit(true); },
     async tystnad() { const uid = server.tystnadNu(); const r = await tick(); onLog(uid ? `tystnadsregeln: ${uid} visslar (${r?.visslade ?? 0})` : "ingen gömd kvar"); return uid; },
     async sokareBorta(v = true) { robotar.borta(v); if (v) { const r = await tick(); onLog(r?.nySokare ? `ny sökare: ${r.nySokare}` : "sökarna borta – nästa tick drar en ny sökare"); } },
-    async allaHittade() { const h = server.hittaNu(null, me.uid); await tick(); onLog(`alla hittade (${h.length})`); emit(true); return h; },
+    async allaHittade() {
+      const sokare = robotar.lista().find((r) => r.roll === "sokare")?.uid || me.uid; // en robot-sökare (jag kan vara gömd)
+      const h = server.hittaNu(null, sokare);
+      await tick(); onLog(`alla hittade (${h.length})`); emit(true); return h;
+    },
     /** En robot-sökare hittar "jag" (eller en gömd robot) nu. */
     async hittad(uid = me.uid) { const h = server.hittaNu([uid]); onLog(h.length ? `${h[0].namn || uid} hittad` : "ingen att hitta"); return h; },
     /** En gömd robot svarar fel → vissling; en robot-sökare letar där den står. */

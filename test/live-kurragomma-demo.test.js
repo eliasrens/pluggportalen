@@ -165,7 +165,7 @@ describe("demot: en hel match i minnet", () => {
     const svarat = r.ranking.find((p) => p.besvarade > 0);
     assert.ok(r.rewards[svarat.uid]?.total > 0);
     assert.equal(r.rewards[svarat.uid].rank, placeringBland(r.ranking.filter((p) => p.besvarade > 0), svarat.uid));
-    assert.equal(r.flestHittade.uid, "jag");
+    assert.ok(r.flestHittade && r.flestHittade.uid !== "jag" && r.flestHittade.antal >= 25, "en robot-sökare hittar alla (F10), inte Jag");
     assert.equal(st.session.status, "finished");
     assert.equal(demo.session.demo, true);
   });

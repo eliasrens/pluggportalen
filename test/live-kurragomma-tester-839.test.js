@@ -1,5 +1,4 @@
-// Kurragömma D (#839) – TESTARENS fynd som rena tester. De som fortfarande är fel är
-// markerade `todo` (sviten blir inte röd); ta bort todo när Codern rättat.
+// Kurragömma D (#839) – TESTARENS fynd som rena tester (rättade i rättningsrunda 1).
 //   F2  slutskärmen: "Du blev hittad <plats> och letade sedan" – result.gomstallen[].namn
 //       är ELEVENS namn (servern), inte platsen → "Du blev hittad Theo 3A och letade sedan."
 //   F4  lokala bussen (demot): händelse-id = h${hand.length + 1} – efter HAND_LIMIT
@@ -16,7 +15,7 @@ describe("tester #839: slutskärmen", () => {
   const gom = { uid: "c03", x: -17.76, z: -16.04, skydd: 2, namn: "Theo 3A", hittad: true };
   const rad = { uid: "c03", name: "Theo 3A", klaradeSig: false, poang: 12, hittade: 0 };
 
-  it("hittad: raden nämner platsen, aldrig elevens eget namn (F2)", { todo: "F2 – slutRad använder gomstalle.namn (elevens namn)" }, () => {
+  it("hittad: raden nämner platsen, aldrig elevens eget namn (F2)", () => {
     const text = slutRad(rad, gom);
     assert.ok(!text.includes("Theo 3A"), text);
     assert.equal(text, `Du blev hittad ${platsNamn(gom.x, gom.z)} och letade sedan.`);
@@ -29,7 +28,7 @@ describe("tester #839: slutskärmen", () => {
 });
 
 describe("tester #839: lokala bussen (demot)", () => {
-  it("varje händelse har ett eget id även efter HAND_LIMIT – en lyssnare med dedupe ser alla (F4)", { todo: "F4 – id = h${hand.length + 1} upprepas när listan är full" }, () => {
+  it("varje händelse har ett eget id även efter HAND_LIMIT – en lyssnare med dedupe ser alla (F4)", () => {
     let t = 1_800_000_000_000;
     const buss = skapaLokalBuss({ nu: () => t });
     const kanal = buss.kanalFor("projektor");

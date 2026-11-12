@@ -35,6 +35,8 @@ import {
 
 export const KG_DATABASE_URL = "https://pluggportalen-so-2026-default-rtdb.europe-west1.firebasedatabase.app";
 const SDK_URL = "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+/** Databasinstanser som redan pekats mot emulatorn – connectDatabaseEmulator får bara anropas en gång per instans. */
+const emulatorKopplade = new WeakSet();
 
 /** Takten och flyttregeln för sökarens egna positioner. prova(p) → true = skicka. */
 export function skapaPosFilter({ nu = Date.now } = {}) {
@@ -79,7 +81,10 @@ function skapaRtdbKanal({ sid, uid, app, url = KG_DATABASE_URL, sdk = null, emul
     async start() {
       fb = sdk || (await import(/* webpackIgnore: true */ SDK_URL));
       db = fb.getDatabase(app, url);
-      if (emulator) fb.connectDatabaseEmulator(db, emulator.host, emulator.port);
+      if (emulator && !emulatorKopplade.has(db)) {
+        fb.connectDatabaseEmulator(db, emulator.host, emulator.port);
+        emulatorKopplade.add(db);
+      }
       av.push(fb.onValue(fb.ref(db, ".info/serverTimeOffset"), (snap) => { offset = Number(snap.val()) || 0; }));
       // Ett onDisconnect gäller bara den anslutningen: efter ett nätavbrott måste
       // sökaren armera om, annars blir nästa avbrott en frusen figur för de andra.
@@ -129,6 +134,7 @@ function skapaRtdbKanal({ sid, uid, app, url = KG_DATABASE_URL, sdk = null, emul
 
 export function skapaLokalBuss({ nu = Date.now } = {}) {
   const st = { roll: {}, med: {}, pos: {}, hand: [], status: null };
+  let handNr = 0; // löpande – listan klipps vid HAND_LIMIT, id:t får aldrig upprepas (klienterna dedupar på id)
   const paPos = lyssnare();
   const paHand = lyssnare();
   const paStatus = lyssnare();
@@ -142,7 +148,7 @@ export function skapaLokalBuss({ nu = Date.now } = {}) {
     med(uid) { st.med[uid] = true; },
     pos: (uid, p) => sattPos(uid, posDoc(p, nu())),
     handelse(h) {
-      const post = { id: `h${st.hand.length + 1}`, t: nu(), ...h };
+      const post = { id: `h${++handNr}`, t: nu(), ...h };
       st.hand.push(post);
       if (st.hand.length > HAND_LIMIT) st.hand.splice(0, st.hand.length - HAND_LIMIT);
       paHand.emit(post);
