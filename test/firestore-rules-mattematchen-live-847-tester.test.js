@@ -183,3 +183,54 @@ describe("Testaren #847: räknare som servern skrev, sedan klientens vanliga vä
     await assertSucceeds(commit(elev("alma"), w));
   });
 });
+
+describe("Testaren #847: F1 omtest (3c9b2f6) – varianter och normalvägar", () => {
+  const mynt = (id) => planMmMyntWrites({ competitionId: "mm1", attemptId: id, uid: "alma", dag: dag(), fv });
+  const coins = async () => (await las("studentData", "alma"))?.coins ?? 0;
+  const poang = async () => (await las("mathCompetitions", "mm1", "scores", "alma"))?.correct ?? 0;
+
+  it("liveAnswers/X först, sedan answers/X + bump + mynt i en senare batch → nekas", async () => {
+    const id = aid();
+    await assertSucceeds(commit(elev("alma"), [...live(id), ...mmDel(id)]));
+    await assertFails(commit(elev("alma"), [...mmDel(id, { ankare: "answers", a: 3, b: 4, answer: 12 }), ...mynt(id)]));
+    await assertFails(commit(elev("alma"), [mmDel(id, { ankare: "answers" })[0], ...mynt(id)]));
+    assert.deepEqual([await poang(), await coins()], [1, 0]);
+  });
+
+  it("myntet ensamt i en senare batch (mot liveAnswers/X eller answers/Y) → nekas", async () => {
+    const x = aid();
+    await assertSucceeds(commit(elev("alma"), [...live(x), ...mmDel(x)]));
+    await assertFails(commit(elev("alma"), mynt(x)));
+    const y = aid();
+    await assertSucceeds(commit(elev("alma"), [...mmDel(y, { ankare: "answers" }), ...mynt(y)])); // vanligt MM-svar med mynt
+    assert.equal(await coins(), 1);
+    await assertFails(commit(elev("alma"), mynt(y))); // samma mynt igen
+    assert.equal(await coins(), 1);
+  });
+
+  it("answers/X (MM-sidan, mynt) först, sedan Live + liveAnswers/X med samma id", async () => {
+    const id = aid();
+    await assertSucceeds(commit(elev("alma"), [...mmDel(id, { ankare: "answers" }), ...mynt(id)]));
+    const r = await commit(elev("alma"), [...live(id), ...mmDel(id)]).then(() => "ok", (e) => e.code);
+    console.log("# answers/X före liveAnswers/X:", r, "poäng", await poang(), "mynt", await coins());
+    assert.equal(await coins(), 1, "aldrig mer än ett mynt");
+  });
+
+  it("Live-svar + MM-delen märkt som answers/X (inget liveAnswers) + mynt – = ett MM-sidsvar", async () => {
+    const id = aid();
+    const r = await commit(elev("alma"), [...live(id), ...mmDel(id, { ankare: "answers" }), ...mynt(id)]).then(() => "ok", (e) => e.code);
+    console.log("# Live + answers/X + mynt (ingen liveAnswers):", r, "poäng", await poang(), "mynt", await coins());
+  });
+
+  it("normalvägarna: MM-sidans svar med mynt och Live-svar som räknas", async () => {
+    const a = aid();
+    await assertSucceeds(commit(elev("alma"), [...mmDel(a, { ankare: "answers" }), ...mynt(a)]));
+    const b = aid();
+    const mm = planLiveMmWrites({
+      competition: { id: "mm1", ...MM1 }, now: Date.now(), uid: "alma", classId: "3a", name: "Alma", attemptId: b,
+      record: rec(6, 7, 42), isCorrect: true, fv, rng: () => 0.9,
+    });
+    await assertSucceeds(commit(elev("alma"), [...live(b), ...mm]));
+    assert.deepEqual([await poang(), await coins()], [2, 1]);
+  });
+});
