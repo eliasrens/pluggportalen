@@ -339,10 +339,11 @@ Topp 25 elever.
 
 Alla deltagande klasser.
 
-## Årskursfilter (#845, epic #844 – Elias 2026-11-13)
+## Årskursfilter i Klasskampen (#845, epic #844 – Elias 2026-11-13)
 
-Båda listorna kan filtreras per årskurs: **Alla · Åk 3 · Åk 4 …** Samma filter
-finns på lärarsidan (Följ tävlingen + sparat resultat).
+Klasskampen kan filtreras per årskurs: **Alla · Åk 3 · Åk 4 …** Samma filter
+finns på lärarsidan (Följ tävlingen + sparat resultat). **Topp 25 är
+oförändrad** (alla deltagande klasser) – beslut av Elias 2026-11-13.
 
 - Klasser har inget årskursfält. Årskursen härleds ur klassnamnets inledande
   siffror (`arskursAvKlass` i `src/tavling/arskurs.js`): "4B" → 4, "3A" → 3,
@@ -350,15 +351,11 @@ finns på lärarsidan (Följ tävlingen + sparat resultat).
 - Bara årskurser som finns i matchen visas (ur `participatingClassIds` och
   klassernas namn). Finns bara en årskurs i matchen visas inget filter.
 - Elevens egen årskurs är förvald. Läraren börjar på Alla.
-- **Läskostnad:** Topp 25 per årskurs är en indexerad fråga med `limit(25)`
-  (`where arskurs == n` + `orderBy correct desc`, index i
-  `firestore.indexes.json`) – aldrig en skanning av alla poster. Därför bär
-  topplisteposten `scores/{uid}.arskurs` (heltal, 0 = Övriga), satt av
-  klienten vid rätt svar och kontrollerad av reglerna mot klassens namn.
-  Klasskampen (få klassräknare) filtreras i klienten utan extra läsning.
-  Historiken (sparat `result`) filtreras helt ur det sparade dokumentet.
-- Poster från före #845 saknar `arskurs` och syns bara under **Alla** tills
-  eleven svarar rätt nästa gång (fältet skrivs då med merge).
+- Placeringarna räknas om inom filtret (delade platser som förut).
+- **Inga extra läsningar:** filtret görs i klienten på Klasskampens redan
+  lästa rader (klassräknarna + klasslistan, `mm-data.loadClassFight`), och på
+  lärarsidan på samma rader resp. det sparade `result.classes`. Inget lagras,
+  inga regel- eller indexändringar.
 
 ---
 

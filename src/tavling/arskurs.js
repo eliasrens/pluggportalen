@@ -3,27 +3,21 @@
 // ----------------------------------------------------------------------------
 // Klasser har inget årskursfält. Årskursen HÄRLEDS ur namnets inledande
 // siffror: "4B" → 4, "3A" → 3, "10A" → 10. Ett namn utan inledande siffra
-// ("Klass 3", "Fritids", "", null) → "Övriga". Reglerna (firestore.rules
-// mmArskursOk) gör SAMMA härledning mot classes/{id}.name, så värdet på
-// topplisteposten kan inte fuskas.
+// ("Klass 3", "Fritids", "", null) → "Övriga". Används av Klasskampens
+// årskursfilter (Alla · Åk 3 · Åk 4 …) – bara i klienten, inget lagras.
 //
 // Ren modul (ingen DOM/Firebase) → test/arskurs.test.js.
 //
 // API
 //   arskursAvKlass(namn)            → 4 | 10 | OVRIGA
-//   arskursKod(ak) / arskursFranKod(n)
-//                                   → Firestore-fältet `arskurs` är ett heltal,
-//                                     0 = Övriga (så where('arskurs','==',n) går)
-//   arskursLabel(ak)                → "Åk 4" | "Övriga"
+//   arskursLabel(ak)                → "Åk 4" | "Övriga" | "Alla"
 //   arskurserIMatch(classIds, namnAv)
 //                                   → unika årskurser i matchen, stigande,
 //                                     Övriga sist (bara de som finns)
-//   arskursAvRad(rad, namnAv)       → årskurs för en topplista-/klassrad:
-//                                     rad.arskurs om det finns, annars ur
-//                                     klassnamnet (poster före #845)
 //   filtreraArskurs(rows, ak, namnAv, nyckel)
-//                                   → raderna i årskursen, omrankade på
-//                                     `nyckel` (delade platser 1, 2, 2, 4)
+//                                   → raderna (med classId) i årskursen,
+//                                     omrankade på `nyckel` (delade platser
+//                                     1, 2, 2, 4); ALLA = oförändrat
 //   namnAv = Map<classId, namn> eller (classId) → namn
 // ============================================================================
 
@@ -35,17 +29,6 @@ export const ALLA = "alla";
 export function arskursAvKlass(namn) {
   const m = /^([1-9][0-9]*)/.exec(String(namn ?? ""));
   return m ? Number(m[1]) : OVRIGA;
-}
-
-/** Årskurs → heltalet som lagras på score-dokumentet (Övriga = 0). */
-export function arskursKod(ak) {
-  return ak === OVRIGA ? 0 : Math.max(0, Math.floor(Number(ak) || 0));
-}
-
-/** Lagrat heltal → årskurs (0 eller ogiltigt = Övriga). */
-export function arskursFranKod(n) {
-  const k = Math.floor(Number(n));
-  return Number.isFinite(k) && k > 0 ? k : OVRIGA;
 }
 
 /** "Åk 4" / "Övriga" / "Alla". */
@@ -76,13 +59,7 @@ export function arskurserIMatch(classIds, namnAv) {
   return sortera([...set]);
 }
 
-/** Radens årskurs: lagrat `arskurs` först, annars ur klassnamnet. */
-export function arskursAvRad(rad, namnAv) {
-  if (rad && rad.arskurs != null) return arskursFranKod(rad.arskurs);
-  return arskursAvKlass(namnFn(namnAv)(rad?.classId));
-}
-
-/** Placering med delade platser (samma som mm-core.topList/classStandings). */
+/** Placering med delade platser (samma som mm-core.classStandings). */
 function ranka(rows, key) {
   let prev = null;
   rows.forEach((r, i) => {
@@ -93,13 +70,13 @@ function ranka(rows, key) {
 }
 
 /**
- * Raderna som hör till årskursen `ak` (ALLA = alla, oförändrade), i samma
- * ordning som de kom, omrankade på `nyckel` ("correct" / "score").
+ * Raderna vars klass hör till årskursen `ak` (ALLA = alla, oförändrade), i
+ * samma ordning som de kom, omrankade på `nyckel` (Klasskampen: "score").
  */
-export function filtreraArskurs(rows, ak, namnAv, nyckel = "correct") {
+export function filtreraArskurs(rows, ak, namnAv, nyckel = "score") {
   const list = Array.isArray(rows) ? rows : [];
   if (ak === ALLA || ak == null) return list;
   const namn = namnFn(namnAv);
-  const valda = list.filter((r) => arskursAvRad(r, namn) === ak).map((r) => ({ ...r }));
+  const valda = list.filter((r) => arskursAvKlass(namn(r?.classId)) === ak).map((r) => ({ ...r }));
   return ranka(valda, nyckel);
 }

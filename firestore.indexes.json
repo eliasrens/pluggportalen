@@ -26,14 +26,6 @@
       ]
     },
       {
-      "collectionGroup": "scores",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "arskurs", "order": "ASCENDING" },
-        { "fieldPath": "correct", "order": "DESCENDING" }
-      ]
-    },
-    {
       "collectionGroup": "brakresaRounds",
       "queryScope": "COLLECTION",
       "fields": [

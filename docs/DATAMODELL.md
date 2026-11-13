@@ -1037,9 +1037,6 @@ Ingen backend finns – `firestore.rules` är servervalideringen. Varje svar bli
 Index: Topp 25 (`scores` orderBy `correct` desc) och Live-listan
 (`liveSessions` where `participatingClassIds` array-contains) klarar sig med
 automatiska enkelfälts-index; kombineras `status`-filter krävs ett sammansatt index.
-Topp 25 **per årskurs** (#845: `scores` where `arskurs` == n, orderBy `correct`
-desc, limit 25) kräver det sammansatta indexet `scores (arskurs asc, correct
-desc)` i `firestore.indexes.json` → `firebase deploy --only firestore:indexes`.
 
 ### `mathCompetitions/{cid}` – MathCompetition
 
@@ -1088,21 +1085,9 @@ Läses av eleven själv (📊) och lärare (klassöversikt/elevdetalj). Saknade 
 
 ### `mathCompetitions/{cid}/scores/{uid}` – topplistepost (publik)
 
-`{ uid, classId, name, correct, lastAttemptId, lastAt, arskurs? }` – bara det
-Topp 25 behöver. Elever får läsa enstaka poster och **lista högst 25**
-(`limit(25)`), läraren allt. Skapas vid elevens första rätta svar.
-
-**`arskurs`** (#845, valfritt heltal ≥ 0): klassens årskurs härledd ur
-klassnamnets inledande siffror (`src/tavling/arskurs.js`: "4B" → 4, "10A" → 10,
-namn utan inledande siffra → 0 = "Övriga"). Klienten skriver det med varje rätt
-svar (merge). Reglerna (`mmArskursOk`) godtar det bara om det stämmer med
-`classes/{classId}.name` (samma klassdokument som medlemskontrollen redan läst
-i batchen – ingen extra läsning) och kontrollerar bara när fältet sätts eller
-ändras. Läsningar per årskurs: `where('arskurs','==',n) + orderBy('correct',
-'desc') + limit(25)` (sammansatt index ovan) = högst 25 dokument, precis som
-"Alla". Poster från före #845 saknar fältet och syns bara under "Alla" tills
-elevens nästa rätta svar fyller på det – ingen migrering. Klasskampen
-(`classCounters`) och historiken (`result`) filtreras i klienten.
+`{ uid, classId, name, correct, lastAttemptId, lastAt }` – bara det Topp 25
+behöver. Elever får läsa enstaka poster och **lista högst 25** (`limit(25)`),
+läraren allt. Skapas vid elevens första rätta svar.
 
 ### `mathCompetitions/{cid}/classCounters/{classId}_{shard}` – Klasskamp
 

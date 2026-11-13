@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================================
-# Mattematchen årskursfilter (#845) – klickbar preview mot EMULATORN.
+# Mattematchen: Klasskampens årskursfilter (#845) – klickbar preview mot EMULATORN.
 # ----------------------------------------------------------------------------
 # Startar Firestore + Auth-emulatorn på SLUMPPORTAR (grenens firestore.rules +
 # index), seedar admin/qa-mattematchen-arskurs-seed.mjs och kör sedan
@@ -12,7 +12,7 @@
 #   PORT=8900 bash admin/qa-mattematchen-arskurs-preview.sh
 #
 # Konton (lösenord lilla123): elev3a (3A), elev4b (4B), elevfri (Fritids),
-# lärare qalarare. Elev: Hem → 🧮 Mattematchen → 🏆. Lärare: #/larare/mattematchen.
+# lärare qalarare. Elev: Hem → 🧮 Mattematchen → 🏆 → Klasskamp. Lärare: #/larare/mattematchen.
 # EN emulator åt gången (flock /tmp/pp-emulator.lock) – maskinen har 11,6 GB.
 # Kräver Java 11+ (JAVA_BIN) och firebase-tools (FIREBASE_JS = sökväg till
 # lib/bin/firebase.js, annars `firebase` i PATH).

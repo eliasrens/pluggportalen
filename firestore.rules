@@ -820,7 +820,7 @@ service cloud.firestore {
           bumped('correct', ok ? 1 : 0) && bumped('incorrect', ok ? 0 : 1) &&
           bumped(tA, 1) && bumped(tB, 1);
       }
-      // Publik topplistepost (bara namn/klass/antal rätt/årskurs): +1 per rätt svar.
+      // Publik topplistepost (bara namn/klass/antal rätt): +1 per rätt svar.
       function mmScoreBump(uid) {
         let d = request.resource.data;
         let ap = mmPath('answers', d.lastAttemptId);
@@ -829,25 +829,8 @@ service cloud.firestore {
           a.uid == uid && a.isCorrect == true &&
           d.uid == uid && d.classId == a.classId && d.lastAt == request.time &&
           ((resource != null && d.name == resource.data.name) || d.name == studentName(uid)) &&
-          changedOnly(['uid', 'classId', 'name', 'correct', 'lastAttemptId', 'lastAt', 'arskurs']) &&
-          bumped('correct', 1) && mmArskursOk(d);
-      }
-      // Årskurs på topplisteposten (#845): klassnamnets inledande siffror
-      // (src/tavling/arskurs.js: "4B" → 4, "10A" → 10, utan siffra = 0 =
-      // "Övriga") så Topp 25 kan frågas per årskurs med index i stället för
-      // att skanna alla poster. Valfritt (poster före #845 saknar det) och
-      // kontrolleras bara när det sätts eller ändras – mot classes/{classId}
-      // .name (samma dokument som isClassMember redan läst i batchen), så en
-      // elev kan aldrig hamna i en annan årskurs än sin klass.
-      function mmArskursOk(d) {
-        return !('arskurs' in d) ||
-          (resource != null && d.arskurs == resource.data.get('arskurs', -1)) ||
-          (d.arskurs is int && d.arskurs >= 0 &&
-            ((d.arskurs == 0 && !className(d.classId).matches('^[1-9].*')) ||
-             (d.arskurs > 0 && className(d.classId).matches('^' + string(d.arskurs) + '([^0-9].*)?$'))));
-      }
-      function className(classId) {
-        return get(/databases/$(database)/documents/classes/$(classId)).data.get('name', '');
+          changedOnly(['uid', 'classId', 'name', 'correct', 'lastAttemptId', 'lastAt']) &&
+          bumped('correct', 1);
       }
 
       // ROLLER (#678, §2.2): bara admin skapar, startar, stoppar, avslutar

@@ -78,8 +78,8 @@
 .teacher-dark .mmt-follow-topp { justify-content: flex-end; gap: 10px; margin-bottom: 8px; }
 .teacher-dark .mmt-follow-topp .hint { margin: 0; }
 .teacher-dark .mmt-tva { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
-/* Årskursfilter (#845) ovanför Topp 25 + Klasskamp (följ + historik). */
-.teacher-dark .mmt-ak-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 10px; }
+/* Klasskampens årskursfilter (#845) i kortet (följ + historik). */
+.teacher-dark .mmt-ak-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: -4px 0 10px; }
 .teacher-dark .mmt-ak-filter::before { content: "Årskurs"; margin-right: 4px; font-size: 0.8rem; color: var(--t-muted, #9aa3b2); }
 .teacher-dark .mmt-ak {
   padding: 4px 12px;

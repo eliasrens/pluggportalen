@@ -13,12 +13,7 @@
 //   counterId(classId, shard)           → "4b_3" (klassräknarens dokument-id)
 //   planMathAnswerWrites(args)          → Write[]  (Mattematchen)
 //     args: { competitionId, attemptId, uid, classId, name, record,
-//             isCorrect, shard, fv: { increment, serverTimestamp }, arskurs? }
-//     arskurs (#845) = arskursKod(arskursAvKlass(klassens namn)) ur
-//             src/tavling/arskurs.js (heltal, 0 = Övriga) – skrivs på
-//             topplisteposten så Topp 25 kan frågas per årskurs med index.
-//             Reglerna kontrollerar värdet mot classes/{classId}.name.
-//             Utelämnad → posten skrivs som före #845 (inget fält).
+//             isCorrect, shard, fv: { increment, serverTimestamp } }
 //     record = mode.answerRecord(q, r) för multiplikation:
 //             { factorA, factorB, answer, correctAnswer }
 //   planLiveAnswerWrites(args)          → Write[]  (Live)
@@ -74,7 +69,7 @@ function answerDoc({ uid, classId, mode, record, isCorrect, shard, fv }) {
  * @returns {{path:string[], data:object, merge:boolean}[]}
  */
 export function planMathAnswerWrites(args) {
-  const { competitionId: cid, attemptId, uid, classId, name, record, isCorrect, shard, fv, arskurs } = args;
+  const { competitionId: cid, attemptId, uid, classId, name, record, isCorrect, shard, fv } = args;
   const base = ["mathCompetitions", cid];
   const ok = !!isCorrect;
   const tableKeys = [...new Set([record.factorA, record.factorB])].map((t) => `${ok ? "c" : "w"}${t}`);
@@ -91,11 +86,11 @@ export function planMathAnswerWrites(args) {
     { path: [...base, "studentStats", uid], data: stats, merge: true },
   ];
   if (ok) {
-    const score = { uid, classId, name, correct: fv.increment(1), lastAttemptId: attemptId, lastAt: fv.serverTimestamp() };
-    // Skrivs varje gång (merge) → en post från före #845 får fältet vid
-    // elevens nästa rätta svar och syns sedan under sin årskurs.
-    if (Number.isInteger(arskurs) && arskurs >= 0) score.arskurs = arskurs;
-    writes.push({ path: [...base, "scores", uid], data: score, merge: true });
+    writes.push({
+      path: [...base, "scores", uid],
+      data: { uid, classId, name, correct: fv.increment(1), lastAttemptId: attemptId, lastAt: fv.serverTimestamp() },
+      merge: true,
+    });
     writes.push({
       path: [...base, "classCounters", counterId(classId, shard)],
       data: { classId, shard, correct: fv.increment(1), lastAttemptId: attemptId, lastAt: fv.serverTimestamp() },

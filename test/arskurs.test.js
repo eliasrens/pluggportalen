@@ -1,10 +1,7 @@
-// Årskurs ur klassnamnet (#845) – arskursAvKlass + filterhjälparna.
+// Årskurs ur klassnamnet (#845) – arskursAvKlass + Klasskampens filterhjälpare.
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import {
-  OVRIGA, ALLA, arskursAvKlass, arskursKod, arskursFranKod, arskursLabel, arskurserIMatch,
-  arskursAvRad, filtreraArskurs,
-} from "../src/tavling/arskurs.js";
+import { OVRIGA, ALLA, arskursAvKlass, arskursLabel, arskurserIMatch, filtreraArskurs } from "../src/tavling/arskurs.js";
 
 const NAMN = new Map([["3a", "3A"], ["3b", "3B"], ["4b", "4B"], ["10a", "10A"], ["fri", "Fritids"], ["k3", "Klass 3"]]);
 
@@ -22,16 +19,8 @@ describe("arskursAvKlass", () => {
     assert.equal(arskursAvKlass(""), OVRIGA);
     assert.equal(arskursAvKlass(null), OVRIGA);
     assert.equal(arskursAvKlass(undefined), OVRIGA);
-    assert.equal(arskursAvKlass(" 4B"), OVRIGA, "inledande blanksteg räknas inte (samma som reglerna)");
+    assert.equal(arskursAvKlass(" 4B"), OVRIGA, "inledande blanksteg räknas inte");
     assert.equal(arskursAvKlass("0A"), OVRIGA, "0 är ingen årskurs");
-  });
-  it("kod ↔ årskurs: Övriga = 0", () => {
-    assert.equal(arskursKod(4), 4);
-    assert.equal(arskursKod(OVRIGA), 0);
-    assert.equal(arskursFranKod(0), OVRIGA);
-    assert.equal(arskursFranKod(10), 10);
-    assert.equal(arskursFranKod("x"), OVRIGA);
-    assert.equal(arskursFranKod(arskursKod(arskursAvKlass("Fritids"))), OVRIGA);
   });
   it("etiketter", () => {
     assert.equal(arskursLabel(3), "Åk 3");
@@ -52,37 +41,25 @@ describe("arskurserIMatch", () => {
   });
 });
 
-describe("arskursAvRad + filtreraArskurs", () => {
-  const top = [
-    { rank: 1, uid: "a", classId: "4b", correct: 50, arskurs: 4 },
-    { rank: 2, uid: "b", classId: "3a", correct: 40 },             // post före #845: ur klassnamnet
-    { rank: 3, uid: "c", classId: "3b", correct: 30, arskurs: 3 },
-    { rank: 3, uid: "d", classId: "fri", correct: 30, arskurs: 0 },
-    { rank: 5, uid: "e", classId: "3a", correct: 30, arskurs: 3 },
+describe("filtreraArskurs (Klasskampen)", () => {
+  const klasser = [
+    { rank: 1, classId: "4b", name: "4B", score: 200 },
+    { rank: 2, classId: "3a", name: "3A", score: 150 },
+    { rank: 2, classId: "3b", name: "3B", score: 150 },
+    { rank: 4, classId: "fri", name: "Fritids", score: 46 },
+    { rank: 5, classId: "k3", name: "Klass 3", score: 10 },
   ];
-  it("lagrat arskurs vinner, annars klassnamnet", () => {
-    assert.equal(arskursAvRad(top[0], NAMN), 4);
-    assert.equal(arskursAvRad(top[1], NAMN), 3);
-    assert.equal(arskursAvRad(top[3], NAMN), OVRIGA);
-    assert.equal(arskursAvRad({ classId: "4b", arskurs: 7 }, NAMN), 7, "lagrat värde används rakt av");
-  });
   it("Alla → oförändrat (samma objekt)", () => {
-    assert.equal(filtreraArskurs(top, ALLA, NAMN), top);
-    assert.equal(filtreraArskurs(top, null, NAMN), top);
+    assert.equal(filtreraArskurs(klasser, ALLA, NAMN), klasser);
+    assert.equal(filtreraArskurs(klasser, null, NAMN), klasser);
   });
-  it("Åk 3 → bara åk 3, omrankade med delade platser", () => {
-    const r = filtreraArskurs(top, 3, NAMN, "correct");
-    assert.deepEqual(r.map((x) => [x.uid, x.rank]), [["b", 1], ["c", 2], ["e", 2]]);
-    assert.equal(top[2].rank, 3, "originalet rörs inte");
-  });
-  it("Övriga och tom årskurs", () => {
-    assert.deepEqual(filtreraArskurs(top, OVRIGA, NAMN).map((x) => x.uid), ["d"]);
-    assert.deepEqual(filtreraArskurs(top, 9, NAMN), []);
-  });
-  it("Klasskampen rankas på score", () => {
-    const klasser = [
-      { rank: 1, classId: "4b", score: 200 }, { rank: 2, classId: "3a", score: 150 }, { rank: 3, classId: "3b", score: 150 },
-    ];
+  it("Åk 3 → bara åk 3, omrankade med delade platser; originalet rörs inte", () => {
     assert.deepEqual(filtreraArskurs(klasser, 3, NAMN, "score").map((x) => [x.classId, x.rank]), [["3a", 1], ["3b", 1]]);
+    assert.deepEqual(filtreraArskurs(klasser, 4, NAMN).map((x) => [x.classId, x.rank]), [["4b", 1]]);
+    assert.equal(klasser[1].rank, 2);
+  });
+  it("Övriga samlar namn utan siffra; tom årskurs → []", () => {
+    assert.deepEqual(filtreraArskurs(klasser, OVRIGA, NAMN).map((x) => [x.classId, x.rank]), [["fri", 1], ["k3", 2]]);
+    assert.deepEqual(filtreraArskurs(klasser, 9, NAMN), []);
   });
 });

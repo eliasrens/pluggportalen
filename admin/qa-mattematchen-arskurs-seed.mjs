@@ -3,23 +3,21 @@
 // ----------------------------------------------------------------------------
 // Lösenord för alla konton: lilla123 (endast emulator).
 //   elev3a  – 3A, deltar i den AKTIVA matchen "Mattematchen årskurs"
-//             (3A + 3B + 4B + Fritids): 🏆 ska ha filtret Alla · Åk 3 · Åk 4 ·
-//             Övriga med Åk 3 förvald. elev3a har 12 poäng (utanför Åk 3:s
-//             topp men syns i "Du: …"-raden).
+//             (3A + 3B + 4B + Fritids): 🏆 → Klasskamp ska ha filtret Alla ·
+//             Åk 3 · Åk 4 · Övriga med Åk 3 förvald (Topp 25 oförändrad, alla
+//             klasser). elev3a har 12 poäng (syns i "Du: …"-raden).
 //   elev4b  – 4B i samma match (Åk 4 förvald).
 //   elevfri – "Fritids" (Övriga förvald).
 //   qalarare – admin: #/larare/mattematchen → Följ (aktiv) + historik
 //             ("Mattematchen våras" är avslutad med sparat result).
-// Topplistan: 30 elever/åk 3, 30 i 4B (Topp 25 per årskurs = exakt 25),
-// 3 på Fritids, och EN gammal post utan `arskurs` (Gamla Gunnar, 4B, 500 p)
-// som bara ska synas under Alla. Idempotent.
+// Topplistan: 30 elever/åk 3, 30 i 4B, 3 på Fritids; Gamla Gunnar (4B) leder
+// med 500 p. Klasskamp: 4B 240,3 · 3B 172,0 · 3A 147,x · Fritids 46,0. Idempotent.
 //
 //   FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 \
 //   GCLOUD_PROJECT=pluggportalen-so-2026 node admin/qa-mattematchen-arskurs-seed.mjs
 // ============================================================================
 import admin from "firebase-admin";
 import { buildResult } from "../src/tavling/mm-teacher-core.js";
-import { arskursAvKlass, arskursKod } from "../src/tavling/arskurs.js";
 
 if (!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AUTH_EMULATOR_HOST) {
   console.error("Avbryter: sätt FIRESTORE_EMULATOR_HOST och FIREBASE_AUTH_EMULATOR_HOST (bara emulator).");
@@ -99,14 +97,11 @@ async function seedTavling(cid, { startAt, endAt, status, result }) {
   const counters = [];
   const summa = {};
   for (const [classId, k] of Object.entries(KLASSER)) {
-    const arskurs = arskursKod(arskursAvKlass(k.name));
     k.studentIds.forEach((uid, i) => {
       const correct = poang(classId, uid, i);
       const name = uid.startsWith("elev") ? { elev3a: "Elev Trea", elev4b: "Elev Fyra", elevfri: "Elev Fritids" }[uid]
         : uid === "gunnar" ? "Gamla Gunnar" : namnFor(uid, i);
-      const sc = { uid, classId, name, correct, lastAttemptId: "seed", lastAt: Timestamp.fromMillis(NOW) };
-      if (uid !== "gunnar") sc.arskurs = arskurs; // Gunnar = post från före #845
-      scores.push(sc);
+      scores.push({ uid, classId, name, correct, lastAttemptId: "seed", lastAt: Timestamp.fromMillis(NOW) });
       stats.push({ uid, classId, correct, incorrect: Math.floor(correct / 9), lastAttemptId: "seed", lastAt: Timestamp.fromMillis(NOW),
         c7: Math.floor(correct / 3), c8: Math.floor(correct / 3), c9: correct - 2 * Math.floor(correct / 3), w7: Math.floor(correct / 9) });
       summa[classId] = (summa[classId] || 0) + correct;
@@ -145,7 +140,7 @@ async function main() {
   await seedTavling(SLUT, { startAt: NOW - 34 * DAG, endAt: NOW - 20 * DAG, status: "finished", result });
 
   const rad = Object.entries(aktiv.summa).map(([id, s]) => `${KLASSER[id].name} ${s}/${KLASSER[id].studentIds.length}`).join(", ");
-  console.log(`✓ ${AKTIV} aktiv (3A+3B+4B+Fritids): ${rad}; Gamla Gunnar (4B, 500 p) saknar arskurs`);
+  console.log(`✓ ${AKTIV} aktiv (3A+3B+4B+Fritids): ${rad}`);
   console.log(`✓ ${SLUT} avslutad med result (historik)`);
   console.log(`✓ elev3a (3A) / elev4b (4B) / elevfri (Fritids) / qalarare, lösenord ${PW}`);
 }
