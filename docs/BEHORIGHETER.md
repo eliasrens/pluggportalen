@@ -65,6 +65,7 @@ tabellerna, om en rad saknar test, eller om en testfil inte körs av
 | PA | `test/firestore-rules-prov-anpassningar.test.js` |
 | PO | `test/firestore-rules-prov-mynt-omprov.test.js` |
 | MY | `test/firestore-rules-mattematchen-mynt.test.js` |
+| ML | `test/firestore-rules-mattematchen-live-847.test.js` |
 | SK | `test/firestore-rules-schack.test.js` |
 | SF | `test/functions-schack.test.mjs` |
 | SY | `test/firestore-rules-schack-mynt.test.js` |
@@ -100,7 +101,7 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `classes` | L/S | L. Ändra egna klasser, bara fälten `assignedAreas`, `hiddenModes`, `areaModes`, `hiddenModules`, `enabledModules`, `lock`, `lasresaStartLevel10` och `lasresaStartLevel`. Skapa och radera: aldrig. `lock.efter` (#788, vad en elev som lämnat in provet får göra: `lage` `prov`/`ovning`/`klass`/`egna`, `moduler` ≤ 20 bara i `egna`) bara på ett provlås; eleven ändrar det aldrig – frigörelsen bygger på elevens eget inlämnade `svar`, som hen inte kan ta tillbaka. Klientens modulgrind och Bråkresans `brakresa*`-callables (`assertModuleOpen`) tillämpar valet. | KE test 9–12, CL #788, BC #788 |
 | `classProjections`, `classProjects` | L/S | L. S: aldrig. | RO klassprojektioner |
 | `mathCompetitions` (tävlingen) | L/S | L (som alla inloggade). Skapa, styra, nollställa och radera: aldrig. | LE test 17 |
-| `mathCompetitions/{c}/answers`, `studentStats` | L/radera | L: dokument med `classId` i egna klasser. En lista måste filtrera på egna klasser. | SM test 1–2, LE test 17 |
+| `mathCompetitions/{c}/answers`, `liveAnswers` (#847, Live-svar som räknats in), `studentStats` | L/radera | L: dokument med `classId` i egna klasser. En lista måste filtrera på egna klasser. | SM test 1–2, LE test 17, ML |
 | `mathCompetitions/{c}/scores` | L/radera | Hämta en: som alla inloggade. Lista: filtrerat på egna klasser, annars högst 25 som elever. | SM test 1–2, LE test 17 |
 | `mathCompetitions/{c}/classCounters` | L/radera | L (som alla inloggade) | LE test 17 |
 | `liveSessions` | L/S | L (som alla inloggade). Skapa och styra: Klassmatchen med minst en egen klass och motståndare valfri, men utan `coinPrize`. Övriga format: alla klasser egna. Klasserna får inte bytas till andras. Radera: en lobby med en egen klass. En Klassmatch får aldrig ha `rewards` (gäller även admin). | LE test 15–16, LE #682 H1 |

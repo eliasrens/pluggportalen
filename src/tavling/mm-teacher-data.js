@@ -6,7 +6,7 @@
 //   finishCompetition  → status "finished" + result (historik-ögonblicksbild)
 //   archiveIfEnded     → tävling vars tid tog slut utan "Avsluta": spara result
 //                        (båda delar sedan ut Klasscentrets pokal, #495)
-//   resetCompetition   → radera answers, studentStats, scores, classCounters
+//   resetCompetition   → radera answers, liveAnswers (#847), studentStats, scores, classCounters
 //                        (i omgångar om ≤ 400) + ta bort result
 // Läsningar (KVOT, incident #114 – aldrig svar per elev i tabeller):
 //   listCompetitions        → alla tävlingar (få dokument)
@@ -31,7 +31,7 @@ import { buildResult, COUNTER_SHARDS } from "./mm-teacher-core.js";
 import { competitionPhase } from "./mm-core.js";
 
 const COL = "mathCompetitions";
-const SUBS = ["answers", "studentStats", "scores", "classCounters"];
+const SUBS = ["answers", "liveAnswers", "studentStats", "scores", "classCounters"]; // liveAnswers: Live-svar som räknats in (#847)
 const PAGE = 400;
 
 const withId = (d) => ({ id: d.id, ...d.data() });

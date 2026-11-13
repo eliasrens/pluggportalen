@@ -45,6 +45,10 @@
 // transaktionen läser och skriver. Två dragstrålar samtidigt från samma
 // station krockar där – den andra ser den första och nekas ("armerad").
 //
+// MATTEMATCHEN (#847): multiplikationens rätta svar och de buffrade fel svaren
+// räknas i elevens aktiva Mattematch i SAMMA transaktion som länken (resp.
+// felbufferten efter slutet) – ./mattematchen-live.js.
+//
 // deps = { db, FieldValue, Timestamp, now(), sleep?(ms), minne?, roll?(auth) }
 // ============================================================================
 
@@ -58,11 +62,12 @@ import {
 } from "./meteorstorm/ms-anrop.js";
 import {
   refs, parseSid, parseAttempt, sessionFor, slutFor, assertLive, playerFor, quizFor,
-  stationerFor, stationerOk, raknaStationer, cfgFor, bad, isInt, fel, senaste, minnsLank, QUIZ,
+  stationerFor, stationerOk, raknaStationer, cfgFor, bad, isInt, fel, senaste, minnsLank, QUIZ, MULT,
 } from "./meteorstorm-sess.js";
 import { rattaSvar, rattaFel, svarsFalt, ratta } from "./meteorstorm-ratta.js";
 import { uppdateraLogg, laggTillLogg, somHandling, statusFran, statusUrMinnet, kanskeStatus } from "./meteorstorm-status.js";
 import { byggResultat } from "./meteorstorm-resultat.js";
+import { mmForLive, mmLiveWrites } from "./mattematchen-live.js";
 
 export { KsError, ratta };
 export { nyttMinne } from "./meteorstorm-sess.js";
@@ -92,10 +97,12 @@ function utFran(h, extra = {}) {
 async function felEfterSlut(deps, sid, s, uid, p, felLista) {
   const r = refs(deps.db, sid);
   if (!felLista.length) return { ok: true, fel: 0 };
+  const mm = s.gameMode === MULT ? await mmForLive(deps, p.classId) : null;
   return deps.db.runTransaction(async (tx) => {
     const d = await tx.get(r.msPlayer(uid));
     if (d.exists) throw new KsError("already-exists", "Dina svar är redan skickade.");
     tx.set(r.msPlayer(uid), { uid, classId: p.classId, name: p.name, fel: felLista.slice(0, MS_FEL_TAK) });
+    mmLiveWrites(tx, deps, mm, { uid, classId: p.classId, name: p.name, attemptId: `fel-slut-${uid}`.slice(0, 64), svar: felLista.slice(0, MS_FEL_TAK) });
     return { ok: true, fel: Math.min(felLista.length, MS_FEL_TAK) };
   });
 }
@@ -199,6 +206,7 @@ async function kedja(deps, sid, s, uid, p, raw, { felLista, k = null, graded = n
   const r = refs(db, sid);
   const logg = typ === "drag" ? await uppdateraLogg(deps, sid) : null;
   const statusNu = () => statusUrMinnet(deps, sid, cfg, deps.now());
+  const mm = s.gameMode === MULT ? await mmForLive(deps, p.classId) : null;
   let nr = isInt(raw?.nr, 1, 1_000_000) ? raw.nr : null;
   let gissat = nr != null; // klientens nr – länken före kan vara en gammal
   for (let forsok = 0; forsok < 4; forsok++) {
@@ -241,6 +249,8 @@ async function kedja(deps, sid, s, uid, p, raw, { felLista, k = null, graded = n
           ...(graded ? { svar: svarsFalt(graded, k, null) } : {}), fel: felHar, at: FieldValue.serverTimestamp(),
         };
         tx.create(r.ev(uid, nr), h);
+        // Mattematchen (#847): länkens rätta svar + dess fel svar, en gång (länken skapas en gång).
+        mmLiveWrites(tx, deps, mm, { uid, classId: p.classId, name: p.name, attemptId: forsokId, svar: graded ? [graded, ...felHar] : felHar });
         if (h.typ === "drag") tx.set(lasRef, { id, t, classId: p.classId, uid, typ: "drag", ...(mal ? { mal } : {}) });
         return { ny: h };
       });

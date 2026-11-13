@@ -38,6 +38,8 @@
 //   joinLiveSession(sid, { uid, classId }) → skapar spelardokumentet om det saknas
 //   heartbeat(sid, uid)                 → närvaro-puls (lastSeenAt)
 //   submitLiveAnswer({ session, uid, classId, mode, attempt }) → Promise
+//                                         (multiplikation: + elevens aktiva
+//                                         Mattematch i samma batch, #847)
 // ============================================================================
 
 import { db } from "../firebase-config.js";
@@ -46,7 +48,8 @@ import {
   doc, getDoc, getDocs, getDocFromServer, collection, query, where, onSnapshot,
   addDoc, updateDoc, setDoc, writeBatch, runTransaction, increment, serverTimestamp, Timestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { planLiveAnswerWrites, planLiveJoin, planLiveHeartbeat, pickShard } from "../tavling/answer-writes.js";
+import { planLiveAnswerWrites, planLiveJoin, planLiveHeartbeat, pickShard, MULT_MODE } from "../tavling/answer-writes.js";
+import { mmLiveWrites, commitMedMm } from "../tavling/mm-live.js";
 import { buildSessionDoc, toMs } from "./live-core.js";
 import { answerKindOf, formatOf } from "./formats/index.js";
 import { DIVISOR_LOCKED_MSG } from "./formats/klassmatch/klassmatch-core.js";
@@ -307,22 +310,25 @@ export async function heartbeat(sid, uid) {
 /**
  * Ett svar → EN batch (svar + spelare + ev. klass-shard). Väntar inte in
  * något i UI:t – anroparen fångar fel. attempt = fast-answer-försöket.
+ * Multiplikation räknas också i elevens aktiva Mattematch (#847) – MM-delen
+ * i SAMMA batch (src/tavling/mm-live.js); nekas den skickas svaret utan.
  */
-export function submitLiveAnswer({ session, uid, classId, mode, attempt }) {
+export async function submitLiveAnswer({ session, uid, classId, mode, attempt }) {
+  const record = mode.answerRecord(attempt.question, attempt.result);
+  const isCorrect = !!attempt.result.correct;
   const writes = planLiveAnswerWrites({
     sessionId: session.id,
     attemptId: attempt.attemptId,
     uid,
     classId,
     mode: mode.id,
-    record: mode.answerRecord(attempt.question, attempt.result),
-    isCorrect: !!attempt.result.correct,
+    record,
+    isCorrect,
     shard: pickShard(session.counterShards),
     fv,
     answerKind: answerKindOf(session),
     choiceIndex: attempt.choiceIndex,
   });
-  const b = writeBatch(db);
-  for (const w of writes) b.set(doc(db, ...w.path), w.data, w.merge ? { merge: true } : undefined);
-  return b.commit();
+  const mm = mode.id === MULT_MODE ? await mmLiveWrites({ uid, classId, attemptId: attempt.attemptId, record, isCorrect }) : [];
+  return commitMedMm(writes, mm);
 }

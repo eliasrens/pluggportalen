@@ -845,6 +845,11 @@ service cloud.firestore {
         return /databases/$(database)/documents/mathCompetitions/$(cid)/$(sub)/$(id);
       }
       function comp() { return get(/databases/$(database)/documents/mathCompetitions/$(cid)).data; }
+      // Svarets ankare (#847): answers (MM-sidan) eller liveAnswers (ett Live-svar
+      // som räknas in, src/tavling/mm-live.js) – det som skapas i samma batch.
+      function mmAnkare(id) {
+        return existsAfter(mmPath('liveAnswers', id)) ? mmPath('liveAnswers', id) : mmPath('answers', id);
+      }
       function mmAnswerCreate(attemptId) {
         let d = request.resource.data;
         let c = comp();
@@ -859,7 +864,7 @@ service cloud.firestore {
       // Privat elevstatistik: totalt + per tabell (c{t} = rätt, w{t} = fel).
       function mmStatsBump(uid) {
         let d = request.resource.data;
-        let ap = mmPath('answers', d.lastAttemptId);
+        let ap = mmAnkare(d.lastAttemptId);
         let a = getAfter(ap).data;
         let ok = a.isCorrect == true;
         let tA = (ok ? 'c' : 'w') + string(a.factorA);
@@ -873,7 +878,7 @@ service cloud.firestore {
       // Publik topplistepost (bara namn/klass/antal rätt): +1 per rätt svar.
       function mmScoreBump(uid) {
         let d = request.resource.data;
-        let ap = mmPath('answers', d.lastAttemptId);
+        let ap = mmAnkare(d.lastAttemptId);
         let a = getAfter(ap).data;
         return isSelf(uid) && d.lastAttemptId is string && !exists(ap) && existsAfter(ap) &&
           a.uid == uid && a.isCorrect == true &&
@@ -896,6 +901,19 @@ service cloud.firestore {
         allow update: if false;
         allow delete: if isAdmin();
       }
+      // Live räknas in (#847): ett Live-svar i multiplikation får sitt MM-svar
+      // HÄR – samma form och kontroller som answers (aktiv tävling, perioden mot
+      // request.time, klassen deltar, facit, räknarna i samma batch). Live-svaret
+      // i samma batch kan bara skapas en gång. mmMyntOk betalar bara mot answers
+      // → Live ger aldrig MM-mynt; lärarens träningstotal (collectionGroup
+      // "answers") räknar inte samma svar två gånger. Servern (functions/
+      // mattematchen-live.js) skriver räknarna direkt, utan ankare.
+      match /liveAnswers/{attemptId} {
+        allow read: if hasClass(resource.data.classId) || (signedIn() && resource.data.uid == request.auth.uid);
+        allow create: if mmAnswerCreate(attemptId);
+        allow update: if false;
+        allow delete: if isAdmin();
+      }
       match /studentStats/{uid} {
         allow read: if hasClass(resource.data.classId) || isSelf(uid);
         allow create, update: if mmStatsBump(uid);
@@ -912,7 +930,7 @@ service cloud.firestore {
       match /classCounters/{counterId} {
         allow read: if signedIn();
         allow create, update: if validCounterId(counterId) &&
-          counterBump(mmPath('answers', request.resource.data.lastAttemptId), counterId);
+          counterBump(mmAnkare(request.resource.data.lastAttemptId), counterId);
         allow delete: if isAdmin();
       }
     }
