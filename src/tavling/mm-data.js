@@ -9,7 +9,9 @@
 // batch (reglerna kräver ett nytt rätt svar och håller taket). Sidan läser
 // dagsräknaren EN gång när den öppnas (loadMyntIdag) och skickar mynt bara
 // under taket; nekas batchen ändå (annan flik nådde taket, midnatt) skickas
-// svaret om UTAN mynt – poängen går aldrig förlorad. Inga avatarbelöningar.
+// svaret om UTAN mynt – poängen går aldrig förlorad. Efter ett nekat mynt
+// läser sidan dagsräknaren en gång (#849, mm-config.js myntEfterNekat) – ett
+// nekande behöver inte vara taket. Inga avatarbelöningar.
 //
 // Läsningar (bara när eleven öppnar 🏆/📊, aldrig per svar):
 //   • Topp 25: scores orderBy(correct desc) limit(25) – reglerna tillåter
