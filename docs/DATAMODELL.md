@@ -1104,6 +1104,8 @@ Mattematch får sitt MM-svar här, i samma batch som Live-svaret
 `liveAnswers` (`mmAnkare` i reglerna). Egen samling så att MM-mynten
 (`mmMyntOk` → bara `answers`) aldrig betalas för ett Live-svar och
 träningstotalen (`collectionGroup("answers")`) inte räknar svaret två gånger.
+Samma id kan aldrig vara både `answers/{id}` och `liveAnswers/{id}` (reglerna
+nekar `answers` när ankaret skapas i batchen).
 Serverformaten (Guldrushen, Datakuppen, Meteorstormen, Kurragömma) skriver
 räknarna direkt i sin egen transaktion utan ankare
 (`functions/mattematchen-live.js`). Plan och kvot:

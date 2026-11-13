@@ -110,10 +110,11 @@ describe("Testaren #847: förfalskade klientbatcher", () => {
     const ankare = mmDel(id); // liveAnswers + stats + score + counter
     const ans = mmDel(id, { ankare: "answers" })[0];
     const mynt = planMmMyntWrites({ competitionId: "mm1", attemptId: id, uid: "alma", dag: dag(), fv });
-    const r = await commit(elev("alma"), [...live(id), ...ankare, ans, ...mynt]).then(() => "ok", (e) => e.code);
-    console.log("# Live + båda ankarna + mynt i en batch:", r,
-      "mynt:", (await las("studentData", "alma"))?.coins ?? null,
-      "scores:", (await las("mathCompetitions", "mm1", "scores", "alma"))?.correct ?? null);
+    // F1 (rättad): ett id får inte vara både Live-ankare och MM-svar → hela batchen nekas, inget mynt.
+    await assertFails(commit(elev("alma"), [...live(id), ...ankare, ans, ...mynt]));
+    await assertFails(commit(elev("alma"), [...live(id), ...ankare, ans]));
+    assert.equal(await las("studentData", "alma"), null);
+    assert.equal(await las("mathCompetitions", "mm1", "scores", "alma"), null);
   });
 
   it("Live-svar + liveAnswers/X, sedan answers/X med NY bump och mynt (ett vanligt MM-svar, samma id)", async () => {

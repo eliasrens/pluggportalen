@@ -904,7 +904,9 @@ service cloud.firestore {
 
       match /answers/{attemptId} {
         allow read: if hasClass(resource.data.classId) || (signedIn() && resource.data.uid == request.auth.uid);
-        allow create: if mmAnswerCreate(attemptId);
+        // Ett id är ALDRIG både Live-ankare och MM-svar (#847 F1): annars kunde
+        // en förfalskad batch hämta MM-myntet (mmMyntOk) för ett Live-svar.
+        allow create: if mmAnswerCreate(attemptId) && !existsAfter(mmPath('liveAnswers', attemptId));
         allow update: if false;
         allow delete: if isAdmin();
       }
