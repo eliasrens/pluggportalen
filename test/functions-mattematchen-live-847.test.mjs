@@ -152,6 +152,18 @@ describe("Meteorstormen", () => {
     assert.equal(await sumCounters("4b"), 1);
   });
 
+  it("ett tappat svar: felbufferten efter slutet räknar inte om fel som en länk redan bar", async () => {
+    const sid = await MS.makeSession();
+    const fel = [MS.nasta(sid, "cleo", { fel: true }), MS.nasta(sid, "cleo", { fel: true })];
+    await agera(MS.deps(), "cleo", { sid, attemptId: MS.att(), svar: MS.nasta(sid, "cleo"), typ: "spara", fel });
+    MS.ctl.clock = MS.END + 500;
+    await MS.db.doc(`liveSessions/${sid}`).update({ status: "finished" });
+    const sen = MS.nasta(sid, "cleo", { fel: true });
+    await agera(MS.deps(), "cleo", { sid, fel: [...fel, sen] }); // klienten fick aldrig svaret → hela bufferten igen
+    const st = await doc("studentStats", "cleo");
+    assert.deepEqual([st.correct, st.incorrect], [1, 3]);
+  });
+
   it("felbufferten efter slutet räknas en gång (om MM-perioden fortfarande pågår)", async () => {
     const sid = await MS.makeSession();
     const fel = [MS.nasta(sid, "bo", { fel: true }), MS.nasta(sid, "bo", { fel: true }), MS.nasta(sid, "bo", { fel: true })];

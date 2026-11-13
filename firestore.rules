@@ -850,16 +850,23 @@ service cloud.firestore {
       function mmAnkare(id) {
         return existsAfter(mmPath('liveAnswers', id)) ? mmPath('liveAnswers', id) : mmPath('answers', id);
       }
+      // Räknaren pekar på svaret OCH skrevs i just den här batchen (lastAt = nu) –
+      // annars kunde ett svar skapas i efterhand mot en räknare som ett
+      // Live-svar redan ökat (#847: serverns räknare, liveAnswers) och hämta mynt.
+      function mmBumpadNu(p, attemptId) {
+        let r = getAfter(p).data;
+        return r.lastAttemptId == attemptId && r.lastAt == request.time;
+      }
       function mmAnswerCreate(attemptId) {
         let d = request.resource.data;
         let c = comp();
         return answerCoreOk(d, attemptId, c.counterShards) && multAnswerOk(d) &&
           c.status == 'active' && request.time >= c.startAt && request.time < c.endAt &&
           d.classId in c.participatingClassIds &&
-          getAfter(mmPath('studentStats', d.uid)).data.lastAttemptId == attemptId &&
+          mmBumpadNu(mmPath('studentStats', d.uid), attemptId) &&
           (d.isCorrect == false ||
-            (getAfter(mmPath('scores', d.uid)).data.lastAttemptId == attemptId &&
-             getAfter(mmPath('classCounters', d.classId + '_' + string(d.shard))).data.lastAttemptId == attemptId));
+            (mmBumpadNu(mmPath('scores', d.uid), attemptId) &&
+             mmBumpadNu(mmPath('classCounters', d.classId + '_' + string(d.shard)), attemptId)));
       }
       // Privat elevstatistik: totalt + per tabell (c{t} = rätt, w{t} = fel).
       function mmStatsBump(uid) {

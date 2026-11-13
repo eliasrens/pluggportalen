@@ -1281,9 +1281,10 @@ Svar utanför en aktiv match kostar ingenting extra.
 
 Kända gränser:
 
-* Servercachen lever 60 s: en tävling som läraren nyss pausat/avslutat eller
-  ändrat klasser på kan få Live-svar i upp till en minut. Perioden
-  (`startAt`/`endAt`) prövas däremot exakt mot serverns tid.
+* Servercachen lever 60 s: en tävling som läraren nyss pausat/avslutat, flyttat
+  sluttiden på eller ändrat klasser på kan få Live-svar i upp till en minut.
+  Perioden prövas exakt mot serverns tid – men mot de `startAt`/`endAt` som
+  cachen läste. Klientvägen prövas alltid av reglerna mot tävlingen just då.
 * Meteorstormens fel svar buffras i elevens skärm och räknas när de når
   servern (med nästa rätta svar eller efter matchen) – är MM-perioden slut då
   räknas de inte.

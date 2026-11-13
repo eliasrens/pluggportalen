@@ -186,6 +186,30 @@ describe("Klassmatch: Live-svar räknas in i Mattematchen (#847)", () => {
     assert.equal(await las("studentData", "alma"), null);
   });
 
+  it("ett MM-svar i efterhand mot räknare som ett Live-svar ökade ger inget mynt (granskning #847)", async () => {
+    const dag = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Stockholm" }).format(new Date());
+    const efterhand = (id, shard) => [
+      planMathAnswerWrites({ competitionId: "mm1", attemptId: id, uid: "alma", classId: "3a", name: "Alma", record: rec(7, 8, 56), isCorrect: true, shard, fv })[0],
+      ...planMmMyntWrites({ competitionId: "mm1", attemptId: id, uid: "alma", dag, fv }),
+    ];
+    // Klientvägen: Live + liveAnswers-ankaret, sedan answers/X + mynt.
+    const id = aid();
+    await assertSucceeds(commit(elev("alma"), liveSvar("alma", { attemptId: id })));
+    await assertFails(commit(elev("alma"), efterhand(id, 2)));
+    // Servervägen: räknarna skrivna utan ankare (som functions/mattematchen-live.js).
+    const sid = aid();
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore();
+      const at = Timestamp.fromMillis(Date.now() - 5000);
+      await setDoc(doc(db, "mathCompetitions", "mm1", "studentStats", "alma"), { uid: "alma", classId: "3a", correct: 5, incorrect: 0, lastAttemptId: sid, lastAt: at }, { merge: true });
+      await setDoc(doc(db, "mathCompetitions", "mm1", "scores", "alma"), { uid: "alma", classId: "3a", name: "Alma", correct: 5, lastAttemptId: sid, lastAt: at });
+      await setDoc(doc(db, "mathCompetitions", "mm1", "classCounters", "3a_1"), { classId: "3a", shard: 1, correct: 5, lastAttemptId: sid, lastAt: at });
+    });
+    await assertFails(commit(elev("alma"), efterhand(sid, 1)));
+    await assertFails(commit(elev("alma"), [efterhand(sid, 1)[0]]));
+    assert.equal(await las("studentData", "alma"), null);
+  });
+
   it("ankaret syns inte i collectionGroup('answers') – träningstotalen räknar svaret en gång", async () => {
     await assertSucceeds(commit(elev("alma"), liveSvar("alma")));
     let n = -1;

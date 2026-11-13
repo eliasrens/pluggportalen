@@ -98,11 +98,14 @@ async function felEfterSlut(deps, sid, s, uid, p, felLista) {
   const r = refs(deps.db, sid);
   if (!felLista.length) return { ok: true, fel: 0 };
   const mm = s.gameMode === MULT ? await mmForLive(deps, p.classId) : null;
+  // Mattematchen: bara fel som ingen länk redan bar (ett tappat svar → klienten skickar bufferten igen).
+  const sistK = mm ? (await senaste(deps, sid, uid))?.k ?? -1 : -1;
+  const mmFel = felLista.slice(0, MS_FEL_TAK).filter((f) => f.k > sistK);
   return deps.db.runTransaction(async (tx) => {
     const d = await tx.get(r.msPlayer(uid));
     if (d.exists) throw new KsError("already-exists", "Dina svar är redan skickade.");
     tx.set(r.msPlayer(uid), { uid, classId: p.classId, name: p.name, fel: felLista.slice(0, MS_FEL_TAK) });
-    mmLiveWrites(tx, deps, mm, { uid, classId: p.classId, name: p.name, attemptId: `fel-slut-${uid}`.slice(0, 64), svar: felLista.slice(0, MS_FEL_TAK) });
+    mmLiveWrites(tx, deps, mm, { uid, classId: p.classId, name: p.name, attemptId: `fel-slut-${uid}`.slice(0, 64), svar: mmFel });
     return { ok: true, fel: Math.min(felLista.length, MS_FEL_TAK) };
   });
 }
