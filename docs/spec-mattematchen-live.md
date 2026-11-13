@@ -1212,7 +1212,90 @@ Spara exempelvis:
 
 ---
 
-# LIVE OCH MATTEMATCHEN SKA HÅLLAS SEPARATA
+# LIVE RÄKNAS IN I MATTEMATCHEN (beslut ändrat 2026-11-13, #847)
+
+Tidigare (avsnittet nedan): "Live ger INTE tävlingspoäng i Mattematchen".
+Elias ändrade beslutet 2026-11-13 (epic #844):
+
+**Ett multiplikationssvar i Live räknas i elevens aktiva Mattematch** –
+exakt som ett svar på Mattematchen-sidan: rätt = +1 i `scores`,
+`studentStats` (`correct` + tabellnycklarna `c{t}`) och `classCounters`
+(shardad); fel = `incorrect` + `w{t}` i `studentStats`.
+
+Villkor (alla måste gälla):
+
+* sessionens spelläge är `multiplication_0_10` (tabellerna 0–10; quizfrågor
+  i `plugga_quiz` räknas inte, även om de handlar om multiplikation),
+* Live-klassen (spelardokumentets `classId`) är med i en Mattematch med
+  `status == 'active'` (`participatingClassIds`),
+* svaret kommer inom matchens period `startAt ≤ t < endAt`, serverns tid.
+
+Flera aktiva matcher för klassen → den som startade senast (samma val som
+MM-sidan, `activeCompetitionFor`). Live ger **inga MM-pluggmynt** (Live
+betalar redan); Live-formatens egna poäng, resultat och mynt är oförändrade.
+
+## Inventering: var Live-svaren rättas och skrivs (plan, #847)
+
+| Format | Svaret rättas/skrivs | MM-vägen |
+|---|---|---|
+| Klassmatch (Snabbmatch) | klienten: `submitLiveAnswer` → `planLiveAnswerWrites`, `liveSessions/{sid}/answers/{attemptId}` (bara create, reglerna räknar om facit) | klienten, SAMMA batch |
+| Snilleblixten | klienten: `sbAnswers/{i}_{uid}` (bara create; facit visas först vid avslöjandet, men a·b räknar reglerna själva) | klienten, SAMMA batch |
+| Guldrushen, Datakuppen | servern: `guldrushAnswer`/`datakuppAnswer` → `kistspel-core.js answerQuestion`, `answers/{attemptId}` med `tx.create` | servern, SAMMA transaktion |
+| Meteorstormen | servern: `msAgera` → länken `msEvents/{uid}_{nr}` (`tx.create`) med det rätta svaret + de buffrade fel svaren; efter slutet `msPlayers/{uid}.fel` en gång | servern, i länkens resp. felbuffertens transaktion |
+| Kurragömma | servern: `kgSvara` → `answers/{attemptId}` i Firestore (`tx.create`); Realtime Database bär bara rörelser/händelser | servern, SAMMA transaktion |
+
+**Servern** (`functions/mattematchen-live.js`, som alla fyra callables
+anropar): `mmForLive(deps, classId)` slår upp aktiv match ur en cache på
+modulnivå (EN fråga `status == 'active'` per instans och minut – inget index)
+och prövar klass + period mot serverns klocka. `mmLiveWrites(tx, …)` lägger
+MM-skrivningarna i formatets EGEN transaktion, den som skapar Live-svaret
+(eller Meteorstormens länk) med `tx.create`. Ett omförsök med samma
+`attemptId` svarar ur det befintliga dokumentet utan att skriva → aldrig
+dubbelt. Inget extra svarsdokument i Mattematchen behövs på servern.
+
+**Klienten** (Klassmatch, Snilleblixten – `src/tavling/mm-live.js`): elevens
+aktiva match finns redan i minnet (`mm-watch.js`, samma bevakare som
+sidomenyn – inga nya läsningar). Batchen får MM-skrivningarna ur
+`planMathAnswerWrites` med ankaret i `mathCompetitions/{cid}/liveAnswers/{attemptId}`
+(samma form och samma regelkontroller som `answers`, bara create). Live-svaret
+och ankaret skapas i samma batch och kan bara skapas en gång → retry och
+dubbel-ENTER räknas aldrig två gånger. Nekas batchen (perioden tog slut
+nyss, tävlingen pausades) skickas Live-svaret om UTAN MM-delen – Live-poängen
+går aldrig förlorad.
+
+Varför `liveAnswers` och inte `answers`: `mmMyntOk` betalar bara mot ett nytt
+svar i `answers` → ett Live-svar kan aldrig hämta MM-mynt; och lärarens
+träningstotal (MM + Live, `collectionGroup("answers")`) räknar inte samma
+svar två gånger. Reglerna: räknarna (`studentStats`, `scores`,
+`classCounters`) godtar ankaret i `answers` ELLER `liveAnswers` (det som
+skapas i batchen, `mmAnkare`). Nollställning raderar även `liveAnswers`.
+
+## Kvoten per Live-svar (#847)
+
+| Väg | Läsningar | Skrivningar utöver Live |
+|---|---|---|
+| Server | 0 per svar; aktiva matcher: 1 fråga per instans och minut (≥ 1 läsning, + 1 per aktiv match) | rätt 3 (`studentStats`, `scores`, `classCounters`), fel 1; Meteorstormens buffrade fel slås ihop i länkens skrivningar |
+| Klient | 0 per svar (bevakaren finns redan); reglerna läser tävlingen, elevens namn och ankaret | rätt 4 (ankare + de tre), fel 2 |
+
+Svar utanför en aktiv match kostar ingenting extra.
+
+Kända gränser:
+
+* Servercachen lever 60 s: en tävling som läraren nyss pausat/avslutat, flyttat
+  sluttiden på eller ändrat klasser på kan få Live-svar i upp till en minut.
+  Perioden prövas exakt mot serverns tid – men mot de `startAt`/`endAt` som
+  cachen läste. Klientvägen prövas alltid av reglerna mot tävlingen just då.
+* Meteorstormens fel svar buffras i elevens skärm och räknas när de når
+  servern (med nästa rätta svar eller efter matchen) – är MM-perioden slut då
+  räknas de inte.
+* En elev i flera klasser räknas för Live-klassen. Klassmatchens och
+  Snilleblixtens klient kan i stället skicka ett vanligt MM-svar bredvid
+  Live-svaret – det ger exakt vad ett svar på MM-sidan ger (taket 50 mynt/dag
+  gäller), inget mer.
+
+---
+
+# LIVE OCH MATTEMATCHEN SKA HÅLLAS SEPARATA (ersatt 2026-11-13, #847 – se ovan)
 
 Om en elev svarar rätt i en Live-match ska detta INTE ge tävlingspoäng i den långvariga Mattematchen.
 

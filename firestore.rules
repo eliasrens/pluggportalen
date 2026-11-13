@@ -845,21 +845,33 @@ service cloud.firestore {
         return /databases/$(database)/documents/mathCompetitions/$(cid)/$(sub)/$(id);
       }
       function comp() { return get(/databases/$(database)/documents/mathCompetitions/$(cid)).data; }
+      // Svarets ankare (#847): answers (MM-sidan) eller liveAnswers (ett Live-svar
+      // som räknas in, src/tavling/mm-live.js) – det som skapas i samma batch.
+      function mmAnkare(id) {
+        return existsAfter(mmPath('liveAnswers', id)) ? mmPath('liveAnswers', id) : mmPath('answers', id);
+      }
+      // Räknaren pekar på svaret OCH skrevs i just den här batchen (lastAt = nu) –
+      // annars kunde ett svar skapas i efterhand mot en räknare som ett
+      // Live-svar redan ökat (#847: serverns räknare, liveAnswers) och hämta mynt.
+      function mmBumpadNu(p, attemptId) {
+        let r = getAfter(p).data;
+        return r.lastAttemptId == attemptId && r.lastAt == request.time;
+      }
       function mmAnswerCreate(attemptId) {
         let d = request.resource.data;
         let c = comp();
         return answerCoreOk(d, attemptId, c.counterShards) && multAnswerOk(d) &&
           c.status == 'active' && request.time >= c.startAt && request.time < c.endAt &&
           d.classId in c.participatingClassIds &&
-          getAfter(mmPath('studentStats', d.uid)).data.lastAttemptId == attemptId &&
+          mmBumpadNu(mmPath('studentStats', d.uid), attemptId) &&
           (d.isCorrect == false ||
-            (getAfter(mmPath('scores', d.uid)).data.lastAttemptId == attemptId &&
-             getAfter(mmPath('classCounters', d.classId + '_' + string(d.shard))).data.lastAttemptId == attemptId));
+            (mmBumpadNu(mmPath('scores', d.uid), attemptId) &&
+             mmBumpadNu(mmPath('classCounters', d.classId + '_' + string(d.shard)), attemptId)));
       }
       // Privat elevstatistik: totalt + per tabell (c{t} = rätt, w{t} = fel).
       function mmStatsBump(uid) {
         let d = request.resource.data;
-        let ap = mmPath('answers', d.lastAttemptId);
+        let ap = mmAnkare(d.lastAttemptId);
         let a = getAfter(ap).data;
         let ok = a.isCorrect == true;
         let tA = (ok ? 'c' : 'w') + string(a.factorA);
@@ -873,7 +885,7 @@ service cloud.firestore {
       // Publik topplistepost (bara namn/klass/antal rätt): +1 per rätt svar.
       function mmScoreBump(uid) {
         let d = request.resource.data;
-        let ap = mmPath('answers', d.lastAttemptId);
+        let ap = mmAnkare(d.lastAttemptId);
         let a = getAfter(ap).data;
         return isSelf(uid) && d.lastAttemptId is string && !exists(ap) && existsAfter(ap) &&
           a.uid == uid && a.isCorrect == true &&
@@ -891,6 +903,21 @@ service cloud.firestore {
       allow delete: if isAdmin();
 
       match /answers/{attemptId} {
+        allow read: if hasClass(resource.data.classId) || (signedIn() && resource.data.uid == request.auth.uid);
+        // Ett id är ALDRIG både Live-ankare och MM-svar (#847 F1): annars kunde
+        // en förfalskad batch hämta MM-myntet (mmMyntOk) för ett Live-svar.
+        allow create: if mmAnswerCreate(attemptId) && !existsAfter(mmPath('liveAnswers', attemptId));
+        allow update: if false;
+        allow delete: if isAdmin();
+      }
+      // Live räknas in (#847): ett Live-svar i multiplikation får sitt MM-svar
+      // HÄR – samma form och kontroller som answers (aktiv tävling, perioden mot
+      // request.time, klassen deltar, facit, räknarna i samma batch). Live-svaret
+      // i samma batch kan bara skapas en gång. mmMyntOk betalar bara mot answers
+      // → Live ger aldrig MM-mynt; lärarens träningstotal (collectionGroup
+      // "answers") räknar inte samma svar två gånger. Servern (functions/
+      // mattematchen-live.js) skriver räknarna direkt, utan ankare.
+      match /liveAnswers/{attemptId} {
         allow read: if hasClass(resource.data.classId) || (signedIn() && resource.data.uid == request.auth.uid);
         allow create: if mmAnswerCreate(attemptId);
         allow update: if false;
@@ -912,7 +939,7 @@ service cloud.firestore {
       match /classCounters/{counterId} {
         allow read: if signedIn();
         allow create, update: if validCounterId(counterId) &&
-          counterBump(mmPath('answers', request.resource.data.lastAttemptId), counterId);
+          counterBump(mmAnkare(request.resource.data.lastAttemptId), counterId);
         allow delete: if isAdmin();
       }
     }

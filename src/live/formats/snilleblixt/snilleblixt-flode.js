@@ -24,12 +24,18 @@
 //                           kräver year (heltal inom q.question.span) och
 //                           answerKind "timeline"; fel form kastar
 //                           (answer-writes answerShapeError – reglerna nekar också)
+//   sbMultRecord(s, { choiceIndex?, answer? }) → { record, isCorrect } | null
+//                           Mattematchen (#847): multiplikationssvaret som MM-
+//                           post (faktorerna ur frågans nyckel "i:7x8", valt
+//                           alternativ eller skrivet tal). null = inte
+//                           multiplikation / ogiltigt tal → räknas inte i MM.
 // ============================================================================
 
 import { toMs } from "../../live-time.js";
 import { answerDocId } from "./snilleblixt-core.js";
 import { scoreQuestion, questionWindow } from "./snilleblixt-poang.js";
-import { questionAnswerKind, answerShapeError } from "../../../tavling/answer-writes.js";
+import { questionAnswerKind, answerShapeError, MULT_MODE } from "../../../tavling/answer-writes.js";
+import { makeQuestion, checkMultAnswer } from "../../../mult/generator.js";
 
 // Puls äldre än så → eleven räknas inte som "ansluten" vid auto-stängning.
 export const SB_CONNECTED_MS = 75_000;
@@ -142,4 +148,22 @@ export function planAnswer({ sid, s, uid, classId, choiceIndex, answer, year, fv
     data.answer = t.slice(0, 40);
   }
   return { path: ["liveSessions", sid, "sbAnswers", answerDocId(index, uid)], data };
+}
+
+/**
+ * Mattematchen (#847): elevens multiplikationssvar som MM-post. Facit behövs
+ * inte – a·b räknar reglerna om själva – så MM-delen kan följa med svaret.
+ */
+export function sbMultRecord(s, { choiceIndex, answer } = {}) {
+  const fraga = s?.q?.question;
+  if (s?.gameMode !== MULT_MODE || !fraga) return null;
+  const m = /(?:^|:)(\d{1,2})x(\d{1,2})$/.exec(String(fraga.key || ""));
+  if (!m) return null;
+  const a = Number(m[1]);
+  const b = Number(m[2]);
+  if (a > 10 || b > 10) return null;
+  const raw = Number.isInteger(choiceIndex) ? fraga.options?.[choiceIndex] : answer;
+  const r = checkMultAnswer(makeQuestion(a, b), raw);
+  if (!r.valid) return null;
+  return { record: { factorA: a, factorB: b, answer: r.given, correctAnswer: a * b }, isCorrect: r.correct };
 }

@@ -62,7 +62,7 @@ function resetBox(comp, api, onDone) {
     msg.textContent = "Nollställer…";
     try {
       const n = await api.resetCompetition(comp.id, (sub, count) => (msg.textContent = `Raderar ${sub}: ${count}…`));
-      msg.textContent = `✓ Nollställd (${n.answers} svar raderade).`;
+      msg.textContent = `✓ Nollställd (${n.answers + (n.liveAnswers || 0)} svar raderade).`;
       setTimeout(onDone, 900);
     } catch (err) {
       msg.innerHTML = `<span class="err-inline">Kunde inte nollställa: ${esc(err.message)}</span>`;

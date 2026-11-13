@@ -961,6 +961,7 @@ klass, filtreras i klienten (ett `endAt`-filter skulle kräva sammansatt index).
 ```
 mathCompetitions/{cid}                               ← MathCompetition (lärare)
 mathCompetitions/{cid}/answers/{attemptId}           ← ett svar (create-only)
+mathCompetitions/{cid}/liveAnswers/{attemptId}       ← ett Live-svar som räknats in (#847, create-only)
 mathCompetitions/{cid}/studentStats/{uid}            ← PRIVAT elevstatistik (cache)
 mathCompetitions/{cid}/scores/{uid}                  ← PUBLIK topplistepost (Topp 25)
 mathCompetitions/{cid}/classCounters/{classId}_{n}   ← shardad klassräknare (Klasskamp)
@@ -1073,7 +1074,7 @@ automatiska enkelfälts-index; kombineras `status`-filter krävs ett sammansatt 
 `avslutad` = `finished` eller nu ≥ `endAt`. Svar godtas bara i läget *aktiv*.
 "Starta nu" = sätt `startAt` till nu; "Avsluta" = `status: "finished"` (+ ev. `endAt` = nu).
 **Nollställning** (med tydlig bekräftelse) = läraren raderar `answers`,
-`studentStats`, `scores`, `classCounters` under tävlingen. Avslutade tävlingar
+`liveAnswers`, `studentStats`, `scores`, `classCounters` under tävlingen. Avslutade tävlingar
 ligger kvar = **historik** (`result` + alla underdokument).
 
 ### `mathCompetitions/{cid}/answers/{attemptId}` – MathAnswer (även Live-svar)
@@ -1093,6 +1094,22 @@ ligger kvar = **historik** (`result` + alla underdokument).
 Läsning: eleven själv + lärare. **Gemensam träningsstatistik** (MM + Live
 tillsammans) = `collectionGroup("answers").where("uid","==",uid)` – inga extra
 skrivningar, tävlingspoängen förblir separata.
+
+### `mathCompetitions/{cid}/liveAnswers/{attemptId}` – Live-svar som räknats in (#847)
+
+Samma fält och samma regler som `answers` ovan. Ett multiplikationssvar i ett
+KLIENTFORMAT (Klassmatchen, Snilleblixten) som räknas i elevens aktiva
+Mattematch får sitt MM-svar här, i samma batch som Live-svaret
+(`src/tavling/mm-live.js`); räknarna nedan godtar ankaret i `answers` eller
+`liveAnswers` (`mmAnkare` i reglerna). Egen samling så att MM-mynten
+(`mmMyntOk` → bara `answers`) aldrig betalas för ett Live-svar och
+träningstotalen (`collectionGroup("answers")`) inte räknar svaret två gånger.
+Samma id kan aldrig vara både `answers/{id}` och `liveAnswers/{id}` (reglerna
+nekar `answers` när ankaret skapas i batchen).
+Serverformaten (Guldrushen, Datakuppen, Meteorstormen, Kurragömma) skriver
+räknarna direkt i sin egen transaktion utan ankare
+(`functions/mattematchen-live.js`). Plan och kvot:
+`docs/spec-mattematchen-live.md` "LIVE RÄKNAS IN I MATTEMATCHEN".
 
 ### `mathCompetitions/{cid}/studentStats/{uid}` – CompetitionStudentStats (privat)
 

@@ -22,6 +22,17 @@
 //             batch) och saldot studentData/{uid}.coins (+1). Utelämnad/null
 //             = inga mynt (svar nr 51+, och Live-svar som räknas in i MM –
 //             Live betalar redan). Talen: mm-config.js. Fel svar → aldrig mynt.
+//     ankare = "answers" (default, MM-sidan) | "liveAnswers" (#847: ett Live-
+//             svar som räknas in i Mattematchen – svarsdokumentet hamnar i
+//             mathCompetitions/{cid}/liveAnswers/{attemptId}, samma form och
+//             samma regler; mmMyntOk betalar aldrig mot det och lärarens
+//             träningstotal (collectionGroup "answers") räknar det inte två
+//             gånger). Kombineras aldrig med mynt (kastar).
+//   planLiveMmWrites({ competition, now, uid, classId, name, attemptId, record,
+//             isCorrect, fv, rng? }) → Write[] (#847) – ett Live-svar i
+//             multiplikation räknas i elevens Mattematch: planMathAnswerWrites
+//             med ankaret liveAnswers, eller [] om tävlingen saknas, inte är
+//             "aktiv" vid now (serverkorrigerad tid) eller Live-klassen inte deltar
 //   planMmMyntWrites({ competitionId, attemptId, uid, dag, fv }) → Write[2]
 //             (kvittot + saldot ovan; planMathAnswerWrites använder den)
 //   planLiveAnswerWrites(args)          → Write[]  (Live)
@@ -52,12 +63,17 @@
 //
 // Skrivningar per svar: MM rätt = 4 (svar, elevstatistik, topplista, klass-
 // shard) + 2 med mynt (dagsräknare, saldo), MM fel = 2 (svar, elevstatistik);
-// Live rätt = 3 (svar, spelare, klass-shard), Live fel = 2.
+// Live rätt = 3 (svar, spelare, klass-shard), Live fel = 2. Ett Live-svar som
+// räknas in i Mattematchen (#847, src/tavling/mm-live.js) får MM:s 4 resp. 2
+// till, med ankaret i liveAnswers.
 // ============================================================================
 
 import { MYNT_KVITTON, MYNT_PER_RATT } from "./mm-config.js";
+import { competitionPhase } from "./mm-core.js";
 
 export const MULT_MODE = "multiplication_0_10";
+/** Ankaret för Live-svar som räknas in i Mattematchen (#847). */
+export const MM_LIVE_ANKARE = "liveAnswers";
 
 /** Slumpa klassräknar-shard. */
 export function pickShard(shards, rng = Math.random) {
@@ -79,7 +95,9 @@ function answerDoc({ uid, classId, mode, record, isCorrect, shard, fv }) {
  * @returns {{path:string[], data:object, merge:boolean}[]}
  */
 export function planMathAnswerWrites(args) {
-  const { competitionId: cid, attemptId, uid, classId, name, record, isCorrect, shard, fv, mynt = null } = args;
+  const { competitionId: cid, attemptId, uid, classId, name, record, isCorrect, shard, fv, mynt = null, ankare = "answers" } = args;
+  if (ankare !== "answers" && ankare !== MM_LIVE_ANKARE) throw new Error(`planMathAnswerWrites: okänt ankare ${ankare}`);
+  if (ankare === MM_LIVE_ANKARE && mynt) throw new Error("planMathAnswerWrites: Live-svar ger inga MM-mynt");
   const base = ["mathCompetitions", cid];
   const ok = !!isCorrect;
   const tableKeys = [...new Set([record.factorA, record.factorB])].map((t) => `${ok ? "c" : "w"}${t}`);
@@ -92,7 +110,7 @@ export function planMathAnswerWrites(args) {
   };
   for (const k of tableKeys) stats[k] = fv.increment(1);
   const writes = [
-    { path: [...base, "answers", attemptId], data: answerDoc({ uid, classId, mode: MULT_MODE, record, isCorrect: ok, shard, fv }), merge: false },
+    { path: [...base, ankare, attemptId], data: answerDoc({ uid, classId, mode: MULT_MODE, record, isCorrect: ok, shard, fv }), merge: false },
     { path: [...base, "studentStats", uid], data: stats, merge: true },
   ];
   if (ok) {
@@ -109,6 +127,20 @@ export function planMathAnswerWrites(args) {
     if (mynt) writes.push(...planMmMyntWrites({ competitionId: cid, attemptId, uid, dag: mynt.dag, fv }));
   }
   return writes;
+}
+
+/**
+ * Live räknas in i Mattematchen (#847): MM-delen av ett Live-svars batch.
+ * Tom lista när svaret inte ska räknas (ingen/inaktiv tävling, klassen deltar inte).
+ * @returns {{path:string[], data:object, merge:boolean}[]}
+ */
+export function planLiveMmWrites({ competition: c, now, uid, classId, name, attemptId, record, isCorrect, fv, rng }) {
+  if (!c?.id || !Array.isArray(c.participatingClassIds) || !c.participatingClassIds.includes(classId)) return [];
+  if (competitionPhase(c, now) !== "aktiv") return [];
+  return planMathAnswerWrites({
+    competitionId: c.id, attemptId, uid, classId, name, record, isCorrect,
+    shard: pickShard(c.counterShards, rng), fv, ankare: MM_LIVE_ANKARE,
+  });
 }
 
 /**
