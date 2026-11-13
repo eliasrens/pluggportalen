@@ -147,7 +147,7 @@ Kvoten är dokumenterad i `docs/spec-mattematchen-live.md` ("Kvoten per Live-sva
 | F2 | Servercachen kan räkna Live-svar upp till 60 s efter att läraren stoppat eller flyttat matchen. I mitt förlopp hann cachen laddas om, så inget räknades fel (S7, S8) | `functions/mattematchen-live.js` CACHE_MS | låg, **känt och accepterat** | – |
 | F3 | Elever kan skriva `studentData.coins` direkt | `docs/spec-mattematchen-live.md` PLUGGMYNT | **befintligt hål**, utanför epicen | – |
 | F4 | Emojier syns som rutor på skärmbilderna | skärmbilderna | ingen produktbugg: den headless Chromium som tog bilderna saknar emoji-typsnitt | – |
-| F5 | Om ett myntkvitto nekas av något annat skäl än taket (`permission-denied`) sätter MM-sidan "mynt idag" till 50 lokalt, och eleven får inga fler mynt den dagen förrän sidan laddas om (`page-mattematchen.js:155`). Ett sådant fall är ett svar precis vid svensk midnatt när klientens `mmNow()` redan är på den nya dagen men serverns `request.time` inte är det. Ingen data går förlorad, poängen räknas | kodläsning, se §8 | låg (bara ett millisekundfönster vid midnatt) | Sätt bara 50 om räknaren för `dag` faktiskt är 50 (läs om den), annars försök med mynt igen nästa svar |
+| F5 | Om ett myntkvitto nekas av något annat skäl än taket (`permission-denied`) sätter MM-sidan "mynt idag" till 50 lokalt, och eleven får inga fler mynt den dagen förrän sidan laddas om (`page-mattematchen.js:155`). Ett sådant fall är ett svar precis vid svensk midnatt när klientens `mmNow()` redan är på den nya dagen men serverns `request.time` inte är det. Ingen data går förlorad, poängen räknas | kodläsning (unverified). Dagbytet i sig fungerar, se §8 | låg (bara ett millisekundfönster vid midnatt) | Sätt bara 50 om räknaren för `dag` faktiskt är 50 (läs om den), annars försök med mynt igen nästa svar |
 
 ## 8. Ett steg längre (utanför listan)
 
@@ -157,8 +157,12 @@ Kvoten är dokumenterad i `docs/spec-mattematchen-live.md` ("Kvoten per Live-sva
 - **Status `active` men perioden slut eller inte börjad** (`mm-848-forbi`, `mm-848-snart`)
   → inget räknas där (S3, S5).
 - **Förfalskade myntskrivningar** från elevens egen webbläsare → alla nekas (§5).
-- **Midnatt (svensk dag)**: se F5. Bara kodläst, förutom det som står i rapportens
-  midnattstillägg nedan.
+- **Midnatt (svensk dag), i webbläsaren**: elev3a stod på taket 50 för 2026-11-13 med MM-sidan öppen
+  och svarade rätt var 450:e ms från 22:59:57 till 23:00:08 UTC (= 23:59:57–00:00:08 svensk tid),
+  utan omladdning. 8 svar före midnatt gav poäng men inga mynt. Från svaret 23:00:00.277 betalades
+  mynt på den nya dagen ("mynt idag" 1, 2, …, 18). Takets text försvann. `mmMynt/2026-11-14` = 18,
+  `coins` 253→271 (+18), poängen 25→50 (alla 25 svar räknades). **PASS**. F5-låset utlöstes inte här
+  (klient och server har samma klocka), så F5 är fortfarande bara kodläst.
 
 ## Rigg
 
