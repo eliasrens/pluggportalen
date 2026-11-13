@@ -15,6 +15,8 @@
 // omställningarna. Vid midnatt svensk tid kan en skrivning hamna på fel sida
 // (klienten skickar kvittot för dagen som precis tog slut): då nekas batchen
 // och mm-data.js skickar om svaret UTAN mynt – svaret går aldrig förlorat.
+// Ett nekat mynt är alltså INTE alltid taket (#849): sidan läser dagsräknaren
+// en gång efter nekandet och myntEfterNekat avgör vad den ska visa.
 // ============================================================================
 
 /** Pluggmynt per rätt svar på Mattematchen-sidan (reglerna: bumped('mynt', 1) + coins +1). */
@@ -43,4 +45,31 @@ export function myntDag(ms = Date.now()) {
 /** Hur många mynt ett rätt svar ger just nu: 1 under taket, 0 när dagen är full. */
 export function myntForRatt(myntIdag) {
   return (Number(myntIdag) || 0) < MYNT_TAK_PER_DAG ? MYNT_PER_RATT : 0;
+}
+
+/** Så många nekade mynt i rad (samma dag, inget taket) innan sidan slutar försöka (#849). */
+export const MYNT_NEKAT_SPARR = 5;
+/** …och så länge (ms) nekandena måste ha pågått – midnattsfönstret (klockskillnad < 5 s) låser aldrig. */
+export const MYNT_NEKAT_SPARR_MS = 60_000;
+
+/**
+ * Dagens mynt efter ett NEKAT mynt (#849). Nekandet kan vara taket (annan
+ * flik) men också fel dag-nyckel runt svensk midnatt – därför läser sidan
+ * dagsräknaren en gång efter nekandet (aldrig per betalt svar).
+ *   • lasta = räknarens `mynt` (0 = inget dokument), null = läsningen misslyckades
+ *   • sedanForsta = ms sedan första nekandet i raden (serverkorrigerad tid)
+ *   • lästa ≥ taket → taket (texten visas)
+ *   • annars → max(lokalt, lästa): nästa rätt svar försöker igen
+ *   • nekat MYNT_NEKAT_SPARR gånger i rad utan förklaring OCH i minst
+ *     MYNT_NEKAT_SPARR_MS → taket som förut, så ett ihållande fel inte kostar
+ *     en extra skrivning + läsning per svar (ett kort midnattsfönster låser aldrig)
+ * @param {{myntIdag:number, lasta:number|null, nekadeIRad:number, sedanForsta:number}} a
+ * @returns {number}
+ */
+export function myntEfterNekat({ myntIdag, lasta, nekadeIRad, sedanForsta }) {
+  const lokalt = Number(myntIdag) || 0;
+  const server = lasta == null ? null : Number(lasta) || 0;
+  if (server != null && server >= MYNT_TAK_PER_DAG) return MYNT_TAK_PER_DAG;
+  if (nekadeIRad >= MYNT_NEKAT_SPARR && sedanForsta >= MYNT_NEKAT_SPARR_MS) return MYNT_TAK_PER_DAG;
+  return server == null ? lokalt : Math.max(lokalt, server);
 }

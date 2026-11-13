@@ -7,7 +7,8 @@
 // (#846, mm-config.js), fel = 0. Högst 50 mynt per dag: dagsräknaren läses
 // när sidan öppnas, hålls lokalt per svar, och vid taket visas
 // "Dagens mynt är intjänade – poängen räknas fortfarande!" (mynten slutar,
-// poängen fortsätter). Byter dagen vid midnatt börjar räknaren om.
+// poängen fortsätter). Byter dagen vid midnatt börjar räknaren om. Nekas ett
+// mynt läses räknaren en gång (#849) – taket visas bara när den säger det.
 //
 // Synlighet: sidan nås bara under en AKTIV period där elevens klass deltar
 // (ui.getMattematch → mm-watch.js). Ingen aktiv period → snällt meddelande
@@ -26,7 +27,7 @@ import { onMattematchChange, mmNow } from "./mm-watch.js";
 import { submitAnswer, loadMyStats, loadMyntIdag } from "./mm-data.js";
 import { openTopplista, openStatistik } from "./mm-panels.js";
 import { formatLeft, toMs } from "./mm-core.js";
-import { MYNT_TAK_PER_DAG, MYNT_TAK_TEXT, myntDag, myntForRatt } from "./mm-config.js";
+import { MYNT_TAK_PER_DAG, MYNT_TAK_TEXT, myntDag, myntForRatt, myntEfterNekat } from "./mm-config.js";
 
 const ROUTE = "#/elev/mattematchen";
 let aktiv = null; // { stang() } för vyn som visas just nu
@@ -119,6 +120,9 @@ export async function pageMattematchen() {
   visaPoang();
   // Dagens mynt (#846): lokalt per svar; taket visas mjukt i fotraden.
   let myntIdag = myntStart;
+  let nekadeIRad = 0; // nekade mynt i rad utan att taket förklarar det (#849)
+  let forstaNekat = 0; // mmNow() för radens första nekande
+  let nekatLasning = null; // pågående läsning efter ett nekat mynt
   const visaMynt = () => {
     const fullt = myntIdag >= MYNT_TAK_PER_DAG;
     $(".mm-mynt-n").textContent = String(Math.min(myntIdag, MYNT_TAK_PER_DAG));
@@ -147,15 +151,23 @@ export async function pageMattematchen() {
       $(".mm-s-fel").textContent = fa.counts.wrong;
       // Ny dag sedan sidan öppnades → räknaren börjar om (reglerna räknar samma dag).
       const dagNu = myntDag(mmNow());
-      if (dagNu !== dag) { dag = dagNu; myntIdag = 0; visaMynt(); }
+      if (dagNu !== dag) { dag = dagNu; myntIdag = 0; nekadeIRad = 0; visaMynt(); }
       const mynt = attempt.result.correct && myntForRatt(myntIdag) > 0 ? { dag } : null;
       return submitAnswer({ competition, classId, uid, name, attempt, mynt }).then(({ myntBetalt }) => {
-        if (mynt) {
-          // Nekat mynt = taket nått någon annanstans (annan flik) – visa taket.
-          myntIdag = myntBetalt ? myntIdag + 1 : MYNT_TAK_PER_DAG;
-          visaMynt();
+        if (mynt && myntBetalt) {
           // coins ändrat → nästa getStudentData (sidomeny, butik) läser färskt (#274).
-          if (myntBetalt) { data.invalidateStudentData(uid); plopp(".mm-mynt"); }
+          data.invalidateStudentData(uid);
+          if (mynt.dag === dag) { myntIdag++; nekadeIRad = 0; visaMynt(); plopp(".mm-mynt"); }
+        } else if (mynt && mynt.dag === dag) {
+          // Nekat mynt (#849): taket nått i en annan flik ELLER fel dag runt midnatt.
+          // Dagsräknaren avgör – läses en gång per nekande, aldrig per betalt svar.
+          if (nekadeIRad++ === 0) forstaNekat = mmNow();
+          nekatLasning ??= loadMyntIdag(uid, mynt.dag).catch(() => null).then((lasta) => {
+            nekatLasning = null;
+            if (mynt.dag !== dag) return; // dagen bytte under läsningen – räknaren är redan nollad
+            myntIdag = myntEfterNekat({ myntIdag, lasta, nekadeIRad, sedanForsta: mmNow() - forstaNekat });
+            visaMynt();
+          });
         }
         if (!attempt.result.correct || bekraftade == null) return;
         const rattFore = bekraftade++;
