@@ -115,8 +115,11 @@ export function renderHistoryResult(host, result, classNames) {
     return { ...r, total, pct: total ? Math.round((r.correct * 100) / total) : 0 };
   });
   const pct = t.total ? Math.round((t.correct * 100) / t.total) : null;
-  const klasskamp = (ak) => classFightHtml(filtreraArskurs(result.classes, ak, classNames, "score"), ak);
-  const classIds = (result.classes || []).map((k) => k.classId);
+  // Årskursen ur klassnamnet SOM DET VAR vid avslutet (result.classes[].name),
+  // så historiken inte flyttar klasser om de döps om senare.
+  const namnDa = new Map((result.classes || []).map((k) => [k.classId, k.name || classNames.get(k.classId) || k.classId]));
+  const klasskamp = (ak) => classFightHtml(filtreraArskurs(result.classes, ak, namnDa, "score"), ak);
+  const classIds = [...namnDa.keys()];
   host.replaceChildren(el(`<div class="mmt-historik">
     <div class="mmt-vinnare">
       <div class="mmt-vinnare-kort"><span class="mmt-v-ikon">🥇</span><div>
@@ -138,7 +141,7 @@ export function renderHistoryResult(host, result, classNames) {
     ${twoCols(topHtml(result.top, classNames), klasskamp(ALLA))}
     <details class="mmt-kort mmt-alla-tabeller"><summary>Hela tävlingen per tabell 0–10</summary>${tablesHtml(tables)}</details>
   </div>`));
-  const filter = akFilter(classIds, classNames, (ak) => { host.querySelector(".mmt-klasskamp-lista").innerHTML = klasskamp(ak); });
+  const filter = akFilter(classIds, namnDa, (ak) => { host.querySelector(".mmt-klasskamp-lista").innerHTML = klasskamp(ak); });
   if (filter.el) host.querySelector(".mmt-ak-host").replaceChildren(filter.el);
 }
 

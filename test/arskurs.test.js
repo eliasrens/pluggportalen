@@ -21,6 +21,8 @@ describe("arskursAvKlass", () => {
     assert.equal(arskursAvKlass(undefined), OVRIGA);
     assert.equal(arskursAvKlass(" 4B"), OVRIGA, "inledande blanksteg räknas inte");
     assert.equal(arskursAvKlass("0A"), OVRIGA, "0 är ingen årskurs");
+    assert.equal(arskursAvKlass("2024A"), OVRIGA, "högst två siffror");
+    assert.equal(arskursAvKlass("123"), OVRIGA);
   });
   it("etiketter", () => {
     assert.equal(arskursLabel(3), "Åk 3");

@@ -15,6 +15,7 @@
 //   topList(scores, n = 25)               → [{ rank, uid, name, classId, correct }] (≤ n)
 //   classStandings(counters, classes, participatingIds)
 //                                         → [{ rank, classId, name, correct, students, score }]
+//   rank(rows, key)                       → rows med delade platser 1, 2, 2, 4 (muterar)
 //   statsSummary(stats)                   → { correct, incorrect, total, pctCorrect,
 //                                             pctWrong, tables: [{ table, correct, wrong, total, pct }] }
 //   formatScore(n)  → "184,7"   formatPct(n) → "94 %"   formatLeft(ms) → "2 dagar"
@@ -81,7 +82,7 @@ export function nextBoundary(comps, myClassIds, now) {
 }
 
 /** Placering med delade platser: 1, 2, 2, 4 … (lika värde = samma plats). */
-function rank(rows, key) {
+export function rank(rows, key) {
   let prev = null;
   rows.forEach((r, i) => {
     r.rank = prev && prev[key] === r[key] ? prev.rank : i + 1;

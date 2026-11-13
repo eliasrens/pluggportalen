@@ -63,10 +63,11 @@ function panelSkal(titel, innehall, onClose) {
 const laddar = `<p class="mm-laddar">Laddar…</p>`;
 const felRad = `<p class="mm-laddar">Kunde inte hämta listan just nu. Prova igen om en stund.</p>`;
 
-async function ritaIndividuellt(box, { competition, uid, myPoints, klassNamn }) {
+async function ritaIndividuellt(box, { competition, uid, myPoints, klassNamn, giltig = () => true }) {
   box.innerHTML = laddar;
   try {
     const rader = await loadTop25(competition.id);
+    if (!giltig()) return; // eleven hann byta flik – den nyare ritningen äger ytan
     if (!rader.length) {
       box.innerHTML = `<p class="mm-tom">Ingen har fått poäng än – bli först! 🚀</p>`;
       return;
@@ -86,10 +87,12 @@ async function ritaIndividuellt(box, { competition, uid, myPoints, klassNamn }) 
   }
 }
 
-async function ritaKlasskamp(box, { competition, myClassIds, ak, klassNamn }) {
+async function ritaKlasskamp(box, { competition, myClassIds, ak, klassNamn, giltig = () => true }) {
   box.innerHTML = laddar;
   try {
-    const rader = filtreraArskurs(await loadClassFight(competition), ak, klassNamn, "score");
+    const alla = await loadClassFight(competition);
+    if (!giltig()) return; // flik-/filterbyte under laddningen – nyare ritning äger ytan
+    const rader = filtreraArskurs(alla, ak, klassNamn, "score");
     if (!rader.length) {
       box.innerHTML = `<p class="mm-tom">Inga klasser i ${escHtml(arskursLabel(ak).toLowerCase())}.</p>`;
       return;
@@ -126,12 +129,13 @@ export function openTopplista(ctx) {
   let stund = 0; // senaste ritningen vinner (flik-/filterbyte mitt i en laddning)
   async function rita() {
     const egen = ++stund;
+    const giltig = () => egen === stund;
     const klasser = await klasserP;
-    if (egen !== stund) return;
+    if (!giltig()) return;
     const klassNamn = new Map(klasser.map((k) => [k.id, k.name || k.id]));
     const myClassIds = klasser.filter((k) => (k.studentIds || []).includes(ctx.uid)).map((k) => k.id);
-    if (flik === "ind") await ritaIndividuellt(yta, { ...ctx, klassNamn });
-    else await ritaKlasskamp(yta, { ...ctx, myClassIds, ak, klassNamn });
+    if (flik === "ind") await ritaIndividuellt(yta, { ...ctx, klassNamn, giltig });
+    else await ritaKlasskamp(yta, { ...ctx, myClassIds, ak, klassNamn, giltig });
   }
   function visa(namn) {
     if (namn === flik) return;
@@ -149,7 +153,10 @@ export function openTopplista(ctx) {
     const filter = skapaArskursFilter({ arskurser, vald: egen, prefix: "mm", onChange: (val) => { ak = val; rita(); } });
     ak = filter.vald;
     if (filter.el) lager.querySelector(".mm-ak-host").replaceChildren(filter.el);
-    visa("ind");
+    // Eleven kan ha valt flik innan klasslistan kom – rita om den med rätt filter.
+    const vald = flik ?? "ind";
+    flik = null;
+    visa(vald);
   });
   return { close };
 }

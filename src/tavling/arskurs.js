@@ -16,18 +16,23 @@
 //                                     Övriga sist (bara de som finns)
 //   filtreraArskurs(rows, ak, namnAv, nyckel)
 //                                   → raderna (med classId) i årskursen,
-//                                     omrankade på `nyckel` (delade platser
-//                                     1, 2, 2, 4); ALLA = oförändrat
+//                                     omrankade på `nyckel` (mm-core.rank,
+//                                     delade platser); ALLA = oförändrat
 //   namnAv = Map<classId, namn> eller (classId) → namn
 // ============================================================================
+
+import { rank } from "./mm-core.js";
 
 export const OVRIGA = "Övriga";
 /** Filtervärdet "Alla" (inget filter). */
 export const ALLA = "alla";
 
-/** "4B" → 4, "10A" → 10, "Klass 3"/"Fritids"/""/null → OVRIGA. */
+/**
+ * "4B" → 4, "10A" → 10, "Klass 3"/"Fritids"/""/null → OVRIGA. Högst två
+ * inledande siffror är en årskurs ("2024A" → Övriga).
+ */
 export function arskursAvKlass(namn) {
-  const m = /^([1-9][0-9]*)/.exec(String(namn ?? ""));
+  const m = /^([1-9][0-9]?)(?![0-9])/.exec(String(namn ?? ""));
   return m ? Number(m[1]) : OVRIGA;
 }
 
@@ -59,16 +64,6 @@ export function arskurserIMatch(classIds, namnAv) {
   return sortera([...set]);
 }
 
-/** Placering med delade platser (samma som mm-core.classStandings). */
-function ranka(rows, key) {
-  let prev = null;
-  rows.forEach((r, i) => {
-    r.rank = prev && prev[key] === r[key] ? prev.rank : i + 1;
-    prev = r;
-  });
-  return rows;
-}
-
 /**
  * Raderna vars klass hör till årskursen `ak` (ALLA = alla, oförändrade), i
  * samma ordning som de kom, omrankade på `nyckel` (Klasskampen: "score").
@@ -78,5 +73,5 @@ export function filtreraArskurs(rows, ak, namnAv, nyckel = "score") {
   if (ak === ALLA || ak == null) return list;
   const namn = namnFn(namnAv);
   const valda = list.filter((r) => arskursAvKlass(namn(r?.classId)) === ak).map((r) => ({ ...r }));
-  return ranka(valda, nyckel);
+  return rank(valda, nyckel);
 }
