@@ -119,6 +119,10 @@ export function openTopplista(ctx) {
   const yta = lager.querySelector(".mm-flik-yta");
   // Klasslistan (TTL-cachad) ger namn → årskurser i matchen + elevens klasser.
   const klasserP = getClasses().catch(() => []);
+  // Topp 25 startar REDAN VID ÖPPNING, parallellt med klasslistan (oavsett
+  // vilken flik som ritas först) – används av första Individuellt-ritningen.
+  let toppP = loadTop25(ctx.competition.id);
+  toppP.catch(() => {}); // felet hanteras i ritaIndividuellt
   let klasser = null; // klasslistan när den kommit – läses aldrig om i panelen
   let klassRader = null; // Klasskampens rader – läses EN gång per panel, filtret ritar bara om
   let flik = null;
@@ -127,14 +131,18 @@ export function openTopplista(ctx) {
   async function rita() {
     const egen = ++stund;
     const giltig = () => egen === stund;
-    // Topp 25 startar direkt så läsningen går parallellt med klasslistan.
-    const toppP = flik === "ind" ? loadTop25(ctx.competition.id) : null;
-    toppP?.catch(() => {}); // felet hanteras i ritaIndividuellt (om den ritningen fortfarande gäller)
+    // Individuellt: första gången löftet från öppningen, sedan loadTop25 (20 s-cachen).
+    let raderP = null;
+    if (flik === "ind") {
+      raderP = toppP || loadTop25(ctx.competition.id);
+      raderP.catch(() => {}); // felet hanteras i ritaIndividuellt (om den ritningen fortfarande gäller)
+      toppP = null;
+    }
     klasser ??= await klasserP;
     if (!giltig()) return;
     const klassNamn = new Map(klasser.map((k) => [k.id, k.name || k.id]));
     const myClassIds = klasser.filter((k) => (k.studentIds || []).includes(ctx.uid)).map((k) => k.id);
-    if (flik === "ind") return ritaIndividuellt(yta, { ...ctx, klassNamn, raderP: toppP, giltig });
+    if (flik === "ind") return ritaIndividuellt(yta, { ...ctx, klassNamn, raderP, giltig });
     if (!klassRader) {
       yta.innerHTML = laddar;
       try {
