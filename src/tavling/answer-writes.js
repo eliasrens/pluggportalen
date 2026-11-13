@@ -13,9 +13,17 @@
 //   counterId(classId, shard)           → "4b_3" (klassräknarens dokument-id)
 //   planMathAnswerWrites(args)          → Write[]  (Mattematchen)
 //     args: { competitionId, attemptId, uid, classId, name, record,
-//             isCorrect, shard, fv: { increment, serverTimestamp } }
+//             isCorrect, shard, fv: { increment, serverTimestamp }, mynt? }
 //     record = mode.answerRecord(q, r) för multiplikation:
 //             { factorA, factorB, answer, correctAnswer }
+//     mynt = { dag } (#846) – BARA MM-sidans egna svar: ett rätt svar får då
+//             två skrivningar till: dagsräknaren studentData/{uid}/mmMynt/{dag}
+//             (+1, reglerna: högst 50/dag, bara med ett NYTT rätt svar i samma
+//             batch) och saldot studentData/{uid}.coins (+1). Utelämnad/null
+//             = inga mynt (svar nr 51+, och Live-svar som räknas in i MM –
+//             Live betalar redan). Talen: mm-config.js. Fel svar → aldrig mynt.
+//   planMmMyntWrites({ competitionId, attemptId, uid, dag, fv }) → Write[2]
+//             (kvittot + saldot ovan; planMathAnswerWrites använder den)
 //   planLiveAnswerWrites(args)          → Write[]  (Live)
 //     args: { sessionId, attemptId, uid, classId, mode, record, isCorrect,
 //             shard, fv, answerKind?, choiceIndex? }
@@ -43,9 +51,11 @@
 //     kör som batch.set(doc(db, ...path), data, merge ? { merge: true } : undefined).
 //
 // Skrivningar per svar: MM rätt = 4 (svar, elevstatistik, topplista, klass-
-// shard), MM fel = 2 (svar, elevstatistik); Live rätt = 3 (svar, spelare,
-// klass-shard), Live fel = 2.
+// shard) + 2 med mynt (dagsräknare, saldo), MM fel = 2 (svar, elevstatistik);
+// Live rätt = 3 (svar, spelare, klass-shard), Live fel = 2.
 // ============================================================================
+
+import { MYNT_KVITTON, MYNT_PER_RATT } from "./mm-config.js";
 
 export const MULT_MODE = "multiplication_0_10";
 
@@ -69,7 +79,7 @@ function answerDoc({ uid, classId, mode, record, isCorrect, shard, fv }) {
  * @returns {{path:string[], data:object, merge:boolean}[]}
  */
 export function planMathAnswerWrites(args) {
-  const { competitionId: cid, attemptId, uid, classId, name, record, isCorrect, shard, fv } = args;
+  const { competitionId: cid, attemptId, uid, classId, name, record, isCorrect, shard, fv, mynt = null } = args;
   const base = ["mathCompetitions", cid];
   const ok = !!isCorrect;
   const tableKeys = [...new Set([record.factorA, record.factorB])].map((t) => `${ok ? "c" : "w"}${t}`);
@@ -96,8 +106,26 @@ export function planMathAnswerWrites(args) {
       data: { classId, shard, correct: fv.increment(1), lastAttemptId: attemptId, lastAt: fv.serverTimestamp() },
       merge: true,
     });
+    if (mynt) writes.push(...planMmMyntWrites({ competitionId: cid, attemptId, uid, dag: mynt.dag, fv }));
   }
   return writes;
+}
+
+/**
+ * Pluggmynt för ett rätt MM-svar (#846): dagsräknaren +1 och saldot +1, i
+ * samma batch som svaret (reglerna kräver det). Bara MM-sidans svar.
+ * @returns {{path:string[], data:object, merge:boolean}[]}
+ */
+export function planMmMyntWrites({ competitionId, attemptId, uid, dag, fv }) {
+  if (typeof dag !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(dag)) throw new Error(`planMmMyntWrites: ogiltig dag ${dag}`);
+  return [
+    {
+      path: ["studentData", uid, MYNT_KVITTON, dag],
+      data: { dag, cid: competitionId, mynt: fv.increment(MYNT_PER_RATT), lastAttemptId: attemptId, lastAt: fv.serverTimestamp() },
+      merge: true,
+    },
+    { path: ["studentData", uid], data: { coins: fv.increment(MYNT_PER_RATT) }, merge: true },
+  ];
 }
 
 /** Passar svarets form sessionens svarssätt? null = ok. */

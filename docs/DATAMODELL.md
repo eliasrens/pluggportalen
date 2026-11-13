@@ -28,6 +28,7 @@ studentData/{studentId}/brakresaRounds/{roundId}   ← Bråkresan: omgång med t
 studentData/{studentId}/brakresaRewards/{eventId}  ← Bråkresan: belöningsbokföring (unikt händelse-id)
 studentData/{studentId}/brakresaHunts/{datum}      ← Bråkresan: daglig guldjakt
 studentData/{studentId}/provMynt/{tillfalleId}     ← Prov: pluggmynt-kvitto per prov (#746, löpande summa)
+studentData/{studentId}/mmMynt/{dag}               ← Mattematchen: dagsräknare för pluggmynt (#846, ÅÅÅÅ-MM-DD svensk tid)
 brakresaSecrets/{roundId}                ← Bråkresan: omgångens facit – bara Cloud Functions
 brakresaRecommendations/{recId}          ← Bråkresan: lärarens rekommendationer
 schackKlass/{classId}                    ← Schack (#779): lobbyn, pågående partier och topplistan – EN doc per klass, bara servern skriver
@@ -963,6 +964,7 @@ mathCompetitions/{cid}/answers/{attemptId}           ← ett svar (create-only)
 mathCompetitions/{cid}/studentStats/{uid}            ← PRIVAT elevstatistik (cache)
 mathCompetitions/{cid}/scores/{uid}                  ← PUBLIK topplistepost (Topp 25)
 mathCompetitions/{cid}/classCounters/{classId}_{n}   ← shardad klassräknare (Klasskamp)
+studentData/{uid}/mmMynt/{dag}                       ← MM-sidans pluggmynt: dagsräknare (#846)
 liveSessions/{sid}                                   ← LiveSession (lärare)
 liveSessions/{sid}/answers/{attemptId}               ← ett Live-svar (create-only)
 liveSessions/{sid}/players/{uid}                     ← närvaro/"redo" + elevens matchresultat
@@ -1006,6 +1008,7 @@ Ingen backend finns – `firestore.rules` är servervalideringen. Varje svar bli
 | `studentStats/{uid}` / `players/{uid}` (+1 rätt/fel) | ✓ | ✓ | ✓ | ✓ |
 | `scores/{uid}` (+1) | ✓ | – | – | – |
 | klassräknare `{classId}_{shard}` (+1) | ✓ | – | ✓ | – |
+| `studentData/{uid}/mmMynt/{dag}` (+1) + `studentData/{uid}.coins` (+1) (#846, bara MM-sidan, under dagstaket) | ✓ | – | – | – |
 
 - **Dubbla svar:** `attemptId` skapas när frågan visas och är dokument-id. Svaret
   får bara skapas, aldrig uppdateras → dubbel-ENTER/retry/offline-kö räknas aldrig två gånger.
@@ -1024,6 +1027,21 @@ Ingen backend finns – `firestore.rules` är servervalideringen. Varje svar bli
 - **Separata system:** MM-poäng (`mathCompetitions/…`) och Live-poäng
   (`liveSessions/…`) kan aldrig korsas – varje räknare valideras mot ett svar
   i SIN egen tävling.
+- **Pluggmynt på MM-sidan (#846, spec "PLUGGMYNT"):** 1 mynt per rätt svar,
+  högst 50 per elev och dag (`src/tavling/mm-config.js`). Dagsräknaren
+  `studentData/{uid}/mmMynt/{dag}` = `{ dag, cid, mynt, lastAttemptId, lastAt }`
+  skrivs i SAMMA batch som svaret (`planMathAnswerWrites` med `mynt: { dag }`)
+  tillsammans med `studentData/{uid}.coins +1`. Reglerna (`mmMyntOk`) kräver:
+  elevens eget, svaret `mathCompetitions/{cid}/answers/{lastAttemptId}` nytt i
+  batchen och rätt, `mynt` +1 och ≤ 50, saldot exakt +1 i samma batch, bara
+  räknarfälten, ingen radering (admin undantaget) → inga mynt utan svar, aldrig
+  två per svar eller per `attemptId`, aldrig över 50, aldrig nollställt.
+  `dag` = svenskt datum ÅÅÅÅ-MM-DD ur `request.time` (UTC + 1 h, + 2 h under
+  sommartid = sista söndagen i mars 01:00 UTC → sista söndagen i oktober
+  01:00 UTC); klienten räknar samma via `Intl` Europe/Stockholm (`myntDag`),
+  `test/mm-mynt.test.js` bevisar likheten. Svar nr 51+ (och Live-svar som
+  räknas in i MM, issue C) skrivs UTAN myntskrivningarna. Nekas en batch med
+  mynt (annan flik nådde taket, midnatt) skickar klienten om svaret utan mynt.
 
 **Kvarvarande begränsningar (ärligt):**
 1. Eleven väljer själv vilken fråga hen svarar på – reglerna kan inte se vilken

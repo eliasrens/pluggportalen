@@ -1,9 +1,13 @@
 // ============================================================================
 // Mattematchen – elevsidan #/elev/mattematchen (#458)
 // ----------------------------------------------------------------------------
-// En skärm utan scroll: tävlingens namn + tid kvar, elevens poäng, knapparna
-// 🏆 (Topp 25 / Klasskamp) och 📊 (egen statistik), och den snabba
-// svarskomponenten (#457) i mitten. 1 rätt = 1 poäng, fel = 0, inga coins.
+// En skärm utan scroll: tävlingens namn + tid kvar, elevens poäng, dagens
+// mynt, knapparna 🏆 (Topp 25 / Klasskamp) och 📊 (egen statistik), och den
+// snabba svarskomponenten (#457) i mitten. 1 rätt = 1 poäng + 1 pluggmynt
+// (#846, mm-config.js), fel = 0. Högst 50 mynt per dag: dagsräknaren läses
+// när sidan öppnas, hålls lokalt per svar, och vid taket visas
+// "Dagens mynt är intjänade – poängen räknas fortfarande!" (mynten slutar,
+// poängen fortsätter). Byter dagen vid midnatt börjar räknaren om.
 //
 // Synlighet: sidan nås bara under en AKTIV period där elevens klass deltar
 // (ui.getMattematch → mm-watch.js). Ingen aktiv period → snällt meddelande
@@ -15,12 +19,14 @@
 
 import * as data from "../data.js";
 import { app, el, renderTopbar, flash, escHtml, getMattematch } from "../ui.js";
+import { coinIcon } from "../icons.js";
 import { mountFastAnswer } from "../mult/fast-answer.js";
 import MULT from "../live/modes/multiplication-0-10.js";
 import { onMattematchChange, mmNow } from "./mm-watch.js";
-import { submitAnswer, loadMyStats } from "./mm-data.js";
+import { submitAnswer, loadMyStats, loadMyntIdag } from "./mm-data.js";
 import { openTopplista, openStatistik } from "./mm-panels.js";
 import { formatLeft, toMs } from "./mm-core.js";
+import { MYNT_TAK_PER_DAG, MYNT_TAK_TEXT, myntDag, myntForRatt } from "./mm-config.js";
 
 const ROUTE = "#/elev/mattematchen";
 let aktiv = null; // { stang() } för vyn som visas just nu
@@ -63,8 +69,13 @@ export async function pageMattematchen() {
   const { competition, classId } = mm;
   const uid = data.currentStudentId();
   const name = data.getSession()?.namn || uid;
-  // Poängen läses FÖRE första frågan, så lokala +1 aldrig dubbelräknas.
-  const [start] = await Promise.all([loadMyStats(competition.id, uid).catch(() => null), stilP]);
+  // Poängen och dagens mynt läses FÖRE första frågan, så lokala +1 aldrig dubbelräknas.
+  let dag = myntDag(mmNow());
+  const [start, myntStart] = await Promise.all([
+    loadMyStats(competition.id, uid).catch(() => null),
+    loadMyntIdag(uid, dag).catch(() => 0),
+    stilP,
+  ]);
   if (!window.location.hash.startsWith(ROUTE)) return; // eleven hann gå vidare
 
   const vy = el(`<div class="mm-sida">
@@ -79,6 +90,9 @@ export async function pageMattematchen() {
       <div class="mm-poang" title="1 rätt = 1 poäng">
         <b class="mm-poang-tal">0</b><span>poäng</span>
       </div>
+      <div class="mm-mynt" title="1 rätt = 1 pluggmynt, högst ${MYNT_TAK_PER_DAG} per dag">
+        <b class="mm-mynt-tal">${coinIcon(20)} <span class="mm-mynt-n">0</span></b><span>mynt idag</span>
+      </div>
       <div class="mm-knappar">
         <button type="button" class="mm-knapp mm-knapp-topp" aria-label="Topplistor" title="Topplistor">🏆</button>
         <button type="button" class="mm-knapp mm-knapp-stat" aria-label="Min statistik" title="Min statistik">📊</button>
@@ -86,8 +100,9 @@ export async function pageMattematchen() {
     </header>
     <section class="mm-spel"><div class="mm-kort"><div class="mm-fa"></div></div></section>
     <footer class="mm-fot">
-      <span>Skriv svaret · tryck <kbd>ENTER</kbd> · 1 rätt = 1 poäng</span>
+      <span>Skriv svaret · tryck <kbd>ENTER</kbd> · 1 rätt = 1 poäng + 1 mynt</span>
       <span class="mm-session">Nu: <b class="mm-s-ratt">0</b> rätt · <b class="mm-s-fel">0</b> fel</span>
+      <span class="mm-mynt-tak" hidden>${coinIcon(16)} ${escHtml(MYNT_TAK_TEXT)}</span>
       <span class="mm-varning" hidden></span>
     </footer>
   </div>`);
@@ -102,6 +117,20 @@ export async function pageMattematchen() {
   let oppenPanel = null;
   const visaPoang = () => { $(".mm-poang-tal").textContent = String(poang); };
   visaPoang();
+  // Dagens mynt (#846): lokalt per svar; taket visas mjukt i fotraden.
+  let myntIdag = myntStart;
+  const visaMynt = () => {
+    const fullt = myntIdag >= MYNT_TAK_PER_DAG;
+    $(".mm-mynt-n").textContent = String(Math.min(myntIdag, MYNT_TAK_PER_DAG));
+    $(".mm-mynt").classList.toggle("mm-mynt-fullt", fullt);
+    $(".mm-mynt-tak").hidden = !fullt;
+  };
+  visaMynt();
+  const plopp = (sel) => {
+    $(sel).classList.remove("mm-plopp");
+    void $(sel).offsetWidth;
+    $(sel).classList.add("mm-plopp");
+  };
 
   const fa = mountFastAnswer($(".mm-fa"), {
     source: MULT.createSource(),
@@ -112,13 +141,22 @@ export async function pageMattematchen() {
       if (attempt.result.correct) {
         poang++;
         visaPoang();
-        $(".mm-poang").classList.remove("mm-plopp");
-        void $(".mm-poang").offsetWidth;
-        $(".mm-poang").classList.add("mm-plopp");
+        plopp(".mm-poang");
       }
       $(".mm-s-ratt").textContent = fa.counts.correct;
       $(".mm-s-fel").textContent = fa.counts.wrong;
-      return submitAnswer({ competition, classId, uid, name, attempt }).then(() => {
+      // Ny dag sedan sidan öppnades → räknaren börjar om (reglerna räknar samma dag).
+      const dagNu = myntDag(mmNow());
+      if (dagNu !== dag) { dag = dagNu; myntIdag = 0; visaMynt(); }
+      const mynt = attempt.result.correct && myntForRatt(myntIdag) > 0 ? { dag } : null;
+      return submitAnswer({ competition, classId, uid, name, attempt, mynt }).then(({ myntBetalt }) => {
+        if (mynt) {
+          // Nekat mynt = taket nått någon annanstans (annan flik) – visa taket.
+          myntIdag = myntBetalt ? myntIdag + 1 : MYNT_TAK_PER_DAG;
+          visaMynt();
+          // coins ändrat → nästa getStudentData (sidomeny, butik) läser färskt (#274).
+          if (myntBetalt) { data.invalidateStudentData(uid); plopp(".mm-mynt"); }
+        }
         if (!attempt.result.correct || bekraftade == null) return;
         const rattFore = bekraftade++;
         import("../klasscenter/kc-koppling.js")

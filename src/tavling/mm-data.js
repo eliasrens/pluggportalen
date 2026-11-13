@@ -4,7 +4,12 @@
 // Skrivning: ett svar = EN writeBatch enligt planMathAnswerWrites (#457) –
 // reglerna validerar facit, tid, klass och +1. Batchen inväntas aldrig av
 // spelflödet (Firestore köar lokalt), så tempot påverkas inte av nätet.
-// INGA pluggcoins / avatarbelöningar – tävlingspoängen är enda belöningen.
+// Pluggmynt (#846): ett rätt svar ger 1 mynt (mm-config.js), högst 50 per
+// dag – dagsräknaren studentData/{uid}/mmMynt/{dag} + saldot skrivs i SAMMA
+// batch (reglerna kräver ett nytt rätt svar och håller taket). Sidan läser
+// dagsräknaren EN gång när den öppnas (loadMyntIdag) och skickar mynt bara
+// under taket; nekas batchen ändå (annan flik nådde taket, midnatt) skickas
+// svaret om UTAN mynt – poängen går aldrig förlorad. Inga avatarbelöningar.
 //
 // Läsningar (bara när eleven öppnar 🏆/📊, aldrig per svar):
 //   • Topp 25: scores orderBy(correct desc) limit(25) – reglerna tillåter
@@ -26,6 +31,7 @@ import {
 import { getClasses } from "../data-classes.js";
 import { planMathAnswerWrites, pickShard } from "./answer-writes.js";
 import { topList, classStandings, statsSummary, TOP_N } from "./mm-core.js";
+import { MYNT_KVITTON } from "./mm-config.js";
 import MULT from "../live/modes/multiplication-0-10.js";
 
 const fv = { increment, serverTimestamp };
@@ -41,26 +47,42 @@ async function cached(key, load) {
 }
 
 /**
- * Skicka ett svar (fast-answer-försöket) som en batch. Returnerar commit-
- * löftet – anroparen väntar INTE på det i spelflödet.
- * @param {{competition:object, classId:string, uid:string, name:string, attempt:object}} a
+ * Skicka ett svar (fast-answer-försöket) som en batch. Returnerar ett löfte
+ * om { myntBetalt } – anroparen väntar INTE på det i spelflödet.
+ * mynt = { dag } (#846) när svaret ska ge ett pluggmynt; nekas batchen med
+ * mynt (taket nått i en annan flik, dagen bytte vid midnatt) skickas samma
+ * svar om utan mynt, så poängen aldrig går förlorad.
+ * @param {{competition:object, classId:string, uid:string, name:string, attempt:object, mynt?:{dag:string}|null}} a
+ * @returns {Promise<{myntBetalt:boolean}>}
  */
-export function submitAnswer({ competition, classId, uid, name, attempt }) {
+export async function submitAnswer({ competition, classId, uid, name, attempt, mynt = null }) {
   const record = MULT.answerRecord(attempt.question, attempt.result);
-  const writes = planMathAnswerWrites({
-    competitionId: competition.id,
-    attemptId: attempt.attemptId,
-    uid,
-    classId,
-    name,
-    record,
-    isCorrect: !!attempt.result.correct,
-    shard: pickShard(competition.counterShards),
-    fv,
-  });
-  const b = writeBatch(db);
-  for (const w of writes) b.set(doc(db, ...w.path), w.data, w.merge ? { merge: true } : undefined);
-  return b.commit();
+  const isCorrect = !!attempt.result.correct;
+  const shard = pickShard(competition.counterShards);
+  const commit = (m) => {
+    const writes = planMathAnswerWrites({
+      competitionId: competition.id, attemptId: attempt.attemptId, uid, classId, name, record, isCorrect, shard, fv, mynt: m,
+    });
+    const b = writeBatch(db);
+    for (const w of writes) b.set(doc(db, ...w.path), w.data, w.merge ? { merge: true } : undefined);
+    return b.commit();
+  };
+  const medMynt = isCorrect && !!mynt;
+  try {
+    await commit(medMynt ? mynt : null);
+    return { myntBetalt: medMynt };
+  } catch (err) {
+    if (!medMynt || err?.code !== "permission-denied") throw err;
+    console.warn("Mattematchen: myntet nekades – svaret skickas om utan mynt", err?.code);
+    await commit(null);
+    return { myntBetalt: false };
+  }
+}
+
+/** Dagens intjänade MM-mynt (dagsräknaren, 0 om ingen) – läses när sidan öppnas. */
+export async function loadMyntIdag(uid, dag) {
+  const snap = await getDoc(doc(db, "studentData", uid, MYNT_KVITTON, dag));
+  return snap.exists() ? Number(snap.data().mynt) || 0 : 0;
 }
 
 /** Elevens egen statistik (📊) – sammanställd för visning. */
