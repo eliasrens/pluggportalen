@@ -154,7 +154,8 @@ export async function pageMattematchen() {
           // Nekat mynt = taket nått någon annanstans (annan flik) – visa taket.
           myntIdag = myntBetalt ? myntIdag + 1 : MYNT_TAK_PER_DAG;
           visaMynt();
-          if (myntBetalt) plopp(".mm-mynt");
+          // coins ändrat → nästa getStudentData (sidomeny, butik) läser färskt (#274).
+          if (myntBetalt) { data.invalidateStudentData(uid); plopp(".mm-mynt"); }
         }
         if (!attempt.result.correct || bekraftade == null) return;
         const rattFore = bekraftade++;
