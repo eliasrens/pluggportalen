@@ -9,17 +9,22 @@
 // Läsningar (bara när eleven öppnar 🏆/📊, aldrig per svar):
 //   • Topp 25: scores orderBy(correct desc) limit(25) – reglerna tillåter
 //     elever att lista högst 25 (aldrig scanna alla svar).
+//     Per årskurs (#845): where('arskurs','==',n) + samma orderBy/limit –
+//     sammansatt index (arskurs asc, correct desc) i firestore.indexes.json.
+//     Poster från före #845 saknar fältet och syns bara under "Alla" tills
+//     elevens nästa rätta svar skriver det (answer-writes.js).
 //   • Klasskamp: classCounters-shards (≤ klasser × shards små dokument)
-//     + klasslistan (TTL-cachad) för elevantal/namn.
+//     + klasslistan (TTL-cachad) för elevantal/namn. Årskursfiltret görs
+//     i klienten (få rader) – ingen extra läsning.
 //   • 📊: elevens EGET studentStats-dokument (reglerna: bara isSelf).
-// Topplistorna cachas 20 s i minnet så flik-byten inte läser om.
+// Topplistorna cachas 20 s i minnet (per årskurs) så flik-byten inte läser om.
 //
 // Laddas DYNAMISKT via page-mattematchen.js (#271).
 // ============================================================================
 
 import { db } from "../firebase-config.js";
 import {
-  collection, doc, getDoc, getDocs, query, orderBy, limit,
+  collection, doc, getDoc, getDocs, query, where, orderBy, limit,
   writeBatch, increment, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getClasses } from "../data-classes.js";
@@ -42,9 +47,11 @@ async function cached(key, load) {
 /**
  * Skicka ett svar (fast-answer-försöket) som en batch. Returnerar commit-
  * löftet – anroparen väntar INTE på det i spelflödet.
- * @param {{competition:object, classId:string, uid:string, name:string, attempt:object}} a
+ * arskurs (#845) = arskursKod(arskursAvKlass(klassens namn)); utelämnad →
+ * topplisteposten skrivs utan fältet.
+ * @param {{competition:object, classId:string, uid:string, name:string, attempt:object, arskurs?:number}} a
  */
-export function submitAnswer({ competition, classId, uid, name, attempt }) {
+export function submitAnswer({ competition, classId, uid, name, attempt, arskurs }) {
   const record = MULT.answerRecord(attempt.question, attempt.result);
   const writes = planMathAnswerWrites({
     competitionId: competition.id,
@@ -56,6 +63,7 @@ export function submitAnswer({ competition, classId, uid, name, attempt }) {
     isCorrect: !!attempt.result.correct,
     shard: pickShard(competition.counterShards),
     fv,
+    arskurs,
   });
   const b = writeBatch(db);
   for (const w of writes) b.set(doc(db, ...w.path), w.data, w.merge ? { merge: true } : undefined);
@@ -68,11 +76,16 @@ export async function loadMyStats(cid, uid) {
   return statsSummary(snap.exists() ? snap.data() : null);
 }
 
-/** Individuellt: exakt Topp 25. */
-export function loadTop25(cid, { fresh = false } = {}) {
-  if (fresh) cache.delete(`top:${cid}`);
-  return cached(`top:${cid}`, async () => {
-    const q = query(collection(db, "mathCompetitions", cid, "scores"), orderBy("correct", "desc"), limit(TOP_N));
+/**
+ * Individuellt: exakt Topp 25. arskurs (#845) = lagrad kod (heltal, 0 =
+ * Övriga) → indexerad fråga med samma limit; null/undefined = alla.
+ */
+export function loadTop25(cid, { fresh = false, arskurs = null } = {}) {
+  const key = `top:${cid}:${arskurs == null ? "alla" : arskurs}`;
+  if (fresh) cache.delete(key);
+  return cached(key, async () => {
+    const villkor = arskurs == null ? [] : [where("arskurs", "==", arskurs)];
+    const q = query(collection(db, "mathCompetitions", cid, "scores"), ...villkor, orderBy("correct", "desc"), limit(TOP_N));
     const snap = await getDocs(q);
     return topList(snap.docs.map((d) => ({ id: d.id, ...d.data() })), TOP_N);
   });

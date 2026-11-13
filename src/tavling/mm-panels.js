@@ -5,9 +5,12 @@
 // Datat kommer ur aggregerade dokument (mm-data.js) – inga svar scannas.
 //
 // API (båda returnerar { close() }):
-//   openTopplista({ competition, uid, myPoints, onClose })
+//   openTopplista({ competition, classId, uid, myPoints, onClose })
 //     flikar: Individuellt (exakt Topp 25) · Klasskamp (alla deltagande
 //     klasser, rätt / elevantal med 1 decimal och svensk komma)
+//     Årskursfilter (#845): Alla · Åk 3 · Åk 4 … – bara årskurser som finns
+//     i matchen, elevens egen (classId) förvald. Topp 25 per årskurs =
+//     indexerad fråga (mm-data.loadTop25), Klasskampen filtreras i klienten.
 //   openStatistik({ competition, uid, onClose })
 //     rätt, fel, totalt, % rätt, % fel + per tabell 0–10. Bara egen data.
 // Stäng: ✕, Esc eller klick utanför kortet.
@@ -17,6 +20,8 @@ import { el, escHtml } from "../ui.js";
 import { getClasses } from "../data-classes.js";
 import { loadTop25, loadClassFight, loadMyStats } from "./mm-data.js";
 import { formatScore, formatPct, TOP_N } from "./mm-core.js";
+import { ALLA, arskursAvKlass, arskursKod, arskursLabel, arskurserIMatch, filtreraArskurs } from "./arskurs.js";
+import { skapaArskursFilter } from "./mm-arskurs-ui.js";
 
 const MEDALJ = { 1: "🥇", 2: "🥈", 3: "🥉" };
 const plats = (rank) => MEDALJ[rank] || `${rank}.`;
@@ -57,13 +62,13 @@ function panelSkal(titel, innehall, onClose) {
 const laddar = `<p class="mm-laddar">Laddar…</p>`;
 const felRad = `<p class="mm-laddar">Kunde inte hämta listan just nu. Prova igen om en stund.</p>`;
 
-async function ritaIndividuellt(box, { competition, uid, myPoints }) {
+async function ritaIndividuellt(box, { competition, uid, myPoints, ak, klassNamn }) {
   box.innerHTML = laddar;
   try {
-    const [rader, klasser] = await Promise.all([loadTop25(competition.id), getClasses().catch(() => [])]);
-    const klassNamn = new Map(klasser.map((k) => [k.id, k.name || k.id]));
+    const rader = await loadTop25(competition.id, { arskurs: ak === ALLA ? null : arskursKod(ak) });
     if (!rader.length) {
-      box.innerHTML = `<p class="mm-tom">Ingen har fått poäng än – bli först! 🚀</p>`;
+      box.innerHTML = `<p class="mm-tom">${ak === ALLA ? "Ingen har fått poäng än – bli först! 🚀"
+        : `Ingen i ${escHtml(arskursLabel(ak).toLowerCase())} har fått poäng än – bli först! 🚀`}</p>`;
       return;
     }
     const jagMed = rader.some((r) => r.uid === uid);
@@ -73,7 +78,7 @@ async function ritaIndividuellt(box, { competition, uid, myPoints }) {
           <span class="mm-elev">${escHtml(r.name)}<small>${escHtml(klassNamn.get(r.classId) || r.classId)}</small></span>
           <b class="mm-tal">${r.correct}</b>
         </li>`).join("")}</ol>
-      <p class="mm-not">Topp ${TOP_N} · 1 rätt = 1 poäng${
+      <p class="mm-not">Topp ${TOP_N}${ak === ALLA ? "" : ` · ${escHtml(arskursLabel(ak))}`} · 1 rätt = 1 poäng${
         jagMed ? "" : ` · <b>Du: ${Number(myPoints) || 0} poäng</b> – fortsätt så!`}</p>`;
   } catch (err) {
     console.warn("Mattematchen: Topp 25", err);
@@ -81,10 +86,10 @@ async function ritaIndividuellt(box, { competition, uid, myPoints }) {
   }
 }
 
-async function ritaKlasskamp(box, { competition, myClassIds }) {
+async function ritaKlasskamp(box, { competition, myClassIds, ak, klassNamn }) {
   box.innerHTML = laddar;
   try {
-    const rader = await loadClassFight(competition);
+    const rader = filtreraArskurs(await loadClassFight(competition), ak, klassNamn, "score");
     const max = Math.max(...rader.map((r) => r.score), 0);
     box.innerHTML = `<ol class="mm-klasser">${rader.map((r) => `
         <li class="mm-klassrad${myClassIds.includes(r.classId) ? " mm-jag" : ""}">
@@ -100,28 +105,47 @@ async function ritaKlasskamp(box, { competition, myClassIds }) {
   }
 }
 
-/** 🏆 Topplistor med två flikar. */
+/** 🏆 Topplistor med två flikar + årskursfilter. */
 export function openTopplista(ctx) {
   const { lager, close } = panelSkal("🏆 Topplistor", `
     <div class="mm-flikar" role="tablist">
       <button type="button" role="tab" class="mm-flik" data-flik="ind" aria-selected="true">Individuellt</button>
       <button type="button" role="tab" class="mm-flik" data-flik="klass" aria-selected="false">Klasskamp</button>
     </div>
-    <div class="mm-flik-yta" role="tabpanel"></div>`, ctx.onClose);
+    <div class="mm-ak-host"></div>
+    <div class="mm-flik-yta" role="tabpanel">${laddar}</div>`, ctx.onClose);
   const yta = lager.querySelector(".mm-flik-yta");
-  const myClassIdsP = getClasses()
-    .then((ks) => ks.filter((k) => (k.studentIds || []).includes(ctx.uid)).map((k) => k.id))
-    .catch(() => []);
+  // Klasslistan (TTL-cachad) ger namn → årskurser i matchen + elevens klasser.
+  const klasserP = getClasses().catch(() => []);
   let flik = null;
-  async function visa(namn) {
+  let ak = ALLA;
+  let stund = 0; // senaste ritningen vinner (flik-/filterbyte mitt i en laddning)
+  async function rita() {
+    const egen = ++stund;
+    const klasser = await klasserP;
+    if (egen !== stund) return;
+    const klassNamn = new Map(klasser.map((k) => [k.id, k.name || k.id]));
+    const myClassIds = klasser.filter((k) => (k.studentIds || []).includes(ctx.uid)).map((k) => k.id);
+    if (flik === "ind") await ritaIndividuellt(yta, { ...ctx, ak, klassNamn });
+    else await ritaKlasskamp(yta, { ...ctx, myClassIds, ak, klassNamn });
+  }
+  function visa(namn) {
     if (namn === flik) return;
     flik = namn;
     lager.querySelectorAll(".mm-flik").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.flik === namn)));
-    if (namn === "ind") await ritaIndividuellt(yta, ctx);
-    else await ritaKlasskamp(yta, { ...ctx, myClassIds: await myClassIdsP });
+    rita();
   }
   lager.querySelectorAll(".mm-flik").forEach((b) => b.addEventListener("click", () => visa(b.dataset.flik)));
-  visa("ind");
+  klasserP.then((klasser) => {
+    if (!lager.isConnected) return;
+    const klassNamn = new Map(klasser.map((k) => [k.id, k.name || k.id]));
+    const arskurser = arskurserIMatch(ctx.competition.participatingClassIds, klassNamn);
+    const egen = arskursAvKlass(klassNamn.get(ctx.classId));
+    const filter = skapaArskursFilter({ arskurser, vald: egen, prefix: "mm", onChange: (val) => { ak = val; rita(); } });
+    ak = filter.vald;
+    if (filter.el) lager.querySelector(".mm-ak-host").replaceChildren(filter.el);
+    visa("ind");
+  });
   return { close };
 }
 

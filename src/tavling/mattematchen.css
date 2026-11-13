@@ -154,6 +154,17 @@ body.mm-lage .container {
 }
 .mm-flik[aria-selected="true"] { color: #fff; background: var(--mm-lila, #8e7cf0); box-shadow: 0 3px 0 rgba(0, 0, 0, 0.15); }
 
+/* Årskursfilter (#845): Alla · Åk 3 · Åk 4 … – små "chips" under flikarna. */
+.mm-ak-filter { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+.mm-ak {
+  padding: 5px 12px;
+  font: inherit; font-size: 14px; font-weight: 800;
+  color: var(--text-svag);
+  background: #fff; border: 2px solid #dfe4f0; border-radius: 999px; cursor: pointer;
+}
+.mm-ak:hover { border-color: var(--mm-lila, #8e7cf0); }
+.mm-ak[aria-pressed="true"] { color: var(--mm-lila, #8e7cf0); border-color: var(--mm-lila, #8e7cf0); background: #f1eeff; }
+
 /* Topp 25: två spalter på bred skärm → ryms utan scroll på Chromebook. */
 .mm-topp25 {
   list-style: none; margin: 0; padding: 0;

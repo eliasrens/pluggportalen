@@ -18,9 +18,11 @@ import { app, el, renderTopbar, flash, escHtml, getMattematch } from "../ui.js";
 import { mountFastAnswer } from "../mult/fast-answer.js";
 import MULT from "../live/modes/multiplication-0-10.js";
 import { onMattematchChange, mmNow } from "./mm-watch.js";
+import { getClasses } from "../data-classes.js";
 import { submitAnswer, loadMyStats } from "./mm-data.js";
 import { openTopplista, openStatistik } from "./mm-panels.js";
 import { formatLeft, toMs } from "./mm-core.js";
+import { arskursAvKlass, arskursKod } from "./arskurs.js";
 
 const ROUTE = "#/elev/mattematchen";
 let aktiv = null; // { stang() } för vyn som visas just nu
@@ -64,8 +66,14 @@ export async function pageMattematchen() {
   const uid = data.currentStudentId();
   const name = data.getSession()?.namn || uid;
   // Poängen läses FÖRE första frågan, så lokala +1 aldrig dubbelräknas.
-  const [start] = await Promise.all([loadMyStats(competition.id, uid).catch(() => null), stilP]);
+  // Klasslistan (TTL-cachad) ger klassens namn → årskursen på topplisteposten
+  // (#845). Saknas namnet skrivs posten utan årskurs (syns under "Alla").
+  const [start, klasser] = await Promise.all([
+    loadMyStats(competition.id, uid).catch(() => null), getClasses().catch(() => []), stilP,
+  ]);
   if (!window.location.hash.startsWith(ROUTE)) return; // eleven hann gå vidare
+  const klassNamn = klasser.find((k) => k.id === classId)?.name;
+  const arskurs = klassNamn ? arskursKod(arskursAvKlass(klassNamn)) : undefined;
 
   const vy = el(`<div class="mm-sida">
     <header class="mm-topp">
@@ -118,7 +126,7 @@ export async function pageMattematchen() {
       }
       $(".mm-s-ratt").textContent = fa.counts.correct;
       $(".mm-s-fel").textContent = fa.counts.wrong;
-      return submitAnswer({ competition, classId, uid, name, attempt }).then(() => {
+      return submitAnswer({ competition, classId, uid, name, attempt, arskurs }).then(() => {
         if (!attempt.result.correct || bekraftade == null) return;
         const rattFore = bekraftade++;
         import("../klasscenter/kc-koppling.js")
@@ -139,7 +147,7 @@ export async function pageMattematchen() {
   function oppna(fn) {
     if (oppenPanel) return;
     fa.pauseFocus();
-    oppenPanel = fn({ competition, uid, myPoints: poang, onClose: () => { oppenPanel = null; fa.resumeFocus(); } });
+    oppenPanel = fn({ competition, classId, uid, myPoints: poang, onClose: () => { oppenPanel = null; fa.resumeFocus(); } });
   }
   $(".mm-knapp-topp").addEventListener("click", () => oppna(openTopplista));
   $(".mm-knapp-stat").addEventListener("click", () => oppna(openStatistik));

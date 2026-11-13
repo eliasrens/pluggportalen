@@ -339,6 +339,27 @@ Topp 25 elever.
 
 Alla deltagande klasser.
 
+## Årskursfilter (#845, epic #844 – Elias 2026-11-13)
+
+Båda listorna kan filtreras per årskurs: **Alla · Åk 3 · Åk 4 …** Samma filter
+finns på lärarsidan (Följ tävlingen + sparat resultat).
+
+- Klasser har inget årskursfält. Årskursen härleds ur klassnamnets inledande
+  siffror (`arskursAvKlass` i `src/tavling/arskurs.js`): "4B" → 4, "3A" → 3,
+  "10A" → 10. Namn utan inledande siffra ("Klass 3", "Fritids") → **Övriga**.
+- Bara årskurser som finns i matchen visas (ur `participatingClassIds` och
+  klassernas namn). Finns bara en årskurs i matchen visas inget filter.
+- Elevens egen årskurs är förvald. Läraren börjar på Alla.
+- **Läskostnad:** Topp 25 per årskurs är en indexerad fråga med `limit(25)`
+  (`where arskurs == n` + `orderBy correct desc`, index i
+  `firestore.indexes.json`) – aldrig en skanning av alla poster. Därför bär
+  topplisteposten `scores/{uid}.arskurs` (heltal, 0 = Övriga), satt av
+  klienten vid rätt svar och kontrollerad av reglerna mot klassens namn.
+  Klasskampen (få klassräknare) filtreras i klienten utan extra läsning.
+  Historiken (sparat `result`) filtreras helt ur det sparade dokumentet.
+- Poster från före #845 saknar `arskurs` och syns bara under **Alla** tills
+  eleven svarar rätt nästa gång (fältet skrivs då med merge).
+
 ---
 
 # ELEVENS STATISTIKKNAPP
