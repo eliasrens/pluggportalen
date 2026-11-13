@@ -226,10 +226,13 @@ dag räknas fortfarande som poäng men ger inga mynt. Visas mjukt på sidan:
 Talen (1 per rätt, 50 per dag) står i `src/tavling/mm-config.js` och måste
 stämma med `firestore.rules` (testas i `test/mm-mynt.test.js`).
 
-Taket hålls av reglerna, inte klienten: dagsräknaren
+På MM-vägen hålls taket av reglerna, inte klienten: dagsräknaren
 `studentData/{uid}/mmMynt/{dag}` får bara öka med 1 i SAMMA batch som ett
-NYTT rätt svarsdokument, saldot måste öka med exakt 1 i samma batch, högst 50
-per dag, aldrig återställas, aldrig två gånger för samma `attemptId`.
+NYTT rätt svarsdokument, utbetalningen i den batchen måste vara exakt +1 på
+saldot, högst 50 per dag, räknaren återställs aldrig och räknar aldrig två
+gånger för samma `attemptId`. Saldot `studentData.coins` i sig skyddas INTE
+av detta – eleven kan redan i dag skriva det direkt i sitt eget dokument
+(gammalt hål, utanför #846).
 "Dag" = svenskt datum (Europe/Stockholm) ur serverns klocka – se
 `docs/DATAMODELL.md` "Mattematchen & Live" och regelkommentaren `mmMyntOk`.
 
