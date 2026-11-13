@@ -211,13 +211,33 @@ Aktiv tävling för elevens klass:
 
 ---
 
-# INGEN AVATARVALUTA
+# PLUGGMYNT PÅ MATTEMATCHEN-SIDAN (beslut ändrat 2026-11-13, #846)
 
-Mattematchen ska INTE ge Pluggportalens pengar.
+Tidigare: "INGEN AVATARVALUTA – tävlingspoäng är enda belöningen". Elias
+ändrade beslutet 2026-11-13:
 
-Ingen avatarbelöning ska delas ut.
+**1 rätt svar på Mattematchen-sidan = 1 pluggmynt** till elevens VANLIGA
+saldo (`studentData.coins`), som Läsresan. Fel svar ger inget.
 
-Tävlingspoäng är den enda belöningen i nuläget.
+**Dagstak: 50 mynt per elev och dag** från Mattematchen. Svar nr 51+ samma
+dag räknas fortfarande som poäng men ger inga mynt. Visas mjukt på sidan:
+"Dagens mynt är intjänade – poängen räknas fortfarande!"
+
+Talen (1 per rätt, 50 per dag) står i `src/tavling/mm-config.js` och måste
+stämma med `firestore.rules` (testas i `test/mm-mynt.test.js`).
+
+Taket hålls av reglerna, inte klienten: dagsräknaren
+`studentData/{uid}/mmMynt/{dag}` får bara öka med 1 i SAMMA batch som ett
+NYTT rätt svarsdokument, saldot måste öka med exakt 1 i samma batch, högst 50
+per dag, aldrig återställas, aldrig två gånger för samma `attemptId`.
+"Dag" = svenskt datum (Europe/Stockholm) ur serverns klocka – se
+`docs/DATAMODELL.md` "Mattematchen & Live" och regelkommentaren `mmMyntOk`.
+
+Live-svar som räknas in i Mattematchen (issue C) ger INGA extra MM-mynt –
+Live betalar redan. Myntvägen hör bara till MM-sidans svar
+(`planMathAnswerWrites` med `mynt`).
+
+Fortfarande ingen avatarbelöning (inga avatar-saker delas ut).
 
 ---
 
@@ -1436,7 +1456,8 @@ Förväntat:
 100 rätt
 100 individuella poäng
 
-Ingen avatarvaluta delas ut.
+50 pluggmynt (dagstaket, #846) – de sista 50 rätt ger poäng men inga mynt,
+och "Dagens mynt är intjänade – poängen räknas fortfarande!" visas.
 
 ---
 

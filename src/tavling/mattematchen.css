@@ -60,8 +60,25 @@ body.mm-lage .container {
   color: var(--bla-mork); font-variant-numeric: tabular-nums;
 }
 .mm-poang span { font-size: 12px; font-weight: 700; color: var(--text-svag); }
-.mm-poang.mm-plopp { animation: mm-plopp 220ms ease-out; }
+.mm-poang.mm-plopp, .mm-mynt.mm-plopp { animation: mm-plopp 220ms ease-out; }
 @keyframes mm-plopp { 40% { transform: scale(1.12); } }
+/* Dagens pluggmynt (#846): 1 per rätt, högst 50 per dag – "fullt" dämpas. */
+.mm-mynt {
+  display: flex; flex-direction: column; align-items: center;
+  min-width: 84px; padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.78); border-radius: 14px;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.12);
+}
+.mm-mynt-tal {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: clamp(16px, 2.8vh, 22px); line-height: 1.2;
+  color: #8a5a00; font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.mm-mynt-tak { display: inline-flex; align-items: center; gap: 5px; }
+.mm-mynt span { font-size: 12px; font-weight: 700; color: var(--text-svag); white-space: nowrap; }
+.mm-mynt-fullt { background: rgba(255, 255, 255, 0.55); }
+.mm-mynt-fullt .mm-mynt-tal { color: var(--text-svag); }
+.mm-mynt-tak { color: #8a5a00; flex-basis: 100%; }
 
 .mm-knappar { display: flex; gap: 8px; }
 /* Smal skärm: titeln får egen rad, poäng + knappar under. */
@@ -222,6 +239,6 @@ body.mm-lage .container {
 .mm-niva-ingen .mm-tal { color: var(--text-svag); }
 
 @media (prefers-reduced-motion: reduce) {
-  .mm-poang.mm-plopp { animation: none; }
+  .mm-poang.mm-plopp, .mm-mynt.mm-plopp { animation: none; }
   .mm-knapp { transition: none; }
 }
