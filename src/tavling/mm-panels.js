@@ -10,8 +10,10 @@
 //     klasser, rätt / elevantal med 1 decimal och svensk komma)
 //     Klasskampen har ett årskursfilter (#845): Alla · Åk 3 · Åk 4 … – bara
 //     årskurser som finns i matchen, elevens egen (classId) förvald. Filtret
-//     görs i klienten på de redan lästa klassräknarna – inga extra läsningar.
-//     Topp 25 är oförändrad (alla deltagande klasser).
+//     görs i klienten på de redan lästa klassräknarna: raderna och klass-
+//     listan hålls i panelen, ett filterbyte ritar bara om – inga läsningar.
+//     Topp 25 är oförändrad (alla deltagande klasser) och startar sin
+//     läsning direkt, parallellt med klasslistan.
 //   openStatistik({ competition, uid, onClose })
 //     rätt, fel, totalt, % rätt, % fel + per tabell 0–10. Bara egen data.
 // Stäng: ✕, Esc eller klick utanför kortet.
@@ -63,10 +65,11 @@ function panelSkal(titel, innehall, onClose) {
 const laddar = `<p class="mm-laddar">Laddar…</p>`;
 const felRad = `<p class="mm-laddar">Kunde inte hämta listan just nu. Prova igen om en stund.</p>`;
 
-async function ritaIndividuellt(box, { competition, uid, myPoints, klassNamn, giltig = () => true }) {
+/** Topp 25. raderP = loadTop25-löftet (startat före klasslistan, parallellt). */
+async function ritaIndividuellt(box, { uid, myPoints, klassNamn, raderP, giltig = () => true }) {
   box.innerHTML = laddar;
   try {
-    const rader = await loadTop25(competition.id);
+    const rader = await raderP;
     if (!giltig()) return; // eleven hann byta flik – den nyare ritningen äger ytan
     if (!rader.length) {
       box.innerHTML = `<p class="mm-tom">Ingen har fått poäng än – bli först! 🚀</p>`;
@@ -87,29 +90,21 @@ async function ritaIndividuellt(box, { competition, uid, myPoints, klassNamn, gi
   }
 }
 
-async function ritaKlasskamp(box, { competition, myClassIds, ak, klassNamn, giltig = () => true }) {
-  box.innerHTML = laddar;
-  try {
-    const alla = await loadClassFight(competition);
-    if (!giltig()) return; // flik-/filterbyte under laddningen – nyare ritning äger ytan
-    const rader = filtreraArskurs(alla, ak, klassNamn, "score");
-    if (!rader.length) {
-      box.innerHTML = `<p class="mm-tom">Inga klasser i ${escHtml(arskursLabel(ak).toLowerCase())}.</p>`;
-      return;
-    }
-    const max = Math.max(...rader.map((r) => r.score), 0);
-    box.innerHTML = `<ol class="mm-klasser">${rader.map((r) => `
-        <li class="mm-klassrad${myClassIds.includes(r.classId) ? " mm-jag" : ""}">
-          <span class="mm-plats">${plats(r.rank)}</span>
-          <span class="mm-klassnamn">${escHtml(r.name)}</span>
-          <span class="mm-stapel" aria-hidden="true"><i style="width:${max > 0 ? Math.max(2, (r.score / max) * 100) : 0}%"></i></span>
-          <b class="mm-tal">${formatScore(r.score)}</b>
-        </li>`).join("")}</ol>
-      <p class="mm-not">Poäng = klassens rätt ÷ antal elever i klassen</p>`;
-  } catch (err) {
-    console.warn("Mattematchen: Klasskamp", err);
-    box.innerHTML = felRad;
+/** Klasskampen: ren ritning av redan lästa (och filtrerade) rader – inga läsningar. */
+function ritaKlassrader(box, rader, { myClassIds, ak }) {
+  if (!rader.length) {
+    box.innerHTML = `<p class="mm-tom">Inga klasser i ${escHtml(arskursLabel(ak).toLowerCase())}.</p>`;
+    return;
   }
+  const max = Math.max(...rader.map((r) => r.score), 0);
+  box.innerHTML = `<ol class="mm-klasser">${rader.map((r) => `
+      <li class="mm-klassrad${myClassIds.includes(r.classId) ? " mm-jag" : ""}">
+        <span class="mm-plats">${plats(r.rank)}</span>
+        <span class="mm-klassnamn">${escHtml(r.name)}</span>
+        <span class="mm-stapel" aria-hidden="true"><i style="width:${max > 0 ? Math.max(2, (r.score / max) * 100) : 0}%"></i></span>
+        <b class="mm-tal">${formatScore(r.score)}</b>
+      </li>`).join("")}</ol>
+    <p class="mm-not">Poäng = klassens rätt ÷ antal elever i klassen</p>`;
 }
 
 /** 🏆 Topplistor med två flikar; Klasskampen har årskursfiltret. */
@@ -124,18 +119,35 @@ export function openTopplista(ctx) {
   const yta = lager.querySelector(".mm-flik-yta");
   // Klasslistan (TTL-cachad) ger namn → årskurser i matchen + elevens klasser.
   const klasserP = getClasses().catch(() => []);
+  let klasser = null; // klasslistan när den kommit – läses aldrig om i panelen
+  let klassRader = null; // Klasskampens rader – läses EN gång per panel, filtret ritar bara om
   let flik = null;
   let ak = ALLA;
   let stund = 0; // senaste ritningen vinner (flik-/filterbyte mitt i en laddning)
   async function rita() {
     const egen = ++stund;
     const giltig = () => egen === stund;
-    const klasser = await klasserP;
+    // Topp 25 startar direkt så läsningen går parallellt med klasslistan.
+    const toppP = flik === "ind" ? loadTop25(ctx.competition.id) : null;
+    toppP?.catch(() => {}); // felet hanteras i ritaIndividuellt (om den ritningen fortfarande gäller)
+    klasser ??= await klasserP;
     if (!giltig()) return;
     const klassNamn = new Map(klasser.map((k) => [k.id, k.name || k.id]));
     const myClassIds = klasser.filter((k) => (k.studentIds || []).includes(ctx.uid)).map((k) => k.id);
-    if (flik === "ind") await ritaIndividuellt(yta, { ...ctx, klassNamn, giltig });
-    else await ritaKlasskamp(yta, { ...ctx, myClassIds, ak, klassNamn, giltig });
+    if (flik === "ind") return ritaIndividuellt(yta, { ...ctx, klassNamn, raderP: toppP, giltig });
+    if (!klassRader) {
+      yta.innerHTML = laddar;
+      try {
+        const rader = await loadClassFight(ctx.competition);
+        if (!giltig()) return;
+        klassRader = rader;
+      } catch (err) {
+        console.warn("Mattematchen: Klasskamp", err);
+        if (giltig()) yta.innerHTML = felRad;
+        return;
+      }
+    }
+    ritaKlassrader(yta, filtreraArskurs(klassRader, ak, klassNamn, "score"), { myClassIds, ak });
   }
   function visa(namn) {
     if (namn === flik) return;
