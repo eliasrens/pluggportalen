@@ -121,6 +121,7 @@ export async function pageMattematchen() {
   // Dagens mynt (#846): lokalt per svar; taket visas mjukt i fotraden.
   let myntIdag = myntStart;
   let nekadeIRad = 0; // nekade mynt i rad utan att taket förklarar det (#849)
+  let forstaNekat = 0; // mmNow() för radens första nekande
   let nekatLasning = null; // pågående läsning efter ett nekat mynt
   const visaMynt = () => {
     const fullt = myntIdag >= MYNT_TAK_PER_DAG;
@@ -160,11 +161,11 @@ export async function pageMattematchen() {
         } else if (mynt && mynt.dag === dag) {
           // Nekat mynt (#849): taket nått i en annan flik ELLER fel dag runt midnatt.
           // Dagsräknaren avgör – läses en gång per nekande, aldrig per betalt svar.
-          nekadeIRad++;
+          if (nekadeIRad++ === 0) forstaNekat = mmNow();
           nekatLasning ??= loadMyntIdag(uid, mynt.dag).catch(() => null).then((lasta) => {
             nekatLasning = null;
             if (mynt.dag !== dag) return; // dagen bytte under läsningen – räknaren är redan nollad
-            myntIdag = myntEfterNekat({ myntIdag, lasta, nekadeIRad });
+            myntIdag = myntEfterNekat({ myntIdag, lasta, nekadeIRad, sedanForsta: mmNow() - forstaNekat });
             visaMynt();
           });
         }

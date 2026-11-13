@@ -49,23 +49,27 @@ export function myntForRatt(myntIdag) {
 
 /** Så många nekade mynt i rad (samma dag, inget taket) innan sidan slutar försöka (#849). */
 export const MYNT_NEKAT_SPARR = 5;
+/** …och så länge (ms) nekandena måste ha pågått – midnattsfönstret (klockskillnad < 5 s) låser aldrig. */
+export const MYNT_NEKAT_SPARR_MS = 60_000;
 
 /**
  * Dagens mynt efter ett NEKAT mynt (#849). Nekandet kan vara taket (annan
  * flik) men också fel dag-nyckel runt svensk midnatt – därför läser sidan
  * dagsräknaren en gång efter nekandet (aldrig per betalt svar).
  *   • lasta = räknarens `mynt` (0 = inget dokument), null = läsningen misslyckades
+ *   • sedanForsta = ms sedan första nekandet i raden (serverkorrigerad tid)
  *   • lästa ≥ taket → taket (texten visas)
  *   • annars → max(lokalt, lästa): nästa rätt svar försöker igen
- *   • nekat MYNT_NEKAT_SPARR gånger i rad utan förklaring → taket som förut,
- *     så ett ihållande fel inte kostar en extra skrivning + läsning per svar
- * @param {{myntIdag:number, lasta:number|null, nekadeIRad:number}} a
+ *   • nekat MYNT_NEKAT_SPARR gånger i rad utan förklaring OCH i minst
+ *     MYNT_NEKAT_SPARR_MS → taket som förut, så ett ihållande fel inte kostar
+ *     en extra skrivning + läsning per svar (ett kort midnattsfönster låser aldrig)
+ * @param {{myntIdag:number, lasta:number|null, nekadeIRad:number, sedanForsta:number}} a
  * @returns {number}
  */
-export function myntEfterNekat({ myntIdag, lasta, nekadeIRad }) {
+export function myntEfterNekat({ myntIdag, lasta, nekadeIRad, sedanForsta }) {
   const lokalt = Number(myntIdag) || 0;
   const server = lasta == null ? null : Number(lasta) || 0;
   if (server != null && server >= MYNT_TAK_PER_DAG) return MYNT_TAK_PER_DAG;
-  if (nekadeIRad >= MYNT_NEKAT_SPARR) return MYNT_TAK_PER_DAG;
+  if (nekadeIRad >= MYNT_NEKAT_SPARR && sedanForsta >= MYNT_NEKAT_SPARR_MS) return MYNT_TAK_PER_DAG;
   return server == null ? lokalt : Math.max(lokalt, server);
 }
