@@ -139,7 +139,7 @@ export async function pageMattematchen() {
   function oppna(fn) {
     if (oppenPanel) return;
     fa.pauseFocus();
-    oppenPanel = fn({ competition, uid, myPoints: poang, onClose: () => { oppenPanel = null; fa.resumeFocus(); } });
+    oppenPanel = fn({ competition, classId, uid, myPoints: poang, onClose: () => { oppenPanel = null; fa.resumeFocus(); } });
   }
   $(".mm-knapp-topp").addEventListener("click", () => oppna(openTopplista));
   $(".mm-knapp-stat").addEventListener("click", () => oppna(openStatistik));

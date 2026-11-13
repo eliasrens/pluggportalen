@@ -339,6 +339,24 @@ Topp 25 elever.
 
 Alla deltagande klasser.
 
+## Årskursfilter i Klasskampen (#845, epic #844 – Elias 2026-11-13)
+
+Klasskampen kan filtreras per årskurs: **Alla · Åk 3 · Åk 4 …** Samma filter
+finns på lärarsidan (Följ tävlingen + sparat resultat). **Topp 25 är
+oförändrad** (alla deltagande klasser) – beslut av Elias 2026-11-13.
+
+- Klasser har inget årskursfält. Årskursen härleds ur klassnamnets inledande
+  siffror (`arskursAvKlass` i `src/tavling/arskurs.js`): "4B" → 4, "3A" → 3,
+  "10A" → 10. Namn utan inledande siffra ("Klass 3", "Fritids") → **Övriga**.
+- Bara årskurser som finns i matchen visas (ur `participatingClassIds` och
+  klassernas namn). Finns bara en årskurs i matchen visas inget filter.
+- Elevens egen årskurs är förvald. Läraren börjar på Alla.
+- Placeringarna räknas om inom filtret (delade platser som förut).
+- **Inga extra läsningar:** filtret görs i klienten på Klasskampens redan
+  lästa rader (klassräknarna + klasslistan, `mm-data.loadClassFight`), och på
+  lärarsidan på samma rader resp. det sparade `result.classes`. Inget lagras,
+  inga regel- eller indexändringar.
+
 ---
 
 # ELEVENS STATISTIKKNAPP

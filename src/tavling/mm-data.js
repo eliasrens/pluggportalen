@@ -10,7 +10,8 @@
 //   • Topp 25: scores orderBy(correct desc) limit(25) – reglerna tillåter
 //     elever att lista högst 25 (aldrig scanna alla svar).
 //   • Klasskamp: classCounters-shards (≤ klasser × shards små dokument)
-//     + klasslistan (TTL-cachad) för elevantal/namn.
+//     + klasslistan (TTL-cachad) för elevantal/namn. Årskursfiltret (#845)
+//     görs i klienten på de lästa raderna – inga extra läsningar.
 //   • 📊: elevens EGET studentStats-dokument (reglerna: bara isSelf).
 // Topplistorna cachas 20 s i minnet så flik-byten inte läser om.
 //
