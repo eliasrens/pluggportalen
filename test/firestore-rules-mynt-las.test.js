@@ -177,6 +177,38 @@ describe("myntlåset (#855): create och delete", () => {
     await assertFails(setDoc(sd("alma"), { ...bas, farm: { ...bas.farm, gardenTier: 2 } }));
     await assertFails(setDoc(sd("alma"), { ...bas, coins: "5" }));
   });
+  it("create utan xp nekas – inte ens tomt (#855 F1, steg 1 av förbikopplingen)", async () => {
+    await testEnv.withSecurityRulesDisabled((ctx) => deleteDoc(doc(ctx.firestore(), "studentData", "alma")));
+    await assertFails(setDoc(sd("alma"), { avatarId: "fox", avatarChosen: true }, { merge: true }), "setAvatar utan xp");
+    await assertFails(setDoc(sd("alma"), {}), "tomt dokument");
+    await assertFails(setDoc(sd("alma"), { xp: increment(1) }, { merge: true }), "xp: 1");
+    assert.equal(await las(["studentData", "alma"]), null);
+  });
+  it("förbikopplingen F1 i två steg går inte: create utan xp nekas, med xp: 0 räknas nivån ur xp", async () => {
+    await testEnv.withSecurityRulesDisabled((ctx) => deleteDoc(doc(ctx.firestore(), "studentData", "alma")));
+    const progress = Object.fromEntries(Array.from({ length: 200 }, (_, i) => [`omr${i}`, { quiz: { stars: 3, completed: true } }]));
+    await assertFails(setDoc(sd("alma"), { avatarId: "fox", avatarChosen: true }, { merge: true }));
+    await assertFails(updateDoc(sd("alma"), { progress }), "dokumentet finns inte");
+    await assertSucceeds(setDoc(sd("alma"), { avatarId: "fox", avatarChosen: true, xp: increment(0) }, { merge: true }));
+    await assertSucceeds(updateDoc(sd("alma"), { progress }), "progress är fritt (R2), men xp finns");
+    assert.equal((await las(["studentData", "alma"])).xp, 0, "xp ligger kvar på 0 – nivån räknas ur xp");
+  });
+  it("klienternas skrivningar med xp: increment(0): setAvatar och MM-saldot, med och utan dokument", async () => {
+    // Med dokument (alma xp 100): xp orörd, inte ens bland ändrade nycklar.
+    await assertSucceeds(setDoc(sd("alma"), { avatarId: "owl", avatarChosen: true, xp: increment(0) }, { merge: true }), "setAvatar, finns");
+    await assertSucceeds(mm("alma"), "MM-svar, finns");
+    let a = await las(["studentData", "alma"]);
+    assert.deepEqual([a.xp, a.coins, a.avatarId], [100, 251, "owl"]);
+    // Utan dokument: båda skapar xp: 0.
+    await testEnv.withSecurityRulesDisabled((ctx) => deleteDoc(doc(ctx.firestore(), "studentData", "alma")));
+    await assertSucceeds(mm("alma"), "MM-svar skapar dokumentet");
+    a = await las(["studentData", "alma"]);
+    assert.deepEqual([a.xp, a.coins], [0, 1]);
+    await testEnv.withSecurityRulesDisabled((ctx) => deleteDoc(doc(ctx.firestore(), "studentData", "alma")));
+    await assertSucceeds(setDoc(sd("alma"), { avatarId: "cat", avatarChosen: true, xp: increment(0) }, { merge: true }), "setAvatar skapar");
+    a = await las(["studentData", "alma"]);
+    assert.deepEqual([a.xp, a.avatarId], [0, "cat"]);
+  });
   it("create utan xp med uppblåst progress nekas (#855 F1: xpFromProgress ger nivå 31)", async () => {
     await testEnv.withSecurityRulesDisabled((ctx) => deleteDoc(doc(ctx.firestore(), "studentData", "alma")));
     const progress = Object.fromEntries(Array.from({ length: 200 }, (_, i) => [`omr${i}`, { quiz: { stars: 3, completed: true } }]));
@@ -221,7 +253,7 @@ describe("myntlåset (#855): det legitima fungerar", () => {
     await testEnv.withSecurityRulesDisabled((ctx) => deleteDoc(doc(ctx.firestore(), "studentData", "alma")));
     await assertSucceeds(setDoc(sd("alma"), { ...defaultStudentData(), lasresa: { level: 3 } }), "Läsresan-reserven");
     await testEnv.withSecurityRulesDisabled((ctx) => deleteDoc(doc(ctx.firestore(), "studentData", "alma")));
-    await assertSucceeds(setDoc(sd("alma"), { avatarId: "fox", avatarChosen: true }, { merge: true }), "setAvatar på saknat dokument");
+    await assertSucceeds(setDoc(sd("alma"), { avatarId: "fox", avatarChosen: true, xp: increment(0) }, { merge: true }), "setAvatar på saknat dokument");
   });
   it("alla andra fält skrivs som förut (framsteg, rum, gård, schack, Läsresan, huslås)", async () => {
     await assertSucceeds(updateDoc(sd("alma"), { "progress.so.quiz": { stars: 3, plays: 2, cat: { a: 1 } } }));

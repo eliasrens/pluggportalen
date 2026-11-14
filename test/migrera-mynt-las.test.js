@@ -58,6 +58,13 @@ describe("coins och xp blir heltal (#855 F2)", () => {
     assert.equal(kor({ xp: 0 }), null, "saknat saldo rörs inte");
     assert.equal(kor({ xp: 0, coins: 0 }), null);
   });
+  it("xp härlett ur progress med decimalstjärnor avrundas nedåt", () => {
+    const progress = { so: { quiz: { stars: 2.55 } }, ma: { match: { stars: 1.3, completed: true } } };
+    const p = kor({ progress });
+    assert.ok(Number.isInteger(p.xp), String(p.xp));
+    assert.equal(p.xp, Math.floor(xpFromProgress(progress)));
+    assert.notEqual(xpFromProgress(progress), p.xp, "testet ska ha ett decimalvärde att avrunda");
+  });
   it("idempotent: det normaliserade dokumentet ger null", () => {
     const sd = { xp: 3.5, coins: "40.2", progress: PROGRESS };
     assert.equal(kor({ ...sd, ...kor(sd) }), null);

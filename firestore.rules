@@ -370,13 +370,15 @@ service cloud.firestore {
     // äpplen, varor eller djur och gårdsnivåer ≤ 1. Enda undantaget: mynt som
     // ett kvitto betalar i samma begäran (MM-svarets batch skapar dokumentet
     // med coins: 1 om det saknas) – samma regel som en höjning från 0.
-    // Utan xp måste progress vara tomt (#855 F1): annars visar xpFromProgress en
-    // uppblåst nivå som eleven aldrig kan skriva bort (xp sätts bara när den finns).
+    // xp: 0 MÅSTE finnas (#855 F1): utan xp visar xpFromStudentData nivån ur
+    // progress, som eleven skriver fritt, och xp kan aldrig sättas i efterhand.
+    // Klienter som kan skapa dokumentet utan defaultStudentData (setAvatar,
+    // MM-svarets saldo) skickar därför xp: increment(0) – oförändrat om xp finns.
     function elevNyttDokOk(uid) {
       let n = request.resource.data;
       let f = n.get('farm', {});
       return (n.get('coins', 0) == 0 || (n.coins is int && elevMyntOk(uid, n.coins, [].toSet()))) &&
-        n.get('xp', 0) == 0 && ('xp' in n || n.get('progress', {}).size() == 0) &&
+        n.get('xp', -1) == 0 &&
         n.get('appleCount', 0) == 0 &&
         n.get('ownedItems', []).size() == 0 && n.get('ownedCounts', {}).size() == 0 &&
         n.get('pets', []).size() == 0 && n.get('roomAnimals', []).size() == 0 &&

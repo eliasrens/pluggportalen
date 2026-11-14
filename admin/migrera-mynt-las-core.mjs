@@ -6,7 +6,8 @@
 // admin/migrera-mynt-las.mjs kör den på alla dokument (torrt som standard).
 //
 //   xp        saknas fältet (eller är det inte ett tal ≥ 0) → xpFromProgress(progress),
-//             samma värde som xpFromStudentData visar i dag. Ett decimaltal → Math.floor.
+//             samma värde som xpFromStudentData visar i dag, avrundat nedåt (låset
+//             godtar bara heltal). Ett decimaltal → Math.floor.
 //   coins     måste vara ett heltal ≥ 0 för låset (#855 F2: reglerna godtar bara
 //             `int`, annars nekas varje kvitto och eleven får aldrig mer mynt):
 //             decimaltal → Math.floor, negativt → 0, en sträng med ett tal
@@ -64,7 +65,7 @@ export function planeraMigrering(sd, rakna = {}) {
   const plus = (k, n = 1) => { rakna[k] = (rakna[k] || 0) + n; };
   const patch = {};
   if (!okXp(d.xp)) {
-    patch.xp = xpFromProgress(d.progress || {});
+    patch.xp = Math.floor(xpFromProgress(d.progress || {})); // stjärnor kan vara decimaltal (#855 F2)
     plus("xp");
   } else if (!heltalOk(d.xp)) {
     patch.xp = Math.floor(d.xp);
