@@ -167,13 +167,13 @@ av reglerna), så de är räknade ur koden: `getAfter(myntDag)` i `studentData`-
 
 ## 8. Fynd
 
-1. **F1 – fas 2 deployade inte om `butikKop`** (medel, docs, rättat i docs). B4 ändrade
+1. **F1 – fas 2 deployade inte om `butikKop`** (medel, docs, rättat i docs i #857). B4 ändrade
    `functions/butik/` (`butik-core.js`, `farm-core.js`, `klass-membership.js`: djur utan
    kartpost bevaras vid köp, svaret räknar bara ägda djur), men §7 fas 2 hade inget
    functions-steg. Utan det kör produktionen fas 1-callablen efter låset. Bevis:
    `git diff mynt-fas1..HEAD --stat -- functions/butik`. Nu i `ADMIN.md` §9 och
    `SAKERHET-MYNT.md` §7 (fas 2 steg 2).
-2. **F2 – fas 1-webben kräver en egen merge** (medel, driftordning, dokumenterat). GitHub Pages
+2. **F2 – fas 1-webben kräver en egen merge** (medel, driftordning, dokumenterat i #857). GitHub Pages
    deployar `main`, så "fas 1-webben" (`mynt-fas1`) måste mergas till main före epic-PR:en,
    och taggen är bara lokal (`git push origin mynt-fas1`). Nu i `ADMIN.md` §9.
 3. **F3 – `test:e2e` föll efter B3** (låg, test, rättat). `test/e2e-auth.test.mjs` test 3
@@ -190,6 +190,16 @@ av reglerna), så de är räknade ur koden: `getAfter(myntDag)` i `studentData`-
 6. **F6 – ett artbytt mystiskt ägg visas som en annan vanlig art** (info, R5). `px1` sparades
    som `robob`; efter att angriparen skrev `pumpis` (Halloween) visas det som `pingio`.
    Halloween-arten syns inte, och alla vanliga arter kommer ur samma ägg för 200.
+
+**Kända rester (inga fixar här):**
+
+- **classProjections-utseendet** (#856 fynd F2, R4). Eleven kan skriva
+  `members.<uid>.avatarItems`/`husSkalId` i klassprojektionen, så byn kan visa kläder och ett
+  hus som eleven inte äger. Det är kosmetiskt och rör inga mynt eller varor. Frågan till Elias
+  står i `SAKERHET-MYNT.md` §9 F8.
+- **Accepterade undantag:** `src/farm-core.js` har 501 rader (över taket 400; det var 453
+  före B4, leadens beslut i #856). Bootgrafen är 107 filer, oförändrad.
+- I enhetssviten flakade inget den här gången: 0 fail, och schack-motorns tidstest var grönt.
 
 **Inte kontrollerat:** Ämnesläsning och Ekvationsresan i jämförelsen (inte i acceptansen;
 samma `tjanaMynt` som Läsresan och testade i #853). Mysterylådans dubblettretur (lottningen
