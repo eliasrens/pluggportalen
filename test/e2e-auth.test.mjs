@@ -9,7 +9,8 @@
 //   2. Elev1 loggar in med användarnamn→e-post + lösenord (oförändrad UX).
 //   3. Elev1 läser sin egen data och (byn, #114) klasskamraters – men inte en
 //      husLast-låst elevs studentData.
-//   4. Elev1:s försök att direktskriva elev2:s studentData NEKAS.
+//   4. Elev1:s försök att sätta sitt eget saldo (myntlåset, #851) eller direktskriva
+//      elev2:s studentData NEKAS.
 //   5. Läraren loggar in, skapar en elev och ger coins – tillåts.
 //   6. Utloggad (obehörig) kan inte läsa students eller skriva studentData.
 //
@@ -125,16 +126,25 @@ test("elev1 loggar in (användarnamn→e-post), läser olåst data men INTE husL
 });
 
 test("elev1 kan skriva sin egen studentData men INTE elev2:s (fusk nekas)", async () => {
-  await setDoc(doc(clientDb, "studentData", "elev1"), { coins: 305, progress: {} }, { merge: true });
-  const own = await getDoc(doc(clientDb, "studentData", "elev1"));
-  assert.equal(own.data().coins, 305);
+  try {
+    await setDoc(doc(clientDb, "studentData", "elev1"), { husLast: true, progress: {} }, { merge: true });
+    const own = await getDoc(doc(clientDb, "studentData", "elev1"));
+    assert.equal(own.data().husLast, true);
 
-  await assert.rejects(
-    () => setDoc(doc(clientDb, "studentData", "elev2"), { coins: 0 }, { merge: true }),
-    /permission-denied|PERMISSION_DENIED|Missing or insufficient/i,
-    "elev1 ska INTE kunna skriva elev2:s studentData"
-  );
-  await signOut(clientAuth);
+    // Myntlåset (epic #851, SAKERHET-MYNT §6 B3): saldot höjs bara med ett kvitto.
+    await assert.rejects(
+      () => setDoc(doc(clientDb, "studentData", "elev1"), { coins: 305 }, { merge: true }),
+      /permission-denied|PERMISSION_DENIED|Missing or insufficient/i,
+      "elev1 ska INTE kunna sätta sitt eget saldo"
+    );
+    await assert.rejects(
+      () => setDoc(doc(clientDb, "studentData", "elev2"), { coins: 0 }, { merge: true }),
+      /permission-denied|PERMISSION_DENIED|Missing or insufficient/i,
+      "elev1 ska INTE kunna skriva elev2:s studentData"
+    );
+  } finally {
+    await signOut(clientAuth);
+  }
 });
 
 test("obehörig (utloggad) kan inte läsa students eller skriva studentData", async () => {
