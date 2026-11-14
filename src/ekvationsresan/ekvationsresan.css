@@ -221,6 +221,7 @@ body.ekv-lage .container {
 .ekv-feedback { margin: 0; font-weight: 700; font-size: 1.05rem; }
 .ekv-mynt { margin: 0; display: inline-flex; align-items: center; gap: 6px; font-weight: 800; font-size: 1.15rem; color: #8a5a00; }
 .ekv-mynt.is-sparar { color: var(--text-svag); font-weight: 600; }
+.ekv-mynt-tak { margin: 0; font-size: .9rem; color: var(--text-svag); text-align: center; }
 .ekv-fel { margin: 0; color: #7a3d00; }
 .ekv-resultat-knappar { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
 .ekv-igen { border: 3px solid var(--gul); background: #fff7d6; color: #6b5200; font-size: 1.05rem; padding: 6px 16px; border-radius: 14px; }

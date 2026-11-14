@@ -151,7 +151,8 @@ export async function getCoins(studentId = currentStudentId()) {
 }
 
 /**
- * Lägg till coins (transaktion, så flera övningar inte skriver över varandra).
+ * Lägg till coins (transaktion). BARA lärarens Ge mynt (E10) – elevens egen
+ * intjäning går via data-mynt.js tjanaMynt med dagskvitto (#853).
  * @returns {Promise<number>} nytt saldo.
  */
 export async function addCoins(amount, studentId = currentStudentId()) {
@@ -171,7 +172,7 @@ export async function addCoins(amount, studentId = currentStudentId()) {
 }
 
 // XP / nivå: se systermodulen data-xp.js (additiv, som data-pet.js) – håller
-// data.js under filtaket. getXp()/addXp() importeras därifrån direkt.
+// data.js under filtaket. XP delas ut av data-mynt.js tjanaMynt (#853).
 
 // Framsteg, roterande frågeurval & profilstatistik: utbrutet till
 // data-progress.js (additiv systermodul, filtaket #327) – re-exporteras nedan.

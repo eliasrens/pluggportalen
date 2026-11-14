@@ -2,12 +2,14 @@
 // Läsresan – belöningar (src/lasresan/rewards.js)
 // ----------------------------------------------------------------------------
 // 3 pluggcoins per rätt svar (spec §8, talet i config.js). Pengarna läggs på
-// elevens VANLIGA saldo (studentData.coins) via befintliga data.addCoins –
-// det finns INGET separat Läsresan-saldo. Ingen prestationsbonus i v1.
+// elevens VANLIGA saldo (studentData.coins) – det finns INGET separat
+// Läsresan-saldo. Ingen prestationsbonus i v1. Utbetalningen går via
+// data-mynt.js tjanaMynt med dagskvittot (#853): källan "lasresa", eller
+// "amnes" för Ämnesläsningen. Taket kan klippa beloppet (`tak`).
 //
-// award() importerar data.js LAT (dynamiskt) så att den här modulen förblir
-// ren och testbar med `node --test` (data.js drar in Firebase via CDN-URL:er).
-// Tester skickar in en egen addCoins.
+// award() importerar data-mynt.js LAT (dynamiskt) så att den här modulen
+// förblir ren och testbar med `node --test` (Firebase via CDN-URL:er).
+// Tester skickar in en egen betala (tjanaMynt-formen).
 // ============================================================================
 
 import { COINS_PER_CORRECT } from "./config.js";
@@ -21,14 +23,15 @@ export function coinsFor(correct) {
 /**
  * Dela ut belöningen för en färdig text.
  * @param {number} correct antal rätt
- * @param {{studentId?:string, addCoins?:(amount:number, studentId?:string)=>Promise<number>, coins?:number}} [opts]
+ * @param {{studentId?:string, kalla?:("lasresa"|"amnes"), coins?:number,
+ *   betala?:(kalla:string, mynt:number, opts:{studentId?:string})=>Promise<{mynt:number, tak:boolean, saldo:(number|null)}>}} [opts]
  *   `coins` = färdigräknat belopp (Ämnesläsningen: 5/rätt + omläsningstrappa); annars coinsFor(correct).
- * @returns {Promise<{coins:number, balance:(number|null)}>} utdelat belopp + nytt saldo
+ * @returns {Promise<{coins:number, balance:(number|null), tak:boolean}>} utbetalt belopp + nytt saldo
  */
-export async function award(correct, { studentId, addCoins, coins: amount } = {}) {
+export async function award(correct, { studentId, kalla = "lasresa", betala, coins: amount } = {}) {
   const coins = Number.isFinite(amount) ? Math.max(0, Math.floor(amount)) : coinsFor(correct);
-  if (coins <= 0) return { coins: 0, balance: null };
-  const add = addCoins || (await import("../data.js")).addCoins;
-  const balance = studentId === undefined ? await add(coins) : await add(coins, studentId);
-  return { coins, balance };
+  if (coins <= 0) return { coins: 0, balance: null, tak: false };
+  const pay = betala || (await import("../data-mynt.js")).tjanaMynt;
+  const r = await pay(kalla, coins, studentId === undefined ? {} : { studentId });
+  return { coins: r.mynt, balance: r.saldo ?? null, tak: !!r.tak };
 }

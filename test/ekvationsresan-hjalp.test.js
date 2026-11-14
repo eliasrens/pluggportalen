@@ -283,15 +283,16 @@ test("progressionsmätaren: 0–1 ur fönstret, rör sig tydligt vid stark prest
 test("test 22: lösta uppgifter på nivå 1, 3 och 5 ger 1, 2 och 3 mynt till vanliga saldot", async () => {
   let balance = 100;
   const calls = [];
-  const addCoins = async (n) => {
+  const betala = async (kalla, n) => {
     calls.push(n);
+    assert.equal(kalla, "ekv");
     balance += n;
-    return balance;
+    return { mynt: n, tak: false, saldo: balance };
   };
   for (const level of [1, 3, 5]) {
     const task = { ...taskOf("x + 4 = 11"), level };
     const res = taskResult(task, play(task, ["-4"]));
-    await award(res.coins, { addCoins });
+    await award(res.coins, { betala });
   }
   assert.deepEqual(calls, [1, 2, 3]);
   assert.equal(balance, 106);
@@ -302,8 +303,8 @@ test("mynt: nivåtabell (Etapp 2 förberedd), ej löst ger 0 och inget anrop", a
   assert.equal(coinsFor(4, { extraChallenge: true }), 7);
   assert.equal(coinsFor(5, { solved: false }), 0);
   let called = false;
-  const r = await award(0, { addCoins: async () => (called = true) });
-  assert.deepEqual(r, { coins: 0, balance: null });
+  const r = await award(0, { betala: async () => (called = true) });
+  assert.deepEqual(r, { coins: 0, balance: null, tak: false });
   assert.equal(called, false);
   // ingen stjärnbonus: ⭐ och ⭐⭐⭐ ger samma mynt
   const task = taskOf("2x + 4 = 14");

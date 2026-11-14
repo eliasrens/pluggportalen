@@ -133,13 +133,13 @@ function completeTx(ref, studentId, text, answers, completedAt, withSubcollectio
 /**
  * Avsluta den påbörjade texten. EN transaktion skriver försöket + nytt
  * tillstånd (dold nivå, steg/värld, totaler, sedda texter, kategoristatistik).
- * Därefter läggs pengarna på det vanliga saldot via data.addCoins (rewards.award).
+ * Därefter läggs pengarna på det vanliga saldot via tjanaMynt (rewards.award, #853).
  *
  * @param {{text:object, answers:{qid:string, chosen:(number|null)}[]}} args
  *   `text` = ReadingText (rättas HÄR mot answerIndex), `answers` från läsvyn.
  * @returns {Promise<{ok:true, attempt, progress:{worldId,stepInWorld,completedWorlds},
  *   walk:{worldId,fromStep,toStep}, worldCompleted:boolean, completedWorldId, unlockedWorldId,
- *   coins:number, balance:(number|null), attemptStoredIn:("subcollection"|"studentData")}
+ *   coins:number, balance:(number|null), tak:boolean, attemptStoredIn:("subcollection"|"studentData")}
  *   | {ok:false, reason:string}>}
  *   Nivån returneras MEDVETET inte – UI:t ska aldrig kunna visa den.
  */
@@ -164,7 +164,7 @@ export async function completeText({ text, answers }, studentId = currentStudent
   invalidateStudentData(studentId);
   if (!res.ok) return res;
 
-  let reward = { coins: 0, balance: null };
+  let reward = { coins: 0, balance: null, tak: false };
   try {
     reward = await award(res.attempt.correct, { studentId });
   } catch (err) {
@@ -182,6 +182,7 @@ export async function completeText({ text, answers }, studentId = currentStudent
     unlockedWorldId: journey.unlockedWorldId,
     coins: reward.coins,
     balance: reward.balance,
+    tak: reward.tak,
     attemptStoredIn,
   };
 }

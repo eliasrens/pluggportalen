@@ -8,6 +8,7 @@
 
 import { coinIcon } from "../icons.js";
 import { FEEDBACK, UI_TEXT, LEVEL_UP, EXTRA, levelConfig } from "./config.js";
+import { MYNT_DAG_TAK_TEXT } from "../mynt-dag.js";
 
 export const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
@@ -70,9 +71,10 @@ const stjarnor = (n) =>
 
 /**
  * Resultatet efter en uppgift (E1.7). `coins` = null medan det sparas.
+ * `tak` = dagstaket klippte utbetalningen (#853) → en rad under myntet.
  * @param {{stars, feedback, offerRetry, solved}} result
  */
-export function resultHtml(result, { coins = null, saving = false, error = false, retry = true } = {}) {
+export function resultHtml(result, { coins = null, saving = false, error = false, retry = true, tak = false } = {}) {
   const myntRad = !result.solved
     ? ""
     : `<p class="ekv-mynt${saving ? " is-sparar" : ""}">${saving ? "Sparar…" : `+${coins ?? result.coins} ${coinIcon("1.1em")}`}</p>`;
@@ -80,6 +82,7 @@ export function resultHtml(result, { coins = null, saving = false, error = false
     <div class="ekv-stjarnor" aria-label="${result.stars} av 3 stjärnor">${result.solved ? stjarnor(result.stars) : '<span class="ekv-ej-lost">Ej löst</span>'}</div>
     <p class="ekv-feedback">${esc(result.feedback)}</p>
     ${myntRad}
+    ${tak && result.solved ? `<p class="ekv-mynt-tak">${esc(MYNT_DAG_TAK_TEXT)}</p>` : ""}
     ${error ? `<p class="ekv-fel">${esc(UI_TEXT.saveError)}</p>` : ""}
     <div class="ekv-resultat-knappar">
       ${result.offerRetry && retry ? `<button type="button" class="ekv-igen">${esc(FEEDBACK.retryButton)}</button>` : ""}

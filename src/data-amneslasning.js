@@ -12,7 +12,7 @@
 //
 // Samma degradering som Läsresan: nekas lasresaAttempts sparas försöket i
 // studentData.lasresaAttemptsFallback. Mynten (5/rätt, omläsningstrappa) läggs
-// på det vanliga saldot via rewards.award → data.addCoins, som Läsresans.
+// på det vanliga saldot via rewards.award → tjanaMynt (källan "amnes", #853).
 //
 // Importeras BARA dynamiskt (Ämnesläsningens vy) – aldrig statiskt från app.js
 // (bootgrafen, #271 / incident 2026-09-10).
@@ -123,7 +123,7 @@ function completeTx(ref, studentId, ctx, startLevel, completedAt, withSubcollect
  * Avsluta den påbörjade ämnestexten i området. EN transaktion: försöket, den
  * delade läsnivån (tak 7 uppåt) och områdets läst-lista. Därefter mynten.
  * @param {{subjectId:string, areaId:string, text:object, answers:{qid:string, chosen:(number|null)}[]}} args
- * @returns {Promise<{ok:true, attempt:object, area:object, coins:number, balance:(number|null),
+ * @returns {Promise<{ok:true, attempt:object, area:object, coins:number, balance:(number|null), tak:boolean,
  *   attemptStoredIn:("subcollection"|"studentData")} | {ok:false, reason:string}>}
  *   Nivån returneras MEDVETET inte – UI:t ska aldrig kunna visa den.
  */
@@ -148,11 +148,11 @@ export async function completeAmnesText({ subjectId, areaId, text, answers }, st
   invalidateStudentData(studentId);
   if (!res.ok) return res;
 
-  let reward = { coins: 0, balance: null };
+  let reward = { coins: 0, balance: null, tak: false };
   try {
-    reward = await award(res.attempt.correct, { studentId, coins: res.attempt.earnedMoney });
+    reward = await award(res.attempt.correct, { studentId, kalla: "amnes", coins: res.attempt.earnedMoney });
   } catch (err) {
     console.warn("[Ämnesläsning] kunde inte lägga till pengar:", err);
   }
-  return { ok: true, attempt: res.attempt, area: res.area, coins: reward.coins, balance: reward.balance, attemptStoredIn };
+  return { ok: true, attempt: res.attempt, area: res.area, coins: reward.coins, balance: reward.balance, tak: reward.tak, attemptStoredIn };
 }

@@ -66,13 +66,14 @@ test("Test 15: samma text en andra gång med 6 rätt → 24 pluggmynt (80 %)", (
 
 test("mynten går till det vanliga saldot på Läsresans väg (rewards.award)", async () => {
   const calls = [];
-  const addCoins = async (amount, studentId) => { calls.push([amount, studentId]); return 100 + amount; };
-  const res = await award(6, { studentId: "elev1", addCoins, coins: 24 });
-  assert.deepEqual(res, { coins: 24, balance: 124 });
-  assert.deepEqual(calls, [[24, "elev1"]]);
-  // Utan `coins` är Läsresan oförändrad: 3 per rätt.
-  assert.equal((await award(6, { studentId: "elev1", addCoins })).coins, 18);
-  assert.deepEqual(await award(0, { addCoins, coins: 0 }), { coins: 0, balance: null });
+  const betala = async (kalla, mynt, opts) => { calls.push([kalla, mynt, opts.studentId]); return { mynt, tak: false, saldo: 100 + mynt }; };
+  const res = await award(6, { studentId: "elev1", kalla: "amnes", betala, coins: 24 });
+  assert.deepEqual(res, { coins: 24, balance: 124, tak: false });
+  assert.deepEqual(calls, [["amnes", 24, "elev1"]]);
+  // Utan `coins` är Läsresan oförändrad: 3 per rätt, källan lasresa.
+  assert.equal((await award(6, { studentId: "elev1", betala })).coins, 18);
+  assert.equal(calls[1][0], "lasresa");
+  assert.deepEqual(await award(0, { betala, coins: 0 }), { coins: 0, balance: null, tak: false });
 });
 
 test("försöket: source, subjectId, areaId, amnesLevel och motsvarande läsnivå", () => {

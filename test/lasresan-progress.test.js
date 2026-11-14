@@ -98,13 +98,18 @@ test("Test 8: 4 rätt av 7 → exakt 12 kr", () => {
   assert.equal(buildAttempt(makeText("t", 7), answersFor(makeText("t", 7), 4)).earnedMoney, 12);
 });
 
-test("award: lägger pengarna via addCoins (befintligt saldo), 0 rätt → inget anrop", async () => {
+test("award: betalar via tjanaMynt (källan lasresa, befintligt saldo), 0 rätt → inget anrop", async () => {
   const calls = [];
-  const addCoins = async (amount, sid) => { calls.push([amount, sid]); return 100 + amount; };
-  assert.deepEqual(await award(4, { studentId: "elev1", addCoins }), { coins: 12, balance: 112 });
-  assert.deepEqual(calls, [[12, "elev1"]]);
-  assert.deepEqual(await award(0, { addCoins }), { coins: 0, balance: null });
+  const betala = async (kalla, mynt, opts) => { calls.push([kalla, mynt, opts]); return { mynt, tak: false, saldo: 100 + mynt }; };
+  assert.deepEqual(await award(4, { studentId: "elev1", betala }), { coins: 12, balance: 112, tak: false });
+  assert.deepEqual(calls, [["lasresa", 12, { studentId: "elev1" }]]);
+  assert.deepEqual(await award(0, { betala }), { coins: 0, balance: null, tak: false });
   assert.equal(calls.length, 1);
+});
+
+test("award: taket klipper → det verkliga beloppet och tak (#853)", async () => {
+  const betala = async () => ({ mynt: 5, tak: true, saldo: 105 });
+  assert.deepEqual(await award(4, { betala }), { coins: 5, balance: 105, tak: true });
 });
 
 test("påbörjad text återupptas (kan inte hoppas över), force byter", () => {

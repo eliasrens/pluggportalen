@@ -29,7 +29,7 @@ export const HIGH_STREAK_TO_UP = 3;
 export const LOW_STREAK_TO_DOWN = 2;
 
 // --- Belöning (rewards.js) ----------------------------------------------------
-/** Pluggcoins per rätt svar. Läggs på elevens VANLIGA saldo via data.addCoins. */
+/** Pluggcoins per rätt svar. Läggs på elevens VANLIGA saldo via data-mynt.js tjanaMynt. */
 export const COINS_PER_CORRECT = 3;
 
 // --- Resan (journey.js / worlds/) ---------------------------------------------

@@ -13,6 +13,9 @@ export async function getStudentData() {
   return MEM;
 }
 export function invalidateStudentData() {}
+export function defaultStudentData() {
+  return { coins: 0, xp: 0, progress: {} };
+}
 export async function addCoins(n) {
   MEM.coins += n;
   return MEM.coins;
