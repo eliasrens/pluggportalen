@@ -2,9 +2,9 @@
 // Regel-tester: Mattematchens pluggmynt (#846). Kör den RIKTIGA skrivplanen
 // (planMathAnswerWrites med mynt) mot firestore.rules i emulatorn och bevisar
 // att en klient INTE kan: ta mynt utan ett nytt rätt svarsdokument, ta mer än
-// 1 per svar, gå över 50 per dag, återställa dagsräknaren, eller ta mynt två
+// 1 per svar, gå över 200 per dag, återställa dagsräknaren, eller ta mynt två
 // gånger för samma attemptId. Plus: rätt svar = +1 kvitto och +1 saldo, fel
-// svar = inget, svar utan mynt (nr 51+) godtas, fel datum nekas, bara eleven
+// svar = inget, svar utan mynt (nr 201+) godtas, fel datum nekas, bara eleven
 // själv, läsning elev/lärare. Körs av `npm run test:rules` (kräver emulatorn).
 // ============================================================================
 
@@ -107,7 +107,7 @@ describe("Mattematchen pluggmynt (#846): rätt svar betalar", () => {
     await forvanta("alma", 0, 250);
   });
 
-  it("svar utan mynt (nr 51+) godtas – poängen räknas, saldot orört", async () => {
+  it("svar utan mynt (nr 201+) godtas – poängen räknas, saldot orört", async () => {
     await seedKvitto("alma", MYNT_TAK_PER_DAG);
     await assertSucceeds(commit(elev("alma"), mm("alma", { mynt: null })));
     await forvanta("alma", MYNT_TAK_PER_DAG, 250);
@@ -141,7 +141,7 @@ describe("Mattematchen pluggmynt (#846): klienten kan inte fuska", () => {
     await forvanta("alma", 0, 250);
   });
 
-  it("taket 50/dag: 49 → 50 går, det 51:a nekas; 50 → nekas direkt", async () => {
+  it("taket 200/dag: 199 → 200 går, det 201:a nekas; 200 → nekas direkt", async () => {
     await seedKvitto("alma", MYNT_TAK_PER_DAG - 1);
     await assertSucceeds(commit(elev("alma"), mm("alma")));
     await forvanta("alma", MYNT_TAK_PER_DAG, 251);

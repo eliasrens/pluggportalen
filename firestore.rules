@@ -291,9 +291,9 @@ service cloud.firestore {
       // Mattematchen – pluggmynt på MM-sidan (#846, docs/spec-mattematchen-live.md
       // "PLUGGMYNT"): mmMynt/{dag} är elevens DAGSRÄKNARE { dag, cid, mynt,
       // lastAttemptId, lastAt }. Den får bara öka med 1 i SAMMA batch som ett
-      // NYTT rätt MM-svar och saldot +1 (mmMyntOk nedan), högst 50 per dag,
-      // och sjunker aldrig (eleven får inte radera). Talen 1/50 speglas i
-      // src/tavling/mm-config.js (test/mm-mynt.test.js). Svar nr 51+ skrivs
+      // NYTT rätt MM-svar och saldot +1 (mmMyntOk nedan), högst 200 per dag,
+      // och sjunker aldrig (eleven får inte radera). Talen 1/200 speglas i
+      // src/tavling/mm-config.js (test/mm-mynt.test.js). Svar nr 201+ skrivs
       // utan kvitto – poängen räknas, inga mynt.
       // ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` FÖRE webben.
       match /mmMynt/{dag} {
@@ -486,7 +486,7 @@ service cloud.firestore {
         !exists(ap) && existsAfter(ap) && a.uid == uid && a.isCorrect == true &&
         d.lastAt == request.time &&
         changedOnly(['dag', 'cid', 'mynt', 'lastAttemptId', 'lastAt']) &&
-        bumped('mynt', 1) && d.mynt <= 50 &&
+        bumped('mynt', 1) && d.mynt <= 200 &&
         getAfter(sd).data.get('coins', 0) == (exists(sd) ? get(sd).data.get('coins', 0) : 0) + 1;
     }
 

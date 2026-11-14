@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Ren data + en datumhjälpare, inga beroenden (importeras av webbläsarkod och
 // `node --test`). Talen här MÅSTE stämma med firestore.rules (mmMyntOk:
-// `bumped('mynt', 1)` och `d.mynt <= 50`) – test/mm-mynt.test.js läser
+// `bumped('mynt', 1)` och `d.mynt <= 200`) – test/mm-mynt.test.js läser
 // reglerna och faller om de glider isär. Ändra talet → ändra reglerna → deploy.
 //
 // Dagsräknaren: studentData/{uid}/mmMynt/{dag} = { dag, cid, mynt,
@@ -21,8 +21,8 @@
 
 /** Pluggmynt per rätt svar på Mattematchen-sidan (reglerna: bumped('mynt', 1) + coins +1). */
 export const MYNT_PER_RATT = 1;
-/** Högst så många mynt per elev och dag från Mattematchen (reglerna: d.mynt <= 50). */
-export const MYNT_TAK_PER_DAG = 50;
+/** Högst så många mynt per elev och dag från Mattematchen (reglerna: d.mynt <= 200). */
+export const MYNT_TAK_PER_DAG = 200;
 /** Undersamlingen under studentData/{uid} med dagsräknarna (reglerna: match /mmMynt/{dag}). */
 export const MYNT_KVITTON = "mmMynt";
 /** Visas mjukt när taket är nått – svaren räknas fortfarande som poäng. */

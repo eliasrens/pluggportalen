@@ -21,9 +21,9 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 describe("myntEfterNekat", () => {
   it("räknaren vid taket → taket (texten visas)", () => {
-    assert.equal(myntEfterNekat({ myntIdag: 12, lasta: 50, nekadeIRad: 1 }), MYNT_TAK_PER_DAG);
-    assert.equal(myntEfterNekat({ myntIdag: 49, lasta: 50, nekadeIRad: 1 }), MYNT_TAK_PER_DAG);
-    assert.equal(myntForRatt(myntEfterNekat({ myntIdag: 0, lasta: 50, nekadeIRad: 1 })), 0);
+    assert.equal(myntEfterNekat({ myntIdag: 12, lasta: MYNT_TAK_PER_DAG, nekadeIRad: 1 }), MYNT_TAK_PER_DAG);
+    assert.equal(myntEfterNekat({ myntIdag: MYNT_TAK_PER_DAG - 1, lasta: MYNT_TAK_PER_DAG, nekadeIRad: 1 }), MYNT_TAK_PER_DAG);
+    assert.equal(myntForRatt(myntEfterNekat({ myntIdag: 0, lasta: MYNT_TAK_PER_DAG, nekadeIRad: 1 })), 0);
   });
   it("fel dag-nyckel vid midnatt (räknaren under taket) → inget tak, nästa svar försöker igen", () => {
     const efter = myntEfterNekat({ myntIdag: 30, lasta: 30, nekadeIRad: 1 });
@@ -66,7 +66,7 @@ describe("myntEfterNekat", () => {
     assert.equal(myntEfterNekat({ myntIdag: 20, lasta: 22, nekadeIRad: 99 }), 22);
   });
   it("taket från räknaren gäller direkt, oavsett spärrens tid", () => {
-    assert.equal(myntEfterNekat({ myntIdag: 3, lasta: 50, nekadeIRad: 1, sedanForsta: 0 }), MYNT_TAK_PER_DAG);
+    assert.equal(myntEfterNekat({ myntIdag: 3, lasta: MYNT_TAK_PER_DAG, nekadeIRad: 1, sedanForsta: 0 }), MYNT_TAK_PER_DAG);
   });
 });
 
