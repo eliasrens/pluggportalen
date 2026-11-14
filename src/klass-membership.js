@@ -146,6 +146,8 @@ export function ownedCount(data, id) {
 // Ett äldre studentData.pet (singular) blir första posten i pets[]. Bor här (ren,
 // redan i bootgrafen) så att data-pet.js, butiken på servern (butik-core.js via
 // functions/butik/) och migreringen (admin/migrera-mynt-las-core.mjs) delar den.
+// sparadePets är listan SOM DEN ÄR SPARAD; vilka husdjur som syns (ägandet i
+// agdaDjur, #856) avgör petsFromData i data-pet.js.
 
 /** Nytt husdjurs-id ("p<tid><slump>"); `nu`/`rng` injiceras på servern och i tester. */
 export function newPetId(nu = Date.now(), rng = Math.random) {
@@ -168,8 +170,8 @@ export function migratedLegacyPet(pet, id = newPetId()) {
   };
 }
 
-/** pets[] ur ett studentData-objekt, med migrering av ev. legacy-pet i minnet. */
-export function petsFromData(data, id) {
+/** pets[] som den är sparad, med migrering av ev. legacy-pet i minnet. */
+export function sparadePets(data, id) {
   if (Array.isArray(data.pets)) return data.pets;
   if (data.pet && data.pet.eggBoughtAt) return [migratedLegacyPet(data.pet, id)];
   return [];

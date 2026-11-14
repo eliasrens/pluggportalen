@@ -282,9 +282,11 @@ test("migreringen: torrkörning skriver inget → --commit → ny torrkörning 0
   const fore = await alla();
   const torr = migrera();
   assert.ok(attSkriva(torr) >= 3, torr);
+  assert.match(torr, /djur UTAN post i agdaDjur/, "utan --djur listas djuren bara (#856)");
   assert.deepEqual(await alla(), fore, "torrkörningen skrev inget");
 
-  const skarp = migrera("--commit");
+  // Djurens poster bara med --djur (#856, körs före låsreglerna).
+  const skarp = migrera("--commit", "--djur");
   assert.match(skarp, /Klart: \d+ dokument uppdaterade/);
   const efter = await alla();
   for (const u of MIG) {
@@ -310,6 +312,6 @@ test("migreringen: torrkörning skriver inget → --commit → ny torrkörning 0
   const igen = migrera();
   assert.equal(attSkriva(igen), 0, igen);
   assert.match(igen, /\b0\s+xp härlett/);
-  migrera("--commit");
+  migrera("--commit", "--djur");
   assert.deepEqual(await alla(), efter, "en andra --commit ändrar inget");
 });

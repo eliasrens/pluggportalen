@@ -43,6 +43,7 @@ import {
   withFarmAnimalPositions,
   feedFarmAnimalIn,
   claimGiftIn,
+  medDoldaPoster,
   FARM_GIFT_COINS,
   FARM_MAX_GROWTH_STAGE,
 } from "./farm-core.js";
@@ -59,6 +60,11 @@ export async function getFarm(studentId = currentStudentId()) {
   return farmFromData(data);
 }
 
+/** Gårdsdjuren att skriva: de ändrade ägda djuren i den sparade listan (medDoldaPoster). */
+function gardsdjurAttSpara(data, animals) {
+  return medDoldaPoster(data && data.farm && data.farm.animals, animals, (a) => a.uid);
+}
+
 /**
  * Gemensam skriv-hjälpare: kör en ren farm-övergång i EN transaktion och
  * skriver de fält övergången ändrade med dot-path. `fn(farm)` är en av
@@ -70,12 +76,15 @@ async function updateFarm(studentId, fields, fn) {
   const ref = doc(db, "studentData", studentId);
   const result = await runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
-    const farm = farmFromData(snap.exists() ? snap.data() : null);
+    const data = snap.exists() ? snap.data() : null;
+    const farm = farmFromData(data);
     const res = fn(farm);
     if (!res.ok) return res;
     if (snap.exists()) {
       const write = {};
       for (const f of fields) write["farm." + f] = res.farm[f];
+      // Djur utan kartpost (agdaDjur, #856) syns inte men ligger kvar i listan.
+      if (write["farm.animals"]) write["farm.animals"] = gardsdjurAttSpara(data, res.farm.animals);
       tx.update(ref, write);
     } else {
       tx.set(ref, { ...defaultStudentData(), farm: res.farm });
@@ -267,7 +276,7 @@ export async function claimFarmAnimalGift(uid, studentId = currentStudentId()) {
     studentId,
     extra: (sd) => {
       res = claimGiftIn(farmFromData(sd || {}), uid);
-      return res.ok ? { "farm.animals": res.farm.animals } : null;
+      return res.ok ? { "farm.animals": gardsdjurAttSpara(sd, res.farm.animals) } : null;
     },
   });
   if (!res || !res.ok) return res || { ok: false, farm: farmFromData({}), error: "saknas" };

@@ -25,15 +25,19 @@
 //               farm.animals agdaDjur[uid] = id          (isFarmAnimalItem)
 //               pets         agdaDjur[id] = "hw-djur-<eggSpecies>" för ett ägg med en
 //                            känd Halloween-art, annars "mystery-egg". Den gamla
-//                            `pet` migreras först till pets[0] (petsFromData) och
+//                            `pet` migreras först till pets[0] (sparadePets) och
 //                            skrivs tillbaka.
+//             BARA med { djur: true } (skriptets --djur, #856): listorna är fritt
+//             skrivbara för eleven efter låset, så en körning med djur EFTER
+//             låsreglerna skulle ge ett inskjutet djur en post. Utan djur skrivs bara
+//             xp/coins, och djur som saknar en post räknas (rakna.saknarPost) och
+//             listas (rakna.saknadeUid) utan att något skrivs.
 // Saldon och varor rörs annars aldrig. Idempotent: en andra körning ger null.
 // ============================================================================
 
 import { xpFromProgress } from "../src/leveling.js";
 import { isAnimalItem, isFarmAnimalItem } from "../src/shop-items.js";
-import { farmFromData } from "../src/farm-core.js";
-import { petsFromData } from "../src/klass-membership.js";
+import { sparadePets } from "../src/klass-membership.js";
 import { rumsdjurMedAldre, EGG_ITEM_ID } from "../src/butik-core.js";
 import { HW_DJUR_VAROR } from "../src/halloween/hw-djur-katalog.js";
 
@@ -56,11 +60,13 @@ export function myntSomHeltal(v) {
 const nyckelOk = (k) => typeof k === "string" && k.length > 0;
 
 /**
- * Migreringen för ett dokument. `rakna` (valfri) får antalet per åtgärd:
- * xp, aldreDjur, rumsdjur, gardsdjur, husdjur, gammaltPet.
+ * Migreringen för ett dokument. `djur` = ge djur utan post en post i agdaDjur
+ * (se huvudet). `rakna` (valfri) får antalet per åtgärd:
+ * xp, heltal, aldreDjur, rumsdjur, gardsdjur, husdjur, gammaltPet – utan djur i
+ * stället saknarPost och listan saknadeUid.
  * @returns {object|null} patch för update(), eller null om inget behövs
  */
-export function planeraMigrering(sd, rakna = {}) {
+export function planeraMigrering(sd, rakna = {}, { djur = false } = {}) {
   const d = sd && typeof sd === "object" ? sd : {};
   const plus = (k, n = 1) => { rakna[k] = (rakna[k] || 0) + n; };
   const patch = {};
@@ -81,24 +87,33 @@ export function planeraMigrering(sd, rakna = {}) {
   const satt = (k, v, vad) => {
     if (!nyckelOk(k) || Object.hasOwn(befintlig, k) || nya.has(k)) return;
     nya.set(k, v);
-    plus(vad);
+    if (djur) plus(vad);
   };
 
   const sparade = Array.isArray(d.roomAnimals) ? d.roomAnimals : [];
   const rum = rumsdjurMedAldre(d);
-  if (rum.length > sparade.length) {
+  if (djur && rum.length > sparade.length) {
     patch.roomAnimals = rum;
     plus("aldreDjur", rum.length - sparade.length);
   }
   for (const a of rum) if (a && isAnimalItem(a.id)) satt(a.uid || a.id, a.id, "rumsdjur");
-  for (const a of farmFromData(d).animals) if (isFarmAnimalItem(a.id)) satt(a.uid, a.id, "gardsdjur");
-  const pets = petsFromData(d);
-  if (!Array.isArray(d.pets) && pets.length) {
+  // Den sparade listan (farmFromData visar bara djur som redan har en kartpost, #856).
+  const gard = d.farm && typeof d.farm === "object" ? d.farm.animals : null;
+  for (const a of Array.isArray(gard) ? gard : []) if (a && isFarmAnimalItem(a.id)) satt(a.uid, a.id, "gardsdjur");
+  const pets = sparadePets(d);
+  if (djur && !Array.isArray(d.pets) && pets.length) {
     patch.pets = pets;
     plus("gammaltPet");
   }
-  for (const p of pets) if (p && typeof p === "object") satt(p.id, agdaVardeForPet(p), "husdjur");
+  // Det gamla `pet` har inget stabilt id förrän det skrivits till pets[] (bara med djur).
+  const petsMedId = djur || Array.isArray(d.pets) ? pets : [];
+  for (const p of petsMedId) if (p && typeof p === "object") satt(p.id, agdaVardeForPet(p), "husdjur");
+  if (!djur && !Array.isArray(d.pets) && pets.length) nya.set("pet", EGG_ITEM_ID);
 
-  if (nya.size) patch.agdaDjur = Object.fromEntries([...Object.entries(befintlig), ...nya]);
+  if (djur && nya.size) patch.agdaDjur = Object.fromEntries([...Object.entries(befintlig), ...nya]);
+  if (!djur && nya.size) {
+    plus("saknarPost", nya.size);
+    rakna.saknadeUid = [...(rakna.saknadeUid || []), ...nya.keys()];
+  }
   return Object.keys(patch).length ? patch : null;
 }

@@ -235,6 +235,8 @@ test("addFarmAnimalIn: nytt djur med trivsel-default; unika uid krävs", () => {
 
 test("farmFromData: animals normaliseras (trasiga poster bort, fält klamras)", () => {
   const farm = farmFromData({
+    // Ägandet (#856): bara djur med en post i agdaDjur syns (test/djur-agande.test.js).
+    agdaDjur: { "animal_pig#p1": "animal_pig", "animal_cow#k1": "animal_cow" },
     farm: {
       animals: [
         { uid: "animal_pig#p1", id: "animal_pig", name: "Nasse", pos: { x: 40, y: 80 }, trivsel: 999, lastFedAt: 1234 },

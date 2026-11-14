@@ -22,6 +22,12 @@
 // pets[] vid första inläsningen (fältet lämnas kvar men ignoreras sedan –
 // pets[] är sanningen så fort den finns).
 //
+// Ägandet (#856, docs/SAKERHET-MYNT.md §6 B4): bara ägg/djur vars id har en post
+// i serverkartan studentData.agdaDjur syns (petsFromData). "hw-djur-<art>" ger
+// arten; "mystery-egg" bara en vanlig art. Värmelampan gäller bara om den finns
+// i ownedItems. Listan är tillstånd (position, namn, matning) – det som skrivs
+// tillbaka behåller poster utan kartpost orörda (medDoldaPoster).
+//
 // Principer:
 //   * Tidsstämplar sparas som millisekunder (Date.now()). Kläckning och
 //     tillväxt räknas ut VID INLÄSNING – ingen bakgrundsprocess behövs.
@@ -36,11 +42,9 @@ import {
   runTransaction,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { currentStudentId, invalidateStudentData } from "./data.js";
-import { randomSpeciesId, getSpecies } from "./art-pets-creatures.js";
-import { farmFromData, adjustInventoryIn } from "./farm-core.js";
-import { petsFromData } from "./klass-membership.js";
-
-export { petsFromData };
+import { randomSpeciesId, getSpecies, vanligArtFor } from "./art-pets-creatures.js";
+import { farmFromData, adjustInventoryIn, agdaPoster, medDoldaPoster } from "./farm-core.js";
+import { sparadePets } from "./klass-membership.js";
 
 // Shop-id:n (måste matcha shop-items.js). Äpplet (APPLE_ITEM_ID) bor i
 // äppel-ekonomin (data-pet-mat.js) tillsammans med köp/utläggning.
@@ -107,9 +111,41 @@ export function cleanPetName(name) {
   return s || null;
 }
 
-// --- Internt: id-generering + migrering -------------------------------------
-// newPetId/migratedLegacyPet/petsFromData bor i klass-membership.js (#854): butiken
+// --- Ägandet (#856) -----------------------------------------------------------
+// newPetId/migratedLegacyPet/sparadePets bor i klass-membership.js (#854): butiken
 // på servern och migreringsskriptet behöver samma regel utan Firebase.
+
+const HW_AGG = "hw-djur-";
+/** Husdjurens kategori i agdaDjur: det vanliga ägget eller ett Halloween-ägg. */
+const arAgg = (v) => v === EGG_ITEM_ID || v.startsWith(HW_AGG);
+
+/** De ägda husdjuren i en sparad lista (första posten per id med ett ägg i agdaDjur). */
+function agdaPets(lista, data) {
+  const lampa = Array.isArray(data.ownedItems) && data.ownedItems.includes(LAMP_ITEM_ID);
+  return agdaPoster(lista, data.agdaDjur, (p) => p.id, arAgg).map(({ post: p, varde }) => {
+    const { eggSpecies, ...pet } = p;
+    if (varde.startsWith(HW_AGG)) {
+      const art = varde.slice(HW_AGG.length);
+      pet.eggSpecies = art;
+      if (pet.hatchedAt) pet.speciesId = art;
+    } else {
+      const s = getSpecies(pet.speciesId);
+      if (s && s.kind === "hw") pet.speciesId = vanligArtFor(pet.id);
+    }
+    pet.hasHeatLamp = !!pet.hasHeatLamp && lampa;
+    return pet;
+  });
+}
+
+/**
+ * De ÄGDA husdjuren ur ett studentData-objekt (migrerar ett ev. äldre
+ * studentData.pet i minnet först): bara poster vars id har en post i agdaDjur.
+ * @returns {object[]} nya objekt
+ */
+export function petsFromData(data, id) {
+  const d = data || {};
+  return agdaPets(sparadePets(d, id), d);
+}
 
 /**
  * Kör en transaktion som läser pets[] (migrerar legacy-pet vid behov), låter
@@ -123,16 +159,18 @@ async function updatePets(studentId, fn) {
     const snap = await tx.get(ref);
     const data = snap.exists() ? snap.data() : {};
     const hadList = Array.isArray(data.pets);
-    const pets = petsFromData(data).map((p) => ({ ...p }));
+    const sparade = sparadePets(data);
+    const pets = agdaPets(sparade, data);
     const out = await fn(pets, data);
     if (out && out.write) {
-      tx.update(ref, { pets: out.pets, ...(out.extra || {}) });
+      // Poster utan kartpost (agdaDjur) syns inte men ligger kvar i listan.
+      tx.update(ref, { pets: medDoldaPoster(sparade, out.pets, (p) => p.id), ...(out.extra || {}) });
       return out.result;
     }
     // Ingen ändring i övrigt – men skriv ändå ner en ev. migrering så att
     // legacy-husdjuret får ett stabilt id/pos i Firestore.
-    if (!hadList && pets.length > 0 && snap.exists()) {
-      tx.update(ref, { pets });
+    if (!hadList && sparade.length > 0 && snap.exists()) {
+      tx.update(ref, { pets: sparade });
     }
     return out ? out.result : { pets };
   });
@@ -145,7 +183,7 @@ async function updatePets(studentId, fn) {
 // --- Publikt API ------------------------------------------------------------
 
 /**
- * Elevens husdjurslista (migrerar ett ev. äldre studentData.pet först).
+ * Elevens ägda husdjur (petsFromData; migrerar ett ev. äldre studentData.pet först).
  * @returns {Promise<object[]>}
  */
 export async function getPets(studentId = currentStudentId()) {
@@ -153,13 +191,9 @@ export async function getPets(studentId = currentStudentId()) {
   const snap = await getDoc(doc(db, "studentData", studentId));
   if (!snap.exists()) return [];
   const data = snap.data();
-  if (Array.isArray(data.pets)) return data.pets;
-  const pets = petsFromData(data);
-  if (pets.length === 0) return [];
+  if (Array.isArray(data.pets) || !data.pet || !data.pet.eggBoughtAt) return petsFromData(data);
   // Skriv ner migreringen så id:t blir stabilt (transaktion – tål samtidighet).
-  return updatePets(studentId, (p) => ({ write: true, pets: p, result: p })).then(
-    (r) => (Array.isArray(r) ? r : pets)
-  );
+  return updatePets(studentId, (p) => ({ write: true, pets: p, result: p }));
 }
 
 // Köp av ägg (även Halloween-djurens pumpaägg) och värmelampa går via butikKop på
