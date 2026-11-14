@@ -632,6 +632,11 @@ villkor) och tilläggen i `elevNyttDokOk`. Testerna: `test/firestore-rules-mynt-
   `updateFarm`, gåvan och butikens gårdsdjursköp) skriver tillbaka den sparade listan med
   de ändrade ägda posterna på sin plats (`medDoldaPoster`). Poster utan kartpost ligger
   kvar orörda, så ett djur som migreringen missat syns igen när skriptet körs om (§7).
+  **Obs (granskningen av #856):** migreringen bygger `agdaDjur` ur listorna, och efter
+  låset är de fritt skrivbara. Varje körning **efter** låsreglerna ger alltså också en
+  inskjuten post (en extra häst i `farm.animals`, ett ägg i `pets`) en kartpost. Det gäller
+  även fas 2 steg 2. Det är en öppen fråga till leaden/Elias (t.ex. att köra skriptet före
+  låsreglerna, eller bara mot en ögonblicksbild från före låset).
 - `klass-membership.js` `petsFromData` heter nu `sparadePets` (listan som den är sparad).
   Butiken och migreringen läser den, och migreringen läser `farm.animals` rått, eftersom
   de nya läsfunktionerna döljer djur utan kartpost.
