@@ -59,7 +59,8 @@ const heltal = (v) => Math.max(0, Math.round(Number(v) || 0));
  *   kvitto – dagens myntDag-dokument före (null = saknas)
  * Klipper beloppet mot taken. XP skrivs BARA när `sd.xp` redan är ett tal
  * (§6 B1 "XP i gamla dokument": migreringen sätter det härledda värdet).
- * @returns {{mynt:number, xp:number, tak:boolean, xpSaknas:boolean,
+ * `tak` = MYNTEN klipptes (takraden visas), `xpTak` = bara XP:t klipptes.
+ * @returns {{mynt:number, xp:number, tak:boolean, xpTak:boolean, xpSaknas:boolean,
  *   kvitto:(object|null), sd:(object|null)}} kvitto/sd = fälten att skriva
  *   (null = ingenting att betala, kvittot skrivs inte).
  */
@@ -77,9 +78,10 @@ export function planTjana({ kalla, mynt, xp = 0, sd = null, kvitto = null, gardU
   const xpOnskat = kalla === "ovning" ? heltal(xp) : 0;
   const xpFinns = !!sd && typeof sd.xp === "number";
   const x = xpFinns ? Math.max(0, Math.min(xpOnskat, XP_PER_GANG, XP_PER_DAG - heltal(k.xp))) : 0;
-  const tak = m < onskat || (xpFinns && x < xpOnskat);
+  const tak = m < onskat;
+  const xpTak = xpFinns && x < xpOnskat;
   const xpSaknas = xpOnskat > 0 && !xpFinns;
-  if (m + x < 1) return { mynt: 0, xp: 0, tak, xpSaknas, kvitto: null, sd: null };
+  if (m + x < 1) return { mynt: 0, xp: 0, tak, xpTak, xpSaknas, kvitto: null, sd: null };
   const nyttKvitto = { kalla, senastMynt: m, senastXp: x, [kalla]: heltal(k[kalla]) + m };
   if (x > 0) nyttKvitto.xp = heltal(k.xp) + x;
   if (kalla === "gard") {
@@ -88,7 +90,7 @@ export function planTjana({ kalla, mynt, xp = 0, sd = null, kvitto = null, gardU
   }
   const sdPatch = { coins: (Number(sd && sd.coins) || 0) + m };
   if (x > 0) sdPatch.xp = sd.xp + x;
-  return { mynt: m, xp: x, tak, xpSaknas, kvitto: nyttKvitto, sd: sdPatch };
+  return { mynt: m, xp: x, tak, xpTak, xpSaknas, kvitto: nyttKvitto, sd: sdPatch };
 }
 
 /**

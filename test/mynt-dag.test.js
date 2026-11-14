@@ -161,7 +161,7 @@ describe("planTjana: klippning", () => {
   it("under taket: hela beloppet, kvittot och saldot", () => {
     const p = planTjana({ kalla: "ovning", mynt: 50, xp: 30, sd, kvitto: null });
     assert.deepEqual(p, {
-      mynt: 50, xp: 30, tak: false, xpSaknas: false,
+      mynt: 50, xp: 30, tak: false, xpTak: false, xpSaknas: false,
       kvitto: { kalla: "ovning", senastMynt: 50, senastXp: 30, ovning: 50, xp: 30 },
       sd: { coins: 150, xp: 70 },
     });
@@ -178,7 +178,13 @@ describe("planTjana: klippning", () => {
     const utan = planTjana({ kalla: "ovning", mynt: 20, xp: 50, sd: { coins: 1 } });
     assert.deepEqual([utan.mynt, utan.xp, utan.xpSaknas, utan.tak, "xp" in utan.sd, "xp" in utan.kvitto], [20, 0, true, false, false, false]);
     const p = planTjana({ kalla: "ovning", mynt: 0, xp: 50, sd, kvitto: { ovning: 10, xp: XP_PER_DAG - 10 } });
-    assert.deepEqual([p.mynt, p.xp, p.tak, p.kvitto.xp, p.sd], [0, 10, true, XP_PER_DAG, { coins: 100, xp: 50 }]);
+    assert.deepEqual([p.mynt, p.xp, p.tak, p.xpTak, p.kvitto.xp, p.sd], [0, 10, false, true, XP_PER_DAG, { coins: 100, xp: 50 }]);
+  });
+  it("bara XP klipps: mynten betalas fullt → tak false (ingen takrad), xpTak true", () => {
+    const p = planTjana({ kalla: "ovning", mynt: 50, xp: 50, sd, kvitto: { xp: XP_PER_DAG - 5 } });
+    assert.deepEqual([p.mynt, p.xp, p.tak, p.xpTak], [50, 5, false, true]);
+    const m = planTjana({ kalla: "ovning", mynt: 50, xp: 50, sd, kvitto: { ovning: PER_DAG.ovning - 5 } });
+    assert.deepEqual([m.mynt, m.xp, m.tak, m.xpTak], [5, 50, true, false]);
   });
   it("gåvan: alltid 8, en gång per djur och dag", () => {
     const p = planTjana({ kalla: "gard", mynt: 8, sd, kvitto: { gard: 8, gavor: { a: true } }, gardUid: "b" });
@@ -244,7 +250,7 @@ describe("tjanaMyntMed med injicerat SDK", () => {
   it("klipper mot dagstaket och skriver saldo + kvitto i samma transaktion", async () => {
     const f = fejk({ "studentData/a": { coins: 10, xp: 5 }, [`studentData/a/myntDag/${DAG}`]: { dag: DAG, ovning: PER_DAG.ovning - 7, xp: 0 } });
     const r = await tjanaMyntMed(f.sdk, "ovning", 50, { xp: 50, studentId: "a" });
-    assert.deepEqual([r.mynt, r.xp, r.tak, r.saldo, r.xpTotal], [7, 50, true, 17, 55]);
+    assert.deepEqual([r.mynt, r.xp, r.tak, r.xpTak, r.saldo, r.xpTotal], [7, 50, true, false, 17, 55]);
     assert.equal(f.skrivningar.length, 2);
     assert.deepEqual(f.lager.get("studentData/a"), { coins: 17, xp: 55 });
     const k = f.lager.get(`studentData/a/myntDag/${DAG}`);
@@ -327,7 +333,8 @@ describe("struktur", () => {
   it("filerna håller 400-radersgränsen", () => {
     for (const f of ["src/mynt-dag.js", "src/data-mynt.js", "src/game-shared.js", "src/data-farm.js", "src/data-xp.js",
       "src/lasresan/rewards.js", "src/ekvationsresan/mynt.js", "src/data-amneslasning.js", "src/varld-foder.js",
-      "test/mynt-dag.test.js", "test/firestore-rules-mynt-dag.test.js"]) {
+      "test/mynt-dag.test.js", "test/firestore-rules-mynt-dag.test.js", "src/data-lasresan.js",
+      "src/lasresan/rewards.js", "test/mynt-dag-statistik.test.js"]) {
       assert.ok(read(f).split("\n").length <= 401, `${f} ≤ 400 rader`);
     }
   });

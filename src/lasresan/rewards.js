@@ -21,6 +21,28 @@ export function coinsFor(correct) {
 }
 
 /**
+ * Rättelsen när taket klippte utbetalningen (#853): statistiken ska visa det
+ * som faktiskt BETALADES, inte det försöket räknade fram. Ren – ger
+ * studentData-patchen (fältvägar) som sänker varje lagrad summa i `vagar` med
+ * skillnaden, och försöket i fallback-listan (`fallbackField`). Ingen
+ * skillnad (betalt ≥ tjänat) → tom patch. data-lasresan.js rattaPengar skriver.
+ * @returns {object} patch, t.ex. { "lasresa.moneyEarned": 40 }
+ */
+export function pengarRattelse(sd, { vagar = [], fallbackField = null, textId, completedAt, tjanat, betalt }) {
+  const diff = (Number(tjanat) || 0) - (Number(betalt) || 0);
+  const patch = {};
+  if (!(diff > 0) || !sd || typeof sd !== "object") return patch;
+  for (const vag of vagar) {
+    const v = vag.reduce((x, k) => (x && typeof x === "object" ? x[k] : undefined), sd);
+    if (typeof v === "number") patch[vag.join(".")] = Math.max(0, v - diff);
+  }
+  const lista = fallbackField ? sd[fallbackField] : null;
+  const i = Array.isArray(lista) ? lista.findIndex((a) => a && a.textId === textId && a.completedAt === completedAt) : -1;
+  if (i >= 0) patch[fallbackField] = lista.map((a, j) => (j === i ? { ...a, earnedMoney: betalt } : a));
+  return patch;
+}
+
+/**
  * Dela ut belöningen för en färdig text.
  * @param {number} correct antal rätt
  * @param {{studentId?:string, kalla?:("lasresa"|"amnes"), coins?:number,

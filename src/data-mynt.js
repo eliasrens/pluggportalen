@@ -36,7 +36,7 @@ const nekad = (err) => err && (err.code === "permission-denied" || /permission/i
  *   `extra` = fältvägar som skrivs i samma skrivning (gåvans `farm.animals`),
  *   eller en funktion (studentData före) → fältvägar | null (null = avbryt,
  *   ingenting skrivs). Kräver att studentData finns.
- * @returns {Promise<{mynt:number, xp:number, tak:boolean, saldo:(number|null),
+ * @returns {Promise<{mynt:number, xp:number, tak:boolean, xpTak:boolean, saldo:(number|null),
  *   xpTotal:(number|null), avbrutet?:boolean, nekad?:boolean}>}
  */
 export async function tjanaMynt(kalla, mynt, opts = {}) {
@@ -66,7 +66,7 @@ export async function tjanaMyntMed(sdk, kalla, mynt, { xp = 0, extra = null, gar
     const t = sdk.nu();
     dag = myntDag(t) !== forsta ? myntDag(t) : grannDag(t);
   }
-  return { mynt: 0, xp: 0, tak: false, saldo: null, xpTotal: null, nekad: true };
+  return { mynt: 0, xp: 0, tak: false, xpTak: false, saldo: null, xpTotal: null, nekad: true };
 }
 
 function skriv(sdk, { kalla, mynt, xp, extra, gardUid, studentId, dag }) {
@@ -76,7 +76,7 @@ function skriv(sdk, { kalla, mynt, xp, extra, gardUid, studentId, dag }) {
     const [sSnap, kSnap] = await Promise.all([tx.get(sRef), tx.get(kRef)]);
     const sd = sSnap.exists() ? sSnap.data() : null;
     const ext = typeof extra === "function" ? extra(sd) : extra;
-    if (extra && (!ext || !sd)) return { mynt: 0, xp: 0, tak: false, saldo: null, xpTotal: null, avbrutet: true };
+    if (extra && (!ext || !sd)) return { mynt: 0, xp: 0, tak: false, xpTak: false, saldo: null, xpTotal: null, avbrutet: true };
     const p = planTjana({ kalla, mynt, xp, sd, kvitto: kSnap.exists() ? kSnap.data() : null, gardUid });
     if (p.xpSaknas) console.warn("[mynt] studentData saknar xp – mynten betalas, XP väntar på migreringen (SAKERHET-MYNT §7).");
     if (p.kvitto) {
@@ -90,6 +90,6 @@ function skriv(sdk, { kalla, mynt, xp, extra, gardUid, studentId, dag }) {
     }
     const saldo = p.sd ? p.sd.coins : sd ? Number(sd.coins) || 0 : null;
     const xpTotal = p.sd && p.sd.xp != null ? p.sd.xp : sd ? xpFromStudentData(sd) : null;
-    return { mynt: p.mynt, xp: p.xp, tak: p.tak, saldo, xpTotal };
+    return { mynt: p.mynt, xp: p.xp, tak: p.tak, xpTak: p.xpTak, saldo, xpTotal };
   });
 }
