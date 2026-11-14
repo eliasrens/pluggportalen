@@ -87,7 +87,7 @@ describe("Kontots läge (get() på teacherAccounts)", () => {
     const db = env.elev("e4a");
     await assertSucceeds(getDoc(doc(db, "studentData", "e4a")));
     await assertSucceeds(getDoc(doc(db, "studentData", "e5a")));
-    await assertSucceeds(updateDoc(doc(db, "studentData", "e4a"), { xp: 5 }));
+    await assertSucceeds(updateDoc(doc(db, "studentData", "e4a"), { "progress.so": { quiz: { stars: 1 } } }));
     await assertFails(getDoc(doc(db, "studentCredentials", "e4a")));
     await assertFails(deleteDoc(doc(db, "subjects", "so", "areas", "admin-omr")));
   });

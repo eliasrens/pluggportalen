@@ -230,7 +230,7 @@ describe("studentData.brakdrake – husets spegel av draken (#750, BRAKRESAN.md 
   it("andra studentData-skrivningar fungerar som förut – med och utan drake", async () => {
     for (const uid of ["e4a", "e4b"]) {
       const elev = sd(env.as(uid), uid);
-      await assertSucceeds(updateDoc(elev, { coins: 60, ownedItems: ["soffa"] }));
+      await assertSucceeds(updateDoc(elev, { "progress.so": { quiz: { stars: 2 } } }));
       await assertSucceeds(updateDoc(elev, { "room.placements.soffa": { x: 10, y: 20 } }));
       await assertSucceeds(updateDoc(elev, { "farm.placedAnimals.ko1": { x: 30, y: 40, room: 1 } }));
       await assertSucceeds(setDoc(elev, { husLast: true }, { merge: true }));
@@ -238,7 +238,7 @@ describe("studentData.brakdrake – husets spegel av draken (#750, BRAKRESAN.md 
     // Hela dokumentet skrivet med oförändrad drake (diffen rör inte brakdrake).
     let hela;
     await env.seed(async (db) => { hela = (await getDoc(sd(db, "e4a"))).data(); });
-    await assertSucceeds(setDoc(sd(env.as("e4a"), "e4a"), { ...hela, coins: 1 }));
+    await assertSucceeds(setDoc(sd(env.as("e4a"), "e4a"), { ...hela, husLast: false }));
   });
 
   it("en klasskamrat skriver aldrig; admin och servern skriver draken, årskurskontot inte", async () => {

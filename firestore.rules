@@ -209,7 +209,7 @@ service cloud.firestore {
       // MYNTLÅSET (#855, docs/SAKERHET-MYNT.md §6 B3): eleven ändrar coins/xp
       // bara via kvitto (elevVardeOk), skapar bara ett standarddokument
       // (elevNyttDokOk) och får inte radera – annars börjar hen om med valfritt saldo.
-      allow create: if (isSelf(studentId) && kopAvatarOk() && brakdrakeOk() && schackOk() && elevNyttDokOk()) || isAdmin();
+      allow create: if (isSelf(studentId) && kopAvatarOk() && brakdrakeOk() && schackOk() && elevNyttDokOk(studentId)) || isAdmin();
       allow update: if (isSelf(studentId) && kopAvatarOk() && brakdrakeOk() && schackOk() && elevVardeOk(studentId)) || isAdmin() ||
         (gradeStudent(studentId) && gradeStudentDataOk(studentId));
       allow delete: if isAdmin();
@@ -367,11 +367,14 @@ service cloud.firestore {
     }
     // Ett nytt studentData-dokument från eleven = standarddokumentet
     // (defaultStudentData, src/klass-membership.js): inga mynt, ingen xp, inga
-    // äpplen, varor eller djur och gårdsnivåer ≤ 1.
-    function elevNyttDokOk() {
+    // äpplen, varor eller djur och gårdsnivåer ≤ 1. Enda undantaget: mynt som
+    // ett kvitto betalar i samma begäran (MM-svarets batch skapar dokumentet
+    // med coins: 1 om det saknas) – samma regel som en höjning från 0.
+    function elevNyttDokOk(uid) {
       let n = request.resource.data;
       let f = n.get('farm', {});
-      return n.get('coins', 0) == 0 && n.get('xp', 0) == 0 && n.get('appleCount', 0) == 0 &&
+      return (n.get('coins', 0) == 0 || (n.coins is int && elevMyntOk(uid, n.coins, [].toSet()))) &&
+        n.get('xp', 0) == 0 && n.get('appleCount', 0) == 0 &&
         n.get('ownedItems', []).size() == 0 && n.get('ownedCounts', {}).size() == 0 &&
         n.get('pets', []).size() == 0 && n.get('roomAnimals', []).size() == 0 &&
         f is map && f.get('animals', []).size() == 0 &&
