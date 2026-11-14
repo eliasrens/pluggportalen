@@ -621,6 +621,32 @@ Försök med devtools: `ownedItems` + vara, `agdaDjur` + djur och `appleCount: 9
 nekas. Ett nytt ägg i `pets` och att byta `roomAnimals[0].id` till `dinosaurie` går att
 skriva, men det syns inte i rummet, i byn eller i kompisrummet.
 
+**Genomfört (#856).** Läsfunktionerna (`animalsFromData`, `farmFromData`, `petsFromData`
+i `src/data-pet.js`) går via de rena hjälparna `agdaPoster`/`medDoldaPoster` i
+`src/farm-core.js` (gårdsdjurens id som lokal lista `GARDSDJUR`, bootgrafen 107). Reglerna
+är grenarna i `elevVardeOk` (`elevFroOk`, `elevApplenOk`, `elevGardOk`, `elevKladerOk`, husets
+villkor) och tilläggen i `elevNyttDokOk`. Testerna: `test/firestore-rules-mynt-varor.test.js`,
+`test/djur-agande.test.js` och varufälten i gränstestet. Avvikelser och tillägg:
+
+- **Inget djur försvinner vid sparning.** Sparningen (`saveAnimal*`, `updatePets`,
+  `updateFarm`, gåvan och butikens gårdsdjursköp) skriver tillbaka den sparade listan med
+  de ändrade ägda posterna på sin plats (`medDoldaPoster`). Poster utan kartpost ligger
+  kvar orörda, så ett djur som migreringen missat syns igen när skriptet körs om (§7).
+- `klass-membership.js` `petsFromData` heter nu `sparadePets` (listan som den är sparad).
+  Butiken och migreringen läser den, och migreringen läser `farm.animals` rått, eftersom
+  de nya läsfunktionerna döljer djur utan kartpost.
+- Butikens svar `animals` för ett vanligt djur är de ägda djuren (butikens antal per art).
+- `avatarItems`: det som **tas på** måste vara ägt. Att ta av går alltid, också en sak som
+  sedan förr saknas i `ownedItems`. Gratishuset är `"stuga"` (väljaren skriver det), så
+  `husSkalId` ∈ `ownedItems ∪ {null, "stuga"}`. Gratiskläder finns inte: klädlådan visar
+  bara `ownedItems`.
+- `elevNyttDokOk` kräver dessutom tomma `avatarItems`, `husSkalId` null/`"stuga"` och
+  `farm.barnSkin` null, så att ett nytt dokument inte kan bära köpt utseende.
+- Gränstestet: den fulla eleven skriver alla varufält (möbler, djur, äpplen, frö, kläder,
+  hus, lada) ihop med mynt + xp och vanliga schackskrivningar, och utan mynt ihop med
+  schackets värsta fall. Marginalen till 1000 uttryck är liten. Därför har grenarna inga
+  typkontroller som reglerna ändå fångar (`diff`/`toSet` på fel typ nekar).
+
 ### B5 – Slut-QA · beroende: B1–B4
 
 - Alla sviter ska vara gröna: enhet (`node --test` på `test/*.test.js` utom emulator­testerna),
