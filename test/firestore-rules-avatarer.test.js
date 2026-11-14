@@ -46,8 +46,8 @@ describe("köpbara avatarer – studentData.avatarId", () => {
     await assertSucceeds(updateDoc(doc(elev("elev1"), SD), { "progress.so": { quiz: { stars: 1 } } }));
   });
   it("nytt dokument med ej ägd köpavatar nekas, gratis går", async () => {
-    await assertFails(setDoc(doc(elev("elev2"), "studentData/elev2"), { avatarId: "hw-av-mumie", ownedItems: [] }));
-    // Ett nytt dokument måste ha xp: 0 (myntlåset #855 F1).
+    // Ett nytt dokument måste ha xp: 0 (myntlåset #855 F1) – båda har det, så bara avataren skiljer.
+    await assertFails(setDoc(doc(elev("elev2"), "studentData/elev2"), { avatarId: "hw-av-mumie", ownedItems: [], xp: 0 }));
     await assertSucceeds(setDoc(doc(elev("elev2"), "studentData/elev2"), { avatarId: "fox", ownedItems: [], xp: 0 }));
   });
   it("admin skriver som förut", async () => {
