@@ -498,6 +498,24 @@ för gamla dokument utan `xp`.
 det ska nekas. Spela ett quiz, svara rätt i MM, donera i Klasscentret, betala ut Live som
 årskurskonto och ge mynt som admin. Allt ska fortsätta fungera.
 
+**Genomfört (#855).** Reglerna `elevVardeOk`/`elevMyntOk`/`elevXpOk` och `elevNyttDokOk`
+i `firestore.rules`, testerna `test/firestore-rules-mynt-las.test.js` och
+`test/firestore-rules-mynt-las-grans.test.js`. Två avvikelser från texten ovan:
+
+- `elevNyttDokOk` godtar också `coins > 0` om ett kvitto betalar exakt det beloppet i
+  samma begäran (samma regel som en höjning från 0). MM-svarets batch skriver saldot
+  med `set(merge)` och skapar därför dokumentet om det saknas; utan undantaget skulle
+  de befintliga MM-sviterna (`-mattematchen-live-847-tester`) nekas. `create` med
+  `coins: 5` utan kvitto nekas som förut.
+- Gränstestet: en fullt fylld elev tjänar mynt + XP, också ihop med schackskrivningar
+  (lektioner, pussel, `datorPartier`) i samma skrivning. Schackets **värsta** fall (alla
+  12 lektioner + båda pusslen + `datorPartier`) ihop med mynt i **samma** skrivning når
+  taket på 1000 uttryck och nekas. Ingen klient gör så (schackets mynt betalas av
+  servern), och schackets värsta fall utan mynt går igenom som förut.
+
+`tjanaMynt` skriver ingenting om `studentData` saknas (F15). `data.addCoins` (bara admins
+Ge mynt) behåller sin reserv: admin får skapa dokumentet.
+
 ### B4 – Låset på varor och utseende (stänger M4, resten av M7-XP) · beroende: B2, B3
 
 **Mål.** Klienten kan inte längre skapa varor och inte heller byta art på ett djur den
