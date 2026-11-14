@@ -121,7 +121,7 @@ test("ett migrerat äldre djur syns som förut (rumsdjur ur ownedItems, gårdsdj
     pet: { eggBoughtAt: 7, speciesId: "blomp", hatchedAt: 8, stage: 2, feedCount: 12 },
   };
   assert.deepEqual([animalsFromData(fore), farmFromData(fore).animals, petsFromData(fore)], [[], [], []], "före migreringen");
-  const efter = { ...fore, ...planeraMigrering(fore) };
+  const efter = { ...fore, ...planeraMigrering(fore, {}, { djur: true }) }; // skriptets --djur
   assert.deepEqual(animalsFromData(efter).map((a) => [a.uid, a.id, a.name]), [["katt", "katt", null], ["fisk#a", "fisk", "Nemo"], ["hund", "hund", null]]);
   assert.deepEqual(animalsFromData(efter)[0].pos, { x: 5, y: 6 });
   assert.deepEqual(farmFromData(efter).animals.map((a) => [a.uid, a.id, a.trivsel]), [["animal_cow#k", "animal_cow", 50]]);
