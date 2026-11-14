@@ -6,7 +6,9 @@
 // listor, agdaDjur, största myntDag med alla källor och många gåvor) ska kunna
 // tjäna mynt + xp – även ihop med schackskrivningar i SAMMA skrivning –
 // hämta en gåva och svara rätt i Mattematchen (hela MM-batchen). Fusket nekas
-// fortfarande i samma tillstånd. Körs av `npm run test:rules`.
+// fortfarande i samma tillstånd. Varulåset (#856): samma fulla elev skriver alla
+// varufält (möbler, djur, äpplen, frö, kläder, hus, lada) ihop med mynt + schack.
+// Körs av `npm run test:rules`.
 // ============================================================================
 
 import { after, before, beforeEach, describe, it } from "node:test";
@@ -28,15 +30,18 @@ const range = (n, f) => Array.from({ length: n }, (_, i) => f(i));
 const GARD = range(30, (i) => `g${i}`);
 const FULL = {
   ...defaultStudentData("hw-av-mumie"),
-  coins: 4321, xp: 2500, appleCount: 12, husLast: false, avatarChosen: true, kcDonation: "4b/d0",
+  coins: 4321, xp: 2500, appleCount: 12, husLast: false, avatarChosen: true, kcDonation: "4b/d0", husSkalId: "sak-7", lastFro: "mobel-0",
+  floorApples: range(8, (i) => ({ id: `a${i}`, x: i, y: 80, room: i % 3 })),
   ownedItems: ["hw-av-mumie", ...range(300, (i) => `sak-${i}`)],
   ownedCounts: Object.fromEntries(range(100, (i) => [`mobel-${i}`, 3])),
   avatarItems: range(10, (i) => `sak-${i}`),
   pets: range(20, (i) => ({ id: `p${i}`, speciesId: "katt", feedCount: 9, name: `Djur ${i}`, x: i, y: i })),
   roomAnimals: range(30, (i) => ({ uid: `r${i}`, id: "fisk", x: i, y: i, room: i % 3 })),
-  agdaDjur: Object.fromEntries([...GARD.map((u) => [u, "animal_horse"]), ...range(30, (i) => [`r${i}`, "fisk"])]),
+  agdaDjur: Object.fromEntries([...GARD.map((u) => [u, "animal_horse"]), ...range(30, (i) => [`r${i}`, "fisk"]),
+    ...range(20, (i) => [`p${i}`, "mystery-egg"])]),
   farm: {
-    barnLevel: 3, gardenTier: 3, barnSkin: null, inventoryHarvest: { morot: 40, pumpa: 9 },
+    barnLevel: 3, gardenTier: 3, inventoryHarvest: { morot: 40, pumpa: 9 },
+    barnSkin: "sak-8",
     gardenSlots: range(12, (i) => ({ crop: "morot", stage: i % 4 })), placedAnimals: [],
     animals: GARD.map((uid) => ({ uid, id: "animal_horse", lastGiftAt: 1 })),
   },
@@ -139,6 +144,44 @@ describe("myntlåset (#855) med fullt tillstånd – inom 1000 uttryck och 20 å
     for (const w of writes) b.set(doc(db, ...w.path), w.data, w.merge ? { merge: true } : undefined);
     await assertSucceeds(b.commit());
     assert.equal((await las(["studentData", "full"])).coins, 4322);
+  });
+  it("varufälten (#856) – möbler, djur, äpplen, frö, kläder, hus och lada – ihop med mynt + schack", async () => {
+    // Allt eleven själv kan ändra bland varorna i EN skrivning, med en utbetalning
+    // och schackskrivningar: varje varugren i elevVardeOk körs.
+    const varor = {
+      "room.placements.sak-1": { x: 1, y: 2 },
+      roomAnimals: [...FULL.roomAnimals.map((a) => ({ ...a, x: a.x + 1 })), { uid: "hund", id: "hund", x: 1, y: 1 }],
+      pets: FULL.pets.map((p) => ({ ...p, feedCount: p.feedCount + 1 })),
+      "farm.animals": FULL.farm.animals.map((a) => ({ ...a, trivsel: 90 })),
+      "farm.gardenSlots": [...FULL.farm.gardenSlots, { crop: "mobel-0", stage: 0 }],
+      "farm.inventoryHarvest": { morot: 39, pumpa: 9 },
+      "farm.barnSkin": "sak-9",
+      "ownedCounts.mobel-0": 2,
+      appleCount: 11, floorApples: [...FULL.floorApples.slice(1), { id: "a9", x: 1, y: 1 }, { id: "a10", x: 2, y: 2 }],
+      avatarItems: range(10, (i) => `sak-${i + 20}`),
+      husSkalId: "sak-11",
+    };
+    await assertSucceeds(tjana("ovning", 1, { xp: 1, extra: { ...varor, "schack.lektioner.12": 3, "schack.datorPartier": increment(1) } }));
+    const d = await las(["studentData", "full"]);
+    assert.deepEqual([d.coins, d.appleCount, d.ownedCounts["mobel-0"], d.husSkalId, d.farm.barnSkin], [4322, 11, 2, "sak-11", "sak-9"]);
+    // Utan mynt, ihop med schackets värsta fall (alla lektioner + båda pusslen).
+    const schack = { "schack.datorPartier": increment(1) };
+    for (const k of ALLA) schack[`schack.lektioner.${k}`] = 3;
+    for (const p of ["ett", "tva"]) {
+      schack[`schack.pussel.${p}.losta`] = increment(1);
+      schack[`schack.pussel.${p}.senast`] = FULL.schack.pussel[p].senast + 2;
+    }
+    await assertSucceeds(updateDoc(sd(), {
+      ...schack, "ownedCounts.mobel-1": 2, lastFro: "mobel-1", appleCount: 10, floorApples: varor.floorApples.slice(1),
+      avatarItems: range(10, (i) => `sak-${i + 30}`), husSkalId: "sak-12", "farm.barnSkin": null,
+      pets: FULL.pets, roomAnimals: FULL.roomAnimals, "farm.animals": FULL.farm.animals,
+    }));
+    // Fusket bland varorna nekas i samma tillstånd, också bredvid en giltig utbetalning.
+    await assertFails(tjana("ovning", 1, { xp: 1, extra: { ...varor, appleCount: 12 } }));
+    await assertFails(tjana("ovning", 1, { xp: 1, extra: { "agdaDjur.dino": "dinosaurie" } }));
+    await assertFails(updateDoc(sd(), { avatarItems: ["cape"] }));
+    await assertFails(updateDoc(sd(), { "ownedCounts.mobel-2": 4, lastFro: "mobel-2" }));
+    await assertFails(updateDoc(sd(), { "farm.barnLevel": 4 }));
   });
   it("orelaterade skrivningar och fusket i samma tillstånd", async () => {
     await assertSucceeds(updateDoc(sd(), { "progress.omr1.quiz.stars": 3, "roomAnimals": FULL.roomAnimals }));

@@ -368,33 +368,32 @@ service cloud.firestore {
     }
     // Sådden (plantSeed): bara nyckeln lastFro ändras, ett heltal ≥ 0 under det
     // gamla antalet (ownedCount: counts-posten, annars 1 om fröet finns i ownedItems).
+    // (Inga typkontroller av kartorna: diff/[] på annat än en karta nekar ändå.)
     function elevFroOk(n, o) {
       let f = n.get('lastFro', '');
-      let nc = n.get('ownedCounts', {});
+      let nc = n.ownedCounts;
       let oc = o.get('ownedCounts', {});
-      return f is string && nc is map && oc is map && nc.diff(oc).affectedKeys() == [f].toSet() &&
-        nc.get(f, -1) is int && nc[f] >= 0 &&
+      return nc.diff(oc).affectedKeys() == [f].toSet() && nc[f] is int && nc[f] >= 0 &&
         nc[f] < oc.get(f, f in o.get('ownedItems', []) ? 1 : 0);
     }
     // Lägga ut / plocka upp (±1 var) och äta upp (golvet −1): summan ökar aldrig.
     function elevApplenOk(n, o) {
       let na = n.get('appleCount', 0);
       let nf = n.get('floorApples', []);
-      return na is int && na >= 0 && nf is list &&
+      return na is int && na >= 0 &&
         na + nf.size() <= o.get('appleCount', 0) + o.get('floorApples', []).size();
     }
     // Gården: nivåerna köps på servern; ladans utseende måste vara ägt (eller null).
     function elevGardOk(n, o) {
       let nf = n.get('farm', {});
       let fk = nf.diff(o.get('farm', {})).affectedKeys();
-      return nf is map && !fk.hasAny(['barnLevel', 'gardenTier']) &&
+      return !fk.hasAny(['barnLevel', 'gardenTier']) &&
         (!('barnSkin' in fk) || nf.get('barnSkin', null) == null || nf.barnSkin in n.get('ownedItems', []));
     }
     // Kläderna: det som tas på måste vara ägt (att ta av går alltid, också en
     // sak som av någon anledning saknas i ownedItems sedan förr).
     function elevKladerOk(n, o) {
-      let ni = n.get('avatarItems', []);
-      return ni is list && ni.toSet().difference(o.get('avatarItems', []).toSet())
+      return n.get('avatarItems', []).toSet().difference(o.get('avatarItems', []).toSet())
         .difference(n.get('ownedItems', []).toSet()).size() == 0;
     }
     function elevMyntOk(uid, m, k) {
