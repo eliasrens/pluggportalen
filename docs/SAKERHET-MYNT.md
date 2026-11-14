@@ -502,7 +502,7 @@ reglerna behöver inga storleksregler för dem.
   som `animalsFromData` ger i dag, och får sedan en post i kartan.
 - Varje `farm.animals`-post får `agdaDjur[uid] = id`.
 - Varje husdjur i `pets` (och den gamla `pet`, som först migreras till `pets[0]` med
-  `migratedLegacyPet` från `data-pet.js`) får `agdaDjur[id] = eggSpecies ?
+  `petsFromData`, `src/data-pet.js:130`, och skrivs tillbaka) får `agdaDjur[id] = eggSpecies ?
   "hw-djur-" + eggSpecies : "mystery-egg"`.
 
 Tillståndet vid migreringen godtas som utgångsläge (se R6).
