@@ -47,7 +47,8 @@ describe("köpbara avatarer – studentData.avatarId", () => {
   });
   it("nytt dokument med ej ägd köpavatar nekas, gratis går", async () => {
     await assertFails(setDoc(doc(elev("elev2"), "studentData/elev2"), { avatarId: "hw-av-mumie", ownedItems: [] }));
-    await assertSucceeds(setDoc(doc(elev("elev2"), "studentData/elev2"), { avatarId: "fox", ownedItems: [] }));
+    // Ett nytt dokument måste ha xp: 0 (myntlåset #855 F1).
+    await assertSucceeds(setDoc(doc(elev("elev2"), "studentData/elev2"), { avatarId: "fox", ownedItems: [], xp: 0 }));
   });
   it("admin skriver som förut", async () => {
     await assertSucceeds(updateDoc(doc(teacher(), SD), { avatarId: "hw-av-haxkatt" }));

@@ -81,8 +81,8 @@ after(async () => { if (testEnv) await testEnv.cleanup(); });
 
 beforeEach(async () => {
   await testEnv.clearFirestore();
-  await seed(["classes", "4b"], { name: "4B", studentIds: ["alma", "omar", "nils"] });
-  for (const u of ["alma", "omar", "nils"]) await seed(["students", u], { namn: u });
+  await seed(["classes", "4b"], { name: "4B", studentIds: ["alma", "omar", "nils", "vera"] });
+  for (const u of ["alma", "omar", "nils", "vera"]) await seed(["students", u], { namn: u });
   await seed(["studentData", "alma"], { ...defaultStudentData(), coins: 250, xp: 100 });
   await seed(["studentData", "omar"], { coins: 10, xp: 0, progress: {} });
   await seed(["studentData", "nils"], { coins: 40, progress: {} }); // gammalt dokument utan xp
@@ -157,6 +157,16 @@ describe("myntlåset (#855): xp utan kvitto nekas", () => {
       kv: { senastXp: 10, xp: 10 }, patch: { xp: 10 },
     }));
     assert.equal((await las(["studentData", "nils"])).xp, undefined);
+  });
+  it("xp: 0 (increment(0)) i ett dokument utan xp: bara utan framsteg – annars vore nivån ur progress borta", async () => {
+    await seed(["studentData", "vera"], { coins: 5, progress: { so: { quiz: { stars: 3, completed: true } } } });
+    await assertFails(setDoc(sd("vera"), { avatarId: "owl", xp: increment(0) }, { merge: true }), "framsteg finns → migreringen sätter xp");
+    await assertFails(mm("vera"), "MM-saldot med xp: increment(0) väntar också på migreringen");
+    await seed(["studentData", "vera"], { coins: 5, xp: 30, progress: { so: { quiz: { stars: 3, completed: true } } } });
+    await assertSucceeds(mm("vera"), "efter migreringen (xp finns) går MM-svaret");
+    await assertSucceeds(setDoc(sd("nils"), { avatarId: "owl", xp: increment(0) }, { merge: true }), "tomt progress");
+    assert.equal((await las(["studentData", "nils"])).xp, 0);
+    await assertFails(updateDoc(sd("nils"), { xp: 1 }), "sedan bara med kvitto");
   });
 });
 

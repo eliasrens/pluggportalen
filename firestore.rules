@@ -337,6 +337,8 @@ service cloud.firestore {
     // (mmMynt/{idag}), eller (ii) nedåt ihop med en ändrad kcDonation
     // (klasscentrets regler binder avdraget till donationen). xp bara uppåt med
     // myntDag.senastXp, och bara om fältet redan fanns (migreringen sätter det).
+    // Undantag: xp: 0 får läggas till i ett dokument utan xp och utan framsteg
+    // (xp: increment(0) från setAvatar/MM-saldot, #855 F1) – nivån är ändå 0.
     // Live-/Prov-markörerna skrivs bara av läraren. Inga get när varken coins
     // eller xp ändras (1000-uttrycksgränsen, #792 F1).
     function elevVardeOk(uid) {
@@ -346,8 +348,8 @@ service cloud.firestore {
       return !k.hasAny(['lastLiveReceipt', 'lastProvMynt']) &&
         (!('coins' in k) || ('coins' in n && n.coins is int && n.coins >= 0 &&
           elevMyntOk(uid, n.coins - o.get('coins', 0), k))) &&
-        (!('xp' in k) || ('xp' in o && 'xp' in n && n.xp is int &&
-          elevXpOk(uid, n.xp - o.xp)));
+        (!('xp' in k) || ('xp' in n && n.xp is int && ('xp' in o ? elevXpOk(uid, n.xp - o.xp) :
+          (n.xp == 0 && o.get('progress', {}).size() == 0))));
     }
     function elevMyntOk(uid, m, k) {
       return m == 0 ||
