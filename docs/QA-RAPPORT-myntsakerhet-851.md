@@ -42,7 +42,7 @@ om flera gånger under körningen.
 | Svit | Resultat |
 |---|---|
 | Enhet (301 filer) | **4422 pass / 0 fail**, 1 skip (`demo: en stubbe vägras`, redan markerad) |
-| `npm run test:rules` (95 filer, 8 bitar) | **1066 pass / 0 fail** (151 + 129 + 197 + 145 + 148 + 109 + 84 + 103) |
+| `npm run test:rules` (91 filer, 8 bitar) | **1066 pass / 0 fail** (151 + 129 + 197 + 145 + 148 + 109 + 84 + 103) |
 | `npm run test:functions` (51 filer, 6 bitar) | **573 pass / 0 fail**, 2 `todo` (schack F9, kända) |
 | `npm run test:e2e` | före fixen **3/5** (F3), efter **5/5 pass** |
 | `node --test test/behorigheter-doc.test.js` (efter docs-ändringen) | 4/4 pass |
