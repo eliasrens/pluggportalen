@@ -301,6 +301,16 @@ describe("klienten: alla köp via butikKop, bootgrafen 107", () => {
     }
     assert.doesNotMatch(kod("src/data-mystery.js"), /runTransaction|rollMysteryItem/);
   });
+  it("ett nekat köp visar serverns skäl när varan inte säljs, annars saldotexten (F1)", () => {
+    const shop = kod("src/pages-shop.js");
+    assert.equal((shop.match(/flash\(nekadText\(res, "Du har inte råd/g) || []).length, 2, "vanliga köp + mysterylådan");
+    const monster = /säljs inte\|finns inte/;
+    assert.match(shop, monster);
+    const nej = (id, sasong) => kopVara({ coins: 9999 }, butikVara(id), { nu: NU, sasong }).result.error;
+    assert.match(nej("hw-pumpalykta", { halloween: false }), /säljs inte/, "säsongen stängd");
+    assert.match(kopVara({ coins: 9999 }, null).result.error, /finns inte/);
+    assert.doesNotMatch(kop({ coins: 0 }, "keps").result.error, /säljs inte|finns inte/, "för få mynt → standardtexten");
+  });
   it("plantSeed skriver markören lastFro", () => {
     assert.match(kod("src/data-farm.js"), /\["ownedCounts\." \+ cropId\]: seeds - 1,\s*lastFro: cropId,/);
   });

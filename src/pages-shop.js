@@ -247,7 +247,7 @@ export async function pageElevShop() {
           await renderTopbar();
         } else {
           renderKatalog();
-          flash("Du har inte råd med en mysterybox just nu.", true);
+          flash(nekadText(res, "Du har inte råd med en mysterybox just nu."), true);
         }
       } catch (err) {
         renderKatalog();
@@ -281,8 +281,8 @@ export async function pageElevShop() {
         // Köpbekräftelsen per sorts sak bor i pages-shop-kopt.js (laddas lazy).
         import("./pages-shop-kopt.js").then((m) => flash(m.kopMeddelande(item, state)), () => flash(`Du köpte ${item.name}!`));
       } else {
-        // Täcker inte (t.ex. saldot ändrat i en annan flik).
-        flash("Du har inte råd med den just nu.", true);
+        // Täcker inte (t.ex. saldot ändrat i en annan flik) – eller servern säljer den inte nu.
+        flash(nekadText(res, "Du har inte råd med den just nu."), true);
       }
     } catch (err) {
       renderKatalog();
@@ -313,6 +313,12 @@ function readSavedCat(tabCats) {
   if (id && tabCats.some((c) => c.id === id)) return id;
   if (id === "tradgard") return "baksidan"; // #358: trädgårds-varorna bor i Baksidan
   return null;
+}
+
+/** Text för ett nekat köp (#854): serverns skäl när varan inte säljs (t.ex. säsongen
+ * stängde medan butiken var öppen), annars standardtexten om saldot. */
+function nekadText(res, standard) {
+  return res && typeof res.error === "string" && /säljs inte|finns inte/.test(res.error) ? res.error : standard;
 }
 
 /** Antal djur per art ur animalsFromData / farm.animals (#330): { [art]: n }. */
