@@ -2,45 +2,21 @@
 // Pluggporten – XP/nivå-data (data-xp.js)
 // ----------------------------------------------------------------------------
 // Additiv systermodul till data.js (som redan ligger nära filtaket, precis som
-// data-pet.js): allt Firestore som rör studentData.xp. Importera direkt härifrån
-// (t.ex. `import { addXp } from "./data-xp.js"`). Ren nivå-/XP-logik (kurva,
+// data-pet.js): läsningen av studentData.xp. Importera direkt härifrån
+// (t.ex. `import { getXp } from "./data-xp.js"`). Ren nivå-/XP-logik (kurva,
 // XP-pott) ligger i leveling.js; fältbeskrivning i docs/DATAMODELL.md.
 //
 // Kumulativt xp-fält. Nivån räknas fram ur xp (leveling.js) och sparas ALDRIG.
-// Elever utan xp-fält (spelade innan systemet fanns) migreras första gången XP
-// delas ut: startvärdet härleds ur progress (xpFromStudentData).
+// XP delas ut ihop med mynten i data-mynt.js tjanaMynt (#853, dagskvittot) –
+// och BARA när fältet redan finns. Elever utan xp-fält (spelade innan
+// systemet fanns) får det härledda värdet av migreringen (SAKERHET-MYNT §7);
+// tills dess visas det härledda värdet (xpFromStudentData).
 // ============================================================================
 
-import { db } from "./firebase-config.js";
-import {
-  doc,
-  runTransaction,
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { currentStudentId, getStudentData, defaultStudentData, invalidateStudentData } from "./data.js";
+import { currentStudentId, getStudentData } from "./data.js";
 import { xpFromStudentData } from "./leveling.js";
 
 /** Elevens samlade XP (sparat fält, annars härlett ur progress). */
 export async function getXp(studentId = currentStudentId()) {
   return xpFromStudentData(await getStudentData(studentId));
-}
-
-/**
- * Lägg till XP (transaktion, samma mönster som addCoins). Saknas xp-fältet
- * härleds ett startvärde ur progress först, så ingen nollställs till nivå 1.
- * @returns {Promise<number>} nytt totalt XP.
- */
-export async function addXp(amount, studentId = currentStudentId()) {
-  if (!studentId) throw new Error("Ingen elev inloggad.");
-  const n = Math.max(0, Math.round(amount || 0));
-  const ref = doc(db, "studentData", studentId);
-  const next = await runTransaction(db, async (tx) => {
-    const snap = await tx.get(ref);
-    const cur = snap.exists() ? xpFromStudentData(snap.data()) : 0;
-    const total = cur + n;
-    if (snap.exists()) tx.update(ref, { xp: total });
-    else tx.set(ref, { ...defaultStudentData(), xp: total });
-    return total;
-  });
-  invalidateStudentData(studentId); // xp ändrat → nästa läsning färsk (#274)
-  return next;
 }

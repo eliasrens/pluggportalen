@@ -1,0 +1,143 @@
+// ============================================================================
+// Migreringen inför myntlåset (#854, docs/SAKERHET-MYNT.md §6 B2 + §7) – den rena
+// kärnan admin/migrera-mynt-las-core.mjs planeraMigrering(sd) → patch | null.
+//   xp: saknas → xpFromProgress, finns → orört, "x"/negativt → rättas
+//   agdaDjur: roomAnimals, äldre djur i ownedItems, farm.animals, pets, gamla `pet`
+//   duplicerat uid → en post; uid i två listor → den första listans; befintlig post
+//   skrivs aldrig över; bara listans egen kategori; andra körningen ändrar inget
+// Körs med: node --test test/migrera-mynt-las.test.js
+// ============================================================================
+
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import { planeraMigrering, agdaVardeForPet } from "../admin/migrera-mynt-las-core.mjs";
+import { xpFromProgress, xpFromStudentData } from "../src/leveling.js";
+import { kopVara, butikVara } from "../src/butik-core.js";
+
+const PROGRESS = { vikingar: { quiz: { completed: true, stars: 3 }, para: { completed: true, stars: 1 } } };
+const kor = (sd) => planeraMigrering(sd);
+/** Patchen som update() skriver den (bara toppfält här). */
+const efter = (sd, patch) => ({ ...structuredClone(sd), ...structuredClone(patch || {}) });
+
+describe("xp", () => {
+  it("ett dokument utan xp får det härledda värdet (samma som visas i dag)", () => {
+    const sd = { progress: PROGRESS };
+    const p = kor(sd);
+    assert.equal(p.xp, xpFromProgress(PROGRESS));
+    assert.equal(p.xp, xpFromStudentData(sd), "ingen elev tappar eller får XP");
+    assert.ok(p.xp > 0);
+    assert.deepEqual(kor({}), { xp: 0 }, "inget progress → 0");
+  });
+  it("ett dokument med xp lämnas orört", () => {
+    assert.equal(kor({ xp: 0, progress: PROGRESS }), null);
+    assert.equal(kor({ xp: 1234, progress: PROGRESS }), null);
+  });
+  it("xp som inte är ett tal ≥ 0 rättas", () => {
+    for (const xp of ["x", -5, null, NaN, Infinity, "100"]) {
+      assert.equal(kor({ xp, progress: PROGRESS }).xp, xpFromProgress(PROGRESS), String(xp));
+    }
+  });
+});
+
+describe("agdaDjur – varje lista får sina poster", () => {
+  it("roomAnimals: agdaDjur[uid] = art (uid saknas → art-id, som animalsFromData)", () => {
+    const p = kor({ xp: 0, roomAnimals: [{ uid: "hund#a", id: "hund" }, { id: "fisk" }] });
+    assert.deepEqual(p, { agdaDjur: { "hund#a": "hund", fisk: "fisk" } });
+  });
+  it("äldre djur i ownedItems blir roomAnimals-poster (uid = art-id) och får en post", () => {
+    const sd = { xp: 0, ownedItems: ["keps", "katt", "hund"], roomAnimals: [{ uid: "hund#a", id: "hund" }] };
+    const p = kor(sd);
+    assert.deepEqual(p.roomAnimals.map((a) => [a.uid, a.id]), [["hund#a", "hund"], ["katt", "katt"]], "hunden finns redan som art");
+    assert.deepEqual(p.roomAnimals[1], { uid: "katt", id: "katt", pos: { x: 30, y: 78 }, name: null, stowed: false });
+    assert.deepEqual(p.agdaDjur, { "hund#a": "hund", katt: "katt" });
+  });
+  it("ett äldre djur vars art-id redan är ett uid får ett eget uid", () => {
+    const p = kor({ xp: 0, ownedItems: ["hund"], roomAnimals: [{ uid: "hund", id: "fisk" }] });
+    assert.deepEqual(p.roomAnimals.map((a) => a.uid), ["hund", "hund#2"]);
+    assert.deepEqual(p.agdaDjur, { hund: "fisk", "hund#2": "hund" });
+  });
+  it("farm.animals: agdaDjur[uid] = art", () => {
+    const p = kor({ xp: 0, farm: { animals: [{ uid: "animal_pig#1", id: "animal_pig" }, { uid: "h", id: "animal_horse" }] } });
+    assert.deepEqual(p, { agdaDjur: { "animal_pig#1": "animal_pig", h: "animal_horse" } });
+  });
+  it("pets: mystery-egg, eller hw-djur-<art> för ett Halloween-ägg med känd art", () => {
+    const p = kor({ xp: 0, pets: [{ id: "p1" }, { id: "p2", eggSpecies: "spokis" }, { id: "p3", eggSpecies: "finnsinte" },
+      { id: "p4", speciesId: "spokis" }] });
+    assert.deepEqual(p, { agdaDjur: { p1: "mystery-egg", p2: "hw-djur-spokis", p3: "mystery-egg", p4: "mystery-egg" } });
+    assert.equal(agdaVardeForPet({ eggSpecies: "slemmis" }), "hw-djur-slemmis");
+  });
+  it("den gamla `pet` migreras till pets[0], skrivs tillbaka och får en post", () => {
+    const sd = { xp: 0, pet: { eggBoughtAt: 5, hatchedAt: 6, speciesId: "blomp", stage: 2, feedCount: 12 } };
+    const p = kor(sd);
+    assert.equal(p.pets.length, 1);
+    assert.equal(p.pets[0].speciesId, "blomp");
+    assert.equal(p.pets[0].feedCount, 12);
+    assert.deepEqual(p.agdaDjur, { [p.pets[0].id]: "mystery-egg" });
+    assert.equal(kor(efter(sd, p)), null, "andra körningen: pets finns, kartan har posten");
+    assert.equal(kor({ xp: 0, pet: { stage: 1 } }), null, "pet utan ägg = inget djur (som petsFromData)");
+  });
+  it("djur utanför listans kategori får ingen post (B4 regel 1)", () => {
+    const p = kor({
+      xp: 0,
+      roomAnimals: [{ uid: "a", id: "animal_horse" }, { uid: "b", id: "keps" }, { uid: "c", id: "mystery-egg" }],
+      farm: { animals: [{ uid: "d", id: "dinosaurie" }, { uid: "e", id: "hw-djur-spokis" }] },
+    });
+    assert.equal(p, null);
+  });
+});
+
+describe("agdaDjur – första posten vinner, inget skrivs över", () => {
+  it("en duplicerad uid ger en enda post (första posten)", () => {
+    const p = kor({ xp: 0, roomAnimals: [{ uid: "x", id: "fisk" }, { uid: "x", id: "dinosaurie" }],
+      farm: { animals: [{ uid: "g", id: "animal_pig" }, { uid: "g", id: "animal_horse" }] },
+      pets: [{ id: "p" }, { id: "p", eggSpecies: "gruffe" }] });
+    assert.deepEqual(p.agdaDjur, { x: "fisk", g: "animal_pig", p: "mystery-egg" });
+  });
+  it("ett uid i två listor får bara den första listans post (roomAnimals → farm.animals → pets)", () => {
+    const p = kor({ xp: 0, roomAnimals: [{ uid: "delad", id: "dinosaurie" }],
+      farm: { animals: [{ uid: "delad", id: "animal_horse" }, { uid: "p9", id: "animal_cow" }] },
+      pets: [{ id: "p9", eggSpecies: "spokis" }] });
+    assert.deepEqual(p.agdaDjur, { delad: "dinosaurie", p9: "animal_cow" });
+  });
+  it("en befintlig post skrivs aldrig över – och behålls när nya läggs till", () => {
+    const sd = { xp: 0, agdaDjur: { "hund#a": "fisk", p1: "hw-djur-uggli" },
+      roomAnimals: [{ uid: "hund#a", id: "dinosaurie" }, { uid: "k", id: "katt" }], pets: [{ id: "p1" }] };
+    assert.deepEqual(kor(sd).agdaDjur, { "hund#a": "fisk", p1: "hw-djur-uggli", k: "katt" });
+    assert.equal(kor({ ...sd, roomAnimals: [{ uid: "hund#a", id: "dinosaurie" }] }), null, "alla har redan en post");
+  });
+  it("ett köpt djur (butikKop) behåller köpets post", () => {
+    const sd = { xp: 0, coins: 500 };
+    const r = kopVara(sd, butikVara("dinosaurie"), { nu: 1, rng: () => 0.5 });
+    const kopt = { ...sd, ...r.patch };
+    assert.equal(kor(kopt), null, "köpet skrev redan agdaDjur");
+    kopt.roomAnimals[0].id = "fisk";
+    assert.equal(kor(kopt), null, "ett senare artbyte i listan ändrar inte kartan");
+  });
+});
+
+describe("idempotens", () => {
+  it("en andra körning ändrar ingenting", () => {
+    const sd = {
+      progress: PROGRESS, xp: "x", ownedItems: ["hund", "kanin", "keps"],
+      roomAnimals: [{ uid: "fisk#1", id: "fisk" }, { uid: "fisk#1", id: "papegoja" }],
+      farm: { barnLevel: 2, animals: [{ uid: "h1", id: "animal_horse" }] },
+      pet: { eggBoughtAt: 1 }, agdaDjur: { gammal: "katt" },
+    };
+    const p = kor(sd);
+    assert.ok(p.xp > 0 && p.roomAnimals && p.pets && p.agdaDjur);
+    const rakna = {};
+    planeraMigrering(sd, rakna);
+    assert.deepEqual(rakna, { xp: 1, aldreDjur: 2, rumsdjur: 3, gardsdjur: 1, husdjur: 1, gammaltPet: 1 });
+    assert.equal(kor(efter(sd, p)), null);
+    assert.deepEqual(efter(sd, p).agdaDjur.gammal, "katt");
+  });
+  it("saldon och varor rörs aldrig", () => {
+    const sd = { coins: 77, ownedItems: ["katt"], ownedCounts: { soffa: 2 }, appleCount: 3, roomAnimals: [] };
+    const p = kor(sd);
+    for (const k of ["coins", "ownedItems", "ownedCounts", "appleCount", "farm"]) assert.ok(!(k in p), k);
+  });
+  it("tåliga mot trasiga dokument", () => {
+    assert.deepEqual(kor(null), { xp: 0 });
+    assert.deepEqual(kor({ xp: 0, roomAnimals: "x", farm: "y", pets: [null, 5, { id: "" }], agdaDjur: [1] }), null);
+  });
+});

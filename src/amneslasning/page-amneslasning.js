@@ -158,6 +158,7 @@ export async function startAmneslasning({ subj, area, areaData }) {
         correct: a.correct,
         total: a.totalQuestions,
         coins: res.coins,
+        tak: res.tak,
         note: readProgressLine(readProgress(texts, res.area)),
         continueLabel: "Läs nästa text 📖",
         onContinue: () => showReader().catch(showError),

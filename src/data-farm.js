@@ -16,7 +16,7 @@
 // dokument utan `farm`), kör den rena övergången och skriver ändrade fält med
 // DOT-PATH (`farm.gardenSlots` …) så inget annat i farm-objektet – eller
 // dokumentet – skrivs över. Saknas dokumentet skapas det som
-// defaultStudentData + farm (samma mönster som addCoins/buyItem i data.js).
+// defaultStudentData + farm (samma mönster som addCoins i data.js).
 // ============================================================================
 
 import { db } from "./firebase-config.js";
@@ -39,16 +39,14 @@ import {
   harvestFrom,
   adjustInventoryIn,
   setPlacementIn,
-  addFarmAnimalIn,
   renameFarmAnimalIn,
   withFarmAnimalPositions,
   feedFarmAnimalIn,
   claimGiftIn,
-  FARM_MAX_BARN_LEVEL,
-  FARM_MAX_GARDEN_TIER,
+  FARM_GIFT_COINS,
   FARM_MAX_GROWTH_STAGE,
 } from "./farm-core.js";
-import { isFarmAnimalItem, getItem } from "./shop-items.js";
+import { getItem } from "./shop-items.js";
 
 /**
  * Hela gårds-tillståndet för inloggad (eller angiven) elev, alltid ett
@@ -102,7 +100,7 @@ export function plantCrop(slotIndex, cropId, studentId = currentStudentId()) {
  * Så ett KÖPT frö (#329): som plantCrop men förbrukar samtidigt ett frö ur
  * elevens shop-innehav. Fröer är multi-saker i shoppen (kategori tradgard,
  * seed:true) så antalet bor i studentData.ownedCounts[cropId] – köpet sker via
- * vanliga buyItem, sådden drar av 1 här, i SAMMA transaktion som sloten fylls
+ * butikKop (#854), sådden drar av 1 här, i SAMMA transaktion som sloten fylls
  * (inga frön kan försvinna utan att en gröda faktiskt såtts, och tvärtom).
  * Inga frön kvar → ok:false utan ändring.
  * @returns {Promise<{ok: boolean, farm: object, error?: string}>}
@@ -121,9 +119,12 @@ export async function plantSeed(slotIndex, cropId, studentId = currentStudentId(
     // Dot-path-skrivning: bara sloten + fröräknaren rörs. ownedCount faller
     // tillbaka på ownedItems för äldre köp utan counts-post – skrivningen här
     // sätter alltid en explicit counts-post, som har företräde vid läsning.
+    // lastFro (#854) = markören som B4:s regel för ownedCounts läser: bara fröet som
+    // såddes får räknas ned.
     tx.update(ref, {
       "farm.gardenSlots": res.farm.gardenSlots,
       ["ownedCounts." + cropId]: seeds - 1,
+      lastFro: cropId,
     });
     return res;
   });
@@ -199,11 +200,6 @@ export function setAnimalPlacement(petId, location, studentId = currentStudentId
 
 // --- Bondgårdsdjuren (farm.animals, issue #330) ------------------------------
 
-/** Nytt unikt instans-id för ett bondgårdsdjur ("<art>#<slump>"). */
-function newFarmAnimalUid(artId) {
-  return artId + "#" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-}
-
 /**
  * Samma namn-sanering som husdjuren (cleanPetName i data-pet.js) – dubblerad
  * MEDVETET: data.js re-exporterar den här modulen och data-pet.js importerar
@@ -214,33 +210,8 @@ function cleanFarmAnimalName(name) {
   return s || null;
 }
 
-/**
- * Köp ett bondgårdsdjur (häst/ko/gris): drar coins och lägger djuret i
- * farm.animals – nya djur bor i RUMMET tills eleven väljer hage/lada i "Mina
- * djur" (setAnimalPlacement). Flera exemplar av samma art tillåts (varje köp =
- * nytt uid). Allt i EN transaktion – samma mönster som buyAnimal i data-animals.
- * @returns {Promise<{ok: boolean, coins: number, farm: object, animal?: object}>}
- */
-export async function buyFarmAnimal(itemId, price, studentId = currentStudentId()) {
-  if (!studentId) throw new Error("Ingen elev inloggad.");
-  if (!isFarmAnimalItem(itemId)) throw new Error("Inte ett bondgårdsdjur: " + itemId);
-  const cost = Math.max(0, Math.round(price || 0));
-  const ref = doc(db, "studentData", studentId);
-  const result = await runTransaction(db, async (tx) => {
-    const snap = await tx.get(ref);
-    const data = snap.exists() ? snap.data() : {};
-    const coins = data.coins || 0;
-    const farm = farmFromData(data);
-    if (coins < cost) return { ok: false, coins, farm };
-    const res = addFarmAnimalIn(farm, newFarmAnimalUid(itemId), itemId);
-    if (!res.ok) return { ok: false, coins, farm };
-    if (snap.exists()) tx.update(ref, { coins: coins - cost, "farm.animals": res.farm.animals });
-    else tx.set(ref, { ...defaultStudentData(), coins: 0, farm: res.farm });
-    return { ok: true, coins: coins - cost, farm: res.farm, animal: res.animal };
-  });
-  if (result.ok) invalidateStudentData(studentId); // coins/djur ändrat (#274)
-  return result;
-}
+// Köpet av ett bondgårdsdjur och av gårds-uppgraderingarna (#333) går via
+// butikKop på servern (#854, butik-core.js) – nivåerna skrivs aldrig härifrån.
 
 /**
  * Spara bondgårdsdjurens positioner: { [uid]: { x, y } } (procent av scenen).
@@ -266,42 +237,6 @@ export function saveFarmAnimalName(uid, name, studentId = currentStudentId()) {
 }
 
 /**
- * Köp en gårds-uppgradering (#333): odlingsbädd (odling-2/3) eller laggård
- * (lada-2/3) ur shop-katalogen (farmUpgrade + upgradeLevel, shop-items.js).
- * Drar coins och höjer farm.gardenTier/farm.barnLevel i EN transaktion – exakt
- * modellen DATAMODELL.md föreskriver: nivån är ett SPARAT FÄLT, köpet skriver
- * ALDRIG i ownedItems (shoppen härleder "Köpt" ur nivå-fältet i stället).
- * Uppgraderingarna köps i ordning: bara nivån ETT steg över den nuvarande kan
- * köpas (nivån kan därmed aldrig sänkas eller hoppa – planterade slots hamnar
- * aldrig utanför bädden, placerade djur aldrig utanför ladan).
- * @returns {Promise<{ok: boolean, coins: number, farm: object, error?: string}>}
- */
-export async function buyFarmUpgrade(itemId, price, studentId = currentStudentId()) {
-  if (!studentId) throw new Error("Ingen elev inloggad.");
-  const item = getItem(itemId);
-  if (!item || !item.farmUpgrade) throw new Error("Inte en gårds-uppgradering: " + itemId);
-  const field = item.farmUpgrade === "garden" ? "gardenTier" : "barnLevel";
-  const cost = Math.max(0, Math.round(price || 0));
-  const ref = doc(db, "studentData", studentId);
-  const result = await runTransaction(db, async (tx) => {
-    const snap = await tx.get(ref);
-    const data = snap.exists() ? snap.data() : {};
-    const coins = data.coins || 0;
-    const farm = farmFromData(data);
-    if (item.upgradeLevel !== farm[field] + 1) {
-      return { ok: false, coins, farm, error: "fel nivå" };
-    }
-    if (coins < cost) return { ok: false, coins, farm, error: "för få coins" };
-    const nyFarm = { ...farm, [field]: item.upgradeLevel };
-    if (snap.exists()) tx.update(ref, { coins: coins - cost, ["farm." + field]: item.upgradeLevel });
-    else tx.set(ref, { ...defaultStudentData(), coins: 0, farm: nyFarm });
-    return { ok: true, coins: coins - cost, farm: nyFarm };
-  });
-  if (result.ok) invalidateStudentData(studentId); // coins/nivå ändrad (#274)
-  return result;
-}
-
-/**
  * Mata ett bondgårdsdjur med en gröda ur skörde-förrådet (#332): förbrukar
  * grödan och uppdaterar trivsel/lastFedAt i EN transaktion (ren logik i
  * feedFarmAnimalIn – +25 bara för dagens första rätta matning, fel gröda →
@@ -315,42 +250,29 @@ export function feedFarmAnimal(uid, cropId, studentId = currentStudentId()) {
 
 /**
  * Hämta djurets dagliga gåva (#332): sätter lastGiftAt OCH ökar coins i SAMMA
- * transaktion (gåvan kan aldrig hämtas utan mynt eller tvärtom – därför inte
- * via data.addCoins, som vore en andra transaktion). Ej redo → ok:false.
- * @returns {Promise<{ok: boolean, farm: object, coins?: number, coinsTotal?: number, error?: string}>}
+ * transaktion (gåvan kan aldrig hämtas utan mynt eller tvärtom). Sedan #853
+ * via data-mynt.js tjanaMynt med dagskvittot: reglerna betalar bara för ett
+ * ÄGT gårdsdjur (studentData.agdaDjur) och en gång per djur och svensk dag.
+ * Ej redo → ok:false. Nekat kvitto (djuret saknar kartpost) → ok:false och
+ * ingenting skrivs. Redan hämtad i dag enligt kvittot → ok:true, coins 0, tak.
+ * data-mynt.js laddas dynamiskt (den här filen ligger i bootgrafen, #271).
+ * @returns {Promise<{ok: boolean, farm: object, coins?: number, coinsTotal?: number, tak?: boolean, error?: string}>}
  */
 export async function claimFarmAnimalGift(uid, studentId = currentStudentId()) {
   if (!studentId) throw new Error("Ingen elev inloggad.");
-  const ref = doc(db, "studentData", studentId);
-  const result = await runTransaction(db, async (tx) => {
-    const snap = await tx.get(ref);
-    const data = snap.exists() ? snap.data() : {};
-    const farm = farmFromData(data);
-    const res = claimGiftIn(farm, uid);
-    if (!res.ok) return res;
-    const coinsTotal = (data.coins || 0) + res.coins;
-    if (snap.exists()) tx.update(ref, { coins: coinsTotal, "farm.animals": res.farm.animals });
-    else tx.set(ref, { ...defaultStudentData(), coins: res.coins, farm: res.farm });
-    return { ...res, coinsTotal };
+  const { tjanaMynt } = await import("./data-mynt.js");
+  let res = null;
+  const r = await tjanaMynt("gard", FARM_GIFT_COINS, {
+    gardUid: uid,
+    studentId,
+    extra: (sd) => {
+      res = claimGiftIn(farmFromData(sd || {}), uid);
+      return res.ok ? { "farm.animals": res.farm.animals } : null;
+    },
   });
-  if (result.ok) invalidateStudentData(studentId); // coins/djur ändrat (#274)
-  return result;
-}
-
-/**
- * Sätt laggårdens nivå (1–3). Uppgraderings-issuen äger KÖPET (pris/coins) –
- * det ska dra coins och sätta nivån i sin egen transaktion; den här hjälparen
- * är den råa nivå-skrivningen. Nivån får aldrig sänkas.
- * @returns {Promise<{ok: boolean, farm: object, error?: string}>}
- */
-export function setBarnLevel(level, studentId = currentStudentId()) {
-  return updateFarm(studentId, ["barnLevel"], (farm) => {
-    const n = Math.round(Number(level));
-    if (!Number.isFinite(n) || n < farm.barnLevel || n > FARM_MAX_BARN_LEVEL) {
-      return { ok: false, farm, error: "ogiltig nivå" };
-    }
-    return { ok: true, farm: { ...farm, barnLevel: n } };
-  });
+  if (!res || !res.ok) return res || { ok: false, farm: farmFromData({}), error: "saknas" };
+  if (r.nekad || r.avbrutet) return { ok: false, farm: res.farm, error: "nekad" };
+  return { ...res, coins: r.mynt, coinsTotal: r.saldo, tak: r.tak };
 }
 
 /**
@@ -366,21 +288,5 @@ export function setBarnSkin(skinId, studentId = currentStudentId()) {
     const id = skinId || null;
     if (id && !(getItem(id) || {}).barnSkin) return { ok: false, farm, error: "okänt skin" };
     return { ok: true, farm: { ...farm, barnSkin: id } };
-  });
-}
-
-/**
- * Sätt odlingsbäddens nivå (1–3). Samma kontrakt som setBarnLevel: köpet bor i
- * uppgraderings-issuen, nivån får aldrig sänkas (planterade slots ska aldrig
- * hamna utanför bädden).
- * @returns {Promise<{ok: boolean, farm: object, error?: string}>}
- */
-export function setGardenTier(tier, studentId = currentStudentId()) {
-  return updateFarm(studentId, ["gardenTier"], (farm) => {
-    const n = Math.round(Number(tier));
-    if (!Number.isFinite(n) || n < farm.gardenTier || n > FARM_MAX_GARDEN_TIER) {
-      return { ok: false, farm, error: "ogiltig nivå" };
-    }
-    return { ok: true, farm: { ...farm, gardenTier: n } };
   });
 }

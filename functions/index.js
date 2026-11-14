@@ -67,9 +67,8 @@
 //   kgStarta / kgAnslut / kgLas / kgSvara / kgLeta / kgTick / kgAvsluta / kgLarareVissla
 // Logiken: kurragomma-core.js (+ -sess/-fas/-rtdb/-tick/-resultat), docs/KURRAGOMMA.md §8.
 //
-// ⚠️ DEPLOY KRÄVS: firebase deploy --only functions (Blaze-planen). Klienten
-// (src/data-student-login.js, src/live/formats/guldrush/guldrush-data.js) visar
-// ett tydligt fel tills funktionerna finns.
+// Butiken (#854, epic #851): butikKop – alla köp; priset och mysterylådans lottning på servern (butik-kop.js).
+// ⚠️ DEPLOY KRÄVS: firebase deploy --only functions (Blaze-planen). Klienterna visar ett tydligt fel tills funktionerna finns.
 // ============================================================================
 
 import { onCall, HttpsError } from "firebase-functions/v2/https";
@@ -109,6 +108,7 @@ import {
   tick as kgTickCore, avsluta as kgAvslutaCore, larareVissla as kgLarareVisslaCore,
 } from "./kurragomma-core.js";
 import { kgDatabaseUrl } from "./kurragomma-rtdb.js";
+export { butikKop } from "./butik-kop.js";
 
 initializeApp();
 

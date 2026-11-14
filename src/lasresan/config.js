@@ -29,7 +29,7 @@ export const HIGH_STREAK_TO_UP = 3;
 export const LOW_STREAK_TO_DOWN = 2;
 
 // --- Belöning (rewards.js) ----------------------------------------------------
-/** Pluggcoins per rätt svar. Läggs på elevens VANLIGA saldo via data.addCoins. */
+/** Pluggcoins per rätt svar. Läggs på elevens VANLIGA saldo via data-mynt.js tjanaMynt. */
 export const COINS_PER_CORRECT = 3;
 
 // --- Resan (journey.js / worlds/) ---------------------------------------------
@@ -131,6 +131,12 @@ export const AMNES_QUESTIONS_BY_LEVEL = {
   2: [4, 6],
   3: [5, 7],
 };
+/**
+ * Högst så många frågor i en ämnestext – FEL, inte varning (#853). Taket för
+ * en utbetalning (src/mynt-dag.js PER_GANG.amnes = 20 × 5) bygger på det, så
+ * ingen legitim text kan ge mer än taket. test/mynt-dag.test.js håller ihop dem.
+ */
+export const AMNES_QUESTIONS_HARD_MAX = 20;
 /**
  * Pluggcoins per rätt svar (spec §5), till det VANLIGA saldot som Läsresans.
  * Omläsning av samma text skalas med leveling.grindMultiplier (per text och elev).

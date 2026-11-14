@@ -40,7 +40,7 @@ import {
   buildAttempt,
   applyCompletion,
 } from "./lasresan/progress.js";
-import { award } from "./lasresan/rewards.js";
+import { award, pengarRattelse } from "./lasresan/rewards.js";
 import { normalizeAttempt, toStoredLasresa } from "./lasresan/level-scale.js";
 import { getStudentStartLevel } from "./data-lasresan-niva.js";
 import { WORLDS } from "./lasresan/worlds/index.js";
@@ -118,28 +118,29 @@ function completeTx(ref, studentId, text, answers, completedAt, withSubcollectio
     });
     const { lasresa, journey } = applyCompletion(cur, attempt, WORLDS, completedAt);
     const patch = { lasresa: toStoredLasresa(lasresa) };
-    if (withSubcollection) {
-      tx.set(doc(collection(ref, ATTEMPTS_SUBCOLLECTION)), attempt);
+    const attemptRef = withSubcollection ? doc(collection(ref, ATTEMPTS_SUBCOLLECTION)) : null;
+    if (attemptRef) {
+      tx.set(attemptRef, attempt);
     } else {
       const prev = Array.isArray(sd && sd[FALLBACK_FIELD]) ? sd[FALLBACK_FIELD] : [];
       patch[FALLBACK_FIELD] = [...prev, attempt].slice(-FALLBACK_ATTEMPTS_MAX);
     }
     if (snap.exists()) tx.update(ref, patch);
     else tx.set(ref, { ...defaultStudentData(), ...patch });
-    return { ok: true, attempt, lasresa, journey };
+    return { ok: true, attempt, attemptRef, lasresa, journey };
   });
 }
 
 /**
  * Avsluta den påbörjade texten. EN transaktion skriver försöket + nytt
  * tillstånd (dold nivå, steg/värld, totaler, sedda texter, kategoristatistik).
- * Därefter läggs pengarna på det vanliga saldot via data.addCoins (rewards.award).
+ * Därefter läggs pengarna på det vanliga saldot via tjanaMynt (rewards.award, #853).
  *
  * @param {{text:object, answers:{qid:string, chosen:(number|null)}[]}} args
  *   `text` = ReadingText (rättas HÄR mot answerIndex), `answers` från läsvyn.
  * @returns {Promise<{ok:true, attempt, progress:{worldId,stepInWorld,completedWorlds},
  *   walk:{worldId,fromStep,toStep}, worldCompleted:boolean, completedWorldId, unlockedWorldId,
- *   coins:number, balance:(number|null), attemptStoredIn:("subcollection"|"studentData")}
+ *   coins:number, balance:(number|null), tak:boolean, attemptStoredIn:("subcollection"|"studentData")}
  *   | {ok:false, reason:string}>}
  *   Nivån returneras MEDVETET inte – UI:t ska aldrig kunna visa den.
  */
@@ -164,9 +165,10 @@ export async function completeText({ text, answers }, studentId = currentStudent
   invalidateStudentData(studentId);
   if (!res.ok) return res;
 
-  let reward = { coins: 0, balance: null };
+  let reward = { coins: 0, balance: null, tak: false };
   try {
     reward = await award(res.attempt.correct, { studentId });
+    res.attempt = await rattaPengar(ref, res, reward.coins, [["lasresa", "moneyEarned"]]);
   } catch (err) {
     // Försöket är sparat (med earnedMoney); saldot kunde inte uppdateras.
     console.warn("[Läsresan] kunde inte lägga till pengar:", err);
@@ -182,8 +184,35 @@ export async function completeText({ text, answers }, studentId = currentStudent
     unlockedWorldId: journey.unlockedWorldId,
     coins: reward.coins,
     balance: reward.balance,
+    tak: reward.tak,
     attemptStoredIn,
   };
+}
+
+/**
+ * Taket klippte utbetalningen (#853): rätta försöket och de lagrade summorna
+ * (`vagar` i studentData) till det som faktiskt betalades. Bara när betalt <
+ * earnedMoney – annars ingen skrivning alls. Delas med data-amneslasning.js.
+ * Ett fel loggas; försöket och mynten står kvar.
+ * @returns {Promise<object>} försöket med det betalda beloppet
+ */
+export async function rattaPengar(ref, { attempt, attemptRef }, betalt, vagar) {
+  if (!(betalt < attempt.earnedMoney)) return attempt;
+  try {
+    await runTransaction(db, async (tx) => {
+      const snap = await tx.get(ref);
+      const patch = pengarRattelse(snap.exists() ? snap.data() : null, {
+        vagar, fallbackField: FALLBACK_FIELD, textId: attempt.textId, completedAt: attempt.completedAt,
+        tjanat: attempt.earnedMoney, betalt,
+      });
+      if (attemptRef) tx.update(attemptRef, { earnedMoney: betalt });
+      if (Object.keys(patch).length) tx.update(ref, patch);
+    });
+    invalidateStudentData(ref.id);
+  } catch (err) {
+    console.warn("[Läsresan] kunde inte rätta pengarna efter taket:", err);
+  }
+  return { ...attempt, earnedMoney: betalt };
 }
 
 /**

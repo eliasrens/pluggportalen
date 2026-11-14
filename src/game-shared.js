@@ -8,7 +8,7 @@
 import * as data from "./data.js";
 import { app, el, go, renderTopbar } from "./ui.js";
 import { confetti, sound, isMuted, toggleMuted } from "./fx.js";
-import { addXp } from "./data-xp.js";
+import { getXp } from "./data-xp.js";
 import { grindMultiplier, xpForExercise, xpIntoLevel } from "./leveling.js";
 import { awardProjectionPatch, mirrorStudentProjection, ovatIdag } from "./projection-sync.js";
 import { coinIcon } from "./icons.js";
@@ -189,7 +189,7 @@ const FULL_REWARD_MODES = new Set(["quiz", "lasforstaelse"]);
  * session. XP-potten (basXP + stjärnor × perStar) definieras i leveling.js.
  * `catStats` (#445, valfri) = sessionens rätt/totalt per frågekategori; sparas
  * additivt i progress (saveProgress) och påverkar INTE coins/XP/stjärnor.
- * @returns {Promise<{coins:number, xp:number, totalXp:number, firstTime:boolean, reduced:boolean, pct:number, prevAreaProgress:(object|null)}>}
+ * @returns {Promise<{coins:number, xp:number, totalXp:number, firstTime:boolean, reduced:boolean, pct:number, prevAreaProgress:(object|null), tak:boolean, takText:string}>}
  */
 export async function awardExercise(area, mode, { stars, bestScore, baseCoins, catStats, classResult }) {
   let firstTime = true;
@@ -219,13 +219,23 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins, c
     xp = Math.max(1, Math.round(xp * mult));
   }
   const pct = Math.round(mult * 100); // andel av full pott den här körningen, för hinten
+  // Mynt + XP + dagskvittot i EN transaktion (#853, SAKERHET-MYNT §6 B1).
+  // Taket kan klippa beloppet → resultatskärmen visar det verkliga + takText.
+  // data-mynt.js laddas dynamiskt: game-shared.js ligger i bootgrafen (#271).
   let totalXp = 0;
+  let tak = false;
+  let takText = "";
   try {
-    await data.addCoins(coins);
-  } catch {}
-  try {
-    totalXp = await addXp(xp);
-  } catch {}
+    const mynt = await import("./data-mynt.js");
+    const r = await mynt.tjanaMynt("ovning", coins, { xp });
+    coins = r.mynt;
+    xp = r.xp;
+    totalXp = r.xpTotal ?? 0;
+    tak = r.tak;
+    takText = mynt.MYNT_DAG_TAK_TEXT;
+  } catch {
+    totalXp = await getXp().catch(() => 0);
+  }
   try {
     // Höj räknaren för nästa gång (prevPlays var värdet FÖRE denna körning).
     await data.saveProgress(area, mode, {
@@ -271,7 +281,7 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins, c
   import("./klasscenter/kc-koppling.js")
     .then((m) => m.klassExpEfterOvning({ modul: mode, resultat: classResult, area }))
     .catch(() => {});
-  return { coins, xp, totalXp, firstTime, reduced, pct, prevAreaProgress };
+  return { coins, xp, totalXp, firstTime, reduced, pct, prevAreaProgress, tak, takText };
 }
 
 /**
@@ -290,7 +300,7 @@ export async function showResult({ container, subj, area, mode, stars, scoreLine
   // "Så gick det" per kategori + stjärnhjälpen (#447): NY fil → dynamisk import
   // (#271), hämtas parallellt med sparningen. Saknas den visas kortet som förr.
   const feedbackMod = import("./plugga-framsteg.js").catch(() => null);
-  const { coins, xp, totalXp, reduced, pct, prevAreaProgress } = await awardExercise(area, mode, { stars, bestScore, baseCoins, catStats, classResult });
+  const { coins, xp, totalXp, reduced, pct, prevAreaProgress, tak, takText } = await awardExercise(area, mode, { stars, bestScore, baseCoins, catStats, classResult });
   await renderTopbar(); // uppdatera coins-saldo + nivå i sidhuvudet
   let feedback = "";
   let retried = false;
@@ -314,6 +324,7 @@ export async function showResult({ container, subj, area, mode, stars, scoreLine
     <div class="coin-pop">${coinIcon(22)} +${coins} pluggcoins</div>
     <div class="xp-pop">⭐ +${xp} XP</div>
     ${leveledUp ? `<div class="levelup-pop">🎉 Ny nivå – du är nu <b>nivå ${after.level}</b>!</div>` : ""}
+    ${tak ? `<p class="hint">${esc(takText)}</p>` : ""}
     ${reduced ? `<p class="hint">Du har spelat den här övningen förut, så du får färre coins och XP den här gången (${pct} % av full pott).</p>` : ""}
     <p class="cheer">${noStars ? "Alla par hittade – vilket minne du har! 🧠" : cheer(stars, retried)}</p>
     ${feedback}
