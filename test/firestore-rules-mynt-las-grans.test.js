@@ -4,7 +4,7 @@
 // 1000 utvärderade uttryck och en batch efter 20 dokumentåtkomster (get/
 // exists/getAfter). En FULLT fylld elev (schack, drake, köpt avatar, stora
 // listor, agdaDjur, största myntDag med alla källor och många gåvor) ska kunna
-// tjäna mynt + xp – även ihop med det värsta schackfallet i SAMMA skrivning –
+// tjäna mynt + xp – även ihop med schackskrivningar i SAMMA skrivning –
 // hämta en gåva och svara rätt i Mattematchen (hela MM-batchen). Fusket nekas
 // fortfarande i samma tillstånd. Körs av `npm run test:rules`.
 // ============================================================================
@@ -73,7 +73,7 @@ async function tjana(kalla, mynt, { xp = 0, gardUid = null, extra = {} } = {}) {
   const db = elev("full");
   const b = writeBatch(db);
   b.set(doc(db, "studentData", "full", MYNT_DAG_KVITTON, IDAG), { ...p.kvitto, dag: IDAG, lastAt: serverTimestamp() }, { merge: true });
-  b.update(sd(), { ...p.sd, ...extra });
+  b.update(doc(db, "studentData", "full"), { ...p.sd, ...extra });
   return b.commit();
 }
 
@@ -96,17 +96,27 @@ beforeEach(async () => {
 });
 
 describe("myntlåset (#855) med fullt tillstånd – inom 1000 uttryck och 20 åtkomster", () => {
-  it("övning: mynt + xp, även ihop med alla 12 lektioner, båda pusslen och datorPartier i EN skrivning", async () => {
+  it("övning: mynt + xp, även ihop med schackskrivningar i samma skrivning", async () => {
     await assertSucceeds(tjana("ovning", 40, { xp: 30 }));
+    await assertSucceeds(tjana("ovning", 1, { xp: 1, extra: { "schack.lektioner.12": 3, "schack.datorPartier": increment(1) } }));
+    await assertSucceeds(tjana("ovning", 1, { xp: 1, extra: {
+      "schack.pussel.ett.losta": increment(1), "schack.pussel.ett.senast": 53,
+      "schack.lektioner.11": 3, "schack.lektioner.10": 3, "schack.lektioner.9": 3,
+    } }));
+    const d = await las(["studentData", "full"]);
+    assert.deepEqual([d.coins, d.xp, d.schack.lektioner["12"], d.schack.pussel.ett.losta], [4321 + 42, 2532, 3, 41]);
+  });
+  it("schackens värsta fall (12 lektioner + båda pusslen + datorPartier) går igenom utan mynt", async () => {
+    // Ihop med mynt i SAMMA skrivning når det värsta schackfallet + myntDag-
+    // regeln taket på 1000 uttryck (nekas – ingen klient gör så: schacket
+    // skriver aldrig mynt, mynten betalas av servern, functions/schack-mynt.js).
     const extra = { "schack.datorPartier": increment(1) };
     for (const k of ALLA) extra[`schack.lektioner.${k}`] = 3;
     for (const s of ["ett", "tva"]) {
       extra[`schack.pussel.${s}.losta`] = increment(1);
       extra[`schack.pussel.${s}.senast`] = FULL.schack.pussel[s].senast + 1;
     }
-    await assertSucceeds(tjana("ovning", 50, { xp: 20, extra }));
-    const d = await las(["studentData", "full"]);
-    assert.deepEqual([d.coins, d.xp, d.schack.lektioner["12"]], [4321 + 90, 2550, 3]);
+    await assertSucceeds(updateDoc(sd(), extra));
   });
   it("Läsresan, Ämnesläsning och Ekvationsresan (mynt utan xp)", async () => {
     await assertSucceeds(tjana("lasresa", 27));
