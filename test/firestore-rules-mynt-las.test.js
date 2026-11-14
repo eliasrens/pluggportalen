@@ -7,7 +7,8 @@
 //     som inte stämmer, gammalt kvitto, annan elevs kvitto, MM +2, coins som
 //     sträng/decimal/negativt, sänkning utan kcDonation, xp utan kvitto,
 //     borttagen xp, xp i dokument utan xp (även med kvitto), Live-/Prov-
-//     markörerna, create med coins: 5, delete av eget dokument, annan elevs saldo
+//     markörerna, create med coins: 5 eller utan xp med uppblåst progress (F1),
+//     delete av eget dokument, annan elevs saldo
 //   • tillåtet: myntDag-utbetalning (mynt + xp), mynt utan xp för dokument utan
 //     xp, MM-svar, admin Ge mynt, ny elev med standarddokument, övriga fält.
 // Donation, Live och Prov täcks av de befintliga -fund*-, -live-rewards-,
@@ -175,6 +176,15 @@ describe("myntlåset (#855): create och delete", () => {
     await assertFails(setDoc(sd("alma"), { ...bas, farm: { ...bas.farm, barnLevel: 3 } }));
     await assertFails(setDoc(sd("alma"), { ...bas, farm: { ...bas.farm, gardenTier: 2 } }));
     await assertFails(setDoc(sd("alma"), { ...bas, coins: "5" }));
+  });
+  it("create utan xp med uppblåst progress nekas (#855 F1: xpFromProgress ger nivå 31)", async () => {
+    await testEnv.withSecurityRulesDisabled((ctx) => deleteDoc(doc(ctx.firestore(), "studentData", "alma")));
+    const progress = Object.fromEntries(Array.from({ length: 200 }, (_, i) => [`omr${i}`, { quiz: { stars: 3, completed: true } }]));
+    await assertFails(setDoc(sd("alma"), { avatarId: "fox", progress }, { merge: true }));
+    await assertFails(setDoc(sd("alma"), { progress: { so: { quiz: { stars: 1 } } } }));
+    await assertFails(setDoc(sd("alma"), { avatarId: "fox", progress: "x" }));
+    await assertSucceeds(setDoc(sd("alma"), { ...defaultStudentData(), progress: { so: { quiz: { stars: 1 } } } }),
+      "med xp: 0 får progress följa med – xp räknas sedan ur xp, inte progress");
   });
   it("delete av sitt eget dokument nekas (admin får)", async () => {
     await assertFails(deleteDoc(sd("alma")));

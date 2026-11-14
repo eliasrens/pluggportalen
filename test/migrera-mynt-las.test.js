@@ -10,7 +10,7 @@
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { planeraMigrering, agdaVardeForPet } from "../admin/migrera-mynt-las-core.mjs";
+import { planeraMigrering, agdaVardeForPet, myntSomHeltal } from "../admin/migrera-mynt-las-core.mjs";
 import { xpFromProgress, xpFromStudentData } from "../src/leveling.js";
 import { kopVara, butikVara } from "../src/butik-core.js";
 
@@ -36,6 +36,31 @@ describe("xp", () => {
     for (const xp of ["x", -5, null, NaN, Infinity, "100"]) {
       assert.equal(kor({ xp, progress: PROGRESS }).xp, xpFromProgress(PROGRESS), String(xp));
     }
+  });
+});
+
+// #855 F2: låset godtar bara heltal – ett decimaltal eller en sträng skulle neka
+// varje kvitto för alltid.
+describe("coins och xp blir heltal (#855 F2)", () => {
+  it("xp som decimaltal avrundas nedåt, heltal lämnas", () => {
+    const r = {};
+    assert.deepEqual(planeraMigrering({ xp: 12.7, coins: 5 }, r), { xp: 12 });
+    assert.equal(r.heltal, 1);
+    assert.equal(kor({ xp: 12, coins: 5 }), null);
+  });
+  it("coins: decimal, negativt, talsträng och skräp normaliseras; saknat lämnas", () => {
+    const fall = [[12.9, 12], [-3, 0], [-0.5, 0], ["120", 120], [" 7.8 ", 7], ["abc", 0], ["", 0], [null, 0], [NaN, 0],
+      [Infinity, 0], [{ n: 5 }, 0], [true, 0]];
+    for (const [coins, vantat] of fall) {
+      assert.equal(myntSomHeltal(coins), vantat, String(coins));
+      assert.deepEqual(kor({ xp: 0, coins }), { coins: vantat }, String(coins));
+    }
+    assert.equal(kor({ xp: 0 }), null, "saknat saldo rörs inte");
+    assert.equal(kor({ xp: 0, coins: 0 }), null);
+  });
+  it("idempotent: det normaliserade dokumentet ger null", () => {
+    const sd = { xp: 3.5, coins: "40.2", progress: PROGRESS };
+    assert.equal(kor({ ...sd, ...kor(sd) }), null);
   });
 });
 
