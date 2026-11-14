@@ -1,16 +1,14 @@
 // ============================================================================
 // Pluggporten – Shoppen
-// Eleven köper saker för pluggcoins. Köp går via datamodulens buyItem() – en
-// transaktion som drar coins och lägger till saken i samma steg (inga negativa
-// saldon, inga dubbelköp; dubbelklick låser dessutom knappen).
+// Eleven köper saker för pluggcoins. Alla köp går via callablen butikKop (#854,
+// src/butik-kop.js, laddas lazy): servern tar priset ur katalogen och drar coins
+// och lägger till saken i samma transaktion (inga negativa saldon, inga dubbelköp;
+// dubbelklick låser dessutom knappen).
 // ============================================================================
 
 import * as data from "./data.js";
-import { buyEgg, buyHeatLamp, EGG_ITEM_ID, LAMP_ITEM_ID } from "./data-pet.js";
-import { buyApple, APPLE_ITEM_ID } from "./data-pet-mat.js";
 import { app, el, go, loading, renderTopbar, pageError, flash } from "./ui.js";
-import { buyAnimal, animalsFromData } from "./data-animals.js";
-import { buyFarmAnimal, buyFarmUpgrade } from "./data-farm.js";
+import { animalsFromData } from "./data-animals.js";
 import { CATEGORIES, SHOP_ITEMS, getItem, itemsInCategory, isConsumable, isAnimalItem, isFarmAnimalItem, isFarmUpgradeItem, isGardenItem, isMultiItem, isMysteryBox, isSeedItem } from "./shop-items.js";
 import { runMysteryBox } from "./pages-shop-mystery.js";
 import { wearableSvg } from "./art-wearables.js";
@@ -241,7 +239,7 @@ export async function pageElevShop() {
       btn.disabled = true;
       btn.textContent = "Öppnar…";
       try {
-        const res = await runMysteryBox({ price: item.price, legendaryChance: item.legendaryChance });
+        const res = await runMysteryBox({ id: item.id });
         if (res.ok) {
           state.coins = res.coins;
           if (res.owned) state.owned = new Set(res.owned);
@@ -264,19 +262,10 @@ export async function pageElevShop() {
     btn.disabled = true;
     btn.textContent = "Köper…";
     try {
-      // Ägg (även Halloween-djurens pumpaägg, #695) / värmelampa köps via data-pet.js;
-      // ägget kan köpas flera gånger och hamnar aldrig i ownedItems. Vanliga djur
-      // blir levande djur i roomAnimals – inte statiska ownedItems.
-      let res;
-      if (item.id === EGG_ITEM_ID || item.hatchSpecies) res = await buyEgg(item.price, undefined, item.hatchSpecies);
-      else if (item.id === LAMP_ITEM_ID) res = await buyHeatLamp(item.price);
-      else if (item.id === APPLE_ITEM_ID) res = await buyApple(item.price);
-      else if (isAnimalItem(item.id)) res = await buyAnimal(item.id, item.price);
-      else if (isFarmAnimalItem(item.id)) res = await buyFarmAnimal(item.id, item.price);
-      // Gårds-uppgraderingar (#333): coins + nivå-fältet i EN transaktion
-      // (buyFarmUpgrade, data-farm.js) – aldrig ownedItems.
-      else if (isFarmUpgradeItem(item.id)) res = await buyFarmUpgrade(item.id, item.price);
-      else res = await data.buyItem(item.id, item.price);
+      // Ägg (även Halloween-djurens pumpaägg), värmelampa, äpplen, djur, gårdsdjur,
+      // gårdsuppgraderingar och vanliga varor: samma callable, bara varans id (#854).
+      const { kop } = await import("./butik-kop.js");
+      const res = await kop(item.id);
       state.coins = res.coins;
       if (res.owned) state.owned = new Set(res.owned);
       if (res.counts) state.ownedCounts = { ...res.counts };

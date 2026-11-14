@@ -34,30 +34,7 @@ export function newAppleId() {
   return "a" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
-/**
- * Köp ETT äpple: drar coins och ökar studentData.appleCount. Äpplet är en
- * förbrukningsvara (hamnar aldrig i ownedItems) – man kan köpa hur många som
- * helst. Allt i EN transaktion (samma mönster som buyItem).
- * @returns {Promise<{ok: boolean, coins: number, appleCount: number}>}
- */
-export async function buyApple(price, studentId = currentStudentId()) {
-  if (!studentId) throw new Error("Ingen elev inloggad.");
-  const cost = Math.max(0, Math.round(price || 0));
-  const ref = doc(db, "studentData", studentId);
-  const result = await runTransaction(db, async (tx) => {
-    const snap = await tx.get(ref);
-    const data = snap.exists() ? snap.data() : {};
-    const coins = data.coins || 0;
-    const count = data.appleCount || 0;
-    if (coins < cost) return { ok: false, coins, appleCount: count };
-    const next = { coins: coins - cost, appleCount: count + 1 };
-    if (snap.exists()) tx.update(ref, next);
-    else tx.set(ref, next);
-    return { ok: true, coins: next.coins, appleCount: next.appleCount };
-  });
-  if (result.ok) invalidateStudentData(studentId); // coins/äpplen ändrat (#274)
-  return result;
-}
+// Köpet av ett äpple (appleCount +1) går via butikKop på servern (#854).
 
 /**
  * Lägg ut ETT äpple på golvet: flyttar ett äpple från appleCount till

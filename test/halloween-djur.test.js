@@ -3,7 +3,7 @@
 //   • katalogen: 10 arter med fasta id:n, mystery-flagga, 3 stegnamn; 10 varor
 //     i butikens Halloween-flik (500 mynt, undergrupp "djur", inga vanliga djur),
 //     inslagna lazy i SHOP_ITEMS (shop-items.js ligger vid filtaket)
-//   • test 14: köp Spökis → pumpaägg i pets[] (coins −500) → kläcks till Spökis
+//   • test 14: köp Spökis (kopVara, servern sedan #854) → pumpaägg i pets[] (coins −500) → kläcks till Spökis
 //   • test 15: Spökis är hungrig, äter Mysterymat och växer 1 → 2 → 3, sedan mätt
 //   • test 16: sprite-arterna har flaggan → isMysteryPet som förut; vanliga ägg
 //     slumpar fortfarande bara sprite-arter; gamla SVG-arter är inga mystery-djur
@@ -21,6 +21,7 @@ import { SPRITE_SPECIES } from "../src/art-pet-sprites.js";
 import { eggSvg } from "../src/art-pets.js";
 import { itemSvg, loadCollectionArt } from "../src/art-items.js";
 import { getItem, itemsInCollection, itemsInCategory, isAnimalItem } from "../src/shop-items.js";
+import { butikVara, kopVara } from "../src/butik-core.js";
 
 const FS = `
 const db = () => globalThis.__fsData;
@@ -128,25 +129,32 @@ test("test 16: sprite-arterna har mystery-flaggan och beter sig som förut", () 
 });
 
 test("test 14: köp Spökis för 500 → pumpaägg som kläcks till Spökis", async () => {
+  // Köpet sker på servern sedan #854 (butikKop → kopVara); patchen skrivs som update() gör.
+  const HALLOWEEN = { halloween: true };
+  const kop = (id) => {
+    const r = kopVara(globalThis.__fsData.elev1, butikVara(id), { sasong: HALLOWEEN });
+    if (r.patch) Object.assign(globalThis.__fsData.elev1, structuredClone(r.patch));
+    return r.result;
+  };
   globalThis.__fsData = { elev1: { coins: 700, ownedItems: [], pets: [] } };
-  const res = await pet.buyEgg(500, undefined, "spokis");
+  const res = kop("hw-djur-spokis");
   assert.equal(res.ok, true);
   assert.equal(res.coins, 200);
   const agg = res.pets[0];
   assert.equal(agg.eggSpecies, "spokis");
   assert.equal(agg.hatchedAt, null);
-  assert.equal(globalThis.__fsData.elev1.coins, 200, "coins + ägg i samma transaktion");
+  assert.equal(globalThis.__fsData.elev1.coins, 200, "coins + ägg i samma skrivning");
   assert.deepEqual(globalThis.__fsData.elev1.ownedItems, [], "ägget hamnar aldrig i ownedItems");
 
   // För lite pengar → inget köp.
-  const nej = await pet.buyEgg(500, undefined, "pumpis");
+  const nej = kop("hw-djur-pumpis");
   assert.equal(nej.ok, false);
   assert.equal(globalThis.__fsData.elev1.pets.length, 1);
 
-  // Okänd art ignoreras (vanligt mystery-ägg), samma kläcktid som vanliga ägg.
+  // Ett vanligt mystery-ägg (200) kläcks som förut, samma kläcktid.
   globalThis.__fsData.elev1.coins = 1000;
-  const okand = await pet.buyEgg(200, undefined, "finnsinte");
-  assert.equal(okand.pets[1].eggSpecies, undefined);
+  const vanligt = kop("mystery-egg");
+  assert.equal(vanligt.pets[1].eggSpecies, undefined);
   assert.equal(pet.hatchTimeFor(agg), agg.eggBoughtAt + pet.HATCH_MS);
 
   // Ännu inte kläckt …

@@ -34,8 +34,7 @@ import {
   currentStudentId,
   isLoggedIn,
 } from "./auth.js";
-import { isMultiItem } from "./shop-items.js";
-import { defaultStudentData } from "./klass-membership.js";
+import { defaultStudentData, ownedCount } from "./klass-membership.js";
 import { createTtlCache } from "./class-projection.js";
 import { clearContentCache, clearProjectionCache } from "./data-content.js";
 import { clearClassCache } from "./data-classes.js";
@@ -116,7 +115,7 @@ export function clearStudentDataCache() {
 }
 
 // Standardvärdena bor i klass-membership.js (delas med admin/importera-elever.mjs, #831).
-export { defaultStudentData };
+export { defaultStudentData, ownedCount };
 
 /** Skapar studentData-dokumentet om det saknas. Returnerar datan. */
 export async function ensureStudentData(studentId, avatarId) {
@@ -178,61 +177,12 @@ export async function addCoins(amount, studentId = currentStudentId()) {
 
 // --- Ägda saker (shop) ------------------------------------------------------
 
-/**
- * Hur många exemplar eleven äger av en sak. För multi-saker (möbler/dekor) läses
- * antalet ur studentData.ownedCounts; saknas ett värde där räknas ett äldre
- * dokument som 1 om id:t finns i den binära ownedItems-listan (bakåtkompatibelt).
- * För single-saker (kläder/hus/…) är svaret 0 eller 1 utifrån ownedItems.
- * @param {object} data studentData-objekt
- * @param {string} id   shop-sakens id
- * @returns {number}
- */
-export function ownedCount(data, id) {
-  const counts = data && data.ownedCounts;
-  if (counts && Object.prototype.hasOwnProperty.call(counts, id)) {
-    return Math.max(0, Math.round(counts[id] || 0));
-  }
-  return data && Array.isArray(data.ownedItems) && data.ownedItems.includes(id) ? 1 : 0;
-}
+// ownedCount (antal ägda exemplar) bor i klass-membership.js (#854: delas med
+// butikKop på servern) och re-exporteras här.
 
-/**
- * Köp en sak: drar coins OCH lägger till i ägda saker i samma transaktion.
- *
- * Multi-saker (möbler/dekor, isMultiItem) kan köpas FLERA gånger – varje köp ökar
- * studentData.ownedCounts[id] med 1 (och id:t hålls kvar en gång i ownedItems så
- * äldre kod som bara kollar "ägd?" fortsätter fungera). Single-saker (kläder, hus)
- * blockeras som förr när de redan ägs.
- * @returns {Promise<{ok: boolean, coins: number, owned: string[], counts: object}>}
- */
-export async function buyItem(itemId, price, studentId = currentStudentId()) {
-  if (!studentId) throw new Error("Ingen elev inloggad.");
-  const cost = Math.max(0, Math.round(price || 0));
-  const multi = isMultiItem(itemId);
-  const ref = doc(db, "studentData", studentId);
-  const result = await runTransaction(db, async (tx) => {
-    const snap = await tx.get(ref);
-    const data = snap.exists() ? snap.data() : defaultStudentData();
-    const owned = data.ownedItems || [];
-    const coins = data.coins || 0;
-    const counts = data.ownedCounts || {};
-    // Single-kategori: redan ägd → köpet är en no-op (som förr).
-    if (!multi && owned.includes(itemId)) return { ok: true, coins, owned, counts };
-    if (coins < cost) return { ok: false, coins, owned, counts };
-    const nextOwned = owned.includes(itemId) ? owned : [...owned, itemId];
-    const next = { coins: coins - cost, ownedItems: nextOwned };
-    let nextCounts = counts;
-    if (multi) {
-      nextCounts = { ...counts, [itemId]: ownedCount(data, itemId) + 1 };
-      next.ownedCounts = nextCounts;
-    }
-    if (snap.exists()) tx.update(ref, next);
-    else tx.set(ref, { ...defaultStudentData(), ...next });
-    return { ok: true, coins: next.coins, owned: nextOwned, counts: nextCounts };
-  });
-  // Coins + ägda saker kan ha ändrats → invalidera så saldo/olåst blir färskt.
-  if (result.ok) invalidateStudentData(studentId);
-  return result;
-}
+// Köp (alla varor, ägg, djur, gårdsuppgraderingar och mysteryboxarna) går via
+// callablen butikKop (#854): priset och lottningen avgörs på servern. Klienten:
+// src/butik-kop.js (laddas lazy från pages-shop.js), kärnan: src/butik-core.js.
 
 // Rum & avatar-utseende (rum, klädsaker, avatar, evolution): utbrutet till
 // data-room.js (additiv systermodul som data-xp.js) – re-exporteras nedan.
@@ -310,7 +260,6 @@ export {
   getClassProjects,
   getClassProject,
   startClassProject,
-  donateToClassProject,
 } from "./data-classes.js";
 
 export {
@@ -330,11 +279,7 @@ export {
   harvestCrop,
   adjustHarvestInventory,
   setAnimalPlacement,
-  setBarnLevel,
   setBarnSkin,
-  setGardenTier,
-  buyFarmAnimal,
-  buyFarmUpgrade,
   saveFarmAnimalPositions,
   saveFarmAnimalName,
 } from "./data-farm.js";

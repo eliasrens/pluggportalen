@@ -19,15 +19,13 @@ import { LINE, THIN, glitter } from "./hw-djur-delar.js";
 import { PUMPA, PUMPA_MORK, GRON, GRON_MORK, LILA, SKEN } from "./hw-art-delar.js";
 import { limb } from "../art-style.js";
 import { SHOP_ITEMS } from "../shop-items.js";
+import { HW_DJUR_VAROR } from "./hw-djur-katalog.js";
 
-// Butiksvarorna: ett pumpaägg per djur (500 mynt) som kläcks till VALT djur
-// (buyEgg i data-pet.js, pages-shop.js). Bor här och slås in i SHOP_ITEMS lazy –
+// Butiksvarorna (ett pumpaägg per djur, 500 mynt) står i den rena hw-djur-katalog.js
+// (#854: butikKop på servern läser dem) och slås in i SHOP_ITEMS lazy här –
 // shop-items.js ligger vid filtaket och i bootgrafen. Varorna ägs aldrig
 // (ownedItems), så bara butiken behöver dem – och den väntar på loadCollectionArt.
-const EMOJI = { spokis: "👻", pumpis: "🎃", fladdis: "🦇", gruffe: "🐉", svartis: "🐈", mumme: "🧸", spindis: "🕷️", skelli: "🦴", uggli: "🦉", slemmis: "🟢" };
-export const HW_DJUR_VAROR = HW_SPECIES.map((s) => ({
-  id: "hw-djur-" + s.id, name: s.name, emoji: EMOJI[s.id], category: "husdjur", price: 500, collection: "halloween", hatchSpecies: s.id,
-}));
+export { HW_DJUR_VAROR };
 
 /** id → (stage 1–3, expr) => SVG-innehåll i viewBox 0 0 100 100. */
 export const HW_DJUR = { ...HW_DJUR_A, ...HW_DJUR_B };

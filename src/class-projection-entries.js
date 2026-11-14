@@ -262,7 +262,7 @@ export function boendeFromMembers(members = {}, orderIds = []) {
 // Klassen sparar gemensamt ihop coins till byns gemensamma ytor (stadshus,
 // skola, park på bykartan). Samma doc-mönster som classProjections: ETT
 // förberäknat dokument per klass, en map (`projects`) keyad på byggnads-id.
-// Firestore-skrivningarna bor i data-classes.js (donateToClassProject m.fl.);
+// Firestore-skrivningarna bor i data-classes.js (startClassProject m.fl.; donationen togs bort i #854);
 // här bara de Firebase-fria hjälparna så de kan enhetstestas utan emulator
 // (test/class-projects.test.js). De bor i den här REDAN-existerande boot-
 // graf-filen av samma skäl som createTtlCache ovan: en NY fil i den boot-

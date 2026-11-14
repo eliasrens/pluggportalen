@@ -283,6 +283,19 @@ for (const it of MYSTERY_ITEMS) {
   SHOP_ITEMS.push({ price: 0, ...it, mysteryOnly: true });
 }
 
+// Köpbara avatarer (#694): category "avatar" (ingen egen flik), ägs i ownedItems,
+// figurerna i avatars.js. Här (inte i avatars.js, som drar in konst) så att
+// butikKop på servern (#854) har hela katalogen.
+export const KOP_AVATARER = [
+  { id: "hw-av-spoke", name: "Litet spöke", emoji: "👻", price: 400, collection: "halloween" },
+  { id: "hw-av-fladdermus", name: "Fladdermus", emoji: "🦇", price: 450, collection: "halloween" },
+  { id: "hw-av-pumpgubbe", name: "Pumpgubbe", emoji: "🎃", price: 500, collection: "halloween" },
+  { id: "hw-av-mumie", name: "Gullig mumie", emoji: "🧻", price: 600, collection: "halloween" },
+  { id: "hw-av-haxkatt", name: "Häxkatt", emoji: "🐈", price: 700, collection: "halloween" },
+  { id: "hw-av-vampyr", name: "Liten vampyr", emoji: "🧛", price: 800, collection: "halloween" },
+].map((it) => ({ ...it, category: "avatar" }));
+SHOP_ITEMS.push(...KOP_AVATARER);
+
 // Rums-uppgraderingarnas id:n i pris-/upplåsningsordning; antalet ÄGDA = antal
 // EXTRA rum utöver grundrummet (getRoomCount, data-room.js). Id:na STABILA.
 export const ROOM_UPGRADE_IDS = ["rum-2", "rum-3", "rum-4"];
