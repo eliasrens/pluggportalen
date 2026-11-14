@@ -1,3 +1,2 @@
-// Preview-stub för src/data-farm.js (#692).
-export const buyFarmAnimal = async () => ({ ok: false, coins: globalThis.__MEM.coins });
-export const buyFarmUpgrade = buyFarmAnimal;
+// Preview-stub för src/data-farm.js (#692) – köpen går via butik-kop.js (#854).
+export {};
