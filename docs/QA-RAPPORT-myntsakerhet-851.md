@@ -18,7 +18,8 @@ SDK före och efter varje steg.
 
 **Alla acceptanspunkter är PASS.** Inga fel i produktkoden som stoppar en merge. Fynden:
 två luckor i driftordningen (F1, F2) som nu står i docs, ett gammalt e2e-test som B3 gjorde
-inaktuellt (F3, rättat här) och tre små avvikelser (F4–F6).
+inaktuellt (F3, rättat här), tre små avvikelser (F4–F6) och den kända resten i
+klassprojektionen (F7, R4).
 
 | # | Acceptanspunkt | Resultat | Bevis |
 |---|---|---|---|
@@ -127,6 +128,7 @@ Dagens kvitto: `gard: 8, gavor: {animal_pig#x1: true}`.
 | 4 | fas 2 / fas 2 | `q857t` efter omladdning; epic-körningen i §3 | alla djur syns (4 rumsdjur, 4 husdjur inklusive den gamla flikens ägg, ko + gris). XP 270 = samma som före. `q857n` XP 50 = det härledda värdet |
 | 5 | `main` / fas 2 | quiz, Läsresan, stol, gåva, MM | quiz och Läsresan 0 mynt utan krasch (inga ohanterade fel). Stol: "Något gick fel vid köpet: …", saldot oförändrat. Gåva 0. MM +2 (MM-batchen har sitt kvitto) |
 | 5, omladdad | fas 2 / fas 2 | quiz, stol | +30/+50 XP, −30 "Du köpte Pall!" |
+| **`--djur` efter låset** (bevis för §7) | – / **fas 2** | Angriparen `q857x` (fisk, gris och ägg med post) lägger till `hund#fejk`, `dinosaurie#fejk` i `roomAnimals`, `animal_horse#fejk` i `farm.animals` och `pfejk1` i `pets` (tillåtet: listorna är tillstånd). Sedan `--commit` **utan** `--djur`, därefter `--commit --djur` | Utan `--djur`: 0 skrivna, "4 djur UTAN post: q857x: hund#fejk, dinosaurie#fejk, animal_horse#fejk, pfejk1"; inget syns, gåvan för hästen 0 ("okänt djur"). **Med `--djur`: 1 dokument skrivet, alla fyra får en post** (`animal_horse#fejk: animal_horse` …): hund, dinosaurie, häst och ägg syns, och hästens gåva ger **+8** (100 → 108). Därför får `--djur` aldrig köras efter låsreglerna |
 
 Avvikelse från produktionen: emulatorn körde grenens functions (B4:s `butikKop`) i alla steg,
 även i steg 1–3 där produktionen har fas 1-versionen. Skillnaden gäller bara djur utan
@@ -190,6 +192,14 @@ av reglerna), så de är räknade ur koden: `getAfter(myntDag)` i `studentData`-
 6. **F6 – ett artbytt mystiskt ägg visas som en annan vanlig art** (info, R5). `px1` sparades
    som `robob`; efter att angriparen skrev `pumpis` (Halloween) visas det som `pingio`.
    Halloween-arten syns inte, och alla vanliga arter kommer ur samma ägg för 200.
+7. **F7 – klassprojektionens utseende** (låg, känd rest R4, inte rättad, se `SAKERHET-MYNT.md`
+   §9 F8). Under låsreglerna skrev `q857x` `classProjections/k848-3a`
+   `members.q857x.avatarItems = ["krona", "vikinghjalm"]` och `husSkalId = "slott"` utan att
+   äga dem, och även en **klasskamrats** post (`members.q857k.husSkalId = "slott"`). Alla
+   tre skrivningarna tillåts. I klasskamratens by ritas angriparens hus som ett slott med
+   krona ([skärmbild](qa-myntsakerhet-851/by-slott-ej-agt.png)). Kamratens egen post
+   återställdes när kamraten själv öppnade byn (självläkningen), angriparens egen ligger kvar.
+   Kosmetiskt: inga mynt eller varor.
 
 **Kända rester (inga fixar här):**
 
