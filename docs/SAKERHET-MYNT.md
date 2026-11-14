@@ -23,13 +23,17 @@ Radnumren gäller `main` vid `6a3b16b` (efter merge av #850).
   3. **Låset.** Elevens egen gren av `studentData`-regeln får inte längre ändra `coins`
      annat än via kvittona (dagskvittot, `mmMynt`) eller som ett avdrag ihop med en ny
      `kcDonation`. Varufälten får aldrig växa från klienten, och `create`/`delete` stängs.
+     Vilka djur eleven äger, och vilken art de har, läses ur en ny serverkarta
+     `agdaDjur` (`{ uid: varu-id }`). Listorna `pets`/`roomAnimals`/`farm.animals` blir
+     bara tillstånd (position, namn, matning) och kan inte längre skapa eller byta djur.
   4. Lärar- och servervägarna rörs inte: Live, Prov, Ge mynt (admin), Bråkresan, Hitta
      rätt! och Schack.
 - **Steg 2** består av fem issues i §6: B1 dagskvitto, B2 butiken på servern, B3 låset på
   saldot, B4 låset på varor och utseende, B5 slut-QA. B1 och B2 kan köras parallellt.
 - **Deploy i två faser** (§7). Fas 1 lägger till kvitton och callable utan att något
-  låses: rules → functions → webb. Fas 2 deployar låsreglerna minst en skoldag senare, så
-  att inga gamla flikar finns kvar.
+  låses: rules → functions → webb. Fas 2 kommer minst en skoldag senare, så att inga gamla
+  flikar finns kvar: låsreglerna → migreringsskriptet (`xp` och `agdaDjur` för gamla
+  dokument) → webb.
 
 ## 1. Hotmodell
 
@@ -42,7 +46,7 @@ vilken Firestore-skrivning som helst som eleven själv. Det är just detta som g
 | M1 | Sätta ett godtyckligt saldo (`coins: 99999`) | **Ja**, via varje elevskrivning till `studentData` |
 | M2 | Höja saldot över modulens gräns (t.ex. betala ut "+50" i en loop) | **Ja** |
 | M3 | Sänka en annan elevs saldo | Nej. `isSelf` gäller bara det egna dokumentet. Bara admin/årskurs (kvitto) skriver andras |
-| M4 | Få varor gratis (`ownedItems`, `ownedCounts`, djur, ägg, äpplen, gårdsnivåer) | **Ja** |
+| M4 | Få varor gratis (`ownedItems`, `ownedCounts`, djur, ägg, äpplen, gårdsnivåer), eller byta ett ägt djur till en dyrare art (fisk 70 → dinosaurie 190, gris 180 → häst 250, vanligt ägg 200 → Halloween-art 500, `src/shop-items.js:116–127`, `hw-djur.js:29`) | **Ja** |
 | M5 | Välja vinsten i mysterylådan | **Ja**, lottningen sker i klienten (`data-mystery.js:45`) |
 | M6 | Radera sitt dokument och skapa det igen med valfria värden | **Ja** (`create`/`delete: isSelf`) |
 | M7 | Höja `xp`, stjärnor och statistik | **Ja** (det rör inte ekonomin, men det rör lärarens statistik) |
@@ -111,9 +115,9 @@ elevens `coins`.
 |---|---|---|---|---|---|
 | F1 | `plantSeed` `src/data-farm.js:110` | `ownedCounts.<frö>` −1, `farm.gardenSlots` | K | Öppen | M4 om räknaren kan **höjas** |
 | F2 | `placeApple` / `pickUpApple` `src/data-pet-mat.js:73,100` | `appleCount` ±1, `floorApples` | K | Öppen | M4 (äpplen ur tomma intet) |
-| F3 | Husdjur via `updatePets` `src/data-pet.js:143`: `hatchReadyPets :254`, `eatApple :282`, `feedPetBerry :321`, `setPetName :355`, `setPetStowed :373`, `savePetPositions :387`. Migrering av den gamla `pet` `:157` | `pets[]` (art, `feedCount`, position, namn) | K | Öppen | M4 (ägg ur tomma intet). Art och tillväxt är kosmetiska |
-| F4 | Vanliga djur: `saveAnimalPositions/Name/Stowed` `src/data-animals.js:131,160,186` | `roomAnimals[]` | K | Öppen | M4 (djur ur tomma intet) |
-| F5 | Gården via `updateFarm` `src/data-farm.js:72`: `plantCrop`, `advanceCropGrowth`, `growCropsFromExercise`, `harvestCrop`, `adjustHarvestInventory`, `setAnimalPlacement`, `saveFarmAnimalPositions/Name`, `feedFarmAnimal :311`, `setBarnSkin :364`. Samt `setBarnLevel :346` och `setGardenTier :378`, som inte anropas någonstans | `farm.*` | K | Öppen | M4 (`barnLevel`/`gardenTier`/`animals` gratis). Skörd och trivsel påverkar bara gåvan (E5) |
+| F3 | Husdjur via `updatePets` `src/data-pet.js:143`: `hatchReadyPets :254`, `eatApple :282`, `feedPetBerry :321`, `setPetName :355`, `setPetStowed :373`, `savePetPositions :387`. Migrering av den gamla `pet` `:157` | `pets[]` (art, `feedCount`, position, namn) | K | Öppen | M4: ägg ur tomma intet, och ett vanligt ägg (200) som får en Halloween-art (`eggSpecies`/`speciesId`, 500). `hasHeatLamp` utan lampa. Tillväxten är kosmetisk |
+| F4 | Vanliga djur: `saveAnimalPositions/Name/Stowed` `src/data-animals.js:131,160,186`. `animalsFromData` `:66` slår ihop äldre djur från `ownedItems` (`:84–90`), så sparningen skriver en **längre** lista än den som finns sparad | `roomAnimals[]` | K | Öppen | M4: djur ur tomma intet och artbyte (`id` på ett befintligt `uid`, fisk → dinosaurie) |
+| F5 | Gården via `updateFarm` `src/data-farm.js:72`: `plantCrop`, `advanceCropGrowth`, `growCropsFromExercise`, `harvestCrop`, `adjustHarvestInventory`, `setAnimalPlacement`, `saveFarmAnimalPositions/Name`, `feedFarmAnimal :311`, `setBarnSkin :364`. Samt `setBarnLevel :346` och `setGardenTier :378`, som inte anropas någonstans | `farm.*` | K | Öppen | M4 (`barnLevel`/`gardenTier`/`animals` gratis, artbyte gris → häst). Skörd och trivsel påverkar bara gåvan (E5) |
 | F6 | `saveAvatarItems` `src/data-room.js:39` (från `varld-rum-wear.js:71`) | `avatarItems` | K | Öppen | Bära kläder man inte äger (M4, syns för klasskamrater) |
 | F7 | `saveHusSkal` `src/data-room.js:219` (`pages-varld.js:976`) | `husSkalId` | K | Öppen | Hus man inte äger (M4, syns i byn) |
 | F8 | `saveRoom` / `saveRoomAt` / `saveGarden` `src/data-room.js:64,187,107` | `room`, `extraRooms`, `garden` (placeringar) | K | Öppen | Placera möbler man inte äger. Kosmetiskt, men syns i kompisrummet (rest R3) |
@@ -277,6 +281,13 @@ täcka det största quiz som redigeraren tillåter. Starttalen står i fråga F1
 - När taket nås visar resultatskärmen det verkliga beloppet (som i dag) och en rad:
   "Du har fått dagens alla mynt härifrån – resultatet sparas ändå." Det ger ingen ny
   funktion, bara en sann siffra.
+- **XP i gamla dokument.** `addXp` skriver i dag `xpFromProgress(progress) + vinst` när
+  `xp` saknas (`src/data-xp.js:38`, `src/leveling.js:139–141`). Låset i B3 nekar det, och
+  eftersom mynt och XP skrivs i samma transaktion skulle eleven då få 0 mynt för alltid.
+  Därför: `tjanaMynt` skriver `xp` **bara när fältet redan finns** (`typeof sd.xp ===
+  "number"`). Saknas det skrivs bara mynten och kvittot, och en varning loggas. Det
+  härledda XP:t sätts av migreringen (B3, §7) och går inte förlorat. Den här
+  försiktigheten ligger i B1 så att fas 1-klienten redan klarar låset.
 - `data.addCoins` blir kvar **bara** för lärarens Ge mynt (E10). Inget elevflöde anropar
   den längre (`git grep "addCoins("` visar bara `teacher-*`).
 
@@ -288,8 +299,9 @@ täcka det största quiz som redigeraren tillåter. Starttalen står i fråga F1
   eller morgondagens id, `d.dag` ≠ id, `lastAt` ≠ `request.time`, en annan elevs kvitto,
   lärare, sänkt räknare, okänd källa, två källor i samma skrivning, XP från `lasresa`,
   `gard` utan djur och radering av eleven.
-- `test/mynt-dag.test.js` (enhet): synk mot reglerna, max-belopp ≤ `PER_GANG` och
-  klippningen i `tjanaMynt` med injicerat SDK.
+- `test/mynt-dag.test.js` (enhet): synk mot reglerna, max-belopp ≤ `PER_GANG`,
+  klippningen i `tjanaMynt` med injicerat SDK, och att ett dokument utan `xp` får mynt
+  men ingen `xp`-skrivning.
 - Befintliga enhetstester för `lasresan/rewards`, `ekvationsresan/mynt` och `game-shared`
   uppdateras.
 
@@ -315,7 +327,10 @@ katalogen på servern, och lottningen sker där. Reglerna ändras inte.
     utanför säsong ger `ok:false`.
   - Single-vara som redan ägs ger no-op `ok:true` (som `data.js:219`).
   - Saldo < pris ger `ok:false`.
-  - Sedan samma ändringar som K1–K8 gör i dag.
+  - Sedan samma ändringar som K1–K8 gör i dag. **Nytt:** ägg (K3), vanliga djur (K6) och
+    gårdsdjur (K7) skriver också `agdaDjur.<uid> = <varu-id>` i samma skrivning
+    (`"mystery-egg"`, `"hw-djur-spokis"`, `"hund"`, `"animal_horse"` …). Det är
+    ägarbeviset som B4 läser. Kartan används inte förrän B4, så B2 förblir additiv.
   - Mysterylådan: `rollMysteryItem(Math.random, { legendaryChance })` på servern och
     dubblettretur enligt `dupCoins`.
 - Eleven måste vara inloggad utan lärar-claim. Ingen klass- eller låskontroll, eftersom
@@ -338,6 +353,8 @@ katalogen på servern, och lottningen sker där. Reglerna ändras inte.
   `buyFarmAnimal` och `buyFarmUpgrade` blir tunna omslag runt `kop` (samma signatur, och
   priset ignoreras), eller också anropar `pages-shop.js` `kop` direkt. Efter ett köp körs
   `invalidateStudentData`.
+- `plantSeed` (`data-farm.js:110`) skriver också markören `lastFro: cropId` (B4:s regel för
+  `ownedCounts`). Ändringen är additiv och ligger här så att fas 1-klienten klarar låset.
 - Död kod tas bort: `donateToClassProject` (`data-classes.js:373`, `data.js:313`),
   `setBarnLevel`/`setGardenTier` (`data-farm.js:346,378`, `data.js:333,335`).
 
@@ -350,7 +367,7 @@ katalogen på servern, och lottningen sker där. Reglerna ändras inte.
   dubblett).
 - `test/functions-butik.test.mjs` (emulator, `FUNCTIONS_EMULATOR_HOST`): ett köp per typ
   sänker saldot med katalogpriset, oinloggad och lärare nekas, och två parallella köp av
-  samma single-vara drar bara en gång.
+  samma single-vara drar bara en gång. Ägg, djur och gårdsdjur får sin post i `agdaDjur`.
 - Synktestet (`--check`).
 
 **QA.** Köp en möbel, en klädsak, ett ägg, en värmelampa, ett äpple, ett djur, ett gårdsdjur
@@ -381,8 +398,10 @@ allow delete: if isAdmin();
       request.time` (E7, ingen ändring i MM-klienten),
     - (ii) **sänkning** bara ihop med en ändrad `kcDonation` (K9). Klasscentrets regler
       kontrollerar redan att avdraget = donationen.
-  - `'xp' in k` ⇒ höjning med `senastXp == n.xp − o.xp` ur samma `myntDag`, och `xp` får
-    aldrig tas bort.
+  - `'xp' in k` ⇒ `'xp' in o` och höjning med `senastXp == n.xp − o.xp` ur samma
+    `myntDag`. `xp` får aldrig tas bort. Ett dokument **utan** `xp` kan alltså inte få XP
+    från klienten. Det får sitt startvärde av migreringen nedan, och fram till dess ger
+    B1-klienten mynt utan XP.
 - Med dessa grenar körs inga `get` för skrivningar som inte rör `coins`/`xp`.
 - `elevNyttDokOk()`: `coins`, `xp` och `appleCount` är 0 eller saknas, och `ownedItems`,
   `ownedCounts`, `pets`, `roomAnimals` och `farm.animals` är tomma eller saknas, med
@@ -394,14 +413,29 @@ allow delete: if isAdmin();
 som skriver elevens `coins`/`xp` som eleven (t.ex. `admin/qa-lararkonton-drift.mjs:155`)
 uppdateras.
 
+**Migrering (ny, Admin SDK).** `admin/migrera-mynt-las.mjs` gör en torrkörning som
+standard och skriver med `--commit`. Den är idempotent och går igenom alla
+`studentData`-dokument. Logiken ligger i en ren funktion, `planeraMigrering(sd)` →
+`patch | null`, i `admin/migrera-mynt-las-core.mjs`, så att den går att enhetstesta. B3
+lägger in `xp`-delen och B4 utökar med `agdaDjur`:
+
+- Saknas `xp` (eller är det inte ett tal ≥ 0): sätt `xp = xpFromProgress(progress)`
+  (`src/leveling.js`), samma värde som `xpFromStudentData` visar i dag.
+- Skriptet skriver ut antalet dokument per åtgärd. Efter `--commit` ska en ny torrkörning
+  visa 0.
+
 **Tester.**
 
+- `test/migrera-mynt-las.test.js` (enhet): ett dokument utan `xp` får det härledda
+  värdet, ett dokument med `xp` lämnas orört, och `xp: "x"`/negativt rättas.
 - `test/firestore-rules-mynt-las.test.js`. Nekat: `update {coins: 99999}`,
   `increment(1)` utan kvitto, `setDoc` av hela dokumentet med högre saldo, kvitto + saldo
   som inte stämmer, gårdagens kvitto, en annan elevs kvitto, MM-kvitto med +2, `coins` som
   sträng eller decimaltal, negativt saldo, sänkning utan `kcDonation`, `xp` utan kvitto,
-  borttagen `xp`, `create` med `coins: 5`, `delete` av eget dokument och en annan elevs
-  saldo (M3). Tillåtet: utbetalning via `myntDag`, MM-svar (de befintliga MM-sviterna ska
+  borttagen `xp`, `xp` som sätts i ett dokument utan `xp` (även med kvitto), `create`
+  med `coins: 5`, `delete` av eget dokument och en annan elevs
+  saldo (M3). Tillåtet: utbetalning via `myntDag`, utbetalning med bara mynt (ingen
+  `xp`) för ett dokument utan `xp`, MM-svar (de befintliga MM-sviterna ska
   vara gröna), donation (de befintliga `-fund*`-sviterna), Live och Prov som admin och
   årskurs (de befintliga `-live-rewards`, `-roller-*`, `-prov-mynt*`), admin Ge mynt,
   ny elev med standarddokument, och alla andra fält (möbler, schack, Läsresan) som förut.
@@ -417,44 +451,95 @@ det ska nekas. Spela ett quiz, svara rätt i MM, donera i Klasscentret, betala u
 
 ### B4 – Låset på varor och utseende (stänger M4, resten av M7-XP) · beroende: B2, B3
 
-**Mål.** Klienten kan inte längre skapa varor. Det klienten själv gör (flytta, mata, så,
-lägga ut äpplen) fungerar som förut.
+**Mål.** Klienten kan inte längre skapa varor och inte heller byta art på ett djur den
+äger. Det klienten själv gör (flytta, mata, så, lägga ut äpplen) fungerar som förut.
+
+**Djuren: ägandet flyttar till serverkartan `agdaDjur`.** Reglerna kan inte gå igenom en
+lista. En kontroll som "`id` för varje `uid` är oförändrat" går därför inte att uttrycka
+för `pets[]`/`roomAnimals[]`/`farm.animals[]`, och "`size()` får inte öka" skulle neka en
+vanlig sparning, eftersom `animalsFromData` (`src/data-animals.js:84–90`) slår ihop äldre
+djur från `ownedItems` och sparar en längre lista. Ägandet läggs i stället i en karta som
+bara servern skriver, `agdaDjur: { <uid>: <varu-id> }` (B2 skriver den vid köp och
+migreringen för gamla djur). De tre läsfunktionerna som all ritning går igenom läser den:
+
+- `animalsFromData` (`src/data-animals.js:66`): returnerar bara djur vars `uid` finns i
+  `agdaDjur` och tar arten (`id`) ur kartan. Listans `id` ignoreras. Sammanslagningen av
+  äldre djur från `ownedItems` tas bort, eftersom migreringen har gjort dem till riktiga
+  poster.
+- `farmFromData` (`src/farm-core.js:134`): samma regel för `animals`.
+- `petsFromData` (`src/data-pet.js:130`): bara ägg och djur vars `id` finns i kartan.
+  Värdet `hw-djur-<art>` ger arten (`eggSpecies` och `speciesId` i listan ignoreras).
+  Värdet `mystery-egg` får bara en vanlig art. En Halloween-art i `speciesId` ersätts med
+  en vanlig art som räknas fram deterministiskt ur djurets `id`. `hasHeatLamp` gäller bara
+  om `varmelampa` finns i `ownedItems`.
+
+Eftersom alla vyer (rummet, gården, byn och kompisrummet) går genom de här funktionerna
+syns ett fejkat eller artbytt djur ingenstans. Listorna blir fritt skrivbart tillstånd, så
+reglerna behöver inga storleksregler för dem.
 
 **Regler** (läggs till i `elevVardeOk`, varje gren bara när fältet finns i `k`):
 
-- `ownedItems`: får inte ändras (bara servern).
+- `ownedItems` och `agdaDjur`: får inte ändras (bara servern).
 - `ownedCounts`: bara `plantSeed` får röra fältet, och bara med markören `lastFro`. Det är
   samma idé som `kcDonation`. Ändringen måste gälla precis nyckeln `n.lastFro` och sänka
   den: `n.ownedCounts[n.lastFro] < oldCount(o, n.lastFro)`, där `oldCount` = `o.ownedCounts`
-  eller 1 om id:t finns i `ownedItems`, och värdet måste vara ≥ 0. **Klient:** `plantSeed`
-  skriver `lastFro: cropId`.
-- `pets`: `size()` får inte öka. Undantag: migreringen av den gamla `pet` när `pets`
-  saknas, som ger högst 1.
-- `roomAnimals`, `farm.animals`: `size()` får inte öka.
+  eller 1 om id:t finns i `ownedItems`, och värdet måste vara ≥ 0. (`plantSeed` skriver
+  `lastFro` sedan B2.)
+- `pets`, `roomAnimals`, `farm.animals`: ingen regel (se `agdaDjur` ovan).
 - `appleCount` + `floorApples.size()`: summan får inte öka.
 - `farm`: inuti `farm.diff(o.farm).affectedKeys()` får `barnLevel`/`gardenTier` inte ändras,
   och `barnSkin` ska vara `null` eller finnas i `ownedItems`.
 - `avatarItems` ⊆ `ownedItems` och `husSkalId` ∈ `ownedItems ∪ {null}`. **Kontrollera
   först** att inga gratisplagg eller gratishus saknas i `ownedItems` (grundavatarens kläder,
   standardhus). Finns de ska de stå i en uttrycklig lista.
+- `elevNyttDokOk()` (B3) kräver dessutom att `agdaDjur` är tom eller saknas.
 
-**Tester.** `test/firestore-rules-mynt-varor.test.js`.
+**Migrering** (utökar `admin/migrera-mynt-las.mjs` från B3, samma torrkörning och
+`--commit`). För varje dokument som saknar en post i `agdaDjur`:
 
-- Nekat: `arrayUnion` i `ownedItems`, ett nytt ägg eller djur, en höjd `appleCount`, ett
-  äpple som läggs ut utan att `appleCount` sjunker, `ownedCounts` +1, `ownedCounts` −1 på
-  en annan nyckel än `lastFro`, en höjd `barnLevel`/`gardenTier`, ett gårdsdjur ur tomma
-  intet, ett plagg eller hus man inte äger och en `barnSkin` man inte äger.
-- Tillåtet: att flytta, döpa och lägga undan djur, mata, kläcka, lägga ut och plocka upp
-  äpplen, så ett frö, mata gårdsdjur, bära ett ägt plagg, byta till ett ägt hus och den
-  gamla migreringen `pet` → `pets`.
+- Varje `roomAnimals`-post får `agdaDjur[uid] = id`. Äldre djur som bara finns i
+  `ownedItems` skrivs först in som riktiga `roomAnimals`-poster, med samma `uid` = art-id
+  som `animalsFromData` ger i dag, och får sedan en post i kartan.
+- Varje `farm.animals`-post får `agdaDjur[uid] = id`.
+- Varje husdjur i `pets` (och den gamla `pet`, som först migreras till `pets[0]` med
+  `migratedLegacyPet` från `data-pet.js`) får `agdaDjur[id] = eggSpecies ?
+  "hw-djur-" + eggSpecies : "mystery-egg"`.
+
+Tillståndet vid migreringen godtas som utgångsläge (se R6).
+
+**Tester.**
+
+- `test/firestore-rules-mynt-varor.test.js`.
+  - Nekat: `arrayUnion` i `ownedItems`, varje skrivning till `agdaDjur` (ny post och
+    byte av art), en höjd `appleCount`, ett äpple som läggs ut utan att `appleCount`
+    sjunker, `ownedCounts` +1, `ownedCounts` −1 på en annan nyckel än `lastFro`, en höjd
+    `barnLevel`/`gardenTier`, ett plagg eller hus man inte äger och en `barnSkin` man inte
+    äger.
+  - Tillåtet: att flytta, döpa och lägga undan djur, **också när listan är längre än den
+    sparade** (den gamla sammanslagningen från `ownedItems` i `saveAnimalPositions`), mata,
+    kläcka, lägga ut och plocka upp äpplen, så ett frö, mata gårdsdjur, bära ett ägt plagg
+    och byta till ett ägt hus.
+- `test/djur-agande.test.js` (enhet) för de tre läsfunktionerna:
+  - ett djur utan post i kartan syns inte,
+  - ett ändrat `id` (fisk → dinosaurie, gris → häst) ger kartans art,
+  - ett vanligt ägg med `eggSpecies`/`speciesId` = Halloween-art blir en vanlig art,
+  - ett Halloween-ägg behåller sin art,
+  - `hasHeatLamp` utan lampa ger ingen effekt,
+  - ett migrerat äldre djur syns som förut.
+- `test/migrera-mynt-las.test.js`: kartan byggs för `roomAnimals`, för äldre djur i
+  `ownedItems`, för `farm.animals`, för `pets` och för den gamla `pet`. En andra körning
+  ändrar ingenting.
 - `test/firestore-rules-avatarer.test.js:39` (eleven köper med `arrayUnion` själv) skrivs
   om, så att köpet sker med regler avstängda eller via callable-testet, och regeltestet
   bara byter avatar.
 - Gränstest som i B3.
 
 **QA.** Gå igenom rummet, gården och husdjuren med en elev som äger allt (inredning,
-djur, äpplen, frön, kläder och hus). Inget får nekas i konsolen. Försök med devtools:
-`ownedItems` + vara, `appleCount: 99` och `pets` + ägg. Allt ska nekas.
+djur, äpplen, frön, kläder och hus), och med en äldre elev som har djur i `ownedItems`
+före och efter migreringen. Inget får nekas i konsolen och inget djur får försvinna.
+Försök med devtools: `ownedItems` + vara, `agdaDjur` + djur och `appleCount: 99` ska
+nekas. Ett nytt ägg i `pets` och att byta `roomAnimals[0].id` till `dinosaurie` går att
+skriva, men det syns inte i rummet, i byn eller i kompisrummet.
 
 ### B5 – Slut-QA · beroende: B1–B4
 
@@ -465,14 +550,22 @@ djur, äpplen, frön, kläder och hus). Inget får nekas i konsolen. Försök me
   (möbel + mysterylåda), en Live-utbetalning, lärarens Ge mynt (admin) och Mattematchen.
   Saldot ska stiga och sjunka med exakt samma belopp som på `main`. Gör en jämförelse med
   samma förlopp på `main`.
-- Attackerna i §1 körs från devtools. M1–M6 ska nekas.
-- **Gammal klient mot nya regler**: kör `main`-webben mot fas 2-reglerna. Övningar ska ge
-  0 mynt utan krasch, köp ska visa "Något gick fel vid köpet" utan att mynt försvinner, och
-  allt ska fungera igen efter en omladdning. **Ny klient mot fas 1-regler** (additiva):
-  allt ska fungera.
+- Attackerna i §1 körs från devtools. M1–M6 ska nekas. Artbytet i M4 (fisk → dinosaurie,
+  gris → häst, vanligt ägg → Halloween-art) syns ingenstans.
+- **Övergången**, med samma emulatordata genom alla fyra stegen:
+  - `main`-webben mot fas 1-reglerna: allt ska fungera som förut.
+  - Fas 1-webben (taggen `mynt-fas1`) mot fas 1-reglerna: allt ska fungera.
+  - Fas 1-webben mot fas 2-reglerna före migreringen: mynt ska fungera, även för ett
+    dokument utan `xp` (då utan XP), och köp, frön och djursparning ska fungera.
+  - Fas 2-webben efter migreringen: alla djur syns, XP finns och visas som förut.
+  - Dessutom `main`-webben mot fas 2-reglerna: övningar ger 0 mynt utan krasch, köp visar
+    "Något gick fel vid köpet" utan att mynt försvinner, och efter en omladdning fungerar
+    allt.
+- Migreringsskriptet mot emulatorn: torrkörning, sedan `--commit`, sedan en ny
+  torrkörning som ska visa 0.
 - Mät kvoten för ett skoldagsscenario (§5) och skriv in de verkliga talen här.
 - Uppdatera `docs/BEHORIGHETER.md` (rad `studentData` + nya rader för `myntDag` och
-  `butikKop`), `docs/DATAMODELL.md` (`myntDag`, `lastFro`) och `docs/ADMIN.md`
+  `butikKop`), `docs/DATAMODELL.md` (`myntDag`, `lastFro`, `agdaDjur`) och `docs/ADMIN.md`
   (driftordningen i §7).
 
 ## 7. Deploy-ordning och övergång
@@ -484,19 +577,33 @@ köp misslyckas) tills eleven laddar om. Därför används två faser:
 
 | Fas | Vad | Ordning | Effekt på gamla klienter |
 |---|---|---|---|
-| **1** (efter B1 + B2) | Reglerna med bara `myntDag`-matchen tillagd (additivt). `studentData`-regeln är oförändrad | `firebase deploy --only firestore:rules` → `npm run sync:butik && firebase deploy --only functions:butikKop` → webben | Ingen. Gamla flikar skriver som förut, nya använder kvitto och callable |
-| **2** (minst en skoldag senare) | Hela låset (B3 + B4) | `firebase deploy --only firestore:rules` | Bara flikar som varit öppna sedan före fas 1. De förlorar mynt tills de laddar om, men data går aldrig förlorad |
+| **1** (taggen `mynt-fas1`, efter B1 + B2) | Reglerna med bara `myntDag`-matchen tillagd (additivt). `studentData`-regeln är oförändrad. Webben: kvittot, `butikKop`, `lastFro` och XP bara när fältet finns | 1. `firebase deploy --only firestore:rules` 2. `npm run sync:butik && firebase deploy --only functions:butikKop` 3. webben | Ingen. Gamla flikar skriver som förut, nya använder kvitto och callable |
+| **2** (epicens slut, minst en skoldag efter fas 1) | Hela låset (B3 + B4) och de nya läsfunktionerna för djur | 1. `firebase deploy --only firestore:rules` 2. `node admin/migrera-mynt-las.mjs` (torrkörning) och sedan `--commit` 3. torrkörning igen = 0 4. webben | Fas 1-flikar klarar låset (se B5). Flikar som varit öppna sedan före fas 1 förlorar mynt och köp tills de laddar om, men data går aldrig förlorad |
 
-Praktiskt: leaden taggar commiten efter B2 som `mynt-fas1`. Fas 1 deployar reglerna från
-taggen, och fas 2 från epicens slut. Ingenting av detta görs i epicen, eftersom Elias
-deployar. Beroenden: `butikKop` måste finnas innan den nya webben går ut, annars
-misslyckas alla köp. `myntDag`-regeln måste finnas innan den nya webben går ut, annars
-ger övningar 0 mynt.
+Praktiskt: leaden taggar commiten efter B2 som `mynt-fas1`. Ingenting av detta görs i
+epicen, eftersom Elias deployar. Beroenden:
 
-**Migrering:** ingen. Saldon, varor och XP står kvar som de är. Gamla dokument utan `xp`
-kan få ett startvärde (`xpFromStudentData`) första gången. Det går via `myntDag` med
-`senastXp ≤ XP_PER_GANG`, så en mycket gammal elev med stort härlett XP kan behöva flera
-övningar. Det är kosmetiskt och accepteras (se F4).
+- `butikKop` och `myntDag`-regeln måste finnas innan fas 1-webben går ut. Annars
+  misslyckas alla köp och övningar ger 0 mynt.
+- Fas 2 måste köras i ordningen **låsreglerna → migrering → webb**:
+  - Migreringen körs **efter** låset, så att ingen hinner skriva en egen `agdaDjur` eller
+    ett eget `xp` mellan migreringen och låset.
+  - Den körs **efter** att alla flikar från före fas 1 är borta, så att ingen gammal
+    `buyAnimal`-klient skapar djur utan kartpost.
+  - Den körs **före** fas 2-webben, som döljer djur utan kartpost.
+- Mellan steg 1 och 4 i fas 2 kör eleverna fas 1-webben. Den klarar låset: mynt utan XP om
+  `xp` saknas, `lastFro` skrivs, och den gamla djurläsningen gäller fortfarande.
+
+**Migrering** (`admin/migrera-mynt-las.mjs`, B3 + B4) gör följande:
+
+- Gamla dokument utan `xp` får `xpFromProgress(progress)`. Det är samma värde som visas i
+  dag, så ingen elev tappar eller får XP.
+- Alla befintliga djur (`roomAnimals`, äldre djur i `ownedItems`, `farm.animals`, `pets`
+  och den gamla `pet`) får en post i `agdaDjur` med den art de har i dag.
+- Saldon och varor ändras inte.
+
+Om skriptet glöms bort, eller missar ett dokument: eleven får mynt men ingen XP, och djur
+utan kartpost syns inte. Inget går förlorat, och det rättas genom att köra skriptet igen.
 
 ## 8. Kvarvarande risker (accepterade, skrivs in i rapporten)
 
@@ -514,9 +621,14 @@ kan få ett startvärde (`xpFromStudentData`) första gången. Det går via `myn
 - **R4 – `classProjections` och `classProjects`.** Båda är skrivbara för klassmedlemmar
   (`firestore.rules:672,693`) och visar stjärnor och XP. Det är kosmetiska cachar som
   återställer sig själva. `classProjects` används inte längre (K10).
-- **R5 – husdjurens inre fält** (`feedCount`, art, `hasHeatLamp`) och gårdens skörd och
-  trivsel kan sättas av eleven. Det är kosmetiskt. Gåvan (E5) begränsas ändå av
-  `myntDag.gard`.
+- **R5 – husdjurens inre fält** (`feedCount`/tillväxt, namn, position, och vilken
+  **vanlig** art ett vanligt ägg kläcks till) och gårdens skörd och trivsel kan sättas av
+  eleven. Det är kosmetiskt och kostar inget i butiken: alla vanliga arter kommer ur samma
+  ägg för 200. Artbyte till en dyrare vara och `hasHeatLamp` stängs i B4. Gåvan (E5)
+  begränsas ändå av `myntDag.gard`.
+- **R6 – låset gäller framåt.** Mynt, varor och djur som någon redan har fuskat till sig
+  före fas 2 finns kvar. Det finns ingen historik att jämföra mot, så migreringen tar
+  dagens tillstånd som utgångsläge.
 
 ## 9. Öppna frågor till Elias (med antagna beslut)
 
@@ -525,6 +637,6 @@ kan få ett startvärde (`xpFromStudentData`) första gången. Det går via `myn
 | F1 | Vilka tak per gång och per dag? | Ska aldrig märkas för en ivrig elev. Starttal: **per gång** = största legitima beloppet (testet i B1 räknar fram det, uppskattning: övning ≤ 200, Läsresan ≤ 60, Ämnesläsning ≤ 100, Ekvationsresan 7, gåva 8). **Per dag**: övning 1 500, Läsresan 400, Ämnesläsning 400, Ekvationsresan 300, gåva 8 × gårdsdjur, XP 3 000. Talen står i en fil (`src/mynt-dag.js`) och speglas i reglerna, så de är lätta att ändra |
 | F2 | Epicen säger att "lärare med klassen" får justera. #678 §2.2 sa att bara admin får ge pluggmynt direkt, och årskurskontot nekas i dag (Test 18). Ska årskurskontot få Ge mynt? | **Nej, oförändrat.** Admin har alla klasser och uppfyller kravet. Knappen visas för årskurskonton men nekas. Det är ett befintligt UI-fel som kan bli en egen issue |
 | F3 | Får saldot sjunka bara via donation (som i B3) eller också fritt (eleven skadar bara sig själv)? | **Bara via donation och köp** (köp sker på servern). Det är striktare och billigt |
-| F4 | Är resterna R1–R5 acceptabla för den här epicen? | **Ja.** R2 (statistiken) och R3 (ritfiltret) föreslås som egna issues senare |
+| F4 | Är resterna R1–R6 acceptabla för den här epicen? | **Ja.** R2 (statistiken) och R3 (ritfiltret) föreslås som egna issues senare |
 | F5 | Är det OK med deploy i två faser (§7)? | **Ja.** Det är det enda sättet att undvika att elever med öppna flikar förlorar mynt under övergången |
 | F6 | Ska mysterylådans odds och dubblettretur ändras nu när de ligger på servern? | **Nej.** Samma tal, samma `rollMysteryItem`. Epicen ändrar inga belopp |
