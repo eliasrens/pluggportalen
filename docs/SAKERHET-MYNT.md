@@ -31,7 +31,7 @@ Radnumren gäller `main` vid `6a3b16b` (efter merge av #850).
 - **Steg 2** består av fem issues i §6: B1 dagskvitto, B2 butiken på servern, B3 låset på
   saldot, B4 låset på varor och utseende, B5 slut-QA. B1 och B2 kan köras parallellt.
 - **Deploy i två faser** (§7). Fas 1 lägger till kvitton och callable utan att något
-  låses: rules → functions → webb. Fas 2 kommer minst en skoldag senare, så att inga gamla
+  låses: rules → functions → migreringsskriptet → webb. Fas 2 kommer minst en skoldag senare, så att inga gamla
   flikar finns kvar: låsreglerna → migreringsskriptet (`xp` och `agdaDjur` för gamla
   dokument) → webb.
 
@@ -236,7 +236,8 @@ funktion som `myntDag()` i `src/tavling/mm-config.js:39` och `svenskDag()` i reg
 ```
 { dag, kalla, lastAt, senastMynt, senastXp,
   ovning, lasresa, amnes, ekv, gard,   // mynt per källa i dag
-  xp }                                 // XP i dag (bara övningar ger XP)
+  xp,                                  // XP i dag (bara övningar ger XP)
+  gardUid, gavor: { <djur-uid>: true } }  // gåvor i dag, en per ägt gårdsdjur
 ```
 
 **Regel** (`match /myntDag/{dag}` under `studentData/{studentId}`, funktionen `myntDagOk`,
@@ -244,10 +245,24 @@ samma mönster som `mmMyntOk` `firestore.rules:479`):
 
 - `isSelf(uid)`, `dag == svenskDag(request.time) && d.dag == dag`, `d.lastAt == request.time`.
 - `d.kalla in ['ovning','lasresa','amnes','ekv','gard']`, och bara `dag`, `kalla`,
-  `lastAt`, `senastMynt`, `senastXp`, `d.kalla` och `xp` får ändras (`changedOnly`).
+  `lastAt`, `senastMynt`, `senastXp`, `d.kalla` och `xp` får ändras (`changedOnly`). För
+  `gard` får även `gardUid` och `gavor` ändras.
 - `senastMynt == d[kalla] − o.get(kalla, 0)`, `0 ≤ senastMynt ≤ PER_GANG[kalla]` och
-  `d[kalla] ≤ PER_DAG[kalla]`. För `gard` gäller `≤ 8 × antal gårdsdjur` ur
-  `getAfter(studentData).farm.animals`.
+  `d[kalla] ≤ PER_DAG[kalla]` (för `ovning`, `lasresa`, `amnes`, `ekv`).
+- **Gåvan (`gard`)** knyts till ett **ägt** djur och inte till listan `farm.animals`.
+  Listan är fritt skrivbar (B4), så ett tak räknat ur den skulle kunna blåsas upp med
+  fejkade djur. Därför:
+  - `senastMynt == 8` (`FARM_GIFT_COINS`),
+  - `d.gavor.diff(o.get('gavor', {})).affectedKeys() == [d.gardUid].toSet()` och
+    `!(d.gardUid in o.get('gavor', {}))`, alltså ett nytt djur och högst en gåva per djur
+    och dag,
+  - `getAfter(studentData).data.get('agdaDjur', {}).get(d.gardUid, '') in
+    ['animal_horse', 'animal_cow', 'animal_pig']`. `agdaDjur` skrivs bara av servern
+    (B2/migreringen, låst i B4).
+
+  Dagstaket blir därmed exakt 8 × antal **ägda** gårdsdjur, utan något eget `PER_DAG`.
+  Listan över gårdsdjurens varu-id speglas i `src/mynt-dag.js` och hålls i synk med
+  katalogen av samma synktest.
 - `senastXp == d.xp − o.get('xp', 0)`, `0 ≤ senastXp ≤ XP_PER_GANG`, `d.xp ≤ XP_PER_DAG`,
   och `senastXp > 0` bara när `kalla == 'ovning'`.
 - `senastMynt + senastXp ≥ 1`.
@@ -277,7 +292,8 @@ täcka det största quiz som redigeraren tillåter. Starttalen står i fråga F1
 - `src/lasresan/rewards.js` och `src/ekvationsresan/mynt.js`: `award` tar emot `kalla`
   och anropar `tjanaMynt` (`'lasresa'`, `'amnes'` från `data-amneslasning.js:153`,
   `'ekv'`). Testkroken `addCoins` i signaturen behålls som `betala`.
-- `src/data-farm.js` `claimFarmAnimalGift` skriver via `tjanaMynt('gard', 8, { extra })`.
+- `src/data-farm.js` `claimFarmAnimalGift` skriver via `tjanaMynt('gard', 8, { extra,
+  gardUid: uid })`. `tjanaMynt` sätter `gardUid` och `gavor.<uid>` i kvittot.
 - När taket nås visar resultatskärmen det verkliga beloppet (som i dag) och en rad:
   "Du har fått dagens alla mynt härifrån – resultatet sparas ändå." Det ger ingen ny
   funktion, bara en sann siffra.
@@ -286,7 +302,7 @@ täcka det största quiz som redigeraren tillåter. Starttalen står i fråga F1
   eftersom mynt och XP skrivs i samma transaktion skulle eleven då få 0 mynt för alltid.
   Därför: `tjanaMynt` skriver `xp` **bara när fältet redan finns** (`typeof sd.xp ===
   "number"`). Saknas det skrivs bara mynten och kvittot, och en varning loggas. Det
-  härledda XP:t sätts av migreringen (B3, §7) och går inte förlorat. Den här
+  härledda XP:t sätts av migreringen (B2, §7) och går inte förlorat. Den här
   försiktigheten ligger i B1 så att fas 1-klienten redan klarar låset.
 - `data.addCoins` blir kvar **bara** för lärarens Ge mynt (E10). Inget elevflöde anropar
   den längre (`git grep "addCoins("` visar bara `teacher-*`).
@@ -294,11 +310,15 @@ täcka det största quiz som redigeraren tillåter. Starttalen står i fråga F1
 **Tester.**
 
 - `test/firestore-rules-mynt-dag.test.js`. Tillåtet: +n inom taket med `coins` +n i samma
-  batch, ny dag, `xp` ihop med `ovning`, `gard` med djur. Nekat: kvitto utan
-  `coins`-höjning, `coins`-höjning ≠ `senastMynt`, över `PER_GANG`, över `PER_DAG`, gårdagens
-  eller morgondagens id, `d.dag` ≠ id, `lastAt` ≠ `request.time`, en annan elevs kvitto,
-  lärare, sänkt räknare, okänd källa, två källor i samma skrivning, XP från `lasresa`,
-  `gard` utan djur och radering av eleven.
+  batch, ny dag, `xp` ihop med `ovning`, `gard` för ett gårdsdjur i `agdaDjur` (och ett
+  andra ägt djur samma dag). Nekat: kvitto utan `coins`-höjning, `coins`-höjning ≠
+  `senastMynt`, över `PER_GANG`, över `PER_DAG`, gårdagens eller morgondagens id, `d.dag`
+  ≠ id, `lastAt` ≠ `request.time`, en annan elevs kvitto, lärare, sänkt räknare, okänd
+  källa, två källor i samma skrivning, XP från `lasresa` och radering av eleven. För
+  `gard` dessutom: samma djur två gånger samma dag, ett `gardUid` som bara finns i
+  `farm.animals`, **`gard` med en uppblåst `farm.animals`-lista** (1 000 fejkade djur, 1
+  ägt: bara en gåva går igenom), ett `gardUid` vars `agdaDjur`-värde är ett husdjur, två
+  `gavor`-nycklar i samma skrivning, och `senastMynt` ≠ 8.
 - `test/mynt-dag.test.js` (enhet): synk mot reglerna, max-belopp ≤ `PER_GANG`,
   klippningen i `tjanaMynt` med injicerat SDK, och att ett dokument utan `xp` får mynt
   men ingen `xp`-skrivning.
@@ -309,6 +329,8 @@ täcka det största quiz som redigeraren tillåter. Starttalen står i fråga F1
 Ämnesläsning och en Ekvationsresan-uppgift, och hämta en gåva. Saldot ska stiga med samma
 belopp som före ändringen, och `myntDag/{idag}` ska visa summorna. Sätt räknaren nära
 taket med Admin SDK och kontrollera att utbetalningen klipps och att texten visas.
+Gåvan kräver att gårdsdjuret har en post i `agdaDjur`. I QA sätts den med Admin SDK (eller
+via `butikKop`/migreringen när B2 har landat).
 
 ### B2 – Butiken på servern: callable `butikKop` (M4/M5-förutsättning, additivt)
 
@@ -358,6 +380,30 @@ katalogen på servern, och lottningen sker där. Reglerna ändras inte.
 - Död kod tas bort: `donateToClassProject` (`data-classes.js:373`, `data.js:313`),
   `setBarnLevel`/`setGardenTier` (`data-farm.js:346,378`, `data.js:333,335`).
 
+**Migrering (ny, Admin SDK).** `admin/migrera-mynt-las.mjs` gör en torrkörning som
+standard och skriver med `--commit`. Den är idempotent och går igenom alla
+`studentData`-dokument. Logiken ligger i en ren funktion, `planeraMigrering(sd)` →
+`patch | null`, i `admin/migrera-mynt-las-core.mjs`, så att den går att enhetstesta. Den
+byggs här, eftersom `agdaDjur` införs här och B1:s gåvoregel behöver kartan. Den körs i
+**båda** faserna (§7). Skriptet skriver ut antalet dokument per åtgärd, och efter
+`--commit` ska en ny torrkörning visa 0.
+
+- **`xp`:** saknas fältet (eller är det inte ett tal ≥ 0) sätts `xp =
+  xpFromProgress(progress)` (`src/leveling.js`), samma värde som `xpFromStudentData` visar
+  i dag.
+- **`agdaDjur`:** för varje djur som saknar en post i kartan gäller följande. Bara
+  **första** posten per `uid` (husdjur: per `id`) räknas, samma regel som B4:s
+  läsfunktioner.
+  - Varje `roomAnimals`-post får `agdaDjur[uid] = id`. Äldre djur som bara finns i
+    `ownedItems` skrivs först in som riktiga `roomAnimals`-poster, med samma `uid` = art-id
+    som `animalsFromData` ger i dag, och får sedan en post i kartan.
+  - Varje `farm.animals`-post får `agdaDjur[uid] = id`.
+  - Varje husdjur i `pets` (och den gamla `pet`, som först migreras till `pets[0]` med
+    `petsFromData`, `src/data-pet.js:130`, och skrivs tillbaka) får `agdaDjur[id] = eggSpecies ?
+    "hw-djur-" + eggSpecies : "mystery-egg"`.
+
+Tillståndet vid migreringen godtas som utgångsläge (se R6).
+
 **Tester.**
 
 - `test/butik-core.test.js` (enhet): varje kategori, priset ur katalogen (klientens pris
@@ -368,6 +414,13 @@ katalogen på servern, och lottningen sker där. Reglerna ändras inte.
 - `test/functions-butik.test.mjs` (emulator, `FUNCTIONS_EMULATOR_HOST`): ett köp per typ
   sänker saldot med katalogpriset, oinloggad och lärare nekas, och två parallella köp av
   samma single-vara drar bara en gång. Ägg, djur och gårdsdjur får sin post i `agdaDjur`.
+- `test/migrera-mynt-las.test.js` (enhet):
+  - ett dokument utan `xp` får det härledda värdet, ett dokument med `xp` lämnas orört,
+    och `xp: "x"`/negativt rättas,
+  - kartan byggs för `roomAnimals`, för äldre djur i `ownedItems`, för `farm.animals`, för
+    `pets` och för den gamla `pet`,
+  - en duplicerad `uid` ger en enda post,
+  - en andra körning ändrar ingenting.
 - Synktestet (`--check`).
 
 **QA.** Köp en möbel, en klädsak, ett ägg, en värmelampa, ett äpple, ett djur, ett gårdsdjur
@@ -413,21 +466,11 @@ allow delete: if isAdmin();
 som skriver elevens `coins`/`xp` som eleven (t.ex. `admin/qa-lararkonton-drift.mjs:155`)
 uppdateras.
 
-**Migrering (ny, Admin SDK).** `admin/migrera-mynt-las.mjs` gör en torrkörning som
-standard och skriver med `--commit`. Den är idempotent och går igenom alla
-`studentData`-dokument. Logiken ligger i en ren funktion, `planeraMigrering(sd)` →
-`patch | null`, i `admin/migrera-mynt-las-core.mjs`, så att den går att enhetstesta. B3
-lägger in `xp`-delen och B4 utökar med `agdaDjur`:
-
-- Saknas `xp` (eller är det inte ett tal ≥ 0): sätt `xp = xpFromProgress(progress)`
-  (`src/leveling.js`), samma värde som `xpFromStudentData` visar i dag.
-- Skriptet skriver ut antalet dokument per åtgärd. Efter `--commit` ska en ny torrkörning
-  visa 0.
+**Migrering.** `xp`-delen av `admin/migrera-mynt-las.mjs` (byggs i B2) gör låset ofarligt
+för gamla dokument utan `xp`.
 
 **Tester.**
 
-- `test/migrera-mynt-las.test.js` (enhet): ett dokument utan `xp` får det härledda
-  värdet, ett dokument med `xp` lämnas orört, och `xp: "x"`/negativt rättas.
 - `test/firestore-rules-mynt-las.test.js`. Nekat: `update {coins: 99999}`,
   `increment(1)` utan kvitto, `setDoc` av hela dokumentet med högre saldo, kvitto + saldo
   som inte stämmer, gårdagens kvitto, en annan elevs kvitto, MM-kvitto med +2, `coins` som
@@ -462,6 +505,11 @@ djur från `ownedItems` och sparar en längre lista. Ägandet läggs i stället 
 bara servern skriver, `agdaDjur: { <uid>: <varu-id> }` (B2 skriver den vid köp och
 migreringen för gamla djur). De tre läsfunktionerna som all ritning går igenom läser den:
 
+- **Gemensam regel:** bara den **första** posten per `uid` (husdjur: per `id`) räknas.
+  Senare dubbletter tas bort och får inget nytt `uid`. I dag ger `animalsFromData`
+  (`:74`) en dubblett ett nytt uid, och `petsFromData`/`farmFromData` behåller dem. Utan
+  den här regeln skulle en enda ägd post (en häst, ett Halloween-ägg) kunna kopieras N
+  gånger i listan.
 - `animalsFromData` (`src/data-animals.js:66`): returnerar bara djur vars `uid` finns i
   `agdaDjur` och tar arten (`id`) ur kartan. Listans `id` ignoreras. Sammanslagningen av
   äldre djur från `ownedItems` tas bort, eftersom migreringen har gjort dem till riktiga
@@ -494,18 +542,8 @@ reglerna behöver inga storleksregler för dem.
   standardhus). Finns de ska de stå i en uttrycklig lista.
 - `elevNyttDokOk()` (B3) kräver dessutom att `agdaDjur` är tom eller saknas.
 
-**Migrering** (utökar `admin/migrera-mynt-las.mjs` från B3, samma torrkörning och
-`--commit`). För varje dokument som saknar en post i `agdaDjur`:
-
-- Varje `roomAnimals`-post får `agdaDjur[uid] = id`. Äldre djur som bara finns i
-  `ownedItems` skrivs först in som riktiga `roomAnimals`-poster, med samma `uid` = art-id
-  som `animalsFromData` ger i dag, och får sedan en post i kartan.
-- Varje `farm.animals`-post får `agdaDjur[uid] = id`.
-- Varje husdjur i `pets` (och den gamla `pet`, som först migreras till `pets[0]` med
-  `petsFromData`, `src/data-pet.js:130`, och skrivs tillbaka) får `agdaDjur[id] = eggSpecies ?
-  "hw-djur-" + eggSpecies : "mystery-egg"`.
-
-Tillståndet vid migreringen godtas som utgångsläge (se R6).
+**Migrering.** `agdaDjur`-delen av `admin/migrera-mynt-las.mjs` (byggs i B2) ger alla
+befintliga djur en post i kartan innan de nya läsfunktionerna går ut.
 
 **Tester.**
 
@@ -525,10 +563,9 @@ Tillståndet vid migreringen godtas som utgångsläge (se R6).
   - ett vanligt ägg med `eggSpecies`/`speciesId` = Halloween-art blir en vanlig art,
   - ett Halloween-ägg behåller sin art,
   - `hasHeatLamp` utan lampa ger ingen effekt,
-  - ett migrerat äldre djur syns som förut.
-- `test/migrera-mynt-las.test.js`: kartan byggs för `roomAnimals`, för äldre djur i
-  `ownedItems`, för `farm.animals`, för `pets` och för den gamla `pet`. En andra körning
-  ändrar ingenting.
+  - ett migrerat äldre djur syns som förut,
+  - **en duplicerad `uid`/`id` syns en gång**: en häst i `farm.animals`, ett Halloween-ägg
+    i `pets` och ett djur i `roomAnimals`, var och en kopierade 5 gånger, ger ett enda djur.
 - `test/firestore-rules-avatarer.test.js:39` (eleven köper med `arrayUnion` själv) skrivs
   om, så att köpet sker med regler avstängda eller via callable-testet, och regeltestet
   bara byter avatar.
@@ -551,10 +588,12 @@ skriva, men det syns inte i rummet, i byn eller i kompisrummet.
   Saldot ska stiga och sjunka med exakt samma belopp som på `main`. Gör en jämförelse med
   samma förlopp på `main`.
 - Attackerna i §1 körs från devtools. M1–M6 ska nekas. Artbytet i M4 (fisk → dinosaurie,
-  gris → häst, vanligt ägg → Halloween-art) syns ingenstans.
+  gris → häst, vanligt ägg → Halloween-art) och kopierade poster av ett ägt djur syns
+  ingenstans. Gåvan ger 8 per **ägt** gårdsdjur och dag, även om listan blåses upp.
 - **Övergången**, med samma emulatordata genom alla fyra stegen:
   - `main`-webben mot fas 1-reglerna: allt ska fungera som förut.
-  - Fas 1-webben (taggen `mynt-fas1`) mot fas 1-reglerna: allt ska fungera.
+  - Fas 1-webben (taggen `mynt-fas1`) mot fas 1-reglerna efter migreringen: allt ska
+    fungera, gåvan också.
   - Fas 1-webben mot fas 2-reglerna före migreringen: mynt ska fungera, även för ett
     dokument utan `xp` (då utan XP), och köp, frön och djursparning ska fungera.
   - Fas 2-webben efter migreringen: alla djur syns, XP finns och visas som förut.
@@ -577,24 +616,27 @@ köp misslyckas) tills eleven laddar om. Därför används två faser:
 
 | Fas | Vad | Ordning | Effekt på gamla klienter |
 |---|---|---|---|
-| **1** (taggen `mynt-fas1`, efter B1 + B2) | Reglerna med bara `myntDag`-matchen tillagd (additivt). `studentData`-regeln är oförändrad. Webben: kvittot, `butikKop`, `lastFro` och XP bara när fältet finns | 1. `firebase deploy --only firestore:rules` 2. `npm run sync:butik && firebase deploy --only functions:butikKop` 3. webben | Ingen. Gamla flikar skriver som förut, nya använder kvitto och callable |
-| **2** (epicens slut, minst en skoldag efter fas 1) | Hela låset (B3 + B4) och de nya läsfunktionerna för djur | 1. `firebase deploy --only firestore:rules` 2. `node admin/migrera-mynt-las.mjs` (torrkörning) och sedan `--commit` 3. torrkörning igen = 0 4. webben | Fas 1-flikar klarar låset (se B5). Flikar som varit öppna sedan före fas 1 förlorar mynt och köp tills de laddar om, men data går aldrig förlorad |
+| **1** (taggen `mynt-fas1`, efter B1 + B2) | Reglerna med bara `myntDag`-matchen tillagd (additivt). `studentData`-regeln är oförändrad. Webben: kvittot, `butikKop`, `lastFro` och XP bara när fältet finns | 1. `firebase deploy --only firestore:rules` 2. `npm run sync:butik && firebase deploy --only functions:butikKop` 3. `node admin/migrera-mynt-las.mjs` (torrkörning) och sedan `--commit` 4. webben | Ingen. Gamla flikar skriver som förut, nya använder kvitto och callable |
+| **2** (epicens slut, minst en skoldag efter fas 1) | Hela låset (B3 + B4) och de nya läsfunktionerna för djur | 1. `firebase deploy --only firestore:rules` 2. `node admin/migrera-mynt-las.mjs --commit` igen (fångar djur och dokument som tillkommit sedan fas 1) 3. torrkörning = 0 4. webben | Fas 1-flikar klarar låset (se B5). Flikar som varit öppna sedan före fas 1 förlorar mynt och köp tills de laddar om, men data går aldrig förlorad |
 
 Praktiskt: leaden taggar commiten efter B2 som `mynt-fas1`. Ingenting av detta görs i
 epicen, eftersom Elias deployar. Beroenden:
 
 - `butikKop` och `myntDag`-regeln måste finnas innan fas 1-webben går ut. Annars
-  misslyckas alla köp och övningar ger 0 mynt.
+  misslyckas alla köp och övningar ger 0 mynt. Migreringen körs i fas 1 **före** webben,
+  så att B1:s gåvoregel (som kräver en post i `agdaDjur`) fungerar för befintliga
+  gårdsdjur från första början.
 - Fas 2 måste köras i ordningen **låsreglerna → migrering → webb**:
-  - Migreringen körs **efter** låset, så att ingen hinner skriva en egen `agdaDjur` eller
-    ett eget `xp` mellan migreringen och låset.
+  - Den andra körningen sker **efter** låset, så att den sista migreringen ligger efter den
+    sista tidpunkt då eleven själv kunde skriva `agdaDjur`/`xp`. Det som skrevs före låset
+    räknas som utgångsläge (R6).
   - Den körs **efter** att alla flikar från före fas 1 är borta, så att ingen gammal
     `buyAnimal`-klient skapar djur utan kartpost.
   - Den körs **före** fas 2-webben, som döljer djur utan kartpost.
 - Mellan steg 1 och 4 i fas 2 kör eleverna fas 1-webben. Den klarar låset: mynt utan XP om
   `xp` saknas, `lastFro` skrivs, och den gamla djurläsningen gäller fortfarande.
 
-**Migrering** (`admin/migrera-mynt-las.mjs`, B3 + B4) gör följande:
+**Migrering** (`admin/migrera-mynt-las.mjs`, byggs i B2, körs i båda faserna) gör följande:
 
 - Gamla dokument utan `xp` får `xpFromProgress(progress)`. Det är samma värde som visas i
   dag, så ingen elev tappar eller får XP.
@@ -602,8 +644,8 @@ epicen, eftersom Elias deployar. Beroenden:
   och den gamla `pet`) får en post i `agdaDjur` med den art de har i dag.
 - Saldon och varor ändras inte.
 
-Om skriptet glöms bort, eller missar ett dokument: eleven får mynt men ingen XP, och djur
-utan kartpost syns inte. Inget går förlorat, och det rättas genom att köra skriptet igen.
+Om skriptet glöms bort, eller missar ett dokument: eleven får mynt men ingen XP, djur utan
+kartpost syns inte, och gårdsdjur utan kartpost ger ingen gåva. Inget går förlorat, och det rättas genom att köra skriptet igen.
 
 ## 8. Kvarvarande risker (accepterade, skrivs in i rapporten)
 
@@ -625,7 +667,7 @@ utan kartpost syns inte. Inget går förlorat, och det rättas genom att köra s
   **vanlig** art ett vanligt ägg kläcks till) och gårdens skörd och trivsel kan sättas av
   eleven. Det är kosmetiskt och kostar inget i butiken: alla vanliga arter kommer ur samma
   ägg för 200. Artbyte till en dyrare vara och `hasHeatLamp` stängs i B4. Gåvan (E5)
-  begränsas ändå av `myntDag.gard`.
+  ges bara en gång per **ägt** gårdsdjur (`agdaDjur`) och dag (`myntDag.gavor`).
 - **R6 – låset gäller framåt.** Mynt, varor och djur som någon redan har fuskat till sig
   före fas 2 finns kvar. Det finns ingen historik att jämföra mot, så migreringen tar
   dagens tillstånd som utgångsläge.
@@ -634,7 +676,7 @@ utan kartpost syns inte. Inget går förlorat, och det rättas genom att köra s
 
 | # | Fråga | Antaget beslut (gäller tills du säger annat) |
 |---|---|---|
-| F1 | Vilka tak per gång och per dag? | Ska aldrig märkas för en ivrig elev. Starttal: **per gång** = största legitima beloppet (testet i B1 räknar fram det, uppskattning: övning ≤ 200, Läsresan ≤ 60, Ämnesläsning ≤ 100, Ekvationsresan 7, gåva 8). **Per dag**: övning 1 500, Läsresan 400, Ämnesläsning 400, Ekvationsresan 300, gåva 8 × gårdsdjur, XP 3 000. Talen står i en fil (`src/mynt-dag.js`) och speglas i reglerna, så de är lätta att ändra |
+| F1 | Vilka tak per gång och per dag? | Ska aldrig märkas för en ivrig elev. Starttal: **per gång** = största legitima beloppet (testet i B1 räknar fram det, uppskattning: övning ≤ 200, Läsresan ≤ 60, Ämnesläsning ≤ 100, Ekvationsresan 7, gåva 8). **Per dag**: övning 1 500, Läsresan 400, Ämnesläsning 400, Ekvationsresan 300, gåva 8 per ägt gårdsdjur (ett kvitto per djur och dag, inget eget tak), XP 3 000. Talen står i en fil (`src/mynt-dag.js`) och speglas i reglerna, så de är lätta att ändra |
 | F2 | Epicen säger att "lärare med klassen" får justera. #678 §2.2 sa att bara admin får ge pluggmynt direkt, och årskurskontot nekas i dag (Test 18). Ska årskurskontot få Ge mynt? | **Nej, oförändrat.** Admin har alla klasser och uppfyller kravet. Knappen visas för årskurskonton men nekas. Det är ett befintligt UI-fel som kan bli en egen issue |
 | F3 | Får saldot sjunka bara via donation (som i B3) eller också fritt (eleven skadar bara sig själv)? | **Bara via donation och köp** (köp sker på servern). Det är striktare och billigt |
 | F4 | Är resterna R1–R6 acceptabla för den här epicen? | **Ja.** R2 (statistiken) och R3 (ritfiltret) föreslås som egna issues senare |
