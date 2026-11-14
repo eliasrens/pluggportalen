@@ -162,6 +162,16 @@ describe("struktur", () => {
     assert.ok(!seen.has(join(SRC, "tavling", "mm-config.js")));
     assert.ok(!seen.has(join(SRC, "tavling", "answer-writes.js")));
   });
+  it("toppraden har ingen mynt idag-ruta (#858) – taket visas bara i fotraden", () => {
+    const sida = readFileSync(join(SRC, "tavling", "page-mattematchen.js"), "utf8");
+    const topp = /<header class="mm-topp">([\s\S]*?)<\/header>/.exec(sida);
+    assert.ok(topp, "toppraden saknas");
+    assert.ok(!/mynt/i.test(topp[1]), "toppraden ska inte visa mynt");
+    assert.ok(sida.includes('<span class="mm-mynt-tak" hidden>'));
+    assert.ok(sida.includes("1 rätt = 1 poäng + 1 mynt"));
+    const css = readFileSync(join(SRC, "tavling", "mattematchen.css"), "utf8");
+    assert.ok(!/\.mm-mynt(?!-tak)\b/.test(css), "oanvända .mm-mynt-regler ska bort");
+  });
   it("filerna håller 400-radersgränsen", () => {
     for (const f of ["src/tavling/mm-config.js", "src/tavling/answer-writes.js", "src/tavling/mm-data.js",
       "src/tavling/page-mattematchen.js", "test/mm-mynt.test.js", "test/firestore-rules-mattematchen-mynt.test.js"]) {

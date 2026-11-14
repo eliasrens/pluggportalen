@@ -1,9 +1,9 @@
 // ============================================================================
 // Mattematchen – elevsidan #/elev/mattematchen (#458)
 // ----------------------------------------------------------------------------
-// En skärm utan scroll: tävlingens namn + tid kvar, elevens poäng, dagens
-// mynt, knapparna 🏆 (Topp 25 / Klasskamp) och 📊 (egen statistik), och den
-// snabba svarskomponenten (#457) i mitten. 1 rätt = 1 poäng + 1 pluggmynt
+// En skärm utan scroll: tävlingens namn + tid kvar, elevens poäng, knapparna
+// 🏆 (Topp 25 / Klasskamp) och 📊 (egen statistik), och den snabba
+// svarskomponenten (#457) i mitten. Mynten syns inte i toppraden (#858). 1 rätt = 1 poäng + 1 pluggmynt
 // (#846, mm-config.js), fel = 0. Högst 50 mynt per dag: dagsräknaren läses
 // när sidan öppnas, hålls lokalt per svar, och vid taket visas
 // "Dagens mynt är intjänade – poängen räknas fortfarande!" (mynten slutar,
@@ -91,9 +91,6 @@ export async function pageMattematchen() {
       <div class="mm-poang" title="1 rätt = 1 poäng">
         <b class="mm-poang-tal">0</b><span>poäng</span>
       </div>
-      <div class="mm-mynt" title="1 rätt = 1 pluggmynt, högst ${MYNT_TAK_PER_DAG} per dag">
-        <b class="mm-mynt-tal">${coinIcon(20)} <span class="mm-mynt-n">0</span></b><span>mynt idag</span>
-      </div>
       <div class="mm-knappar">
         <button type="button" class="mm-knapp mm-knapp-topp" aria-label="Topplistor" title="Topplistor">🏆</button>
         <button type="button" class="mm-knapp mm-knapp-stat" aria-label="Min statistik" title="Min statistik">📊</button>
@@ -123,12 +120,7 @@ export async function pageMattematchen() {
   let nekadeIRad = 0; // nekade mynt i rad utan att taket förklarar det (#849)
   let forstaNekat = 0; // mmNow() för radens första nekande
   let nekatLasning = null; // pågående läsning efter ett nekat mynt
-  const visaMynt = () => {
-    const fullt = myntIdag >= MYNT_TAK_PER_DAG;
-    $(".mm-mynt-n").textContent = String(Math.min(myntIdag, MYNT_TAK_PER_DAG));
-    $(".mm-mynt").classList.toggle("mm-mynt-fullt", fullt);
-    $(".mm-mynt-tak").hidden = !fullt;
-  };
+  const visaMynt = () => { $(".mm-mynt-tak").hidden = myntIdag < MYNT_TAK_PER_DAG; };
   visaMynt();
   const plopp = (sel) => {
     $(sel).classList.remove("mm-plopp");
@@ -157,7 +149,7 @@ export async function pageMattematchen() {
         if (mynt && myntBetalt) {
           // coins ändrat → nästa getStudentData (sidomeny, butik) läser färskt (#274).
           data.invalidateStudentData(uid);
-          if (mynt.dag === dag) { myntIdag++; nekadeIRad = 0; visaMynt(); plopp(".mm-mynt"); }
+          if (mynt.dag === dag) { myntIdag++; nekadeIRad = 0; visaMynt(); }
         } else if (mynt && mynt.dag === dag) {
           // Nekat mynt (#849): taket nått i en annan flik ELLER fel dag runt midnatt.
           // Dagsräknaren avgör – läses en gång per nekande, aldrig per betalt svar.
