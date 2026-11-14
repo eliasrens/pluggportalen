@@ -38,6 +38,9 @@ import {
 import { currentStudentId, invalidateStudentData } from "./data.js";
 import { randomSpeciesId, getSpecies } from "./art-pets-creatures.js";
 import { farmFromData, adjustInventoryIn } from "./farm-core.js";
+import { petsFromData } from "./klass-membership.js";
+
+export { petsFromData };
 
 // Shop-id:n (måste matcha shop-items.js). Äpplet (APPLE_ITEM_ID) bor i
 // äppel-ekonomin (data-pet-mat.js) tillsammans med köp/utläggning.
@@ -105,33 +108,8 @@ export function cleanPetName(name) {
 }
 
 // --- Internt: id-generering + migrering -------------------------------------
-
-function newPetId() {
-  return "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-}
-
-/** Gör ett äldre singular-pet till en post i pets[] (behåller alla fält). */
-function migratedLegacyPet(pet) {
-  return {
-    id: newPetId(),
-    name: null,
-    eggBoughtAt: pet.eggBoughtAt || null,
-    hasHeatLamp: !!pet.hasHeatLamp,
-    speciesId: pet.speciesId || null,
-    hatchedAt: pet.hatchedAt || null,
-    stage: pet.stage || 0,
-    feedCount: pet.feedCount || 0,
-    lastFedAt: pet.lastFedAt || null,
-    pos: { x: 50, y: 70 },
-  };
-}
-
-/** pets[] ur ett studentData-objekt, med migrering av ev. legacy-pet i minnet. */
-export function petsFromData(data) {
-  if (Array.isArray(data.pets)) return data.pets;
-  if (data.pet && data.pet.eggBoughtAt) return [migratedLegacyPet(data.pet)];
-  return [];
-}
+// newPetId/migratedLegacyPet/petsFromData bor i klass-membership.js (#854): butiken
+// på servern och migreringsskriptet behöver samma regel utan Firebase.
 
 /**
  * Kör en transaktion som läser pets[] (migrerar legacy-pet vid behov), låter
@@ -184,67 +162,8 @@ export async function getPets(studentId = currentStudentId()) {
   );
 }
 
-/**
- * Köp mystery egg: drar coins och lägger ett NYTT ägg i pets[] – eleven kan ha
- * flera samtidigt. Allt i EN transaktion. eggSpecies (#695) = valt djur
- * (Halloween-ägget): ägget kläcks till just den arten i stället för slump.
- * @returns {Promise<{ok: boolean, coins: number, pets: object[]}>}
- */
-export async function buyEgg(price, studentId = currentStudentId(), eggSpecies = null) {
-  const cost = Math.max(0, Math.round(price || 0));
-  const valt = eggSpecies && getSpecies(eggSpecies) ? { eggSpecies } : {};
-  return updatePets(studentId, (pets, data) => {
-    const coins = data.coins || 0;
-    const hasLamp = (data.ownedItems || []).includes(LAMP_ITEM_ID);
-    if (coins < cost) return { result: { ok: false, coins, pets } };
-    const egg = {
-      id: newPetId(),
-      name: null,
-      eggBoughtAt: Date.now(),
-      hasHeatLamp: hasLamp,
-      speciesId: null,
-      hatchedAt: null,
-      stage: 0,
-      feedCount: 0,
-      lastFedAt: null,
-      // Nya ägg hamnar lite utspritt på golvet så de inte staplas exakt.
-      pos: { x: 30 + Math.round(Math.random() * 40), y: 70 + Math.round(Math.random() * 15) },
-      ...valt,
-    };
-    const next = [...pets, egg];
-    return {
-      write: true,
-      pets: next,
-      extra: { coins: coins - cost },
-      result: { ok: true, coins: coins - cost, pets: next },
-    };
-  });
-}
-
-/**
- * Köp värmelampa: drar coins, lägger "varmelampa" i ownedItems och sätter
- * hasHeatLamp på alla okläckta ägg (kläcks snabbare). Fungerar även före äggköp.
- * @returns {Promise<{ok: boolean, coins: number, owned: string[], pets: object[]}>}
- */
-export async function buyHeatLamp(price, studentId = currentStudentId()) {
-  const cost = Math.max(0, Math.round(price || 0));
-  return updatePets(studentId, (pets, data) => {
-    const owned = data.ownedItems || [];
-    const coins = data.coins || 0;
-    if (owned.includes(LAMP_ITEM_ID)) {
-      return { result: { ok: true, coins, owned, pets } };
-    }
-    if (coins < cost) return { result: { ok: false, coins, owned, pets } };
-    const next = pets.map((p) => (p.hatchedAt ? p : { ...p, hasHeatLamp: true }));
-    const nextOwned = [...owned, LAMP_ITEM_ID];
-    return {
-      write: true,
-      pets: next,
-      extra: { coins: coins - cost, ownedItems: nextOwned },
-      result: { ok: true, coins: coins - cost, owned: nextOwned, pets: next },
-    };
-  });
-}
+// Köp av ägg (även Halloween-djurens pumpaägg) och värmelampa går via butikKop på
+// servern (#854, src/butik-kop.js + src/butik-core.js) – inte härifrån.
 
 /**
  * Kläck alla ägg vars kläcktid passerats: valt djur (eggSpecies) eller slumpad

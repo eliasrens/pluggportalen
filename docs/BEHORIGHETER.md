@@ -75,6 +75,7 @@ tabellerna, om en rad saknar test, eller om en testfil inte körs av
 | PK | `test/firestore-rules-prov-kriterier-765.test.js` |
 | CL | `test/firestore-rules-class-lock.test.js` |
 | BC | `test/functions-brakresan-core.test.mjs` |
+| BK | `test/functions-butik.test.mjs` |
 
 Admin-kolumnen bevisas dessutom av OG test 25 (lärare utan roll gör allt som
 admin) och av alla äldre regeltester, som kör sina lärare som admin (§7 test 26).
@@ -146,6 +147,7 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `brakresaStartRound`, `brakresaAnswer`, `brakresaRework`, `brakresaFinishRound`, `brakresaAbortRound`, `brakresaAckDragon`, `brakresaRenameDragon`, `brakresaHunt` | nej – elevfunktioner; lärarkonton nekas (testläget körs i klienten och skriver aldrig, #708) | nej | BF |
 | `schackVanta`, `schackSlutaVanta`, `schackGaMed`, `schackUtmana`, `schackSvara`, `schackDrag`, `schackGeUpp`, `schackRemi`, `schackKravaVinst` (#779) | nej – elevfunktioner: anroparen måste stå i klassens `studentIds`, klassen ha `schack` i `enabledModules` och inget aktivt fokuslås (kärnan: `test/functions-schack-core.test.mjs`, `test/functions-schack-parti.test.mjs`) | nej | SF |
 | `schackDatorVinst`, `schackLektionMynt`, `schackPusselMynt` (#798) | nej – elevfunktioner: anroparen måste stå i en klass med `schack` i `enabledModules` (inte dold) och ingen av elevens klasser får ha ett aktivt fokuslås. Servern kontrollerar partiet/lösningen och betalar en gång per nivå/lektion/pussel (kvittot `schackMynt/{uid}`) | nej | SX |
+| `butikKop` (#854) | nej – elevfunktion; lärarkonton (claim `teacher`) nekas. Ingen klass- eller låskontroll (butiken är inte låsgrindad). Klienten skickar bara varans id: priset tas ur katalogen och mysterylådan lottas på servern, en transaktion per köp | nej | BK |
 | `msAgera`, `msRatta`, `msLage` (#821) | nej – elevfunktioner: anroparen måste ha gått med (`players/{uid}`) i en av sessionens klasser | nej | MF |
 | `kgAnslut`, `kgLas`, `kgSvara`, `kgLeta` (#838) | nej – elevfunktioner: anroparen måste ha gått med (`players/{uid}`) i en av sessionens klasser. Fasbytet sker lat i varje anrop. | nej | KF |
 | `kgStarta`, `kgTick` (#838) | ja (alla sessioner) | ja, sessioner med en egen klass (kontot läses färskt). En deltagare (elev) får också anropa dem: de gör bara det lata fasbytet och frågorna som ändå körs i varje anrop. | KF |
