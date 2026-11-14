@@ -475,3 +475,73 @@ fungerar alltså även om lärarsidan inte gör det.
   Med de gamla reglerna gör alla lärare allt som förut. Fliken Lärarkonton och
   årskurskontona fungerar däremot inte, eftersom de gamla reglerna inte känner
   till `teacherAccounts`. Hitta felet och gör sedan om steg 2–4.
+
+---
+
+## 9. Myntsäkerhet – driftordning i två faser (epic #851)
+
+Bakgrund, regler och övergången i detalj: `docs/SAKERHET-MYNT.md` §6–§7. Vem som får
+skriva vad: `docs/BEHORIGHETER.md` ("Elevens egen `studentData`"). Slut-QA med hela
+övergången körd mot emulatorn: `docs/QA-RAPPORT-myntsakerhet-851.md`.
+
+Fas 1 lägger till kvittot `myntDag` och callablen `butikKop` utan att något låses.
+Fas 2 är låset. Mellan faserna ska det gå **minst en skoldag**, så att inga flikar
+från före fas 1 finns kvar. Förutsättningar som i §8 "Före start" (Firebase CLI,
+credential för Admin SDK, LIVE och rätt projekt i skriptens utskrift).
+
+**Webben och GitHub Pages.** Pages deployar `main` automatiskt. Fas 1-webben är
+taggen `mynt-fas1` (commit `110a784` på epic-grenen), och fas 2-webben är resten av
+epicen. Därför behövs två mergar till main: först en gren från taggen (fas 1, steg 4),
+sedan epic-PR:en (fas 2, steg 6). Pusha taggen: `git push origin mynt-fas1`.
+
+### Fas 1 (från en utcheckning av `mynt-fas1`)
+
+1. Regler (additivt: bara `myntDag`-matchen läggs till):
+   ```bash
+   firebase deploy --only firestore:rules --project pluggportalen-so-2026
+   ```
+2. Callablen:
+   ```bash
+   npm run sync:butik
+   firebase deploy --only functions:butikKop --project pluggportalen-so-2026
+   ```
+3. Migreringen, torrkörning och sedan skarpt (ger `xp` och djurens `agdaDjur`-poster):
+   ```bash
+   node admin/migrera-mynt-las.mjs --djur
+   node admin/migrera-mynt-las.mjs --commit --djur
+   node admin/migrera-mynt-las.mjs --djur          # ska visa 0 att skriva
+   ```
+4. Webben: merga en gren från `mynt-fas1` till main. Vänta tills Pages-jobbet är
+   grönt och tio minuter till.
+
+Rök-test: en elev gör en övning (saldot och `myntDag/{idag}` ökar), köper något i
+butiken och hämtar en gåva på gården.
+
+### Fas 2 (från en utcheckning av epic-grenen, minst en skoldag senare)
+
+Ordningen är viktig. `--djur` får bara köras **före** låsreglerna (efter dem är
+djurlistorna fritt skrivbara och ett inskjutet djur skulle få en post).
+
+1. Djur som gamla flikar köpt sedan fas 1:
+   ```bash
+   node admin/migrera-mynt-las.mjs --commit --djur
+   ```
+2. Låsreglerna och den uppdaterade callablen (B4 ändrade `functions/butik/`), direkt efter steg 1:
+   ```bash
+   firebase deploy --only firestore:rules --project pluggportalen-so-2026
+   npm run sync:butik
+   firebase deploy --only functions:butikKop --project pluggportalen-so-2026
+   ```
+3. `xp` för dokument som fortfarande saknar det (aldrig `--djur` härifrån):
+   ```bash
+   node admin/migrera-mynt-las.mjs --commit
+   ```
+4. Torrkörning: 0 att skriva (`node admin/migrera-mynt-las.mjs`). Djur som listas
+   som "saknar post" rättas för hand med Admin SDK efter en kontroll av köpet
+   (saldot sjönk), aldrig med `--djur` (`docs/SAKERHET-MYNT.md` §9 F7).
+5. Rök-test med fas 1-webben (som fortfarande är ute): övning ger mynt, köp och sådd fungerar.
+6. Webben: merga epic-PR:en till main, vänta på Pages + tio minuter.
+
+**Om något går fel.** Inget i fas 1 eller fas 2 tar bort data. Låsreglerna kan
+backas med Firebase Console → Firestore → Regler → versionshistoriken (versionen
+före fas 2 steg 2). Saknar en elev XP efter fas 2: kör steg 3 igen.
