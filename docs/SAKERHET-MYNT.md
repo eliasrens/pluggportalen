@@ -204,6 +204,31 @@ Per dag: ca 400 × 20 × 3,5 L ≈ **28 000 extra läsningar** och ≈ 4 000 ext
 Alternativ (b) hade gett ungefär lika många läsningar men ≈ 8 000 anrop per dag och en
 kallstart vid varje resultatskärm.
 
+### 5.1 Uppmätt i slut-QA (B5, #857)
+
+Samma skoldag för en elev på `main` (main-webb + main-regler) och på epic-grenen
+(fas 2-webb + låsregler), mot emulatorn: 14 övningar, 4 Läsresan-texter, 2 gåvor
+(= 20 utbetalningar) och 3 köp (möbel, ägg, minilåda). Klientens dokumentläsningar och
+skrivningar räknades i webbläsaren (XHR-logg av `batchGet`/`commit`) och i proxyn
+(`Listen`/`Write`-strömmarna). Regelns `get()`/`getAfter()` syns inte i emulatorn; de är
+räknade ur regelkoden (markerat "regel").
+
+| Per händelse | `main` | Epic | Skillnad |
+| --- | --- | --- | --- |
+| Övning (mynt + XP) | `addCoins` 1L+1S, `addXp` 1L+1S = 2L+2S i 2 commits | `tjanaMynt`: 2L (`studentData`, `myntDag`) + 2S i 1 commit; regel ≈ 2L (`getAfter(myntDag)`, `get`/`getAfter(studentData)`) | ±0 klient, +≈2L regel, −1 commit |
+| Läsresan/gåva (utbetalningen) | 1L+1S | 2L+2S; regel ≈ 2L | +1L +1S, +≈2L regel |
+| Läsresans `startText` + försöket | 1L+1S, 1L+2S | samma | 0 |
+| Köp | 1L+1S i klienten | 0 i klienten, 1 anrop `butikKop` (servern 1L(+1L `config/season`)+1S) | ±0, +1 anrop |
+| Listen-läsningar (sidan, projektionen) och `Write`-strömmen | 73 L, 28 S | 73 L, 28 S | 0 |
+
+Hela skoldagen: `main` 42 `batchGet`-dokument, epic 48 (+6); skrivningar +6;
+regelläsningar ≈ 20 × 2 = 40 (högst 60 om `get` och `getAfter` av samma dokument
+debiteras var för sig); 3 anrop. Alltså ≈ **46–66 extra läsningar och 6 extra skrivningar
+per elev och skoldag**, för 400 elever ≈ **18 000–26 000 läsningar**, 2 400 skrivningar och
+1 200 anrop per dag. Det ligger under uppskattningen ovan (28 000), eftersom övningen inte
+ökar klientens läsningar (mynt och XP i en transaktion i stället för två). Saldot efter
+dagen: lika belopp per händelse (övningarna identiska; Läsresan 3 per rätt, texterna slumpas).
+
 ## 6. Steg 2: uppdelning i issues (riskordning)
 
 Låset (B3) stänger det största hålet, M1/M2/M6. Det kan inte landa först: med kvar­
@@ -682,6 +707,13 @@ villkor) och tilläggen i `elevNyttDokOk`. Testerna: `test/firestore-rules-mynt-
   `butikKop`), `docs/DATAMODELL.md` (`myntDag`, `lastFro`, `agdaDjur`) och `docs/ADMIN.md`
   (driftordningen i §7).
 
+**Genomfört (#857).** Rapport med bevis: `docs/QA-RAPPORT-myntsakerhet-851.md`. Sviterna
+gröna (enhet 4422, `test:rules` 1066, `test:functions` 573, `test:e2e` 5 efter en testfix),
+bootgrafen 107. Övergången kördes i en emulator genom alla stegen ovan, beloppen är
+desamma som på `main`, M1–M6 nekas och kvoten står i §5.1. Två tillägg i §7: fas 2
+deployar om `butikKop` (B4 ändrade `functions/butik/`), och fas 1-webben kräver en egen
+merge av `mynt-fas1` till main eftersom Pages deployar main.
+
 ## 7. Deploy-ordning och övergång
 
 Grundordningen är **rules → functions → webb**. Den räcker dock inte: elever har
@@ -768,3 +800,5 @@ efter låset rättas de för hand (se ovan).
 | F5 | Är det OK med deploy i två faser (§7)? | **Ja.** Det är det enda sättet att undvika att elever med öppna flikar förlorar mynt under övergången |
 | F6 | Ska mysterylådans odds och dubblettretur ändras nu när de ligger på servern? | **Nej.** Samma tal, samma `rollMysteryItem`. Epicen ändrar inga belopp |
 | F7 | Ett djur som en gammal flik köper (fas 1-webben går via `butikKop` och får alltid en post, men en flik från före fas 1 gör det inte) under minuterna mellan fas 2 steg 1 (`--djur`) och steg 2 (låsreglerna) får ingen kartpost och syns inte efter fas 2-webben. Hur ska det hanteras? | **För hand.** Skriptet utan `--djur` listar djur som saknar post (dokument: uid). Kontrollera köpet (saldot sjönk) och lägg posten med Admin SDK. Kör aldrig `--djur` efter låset (#856) |
+| F8 | Klassprojektionen `classProjections/{classId}.members.<uid>` är skrivbar för klassmedlemmar (R4). Där speglas också `avatarItems` och `husSkalId`, så en elev kan visa kläder och hus i byn som hen inte äger (#856, fynd F2). Ska byn läsa utseendet ur `studentData` i stället, eller räcker det att projektionen återställs vid nästa egna sparning? | **Ingen ändring i epicen.** Kosmetiskt (inga mynt eller varor), syns bara i byn. Föreslås som egen issue ihop med R3 (rita bara ägda saker) |
+| F9 | Saldot får sänkas av eleven själv ihop med vilken `kcDonation`-markör som helst. Reglerna för `studentData` kontrollerar inte att donationen finns (det gör klassidan). Eleven skadar bara sig själv (#857). Räcker det? | **Ja.** Att kräva donationsposten i samma regel kostar en läsning per donation och ger inget skydd mot fusk, eftersom ingen tjänar på att sänka sitt saldo |
