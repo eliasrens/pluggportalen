@@ -410,7 +410,7 @@ avstängning gäller därför direkt, utan ny token.
 | `xp`         | number | Kumulativt erfarenhets-XP. Nivån räknas fram ur detta (obegränsad, stigande kurva) – se `src/leveling.js`. Saknas fältet härleds ett startvärde ur `progress` (migrering). |
 | `progress`   | map    | Framsteg: `{ [areaId]: { [gamemode]: {...} } }`        |
 | `ownedItems` | array  | Id:n på köpta shop-saker (se `src/shop-items.js`). Binärt "äger minst ett" – single-kategorier (kläder, hus) och legacy. För **multi-saker** (möbler/dekor) står id:t kvar en gång här medan antalet räknas i `ownedCounts`. |
-| `ownedCounts`| map    | `{ [itemId]: antal }` – hur många exemplar eleven äger av **multi-saker** (möbler/dekor, `isMultiItem`). Saknas ett id men finns i `ownedItems` räknas det som **1** (bakåtkompat). Se `buyItem`/`ownedCount` i `src/data.js`. Vanliga djur (husdjur) räknas i stället per instans i `roomAnimals`. |
+| `ownedCounts`| map    | `{ [itemId]: antal }` – hur många exemplar eleven äger av **multi-saker** (möbler/dekor, `isMultiItem`). Saknas ett id men finns i `ownedItems` räknas det som **1** (bakåtkompat). Köp via callablen `butikKop` (#854, `src/butik-core.js`); `ownedCount` i `src/klass-membership.js`. Vanliga djur (husdjur) räknas i stället per instans i `roomAnimals`. |
 | `avatarItems`| array  | Id:n på klädsaker eleven bär på avataren (delmängd av `ownedItems`) |
 | `roomAnimals`| array  | **Vanliga djuren** (köpbara promenerande djur, `src/data-animals.js`): `{ uid, id, pos:{x,y}, name, stowed }`. `id` = arten (shop-id, "hund"), `uid` = unik **instans** – eleven får äga **flera** av samma art. Legacy-poster utan `uid` använder art-id:t som uid. |
 | `room`       | map    | **Grundrummet (rum 0)** – `{ placements: { [key]: { x, y } }, paletteId, window }` – `x`/`y` i **procent** (0–100) av rummet. `key` är ett sak-id ("soffa") för ett exemplar, eller `"<id>#<n>"` ("soffa#2") för **flera exemplar** av samma möbel/dekor (`itemIdFromKey` härleder sak-id:t). `paletteId` är elevens färgpalett för hus & väggar (`src/room-palettes.js`, default `"persika"`; golvet färgas aldrig om). `window` = fönstrets läge `{ x, y, removed }`. **Riktning (#699):** en placering kan även bära valfria `rot` (heltal 1–3: 1 = sidan, 2 = bakifrån, 3 = andra sidan) och `flip` (`true` = spegelvänd). Saknas fälten = framifrån och ovänd, precis som förr (0/false skrivs aldrig). `rot` gäller bara saker med extra vyer (`src/art-furniture-vyer*.js`), `flip` alla saker utom de med text (`text: true` i konsten) – annars ignoreras fälten vid ritning. Hjälpare i `src/art-items.js` (`itemRiktning`, `vridPlacering`, `riktningsFalt`). |
@@ -645,11 +645,11 @@ gratis-matning finns kvar – tillväxten drivs helt av uppätna äpplen (10 per
 
 | Fält                    | Typ    | Beskrivning                                                     |
 | ----------------------- | ------ | -------------------------------------------------------------- |
-| `appleCount`            | number | Köpta men **outlagda** äpplen. `buyApple` ökar, `placeApple` minskar |
+| `appleCount`            | number | Köpta men **outlagda** äpplen. köpet (`butikKop`) ökar, `placeApple` minskar |
 | `floorApples[]`         | array  | Äpplen som ligger på golvet: `{ id, x, y, room? }` (x/y i procent av rumsscenen). `room` (#698) = rummets index när maten ligger i Rum 2 eller senare; saknas = rum 1 (som förut). Maten ritas och lockar **bara djur i samma rum** |
 
-Flöde (allt i transaktioner, `src/data-pet.js`): `buyApple(price)` drar mynt och
-ökar `appleCount`; `placeApple(x, y)` flyttar ett äpple → `floorApples`; när ett
+Flöde (allt i transaktioner, `src/data-pet.js`): köpet (`butikKop` på servern, #854)
+drar mynt och ökar `appleCount`; `placeApple(x, y)` flyttar ett äpple → `floorApples`; när ett
 hungrigt (icke-fullvuxet) djur når fram i promenad-AI:ns **seek-läge**
 (`src/rum-promenad.js`) tar `eatApple(petId, appleId)` bort äpplet och ökar
 djurets `feedCount`. Äpplet är en `mat`-kategori-vara i `src/shop-items.js`
@@ -681,7 +681,7 @@ man äger), och kommande odlings-/uppgraderings-issues kan då höja nivån i sa
 transaktion som coins dras utan att blanda in shop-katalogen.
 **Uppgraderings-issuen (#333) följer modellen så här**: uppgraderingarna finns
 som shop-KORT (`farmUpgrade`/`upgradeLevel` i `shop-items.js` – rent köp-UI),
-men köpet går via `buyFarmUpgrade` (`data-farm.js`) som drar coins **och** höjer
+men köpet går via callablen `butikKop` (#854, `src/butik-core.js`) som drar coins **och** höjer
 `farm.gardenTier`/`farm.barnLevel` i EN transaktion; **inget skrivs i
 `ownedItems`** – shoppen härleder "Köpt"/låst ur nivå-fältet. Nivåerna köps i
 ordning (bara `nuvarande + 1` accepteras) och kan aldrig sänkas – planterade
@@ -837,8 +837,8 @@ Exempel (`classProjects/6a`):
 }
 ```
 
-**Skrivmodell:** en donation går i **en transaktion**
-(`donateToClassProject` i [`src/data-classes.js`](../src/data-classes.js)):
+**Skrivmodell (borttagen i #854, ingen anropare):** en donation gick i **en transaktion**
+(`donateToClassProject` i `src/data-classes.js`):
 läser elevens `studentData` + klassens `classProjects`-dokument, kontrollerar
 täckning och att projektet inte är fullt, drar coins och ökar `collected` +
 `contributions.{studentId}` atomiskt. Överdonation nekas (inga coins in i ett
@@ -2044,7 +2044,7 @@ statusflöde och frågetypsregistret: [`docs/PROV.md`](PROV.md). Logiken bor i
 - `logout()`, `isLoggedIn()`, `getSession()`, `currentStudentId()`
 
 **Coins**
-- `getCoins()`, `addCoins(n)` → nytt saldo (coins dras via `buyItem`, se Shop nedan)
+- `getCoins()`, `addCoins(n)` → nytt saldo (coins dras vid köp via `butikKop`, se Shop nedan)
 
 **XP / nivå** – Firestore-delen i systermodulen [`src/data-xp.js`](../src/data-xp.js) (som `data-pet.js`)
 - `getXp()` → elevens samlade XP; `addXp(n)` → nytt totalt XP (transaktion, samma
@@ -2060,10 +2060,14 @@ statusflöde och frågetypsregistret: [`docs/PROV.md`](PROV.md). Logiken bor i
 - `getProgress()`, `saveProgress(areaId, gamemode, result)`
 
 **Shop / ägda saker**
-- `buyItem(itemId, price)` → `{ ok, coins, owned, counts }` (ägda saker läses via `getStudentData().ownedItems`/`ownedCounts`)
-  (`buyItem` drar coins och lägger till saken i **en** transaktion – ingen täckning
-  → `ok:false`, inga negativa saldon. **Single-saker**: redan ägd = no-op. **Multi-saker**
-  (möbler/dekor): varje köp ökar `ownedCounts[id]` med 1 så flera exemplar kan ägas.)
+- Alla köp (varor, ägg, värmelampa, äpple, djur, gårdsdjur, gårdsuppgraderingar,
+  mysteryboxar) går via callablen **`butikKop`** (#854): `kop(itemId)` i
+  [`src/butik-kop.js`](../src/butik-kop.js) (laddas lazy) → `{ ok, coins, owned?, counts?,
+  pets?, animals?, farm?, appleCount?, item?, duplicate?, refund?, error? }`. Priset tas ur
+  katalogen och mysterylådan lottas på servern (`kopVara` i [`src/butik-core.js`](../src/butik-core.js),
+  en transaktion – ingen täckning → `ok:false`). **Single-saker**: redan ägd = no-op.
+  **Multi-saker** (möbler/dekor): varje köp ökar `ownedCounts[id]` med 1. Ägg, vanliga djur
+  och gårdsdjur skriver också ägarbeviset `agdaDjur.<uid> = <varu-id>` (läses från B4, epic #851).
 - `ownedCount(data, id)` – antal ägda exemplar av en sak (multi-medveten, bakåtkompat: id i `ownedItems` = 1).
 - Katalogen (kategorier, priser, emoji) ligger i [`src/shop-items.js`](../src/shop-items.js).
 
@@ -2103,13 +2107,11 @@ statusflöde och frågetypsregistret: [`docs/PROV.md`](PROV.md). Logiken bor i
   kan rita högre steg, registret `EVOLUTIONS` i `src/art-characters.js` och robotens
   stegkonst i `src/art-characters-robot.js`. Utan `evo`-argument (som i dag) blir det steg 1.
 **Husdjur (mystery eggs, flera per elev)** – ligger i systermodulen [`src/data-pet.js`](../src/data-pet.js)
-- `buyEgg(price)` → `{ ok, coins, pets }` – transaktion som drar coins och lägger
-  ett **nytt** ägg i `pets[]` (kan köpas flera gånger; hamnar inte i `ownedItems`)
-- `buyHeatLamp(price)` → `{ ok, coins, owned, pets }` – lägger lampan i
-  `ownedItems` och sätter `hasHeatLamp` på alla okläckta ägg
+- Köp av ägg och värmelampa: `butikKop` (se Shop ovan) – ägget blir ett **nytt** ägg i
+  `pets[]` (hamnar inte i `ownedItems`), lampan läggs i `ownedItems` och sätter `hasHeatLamp`
+  på alla okläckta ägg
 - `getPets()` → `pets[]` (migrerar ett ev. äldre `studentData.pet` först)
 - `hatchReadyPets()` → `{ pets, justHatchedIds }` – kläcker alla ägg vars kläcktid passerats
-- `buyApple(price)` → `{ ok, coins, appleCount }` – köp ett äpple (förbrukningsvara)
 - `placeApple(x, y)` → `{ ok, appleCount, floorApples, apple }` – lägg ett äpple på golvet
 - `eatApple(petId, appleId)` → `{ ok, pet, pets, floorApples, stageUp }` – djur äter äpple, `feedCount++`
 - `setPetName(petId, name)` / `savePetPositions({ [petId]: { x, y } })`
@@ -2121,7 +2123,8 @@ statusflöde och frågetypsregistret: [`docs/PROV.md`](PROV.md). Logiken bor i
   `harvestCrop(slotIndex)` → `{ ok, farm, ... }` – så/väx/skörda (transaktioner)
 - `adjustHarvestInventory(cropId, delta)` → `{ ok, farm, count }` – förbruka/justera skörd
 - `setAnimalPlacement(petId, "room"|"paddock"|"barn")` – flytta ett djur
-- `setBarnLevel(n)` / `setGardenTier(n)` – rå nivå-skrivning (köpet bor i uppgraderings-issuen; nivån kan aldrig sänkas)
+- `plantSeed(slotIndex, cropId)` – så ett köpt frö (`ownedCounts[cropId]` −1) och sätter markören `lastFro: cropId` (#854)
+- Nivåerna (`barnLevel`/`gardenTier`) skrivs bara av köpet (`butikKop`); klienten har ingen nivå-skrivning
 - Rena hjälpare/konstanter (re-exporterade via `data.js`): `farmFromData(sd)`, `slotCountForTier(tier)`, `cropInSlot(farm, i)`, `placementFor(farm, petId)`, `FARM_MAX_GROWTH_STAGE` m.fl.
 
 **Statistik (profil)**
@@ -2156,9 +2159,8 @@ statusflöde och frågetypsregistret: [`docs/PROV.md`](PROV.md). Logiken bor i
 - `getClassProject(classId, buildingId)` → projektet eller `null`.
 - `startClassProject(classId, buildingId, goalAmount)` → `{ ok, project }` – startar
   (eller justerar målet för) ett projekt; skriver bara det egna projektets fält.
-- `donateToClassProject(classId, buildingId, amount)` → `{ ok, coins, project }` –
-  transaktion som drar elevens coins och ökar `collected` + `contributions.{studentId}`;
-  ingen täckning/fullt projekt/överdonation → `ok:false` utan skrivning.
+- (Donationen `donateToClassProject` togs bort som död kod i #854 – klasscentrets
+  donationer går via `kcDonation`, se klasscentret.)
 
 De flesta funktioner använder den inloggade eleven automatiskt, men tar ett
 valfritt sista `studentId`-argument.

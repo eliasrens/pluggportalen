@@ -91,36 +91,8 @@ export function animalsFromData(data) {
   return out;
 }
 
-/**
- * Köp ett vanligt djur: drar coins och lägger djuret i roomAnimals – det dyker
- * upp promenerande i rummet direkt (ingen placering behövs). Flera exemplar av
- * samma art tillåts (varje köp = ett nytt djur med eget uid). Allt i EN
- * transaktion (samma mönster som buyItem i data.js).
- * @returns {Promise<{ok: boolean, coins: number, animals: object[]}>}
- */
-export async function buyAnimal(itemId, price, studentId = currentStudentId()) {
-  if (!studentId) throw new Error("Ingen elev inloggad.");
-  if (!isAnimalItem(itemId)) throw new Error("Inte ett vanligt djur: " + itemId);
-  const cost = Math.max(0, Math.round(price || 0));
-  const ref = doc(db, "studentData", studentId);
-  const result = await runTransaction(db, async (tx) => {
-    const snap = await tx.get(ref);
-    const data = snap.exists() ? snap.data() : {};
-    const coins = data.coins || 0;
-    const animals = animalsFromData(data);
-    if (coins < cost) return { ok: false, coins, animals };
-    const next = [
-      ...animals,
-      { uid: newAnimalUid(itemId), id: itemId, pos: randomFloorPos(), name: null, stowed: false },
-    ];
-    const write = { coins: coins - cost, roomAnimals: next };
-    if (snap.exists()) tx.update(ref, write);
-    else tx.set(ref, write);
-    return { ok: true, coins: coins - cost, animals: next };
-  });
-  if (result.ok) invalidateStudentData(studentId); // coins/djur ändrat (#274)
-  return result;
-}
+// Köpet av ett vanligt djur går via butikKop på servern (#854, butik-core.js),
+// som också skriver ägarbeviset agdaDjur.<uid> = art-id.
 
 /**
  * Spara de vanliga djurens positioner: { [uid]: { x, y } } (procent, per instans).

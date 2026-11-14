@@ -151,6 +151,12 @@ describe("taken skär aldrig en legitim utbetalning", () => {
   it("Ekvationsresan: högsta beloppet = PER_GANG.ekv", () => {
     assert.equal(Math.max(COINS.extraChallenge, ...COINS.byLevel.map((r) => r.coins)), PER_GANG.ekv);
   });
+  it("dagstaket rymmer en tung men normal dag (§9 F1, #853)", () => {
+    assert.ok(PER_DAG.ovning >= 30 * 50, "30 perfekta quiz");
+    assert.ok(PER_DAG.lasresa >= 25 * QUESTIONS_MAX * COINS_PER_CORRECT, "25 texter med flest frågor, alla rätt");
+    assert.ok(PER_DAG.amnes >= 20 * 7 * AMNES_COINS_PER_CORRECT, "20 nya nivå 3-texter, alla rätt");
+    assert.ok(PER_DAG.ekv >= 80 * Math.max(COINS.extraChallenge, ...COINS.byLevel.map((r) => r.coins)), "80 uppgifter med högsta beloppet");
+  });
   it("dagstaket rymmer minst en utbetalning per gång för varje källa", () => {
     for (const k of Object.keys(PER_GANG)) assert.ok(PER_DAG[k] >= PER_GANG[k], k);
   });

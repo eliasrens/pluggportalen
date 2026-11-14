@@ -39,8 +39,14 @@ export const KALLOR = ["ovning", "lasresa", "amnes", "ekv", "gard"];
  *   ekv     – COINS.extraChallenge 7 (högsta i tabellen).
  */
 export const PER_GANG = Object.freeze({ ovning: 500, lasresa: 60, amnes: 100, ekv: 7 });
-/** Tak per svensk dag och källa (§9 F1). Gåvan: 8 per ägt gårdsdjur, inget eget tak. */
-export const PER_DAG = Object.freeze({ ovning: 1500, lasresa: 400, amnes: 400, ekv: 300 });
+/**
+ * Tak per svensk dag och källa (§9 F1). Ska aldrig märkas för en ivrig elev:
+ *   ovning 1500 = 30 perfekta quiz à 50; lasresa 800 ≈ 30 texter à 27 (nivåns
+ *   högsta frågeantal, alla rätt); amnes 800 ≈ 23 nya nivå 3-texter à 35;
+ *   ekv 600 = 86 extrautmaningar à 7 eller 120 uppgifter på nivå 9–10.
+ * Gåvan: 8 per ägt gårdsdjur, inget eget tak.
+ */
+export const PER_DAG = Object.freeze({ ovning: 1500, lasresa: 800, amnes: 800, ekv: 600 });
 /** XP per övning (xpForExercise(3) = 50) och per dag. Bara övningar ger XP. */
 export const XP_PER_GANG = 50;
 export const XP_PER_DAG = 3000;

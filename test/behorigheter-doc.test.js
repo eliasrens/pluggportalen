@@ -62,7 +62,8 @@ test("varje samling i firestore.rules står i tabellen Samlingar", () => {
 
 test("varje callable i functions/index.js står i tabellen Cloud Functions", () => {
   const listed = new Set(funktioner.flatMap((r) => names(r[0])));
-  const exported = [...fnIndex.matchAll(/^export const (\w+)\s*=/gm)].map((m) => m[1]);
+  const exported = [...fnIndex.matchAll(/^export (?:const (\w+)\s*=|\{ (\w+) \} from)/gm)].map((m) => m[1] || m[2]);
+  assert.ok(exported.includes("butikKop"), "re-exporter (export { x } from) räknas också");
   assert.ok(exported.includes("updateStudentLogin"));
   const missing = exported.filter((f) => !listed.has(f));
   assert.deepEqual(missing, [], `saknas i docs/BEHORIGHETER.md: ${missing.join(", ")}`);

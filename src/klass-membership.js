@@ -123,3 +123,54 @@ export function newClassDoc({ name, order }, createdAt) {
 export function nextClassOrder(classes) {
   return (classes || []).reduce((m, c) => Math.max(m, Number(c.order) || 0), 0) + 1;
 }
+
+// --- Ägda saker (#854: flyttad från data.js, delas med butikKop) -----------------
+/**
+ * Hur många exemplar eleven äger av en sak. För multi-saker (möbler/dekor) läses
+ * antalet ur studentData.ownedCounts; saknas ett värde där räknas ett äldre
+ * dokument som 1 om id:t finns i den binära ownedItems-listan (bakåtkompatibelt).
+ * För single-saker (kläder/hus/…) är svaret 0 eller 1 utifrån ownedItems.
+ * @param {object} data studentData-objekt
+ * @param {string} id   shop-sakens id
+ * @returns {number}
+ */
+export function ownedCount(data, id) {
+  const counts = data && data.ownedCounts;
+  if (counts && Object.prototype.hasOwnProperty.call(counts, id)) {
+    return Math.max(0, Math.round(counts[id] || 0));
+  }
+  return data && Array.isArray(data.ownedItems) && data.ownedItems.includes(id) ? 1 : 0;
+}
+
+// --- Husdjurslistan (#854) ----------------------------------------------------
+// Ett äldre studentData.pet (singular) blir första posten i pets[]. Bor här (ren,
+// redan i bootgrafen) så att data-pet.js, butiken på servern (butik-core.js via
+// functions/butik/) och migreringen (admin/migrera-mynt-las-core.mjs) delar den.
+
+/** Nytt husdjurs-id ("p<tid><slump>"); `nu`/`rng` injiceras på servern och i tester. */
+export function newPetId(nu = Date.now(), rng = Math.random) {
+  return "p" + nu.toString(36) + Math.floor(rng() * 36 ** 4).toString(36).padStart(4, "0");
+}
+
+/** Gör ett äldre singular-pet till en post i pets[] (behåller alla fält). */
+export function migratedLegacyPet(pet, id = newPetId()) {
+  return {
+    id,
+    name: null,
+    eggBoughtAt: pet.eggBoughtAt || null,
+    hasHeatLamp: !!pet.hasHeatLamp,
+    speciesId: pet.speciesId || null,
+    hatchedAt: pet.hatchedAt || null,
+    stage: pet.stage || 0,
+    feedCount: pet.feedCount || 0,
+    lastFedAt: pet.lastFedAt || null,
+    pos: { x: 50, y: 70 },
+  };
+}
+
+/** pets[] ur ett studentData-objekt, med migrering av ev. legacy-pet i minnet. */
+export function petsFromData(data, id) {
+  if (Array.isArray(data.pets)) return data.pets;
+  if (data.pet && data.pet.eggBoughtAt) return [migratedLegacyPet(data.pet, id)];
+  return [];
+}

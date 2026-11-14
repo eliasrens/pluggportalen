@@ -512,7 +512,7 @@ service cloud.firestore {
     // ett ÄGT gårdsdjur (agdaDjur, bara servern skriver) som inte fått sin gåva
     // i dag – listan farm.animals räknas inte (den är fritt skrivbar).
     function myntPerGang() { return {'ovning': 500, 'lasresa': 60, 'amnes': 100, 'ekv': 7}; }
-    function myntPerDag() { return {'ovning': 1500, 'lasresa': 400, 'amnes': 400, 'ekv': 300}; }
+    function myntPerDag() { return {'ovning': 1500, 'lasresa': 800, 'amnes': 800, 'ekv': 600}; }
     function myntDagOk(uid, dag) {
       let d = request.resource.data;
       let o = resource == null ? {} : resource.data;

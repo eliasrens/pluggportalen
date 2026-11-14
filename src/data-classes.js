@@ -21,7 +21,7 @@ import {
   arrayRemove,
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { currentStudentId, invalidateStudentData } from "./data.js";
+import { currentStudentId } from "./data.js";
 import {
   normalizeHiddenModes,
   normalizeAreaModes,
@@ -33,7 +33,6 @@ import { newClassDoc } from "./klass-membership.js";
 import {
   normalizeClassProject,
   normalizeClassProjects,
-  applyProjectDonation,
 } from "./class-projection-entries.js";
 
 // Session-cache (#274): klasslistan läses varje gång plugga/världen/sidomenyn
@@ -356,43 +355,4 @@ export async function startClassProject(classId, buildingId, goalAmount) {
     return next;
   });
   return { ok: true, project };
-}
-
-/**
- * Donera coins från den inloggade eleven till ett klassprojekt. EN transaktion
- * (samma mönster som buyItem): läser elevens studentData + klassens
- * classProjects-doc, kontrollerar täckning och att projektet finns/inte är
- * fullt (applyProjectDonation), drar coins och ökar collected +
- * contributions.{studentId} atomiskt. Ingen täckning/ogiltigt → ok:false utan
- * skrivning – inga negativa saldon, inga coins in i ett stängt projekt.
- * @param {string} classId
- * @param {string} buildingId
- * @param {number} amount coins att donera (positivt heltal)
- * @returns {Promise<{ok:boolean, coins?:number, project?:object, error?:string}>}
- */
-export async function donateToClassProject(
-  classId,
-  buildingId,
-  amount,
-  studentId = currentStudentId()
-) {
-  if (!studentId) throw new Error("Ingen elev inloggad.");
-  if (!classId || !buildingId) return { ok: false, error: "ogiltigt projekt" };
-  const projRef = doc(db, "classProjects", classId);
-  const dataRef = doc(db, "studentData", studentId);
-  const result = await runTransaction(db, async (tx) => {
-    const [projSnap, dataSnap] = [await tx.get(projRef), await tx.get(dataRef)];
-    const project = normalizeClassProjects(projSnap.exists() ? projSnap.data() : null)[buildingId];
-    if (!project) return { ok: false, error: "projektet finns inte" };
-    const res = applyProjectDonation(project, studentId, amount);
-    if (!res.ok) return res;
-    const coins = Number(dataSnap.exists() ? dataSnap.data().coins : 0) || 0;
-    const n = Math.round(Number(amount));
-    if (coins < n) return { ok: false, error: "inte tillräckligt med coins" };
-    tx.update(dataRef, { coins: coins - n });
-    tx.set(projRef, { projects: { [buildingId]: res.project } }, { merge: true });
-    return { ok: true, coins: coins - n, project: res.project };
-  });
-  if (result.ok) invalidateStudentData(studentId); // saldot ändrat → färsk läsning (#274)
-  return result;
 }

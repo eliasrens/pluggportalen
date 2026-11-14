@@ -41,18 +41,17 @@ function usageHint(item) {
 }
 
 /**
- * Kör hela mysterybox-flödet: drar priset + lottar (openMysteryBox), och om det
- * lyckas visar reveal-modalen. Returnerar transaktionsresultatet så anroparen
+ * Kör hela mysterybox-flödet: köper + lottar på servern (openMysteryBox), och om
+ * det lyckas visar reveal-modalen. Returnerar köpets resultat så anroparen
  * kan uppdatera saldo/state direkt (modalen sköter sig själv efter det).
  *
  * @param {object} o
- * @param {number} o.price boxens pris
- * @param {number|null} [o.legendaryChance] per-box legendary-chans (null = basbox)
+ * @param {string} o.id boxens shop-id (priset och oddsen tas ur katalogen på servern)
  * @param {() => void} [o.onClose] körs när modalen stängs (t.ex. rerender)
  * @returns {Promise<object>} openMysteryBox-resultatet ({ok, coins, item, ...})
  */
-export async function runMysteryBox({ price, legendaryChance = null, onClose }) {
-  const res = await openMysteryBox(price, legendaryChance);
+export async function runMysteryBox({ id, onClose }) {
+  const res = await openMysteryBox(id);
   if (!res.ok) return res; // hade inte råd – anroparen visar meddelande
   showRevealModal(res, onClose);
   return res;

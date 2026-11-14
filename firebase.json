@@ -18,7 +18,8 @@
         "node \"$PROJECT_DIR/admin/sync-guldrush-functions.mjs\"",
         "node \"$PROJECT_DIR/admin/sync-hitta-ratt-functions.mjs\"",
         "node \"$PROJECT_DIR/admin/sync-brakresan-functions.mjs\"",
-        "node \"$PROJECT_DIR/admin/sync-schack-functions.mjs\""
+        "node \"$PROJECT_DIR/admin/sync-schack-functions.mjs\"",
+        "node \"$PROJECT_DIR/admin/sync-butik-functions.mjs\""
       ]
     }
   ],

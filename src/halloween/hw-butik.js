@@ -17,7 +17,6 @@
 // ============================================================================
 
 import { itemsInCollection } from "../shop-items.js";
-import "../avatars.js"; // köpavatarernas katalograder (#694) slås in i SHOP_ITEMS där
 
 export const HALLOWEEN = "halloween";
 
