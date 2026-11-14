@@ -152,7 +152,7 @@ async function main() {
   const nyPass = await lararensVardag(nyA, "ny");
   ok(Object.values(nyPass).every(Boolean), `ny admin-token gör allt (${JSON.stringify(nyPass)})`);
   const elev = await klient("e5a@elev.pluggportalen.local", "elev123");
-  ok(await lyckas(updateDoc(doc(elev.db, "studentData", "e5a"), { xp: 5 })), "eleven skriver sin egen elevdata som förut");
+  ok(await lyckas(updateDoc(doc(elev.db, "studentData", "e5a"), { "progress.qa": { stars: 1 } })), "eleven skriver sin egen elevdata som förut");
   ok(!(await lyckas(getDoc(doc(elev.db, "teacherAccounts", "larareA")))), "eleven läser inte lärarkontona");
 
   await laddaRegler(UTAN_OVERGANG, "§8.1: övergången borttagen");
