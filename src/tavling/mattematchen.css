@@ -62,7 +62,7 @@ body.mm-lage .container {
 .mm-poang span { font-size: 12px; font-weight: 700; color: var(--text-svag); }
 .mm-poang.mm-plopp { animation: mm-plopp 220ms ease-out; }
 @keyframes mm-plopp { 40% { transform: scale(1.12); } }
-/* Dagens pluggmynt (#846): taket (50 per dag) visas mjukt i fotraden. */
+/* Dagens pluggmynt (#846): taket (200 per dag) visas mjukt i fotraden. */
 .mm-mynt-tak { display: inline-flex; align-items: center; gap: 5px; color: #8a5a00; flex-basis: 100%; }
 
 .mm-knappar { display: flex; gap: 8px; }

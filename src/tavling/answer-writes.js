@@ -18,9 +18,9 @@
 //             { factorA, factorB, answer, correctAnswer }
 //     mynt = { dag } (#846) – BARA MM-sidans egna svar: ett rätt svar får då
 //             två skrivningar till: dagsräknaren studentData/{uid}/mmMynt/{dag}
-//             (+1, reglerna: högst 50/dag, bara med ett NYTT rätt svar i samma
+//             (+1, reglerna: högst 200/dag, bara med ett NYTT rätt svar i samma
 //             batch) och saldot studentData/{uid}.coins (+1). Utelämnad/null
-//             = inga mynt (svar nr 51+, och Live-svar som räknas in i MM –
+//             = inga mynt (svar nr 201+, och Live-svar som räknas in i MM –
 //             Live betalar redan). Talen: mm-config.js. Fel svar → aldrig mynt.
 //     ankare = "answers" (default, MM-sidan) | "liveAnswers" (#847: ett Live-
 //             svar som räknas in i Mattematchen – svarsdokumentet hamnar i

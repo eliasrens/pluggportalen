@@ -3,7 +3,7 @@
 // eget SDK, samma skrivplan som mm-data.js submitAnswer). Kompletterar
 // firestore-rules-mattematchen-mynt.test.js med det den inte täcker:
 //   • samma dagsräknare två gånger i EN batch, saldot i två skrivningar
-//   • två flikar som tävlar vid 49 (samtidiga batchar + klientens omsändning)
+//   • två flikar som tävlar vid taket − 1 (samtidiga batchar + klientens omsändning)
 //   • påhittad tävling, falskt isCorrect, avslutad tävling, cid ≠ svarets
 //   • klientklocka i lastAt, extra fält, "dag" med annat format
 //   • reglernas svenskDag SKARPT i emulatorn mot Intl Europe/Stockholm runt
@@ -163,7 +163,7 @@ describe("#846 tester: räknarens form", () => {
   });
 });
 
-describe("#846 tester: två flikar vid 49", () => {
+describe("#846 tester: två flikar vid taket − 1", () => {
   it("samtidiga rätta svar från två klienter → exakt ett mynt, båda poängen räknas", async () => {
     await seedKvitto(MYNT_TAK_PER_DAG - 1);
     const fliker = [elev("alma"), testEnv.authenticatedContext("alma").firestore()];

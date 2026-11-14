@@ -1,6 +1,6 @@
 // ============================================================================
 // Mattematchens pluggmynt (#846) – rena tester (node --test, ingen emulator):
-//   • config ↔ firestore.rules: 1 per rätt, 50 per dag, samlingen mmMynt
+//   • config ↔ firestore.rules: 1 per rätt, 200 per dag, samlingen mmMynt
 //   • "dag": reglernas datumräkning (UTC + 1/2 h, EU:s sommartidsregel) ger
 //     samma svenska datum som klientens Intl-version (myntDag), även runt
 //     omställningarna och midnatt – porten nedan speglar reglerna rad för rad
@@ -61,13 +61,13 @@ describe("mm-config ↔ firestore.rules", () => {
     assert.ok(rules.includes("t < timestamp.date(y, 10, sistaSondag(y, 10)) + duration.value(1, 'h')"));
     assert.ok(rules.includes("let l = t + duration.value(svenskSommartid(t) ? 2 : 1, 'h');"));
   });
-  it("talen är de beslutade: 1 per rätt, 50 per dag, mjuk text", () => {
+  it("talen är de beslutade: 1 per rätt, 200 per dag (#858), mjuk text", () => {
     assert.equal(MYNT_PER_RATT, 1);
-    assert.equal(MYNT_TAK_PER_DAG, 50);
+    assert.equal(MYNT_TAK_PER_DAG, 200);
     assert.equal(MYNT_TAK_TEXT, "Dagens mynt är intjänade – poängen räknas fortfarande!");
     assert.equal(myntForRatt(0), 1);
-    assert.equal(myntForRatt(49), 1);
-    assert.equal(myntForRatt(50), 0);
+    assert.equal(myntForRatt(199), 1);
+    assert.equal(myntForRatt(200), 0);
     assert.equal(myntForRatt(undefined), 1);
   });
 });

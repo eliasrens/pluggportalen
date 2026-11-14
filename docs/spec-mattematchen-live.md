@@ -219,17 +219,17 @@ Tidigare: "INGEN AVATARVALUTA – tävlingspoäng är enda belöningen". Elias
 **1 rätt svar på Mattematchen-sidan = 1 pluggmynt** till elevens VANLIGA
 saldo (`studentData.coins`), som Läsresan. Fel svar ger inget.
 
-**Dagstak: 50 mynt per elev och dag** från Mattematchen. Svar nr 51+ samma
-dag räknas fortfarande som poäng men ger inga mynt. Visas mjukt på sidan:
-"Dagens mynt är intjänade – poängen räknas fortfarande!"
+**Dagstak: 200 mynt per elev och dag** från Mattematchen (#858, var 50).
+Svar nr 201+ samma dag räknas fortfarande som poäng men ger inga mynt.
+Visas mjukt på sidan: "Dagens mynt är intjänade – poängen räknas fortfarande!"
 
-Talen (1 per rätt, 50 per dag) står i `src/tavling/mm-config.js` och måste
+Talen (1 per rätt, 200 per dag) står i `src/tavling/mm-config.js` och måste
 stämma med `firestore.rules` (testas i `test/mm-mynt.test.js`).
 
 På MM-vägen hålls taket av reglerna, inte klienten: dagsräknaren
 `studentData/{uid}/mmMynt/{dag}` får bara öka med 1 i SAMMA batch som ett
 NYTT rätt svarsdokument, utbetalningen i den batchen måste vara exakt +1 på
-saldot, högst 50 per dag, räknaren återställs aldrig och räknar aldrig två
+saldot, högst 200 per dag, räknaren återställs aldrig och räknar aldrig två
 gånger för samma `attemptId`. Saldot `studentData.coins` i sig skyddas INTE
 av detta – eleven kan redan i dag skriva det direkt i sitt eget dokument
 (gammalt hål, utanför #846).
@@ -1290,7 +1290,7 @@ Kända gränser:
   räknas de inte.
 * En elev i flera klasser räknas för Live-klassen. Klassmatchens och
   Snilleblixtens klient kan i stället skicka ett vanligt MM-svar bredvid
-  Live-svaret – det ger exakt vad ett svar på MM-sidan ger (taket 50 mynt/dag
+  Live-svaret – det ger exakt vad ett svar på MM-sidan ger (taket 200 mynt/dag
   gäller), inget mer.
 
 ---
@@ -1542,8 +1542,9 @@ Förväntat:
 100 rätt
 100 individuella poäng
 
-50 pluggmynt (dagstaket, #846) – de sista 50 rätt ger poäng men inga mynt,
-och "Dagens mynt är intjänade – poängen räknas fortfarande!" visas.
+100 pluggmynt (under dagstaket 200, #858) – taktexten visas inte. Vid 200
+rätt samma dag ger resten poäng men inga mynt, och "Dagens mynt är
+intjänade – poängen räknas fortfarande!" visas.
 
 ---
 

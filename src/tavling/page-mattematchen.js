@@ -4,7 +4,7 @@
 // En skärm utan scroll: tävlingens namn + tid kvar, elevens poäng, knapparna
 // 🏆 (Topp 25 / Klasskamp) och 📊 (egen statistik), och den snabba
 // svarskomponenten (#457) i mitten. Mynten syns inte i toppraden (#858). 1 rätt = 1 poäng + 1 pluggmynt
-// (#846, mm-config.js), fel = 0. Högst 50 mynt per dag: dagsräknaren läses
+// (#846, mm-config.js), fel = 0. Högst 200 mynt per dag: dagsräknaren läses
 // när sidan öppnas, hålls lokalt per svar, och vid taket visas
 // "Dagens mynt är intjänade – poängen räknas fortfarande!" (mynten slutar,
 // poängen fortsätter). Byter dagen vid midnatt börjar räknaren om. Nekas ett
