@@ -631,12 +631,13 @@ villkor) och tilläggen i `elevNyttDokOk`. Testerna: `test/firestore-rules-mynt-
 - **Inget djur försvinner vid sparning.** Sparningen (`saveAnimal*`, `updatePets`,
   `updateFarm`, gåvan och butikens gårdsdjursköp) skriver tillbaka den sparade listan med
   de ändrade ägda posterna på sin plats (`medDoldaPoster`). Poster utan kartpost ligger
-  kvar orörda, så ett djur som migreringen missat syns igen när skriptet körs om (§7).
-  **Obs (granskningen av #856):** migreringen bygger `agdaDjur` ur listorna, och efter
-  låset är de fritt skrivbara. Varje körning **efter** låsreglerna ger alltså också en
-  inskjuten post (en extra häst i `farm.animals`, ett ägg i `pets`) en kartpost. Det gäller
-  även fas 2 steg 2. Det är en öppen fråga till leaden/Elias (t.ex. att köra skriptet före
-  låsreglerna, eller bara mot en ögonblicksbild från före låset).
+  kvar orörda, så ett djur som saknar kartpost inte raderas (det kan rättas för hand, §7).
+- **Migreringen ger djur poster bara med `--djur` (löst i #856).** Granskningen visade att
+  migreringen bygger `agdaDjur` ur listorna, som är fritt skrivbara efter låset: en körning
+  efter låsreglerna skulle ge en inskjuten post (en extra häst i `farm.animals`, ett ägg i
+  `pets`) en kartpost. Därför skriver skriptet bara `xp`/`coins` utan flaggan. Djur utan
+  post listas då (antal + dokument: uid) men får ingen. `--djur` körs bara **före**
+  låsreglerna (§7). Kärnan: `planeraMigrering(sd, rakna, { djur })`.
 - `klass-membership.js` `petsFromData` heter nu `sparadePets` (listan som den är sparad).
   Butiken och migreringen läser den, och migreringen läser `farm.animals` rått, eftersom
   de nya läsfunktionerna döljer djur utan kartpost.
@@ -690,8 +691,8 @@ köp misslyckas) tills eleven laddar om. Därför används två faser:
 
 | Fas | Vad | Ordning | Effekt på gamla klienter |
 |---|---|---|---|
-| **1** (taggen `mynt-fas1`, efter B1 + B2) | Reglerna med bara `myntDag`-matchen tillagd (additivt). `studentData`-regeln är oförändrad. Webben: kvittot, `butikKop`, `lastFro` och XP bara när fältet finns | 1. `firebase deploy --only firestore:rules` 2. `npm run sync:butik && firebase deploy --only functions:butikKop` 3. `node admin/migrera-mynt-las.mjs` (torrkörning) och sedan `--commit` 4. webben | Ingen. Gamla flikar skriver som förut, nya använder kvitto och callable |
-| **2** (epicens slut, minst en skoldag efter fas 1) | Hela låset (B3 + B4) och de nya läsfunktionerna för djur | 1. `firebase deploy --only firestore:rules` 2. `node admin/migrera-mynt-las.mjs --commit` igen (fångar djur och dokument som tillkommit sedan fas 1) 3. torrkörning = 0 4. webben | Fas 1-flikar klarar låset (se B5). Flikar som varit öppna sedan före fas 1 förlorar mynt och köp tills de laddar om, men data går aldrig förlorad |
+| **1** (taggen `mynt-fas1`, efter B1 + B2) | Reglerna med bara `myntDag`-matchen tillagd (additivt). `studentData`-regeln är oförändrad. Webben: kvittot, `butikKop`, `lastFro` och XP bara när fältet finns | 1. `firebase deploy --only firestore:rules` 2. `npm run sync:butik && firebase deploy --only functions:butikKop` 3. `node admin/migrera-mynt-las.mjs --djur` (torrkörning) och sedan `--commit --djur` 4. webben | Ingen. Gamla flikar skriver som förut, nya använder kvitto och callable |
+| **2** (epicens slut, minst en skoldag efter fas 1) | Hela låset (B3 + B4) och de nya läsfunktionerna för djur | 1. `node admin/migrera-mynt-las.mjs --commit --djur` precis **före** låsreglerna (fångar djur som köpts av gamla flikar sedan fas 1) 2. `firebase deploy --only firestore:rules` 3. `node admin/migrera-mynt-las.mjs --commit` **utan** `--djur` (`xp` för dokument som fortfarande saknar det) 4. torrkörning = 0 `xp`-ändringar 5. webben | Fas 1-flikar klarar låset (se B5). Flikar som varit öppna sedan före fas 1 förlorar mynt och köp tills de laddar om, men data går aldrig förlorad |
 
 Praktiskt: leaden taggar commiten efter B2 som `mynt-fas1`. Ingenting av detta görs i
 epicen, eftersom Elias deployar. Beroenden:
@@ -700,26 +701,35 @@ epicen, eftersom Elias deployar. Beroenden:
   misslyckas alla köp och övningar ger 0 mynt. Migreringen körs i fas 1 **före** webben,
   så att B1:s gåvoregel (som kräver en post i `agdaDjur`) fungerar för befintliga
   gårdsdjur från första början.
-- Fas 2 måste köras i ordningen **låsreglerna → migrering → webb**:
-  - Den andra körningen sker **efter** låset, så att den sista migreringen ligger efter den
-    sista tidpunkt då eleven själv kunde skriva `agdaDjur`/`xp`. Det som skrevs före låset
-    räknas som utgångsläge (R6).
-  - Den körs **efter** att alla flikar från före fas 1 är borta, så att ingen gammal
-    `buyAnimal`-klient skapar djur utan kartpost.
-  - Den körs **före** fas 2-webben, som döljer djur utan kartpost.
-- Mellan steg 1 och 4 i fas 2 kör eleverna fas 1-webben. Den klarar låset: mynt utan XP om
+- Fas 2 måste köras i ordningen **`--djur` → låsreglerna → migrering utan `--djur` → webb**:
+  - `--djur` körs **precis före** låsreglerna. Fram till låset kan eleven ändå skriva
+    `agdaDjur` själv, så det som finns då räknas som utgångsläge (R6). Körningen ger djur
+    som gamla flikar köpt sedan fas 1 (utan kartpost) sin post.
+  - Kör **aldrig** `--djur` efter låsreglerna. Listorna `pets`/`roomAnimals`/`farm.animals`
+    är fritt skrivbara för eleven, så ett inskjutet djur skulle få en post. Ett djur som
+    saknar post efter låset (skriptet utan `--djur` listar dem) rättas för hand med Admin
+    SDK, aldrig med `--djur`.
+  - Körningen utan `--djur` efter låset ger `xp` till dokument som fortfarande saknar det.
+    Den skriver aldrig `agdaDjur`, så den får köras när som helst.
+  - Båda körs **efter** att alla flikar från före fas 1 är borta, och **före** fas
+    2-webben, som döljer djur utan kartpost.
+- Mellan steg 2 och 5 i fas 2 kör eleverna fas 1-webben. Den klarar låset: mynt utan XP om
   `xp` saknas, `lastFro` skrivs, och den gamla djurläsningen gäller fortfarande.
 
-**Migrering** (`admin/migrera-mynt-las.mjs`, byggs i B2, körs i båda faserna) gör följande:
+**Migrering** (`admin/migrera-mynt-las.mjs`, byggs i B2, körs i båda faserna; djuren bara
+med `--djur`, #856) gör följande:
 
 - Gamla dokument utan `xp` får `xpFromProgress(progress)`. Det är samma värde som visas i
   dag, så ingen elev tappar eller får XP.
-- Alla befintliga djur (`roomAnimals`, äldre djur i `ownedItems`, `farm.animals`, `pets`
-  och den gamla `pet`) får en post i `agdaDjur` med den art de har i dag.
+- Med `--djur`: alla befintliga djur (`roomAnimals`, äldre djur i `ownedItems`,
+  `farm.animals`, `pets` och den gamla `pet`) får en post i `agdaDjur` med den art de har i
+  dag. Utan flaggan listas djur som saknar post, men inget skrivs.
 - Saldon och varor ändras inte.
 
 Om skriptet glöms bort, eller missar ett dokument: eleven får mynt men ingen XP, djur utan
-kartpost syns inte, och gårdsdjur utan kartpost ger ingen gåva. Inget går förlorat, och det rättas genom att köra skriptet igen.
+kartpost syns inte, och gårdsdjur utan kartpost ger ingen gåva. Inget går förlorat. `xp`
+rättas genom att köra skriptet igen. Djuren rättas med `--djur` bara före låsreglerna;
+efter låset rättas de för hand (se ovan).
 
 ## 8. Kvarvarande risker (accepterade, skrivs in i rapporten)
 
@@ -756,3 +766,4 @@ kartpost syns inte, och gårdsdjur utan kartpost ger ingen gåva. Inget går fö
 | F4 | Är resterna R1–R6 acceptabla för den här epicen? | **Ja.** R2 (statistiken) och R3 (ritfiltret) föreslås som egna issues senare |
 | F5 | Är det OK med deploy i två faser (§7)? | **Ja.** Det är det enda sättet att undvika att elever med öppna flikar förlorar mynt under övergången |
 | F6 | Ska mysterylådans odds och dubblettretur ändras nu när de ligger på servern? | **Nej.** Samma tal, samma `rollMysteryItem`. Epicen ändrar inga belopp |
+| F7 | Ett djur som en gammal flik köper (fas 1-webben går via `butikKop` och får alltid en post, men en flik från före fas 1 gör det inte) under minuterna mellan fas 2 steg 1 (`--djur`) och steg 2 (låsreglerna) får ingen kartpost och syns inte efter fas 2-webben. Hur ska det hanteras? | **För hand.** Skriptet utan `--djur` listar djur som saknar post (dokument: uid). Kontrollera köpet (saldot sjönk) och lägg posten med Admin SDK. Kör aldrig `--djur` efter låset (#856) |
