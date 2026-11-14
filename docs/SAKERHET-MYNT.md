@@ -513,6 +513,13 @@ i `firestore.rules`, testerna `test/firestore-rules-mynt-las.test.js` och
   taket på 1000 uttryck och nekas. Ingen klient gör så (schackets mynt betalas av
   servern), och schackets värsta fall utan mynt går igenom som förut.
 
+- `elevNyttDokOk` kräver `xp: 0` (testarens F1: annars räknas nivån ur `progress`, som
+  eleven skriver fritt, och `xp` kan aldrig sättas). `setAvatar` och MM-svarets saldo,
+  som kan skapa dokumentet utan `defaultStudentData`, skickar därför `xp: increment(0)`
+  (orört när `xp` finns). I ett gammalt dokument utan `xp` godtas `xp: 0` bara om
+  `progress` är tomt; annars nekas de två skrivningarna tills migreringen satt `xp`.
+  Fas 2-webben måste alltså gå ut **efter** migreringen (§7 steg 2–4).
+
 `tjanaMynt` skriver ingenting om `studentData` saknas (F15). `data.addCoins` (bara admins
 Ge mynt) behåller sin reserv: admin får skapa dokumentet.
 
