@@ -692,10 +692,11 @@ köp misslyckas) tills eleven laddar om. Därför används två faser:
 | Fas | Vad | Ordning | Effekt på gamla klienter |
 |---|---|---|---|
 | **1** (taggen `mynt-fas1`, efter B1 + B2) | Reglerna med bara `myntDag`-matchen tillagd (additivt). `studentData`-regeln är oförändrad. Webben: kvittot, `butikKop`, `lastFro` och XP bara när fältet finns | 1. `firebase deploy --only firestore:rules` 2. `npm run sync:butik && firebase deploy --only functions:butikKop` 3. `node admin/migrera-mynt-las.mjs --djur` (torrkörning) och sedan `--commit --djur` 4. webben | Ingen. Gamla flikar skriver som förut, nya använder kvitto och callable |
-| **2** (epicens slut, minst en skoldag efter fas 1) | Hela låset (B3 + B4) och de nya läsfunktionerna för djur | 1. `node admin/migrera-mynt-las.mjs --commit --djur` precis **före** låsreglerna (fångar djur som köpts av gamla flikar sedan fas 1) 2. `firebase deploy --only firestore:rules` 3. `node admin/migrera-mynt-las.mjs --commit` **utan** `--djur` (`xp` för dokument som fortfarande saknar det) 4. torrkörning = 0 `xp`-ändringar 5. webben | Fas 1-flikar klarar låset (se B5). Flikar som varit öppna sedan före fas 1 förlorar mynt och köp tills de laddar om, men data går aldrig förlorad |
+| **2** (epicens slut, minst en skoldag efter fas 1) | Hela låset (B3 + B4) och de nya läsfunktionerna för djur | 1. `node admin/migrera-mynt-las.mjs --commit --djur` precis **före** låsreglerna (fångar djur som köpts av gamla flikar sedan fas 1) 2. `firebase deploy --only firestore:rules`, sedan `npm run sync:butik && firebase deploy --only functions:butikKop` (B4 ändrade `functions/butik/`, #857) 3. `node admin/migrera-mynt-las.mjs --commit` **utan** `--djur` (`xp` för dokument som fortfarande saknar det) 4. torrkörning = 0 `xp`-ändringar 5. webben | Fas 1-flikar klarar låset (se B5). Flikar som varit öppna sedan före fas 1 förlorar mynt och köp tills de laddar om, men data går aldrig förlorad |
 
 Praktiskt: leaden taggar commiten efter B2 som `mynt-fas1`. Ingenting av detta görs i
-epicen, eftersom Elias deployar. Beroenden:
+epicen, eftersom Elias deployar. GitHub Pages deployar `main` automatiskt, så fas 1-webben kräver en
+egen merge av `mynt-fas1` till main före epic-PR:en (#857, `docs/ADMIN.md` §9). Beroenden:
 
 - `butikKop` och `myntDag`-regeln måste finnas innan fas 1-webben går ut. Annars
   misslyckas alla köp och övningar ger 0 mynt. Migreringen körs i fas 1 **före** webben,
