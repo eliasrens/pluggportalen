@@ -29,6 +29,7 @@ studentData/{studentId}/brakresaRewards/{eventId}  ← Bråkresan: belöningsbok
 studentData/{studentId}/brakresaHunts/{datum}      ← Bråkresan: daglig guldjakt
 studentData/{studentId}/provMynt/{tillfalleId}     ← Prov: pluggmynt-kvitto per prov (#746, löpande summa)
 studentData/{studentId}/mmMynt/{dag}               ← Mattematchen: dagsräknare för pluggmynt (#846, ÅÅÅÅ-MM-DD svensk tid)
+studentData/{studentId}/myntDag/{dag}              ← dagskvitto för elevens intjäning i klienten (#853, SAKERHET-MYNT §6 B1, src/mynt-dag.js)
 brakresaSecrets/{roundId}                ← Bråkresan: omgångens facit – bara Cloud Functions
 brakresaRecommendations/{recId}          ← Bråkresan: lärarens rekommendationer
 schackKlass/{classId}                    ← Schack (#779): lobbyn, pågående partier och topplistan – EN doc per klass, bara servern skriver

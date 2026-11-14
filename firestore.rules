@@ -301,6 +301,19 @@ service cloud.firestore {
         allow create, update: if mmMyntOk(studentId, dag);
         allow delete: if isAdmin();
       }
+
+      // Myntsäkerhet B1 (#853, docs/SAKERHET-MYNT.md §6 B1): dagskvittot
+      // myntDag/{dag} för elevens intjäning i klienten (övningar, Läsresan,
+      // Ämnesläsning, Ekvationsresan, gårdens gåva). Samma mönster som mmMynt:
+      // räknaren för källan får bara öka i SAMMA skrivning som saldot (och XP)
+      // ökar exakt lika mycket, inom tak per gång och per dag (myntDagOk).
+      // Talen speglas i src/mynt-dag.js (test/mynt-dag.test.js).
+      // ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` FÖRE webben.
+      match /myntDag/{dag} {
+        allow read: if isSelf(studentId) || hasStudent(studentId);
+        allow create, update: if myntDagOk(studentId, dag);
+        allow delete: if isAdmin();
+      }
     }
 
     // Köpbara avatarer (#694): eleven får bara BYTA TILL en köpbar avatar som
@@ -488,6 +501,47 @@ service cloud.firestore {
         changedOnly(['dag', 'cid', 'mynt', 'lastAttemptId', 'lastAt']) &&
         bumped('mynt', 1) && d.mynt <= 50 &&
         getAfter(sd).data.get('coins', 0) == (exists(sd) ? get(sd).data.get('coins', 0) : 0) + 1;
+    }
+
+    // Myntsäkerhet B1 (#853): dagskvittot studentData/{uid}/myntDag/{dag}.
+    // { dag, kalla, lastAt, senastMynt, senastXp, ovning, lasresa, amnes, ekv,
+    // gard, xp, gardUid, gavor }. EN källa per skrivning: bara dess räknare
+    // (och xp) får ändras, med exakt senastMynt/senastXp, och saldot/XP i
+    // studentData ökar lika mycket i samma skrivning. Tak per gång och dag
+    // nedan (= src/mynt-dag.js). XP bara från övningar. Gåvan (gard) = 8 för
+    // ett ÄGT gårdsdjur (agdaDjur, bara servern skriver) som inte fått sin gåva
+    // i dag – listan farm.animals räknas inte (den är fritt skrivbar).
+    function myntPerGang() { return {'ovning': 500, 'lasresa': 60, 'amnes': 100, 'ekv': 7}; }
+    function myntPerDag() { return {'ovning': 1500, 'lasresa': 800, 'amnes': 800, 'ekv': 600}; }
+    function myntDagOk(uid, dag) {
+      let d = request.resource.data;
+      let o = resource == null ? {} : resource.data;
+      let k = d.kalla;
+      let m = d.senastMynt;
+      let x = d.senastXp;
+      let sd = /databases/$(database)/documents/studentData/$(uid);
+      let fore = exists(sd) ? get(sd).data : {};
+      let efter = getAfter(sd).data;
+      return isSelf(uid) &&
+        dag == svenskDag(request.time) && d.dag == dag && d.lastAt == request.time &&
+        k in ['ovning', 'lasresa', 'amnes', 'ekv', 'gard'] &&
+        changedOnly(k == 'gard'
+          ? ['dag', 'kalla', 'lastAt', 'senastMynt', 'senastXp', 'xp', k, 'gardUid', 'gavor']
+          : ['dag', 'kalla', 'lastAt', 'senastMynt', 'senastXp', 'xp', k]) &&
+        m is int && x is int && m >= 0 && x >= 0 && m + x >= 1 &&
+        m == d.get(k, 0) - o.get(k, 0) &&
+        x == d.get('xp', 0) - o.get('xp', 0) &&
+        x <= 50 && d.get('xp', 0) <= 3000 && (x == 0 || k == 'ovning') &&
+        (k == 'gard' ? myntDagGavaOk(d, o.get('gavor', {}), efter)
+          : m <= myntPerGang()[k] && d.get(k, 0) <= myntPerDag()[k]) &&
+        efter.get('coins', 0) == fore.get('coins', 0) + m &&
+        efter.get('xp', 0) == fore.get('xp', 0) + x;
+    }
+    function myntDagGavaOk(d, gavor, efter) {
+      return d.senastMynt == 8 && d.gardUid is string && d.gavor is map &&
+        d.gavor.diff(gavor).affectedKeys() == [d.gardUid].toSet() &&
+        !(d.gardUid in gavor) && d.gavor[d.gardUid] == true &&
+        efter.get('agdaDjur', {}).get(d.gardUid, '') in ['animal_horse', 'animal_cow', 'animal_pig'];
     }
 
     // Ekvationsresan (#618): formen på progress och försök. Nivå 1–12 (Etapp 2

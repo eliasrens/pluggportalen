@@ -71,6 +71,7 @@ const LASRESAN_RULES = {
   wordRanges: LEVEL_WORD_RANGES,
   questionRange,
   questionCountIsWarning: false,
+  questionHardMax: 0, // 0 = inget hårt tak utöver questionRange
   requireTopic: true,
   tag: null,
 };
@@ -81,7 +82,8 @@ const LASRESAN_RULES = {
  * @param {object} [rules] – avvikande regler (Ämnesläsningen, #673):
  *   levels: tillåtna nivåer (lista), wordRanges: { nivå: [min, max] },
  *   questionRange: (nivå) => [min, max], questionCountIsWarning: fel antal
- *   frågor ger varning i stället för fel, requireTopic: varna om topic saknas,
+ *   frågor ger varning i stället för fel, questionHardMax: fler frågor än så är
+ *   alltid fel (myntaket, #853), requireTopic: varna om topic saknas,
  *   tag: namnet texten får i meddelandena (annars id:t).
  * @returns {{errors:string[], warnings:string[]}}
  */
@@ -125,6 +127,9 @@ export function validateText(text, rules = {}) {
     // Som varning (Ämnesläsningen) – men en text helt utan frågor är alltid fel.
     const soft = r.questionCountIsWarning && qs.length > 0;
     (soft ? warnings : errors).push(`${tag}: ${qs.length} frågor (ska vara ${qMin}–${qMax})`);
+  }
+  if (r.questionHardMax && qs.length > r.questionHardMax) {
+    errors.push(`${tag}: ${qs.length} frågor – högst ${r.questionHardMax} per text`);
   }
   const qids = new Set();
   qs.forEach((q, i) => {

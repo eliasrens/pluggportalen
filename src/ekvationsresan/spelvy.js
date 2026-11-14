@@ -306,7 +306,7 @@ export function createSpelvy(host, opts) {
       renderHeader();
     }
     const levelChanged = !!saved && saved.change != null;
-    ui.resultat.innerHTML = resultHtml(result, { coins: saved?.coins ?? result.coins, error: !saved, retry: !!saved && !levelChanged });
+    ui.resultat.innerHTML = resultHtml(result, { coins: saved?.coins ?? result.coins, error: !saved, retry: !!saved && !levelChanged, tak: !!saved?.tak });
     ui.resultat.querySelector(".ekv-nasta").addEventListener("click", () => goNext(saved));
     ui.resultat.querySelector(".ekv-igen")?.addEventListener("click", (e) => onRetry(e.currentTarget));
     ui.resultat.querySelector(".ekv-nasta").focus();

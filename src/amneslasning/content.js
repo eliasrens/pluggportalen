@@ -36,6 +36,7 @@ import {
   AMNES_LEVELS,
   AMNES_MIN_TEXTS_PER_LEVEL,
   AMNES_QUESTIONS_BY_LEVEL,
+  AMNES_QUESTIONS_HARD_MAX,
   AMNES_TEXTS_PER_LEVEL_DEFAULT,
   AMNES_TEXTS_PER_LEVEL_RANGE,
   AMNES_WORD_RANGES,
@@ -169,6 +170,7 @@ function rulesFor(tag) {
     wordRanges: AMNES_WORD_RANGES,
     questionRange: (level) => AMNES_QUESTIONS_BY_LEVEL[level] || AMNES_QUESTIONS_BY_LEVEL[AMNES_LEVELS[0]],
     questionCountIsWarning: true,
+    questionHardMax: AMNES_QUESTIONS_HARD_MAX, // över det: fel (myntaket, #853)
     requireTopic: false,
     tag,
   };

@@ -5,13 +5,15 @@
 // den dolda nivån, nivåändringar ("du gick ner") eller jämförelser med andra.
 //
 //   renderSummary(container, { correct, total, coins, worldDone, nextWorld, onContinue,
-//                              continueLabel, note }) → { destroy() }
+//                              continueLabel, note, tak }) → { destroy() }
 //     continueLabel/note: valfria (Ämnesläsningen #672: "Läs nästa text" + läst-raden)
+//     tak: dagstaket klippte utbetalningen (#853) → en rad under myntet
 //   renderMyReading(container, { stats, onBack }) → { destroy() }
 //     stats = stats.summarize(lasresa) (utan nivå)
 // ============================================================================
 
 import { coinIcon } from "../icons.js";
+import { MYNT_DAG_TAK_TEXT } from "../mynt-dag.js";
 
 const esc = (s) =>
   String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
@@ -34,7 +36,7 @@ function bindOnce(container, selector, fn) {
   return { destroy: () => btn && btn.removeEventListener("click", h) };
 }
 
-export function renderSummary(container, { correct = 0, total = 0, coins = 0, worldDone = null, nextWorld = null, onContinue, continueLabel = "Gå vidare 👣", note = "" } = {}) {
+export function renderSummary(container, { correct = 0, total = 0, coins = 0, worldDone = null, nextWorld = null, onContinue, continueLabel = "Gå vidare 👣", note = "", tak = false } = {}) {
   const c = cheer(correct, total);
   const world = worldDone
     ? `<div class="lr-varld-klar">🏆 Du har klarat <b>${esc(worldDone.name)}</b>!${nextWorld ? ` Nu väntar <b>${esc(nextWorld.name)}</b>.` : " Hela Läsresan är klar! 🌟"}</div>`
@@ -47,6 +49,7 @@ export function renderSummary(container, { correct = 0, total = 0, coins = 0, wo
         <span class="lr-chip">✅ ${correct} av ${total} rätt</span>
         <span class="lr-chip lr-chip-coins">${coinIcon(24)} +${coins}</span>
       </div>
+      ${tak ? `<p class="hint lr-summary-tak">${esc(MYNT_DAG_TAK_TEXT)}</p>` : ""}
       ${world}
       ${note ? `<p class="hint lr-summary-not">${esc(note)}</p>` : ""}
       <button class="btn gron lr-vidare" type="button" data-lr-vidare>${esc(continueLabel)}</button>

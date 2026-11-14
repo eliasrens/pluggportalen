@@ -33,6 +33,7 @@ import {
 } from "./farm-core.js";
 import { farmMoodSvg } from "./art-pets.js";
 import { confetti } from "./fx.js";
+import { MYNT_DAG_TAK_TEXT } from "./mynt-dag.js";
 
 /** Djur-noden i den scen som råkar vara uppe (rummet, hagen eller ladan). */
 function djurNod(uid) {
@@ -135,7 +136,10 @@ export function foderInnehall(uid, { onChanged } = {}) {
       upptagen = true;
       try {
         const res = await claimFarmAnimalGift(uid);
-        if (res.ok) {
+        if (res.ok && res.tak) {
+          flash(MYNT_DAG_TAK_TEXT); // dagskvittot: gåvan redan hämtad i dag (#853)
+          onChanged?.(res.animal);
+        } else if (res.ok) {
           confetti();
           flash(`🎁 ${namn} ger dig en gåva: +${res.coins} mynt! 💰`);
           onChanged?.(res.animal);

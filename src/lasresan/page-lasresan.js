@@ -220,6 +220,7 @@ export async function pageLasresan() {
         correct: a.correct,
         total: a.totalQuestions,
         coins: res.coins,
+        tak: res.tak,
         worldDone,
         nextWorld,
         onContinue: () => showMap({ walk: res.walk, worldCompleted: res.worldCompleted }).catch(showError),

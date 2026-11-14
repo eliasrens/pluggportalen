@@ -11,9 +11,9 @@
 // och försökets dokument-id är uppgiftens id. Finns försöket redan (dubbelklick,
 // omsändning, två flikar) skrivs inget och inga mynt delas ut; reglerna tillåter
 // dessutom bara CREATE av försöket. Mynten läggs sedan på det vanliga saldot via
-// data.addCoins (mynt.award) – Läsresans mönster. Går nätet ner precis mellan
-// transaktionen och addCoins uteblir mynten för den uppgiften, men de kan aldrig
-// delas ut två gånger.
+// data-mynt.js tjanaMynt med dagskvittot (mynt.award, #853) – Läsresans mönster.
+// Går nätet ner precis mellan transaktionen och utbetalningen uteblir mynten för
+// den uppgiften, men de kan aldrig delas ut två gånger.
 // NÄSTA UPPGIFT väljs av färdighetsmodellen (nasta-uppgift.js, #626) på den
 // nivå anpassningen gett.
 // ⚠️ DEPLOY: reglerna för båda sökvägarna kräver `firebase deploy --only firestore:rules`.
@@ -99,10 +99,10 @@ const nextTaskAfter = (task, progress, rng) =>
 
 /**
  * Avsluta en uppgift: försök + progress (anpassning, räknare, nästa uppgift) i
- * EN transaktion, sedan mynten via addCoins om försöket var nytt.
+ * EN transaktion, sedan mynten via tjanaMynt (mynt.award) om försöket var nytt.
  * @param {{current:{id,at,task}, run, help, result, blocked?:number, ownMoves?:number}} args
  * @returns {Promise<{ok:true, created:boolean, attempt, progress, change, from, to,
- *   next:{id,at,task}, coins:number, balance:(number|null)}>}
+ *   next:{id,at,task}, coins:number, balance:(number|null), tak:boolean}>}
  */
 export async function completeTask({ current, run, help, result, blocked = 0, ownMoves = null }, studentId = currentStudentId(), { rng = Math.random } = {}) {
   requireId(studentId);
@@ -126,7 +126,7 @@ export async function completeTask({ current, run, help, result, blocked = 0, ow
     return { created: true, ...r };
   });
 
-  let reward = { coins: 0, balance: null };
+  let reward = { coins: 0, balance: null, tak: false };
   if (res.created && attempt.coins > 0) {
     try {
       reward = await award(attempt.coins, { studentId });
@@ -136,7 +136,7 @@ export async function completeTask({ current, run, help, result, blocked = 0, ow
   }
   let next = current.task.extra ? currentExtra(res.progress) : currentTask(res.progress);
   if (!next || next.id === current.id) next = (await startTask(nextTaskAfter(current.task, res.progress, rng), studentId, { progress: res.progress })).current;
-  return { ok: true, created: res.created, attempt, progress: res.progress, change: res.change, from: res.from, to: res.to, next, coins: reward.coins, balance: reward.balance };
+  return { ok: true, created: res.created, attempt, progress: res.progress, change: res.change, from: res.from, to: res.to, next, coins: reward.coins, balance: reward.balance, tak: reward.tak };
 }
 
 /** Elevens senaste försök, nyast först (lärarens elevdetalj, E1.12). */

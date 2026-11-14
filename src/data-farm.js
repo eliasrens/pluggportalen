@@ -43,6 +43,7 @@ import {
   withFarmAnimalPositions,
   feedFarmAnimalIn,
   claimGiftIn,
+  FARM_GIFT_COINS,
   FARM_MAX_GROWTH_STAGE,
 } from "./farm-core.js";
 import { getItem } from "./shop-items.js";
@@ -249,26 +250,29 @@ export function feedFarmAnimal(uid, cropId, studentId = currentStudentId()) {
 
 /**
  * Hämta djurets dagliga gåva (#332): sätter lastGiftAt OCH ökar coins i SAMMA
- * transaktion (gåvan kan aldrig hämtas utan mynt eller tvärtom – därför inte
- * via data.addCoins, som vore en andra transaktion). Ej redo → ok:false.
- * @returns {Promise<{ok: boolean, farm: object, coins?: number, coinsTotal?: number, error?: string}>}
+ * transaktion (gåvan kan aldrig hämtas utan mynt eller tvärtom). Sedan #853
+ * via data-mynt.js tjanaMynt med dagskvittot: reglerna betalar bara för ett
+ * ÄGT gårdsdjur (studentData.agdaDjur) och en gång per djur och svensk dag.
+ * Ej redo → ok:false. Nekat kvitto (djuret saknar kartpost) → ok:false och
+ * ingenting skrivs. Redan hämtad i dag enligt kvittot → ok:true, coins 0, tak.
+ * data-mynt.js laddas dynamiskt (den här filen ligger i bootgrafen, #271).
+ * @returns {Promise<{ok: boolean, farm: object, coins?: number, coinsTotal?: number, tak?: boolean, error?: string}>}
  */
 export async function claimFarmAnimalGift(uid, studentId = currentStudentId()) {
   if (!studentId) throw new Error("Ingen elev inloggad.");
-  const ref = doc(db, "studentData", studentId);
-  const result = await runTransaction(db, async (tx) => {
-    const snap = await tx.get(ref);
-    const data = snap.exists() ? snap.data() : {};
-    const farm = farmFromData(data);
-    const res = claimGiftIn(farm, uid);
-    if (!res.ok) return res;
-    const coinsTotal = (data.coins || 0) + res.coins;
-    if (snap.exists()) tx.update(ref, { coins: coinsTotal, "farm.animals": res.farm.animals });
-    else tx.set(ref, { ...defaultStudentData(), coins: res.coins, farm: res.farm });
-    return { ...res, coinsTotal };
+  const { tjanaMynt } = await import("./data-mynt.js");
+  let res = null;
+  const r = await tjanaMynt("gard", FARM_GIFT_COINS, {
+    gardUid: uid,
+    studentId,
+    extra: (sd) => {
+      res = claimGiftIn(farmFromData(sd || {}), uid);
+      return res.ok ? { "farm.animals": res.farm.animals } : null;
+    },
   });
-  if (result.ok) invalidateStudentData(studentId); // coins/djur ändrat (#274)
-  return result;
+  if (!res || !res.ok) return res || { ok: false, farm: farmFromData({}), error: "saknas" };
+  if (r.nekad || r.avbrutet) return { ok: false, farm: res.farm, error: "nekad" };
+  return { ...res, coins: r.mynt, coinsTotal: r.saldo, tak: r.tak };
 }
 
 /**
