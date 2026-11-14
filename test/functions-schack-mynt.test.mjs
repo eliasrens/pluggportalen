@@ -216,5 +216,5 @@ test("klienten kan inte skriva kvittot eller pokalen – inte ens efter en utbet
   assert.equal(await errCode(updateDoc(doc(cdb, "schackMynt", ANNA), { "dator.bonden": deleteField() })), "permission-denied");
   assert.equal(await errCode(setDoc(doc(cdb, "schackMynt", ANNA), {})), "permission-denied");
   assert.equal(await errCode(updateDoc(doc(cdb, "studentData", ANNA), { "schack.pokaler.tornet": 1 })), "permission-denied");
-  assert.equal(await errCode(updateDoc(doc(cdb, "studentData", ANNA), { coins: 731 })), "ok", "elevens egna mynt (butiken) som förut");
+  assert.equal(await errCode(updateDoc(doc(cdb, "studentData", ANNA), { coins: 731 })), "permission-denied", "egna mynt utan kvitto nekas (myntlåset #855)");
 });

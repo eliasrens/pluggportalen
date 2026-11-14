@@ -109,7 +109,7 @@ test("datorPartier +1 fungerar fortfarande med aktivtParti satt, null och saknat
   assert.equal(await akt(ANNA), null);
   assert.equal(await code(updateDoc(ref, { "schack.datorPartier": increment(1) })), "ok", "efter slut (aktivtParti null)");
   assert.equal((await adb.doc(`studentData/${ANNA}`).get()).data().schack.datorPartier, 3);
-  assert.equal(await code(updateDoc(ref, { coins: 9 })), "ok", "andra fält påverkas inte");
+  assert.equal(await code(updateDoc(ref, { husLast: true })), "ok", "andra fält påverkas inte"); // mynt bara med kvitto (#855)
 });
 
 // F9 (info/låg): eleven får radera sitt eget studentData (regeln allow delete: isSelf) – det rensar spärren men kostar henne allt sparat (mynt m.m.).
