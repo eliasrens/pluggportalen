@@ -140,7 +140,7 @@ describe("studentData.schack.datorPartier – elevens egen räknare (§10)", () 
     await assertFails(updateDoc(sd(env.elev("e5a"), "e5a"), { schack: {} }));
     await assertFails(setDoc(sd(env.elev("e5a"), "e5a"), { coins: 0 }), "fältet kan inte tas bort");
     await assertSucceeds(setDoc(sd(env.elev(E4A2), E4A2), { coins: 0, xp: 0, schack: { datorPartier: 1 } }));
-    await assertSucceeds(updateDoc(sd(env.elev("e4a"), "e4a"), { coins: 5 }), "andra skrivningar påverkas inte");
+    await assertSucceeds(updateDoc(sd(env.elev("e4a"), "e4a"), { "progress.so": {} }), "andra skrivningar påverkas inte");
   });
   it("aktivtParti (serverns spärr, F2) kan klienten aldrig sätta, byta eller ta bort – men räkna datorPartier bredvid", async () => {
     await assertFails(updateDoc(sd(env.elev("e4a"), "e4a"), { "schack.aktivtParti": "p1" }));

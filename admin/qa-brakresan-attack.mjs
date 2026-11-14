@@ -96,9 +96,8 @@ await rad("byta drakens namn till HTML", call("brakresaRenameDragon", { name: "<
 await rad("skapa/uppgradera studentData.brakdrake (nivå 15)", updateDoc(doc(db, s), { brakdrake: { id: "drake-falsk", level: 15, name: "Fejk" } }), NEKAD);
 await rad("ändra brakdrake.level", updateDoc(doc(db, s), { "brakdrake.level": 3, "brakdrake.id": "drake-annan" }), NEKAD);
 await rad("flytta draken (brakdrake.pos)", updateDoc(doc(db, s), { "brakdrake.pos": { x: 40, y: 80 } }), ["ok", NEKAD]);
-// Känd, dokumenterad öppning (BRAKRESAN.md §8 punkt 2) – rapporteras, fäller inte körningen.
-const mynt = await code(updateDoc(doc(db, s), { coins: increment(1) }));
-console.log(`ℹ studentData.coins skrivbart av eleven (appbrett sedan tidigare): ${mynt}`);
+// Myntlåset (#855, SAKERHET-MYNT §6 B3) stänger den tidigare öppningen (BRAKRESAN.md §8 punkt 2).
+await rad("höja studentData.coins själv (utan kvitto)", updateDoc(doc(db, s), { coins: increment(1) }), NEKAD);
 
 console.log(`— lärare (admin) qalarare`);
 await as("qalarare", "larare");
@@ -111,7 +110,7 @@ for (const fn of ["brakresaStartRound", "brakresaFinishRound", "brakresaHunt", "
 
 const efter = (await adb.doc(`studentData/${ELEV}/brakresa/state`).get()).data();
 const coinsEfter = (await adb.doc(`studentData/${ELEV}`).get()).data()?.coins;
-console.log(`state.totalStars före/efter: ${fore?.totalStars}/${efter?.totalStars} · mynt före/efter: ${coinsFore}/${coinsEfter} (+1 = egen increment ovan, + ev. jaktfynd)`);
+console.log(`state.totalStars före/efter: ${fore?.totalStars}/${efter?.totalStars} · mynt före/efter: ${coinsFore}/${coinsEfter} (+ ev. jaktfynd; egen increment nekas)`);
 await signOut(auth).catch(() => {});
 console.log(fel ? `❌ ${fel} oväntade utfall` : "✓ alla prober som väntat");
 process.exit(fel ? 1 : 0);

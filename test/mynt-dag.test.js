@@ -285,6 +285,11 @@ describe("tjanaMyntMed med injicerat SDK", () => {
     assert.equal(stopp.avbrutet, true);
     assert.equal(f.skrivningar.length, 2);
   });
+  it("studentData saknas: ingenting skrivs, inget nytt dokument med mynt (#855 F15)", async () => {
+    const f = fejk({});
+    const r = await tjanaMyntMed(f.sdk, "ovning", 30, { xp: 10, studentId: "a" });
+    assert.deepEqual([r.mynt, r.avbrutet, f.skrivningar.length], [0, true, 0]);
+  });
   it("nekat mitt på dagen: inget omförsök, { mynt: 0, nekad }", async () => {
     let forsok = 0;
     const f = fejk({ "studentData/a": { coins: 1 } }, { neka: () => (forsok++, true) });

@@ -206,10 +206,13 @@ service cloud.firestore {
     match /studentData/{studentId} {
       allow read:  if isSelf(studentId) || hasStudent(studentId) ||
         (signedIn() && !isTeacher() && resource.data.get('husLast', false) != true);
-      allow create: if (isSelf(studentId) && kopAvatarOk() && brakdrakeOk() && schackOk()) || isAdmin();
-      allow update: if (isSelf(studentId) && kopAvatarOk() && brakdrakeOk() && schackOk()) || isAdmin() ||
+      // MYNTLÅSET (#855, docs/SAKERHET-MYNT.md §6 B3): eleven ändrar coins/xp
+      // bara via kvitto (elevVardeOk), skapar bara ett standarddokument
+      // (elevNyttDokOk) och får inte radera – annars börjar hen om med valfritt saldo.
+      allow create: if (isSelf(studentId) && kopAvatarOk() && brakdrakeOk() && schackOk() && elevNyttDokOk(studentId)) || isAdmin();
+      allow update: if (isSelf(studentId) && kopAvatarOk() && brakdrakeOk() && schackOk() && elevVardeOk(studentId)) || isAdmin() ||
         (gradeStudent(studentId) && gradeStudentDataOk(studentId));
-      allow delete: if isSelf(studentId) || isAdmin();
+      allow delete: if isAdmin();
 
       // Läsresan (#399): ett försök per färdig text, se docs/LASRESAN.md.
       // Samma ägarmodell som studentData-skrivningen: eleven själv eller
@@ -326,6 +329,63 @@ service cloud.firestore {
       return (resource != null && av == resource.data.get('avatarId', 'fox')) ||
         !(av in ['hw-av-spoke', 'hw-av-fladdermus', 'hw-av-pumpgubbe', 'hw-av-mumie', 'hw-av-haxkatt', 'hw-av-vampyr']) ||
         av in n.get('ownedItems', []);
+    }
+
+    // Myntlåset (#855, docs/SAKERHET-MYNT.md §6 B3). Elevens egen skrivning får
+    // ändra coins bara (i) uppåt med exakt dagskvittots senastMynt
+    // (myntDag/{idag}, skrivet i SAMMA begäran) eller +1 med MM-kvittot
+    // (mmMynt/{idag}), eller (ii) nedåt ihop med en ändrad kcDonation
+    // (klasscentrets regler binder avdraget till donationen). xp bara uppåt med
+    // myntDag.senastXp, och bara om fältet redan fanns (migreringen sätter det).
+    // Undantag: xp: 0 får läggas till i ett dokument utan xp och utan framsteg
+    // (xp: increment(0) från setAvatar/MM-saldot, #855 F1) – nivån är ändå 0.
+    // Live-/Prov-markörerna skrivs bara av läraren. Inga get när varken coins
+    // eller xp ändras (1000-uttrycksgränsen, #792 F1).
+    function elevVardeOk(uid) {
+      let n = request.resource.data;
+      let o = resource.data;
+      let k = n.diff(o).affectedKeys();
+      return !k.hasAny(['lastLiveReceipt', 'lastProvMynt']) &&
+        (!('coins' in k) || ('coins' in n && n.coins is int && n.coins >= 0 &&
+          elevMyntOk(uid, n.coins - o.get('coins', 0), k))) &&
+        (!('xp' in k) || ('xp' in n && n.xp is int && ('xp' in o ? elevXpOk(uid, n.xp - o.xp) :
+          (n.xp == 0 && o.get('progress', {}).size() == 0))));
+    }
+    function elevMyntOk(uid, m, k) {
+      return m == 0 ||
+        (m > 0 && (myntDagKvitto(uid, 'senastMynt', m) || (m == 1 && mmKvittoNu(uid)))) ||
+        (m < 0 && 'kcDonation' in k);
+    }
+    function elevXpOk(uid, x) {
+      return x > 0 && myntDagKvitto(uid, 'senastXp', x);
+    }
+    function myntDagKvitto(uid, falt, v) {
+      let p = /databases/$(database)/documents/studentData/$(uid)/myntDag/$(svenskDag(request.time));
+      return existsAfter(p) && getAfter(p).data.lastAt == request.time && getAfter(p).data.get(falt, -1) == v;
+    }
+    function mmKvittoNu(uid) {
+      let p = /databases/$(database)/documents/studentData/$(uid)/mmMynt/$(svenskDag(request.time));
+      return existsAfter(p) && getAfter(p).data.lastAt == request.time;
+    }
+    // Ett nytt studentData-dokument från eleven = standarddokumentet
+    // (defaultStudentData, src/klass-membership.js): inga mynt, ingen xp, inga
+    // äpplen, varor eller djur och gårdsnivåer ≤ 1. Enda undantaget: mynt som
+    // ett kvitto betalar i samma begäran (MM-svarets batch skapar dokumentet
+    // med coins: 1 om det saknas) – samma regel som en höjning från 0.
+    // xp: 0 MÅSTE finnas (#855 F1): utan xp visar xpFromStudentData nivån ur
+    // progress, som eleven skriver fritt, och xp kan aldrig sättas i efterhand.
+    // Klienter som kan skapa dokumentet utan defaultStudentData (setAvatar,
+    // MM-svarets saldo) skickar därför xp: increment(0) – oförändrat om xp finns.
+    function elevNyttDokOk(uid) {
+      let n = request.resource.data;
+      let f = n.get('farm', {});
+      return (n.get('coins', 0) == 0 || (n.coins is int && elevMyntOk(uid, n.coins, [].toSet()))) &&
+        n.get('xp', -1) == 0 &&
+        n.get('appleCount', 0) == 0 &&
+        n.get('ownedItems', []).size() == 0 && n.get('ownedCounts', {}).size() == 0 &&
+        n.get('pets', []).size() == 0 && n.get('roomAnimals', []).size() == 0 &&
+        f is map && f.get('animals', []).size() == 0 &&
+        f.get('barnLevel', 1) <= 1 && f.get('gardenTier', 1) <= 1;
     }
 
     // Bråkdraken i huset (#714/#750, docs/BRAKRESAN.md §8.3): studentData.brakdrake

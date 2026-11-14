@@ -12,6 +12,7 @@
 import { db } from "./firebase-config.js";
 import {
   doc,
+  increment,
   setDoc,
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -286,7 +287,9 @@ export async function setAvatar(avatarId, studentId = currentStudentId()) {
   if (!studentId) throw new Error("Ingen elev inloggad.");
   const ref = doc(db, "studentData", studentId);
   // avatarChosen markeras true så vi vet att eleven själv gjort ett val.
-  await setDoc(ref, { avatarId, avatarChosen: true }, { merge: true });
+  // xp: increment(0) – skapar xp: 0 om dokumentet saknas (myntlåset kräver det
+  // vid create, #855), lämnar befintlig xp orörd.
+  await setDoc(ref, { avatarId, avatarChosen: true, xp: increment(0) }, { merge: true });
   invalidateStudentData(studentId);
   // Håll students-dokumentet i synk också (avatarId finns på båda ställena).
   await updateDoc(doc(db, "students", studentId), { avatarId }).catch(() => {});

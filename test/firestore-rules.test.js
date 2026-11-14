@@ -107,12 +107,20 @@ describe("Elev når bara sitt eget", () => {
   it("kan läsa sitt eget students-dokument", async () => {
     await assertSucceeds(getDoc(doc(elev("elev1"), "students", "elev1")));
   });
-  it("kan läsa och skriva sin egen studentData (coins/progress)", async () => {
+  // Myntlåset (#855, SAKERHET-MYNT §6 B3): saldot skrivs bara med kvitto
+  // (test/firestore-rules-mynt-las.test.js) – framstegen som förut.
+  it("kan läsa sin egen studentData och skriva progress, men inte sitt saldo (#855)", async () => {
     await assertSucceeds(getDoc(doc(elev("elev1"), "studentData", "elev1")));
-    await assertSucceeds(
+    await assertFails(
       setDoc(doc(elev("elev1"), "studentData", "elev1"), {
         coins: 310,
         progress: {},
+      })
+    );
+    await assertSucceeds(
+      setDoc(doc(elev("elev1"), "studentData", "elev1"), {
+        coins: 300,
+        progress: { so: { quiz: { stars: 2 } } },
       })
     );
   });

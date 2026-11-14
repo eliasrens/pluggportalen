@@ -12,6 +12,7 @@ import { after, before, beforeEach, describe, it } from "node:test";
 import { assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
 import { doc, setDoc, updateDoc, increment } from "firebase/firestore";
 import { createRollerEnv, seedRoller } from "./helpers/roller-env.js";
+import { myntMedKvitto } from "./helpers/mynt-kvitto.js";
 
 let env;
 
@@ -50,7 +51,7 @@ describe("schackOk håller sig under Firestores gräns på 1000 uttryck (#792 F1
     it(`${namn}: orelaterade skrivningar (coins, stars) och datorPartier + 1 går igenom`, async () => {
       await satt(k, pussel);
       const db = env.elev("e5a");
-      await assertSucceeds(updateDoc(sd(db, "e5a"), { coins: increment(1) }), "coins + 1");
+      await assertSucceeds(myntMedKvitto(db, "e5a", 1), "coins + 1 med dagskvitto (#855)");
       await assertSucceeds(updateDoc(sd(db, "e5a"), { stars: increment(1) }), "stars + 1");
       await assertSucceeds(updateDoc(sd(db, "e5a"), { "schack.datorPartier": increment(1) }), "datorPartier + 1");
     });

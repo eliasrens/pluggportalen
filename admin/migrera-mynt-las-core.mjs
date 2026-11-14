@@ -6,7 +6,13 @@
 // admin/migrera-mynt-las.mjs kör den på alla dokument (torrt som standard).
 //
 //   xp        saknas fältet (eller är det inte ett tal ≥ 0) → xpFromProgress(progress),
-//             samma värde som xpFromStudentData visar i dag.
+//             samma värde som xpFromStudentData visar i dag, avrundat nedåt (låset
+//             godtar bara heltal). Ett decimaltal → Math.floor.
+//   coins     måste vara ett heltal ≥ 0 för låset (#855 F2: reglerna godtar bara
+//             `int`, annars nekas varje kvitto och eleven får aldrig mer mynt):
+//             decimaltal → Math.floor, negativt → 0, en sträng med ett tal
+//             ("120") → talet avrundat nedåt, allt annat (text, null, map) → 0.
+//             Saknas fältet lämnas det (reglerna räknar det som 0).
 //   agdaDjur  ägarbeviset { uid: varu-id } för varje djur som saknar en post:
 //             listorna i FAST ordning roomAnimals → äldre djur i ownedItems →
 //             farm.animals → pets. Bara FÖRSTA posten per uid (husdjur: id) räknas,
@@ -21,7 +27,7 @@
 //                            känd Halloween-art, annars "mystery-egg". Den gamla
 //                            `pet` migreras först till pets[0] (petsFromData) och
 //                            skrivs tillbaka.
-// Saldon och varor rörs aldrig. Idempotent: en andra körning ger null.
+// Saldon och varor rörs annars aldrig. Idempotent: en andra körning ger null.
 // ============================================================================
 
 import { xpFromProgress } from "../src/leveling.js";
@@ -40,6 +46,13 @@ export function agdaVardeForPet(pet) {
 }
 
 const okXp = (v) => typeof v === "number" && Number.isFinite(v) && v >= 0;
+const heltalOk = (v) => Number.isInteger(v) && v >= 0;
+
+/** coins som heltal ≥ 0 (se huvudet): tal och talsträngar avrundas nedåt, annat → 0. */
+export function myntSomHeltal(v) {
+  const n = typeof v === "number" ? v : typeof v === "string" && v.trim() !== "" ? Number(v) : NaN;
+  return Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0;
+}
 const nyckelOk = (k) => typeof k === "string" && k.length > 0;
 
 /**
@@ -52,8 +65,15 @@ export function planeraMigrering(sd, rakna = {}) {
   const plus = (k, n = 1) => { rakna[k] = (rakna[k] || 0) + n; };
   const patch = {};
   if (!okXp(d.xp)) {
-    patch.xp = xpFromProgress(d.progress || {});
+    patch.xp = Math.floor(xpFromProgress(d.progress || {})); // stjärnor kan vara decimaltal (#855 F2)
     plus("xp");
+  } else if (!heltalOk(d.xp)) {
+    patch.xp = Math.floor(d.xp);
+    plus("heltal");
+  }
+  if ("coins" in d && !heltalOk(d.coins)) {
+    patch.coins = myntSomHeltal(d.coins);
+    plus("heltal");
   }
 
   const befintlig = d.agdaDjur && typeof d.agdaDjur === "object" && !Array.isArray(d.agdaDjur) ? d.agdaDjur : {};

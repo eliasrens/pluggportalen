@@ -4,7 +4,8 @@
 // Går igenom ALLA studentData-dokument: gamla dokument utan `xp` får
 // xpFromProgress(progress), och alla befintliga djur (roomAnimals, äldre djur i
 // ownedItems, farm.animals, pets och den gamla `pet`) får en post i ägarbeviset
-// agdaDjur med den art de har i dag. Saldon och varor ändras inte. Logiken:
+// agdaDjur med den art de har i dag. coins/xp som inte är heltal avrundas nedåt
+// (låset godtar bara heltal, #855). Saldon och varor ändras annars inte. Logiken:
 // planeraMigrering i admin/migrera-mynt-las-core.mjs (enhetstestad).
 //
 // Körs i BÅDA deployfaserna (docs/SAKERHET-MYNT.md §7): fas 1 före webben, fas 2
@@ -23,7 +24,7 @@ import { planeraMigrering } from "./migrera-mynt-las-core.mjs";
 const { flags } = parseArgs();
 const COMMIT = flags.has("commit");
 const ATGARDER = {
-  xp: "xp härlett ur progress", aldreDjur: "äldre djur ur ownedItems → roomAnimals", gammaltPet: "gammalt pet → pets[0]",
+  xp: "xp härlett ur progress", heltal: "coins/xp avrundat till heltal (#855)", aldreDjur: "äldre djur ur ownedItems → roomAnimals", gammaltPet: "gammalt pet → pets[0]",
   rumsdjur: "agdaDjur: rumsdjur", gardsdjur: "agdaDjur: gårdsdjur", husdjur: "agdaDjur: husdjur (ägg)",
 };
 

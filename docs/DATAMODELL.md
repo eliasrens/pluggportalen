@@ -1865,10 +1865,10 @@ egen uid, klassmedlem, `amount` heltal ≥ 1, `at == request.time`, fundens
 bara betala EN donation (#500: utan markören delade flera donationer i samma
 batch på ett avdrag). Annan klass/icke-medlem nekas (`isClassMember`).
 Säkerhetsgranskningen: `docs/SAKERHET-klasscentret.md`.
-**Kvarvarande begränsning:** `studentData.coins` är klient-skrivbart
-(`isSelf`, utan fältvalidering) → reglerna garanterar *insamlat == summan av
-donationerna* och att saldot sjunker lika mycket i samma skrivning, inte att
-eleven "förtjänat" mynten.
+Sedan myntlåset (#855, `docs/SAKERHET-MYNT.md` §6 B3) får eleven bara höja
+`studentData.coins` med ett kvitto (`myntDag`, `mmMynt`) och bara sänka det
+ihop med en ändrad `kcDonation` – mynten i en donation är alltså förtjänade
+inom dagstaken.
 
 **Klassens möbellåda** härleds: `unlockedItems(funds)` = katalogföremålen vars
 `fund` har `isUnlocked` (inget eget dokument).
