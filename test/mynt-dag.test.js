@@ -26,7 +26,10 @@ import { xpForExercise } from "../src/leveling.js";
 import { MAX_QUESTIONS_PER_SESSION } from "../src/question-rotation.js";
 import { ROUND_SIZE } from "../src/rakna-core.js";
 import { myntAv, QUIZ_TIMELINE_MAX } from "../src/timeline/tidsjakt-core.js";
-import { COINS_PER_CORRECT, AMNES_COINS_PER_CORRECT, AMNES_QUESTIONS_BY_LEVEL, QUESTIONS_MAX } from "../src/lasresan/config.js";
+import {
+  COINS_PER_CORRECT, AMNES_COINS_PER_CORRECT, AMNES_QUESTIONS_BY_LEVEL, AMNES_QUESTIONS_HARD_MAX, QUESTIONS_MAX,
+} from "../src/lasresan/config.js";
+import { validateReadingTexts } from "../src/amneslasning/content.js";
 import { amnesCoinsFor } from "../src/amneslasning/progress.js";
 import { COINS } from "../src/ekvationsresan/config.js";
 import { installeraFirebaseStubbe } from "./helpers/firebase-stub-loader.js";
@@ -129,11 +132,21 @@ describe("taken skär aldrig en legitim utbetalning", () => {
     assert.ok(maxFragor * COINS_PER_CORRECT <= PER_GANG.lasresa, `${maxFragor} frågor`);
     assert.ok(20 * COINS_PER_CORRECT <= PER_GANG.lasresa, "marginal: 20 frågor");
   });
-  it("Ämnesläsning: 5/rätt, första läsningen, största nivån + marginal ≤ PER_GANG.amnes", () => {
-    const maxFragor = Math.max(...Object.values(AMNES_QUESTIONS_BY_LEVEL).map((r) => r[1]));
-    assert.ok(amnesCoinsFor(maxFragor, 0) <= PER_GANG.amnes);
-    assert.equal(amnesCoinsFor(20, 0), 20 * AMNES_COINS_PER_CORRECT);
-    assert.ok(amnesCoinsFor(20, 0) <= PER_GANG.amnes, "lärarens text med 20 frågor");
+  it("Ämnesläsning: 5/rätt × hårda frågetaket (första läsningen) ≤ PER_GANG.amnes", () => {
+    const maxNiva = Math.max(...Object.values(AMNES_QUESTIONS_BY_LEVEL).map((r) => r[1]));
+    assert.ok(maxNiva <= AMNES_QUESTIONS_HARD_MAX);
+    assert.equal(amnesCoinsFor(AMNES_QUESTIONS_HARD_MAX, 0), AMNES_QUESTIONS_HARD_MAX * AMNES_COINS_PER_CORRECT);
+    assert.ok(amnesCoinsFor(AMNES_QUESTIONS_HARD_MAX, 0) <= PER_GANG.amnes, "lärarens text med högsta tillåtna antalet frågor");
+  });
+  it("Ämnesläsning: en text över det hårda frågetaket är ett fel – sparas aldrig", () => {
+    const fraga = (i) => ({ id: `q${i}`, question: `Fråga ${i}?`, options: ["a", "b", "c", "d"], answerIndex: 0, category: "fakta" });
+    const text = (n) => ({ id: `t${n}`, title: `Text ${n}`, level: 1, textType: "fact", body: "Ord ".repeat(60), questions: Array.from({ length: n }, (_, i) => fraga(i + 1)) });
+    const ok = validateReadingTexts([text(AMNES_QUESTIONS_HARD_MAX)]);
+    assert.deepEqual(ok.errors, []);
+    assert.ok(ok.warnings.some((w) => /frågor \(ska vara/.test(w)), "utanför nivåns intervall = bara varning");
+    const over = validateReadingTexts([text(AMNES_QUESTIONS_HARD_MAX + 1)]);
+    assert.equal(over.valid.length, 0);
+    assert.ok(over.errors.some((e) => e.includes(`högst ${AMNES_QUESTIONS_HARD_MAX} per text`)), over.errors.join(" | "));
   });
   it("Ekvationsresan: högsta beloppet = PER_GANG.ekv", () => {
     assert.equal(Math.max(COINS.extraChallenge, ...COINS.byLevel.map((r) => r.coins)), PER_GANG.ekv);

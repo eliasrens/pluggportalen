@@ -132,6 +132,12 @@ export const AMNES_QUESTIONS_BY_LEVEL = {
   3: [5, 7],
 };
 /**
+ * Högst så många frågor i en ämnestext – FEL, inte varning (#853). Taket för
+ * en utbetalning (src/mynt-dag.js PER_GANG.amnes = 20 × 5) bygger på det, så
+ * ingen legitim text kan ge mer än taket. test/mynt-dag.test.js håller ihop dem.
+ */
+export const AMNES_QUESTIONS_HARD_MAX = 20;
+/**
  * Pluggcoins per rätt svar (spec §5), till det VANLIGA saldot som Läsresans.
  * Omläsning av samma text skalas med leveling.grindMultiplier (per text och elev).
  */

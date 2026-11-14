@@ -34,7 +34,8 @@ export const KALLOR = ["ovning", "lasresa", "amnes", "ekv", "gard"];
  *             slut) → 500 ≈ tolv minuters felfritt spel i maxtempo, även om
  *             varje fångst vore färsk (2 mynt).
  *   lasresa – 3/rätt, banken har ≤ 9 frågor per text → 60 täcker 20 frågor.
- *   amnes   – 5/rätt, lärarens texter (frågeantalet är bara en varning) → 20 frågor.
+ *   amnes   – 5/rätt × högst 20 frågor per text (AMNES_QUESTIONS_HARD_MAX,
+ *             fel i valideringen – nivåns 3–7 är bara en varning) = 100.
  *   ekv     – COINS.extraChallenge 7 (högsta i tabellen).
  */
 export const PER_GANG = Object.freeze({ ovning: 500, lasresa: 60, amnes: 100, ekv: 7 });
