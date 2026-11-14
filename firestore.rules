@@ -287,6 +287,20 @@ service cloud.firestore {
         allow create, update: if provMyntKvittoOk(studentId, t);
         allow delete: if isAdmin();
       }
+
+      // Mattematchen – pluggmynt på MM-sidan (#846, docs/spec-mattematchen-live.md
+      // "PLUGGMYNT"): mmMynt/{dag} är elevens DAGSRÄKNARE { dag, cid, mynt,
+      // lastAttemptId, lastAt }. Den får bara öka med 1 i SAMMA batch som ett
+      // NYTT rätt MM-svar och saldot +1 (mmMyntOk nedan), högst 50 per dag,
+      // och sjunker aldrig (eleven får inte radera). Talen 1/50 speglas i
+      // src/tavling/mm-config.js (test/mm-mynt.test.js). Svar nr 51+ skrivs
+      // utan kvitto – poängen räknas, inga mynt.
+      // ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` FÖRE webben.
+      match /mmMynt/{dag} {
+        allow read: if isSelf(studentId) || hasStudent(studentId);
+        allow create, update: if mmMyntOk(studentId, dag);
+        allow delete: if isAdmin();
+      }
     }
 
     // Köpbara avatarer (#694): eleven får bara BYTA TILL en köpbar avatar som
@@ -438,6 +452,42 @@ service cloud.firestore {
       let k = /databases/$(database)/documents/studentData/$(studentId)/provMynt/$(n.lastProvMynt);
       return n.lastProvMynt is string && existsAfter(k) &&
         n.coins == resource.data.get('coins', 0) + getAfter(k).data.total - (exists(k) ? get(k).data.total : 0);
+    }
+
+    // Mattematchens pluggmynt (#846): dagsräknaren studentData/{uid}/mmMynt/{dag}.
+    // Samma mönster som MM:s övriga räknare (counterBump/mmScoreBump): +1 bara i
+    // samma batch som ett NYTT rätt svar – svaret fanns inte före batchen men
+    // finns efter, är elevens eget och rätt (facit räknas om i mmAnswerCreate)
+    // – och saldot studentData.coins ökar med exakt 1 i samma batch. Samma
+    // attemptId igen → svaret finns redan → nekas. mynt ≤ 50; aldrig −1.
+    // "Dag" = SVENSKT datum ur request.time (serverns klocka, aldrig klientens):
+    // UTC + 1 h (normaltid) eller + 2 h (sommartid = från sista söndagen i mars
+    // 01:00 UTC till sista söndagen i oktober 01:00 UTC – EU-regeln, som
+    // Europe/Stockholm). Klienten räknar samma datum (mm-config.js myntDag);
+    // fel datum (klockskev vid midnatt) nekas och klienten skickar om utan mynt.
+    function sistaSondag(y, m) { return 31 - (timestamp.date(y, m, 31).dayOfWeek() % 7); }
+    function svenskSommartid(t) {
+      let y = t.year();
+      return t >= timestamp.date(y, 3, sistaSondag(y, 3)) + duration.value(1, 'h') &&
+        t < timestamp.date(y, 10, sistaSondag(y, 10)) + duration.value(1, 'h');
+    }
+    function svenskDag(t) {
+      let l = t + duration.value(svenskSommartid(t) ? 2 : 1, 'h');
+      return string(l.year()) + '-' + (l.month() < 10 ? '0' : '') + string(l.month()) +
+        '-' + (l.day() < 10 ? '0' : '') + string(l.day());
+    }
+    function mmMyntOk(uid, dag) {
+      let d = request.resource.data;
+      let ap = /databases/$(database)/documents/mathCompetitions/$(d.cid)/answers/$(d.lastAttemptId);
+      let a = getAfter(ap).data;
+      let sd = /databases/$(database)/documents/studentData/$(uid);
+      return isSelf(uid) && d.cid is string && d.lastAttemptId is string &&
+        dag == svenskDag(request.time) && d.dag == dag &&
+        !exists(ap) && existsAfter(ap) && a.uid == uid && a.isCorrect == true &&
+        d.lastAt == request.time &&
+        changedOnly(['dag', 'cid', 'mynt', 'lastAttemptId', 'lastAt']) &&
+        bumped('mynt', 1) && d.mynt <= 50 &&
+        getAfter(sd).data.get('coins', 0) == (exists(sd) ? get(sd).data.get('coins', 0) : 0) + 1;
     }
 
     // Ekvationsresan (#618): formen på progress och försök. Nivå 1–12 (Etapp 2
@@ -795,21 +845,33 @@ service cloud.firestore {
         return /databases/$(database)/documents/mathCompetitions/$(cid)/$(sub)/$(id);
       }
       function comp() { return get(/databases/$(database)/documents/mathCompetitions/$(cid)).data; }
+      // Svarets ankare (#847): answers (MM-sidan) eller liveAnswers (ett Live-svar
+      // som räknas in, src/tavling/mm-live.js) – det som skapas i samma batch.
+      function mmAnkare(id) {
+        return existsAfter(mmPath('liveAnswers', id)) ? mmPath('liveAnswers', id) : mmPath('answers', id);
+      }
+      // Räknaren pekar på svaret OCH skrevs i just den här batchen (lastAt = nu) –
+      // annars kunde ett svar skapas i efterhand mot en räknare som ett
+      // Live-svar redan ökat (#847: serverns räknare, liveAnswers) och hämta mynt.
+      function mmBumpadNu(p, attemptId) {
+        let r = getAfter(p).data;
+        return r.lastAttemptId == attemptId && r.lastAt == request.time;
+      }
       function mmAnswerCreate(attemptId) {
         let d = request.resource.data;
         let c = comp();
         return answerCoreOk(d, attemptId, c.counterShards) && multAnswerOk(d) &&
           c.status == 'active' && request.time >= c.startAt && request.time < c.endAt &&
           d.classId in c.participatingClassIds &&
-          getAfter(mmPath('studentStats', d.uid)).data.lastAttemptId == attemptId &&
+          mmBumpadNu(mmPath('studentStats', d.uid), attemptId) &&
           (d.isCorrect == false ||
-            (getAfter(mmPath('scores', d.uid)).data.lastAttemptId == attemptId &&
-             getAfter(mmPath('classCounters', d.classId + '_' + string(d.shard))).data.lastAttemptId == attemptId));
+            (mmBumpadNu(mmPath('scores', d.uid), attemptId) &&
+             mmBumpadNu(mmPath('classCounters', d.classId + '_' + string(d.shard)), attemptId)));
       }
       // Privat elevstatistik: totalt + per tabell (c{t} = rätt, w{t} = fel).
       function mmStatsBump(uid) {
         let d = request.resource.data;
-        let ap = mmPath('answers', d.lastAttemptId);
+        let ap = mmAnkare(d.lastAttemptId);
         let a = getAfter(ap).data;
         let ok = a.isCorrect == true;
         let tA = (ok ? 'c' : 'w') + string(a.factorA);
@@ -823,7 +885,7 @@ service cloud.firestore {
       // Publik topplistepost (bara namn/klass/antal rätt): +1 per rätt svar.
       function mmScoreBump(uid) {
         let d = request.resource.data;
-        let ap = mmPath('answers', d.lastAttemptId);
+        let ap = mmAnkare(d.lastAttemptId);
         let a = getAfter(ap).data;
         return isSelf(uid) && d.lastAttemptId is string && !exists(ap) && existsAfter(ap) &&
           a.uid == uid && a.isCorrect == true &&
@@ -841,6 +903,21 @@ service cloud.firestore {
       allow delete: if isAdmin();
 
       match /answers/{attemptId} {
+        allow read: if hasClass(resource.data.classId) || (signedIn() && resource.data.uid == request.auth.uid);
+        // Ett id är ALDRIG både Live-ankare och MM-svar (#847 F1): annars kunde
+        // en förfalskad batch hämta MM-myntet (mmMyntOk) för ett Live-svar.
+        allow create: if mmAnswerCreate(attemptId) && !existsAfter(mmPath('liveAnswers', attemptId));
+        allow update: if false;
+        allow delete: if isAdmin();
+      }
+      // Live räknas in (#847): ett Live-svar i multiplikation får sitt MM-svar
+      // HÄR – samma form och kontroller som answers (aktiv tävling, perioden mot
+      // request.time, klassen deltar, facit, räknarna i samma batch). Live-svaret
+      // i samma batch kan bara skapas en gång. mmMyntOk betalar bara mot answers
+      // → Live ger aldrig MM-mynt; lärarens träningstotal (collectionGroup
+      // "answers") räknar inte samma svar två gånger. Servern (functions/
+      // mattematchen-live.js) skriver räknarna direkt, utan ankare.
+      match /liveAnswers/{attemptId} {
         allow read: if hasClass(resource.data.classId) || (signedIn() && resource.data.uid == request.auth.uid);
         allow create: if mmAnswerCreate(attemptId);
         allow update: if false;
@@ -862,7 +939,7 @@ service cloud.firestore {
       match /classCounters/{counterId} {
         allow read: if signedIn();
         allow create, update: if validCounterId(counterId) &&
-          counterBump(mmPath('answers', request.resource.data.lastAttemptId), counterId);
+          counterBump(mmAnkare(request.resource.data.lastAttemptId), counterId);
         allow delete: if isAdmin();
       }
     }

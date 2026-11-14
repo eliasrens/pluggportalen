@@ -23,6 +23,8 @@
 //   noteLeader      efter en saldoändring: ny ensam ledare → meta/leader + en
 //     "lead"-händelse.
 //   Alla: sessionen måste vara formatets, status live och inom matchtiden.
+//   Mattematchen (#847): ett multiplikationssvar räknas också i elevens aktiva
+//     Mattematch, i SAMMA transaktion (./mattematchen-live.js).
 //
 // HÄNDELSEFLÖDET: varje utfall skriver {events}/{autoId} { type, chest?, uid,
 // name, classId, victim…?, amount, gold, at = serverns tid } i SAMMA
@@ -58,6 +60,7 @@
 
 import { KsError, gradeMult, gradeQuiz, pickNextQ, yearOut } from "./kistspel-rattning.js";
 import { toMs } from "./kistspel/ks-regler.js";
+import { mmForLive, mmLiveWrites } from "./mattematchen-live.js";
 
 export { KsError };
 
@@ -149,6 +152,8 @@ export function createKistServer({ format, regler, rules, collections: col, fall
     // Spelardokumentet (deltagare + namn) läses UTANFÖR transaktionen: elevens
     // närvaropuls skriver dit hela tiden och skulle annars krocka med svaret.
     const pSnap = await r.player.get();
+    // Mattematchen (#847): aktiv match för klassen ur cachen, före transaktionen.
+    const mm = pSnap.exists ? await mmForLive(deps, pSnap.data().classId) : null;
     const hookRefs = answerHook ? answerHook.refs(r, uid) : [];
     return db.runTransaction(async (tx) => {
       const [sSnap, gSnap, aSnap, ...hookSnaps] = await tx.getAll(r.sess, r.gp, r.answer(attemptId), ...hookRefs);
@@ -191,6 +196,7 @@ export function createKistServer({ format, regler, rules, collections: col, fall
         ...(nextQ != null ? { nextQ } : {}),
       }, { merge: true });
       answerHook?.write(tx, hookSnaps, { ok, attemptId, FieldValue });
+      if (s.gameMode === MULT) mmLiveWrites(tx, deps, mm, { uid, classId: p.classId, name: p.name, attemptId, svar: [graded] });
       return { attemptId, correct: ok, correctAnswer: graded.correctAnswer, nextQ, ...yearOut(graded) };
     });
   }

@@ -9,12 +9,17 @@
 //   renderStudentResults(ctx, host, comp, classes, api) – Elevresultat: välj
 //       klass → sorterbar tabell → elevdetalj (teacher-mm-stats.js).
 // Topp 25/Klasskamp läses som på elevsidan (mm-data.js, aggregerade dokument).
+// Klasskampen har ett årskursfilter (#845) i Följ + historik: Alla · Åk 3 ·
+// Åk 4 … (bara årskurser i matchen), filtrerat i klienten på de redan lästa
+// raderna – inga extra läsningar. Topp 25 är oförändrad.
 // ============================================================================
 
 import { el, esc, icon } from "../teacher-shared.js";
 import { formatScore, TABLES } from "./mm-core.js";
 import { renderMmTable, tablesHtml } from "./teacher-mm-stats.js";
 import { getStudentsByIds } from "../data.js";
+import { ALLA, arskursLabel, arskurserIMatch, filtreraArskurs } from "./arskurs.js";
+import { skapaArskursFilter } from "./mm-arskurs-ui.js";
 
 const MEDALJ = { 1: "🥇", 2: "🥈", 3: "🥉" };
 const plats = (r) => MEDALJ[r] || `${r}.`;
@@ -31,9 +36,9 @@ export function topHtml(rows, classNames) {
     </li>`).join("")}</ol>`;
 }
 
-/** Klasskamp (rows = classStandings-rader). */
-export function classFightHtml(rows) {
-  if (!rows?.length) return `<p class="hint">Inga klasser.</p>`;
+/** Klasskamp (rows = classStandings-rader, ev. filtrerade per årskurs). */
+export function classFightHtml(rows, ak = ALLA) {
+  if (!rows?.length) return `<p class="hint">${ak === ALLA ? "Inga klasser." : `Inga klasser i ${esc(arskursLabel(ak).toLowerCase())}.`}</p>`;
   return `<ol class="mmt-lista">${rows.map((r) => `
     <li class="mmt-rad${r.rank === 1 && r.correct > 0 ? " mmt-pall" : ""}">
       <span class="mmt-plats">${r.correct > 0 ? plats(r.rank) : "–"}</span>
@@ -42,11 +47,18 @@ export function classFightHtml(rows) {
     </li>`).join("")}</ol>`;
 }
 
+/** Två kort; Klasskampens kort har plats för årskursfiltret (.mmt-ak-host). */
 function twoCols(top, fight) {
   return `<div class="mmt-tva">
     <section class="mmt-kort"><h3>${icon("trophy", 16)} Topp 25</h3>${top}</section>
-    <section class="mmt-kort"><h3>${icon("users", 16)} Klasskamp <span class="hint">rätt / elever</span></h3>${fight}</section>
+    <section class="mmt-kort mmt-klasskamp"><h3>${icon("users", 16)} Klasskamp <span class="hint">rätt / elever</span></h3>
+      <div class="mmt-ak-host"></div><div class="mmt-klasskamp-lista">${fight}</div></section>
   </div>`;
+}
+
+/** Årskursfiltret (#845) för klasserna i `classIds`; el = null om bara en årskurs. */
+function akFilter(classIds, classNames, onChange) {
+  return skapaArskursFilter({ arskurser: arskurserIMatch(classIds, classNames), prefix: "mmt", onChange });
 }
 
 /** Följ en pågående tävling (Topp 25 + Klasskamp). */
@@ -61,13 +73,21 @@ export function renderFollow(host, comp, classNames) {
   const body = box.querySelector(".mmt-follow-body");
   const stamp = box.querySelector(".mmt-uppdaterad");
   let busy = false;
+  let fight = [];
+  // Filtret ritar om Klasskampen ur de redan lästa raderna (ingen läsning).
+  const filter = akFilter(comp.participatingClassIds, classNames, (ak) => {
+    const lista = body.querySelector(".mmt-klasskamp-lista");
+    if (lista) lista.innerHTML = classFightHtml(filtreraArskurs(fight, ak, classNames, "score"), ak);
+  });
   const load = async () => {
     if (busy) return;
     busy = true;
     try {
       const { loadTop25, loadClassFight } = await import("./mm-data.js");
-      const [top, fight] = await Promise.all([loadTop25(comp.id, { fresh: true }), loadClassFight(comp, { fresh: true })]);
-      body.innerHTML = twoCols(topHtml(top, classNames), classFightHtml(fight));
+      const [top, rader] = await Promise.all([loadTop25(comp.id, { fresh: true }), loadClassFight(comp, { fresh: true })]);
+      fight = rader;
+      body.innerHTML = twoCols(topHtml(top, classNames), classFightHtml(filtreraArskurs(fight, filter.vald, classNames, "score"), filter.vald));
+      if (filter.el) body.querySelector(".mmt-ak-host").replaceChildren(filter.el);
       stamp.textContent = `Uppdaterad ${new Date().toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`;
     } catch (err) {
       body.replaceChildren(el(`<div class="msg error">Kunde inte ladda topplistorna: ${esc(err.message)}</div>`));
@@ -95,6 +115,11 @@ export function renderHistoryResult(host, result, classNames) {
     return { ...r, total, pct: total ? Math.round((r.correct * 100) / total) : 0 };
   });
   const pct = t.total ? Math.round((t.correct * 100) / t.total) : null;
+  // Årskursen ur klassnamnet SOM DET VAR vid avslutet (result.classes[].name),
+  // så historiken inte flyttar klasser om de döps om senare.
+  const namnDa = new Map((result.classes || []).map((k) => [k.classId, k.name || classNames.get(k.classId) || k.classId]));
+  const klasskamp = (ak) => classFightHtml(filtreraArskurs(result.classes, ak, namnDa, "score"), ak);
+  const classIds = [...namnDa.keys()];
   host.replaceChildren(el(`<div class="mmt-historik">
     <div class="mmt-vinnare">
       <div class="mmt-vinnare-kort"><span class="mmt-v-ikon">🥇</span><div>
@@ -113,9 +138,11 @@ export function renderHistoryResult(host, result, classNames) {
         <span class="hint">${t.correct || 0} rätt · ${t.incorrect || 0} fel${pct == null ? "" : ` · ${pct}% rätt`} · ${t.participants || 0} elever</span>
       </div></div>
     </div>
-    ${twoCols(topHtml(result.top, classNames), classFightHtml(result.classes))}
+    ${twoCols(topHtml(result.top, classNames), klasskamp(ALLA))}
     <details class="mmt-kort mmt-alla-tabeller"><summary>Hela tävlingen per tabell 0–10</summary>${tablesHtml(tables)}</details>
   </div>`));
+  const filter = akFilter(classIds, namnDa, (ak) => { host.querySelector(".mmt-klasskamp-lista").innerHTML = klasskamp(ak); });
+  if (filter.el) host.querySelector(".mmt-ak-host").replaceChildren(filter.el);
 }
 
 /** Elevresultat: välj en deltagande klass → tabell. */

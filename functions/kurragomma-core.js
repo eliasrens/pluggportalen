@@ -20,7 +20,8 @@
 //           → { gomstalle: { x, z, skydd, namn }, flyttad, redan }
 //   svara   kgSvara({ sid, attemptId, factorA, factorB, answer, choiceIndex?, q?, year? })
 //           rättas som kistspelen (answers/{attemptId} = idempotensen; perQuestion räknas
-//           i kgPlayers.fragor – kurragomma-fragor.js, #842)
+//           i kgPlayers.fragor – kurragomma-fragor.js, #842). Multiplikation räknas
+//           också i elevens aktiva Mattematch, samma transaktion (#847, mattematchen-live.js)
 //           → { attemptId, correct, correctAnswer, nextQ, poang, laddningar, vissling, plats?, correctYear? }
 //   leta    kgLeta({ sid, x, z })  EN transaktion: kontroll, sökning, hittade blir sökare
 //           → { hittade: [{ uid, namn, x, z, plats }], laddningar, poang, plats, flode }
@@ -43,6 +44,7 @@ import { startaIntern, redo, spelareDoc, gorTillSokare } from "./kurragomma-fas.
 import { fragorOkning } from "./kurragomma-fragor.js";
 import * as rt from "./kurragomma-rtdb.js";
 import { visslingsHandelse } from "./kurragomma-vissling.js";
+import { mmForLive, mmLiveWrites } from "./mattematchen-live.js";
 
 export { KsError };
 export { nyttMinne } from "./kurragomma-sess.js";
@@ -144,6 +146,7 @@ export async function svara(deps, uid, raw) {
   assertLive(s, nu);
   if (s.gameMode !== MULT && s.gameMode !== QUIZ) throw new KsError("failed-precondition", "Spelläget stöds inte i Kurragömma.");
   const quiz = s.gameMode === QUIZ ? await quizFor(deps, sid) : null;
+  const mm = s.gameMode === MULT ? await mmForLive(deps, p.classId) : null; // Mattematchen (#847), cachat
   const r = refs(db, sid);
   const karta = kartaFor(s);
   // Kvoten (§5.5): svaret läses INTE i förväg – tx.create fäller vid ett upprepat
@@ -166,6 +169,7 @@ export async function svara(deps, uid, raw) {
     const eff = svarsEffekt({ roll: kp.roll, ratt: graded.isCorrect, fas: s.kgFas, laddningar: kp.laddningar | 0, senastVisslingAt: sec?.senastVisslingAt ?? null, nu });
     const visslar = eff.vissling && sec?.gomd === true;
     tx.create(r.answer(attemptId), { ...graded, uid, classId: p.classId, format: FORMAT, at: FieldValue.serverTimestamp() });
+    if (!quiz) mmLiveWrites(tx, deps, mm, { uid, classId: p.classId, name: p.name, attemptId, svar: [graded] });
     // Räknarna per fråga (fragor.*) i samma update – kgAvsluta bygger perQuestion ur dem i stället för answers (#842).
     tx.update(r.kgPlayer(uid), {
       poang: FieldValue.increment(eff.poang), laddningar: eff.laddningar, ratt: FieldValue.increment(graded.isCorrect ? 1 : 0),

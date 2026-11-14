@@ -22,17 +22,20 @@
 //   getScores(sid)                  → sbScores[]
 // API (elev)
 //   submitAnswer({ sid, s, uid, classId, choiceIndex?, answer?, year? })
-//                                   year = tidslinjefråga (#600)
+//                                   year = tidslinjefråga (#600); multiplikation
+//                                   räknas också i elevens aktiva Mattematch (#847)
 //                                   → Promise<"ok" | "redan-svarat">
 //   getMyAnswer(sid, index, uid)    → svarsdokumentet | null (omladdning)
 // ============================================================================
 
 import { db } from "../../../firebase-config.js";
 import {
-  doc, getDoc, getDocs, setDoc, collection, query, where, onSnapshot, runTransaction, serverTimestamp,
+  doc, getDoc, getDocs, collection, query, where, onSnapshot, runTransaction, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { SB_PRIVATE_DOC, answerDocId } from "./snilleblixt-core.js";
-import { planStep, planAnswer } from "./snilleblixt-flode.js";
+import { planStep, planAnswer, sbMultRecord } from "./snilleblixt-flode.js";
+import { mmLiveWrites, commitMedMm } from "../../../tavling/mm-live.js";
+import { newAttemptId } from "../../../mult/attempt-id.js";
 
 const fv = { serverTimestamp };
 const sessRef = (sid) => doc(db, "liveSessions", sid);
@@ -96,11 +99,17 @@ export function watchScores(sid, cb, onErr) {
   return onSnapshot(collection(db, "liveSessions", sid, "sbScores"), (snap) => cb(snap.docs.map((d) => d.data()).sort(byIndex)), onErr);
 }
 
-/** Elevens enda svar. Fanns det redan (dubbelklick, två flikar) nekar reglerna → "redan-svarat". */
+/**
+ * Elevens enda svar. Fanns det redan (dubbelklick, två flikar) nekar reglerna → "redan-svarat".
+ * Multiplikation räknas också i elevens aktiva Mattematch (#847) – i SAMMA batch som
+ * svaret, som bara kan skapas en gång (src/tavling/mm-live.js).
+ */
 export async function submitAnswer({ sid, s, uid, classId, choiceIndex, answer, year }) {
   const w = planAnswer({ sid, s, uid, classId, choiceIndex, answer, year, fv });
+  const mm = sbMultRecord(s, { choiceIndex, answer });
+  const mmWrites = mm ? await mmLiveWrites({ uid, classId, attemptId: newAttemptId(), ...mm }) : [];
   try {
-    await setDoc(doc(db, ...w.path), w.data);
+    await commitMedMm([w], mmWrites);
     return "ok";
   } catch (err) {
     if (err?.code === "permission-denied" && (await getMyAnswer(sid, w.data.q, uid))) return "redan-svarat";

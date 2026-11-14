@@ -28,6 +28,7 @@ studentData/{studentId}/brakresaRounds/{roundId}   ← Bråkresan: omgång med t
 studentData/{studentId}/brakresaRewards/{eventId}  ← Bråkresan: belöningsbokföring (unikt händelse-id)
 studentData/{studentId}/brakresaHunts/{datum}      ← Bråkresan: daglig guldjakt
 studentData/{studentId}/provMynt/{tillfalleId}     ← Prov: pluggmynt-kvitto per prov (#746, löpande summa)
+studentData/{studentId}/mmMynt/{dag}               ← Mattematchen: dagsräknare för pluggmynt (#846, ÅÅÅÅ-MM-DD svensk tid)
 brakresaSecrets/{roundId}                ← Bråkresan: omgångens facit – bara Cloud Functions
 brakresaRecommendations/{recId}          ← Bråkresan: lärarens rekommendationer
 schackKlass/{classId}                    ← Schack (#779): lobbyn, pågående partier och topplistan – EN doc per klass, bara servern skriver
@@ -960,9 +961,11 @@ klass, filtreras i klienten (ett `endAt`-filter skulle kräva sammansatt index).
 ```
 mathCompetitions/{cid}                               ← MathCompetition (lärare)
 mathCompetitions/{cid}/answers/{attemptId}           ← ett svar (create-only)
+mathCompetitions/{cid}/liveAnswers/{attemptId}       ← ett Live-svar som räknats in (#847, create-only)
 mathCompetitions/{cid}/studentStats/{uid}            ← PRIVAT elevstatistik (cache)
 mathCompetitions/{cid}/scores/{uid}                  ← PUBLIK topplistepost (Topp 25)
 mathCompetitions/{cid}/classCounters/{classId}_{n}   ← shardad klassräknare (Klasskamp)
+studentData/{uid}/mmMynt/{dag}                       ← MM-sidans pluggmynt: dagsräknare (#846)
 liveSessions/{sid}                                   ← LiveSession (lärare)
 liveSessions/{sid}/answers/{attemptId}               ← ett Live-svar (create-only)
 liveSessions/{sid}/players/{uid}                     ← närvaro/"redo" + elevens matchresultat
@@ -1006,6 +1009,7 @@ Ingen backend finns – `firestore.rules` är servervalideringen. Varje svar bli
 | `studentStats/{uid}` / `players/{uid}` (+1 rätt/fel) | ✓ | ✓ | ✓ | ✓ |
 | `scores/{uid}` (+1) | ✓ | – | – | – |
 | klassräknare `{classId}_{shard}` (+1) | ✓ | – | ✓ | – |
+| `studentData/{uid}/mmMynt/{dag}` (+1) + `studentData/{uid}.coins` (+1) (#846, bara MM-sidan, under dagstaket) | ✓ | – | – | – |
 
 - **Dubbla svar:** `attemptId` skapas när frågan visas och är dokument-id. Svaret
   får bara skapas, aldrig uppdateras → dubbel-ENTER/retry/offline-kö räknas aldrig två gånger.
@@ -1024,6 +1028,21 @@ Ingen backend finns – `firestore.rules` är servervalideringen. Varje svar bli
 - **Separata system:** MM-poäng (`mathCompetitions/…`) och Live-poäng
   (`liveSessions/…`) kan aldrig korsas – varje räknare valideras mot ett svar
   i SIN egen tävling.
+- **Pluggmynt på MM-sidan (#846, spec "PLUGGMYNT"):** 1 mynt per rätt svar,
+  högst 50 per elev och dag (`src/tavling/mm-config.js`). Dagsräknaren
+  `studentData/{uid}/mmMynt/{dag}` = `{ dag, cid, mynt, lastAttemptId, lastAt }`
+  skrivs i SAMMA batch som svaret (`planMathAnswerWrites` med `mynt: { dag }`)
+  tillsammans med `studentData/{uid}.coins +1`. Reglerna (`mmMyntOk`) kräver:
+  elevens eget, svaret `mathCompetitions/{cid}/answers/{lastAttemptId}` nytt i
+  batchen och rätt, `mynt` +1 och ≤ 50, saldot exakt +1 i samma batch, bara
+  räknarfälten, ingen radering (admin undantaget) → inga mynt utan svar, aldrig
+  två per svar eller per `attemptId`, aldrig över 50, aldrig nollställt.
+  `dag` = svenskt datum ÅÅÅÅ-MM-DD ur `request.time` (UTC + 1 h, + 2 h under
+  sommartid = sista söndagen i mars 01:00 UTC → sista söndagen i oktober
+  01:00 UTC); klienten räknar samma via `Intl` Europe/Stockholm (`myntDag`),
+  `test/mm-mynt.test.js` bevisar likheten. Svar nr 51+ (och Live-svar som
+  räknas in i MM, issue C) skrivs UTAN myntskrivningarna. Nekas en batch med
+  mynt (annan flik nådde taket, midnatt) skickar klienten om svaret utan mynt.
 
 **Kvarvarande begränsningar (ärligt):**
 1. Eleven väljer själv vilken fråga hen svarar på – reglerna kan inte se vilken
@@ -1055,7 +1074,7 @@ automatiska enkelfälts-index; kombineras `status`-filter krävs ett sammansatt 
 `avslutad` = `finished` eller nu ≥ `endAt`. Svar godtas bara i läget *aktiv*.
 "Starta nu" = sätt `startAt` till nu; "Avsluta" = `status: "finished"` (+ ev. `endAt` = nu).
 **Nollställning** (med tydlig bekräftelse) = läraren raderar `answers`,
-`studentStats`, `scores`, `classCounters` under tävlingen. Avslutade tävlingar
+`liveAnswers`, `studentStats`, `scores`, `classCounters` under tävlingen. Avslutade tävlingar
 ligger kvar = **historik** (`result` + alla underdokument).
 
 ### `mathCompetitions/{cid}/answers/{attemptId}` – MathAnswer (även Live-svar)
@@ -1075,6 +1094,22 @@ ligger kvar = **historik** (`result` + alla underdokument).
 Läsning: eleven själv + lärare. **Gemensam träningsstatistik** (MM + Live
 tillsammans) = `collectionGroup("answers").where("uid","==",uid)` – inga extra
 skrivningar, tävlingspoängen förblir separata.
+
+### `mathCompetitions/{cid}/liveAnswers/{attemptId}` – Live-svar som räknats in (#847)
+
+Samma fält och samma regler som `answers` ovan. Ett multiplikationssvar i ett
+KLIENTFORMAT (Klassmatchen, Snilleblixten) som räknas i elevens aktiva
+Mattematch får sitt MM-svar här, i samma batch som Live-svaret
+(`src/tavling/mm-live.js`); räknarna nedan godtar ankaret i `answers` eller
+`liveAnswers` (`mmAnkare` i reglerna). Egen samling så att MM-mynten
+(`mmMyntOk` → bara `answers`) aldrig betalas för ett Live-svar och
+träningstotalen (`collectionGroup("answers")`) inte räknar svaret två gånger.
+Samma id kan aldrig vara både `answers/{id}` och `liveAnswers/{id}` (reglerna
+nekar `answers` när ankaret skapas i batchen).
+Serverformaten (Guldrushen, Datakuppen, Meteorstormen, Kurragömma) skriver
+räknarna direkt i sin egen transaktion utan ankare
+(`functions/mattematchen-live.js`). Plan och kvot:
+`docs/spec-mattematchen-live.md` "LIVE RÄKNAS IN I MATTEMATCHEN".
 
 ### `mathCompetitions/{cid}/studentStats/{uid}` – CompetitionStudentStats (privat)
 
