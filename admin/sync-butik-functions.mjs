@@ -8,7 +8,7 @@
 //   src/shop-items.js, mystery-items.js katalogen + mysterylådans lottning
 //   src/season-config.js                Halloween på/av (config/season)
 //   src/farm-core.js                    gården (djur, nivåer)
-//   src/klass-membership.js             petsFromData, ownedCount (+ elevens standarddokument)
+//   src/klass-membership.js             sparadePets, ownedCount (+ elevens standarddokument)
 //   src/halloween/hw-kostymer.js        Halloween-kostymernas katalog (lazy i webben)
 //   src/halloween/hw-djur-katalog.js    Halloween-djurens pumpaägg (lazy i webben)
 // Samma inbördes struktur (functions/butik/<sökväg under src/>), så de relativa

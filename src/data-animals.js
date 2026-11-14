@@ -32,10 +32,12 @@
 // Hålls medvetet HELT åtskild från pets[]: matnings-/evolutionslogiken i
 // data-pet.js rör aldrig roomAnimals, och den här modulen rör aldrig pets.
 //
-// Bakåtkompatibilitet: djur som köptes när de var statiska möbler ligger i
-// studentData.ownedItems (+ ev. room.placements). De läses in som roomAnimals
-// vid rendering (legacy-merge i animalsFromData) och skrivs ner till
-// roomAnimals första gången en position sparas – ownedItems lämnas orörd.
+// Ägandet (#856, docs/SAKERHET-MYNT.md §6 B4): vilka djur eleven äger, och
+// vilken art, står i serverkartan studentData.agdaDjur { uid: art-id } (butikKop
+// och migreringen admin/migrera-mynt-las.mjs). animalsFromData visar bara den
+// första posten per uid som har ett vanligt djur i kartan, med kartans art –
+// listan är bara tillstånd (position, namn, undanlagd). Äldre djur som köptes
+// som statiska möbler (ownedItems) har migreringen gjort till riktiga poster.
 // ============================================================================
 
 import { db } from "./firebase-config.js";
@@ -45,6 +47,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { currentStudentId, invalidateStudentData } from "./data.js";
 import { isAnimalItem } from "./shop-items.js";
+import { agdaPoster, medDoldaPoster } from "./farm-core.js";
 import { cleanPetName } from "./data-pet.js";
 
 /** Slumpad startposition nere på golvet (samma spridning som nya ägg). */
@@ -52,43 +55,28 @@ function randomFloorPos() {
   return { x: 30 + Math.round(Math.random() * 40), y: 70 + Math.round(Math.random() * 15) };
 }
 
-/** Nytt unikt instans-id för ett djur ("<art>#<slump>"). */
-function newAnimalUid(artId) {
-  return artId + "#" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-}
+/** Rumsdjurens nyckel: uid, eller arten för äldre poster utan uid. */
+const djurNyckel = (a) => a.uid || a.id;
 
 /**
- * roomAnimals[] ur ett studentData-objekt, inkl. legacy-merge: djur som bara
- * finns i ownedItems (köpta som statiska möbler förr) blir djur med en
- * startposition på golvet. Returnerar NYA objekt (fritt att mutera pos), var och
- * ett med ett unikt `uid` – flera exemplar av samma art tillåts.
+ * De ÄGDA vanliga djuren ur ett studentData-objekt: första posten per uid som
+ * har ett vanligt djur i agdaDjur, med kartans art (listans `id` ignoreras).
+ * Returnerar NYA objekt (fritt att mutera pos), var och ett med sitt `uid`.
  */
 export function animalsFromData(data) {
-  const saved = Array.isArray(data.roomAnimals) ? data.roomAnimals : [];
-  const out = [];
-  const seenUids = new Set(); // unika instans-id (flera per art tillåts)
-  const seenArts = new Set(); // arter som redan finns → hoppa över ownedItems-legacy
-  for (const a of saved) {
-    if (!a || !isAnimalItem(a.id)) continue;
-    // Äldre poster saknar uid: arten var unik då, så art-id:t blir ett stabilt uid.
-    let uid = a.uid || a.id;
-    while (seenUids.has(uid)) uid = newAnimalUid(a.id);
-    seenUids.add(uid);
-    seenArts.add(a.id);
-    const pos = a.pos && Number.isFinite(a.pos.x) && Number.isFinite(a.pos.y)
-      ? { x: a.pos.x, y: a.pos.y }
-      : randomFloorPos();
-    out.push({ uid, id: a.id, pos, name: cleanPetName(a.name), stowed: !!a.stowed });
-  }
-  // Legacy: djur köpta som statiska möbler ligger (ett per art) i ownedItems.
-  for (const id of data.ownedItems || []) {
-    if (!isAnimalItem(id) || seenArts.has(id)) continue;
-    seenArts.add(id);
-    let uid = seenUids.has(id) ? newAnimalUid(id) : id;
-    seenUids.add(uid);
-    out.push({ uid, id, pos: randomFloorPos(), name: null, stowed: false });
-  }
-  return out;
+  const agda = agdaPoster(data && data.roomAnimals, data && data.agdaDjur, djurNyckel, isAnimalItem);
+  return agda.map(({ post: a, nyckel, varde }) => ({
+    uid: nyckel,
+    id: varde,
+    pos: a.pos && Number.isFinite(a.pos.x) && Number.isFinite(a.pos.y) ? { x: a.pos.x, y: a.pos.y } : randomFloorPos(),
+    name: cleanPetName(a.name),
+    stowed: !!a.stowed,
+  }));
+}
+
+/** roomAnimals att skriva: de ändrade ägda djuren i den sparade listan (inget djur försvinner). */
+function rumsdjurAttSpara(data, animals) {
+  return medDoldaPoster(data.roomAnimals, animals, djurNyckel);
 }
 
 // Köpet av ett vanligt djur går via butikKop på servern (#854, butik-core.js),
@@ -96,8 +84,7 @@ export function animalsFromData(data) {
 
 /**
  * Spara de vanliga djurens positioner: { [uid]: { x, y } } (procent, per instans).
- * Skriver ner hela den aktuella listan (inkl. legacy-merge från ownedItems,
- * som därmed blir riktiga roomAnimals-poster första gången).
+ * Skriver ner hela listan (rumsdjurAttSpara: djur utan kartpost ligger kvar).
  * @returns {Promise<{animals: object[]}>}
  */
 export async function saveAnimalPositions(positions, studentId = currentStudentId()) {
@@ -106,7 +93,8 @@ export async function saveAnimalPositions(positions, studentId = currentStudentI
   const result = await runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     if (!snap.exists()) return { animals: [] };
-    const animals = animalsFromData(snap.data());
+    const data = snap.data();
+    const animals = animalsFromData(data);
     let changed = false;
     const next = animals.map((a) => {
       const pos = positions[a.uid];
@@ -115,7 +103,7 @@ export async function saveAnimalPositions(positions, studentId = currentStudentI
       return { ...a, pos: { x: pos.x, y: pos.y } };
     });
     if (!changed) return { animals };
-    tx.update(ref, { roomAnimals: next });
+    tx.update(ref, { roomAnimals: rumsdjurAttSpara(data, next) });
     return { animals: next };
   });
   invalidateStudentData(studentId); // roomAnimals kan ha ändrats (#274)
@@ -125,8 +113,8 @@ export async function saveAnimalPositions(positions, studentId = currentStudentI
 /**
  * Döp (eller döp om) ett vanligt djur (per instans-uid). Namnet saneras precis
  * som mystery-djurens (cleanPetName: trimmat, maxlängd, utan HTML-tecken).
- * Skriver ner hela listan (inkl. ev. legacy-merge från ownedItems) i EN
- * transaktion – samma mönster som saveAnimalPositions och setPetName i data-pet.js.
+ * Skriver ner hela listan i EN transaktion – samma mönster som
+ * saveAnimalPositions och setPetName i data-pet.js.
  * @returns {Promise<{ok: boolean, animal: object|null, animals: object[]}>}
  */
 export async function saveAnimalName(animalUid, name, studentId = currentStudentId()) {
@@ -136,11 +124,12 @@ export async function saveAnimalName(animalUid, name, studentId = currentStudent
   const result = await runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     if (!snap.exists()) return { ok: false, animal: null, animals: [] };
-    const animals = animalsFromData(snap.data());
+    const data = snap.data();
+    const animals = animalsFromData(data);
     const i = animals.findIndex((a) => a.uid === animalUid);
     if (i === -1) return { ok: false, animal: null, animals };
     const next = animals.map((a) => (a.uid === animalUid ? { ...a, name: clean } : a));
-    tx.update(ref, { roomAnimals: next });
+    tx.update(ref, { roomAnimals: rumsdjurAttSpara(data, next) });
     return { ok: true, animal: next[i], animals: next };
   });
   if (result.ok) invalidateStudentData(studentId); // roomAnimals ändrat (#274)
@@ -151,8 +140,7 @@ export async function saveAnimalName(animalUid, name, studentId = currentStudent
  * Stuva undan / lägg tillbaka ett vanligt djur (per instans-uid): sätter
  * roomAnimals-postens stowed-flagga. Djuret TAPPAS aldrig – det ligger kvar i
  * roomAnimals (räknas fortfarande som ägt) men ritas inte i rummet när stowed:true.
- * Skriver ner hela listan (inkl. ev. legacy-merge) i EN transaktion – samma
- * mönster som saveAnimalName.
+ * Skriver ner hela listan i EN transaktion – samma mönster som saveAnimalName.
  * @returns {Promise<{ok: boolean, animal: object|null, animals: object[]}>}
  */
 export async function setAnimalStowed(animalUid, stowed, studentId = currentStudentId()) {
@@ -161,11 +149,12 @@ export async function setAnimalStowed(animalUid, stowed, studentId = currentStud
   const result = await runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     if (!snap.exists()) return { ok: false, animal: null, animals: [] };
-    const animals = animalsFromData(snap.data());
+    const data = snap.data();
+    const animals = animalsFromData(data);
     const i = animals.findIndex((a) => a.uid === animalUid);
     if (i === -1) return { ok: false, animal: null, animals };
     const next = animals.map((a) => (a.uid === animalUid ? { ...a, stowed: !!stowed } : a));
-    tx.update(ref, { roomAnimals: next });
+    tx.update(ref, { roomAnimals: rumsdjurAttSpara(data, next) });
     return { ok: true, animal: next[i], animals: next };
   });
   if (result.ok) invalidateStudentData(studentId); // roomAnimals ändrat (#274)

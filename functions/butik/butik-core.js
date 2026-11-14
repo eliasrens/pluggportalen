@@ -21,8 +21,8 @@
 import { getItem, isAnimalItem, isMultiItem } from "./shop-items.js";
 import { rollMysteryItem, dupCoins } from "./mystery-items.js";
 import { halloweenActive } from "./season-config.js";
-import { farmFromData, addFarmAnimalIn } from "./farm-core.js";
-import { newPetId, ownedCount, petsFromData } from "./klass-membership.js";
+import { farmFromData, addFarmAnimalIn, agdaPoster, medDoldaPoster } from "./farm-core.js";
+import { newPetId, ownedCount, sparadePets } from "./klass-membership.js";
 import { HW_KOSTYMER_KATALOG } from "./halloween/hw-kostymer.js";
 import { HW_DJUR_VAROR } from "./halloween/hw-djur-katalog.js";
 
@@ -118,7 +118,7 @@ export function kopVara(data, vara, { nu = Date.now(), rng = Math.random, sasong
 
   // K3 – ägg (vanligt eller Halloween-djurens pumpaägg, arten ur katalogen).
   if (id === EGG_ITEM_ID || vara.hatchSpecies) {
-    const pets = petsFromData(d, newPetId(nu, rng));
+    const pets = sparadePets(d, newPetId(nu, rng));
     if (fattig) return nej("För få mynt.", { pets });
     const eggId = unikt(() => newPetId(nu, rng), new Set(pets.map((p) => p && p.id)));
     const egg = {
@@ -132,7 +132,7 @@ export function kopVara(data, vara, { nu = Date.now(), rng = Math.random, sasong
 
   // K4 – värmelampan: en gång, alla okläckta ägg kläcks snabbare.
   if (id === LAMP_ITEM_ID) {
-    const pets = petsFromData(d, newPetId(nu, rng));
+    const pets = sparadePets(d, newPetId(nu, rng));
     if (owned.includes(id)) return { ok: true, patch: null, result: { ok: true, coins, owned, pets } };
     if (fattig) return nej("För få mynt.", { owned, pets });
     const next = pets.map((p) => (!p || p.hatchedAt ? p : { ...p, hasHeatLamp: true }));
@@ -149,12 +149,16 @@ export function kopVara(data, vara, { nu = Date.now(), rng = Math.random, sasong
 
   // K7 – bondgårdsdjur i farm.animals.
   if (vara.farmAnimal) {
+    // farmFromData visar bara ägda djur (#856); den sparade listan skrivs med djur
+    // utan kartpost kvar, och det nya uid:t krockar inte med något av dem.
     const farm = farmFromData(d);
+    const sparade = lista(karta(d.farm).animals);
     if (fattig) return nej("För få mynt.", { farm });
-    const uid = unikt(() => id + "#" + slump(nu, rng), new Set(farm.animals.map((a) => a.uid)));
+    const uid = unikt(() => id + "#" + slump(nu, rng), new Set(sparade.map((a) => a && a.uid)));
     const res = addFarmAnimalIn(farm, uid, id);
     if (!res.ok) return nej(res.error, { farm });
-    return kop({ "farm.animals": res.farm.animals, ...agda(uid) }, { farm: res.farm, animal: res.animal });
+    const next = medDoldaPoster(sparade, res.farm.animals, (a) => a.uid);
+    return kop({ "farm.animals": next, ...agda(uid) }, { farm: res.farm, animal: res.animal });
   }
 
   // K8 – gårdsuppgradering: bara nivån ett steg över den nuvarande.
@@ -172,7 +176,11 @@ export function kopVara(data, vara, { nu = Date.now(), rng = Math.random, sasong
     if (fattig) return nej("För få mynt.", { animals });
     const uid = unikt(() => id + "#" + slump(nu, rng), new Set(animals.map((a) => a && (a.uid || a.id))));
     const next = [...animals, { uid, id, pos: golvPos(rng), name: null, stowed: false }];
-    return kop({ roomAnimals: next, ...agda(uid) }, { animals: next });
+    // Svaret (butikens antal per art) = de ägda djuren, som animalsFromData (#856).
+    const agdaNu = agda(uid);
+    const syns = agdaPoster(next, agdaNu.agdaDjur, (a) => a.uid || a.id, isAnimalItem)
+      .map(({ post, nyckel, varde }) => ({ ...post, uid: nyckel, id: varde }));
+    return kop({ roomAnimals: next, ...agdaNu }, { animals: syns });
   }
 
   // K1 – allt annat: single-varor en gång, multi-varor räknas upp i ownedCounts.

@@ -106,7 +106,7 @@ describe("agdaDjur – varje lista får sina poster", () => {
     assert.equal(p.pets[0].feedCount, 12);
     assert.deepEqual(p.agdaDjur, { [p.pets[0].id]: "mystery-egg" });
     assert.equal(kor(efter(sd, p)), null, "andra körningen: pets finns, kartan har posten");
-    assert.equal(kor({ xp: 0, pet: { stage: 1 } }), null, "pet utan ägg = inget djur (som petsFromData)");
+    assert.equal(kor({ xp: 0, pet: { stage: 1 } }), null, "pet utan ägg = inget djur (som sparadePets)");
   });
   it("djur utanför listans kategori får ingen post (B4 regel 1)", () => {
     const p = kor({

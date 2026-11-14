@@ -25,15 +25,14 @@
 //               farm.animals agdaDjur[uid] = id          (isFarmAnimalItem)
 //               pets         agdaDjur[id] = "hw-djur-<eggSpecies>" för ett ägg med en
 //                            känd Halloween-art, annars "mystery-egg". Den gamla
-//                            `pet` migreras först till pets[0] (petsFromData) och
+//                            `pet` migreras först till pets[0] (sparadePets) och
 //                            skrivs tillbaka.
 // Saldon och varor rörs annars aldrig. Idempotent: en andra körning ger null.
 // ============================================================================
 
 import { xpFromProgress } from "../src/leveling.js";
 import { isAnimalItem, isFarmAnimalItem } from "../src/shop-items.js";
-import { farmFromData } from "../src/farm-core.js";
-import { petsFromData } from "../src/klass-membership.js";
+import { sparadePets } from "../src/klass-membership.js";
 import { rumsdjurMedAldre, EGG_ITEM_ID } from "../src/butik-core.js";
 import { HW_DJUR_VAROR } from "../src/halloween/hw-djur-katalog.js";
 
@@ -91,8 +90,10 @@ export function planeraMigrering(sd, rakna = {}) {
     plus("aldreDjur", rum.length - sparade.length);
   }
   for (const a of rum) if (a && isAnimalItem(a.id)) satt(a.uid || a.id, a.id, "rumsdjur");
-  for (const a of farmFromData(d).animals) if (isFarmAnimalItem(a.id)) satt(a.uid, a.id, "gardsdjur");
-  const pets = petsFromData(d);
+  // Den sparade listan (farmFromData visar bara djur som redan har en kartpost, #856).
+  const gard = d.farm && typeof d.farm === "object" ? d.farm.animals : null;
+  for (const a of Array.isArray(gard) ? gard : []) if (a && isFarmAnimalItem(a.id)) satt(a.uid, a.id, "gardsdjur");
+  const pets = sparadePets(d);
   if (!Array.isArray(d.pets) && pets.length) {
     patch.pets = pets;
     plus("gammaltPet");

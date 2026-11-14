@@ -341,15 +341,61 @@ service cloud.firestore {
     // (xp: increment(0) från setAvatar/MM-saldot, #855 F1) – nivån är ändå 0.
     // Live-/Prov-markörerna skrivs bara av läraren. Inga get när varken coins
     // eller xp ändras (1000-uttrycksgränsen, #792 F1).
+    //
+    // Varulåset (#856, §6 B4): varorna skapas bara av servern (butikKop) och
+    // migreringen. ownedItems och agdaDjur (ägarbeviset för djuren) rörs aldrig;
+    // ownedCounts bara som plantSeed gör det (ett frö ned, markören lastFro);
+    // äpplen i förrådet + på golvet ökar aldrig; gårdens nivåer rörs aldrig;
+    // det eleven bär (avatarItems), huset och ladan måste vara ägda. Listorna
+    // pets/roomAnimals/farm.animals är fritt tillstånd: klienten visar bara
+    // djur med en post i agdaDjur, med kartans art. Varje gren körs bara när
+    // dess fält ändras (1000-uttrycksgränsen, test/firestore-rules-mynt-las-grans).
     function elevVardeOk(uid) {
       let n = request.resource.data;
       let o = resource.data;
       let k = n.diff(o).affectedKeys();
-      return !k.hasAny(['lastLiveReceipt', 'lastProvMynt']) &&
+      return !k.hasAny(['lastLiveReceipt', 'lastProvMynt', 'ownedItems', 'agdaDjur']) &&
         (!('coins' in k) || ('coins' in n && n.coins is int && n.coins >= 0 &&
           elevMyntOk(uid, n.coins - o.get('coins', 0), k))) &&
         (!('xp' in k) || ('xp' in n && n.xp is int && ('xp' in o ? elevXpOk(uid, n.xp - o.xp) :
-          (n.xp == 0 && o.get('progress', {}).size() == 0))));
+          (n.xp == 0 && o.get('progress', {}).size() == 0)))) &&
+        (!('ownedCounts' in k) || elevFroOk(n, o)) &&
+        (!k.hasAny(['appleCount', 'floorApples']) || elevApplenOk(n, o)) &&
+        (!('farm' in k) || elevGardOk(n, o)) &&
+        (!('avatarItems' in k) || elevKladerOk(n, o)) &&
+        (!('husSkalId' in k) || n.get('husSkalId', null) in [null, 'stuga'] ||
+          n.husSkalId in n.get('ownedItems', []));
+    }
+    // Sådden (plantSeed): bara nyckeln lastFro ändras, ett heltal ≥ 0 under det
+    // gamla antalet (ownedCount: counts-posten, annars 1 om fröet finns i ownedItems).
+    function elevFroOk(n, o) {
+      let f = n.get('lastFro', '');
+      let nc = n.get('ownedCounts', {});
+      let oc = o.get('ownedCounts', {});
+      return f is string && nc is map && oc is map && nc.diff(oc).affectedKeys() == [f].toSet() &&
+        nc.get(f, -1) is int && nc[f] >= 0 &&
+        nc[f] < oc.get(f, f in o.get('ownedItems', []) ? 1 : 0);
+    }
+    // Lägga ut / plocka upp (±1 var) och äta upp (golvet −1): summan ökar aldrig.
+    function elevApplenOk(n, o) {
+      let na = n.get('appleCount', 0);
+      let nf = n.get('floorApples', []);
+      return na is int && na >= 0 && nf is list &&
+        na + nf.size() <= o.get('appleCount', 0) + o.get('floorApples', []).size();
+    }
+    // Gården: nivåerna köps på servern; ladans utseende måste vara ägt (eller null).
+    function elevGardOk(n, o) {
+      let nf = n.get('farm', {});
+      let fk = nf.diff(o.get('farm', {})).affectedKeys();
+      return nf is map && !fk.hasAny(['barnLevel', 'gardenTier']) &&
+        (!('barnSkin' in fk) || nf.get('barnSkin', null) == null || nf.barnSkin in n.get('ownedItems', []));
+    }
+    // Kläderna: det som tas på måste vara ägt (att ta av går alltid, också en
+    // sak som av någon anledning saknas i ownedItems sedan förr).
+    function elevKladerOk(n, o) {
+      let ni = n.get('avatarItems', []);
+      return ni is list && ni.toSet().difference(o.get('avatarItems', []).toSet())
+        .difference(n.get('ownedItems', []).toSet()).size() == 0;
     }
     function elevMyntOk(uid, m, k) {
       return m == 0 ||
@@ -376,6 +422,8 @@ service cloud.firestore {
     // progress, som eleven skriver fritt, och xp kan aldrig sättas i efterhand.
     // Klienter som kan skapa dokumentet utan defaultStudentData (setAvatar,
     // MM-svarets saldo) skickar därför xp: increment(0) – oförändrat om xp finns.
+    // Varulåset (#856): inga ägda djur (agdaDjur), inga burna kläder, inget
+    // köpt hus eller köpt lada.
     function elevNyttDokOk(uid) {
       let n = request.resource.data;
       let f = n.get('farm', {});
@@ -384,7 +432,9 @@ service cloud.firestore {
         n.get('appleCount', 0) == 0 &&
         n.get('ownedItems', []).size() == 0 && n.get('ownedCounts', {}).size() == 0 &&
         n.get('pets', []).size() == 0 && n.get('roomAnimals', []).size() == 0 &&
-        f is map && f.get('animals', []).size() == 0 &&
+        n.get('agdaDjur', {}).size() == 0 && n.get('avatarItems', []).size() == 0 &&
+        n.get('husSkalId', null) in [null, 'stuga'] &&
+        f is map && f.get('animals', []).size() == 0 && f.get('barnSkin', null) == null &&
         f.get('barnLevel', 1) <= 1 && f.get('gardenTier', 1) <= 1;
     }
 

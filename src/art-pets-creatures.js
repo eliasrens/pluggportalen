@@ -337,6 +337,16 @@ export function randomSpeciesId() {
 }
 
 /**
+ * En vanlig (äggets) art som räknas fram ur en nyckel, alltid samma för samma
+ * nyckel (#856): ett vanligt ägg med en Halloween-art i listan visas som den.
+ */
+export function vanligArtFor(nyckel) {
+  let h = 0;
+  for (const c of String(nyckel)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return HATCHABLE_SPECIES[h % HATCHABLE_SPECIES.length].id;
+}
+
+/**
  * Varelsens SVG-innehåll (utan <svg>-wrapper), eller null om arten saknas.
  * expression (valfri): "glad" | "nyfiken" | "ater" | "somnig" – byter ansikte.
  * stage (1–3) används av de lazy-registrerade arterna (Halloween-djuren), som

@@ -179,7 +179,9 @@ describe("vanliga djur och gårdsdjur (K6–K7)", () => {
     assert.match(ny.uid, /^hund#[a-z0-9]+$/);
     assert.deepEqual({ ...ny, uid: 0 }, { uid: 0, id: "hund", pos: { x: 50, y: 78 }, name: null, stowed: false });
     assert.deepEqual(r.patch.agdaDjur, { [ny.uid]: "hund" });
-    assert.deepEqual(r.result.animals, r.patch.roomAnimals);
+    assert.deepEqual(r.result.animals, [ny], "svaret = de ägda djuren (katten saknar kartpost, #856)");
+    const agd = kop({ coins: 200, roomAnimals: [{ uid: "katt", id: "katt" }], agdaDjur: { katt: "katt" } }, "hund");
+    assert.deepEqual(agd.result.animals.map((a) => a.id), ["katt", "hund"]);
   });
   it("äldre djur i ownedItems följer med in i listan (som animalsFromData), utan dubblett av samma art", () => {
     const r = kop({ coins: 200, ownedItems: ["kanin", "keps"], roomAnimals: [] }, "kanin");
