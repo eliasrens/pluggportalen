@@ -393,7 +393,11 @@ byggs här, eftersom `agdaDjur` införs här och B1:s gåvoregel behöver kartan
   i dag.
 - **`agdaDjur`:** för varje djur som saknar en post i kartan gäller följande. Bara
   **första** posten per `uid` (husdjur: per `id`) räknas, samma regel som B4:s
-  läsfunktioner.
+  läsfunktioner. Listorna gås igenom i fast ordning (`roomAnimals`, äldre djur i
+  `ownedItems`, `farm.animals`, `pets`). Ett `uid`/`id` som redan har en post i kartan
+  (från ett köp, en tidigare lista eller en tidigare körning) får aldrig en ny eller
+  ändrad post. Ett uid som är kopierat till en annan lista får alltså fel kategori där och
+  syns inte (B4, regel 1). Ett befintligt värde skrivs aldrig över.
   - Varje `roomAnimals`-post får `agdaDjur[uid] = id`. Äldre djur som bara finns i
     `ownedItems` skrivs först in som riktiga `roomAnimals`-poster, med samma `uid` = art-id
     som `animalsFromData` ger i dag, och får sedan en post i kartan.
@@ -420,6 +424,8 @@ Tillståndet vid migreringen godtas som utgångsläge (se R6).
   - kartan byggs för `roomAnimals`, för äldre djur i `ownedItems`, för `farm.animals`, för
     `pets` och för den gamla `pet`,
   - en duplicerad `uid` ger en enda post,
+  - ett `uid` som finns i två listor får bara en post (den första listans), och en
+    befintlig post skrivs aldrig över,
   - en andra körning ändrar ingenting.
 - Synktestet (`--check`).
 
@@ -505,7 +511,13 @@ djur från `ownedItems` och sparar en längre lista. Ägandet läggs i stället 
 bara servern skriver, `agdaDjur: { <uid>: <varu-id> }` (B2 skriver den vid köp och
 migreringen för gamla djur). De tre läsfunktionerna som all ritning går igenom läser den:
 
-- **Gemensam regel:** bara den **första** posten per `uid` (husdjur: per `id`) räknas.
+- **Gemensam regel 1, egen kategori:** en post räknas bara om kartans värde hör till
+  **listans** kategori. `animalsFromData` godtar `isAnimalItem(v)`, `farmFromData` godtar
+  `isFarmAnimalItem(v)` och `petsFromData` godtar `v == "mystery-egg"` eller
+  `v.startsWith("hw-djur-")` (`src/shop-items.js`). Annars skulle ett ägt rumsdjurs `uid`
+  (värde `dinosaurie`) kunna kopieras in i `farm.animals`, eller en gårdshäst in i
+  `roomAnimals`, och ett köp synas på två ställen.
+- **Gemensam regel 2:** bara den **första** posten per `uid` (husdjur: per `id`) räknas.
   Senare dubbletter tas bort och får inget nytt `uid`. I dag ger `animalsFromData`
   (`:74`) en dubblett ett nytt uid, och `petsFromData`/`farmFromData` behåller dem. Utan
   den här regeln skulle en enda ägd post (en häst, ett Halloween-ägg) kunna kopieras N
@@ -514,7 +526,10 @@ migreringen för gamla djur). De tre läsfunktionerna som all ritning går igeno
   `agdaDjur` och tar arten (`id`) ur kartan. Listans `id` ignoreras. Sammanslagningen av
   äldre djur från `ownedItems` tas bort, eftersom migreringen har gjort dem till riktiga
   poster.
-- `farmFromData` (`src/farm-core.js:134`): samma regel för `animals`.
+- `farmFromData` (`src/farm-core.js:134`): samma regel för `animals`. (`farm-core.js` är ren
+  och får därför kategorikontrollen som en injicerad eller lokal lista över gårdsdjurens
+  id. Den ska inte importera hela `shop-items.js` om bootgrafen då växer. Kontrollera med
+  `admin/qa-bootgraf-bfs.mjs`.)
 - `petsFromData` (`src/data-pet.js:130`): bara ägg och djur vars `id` finns i kartan.
   Värdet `hw-djur-<art>` ger arten (`eggSpecies` och `speciesId` i listan ignoreras).
   Värdet `mystery-egg` får bara en vanlig art. En Halloween-art i `speciesId` ersätts med
@@ -564,6 +579,9 @@ befintliga djur en post i kartan innan de nya läsfunktionerna går ut.
   - ett Halloween-ägg behåller sin art,
   - `hasHeatLamp` utan lampa ger ingen effekt,
   - ett migrerat äldre djur syns som förut,
+  - **ett `uid` från en annan lista syns inte**: ett ägt rumsdjurs `uid` (`dinosaurie`)
+    kopierat till `farm.animals`, en gårdshäst kopierad till `roomAnimals` och ett
+    Halloween-äggs `id` som `uid` i `roomAnimals` syns bara i sin egen lista,
   - **en duplicerad `uid`/`id` syns en gång**: en häst i `farm.animals`, ett Halloween-ägg
     i `pets` och ett djur i `roomAnimals`, var och en kopierade 5 gånger, ger ett enda djur.
 - `test/firestore-rules-avatarer.test.js:39` (eleven köper med `arrayUnion` själv) skrivs
@@ -588,8 +606,8 @@ skriva, men det syns inte i rummet, i byn eller i kompisrummet.
   Saldot ska stiga och sjunka med exakt samma belopp som på `main`. Gör en jämförelse med
   samma förlopp på `main`.
 - Attackerna i §1 körs från devtools. M1–M6 ska nekas. Artbytet i M4 (fisk → dinosaurie,
-  gris → häst, vanligt ägg → Halloween-art) och kopierade poster av ett ägt djur syns
-  ingenstans. Gåvan ger 8 per **ägt** gårdsdjur och dag, även om listan blåses upp.
+  gris → häst, vanligt ägg → Halloween-art), kopierade poster av ett ägt djur och ett
+  `uid` som flyttats till en annan lista syns ingenstans. Gåvan ger 8 per **ägt** gårdsdjur och dag, även om listan blåses upp.
 - **Övergången**, med samma emulatordata genom alla fyra stegen:
   - `main`-webben mot fas 1-reglerna: allt ska fungera som förut.
   - Fas 1-webben (taggen `mynt-fas1`) mot fas 1-reglerna efter migreringen: allt ska
