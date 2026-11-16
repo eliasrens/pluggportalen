@@ -34,6 +34,16 @@
   min-height: 1.05em;
 }
 
+/* Fältet + ➜-knappen (#862: iOS sifferknappsats saknar Enter). Knappen är
+   lika hög som fältet men smal, så den syns knappt på datorn. */
+.fa-rad {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: clamp(6px, 1.2vh, 12px);
+  max-width: 100%;
+}
+
 .fa-input {
   width: min(3.6ch, 70vw);
   box-sizing: content-box;
@@ -53,6 +63,28 @@
 }
 .fa-input:focus { border-color: var(--bla-mork, #1b5fc0); box-shadow: 0 0 0 5px rgba(47, 128, 237, 0.25), 0 6px 0 rgba(0, 0, 0, 0.1); }
 .fa-input:disabled { opacity: 0.45; border-style: dashed; }
+
+.fa-skicka {
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 0.45em;
+  font: inherit;
+  font-size: clamp(22px, min(6vh, 6vw), 52px);
+  font-weight: 800;
+  line-height: 1;
+  color: #fff;
+  background: var(--bla, #2f80ed);
+  border: 0;
+  border-radius: 18px;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.fa-skicka:active { transform: translateY(3px); box-shadow: 0 3px 0 rgba(0, 0, 0, 0.15); }
+.fa-skicka:disabled { opacity: 0.35; cursor: default; transform: none; }
+.fa-off .fa-skicka { visibility: hidden; }
 
 .fa-feedback {
   height: 1.3em;

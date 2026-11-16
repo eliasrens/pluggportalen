@@ -105,6 +105,7 @@
 .mse-svar .ca-status:empty, .mse-svar .ca-fraga:empty { display: none; }
 .mse-elev-vy .ca-kontext { background: rgba(238, 243, 255, 0.08); box-shadow: inset 0 0 0 1px rgba(74, 168, 255, 0.3); }
 .mse-elev-vy .fa-input { color: var(--mse-natt); border-color: var(--mse-skold); caret-color: var(--mse-natt); }
+.mse-elev-vy .fa-skicka { background: var(--mse-skold); }
 .mse-elev-vy .fa-feedback.ok { color: var(--mse-gron); }
 .mse-elev-vy .fa-feedback.fel { color: var(--mse-orange); }
 /* Fel svar: ett lugnt kryss som tonar bort (rätt svar visar frågeflödet). */
