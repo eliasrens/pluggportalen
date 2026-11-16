@@ -178,6 +178,7 @@
 .dk-svar .ca-status:empty, .dk-svar .ca-fraga:empty { display: none; }
 .dk-elev-vy .ca-kontext { background: rgba(233, 251, 255, 0.08); box-shadow: inset 0 0 0 1px rgba(62, 230, 255, 0.3); }
 .dk-elev-vy .fa-input { color: var(--dk-natt); border-color: var(--dk-cyan); caret-color: var(--dk-natt); }
+.dk-elev-vy .fa-skicka { color: var(--dk-natt); background: var(--dk-cyan); }
 .dk-elev-vy .fa-feedback.ok { color: var(--dk-gron); }
 .dk-elev-vy .fa-feedback.fel { color: var(--dk-varm); }
 /* Fel: kort ❌ (nästa fråga kommer direkt). */

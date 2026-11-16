@@ -3,7 +3,9 @@
 // ----------------------------------------------------------------------------
 // Flöde utan mus: fråga visas stort → eleven skriver → ENTER → "✅ RÄTT!" /
 // "❌ FEL – rätt svar var 56" visas kort → nästa fråga direkt, fältet är tömt
-// och har fortfarande fokus. Ingen knapp, ingen popup, inget omförsök.
+// och har fortfarande fokus. Ingen popup, inget omförsök. En liten ➜-knapp
+// bredvid fältet skickar samma väg som ENTER (#862: iOS sifferknappsats
+// saknar Enter); den tar aldrig fokus, så knappsatsen ligger kvar.
 // Styling: src/mult/fast-answer.css (ryms utan scroll på 1366×768).
 //
 // API
@@ -63,14 +65,18 @@ export function mountFastAnswer(root, opts) {
   root.innerHTML = `
     <form class="fa-form" autocomplete="off" novalidate>
       <div class="fa-question" aria-live="polite"></div>
-      <input class="fa-input" type="text" ${numeric ? 'inputmode="numeric" pattern="[0-9]*" maxlength="4"' : 'maxlength="40"'}
-        enterkeyhint="send" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-        aria-label="Ditt svar" />
+      <div class="fa-rad">
+        <input class="fa-input" type="text" ${numeric ? 'inputmode="numeric" pattern="[0-9]*" maxlength="4"' : 'maxlength="40"'}
+          enterkeyhint="send" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+          aria-label="Ditt svar" />
+        <button class="fa-skicka" type="submit" aria-label="Skicka svar" title="Skicka svar">➜</button>
+      </div>
       <div class="fa-feedback" role="status" aria-live="assertive"></div>
     </form>`;
   const form = root.querySelector(".fa-form");
   const qEl = root.querySelector(".fa-question");
   const input = root.querySelector(".fa-input");
+  const btn = root.querySelector(".fa-skicka");
   const fbEl = root.querySelector(".fa-feedback");
 
   let enabled = opts.enabled !== false;
@@ -91,6 +97,7 @@ export function mountFastAnswer(root, opts) {
 
   function render() {
     input.disabled = !enabled;
+    btn.disabled = !enabled;
     root.classList.toggle("fa-off", !enabled);
     if (enabled) {
       if (!current) showNext();
@@ -153,6 +160,11 @@ export function mountFastAnswer(root, opts) {
   function onSubmit(e) {
     e.preventDefault();
     submit();
+    focus();
+  }
+  // Knappen får aldrig fokus: då blurras fältet och iOS stänger knappsatsen.
+  function keepFocus(e) {
+    e.preventDefault();
   }
   function onInput() {
     if (!numeric) return;
@@ -188,6 +200,8 @@ export function mountFastAnswer(root, opts) {
   input.addEventListener("keydown", onKeydown);
   input.addEventListener("input", onInput);
   input.addEventListener("blur", onBlur);
+  btn.addEventListener("pointerdown", keepFocus);
+  btn.addEventListener("mousedown", keepFocus);
   document.addEventListener("visibilitychange", onVisible);
   render();
 
@@ -210,6 +224,8 @@ export function mountFastAnswer(root, opts) {
       input.removeEventListener("keydown", onKeydown);
       input.removeEventListener("input", onInput);
       input.removeEventListener("blur", onBlur);
+      btn.removeEventListener("pointerdown", keepFocus);
+      btn.removeEventListener("mousedown", keepFocus);
       document.removeEventListener("visibilitychange", onVisible);
       root.innerHTML = "";
       root.classList.remove("fa-root", "fa-off");
