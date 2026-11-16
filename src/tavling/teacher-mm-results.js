@@ -164,7 +164,7 @@ export function renderStudentResults(ctx, host, comp, classes, api) {
     body.replaceChildren(el(`<div class="spinner">Laddar elevresultat…</div>`));
     try {
       const ids = Array.isArray(k.studentIds) ? k.studentIds : [];
-      const [students, statsById] = await Promise.all([getStudentsByIds(ids), api.loadStatsFor(comp.id, ids)]);
+      const [students, statsById] = await Promise.all([getStudentsByIds(ids), api.loadStatsFor(comp.id, ids, k.id)]);
       if (sel.value !== k.id) return;
       students.sort((a, b) => String(a.namn || "").localeCompare(String(b.namn || ""), "sv"));
       renderMmTable(ctx, body, { students, statsById, competition: comp });

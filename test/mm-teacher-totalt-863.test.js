@@ -72,10 +72,11 @@ describe("classTotals – årskurskonto (bara egna klasser)", () => {
     assert.equal(t.skola, null);
     assert.deepEqual(t.arskurser, []);
   });
-  it("avslutad: Hela skolan ur det sparade result.totals som ett enda tal", () => {
-    const t = classTotals({ stats, classes, participatingIds: ids, classIds: egna, skola: { correct: 22, incorrect: 5 } });
+  it("avslutad (fullständiga stats ur result.students): Hela skolan som ett enda tal, bara egna rader", () => {
+    const t = classTotals({ stats, classes, participatingIds: ids, classIds: egna, fullstandig: true });
     assert.deepEqual(t.skola, { correct: 22, incorrect: 5, total: 27, pctWrong: 18.5 });
     assert.deepEqual(t.rows.map((r) => r.name), ["3A"]);
+    assert.equal(t.filtrerad, true);
   });
   it("kontot utan klasser i matchen → inga rader", () => {
     const t = classTotals({ stats, classes, participatingIds: ids, classIds: new Set(["9z"]) });
@@ -99,10 +100,20 @@ describe("avslutad match: samma siffror ur result som ur studentStats", () => {
     assert.deepEqual(sparat.rows, live.rows);
     assert.deepEqual(sparat.skola, live.skola);
   });
-  it("admin: Hela skolan ur result.totals även när result.students är kapat", () => {
-    const t = classTotals({ stats: stats.slice(0, 1), classes, participatingIds: ids, skola: { correct: 22, incorrect: 5 } });
-    assert.deepEqual(t.skola, { correct: 22, incorrect: 5, total: 27, pctWrong: 18.5 });
-    assert.equal(t.rows[0].correct, 10);
+  it("Hela skolan = matchens klasser, inte result.totals (klass som lämnat matchen räknas inte)", () => {
+    const result = buildResult({ scores: [], stats: stats.filter(Boolean), counters: [], classes, participatingIds: ids, now: 0 });
+    assert.equal(result.totals.correct, 121); // 5x-eleven är med i totals …
+    const t = classTotals({ stats: result.students, classes, participatingIds: ids, fullstandig: true });
+    assert.equal(t.skola.correct, 22); // … men inte i Hela skolan
+    assert.equal(t.skola.incorrect, 5);
+  });
+  it("kapat result: flaggan följer med, rader utan svar visar ? i stället för –", () => {
+    const t = classTotals({ stats: stats.slice(0, 1), classes, participatingIds: ids, fullstandig: true, kapad: true });
+    assert.equal(t.kapad, true);
+    const html = totalsHtml(t);
+    assert.match(html, /<td>4B<\/td><td class="lrt-num"><span class="lrt-dash mmt-okant"[^>]*>\?<\/span>/);
+    assert.doesNotMatch(html, /inga svar än/);
+    assert.equal(classTotals({ stats, classes, participatingIds: ids }).kapad, false);
   });
 });
 

@@ -7,20 +7,23 @@
 // + totalraden "Hela skolan".
 //
 // Siffrorna (ren logik: mm-teacher-core.classTotals, HTML: mm-totalt-html.js):
-//   • avslutad med sparat result → ur result.students/result.totals, INGA
-//     extra läsningar (ögonblicksbilden tas vid avslutet).
+//   • avslutad med sparat result → ur result.students, INGA extra läsningar
+//     (ögonblicksbilden tas vid avslutet; kapad vid RESULT_STUDENTS_MAX → not
+//     och "?" i stället för "–"). Hela skolan = matchens deltagande klasser
+//     (inte result.totals, som även räknar elever i klasser som lämnat matchen).
 //   • pågående (eller avslutad utan result) → studentStats via
 //     mm-teacher-data.loadStatsForClasses: en läsning per elev som svarat.
 //     Fel per klass finns inte aggregerat (classCounters har bara rätt).
 // Behörighet (#678): admin ser alla klasser + Hela skolan. Ett årskurskonto
 // ser bara sina klasser (reglerna släpper bara dem) + "Mina klasser"; Hela
-// skolan visas för årskurskontot bara när det sparade result.totals finns
-// (avslutad match) – i en pågående match kan det inte läsa andras fel.
+// skolan visas för årskurskontot bara i en avslutad match (ur det sparade
+// result.students, samma summa som admin ser) – i en pågående match kan det
+// inte läsa andras fel.
 // Laddas DYNAMISKT (#271).
 // ============================================================================
 
 import { el, esc, icon } from "../teacher-shared.js";
-import { classTotals } from "./mm-teacher-core.js";
+import { RESULT_STUDENTS_MAX, classTotals } from "./mm-teacher-core.js";
 import { totalsHtml } from "./mm-totalt-html.js";
 
 /**
@@ -42,10 +45,14 @@ export function renderClassTotals(host, comp, { api, classes, role }) {
   const sparat = comp.result && Array.isArray(comp.result.students) ? comp.result : null;
   let busy = false;
 
-  const rita = (stats, skola) => {
-    const t = classTotals({ stats, classes, participatingIds: comp.participatingClassIds, classIds, skola });
+  const rita = (stats) => {
+    // Sparat result täcker alla klasser (kontot läser hela tävlingsdokumentet);
+    // pågående: bara admin läser alla klassers studentStats.
+    const kapad = !!sparat && (stats.length >= RESULT_STUDENTS_MAX || (Number(sparat.totals?.participants) || 0) > stats.length);
+    const t = classTotals({ stats, classes, participatingIds: comp.participatingClassIds, classIds, fullstandig: !!sparat || !classIds, kapad });
     body.innerHTML = totalsHtml(t);
     const delar = [sparat ? "Ur det sparade resultatet vid avslutet." : "Live-svar i multiplikation räknas in (#847)."];
+    if (kapad) delar.push(`Resultatet sparade bara de ${RESULT_STUDENTS_MAX} elever som hade flest rätt – siffrorna kan vara lägre än de verkliga (? = kan saknas).`);
     if (t.filtrerad && !t.skola) delar.push("Hela skolan visas när matchen är avslutad.");
     not.textContent = delar.join(" ");
   };
@@ -56,10 +63,10 @@ export function renderClassTotals(host, comp, { api, classes, role }) {
     btn.disabled = true;
     try {
       if (sparat) {
-        rita(sparat.students, sparat.totals);
+        rita(sparat.students);
       } else {
         const stats = await api.loadStatsForClasses(comp.id, classIds ? [...classIds] : null);
-        rita(stats, null);
+        rita(stats);
         stamp.textContent = `Uppdaterad ${new Date().toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`;
       }
     } catch (err) {

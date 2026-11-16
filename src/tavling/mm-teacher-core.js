@@ -17,7 +17,7 @@
 //                                   → historik-ögonblicksbild (MathCompetition.result)
 //   studentRows(students, statsById) → en rad per elev för klasstabellen
 //   MM_COLUMNS, sortMmRows(rows, key, dir), nextMmSort(cur, key)
-//   classTotals({ stats, classes, participatingIds, classIds, skola })
+//   classTotals({ stats, classes, participatingIds, classIds, fullstandig, kapad })
 //                                   → rätt/fel/felprocent per klass, per årskurs
 //                                     och hela skolan (#863)
 //   formatFelprocent(pctWrong)      → "12,5 %" | "–"
@@ -248,61 +248,56 @@ const summa = (rows) => {
  * @param {object[]} a.classes          [{ id, name }] (namn; saknas → id)
  * @param {string[]} a.participatingIds matchens klasser (ordning = klassnamn)
  * @param {Set<string>|null} [a.classIds] årskurskontots klasser (null = admin, alla)
- * @param {object|null} [a.skola]       hela skolans totals när raderna är
- *                                      filtrerade (result.totals); annars
- *                                      summan av raderna
- * @returns {{ rows, arskurser, skola, filtrerad }}
- *   rows      [{ classId, name, correct, incorrect, total, pctWrong }] per klass
+ * @param {boolean} [a.fullstandig]     stats täcker ALLA matchens klasser (admin,
+ *                                      eller result.students) → Hela skolan kan
+ *                                      räknas även när raderna är filtrerade
+ * @param {boolean} [a.kapad]           result.students nådde RESULT_STUDENTS_MAX –
+ *                                      elever med få rätt kan saknas
+ * @returns {{ rows, arskurser, skola, mina, filtrerad, kapad, skolanLabel }}
+ *   rows      [{ classId, name, ak, correct, incorrect, total, pctWrong }] per
+ *             klass – årskurskontots egna klasser, annars alla
  *   arskurser [{ ak, label, correct, incorrect, total, pctWrong }] – bara när
- *             klasserna spänner över mer än en årskurs, annars []
- *   skola     { correct, incorrect, total, pctWrong } – hela skolan, eller
- *             null när kontot bara ser sina klasser och ingen skoltotal finns
+ *             raderna spänner över mer än en årskurs och någon årskurs har fler
+ *             än en klass, annars []
+ *   skola     { correct, incorrect, total, pctWrong } = summan av matchens
+ *             deltagande klasser (elever i klasser som lämnat matchen räknas
+ *             inte, som i Klasskampen), eller null när stats bara täcker
+ *             kontots egna klasser (pågående match, årskurskonto)
  *   mina      summan av rows när de är filtrerade ("Mina klasser"), annars null
  *   filtrerad true när rows inte är alla matchens klasser (årskurskonto)
  */
-export function classTotals({ stats, classes, participatingIds, classIds = null, skola = null }) {
+export function classTotals({ stats, classes, participatingIds, classIds = null, fullstandig = false, kapad = false }) {
   const byId = new Map((classes || []).map((k) => [k.id, k]));
   const alla = [...new Set(participatingIds || [])];
-  const mina = classIds ? alla.filter((id) => classIds.has(id)) : alla;
-  const sum = new Map(mina.map((id) => [id, { correct: 0, incorrect: 0 }]));
+  const sum = new Map(alla.map((id) => [id, { correct: 0, incorrect: 0 }]));
   for (const s of stats || []) {
     const acc = s && sum.get(s.classId);
     if (!acc) continue;
     acc.correct += Math.max(0, Number(s.correct) || 0);
     acc.incorrect += Math.max(0, Number(s.incorrect) || 0);
   }
-  const rows = mina
+  const allaRader = alla
     .map((classId) => {
       const { correct, incorrect } = sum.get(classId);
       const name = String(byId.get(classId)?.name || classId);
       return { classId, name, ak: arskursAvKlass(name), correct, incorrect, total: correct + incorrect, pctWrong: felprocent(correct, incorrect) };
     })
     .sort((a, b) => a.name.localeCompare(b.name, "sv"));
-  // Delsumma per årskurs (#845 arskursAvKlass) – bara om det finns fler än en.
+  const rows = classIds ? allaRader.filter((r) => classIds.has(r.classId)) : allaRader;
+  // Delsumma per årskurs (#845 arskursAvKlass) – bara om det finns fler än en
+  // (och någon årskurs har fler än en klass – annars vore delsumman = klassraden).
   const perAk = new Map();
   for (const r of rows) {
     if (!perAk.has(r.ak)) perAk.set(r.ak, []);
     perAk.get(r.ak).push(r);
   }
   const akOrdning = [...perAk.keys()].sort((a, b) => (a === OVRIGA ? 1 : b === OVRIGA ? -1 : a - b));
-  // (och någon årskurs har fler än en klass – annars vore delsumman = klassraden).
   const arskurser = perAk.size > 1 && [...perAk.values()].some((l) => l.length > 1)
     ? akOrdning.map((ak) => ({ ak, label: arskursLabel(ak), ...summa(perAk.get(ak)) }))
     : [];
-  const filtrerad = mina.length !== alla.length;
-  const egen = summa(rows);
-  // Hela skolan: det sparade result.totals när det finns (räknat på ALLA
-  // elever vid avslutet – result.students är kapat vid RESULT_STUDENTS_MAX),
-  // annars summan av raderna; filtrerade rader utan skoltotal → ingen rad.
-  let total = egen;
-  if (skola && Number.isFinite(Number(skola.correct))) {
-    const c = Math.max(0, Number(skola.correct) || 0);
-    const w = Math.max(0, Number(skola.incorrect) || 0);
-    total = { correct: c, incorrect: w, total: c + w, pctWrong: felprocent(c, w) };
-  } else if (filtrerad) {
-    total = null;
-  }
-  return { rows, arskurser, skola: total, mina: filtrerad ? egen : null, filtrerad, skolanLabel: SKOLAN };
+  const filtrerad = rows.length !== allaRader.length;
+  const skola = !filtrerad || fullstandig ? summa(allaRader) : null;
+  return { rows, arskurser, skola, mina: filtrerad ? summa(rows) : null, filtrerad, kapad: !!kapad, skolanLabel: SKOLAN };
 }
 
 /** Kolumner i visningsordning (spec: Elev | Rätt | Fel | Totalt | Rätt % | Fel %). */

@@ -563,9 +563,12 @@ vald period – årskurskontots väg), för en **pågående** match och för en
 `teacher-mm-totalt.js` – allt laddas lat):
 
 - **Avslutad match med sparat `result`:** inga extra läsningar. Raderna räknas
-  ur `result.students` (classId/correct/incorrect per elev, högst
-  `RESULT_STUDENTS_MAX` = 2000) och Hela skolan ur `result.totals`
-  (räknat på ALLA elever vid avslutet).
+  OCH Hela skolan ur `result.students` (classId/correct/incorrect per elev)
+  – inte ur `result.totals`, som även räknar elever i klasser som lämnat
+  matchen (Hela skolan = summan av matchens deltagande klasser, som
+  Klasskampen). `result.students` är kapat vid `RESULT_STUDENTS_MAX` = 2000
+  (de med flest rätt); då visas en not och klasser utan rader får "?" i
+  stället för "–".
 - **Pågående match** (eller avslutad utan `result`): `studentStats` läses –
   **en läsning per elev som svarat**, bara när läraren öppnar vyn eller
   trycker Uppdatera (ingen lyssnare, ingen automatisk omläsning). Admin
@@ -578,15 +581,19 @@ vald period – årskurskontots väg), för en **pågående** match och för en
 - Inga regel- eller indexändringar: `studentStats` läses redan med
   `hasClass(resource.data.classId)` (`test/firestore-rules-roller-statistik-
   material.test.js` täcker `where classId in`, admin listar hela samlingen
-  som vid avslutet).
+  som vid avslutet). Klasstabellens `loadStatsFor` frågar för ett
+  årskurskonto `where classId == klassen` i stället för `documentId in`:
+  en elev utan `studentStats`-dokument gav annars regelfel
+  (`resource.data` på ett dokument som inte finns) och hela fliken dog.
 
 **Behörighet (#678):**
 
 - **Admin** ser alla deltagande klasser + Hela skolan.
 - **Årskurskonto** ser bara sina egna klasser i matchen + raden **"Mina
-  klasser"** (bara när det har fler än en klass i matchen). **Hela skolan** visas för kontot bara i en **avslutad** match
-  (ur det sparade `result.totals`, som ett enda aggregerat tal – inga andra
-  klassers rader). I en **pågående** match visas Hela skolan inte för
+  klasser"** (bara när det har fler än en klass i matchen). **Hela skolan**
+  visas för kontot bara i en **avslutad** match (ur det sparade
+  `result.students` – kontot läser hela tävlingsdokumentet – som ett enda
+  aggregerat tal, samma summa som admin ser; inga andra klassers rader). I en **pågående** match visas Hela skolan inte för
   årskurskontot: reglerna släpper bara det egna klassernas `studentStats`,
   och felen finns inte aggregerade någon annanstans. Beslut: hellre inget tal
   än ett halvt (rätt från `classCounters` utan fel), och ingen ny

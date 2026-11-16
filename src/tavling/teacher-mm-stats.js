@@ -283,7 +283,7 @@ export async function renderClassMattematchen(ctx, host, { classId, students, da
     const comp = comps.find((c) => c.id === sel.value);
     body.replaceChildren(el(`<div class="spinner">Laddar resultat…</div>`));
     try {
-      const statsById = await api.loadStatsFor(comp.id, students.map((s) => s.id));
+      const statsById = await api.loadStatsFor(comp.id, students.map((s) => s.id), classId);
       if (sel.value !== comp.id) return;
       renderMmTable(ctx, body, { students, statsById, competition: comp });
       totalt(comp);

@@ -39,7 +39,7 @@ const NAMN = ["Alma", "Omar", "Clara", "Noah", "Ella", "Liam", "Saga", "Hugo", "
 const fyll = (p, n) => Array.from({ length: n }, (_, i) => `${p}${String(i + 1).padStart(2, "0")}`);
 
 const KLASSER = {
-  "k848-3a": { name: "3A", ids: ["elev3a", ...fyll("d3a", 15)] },
+  "k848-3a": { name: "3A", ids: ["elev3a", ...fyll("d3a", 15), "ny3a"] }, // ny3a: inga studentStats (#863 F1)
   "k848-4b": { name: "4B", ids: ["elev4b", "gunnar848", ...fyll("d4b", 14)] },
   "k848-5e": { name: "5E", ids: ["elev5e", ...fyll("d5e", 3)] },
 };
@@ -75,6 +75,7 @@ async function fyllPoang(cid) {
   const scores = [], stats = [], counters = [], summa = {};
   for (const classId of DELTAR) {
     KLASSER[classId].ids.forEach((uid, i) => {
+      if (uid === "ny3a") return; // ny elev utan svar → inget studentStats-dokument
       const correct = poang(uid, i);
       const lastAt = Timestamp.fromMillis(NOW - H);
       scores.push({ uid, classId, name: namnPa(uid, i), correct, lastAttemptId: "seed", lastAt });
