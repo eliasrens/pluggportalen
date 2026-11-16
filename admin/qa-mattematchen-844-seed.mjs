@@ -11,7 +11,8 @@
 //   3A/4B/5E) och "qa-848-datakupp" (Datakuppen = serverformat via
 //   datakuppAnswer, multiplikation, 3A/4B/5E), båda pågår 60 min.
 //   elev3a:s dagsräknare för MM-mynt sätts till $MYNT (default 0).
-// Konton: elev3a (3A), elev4b (4B), elev5e (5E, deltar inte), qalarare (admin).
+// Konton: elev3a (3A), elev4b (4B), elev5e (5E, deltar inte), qalarare (admin),
+// qaak3 (årskurskonto, bara 3A – #863).
 //
 //   FIRESTORE_EMULATOR_HOST=… FIREBASE_AUTH_EMULATOR_HOST=… GCLOUD_PROJECT=pluggportalen-so-2026 \
 //   node admin/qa-mattematchen-844-seed.mjs
@@ -38,7 +39,7 @@ const NAMN = ["Alma", "Omar", "Clara", "Noah", "Ella", "Liam", "Saga", "Hugo", "
 const fyll = (p, n) => Array.from({ length: n }, (_, i) => `${p}${String(i + 1).padStart(2, "0")}`);
 
 const KLASSER = {
-  "k848-3a": { name: "3A", ids: ["elev3a", ...fyll("d3a", 15)] },
+  "k848-3a": { name: "3A", ids: ["elev3a", ...fyll("d3a", 15), "ny3a"] }, // ny3a: inga studentStats (#863 F1)
   "k848-4b": { name: "4B", ids: ["elev4b", "gunnar848", ...fyll("d4b", 14)] },
   "k848-5e": { name: "5E", ids: ["elev5e", ...fyll("d5e", 3)] },
 };
@@ -74,6 +75,7 @@ async function fyllPoang(cid) {
   const scores = [], stats = [], counters = [], summa = {};
   for (const classId of DELTAR) {
     KLASSER[classId].ids.forEach((uid, i) => {
+      if (uid === "ny3a") return; // ny elev utan svar → inget studentStats-dokument
       const correct = poang(uid, i);
       const lastAt = Timestamp.fromMillis(NOW - H);
       scores.push({ uid, classId, name: namnPa(uid, i), correct, lastAttemptId: "seed", lastAt });
@@ -109,6 +111,9 @@ async function live(sid, format, extra = {}) {
 
 async function main() {
   await ensureUser("qalarare", "qalarare@larare.pluggportalen.local", { teacher: true, admin: true });
+  // Årskurskonto för 3A (#863: ser bara sin klass i "Totalt per klass").
+  await ensureUser("qaak3", "qaak3@larare.pluggportalen.local", { teacher: true, role: "arskurs" });
+  await db.doc("teacherAccounts/qaak3").set({ username: "qaak3", displayName: "Åk 3", role: "arskurs", classIds: ["k848-3a"], active: true });
   for (const [id, k] of Object.entries(KLASSER)) {
     await db.doc(`classes/${id}`).set({ name: k.name, order: 1, createdAt: NOW, studentIds: k.ids });
     for (const [i, uid] of k.ids.entries()) {
@@ -141,7 +146,7 @@ async function main() {
   const rad = Object.entries(aktiv.summa).map(([id, s]) => `${KLASSER[id].name} ${s}/${KLASSER[id].ids.length}`).join(", ");
   console.log(`✓ mm-848 aktiv (3A+4B): ${rad}; mm-848-forbi/-snart (5E); mm-848-slut (historik)`);
   console.log(`✓ Live: qa-848-klassmatch (klient) + qa-848-datakupp (server), 3A/4B/5E, 60 min`);
-  console.log(`✓ elev3a/elev4b/elev5e/qalarare, lösenord ${PW}; elev3a mmMynt idag = ${n}`);
+  console.log(`✓ elev3a/elev4b/elev5e/qalarare/qaak3 (åk 3), lösenord ${PW}; elev3a mmMynt idag = ${n}`);
 }
 
 main().then(() => process.exit(0), (e) => { console.error(e); process.exit(1); });

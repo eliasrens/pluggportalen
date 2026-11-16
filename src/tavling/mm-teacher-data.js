@@ -11,7 +11,11 @@
 // Läsningar (KVOT, incident #114 – aldrig svar per elev i tabeller):
 //   listCompetitions        → alla tävlingar (få dokument)
 //   competitionsForClass    → where participatingClassIds array-contains klass
-//   loadStatsFor(cid, ids)  → studentStats för EN klass (documentId in, 30 åt gången)
+//   loadStatsFor(cid, ids, classId) → studentStats för EN klass (admin: documentId
+//                             in, 30 åt gången; årskurskonto: where classId ==)
+//   loadStatsForClasses(cid, classIds) → studentStats för klasserna (#863):
+//                             admin (null) = hela samlingen i EN fråga; års-
+//                             kurskonto = where classId in [...], 30 åt gången
 //   loadTrainingTotals(uid) → MM + Live tillsammans via count()-aggregat på
 //                             collectionGroup("answers") (inga dokument läses)
 // Topp 25 + Klasskamp återanvänder elevsidans mm-data.js.
@@ -172,10 +176,23 @@ export async function resetCompetition(cid, onProgress) {
   return counts;
 }
 
-/** studentStats för givna elever (en klass) → Map uid → dokument. */
-export async function loadStatsFor(cid, ids) {
+/**
+ * studentStats för givna elever (en klass) → Map uid → dokument.
+ * Årskurskonto (#863 F1): `documentId in [...]` nekas av reglerna så fort en
+ * elev saknar dokument (resource.data.classId på ett dokument som inte finns)
+ * – därför frågar kontot `where classId == classId` (bara befintliga dokument,
+ * reglerna släpper klassen) och väljer eleverna i klienten. Admin behåller
+ * documentId in (isAdmin() kortsluter regeln).
+ */
+export async function loadStatsFor(cid, ids, classId) {
   const uniq = [...new Set((ids || []).filter(Boolean))];
   const out = new Map();
+  if (classId && !isAdmin()) {
+    const vill = new Set(uniq);
+    const snap = await getDocs(query(collection(db, COL, cid, "studentStats"), where("classId", "==", classId)));
+    snap.docs.forEach((d) => vill.has(d.id) && out.set(d.id, withId(d)));
+    return out;
+  }
   const chunks = [];
   for (let i = 0; i < uniq.length; i += 30) chunks.push(uniq.slice(i, i + 30));
   await Promise.all(
@@ -185,6 +202,25 @@ export async function loadStatsFor(cid, ids) {
     })
   );
   return out;
+}
+
+/**
+ * studentStats för en tävlings klasser (#863, totalt per klass/hela skolan).
+ * Kostar en läsning per elev som svarat – bara i lärarvyn, aldrig på elevsidan.
+ * @param {string} cid
+ * @param {string[]|null} classIds  null = admin (alla klasser, en fråga);
+ *   annars årskurskontots klasser (reglerna: hasClass(resource.data.classId))
+ */
+export async function loadStatsForClasses(cid, classIds) {
+  const col = collection(db, COL, cid, "studentStats");
+  if (classIds == null) return (await getDocs(col)).docs.map(withId);
+  const uniq = [...new Set(classIds.filter(Boolean))];
+  const chunks = [];
+  for (let i = 0; i < uniq.length; i += 30) chunks.push(uniq.slice(i, i + 30));
+  const delar = await Promise.all(
+    chunks.map((chunk) => getDocs(query(col, where("classId", "in", chunk))).then((s) => s.docs.map(withId)))
+  );
+  return delar.flat();
 }
 
 /**
