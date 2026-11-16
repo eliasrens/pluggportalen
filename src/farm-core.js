@@ -22,6 +22,7 @@
 //   }                        //   id (arten, shop-id), name, pos, trivsel (0–100,
 //                            //   default 80), lastFedAt, lastGiftAt } – hålls HELT
 //                            //   isär från roomAnimals/pets; placering i placedAnimals.
+//                            //   Syns bara med en post i studentData.agdaDjur (#856).
 //
 // Alla muterande funktioner är RENA: de tar ett farm-objekt och returnerar
 // `{ ok, farm }` med ett NYTT farm-objekt (indata muteras aldrig) – vid
@@ -137,7 +138,9 @@ export function farmFromData(data) {
   const slots = Array.isArray(raw.gardenSlots) ? raw.gardenSlots : def.gardenSlots;
   const inv = raw.inventoryHarvest && typeof raw.inventoryHarvest === "object" ? raw.inventoryHarvest : def.inventoryHarvest;
   const placed = Array.isArray(raw.placedAnimals) ? raw.placedAnimals : def.placedAnimals;
-  const animals = Array.isArray(raw.animals) ? raw.animals : def.animals;
+  // Ägandet (#856): bara gårdsdjur med en post i agdaDjur syns, med kartans art.
+  const animals = agdaPoster(Array.isArray(raw.animals) ? raw.animals : def.animals, data && data.agdaDjur,
+    (a) => a.uid, (v) => GARDSDJUR.includes(v));
   return {
     barnLevel: clampLevel(raw.barnLevel ?? def.barnLevel, FARM_MAX_BARN_LEVEL),
     barnSkin: typeof raw.barnSkin === "string" && raw.barnSkin ? raw.barnSkin : null,
@@ -166,10 +169,9 @@ export function farmFromData(data) {
       .filter((p) => p && typeof p.petId === "string" && p.petId && isValidLocation(p.location) && roomIndexOf(p.location) !== 0)
       .map((p) => ({ petId: p.petId, location: p.location })),
     animals: animals
-      .filter((a) => a && typeof a.uid === "string" && a.uid && typeof a.id === "string" && a.id)
-      .map((a) => ({
-        uid: a.uid,
-        id: a.id,
+      .map(({ post: a, nyckel, varde }) => ({
+        uid: nyckel,
+        id: varde,
         name: typeof a.name === "string" && a.name ? a.name : null,
         pos: a.pos && Number.isFinite(a.pos.x) && Number.isFinite(a.pos.y)
           ? { x: a.pos.x, y: a.pos.y }
@@ -179,6 +181,52 @@ export function farmFromData(data) {
         lastGiftAt: Number.isFinite(a.lastGiftAt) ? a.lastGiftAt : null,
       })),
   };
+}
+
+// --- Ägda djur (#856, docs/SAKERHET-MYNT.md §6 B4) ----------------------------
+// Ägandet och arten bor i serverkartan studentData.agdaDjur { uid: varu-id }
+// (butikKop + migreringen). Listorna farm.animals/roomAnimals/pets är bara
+// tillstånd: en post syns om kartans värde hör till LISTANS kategori (regel 1)
+// och bara den första posten per nyckel räknas (regel 2). Delas av data-animals.js,
+// data-pet.js och butik-core.js (farm-core är ren och redan i bootgrafen).
+
+/** Gårdsdjurens varu-id (= isFarmAnimalItem i shop-items.js, test/djur-agande.test.js håller dem i par). */
+export const GARDSDJUR = ["animal_horse", "animal_cow", "animal_pig"];
+
+/**
+ * De poster i `lista` som ägs: första posten per `nyckel(post)` vars kartvärde
+ * klarar `kategori`. @returns {{post: object, nyckel: string, varde: string}[]}
+ */
+export function agdaPoster(lista, agda, nyckel, kategori) {
+  const karta = agda && typeof agda === "object" && !Array.isArray(agda) ? agda : {};
+  const sett = new Set();
+  const ut = [];
+  for (const post of Array.isArray(lista) ? lista : []) {
+    const k = post && typeof post === "object" ? nyckel(post) : null;
+    if (typeof k !== "string" || !k || sett.has(k)) continue;
+    sett.add(k);
+    const varde = Object.hasOwn(karta, k) ? karta[k] : null;
+    if (typeof varde === "string" && kategori(varde)) ut.push({ post, nyckel: k, varde });
+  }
+  return ut;
+}
+
+/**
+ * Skriv tillbaka en ändrad lista med ägda poster i den SPARADE listan: den
+ * första posten per nyckel byts mot den ändrade, allt annat (poster utan
+ * kartpost, dubbletter) ligger kvar orört – så att inget djur försvinner om
+ * migreringen missat ett dokument. Nya poster hamnar sist.
+ */
+export function medDoldaPoster(sparade, synliga, nyckel) {
+  const nya = new Map(synliga.map((p) => [nyckel(p), p]));
+  const ut = (Array.isArray(sparade) ? sparade : []).map((p) => {
+    const k = p && typeof p === "object" ? nyckel(p) : null;
+    if (!nya.has(k)) return p;
+    const ny = nya.get(k);
+    nya.delete(k);
+    return ny;
+  });
+  return [...ut, ...nya.values()];
 }
 
 /** Hjälpare: hitta grödan i en slot (eller undefined). */

@@ -14,6 +14,7 @@ import { after, before, beforeEach, describe, it } from "node:test";
 import { assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
 import { doc, getDoc, setDoc, updateDoc, deleteField, increment } from "firebase/firestore";
 import { createRollerEnv, seedRoller } from "./helpers/roller-env.js";
+import { myntMedKvitto } from "./helpers/mynt-kvitto.js";
 
 let env;
 
@@ -48,15 +49,15 @@ beforeEach(async () => {
 
 describe("schackOk med fullt tillstånd – bara ändrade nycklar valideras (#792 F1)", () => {
   it("orelaterade skrivningar går igenom: mynt, stjärnor, köpt avatar, draken", async () => {
-    await assertSucceeds(updateDoc(e5a(), { coins: increment(5) }), "coins");
+    await assertSucceeds(myntMedKvitto(env.elev("e5a"), "e5a", 5), "coins med dagskvitto (#855)");
     await assertSucceeds(updateDoc(e5a(), { stars: increment(1) }), "stars");
     await assertSucceeds(updateDoc(e5a(), { avatarId: "hw-av-mumie" }), "köpt avatar");
     await assertSucceeds(updateDoc(e5a(), { "brakdrake.pos": { x: 4, y: 4 }, "brakdrake.room": 2 }), "draken flyttas");
-    await assertSucceeds(updateDoc(e5a(), { coins: increment(1), avatarId: "fox", "brakdrake.stowed": true }), "allt utom schack på en gång");
+    await assertSucceeds(myntMedKvitto(env.elev("e5a"), "e5a", 1, { avatarId: "fox", "brakdrake.stowed": true }), "allt utom schack på en gång");
   });
   it("hela dokumentet skrivs om (setDoc) med samma schack-fält", async () => {
     const snap = await getDoc(e5a());
-    await assertSucceeds(setDoc(e5a(), { ...snap.data(), coins: 501 }));
+    await assertSucceeds(setDoc(e5a(), { ...snap.data(), stars: 4 }));
   });
   it("schackens egna skrivningar går igenom: datorPartier + 1, lektion, pussel", async () => {
     await assertSucceeds(updateDoc(e5a(), { "schack.datorPartier": increment(1) }), "datorPartier + 1");

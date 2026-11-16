@@ -121,7 +121,8 @@ describe("skrivplanen: mynt bara med `mynt` och rätt svar", () => {
       dag: "2026-11-13", cid: "mm1", mynt: { inc: MYNT_PER_RATT }, lastAttemptId: "att12345", lastAt: { ts: true },
     });
     assert.equal(w[4].merge, true);
-    assert.deepEqual(w[5], { path: ["studentData", "alma"], data: { coins: { inc: MYNT_PER_RATT } }, merge: true });
+    // xp: increment(0) skapar xp: 0 om dokumentet saknas (myntlåset #855), annars orört.
+    assert.deepEqual(w[5], { path: ["studentData", "alma"], data: { coins: { inc: MYNT_PER_RATT }, xp: { inc: 0 } }, merge: true });
   });
   it("med mynt + fel svar: inga myntskrivningar", () => {
     const w = planMathAnswerWrites({ ...base, isCorrect: false, mynt: { dag: "2026-11-13" } });

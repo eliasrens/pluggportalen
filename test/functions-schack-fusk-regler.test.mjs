@@ -161,14 +161,15 @@ test("reglerna: studentData.schack – bara datorPartier +1, inga andra nycklar,
   assert.equal((await adb.doc(`studentData/${ANNA}`).get()).data().schack.datorPartier, 2);
 });
 
-test("reglerna: studentData utan schack kan fortfarande skrivas (coins mm) – schackOk bryter inget", async () => {
+// Myntlåset (#855): eleven skriver inte coins utan kvitto – här andra fält.
+test("reglerna: studentData utan schack kan fortfarande skrivas (husLast mm) – schackOk bryter inget", async () => {
   await reset();
   const cia = await who(CIA);
-  assert.equal(await code(updateDoc(doc(cia.db, "studentData", CIA), { coins: 5 })), "ok");
-  assert.equal(await code(setDoc(doc(cia.db, "studentData", CIA), { coins: 7 }, { merge: true })), "ok");
-  // första skrivning med schack på ett dokument som saknas
-  assert.equal(await code(setDoc(doc(cia.db, "studentData", CIA), { coins: 7, schack: { datorPartier: 1 } })), "ok");
-  assert.equal(await code(setDoc(doc(cia.db, "studentData", CIA), { coins: 7, schack: { datorPartier: 50 } })), "permission-denied", "hopp 1→50 via set");
+  assert.equal(await code(updateDoc(doc(cia.db, "studentData", CIA), { husLast: true })), "ok");
+  assert.equal(await code(setDoc(doc(cia.db, "studentData", CIA), { husLast: false }, { merge: true })), "ok");
+  // första skrivning med schack på ett dokument som saknar fältet
+  assert.equal(await code(setDoc(doc(cia.db, "studentData", CIA), { husLast: true, schack: { datorPartier: 1 } }, { merge: true })), "ok");
+  assert.equal(await code(setDoc(doc(cia.db, "studentData", CIA), { husLast: true, schack: { datorPartier: 50 } }, { merge: true })), "permission-denied", "hopp 1→50 via set");
 });
 
 test("reglerna: läsning – annan klass, medspelare i klassen, saknat parti, listfrågor", async () => {

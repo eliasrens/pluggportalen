@@ -520,10 +520,10 @@ Färdigt i `src/brakresan/demo.js`: `demoRound(id, seed)` (tio hela uppgifter me
    känd begränsning: en omgång som redan pågår när läraren låser kan i teorin besvaras/avslutas
    via direkta callable-anrop (klientens grind stänger vyn). Ett lås till Bråkresan kräver
    rules-deploy (`validLockShape`) – annars nekas lärarens skrivning.
-2. **`studentData.coins` är elevskrivbart** i hela appen sedan tidigare (`addCoins` i klienten).
-   Bråkresan skapar aldrig mynt från klienten och kan inte manipuleras via sina egna samlingar,
-   men saldot som sådant går inte att låsa utan en migrering av hela appens myntflöde – utanför
-   modulen (§13: "Påbörja inte en godtycklig migrering").
+2. **`studentData.coins` var elevskrivbart** i hela appen (`addCoins` i klienten). Bråkresan
+   skapar aldrig mynt från klienten och kan inte manipuleras via sina egna samlingar. Sedan
+   myntlåset (#855, `docs/SAKERHET-MYNT.md` §6 B3) höjer eleven saldot bara med ett kvitto
+   (`myntDag`, `mmMynt`); `admin/qa-brakresan-attack.mjs` väntar sig att en egen höjning nekas.
 3. **Draken i `studentData.brakdrake`**, inte `roomAnimals` (§2 ovan). Cachad `level` där är
    kosmetisk; allt som ger mynt utgår från `state`. Spegeln är skyddad (#750): `studentData` är
    elevskrivbart, men `brakdrakeOk` i `firestore.rules` nekar eleven att skapa eller ta bort

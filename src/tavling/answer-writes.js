@@ -156,7 +156,8 @@ export function planMmMyntWrites({ competitionId, attemptId, uid, dag, fv }) {
       data: { dag, cid: competitionId, mynt: fv.increment(MYNT_PER_RATT), lastAttemptId: attemptId, lastAt: fv.serverTimestamp() },
       merge: true,
     },
-    { path: ["studentData", uid], data: { coins: fv.increment(MYNT_PER_RATT) }, merge: true },
+    // xp: increment(0) – skapar xp: 0 om dokumentet saknas (myntlåset #855), annars orört.
+    { path: ["studentData", uid], data: { coins: fv.increment(MYNT_PER_RATT), xp: fv.increment(0) }, merge: true },
   ];
 }
 

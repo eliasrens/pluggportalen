@@ -36,17 +36,19 @@ describe("köpbara avatarer – studentData.avatarId", () => {
     await assertFails(updateDoc(doc(elev("elev1"), SD), { avatarId: "hw-av-spoke", avatarChosen: true }));
   });
   it("köpt köpavatar kan väljas (test 12)", async () => {
-    await assertSucceeds(updateDoc(doc(elev("elev1"), SD), { coins: 500, ownedItems: arrayUnion("hw-av-spoke") }));
+    // Köpet sker på servern (butikKop, #854) – här med reglerna avstängda (#855).
+    await testEnv.withSecurityRulesDisabled((ctx) => updateDoc(doc(ctx.firestore(), SD), { ownedItems: arrayUnion("hw-av-spoke") }));
     await assertSucceeds(updateDoc(doc(elev("elev1"), SD), { avatarId: "hw-av-spoke", avatarChosen: true }));
   });
   it("med köpavatar vald går andra skrivningar som vanligt", async () => {
     await testEnv.withSecurityRulesDisabled((ctx) =>
       setDoc(doc(ctx.firestore(), SD), { coins: 10, avatarId: "hw-av-vampyr", ownedItems: ["hw-av-vampyr"] }));
-    await assertSucceeds(updateDoc(doc(elev("elev1"), SD), { coins: 20 }));
+    await assertSucceeds(updateDoc(doc(elev("elev1"), SD), { "progress.so": { quiz: { stars: 1 } } }));
   });
   it("nytt dokument med ej ägd köpavatar nekas, gratis går", async () => {
-    await assertFails(setDoc(doc(elev("elev2"), "studentData/elev2"), { avatarId: "hw-av-mumie", ownedItems: [] }));
-    await assertSucceeds(setDoc(doc(elev("elev2"), "studentData/elev2"), { avatarId: "fox", ownedItems: [] }));
+    // Ett nytt dokument måste ha xp: 0 (myntlåset #855 F1) – båda har det, så bara avataren skiljer.
+    await assertFails(setDoc(doc(elev("elev2"), "studentData/elev2"), { avatarId: "hw-av-mumie", ownedItems: [], xp: 0 }));
+    await assertSucceeds(setDoc(doc(elev("elev2"), "studentData/elev2"), { avatarId: "fox", ownedItems: [], xp: 0 }));
   });
   it("admin skriver som förut", async () => {
     await assertSucceeds(updateDoc(doc(teacher(), SD), { avatarId: "hw-av-haxkatt" }));

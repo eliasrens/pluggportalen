@@ -19,7 +19,7 @@ import {
   runTransaction,
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { currentStudentId, defaultStudentData, invalidateStudentData } from "./data.js";
+import { currentStudentId, invalidateStudentData } from "./data.js";
 import { serverNow, syncServerClock } from "./data-class-lock.js";
 import { xpFromStudentData } from "./leveling.js";
 import { MYNT_DAG_KVITTON, grannDag, myntDag, planTjana } from "./mynt-dag.js";
@@ -35,7 +35,7 @@ const nekad = (err) => err && (err.code === "permission-denied" || /permission/i
  * @param {{xp?:number, extra?:(object|function), gardUid?:string, studentId?:string}} [opts]
  *   `extra` = fältvägar som skrivs i samma skrivning (gåvans `farm.animals`),
  *   eller en funktion (studentData före) → fältvägar | null (null = avbryt,
- *   ingenting skrivs). Kräver att studentData finns.
+ *   ingenting skrivs). Saknas studentData skrivs ingenting (#855).
  * @returns {Promise<{mynt:number, xp:number, tak:boolean, xpTak:boolean, saldo:(number|null),
  *   xpTotal:(number|null), avbrutet?:boolean, nekad?:boolean}>}
  */
@@ -75,21 +75,20 @@ function skriv(sdk, { kalla, mynt, xp, extra, gardUid, studentId, dag }) {
   return sdk.runTransaction(sdk.db, async (tx) => {
     const [sSnap, kSnap] = await Promise.all([tx.get(sRef), tx.get(kRef)]);
     const sd = sSnap.exists() ? sSnap.data() : null;
+    // Inget dokument → ingenting skrivs: myntlåset (#855) nekar ett nytt dokument
+    // med mynt, och ensureStudentData skapar det vid inloggningen.
+    if (!sd) return { mynt: 0, xp: 0, tak: false, xpTak: false, saldo: null, xpTotal: null, avbrutet: true };
     const ext = typeof extra === "function" ? extra(sd) : extra;
-    if (extra && (!ext || !sd)) return { mynt: 0, xp: 0, tak: false, xpTak: false, saldo: null, xpTotal: null, avbrutet: true };
+    if (extra && !ext) return { mynt: 0, xp: 0, tak: false, xpTak: false, saldo: null, xpTotal: null, avbrutet: true };
     const p = planTjana({ kalla, mynt, xp, sd, kvitto: kSnap.exists() ? kSnap.data() : null, gardUid });
     if (p.xpSaknas) console.warn("[mynt] studentData saknar xp – mynten betalas, XP väntar på migreringen (SAKERHET-MYNT §7).");
     if (p.kvitto) {
       tx.set(kRef, { ...p.kvitto, dag, lastAt: sdk.serverTimestamp() }, { merge: true });
     }
     const patch = { ...(p.sd || {}), ...(ext || {}) };
-    if (!sd) {
-      if (p.sd) tx.set(sRef, { ...defaultStudentData(), coins: p.sd.coins });
-    } else if (Object.keys(patch).length) {
-      tx.update(sRef, patch);
-    }
-    const saldo = p.sd ? p.sd.coins : sd ? Number(sd.coins) || 0 : null;
-    const xpTotal = p.sd && p.sd.xp != null ? p.sd.xp : sd ? xpFromStudentData(sd) : null;
+    if (Object.keys(patch).length) tx.update(sRef, patch);
+    const saldo = p.sd ? p.sd.coins : Number(sd.coins) || 0;
+    const xpTotal = p.sd && p.sd.xp != null ? p.sd.xp : xpFromStudentData(sd);
     return { mynt: p.mynt, xp: p.xp, tak: p.tak, xpTak: p.xpTak, saldo, xpTotal };
   });
 }

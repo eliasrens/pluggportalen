@@ -15,6 +15,7 @@ import { after, before, beforeEach, describe, it } from "node:test";
 import { assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
 import { doc, getDoc, setDoc, updateDoc, deleteDoc, deleteField, increment } from "firebase/firestore";
 import { createRollerEnv, seedRoller } from "./helpers/roller-env.js";
+import { myntMedKvitto } from "./helpers/mynt-kvitto.js";
 
 let env;
 
@@ -82,10 +83,10 @@ describe("studentData.schack.pokaler – bara servern (#798)", () => {
     await assertFails(updateDoc(sd(env.elev("e5a"), "e5a"), { "schack.pokaler.tornet": 1 }), "en till pokal");
   });
   it("med pokalen på plats fungerar elevens vanliga skrivningar (mynt, guiden, räknaren)", async () => {
-    await assertSucceeds(updateDoc(sd(env.elev("e5a"), "e5a"), { coins: increment(-50) }), "köp i butiken");
+    await assertSucceeds(myntMedKvitto(env.elev("e5a"), "e5a", 5), "mynt med dagskvitto (#855)");
     await assertSucceeds(updateDoc(sd(env.elev("e5a"), "e5a"), { "schack.lektioner.2": 3 }));
     await assertSucceeds(updateDoc(sd(env.elev("e5a"), "e5a"), { "schack.datorPartier": increment(1) }));
-    await assertSucceeds(setDoc(sd(env.elev("e5a"), "e5a"), { xp: 5 }, { merge: true }));
+    await assertSucceeds(setDoc(sd(env.elev("e5a"), "e5a"), { husLast: true }, { merge: true }));
   });
   it("årskurskontot kan inte skriva en pokal (inte ens med mynt i samma skrivning); admin får", async () => {
     await assertFails(updateDoc(sd(env.ak4(), "e4a"), { "schack.pokaler.damen": 1 }));

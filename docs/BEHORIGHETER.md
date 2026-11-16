@@ -77,6 +77,8 @@ tabellerna, om en rad saknar test, eller om en testfil inte körs av
 | CL | `test/firestore-rules-class-lock.test.js` |
 | BC | `test/functions-brakresan-core.test.mjs` |
 | BK | `test/functions-butik.test.mjs` |
+| LÅ | `test/firestore-rules-mynt-las.test.js` |
+| VA | `test/firestore-rules-mynt-varor.test.js` |
 
 Admin-kolumnen bevisas dessutom av OG test 25 (lärare utan roll gör allt som
 admin) och av alla äldre regeltester, som kör sina lärare som admin (§7 test 26).
@@ -95,7 +97,7 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `subjects/{s}/areas` | L/S | L: allt. Skapa: i ett befintligt ämne, med `createdBy` = sig själv. Ändra: bara områden med `createdBy` = sig själv, och `createdBy` får inte bytas. Radera: bara egna. Område utan `createdBy` är admins. | SM test 4–7 |
 | `students` | L/S | L (som alla inloggade). S: aldrig. | KE test 12, RO elevkonton |
 | `studentCredentials` | L/radera. S: bara fälten `username`, `password` (minst 6 tecken) och `updatedAt`. | L: egna elever. S: aldrig (lösenordsbyte via `updateStudentLogin`). | SM test 1–3, KE test 13, SC |
-| `studentData` | L/S | L: egna elever. S: bara `lasresa` och där bara nivåfälten (`level`, `level10`, `pendingLevel`, `pendingLevel10`, `highStreak`, `lowStreak`, `levelSetAt`, `levelSetBy`, `updatedAt`). En elev utan `lasresa` får ett nytt tillstånd utan resultat. `coins` + `lastLiveReceipt` bara i samma skrivning som Live-kvittot, och `coins` + `lastProvMynt` bara med exakt kvittots ökning i samma skrivning som provets kvitto (#746). `schack` (#779): aldrig – eleven själv ökar `schack.datorPartier` med högst 1 per skrivning, skriver guidens `schack.lektioner` (#790: 1–12 → 1–3 stjärnor, sänks aldrig) och pusslens `schack.pussel` (#791: `ett`/`tva` med `losta` +1 högst per skrivning och `senast`, sjunker aldrig, `losta ≤ senast ≤ 1000`) och kan aldrig röra serverns `schack.aktivtParti` eller `schack.pokaler` (#798, schackets pokaler – bara Cloud Functions skriver) (`schackOk`; att radera hela dokumentet tar bort spärren tillsammans med all elevdata – accepterat, SCHACK.md §12.1). Skapa och radera: aldrig. | SM test 1–2, KE test 12 och 14, LE test 16 och 18, PM, SY |
+| `studentData` | L/S | L: egna elever. S: bara `lasresa` och där bara nivåfälten (`level`, `level10`, `pendingLevel`, `pendingLevel10`, `highStreak`, `lowStreak`, `levelSetAt`, `levelSetBy`, `updatedAt`). En elev utan `lasresa` får ett nytt tillstånd utan resultat. `coins` + `lastLiveReceipt` bara i samma skrivning som Live-kvittot, och `coins` + `lastProvMynt` bara med exakt kvittots ökning i samma skrivning som provets kvitto (#746). `schack` (#779): aldrig – eleven själv ökar `schack.datorPartier` med högst 1 per skrivning, skriver guidens `schack.lektioner` (#790: 1–12 → 1–3 stjärnor, sänks aldrig) och pusslens `schack.pussel` (#791: `ett`/`tva` med `losta` +1 högst per skrivning och `senast`, sjunker aldrig, `losta ≤ senast ≤ 1000`) och kan aldrig röra serverns `schack.aktivtParti` eller `schack.pokaler` (#798, schackets pokaler – bara Cloud Functions skriver) (`schackOk`; att radera hela dokumentet tar bort spärren tillsammans med all elevdata – accepterat, SCHACK.md §12.1). Skapa och radera: aldrig. Elevens egen skrivning (myntlåset, epic #851): se avsnittet "Elevens egen `studentData`" nedan. | SM test 1–2, KE test 12 och 14, LE test 16 och 18, PM, SY, LÅ, VA |
 | `studentData/{id}/lasresaAttempts` | L/S | L: egna elever. S: aldrig. | SM test 1–2 |
 | `studentData/{id}/ekvationsresa` (bara `progress`) | L/S (validerat), radera | L: egna elever. S: lärarens nivåbyte (`ekvTeacherLevelOk`) för egna elever. | SM test 1–2, KE test 14 |
 | `studentData/{id}/ekvationsresaAttempts` | L/radera | L: egna elever | SM test 1–2 |
@@ -203,6 +205,29 @@ bevisas av FM test 24.
    svarat kan alltså få högst `firstPrize` + `cap` per match. Kontrollerna
    gäller även admin. Riktiga utbetalningar uppfyller dem redan
    (`computeRewards` tar bara med deltagare med svar).
+
+## Elevens egen `studentData` (myntlåset, epic #851)
+
+Gäller eleven själv (`isSelf`), inte lärarna i tabellerna ovan. Grenen i `firestore.rules`
+är `elevVardeOk` (#855, B3) med varugrenarna från #856 (B4). Bakgrund och hotmodell:
+`docs/SAKERHET-MYNT.md`.
+
+| Fält / åtgärd | Eleven får | Test |
+| --- | --- | --- |
+| skapa dokumentet | bara ett standarddokument: `coins` 0, `xp` 0, inga varor, tomma `avatarItems`, `husSkalId` null/`"stuga"`, `farm.barnSkin` null (`elevNyttDokOk`) | LÅ |
+| radera dokumentet | aldrig (bara admin) | LÅ |
+| `coins` upp | bara med ett kvitto i samma skrivning: `myntDag/{idag}` med `senastMynt` = ökningen (övningar, Läsresan, Ämnesläsning, Ekvationsresan, gårdens gåva) eller `mmMynt/{idag}` (+1, Mattematchen) | LÅ, MD, MY |
+| `coins` ned | bara ihop med en ändrad `kcDonation` (klasscentrets donation). Köp sker på servern (`butikKop`) | LÅ |
+| `xp` | bara upp, med `myntDag.senastXp` = ökningen. Ett dokument utan `xp` får bara `xp: 0` när `progress` är tom | LÅ |
+| `ownedItems`, `agdaDjur`, `lastLiveReceipt`, `lastProvMynt` | aldrig | LÅ, VA |
+| `ownedCounts` | bara sådden: ett frö −1 med `lastFro` = fröet | VA |
+| `appleCount` + `floorApples` | summan ökar aldrig | VA |
+| `farm` | aldrig `barnLevel`/`gardenTier`; `barnSkin` bara ägd eller null | VA |
+| `avatarItems`, `husSkalId` | det som tas på måste vara ägt (`husSkalId` också null/`"stuga"`) | VA |
+| `pets`, `roomAnimals`, `farm.animals` | fritt (position, namn, matning). Vilka djur eleven äger och vilken art de har läses ur `agdaDjur`, som bara servern skriver, så ett tillagt, kopierat eller artbytt djur syns inte (läsfunktionerna i `data-pet.js`, `data-animals.js`, `farm-core.js`) | VA |
+
+Resten (`progress`, `lasresa`, `amneslasning`, placeringar i `room`/`extraRooms`/`garden`)
+är fortfarande fritt för eleven: kvarvarande risker R2/R3 i `docs/SAKERHET-MYNT.md` §8.
 
 ## Att tänka på i klienten
 

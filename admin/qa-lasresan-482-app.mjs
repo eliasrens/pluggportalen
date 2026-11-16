@@ -10,8 +10,9 @@ import admin from "firebase-admin";
 import { initializeApp } from "firebase/app";
 import { connectAuthEmulator, getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import {
-  collection, connectFirestoreEmulator, doc, getDoc, getDocs, getFirestore, runTransaction,
+  collection, connectFirestoreEmulator, doc, getDoc, getDocs, getFirestore, runTransaction, serverTimestamp,
 } from "firebase/firestore";
+import { MYNT_DAG_KVITTON, myntDag, planTjana } from "../src/mynt-dag.js";
 import { normalizeLasresa, withStartedText, applyCompletion, buildAttempt } from "../src/lasresan/progress.js";
 import { withTeacherLevel, effectiveStartLevel, classStartLevelOf } from "../src/lasresan/level-control.js";
 import { toStoredLasresa } from "../src/lasresan/level-scale.js";
@@ -101,7 +102,7 @@ export function svar(text, ratt) {
   return text.questions.map((q, i) => ({ qid: q.id, chosen: i < ratt ? q.answerIndex : (q.answerIndex + 1) % q.options.length }));
 }
 
-// Eleven: completeText (data-lasresan.js) + award → addCoins.
+// Eleven: completeText (data-lasresan.js) + award → tjanaMynt (dagskvittot, #853/#855).
 export async function lasKlart(db, uid, text, ratt) {
   const ref = doc(db, "studentData", uid);
   const now = Date.now();
@@ -116,9 +117,14 @@ export async function lasKlart(db, uid, text, ratt) {
     return { ok: true, attempt, lasresa };
   });
   if (res.ok) {
+    const dag = myntDag(Date.now());
+    const kRef = doc(ref, MYNT_DAG_KVITTON, dag);
     await runTransaction(db, async (tx) => {
-      const snap = await tx.get(ref);
-      tx.update(ref, { coins: (snap.data().coins || 0) + coinsFor(res.attempt.correct) });
+      const [snap, kSnap] = [await tx.get(ref), await tx.get(kRef)];
+      const p = planTjana({ kalla: "lasresa", mynt: coinsFor(res.attempt.correct), sd: snap.data(), kvitto: kSnap.exists() ? kSnap.data() : null });
+      if (!p.kvitto) return;
+      tx.set(kRef, { ...p.kvitto, dag, lastAt: serverTimestamp() }, { merge: true });
+      tx.update(ref, p.sd);
     });
   }
   return res;
