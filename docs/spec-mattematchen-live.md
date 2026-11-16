@@ -542,16 +542,18 @@ Spara därför varje svar på ett sätt som gör det möjligt att veta vilken ta
 
 # TOTALT PER KLASS OCH HELA SKOLAN (#863, Elias 2026-11-16)
 
-På en tävlings detaljvy (`#/larare/mattematchen?id=…`), för en **pågående**
-match och för en **avslutad** match i historiken, finns sektionen
-**Totalt per klass**:
+På en tävlings detaljvy (`#/larare/mattematchen?id=…`, admin) och under
+klassens Mattematchen-statistik (Mina klasser → Hur går det? → Mattematchen,
+vald period – årskurskontots väg), för en **pågående** match och för en
+**avslutad** match i historiken, finns sektionen **Totalt per klass**:
 
 | Klass | Rätt | Fel | Felprocent |
 |---|---|---|---|
 
 - En rad per deltagande klass (namnordning), en delsumma **"Åk N totalt"**
   per årskurs (`arskursAvKlass`, #845 – bara när matchen spänner över mer än
-  en årskurs; "Övriga" sist) och totalraden **"Hela skolan"**.
+  en årskurs och någon årskurs har fler än en klass; "Övriga" sist) och
+  totalraden **"Hela skolan"**.
 - Felprocent = fel / (rätt + fel) med en decimal ("12,5 %"). Inga svar → "–".
 - Live-svar i multiplikation som räknats in (#847) ingår automatiskt – de
   bumpar samma `studentStats`.
@@ -582,7 +584,7 @@ match och för en **avslutad** match i historiken, finns sektionen
 
 - **Admin** ser alla deltagande klasser + Hela skolan.
 - **Årskurskonto** ser bara sina egna klasser i matchen + raden **"Mina
-  klasser"**. **Hela skolan** visas för kontot bara i en **avslutad** match
+  klasser"** (bara när det har fler än en klass i matchen). **Hela skolan** visas för kontot bara i en **avslutad** match
   (ur det sparade `result.totals`, som ett enda aggregerat tal – inga andra
   klassers rader). I en **pågående** match visas Hela skolan inte för
   årskurskontot: reglerna släpper bara det egna klassernas `studentStats`,

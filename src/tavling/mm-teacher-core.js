@@ -285,18 +285,22 @@ export function classTotals({ stats, classes, participatingIds, classIds = null,
     perAk.get(r.ak).push(r);
   }
   const akOrdning = [...perAk.keys()].sort((a, b) => (a === OVRIGA ? 1 : b === OVRIGA ? -1 : a - b));
-  const arskurser = perAk.size > 1
+  // (och någon årskurs har fler än en klass – annars vore delsumman = klassraden).
+  const arskurser = perAk.size > 1 && [...perAk.values()].some((l) => l.length > 1)
     ? akOrdning.map((ak) => ({ ak, label: arskursLabel(ak), ...summa(perAk.get(ak)) }))
     : [];
   const filtrerad = mina.length !== alla.length;
   const egen = summa(rows);
+  // Hela skolan: det sparade result.totals när det finns (räknat på ALLA
+  // elever vid avslutet – result.students är kapat vid RESULT_STUDENTS_MAX),
+  // annars summan av raderna; filtrerade rader utan skoltotal → ingen rad.
   let total = egen;
-  if (filtrerad) {
-    const t = skola && Number.isFinite(Number(skola.correct)) ? skola : null;
-    total = t
-      ? { correct: Math.max(0, Number(t.correct) || 0), incorrect: Math.max(0, Number(t.incorrect) || 0) }
-      : null;
-    if (total) total = { ...total, total: total.correct + total.incorrect, pctWrong: felprocent(total.correct, total.incorrect) };
+  if (skola && Number.isFinite(Number(skola.correct))) {
+    const c = Math.max(0, Number(skola.correct) || 0);
+    const w = Math.max(0, Number(skola.incorrect) || 0);
+    total = { correct: c, incorrect: w, total: c + w, pctWrong: felprocent(c, w) };
+  } else if (filtrerad) {
+    total = null;
   }
   return { rows, arskurser, skola: total, mina: filtrerad ? egen : null, filtrerad, skolanLabel: SKOLAN };
 }

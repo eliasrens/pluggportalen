@@ -40,11 +40,12 @@ describe("classTotals – admin", () => {
   it("delsumma per årskurs (3 och 4) ur klassnamnen", () => {
     assert.deepEqual(t.arskurser.map((a) => [a.label, a.correct, a.incorrect, a.pctWrong]), [["Åk 3", 15, 5, 25], ["Åk 4", 7, 0, 0]]);
   });
-  it("en enda årskurs → inga delsummor", () => {
+  it("en enda årskurs, eller en klass per årskurs → inga delsummor", () => {
     assert.deepEqual(classTotals({ stats, classes, participatingIds: ["4b", "4c"] }).arskurser, []);
+    assert.deepEqual(classTotals({ stats, classes, participatingIds: ["3a", "4b"] }).arskurser, []);
   });
   it("Övriga sist bland årskurserna", () => {
-    const o = classTotals({ stats, classes, participatingIds: ["fri", "4b"] });
+    const o = classTotals({ stats, classes, participatingIds: ["fri", "4b", "4c"] });
     assert.deepEqual(o.arskurser.map((a) => a.label), ["Åk 4", "Övriga"]);
   });
   it("felprocent har en decimal: 1 fel av 3 = 33,3 %", () => {
@@ -90,11 +91,18 @@ describe("classTotals – årskurskonto (bara egna klasser)", () => {
 
 describe("avslutad match: samma siffror ur result som ur studentStats", () => {
   it("buildResult.students + totals ger samma tabell", () => {
-    const live = classTotals({ stats, classes, participatingIds: ids });
-    const result = buildResult({ scores: [], stats: stats.filter(Boolean), counters: [], classes, participatingIds: ids, now: 0 });
+    // result.totals räknar alla studentStats (som historikens Statistik-kort) – därför utan 5x-eleven här.
+    const deltar = stats.filter((s) => s && s.classId !== "5x");
+    const live = classTotals({ stats: deltar, classes, participatingIds: ids });
+    const result = buildResult({ scores: [], stats: deltar, counters: [], classes, participatingIds: ids, now: 0 });
     const sparat = classTotals({ stats: result.students, classes, participatingIds: ids, skola: result.totals });
     assert.deepEqual(sparat.rows, live.rows);
     assert.deepEqual(sparat.skola, live.skola);
+  });
+  it("admin: Hela skolan ur result.totals även när result.students är kapat", () => {
+    const t = classTotals({ stats: stats.slice(0, 1), classes, participatingIds: ids, skola: { correct: 22, incorrect: 5 } });
+    assert.deepEqual(t.skola, { correct: 22, incorrect: 5, total: 27, pctWrong: 18.5 });
+    assert.equal(t.rows[0].correct, 10);
   });
 });
 
@@ -110,12 +118,15 @@ describe("totalsHtml", () => {
     // Klasserna står under sin årskurs: 3A före "Åk 3 totalt" före 4B.
     assert.ok(html.indexOf("3A") < html.indexOf("Åk 3 totalt") && html.indexOf("Åk 3 totalt") < html.indexOf("4B"));
   });
-  it("årskurskonto: Mina klasser utan Hela skolan; klassnamn escapas", () => {
+  it("årskurskonto: Mina klasser (bara vid fler än en egen klass) utan Hela skolan; klassnamn escapas", () => {
     const html = totalsHtml(classTotals({
       stats, classes: [{ id: "3a", name: "3<b>A" }], participatingIds: ids, classIds: new Set(["3a"]),
     }));
-    assert.match(html, /Mina klasser/);
+    assert.doesNotMatch(html, /Mina klasser/);
     assert.doesNotMatch(html, /Hela skolan/);
+    const tva = totalsHtml(classTotals({ stats, classes, participatingIds: [...ids, "fri"], classIds: new Set(["3a", "4b"]) }));
+    assert.match(tva, /Mina klasser<\/th><td class="lrt-num">22<\/td><td class="lrt-num">5<\/td>/);
+    assert.doesNotMatch(tva, /Hela skolan/);
     assert.doesNotMatch(html, /<b>/);
     assert.match(html, /3&#60;b&#62;A/);
   });

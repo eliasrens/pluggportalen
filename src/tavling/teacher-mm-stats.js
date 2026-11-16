@@ -260,6 +260,25 @@ export async function renderClassMattematchen(ctx, host, { classId, students, da
   </div>`);
   const body = view.querySelector(".mmt-class-body");
   const sel = view.querySelector(".mmt-period-sel");
+  // Totalt per klass + Hela skolan (#863) under klasstabellen – det här är
+  // årskurskontots enda väg till en Mattematch (fliken Mattematchen är admin).
+  const totalt = async (comp) => {
+    const host = el(`<section class="mmt-sektion mmt-class-totalt">
+      <h3 class="subhead lrt-title">Totalt per klass <span class="hint">rätt · fel · felprocent</span></h3>
+      <div class="mmt-totalt-host"><div class="spinner">Räknar…</div></div>
+    </section>`);
+    body.appendChild(host);
+    const tHost = host.querySelector(".mmt-totalt-host");
+    try {
+      const [mod, role, classes] = await Promise.all([
+        import("./teacher-mm-totalt.js"), import("../teacher-role.js").then((m) => m.myRole()),
+        import("../data-classes.js").then((m) => m.getClasses()).catch(() => []),
+      ]);
+      if (tHost.isConnected) mod.renderClassTotals(tHost, comp, { api, classes, role });
+    } catch (err) {
+      tHost.replaceChildren(el(`<div class="msg error">Kunde inte räkna klasserna: ${esc(err.message)}</div>`));
+    }
+  };
   const show = async () => {
     const comp = comps.find((c) => c.id === sel.value);
     body.replaceChildren(el(`<div class="spinner">Laddar resultat…</div>`));
@@ -267,6 +286,7 @@ export async function renderClassMattematchen(ctx, host, { classId, students, da
       const statsById = await api.loadStatsFor(comp.id, students.map((s) => s.id));
       if (sel.value !== comp.id) return;
       renderMmTable(ctx, body, { students, statsById, competition: comp });
+      totalt(comp);
     } catch (err) {
       body.replaceChildren(el(`<div class="msg error">Kunde inte ladda resultat: ${esc(err.message)}</div>`));
     }

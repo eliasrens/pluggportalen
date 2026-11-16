@@ -33,7 +33,8 @@ export function totalsHtml(t) {
   } else {
     body.push(...t.rows.map((r) => rad(r)));
   }
-  if (t.mina) body.push(rad({ ...t.mina, name: "Mina klasser" }, "mmt-tot-skola"));
+  // "Mina klasser" bara när den säger något mer än den enda klassraden.
+  if (t.mina && t.rows.length > 1) body.push(rad({ ...t.mina, name: "Mina klasser" }, "mmt-tot-skola"));
   if (t.skola) body.push(rad({ ...t.skola, name: t.skolanLabel }, "mmt-tot-skola"));
   return `<div class="table-scroll"><table class="tbl mmt-totalt-tbl">
     <thead><tr><th scope="col">Klass</th><th scope="col" class="lrt-num">Rätt</th>
