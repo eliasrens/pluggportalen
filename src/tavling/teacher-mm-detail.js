@@ -115,6 +115,10 @@ export async function renderCompetitionDetail(ctx, page, api, cid) {
         <div class="mmt-res-host"></div>
       </section>
       <section class="mmt-sektion">
+        <h2 class="subhead">Totalt per klass <span class="hint">rätt · fel · felprocent</span></h2>
+        <div class="mmt-totalt-host"><div class="spinner">Räknar…</div></div>
+      </section>
+      <section class="mmt-sektion">
         <h2 class="subhead">Elevresultat</h2>
         <div class="mmt-elev-host"></div>
       </section>
@@ -125,6 +129,11 @@ export async function renderCompetitionDetail(ctx, page, api, cid) {
     if (phase !== "avslutad") renderFollow(resHost, comp, classNames);
     else if (comp.result) renderHistoryResult(resHost, comp.result, classNames);
     else resHost.replaceChildren(el(`<div class="msg error">Kunde inte spara resultatet: ${esc(archiveErr || "okänt fel")}</div>`));
+    // Totalt per klass + Hela skolan (#863): rollen avgör vilka klasser som läses.
+    const totHost = view.querySelector(".mmt-totalt-host");
+    Promise.all([import("./teacher-mm-totalt.js"), import("../teacher-role.js").then((m) => m.myRole())])
+      .then(([mod, role]) => { if (totHost.isConnected) mod.renderClassTotals(totHost, comp, { api, classes, role }); })
+      .catch((err) => totHost.replaceChildren(el(`<div class="msg error">Kunde inte räkna klasserna: ${esc(err.message)}</div>`)));
     renderStudentResults(ctx, view.querySelector(".mmt-elev-host"), comp, classes, api);
 
     const flashEl = view.querySelector(".mmt-flash");

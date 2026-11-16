@@ -1,0 +1,42 @@
+// ============================================================================
+// Mattematchen – tabellen "Totalt per klass" som HTML (#863)
+// ----------------------------------------------------------------------------
+// Ren modul (ingen DOM/Firebase) → testas i Node (test/mm-teacher-totalt-863).
+// Vyn (teacher-mm-totalt.js) sätter in den. Indata = mm-teacher-core.classTotals.
+//   Klass | Rätt | Fel | Felprocent
+//   klasserna årskursvis med "Åk N totalt" efter varje (bara om > 1 årskurs),
+//   sedan "Mina klasser" (årskurskonto) och/eller "Hela skolan".
+// ============================================================================
+
+import { formatFelprocent } from "./mm-teacher-core.js";
+
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
+const dash = `<span class="lrt-dash" aria-label="inga svar än">–</span>`;
+
+function rad(r, cls = "") {
+  const n = (v) => (r.total > 0 ? String(v) : dash);
+  const namn = cls ? `<th scope="row">${esc(r.name)}</th>` : `<td>${esc(r.name)}</td>`;
+  return `<tr class="${cls}">${namn}<td class="lrt-num">${n(r.correct)}</td><td class="lrt-num">${n(r.incorrect)}</td>
+    <td class="lrt-num">${formatFelprocent(r.pctWrong)}</td></tr>`;
+}
+
+/** Tabellens HTML ur classTotals-resultatet. */
+export function totalsHtml(t) {
+  if (!t.rows.length) return `<p class="hint">Inga klasser att visa.</p>`;
+  const body = [];
+  // Flera årskurser: klasserna årskursvis med en delsumma efter varje; annars bara klasserna.
+  if (t.arskurser.length) {
+    for (const a of t.arskurser) {
+      body.push(...t.rows.filter((r) => r.ak === a.ak).map((r) => rad(r)));
+      body.push(rad({ ...a, name: `${a.label} totalt` }, "mmt-tot-ak"));
+    }
+  } else {
+    body.push(...t.rows.map((r) => rad(r)));
+  }
+  if (t.mina) body.push(rad({ ...t.mina, name: "Mina klasser" }, "mmt-tot-skola"));
+  if (t.skola) body.push(rad({ ...t.skola, name: t.skolanLabel }, "mmt-tot-skola"));
+  return `<div class="table-scroll"><table class="tbl mmt-totalt-tbl">
+    <thead><tr><th scope="col">Klass</th><th scope="col" class="lrt-num">Rätt</th>
+      <th scope="col" class="lrt-num">Fel</th><th scope="col" class="lrt-num">Felprocent</th></tr></thead>
+    <tbody>${body.join("")}</tbody></table></div>`;
+}

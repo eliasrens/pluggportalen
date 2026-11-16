@@ -12,6 +12,9 @@
 //   listCompetitions        → alla tävlingar (få dokument)
 //   competitionsForClass    → where participatingClassIds array-contains klass
 //   loadStatsFor(cid, ids)  → studentStats för EN klass (documentId in, 30 åt gången)
+//   loadStatsForClasses(cid, classIds) → studentStats för klasserna (#863):
+//                             admin (null) = hela samlingen i EN fråga; års-
+//                             kurskonto = where classId in [...], 30 åt gången
 //   loadTrainingTotals(uid) → MM + Live tillsammans via count()-aggregat på
 //                             collectionGroup("answers") (inga dokument läses)
 // Topp 25 + Klasskamp återanvänder elevsidans mm-data.js.
@@ -185,6 +188,25 @@ export async function loadStatsFor(cid, ids) {
     })
   );
   return out;
+}
+
+/**
+ * studentStats för en tävlings klasser (#863, totalt per klass/hela skolan).
+ * Kostar en läsning per elev som svarat – bara i lärarvyn, aldrig på elevsidan.
+ * @param {string} cid
+ * @param {string[]|null} classIds  null = admin (alla klasser, en fråga);
+ *   annars årskurskontots klasser (reglerna: hasClass(resource.data.classId))
+ */
+export async function loadStatsForClasses(cid, classIds) {
+  const col = collection(db, COL, cid, "studentStats");
+  if (classIds == null) return (await getDocs(col)).docs.map(withId);
+  const uniq = [...new Set(classIds.filter(Boolean))];
+  const chunks = [];
+  for (let i = 0; i < uniq.length; i += 30) chunks.push(uniq.slice(i, i + 30));
+  const delar = await Promise.all(
+    chunks.map((chunk) => getDocs(query(col, where("classId", "in", chunk))).then((s) => s.docs.map(withId)))
+  );
+  return delar.flat();
 }
 
 /**

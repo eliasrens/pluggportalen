@@ -17,10 +17,15 @@
 //                                   → historik-ögonblicksbild (MathCompetition.result)
 //   studentRows(students, statsById) → en rad per elev för klasstabellen
 //   MM_COLUMNS, sortMmRows(rows, key, dir), nextMmSort(cur, key)
+//   classTotals({ stats, classes, participatingIds, classIds, skola })
+//                                   → rätt/fel/felprocent per klass, per årskurs
+//                                     och hela skolan (#863)
+//   formatFelprocent(pctWrong)      → "12,5 %" | "–"
 //   formatPeriod(comp)              → "12 okt 08:00 – 23 okt 15:00"
 // ============================================================================
 
 import { TABLES, competitionPhase, classStandings, statsSummary, toMs, topList } from "./mm-core.js";
+import { OVRIGA, arskursAvKlass, arskursLabel } from "./arskurs.js";
 
 export const NAME_MAX = 80;
 export const MAX_CLASSES = 50;
@@ -214,6 +219,86 @@ export function studentRows(students, statsById) {
       summary: sum,
     };
   });
+}
+
+const SKOLAN = "Hela skolan";
+
+/** Felprocent med en decimal: fel / (rätt + fel); inga svar → null. */
+function felprocent(correct, incorrect) {
+  const total = correct + incorrect;
+  return total > 0 ? Math.round((incorrect / total) * 1000) / 10 : null;
+}
+
+/** 12.5 → "12,5 %", null → "–". */
+export function formatFelprocent(pctWrong) {
+  return pctWrong == null ? "–" : `${pctWrong.toFixed(1).replace(".", ",")} %`;
+}
+
+const summa = (rows) => {
+  const correct = rows.reduce((s, r) => s + r.correct, 0);
+  const incorrect = rows.reduce((s, r) => s + r.incorrect, 0);
+  return { correct, incorrect, total: correct + incorrect, pctWrong: felprocent(correct, incorrect) };
+};
+
+/**
+ * Totalt rätt/fel/felprocent per klass, per årskurs och för hela skolan (#863).
+ * @param {object} a
+ * @param {object[]} a.stats            studentStats-dokument ELLER result.students
+ *                                      ({ classId, correct, incorrect } räcker)
+ * @param {object[]} a.classes          [{ id, name }] (namn; saknas → id)
+ * @param {string[]} a.participatingIds matchens klasser (ordning = klassnamn)
+ * @param {Set<string>|null} [a.classIds] årskurskontots klasser (null = admin, alla)
+ * @param {object|null} [a.skola]       hela skolans totals när raderna är
+ *                                      filtrerade (result.totals); annars
+ *                                      summan av raderna
+ * @returns {{ rows, arskurser, skola, filtrerad }}
+ *   rows      [{ classId, name, correct, incorrect, total, pctWrong }] per klass
+ *   arskurser [{ ak, label, correct, incorrect, total, pctWrong }] – bara när
+ *             klasserna spänner över mer än en årskurs, annars []
+ *   skola     { correct, incorrect, total, pctWrong } – hela skolan, eller
+ *             null när kontot bara ser sina klasser och ingen skoltotal finns
+ *   mina      summan av rows när de är filtrerade ("Mina klasser"), annars null
+ *   filtrerad true när rows inte är alla matchens klasser (årskurskonto)
+ */
+export function classTotals({ stats, classes, participatingIds, classIds = null, skola = null }) {
+  const byId = new Map((classes || []).map((k) => [k.id, k]));
+  const alla = [...new Set(participatingIds || [])];
+  const mina = classIds ? alla.filter((id) => classIds.has(id)) : alla;
+  const sum = new Map(mina.map((id) => [id, { correct: 0, incorrect: 0 }]));
+  for (const s of stats || []) {
+    const acc = s && sum.get(s.classId);
+    if (!acc) continue;
+    acc.correct += Math.max(0, Number(s.correct) || 0);
+    acc.incorrect += Math.max(0, Number(s.incorrect) || 0);
+  }
+  const rows = mina
+    .map((classId) => {
+      const { correct, incorrect } = sum.get(classId);
+      const name = String(byId.get(classId)?.name || classId);
+      return { classId, name, ak: arskursAvKlass(name), correct, incorrect, total: correct + incorrect, pctWrong: felprocent(correct, incorrect) };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, "sv"));
+  // Delsumma per årskurs (#845 arskursAvKlass) – bara om det finns fler än en.
+  const perAk = new Map();
+  for (const r of rows) {
+    if (!perAk.has(r.ak)) perAk.set(r.ak, []);
+    perAk.get(r.ak).push(r);
+  }
+  const akOrdning = [...perAk.keys()].sort((a, b) => (a === OVRIGA ? 1 : b === OVRIGA ? -1 : a - b));
+  const arskurser = perAk.size > 1
+    ? akOrdning.map((ak) => ({ ak, label: arskursLabel(ak), ...summa(perAk.get(ak)) }))
+    : [];
+  const filtrerad = mina.length !== alla.length;
+  const egen = summa(rows);
+  let total = egen;
+  if (filtrerad) {
+    const t = skola && Number.isFinite(Number(skola.correct)) ? skola : null;
+    total = t
+      ? { correct: Math.max(0, Number(t.correct) || 0), incorrect: Math.max(0, Number(t.incorrect) || 0) }
+      : null;
+    if (total) total = { ...total, total: total.correct + total.incorrect, pctWrong: felprocent(total.correct, total.incorrect) };
+  }
+  return { rows, arskurser, skola: total, mina: filtrerad ? egen : null, filtrerad, skolanLabel: SKOLAN };
 }
 
 /** Kolumner i visningsordning (spec: Elev | Rätt | Fel | Totalt | Rätt % | Fel %). */

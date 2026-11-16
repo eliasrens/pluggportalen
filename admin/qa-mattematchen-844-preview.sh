@@ -11,7 +11,8 @@
 #   bash admin/qa-mattematchen-844-preview.sh          # http://127.0.0.1:8848/
 #   MYNT=49 bash admin/qa-mattematchen-844-preview.sh  # elev3a en rätt från taket
 #
-# Konton (lilla123): elev3a (3A), elev4b (4B), elev5e (5E, deltar inte), qalarare.
+# Konton (lilla123): elev3a (3A), elev4b (4B), elev5e (5E, deltar inte), qalarare (admin),
+# qaak3 (årskurskonto 3A, #863).
 # Kräver Java 11+ (~/.cache/pp-rig/jre eller JAVA_BIN) och firebase-tools.
 # ============================================================================
 set -euo pipefail

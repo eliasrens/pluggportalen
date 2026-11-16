@@ -97,6 +97,13 @@
 }
 .teacher-dark .mmt-kort h3 { display: flex; align-items: center; gap: 6px; margin: 0 0 10px; font-size: 1rem; }
 .teacher-dark .mmt-kort h3 .hint { margin: 0 0 0 4px; font-weight: 400; font-size: 0.8rem; }
+/* Totalt per klass / hela skolan (#863) */
+.teacher-dark .mmt-totalt .mmt-follow-topp { margin-bottom: 4px; }
+.teacher-dark .mmt-totalt-tbl { min-width: 420px; }
+.teacher-dark .mmt-totalt-tbl th, .teacher-dark .mmt-totalt-tbl td { padding: 8px 10px; border-bottom: 1px solid var(--t-border); }
+.teacher-dark .mmt-totalt-tbl th[scope="row"] { text-align: left; }
+.teacher-dark .mmt-totalt-tbl .mmt-tot-ak th, .teacher-dark .mmt-totalt-tbl .mmt-tot-ak td { background: rgba(142, 124, 240, 0.08); font-weight: 600; }
+.teacher-dark .mmt-totalt-tbl .mmt-tot-skola th, .teacher-dark .mmt-totalt-tbl .mmt-tot-skola td { background: rgba(46, 193, 110, 0.10); font-weight: 700; border-top: 2px solid var(--t-border); }
 .teacher-dark .mmt-lista { list-style: none; margin: 0; padding: 0; max-height: 520px; overflow: auto; }
 .teacher-dark .mmt-rad {
   display: grid;

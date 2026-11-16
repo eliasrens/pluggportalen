@@ -540,6 +540,59 @@ Spara därför varje svar på ett sätt som gör det möjligt att veta vilken ta
 
 ---
 
+# TOTALT PER KLASS OCH HELA SKOLAN (#863, Elias 2026-11-16)
+
+På en tävlings detaljvy (`#/larare/mattematchen?id=…`), för en **pågående**
+match och för en **avslutad** match i historiken, finns sektionen
+**Totalt per klass**:
+
+| Klass | Rätt | Fel | Felprocent |
+|---|---|---|---|
+
+- En rad per deltagande klass (namnordning), en delsumma **"Åk N totalt"**
+  per årskurs (`arskursAvKlass`, #845 – bara när matchen spänner över mer än
+  en årskurs; "Övriga" sist) och totalraden **"Hela skolan"**.
+- Felprocent = fel / (rätt + fel) med en decimal ("12,5 %"). Inga svar → "–".
+- Live-svar i multiplikation som räknats in (#847) ingår automatiskt – de
+  bumpar samma `studentStats`.
+
+**Läsningar** (`src/tavling/mm-teacher-data.loadStatsForClasses`, logiken i
+`mm-teacher-core.classTotals`, HTML i `mm-totalt-html.js`, vyn i
+`teacher-mm-totalt.js` – allt laddas lat):
+
+- **Avslutad match med sparat `result`:** inga extra läsningar. Raderna räknas
+  ur `result.students` (classId/correct/incorrect per elev, högst
+  `RESULT_STUDENTS_MAX` = 2000) och Hela skolan ur `result.totals`
+  (räknat på ALLA elever vid avslutet).
+- **Pågående match** (eller avslutad utan `result`): `studentStats` läses –
+  **en läsning per elev som svarat**, bara när läraren öppnar vyn eller
+  trycker Uppdatera (ingen lyssnare, ingen automatisk omläsning). Admin
+  läser hela underkollektionen i en fråga; ett årskurskonto frågar
+  `where classId in [sina klasser]` (≤ 30 per fråga). Fel per klass finns inte
+  aggregerat (`classCounters` räknar bara rätt) – valet att summera
+  `studentStats` i lärarvyn i stället för att lägga `incorrect` i shards
+  rör inte skriv-/regelvägen för svaren (#851-säkerheten) och kostar
+  ingenting på elevsidan.
+- Inga regel- eller indexändringar: `studentStats` läses redan med
+  `hasClass(resource.data.classId)` (`test/firestore-rules-roller-statistik-
+  material.test.js` täcker `where classId in`, admin listar hela samlingen
+  som vid avslutet).
+
+**Behörighet (#678):**
+
+- **Admin** ser alla deltagande klasser + Hela skolan.
+- **Årskurskonto** ser bara sina egna klasser i matchen + raden **"Mina
+  klasser"**. **Hela skolan** visas för kontot bara i en **avslutad** match
+  (ur det sparade `result.totals`, som ett enda aggregerat tal – inga andra
+  klassers rader). I en **pågående** match visas Hela skolan inte för
+  årskurskontot: reglerna släpper bara det egna klassernas `studentStats`,
+  och felen finns inte aggregerade någon annanstans. Beslut: hellre inget tal
+  än ett halvt (rätt från `classCounters` utan fel), och ingen ny
+  server-/regelväg för det – noteras i vyn ("Hela skolan visas när matchen
+  är avslutad").
+
+---
+
 # DEL 2 – LIVE
 
 # ÖVERGRIPANDE IDÉ
