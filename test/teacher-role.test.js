@@ -59,7 +59,8 @@ test("klasslägen: årskurs-sektionerna saknar elevkonton/ekonomi, bara Admin f�
   const src = readFileSync(join(SRC, "teacher-classes-sections.js"), "utf8");
   const mode = (k) => src.match(new RegExp(`${k}: \\{[^\\n]*\\}`))[0];
   // #804: Klasser + Statistik = Mina klasser (schack är statistikens underflik).
-  assert.match(mode("mina"), /sections: \["statistik", "omraden", "synlighet", "lagen", "fokus", "inloggning"\], manage: false/);
+  // #867: Anpassningar per elev (Matchdagen) under Elever för båda rollerna.
+  assert.match(mode("mina"), /sections: \["statistik", "omraden", "synlighet", "lagen", "fokus", "inloggning", "anpassningar"\], manage: false/);
   // #805: elevkonton och Klasscentret = Mina klasser → Elever, bara admin; ingen sida hanterar klasser här.
   assert.match(mode("minaAdmin"), /sections: \["elever", "klasscenter"\], manage: false, admin: true/);
   assert.doesNotMatch(src, /manage: true/);

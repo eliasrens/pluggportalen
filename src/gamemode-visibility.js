@@ -382,6 +382,9 @@ export function visibleVillageClasses(classes, meId) {
 //                       ("Kör i klass"), inte i lärarens målväljare
 //   ovning            – övningsmodul (#788): öppen för en elev som lämnat in provet
 //                       när läraren valt "Bara övning" (docs/FOKUSLAGE.md)
+//   perElev           – slås på för ENSKILDA elever (classes/{id}.elevModuler, #867),
+//                       aldrig för hela klassen: inte i TOGGLABLE_MODULES/enabledModules.
+//                       Kräver optIn (av för alla andra). Se docs/MATCHDAGEN.md
 //
 // Hem (huset) är elevens startsida och går inte att dölja – den står inte här.
 // Live (#460) är ingen inlärningsmodul: syns som Live-rutan när klassen bjudits in.
@@ -392,6 +395,12 @@ export const SCHACK_IKON =
   '<svg viewBox="12 10 76 84" width="1.15em" height="1.15em" aria-hidden="true" fill="#FFF3DC" stroke="#3B3350" ' +
   'stroke-width="5" stroke-linejoin="round" stroke-linecap="round"><path d="M39 52 C39 63 31 69 29 77 L71 77 C69 69 61 63 61 52 Z"/>' +
   '<rect x="35" y="45" width="30" height="8" rx="4"/><circle cx="50" cy="31" r="14"/><rect x="22" y="76" width="56" height="12" rx="6"/></svg>';
+
+/** Sidomenyns Matchdagen-ikon (#867): en fotboll, samma som skissens logga (ingen emoji). */
+export const MATCHDAGEN_IKON =
+  '<svg viewBox="0 0 30 30" width="1.15em" height="1.15em" aria-hidden="true"><circle cx="15" cy="15" r="13" fill="#fff" ' +
+  'stroke="#0a1220" stroke-width="2"/><path d="M15 8l5 3.6-1.9 5.9h-6.2L10 11.6zM15 8V3M20 11.6l4.6-1.6M18.1 17.5l2.9 4M11.9 ' +
+  '17.5l-2.9 4M10 11.6L5.4 10" fill="#0a1220" stroke="#0a1220" stroke-width="1.6" stroke-linejoin="round"/></svg>';
 
 export const STUDENT_MODULES = [
   // Prov (#740, docs/PROV.md): överst i "Öva" – länken syns bara när ett prov är
@@ -424,10 +433,20 @@ export const STUDENT_MODULES = [
   // inga unicode-schacktecken (de ser olika ut på olika datorer).
   { id: "schack", label: "Schack", ikon: SCHACK_IKON, grupp: "ova", learning: true, lockable: false,
     optIn: true, routes: ["/elev/schack"] },
+  // Matchdagen (#866/#867, docs/MATCHDAGEN.md): BARA per elev (elevModuler) – läraren slår
+  // på den i Elever → Anpassningar per elev. Fokusläget stänger den (learning); inget låsmål.
+  { id: "matchdagen", label: "Matchdagen", ikon: MATCHDAGEN_IKON, grupp: "ova", learning: true, lockable: false,
+    optIn: true, perElev: true, routes: ["/elev/matchdagen"] },
 ];
 
+/** Moduler med modulgrind (dolda → routern och menyn spärrar): klassvisa + per elev. */
+const GRINDADE_MODULES = STUDENT_MODULES.filter((m) => m.toggle !== false);
+
 /** Moduler läraren kan slå av/på per klass (#412, ordning = lärar-UI:ts ordning). */
-export const TOGGLABLE_MODULES = STUDENT_MODULES.filter((m) => m.toggle !== false);
+export const TOGGLABLE_MODULES = GRINDADE_MODULES.filter((m) => !m.perElev);
+
+/** Moduler som slås på per elev (#867, classes/{id}.elevModuler). */
+export const PER_ELEV_MODULES = GRINDADE_MODULES.filter((m) => m.perElev);
 
 /** Modulen (ur hela registret) som äger elev-routen `path`, annars null. */
 export function studentModuleForRoute(path) {
@@ -448,7 +467,32 @@ export function normalizeEnabledModules(v) {
 
 /** Modul-id som äger elev-routen `path` (utan query), annars null. */
 export function moduleForRoute(path) {
-  return TOGGLABLE_MODULES.find((m) => m.routes.includes(path))?.id || null;
+  return GRINDADE_MODULES.find((m) => m.routes.includes(path))?.id || null;
+}
+
+/** Högst så många elever per klass i elevModuler (#867, speglas i firestore.rules). */
+export const ELEV_MODULER_MAX = 100;
+
+/**
+ * Normalisera classes/{id}.elevModuler (#867): { [uid]: [modul-id] } med bara kända
+ * per-elev-moduler, utan tomma listor, högst ELEV_MODULER_MAX elever – och, om
+ * `studentIds` ges, bara klassens elever (skrivsidan rensar bort gamla elever).
+ * @param {*} map
+ * @param {string[]} [studentIds]
+ * @returns {Record<string, string[]>}
+ */
+export function normalizeElevModuler(map, studentIds) {
+  const out = {};
+  if (!map || typeof map !== "object" || Array.isArray(map)) return out;
+  const kanda = new Set(PER_ELEV_MODULES.map((m) => m.id));
+  const iKlassen = Array.isArray(studentIds) ? new Set(studentIds) : null;
+  for (const [uid, lista] of Object.entries(map)) {
+    if (Object.keys(out).length >= ELEV_MODULER_MAX) break;
+    if (!uid || (iKlassen && !iKlassen.has(uid))) continue;
+    const ids = normalizeHiddenModes(lista).filter((id) => kanda.has(id));
+    if (ids.length) out[uid] = ids;
+  }
+  return out;
 }
 
 /**
@@ -466,8 +510,9 @@ export function hiddenModulesForStudent(classes, meId) {
 
 /**
  * Allt som är dolt för eleven (#605): hiddenModules (#412) PLUS de opt-in-
- * moduler som INGEN av elevens klasser har aktiverat (enabledModules).
- * Aktiverad i någon klass → syns, så länge ingen klass döljer den.
+ * moduler som INGEN av elevens klasser har aktiverat (enabledModules) – eller,
+ * för per-elev-moduler (#867), som ingen klass har slagit på för just eleven
+ * (elevModuler[meId]). Aktiverad i någon klass → syns, så länge ingen klass döljer den.
  * Elev utan klass ser alltså inga opt-in-moduler.
  * @param {Array<{studentIds?:string[], hiddenModules?:string[], enabledModules?:string[]}>} classes
  * @param {string|null} meId
@@ -477,10 +522,11 @@ export function modulesHiddenForStudent(classes, meId) {
   const dolda = new Set(hiddenModulesForStudent(classes, meId));
   const egna = !meId || !Array.isArray(classes) ? []
     : classes.filter((c) => Array.isArray(c.studentIds) && c.studentIds.includes(meId));
-  const pa = new Set(egna.flatMap((c) => normalizeEnabledModules(c.enabledModules)));
-  for (const m of TOGGLABLE_MODULES) if (m.optIn && !pa.has(m.id)) dolda.add(m.id);
+  const pa = new Set(egna.flatMap((c) => [...normalizeEnabledModules(c.enabledModules),
+    ...(normalizeElevModuler(c.elevModuler)[meId] || [])]));
+  for (const m of GRINDADE_MODULES) if (m.optIn && !pa.has(m.id)) dolda.add(m.id);
   return [...dolda];
 }
 
-/** Opt-in-modulernas id – dolda när klasslistan inte gick att läsa. */
-export const OPT_IN_MODULES = TOGGLABLE_MODULES.filter((m) => m.optIn).map((m) => m.id);
+/** Opt-in-modulernas id (även per elev) – dolda när klasslistan inte gick att läsa. */
+export const OPT_IN_MODULES = GRINDADE_MODULES.filter((m) => m.optIn).map((m) => m.id);

@@ -35,6 +35,7 @@ brakresaRecommendations/{recId}          ← Bråkresan: lärarens rekommendatio
 schackKlass/{classId}                    ← Schack (#779): lobbyn, pågående partier och topplistan – EN doc per klass, bara servern skriver
 schackPartier/{partiId}                  ← Schack: ett parti elev mot elev (FEN, drag, klocka) – bara servern skriver
 schackMynt/{uid}                         ← Schack (#798): kvittot för schackets pluggmynt – bara servern skriver
+matchdagenInst/{uid}                     ← Matchdagen (#867): lärarens inställningar per elev – läraren skriver, eleven läser
 mathCompetitions/{cid}/…                 ← Mattematchen (#457), se "Mattematchen & Live"
 liveSessions/{sid}/…                     ← Live-matcher (#457), se "Mattematchen & Live"
 liveClock/{uid}                          ← Live: klocksynk per inloggad (#460)
@@ -750,6 +751,8 @@ flera klasser utan extra kopplingsdata).
 | `studentIds`    | array\<string\>       | Id:n på eleverna i klassen (pekar på `students`)|
 | `assignedAreas` | array\<Assignment\>   | Aktiva/tilldelade arbetsområden (valfritt, se nedan) |
 | `lock`          | ClassLock             | Fokusläge (#436): klassen låst till ETT mål till ett klockslag (valfritt, se nedan) |
+| `hiddenModules` / `enabledModules` | array\<string\> | Moduler som döljs (#412) respektive opt-in-moduler som slås på (#605) för hela klassen. `enabledModules` får aldrig innehålla en per-elev-modul (`"matchdagen"`) – reglerna nekar. |
+| `elevModuler`   | map uid → array\<string\> | Moduler per ELEV (#867): `{ [uid]: ["matchdagen"] }` – modulen syns bara för de listade eleverna (`perElev` i `STUDENT_MODULES`). Högst 100 elever, bara klassens `studentIds` som nycklar, i dag bara listan `["matchdagen"]`. Läsbart för alla inloggade (elevens meny), skrivs av lärare med klassen (Elever → Anpassningar per elev). En elev utan modul har ingen nyckel. Se [MATCHDAGEN.md](MATCHDAGEN.md). |
 | `lasresaStartLevel10` | int 1–10      | Läsresans startnivå (#505, skala 1–10 i #519) för klassens elever som INTE börjat Läsresan (saknar `studentData.lasresa`) och nya elever. Saknas = 4. Påverkar inte elever som är igång. Bara lärare skriver (regeln validerar heltal 1–10; ⚠️ rules-deploy). Se [LASRESAN.md](LASRESAN.md). |
 | `lasresaStartLevel` | int 1–7           | SPEGEL av startnivån i gammal skala (ny − 3, klampad 1–7) för gamla cachade klienter. Skrivs alltid tillsammans med `lasresaStartLevel10`. Finns bara detta fält är värdet gammalt och tolkas +3 (gammal 3 → 6). |
 
@@ -853,6 +856,31 @@ eller lärare (`isClassMember` i `firestore.rules`; regeltester i
 `test/firestore-rules-class-docs.test.js`).
 **⚠️ Reglerna är live först efter `firebase deploy --only firestore:rules`**
 (separat från Pages-deployen).
+
+---
+
+## Matchdagen (#866–, epic Matchdagen)
+
+Spec `docs/UTVECKLINGSUPPDRAG_MATCHDAGEN.md`; arkitekturen i [`docs/MATCHDAGEN.md`](MATCHDAGEN.md).
+Åtkomsten per elev ligger på klassen (`classes/{classId}.elevModuler`, ovan).
+
+### `matchdagenInst/{uid}` – lärarens inställningar per elev (#867)
+
+| Fält | Typ | Beskrivning |
+| --- | --- | --- |
+| `omraden` | array\<string\> ≤ 60 | Plugga-områden som frågekälla, `"<subjectId>/<areaId>"` (quiz utan passage + par) |
+| `tabeller` | array\<int 0–10\> | Multiplikationstabeller |
+| `rakna` | array\<string\> ≤ 60 | Räkna-områden (område med `generator`), `"<subjectId>/<areaId>"` |
+| `svarssatt` | `"flerval"` \| `"skriv"` | Standard flerval; skriv själv där källan stödjer det |
+| `klocka` | 0 \| 30 \| 60 | Sekunder per fråga, 0 = av (standard) |
+| `lugnt` | bool | Lugnt läge: färre effekter, ingen publik, inga skakningar, dämpat ljud |
+| `paus` | 0 \| 30 \| 45 \| 60 | Minuter till "Bra jobbat! Dags för en paus.", 0 = av (standard 60) |
+| `updatedAt`, `updatedBy` | timestamp, string | Serverns tid och lärarens uid (reglerna kräver båda) |
+
+Skrivs av lärare med `hasStudent(uid)` i samma batch som klassens `elevModuler`
+(`src/matchdagen/md-inst-data.js`), läses av läraren och av eleven själv (EN getDoc när
+Matchdagen öppnas). Saknat dokument = standardvärdena och inga frågekällor. Formen och
+standardvärdena: `src/matchdagen/md-inst.js`. ⚠️ rules-deploy.
 
 ---
 

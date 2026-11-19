@@ -620,10 +620,28 @@ service cloud.firestore {
     // läsbart för alla inloggade, skrivbart bara av lärare, lista med max 20 id.
     // Saknat fält = opt-in-modulerna är AV.
     // ⚠️ DEPLOY: `firebase deploy --only firestore:rules` (separat från Pages).
+    // Matchdagen (#867) slås bara på PER ELEV (elevModuler nedan) – aldrig här.
     function validEnabledModules() {
       return !('enabledModules' in request.resource.data) ||
         (request.resource.data.enabledModules is list &&
-         request.resource.data.enabledModules.size() <= 20);
+         request.resource.data.enabledModules.size() <= 20 &&
+         !request.resource.data.enabledModules.hasAny(['matchdagen']));
+    }
+    // MODULER PER ELEV (#867, docs/MATCHDAGEN.md): `elevModuler` = { [uid]: [modul-id] }
+    // – moduler som bara de listade eleverna ser (perElev i STUDENT_MODULES). Läsbart
+    // för alla inloggade (elevens meny), skrivbart av lärare med klassen (hasClass via
+    // classes-regeln). En ÄNDRAD map: högst 100 elever, bara klassens studentIds som
+    // nycklar och bara kända listor (i dag bara ["matchdagen"]). En oförändrad map
+    // stoppar inte andra klass-skrivningar (en elev som tagits ur klassen ligger kvar
+    // tills läraren sparar nästa gång – klienten rensar då bort hen).
+    // ⚠️ DEPLOY: `firebase deploy --only firestore:rules` (separat från Pages).
+    function validElevModuler() {
+      let d = request.resource.data;
+      return !('elevModuler' in d) ||
+        (resource != null && d.elevModuler == resource.data.get('elevModuler', null)) ||
+        (d.elevModuler is map && d.elevModuler.size() <= 100 &&
+         d.elevModuler.keys().hasOnly(d.get('studentIds', [])) &&
+         d.elevModuler.values().hasOnly([['matchdagen']]));
     }
     // FOKUSLÄGE / KLASS-LÅS (#436): fältet `lock` = { mal: { typ, id?, namn? },
     // till: <epoch-ms>, doljOvrigt: bool, efter?: { lage, moduler? } (#788) }.
@@ -691,16 +709,50 @@ service cloud.firestore {
     // name, studentIds, byarna (hiddenVillages) eller annat.
     function classValid() {
       return validHiddenVillages() && validHiddenModules() && validEnabledModules() &&
-        validLock() && validLasresaStartLevel();
+        validElevModuler() && validLock() && validLasresaStartLevel();
     }
     match /classes/{classId} {
       allow read:  if signedIn();
       allow create: if isAdmin() && classValid();
       allow update: if classValid() && (isAdmin() || (gradeClass(classId) &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['assignedAreas',
-          'hiddenModes', 'areaModes', 'hiddenModules', 'enabledModules', 'lock',
+          'hiddenModes', 'areaModes', 'hiddenModules', 'enabledModules', 'elevModuler', 'lock',
           'lasresaStartLevel10', 'lasresaStartLevel'])));
       allow delete: if isAdmin();
+    }
+
+    // MATCHDAGEN – lärarens inställningar per elev (#867, spec §1.2, docs/MATCHDAGEN.md):
+    // matchdagenInst/{uid} = frågekällor, svarssätt, klocka, lugnt läge och paus
+    // (src/matchdagen/md-inst.js). Läraren med eleven (hasStudent) läser och skriver;
+    // eleven själv läser (Matchdagen-sidan, EN getDoc per besök) men skriver aldrig.
+    // ⚠️ DEPLOY: `firebase deploy --only firestore:rules` (separat från Pages).
+    match /matchdagenInst/{uid} {
+      allow read: if isSelf(uid) || hasStudent(uid);
+      allow create, update: if hasStudent(uid) && validMatchdagenInst(request.resource.data);
+      allow delete: if hasStudent(uid);
+    }
+    // omraden/rakna: ≤ 60 nycklar "ämne/område" (reglerna kan inte loopa: listan fogas
+    // ihop med "|" och prövas med ett reguljärt uttryck; split-storleken = listans, så
+    // ingen nyckel kan innehålla "|"). tabeller: 0–10.
+    function mdNycklarOk(l) {
+      return l is list && l.size() <= 60 && (l.size() == 0 ||
+        (l.join('|').size() <= 12000 && l.join('|').split('[|]').size() == l.size() &&
+         l.join('|').matches('[^/|\\s]+/[^/|\\s]+([|][^/|\\s]+/[^/|\\s]+)*')));
+    }
+    function validMatchdagenInst(d) {
+      return d.keys().hasOnly(['omraden', 'tabeller', 'rakna', 'svarssatt', 'klocka', 'lugnt', 'paus',
+          'updatedAt', 'updatedBy']) &&
+        d.keys().hasAll(['omraden', 'tabeller', 'rakna', 'svarssatt', 'klocka', 'lugnt', 'paus',
+          'updatedAt', 'updatedBy']) &&
+        mdNycklarOk(d.omraden) && mdNycklarOk(d.rakna) &&
+        d.tabeller is list && d.tabeller.size() <= 11 &&
+        d.tabeller.hasOnly([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) &&
+        d.svarssatt in ['flerval', 'skriv'] &&
+        d.klocka in [0, 30, 60] &&
+        d.lugnt is bool &&
+        d.paus in [0, 30, 45, 60] &&
+        d.updatedAt == request.time &&
+        d.updatedBy == request.auth.uid;
     }
 
     // Klass-projektion (#231/#232): ETT förberäknat dokument per klass som
