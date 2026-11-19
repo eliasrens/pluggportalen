@@ -15,6 +15,8 @@ import { el, esc, errText, icon } from "../../teacher-shared.js";
 import { areaContentFlags } from "../../gamemode-visibility.js";
 import { KLOCKA_VAL, PAUS_VAL, STANDARD_INST, TABELLER, harKallor, harMatchdagen, omradeNyckel, sammanfattning } from "../md-inst.js";
 
+const antalText = (n) => (n ? `${n} ${n === 1 ? "vald" : "valda"}` : "");
+
 const radio = (namn, varde, text, valt) =>
   `<label class="mda-val"><input type="radio" name="${namn}" value="${varde}"${valt ? " checked" : ""} /><span>${text}</span></label>`;
 
@@ -36,7 +38,7 @@ function omradesHtml(typ, gs) {
     const n = areas.filter((a) => a.vald).length;
     const oppen = areas.some((a) => a.vald || a.klassens);
     return `<details class="mda-amne"${oppen ? " open" : ""}>
-      <summary>${esc(subj.icon || "📚")} ${esc(subj.name || subj.id)} <span class="mda-antal" data-antal>${n ? `${n} valda` : ""}</span></summary>
+      <summary>${esc(subj.icon || "📚")} ${esc(subj.name || subj.id)} <span class="mda-antal" data-antal>${antalText(n)}</span></summary>
       <div class="mda-kryss">${areas.map((a) => `<label class="mda-val"><input type="checkbox" data-${typ}="${esc(a.nyckel)}"${a.vald ? " checked" : ""} />
         <span>${esc(a.namn)}${a.klassens ? ' <small class="mda-tagg">klassens</small>' : ""}</span></label>`).join("")}</div>
     </details>`;
@@ -118,7 +120,7 @@ export async function renderPanel(ctx, { cls, elev, host, avbryt, loadLibrary, o
     const amne = e.target.closest(".mda-amne");
     if (amne) {
       const n = amne.querySelectorAll("input:checked").length;
-      amne.querySelector("[data-antal]").textContent = n ? `${n} valda` : "";
+      amne.querySelector("[data-antal]").textContent = antalText(n);
     }
   });
   box.addEventListener("submit", async (e) => {

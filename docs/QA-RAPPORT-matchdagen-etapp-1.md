@@ -44,9 +44,18 @@ Arkitekturen: [`MATCHDAGEN.md`](MATCHDAGEN.md).
 
 ### Skärmdumpar
 
-Läraren (Mina klasser → Elever → Anpassningar per elev, panelen utfälld) och elevens meny med Matchdagen under
-Öva respektive en klasskamrats meny utan: tas av QA i förhandsvisningen
-(`PORT=8867 bash admin/qa-matchdagen-867-preview.sh`), se *Så testas det* nedan.
+Tagna i förhandsvisningen mot emulatorn (`admin/qa-matchdagen-867-preview.sh`), årskurskontot `qaarskurs4`:
+
+| Bild | Vad |
+| --- | --- |
+| [`01-larare-anpassningar-alva-1366.png`](qa-matchdagen-1a/01-larare-anpassningar-alva-1366.png) | Mina klasser → 4A → Elever → Anpassningar per elev, Alvas panel efter Spara (Matchdagen på, Vikingatiden, tabell 3 och 7, Räkna: addition, klocka 30 s) |
+| [`02-elev-alva-matchdagen-1366.png`](qa-matchdagen-1a/02-elev-alva-matchdagen-1366.png) | Alva: Matchdagen med fotbollsikonen under Öva och platshållarsidan med hennes frågor |
+| [`03-elev-bilal-utan-matchdagen-1366.png`](qa-matchdagen-1a/03-elev-bilal-utan-matchdagen-1366.png) | Bilal (samma klass): ingen Matchdagen i menyn; direktlänken skickade honom hem |
+| [`04-larare-panel-375.png`](qa-matchdagen-1a/04-larare-panel-375.png) | Panelen på 375 px (ingen sidledsscroll) |
+
+Också kontrollerat i webbläsaren: panelen läser tillbaka det sparade efter omladdning, och när 4A låstes till
+Vikingatiden försvann Alvas Matchdagen-länk och `#/elev/matchdagen` gick till målet (låset hävt efteråt).
+(Emojiikonerna i menyn är rutor i den huvudlösa webbläsaren – den saknar emojityp­snitt; inget med #867 att göra.)
 
 ### Deploy
 

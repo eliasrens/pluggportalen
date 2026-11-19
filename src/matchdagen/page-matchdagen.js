@@ -31,7 +31,7 @@ export async function pageMatchdagen() {
   const rad = fel ? "Inställningarna kunde inte läsas just nu. Prova igen om en stund." : fragorText(inst);
   app.replaceChildren(el(`<section class="md-sida" aria-labelledby="md-rubrik">
     <div class="md-kort">
-      <div class="md-logo" aria-hidden="true"><span class="md-logo-boll">${MATCHDAGEN_IKON}</span>Match<span>dagen</span></div>
+      <div class="md-logo" aria-hidden="true"><span class="md-logo-boll">${MATCHDAGEN_IKON}</span><span>Match<b>dagen</b></span></div>
       <h1 id="md-rubrik" class="md-rubrik">Snart blåser domaren i visslan!</h1>
       <p class="md-text">Din lärare har gett dig Matchdagen. Här ska du leda ditt eget lag genom Division 6 –
         och varje drag på planen kräver ett rätt svar. Matchen byggs just nu.</p>

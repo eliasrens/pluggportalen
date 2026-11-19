@@ -10377,7 +10377,7 @@ html.reduce-motion .schack-pokal-ny { animation: none; }
   font: 800 30px/1 "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
   letter-spacing: 0.01em;
 }
-.md-logo > span:last-child { color: var(--md-gul); }
+.md-logo b { color: var(--md-gul); font-weight: inherit; }
 .md-logo-boll svg { width: 32px; height: 32px; display: block; }
 .md-rubrik {
   margin: 18px 0 8px;
@@ -10466,6 +10466,7 @@ html.reduce-motion .schack-pokal-ny { animation: none; }
 .teacher-dark .mda-del legend { padding: 0 6px; font-weight: 800; color: var(--t-text); }
 .teacher-dark .mda-del h4 { margin: 12px 0 6px; font-size: 0.9rem; color: var(--t-text); }
 .teacher-dark .mda-del .hint { margin: 6px 0 0; }
+.teacher-dark .mda-del .btn:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
 .teacher-dark .mda-amne { margin: 4px 0; }
 .teacher-dark .mda-amne summary { cursor: pointer; font-weight: 700; padding: 4px 0; }
 .teacher-dark .mda-antal { color: var(--t-accent); font-size: 0.8rem; margin-left: 6px; }
