@@ -200,6 +200,19 @@ Alla mål i §12 för Division 6 nås. Med specens startvärden vann 70 %-eleven
 | [`qa-matchdagen-1b/fragekort-rakna-klocka-bild-1366.png`](qa-matchdagen-1b/fragekort-rakna-klocka-bild-1366.png) | Räkna-räknesättet klocka: urtavlan från `matte-visuals.js` och tipset "Svara med klockslag" (1366 × 768) |
 | [`qa-matchdagen-1b/fragekort-skriv-rakna-klocka.png`](qa-matchdagen-1b/fragekort-skriv-rakna-klocka.png) | Räkna, skriv själv, fel svar: "Rätt svar: 585", klockan räknar ned |
 
+### Körningar (Codern, c82fa3e)
+
+| Svit | Resultat |
+| --- | --- |
+| `node --test` (filerna utan emulator, 306 filer) | 4500 pass, 0 fail, 1 skipped |
+| Matchdagen 1b (`test/matchdagen-{motor,liga,fragor,balans}.test.js`) | 57 pass, 0 fail (ingår ovan) |
+| `npm run test:rules` (`admin/qa-matchdagen-867-svit.sh`) | 1015 pass, 0 fail |
+| `npm run test:functions` (samma rigg, `FUNCTIONS_EMULATOR_HOST`) | 573 pass, 0 fail, 2 todo |
+| `npm run test:e2e` | 5/5 |
+| `npm run balans:matchdagen` | alla rader "ja" (tabellen ovan) |
+| Bootgrafen | 107 filer (oförändrad, `test/matchdagen-modul.test.js`) |
+| Förhandsvisningen i webbläsaren | flerval (tangent 1, fel, facit), "Vad betyder X?", skriv själv med klocka, Räkna-klocka med bild, inga källor; inga konsolfel |
+
 ### Deploy
 
 Ingen. Det finns inga regler, index, functions eller nya samlingar. Motorn och källorna används först i 1c.
