@@ -97,7 +97,8 @@ export async function skapaFragestrom({ inst, uid, hamtaOmrade, lagring = webbLa
   if (!kallor.length) return { tom: true, meddelande: SAKNADE_FRAGOR };
 
   const pasar = lasPasar(lagring, uid);
-  for (const k of kallor) if (k.nycklar === null) k.starta(Number(pasar.kallor[k.id]?.n) || 0, uid);
+  const fro = Math.floor(rng() * 2 ** 32);
+  for (const k of kallor) if (k.nycklar === null) k.starta(Number(pasar.kallor[k.id]?.n) || 0, uid, fro);
   const blandning = createTopicBag(kallor, Math.floor(rng() * 2 ** 32));
   let nr = 0;
 

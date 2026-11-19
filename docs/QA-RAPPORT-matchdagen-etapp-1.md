@@ -197,6 +197,7 @@ Alla mål i §12 för Division 6 nås. Med specens startvärden vann 70 %-eleven
 | --- | --- |
 | [`qa-matchdagen-1b/fragekort-flerval-fel-1366.png`](qa-matchdagen-1b/fragekort-flerval-fel-1366.png) | Multiplikation, flerval, fel svar med tangent 1: valet rött, det rätta grönt, "Rätt svar: 8" (1366 × 768) |
 | [`qa-matchdagen-1b/fragekort-vad-betyder.png`](qa-matchdagen-1b/fragekort-vad-betyder.png) | Ett par från ett Plugga-område som "Vad betyder socken?" med klockan på 30 s |
+| [`qa-matchdagen-1b/fragekort-rakna-klocka-bild-1366.png`](qa-matchdagen-1b/fragekort-rakna-klocka-bild-1366.png) | Räkna-räknesättet klocka: urtavlan från `matte-visuals.js` och tipset "Svara med klockslag" (1366 × 768) |
 | [`qa-matchdagen-1b/fragekort-skriv-rakna-klocka.png`](qa-matchdagen-1b/fragekort-skriv-rakna-klocka.png) | Räkna, skriv själv, fel svar: "Rätt svar: 585", klockan räknar ned |
 
 ### Deploy
@@ -249,3 +250,8 @@ budget (§13).
     kunna kopieras till `functions/` i Etapp 4.
 15. **game-shared.js i node:** den drar in Firebase och DOM. Testet byter den mot en modul med de riktiga
     `plainQuizPool`/`hasPassage`, utklippta ur källkoden. Förhandsvisningen stubbar den med importmap.
+16. **Visuella Räkna-uppgifter** (klocka, statistik, sannolikhet och koordinatsystem) får sin bild ur
+    `matte-visuals.js` och samma tips om svarsformatet som i Räkna. Granskningen hittade att de annars inte gick
+    att besvara. Kladdytan från Räkna finns inte på frågekortet.
+17. **Räkna-strömmens frö** blandar in sessionens slump. Annars skulle en elev med blockerad `localStorage` få
+    samma uppgifter i varje match.

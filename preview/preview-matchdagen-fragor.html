@@ -8,7 +8,7 @@
        frågekortet (md-svar.js) och den rena motorn (delat/md-motor.js) som en textmatch.
        Ingen plan, ingen Firebase – 3D och matchvyn kommer i 1c. game-shared.js stubbas
        (importmap). Kör: PORT=8868 node server.mjs → /preview/preview-matchdagen-fragor.html
-       ?svar=skriv (skriv själv), ?klocka=30, ?kallor=tabell|omrade|rakna|inga -->
+       ?svar=skriv (skriv själv), ?klocka=30, ?kallor=tabell|omrade|rakna|klocka|inga -->
   <script type="importmap">
     { "imports": { "../src/game-shared.js": "./matchdagen-868/game-shared.js" } }
   </script>
@@ -56,12 +56,13 @@
         ],
       },
       "ma/addera": { generator: { topic: "addition", variants: ["enkel"], grade: "ak4" } },
+      "ma/klocka": { generator: { topic: "klocka", variants: ["las-av"], grade: "ak4" } },
     };
     const k = p.get("kallor") || "alla";
     const inst = k === "inga" ? {} : {
       omraden: ["alla", "omrade"].includes(k) ? ["so/sverige"] : [],
       tabeller: ["alla", "tabell"].includes(k) ? [6, 7, 8] : [],
-      rakna: ["alla", "rakna"].includes(k) ? ["ma/addera"] : [],
+      rakna: ["alla", "rakna"].includes(k) ? ["ma/addera"] : k === "klocka" ? ["ma/klocka"] : [],
       svarssatt: p.get("svar") === "skriv" ? "skriv" : "flerval",
       klocka: Number(p.get("klocka")) || 0,
     };

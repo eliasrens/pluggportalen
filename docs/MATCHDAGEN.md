@@ -251,7 +251,7 @@ Allt nytt ligger i `src/matchdagen/` och laddas med `import()` – bootgrafen ä
 | `src/matchdagen/md-svar.js` | frågekortet (§5) |
 | `src/matchdagen/delat/` | den rena motorn och ligan (§6) |
 | `admin/md-balans-sim.mjs` | balanssimuleringen (§7) |
-| `preview/preview-matchdagen-fragor.html` | förhandsvisning 1b: frågekortet + motorn som textmatch (`PORT=8868 node server.mjs`; `?svar=skriv`, `?klocka=30`, `?kallor=tabell\|omrade\|rakna\|inga`) |
+| `preview/preview-matchdagen-fragor.html` | förhandsvisning 1b: frågekortet + motorn som textmatch (`PORT=8868 node server.mjs`; `?svar=skriv`, `?klocka=30`, `?kallor=tabell\|omrade\|rakna\|klocka\|inga`) |
 
 ## 9. Deploy
 

@@ -65,7 +65,8 @@ const OMRADE = {
   ],
 };
 const RAKNA = { generator: { topic: "addition", variants: ["enkel"], grade: "ak4" } };
-const AREAS = { "so/sverige": OMRADE, "ma/addera": RAKNA, "so/lasning": { quiz: [{ question: "Q?", options: ["a", "b"], answerIndex: 0, passage: "P" }] } };
+const KLOCKA = { generator: { topic: "klocka", variants: ["las-av"], grade: "ak4" } };
+const AREAS = { "so/sverige": OMRADE, "ma/addera": RAKNA, "ma/klocka": KLOCKA, "so/lasning": { quiz: [{ question: "Q?", options: ["a", "b"], answerIndex: 0, passage: "P" }] } };
 const hamtaOmrade = async (s, a) => AREAS[`${s}/${a}`] ?? null;
 const strom = (inst, o = {}) => F.skapaFragestrom({ inst, uid: "elev1", hamtaOmrade, lagring: o.lagring || minne(), rng: skapaPrng(o.seed || "f").tal });
 
@@ -154,6 +155,20 @@ describe("varje källa ger giltiga frågor", () => {
       assert.equal(s.ratta(f, f.facit).ratt, true);
       assert.equal(s.ratta(f, "-999").ratt, false);
     }
+  });
+});
+
+describe("Räkna med bild", () => {
+  it("de visuella räknesätten får bilden (matte-visuals.js) och ett tips om hur svaret skrivs", async () => {
+    const s = await strom({ rakna: ["ma/klocka"] });
+    const f = s.nasta();
+    giltig(f);
+    assert.match(f.bild, /^<svg[\s\S]*<\/svg>$/);
+    assert.equal(f.tips, "Svara med klockslag, t.ex. 07:30.");
+    assert.equal(f.inputMode, "text");
+    assert.equal(s.ratta(f, f.facit).ratt, true);
+    const add = (await strom({ rakna: ["ma/addera"] })).nasta();
+    assert.equal(add.bild, undefined, "vanliga tal har ingen bild");
   });
 });
 

@@ -35,7 +35,9 @@ function kortHtml(fraga, klocka) {
   return `<div class="md-fraga" tabindex="-1" data-typ="${flerval ? "flerval" : "skriv"}">
     ${klocka ? `<div class="md-fraga-klocka" role="timer" aria-label="Tid kvar"><span data-kvar>${klocka}</span> s</div>` : ""}
     <p class="md-fraga-text">${esc(fraga.text)}</p>
+    ${fraga.bild ? `<div class="md-fraga-bild" role="img" aria-label="Bild till frågan">${fraga.bild}</div>` : ""}
     ${svar}
+    ${fraga.tips && !flerval ? `<p class="md-fraga-tips">${esc(fraga.tips)}</p>` : ""}
     <p class="md-fraga-facit" aria-live="polite"></p>
   </div>`;
 }
@@ -53,17 +55,23 @@ export function visaFraga(host, fraga, { ratta, klocka = 0, signal, nu = () => p
   const knappar = [...kort.querySelectorAll(".md-alt")];
   const input = kort.querySelector(".md-fraga-input");
   const start = nu();
-  let klar = false;
+  let klar = false; // svaret är avgjort (inga fler klick/tangenter)
+  let slut = false; // promiset är löst
   let timer = 0;
 
-  return new Promise((resolve) => {
+  return new Promise((resolveP) => {
+    const resolve = (v) => {
+      if (slut) return;
+      slut = true;
+      signal?.removeEventListener("abort", avbryt);
+      resolveP(v);
+    };
     const stada = () => {
       clearInterval(timer);
       document.removeEventListener("keydown", tangent);
-      signal?.removeEventListener("abort", avbryt);
     };
+    // Avbrott gäller också under pausen som visar rätt svar.
     const avbryt = () => {
-      if (klar) return;
       klar = true;
       stada();
       resolve({ avbruten: true });

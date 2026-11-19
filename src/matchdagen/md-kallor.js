@@ -13,11 +13,14 @@
 //   Räkna          rakna-core.js: createProblemSource (generatorn, där
 //                  createTopicBag blandar räknesätten jämnt), checkAnswer,
 //                  problemDisplay och expectedAnswerText. Bara skriv själv.
+//                  De visuella räknesätten (klocka, statistik, sannolikhet,
+//                  koordinatsystem) får sin bild ur matte-visuals.js, som i Räkna.
 //
 // En källa = { id, kalla(nyckel) → perKalla-nyckel, nycklar: [...] | null (oändlig),
 //   fraga(nyckel, rng, svarssatt) → Fraga, nasta?(rng) → nyckel (oändliga) }.
 // En Fraga = { id, kalla, text, typ: "flerval"|"skriv", alternativ?, facit,
-//   inputMode, data } – data är källans egen (rättningen, aldrig visad).
+//   inputMode, bild?, tips?, data } – data är källans egen (rättningen, aldrig
+//   visad); bild = SVG-markup ur vår egen ritare, tips = hur svaret skrivs.
 // Laddas bara med import() (md-fragor.js) – aldrig i bootgrafen (#271).
 // ============================================================================
 
@@ -27,11 +30,21 @@ import MULTIPLICATION_0_10 from "../live/modes/multiplication-0-10.js";
 import { makeQuestion } from "../mult/generator.js";
 import { checkAnswer as raknaRatta, createProblemSource, expectedAnswerText, hashSeed, problemDisplay } from "../rakna-core.js";
 import { normalizeGenerator } from "../exercise-types.js";
+import { renderTopicVisual } from "../matte-visuals.js";
 
 export const VAD_BETYDER = (term) => `Vad betyder ${term}?`;
 /** "Vad betyder X?" har högst så här många alternativ (rätt + tre andra förklaringar). */
 const PAR_ALTERNATIV = 4;
 const TABELL_FAKTORER = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+/** Hur svaret skrivs, per svarstyp – samma hjälptexter som Räkna (games-rakna.js). */
+const TIPS = {
+  rest: "Svara med kvot och rest, t.ex. 3 rest 1.",
+  fraction: "Svara i bråkform, t.ex. 1/2.",
+  coord: "Svara med koordinater, t.ex. (3, 4).",
+  time: "Svara med klockslag, t.ex. 07:30.",
+  text: "Skriv ditt svar – ett ord eller en siffra.",
+  numeric: "Använd komma för decimaler, t.ex. 3,5.",
+};
 
 const str = (v) => (typeof v === "string" ? v.trim() : "");
 
@@ -150,18 +163,27 @@ export function raknaKalla(nyckel, area) {
     id: `rakna:${nyckel}`,
     kalla: () => `rakna:${nyckel}`,
     nycklar: gen ? null : [],
-    /** Starta strömmen där förra sessionen slutade (n = antal dragna hittills). */
-    starta(n, uid) {
-      if (gen) strom = createProblemSource(gen, hashSeed(`matchdagen|${uid}|${nyckel}|${n}`));
+    /**
+     * Starta strömmen: n = antal dragna hittills (sparat), fro = sessionens slump –
+     * så blir det nya uppgifter även när localStorage är blockerat.
+     */
+    starta(n, uid, fro) {
+      if (gen) strom = createProblemSource(gen, hashSeed(`matchdagen|${uid}|${nyckel}|${n}|${fro}`));
     },
     fraga() {
       const item = strom.next();
-      const typ = item.problem?.answerType;
+      const typ = item.problem?.answerType || "numeric";
+      let bild = null;
+      if (typ !== "numeric") {
+        try { bild = renderTopicVisual(item.problem); } catch { bild = null; }
+      }
       return {
         text: problemDisplay(item.problem),
         typ: "skriv",
         facit: expectedAnswerText(item.problem, item.answer),
-        inputMode: !typ || typ === "numeric" ? "decimal" : "text",
+        inputMode: typ === "numeric" ? "decimal" : "text",
+        tips: item.problem?.hasRemainder ? TIPS.rest : TIPS[typ],
+        ...(bild ? { bild } : {}),
         data: { problem: item.problem, answer: item.answer },
       };
     },

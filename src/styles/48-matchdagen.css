@@ -234,6 +234,9 @@
 .md-fraga[data-ogiltig] .md-fraga-input { border-color: var(--md-rod); }
 .md-fraga[data-utfall="ratt"] .md-fraga-input { border-color: var(--md-gron); background: rgba(47, 163, 90, 0.2); }
 .md-fraga[data-utfall="fel"] .md-fraga-input { border-color: var(--md-rod); }
+.md-fraga-bild { display: flex; justify-content: center; margin: 0 0 12px; }
+.md-fraga-bild svg { width: auto; max-width: 100%; max-height: 180px; height: auto; border-radius: 12px; background: #fff; }
+.md-fraga-tips { margin: 8px 0 0; color: var(--md-svag); font-size: 0.95rem; }
 .md-fraga-facit { min-height: 1.5em; margin: 10px 0 0; color: var(--md-svag); font-weight: 700; font-size: 1.05rem; }
 .md-fraga[data-utfall="ratt"] .md-fraga-facit { color: #7be09e; }
 .md-fraga[data-utfall="fel"] .md-fraga-facit { color: var(--md-ink); }
