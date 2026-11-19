@@ -70,8 +70,8 @@ describe("flikarna (§3.1)", () => {
       for (const admin of [false, true]) for (const k of flikSektioner(f, admin)) assert.ok(finns.has(k), `${f.key}: ${k}`);
       for (const k of flikSektioner(f, false)) assert.equal(PLACERING.sektioner[k].roll, "alla", `årskurs ser ${k} under ${f.label}`);
     }
-    assert.deepEqual(flikSektioner(MINA_FLIKAR[3], false), ["inloggning"]);
-    assert.deepEqual(flikSektioner(MINA_FLIKAR[3], true), ["elever", "klasscenter"]);
+    assert.deepEqual(flikSektioner(MINA_FLIKAR[3], false), ["inloggning", "anpassningar"]); // #867
+    assert.deepEqual(flikSektioner(MINA_FLIKAR[3], true), ["elever", "anpassningar", "klasscenter"]);
     assert.deepEqual(flikSektioner(MINA_FLIKAR[1], false), ["omraden", "synlighet", "lagen"]);
   });
   it("sidläget Mina klasser = årskurssektionerna; admin-sektionerna bara via admin (rollen bestämmer)", () => {

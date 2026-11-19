@@ -75,7 +75,7 @@ test("hiddenModulesForStudent: andra klassers val påverkar inte eleven", () => 
 import { normalizeEnabledModules, modulesHiddenForStudent, OPT_IN_MODULES } from "../src/gamemode-visibility.js";
 
 test("Hitta rätt! är en opt-in-modul med egen route", () => {
-  assert.deepEqual(OPT_IN_MODULES, ["hittaratt", "ekvationsresan", "schack"]); // #618, #776
+  assert.deepEqual(OPT_IN_MODULES, ["hittaratt", "ekvationsresan", "schack", "matchdagen"]); // #618, #776, #867 (per elev)
   assert.equal(moduleForRoute("/elev/hitta-ratt"), "hittaratt");
   assert.equal(moduleForRoute("/elev/schack"), "schack");
 });
@@ -98,15 +98,15 @@ test("modulesHiddenForStudent: aktiverad i någon av elevens klasser → syns", 
     { id: "sp", studentIds: ["elev1", "elev2"] },
     { id: "x", studentIds: ["elev3"], enabledModules: ["hittaratt"] },
   ];
-  assert.deepEqual(modulesHiddenForStudent(k, "elev1"), ["ekvationsresan", "schack"]);
+  assert.deepEqual(modulesHiddenForStudent(k, "elev1"), ["ekvationsresan", "schack", "matchdagen"]);
   assert.deepEqual(modulesHiddenForStudent(k, "elev2"), OPT_IN_MODULES, "annan klass aktivering gäller inte");
 });
 
 test("modulesHiddenForStudent: hiddenModules gäller fortfarande (union)", () => {
   const k = [{ id: "6a", studentIds: ["elev1"], hiddenModules: ["lasresan"], enabledModules: ["hittaratt"] }];
-  assert.deepEqual(modulesHiddenForStudent(k, "elev1"), ["lasresan", "ekvationsresan", "schack"]);
+  assert.deepEqual(modulesHiddenForStudent(k, "elev1"), ["lasresan", "ekvationsresan", "schack", "matchdagen"]);
   const k2 = [{ id: "6a", studentIds: ["elev1"], hiddenModules: ["lasresan"] }];
-  assert.deepEqual(modulesHiddenForStudent(k2, "elev1").sort(), ["ekvationsresan", "hittaratt", "lasresan", "schack"]);
+  assert.deepEqual(modulesHiddenForStudent(k2, "elev1").sort(), ["ekvationsresan", "hittaratt", "lasresan", "matchdagen", "schack"]);
 });
 
 // --- #734: modulregistret (STUDENT_MODULES) -------------------------------------

@@ -52,7 +52,7 @@ ligger också i `localStorage` (`pp:larare:klass`, `pp:larare:statsflik`), så l
 | **Hur går det?** `flik=hur` | Underflikar: Ämnen · Per område · Läsresan · Ekvationsresan · Prov · Bråkresan · Mattematchen · Live · Schack. Läsresans och Ekvationsresans nivåer ändras här. Avstängda moduler visas nedtonade med länk till Vad eleverna ser. | `statistik` (`STATS_TABS`) |
 | **Vad eleverna ser** `flik=ser` | Tre numrerade steg: 1. Områden (hela namn) · 2. Delar i elevernas meny (moduler på/av, byar för admin) · 3. Avancerat (ihopfällt: dölj övningslägen). "Sparat ✓" per steg. | `omraden`, `synlighet`, `lagen` |
 | **Fokusläge** `flik=fokus` | Lås klassen till en sak till ett klockslag, +N min, Lås upp nu, vad eleven får göra efter inlämning. | `fokus` |
-| **Elever** `flik=elever` | Den kompakta elevtabellen (se nedan). Admin får också Klasscentret under tabellen. | `inloggning` (årskurs), `elever` + `klasscenter` (admin) |
+| **Elever** `flik=elever` | Den kompakta elevtabellen (se nedan) och under den **Anpassningar per elev** (#867). Admin får också Klasscentret längst ner. | `inloggning` + `anpassningar` (årskurs), `elever` + `anpassningar` + `klasscenter` (admin) |
 
 ### Elever och menyn ⋯ (`src/teacher-elever-tabell.js`, #805)
 
@@ -67,6 +67,22 @@ Allt som ändrar något ligger i menyn ⋯ på raden och bekräftas i en ruta un
 
 Valen byggs av `menyFor(admin)` i `src/teacher-elever-val.js`; reglerna spärrar dem ändå (test i
 `test/lararsida-elever-admin.test.js` och `test/firestore-rules-roller-klasser-elever.test.js`).
+
+### Anpassningar per elev (`src/matchdagen/larare/md-anpassningar*.js`, #867)
+
+Sektionen `anpassningar` under elevtabellen, för båda rollerna. En rad per elev i klassen med status
+**Matchdagen på/av** (ur `classes/{id}.elevModuler`, ingen extra läsning). Klick på en elev fäller ut en panel
+under raden (en åt gången) som läser elevens `matchdagenInst/{uid}` (EN getDoc) och biblioteket (en gång per sida):
+
+- **Matchdagen** på/av för just den eleven – syns under Öva i elevens meny, aldrig för klasskamraterna.
+- **Frågekällor:** Plugga-områden (kryssrutor per ämne bland områdena med quiz eller par; klassens tilldelade och
+  redan valda överst, de ämnena utfällda), multiplikationstabellerna 0–10 och Räkna-områden (områden med generator).
+- **Svarssätt** (flerval standard / skriv själv), **Klocka på frågorna** (av standard / 30 / 60 s), **Lugnt läge**,
+  **Påminnelse om paus** (av / 30 / 45 / 60 min, standard 60) och **Återställ lagnamn** (avstängd tills eleven har
+  ett lag, Etapp 1c).
+- **Spara** skriver `elevModuler` och `matchdagenInst/{uid}` i EN batch och visar "Sparat ✓" med en sammanfattning.
+
+Datamodellen: `docs/DATAMODELL.md` (Matchdagen), behörigheterna: `docs/BEHORIGHETER.md` (`matchdagenInst`, `classes`).
 
 ## Admin (`src/teacher-admin.js`, #805)
 

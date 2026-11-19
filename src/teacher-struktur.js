@@ -51,6 +51,8 @@ export const PLACERING = {
     synlighet: { roll: "alla", efter: "Mina klasser → Vad eleverna ser → 2. Delar i elevernas meny", del: "B" },
     fokus: { roll: "alla", efter: "Mina klasser → Fokusläge", del: "B" },
     klasscenter: { roll: "admin", efter: "Mina klasser → Elever (admin: Klasscentret under tabellen)", del: "C" },
+    // #867 (Matchdagen 1a): ny sektion, kom efter epic #802.
+    anpassningar: { roll: "alla", efter: "Mina klasser → Elever → Anpassningar per elev (Matchdagen per elev)", del: "–" },
     statistik: { roll: "alla", efter: "Mina klasser → Hur går det?", del: "B" },
   },
   statistik: {

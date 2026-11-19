@@ -40,9 +40,11 @@ export const MINA_FLIKAR = [
     hjalp: "Fokusläge låser klassen till en sak, till exempel ett område eller ett prov. Resten av Pluggporten är stängd tills tiden är ute eller du låser upp.",
   },
   {
-    key: "elever", label: "Elever", sub: "Inloggning och konton", sections: ["inloggning"], admin: ["elever", "klasscenter"],
-    hjalp: "Här ser du klassens elever med användarnamn och lösenord och skriver ut inloggningskort. Byt lösenord ligger i menyn ⋯ på varje rad.",
-    hjalpAdmin: "Här ser du klassens elever med användarnamn och lösenord och skriver ut inloggningskort. Som admin lägger du också till elever, ger mynt och tar bort konton i menyn ⋯.",
+    // #867: Anpassningar per elev (Matchdagen) under tabellen, för båda rollerna.
+    key: "elever", label: "Elever", sub: "Inloggning och konton", sections: ["inloggning", "anpassningar"],
+    admin: ["elever", "anpassningar", "klasscenter"],
+    hjalp: "Här ser du klassens elever med användarnamn och lösenord, skriver ut inloggningskort och slår på Matchdagen för enskilda elever under Anpassningar per elev. Byt lösenord ligger i menyn ⋯ på varje rad.",
+    hjalpAdmin: "Här ser du klassens elever med användarnamn och lösenord, skriver ut inloggningskort och slår på Matchdagen för enskilda elever under Anpassningar per elev. Som admin lägger du också till elever, ger mynt och tar bort konton i menyn ⋯.",
   },
 ];
 
@@ -55,7 +57,7 @@ export const flikSektioner = (flik, admin) => (admin && flik.admin) || flik.sect
 /** Gamla ?sektion= (Klasser/Statistik före #804) → [flik, ev. statistikens underflik]. */
 export const SEKTION_TILL_FLIK = {
   statistik: ["hur"], schack: ["hur", "schack"], omraden: ["ser"], lagen: ["ser"], synlighet: ["ser"],
-  fokus: ["fokus"], inloggning: ["elever"], elever: ["elever"], klasscenter: ["elever"],
+  fokus: ["fokus"], inloggning: ["elever"], elever: ["elever"], klasscenter: ["elever"], anpassningar: ["elever"],
 };
 
 const norm = (s) => String(s ?? "").trim().toLocaleLowerCase("sv");

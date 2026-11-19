@@ -74,6 +74,16 @@ export const CLASS_SECTIONS = [
     render: elevSection(true),
   },
   {
+    // #867 (Matchdagen §1.2): Matchdagen på/av och inställningarna per elev
+    // (classes/{id}.elevModuler + matchdagenInst/{uid}), lat ur src/matchdagen/.
+    key: "anpassningar",
+    label: "Anpassningar per elev",
+    icon: "sliders",
+    what: "anpassningar",
+    render: async (ctx, cls, host, store) =>
+      (await import("./matchdagen/larare/md-anpassningar.js")).renderAnpassningar(ctx, cls, host, store),
+  },
+  {
     key: "omraden",
     label: "Områden",
     icon: "pin",
@@ -170,6 +180,6 @@ export const CLASS_SECTIONS = [
  * skapa/döp om/ta bort klass på Admin-sidan (teacher-admin.js).
  */
 export const CLASS_PAGE_MODES = {
-  mina: { tab: "klasser", base: "#/larare/mina-klasser", sections: ["statistik", "omraden", "synlighet", "lagen", "fokus", "inloggning"], manage: false },
+  mina: { tab: "klasser", base: "#/larare/mina-klasser", sections: ["statistik", "omraden", "synlighet", "lagen", "fokus", "inloggning", "anpassningar"], manage: false },
   minaAdmin: { tab: "klasser", base: "#/larare/mina-klasser", sections: ["elever", "klasscenter"], manage: false, admin: true },
 };

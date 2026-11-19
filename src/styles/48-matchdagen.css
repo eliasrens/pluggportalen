@@ -1,0 +1,164 @@
+/* ==========================================================================
+   Matchdagen 1a (#867): elevens platshållarsida (#/elev/matchdagen) i skissens
+   kvällsarena – djup marin, gräsgrönt, skyltgult – och lärarens sektion
+   "Anpassningar per elev" (Mina klasser → Elever), scopad under .teacher-dark.
+   Typsnittet Barlow Condensed laddas inte än (Etapp 1c) – närmaste systemtypsnitt.
+   ========================================================================== */
+
+/* --- Elevens sida ---------------------------------------------------------- */
+.md-sida {
+  --md-bg: #0b1626;
+  --md-panel: #13243b;
+  --md-ink: #eef4ff;
+  --md-svag: #a9bad3;
+  --md-gron: #2fa35a;
+  --md-gul: #ffd23f;
+  display: grid;
+  place-items: center;
+  min-height: 60vh;
+  padding: 16px;
+}
+.md-kort {
+  max-width: 620px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 28px 28px 24px;
+  border-radius: 20px;
+  background:
+    radial-gradient(120% 70% at 50% 120%, rgba(47, 163, 90, 0.45), transparent 60%),
+    linear-gradient(180deg, var(--md-panel), var(--md-bg));
+  color: var(--md-ink);
+  box-shadow: 0 14px 40px rgba(6, 14, 28, 0.35);
+}
+.md-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: 800 30px/1 "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  letter-spacing: 0.01em;
+}
+.md-logo b { color: var(--md-gul); font-weight: inherit; }
+.md-logo-boll svg { width: 32px; height: 32px; display: block; }
+.md-rubrik {
+  margin: 18px 0 8px;
+  font: 800 clamp(26px, 5vw, 34px)/1.1 "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  color: var(--md-ink);
+}
+.md-text { margin: 0 0 14px; color: var(--md-svag); font-size: 1.05rem; line-height: 1.5; }
+.md-fragor {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 210, 63, 0.14);
+  border: 1px solid rgba(255, 210, 63, 0.45);
+  font-weight: 800;
+}
+.md-fragor.tomt { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.18); }
+
+/* --- Lärarens sektion ------------------------------------------------------ */
+.teacher-dark .mda { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.teacher-dark .mda-intro { margin: 0; }
+.teacher-dark .mda-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--t-border);
+  border-radius: 12px;
+  background: var(--t-surface-2);
+}
+.teacher-dark .mda-elev + .mda-elev { border-top: 1px solid var(--t-border); }
+.teacher-dark .mda-rad {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 20px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 46px;
+  padding: 8px 12px;
+  border: 0;
+  background: none;
+  color: var(--t-text);
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+.teacher-dark .mda-rad:hover { background: var(--t-raised); }
+.teacher-dark .mda-rad:focus-visible { outline: 2px solid var(--t-accent); outline-offset: -2px; border-radius: 10px; }
+.teacher-dark .mda-namn { min-width: 0; overflow-wrap: anywhere; }
+.teacher-dark .mda-pil { color: var(--t-muted); font-size: 1.3rem; line-height: 1; transition: transform 0.15s; }
+.teacher-dark .mda-elev.oppen .mda-pil { transform: rotate(90deg); color: var(--t-accent); }
+.teacher-dark .mda-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--t-border-strong);
+  color: var(--t-muted);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+.teacher-dark .mda-chip.pa { border-color: var(--t-accent); background: var(--t-accent-soft); color: var(--t-text); }
+.teacher-dark .mda-boll svg { width: 15px; height: 15px; display: block; }
+
+/* Panelen under raden */
+.teacher-dark .mda-panel { padding: 4px 12px 14px; }
+.teacher-dark .mda-form { display: flex; flex-direction: column; gap: 12px; }
+.teacher-dark .mda-pa {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--t-accent-soft);
+  cursor: pointer;
+}
+.teacher-dark .mda-pa input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--t-accent); }
+.teacher-dark .mda-pa small { display: block; color: var(--t-muted); font-weight: 600; }
+.teacher-dark .mda-del {
+  margin: 0;
+  padding: 10px 12px 12px;
+  border: 1px solid var(--t-border);
+  border-radius: 10px;
+  min-width: 0;
+}
+.teacher-dark .mda-del legend { padding: 0 6px; font-weight: 800; color: var(--t-text); }
+.teacher-dark .mda-del h4 { margin: 12px 0 6px; font-size: 0.9rem; color: var(--t-text); }
+.teacher-dark .mda-del .hint { margin: 6px 0 0; }
+.teacher-dark .mda-del .btn:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
+.teacher-dark .mda-amne { margin: 4px 0; }
+.teacher-dark .mda-amne summary { cursor: pointer; font-weight: 700; padding: 4px 0; }
+.teacher-dark .mda-antal { color: var(--t-accent); font-size: 0.8rem; margin-left: 6px; }
+.teacher-dark .mda-kryss,
+.teacher-dark .mda-rad-val { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.teacher-dark .mda-val {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 4px 10px;
+  border-radius: 9px;
+  background: var(--t-raised);
+  font-weight: 600;
+  cursor: pointer;
+}
+.teacher-dark .mda-val input { accent-color: var(--t-accent); }
+.teacher-dark .mda-val small { color: var(--t-muted); }
+.teacher-dark .mda-val:has(input:checked) { box-shadow: inset 0 0 0 1.5px var(--t-accent); }
+.teacher-dark .mda-val:has(input:focus-visible) { outline: 2px solid var(--t-accent); outline-offset: 1px; }
+.teacher-dark .mda-tal { min-width: 46px; justify-content: center; }
+.teacher-dark .mda-tagg {
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--t-accent-soft);
+  color: var(--t-accent);
+  font-size: 0.72rem;
+}
+.teacher-dark .mda-spara { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.teacher-dark .mda-resultat:empty { display: none; }
+@media (max-width: 520px) {
+  .teacher-dark .mda-rad { grid-template-columns: minmax(0, 1fr) 20px; }
+  .teacher-dark .mda-status { grid-column: 1; grid-row: 2; }
+  .teacher-dark .mda-pil { grid-column: 2; grid-row: 1 / span 2; }
+}

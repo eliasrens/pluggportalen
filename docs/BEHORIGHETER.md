@@ -77,6 +77,7 @@ tabellerna, om en rad saknar test, eller om en testfil inte körs av
 | CL | `test/firestore-rules-class-lock.test.js` |
 | BC | `test/functions-brakresan-core.test.mjs` |
 | BK | `test/functions-butik.test.mjs` |
+| MI | `test/firestore-rules-matchdagen-inst.test.js` |
 
 Admin-kolumnen bevisas dessutom av OG test 25 (lärare utan roll gör allt som
 admin) och av alla äldre regeltester, som kör sina lärare som admin (§7 test 26).
@@ -100,7 +101,8 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `studentData/{id}/ekvationsresa` (bara `progress`) | L/S (validerat), radera | L: egna elever. S: lärarens nivåbyte (`ekvTeacherLevelOk`) för egna elever. | SM test 1–2, KE test 14 |
 | `studentData/{id}/ekvationsresaAttempts` | L/radera | L: egna elever | SM test 1–2 |
 | `studentData/{id}/brakresa`, `brakresaRounds`, `brakresaRewards`, `brakresaHunts` (Bråkresan, #706) | L (Cloud Functions skriver) | L: egna elever. S: aldrig. | BR |
-| `classes` | L/S | L. Ändra egna klasser, bara fälten `assignedAreas`, `hiddenModes`, `areaModes`, `hiddenModules`, `enabledModules`, `lock`, `lasresaStartLevel10` och `lasresaStartLevel`. Skapa och radera: aldrig. `lock.efter` (#788, vad en elev som lämnat in provet får göra: `lage` `prov`/`ovning`/`klass`/`egna`, `moduler` ≤ 20 bara i `egna`) bara på ett provlås; eleven ändrar det aldrig – frigörelsen bygger på elevens eget inlämnade `svar`, som hen inte kan ta tillbaka. Klientens modulgrind och Bråkresans `brakresa*`-callables (`assertModuleOpen`) tillämpar valet. | KE test 9–12, CL #788, BC #788 |
+| `classes` | L/S | L. Ändra egna klasser, bara fälten `assignedAreas`, `hiddenModes`, `areaModes`, `hiddenModules`, `enabledModules`, `elevModuler`, `lock`, `lasresaStartLevel10` och `lasresaStartLevel`. `elevModuler` (#867, moduler per elev): en ändrad map har högst 100 elever, bara klassens `studentIds` som nycklar och bara listan `["matchdagen"]`; `enabledModules` får aldrig innehålla `matchdagen` (gäller även admin) – Matchdagen slås bara på per elev. Skapa och radera: aldrig. `lock.efter` (#788, vad en elev som lämnat in provet får göra: `lage` `prov`/`ovning`/`klass`/`egna`, `moduler` ≤ 20 bara i `egna`) bara på ett provlås; eleven ändrar det aldrig – frigörelsen bygger på elevens eget inlämnade `svar`, som hen inte kan ta tillbaka. Klientens modulgrind och Bråkresans `brakresa*`-callables (`assertModuleOpen`) tillämpar valet. | KE test 9–12, CL #788, BC #788, MI elevModuler |
+| `matchdagenInst` (lärarens inställningar per elev för Matchdagen, #867) | L/S, radera | L/S/radera: egna elever (`hasStudent`). Bara kända fält (`omraden`/`rakna` ≤ 60 strängar, `tabeller` 0–10, `svarssatt`, `klocka`, `lugnt`, `paus`), `updatedAt` = serverns tid och `updatedBy` = sig själv. Eleven läser sitt eget och skriver aldrig; klasskamrater läser inte. | MI |
 | `classProjections`, `classProjects` | L/S | L. S: aldrig. | RO klassprojektioner |
 | `mathCompetitions` (tävlingen) | L/S | L (som alla inloggade). Skapa, styra, nollställa och radera: aldrig. | LE test 17 |
 | `mathCompetitions/{c}/answers`, `liveAnswers` (#847, Live-svar som räknats in), `studentStats` | L/radera | L: dokument med `classId` i egna klasser. En lista måste filtrera på egna klasser. | SM test 1–2, LE test 17, ML |

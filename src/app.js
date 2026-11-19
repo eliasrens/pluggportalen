@@ -41,7 +41,7 @@
 import {
   app, el, go, renderTopbar, loading, flash, getHiddenModules, getLockGate, onLockChange, escHtml,
 } from "./ui.js";
-import { moduleForRoute, SCHACK_IKON } from "./gamemode-visibility.js";
+import { moduleForRoute, SCHACK_IKON, MATCHDAGEN_IKON } from "./gamemode-visibility.js";
 import { whenAuthReady, onSessionLost, takeSessionLostNotice } from "./auth.js";
 import {
   pageElevLogin,
@@ -228,6 +228,8 @@ const routes = {
   "/elev/brakresan": dynSida(async () => (await import("./brakresan/page-brakresan.js")).pageBrakresan(), "🐉", "Bråkresan"), // #709
   // Schack (#776): opt-in per klass (enabledModules), hela modulen i src/schack/ laddas lazy.
   "/elev/schack": dynSida(async () => (await import("./schack/page-schack.js")).pageSchack(), SCHACK_IKON, "Schack"),
+  // Matchdagen (#867): bara för elever läraren slagit på den för (elevModuler), src/matchdagen/ lazy.
+  "/elev/matchdagen": dynSida(async () => (await import("./matchdagen/page-matchdagen.js")).pageMatchdagen(), MATCHDAGEN_IKON, "Matchdagen"),
   // Husvärlden – samma scen för alla tre routes: "by" startar i klassbyn,
   // "hus" ute och "rum" inne. Är scenen redan uppe byter route-bytet bara
   // zoomnivå (sömlöst, ingen omrendering) – se pages-varld.js.
