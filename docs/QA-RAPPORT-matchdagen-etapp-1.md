@@ -55,7 +55,7 @@ Tagna i förhandsvisningen mot emulatorn (`admin/qa-matchdagen-867-preview.sh`),
 
 Också kontrollerat i webbläsaren: panelen läser tillbaka det sparade efter omladdning, och när 4A låstes till
 Vikingatiden försvann Alvas Matchdagen-länk och `#/elev/matchdagen` gick till målet (låset hävt efteråt).
-(Emojiikonerna i menyn är rutor i den huvudlösa webbläsaren – den saknar emojityp­snitt; inget med #867 att göra.)
+(Emojiikonerna i menyn är rutor i den huvudlösa webbläsaren – den saknar emojitypsnitt; inget med #867 att göra.)
 
 ### Deploy
 
