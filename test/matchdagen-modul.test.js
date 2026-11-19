@@ -158,6 +158,8 @@ describe("lärarens inställningar (md-inst.js)", () => {
   it("sammanfattningen i lärarens panel", () => {
     assert.equal(sammanfattning({ omraden: ["a/b"], tabeller: [3, 7], klocka: 30, lugnt: true }), "1 område · tabellerna 3, 7 · klocka 30 s · lugnt läge");
     assert.equal(sammanfattning(null), "inga frågor valda");
+    assert.equal(sammanfattning({ tabeller: [5], paus: 30 }), "tabell 5 · paus 30 min");
+    assert.equal(sammanfattning({ tabeller: [5], paus: 0 }), "tabell 5 · paus av");
   });
   it("på/av per elev: hela mapen, andra elever orörda, gamla elever rensas", () => {
     const cls = { studentIds: ["a", "b"], elevModuler: { a: [MD], gammal: [MD] } };

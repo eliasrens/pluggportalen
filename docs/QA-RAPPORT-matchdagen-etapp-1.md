@@ -128,4 +128,24 @@ PORT=8867 bash admin/qa-matchdagen-867-preview.sh          # Firestore/Auth på 
 
 ### Körningar
 
-(fylls i nedan)
+Testaren (867-tester) på 6bcd320, rigg `admin/qa-matchdagen-867-svit.sh` (npm-sviterna på slumpportar med
+`FUNCTIONS_EMULATOR_HOST`, en emulator åt gången):
+
+| Svit | Resultat |
+| --- | --- |
+| `node --test` (filerna utan emulator) | 4443 pass, 0 fail, 1 skipped (`importera-elever.test.mjs` kräver emulatorn och körs inte här) |
+| `npm run test:rules` | 1015 pass, 0 fail |
+| `npm run test:functions` | 573 pass, 0 fail, 2 todo |
+| `npm run test:e2e` | 5/5 |
+| Elever-stubbe e2e | `qa-elever-admin` 64/64, `qa-mina-klasser` 59/59 |
+| I appen mot emulatorn | PASS: lärare slår på för Alva → Alva ser Matchdagen, Bilal inte; fokuslåset stänger den; reglerna nekar |
+
+En tidigare körning av `test:functions` gav 416/157 (`internal` från callablarna). Den saknade
+`FUNCTIONS_EMULATOR_HOST` med egna portar – miljön, inte #867 (inga filer i `functions/` är ändrade).
+
+### Noteringar
+
+- **N1.** `src/gamemode-visibility.js` är nu 532 rader och `src/app.js` 409; båda låg över 400 redan före #867
+  (se val 10).
+- **N2.** "Sparat ✓"-sammanfattningen visade inte pauspåminnelsen. Rättat: den visas när den avviker från
+  standarden 60 min ("paus 30 min", "paus av"), som klockan och lugnt läge.

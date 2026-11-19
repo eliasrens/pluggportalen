@@ -112,6 +112,7 @@ export function sammanfattning(inst) {
   if (i.svarssatt === "skriv") delar.push("skriv själv");
   if (i.klocka) delar.push(`klocka ${i.klocka} s`);
   if (i.lugnt) delar.push("lugnt läge");
+  if (i.paus !== STANDARD_INST.paus) delar.push(i.paus ? `paus ${i.paus} min` : "paus av");
   return delar.join(" · ");
 }
 
