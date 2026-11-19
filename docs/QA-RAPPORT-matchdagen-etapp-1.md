@@ -102,6 +102,13 @@ Tabell i `MATCHDAGEN.md` §4.
     rader före #867. Per-elev-logiken måste ligga i bootfilen (menyn och routern), och en ny bootfil är förbjuden
     (#271), så de växte i stället för att delas. Alla nya filer är under 400 rader.
 
+11. **Hela `elevModuler` skrivs om** vid varje Spara (ur lärarens inlästa klass). Två lärare som sparar samma klass
+    exakt samtidigt kan skriva över varandras på/av – osannolikt med en lärare per klass; en fältväg per elev
+    (`elevModuler.<uid>`) skulle kräva att reglerna prövar bara ändrade nycklar. Har admin tagit en elev ur klassen
+    efter att sidan laddades nekas Spara ("Kunde inte spara") tills sidan laddas om.
+12. **Sparade områden som inte syns** i panelen (borttagna eller utan quiz/par/generator just nu) behålls vid Spara i
+    stället för att tyst försvinna; frågekällorna (1b) hoppar över det som saknas.
+
 ### Så testas det (förhandsvisning mot emulatorn)
 
 ```

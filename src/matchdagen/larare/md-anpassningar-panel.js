@@ -104,11 +104,18 @@ export async function renderPanel(ctx, { cls, elev, host, avbryt, loadLibrary, o
   const resultat = box.querySelector(".mda-resultat");
   const las = () => {
     const kryss = (attr) => [...box.querySelectorAll(`input[data-${attr}]:checked`)].map((c) => c.dataset[attr]);
+    // Ett sparat område som inte visas (borttaget eller utan innehåll just nu) behålls –
+    // läraren kan inte ha bockat ur det. md-fragor.js (1b) hoppar över det som saknas.
+    const dolda = (attr, sparade) => {
+      const visade = new Set([...box.querySelectorAll(`input[data-${attr}]`)].map((c) => c.dataset[attr]));
+      return sparade.filter((k) => !visade.has(k));
+    };
     const val = (n) => box.querySelector(`input[name="${n}"]:checked`)?.value;
     return {
       pa: box.querySelector('input[name="pa"]').checked,
       inst: {
-        omraden: kryss("omrade"), rakna: kryss("rakna"), tabeller: kryss("tabell").map(Number),
+        omraden: [...kryss("omrade"), ...dolda("omrade", i.omraden)], rakna: [...kryss("rakna"), ...dolda("rakna", i.rakna)],
+        tabeller: kryss("tabell").map(Number),
         svarssatt: val("svarssatt"), klocka: Number(val("klocka")), paus: Number(val("paus")),
         lugnt: box.querySelector('input[name="lugnt"]').checked,
       },
