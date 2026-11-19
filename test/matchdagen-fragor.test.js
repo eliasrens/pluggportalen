@@ -219,4 +219,14 @@ describe("källkod: återanvänd, kopiera inte", () => {
     assert.match(k, /createProblemSource/);
     assert.match(read("src/matchdagen/md-fragor.js"), /createTopicBag/);
   });
+  it("frågekortet (md-svar.js): fel svar visas 1,5 s, tangenterna 1–N, inga importer", async () => {
+    const S = await import("../src/matchdagen/md-svar.js");
+    assert.equal(S.FEL_MS, 1500);
+    assert.ok(S.MAX_TANGENT >= 4);
+    const src = read("src/matchdagen/md-svar.js");
+    assert.doesNotMatch(src, /^import /m, "ingen Firebase, inga appmoduler");
+    assert.match(src, /Rätt svar: <b>/);
+    assert.match(src, /Tiden är ute/);
+    assert.match(read("src/styles/48-matchdagen.css"), /\.md-alt, \.md-skicka \{[^}]*min-height: 56px/, "knappar minst 48 px");
+  });
 });
