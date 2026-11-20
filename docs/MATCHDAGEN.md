@@ -649,6 +649,10 @@ rapporten. Robotklubbens beteende (`KLUBB` i `md-balans-trupp.mjs`) är ett anta
     och sedan köpa ur den till fullt pris, högst divisionens stjärntak. Ingen gratis spelare, bara valet av vem.
   - **Lägret:** att det är nyare än det sparade (växlar man lägret fram och tillbaka kan man träna mer).
   - **Storleken:** strängarna i ligans lag, `senaste`, `sasonger` och `pokaler` (§10) – upp till 1 MiB.
+  - **Köp + inbytt reserv i samma skrivning** (Testern F9): `mdSlapptPris` räknar den som finns i `g.reserver` men
+    inte i `d.reserver` som släppt – också en köpt reserv som i samma skrivning byts in på planen. Ett köp med fulla
+    reserver ger då +385 kr i stället för −1 210 (högst +400 per köp, `mdKassaOk`). Rättas senare genom att bara
+    räkna spelare som lämnar klubben (inte finns i `d.trupp` + `d.reserver`), som `mdUnikaOk`.
   - **Positionerna** (en elev kan bara förstöra sin egen formation). Vyerna `esc()`:ar och `Number()`:ar allt ur
     dokumentet.
 - **Marginalen** mot 1000-gränsen (extra `(d.div == d.div) &&` som ryms, efter rättningsrunda 2): ny klubb 8,

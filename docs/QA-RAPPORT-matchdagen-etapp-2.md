@@ -539,6 +539,10 @@ Alla fem är skrivningar förbi appen. Rättat i `firestore.rules`, varje fall m
   sedan köpa ur den – till fullt pris och högst divisionens stjärntak. Valet av spelare, aldrig en gratis spelare.
 - **Lägret** kan växlas fram och tillbaka för mer träning, och **positionerna** prövas inte (som före runda 1).
 - **Dokumentets storlek** (F8): strängarna i ligans lag, `senaste`, `sasonger` och `pokaler` prövas inte – upp till 1 MiB.
+- **Köp + inbytt reserv i samma skrivning** (F9, Testern runda 3): en skrivning förbi appen som köper en spelare och i
+  samma skrivning byter in en köpt reserv räknas av `mdSlapptPris` (`g.reserver − d.reserver`) som en släppt reserv –
+  den går igenom med +385 kr i stället för −1 210, högst +400 per köp. Rättas senare genom att bara ersätta spelare som
+  lämnar klubben (inte finns i truppen + reserverna efteråt), som `mdUnikaOk` räknar.
 - **1000-uttrycksgränsen:** en ny klubb har nu marginal 8 (var 30); hela säsongen + kvalet i en skrivning 2 (oförändrad).
 
 **Körningar (runda 1, HEAD efter rättningen):** `node --test` (319 filer) 4630 pass, 0 fail, 1 skipped; matchdagen
