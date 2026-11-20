@@ -6,7 +6,9 @@
 //
 // Sparningen: kön av osparade matcher sparas FÖRST (den gamla klubbens matcher ska
 // in före den nya), sedan EN skrivning av hela den nya karriären (sparaKarriar).
-// Går den inte fram blir det ingen ny klubb – eleven kan prova igen (inget halvt läge).
+// Går den inte fram blir det ingen ny klubb – eleven kan prova igen (inget halvt läge). Kom svaret
+// efter tidsgränsen men skrivningen gick fram, läses serverns karriär: den nya klubben gäller då.
+// (md-spara.js legender: en längre klubbhistorik på servern vinner också vid nästa start.)
 //
 //   startaLegend(S, el, tillbaka)   tillbaka() = visa Match-fliken igen
 // ============================================================================
@@ -14,7 +16,8 @@
 import { DIVISIONER, MASTARCUP } from "../delat/md-config.js";
 import { legendErbjudande, nyLegendklubb } from "../delat/md-legend.js";
 import { pagaendeLager, rensaPagaende } from "../md-lokal.js";
-import { sparaKon } from "../md-spara.js";
+import { truppFalt } from "../delat/md-trupp.js";
+import { legender, sparaKon } from "../md-spara.js";
 import { klubbFormular } from "./md-vy-klubb.js";
 import { esc, ruta } from "./md-vy-delat.js";
 
@@ -55,13 +58,17 @@ export async function startaLegend(S, el, tillbaka) {
     fel("Sparar …", true);
     const tom = await sparaKon(S);
     if (!tom) { meddelande = "Matcherna är inte sparade än – prova igen när datorn har kontakt med servern."; continue; }
-    const Kny = nyLegendklubb(S.K, { ...v, rng: Math.random });
+    let Kny = nyLegendklubb(S.K, { ...v, rng: Math.random });
     try {
       await S.data.sparaKarriar(S.uid, Kny);
     } catch (err) {
-      console.warn("Matchdagen: legendklubben kunde inte sparas", err);
-      meddelande = "Den nya klubben kunde inte sparas just nu – prova igen om en stund.";
-      continue;
+      const G = await S.data.lasKarriar(S.uid).catch(() => null);
+      if (legender(G) > legender(S.K)) Kny = truppFalt(G); // skrivningen gick fram trots allt
+      else {
+        console.warn("Matchdagen: legendklubben kunde inte sparas", err);
+        meddelande = "Den nya klubben kunde inte sparas just nu – prova igen om en stund.";
+        continue;
+      }
     }
     S.K = Kny;
     fel("");

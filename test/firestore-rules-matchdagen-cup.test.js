@@ -8,7 +8,7 @@
 //   • prövas bara när fältet ändras (1000-uttrycksgränsen) – ett äldre dokument med pokaler som
 //     objekt sparar fortfarande matcher
 //   • hela säsongen med cupen och kvalet i EN skrivning (en kö offline) går igenom
-//   • mastarcup (Etapp 3) finns inte än; läraren rör bara lagnamnet
+//   • mastarcup är text (Etapp 3, #873 – firestore-rules-matchdagen-mastarcup.test.js); läraren rör bara lagnamnet
 // Karriären byggs med de riktiga, rena modulerna (md-sasong.js, md-cup.js, md-kval.js).
 // Körs av `npm run test:rules` (emulatorn).
 // ============================================================================
@@ -109,7 +109,7 @@ describe("matchdagen/{uid} – Silverpokalen och rekorden, elevens skrivningar (
     await assertFails(prova([...rader.slice(0, -1), { typ: "cup", namn: "Silverpokalen", sasong: 1, datum: "2026-11-20" }]), "objekt");
     await assertFails(prova([...rader, "cup|<img src=x onerror=alert(1)>|1|2026-11-20"]), "HTML i namnet");
     await assertFails(prova([...rader, `cup|${"x".repeat(41)}|1|2026-11-20`]), "41 tecken");
-    await assertFails(prova([...rader, "mastarcup|Mästarcupen|1|2026-11-20"]), "okänd typ (Etapp 3)");
+    await assertFails(prova([...rader, "legend|Mästarcupen|1|2026-11-20"]), "okänd typ");
     await assertFails(prova([...rader, "cup|Silverpokalen|1|20261120"]), "datumet");
     await assertFails(prova(Array.from({ length: 301 }, () => "cup|Silverpokalen|1|2026-11-20")), "301");
     await assertSucceeds(prova(Array.from({ length: 300 }, () => "cup|Silverpokalen|1|2026-11-20")), "300 (≈ 9 kB)");
@@ -125,7 +125,7 @@ describe("matchdagen/{uid} – Silverpokalen och rekorden, elevens skrivningar (
     void pokaler;
     await assertSucceeds(setDoc(ref(elev()), utan, { mergeFields: Object.keys(utan) }), "utan pokalerna: de prövas inte");
   });
-  it("mastarcup (Etapp 3) finns inte än – ett okänt fält nekas", async () => {
+  it("mastarcup (Etapp 3) är text – en map nekas", async () => {
     await seed(K1);
     await assertFails(setDoc(ref(elev()), medTid(CUP1.K, { mastarcup: { runda: 1 } })));
   });

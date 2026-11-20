@@ -874,7 +874,7 @@ service cloud.firestore {
     // (mdKopOk), så att eleven inte kan skriva sin egen marknad utan att röra summan.
     function mdMarknadOk(m, g, a) {
       return g == null ? m == [] : 'summa' in a ? m.join('/').matches('(k[0-9a-z]{1,6}[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,2}[|][1-5](/k[0-9a-z]{1,6}[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,2}[|][1-5]){0,5})?') :
-        (m == [] && 'klubbhistorik' in a) || (g.get('marknad', []).hasAll(m) && m.size() == g.get('marknad', []).size() - 1);
+        g.get('marknad', []).hasAll(m) && m.size() == g.get('marknad', []).size() - 1;
     }
     // Klubbkassan per skrivning: högst 5 000 kr mer per bokförd match (den största matchen i
     // Superligan med kval och cup ≈ 2 500) och högst 500 matcher i en skrivning (den lokala
@@ -890,7 +890,7 @@ service cloud.firestore {
     function mdKassaOk(d, g, a) {
       return mdTal(d.kassa, 0, 100000000) && (g == null ? d.kassa <= 600 :
         (d.summa.matcher <= g.summa.matcher + 500 && d.kassa <= g.kassa + (d.summa.matcher - g.summa.matcher) * 5000 +
-          ('reserver' in a ? mdKopTillagg(d, g, a) : 0)) || ('klubbhistorik' in a && d.kassa <= 600));
+          ('reserver' in a ? mdKopTillagg(d, g, a) : 0)));
     }
     // Det senast använda träningslägret (md-trupp.js lagerNyckel): "säsong-omgång" för en
     // spelad omgång i den här säsongen (omgången får vara äldre – lägret kan sparas ihop med
@@ -947,19 +947,22 @@ service cloud.firestore {
       let d = request.resource.data;
       let g = resource == null ? null : resource.data;
       let a = resource == null ? d.keys().toSet() : d.diff(resource.data).affectedKeys();
+      // #873: en legendklubb (klubbhistoriken växer) – mdLegendOk prövar div, säsong, kassa, reserver
+      // och marknad med billiga likheter i stället för de vanliga kontrollerna (1000-uttrycksgränsen).
+      let L = 'klubbhistorik' in a;
       return d.keys().hasOnly(['version', 'klubb', 'div', 'sasong', 'kassa', 'trupp', 'reserver', 'marknad', 'lager',
           'liga', 'kval', 'cup', 'pokaler', 'rekord', 'summa', 'senaste', 'sasonger', 'dagar', 'senast', 'mastarcup', 'klubbhistorik']) &&
         d.keys().hasAll(['version', 'klubb', 'div', 'sasong', 'kassa', 'trupp', 'liga', 'summa', 'senast']) &&
         d.senast == request.time &&
         (!('version' in a) || mdHeltal(d.version, 1, 100)) &&
-        (!('klubb' in a) || mdKlubbOk(d.klubb, g == null ? 0 : g.klubb.get('legendStjarnor', 0) + ('klubbhistorik' in a ? 1 : 0))) &&
-        (!('div' in a) || mdHeltal(d.div, 0, 7)) &&
-        (!('sasong' in a) || mdHeltal(d.sasong, 1, 10000)) &&
-        (!('kassa' in a) || mdKassaOk(d, g, a)) &&
-        (!('trupp' in a) || (mdTruppOk(d.trupp) && (g == null || 'klubbhistorik' in a ? mdNyTruppOk(d.trupp) :
+        (!('klubb' in a) || mdKlubbOk(d.klubb, g == null ? 0 : g.klubb.get('legendStjarnor', 0) + (L ? 1 : 0))) &&
+        (!('div' in a) || L || mdHeltal(d.div, 0, 7)) &&
+        (!('sasong' in a) || L || mdHeltal(d.sasong, 1, 10000)) &&
+        (!('kassa' in a) || L || mdKassaOk(d, g, a)) &&
+        (!('trupp' in a) || (mdTruppOk(d.trupp) && (g == null || L ? mdNyTruppOk(d.trupp) :
           mdTruppDeltaOk(d, g, a) && (!('marknad' in a || 'reserver' in a) || mdUnikaOk(d, g))))) &&
-        (!('reserver' in a) || (mdReserverOk(d.reserver, g) && (g == null || 'trupp' in a || mdUnikaOk(d, g)))) &&
-        (!('marknad' in a) || mdMarknadOk(d.marknad, g, a)) &&
+        (!('reserver' in a) || L || (mdReserverOk(d.reserver, g) && (g == null || 'trupp' in a || mdUnikaOk(d, g)))) &&
+        (!('marknad' in a) || L || mdMarknadOk(d.marknad, g, a)) &&
         (!('lager' in a) || mdLagerOk(d)) &&
         (!('liga' in a) || mdLigaOk(d.liga)) &&
         (g == null ? d.summa == mdTomSumma() : (!('summa' in a) || mdSummaOk(d.summa))) &&
@@ -967,8 +970,8 @@ service cloud.firestore {
         (!('cup' in a) || d.cup.matches('[0-9]{1,5}-[1-4](-u)?')) &&
         (!('rekord' in a) || d.rekord.matches('mm([0-9]{1,5}[.][0-9]{1,5})?[|]ms([0-9]{1,5}[.][0-9]{1,5})?[|]ss([0-9]{1,2}-[0-9]{1,2}[.][0-9]{1,5})?[|]sv([0-9]{1,5}[.][0-9]{1,5})?[|]lt([0-9]{1,5}[.][0-9]{1,5})?[|]os([0-9]{1,5}[.][0-9]{1,5})?[|]ar([0-9]{1,5}[.][0-9]{1,5})?[|]sm([0-9]{1,5}[.][0-9]{1,5})?[|]nu[0-9]{1,5}([.][0-9]{1,9}){7}')) &&
         (!('pokaler' in a) || (d.pokaler.size() <= 300 && mdPokalerOk(d.pokaler.join('/')))) &&
-        (!('mastarcup' in a) || d.mastarcup == null || d.mastarcup.matches('[0-9]{1,5}-[0-3](-u)?')) &&
-        (!('klubbhistorik' in a) || mdLegendOk(d, g, a)) &&
+        (!('mastarcup' in a) || d.mastarcup == null || d.mastarcup.matches('[0-9]{1,5}-([0-3]|[1-3]-u)')) &&
+        (!L || ('trupp' in a && mdLegendOk(d, g))) &&
         (!('senaste' in d) || (d.senaste is list && d.senaste.size() <= 20)) &&
         (!('sasonger' in d) || (d.sasonger is list && d.sasonger.size() <= 200)) &&
         (!('dagar' in d) || (d.dagar is map && d.dagar.size() <= 70 && !d.dagar.values().hasAny([null])));
@@ -988,19 +991,22 @@ service cloud.firestore {
     }
     // Legendklubben (#873, spec §10.3, md-legend.js): bara när klubbhistoriken ändras – annars kostar
     // den inget i den tunnaste skrivningen (1000-uttrycksgränsen). Den sparade klubben har vunnit
-    // Mästarcupen DEN HÄR säsongen (en "mastarcup"-pokal med g.sasong), historiken växer med exakt EN
-    // rad "namn|#färg|från-till|liga.kval.cup.superliga.mastarcup" (högst 50 rader, 4 000 tecken – dokumentet
-    // håller sig litet), och den nya klubben börjar om: Division 6, nästa säsong, högst startkassan, inga
-    // reserver, ingen marknad, sju nya grundpelare (mdNyTruppOk i trupp-grenen) och en guldstjärna till
-    // (mdKlubbOk – klubben måste ändras). Pokalerna, rekorden och statistiken följer med oförändrade.
-    function mdLegendOk(d, g, a) {
+    // Mästarcupen DEN HÄR säsongen (en "mastarcup"-pokal med g.sasong i de sparade pokalraderna), historiken
+    // växer med exakt EN rad sist (de gamla orörda, i samma ordning) "namn|#färg|från-till|liga.kval.cup.superliga.mastarcup" (högst 50 rader, 4 000
+    // tecken – dokumentet håller sig litet), och den nya klubben börjar om: Division 6, nästa säsong, startkassan
+    // 600 kr, inga reserver, ingen marknad (likheter – billigare än mdHeltal/mdKassaOk/mdReserverOk/mdMarknadOk,
+    // som hoppas över med L), sju nya grundpelare (truppen MÅSTE ändras – annars prövas den inte – och
+    // mdNyTruppOk i trupp-grenen) och en guldstjärna till
+    // (mdKlubbOk; en elev som skriver förbi appen utan att ändra klubben får ingen). Pokalerna, rekorden och
+    // statistiken följer med. En legendklubb spräckte gränsen innan likheterna (#873).
+    function mdLegendOk(d, g) {
       let h = d.klubbhistorik;
       let gh = g.get('klubbhistorik', []);
-      return 'klubb' in a && h is list && h.size() == gh.size() + 1 && h.size() <= 50 && h.hasAll(gh) &&
-        h.join('/').size() <= 4000 &&
-        h.join('/').matches('[^|/<>&"]{1,24}[|]#[0-9a-fA-F]{6}[|][0-9]{1,5}-[0-9]{1,5}[|][0-9]{1,4}([.][0-9]{1,4}){4}(/[^|/<>&"]{1,24}[|]#[0-9a-fA-F]{6}[|][0-9]{1,5}-[0-9]{1,5}[|][0-9]{1,4}([.][0-9]{1,4}){4})*') &&
-        d.div == 0 && d.sasong == g.sasong + 1 && d.kassa <= 600 && d.reserver == [] && d.marknad == [] &&
-        g.get('pokaler', []).join('/').matches('(.*/)?mastarcup[|][^|/]{1,40}[|]' + string(g.sasong) + '[|].*');
+      let t = h.join('/');
+      return h.size() == gh.size() + 1 && h.size() <= 50 && (gh.size() == 0 || h[0:gh.size()] == gh) && t.size() <= 4000 &&
+        t.matches('[^|/<>&"]{1,24}[|]#[0-9a-fA-F]{6}[|][0-9]{1,5}-[0-9]{1,5}[|][0-9]{1,4}([.][0-9]{1,4}){4}(/[^|/<>&"]{1,24}[|]#[0-9a-fA-F]{6}[|][0-9]{1,5}-[0-9]{1,5}[|][0-9]{1,4}([.][0-9]{1,4}){4})*') &&
+        d.div == 0 && d.sasong == g.sasong + 1 && d.kassa == 600 && d.reserver == [] && d.marknad == [] &&
+        g.pokaler.join('/').matches('(.*/)?mastarcup[|][^|/]{1,40}[|]' + string(g.sasong) + '[|].*');
     }
     // Straffläggningen [vi, de]: två heltal (sudden death högst 30 omgångar).
     function mdStraffarOk(s) { return s is list && s.size() == 2 && mdHeltal(s[0], 0, 40) && mdHeltal(s[1], 0, 40); }

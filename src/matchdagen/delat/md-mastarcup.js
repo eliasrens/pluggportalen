@@ -30,7 +30,7 @@ import { nyMarknad } from "./md-trupp.js";
 
 export const MC_RUNDOR = C.MASTARCUP.rundor.length;
 /** Samma uttryck som i firestore.rules (validMatchdagen, mastarcup) – testat i test/matchdagen-mastarcup.test.js. */
-export const MC_MONSTER = "[0-9]{1,5}-[0-3](-u)?";
+export const MC_MONSTER = "[0-9]{1,5}-([0-3]|[1-3]-u)"; // "-u" bara efter en spelad runda
 const kopia = (v) => JSON.parse(JSON.stringify(v));
 
 /**
@@ -49,7 +49,7 @@ export const mcInbjudan = (K) => `${(Number(K.sasong) || 1) + 1}-0`;
 export function mcLage(K) {
   const [, sasong, sp, u] = /^(\d+)-(\d)(-u)?$/.exec(String(K?.mastarcup ?? "")) || [];
   const spelade = Number(sp);
-  const inbjuden = sasong != null && Number(sasong) === Number(K?.sasong) && spelade >= 0 && spelade <= MC_RUNDOR &&
+  const inbjuden = sasong != null && Number(sasong) === Number(K?.sasong) && spelade >= (u ? 1 : 0) && spelade <= MC_RUNDOR &&
     Number(K?.div) === C.TOPP_DIV;
   if (!inbjuden) return { inbjuden: false, spelade: 0, ute: false, vann: false };
   return { inbjuden, spelade, ute: !!u, vann: !u && spelade >= MC_RUNDOR };

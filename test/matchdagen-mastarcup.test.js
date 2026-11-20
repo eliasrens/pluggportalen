@@ -20,7 +20,9 @@ import { HISTORIK_MONSTER, guldkant, historikRader, klubbStart, legendErbjudande
 import { matchKlar, nastaMatch, nyKarriar, nyLiga, nySasong, pokalerFranDok, pokalerTillDok } from "../src/matchdagen/delat/md-sasong.js";
 import { lasRekord } from "../src/matchdagen/delat/md-rekord.js";
 import { TOPPKLUBBAR } from "../src/matchdagen/delat/md-namn.js";
-import { konsPengar } from "../src/matchdagen/md-spara.js";
+import { hamtaKarriar, konsPengar, legender, sparaKon } from "../src/matchdagen/md-spara.js";
+import { laggIKo, lasOsparad, sparaPagaende } from "../src/matchdagen/md-lokal.js";
+import { hinderMatch } from "../src/matchdagen/vy/md-vy-marknad.js";
 import { skapaPrng } from "../src/matchdagen/delat/md-prng.js";
 
 const rng = (f = "t") => skapaPrng(f).tal;
@@ -159,7 +161,9 @@ describe("Mästarcupen: lottningen och rundorna (§10.2, §15)", () => {
   });
   it("mastarcup-texten har reglernas form (MC_MONSTER = firestore.rules)", () => {
     for (const t of ["13-0", "13-2", "13-3", "13-1-u"]) assert.match(t, new RegExp(`^${MC_MONSTER}$`));
-    for (const t of ["13-4", "x-1", "13-1-v", ""]) assert.doesNotMatch(t, new RegExp(`^${MC_MONSTER}$`));
+    for (const t of ["13-4", "x-1", "13-1-v", "", "13-0-u", "13-4-u"]) assert.doesNotMatch(t, new RegExp(`^${MC_MONSTER}$`));
+    // granskningen: "13-0-u" (utslagna utan spelad runda) fick vyerna att läsa rundor[-1] – nekas, och mcLage tål det
+    assert.equal(mcLage({ div: TOPP, sasong: 13, mastarcup: "13-0-u" }).inbjuden, false);
     const regler = readFileSync(new URL("../firestore.rules", import.meta.url), "utf8");
     assert.ok(regler.includes(`'${MC_MONSTER}'`), "samma uttryck i reglerna");
     assert.ok(regler.includes(`'${HISTORIK_MONSTER}`), "klubbhistorikens uttryck i reglerna");
@@ -188,6 +192,7 @@ describe("Legendklubben (§10.3, §15)", () => {
     assert.equal(N.div, 0);
     assert.equal(N.sasong, K.sasong + 1);
     assert.equal(N.kassa, C.KASSA.start);
+    assert.equal(C.KASSA.start, 600, "firestore.rules mdLegendOk: d.kassa == 600");
     assert.deepEqual([N.klubb.namn, N.klubb.farg], ["Legenderna FC", "#e8473f"]);
     assert.deepEqual(N.trupp.map((p) => [p.id, p.st, p.xp, p.grundpelare]), [1, 2, 3, 4, 5, 6, 7].map((i) => [`g${i}`, 2, 0, true]));
     assert.deepEqual([N.reserver, N.marknad, N.kval, N.mastarcup], [[], [], null, null]);
@@ -268,5 +273,53 @@ describe("Pokalskåpet (§10.4)", () => {
     assert.ok(m, "mdPokalerOk i reglerna");
     assert.match(rader.join("/"), new RegExp(`^${m[2]}$`));
     assert.deepEqual(pokalerFranDok(rader), p);
+  });
+});
+
+describe("Legendklubben och kön (md-spara.js, granskningen #873)", () => {
+  const lagring = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; };
+  const gammal = () => mastarcupVinnare("ko");
+  const ny = (K) => nyLegendklubb(K, { namn: "Norrsken FF", farg: "#2ecc71", rng: rng("ny") });
+  it("legender räknar klubbhistorikens rader (tålig)", () => {
+    assert.equal(legender(null), 0);
+    assert.equal(legender({ klubbhistorik: "x" }), 0);
+    assert.equal(legender(ny(gammal())), 1);
+  });
+  it("en legendklubb på servern (annan dator, sparning efter tidsgränsen): kön för den gamla klubben kastas vid start", async () => {
+    const K = gammal();
+    const N = ny(K);
+    const S = { uid: "u", lagring: lagring(), data: { lasKarriar: async () => N, sparaMatch: async () => { throw new Error("ska inte sparas"); } } };
+    laggIKo(S.lagring, "u", { K: { ...K, summa: { ...K.summa, matcher: K.summa.matcher + 1 } }, matchId: "gammal", match: {} });
+    const val = await hamtaKarriar(S);
+    assert.equal(val.klubb.namn, "Norrsken FF");
+    assert.equal(val.div, 0);
+    assert.equal(lasOsparad(S.lagring, "u"), null, "kön är kastad");
+  });
+  it("nekad match för den gamla klubben medan servern har en legendklubb: serverns nya klubb gäller, ingen hybrid", async () => {
+    const K = gammal();
+    const N = ny(K);
+    const sparade = [];
+    const S = { uid: "u", lagring: lagring(), K,
+      data: { lasKarriar: async () => N, sparaMatch: async (uid, K2, id) => { if (legender(K2) < 1) throw Object.assign(new Error("nej"), { code: "permission-denied" }); sparade.push(id); } } };
+    laggIKo(S.lagring, "u", { K, matchId: "gammal", match: {} });
+    assert.equal(await sparaKon(S), true, "kön är tom");
+    assert.deepEqual(sparade, [], "inget skrivs över den nya klubben");
+    assert.equal(S.K.klubb.namn, "Norrsken FF");
+    assert.equal(lasOsparad(S.lagring, "u"), null);
+  });
+});
+
+describe("En pågående match i Mästarcupen (granskningen #873)", () => {
+  it("stoppar köp, byten och träningsläger efter en omladdning – som Silverpokalen", () => {
+    const m = new Map();
+    const L = { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) };
+    let K = inbjuden("hinder");
+    K = spela(K, { tills: (x) => !!mcMatch(x, UID) && !cupMatch(x, UID) });
+    const mc = mcMatch(K, UID);
+    assert.ok(mc, "en match i Mästarcupen väntar");
+    const S = { uid: UID, lagring: L, K };
+    assert.equal(hinderMatch(S), null);
+    sparaPagaende(L, UID, { sasong: K.sasong, omg: K.liga.omg, typ: "mastarcup", runda: mc.runda, matchId: "x", m: { slut: false, oss: 0 } });
+    assert.match(hinderMatch(S), /Spela klart matchen/);
   });
 });

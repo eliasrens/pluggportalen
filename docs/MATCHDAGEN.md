@@ -2,7 +2,8 @@
 
 Spec: [`UTVECKLINGSUPPDRAG_MATCHDAGEN.md`](UTVECKLINGSUPPDRAG_MATCHDAGEN.md) (epic #866). Godkänd skiss:
 [`preview/preview-matchdagen-skiss.html`](../preview/preview-matchdagen-skiss.html). Rapporten per etapp:
-[`QA-RAPPORT-matchdagen-etapp-1.md`](QA-RAPPORT-matchdagen-etapp-1.md), [`QA-RAPPORT-matchdagen-etapp-2.md`](QA-RAPPORT-matchdagen-etapp-2.md).
+[`QA-RAPPORT-matchdagen-etapp-1.md`](QA-RAPPORT-matchdagen-etapp-1.md), [`QA-RAPPORT-matchdagen-etapp-2.md`](QA-RAPPORT-matchdagen-etapp-2.md),
+[`QA-RAPPORT-matchdagen-etapp-3.md`](QA-RAPPORT-matchdagen-etapp-3.md).
 
 Matchdagen är ett fotbollsspel där varje drag kräver ett rätt svar. Läraren slår på det för **enskilda
 elever**, aldrig för en hel klass. Det här dokumentet växer med etapperna:
@@ -15,6 +16,7 @@ elever**, aldrig för en hel klass. Det här dokumentet växer med etapperna:
 | 2a (#870) | Alla divisioner, kvalet och straffarna, finten från Division 3 (§14), balansen i alla divisioner (§7.1) | klar |
 | 2b (#871) | Truppen, reserverna, marknaden och träningslägret, ekonomin (§15) | klar |
 | 2c (#872) | Silverpokalen, rekorden och pokalerna som rader (§16) | klar |
+| 3 (#873) | Superligans mästare, Mästarcupen med finalscen, legendklubben och Pokalskåpet (§17) | klar |
 
 ## 1. Moduler per elev (Etapp 1a)
 
@@ -302,6 +304,13 @@ allt i `src/matchdagen/plan/` laddas först när matchen startar. Stilarna: `src
 | `src/matchdagen/delat/md-cup.js`, `md-rekord.js` | ren: Silverpokalen och rekorden (§16, #872) |
 | `src/matchdagen/vy/md-vy-cup.js`, `md-efter-match.js` | cupens rundor under tabellen och rekorden i Statistik; rutan efter matchen med "Nytt rekord: …" (#872) |
 | `admin/md-balans-cup.mjs` | balansen för Silverpokalen (§16.3) |
+| `src/matchdagen/delat/md-mastarcup.js`, `md-legend.js` | ren: Mästarcupen, legendklubben, klubbhistoriken och pokalskåpets sorter (§17, #873) |
+| `src/matchdagen/vy/md-vy-pokaler.js`, `md-pokal-svg.js` | fliken Pokalskåpet, pokalerna och klubbmärket som SVG (§17.4, #873) |
+| `src/matchdagen/vy/md-vy-mastarcup.js`, `md-vy-legend.js` | Mästarcupens texter, rundorna under tabellen och finalens intro; "Starta en legendklubb" (§17, #873) |
+| `src/matchdagen/plan/md-tre-fest.js` | firandet i 3D: pokalen lyfts, fyrverkerier (§17.3, #873); 2D-firandet i `md-plan-2d.js` |
+| `src/styles/50-matchdagen-pokaler.css` | Pokalskåpet, klubbmärket, finalens intro, firandet i 2D (#873) |
+| `admin/md-balans-mastarcup.mjs` | balansen för Mästarcupen (§17.5) |
+| `preview/preview-matchdagen-pokaler.html` | förhandsvisning 3: skåpet och finalscenen utan Firebase (`PORT=8873 node server.mjs`; `?scen=skap\|final\|mastare`, `?lyft=mastarcup\|superliga`, `?skap=tomt\|fullt\|legend`, `?2d=1`, `?lugnt=1`, `?fps=1`); i `preview-matchdagen.html` (3): `?mastare=1` (sista omgången i Superligan), `?mc=1\|final\|vunnen` (`&slut=1`: finalen står 2 – 0 i 88:e minuten), `?legend=1` (en legendklubb med fullt skåp) |
 | `preview/preview-matchdagen-fragor.html` | förhandsvisning 1b: frågekortet + motorn som textmatch (`PORT=8868 node server.mjs`; `?svar=skriv`, `?klocka=30`, `?kallor=tabell\|omrade\|rakna\|klocka\|inga`) |
 
 ## 9. Deploy
@@ -333,7 +342,13 @@ webben skriver `pokaler` som objekt, som de nya reglerna nekar när listan ändr
 den matchen ligger kvar i kön tills sidan laddas om med den nya webben (som gör om pokalerna till rader).
 Inget går förlorat, men glappet ska vara kort. Inga index, inga functions.
 
-**Hela Matchdagen är ännu inte i drift** (Etapp 1–2 deployas tillsammans): `firebase deploy --only firestore:rules`,
+Etapp 3: **`firebase deploy --only firestore:rules` och webben i samma omgång, reglerna först.** Gamla regler +
+ny webb: `mastarcup` och `klubbhistorik` är okända fält, och pokalerna `superliga`/`mastarcup` är okända typer –
+den sista matchen i Superligan (mästare) och varje match i Mästarcupen blir liggande i den lokala kön, och en
+legendklubb kan inte startas (appen säger "prova igen"). Nya regler + gammal webb: inget nekas (den gamla webben
+skriver inga av de nya fälten och har aldrig `legendStjarnor` > 0). Inga index, inga functions.
+
+**Hela Matchdagen är ännu inte i drift** (Etapp 1–3 deployas tillsammans): `firebase deploy --only firestore:rules`,
 direkt därefter webben. Inga index, inga functions, ingen datamigrering.
 
 ## 10. Säsongen och sparningen (Etapp 1c)
@@ -786,3 +801,129 @@ Inga nya läsningar och inga lyssnare. En cupmatch är en match (en batch = 2 sk
 säsong, i snitt 2,6 i Division 6 med 70 % rätt. Rekorden och pokalerna skrivs med matchen. Eleven under en timme
 (~6 matcher varav ~2 cupmatcher, 5 läger, 3 köp/byten): ≈ 8 läsningar och ≈ 26 skrivningar – oförändrat mot 2b,
 eftersom en cupmatch tar en ligamatchs plats i timmen.
+
+## 17. Superligan, Mästarcupen, legendklubben och Pokalskåpet (Etapp 3, #873, spec §10)
+
+### 17.1 Mästare i Superligan (`md-sasong.js matchKlar`, §10.1)
+
+- Ligavinnaren i Superligan kvalar inte (det finns inget ovanför): den blir **mästare** – pokalen
+  `{ typ: "superliga", namn: "Mästare i Superligan" }` (`SUPERLIGA.pokal`) och en **inbjudan till Mästarcupen nästa
+  säsong** (`K.mastarcup = "säsong+1-0"`). `matchKlar` svarar `mastare: true`; rutan efter matchen visar titeln
+  och laget lyfter pokalen på planen (§17.4).
+- **Guldkanten** på klubbmärket (`md-legend.js guldkant`): den nuvarande klubben har vunnit Superligan (en
+  `superliga`-pokal från säsongen klubben startade eller senare). En äldre ligapokal "Vinnare Superligan"
+  (`typ` "liga", före Etapp 3) räknas som Superligan (`pokalSort`).
+
+### 17.2 Mästarcupen (`md-mastarcup.js`, ren, §10.2)
+
+- **Tre rundor** (kvartsfinal, semifinal, final) mot påhittade toppklubbar från andra länder
+  (`md-namn.js TOPPKLUBBAR`, bara generiska förled som "Real", "AC", "Sporting" – inga riktiga klubbar), styrka
+  **0,86–0,95** (`MASTARCUP.styrka`), svagast först. Lottningen har fröet `uid|säsong|mastarcup` (samma efter en
+  omladdning).
+- **Mellan Superligans omgångar:** `mcSchema(11)` → efter omgång 3, 6 och 8 (Silverpokalen spelas efter 2, 4, 7, 9;
+  de krockar aldrig). Den som väntar spelas före nästa ligamatch, Silverpokalen först (`md-vy-match.js nastaSpel`).
+- **Matchen** är en vanlig match med `avgor: true` (oavgjort → straffar). Förlust → ute; vunnen final → pokalen
+  `{ typ: "mastarcup", namn: "Mästarcupen" }` och **500 kr × multiplikatorn** (`MASTARCUP.seger`, ~1 500 kr i
+  Superligan). Divisionen ändras aldrig. Matchdokumentet har `typ: "mastarcup"` och `omg` = rundan 1–3.
+- **Sparningen:** `K.mastarcup` är EN rad text `"säsong-spelade(-u)"` (`MC_MONSTER`, samma uttryck i reglerna):
+  `"13-0"` inbjudna, `"13-2"` två rundor vunna, `"13-1-u"` utslagna i semifinalen, `"13-3"` vunnen. En annan
+  säsong, `null` eller inget fält = inte inbjudna. Inbjudan gäller bara säsongen efter mästartiteln – vinner laget
+  Superligan igen bjuds det in igen.
+- **Påbörjad match:** `md-lokal.js` sparar `runda` även för Mästarcupen; kön (`md-spara.js konsPengar`) räknar
+  prispengarna efter en vunnen final.
+- **Vyerna:** rutan före avspark säger vad som står på spel (`mcFore`), Tabell-fliken visar de tre rundorna under
+  ligan (`mcHtml`), Statistik märker matcherna "Mästarcupen", lärarens elevpanel visar titlarna, läget i
+  Mästarcupen och guldstjärnorna (`md-larare-stat.js toppRader`, bara tal och fasta texter).
+
+### 17.3 Legendklubben (`md-legend.js`, ren, §10.3)
+
+- **Erbjudandet** (`legendErbjudande`): i Superligan, en `mastarcup`-pokal från DEN HÄR säsongen och plats kvar i
+  historiken (< 50). Det visas i rutan efter den vunna finalen, som en rad på Match-fliken och när säsongen är
+  slut – aldrig tvång ("Nej tack – fortsätt i Superligan"). Nästa säsong är erbjudandet borta tills Mästarcupen
+  vinns igen.
+- **Den nya klubben** (`nyLegendklubb`, `md-vy-legend.js`): nytt namn och tröjfärg, Division 6, **nästa
+  säsongsnummer** (säsongerna räknas vidare så att pokalernas och rekordens säsonger aldrig blandas ihop), sju nya
+  grundpelare, 600 kr, ingen marknad, inga reserver, ny liga, `kval` och `mastarcup` `null`, och en
+  **guldstjärna** till på klubbmärket (`klubb.legendStjarnor`). **Med följer** pokalskåpet, rekorden (den löpande
+  säsongen nollas – sviterna hör till den gamla klubben), summan, de senaste matcherna, säsongerna och dagarna
+  (lärarens historik försvinner aldrig).
+- **Klubbhistoriken:** den gamla klubben blir EN rad `"namn|#färg|från-till|liga.kval.cup.superliga.mastarcup"`
+  i `K.klubbhistorik` (högst 50 rader, 4 000 tecken – `HISTORIK_MONSTER`, samma uttryck i reglerna). Statistik
+  listar de gamla klubbarna med märke, säsonger och pokaler.
+- **Sparningen:** först kön av osparade matcher (den gamla klubbens matcher ska in före den nya), sedan EN
+  skrivning av hela den nya karriären (`sparaKarriar`). Går den inte fram blir det ingen ny klubb – eleven kan
+  prova igen (inget halvt läge). Kom svaret efter tidsgränsen (8 s) läses serverns karriär: gick skrivningen fram
+  ändå gäller den nya klubben. Ett pågående träningsläger måste göras klart först.
+- **En legendklubb på servern vinner** (`md-spara.js legender`): har serverns karriär en längre klubbhistorik än
+  den lokala kön (en annan dator, eller en sparning som gick fram efter tidsgränsen) hör kön till den gamla klubben
+  – den kastas (vid start i `hamtaKarriar`, och i `sparaKon` när en match nekas) och serverns nya klubb gäller.
+  Annars hade kön skrivit tillbaka den gamla klubbens division och säsong över den nya (granskningen).
+
+### 17.4 Pokalskåpet, klubbmärket och finalscenen (§10.1, §10.2, §10.4)
+
+- **Fliken Pokalskåpet** (`md-vy-pokaler.js`): en tecknad pokal per sort (`md-pokal-svg.js`, SVG, inga bilder) –
+  divisionsvinst, uppflyttning genom kval, Silverpokalen, Superligan, Mästarcupen – med antal och säsonger; en tom
+  hylla har pokalens skugga och vad som krävs för den ("Vinn en division …"). Överst klubbmärket (guldkant + stjärnor) och, efter en vunnen
+  Mästarcup, ett tips om legendklubben under Match. Kostar inga läsningar.
+- **Sidhuvudet** visar klubbmärket (initialerna på en sköld i tröjfärgen) bredvid lagnamnet; märkets `aria-label` säger guldkanten och
+  stjärnorna i ord.
+- **Finalen** (`skapaPlan({ final: true })`): finalens intro "FINALEN" över planen (`finalIntro`), en fullsatt
+  läktare med viftande flaggor (EN `InstancedMesh`, `md-tre-arena.js`), skyltar "FINALEN · MÄSTARCUPEN" och ett
+  större jubel (`md-ljud.js`, `final`). 2D-reserven har flaggorna som SVG.
+- **Firandet** (`plan.fest(pokal)`, §10.1–10.2): laget samlas vid mittcirkeln (`md-formation.js
+  festUppstallning`), kaptenen lyfter pokalen (Superligans guldpokal eller Mästarcupens större silverpokal,
+  `md-tre-fest.js`) och fyrverkerier (EN `Points`-mesh) i lugnt tempo, med en fanfar. **Lugnt läge:** inga
+  fyrverkerier, inga uppsträckta armar, pokalen står stilla, fanfaren dämpad. 2D: pokalen och stjärnor som SVG.
+- **Bilder per sekund** (huvudlös Chromium med SwiftShader, 1366 × 768, ingen GPU): finalen under match 20–27 fps
+  (lägst 15), firandet 18–21 fps (lägst 12 efter starten), ~98 ritanrop – samma nivå som en vanlig match i samma
+  miljö (Etapp 1–2). Specens ≥ 50 fps på skolans HP-datorer är inte uppmätt.
+
+### 17.5 Balansen (§12)
+
+`admin/md-balans-mastarcup.mjs` (i `npm run balans:matchdagen`, 400 försök per rad) och gränsen `MC_MAL` (testad i
+`test/matchdagen-balans.test.js`): 80 % rätt med ett tränat lag (snitt 4★) vinner Mästarcupen **15–25 %** av
+försöken ("ungefär var femte").
+
+| Rätt | Laget | Ute i kvart | Ute i semi | Förlorad final | **Vunnen** | Vinst per runda | Straffar | Matcher/försök |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 80 % | 4★ | 38 % | 25 % | 16 % | **22 %** | 62 / 60 / 58 % | 28 % | 2,0 |
+| 80 % | 5★ | 21 % | 14 % | 18 % | 47 % | 79 / 83 / 72 % | 25 % | 2,4 |
+| 70 % | 4★ | 59 % | 24 % | 10 % | 7 % | 41 / 41 / 39 % | 29 % | 1,6 |
+| 90 % | 4★ | 19 % | 16 % | 16 % | 49 % | 81 / 80 / 75 % | 23 % | 2,5 |
+| 70 % | 5★ | 37 % | 20 % | 21 % | 22 % | 63 / 69 / 51 % | 26 % | 2,1 |
+
+Superligan själv är oförändrad: 80 % rätt med 4★ vinner 47 % av matcherna (§12: 45–55 %).
+
+### 17.6 Reglerna
+
+- `mastarcup`: `null` eller `'[0-9]{1,5}-([0-3]|[1-3]-u)'` ("-u" bara efter en spelad runda), prövas bara när fältet ändras.
+- `pokaler`: typerna `superliga` och `mastarcup` är tillagda i det enda uttrycket (`mdPokalerOk`).
+- `klubb.legendStjarnor` (`mdKlubbOk(k, st)`): exakt `st` – 0 i en ny klubb, annars den sparade klubbens, och +1
+  bara när `klubbhistorik` ändras. Stjärnorna kan alltså aldrig skrivas fritt.
+- **Legendklubben** (`mdLegendOk`, bara när `klubbhistorik` ändras – `let L` i `validMatchdagen`): historiken
+  växer med exakt en rad i rätt form (de gamla orörda, högst 50, 4 000 tecken), den sparade klubben har en
+  `mastarcup`-pokal från den sparade säsongen, och den nya klubben har `div == 0`, `sasong == g.sasong + 1`,
+  `kassa == 600`, `reserver == []` och `marknad == []` – **likheter i stället för** `mdHeltal`/`mdKassaOk`/
+  `mdReserverOk`/`mdMarknadOk`, som hoppas över med `L`. Truppen **måste ändras** (annars prövas den inte alls – en
+  elev kunde ha behållit sitt tränade lag, granskningen) och prövas som i en ny klubb (`mdNyTruppOk`: sju otränade
+  grundpelare). Historiken växer med en rad **sist**: `h[0:gh.size()] == gh` (samma rader i samma ordning). Utan likheterna spräckte en legendklubb 1000-uttrycksgränsen (nekad – hittat av
+  `test/firestore-rules-matchdagen-mastarcup.test.js`).
+- Historiken kan inte strykas eller skrivas om (en ändrad lista måste växa med exakt en rad sist).
+- **Inte prövat** (eget spel, inga pluggmynt): att mästartiteln, rundorna eller pokalerna stämmer med matcherna – en
+  elev som skriver förbi appen kan ge sig själv en inbjudan, en `mastarcup`-pokal och därmed en legendklubb. En
+  sådan elev som behåller klubben oförändrad får ingen stjärna.
+- **Marginalen** mot 1000-gränsen: se §17.7.
+
+### 17.7 Kvoten och marginalen (§13)
+
+Inga nya läsningar, inga lyssnare. En match i Mästarcupen är en match (en batch = 2 skrivningar), 0–3 per säsong
+(i snitt 2 med 80 % rätt). Legendklubben är EN skrivning (efter kön). Pokalskåpet och klubbhistoriken läses ur
+karriären, som redan läses en gång när Matchdagen öppnas. Dokumentet växer med högst ~4 kB (historiken) och en
+rad text för Mästarcupen.
+
+**Marginalen** mot 1000-gränsen (extra `(d.div == d.div) &&` som ryms, mätt på de slutliga reglerna, upp till 60):
+ny klubb 4, match 50, läger 30, lägrets start ≥ 60, köp 22, köp med fulla reserver 18, byte ≥ 60, resten av
+säsongen i en skrivning 26, kvalet 22, hela säsongen + cupen + kvalet i en skrivning 12, cupmatch och cupfinal ≥ 60,
+mästare 50, match och final i Mästarcupen ≥ 60, **legendklubben 12** (48 gamla klubbar: 10); läger + match i en
+skrivning nekas fortfarande. Etapp 3 kostar 4–9 uttryck per skrivning. ⚠️ `h[0:0]` (en tom del av en lista)
+spräckte gränsen – jämför bara när listan inte är tom. Mätningen: rapporten (Etapp 3).
