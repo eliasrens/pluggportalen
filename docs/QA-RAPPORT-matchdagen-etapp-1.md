@@ -335,6 +335,7 @@ Fönstret 1366 × 657 är vad en 1366 × 768-skärm visar i Chrome (flikar, adre
 | [`05-truppen.png`](qa-matchdagen-1c/05-truppen.png) | Truppen efter lärarens återställning: namnet är "Pluggporten FC" |
 | [`06-statistik-elev.png`](qa-matchdagen-1c/06-statistik-elev.png) | Elevens Statistik |
 | [`07-larare-matchdagen.png`](qa-matchdagen-1c/07-larare-matchdagen.png) | Lärarens Hur går det? → Matchdagen med Alvas rad, historik och Återställ lagnamn |
+| [`08-sasongen-slut.png`](qa-matchdagen-1c/08-sasongen-slut.png) | Efter omgång 5 i appen: "Säsongen är slut – ni kom på plats 5 av 6" och tabellen |
 
 ### Bilder per sekund
 
@@ -415,4 +416,6 @@ functions.
 
 **I appen mot emulatorn** (Alva, 1366 × 657 och 1366 × 768): ny klubb → avspark → omladdning mitt i matchen →
 "Fortsätt matchen" → hela matchen i 3D → rutan efter matchen → tabellen; läraren ser Alvas rad, historiken och
-återställer lagnamnet → Alva ser "Pluggporten FC"; en hel match med `?2d=1` sparades (omgång 3 av 5 nästa).
+återställer lagnamnet → Alva ser "Pluggporten FC"; en hel match med `?2d=1` sparades (omgång 3 av 5 nästa);
+omgång 3–5 i 3D (en robot klickade svaren) → "Se hur säsongen slutade" → plats 5 av 6 → Starta nästa säsong →
+Säsong 2 mot Smedjebacka United, samma lottning efter omladdning. Inga fel i konsolen.

@@ -26,7 +26,7 @@ export function visaTabell(S, el) {
         <td>${r.plac}</td><td>${chip(r.farg, "liten")} ${esc(r.namn)}</td><td>${r.s}</td><td>${r.v}</td><td>${r.o}</td><td>${r.f}</td>
         <td>${r.gm}–${r.im}</td><td>${r.md > 0 ? "+" : ""}${r.md}</td><td><b>${r.p}</b></td></tr>`).join("")}</tbody>
     </table></div>
-    <div class="md-rad"><button type="button" class="md-stor" data-match>${klar ? "Starta nästa säsong" : "Nästa match"}</button></div>
+    <div class="md-rad"><button type="button" class="md-stor" data-match>${klar ? "Vidare till nästa säsong" : "Nästa match"}</button></div>
   </div>`;
   el.querySelector("[data-match]").addEventListener("click", () => S.visa("match"));
 }
