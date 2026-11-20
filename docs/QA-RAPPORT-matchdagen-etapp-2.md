@@ -649,7 +649,7 @@ fulla reserver: +1 kr för mycket och platta 1 600 nekas, 605 tillbaka går igen
 
 ## Etapp 2c – Silverpokalen och rekorden (#872)
 
-Med 2c får säsongen en cup vid sidan av ligan: fyra utslagsrundor mot lag från två divisioner under till två
+Med 2c får säsongen en cup vid sidan av ligan: fyra utslagsrundor mot lag från upp till två divisioner under till två
 över, spelade mellan ligaomgångarna – och klubben samlar rekord som annonseras direkt efter matchen. Arkitekturen
 står i `MATCHDAGEN.md` §16.
 
@@ -748,16 +748,16 @@ Före = 2b:s slutliga regler (0e53ce08), 2c = slutliga regler (summan med ett ut
 
 | Skrivning | Före (2b) | 2c |
 | --- | --- | --- |
-| Ny klubb (`create`) | 8 | 10 |
+| Ny klubb (`create`) | 8 | 9 (10 före rättning 1) |
 | En match | 40 | ≥ 60 |
 | Ett träningsläger | 16 | 35 |
 | Lägrets start (`"-p"`) | ≥ 50 | ≥ 60 |
 | Ett köp (grundpelaren till reserverna) | 22 | 26 |
 | Ett köp med fulla reserver | 18 | 22 |
 | Ett byte | ≥ 50 | ≥ 60 |
-| 4 matcher i en skrivning (kön) – med cupmatcher, rekord och pokaler i 2c | 18 | 35 |
-| Kvalet | 12 | 30 |
-| **Hela säsongen + cupen + kvalet i en skrivning** (ny klubb offline) | 2 | **18** |
+| 4 matcher i en skrivning (kön) – med cupmatcher, rekord och pokaler i 2c | 18 | 30 (35) |
+| Kvalet | 12 | 28 (30) |
+| **Hela säsongen + cupen + kvalet i en skrivning** (ny klubb offline) | 2 | **16** (18) |
 | En cupmatch | – | ≥ 60 |
 | Cupfinalen (pokalen + prispengarna) | – | ≥ 60 |
 | Läger + match i samma skrivning | nekas (−1) | nekas – därför väntar Match-fliken fortfarande på lägret |
@@ -790,7 +790,7 @@ Utan omskrivningen av `mdSummaOk` hade cupen, rekorden och pokalerna sänkt den 
 5. **Träningslägret förbrukas inte av en cupmatch** – lägret hör till ligaomgången (2b); en cupmatch mellan
    omgångarna låter eleven ha kvar sitt läger.
 6. **Rekorden:** åtta rader (specens lista + obesegrad säsong). Första gången ett rekord sätts annonseras det
-   inte – bara när det slås. Sviten (liga, cup och kval; en straffseger är ingen förlust) annonseras en gång, när
+   inte – bara när det slås. Sviten (liga, cup och kval; en straffseger är ingen förlust, en straffförlust är det – Testern F3) annonseras en gång, när
    den passerar rekordet från innan sviten började, från 3 matcher. Säsongens rekord (mål, andel rätt) räknas vid
    sista ligaomgången med ligan + cupen; kvalet efteråt räknas inte. Obesegrad = ingen förlust i ligan.
 7. **Rekordens text och pokalerna som rader** – samma teknik som marknaden i 2b: ett reguljärt uttryck i
@@ -811,7 +811,7 @@ Utan omskrivningen av `mdSummaOk` hade cupen, rekorden och pokalerna sänkt den 
 ### Kända gränser
 
 - Att cupen och rekorden stämmer med matcherna prövas inte (se val 8).
-- Storleken: strängarna i ligans lag, `senaste` och `sasonger` prövas fortfarande inte (F8, 2b) – pokalerna gör det nu.
+- Storleken: strängarna i ligans lag, `senaste` och `sasonger` prövas fortfarande inte (F8, 2b) – pokalerna gör det nu (≤ 20 000 tecken, rättning 1 F1).
 - F9 (2b): ett köp + en inbytt köpt reserv i samma skrivning räknas som släppt (+385 kr, högst +400 per köp).
 
 ### Så testas det (2c)
@@ -888,3 +888,21 @@ omspelning, förlusten sparad (`1-4-u`), inga dubbla pengar. Lagrad XSS (förbi 
 - **F3 (låg, dokumentation):** val 6 säger "en straffseger är ingen förlust" i sviten – men också en straffFÖRLUST
   (1–1, utslagna) räknas som inte förlorad, så sviten lever vidare efter att laget åkt ur cupen. Antingen skriv det i
   valet, eller räkna `res.vann === false` som förlust.
+
+### Rättningsrunda 1 (Testern på d3b20870) – F1–F3 rättade
+
+- **F1, pokalernas storlek:** regeln tak:ar nu hela listan, `d.pokaler.join('/').size() <= 20000` (samma rad som
+  uttrycket; appens största lista är 300 × 62 tecken + avgränsare ≈ 18 900). Testerns 837 kB nekas nu
+  (`firestore-rules-matchdagen-cup-tester-872.test.js` test 5 vänt till "nekas"). §16.4 rättad.
+- **F2, texterna:** rutan under tabellen säger nu "Motståndarna kommer från Division 6 till Division 4" (räknat ur
+  divisionen, ±2 inom stegen); efter finalen "Pokalen finns under Statistik" (pokalskåpet är Etapp 3). Test i
+  `matchdagen-cup-vy.test.js`.
+- **F3, sviten:** en straffförlust (`res.vann === false` – utslagna ur cupen på straffar, förlorat kval) bryter nu
+  sviten; en straffvinst gör det inte. Val 6 och §16.2 säger det. Test i `matchdagen-cup.test.js`; Testerns orakel
+  (`matchdagen-cup-tester-872.test.js`) räknar likadant.
+
+**Körningar (rättning 1):** `node --test test/matchdagen-*.test.js` 286 pass, 0 fail; reglerna för Matchdagen
+(alla 10 `firestore-rules-matchdagen*.test.js`) 110 pass, 0 fail. **Marginalen** omätt med pokalernas tak (kontrollen
+utbruten till `mdPokalerOk`, så listan sammanfogas en gång): ny klubb 9 (var 10), hela säsongen + cupen + kvalet
+i en skrivning **16** (var 18), kvalet 28 (30), 4 matcher i en skrivning 30 (35); oförändrade: match ≥ 60, läger 35,
+köp 26, köp med fulla reserver 22, cupfinalen ≥ 60 (tabellen ovan uppdaterad).

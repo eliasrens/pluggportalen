@@ -188,6 +188,15 @@ describe("rekorden (§9.2, §15)", () => {
     assert.equal(R.sv.v, 6);
     assert.equal(R.nu.svit, 1);
   });
+  it("en straffförlust (utslagna ur cupen, förlorat kval) bryter sviten; en straffvinst gör det inte (Testern F3)", () => {
+    const k = K(undefined);
+    for (const [a, b] of [[1, 0], [2, 0], [1, 0]]) rekordEfterMatch(k, res(a, b));
+    rekordEfterMatch(k, res(1, 1, { vann: true, straffar: [4, 3] }));
+    assert.equal(lasRekord(k.rekord).nu.svit, 4, "straffvinst: sviten lever");
+    rekordEfterMatch(k, res(1, 1, { vann: false, straffar: [3, 4] }));
+    assert.equal(lasRekord(k.rekord).nu.svit, 0, "straffförlust: sviten bryts");
+    assert.equal(lasRekord(k.rekord).sv.v, 4);
+  });
   it("sviten annonseras också när det gamla svitrekordet är 1 – vid 3 matcher, inte vid 2 (granskningen)", () => {
     const k = K(undefined);
     const nya = [];
@@ -272,7 +281,9 @@ describe("dokumentets texter: pokalerna som rader, en ny klubb utan cup och reko
     assert.deepEqual(pokalerFranDok([...pokaler]), pokaler, "äldre dokument med objekt");
     assert.equal(pokalRad({ typ: "liga", namn: '<b>"A|B/C&', sasong: "x", datum: "2026-11-20" }), "liga|bAB/C|1|2026-11-20".replace("/", ""));
     const rules = readFileSync(new URL("../firestore.rules", import.meta.url), "utf8");
-    const m = rules.match(/d\.pokaler\.join\('\/'\)\.matches\('([^']+)'\)/);
+    assert.match(rules, /d\.pokaler\.size\(\) <= 300 && mdPokalerOk\(d\.pokaler\.join\('\/'\)\)/);
+    assert.match(rules, /t\.size\(\) <= 20000 && t\.matches/, "hela listan tak:as (Testern F1)");
+    const m = rules.match(/function mdPokalerOk\(t\) \{\s*return t\.size\(\) <= 20000 && t\.matches\('([^']+)'\)/);
     assert.ok(m, "reglerna prövar pokalerna med ett uttryck");
     const re = new RegExp(`^${m[1]}$`);
     assert.match(rader.join("/"), re);

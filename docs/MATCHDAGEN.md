@@ -387,7 +387,7 @@ Fälten står i [`DATAMODELL.md`](DATAMODELL.md#matchdagenuid--elevens-karriär-
   `sasonger` 200, `pokaler` 300, `perKalla` 150, ligan 12 lag) håller ett dokument skrivet av appen under
   ~61 kB med allt fyllt (en ny klubb ~2 kB; `cup` + `rekord` < 200 byte, 2c), under specens 200 kB. **Reglerna
   håller INTE 200 kB:** de begränsar antalet, inte strängarnas längd, i ligans lag (`liga.lag[].namn`), `senaste`,
-  `sasonger` och källnamnen (`pokaler` är sedan 2c rader med namn ≤ 40 tecken, högst ~22 kB). En elev som skriver förbi appen kan blåsa upp sitt eget dokument till Firestores tak 1 MiB (Testern
+  `sasonger` och källnamnen (`pokaler` är sedan 2c rader, hela listan ≤ 20 000 tecken). En elev som skriver förbi appen kan blåsa upp sitt eget dokument till Firestores tak 1 MiB (Testern
   #871: ~900 kB gick igenom) – och lärarens Hur går det? läser det. Det som prövas strängt är klubben, truppen,
   reserverna, marknaden (#871), summan och kvalet.
 
@@ -725,7 +725,7 @@ Specens sju sorter + obesegrad säsong som egen rad (åtta): flest mål i en mat
 säsonger (`os`), bästa andel rätt på en säsong med minst 3 matcher (`ar`) och snabbaste mål (`sm`).
 
 - **Efter varje match** (liga, cup och kval – `rekordEfterMatch`): `mm`, `ss`, `sm` och sviten. En straffseger
-  är ingen förlust. **Efter sista ligaomgången** (`rekordEfterSasong`): `ms` och `ar` (ligan + cupen den
+  är ingen förlust, en straffförlust är det (`res.vann === false`: utslagna ur cupen, förlorat kval – Testern F3). **Efter sista ligaomgången** (`rekordEfterSasong`): `ms` och `ar` (ligan + cupen den
   säsongen; kvalet efteråt räknas inte), `lt` (etta i ligan) och `os` (ingen förlust i ligan).
 - **Annonsen** "Nytt rekord: 5 mål i en match!" visas i rutan efter matchen (`md-efter-match.js`), en rad per
   rekord. Ett rekord som sätts **första gången** annonseras inte (då vore varje tidig match ett rekord) – bara när
@@ -764,7 +764,9 @@ Division 6 är ~0,8 matchers inkomst. Säsongen i Division 6 blir ~20 min längr
 - `pokaler` sparas sedan 2c som **rader** `"typ|namn|säsong|ÅÅÅÅ-MM-DD"` (`md-sasong.js pokalRad`,
   `pokalerTillDok` i varje skrivning, `pokalerFranDok` vid läsningen – i appen är de objekt) och prövas med ETT
   uttryck över `join('/')` när listan ändras: typ `liga`/`kval`/`cup`, namn 1–40 tecken utan `| / < > & "`,
-  högst 300. Det stänger storleksgapet (F8, #871) för pokalerna.
+  högst 300 – och hela listan högst 20 000 tecken (`join('/').size()`; ett element kan innehålla `/` och bära
+  flera rader, Testern F1 – appens största lista är 300 × 62 tecken). Det stänger storleksgapet (F8, #871) för
+  pokalerna.
 - `mastarcup` är borttaget ur de tillåtna fälten (Etapp 3 lägger till det med en riktig kontroll).
 - **`mdSummaOk` med ett uttryck:** summans åtta heltal prövas som `[string(x + 0), …].join('|').matches(…)` –
   `+ 0` ger ett fel för text, ett flyttal blir `"5.0"` och ett negativt `"-1"`, som uttrycket nekar. Taken är
@@ -774,8 +776,8 @@ Division 6 är ~0,8 matchers inkomst. Säsongen i Division 6 blir ~20 min längr
   matcherna – en elev som skriver förbi appen kan ge sig själv en vunnen cup (pokalen + 200 kr × mult., inom
   kassans tak per match) eller vilka rekord som helst i rätt form.
 - **Marginalen** mot 1000-gränsen (extra `(d.div == d.div) &&` som ryms, mätt på de slutliga reglerna, upp till 60):
-  ny klubb 10, match ≥ 60, läger 35, lägrets start ≥ 60, köp 26, köp med fulla reserver 22, byte ≥ 60, 4 matcher i
-  en skrivning 35, kvalet 30, hela säsongen + cupen + kvalet i en skrivning 18 (var 2 före 2c), cupmatch ≥ 60,
+  ny klubb 9, match ≥ 60, läger 35, lägrets start ≥ 60, köp 26, köp med fulla reserver 22, byte ≥ 60, 4 matcher i
+  en skrivning 30, kvalet 28, hela säsongen + cupen + kvalet i en skrivning 16 (var 2 före 2c), cupmatch ≥ 60,
   cupfinalen ≥ 60; läger + match i en skrivning nekas fortfarande (spärren i §15.3). Mätningen: rapporten (Etapp 2c).
 
 ### 16.5 Kvoten (§13)

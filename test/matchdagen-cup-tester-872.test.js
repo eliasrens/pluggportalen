@@ -111,7 +111,7 @@ function orakel(logg) {
     O.mm = Math.max(O.mm, oss);
     if (oss > dem && (!O.ss || oss - dem > O.ss[0] - O.ss[1])) O.ss = [oss, dem];
     for (const m of mal) if (m.lag === "oss") O.sm = Math.min(O.sm ?? 999, m.min);
-    svit = oss < dem ? 0 : svit + 1;
+    svit = oss < dem || x.res.vann === false ? 0 : svit + 1; // en straffförlust bryter sviten (F3, rättning 1)
     O.sv = Math.max(O.sv, svit);
     if (x.typ !== "kval") {
       const p = (per[x.sasong] ??= { mal: 0, fragor: 0, ratt: 0, matcher: 0 });

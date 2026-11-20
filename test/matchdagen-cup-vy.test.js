@@ -87,6 +87,10 @@ describe("vyerna skriver bara tal och esc() ur cup, rekord, pokaler och senaste"
     assert.match(cupStatus(K1), /Sextondelsfinalen väntar/);
     assert.match(cupStatus({ ...K1, cup: "1-2-u" }), /Utslagna i kvartsfinalen/);
     assert.match(cupStatus({ ...K1, cup: "1-4" }), /Ni vann Silverpokalen/);
+    // Testern F2: motståndarnas divisioner utan "under" i Division 6 och "över" i Superligan.
+    assert.match(cupHtml(K1, UID), /Motståndarna kommer från Division 6 till Division 4/);
+    assert.match(cupHtml({ ...K1, div: 7, cup: "1-4" }, UID), /från Division 1 till Superligan/);
+    assert.match(cupEfter({ vann: true, vannCupen: true, runda: 3 }).rad, /under Statistik/);
     // Ligan slut utan cup (ett dokument från före 2c): ingen cupmatch väntar – och vyerna säger inte det heller.
     const slut = { ...K1, liga: { ...K1.liga, omg: K1.liga.schema.length } };
     assert.equal(cupMatch(slut, UID), null);

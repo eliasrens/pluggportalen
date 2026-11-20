@@ -15,7 +15,7 @@ import { kvalResultat, sasongSlutText } from "./md-vy-match.js";
 
 /** Rubrik och rad för cupen: vidare till nästa runda, pokalen, eller utslagna. */
 export function cupEfter(klar) {
-  if (klar.vannCupen) return { rubrik: `${CUP.namn} är er!`, rad: `Ni vann finalen! Pokalen står i pokalskåpet och prispengarna går till klubbkassan.` };
+  if (klar.vannCupen) return { rubrik: `${CUP.namn} är er!`, rad: `Ni vann finalen! Pokalen finns under Statistik och prispengarna går till klubbkassan.` };
   if (klar.vann) {
     const nasta = CUP.rundor[klar.runda + 1] || CUP.rundor.at(-1);
     return { rubrik: "Vidare!", rad: `Ni är klara för ${nasta.toLowerCase()}en i ${CUP.namn}.` };

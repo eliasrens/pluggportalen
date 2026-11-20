@@ -925,6 +925,11 @@ service cloud.firestore {
         s.ratt <= s.fragor && mdTal(s.spelminuter, 0, 10000000) &&
         s.perKalla.size() <= 150 && !s.perKalla.values().hasAny([null]);
     }
+    // #872: pokalerna som rader, sammanfogade med '/'. Ett element kan innehålla '/' och bära
+    // flera rader – därför tak:as hela texten (appens största: 300 × 62 tecken + avgränsare).
+    function mdPokalerOk(t) {
+      return t.size() <= 20000 && t.matches('((liga|kval|cup)[|][^|/<>&"]{1,40}[|][0-9]{1,5}[|][0-9]{4}-[0-9]{2}-[0-9]{2}(/(liga|kval|cup)[|][^|/<>&"]{1,40}[|][0-9]{1,5}[|][0-9]{4}-[0-9]{2}-[0-9]{2})*)?');
+    }
     function mdLigaOk(l) {
       return l is map && l.keys().hasOnly(['lag', 'schema', 'tabell', 'omg']) &&
         l.lag is list && l.lag.size() >= 2 && l.lag.size() <= 12 &&
@@ -959,7 +964,7 @@ service cloud.firestore {
         (!('kval' in a) || d.kval == null || mdKvalOk(d.kval)) &&
         (!('cup' in a) || d.cup.matches('[0-9]{1,5}-[1-4](-u)?')) &&
         (!('rekord' in a) || d.rekord.matches('mm([0-9]{1,5}[.][0-9]{1,5})?[|]ms([0-9]{1,5}[.][0-9]{1,5})?[|]ss([0-9]{1,2}-[0-9]{1,2}[.][0-9]{1,5})?[|]sv([0-9]{1,5}[.][0-9]{1,5})?[|]lt([0-9]{1,5}[.][0-9]{1,5})?[|]os([0-9]{1,5}[.][0-9]{1,5})?[|]ar([0-9]{1,5}[.][0-9]{1,5})?[|]sm([0-9]{1,5}[.][0-9]{1,5})?[|]nu[0-9]{1,5}([.][0-9]{1,9}){7}')) &&
-        (!('pokaler' in a) || (d.pokaler.size() <= 300 && d.pokaler.join('/').matches('((liga|kval|cup)[|][^|/<>&"]{1,40}[|][0-9]{1,5}[|][0-9]{4}-[0-9]{2}-[0-9]{2}(/(liga|kval|cup)[|][^|/<>&"]{1,40}[|][0-9]{1,5}[|][0-9]{4}-[0-9]{2}-[0-9]{2})*)?'))) &&
+        (!('pokaler' in a) || (d.pokaler.size() <= 300 && mdPokalerOk(d.pokaler.join('/')))) &&
         (!('senaste' in d) || (d.senaste is list && d.senaste.size() <= 20)) &&
         (!('sasonger' in d) || (d.sasonger is list && d.sasonger.size() <= 200)) &&
         (!('dagar' in d) || (d.dagar is map && d.dagar.size() <= 70 && !d.dagar.values().hasAny([null])));

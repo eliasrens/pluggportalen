@@ -75,7 +75,7 @@ function rekordFor(K) {
 
 /**
  * En spelad match (liga, kval eller cup): flest mål, största seger, snabbaste mål och
- * svit utan förlust (ett oavgjort som avgjorts på straffar är ingen förlust). Ett rekord
+ * svit utan förlust (en straffvinst är ingen förlust, en straffförlust är det – res.vann === false). Ett rekord
  * som sätts första gången annonseras inte – bara när ett gammalt slås. En svit annonseras
  * en gång: när den slår rekordet från före sviten (minst 3 matcher). Ändrar K.rekord.
  * @param {{ oss: number, dem: number, mal: Array<{ min, lag }>, stat: { fragor, ratt } }} res
@@ -107,7 +107,7 @@ export function rekordEfterMatch(K, res) {
       R.sm = { v: min, s };
     }
   }
-  if (oss < dem) {
+  if (oss < dem || res.vann === false) { // en förlust – också på straffar (utslagna ur cupen, förlorat kval)
     n.svit = 0;
     n.svBas = R.sv?.v || 0;
   } else n.svit++;

@@ -15,6 +15,12 @@ import { chip, esc } from "./md-vy-delat.js";
 const tal = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 const resultat = (m) => `${tal(m.oss)}–${tal(m.dem)}${Array.isArray(m.straffar) ? ` (str. ${tal(m.straffar[0])}–${tal(m.straffar[1])})` : ""}`;
 const rundaNamn = (i) => CUP.rundor[i].toLowerCase();
+/** Var motståndarna kommer ifrån: ±CUP.spridning, aldrig under Division 6 eller över Superligan. */
+const spannText = (K) => {
+  const div = tal(K.div);
+  const [lo, hi] = [Math.max(0, div - CUP.spridning), Math.min(DIVISIONER.length - 1, div + CUP.spridning)];
+  return `Motståndarna kommer från ${DIVISIONER[lo]} till ${DIVISIONER[hi]}`;
+};
 
 /** Ligan är slut utan att cupen blev klar (ett dokument från före 2c) – då väntar ingen cupmatch. */
 const ligaSlut = (K) => Number(K.liga?.omg) >= (Number(K.liga?.schema?.length) || 0);
@@ -60,7 +66,7 @@ export function cupHtml(K, uid = "") {
   return `<section class="md-cup${L.vann ? " vunnen" : ""}" aria-label="${esc(CUP.namn)}">
     <h3><span class="md-pokal silver" aria-hidden="true"></span>${esc(CUP.namn)} – säsong ${sasong}</h3>
     <ol class="md-cup-rundor">${rader}</ol>
-    <p class="md-svag">${esc(cupStatus(K))} Lag från två divisioner under till två över – oavgjort avgörs på straffar, förlust betyder ute.</p>
+    <p class="md-svag">${esc(cupStatus(K))} ${esc(spannText(K))} – oavgjort avgörs på straffar, förlust betyder ute.</p>
   </section>`;
 }
 

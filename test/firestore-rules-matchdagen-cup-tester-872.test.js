@@ -88,9 +88,9 @@ describe("#872 Tester: cup, rekord och pokaler förbi appen", () => {
     try { await assertSucceeds(setDoc(ref(elev()), medTid(CUP1.K, { pokaler: stor }))); } catch { gick = false; }
     console.log(`# pokaler med '/' i elementen: ${bytes} byte → ${gick ? "GODKÄND" : "nekad"}`);
     // Dokumenterat i docs/MATCHDAGEN.md §16.4: "namn utan / … högst 300. Det stänger storleksgapet".
-    // F1 (#872): GÅR IGENOM – ett element får innehålla '/' och bära flera rader, så antalet 300 tak:ar inte storleken.
-    // Testet dokumenterar läget; vänd till assert.equal(gick, false) när regeln stänger det.
-    assert.equal(gick, true, `pokaler med ${bytes} byte`);
+    // F1 (#872, rättat): ett element fick innehålla '/' och bära flera rader – nu tak:ar
+    // join('/').size() <= 20000 hela listan (appens största: 300 × 62 tecken + avgränsare).
+    assert.equal(gick, false, `pokaler med ${bytes} byte`);
   });
   it("summa: flyttal, negativt, text, för många siffror och ratt > fragor nekas; gräns-heltal godkänns", async () => {
     const s0 = { ...kopia(CUP1.K.summa), matcher: 9999998 };
