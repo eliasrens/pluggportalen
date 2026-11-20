@@ -47,13 +47,16 @@ async function avatarBild(S) {
   } catch { return null; }
 }
 
+/** Hela namnet på bred skärm, förkortningen ("BIF") på smal – som på tv. */
+const namnPar = (namn) => `<span class="md-lang">${esc(namn)}</span><span class="md-kortnamn" aria-hidden="true">${esc(kortNamn(namn))}</span>`;
+
 function layout(S, el, mot) {
   const vi = S.K.klubb;
   el.innerHTML = `<div class="md-match${S.lugnt ? " lugnt" : ""}">
     <div class="md-skylt" aria-live="polite">
-      <div class="md-skylt-lag">${chip(vi.farg)}<span title="${esc(vi.namn)}">${esc(kortNamn(vi.namn))}</span></div>
+      <div class="md-skylt-lag">${chip(vi.farg)}${namnPar(vi.namn)}</div>
       <div class="md-skylt-res" data-res>0 – 0</div>
-      <div class="md-skylt-lag"><span title="${esc(mot.namn)}">${esc(kortNamn(mot.namn))}</span>${chip(mot.farg)}</div>
+      <div class="md-skylt-lag">${namnPar(mot.namn)}${chip(mot.farg)}</div>
       <div class="md-skylt-tid" data-tid>0'</div>
     </div>
     <div class="md-plan">
@@ -160,7 +163,7 @@ export async function spelaMatch(S, el, { pagaende = null } = {}) {
       valId = await valMeny(v.kort, l.val, signal);
       if (!valId) return;
     } else {
-      v.kort.innerHTML = l.fragor ? "" : `<p class="md-vantar">${esc(l.rad)}</p>`;
+      v.kort.innerHTML = "";
       if (!l.fragor) await vanta(S.lugnt ? 300 : 700);
     }
     const svar = [];
@@ -175,7 +178,7 @@ export async function spelaMatch(S, el, { pagaende = null } = {}) {
     const ut = spela(m, valId, svar, Math.random, Date.now());
     m = ut.m;
     sparaLokalt();
-    v.kort.innerHTML = `<p class="md-vantar">${esc(ut.h.rad)}</p>`;
+    v.kort.innerHTML = "";
     sag(ut.h.rad);
     await plan.spela(ut.h, m);
     skylt();

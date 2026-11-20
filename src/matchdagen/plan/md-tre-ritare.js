@@ -16,7 +16,7 @@
 // ============================================================================
 
 import { byggArena } from "./md-tre-arena.js";
-import { skapaFigur, skapaFigurDelar, skapaLagMaterial, stegaFigur } from "./md-tre-figur.js";
+import { skapaFigur, skapaFigurDelar, stegaFigur } from "./md-tre-figur.js";
 import { PLAN_B, PLAN_L } from "./md-formation.js";
 
 const BOLL_R = 0.3;
@@ -39,14 +39,17 @@ export function skapa3dRitare({ T, yta, lugnt = false }) {
   const canvas = document.createElement("canvas");
   canvas.className = "md-canvas";
   yta.appendChild(canvas);
-  const renderer = new T.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(1.5, window.devicePixelRatio || 1));
+  // Som Kurragömma: ingen kantutjämning, högst 1,5 i pixeltäthet – och en vakt som
+  // sänker pixeltätheten om datorn inte orkar 45 bilder/s (prestandan §4).
+  const renderer = new T.WebGLRenderer({ canvas, antialias: false, powerPreference: "high-performance" });
+  let pixel = Math.min(1.5, window.devicePixelRatio || 1);
+  renderer.setPixelRatio(pixel);
   const scen = new T.Scene();
   const kamera = new T.PerspectiveCamera(36, 16 / 9, 0.5, 400);
   const arena = byggArena(T, scen, { lugnt });
   const delar = skapaFigurDelar(T);
 
-  const lagen = { vi: { figurer: [], mat: null }, dem: { figurer: [], mat: null } };
+  const lagen = { vi: { figurer: [] }, dem: { figurer: [] } };
   const bollTex = bollTextur(T);
   const bollM = new T.Mesh(new T.SphereGeometry(BOLL_R, 16, 12), new T.MeshLambertMaterial({ map: bollTex }));
   const bollSk = new T.Mesh(new T.CircleGeometry(0.34, 12), new T.MeshBasicMaterial({ color: "#000", transparent: true, opacity: 0.32, depthWrite: false }));
@@ -74,10 +77,8 @@ export function skapa3dRitare({ T, yta, lugnt = false }) {
   function lag(sida, { troja, byxor, mv, kapten = -1 }) {
     const L = lagen[sida];
     L.figurer.forEach((f) => scen.remove(f));
-    L.mat?.dispose();
-    L.mat = skapaLagMaterial(T, { troja, byxor, mv });
     L.figurer = Array.from({ length: 7 }, (_, i) => {
-      const f = skapaFigur(T, delar, L.mat, { mv: i === 0, i: i + (sida === "dem" ? 7 : 0), kapten: i === kapten });
+      const f = skapaFigur(T, delar, { troja, byxor, mv }, { mv: i === 0, i: i + (sida === "dem" ? 7 : 0), kapten: i === kapten });
       scen.add(f);
       return f;
     });
@@ -104,8 +105,8 @@ export function skapa3dRitare({ T, yta, lugnt = false }) {
   function placeraAvatar() {
     const f = lagen.vi.figurer[lagen.vi.kapten];
     if (!f || !avatarSprite) return;
-    avatarSprite.position.set(0, 3.7 / 1.25, 0);
-    avatarSprite.scale.set(1.2, 1.44, 1);
+    avatarSprite.position.set(0, 2.95, 0); // i figurens skala (1,5)
+    avatarSprite.scale.set(1, 1.2, 1);
     f.add(avatarSprite);
   }
   const uppdateraAvatar = () => { if (avatarSprite) avatarSprite.userData.tex.needsUpdate = true; };
@@ -144,7 +145,7 @@ export function skapa3dRitare({ T, yta, lugnt = false }) {
     } else {
       const narbild = nu < zoomTill;
       const bred = kamera.aspect < 1.4 ? 1.35 : 1;
-      if (narbild) { kamPosMal.set(bx * 0.92, 9, bz + 20); kamMalMal.set(bx, 1, bz); } else { kamPosMal.set(bx * 0.78, 24 * bred, 46 * bred); kamMalMal.set(bx * 0.88, 0, bz * 0.35); }
+      if (narbild) { kamPosMal.set(bx * 0.92, 8, bz + 17); kamMalMal.set(bx, 1, bz); } else { kamPosMal.set(bx * 0.72, 19 * bred, 37 * bred); kamMalMal.set(bx * 0.86, 0, bz * 0.4); }
       const k = 1 - Math.pow(narbild ? 0.04 : 0.12, dt);
       kamPos.lerp(kamPosMal, k);
       kamMal.lerp(kamMalMal, k);
@@ -182,6 +183,22 @@ export function skapa3dRitare({ T, yta, lugnt = false }) {
     }
     kameraSteg(nu, dt);
     renderer.render(scen, kamera);
+    vakt(nu);
+  }
+  // Pixelvakten: mäter 3 s åt gången och sänker pixeltätheten i två steg (aldrig under 0,6).
+  let vaktStart = 0, vaktBilder = 0;
+  function vakt(nu) {
+    if (!vaktStart) { vaktStart = nu; vaktBilder = 0; return; }
+    vaktBilder++;
+    if (nu - vaktStart < 3000) return;
+    const fps = (vaktBilder * 1000) / (nu - vaktStart);
+    vaktStart = nu;
+    vaktBilder = 0;
+    if (fps < 45 && pixel > 0.6) {
+      pixel = Math.max(0.6, Math.round(pixel * 0.75 * 100) / 100);
+      renderer.setPixelRatio(pixel);
+      storlek();
+    }
   }
   raf = requestAnimationFrame(loop);
 
@@ -195,13 +212,12 @@ export function skapa3dRitare({ T, yta, lugnt = false }) {
       for (let i = 1; i < bilder.length; i++) d.push(bilder[i] - bilder[i - 1]);
       const snitt = 1000 / (d.reduce((a, b) => a + b, 0) / d.length);
       const varst = d.slice().sort((a, b) => b - a)[Math.floor(d.length * 0.05)];
-      return { snitt: Math.round(snitt * 10) / 10, lagst: Math.round(10000 / varst) / 10, bilder: bilder.length, ritanrop: renderer.info.render.calls };
+      return { snitt: Math.round(snitt * 10) / 10, lagst: Math.round(10000 / varst) / 10, bilder: bilder.length, ritanrop: renderer.info.render.calls, pixel };
     },
     dispose() {
       levande = false;
       cancelAnimationFrame(raf);
       ro?.disconnect();
-      for (const L of [lagen.vi, lagen.dem]) L.mat?.dispose();
       delar.dispose();
       arena.dispose();
       bollTex.dispose();
