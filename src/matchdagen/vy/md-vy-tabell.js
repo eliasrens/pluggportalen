@@ -47,7 +47,7 @@ export function visaTabell(S, el) {
   el.innerHTML = `<div class="md-panel">
     <h2>${esc(DIVISIONER[div])} – säsong ${Number(K.sasong) || 1}</h2>
     ${stegHtml(div)}
-    <p class="md-svag">Ettan får kvala upp. Man kan bara gå uppåt – ju högre upp, desto fler lag att slå och tuffare motstånd.${dubbelSkott(div) ? " Här krävs två rätt i rad för ett riktigt bra skott." : ""}</p>
+    <p class="md-svag">${div >= TOPP_DIV ? "Ettan blir mästare och bjuds in till Mästarcupen." : "Ettan får kvala upp."} Man kan bara gå uppåt – ju högre upp, desto fler lag att slå och tuffare motstånd.${dubbelSkott(div) ? " Här krävs två rätt i rad för ett riktigt bra skott." : ""}</p>
     ${klar
       ? `<p class="md-slut${plac === 1 ? " vinst" : ""}">${slutText}</p>`
       : `<p class="md-svag">${K.liga.omg ? `Omgång ${K.liga.omg} av ${antal} spelad` : `Säsongen har inte börjat – ${antal} omgångar`} · ${rader.length} lag · Vinst 3 poäng, oavgjort 1.</p>`}

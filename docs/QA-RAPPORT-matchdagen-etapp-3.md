@@ -33,7 +33,7 @@ klubbhistoriken under Statistik. **Pokalskåpet** är en egen flik med en teckna
   Klubbmärket får guldkant (`md-legend.js guldkant`) så länge klubben har vunnit Superligan.
 - **Mästarcupen** (`delat/md-mastarcup.js`, ren): tre rundor efter Superligans omgång 3, 6 och 8 (Silverpokalen
   2, 4, 7, 9 – de krockar aldrig), lottningen per säsong (samma efter omladdning), oavgjort → straffar, förlust →
-  ute, vunnen final → pokalen `mastarcup` och 500 kr × multiplikatorn (~1 500 kr). Divisionen ändras aldrig.
+  ute, vunnen final → pokalen `mastarcup` och 500 kr × multiplikatorn (1 375 kr i Superligan, 500 × 2,75). Divisionen ändras aldrig.
   Match-fliken visar matchen före nästa ligamatch med vad som står på spel, Tabell-fliken rundorna under ligan,
   Statistik märker matcherna, lärarens elevpanel visar titlarna och läget.
 - **Finalscenen:** introt "FINALEN" över planen, en fullsatt läktare med viftande flaggor (EN `InstancedMesh`),
@@ -147,7 +147,7 @@ skrivningen nekas, karriärer byggda av de riktiga modulerna; mätt upp till 60)
 
 | Skrivning | 2c | 3 |
 | --- | --- | --- |
-| Ny klubb (`create`) | 9 | 4 |
+| Ny klubb (`create`) | 9 | 5 (Testern, fyra frön; Coderns lista hoppade 4 → 6) |
 | En match | ≥ 60 | 50 |
 | Ett träningsläger | 35 | 30 |
 | Lägrets start (`"-p"`) | ≥ 60 | ≥ 60 |
@@ -165,7 +165,7 @@ skrivningen nekas, karriärer byggda av de riktiga modulerna; mätt upp till 60)
 | Legendklubben med 48 gamla klubbar i historiken | – | 10 |
 
 Etapp 3 kostar 4–9 uttryck i varje skrivning (två nya fält i nyckellistan, `mastarcup`- och legendraderna, `L`).
-Den tunnaste är fortfarande en ny klubb (4) – den prövar allt. Mätt på de slutliga reglerna; legendraderna efter
+Den tunnaste är fortfarande en ny klubb (5) – den prövar allt. Mätt på de slutliga reglerna; legendraderna efter
 granskningens rättningar. Ett fynd på vägen: `h[0:0]` (en tom del av listan) spräckte gränsen för den första
 legendklubben – därför `gh.size() == 0 ||` före jämförelsen.
 
@@ -184,7 +184,7 @@ legendklubben – därför `gh.size() == 0 ||` före jämförelsen.
 
 1. **Inbjudan gäller bara säsongen efter titeln** (`"S+1-0"`); vinner laget Superligan igen bjuds det in igen.
    Mästarcupen spelas efter omgång 3, 6 och 8 – aldrig samtidigt som Silverpokalen, alltid före sista omgången.
-2. **Prispengarna 500 kr × multiplikatorn** (~1 500 kr i Superligan) – större än Silverpokalens 200 × mult., i
+2. **Prispengarna 500 kr × multiplikatorn** (1 375 kr i Superligan) – större än Silverpokalens 200 × mult., i
    samma halverade ekonomi som 2b.
 3. **Motståndarnas namn** (`TOPPKLUBBAR`): specens fyra exempel och tolv till med generiska förled (Real, AC,
    Sporting, Dynamo …) och påhittade orter – inga riktiga klubbar.
@@ -203,15 +203,25 @@ legendklubben – därför `gh.size() == 0 ||` före jämförelsen.
 ## Öppna frågor till Elias
 
 1. **Nollställd kassa** = 600 kr (startkassan), inte 0. OK?
-2. **Prispengarna** för Mästarcupen: 500 kr × multiplikatorn (~1 500 kr). OK?
+2. **Prispengarna** för Mästarcupen: 500 kr × multiplikatorn (1 375 kr i Superligan). OK?
 3. **Fps på skolans HP-datorer** är fortfarande inte uppmätt (ingen GPU här) – finalscenen har ~98 ritanrop som en
    vanlig match.
+4. **"Ungefär var femte" vid 4★ eller 5★?** (Testern F4) Med snitt 4★ vinns Mästarcupen i 22 % (i mål), men
+   karriärtabellen når Superligan med 5,0★ – och med 5★ vinns den i 47 % (ungefär varannan). Ska "var femte" gälla
+   4★ (som nu) eller det lag eleverna faktiskt har (5★)? Då behöver toppklubbarna bli starkare.
 
 ## Kända gränser
 
 - Att mästartiteln, Mästarcupen och pokalerna stämmer med matcherna prövas inte i reglerna (eget spel, se ovan).
 - Storleken: strängarna i ligans lag, `senaste` och `sasonger` prövas fortfarande inte (F8, 2b); klubbhistoriken
   gör det (≤ 4 000 tecken).
+- **F2 – legendklubben "sparas" offline:** efter tidsgränsen (8 s) läser legendvyn karriären med `getDoc`, som offline
+  svarar ur cachen med den väntande skrivningen – appen visar "En ny legend föds!". Kommer nätet tillbaka med fliken
+  öppen går skrivningen fram; stängs fliken först är legendklubben borta och den gamla klubben (med erbjudandet)
+  tillbaka. Ingen halv klubb. Möjlig rättning: `getDocFromServer` (eller `metadata.hasPendingWrites`) i kontrollen.
+- **F3 – reglerna prövar formen, inte förtjänsten:** en förfalskad `mastarcup`-pokal i en skrivning och en
+  legendklubb i nästa godtas från vilken division som helst (reglerna läser inte `g.div`); en legendskrivning utan
+  ändrad `klubb` ger ingen stjärna, och `legendStjarnor` kan strykas ur klubben (bara nedåt, till 0). Bara eget spel.
 
 ## Så testas det
 
@@ -369,3 +379,14 @@ rättas före merge. F1 är en ren visningsmiss.
   `md-vy-tabell.js:50`) – i Superligan blir ettan mästare. Rapportens "~1 500 kr" i prispengar är 1 375 kr i appen
   (500 × 2,75). Skåpet utan stjärnor men med historik skriver "2 pokaler Pokalerna från …" utan punkt (bara förbi
   appen).
+
+## Rättningsrunda 1 (Codern, Testerns fynd på 31177ed8)
+
+- **F1 rättat:** `toppRader` räknar titlarna med `skapet(pokalerFranDok(K.pokaler))` – rader ur `lasKarriarer` och
+  objekt i appen ger samma svar. Test `test/matchdagen-mastarcup-vy.test.js` (fäller utan rättningen).
+- **F5 rättat:** Superligans tabell säger "Ettan blir mästare och bjuds in till Mästarcupen." (test i samma fil);
+  prispengarna står som 1 375 kr i rapporten och MATCHDAGEN.md.
+- **Rapporten:** marginalen för en ny klubb är 5 (Testerns mätning); F2 och F3 under Kända gränser, F4 som fråga 4
+  till Elias; DATAMODELL.md säger nu att `legendStjarnor` kan utelämnas (bara nedåt).
+- **Inte rättat:** F2 (bara dokumenterat), F3 (eget spel), F4 (fråga till Elias), punkten i skåpets text utan
+  stjärnor (bara förbi appen).

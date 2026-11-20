@@ -894,7 +894,7 @@ matchen), när klubben skapas eller döps om och (#871) efter varje köp, byte o
 | Fält | Typ | Beskrivning |
 | --- | --- | --- |
 | `version` | int | Formens version (1) |
-| `klubb` | `{ namn, farg, legendStjarnor }` | Lagnamn 1–24 tecken, tröjfärg `#rrggbb` (en av 8), `legendStjarnor` = guldstjärnorna på klubbmärket (#873): 0 för en ny klubb, +1 för varje legendklubb – reglerna godtar bara exakt det sparade värdet, eller +1 när `klubbhistorik` växer |
+| `klubb` | `{ namn, farg, legendStjarnor }` | Lagnamn 1–24 tecken, tröjfärg `#rrggbb` (en av 8), `legendStjarnor` = guldstjärnorna på klubbmärket (#873): 0 för en ny klubb, +1 för varje legendklubb – är fältet med i en ändrad klubb godtar reglerna bara det sparade värdet, eller +1 när `klubbhistorik` växer; fältet kan utelämnas (= 0, bara nedåt – Testern F3) |
 | `div` | int 0–7 | Divisionen, 0 = Division 6 … 7 = Superligan. Går bara uppåt, en division per vunnet kval (#870) – utom när en legendklubb startar om i Division 6 (#873) |
 | `sasong` | int | Säsongens nummer, börjar på 1 |
 | `kassa` | number | Klubbkassan – spelets egen valuta, inga pluggmynt. Växer med matcherna, minskar med köpen (#871) |

@@ -19,7 +19,7 @@ import { cupLage } from "../delat/md-cup.js";
 import { mcLage } from "../delat/md-mastarcup.js";
 import { historikRader, skapet } from "../delat/md-legend.js";
 import { rekordRader } from "../delat/md-rekord.js";
-import { sekunderSenaste, veckoRatt } from "../delat/md-sasong.js";
+import { pokalerFranDok, sekunderSenaste, veckoRatt } from "../delat/md-sasong.js";
 import { harMatchdagen } from "../md-inst.js";
 import { kopplaAterstall } from "./md-lagnamn.js";
 
@@ -52,7 +52,8 @@ const MATCH_TAGG = { kval: " (kval)", cup: " (cup)", mastarcup: " (Mästarcupen)
  * guldstjärnorna – fasta texter och tal. Raderna för de gamla klubbarna: namnet esc():as av anroparen.
  */
 export function toppRader(K) {
-  const hyllor = Object.fromEntries(skapet(K?.pokaler).map((x) => [x.id, x.antal]));
+  // lasKarriarer ger dokumentets pokaler som rader "typ|namn|säsong|datum" (Testern F1) – objekt tål det också
+  const hyllor = Object.fromEntries(skapet(pokalerFranDok(K?.pokaler)).map((x) => [x.id, x.antal]));
   const L = mcLage(K);
   const ut = [];
   if (hyllor.superliga) ut.push(`Mästare i ${DIVISIONER.at(-1)}: ${hyllor.superliga} ${hyllor.superliga === 1 ? "gång" : "gånger"}`);

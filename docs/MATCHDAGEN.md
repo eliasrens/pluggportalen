@@ -823,7 +823,7 @@ eftersom en cupmatch tar en ligamatchs plats i timmen.
 - **Mellan Superligans omgångar:** `mcSchema(11)` → efter omgång 3, 6 och 8 (Silverpokalen spelas efter 2, 4, 7, 9;
   de krockar aldrig). Den som väntar spelas före nästa ligamatch, Silverpokalen först (`md-vy-match.js nastaSpel`).
 - **Matchen** är en vanlig match med `avgor: true` (oavgjort → straffar). Förlust → ute; vunnen final → pokalen
-  `{ typ: "mastarcup", namn: "Mästarcupen" }` och **500 kr × multiplikatorn** (`MASTARCUP.seger`, ~1 500 kr i
+  `{ typ: "mastarcup", namn: "Mästarcupen" }` och **500 kr × multiplikatorn** (`MASTARCUP.seger`, 1 375 kr i
   Superligan). Divisionen ändras aldrig. Matchdokumentet har `typ: "mastarcup"` och `omg` = rundan 1–3.
 - **Sparningen:** `K.mastarcup` är EN rad text `"säsong-spelade(-u)"` (`MC_MONSTER`, samma uttryck i reglerna):
   `"13-0"` inbjudna, `"13-2"` två rundor vunna, `"13-1-u"` utslagna i semifinalen, `"13-3"` vunnen. En annan
@@ -922,7 +922,7 @@ karriären, som redan läses en gång när Matchdagen öppnas. Dokumentet växer
 rad text för Mästarcupen.
 
 **Marginalen** mot 1000-gränsen (extra `(d.div == d.div) &&` som ryms, mätt på de slutliga reglerna, upp till 60):
-ny klubb 4, match 50, läger 30, lägrets start ≥ 60, köp 22, köp med fulla reserver 18, byte ≥ 60, resten av
+ny klubb 5, match 50, läger 30, lägrets start ≥ 60, köp 22, köp med fulla reserver 18, byte ≥ 60, resten av
 säsongen i en skrivning 26, kvalet 22, hela säsongen + cupen + kvalet i en skrivning 12, cupmatch och cupfinal ≥ 60,
 mästare 50, match och final i Mästarcupen ≥ 60, **legendklubben 12** (48 gamla klubbar: 10); läger + match i en
 skrivning nekas fortfarande. Etapp 3 kostar 4–9 uttryck per skrivning. ⚠️ `h[0:0]` (en tom del av en lista)
