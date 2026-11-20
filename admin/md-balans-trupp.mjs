@@ -18,7 +18,7 @@ import { lagbonus } from "../src/matchdagen/delat/md-motor.js";
 import { styrkaFor } from "../src/matchdagen/delat/md-liga.js";
 import { nyTrupp, pengarFor } from "../src/matchdagen/delat/md-sasong.js";
 import { kop, kopInfo, nyMarknad, pris, tranaSpelare } from "../src/matchdagen/delat/md-trupp.js";
-import { DIVISIONER, KASSA, TOPP_DIV, TRANING } from "../src/matchdagen/delat/md-config.js";
+import { CUP, DIVISIONER, KASSA, TOPP_DIV, TRANING } from "../src/matchdagen/delat/md-config.js";
 import { skapaPrng } from "../src/matchdagen/delat/md-prng.js";
 import { spelaMatch, spelaSasong } from "./md-balans-sim.mjs";
 
@@ -102,12 +102,13 @@ export function robotKlubb({ andelRatt, seed }) {
     if (o === "kval") lager();
     return lagbonus(K.trupp);
   };
-  /** Efter matchen: pengarna, en ny marknad, lägret och köpen. */
+  /** Efter matchen: pengarna, en ny marknad, lägret (efter en ligaomgång – inte efter kval och cup) och köpen. */
   klubb.efterMatch = (r, o) => {
-    K.kassa += pengarFor(r, r.ratt, K.div) + (o === "kval" && r.vann ? Math.round(KASSA.uppflyttning * (1 + K.div * KASSA.perDiv)) : 0);
+    const extra = o === "kval" && r.vann ? KASSA.uppflyttning : r.cupSeger ? CUP.seger : 0;
+    K.kassa += pengarFor(r, r.ratt, K.div) + Math.round(extra * (1 + K.div * KASSA.perDiv));
     if (o === "kval" && r.vann) K.div = Math.min(TOPP_DIV, K.div + 1);
     K.marknad = nyMarknad(K, rng.tal);
-    if (o !== "kval") lager();
+    if (o !== "kval" && o !== "cup") lager();
     handla();
   };
   klubb.snittSt = () => snittSt(K.trupp);
@@ -115,7 +116,7 @@ export function robotKlubb({ andelRatt, seed }) {
 }
 
 /**
- * Karriären med den riktiga truppen: n elever × `sasonger` säsonger. Per division:
+ * Karriären med den riktiga truppen och Silverpokalen (#872): n elever × `sasonger` säsonger. Per division:
  * andelen som når den, median säsonger och speltimmar dit, lagets snittstjärnor då
  * och andelen vunna matcher medan laget spelade där.
  */
@@ -129,7 +130,7 @@ export function karriarMedTrupp({ andelRatt, n = 100, sasonger = 30 }) {
     for (let s = 1; s <= sasonger && klubb.K.div < TOPP_DIV; s++) {
       const div = klubb.K.div;
       klubb.K.sasong = s;
-      const S = spelaSasong({ seed: `trupp|${andelRatt}|${k}|${s}`, andelRatt, div, bonus: klubb.bonus, efterMatch: klubb.efterMatch });
+      const S = spelaSasong({ seed: `trupp|${andelRatt}|${k}|${s}`, andelRatt, div, bonus: klubb.bonus, efterMatch: klubb.efterMatch, cup: true });
       sek += S.sekunder;
       spelat[div].matcher += S.matcher.length;
       spelat[div].vinst += S.matcher.filter((m) => m.utfall === "vinst").length;

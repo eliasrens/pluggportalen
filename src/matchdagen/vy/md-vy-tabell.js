@@ -5,11 +5,15 @@
 // slutade och "Starta nästa säsong" (startar den direkt och går till Match).
 // Etapp 2a (#870, §7.1): stegen Division 6 → … → Superligan överst, med den
 // nuvarande divisionen markerad; ligavinnaren går vidare till kvalmatchen.
+// Etapp 2c (#872, §9.1): Silverpokalen under tabellen (md-vy-cup.js) – rundorna,
+// motståndarna och resultaten; "Till cupmatchen" när en väntar.
 // ============================================================================
 
 import { DIVISIONER, TOPP_DIV } from "../delat/md-config.js";
 import { dubbelSkott } from "../delat/md-motor.js";
 import { kvalMatch, stegen } from "../delat/md-kval.js";
+import { cupMatch } from "../delat/md-cup.js";
+import { cupHtml } from "./md-vy-cup.js";
 import { nastaMatch, tabellRader } from "../delat/md-sasong.js";
 import { chip, esc } from "./md-vy-delat.js";
 
@@ -25,6 +29,7 @@ export function visaTabell(S, el) {
   const antal = K.liga.schema.length;
   const klar = !nastaMatch(K);
   const kval = kvalMatch(K);
+  const cup = cupMatch(K, S.uid);
   const plac = rader.findIndex((r) => r.vi) + 1;
   // Ligans division: efter ett spelat kval står K.div redan på nästa division.
   const div = K.kval?.spelad ? Number(K.kval.div) || 0 : K.div;
@@ -44,12 +49,13 @@ export function visaTabell(S, el) {
         <td>${r.plac}</td><td>${chip(r.farg, "liten")} ${esc(r.namn)}</td><td>${r.s}</td><td>${r.v}</td><td>${r.o}</td><td>${r.f}</td>
         <td>${r.gm}–${r.im}</td><td>${r.md > 0 ? "+" : ""}${r.md}</td><td><b>${r.p}</b></td></tr>`).join("")}</tbody>
     </table></div>
-    <div class="md-rad"><button type="button" class="md-stor" data-match>${kval ? "Till kvalmatchen" : klar ? "Starta nästa säsong" : "Nästa match"}</button></div>
+    <div class="md-rad"><button type="button" class="md-stor" data-match>${cup ? "Till cupmatchen" : kval ? "Till kvalmatchen" : klar ? "Starta nästa säsong" : "Nästa match"}</button></div>
+    ${cupHtml(K, S.uid)}
   </div>`;
   // Efter sista omgången: "Se hur säsongen slutade" → hit → nästa säsong direkt (en väg, ingen
   // extra "Säsongen är slut"-ruta på Match-fliken).
   el.querySelector("[data-match]").addEventListener("click", async () => {
-    if (klar && !kval) (await import("./md-vy-match.js")).startaNastaSasong(S);
+    if (klar && !kval && !cup) (await import("./md-vy-match.js")).startaNastaSasong(S);
     S.visa("match");
   });
 }

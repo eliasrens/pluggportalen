@@ -10586,6 +10586,8 @@ html.reduce-motion .schack-pokal-ny { animation: none; }
 .teacher-dark .mdl-linje .mdl-prick { fill: #3ccf6e; }
 .teacher-dark .mdl-linje .mdl-mitt { stroke: var(--t-border); stroke-dasharray: 3 3; }
 .teacher-dark .mda-lagnamn-status { margin-left: 8px; }
+/* #872: Silverpokalen och rekorden i elevens detalj */
+.teacher-dark .mdl-rekord { margin: 4px 0 0; padding-left: 18px; font-size: 0.9rem; }
 
 /* ── src/styles/49-matchdagen-match.css ── */
 /* ==========================================================================
@@ -10842,3 +10844,33 @@ html.reduce-motion .schack-pokal-ny { animation: none; }
 .md-firande:empty { min-height: 0; margin: 0; }
 .md-tips { margin: 12px 0 0; color: var(--md-svag); }
 .md-tips .md-lank { min-height: 0; padding: 0; color: var(--md-gul); }
+
+/* --- Etapp 2c (#872): Silverpokalen och rekorden --------------------------- */
+.md-pokal.silver { background: #d9e2ee; }
+.md-cup { margin-top: 18px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--md-linje); background: var(--md-panel2); }
+.md-cup h3 { margin: 0 0 8px; }
+.md-cup.vunnen { border-color: #d9e2ee; box-shadow: 0 0 0 2px rgba(217, 226, 238, 0.35) inset; }
+.md-cup-rundor { display: flex; flex-direction: column; gap: 4px; margin: 0 0 8px; padding: 0; list-style: none; }
+.md-cup-rundor li {
+  display: grid; grid-template-columns: 150px minmax(0, 1fr) auto; gap: 10px; align-items: center;
+  padding: 8px 10px; border-radius: 10px; background: var(--md-panel); color: var(--md-svag);
+}
+.md-cup-rundor li b { font: 800 18px/1.1 var(--md-rubrikfont); color: var(--md-ink); }
+.md-cup-mot { color: var(--md-ink); font-weight: 800; overflow-wrap: anywhere; }
+.md-cup-info { text-align: right; font-variant-numeric: tabular-nums; }
+.md-cup-rundor li.vidare .md-cup-info { color: var(--md-gron); font-weight: 800; }
+.md-cup-rundor li.ute .md-cup-info { color: var(--md-rod); font-weight: 800; }
+.md-cup-rundor li.nu { box-shadow: 0 0 0 2px var(--md-gul) inset; }
+.md-cupmatch .md-overrad { font-size: 20px; color: #d9e2ee; }
+.md-nya-rekord { margin: 6px 0 10px; }
+.md-nytt-rekord {
+  margin: 0 0 6px; padding: 8px 12px; border-radius: 12px; background: rgba(255, 210, 63, 0.16);
+  color: var(--md-gul); font: 800 20px/1.2 var(--md-rubrikfont);
+}
+.md-cupvinst .md-ruta { box-shadow: 0 0 0 3px #d9e2ee; }
+.md-rekordlista { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.md-rekordlista dd { text-align: right; }
+@media (max-width: 640px) {
+  .md-cup-rundor li { grid-template-columns: 1fr auto; }
+  .md-cup-rundor li .md-cup-mot { grid-column: 1 / -1; grid-row: 2; }
+}

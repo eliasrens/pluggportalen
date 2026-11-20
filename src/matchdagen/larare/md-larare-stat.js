@@ -7,12 +7,15 @@
 //     senast spelat. Kvoten (§13): EN läsning per elev (matchdagen/{uid}).
 //   • klick på en elev: de senaste matcherna (läses FÖRST då, matcher/ – högst 20),
 //     andelen rätt per vecka som en liten linje (ur karriärens dagar) och lagnamnet
-//     med Återställ lagnamn (md-lagnamn.js).
+//     med Återställ lagnamn (md-lagnamn.js), Silverpokalen och rekorden (#872 – bara tal
+//     och fasta texter, aldrig text ur dokumentet).
 // Laddas med import() – aldrig i bootgrafen (#271).
 // ============================================================================
 
 import { el, esc } from "../../teacher-shared.js";
-import { DIVISIONER } from "../delat/md-config.js";
+import { CUP, DIVISIONER } from "../delat/md-config.js";
+import { cupLage } from "../delat/md-cup.js";
+import { rekordRader } from "../delat/md-rekord.js";
 import { sekunderSenaste, veckoRatt } from "../delat/md-sasong.js";
 import { harMatchdagen } from "../md-inst.js";
 import { kopplaAterstall } from "./md-lagnamn.js";
@@ -30,6 +33,16 @@ const datumText = (t) => {
   const d = t?.toDate ? t.toDate() : typeof t === "number" ? new Date(t) : null;
   return d ? d.toLocaleDateString("sv-SE", { day: "numeric", month: "short" }) : "–";
 };
+
+/** Silverpokalen den här säsongen – ur cupens läge (tal), aldrig text ur dokumentet. */
+export function cupRad(K) {
+  const L = cupLage(K);
+  if (L.vann) return `${CUP.namn}: vunnen`;
+  if (L.ute) return `${CUP.namn}: utslagen i ${CUP.rundor[L.spelade - 1].toLowerCase()}en`;
+  if (Number(K.liga?.omg) >= (Number(K.liga?.schema?.length) || 0)) return `${CUP.namn}: ingen cup den här säsongen`;
+  return L.spelade ? `${CUP.namn}: klar för ${CUP.rundor[L.spelade].toLowerCase()}en` : `${CUP.namn}: ${CUP.rundor[0].toLowerCase()}en väntar`;
+}
+const MATCH_TAGG = { kval: " (kval)", cup: " (cup)" };
 
 /** Andel rätt per vecka som en liten linje (8 veckor, äldst till vänster). */
 export function sparkline(varden, { b = 160, h = 40 } = {}) {
@@ -131,6 +144,8 @@ async function visaElev(host, elev, K, data, efterNamn) {
         <div class="mdl-rad-knapp"><button type="button" class="btn ghost small" data-lagnamn disabled>Återställ lagnamn</button>
         <span class="mdl-status" role="status"></span></div></div>
       <div><span class="hint">Andel rätt per vecka (8 veckor)</span><br>${sparkline(veckor)}</div>
+      <div><span class="hint">${esc(cupRad(K))}</span>
+        <ul class="mdl-rekord">${rekordRader(K.rekord).filter((r) => r.varde != null && r.sasong).map((r) => `<li>${esc(r.namn)}: <b>${esc(r.varde)}</b></li>`).join("") || `<li class="hint">Inga rekord än</li>`}</ul></div>
     </div>
     <div class="mdl-matcher"><div class="spinner">Laddar matcherna…</div></div>
   </div>`);
@@ -144,7 +159,7 @@ async function visaElev(host, elev, K, data, efterNamn) {
     const matcher = await data.lasMatcher(elev.id, 20);
     yta.replaceChildren(el(matcher.length ? `<div class="table-scroll"><table class="tbl lrt-tbl">
       <thead><tr><th>Datum</th><th>Motståndare</th><th class="lrt-num">Resultat</th><th class="lrt-num">Rätt</th><th class="lrt-num">Speltid</th></tr></thead>
-      <tbody>${matcher.map((m) => `<tr><td>${datumText(m.datum)}</td><td>${esc(m.mot)}${m.typ === "kval" ? " (kval)" : ""}</td><td class="lrt-num">${tal(m.oss)}–${tal(m.dem)}${Array.isArray(m.straffar) ? ` <small class="hint">str. ${tal(m.straffar[0])}–${tal(m.straffar[1])}</small>` : ""}</td>
+      <tbody>${matcher.map((m) => `<tr><td>${datumText(m.datum)}</td><td>${esc(m.mot)}${MATCH_TAGG[m.typ] || ""}</td><td class="lrt-num">${tal(m.oss)}–${tal(m.dem)}${Array.isArray(m.straffar) ? ` <small class="hint">str. ${tal(m.straffar[0])}–${tal(m.straffar[1])}</small>` : ""}</td>
         <td class="lrt-num">${tal(m.ratt)}/${tal(m.fragor)} (${pctText(tal(m.ratt), tal(m.fragor))})</td><td class="lrt-num">${minText(m.sekunder)}</td></tr>`).join("")}</tbody>
     </table></div>` : `<p class="hint">Inga matcher än.</p>`));
   } catch (err) {

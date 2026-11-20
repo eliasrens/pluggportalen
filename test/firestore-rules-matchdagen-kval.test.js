@@ -15,7 +15,7 @@ import { after, before, beforeEach, describe, it } from "node:test";
 import { assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
 import { doc, serverTimestamp, setDoc, updateDoc, writeBatch } from "firebase/firestore";
 import { createRollerEnv, seedRoller } from "./helpers/roller-env.js";
-import { matchKlar, nastaMatch, nyKarriar, nySasong } from "../src/matchdagen/delat/md-sasong.js";
+import { matchKlar, nastaMatch, nyKarriar, nySasong, pokalerTillDok } from "../src/matchdagen/delat/md-sasong.js";
 import { marknadTillDok } from "../src/matchdagen/delat/md-trupp.js";
 import { kvalKlar } from "../src/matchdagen/delat/md-kval.js";
 import { skapaPrng } from "../src/matchdagen/delat/md-prng.js";
@@ -39,7 +39,9 @@ const NASTA = JSON.parse(JSON.stringify(nySasong(SPELAD, r)));
 const ref = (db, uid = "e4a") => doc(db, "matchdagen", uid);
 const mref = (db, id = "s1-d0-kval-x", uid = "e4a") => doc(db, "matchdagen", uid, "matcher", id);
 // Marknaden sparas som rader "id|namn|pos|nr|st" (md-data.js → md-trupp.js marknadTillDok).
-const tillDok = (D) => (Array.isArray(D.marknad) ? { ...D, marknad: marknadTillDok(D.marknad) } : D);
+// Pokalerna som rader "typ|namn|säsong|datum" (md-data.js → md-sasong.js pokalerTillDok, #872).
+const tillDok = (D) => ({ ...D, ...(Array.isArray(D.marknad) ? { marknad: marknadTillDok(D.marknad) } : {}),
+  ...(Array.isArray(D.pokaler) ? { pokaler: pokalerTillDok(D.pokaler) } : {}) });
 const medTid = (K0, over = {}) => tillDok({ ...JSON.parse(JSON.stringify(K0)), senast: serverTimestamp(), ...over });
 const kvalMed = (over) => ({ ...VANTAR.kval, ...over });
 const motMed = (over) => kvalMed({ mot: { ...VANTAR.kval.mot, ...over } });

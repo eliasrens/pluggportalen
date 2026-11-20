@@ -7,19 +7,23 @@
 // med paus, slutsignal, rutan efter matchen och EN sparning (karriär + matcher).
 // Kvalet (#870, §7.2): samma match mot laget från divisionen ovanför; oavgjort →
 // straffläggningen (md-straff-spel.js), och rutan efter berättar om uppflyttningen.
+// Silverpokalen (#872, §9.1): en cupmatch avgörs också på straffar (md-cup.js cupKlar), och
+// rutan efter matchen (md-efter-match.js) visar nya rekord (§9.2) direkt.
 // ============================================================================
 
 import { andraHalvlek, antalFragor, arKlar, behoverFraga, behoverStraffar, lage, lagbonus, nyMatch, resultat, spela } from "../delat/md-motor.js";
 import { LAGE_TEXT } from "../delat/md-texter.js";
 import { matchKlar, motFarg } from "../delat/md-sasong.js";
 import { kvalKlar } from "../delat/md-kval.js";
+import { cupKlar } from "../delat/md-cup.js";
 import { laggIKo, rensaPagaende, sparaPagaende } from "../md-lokal.js";
 import { kaptenPlats } from "../delat/md-trupp.js";
 import { sparaKon } from "../md-spara.js";
 import { kortNamn } from "../plan/md-plan.js";
 import { chip, esc, ruta, valMeny, vanta } from "./md-vy-delat.js";
 import { strom } from "./md-strom.js";
-import { kvalResultat, nastaSpel, sasongSlutText, startaNastaSasong } from "./md-vy-match.js";
+import { nastaSpel, startaNastaSasong } from "./md-vy-match.js";
+import { efterMatchen } from "./md-efter-match.js";
 
 const LJUS = new Set(["#f2f2f2"]);
 
@@ -83,17 +87,18 @@ function layout(S, el, mot) {
 }
 
 export async function spelaMatch(S, el, { pagaende = null, spel = null } = {}) {
-  const n0 = spel || nastaSpel(S.K);
+  const n0 = spel || nastaSpel(S.K, S.uid);
   const kval = n0.typ === "kval";
+  const cup = n0.typ === "cup";
   // Samma tröjfärg som motståndaren (eleven bytte färg mitt i säsongen)? De spelar i en annan.
   const n = { ...n0, mot: { ...n0.mot, farg: motFarg(S.K.klubb.farg, n0.mot.farg) } };
   const fr = await strom(S);
   if (fr.tom) throw Object.assign(new Error("inga frågor"), { meddelande: fr.meddelande });
   const nu = Date.now();
   const post = pagaende || {
-    sasong: S.K.sasong, omg: S.K.liga.omg, typ: n.typ,
-    matchId: `s${S.K.sasong}-d${S.K.div}-${kval ? "kval" : `o${n.omg + 1}`}-${nu.toString(36)}`,
-    m: nyMatch({ mot: { namn: n.mot.namn, styrka: n.mot.styrka }, bonus: lagbonus(S.K.trupp), div: S.K.div, avgor: kval, nu }),
+    sasong: S.K.sasong, omg: S.K.liga.omg, typ: n.typ, ...(cup ? { runda: n.runda } : {}),
+    matchId: `s${S.K.sasong}-d${S.K.div}-${kval ? "kval" : cup ? `cup${n.runda + 1}` : `o${n.omg + 1}`}-${nu.toString(36)}`,
+    m: nyMatch({ mot: { namn: n.mot.namn, styrka: n.mot.styrka }, bonus: lagbonus(S.K.trupp), div: S.K.div, avgor: kval || cup, nu }),
   };
   let m = post.m;
   if (pagaende) m.senast = nu; // tiden borta räknas inte (MAX_LAGE_S)
@@ -142,15 +147,14 @@ export async function spelaMatch(S, el, { pagaende = null, spel = null } = {}) {
   };
   const sag = (t) => { v.kommentar.textContent = t; };
   let klar = null;
-  const sparaLokalt = () => { if (!klar) sparaPagaende(S.lagring, S.uid, { sasong: post.sasong, omg: post.omg, typ: post.typ || "liga", matchId: post.matchId, m }); };
+  const sparaLokalt = () => { if (!klar) sparaPagaende(S.lagring, S.uid, { sasong: post.sasong, omg: post.omg, typ: post.typ || "liga", runda: post.runda, matchId: post.matchId, m }); };
   // Bokförs i kön SÅ FORT matchen är avgjord, före sista animationen: en flik som
   // stängs under den får inte ge ett nytt försök (allra minst på ett förlorat kval).
   const bokfor = () => {
     if (klar || !arKlar(m)) return;
     const res = resultat(m);
-    klar = kval
-      ? kvalKlar(S.K, { res, rng: Math.random, nu: Date.now(), matchId: post.matchId, kallNamn: fr.kallNamn })
-      : matchKlar(S.K, { res, rng: Math.random, nu: Date.now(), matchId: post.matchId, kallNamn: fr.kallNamn });
+    const o = { res, rng: Math.random, nu: Date.now(), matchId: post.matchId, kallNamn: fr.kallNamn };
+    klar = kval ? kvalKlar(S.K, o) : cup ? cupKlar(S.K, { ...o, uid: S.uid }) : matchKlar(S.K, o);
     S.K = klar.K;
     laggIKo(S.lagring, S.uid, { K: klar.K, matchId: post.matchId, match: klar.match });
     rensaPagaende(S.lagring, S.uid);
@@ -225,7 +229,7 @@ export async function spelaMatch(S, el, { pagaende = null, spel = null } = {}) {
     skylt();
   }
 
-  // Slutsignal → (kvalet: straffar vid oavgjort) → resultatet, sparningen (EN batch) och rutan efter matchen.
+  // Slutsignal → (kval och cup: straffar vid oavgjort) → resultatet, sparningen (EN batch) och rutan efter matchen.
   if (!m.straffar) ljud.spela("slutvissla");
   sag("Slutsignal!");
   v.kort.innerHTML = "";
@@ -244,31 +248,9 @@ export async function spelaMatch(S, el, { pagaende = null, spel = null } = {}) {
   const sparad = await sparaKon(S, klar.K);
   S.kassa();
   await vanta(S.lugnt ? 200 : 700);
-  const valet = await efterMatchen(S, res, klar, n.mot, sparad, signal, kval);
+  const valet = await efterMatchen(S, { res, klar, mot: n.mot, sparad, signal, typ: n.typ });
   stang();
   if (!valet) return;
   if (kval) startaNastaSasong(S);
   S.visa(kval ? "match" : "tabell");
-}
-
-/** Rutan efter matchen (§5): resultat, rätt svar, skott, lyckade pass och pengar – och pauspåminnelsen (§1.2). */
-function efterMatchen(S, res, klar, mot, sparad, signal, kval = false) {
-  const st = res.stat;
-  const rubrik = kval ? (res.vann ? "Uppflyttning!" : "Nära!")
-    : res.utfall === "vinst" ? "Seger!" : res.utfall === "oavgjort" ? "Oavgjort" : "Förlust – nästa gång!";
-  const kvalRad = kval ? `<p class="md-kvalrad">${esc(sasongSlutText(S.K, 1, 0).text)}</p>` : "";
-  const paus = S.inst.paus > 0 && Date.now() - S.sessionStart >= S.inst.paus * 60000;
-  if (paus) S.sessionStart = Date.now();
-  return ruta(S.host, {
-    rubrik: kval ? `${rubrik} ${esc(kvalResultat(res))}` : `${rubrik} ${res.oss} – ${res.dem}`,
-    klass: "md-efter",
-    html: `<p class="md-svag">mot ${esc(mot.namn)}${kval ? " (kval)" : ""}</p>${kvalRad}
-      <div class="md-siffror">
-        <div><b>${st.ratt}/${st.fragor}</b>rätt svar</div><div><b>${st.skott}</b>skott</div>
-        <div><b>${st.passOk}/${st.pass}</b>lyckade pass</div><div><b>+${klar.pengar}</b>kr till klubbkassan</div>
-      </div>
-      ${paus ? `<p class="md-paus">Bra jobbat! Dags för en paus.</p>` : ""}
-      ${sparad ? "" : `<p class="md-svag">Matchen sparas så fort det går – den finns kvar på den här datorn.</p>`}`,
-    knappar: [{ id: "vidare", text: kval ? "Starta nästa säsong" : klar.sasongKlar ? "Se hur säsongen slutade" : "Till tabellen" }],
-  }, signal);
 }

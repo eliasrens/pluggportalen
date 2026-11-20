@@ -1,6 +1,6 @@
 // ============================================================================
 // Matchdagen (#870, Etapp 2a): STRAFFLÄGGNINGEN i matchvyn (spec §7.4) – efter
-// slutsignalen i ett oavgjort kval. Rutan "Straffläggning!", sedan en fråga per
+// slutsignalen i ett oavgjort kval eller en oavgjord cupmatch (#872). Rutan "Straffläggning!", sedan en fråga per
 // straff: vår straff (rätt svar → säkrare) eller "Kan målvakten rädda?" på deras.
 // Ställningen "Straffar 3 – 2" syns hela tiden på skylten, och kameran visar
 // straffpunkten (3D och 2D, md-plan.js). Motorn är md-straffar.js (ren). Den
@@ -30,7 +30,7 @@ export async function spelaStraffar(S, ctx) {
   const borjat = !!m.straffar;
   const svar = await ruta(S.host, {
     rubrik: borjat ? "Straffläggningen fortsätter" : "Straffläggning!",
-    html: `<p>Det står <b>${Number(m.oss)} – ${Number(m.dem)}</b> efter full tid. Nu avgörs kvalet på straffar – fem var, sedan sudden death.</p>
+    html: `<p>Det står <b>${Number(m.oss)} – ${Number(m.dem)}</b> efter full tid. Nu avgörs ${S.spel?.post?.typ === "cup" ? "cupmatchen" : "kvalet"} på straffar – fem var, sedan sudden death.</p>
       <p class="md-svag">Varje straff ger en fråga. När motståndarna skjuter: svara rätt så räddar målvakten oftare.</p>`,
     knappar: [{ id: "vidare", text: "Till straffpunkten" }],
   }, signal);

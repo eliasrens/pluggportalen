@@ -24,7 +24,7 @@ import {
   collection, doc, getDoc, getDocs, limit, orderBy, query, serverTimestamp, setDoc, updateDoc, writeBatch,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { STANDARD_LAGNAMN } from "./delat/md-namn.js";
-import { forstaDokument } from "./delat/md-sasong.js";
+import { forstaDokument, pokalerFranDok, pokalerTillDok } from "./delat/md-sasong.js";
 import { marknadFranDok, marknadTillDok } from "./delat/md-trupp.js";
 
 const karriarRef = (uid) => doc(db, "matchdagen", uid);
@@ -41,10 +41,12 @@ export function medTidsgrans(p, ms = TIDSGRANS_MS) {
 const matchRef = (uid, id) => doc(db, "matchdagen", uid, "matcher", id);
 
 /** Bara karriärens kända fält (aldrig något annat i dokumentet). */
-export const KARRIAR_FALT = ["version", "klubb", "div", "sasong", "kassa", "trupp", "reserver", "marknad", "lager", "liga", "kval", "pokaler", "summa", "senaste", "sasonger", "dagar"];
-// Marknaden sparas som rader "id|namn|pos|nr|st" (md-trupp.js marknadTillDok – reglerna prövar dem billigt).
+export const KARRIAR_FALT = ["version", "klubb", "div", "sasong", "kassa", "trupp", "reserver", "marknad", "lager", "liga", "kval", "cup", "pokaler", "rekord", "summa", "senaste", "sasonger", "dagar"];
+// Marknaden sparas som rader "id|namn|pos|nr|st" (md-trupp.js marknadTillDok) och pokalerna som rader
+// "typ|namn|säsong|datum" (md-sasong.js pokalerTillDok, #872) – reglerna prövar dem billigt. cup och rekord är redan text.
+const TILL_DOK = { marknad: marknadTillDok, pokaler: pokalerTillDok };
 const urval = (K, falt = KARRIAR_FALT) => Object.fromEntries(falt.filter((k) => K[k] !== undefined)
-  .map((k) => [k, k === "marknad" ? marknadTillDok(K[k]) : K[k]]));
+  .map((k) => [k, TILL_DOK[k] ? TILL_DOK[k](K[k]) : K[k]]));
 /** Matchsparningen skriver allt UTOM klubb – lärarens Återställ lagnamn får inte skrivas över. */
 const MATCH_FALT = KARRIAR_FALT.filter((k) => k !== "klubb");
 
@@ -52,7 +54,7 @@ export async function lasKarriar(uid) {
   const snap = await medTidsgrans(getDoc(karriarRef(uid)), 2 * TIDSGRANS_MS);
   return snap.exists() ? franDok(snap.data()) : null;
 }
-const franDok = (d) => (Array.isArray(d?.marknad) ? { ...d, marknad: marknadFranDok(d.marknad) } : d);
+export const franDok = (d) => (d && typeof d === "object" ? { ...d, marknad: marknadFranDok(d.marknad), pokaler: pokalerFranDok(d.pokaler) } : d);
 
 export async function sparaKarriar(uid, K) {
   await medTidsgrans(setDoc(karriarRef(uid), { ...urval(K), senast: serverTimestamp() }));

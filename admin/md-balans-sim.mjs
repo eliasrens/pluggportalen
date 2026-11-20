@@ -21,6 +21,10 @@
 // Etapp 2b (#871): ekonomin (§12: 60 % rätt köper en 3★ efter ~3 matcher) och karriären
 // med den riktiga truppen, marknaden och träningslägret – admin/md-balans-trupp.mjs.
 //
+// Etapp 2c (#872): Silverpokalen (§9.1) – spelaSasong({ cup: true }) lägger in cupens fyra
+// rundor mellan ligaomgångarna (md-cup.js cupSchema/cupLottning); cupens egen tabell och
+// säsongens längd med cupen: admin/md-balans-cup.mjs.
+//
 // Robotarnas beteende (antaganden, inte spelregler – står i docs/MATCHDAGEN.md):
 // ROBOT nedan. Exporterar spelaMatch/spelaSasong/korBalans/bedom/tabell så att
 // testet (test/matchdagen-balans.test.js) kan köra en kort variant.
@@ -32,6 +36,7 @@ import { straffLage, straffa } from "../src/matchdagen/delat/md-straffar.js";
 import { schema, styrkaFor, simMal, nyTabell, laggTill, sorteraTabell } from "../src/matchdagen/delat/md-liga.js";
 import { DIVISIONER, LAGANTAL, TID, SKOTT_MAX_D, TOPP_DIV } from "../src/matchdagen/delat/md-config.js";
 import { skapaPrng } from "../src/matchdagen/delat/md-prng.js";
+import { cupLottning, cupSchema } from "../src/matchdagen/delat/md-cup.js";
 
 /** Robotarnas beteende – antaganden om hur en elev spelar, inte spelregler. */
 export const ROBOT = {
@@ -139,8 +144,10 @@ export function spelaMatch({ seed, andelRatt, styrka, div = 0, bonus = {}, avgor
  * bonus är lagbonusen, eller (Etapp 2b) en funktion (omgång | "kval") → lagbonus före varje
  * match; efterMatch(r, omgång | "kval") anropas efter varje egen match
  * (klubbkassan, marknaden och träningslägret i md-balans-trupp.mjs).
+ * cup (#872): Silverpokalen mellan ligaomgångarna – efterMatch(r, "cup"), r.cupSeger efter en
+ * vunnen final; resultatet har cup = { rundor, vann, matcher }.
  */
-export function spelaSasong({ seed, andelRatt, div = 0, bonus = {}, efterMatch = null }) {
+export function spelaSasong({ seed, andelRatt, div = 0, bonus = {}, efterMatch = null, cup = false }) {
   const bonusFor = (o) => (typeof bonus === "function" ? bonus(o) : bonus);
   const rng = skapaPrng(seed, "liga");
   const n = LAGANTAL[div];
@@ -149,7 +156,11 @@ export function spelaSasong({ seed, andelRatt, div = 0, bonus = {}, efterMatch =
   let tabell = nyTabell(ids);
   const matcher = [];
   let sek = 0;
-  schema(ids).forEach((omg, o) => {
+  const omgangar = schema(ids);
+  const cupEfter = cup ? cupSchema(omgangar.length) : [];
+  const cupMot = cup ? cupLottning({ sasong: 1, div, klubb: {}, liga: { lag: [] } }, seed) : [];
+  const C = { rundor: 0, vann: false, ute: false, matcher: [] };
+  omgangar.forEach((omg, o) => {
     for (const [a, b] of omg) {
       if (a === "oss" || b === "oss") {
         const mot = a === "oss" ? b : a;
@@ -163,6 +174,19 @@ export function spelaSasong({ seed, andelRatt, div = 0, bonus = {}, efterMatch =
         tabell = laggTill(tabell, a, b, ma, mb);
       }
     }
+    // Silverpokalen: rundan efter den här ligaomgången, så länge laget är kvar.
+    if (cup && !C.ute && C.rundor < cupMot.length && cupEfter[C.rundor] === o + 1) {
+      const mot = cupMot[C.rundor];
+      const r = spelaMatch({ seed: `${seed}|cup${C.rundor}`, andelRatt, styrka: mot.styrka, div, bonus: bonusFor(o), avgor: true });
+      r.motDiv = mot.div;
+      C.rundor++;
+      C.ute = !r.vann;
+      r.cupSeger = !!r.vann && C.rundor === cupMot.length;
+      C.vann = r.cupSeger;
+      C.matcher.push(r);
+      efterMatch?.(r, "cup");
+      sek += r.sekunder + ROBOT.mellanMatchS;
+    }
   });
   const placering = sorteraTabell(tabell).findIndex((r) => r.id === "oss") + 1;
   let kval = null;
@@ -171,7 +195,7 @@ export function spelaSasong({ seed, andelRatt, div = 0, bonus = {}, efterMatch =
     sek += kval.sekunder + ROBOT.mellanMatchS;
     efterMatch?.(kval, "kval");
   }
-  return { matcher, placering, sekunder: sek, tabell, kval };
+  return { matcher, placering, sekunder: sek, tabell, kval, ...(cup ? { cup: C } : {}) };
 }
 
 /** n säsonger vid andelRatt → måtten. kvalVinst = andelen vunna kval (null utan kval); straffar = andelen kval som gick till straffar. */
@@ -325,6 +349,12 @@ async function huvud() {
   const truppKar = [...DIV_NIVAER, 0.6].map((andelRatt) => karriarMedTrupp({ andelRatt, n: nKar }));
   console.log(`\nKarriären med truppen (${nKar} elever × 30 säsonger; tränar varje läger, köper den största förbättringen): andel · median säsonger · speltimmar · lagets snitt när divisionen nås · vinst där\n`);
   console.log(truppKarriarTabell(truppKar, md));
+  // Etapp 2c (#872): Silverpokalen – hur långt laget går, skrällarna och säsongens längd med cupen.
+  const { cupBalans, cupTabell, bedomCup, CUP_RADER } = await import("./md-balans-cup.mjs");
+  const nCup = Math.max(40, Math.round(n / 2.5));
+  const cup = CUP_RADER.map(([andelRatt, div, stjarnor]) => cupBalans({ andelRatt, div, stjarnor, n: nCup }));
+  console.log(`\nSilverpokalen (${nCup} säsonger per rad; motståndare från divisioner inom ±2, oavgjort → straffar): hur långt laget går, skrällar = vunna mot ett lag från en högre division\n`);
+  console.log(cupTabell(cup, md));
   console.log(`\n${Math.round(performance.now() - t0)} ms`);
-  process.exitCode = [...rader, sup].some((r) => bedom(r).length) || eko.some((r) => bedomEkonomi(r).length) ? 1 : 0;
+  process.exitCode = [...rader, sup].some((r) => bedom(r).length) || eko.some((r) => bedomEkonomi(r).length) || cup.some((r) => bedomCup(r).length) ? 1 : 0;
 }

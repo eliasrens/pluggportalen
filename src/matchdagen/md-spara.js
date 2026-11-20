@@ -14,17 +14,22 @@
 // en gammal lokal kopia får aldrig skriva över en nyare på servern (S.lasfel).
 // ============================================================================
 
-import { KASSA } from "./delat/md-config.js";
+import { CUP, KASSA } from "./delat/md-config.js";
 import { karriarOk, pengarFor } from "./delat/md-sasong.js";
 import { lasOsparad, sparaOsparad } from "./md-lokal.js";
 
-/** Pengarna som köns matcher gav (pengarFor + uppflyttningen efter ett vunnet kval) – ur matchdokumenten. */
+/**
+ * Pengarna som köns matcher gav (pengarFor + uppflyttningen efter ett vunnet kval och
+ * prispengarna efter en vunnen cupfinal, #872) – ur matchdokumenten.
+ */
 export function konsPengar(koe) {
   return koe.reduce((sum, { match: m }) => {
     const [oss, dem, div] = [Number(m?.oss) || 0, Number(m?.dem) || 0, Number(m?.div) || 0];
     const st = Array.isArray(m?.straffar) ? m.straffar.map(Number) : null;
-    const vannKval = m?.typ === "kval" && (oss > dem || (oss === dem && st && st[0] > st[1]));
-    return sum + pengarFor({ oss, dem }, Number(m?.ratt) || 0, div) + (vannKval ? Math.round(KASSA.uppflyttning * (1 + div * KASSA.perDiv)) : 0);
+    const vann = oss > dem || (oss === dem && st && st[0] > st[1]);
+    const extra = m?.typ === "kval" && vann ? KASSA.uppflyttning
+      : m?.typ === "cup" && vann && Number(m?.omg) === CUP.rundor.length ? CUP.seger : 0;
+    return sum + pengarFor({ oss, dem }, Number(m?.ratt) || 0, div) + Math.round(extra * (1 + div * KASSA.perDiv));
   }, 0);
 }
 

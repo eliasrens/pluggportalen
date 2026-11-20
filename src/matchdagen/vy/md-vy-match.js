@@ -4,10 +4,13 @@
 // en pågående match att fortsätta, och när säsongen är slut: placeringen och
 // "Starta nästa säsong". Ligavinnaren (#870, §7.2) får först rutan före kvalet
 // ("KVAL till Division 5 · … är ett lag från divisionen ovanför"), och säsongs-
-// rutan berättar sedan hur kvalet gick. Själva matchen spelas i md-match-spel.js.
+// rutan berättar sedan hur kvalet gick. Silverpokalen (#872, §9.1): en cupmatch väntar
+// efter vissa ligaomgångar ("Silverpokalen · Kvartsfinal · … från Division 4") och spelas
+// före nästa ligamatch. Själva matchen spelas i md-match-spel.js.
 // ============================================================================
 
-import { DIVISIONER, TOPP_DIV, TRANING } from "../delat/md-config.js";
+import { CUP, DIVISIONER, KASSA, TOPP_DIV, TRANING } from "../delat/md-config.js";
+import { cupMatch } from "../delat/md-cup.js";
 import { kvalMatch } from "../delat/md-kval.js";
 import { nastaMatch, nyKarriar, nySasong, sasongFro, tabellRader } from "../delat/md-sasong.js";
 import { skapaPrng } from "../delat/md-prng.js";
@@ -21,8 +24,17 @@ export const omgangText = (K, n) => `Säsong ${K.sasong} · ${DIVISIONER[K.div]}
 /** "KVAL till Division 5 · Ekebacka IF är ett lag från divisionen ovanför" (skissen). */
 export const kvalText = (kv) => `KVAL till ${DIVISIONER[kv.till]} · ${kv.mot.namn} är ett lag från divisionen ovanför`;
 
-/** Nästa match: ligamatchen, eller kvalet när ligan är slut och laget vann den – annars null. */
-export function nastaSpel(K) {
+/** "Silverpokalen · Kvartsfinal · Ekebacka IF från Division 4" */
+export const cupText = (c) => `${CUP.namn} · ${c.namn} · ${c.mot.namn} från ${DIVISIONER[c.mot.div] || DIVISIONER[0]}`;
+
+/**
+ * Nästa match: cupmatchen när en väntar (efter vissa ligaomgångar, md-cup.js cupSchema),
+ * annars ligamatchen, eller kvalet när ligan är slut och laget vann den – annars null.
+ * uid ger cupens lottning (samma motståndare vid omladdning).
+ */
+export function nastaSpel(K, uid = "") {
+  const c = cupMatch(K, uid);
+  if (c) return { typ: "cup", omg: K.liga.omg, antal: K.liga.schema.length, runda: c.runda, mot: c.mot, cup: c, text: cupText(c) };
   const n = nastaMatch(K);
   if (n) return { typ: "liga", ...n, text: omgangText(K, n) };
   const kv = kvalMatch(K);
@@ -41,24 +53,26 @@ const pagarText = (p) => {
 export async function visaMatchFlik(S, el) {
   if (S.spel?.pagar) return; // matchen ligger kvar där eleven lämnade den
   if (!S.K) return nyKlubb(S, el);
-  const n = nastaSpel(S.K);
+  const n = nastaSpel(S.K, S.uid);
   if (!n) return sasongSlut(S, el);
-  const pagaende = lasPagaende(S.lagring, S.uid, S.K, n.typ);
+  const pagaende = lasPagaende(S.lagring, S.uid, S.K, n.typ, n.runda);
   // Ett påbörjat träningsläger sparas före nästa match (lägret och matchen i samma skrivning
   // ryms inte i reglerna, och nästa match skulle stänga lägret) – #871.
   const lager = !pagaende && pagaendeLager(S);
   if (lager) return lagerVantar(S, el, lager);
   const vi = S.K.klubb;
   const kval = n.typ === "kval";
-  el.innerHTML = `<div class="md-panel md-fore${kval ? " md-kval" : ""}">
+  const cup = n.typ === "cup";
+  el.innerHTML = `<div class="md-panel md-fore${kval ? " md-kval" : cup ? " md-cupmatch" : ""}">
     <p class="md-overrad">${esc(n.text)}</p>
     <h2 class="md-motet"><span>${chip(vi.farg)}${esc(vi.namn)}</span><span class="md-mot-streck">–</span><span>${chip(n.mot.farg)}${esc(n.mot.namn)}</span></h2>
     ${pagaende
       ? `<p class="md-pagar">${pagarText(pagaende)}</p>`
       : kval
         ? `<p>Ni vann ${esc(DIVISIONER[n.kval.div])}! Vinner ni kvalet går ni upp till <b>${esc(DIVISIONER[n.kval.till])}</b>. Blir det oavgjort avgörs det på straffar – fem var, sedan sudden death.</p>`
-        : `<p class="md-svag">Varje drag ger en fråga. Svarar du rätt lyckas passet eller skottet oftare – men även snygga skott kan räddas, och långskott går sällan in.</p>`}
-    ${!pagaende && lagerNyckel(S.K) && !lagerPaborjat(S.K) ? `<p class="md-tips">Ni har ett träningsläger ledigt under <button type="button" class="md-lank" data-trupp>Truppen</button> – det går förlorat när nästa match spelas.</p>` : ""}
+        : cup ? cupFore(S.K, n)
+          : `<p class="md-svag">Varje drag ger en fråga. Svarar du rätt lyckas passet eller skottet oftare – men även snygga skott kan räddas, och långskott går sällan in.</p>`}
+    ${!pagaende && lagerNyckel(S.K) && !lagerPaborjat(S.K) ? `<p class="md-tips">Ni har ett träningsläger ledigt under <button type="button" class="md-lank" data-trupp>Truppen</button> – det går förlorat när nästa ${cup ? "ligamatch" : "match"} spelas.</p>` : ""}
     <div class="md-rad">
       <button type="button" class="md-stor" data-avspark>${pagaende ? "Fortsätt matchen" : "Avspark!"}</button>
       ${S.lugnt ? `<span class="md-lugnt-etikett">Lugnt läge</span>` : ""}
@@ -77,6 +91,19 @@ export async function visaMatchFlik(S, el) {
       el.innerHTML = `<div class="md-panel md-tom"><h2>Något gick fel</h2><p>${esc(err?.meddelande || "Matchen kunde inte startas. Ladda om sidan och prova igen.")}</p></div>`;
     }
   });
+}
+
+/** Rutan före en cupmatch (§9.1): vad som står på spel – och skrällen mot ett lag från en högre division. */
+export function cupFore(K, n) {
+  const c = n.cup;
+  const sista = c.runda >= CUP.rundor.length - 1;
+  const pris = Math.round(CUP.seger * (1 + (Number(K.div) || 0) * KASSA.perDiv));
+  const hogre = Number(c.mot.div) > Number(K.div);
+  return `<p>${sista
+    ? `Final i ${esc(CUP.namn)}! Vinner ni tar ni hem pokalen och <b>${pris.toLocaleString("sv-SE")} kr</b> till klubbkassan.`
+    : `Cupmatch! Vinner ni går ni vidare till <b>${esc(CUP.rundor[c.runda + 1].toLowerCase())}en</b> – förlorar ni är ni utslagna för den här säsongen.`}
+    Blir det oavgjort avgörs det på straffar.</p>
+    ${hogre ? `<p class="md-tips">${esc(c.mot.namn)} spelar i ${esc(DIVISIONER[c.mot.div])} – högre upp än ni. Här kan det bli en skräll!</p>` : ""}`;
 }
 
 /** Ett påbörjat (eller osparat) träningsläger: eleven gör klart det under Truppen först. */
@@ -149,5 +176,5 @@ async function sasongSlut(S, el) {
  * omladdning: ligan lottas likadant tills första matchen sparar den.
  */
 export function startaNastaSasong(S) {
-  if (!nastaSpel(S.K)) S.K = nySasong(S.K, skapaPrng(sasongFro(S.K, S.uid)).tal);
+  if (!nastaSpel(S.K, S.uid)) S.K = nySasong(S.K, skapaPrng(sasongFro(S.K, S.uid)).tal);
 }

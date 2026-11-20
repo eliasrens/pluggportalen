@@ -166,6 +166,17 @@ export const LAGNAMN_MAX = 24;
  * Ett vunnet kval (uppflyttning, §7.2) ger dessutom uppflyttning × (1 + div × perDiv).
  */
 export const KASSA = { start: 600, vinst: 150, oavgjort: 75, forlust: 40, perRatt: 8, perMal: 12, perDiv: 0.25, uppflyttning: 300 };
+// ---- Silverpokalen och rekorden (Etapp 2c, spec §9) --------------------------
+/**
+ * Silverpokalen (§9.1): en utslagsturnering per säsong med rundorna nedan, inlagda jämnt
+ * mellan ligaomgångarna (md-cup.js cupSchema). Motståndarna lottas från divisioner inom
+ * ±spridning från elevens egen. Vinner man finalen: pokalen och seger × (1 + div × KASSA.perDiv)
+ * – specens 400 kr halverade som alla inkomster i Etapp 2b (KASSA).
+ */
+export const CUP = { namn: "Silverpokalen", rundor: ["Sextondelsfinal", "Kvartsfinal", "Semifinal", "Final"], spridning: 2, seger: 200 };
+/** Rekorden (§9.2): bästa andel rätt på en säsong räknas från så här många matcher. */
+export const REKORD = { minMatcher: 3 };
+
 /** Karriärdokumentet: de senaste matcherna (Statistik) och dagarna (lärarens 7 dagar / veckolinje). */
 export const SENASTE_MAX = 20;
 export const DAGAR_MAX = 70;
