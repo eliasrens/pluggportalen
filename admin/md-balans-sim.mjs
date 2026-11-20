@@ -24,6 +24,7 @@
 // Etapp 2c (#872): Silverpokalen (§9.1) – spelaSasong({ cup: true }) lägger in cupens fyra
 // rundor mellan ligaomgångarna (md-cup.js cupSchema/cupLottning); cupens egen tabell och
 // säsongens längd med cupen: admin/md-balans-cup.mjs.
+// Etapp 3 (#873): Mästarcupen (§10.2) – admin/md-balans-mastarcup.mjs.
 //
 // Robotarnas beteende (antaganden, inte spelregler – står i docs/MATCHDAGEN.md):
 // ROBOT nedan. Exporterar spelaMatch/spelaSasong/korBalans/bedom/tabell så att
@@ -355,6 +356,12 @@ async function huvud() {
   const cup = CUP_RADER.map(([andelRatt, div, stjarnor]) => cupBalans({ andelRatt, div, stjarnor, n: nCup }));
   console.log(`\nSilverpokalen (${nCup} säsonger per rad; motståndare från divisioner inom ±2, oavgjort → straffar): hur långt laget går, skrällar = vunna mot ett lag från en högre division\n`);
   console.log(cupTabell(cup, md));
+  // Etapp 3 (#873): Mästarcupen (§10.2, §12) – tre rundor mot toppklubbar 0,86–0,95, "ungefär var femte försök".
+  const { mcBalans, mcTabell, bedomMc, MC_RADER, MC_RUBRIK } = await import("./md-balans-mastarcup.mjs");
+  const mc = MC_RADER.map(([andelRatt, stjarnor]) => mcBalans({ andelRatt, stjarnor, n: nCup }));
+  console.log(`\n${MC_RUBRIK} (${nCup} försök per rad; kvartsfinal, semifinal, final, oavgjort → straffar)\n`);
+  console.log(mcTabell(mc, md));
   console.log(`\n${Math.round(performance.now() - t0)} ms`);
-  process.exitCode = [...rader, sup].some((r) => bedom(r).length) || eko.some((r) => bedomEkonomi(r).length) || cup.some((r) => bedomCup(r).length) ? 1 : 0;
+  process.exitCode = [...rader, sup].some((r) => bedom(r).length) || eko.some((r) => bedomEkonomi(r).length) || cup.some((r) => bedomCup(r).length) ||
+    mc.some((r) => bedomMc(r).length) ? 1 : 0;
 }
