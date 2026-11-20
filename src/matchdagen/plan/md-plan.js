@@ -10,11 +10,14 @@
 //   plan.typ                    "3d" | "2d"
 //   plan.stall(m, { avspark })  ställ upp direkt efter motorns tillstånd
 //   plan.spela(h, m)            → Promise: händelsens animation (väntar tills den är klar)
+//   plan.straffStall(lag)       → Promise: straffen ställs upp, kameran på straffpunkten (#870, §7.4)
+//   plan.straff(h, m)           → Promise: straffens animation (md-straffar.js straffa → h)
+//   plan.straffSlut(m)          kameran tillbaka, laget ställs upp igen
 //   plan.fps(), plan.dispose()
 //   valjTyp({ webgl, tvinga2d }) → "3d" | "2d"   (ren, testad)
 // ============================================================================
 
-import { firande, formation, planX } from "./md-formation.js";
+import { firande, formation, planX, straffUppstallning } from "./md-formation.js";
 
 export const valjTyp = ({ webgl, tvinga2d = false }) => (!webgl || tvinga2d ? "2d" : "3d");
 
@@ -52,6 +55,8 @@ export async function skapaPlan({ yta, lugnt = false, tvinga2d = false, vi, dem,
     r.spelare("dem", f.dem, { direkt });
     return f;
   }
+  let straff = null; // uppställningen under en straffläggning
+
   /** Bollen till en punkt i motorns skala (x 0–100). */
   const bollTill = (x, y, o) => r.boll(planX(x), y, o);
 
@@ -78,9 +83,53 @@ export async function skapaPlan({ yta, lugnt = false, tvinga2d = false, vi, dem,
       stallUpp(till.x, till.y, h.boll);
       await vanta(ANIM.pass + ANIM.efter);
     },
+    async straffStall(lag) {
+      straff = straffUppstallning(lag);
+      r.spelare("vi", straff.vi, { direkt: true });
+      r.spelare("dem", straff.dem, { direkt: true });
+      r.boll(straff.boll[0], straff.boll[1], { ms: 0 });
+      r.straffVy(lag);
+      await vanta(ANIM.efter);
+    },
+    straff: (h, m) => straffSkott(h, m),
+    straffSlut(m) {
+      straff = null;
+      r.straffVy(null);
+      this.stall(m, { avspark: true });
+    },
     fps: () => r.fps(),
     dispose: () => r.dispose(),
   };
+
+  /** En straff: bollen mot målet, målvakten kastar sig – mål, räddning, stolpe eller utanför (§7.4). */
+  async function straffSkott(h, m) {
+    if (!straff) straff = straffUppstallning(h.lag);
+    const vart = h.lag === "oss";
+    const sida = vart ? "dem" : "vi"; // målet som straffen går mot
+    const hoger = h.nr % 2 ? 1 : -1; // omväxlande hörn – ingen slump i ritningen
+    const y = 34 + hoger * (h.utfall === "stolpe" ? 3.6 : h.utfall === "utanfor" ? 5.5 : h.utfall === "raddning" ? 1.6 : 2.4);
+    const mal = straff.mallinje + (vart ? 1.2 : -1.2) * (h.utfall === "raddning" ? -0.5 : 1);
+    const mv = straff.malvakt;
+    const lagPos = (mv.lag === "vi" ? straff.vi : straff.dem).slice();
+    // Målvakten kastar sig: mot bollen vid en räddning, åt fel håll annars.
+    lagPos[0] = [lagPos[0][0], 34 + (h.utfall === "raddning" ? hoger * 1.6 : -hoger * 2.4)];
+    ljud("spark");
+    r.boll(mal, y, { hojd: h.utfall === "utanfor" ? 1.8 : 1, ms: ANIM.skott });
+    r.spelare(mv.lag, lagPos);
+    await vanta(ANIM.skott);
+    if (h.mal) {
+      r.malEffekt(sida);
+      ljud(vart ? "jubel" : "sorl");
+      utrop(vart ? "MÅL!" : `Mål för ${kortNamn(m.mot.namn)}`, ANIM.raddning);
+    } else if (h.utfall === "raddning") {
+      ljud("raddning");
+      utrop("RÄDDNING!", ANIM.raddning);
+    } else {
+      ljud("oj");
+      utrop(h.utfall === "stolpe" ? "I STOLPEN!" : "UTANFÖR!", ANIM.raddning);
+    }
+    await vanta(ANIM.raddning + ANIM.efter);
+  }
 
   /** Ett skott – vårt eller deras: mot målet, sedan mål, räddning, stolpe eller utanför. */
   async function skott(h, m) {

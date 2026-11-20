@@ -9,8 +9,11 @@
 //   • fel svar visar det rätta svaret i 1,5 sekunder innan spelet fortsätter
 //   • klockan (lärarens val 30/60 s, 0 = av): tiden ute räknas som fel
 //
-//   visaFraga(host, fraga, { ratta, klocka?, signal? })
+//   visaFraga(host, fraga, { ratta, klocka?, signal?, vidSvar? })
 //     → Promise<{ ratt, svar, sekunder, tidenUte? } | { avbruten: true }>
+//   vidSvar(utfall) anropas DIREKT när svaret är avgjort, före pausen som visar
+//   rätt svar – då hinner spelet spara utfallet (en omladdning under pausen får
+//   inte ge en ny fråga för samma skott eller straff, #870 F1).
 //   fraga: md-fragor.js nasta(), ratta: strömmens ratta(fraga, svar)
 // Ingen Firebase, inga importer – 1c ritar kortet under planen. Laddas med import().
 // ============================================================================
@@ -46,9 +49,9 @@ function kortHtml(fraga, klocka) {
  * Visa frågan i `host` och vänta på svaret.
  * @param {HTMLElement} host
  * @param {object} fraga
- * @param {{ ratta: Function, klocka?: number, signal?: AbortSignal, nu?: () => number }} o
+ * @param {{ ratta: Function, klocka?: number, signal?: AbortSignal, vidSvar?: Function, nu?: () => number }} o
  */
-export function visaFraga(host, fraga, { ratta, klocka = 0, signal, nu = () => performance.now() }) {
+export function visaFraga(host, fraga, { ratta, klocka = 0, signal, vidSvar, nu = () => performance.now() }) {
   host.innerHTML = kortHtml(fraga, klocka);
   const kort = host.querySelector(".md-fraga");
   const facit = kort.querySelector(".md-fraga-facit");
@@ -95,8 +98,10 @@ export function visaFraga(host, fraga, { ratta, klocka = 0, signal, nu = () => p
       }
       kort.dataset.utfall = r.ratt ? "ratt" : "fel";
       facit.innerHTML = r.ratt ? "Rätt!" : `${tidenUte ? "Tiden är ute. " : ""}Rätt svar: <b>${esc(r.facit)}</b>`;
+      const utfall = { ratt: r.ratt, svar: tidenUte ? null : svar, sekunder, ...(tidenUte ? { tidenUte: true } : {}) };
+      vidSvar?.(utfall);
       await vanta(r.ratt ? RATT_MS : FEL_MS);
-      resolve({ ratt: r.ratt, svar: tidenUte ? null : svar, sekunder, ...(tidenUte ? { tidenUte: true } : {}) });
+      resolve(utfall);
     }
     function tangent(e) {
       if (fraga.typ !== "flerval" || e.altKey || e.ctrlKey || e.metaKey || kort.closest?.("[hidden]")) return;

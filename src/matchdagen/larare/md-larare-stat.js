@@ -62,6 +62,8 @@ export function elevRad(elev, K, nu = Date.now()) {
     matcher: tal(s.matcher), ratt: tal(s.ratt), fragor: tal(s.fragor),
     kallor,
     div: K ? DIVISIONER[K.div] || "" : "", sasong: tal(K?.sasong), senast: K?.senast || null, lag: K?.klubb?.namn || "",
+    // Kvalet (#870): bara en flagga och divisionens namn ur listan – aldrig text ur dokumentet.
+    kval: K?.kval && typeof K.kval === "object" && K.kval.spelad === false ? DIVISIONER[tal(K.div) + 1] || "" : "",
   };
 }
 
@@ -91,7 +93,7 @@ export async function renderClassMatchdagen(ctx, host, { cls, students }) {
         ${r.startad ? `<td class="lrt-num">${minText(r.sek7)}</td><td class="lrt-num">${minText(r.minTotalt * 60)}</td>
         <td class="lrt-num">${r.matcher}</td><td class="lrt-num">${pctText(r.ratt, r.fragor)}</td>
         <td class="mdl-kallor">${r.kallor.slice(0, 4).map(([k, v]) => `<span class="mdl-kalla">${esc(kallNamn(k, v))} ${pctText(v.ratt, v.fragor)}</span>`).join("") || "–"}</td>
-        <td>${esc(r.div)} · säsong ${r.sasong}</td><td>${datumText(r.senast)}</td>`
+        <td>${esc(r.div)} · säsong ${r.sasong}${r.kval ? `<br><small class="hint">Kval till ${esc(r.kval)} väntar</small>` : ""}</td><td>${datumText(r.senast)}</td>`
           : `<td colspan="7" class="hint">${r.fel ? "Lagets data kunde inte läsas" : "Har inte startat sitt lag än"}</td>`}
       </tr>`).join("")}</tbody></table></div>
     <div class="mdl-detalj" aria-live="polite"></div>
@@ -142,7 +144,7 @@ async function visaElev(host, elev, K, data, efterNamn) {
     const matcher = await data.lasMatcher(elev.id, 20);
     yta.replaceChildren(el(matcher.length ? `<div class="table-scroll"><table class="tbl lrt-tbl">
       <thead><tr><th>Datum</th><th>Motståndare</th><th class="lrt-num">Resultat</th><th class="lrt-num">Rätt</th><th class="lrt-num">Speltid</th></tr></thead>
-      <tbody>${matcher.map((m) => `<tr><td>${datumText(m.datum)}</td><td>${esc(m.mot)}</td><td class="lrt-num">${tal(m.oss)}–${tal(m.dem)}</td>
+      <tbody>${matcher.map((m) => `<tr><td>${datumText(m.datum)}</td><td>${esc(m.mot)}${m.typ === "kval" ? " (kval)" : ""}</td><td class="lrt-num">${tal(m.oss)}–${tal(m.dem)}${Array.isArray(m.straffar) ? ` <small class="hint">str. ${tal(m.straffar[0])}–${tal(m.straffar[1])}</small>` : ""}</td>
         <td class="lrt-num">${tal(m.ratt)}/${tal(m.fragor)} (${pctText(tal(m.ratt), tal(m.fragor))})</td><td class="lrt-num">${minText(m.sekunder)}</td></tr>`).join("")}</tbody>
     </table></div>` : `<p class="hint">Inga matcher än.</p>`));
   } catch (err) {

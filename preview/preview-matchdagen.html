@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Matchdagen – förhandsvisning (#869)</title>
+  <title>Matchdagen – förhandsvisning (#869, #870)</title>
   <!-- Förhandsvisning av Etapp 1c med STUBBADE data (spec §15): hela appen
        (md-app.js) – en hel match i 3D eller 2D, tabellen, truppen och statistiken.
        Ingen Firebase: karriären och matcherna sparas i localStorage
@@ -14,7 +14,10 @@
          ?klubb=ny   börja utan klubb (formuläret)      ?ny=1  rensa allt sparat
          ?2d=1       2D-reserven      ?lugnt=1  lugnt läge      ?fps=1  bilder/s
          ?auto=1     roboten spelar (slumpar svaren)        ?svar=skriv  ?klocka=30  ?kallor=inga
-       Straffarna kommer i Etapp 2a. -->
+       Etapp 2a (#870):
+         ?div=0–7    klubben i en annan division (stegen, 8–12 lag, två frågor per skott från 3)
+         ?kval=1     ligan är vunnen – kvalmatchen väntar (oavgjort → straffar)
+         ?straffar=1 kvalet står 1 – 1 efter full tid – "Fortsätt matchen" går direkt till straffarna -->
   <script type="importmap">
     { "imports": { "../src/game-shared.js": "./matchdagen-868/game-shared.js" } }
   </script>
@@ -30,7 +33,9 @@
   <p class="not">Förhandsvisning med påhittade data – i Pluggporten kommer frågorna från lärarens val och allt sparas i Firestore.</p>
   <script type="module">
     import { startaMatchdagen } from "../src/matchdagen/md-app.js";
-    import { matchKlar, nastaMatch, nyKarriar } from "../src/matchdagen/delat/md-sasong.js";
+    import { matchKlar, nastaMatch, nyKarriar, nyLiga } from "../src/matchdagen/delat/md-sasong.js";
+    import { kvalMatch } from "../src/matchdagen/delat/md-kval.js";
+    import { nyMatch } from "../src/matchdagen/delat/md-motor.js";
     import { simMal } from "../src/matchdagen/delat/md-liga.js";
     import { skapaPrng } from "../src/matchdagen/delat/md-prng.js";
 
@@ -74,12 +79,15 @@
 
     // ?omg=N: en klubb med N påhittade omgångar (för tabellen och statistiken).
     if (p.get("klubb") === "ny") localStorage.removeItem(NYCKEL + "karriar");
-    else if (p.has("omg") || !las("karriar")) {
+    else if (p.has("omg") || p.has("div") || p.has("kval") || p.has("straffar") || !las("karriar")) {
       const r = skapaPrng("preview-869").tal;
       let K = nyKarriar({ namn: "Blixtarna IF", farg: "#2f6fe8", rng: r });
-      const n = Math.min(5, Number(p.get("omg")) || 0);
+      const div = Math.max(0, Math.min(7, Number(p.get("div")) || 0));
+      if (div) K = { ...K, div, liga: nyLiga(div, K.klubb.farg, r) };
+      const kval = p.get("kval") === "1" || p.get("straffar") === "1";
+      const n = kval ? K.liga.schema.length : Math.min(K.liga.schema.length, Number(p.get("omg")) || 0);
       for (let i = 0; i < n && nastaMatch(K); i++) {
-        const [oss, dem] = simMal(0.36, nastaMatch(K).mot.styrka, r);
+        const [oss, dem] = kval ? [3 + (i % 2), i % 2] : simMal(0.36, nastaMatch(K).mot.styrka, r);
         const fragor = 26 + Math.floor(r() * 5), ratt = Math.round(fragor * (0.6 + r() * 0.25));
         const stat = { skott: 4 + oss * 2, skottPaMal: 2 + oss, pass: 14, passOk: 10, tacklingar: 6, vunnaBollar: 4, raddningar: 2, horner: 1, derasSkott: 3,
           fragor, ratt, perKalla: { "omrade:so/sverige": { fragor: Math.round(fragor / 2), ratt: Math.round(ratt / 2) }, "tabell:7": { fragor: fragor - Math.round(fragor / 2), ratt: ratt - Math.round(ratt / 2) } }, sekunder: 400 + r() * 60 };
@@ -90,6 +98,14 @@
         skriv(`match:p${i}`, { ...ut.match, id: `p${i}` });
       }
       skriv("karriar", K);
+      // ?straffar=1: kvalet står 1 – 1 efter full tid och ligger som en pågående match (md-lokal.js).
+      const kv = kvalMatch(K);
+      if (p.get("straffar") === "1" && kv) {
+        const m = { ...nyMatch({ mot: { namn: kv.mot.namn, styrka: kv.mot.styrka }, div: K.div, avgor: true }),
+          min: 90, halvlek: 2, slut: true, oss: 1, dem: 1, lagen: 38, mal: [{ min: 23, lag: "oss" }, { min: 71, lag: "dem" }] };
+        Object.assign(m.stat, { skott: 6, skottPaMal: 3, pass: 15, passOk: 11, fragor: 27, ratt: 19, sekunder: 410 });
+        localStorage.setItem(`matchdagen-match:${UID}`, JSON.stringify({ v: 1, sasong: K.sasong, omg: K.liga.omg, typ: "kval", matchId: "preview-kval", m }));
+      } else localStorage.removeItem(`matchdagen-match:${UID}`);
     }
 
     const S = await startaMatchdagen(document.getElementById("app"), {

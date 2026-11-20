@@ -8,7 +8,10 @@
 //   planX(x)                              → meter längs planen (2–103)
 //   formation({ x, y, innehav, avspark? }) → { vi: [[x, y] × 7], dem: [[x, y] × 7], boll: [x, y], vid: { lag, i } | null }
 //   firande(vi, lag, boll)                → lagets spelare samlas kring målskytten
+//   straffUppstallning(lag)               → { vi, dem, boll, skytt, malvakt, mallinje } vid en straff (#870, §7.4)
 // ============================================================================
+
+import { STRAFFPUNKT_M } from "../delat/md-config.js";
 
 export const PLAN_L = 105;
 export const PLAN_B = 68;
@@ -62,4 +65,26 @@ export function formation({ x, y, innehav = "oss", avspark = false }) {
 export function firande(lag, boll) {
   const [bx, by] = boll;
   return lag.map(([x, y], i) => (i === 0 ? [x, y] : [kl(bx - Math.sign(bx - PLAN_L / 2) * (8 + (i % 3) * 2), 4, PLAN_L - 4), kl(by + ((i % 4) - 1.5) * 2.4, 4, PLAN_B - 4)]));
+}
+
+/** Mållinjerna i planens meter (2D-ritningen: linjerna vid 2 och 103). */
+export const MALLINJE = { vi: 2, dem: PLAN_L - 2 };
+
+/**
+ * En straff (§7.4): skytten bakom bollen på straffpunkten, målvakten på mållinjen och
+ * alla andra i mittcirkeln. lag = "oss" (vi skjuter mot deras mål, höger) eller "dem".
+ * skytt/malvakt = { lag: "vi"|"dem", i } – vilka figurer som rör sig i straffen.
+ */
+export function straffUppstallning(lag) {
+  const hoger = lag !== "dem";
+  const mallinje = hoger ? MALLINJE.dem : MALLINJE.vi;
+  const punkt = hoger ? mallinje - STRAFFPUNKT_M : mallinje + STRAFFPUNKT_M;
+  const mitt = (sida, i) => [PLAN_L / 2 + (sida === "vi" ? -2.2 : 2.2) + (i % 2 ? 1.2 : -1.2), PLAN_B / 2 - 9 + i * 3];
+  const vi = GRUND.map((_, i) => mitt("vi", i));
+  const dem = GRUND.map((_, i) => mitt("dem", i));
+  const skytt = { lag: hoger ? "vi" : "dem", i: 5 };
+  const malvakt = { lag: hoger ? "dem" : "vi", i: 0 };
+  (skytt.lag === "vi" ? vi : dem)[5] = [punkt + (hoger ? -1.6 : 1.6), PLAN_B / 2 + 0.6];
+  (malvakt.lag === "vi" ? vi : dem)[0] = [mallinje + (hoger ? -0.6 : 0.6), PLAN_B / 2];
+  return { vi, dem, boll: [punkt, PLAN_B / 2], skytt, malvakt, mallinje };
 }

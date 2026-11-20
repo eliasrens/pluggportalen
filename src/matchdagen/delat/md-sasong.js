@@ -12,8 +12,10 @@
 //   motFarg(egen, mot)                    → motståndarens tröja i matchen (aldrig samma som vår)
 //   matchKlar(K, { res, rng, nu, matchId, kallNamn? })
 //                                         → { K, match, pengar, sasongKlar, plac }
+//                                           ligavinnaren under Superligan får K.kval (§7.2, spelas i md-kval.js)
 //   tabellRader(K)                        → tabellen i placeringsordning med namn och färg
-//   nySasong(K, rng)                      → K för nästa säsong (samma division i Etapp 1)
+//   nySasong(K, rng)                      → K för nästa säsong (samma division – kvalet ändrar den, md-kval.js)
+//   bokforMatch(K, { res, nu, matchId, kallNamn, mot, typ, omg? }) → { match, pengar }   (ändrar K – liga och kval)
 //   sasongFro(K, uid)                     → frö för nästa ligas lottning (samma vid omladdning)
 //   dagNyckel(nu), sekunderSenaste(dagar, nu, n), veckoRatt(dagar, nu, n)
 // ============================================================================
@@ -72,6 +74,15 @@ export function nyLiga(div, trojfarg, rng) {
   return { lag, schema: schemaText(schema(ids)), tabell: nyTabell(lag.map((l) => l.id)), omg: 0 };
 }
 
+/** Kvalmotståndaren (§7.2): ett lag från divisionen ovanför, inte ur ligan, med styrka(div + 1). */
+function nyKval(K, rng) {
+  const tagna = new Set(K.liga.lag.map((l) => l.namn));
+  const namn = valj(rng, MOTSTANDARE.filter((n) => !tagna.has(n)));
+  const farg = valj(rng, LAGFARGER.filter((f) => f !== K.klubb.farg));
+  const styrka = Math.round(styrkaFor(K.div + 1, rng) * 1000) / 1000;
+  return { div: K.div, sasong: K.sasong, mot: { namn, farg, styrka }, spelad: false };
+}
+
 const tomSumma = () => ({ matcher: 0, v: 0, o: 0, f: 0, gjorda: 0, inslappta: 0, fragor: 0, ratt: 0, perKalla: {}, spelminuter: 0 });
 
 /** En ny klubb: namn (1–24 tecken) och en av de 8 tröjfärgerna (§5). */
@@ -83,7 +94,7 @@ export function nyKarriar({ namn, farg, rng }) {
     div: 0, sasong: 1, kassa: C.KASSA.start,
     trupp: nyTrupp(rng),
     liga: nyLiga(0, klubbFarg, rng),
-    pokaler: [], summa: tomSumma(), senaste: [], sasonger: [], dagar: {},
+    kval: null, pokaler: [], summa: tomSumma(), senaste: [], sasonger: [], dagar: {},
   };
 }
 
@@ -153,7 +164,7 @@ export function matchKlar(K0, { res, rng, nu, matchId, kallNamn = {} }) {
   const nasta = nastaMatch(K0);
   if (!nasta) throw new Error("matchKlar: säsongen är redan slut");
   const K = kopia(K0);
-  const { oss, dem, stat } = res;
+  const { oss, dem } = res;
   let tabell = K.liga.tabell;
   for (const [a, b] of omgangsPar(K.liga, nasta.omg)) {
     if (a === OSS || b === OSS) {
@@ -165,8 +176,30 @@ export function matchKlar(K0, { res, rng, nu, matchId, kallNamn = {} }) {
   }
   K.liga.tabell = tabell;
   K.liga.omg = nasta.omg + 1;
+  const { match, pengar, dag } = bokforMatch(K, { res, nu, matchId, kallNamn, mot: nasta.mot.namn, typ: "liga", omg: nasta.omg + 1 });
 
-  const pengar = pengarFor(res, stat.ratt, K.div);
+  const sasongKlar = K.liga.omg >= K.liga.schema.length;
+  let plac = null;
+  if (sasongKlar) {
+    plac = tabellRader(K).findIndex((r) => r.id === OSS) + 1;
+    K.sasonger = [{ sasong: K.sasong, div: K.div, plac, lag: K.liga.lag.length }, ...(K.sasonger || [])].slice(0, 200);
+    if (plac === 1) {
+      K.pokaler = [...(K.pokaler || []), { typ: "liga", namn: `Vinnare ${C.DIVISIONER[K.div]}`, sasong: K.sasong, datum: dag }];
+      // Bara ligavinnaren kvalar uppåt (§7.2). Superligan är toppen (Mästarcupen: Etapp 3).
+      if (K.div < C.TOPP_DIV) K.kval = nyKval(K, rng);
+    }
+  }
+  return { K, match, pengar, sasongKlar, plac };
+}
+
+/**
+ * Bokför en spelad match i K (ändrar K – anroparen har kopierat): kassan, summan,
+ * de senaste matcherna och dagarna. Ger matchdokumentet (matcher/{id}) och pengarna.
+ * typ "liga" har omg; "kval" har straffar när det avgjordes på straffar.
+ */
+export function bokforMatch(K, { res, nu, matchId, kallNamn = {}, mot, typ, omg = null, div = K.div, extraPengar = 0 }) {
+  const { oss, dem, stat } = res;
+  const pengar = pengarFor(res, stat.ratt, div) + extraPengar;
   K.kassa = Math.round((Number(K.kassa) || 0) + pengar);
 
   const s = K.summa || tomSumma();
@@ -185,9 +218,13 @@ export function matchKlar(K0, { res, rng, nu, matchId, kallNamn = {} }) {
   s.spelminuter = runda1((Number(s.spelminuter) || 0) + stat.sekunder / 60);
   K.summa = s;
 
+  const straffar = Array.isArray(res.straffar) ? res.straffar.slice(0, 2) : null;
   const dag = dagNyckel(nu);
-  K.senaste = [{ id: matchId, datum: dag, mot: nasta.mot.namn, oss, dem, ratt: stat.ratt, fragor: stat.fragor,
-    sasong: K.sasong, omg: nasta.omg + 1 }, ...(K.senaste || [])].slice(0, C.SENASTE_MAX);
+  const senast = { id: matchId, datum: dag, mot, oss, dem, ratt: stat.ratt, fragor: stat.fragor, sasong: K.sasong };
+  if (omg != null) senast.omg = omg;
+  if (typ !== "liga") senast.typ = typ;
+  if (straffar) senast.straffar = straffar;
+  K.senaste = [senast, ...(K.senaste || [])].slice(0, C.SENASTE_MAX);
   const dagar = { ...(K.dagar || {}) };
   const d = (dagar[dag] ??= { m: 0, sek: 0, fragor: 0, ratt: 0 });
   d.m++;
@@ -197,20 +234,14 @@ export function matchKlar(K0, { res, rng, nu, matchId, kallNamn = {} }) {
   K.dagar = Object.fromEntries(Object.entries(dagar).sort(([a], [b]) => (a < b ? 1 : -1)).slice(0, C.DAGAR_MAX));
 
   const match = {
-    sasong: K.sasong, div: K.div, typ: "liga", omg: nasta.omg + 1, mot: nasta.mot.namn, oss, dem,
+    sasong: K.sasong, div, typ, mot, oss, dem,
     mal: res.mal.map((x) => ({ min: x.min, lag: x.lag })), stat: kopia(stat), fragor: stat.fragor, ratt: stat.ratt,
     perKalla: kopia(stat.perKalla || {}), sekunder: Math.round(stat.sekunder),
   };
+  if (omg != null) match.omg = omg;
+  if (straffar) match.straffar = straffar;
   delete match.stat.perKalla;
-
-  const sasongKlar = K.liga.omg >= K.liga.schema.length;
-  let plac = null;
-  if (sasongKlar) {
-    plac = tabellRader(K).findIndex((r) => r.id === OSS) + 1;
-    K.sasonger = [{ sasong: K.sasong, div: K.div, plac, lag: K.liga.lag.length }, ...(K.sasonger || [])].slice(0, 200);
-    if (plac === 1) K.pokaler = [...(K.pokaler || []), { typ: "liga", namn: `Vinnare ${C.DIVISIONER[K.div]}`, sasong: K.sasong, datum: dag }];
-  }
-  return { K, match, pengar, sasongKlar, plac };
+  return { match, pengar, dag };
 }
 
 function simMalFor(K, a, b, rng) {
@@ -220,14 +251,17 @@ function simMalFor(K, a, b, rng) {
 }
 
 /**
- * Nästa säsong: ny liga med nya motståndare. Etapp 1 har bara Division 6 –
- * kvalet uppåt kommer i Etapp 2a, så laget stannar i divisionen (ingen åker ner).
+ * Nästa säsong: ny liga med nya motståndare i K.div – efter ett vunnet kval är det
+ * redan divisionen ovanför (md-kval.js). Ingen åker ner (§7.2). Ett kval måste
+ * vara spelat först.
  */
 export function nySasong(K0, rng) {
   if (nastaMatch(K0)) throw new Error("nySasong: säsongen är inte slut");
+  if (K0.kval && !K0.kval.spelad) throw new Error("nySasong: kvalet är inte spelat");
   const K = kopia(K0);
   K.sasong = (Number(K.sasong) || 1) + 1;
   K.liga = nyLiga(K.div, K.klubb.farg, rng);
+  K.kval = null;
   return K;
 }
 

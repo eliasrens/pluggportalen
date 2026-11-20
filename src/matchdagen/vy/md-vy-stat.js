@@ -17,13 +17,19 @@ export function kallText(nyckel, post = {}) {
   return rest.split("/").pop() || nyckel;
 }
 
+/** Tal ur elevens dokument – aldrig text in i HTML. */
+const tal = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+/** "2–1", "1–1 (straffar 4–3)" – kvalets straffar (#870). */
+const resText = (m) => `${tal(m.oss)}–${tal(m.dem)}${Array.isArray(m.straffar) ? ` (straffar ${tal(m.straffar[0])}–${tal(m.straffar[1])})` : ""}`;
+const KVAL_UTFALL = { upp: "kvalade upp", kvar: "förlorade kvalet" };
+
 const STAT_RAD = [["skott", "Skott"], ["skottPaMal", "Skott på mål"], ["pass", "Pass"], ["passOk", "Lyckade pass"],
   ["tacklingar", "Tacklingar och täckningar"], ["vunnaBollar", "Vunna bollar"], ["raddningar", "Räddningar"], ["horner", "Hörnor"]];
 
 function detaljer(m) {
   const st = m.stat || {};
   return `<div class="md-detalj">
-    <p><b>${m.oss} – ${m.dem}</b> mot ${esc(m.mot)} · säsong ${m.sasong}, omgång ${m.omg ?? "–"} · ${Math.round((m.sekunder || 0) / 60)} min</p>
+    <p><b>${resText(m)}</b> mot ${esc(m.mot)} · säsong ${tal(m.sasong)}, ${m.typ === "kval" ? "kval" : `omgång ${m.omg == null ? "–" : tal(m.omg)}`} · ${Math.round(tal(m.sekunder) / 60)} min</p>
     ${m.mal?.length ? `<p class="md-svag">Mål: ${m.mal.map((x) => `${x.min}' ${x.lag === "oss" ? "vi" : esc(m.mot)}`).join(", ")}</p>` : ""}
     <dl class="md-dl">${STAT_RAD.map(([k, t]) => `<div><dt>${t}</dt><dd>${Number(st[k]) || 0}</dd></div>`).join("")}
       <div><dt>Rätt svar</dt><dd>${m.ratt}/${m.fragor}</dd></div></dl>
@@ -52,11 +58,11 @@ export function visaStat(S, el) {
     ${senaste.length ? `<div class="md-scroll"><table class="md-tabell md-senaste">
       <thead><tr><th scope="col">Datum</th><th scope="col">Motståndare</th><th scope="col">Resultat</th><th scope="col">Rätt</th></tr></thead>
       <tbody>${senaste.map((m) => `<tr class="${m.oss > m.dem ? "vinst" : m.oss < m.dem ? "forlust" : "oavgjort"}">
-        <td>${esc(m.datum)}</td><td><button type="button" class="md-lank" data-match="${esc(m.id)}">${esc(m.mot)}</button></td>
-        <td>${m.oss}–${m.dem}</td><td>${m.ratt}/${m.fragor}</td></tr>`).join("")}</tbody></table></div>
+        <td>${esc(m.datum)}</td><td><button type="button" class="md-lank" data-match="${esc(m.id)}">${esc(m.mot)}</button>${m.typ === "kval" ? ` <span class="md-tagg">kval</span>` : ""}</td>
+        <td>${resText(m)}</td><td>${tal(m.ratt)}/${tal(m.fragor)}</td></tr>`).join("")}</tbody></table></div>
       <div class="md-detaljyta" aria-live="polite"></div>` : `<p class="md-svag">Inga matcher än – spela din första under Match.</p>`}
     <h3>Säsongerna</h3>
-    ${(K.sasonger || []).length ? `<ul class="md-lista">${K.sasonger.map((x) => `<li>Säsong ${x.sasong} · ${esc(DIVISIONER[x.div] || "")} · plats ${x.plac} av ${x.lag || 6}</li>`).join("")}</ul>`
+    ${(K.sasonger || []).length ? `<ul class="md-lista">${K.sasonger.map((x) => `<li>Säsong ${tal(x.sasong)} · ${esc(DIVISIONER[x.div] || "")} · plats ${tal(x.plac)} av ${tal(x.lag) || 6}${KVAL_UTFALL[x.kval] ? ` · ${KVAL_UTFALL[x.kval]}` : ""}</li>`).join("")}</ul>`
       : `<p class="md-svag">Säsong ${K.sasong} pågår.</p>`}
     <h3>Pokalskåpet</h3>
     ${(K.pokaler || []).length ? `<ul class="md-pokaler">${K.pokaler.map((p) => `<li><span class="md-pokal" aria-hidden="true"></span>${esc(p.namn)} <span class="md-svag">(säsong ${p.sasong})</span></li>`).join("")}</ul>`

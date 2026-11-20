@@ -153,14 +153,20 @@ describe("skotten (§3.2)", () => {
       assert.ok(!M.spela(bas({ x: 75 }), "skjut", FEL, skapaPrng(`hf${i}`).tal).h.horna, "ingen hörna efter fel svar");
     }
   });
-  it("från Division 3 kräver skottet två rätt i rad; fel på den första ger SKOTT.fel", () => {
+  it("från Division 3 kräver skottet två rätt i rad; fel på den första (finten) ger SKOTT.fintFel (§7.3)", () => {
     assert.equal(M.lage(bas({ x: 80, div: 2 })).val[3].fragor, 1);
     const m = bas({ x: 80, div: C.DUBBEL_SKOTT_FRAN_DIV });
     assert.ok(M.dubbelSkott(m.div));
     assert.equal(M.antalFragor(m, "skjut"), 2);
     assert.equal(M.antalFragor(m, "kort"), 1);
     assert.throws(() => M.spela(m, "skjut", RATT, Math.random), /2 svar/);
-    nara(andel(m, "skjut", [false, true], (h) => h.utfall === "mal"), C.SKOTT.fel);
+    assert.throws(() => M.spela(m, "skjut", [], Math.random), /2 svar/);
+    assert.ok(M.behoverFraga(m, "skjut", []) && M.behoverFraga(m, "skjut", RATT));
+    assert.ok(!M.behoverFraga(m, "skjut", FEL), "fel på finten: ingen fråga till");
+    assert.ok(!M.behoverFraga(m, "skjut", [true, false]) && !M.behoverFraga(bas({ x: 80 }), "skjut", RATT));
+    nara(andel(m, "skjut", FEL, (h) => h.utfall === "mal"), C.SKOTT.fintFel, 0.01);
+    nara(andel(m, "skjut", [false, true], (h) => h.utfall === "mal"), C.SKOTT.fintFel, 0.01);
+    nara(andel(m, "skjut", [true, false], (h) => h.utfall === "mal"), M.chansSkott(20, false, {}, STYRKA));
     nara(andel(m, "skjut", [true, true], (h) => h.utfall === "mal"), M.chansSkott(20, true, {}, STYRKA));
     const { h } = M.spela(m, "skjut", [false, true], skapaPrng("x").tal);
     if (h.utfall !== "mal") assert.ok(KOMMENTAR.dubbelFel.includes(h.rad));
