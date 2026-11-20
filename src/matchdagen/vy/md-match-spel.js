@@ -9,6 +9,10 @@
 // straffläggningen (md-straff-spel.js), och rutan efter berättar om uppflyttningen.
 // Silverpokalen (#872, §9.1): en cupmatch avgörs också på straffar (md-cup.js cupKlar), och
 // rutan efter matchen (md-efter-match.js) visar nya rekord (§9.2) direkt.
+// Mästarcupen (#873, §10.2): samma match med straffar (md-mastarcup.js mcKlar); finalen får
+// introt "FINALEN", fullsatt läktare med flaggor och ett större jubel, och en vunnen final eller
+// en vunnen Superliga (§10.1) slutar med firandet på planen (plan.fest: pokalen lyfts,
+// fyrverkerier i lugnt tempo – inga i lugnt läge) före rutan efter matchen.
 // ============================================================================
 
 import { andraHalvlek, antalFragor, arKlar, behoverFraga, behoverStraffar, lage, lagbonus, nyMatch, resultat, spela } from "../delat/md-motor.js";
@@ -16,6 +20,7 @@ import { LAGE_TEXT } from "../delat/md-texter.js";
 import { matchKlar, motFarg } from "../delat/md-sasong.js";
 import { kvalKlar } from "../delat/md-kval.js";
 import { cupKlar } from "../delat/md-cup.js";
+import { mcKlar } from "../delat/md-mastarcup.js";
 import { laggIKo, rensaPagaende, sparaPagaende } from "../md-lokal.js";
 import { kaptenPlats } from "../delat/md-trupp.js";
 import { sparaKon } from "../md-spara.js";
@@ -90,22 +95,24 @@ export async function spelaMatch(S, el, { pagaende = null, spel = null } = {}) {
   const n0 = spel || nastaSpel(S.K, S.uid);
   const kval = n0.typ === "kval";
   const cup = n0.typ === "cup";
+  const mc = n0.typ === "mastarcup";
+  const final = mc && !!n0.final;
   // Samma tröjfärg som motståndaren (eleven bytte färg mitt i säsongen)? De spelar i en annan.
   const n = { ...n0, mot: { ...n0.mot, farg: motFarg(S.K.klubb.farg, n0.mot.farg) } };
   const fr = await strom(S);
   if (fr.tom) throw Object.assign(new Error("inga frågor"), { meddelande: fr.meddelande });
   const nu = Date.now();
   const post = pagaende || {
-    sasong: S.K.sasong, omg: S.K.liga.omg, typ: n.typ, ...(cup ? { runda: n.runda } : {}),
-    matchId: `s${S.K.sasong}-d${S.K.div}-${kval ? "kval" : cup ? `cup${n.runda + 1}` : `o${n.omg + 1}`}-${nu.toString(36)}`,
-    m: nyMatch({ mot: { namn: n.mot.namn, styrka: n.mot.styrka }, bonus: lagbonus(S.K.trupp), div: S.K.div, avgor: kval || cup, nu }),
+    sasong: S.K.sasong, omg: S.K.liga.omg, typ: n.typ, ...(cup || mc ? { runda: n.runda } : {}),
+    matchId: `s${S.K.sasong}-d${S.K.div}-${kval ? "kval" : cup ? `cup${n.runda + 1}` : mc ? `mc${n.runda + 1}` : `o${n.omg + 1}`}-${nu.toString(36)}`,
+    m: nyMatch({ mot: { namn: n.mot.namn, styrka: n.mot.styrka }, bonus: lagbonus(S.K.trupp), div: S.K.div, avgor: kval || cup || mc, nu }),
   };
   let m = post.m;
   if (pagaende) m.senast = nu; // tiden borta räknas inte (MAX_LAGE_S)
   const v = layout(S, el, n.mot);
   const kapten = kaptenPlats(S.K.trupp);
   const [{ skapaPlan }, { skapaLjud }, avatar] = await Promise.all([import("../plan/md-plan.js"), import("../plan/md-ljud.js"), avatarBild(S)]);
-  const ljud = skapaLjud({ lugnt: S.lugnt });
+  const ljud = skapaLjud({ lugnt: S.lugnt, final });
   const sattLjudknapp = () => {
     v.ljudKnapp.setAttribute("aria-pressed", String(ljud.pa));
     v.ljudKnapp.textContent = ljud.pa ? "Ljud på" : "Ljud av";
@@ -114,7 +121,7 @@ export async function spelaMatch(S, el, { pagaende = null, spel = null } = {}) {
   v.ljudKnapp.addEventListener("click", () => { ljud.satt(!ljud.pa); sattLjudknapp(); });
   let utropTimer = 0;
   const plan = await skapaPlan({
-    yta: v.yta, lugnt: S.lugnt, tvinga2d: S.tvinga2d, avatar,
+    yta: v.yta, lugnt: S.lugnt, tvinga2d: S.tvinga2d, avatar, final,
     vi: { troja: S.K.klubb.farg, byxor: LJUS.has(S.K.klubb.farg) ? "#1d2c4a" : "#ffffff", mv: "#ffd23f", kapten },
     dem: { troja: n.mot.farg, byxor: "#1c2433", mv: "#1b1b1b" },
     hooks: {
@@ -154,7 +161,7 @@ export async function spelaMatch(S, el, { pagaende = null, spel = null } = {}) {
     if (klar || !arKlar(m)) return;
     const res = resultat(m);
     const o = { res, rng: Math.random, nu: Date.now(), matchId: post.matchId, kallNamn: fr.kallNamn };
-    klar = kval ? kvalKlar(S.K, o) : cup ? cupKlar(S.K, { ...o, uid: S.uid }) : matchKlar(S.K, o);
+    klar = kval ? kvalKlar(S.K, o) : cup ? cupKlar(S.K, { ...o, uid: S.uid }) : mc ? mcKlar(S.K, { ...o, uid: S.uid }) : matchKlar(S.K, o);
     S.K = klar.K;
     laggIKo(S.lagring, S.uid, { K: klar.K, matchId: post.matchId, match: klar.match });
     rensaPagaende(S.lagring, S.uid);
@@ -163,6 +170,7 @@ export async function spelaMatch(S, el, { pagaende = null, spel = null } = {}) {
   skylt();
   sag(m.lagen ? "Matchen fortsätter!" : `${n.text} · Avspark!`);
   ljud.sorl(true);
+  if (!m.lagen && final) await finalIntro(S, el, n);
   if (!m.lagen) { ljud.spela("vissla"); await vanta(S.lugnt ? 300 : 900); }
 
   while (!m.slut) {
@@ -248,9 +256,39 @@ export async function spelaMatch(S, el, { pagaende = null, spel = null } = {}) {
   const sparad = await sparaKon(S, klar.K);
   S.kassa();
   await vanta(S.lugnt ? 200 : 700);
+  // En titel (§10.1, §10.2): pokalen lyfts på planen före rutan – firandet fortsätter bakom den.
+  const titel = mc && klar.vannCupen ? "mastarcup" : klar.mastare ? "superliga" : null;
+  if (titel) {
+    sag(titel === "mastarcup" ? "Mästarcupen är er – pokalen lyfts!" : "Mästare i Superligan – pokalen lyfts!");
+    plan.fest(titel);
+    ljud.spela("fanfar");
+    ljud.spela("jubel");
+    v.utrop.textContent = titel === "mastarcup" ? "MÄSTARCUPEN ÄR ER!" : "MÄSTARE!";
+    v.utrop.classList.add("visa", "titel");
+    await vanta(S.lugnt ? 1500 : 5000);
+  }
   const valet = await efterMatchen(S, { res, klar, mot: n.mot, sparad, signal, typ: n.typ });
   stang();
   if (!valet) return;
   if (kval) startaNastaSasong(S);
+  if (valet === "legend") {
+    await S.visa("match");
+    const { startaLegend } = await import("./md-vy-legend.js");
+    return startaLegend(S, S.sektion("match"), () => S.visa("match"));
+  }
   S.visa(kval ? "match" : "tabell");
+}
+
+/**
+ * Introt före finalen i Mästarcupen (§10.2): "FINALEN" över planen med lagen – i lugnt läge
+ * och med prefers-reduced-motion utan rörelse och kortare.
+ */
+async function finalIntro(S, el, n) {
+  const d = document.createElement("div");
+  d.className = `md-finalintro${S.lugnt ? " lugnt" : ""}`;
+  d.setAttribute("role", "status");
+  d.innerHTML = `<small>Mästarcupen</small><b>FINALEN</b><span>${esc(S.K.klubb.namn)} – ${esc(n.mot.namn)}</span>`;
+  el.querySelector(".md-plan")?.appendChild(d);
+  await vanta(S.lugnt ? 1200 : 3200);
+  d.remove();
 }

@@ -5,9 +5,13 @@
 // matcher/{id}), säsongshistoriken och pokalskåpet. Allt utom detaljerna står i
 // karriärdokumentet som redan är läst – fliken kostar inga läsningar (§13).
 // Etapp 2c (#872, §9.2): rekorden (md-vy-cup.js rekordLista) och cupmatcherna.
+// Etapp 3 (#873): Mästarcupens matcher, klubbhistoriken (§10.3, de gamla klubbarna med
+// säsonger och pokaler) och pokalerna med de tecknade sorterna (hela skåpet: Pokalskåpet).
 // ============================================================================
 
-import { CUP, DIVISIONER } from "../delat/md-config.js";
+import { CUP, DIVISIONER, MASTARCUP } from "../delat/md-config.js";
+import { pokalSort } from "../delat/md-legend.js";
+import { historikHtml } from "./md-vy-pokaler.js";
 import { esc, procent, tidText } from "./md-vy-delat.js";
 import { rekordLista } from "./md-vy-cup.js";
 
@@ -28,9 +32,11 @@ const KVAL_UTFALL = { upp: "kvalade upp", kvar: "förlorade kvalet" };
 function matchTyp(m) {
   if (m.typ === "kval") return "kval";
   if (m.typ === "cup") return `${CUP.namn}, ${(CUP.rundor[tal(m.omg) - 1] || "cup").toLowerCase()}`;
+  if (m.typ === "mastarcup") return `${MASTARCUP.namn}, ${(MASTARCUP.rundor[tal(m.omg) - 1] || "cup").toLowerCase()}`;
   return `omgång ${m.omg == null ? "–" : tal(m.omg)}`;
 }
-const TAGG = { kval: "kval", cup: "cup" };
+const TAGG = { kval: "kval", cup: "cup", mastarcup: "Mästarcupen" };
+const POKAL_KLASS = { cup: " silver", mastarcup: " silver stor", superliga: " stor" };
 
 const STAT_RAD = [["skott", "Skott"], ["skottPaMal", "Skott på mål"], ["pass", "Pass"], ["passOk", "Lyckade pass"],
   ["tacklingar", "Tacklingar och täckningar"], ["vunnaBollar", "Vunna bollar"], ["raddningar", "Räddningar"], ["horner", "Hörnor"]];
@@ -75,10 +81,13 @@ export function visaStat(S, el) {
     <h3>Säsongerna</h3>
     ${(K.sasonger || []).length ? `<ul class="md-lista">${K.sasonger.map((x) => `<li>Säsong ${tal(x.sasong)} · ${esc(DIVISIONER[x.div] || "")} · plats ${tal(x.plac)} av ${tal(x.lag) || 6}${KVAL_UTFALL[x.kval] ? ` · ${KVAL_UTFALL[x.kval]}` : ""}</li>`).join("")}</ul>`
       : `<p class="md-svag">Säsong ${K.sasong} pågår.</p>`}
-    <h3>Pokalskåpet</h3>
-    ${(K.pokaler || []).length ? `<ul class="md-pokaler">${K.pokaler.map((p) => `<li><span class="md-pokal${p?.typ === "cup" ? " silver" : ""}" aria-hidden="true"></span>${esc(p?.namn)} <span class="md-svag">(säsong ${tal(p?.sasong)})</span></li>`).join("")}</ul>`
+    ${historikHtml(K)}
+    <h3>Pokalerna</h3>
+    ${(K.pokaler || []).length ? `<ul class="md-pokaler">${K.pokaler.map((p) => `<li><span class="md-pokal${POKAL_KLASS[pokalSort(p)] || ""}" aria-hidden="true"></span>${esc(p?.namn)} <span class="md-svag">(säsong ${tal(p?.sasong)})</span></li>`).join("")}</ul>
+      <p class="md-svag"><button type="button" class="md-lank" data-skap>Se dem i Pokalskåpet</button></p>`
       : `<p class="md-svag">Vinn en division eller ${esc(CUP.namn)} för din första pokal.</p>`}
   </div>`;
+  el.querySelector("[data-skap]")?.addEventListener("click", () => S.visa("pokaler"));
   const yta = el.querySelector(".md-detaljyta");
   el.querySelectorAll("[data-match]").forEach((b) => b.addEventListener("click", async () => {
     yta.innerHTML = `<p class="md-svag">Hämtar matchen …</p>`;

@@ -4,8 +4,10 @@
 // bakgrunden. Knappen av/på kommer ihåg valet (localStorage). Lugnt läge: inget
 // jubel och inget sorl, och allt lite dämpat.
 //
-//   skapaLjud({ lugnt, lagring? }) → { pa, satt(pa), spela(namn), sorl(pa), stang() }
-//   namn: vissla | slutvissla | spark | jubel | raddning | oj | sorl
+//   skapaLjud({ lugnt, lagring?, final? }) → { pa, satt(pa), spela(namn), sorl(pa), stang() }
+//   namn: vissla | slutvissla | spark | jubel | raddning | oj | sorl | fanfar
+//   final (#873, Mästarcupens final §10.2): ett större jubel och en fullsatt läktares sorl.
+//   fanfar: firandet efter en titel (lugnt läge: bara tonerna, dämpade).
 //   ljudPa(lagring) → bool   (sparat val, standard på)
 // ============================================================================
 
@@ -15,7 +17,7 @@ export function ljudPa(lagring = globalThis.localStorage) {
   try { return lagring?.getItem(LJUD_NYCKEL) !== "av"; } catch { return true; }
 }
 
-export function skapaLjud({ lugnt = false, lagring = globalThis.localStorage } = {}) {
+export function skapaLjud({ lugnt = false, lagring = globalThis.localStorage, final = false } = {}) {
   let pa = ljudPa(lagring);
   let ctx = null, huvud = null, brus = null, sorlKalla = null, sorlVill = false;
   const volym = lugnt ? 0.45 : 0.8;
@@ -77,7 +79,11 @@ export function skapaLjud({ lugnt = false, lagring = globalThis.localStorage } =
     vissla: (t) => ton(2600, t, 0.35, { gain: 0.12, vibrato: 60 }),
     slutvissla: (t) => { ton(2600, t, 0.3, { gain: 0.12, vibrato: 60 }); ton(2600, t + 0.4, 0.3, { gain: 0.12, vibrato: 60 }); ton(2600, t + 0.8, 0.7, { gain: 0.12, vibrato: 60 }); },
     spark: (t) => { brusStot(t, 0.09, { frekvens: 180, q: 1.2, gain: 0.5, typ: "lowpass" }); ton(90, t, 0.1, { gain: 0.25 }); },
-    jubel: (t) => { if (!lugnt) brusStot(t, 2.6, { frekvens: 1100, q: 0.5, gain: 0.35 }); },
+    jubel: (t) => { if (!lugnt) {
+      brusStot(t, final ? 4 : 2.6, { frekvens: 1100, q: 0.5, gain: final ? 0.5 : 0.35 });
+      if (final) brusStot(t + 0.3, 3.4, { frekvens: 600, q: 0.5, gain: 0.25 }); // det större jublet i finalen
+    } },
+    fanfar: (t) => [523, 659, 784, 1047].forEach((f, i) => ton(f, t + i * 0.22, i === 3 ? 0.9 : 0.24, { typ: "triangle", gain: lugnt ? 0.06 : 0.12 })),
     raddning: (t) => { if (!lugnt) brusStot(t, 1.1, { frekvens: 900, q: 0.6, gain: 0.18 }); },
     oj: (t) => { if (!lugnt) brusStot(t, 0.8, { frekvens: 500, q: 0.7, gain: 0.12 }); },
     sorl: () => {},
@@ -85,7 +91,7 @@ export function skapaLjud({ lugnt = false, lagring = globalThis.localStorage } =
 
   function startaSorl() {
     if (!pa || lugnt || !sorlVill || sorlKalla || !sammanhang()) return;
-    sorlKalla = brusStot(ctx.currentTime, 1, { frekvens: 420, q: 0.4, gain: 0.05, loop: true });
+    sorlKalla = brusStot(ctx.currentTime, 1, { frekvens: 420, q: 0.4, gain: final ? 0.08 : 0.05, loop: true });
   }
   function stoppaSorl() {
     if (!sorlKalla) return;

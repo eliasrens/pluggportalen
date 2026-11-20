@@ -5,42 +5,46 @@
 // 2D-reserven tar över utan WebGL, om three inte går att ladda och med ?2d=1 –
 // samma händelser, samma tider, samma match.
 //
-//   skapaPlan({ yta, lugnt, tvinga2d, vi, dem, avatar?, hooks? }) → Promise<plan>
+//   skapaPlan({ yta, lugnt, tvinga2d, vi, dem, avatar?, hooks?, final? }) → Promise<plan>
 //     vi/dem: { troja, byxor, mv, kapten? }   hooks: { utrop(text, ms), ljud(namn) }
+//     final (#873): Mästarcupens final – fullsatt läktare med flaggor (§10.2)
 //   plan.typ                    "3d" | "2d"
 //   plan.stall(m, { avspark })  ställ upp direkt efter motorns tillstånd
 //   plan.spela(h, m)            → Promise: händelsens animation (väntar tills den är klar)
 //   plan.straffStall(lag)       → Promise: straffen ställs upp, kameran på straffpunkten (#870, §7.4)
 //   plan.straff(h, m)           → Promise: straffens animation (md-straffar.js straffa → h)
 //   plan.straffSlut(m)          kameran tillbaka, laget ställs upp igen
+//   plan.fest(pokal)            firandet efter en titel (#873, §10.1–10.2): laget samlas, kaptenen
+//                               lyfter pokalen ("superliga" | "mastarcup"), fyrverkerier i lugnt tempo
+//                               (inga i lugnt läge) – pågår tills dispose()
 //   plan.fps(), plan.dispose()
 //   valjTyp({ webgl, tvinga2d }) → "3d" | "2d"   (ren, testad)
 // ============================================================================
 
-import { firande, formation, planX, straffUppstallning } from "./md-formation.js";
+import { festUppstallning, firande, formation, planX, straffUppstallning } from "./md-formation.js";
 
 export const valjTyp = ({ webgl, tvinga2d = false }) => (!webgl || tvinga2d ? "2d" : "3d");
 
 /** Tiderna (ms) för animationerna – ryms i balansens TID.anim (md-config.js). */
 export const ANIM = { pass: 750, lang: 1050, skott: 650, mal: 2600, raddning: 900, efter: 450, tillbaka: 900 };
 
-async function ritare({ yta, lugnt, tvinga2d }) {
+async function ritare({ yta, lugnt, tvinga2d, final }) {
   const { harWebGL, laddaThree } = await import("../../tre/tre-ladda.js");
   if (valjTyp({ webgl: harWebGL(), tvinga2d }) === "3d") {
     try {
       const [T, { skapa3dRitare }] = await Promise.all([laddaThree(), import("./md-tre-ritare.js")]);
-      return skapa3dRitare({ T, yta, lugnt });
+      return skapa3dRitare({ T, yta, lugnt, final });
     } catch (err) {
       console.warn("Matchdagen: 3D kunde inte startas – 2D-reserven tar över", err);
       yta.querySelector(".md-canvas")?.remove();
     }
   }
   const { skapa2dRitare } = await import("./md-plan-2d.js");
-  return skapa2dRitare({ yta, lugnt });
+  return skapa2dRitare({ yta, lugnt, final });
 }
 
-export async function skapaPlan({ yta, lugnt = false, tvinga2d = false, vi, dem, avatar = null, hooks = {} }) {
-  const r = await ritare({ yta, lugnt, tvinga2d });
+export async function skapaPlan({ yta, lugnt = false, tvinga2d = false, vi, dem, avatar = null, hooks = {}, final = false }) {
+  const r = await ritare({ yta, lugnt, tvinga2d, final });
   r.lag("vi", vi);
   r.lag("dem", dem);
   if (avatar) r.avatar(avatar);
@@ -96,6 +100,13 @@ export async function skapaPlan({ yta, lugnt = false, tvinga2d = false, vi, dem,
       straff = null;
       r.straffVy(null);
       this.stall(m, { avspark: true });
+    },
+    fest(pokal) {
+      straff = null;
+      r.straffVy(null);
+      r.zoom(false);
+      r.firar("dem", false);
+      r.fest(pokal, festUppstallning(vi?.kapten >= 0 ? vi.kapten : 1));
     },
     fps: () => r.fps(),
     dispose: () => r.dispose(),

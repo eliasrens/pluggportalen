@@ -6,11 +6,17 @@
 // ("KVAL till Division 5 · … är ett lag från divisionen ovanför"), och säsongs-
 // rutan berättar sedan hur kvalet gick. Silverpokalen (#872, §9.1): en cupmatch väntar
 // efter vissa ligaomgångar ("Silverpokalen · Kvartsfinal · … från Division 4") och spelas
-// före nästa ligamatch. Själva matchen spelas i md-match-spel.js.
+// före nästa ligamatch. Mästarcupen (#873, §10.2): en match i Mästarcupen väntar efter
+// Superligans omgång 3, 6 och 8 för den som är inbjuden ("FINALEN" före finalen). Efter en
+// vunnen Mästarcup erbjuds "Starta en legendklubb" (§10.3, md-vy-legend.js) här och när
+// säsongen är slut – inget tvång. Själva matchen spelas i md-match-spel.js.
 // ============================================================================
 
 import { CUP, DIVISIONER, KASSA, TOPP_DIV, TRANING } from "../delat/md-config.js";
 import { cupMatch } from "../delat/md-cup.js";
+import { mcMatch } from "../delat/md-mastarcup.js";
+import { legendErbjudande } from "../delat/md-legend.js";
+import { mastareText, mcFore, mcText } from "./md-vy-mastarcup.js";
 import { kvalMatch } from "../delat/md-kval.js";
 import { nastaMatch, nyKarriar, nySasong, sasongFro, tabellRader } from "../delat/md-sasong.js";
 import { skapaPrng } from "../delat/md-prng.js";
@@ -29,12 +35,14 @@ export const cupText = (c) => `${CUP.namn} · ${c.namn} · ${c.mot.namn} från $
 
 /**
  * Nästa match: cupmatchen när en väntar (efter vissa ligaomgångar, md-cup.js cupSchema),
- * annars ligamatchen, eller kvalet när ligan är slut och laget vann den – annars null.
+ * sedan en match i Mästarcupen (#873, md-mastarcup.js mcSchema), annars ligamatchen, eller kvalet när ligan är slut och laget vann den – annars null.
  * uid ger cupens lottning (samma motståndare vid omladdning).
  */
 export function nastaSpel(K, uid = "") {
   const c = cupMatch(K, uid);
   if (c) return { typ: "cup", omg: K.liga.omg, antal: K.liga.schema.length, runda: c.runda, mot: c.mot, cup: c, text: cupText(c) };
+  const mc = mcMatch(K, uid);
+  if (mc) return { typ: "mastarcup", omg: K.liga.omg, antal: K.liga.schema.length, runda: mc.runda, mot: mc.mot, mc, final: mc.final, text: mcText(mc) };
   const n = nastaMatch(K);
   if (n) return { typ: "liga", ...n, text: omgangText(K, n) };
   const kv = kvalMatch(K);
@@ -63,16 +71,18 @@ export async function visaMatchFlik(S, el) {
   const vi = S.K.klubb;
   const kval = n.typ === "kval";
   const cup = n.typ === "cup";
-  el.innerHTML = `<div class="md-panel md-fore${kval ? " md-kval" : cup ? " md-cupmatch" : ""}">
+  const mc = n.typ === "mastarcup";
+  el.innerHTML = `<div class="md-panel md-fore${kval ? " md-kval" : cup ? " md-cupmatch" : mc ? ` md-mcmatch${n.final ? " md-final" : ""}` : ""}">
     <p class="md-overrad">${esc(n.text)}</p>
     <h2 class="md-motet"><span>${chip(vi.farg)}${esc(vi.namn)}</span><span class="md-mot-streck">–</span><span>${chip(n.mot.farg)}${esc(n.mot.namn)}</span></h2>
     ${pagaende
       ? `<p class="md-pagar">${pagarText(pagaende)}</p>`
       : kval
         ? `<p>Ni vann ${esc(DIVISIONER[n.kval.div])}! Vinner ni kvalet går ni upp till <b>${esc(DIVISIONER[n.kval.till])}</b>. Blir det oavgjort avgörs det på straffar – fem var, sedan sudden death.</p>`
-        : cup ? cupFore(S.K, n)
+        : cup ? cupFore(S.K, n) : mc ? mcFore(S.K, n)
           : `<p class="md-svag">Varje drag ger en fråga. Svarar du rätt lyckas passet eller skottet oftare – men även snygga skott kan räddas, och långskott går sällan in.</p>`}
-    ${!pagaende && lagerNyckel(S.K) && !lagerPaborjat(S.K) ? `<p class="md-tips">Ni har ett träningsläger ledigt under <button type="button" class="md-lank" data-trupp>Truppen</button> – det går förlorat när nästa ${cup ? "ligamatch" : "match"} spelas.</p>` : ""}
+    ${!pagaende && lagerNyckel(S.K) && !lagerPaborjat(S.K) ? `<p class="md-tips">Ni har ett träningsläger ledigt under <button type="button" class="md-lank" data-trupp>Truppen</button> – det går förlorat när nästa ${cup || mc ? "ligamatch" : "match"} spelas.</p>` : ""}
+    ${!pagaende && legendErbjudande(S.K) ? legendTips : ""}
     <div class="md-rad">
       <button type="button" class="md-stor" data-avspark>${pagaende ? "Fortsätt matchen" : "Avspark!"}</button>
       ${S.lugnt ? `<span class="md-lugnt-etikett">Lugnt läge</span>` : ""}
@@ -80,6 +90,7 @@ export async function visaMatchFlik(S, el) {
     <p class="md-fel" aria-live="polite"></p>
   </div>`;
   el.querySelector("[data-trupp]")?.addEventListener("click", () => S.visa("trupp"));
+  el.querySelector("[data-legend]")?.addEventListener("click", () => legend(S, el));
   el.querySelector("[data-avspark]").addEventListener("click", async (e) => {
     e.currentTarget.disabled = true;
     const { spelaMatch } = await import("./md-match-spel.js");
@@ -91,6 +102,13 @@ export async function visaMatchFlik(S, el) {
       el.innerHTML = `<div class="md-panel md-tom"><h2>Något gick fel</h2><p>${esc(err?.meddelande || "Matchen kunde inte startas. Ladda om sidan och prova igen.")}</p></div>`;
     }
   });
+}
+
+/** Erbjudandet efter en vunnen Mästarcup (§10.3) – inget tvång. */
+const legendTips = `<p class="md-tips md-legendtips">Ni har vunnit Mästarcupen! Vill ni börja om från Division 6 med en ny klubb? Pokalskåpet och rekorden följer med.
+  <button type="button" class="md-lank" data-legend>Starta en legendklubb</button></p>`;
+async function legend(S, el) {
+  (await import("./md-vy-legend.js")).startaLegend(S, el, () => visaMatchFlik(S, el));
 }
 
 /** Rutan före en cupmatch (§9.1): vad som står på spel – och skrällen mot ett lag från en högre division. */
@@ -149,7 +167,7 @@ export function sasongSlutText(K, plac, antal) {
   const ligaDiv = k ? Number(k.div) || 0 : K.div;
   if (k?.vann) return { rubrik: "Uppflyttning!", text: `Kvalet slutade ${kvalResultat(k)}. Ni går upp till ${DIVISIONER[K.div]}! Motståndet blir tuffare – fler lag och starkare motståndare.` };
   if (k) return { rubrik: "Nära!", text: `Kvalet slutade ${kvalResultat(k)}. Ni stannar i ${DIVISIONER[ligaDiv]} och får en ny chans nästa säsong.` };
-  if (plac === 1 && K.div >= TOPP_DIV) return { rubrik: "Mästare!", text: `Ni vann ${DIVISIONER[K.div]} – den högsta ligan! Ni är bäst av alla.` };
+  if (plac === 1 && K.div >= TOPP_DIV) return { rubrik: mastareText().rubrik, text: mastareText().text };
   return { rubrik: "Säsongen är slut", text: `Ni slutade på plats ${plac} av ${antal} i ${DIVISIONER[K.div]}. Vinn ligan nästa säsong för att få kvala upp!` };
 }
 
@@ -162,9 +180,11 @@ async function sasongSlut(S, el) {
     <p class="md-overrad">Säsong ${Number(S.K.sasong) || 1} · ${esc(DIVISIONER[S.K.kval?.spelad ? Number(S.K.kval.div) || 0 : S.K.div])} · klar</p>
     <h2>${esc(t.rubrik)}</h2>
     <p>${esc(t.text)}</p>
-    <div class="md-rad"><button type="button" class="md-stor" data-ny>Starta nästa säsong</button><button type="button" class="md-ghost" data-tabell>Se tabellen</button></div>
+    <div class="md-rad"><button type="button" class="md-stor" data-ny>Starta nästa säsong</button>${legendErbjudande(S.K)
+      ? `<button type="button" class="md-stor md-guldknapp" data-legend>Starta en legendklubb</button>` : ""}<button type="button" class="md-ghost" data-tabell>Se tabellen</button></div>
   </div>`;
   el.querySelector("[data-tabell]").addEventListener("click", () => S.visa("tabell"));
+  el.querySelector("[data-legend]")?.addEventListener("click", () => legend(S, el));
   el.querySelector("[data-ny]").addEventListener("click", () => {
     startaNastaSasong(S);
     visaMatchFlik(S, el);
