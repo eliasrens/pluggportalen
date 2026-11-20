@@ -21,6 +21,16 @@ export const MOTSTANDARE = [
   "Hamreängs IK", "Valleby SK", "Bergsjöns Falkar", "Smedjebacka United", "Östanbäcks IF", "Lillåns BK",
 ];
 
+/**
+ * Mästarcupens toppklubbar (§10.2, Etapp 3): påhittade klubbar "från andra länder" – inga
+ * riktiga klubbar, bara namnformer som låter utländska (Real, AC, Atlético, Sporting …).
+ */
+export const TOPPKLUBBAR = [
+  "Real Solvik", "AC Nordstjärna", "Atlético Vindmar", "Sporting Kustby", "Dynamo Fjällby", "Olympique Havsbo",
+  "Inter Ljusdal", "Racing Bergvik", "Union Stenhamn", "Athletic Granfors", "Lokomotiv Isvik", "Royal Dimmaby",
+  "Rapid Solhamn", "Estrela Strandvik", "Deportivo Ekudden", "Spartak Vinterö",
+];
+
 export const FORNAMN = [
   "Alvin", "Selma", "Omar", "Wilma", "Leo", "Nora", "Ali", "Alva", "Hugo", "Juni", "Sami", "Ines",
   "Liam", "Maja", "Noah", "Saga", "Adam", "Ebba", "Theo", "Lova", "Isak", "Tilde", "Melvin", "Siri",

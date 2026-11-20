@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Matchdagen – förhandsvisning (#869, #870, #871, #872)</title>
+  <title>Matchdagen – förhandsvisning (#869, #870, #871, #872, #873)</title>
   <!-- Förhandsvisning av Etapp 1c med STUBBADE data (spec §15): hela appen
        (md-app.js) – en hel match i 3D eller 2D, tabellen, truppen och statistiken.
        Ingen Firebase: karriären och matcherna sparas i localStorage
@@ -25,7 +25,16 @@
          ?omg=N      spelar också Silverpokalens matcher som kommer före omgång N (vunna) – den som
                      väntar efter omgång N står kvar under Match ("Silverpokalen · Kvartsfinal · …")
          ?cup=ute    förlorar cupens andra match (utslagna)
-         ?rekord=1   en ligamatch står 6 – 0 i 88:e minuten – "Fortsätt matchen" → "Nytt rekord: 6 mål i en match!" -->
+         ?rekord=1   en ligamatch står 6 – 0 i 88:e minuten – "Fortsätt matchen" → "Nytt rekord: 6 mål i en match!"
+       Etapp 3 (#873):
+         ?mastare=1  Superligan, tio omgångar vunna – sista ligamatchen står 3 – 0 i 88:e minuten:
+                     "Fortsätt matchen" → mästare, pokalen lyfts (firandet), inbjudan till Mästarcupen
+         ?mc=1       inbjudna till Mästarcupen, kvartsfinalen väntar (efter omgång 3)
+         ?mc=final   finalen väntar ("FINALEN", fullsatt läktare med flaggor) – med &slut=1 står den
+                     2 – 0 i 88:e minuten: "Fortsätt matchen" → pokalen lyfts → "Starta en legendklubb"
+         ?mc=vunnen  Mästarcupen är vunnen den här säsongen – erbjudandet under Match
+         ?legend=1   en legendklubb (två guldstjärnor, två gamla klubbar i klubbhistoriken, fullt pokalskåp)
+         ?vy=pokaler Pokalskåpet -->
   <script type="importmap">
     { "imports": { "../src/game-shared.js": "./matchdagen-868/game-shared.js" } }
   </script>
@@ -48,6 +57,7 @@
     import { simMal } from "../src/matchdagen/delat/md-liga.js";
     import { skapaPrng } from "../src/matchdagen/delat/md-prng.js";
     import { kop, kopInfo } from "../src/matchdagen/delat/md-trupp.js";
+    import { mcKlar, mcMatch } from "../src/matchdagen/delat/md-mastarcup.js";
 
     const p = new URLSearchParams(location.search);
     const UID = "preview";
@@ -90,13 +100,40 @@
 
     // ?omg=N: en klubb med N påhittade omgångar (för tabellen och statistiken).
     if (p.get("klubb") === "ny") localStorage.removeItem(NYCKEL + "karriar");
-    else if (p.has("omg") || p.has("div") || p.has("kval") || p.has("straffar") || p.has("kassa") || p.has("trupp") || p.has("cup") || p.has("rekord") || !las("karriar")) {
+    else if (p.has("omg") || p.has("div") || p.has("kval") || p.has("straffar") || p.has("kassa") || p.has("trupp") || p.has("cup") || p.has("rekord") || p.has("mastare") || p.has("mc") || p.has("legend") || !las("karriar")) {
       const r = skapaPrng("preview-869").tal;
       let K = nyKarriar({ namn: "Blixtarna IF", farg: "#2f6fe8", rng: r });
-      const div = Math.max(0, Math.min(7, Number(p.get("div")) || 0));
+      // Etapp 3 (#873): toppen – Superligan, Mästarcupen och legendklubben.
+      const mc = p.get("mc");
+      const topp = p.has("mastare") || !!mc;
+      const div = topp ? 7 : Math.max(0, Math.min(7, Number(p.get("div")) || 0));
       if (div) K = { ...K, div, liga: nyLiga(div, K.klubb.farg, r) };
+      if (topp) {
+        K = { ...K, sasong: 9, kassa: 9000, trupp: K.trupp.map((x) => ({ ...x, st: 5 })), rekord: undefined,
+          pokaler: [{ typ: "liga", namn: "Vinnare Division 6", sasong: 1, datum: "2026-09-02" }, { typ: "kval", namn: "Kvalade upp till Division 5", sasong: 1, datum: "2026-09-02" },
+            { typ: "cup", namn: "Silverpokalen", sasong: 4, datum: "2026-10-01" }, { typ: "superliga", namn: "Mästare i Superligan", sasong: 8, datum: "2026-11-12" }] };
+        if (mc) K.mastarcup = `${K.sasong}-0`;
+      }
+      if (p.get("legend") === "1") {
+        K = { ...K, sasong: 31, klubb: { ...K.klubb, legendStjarnor: 2 },
+          klubbhistorik: ["Pluggporten FC|#e8473f|1-14|4.5.2.2.1", "Åskvädret IF|#8e5cf7|15-30|5.6.3.3.1"],
+          pokaler: [1, 3, 5, 9, 16, 18, 20, 23, 31].map((s, i) => ({ typ: ["liga", "kval", "cup"][i % 3], namn: ["Vinnare Division 6", "Kvalade upp till Division 5", "Silverpokalen"][i % 3], sasong: s, datum: "2026-10-01" }))
+            .concat([12, 13, 27, 28, 29].map((s) => ({ typ: "superliga", namn: "Mästare i Superligan", sasong: s, datum: "2026-11-01" })),
+              [14, 30].map((s) => ({ typ: "mastarcup", namn: "Mästarcupen", sasong: s, datum: "2026-11-10" }))) };
+      }
       const kval = p.get("kval") === "1" || p.get("straffar") === "1";
-      const n = kval ? K.liga.schema.length : Math.min(K.liga.schema.length, Number(p.get("omg")) || 0);
+      const n = kval ? K.liga.schema.length : p.has("mastare") ? K.liga.schema.length - 1 : mc === "1" ? 3 : mc ? 8
+        : Math.min(K.liga.schema.length, Number(p.get("omg")) || 0);
+      // Mästarcupen (#873): en match som väntar spelas efter cupen, före ligamatchen – vunnen.
+      let mcNr = 0;
+      const spelaMc = (i) => {
+        const stat = { skott: 7, skottPaMal: 4, pass: 15, passOk: 11, tacklingar: 6, vunnaBollar: 4, raddningar: 3, horner: 2, derasSkott: 4,
+          fragor: 29, ratt: 24, perKalla: { "tabell:7": { fragor: 29, ratt: 24 } }, sekunder: 430 };
+        const ut = mcKlar(K, { res: { oss: 2, dem: 1, utfall: "", mal: [{ min: 21, lag: "oss" }, { min: 55, lag: "dem" }, { min: 80, lag: "oss" }], stat },
+          rng: r, nu: Date.now() - (n - i) * 2 * 86400000 - 1800000, matchId: `mc${++mcNr}`, uid: UID });
+        K = ut.K;
+        skriv(`match:mc${mcNr}`, { ...ut.match, id: `mc${mcNr}` });
+      };
       // Silverpokalen (#872): en cupmatch som väntar spelas före ligamatchen, som i appen.
       let cupNr = 0;
       const spelaCup = (i) => {
@@ -112,7 +149,8 @@
       };
       for (let i = 0; i < n && nastaMatch(K); i++) {
         if (cupMatch(K, UID)) spelaCup(i);
-        const [oss, dem] = kval ? [3 + (i % 2), i % 2] : simMal(0.36, nastaMatch(K).mot.styrka, r);
+        if (mcMatch(K, UID)) spelaMc(i);
+        const [oss, dem] = kval || topp ? [3 + (i % 2), i % 2] : simMal(0.36, nastaMatch(K).mot.styrka, r);
         const fragor = 26 + Math.floor(r() * 5), ratt = Math.round(fragor * (0.6 + r() * 0.25));
         const stat = { skott: 4 + oss * 2, skottPaMal: 2 + oss, pass: 14, passOk: 10, tacklingar: 6, vunnaBollar: 4, raddningar: 2, horner: 1, derasSkott: 3,
           fragor, ratt, perKalla: { "omrade:so/sverige": { fragor: Math.round(fragor / 2), ratt: Math.round(ratt / 2) }, "tabell:7": { fragor: fragor - Math.round(fragor / 2), ratt: ratt - Math.round(ratt / 2) } }, sekunder: 400 + r() * 60 };
@@ -132,6 +170,7 @@
         K.trupp = K.trupp.map((x, i) => (x.st < 5 ? { ...x, xp: [36, 72, 12, 84, 48, 0, 24][i] } : x));
         K.kassa = 1500;
       }
+      if (mc === "vunnen" && mcMatch(K, UID)) spelaMc(n);
       if (p.has("kassa")) K.kassa = Math.max(0, Number(p.get("kassa")) || 0);
       skriv("karriar", K);
       // ?straffar=1: kvalet står 1 – 1 efter full tid och ligger som en pågående match (md-lokal.js).
@@ -144,6 +183,15 @@
           mal: [3, 17, 29, 44, 61, 80].map((min) => ({ min, lag: "oss" })) };
         Object.assign(m.stat, { skott: 11, skottPaMal: 8, pass: 16, passOk: 13, fragor: 30, ratt: 26, sekunder: 420 });
         localStorage.setItem(`matchdagen-match:${UID}`, JSON.stringify({ v: 1, sasong: K.sasong, omg: K.liga.omg, typ: "liga", matchId: "preview-rekord", m }));
+      } else if ((p.has("mastare") && nastaMatch(K)) || (mc === "final" && p.get("slut") === "1" && mcMatch(K, UID))) {
+        // ?mastare=1 / ?mc=final&slut=1: matchen står 3 – 0 (2 – 0) i 88:e minuten – ett läge till och slutsignalen.
+        const f = mcMatch(K, UID);
+        const mot = f ? f.mot : nastaMatch(K).mot;
+        const m = { ...nyMatch({ mot: { namn: mot.namn, styrka: mot.styrka }, div: K.div, avgor: !!f }), min: 88, halvlek: 2, oss: f ? 2 : 3, dem: 0, lagen: 40,
+          mal: (f ? [34, 70] : [12, 50, 77]).map((min) => ({ min, lag: "oss" })) };
+        Object.assign(m.stat, { skott: 9, skottPaMal: 6, pass: 16, passOk: 13, fragor: 30, ratt: 25, sekunder: 420 });
+        localStorage.setItem(`matchdagen-match:${UID}`, JSON.stringify({ v: 1, sasong: K.sasong, omg: K.liga.omg, typ: f ? "mastarcup" : "liga", ...(f ? { runda: f.runda } : {}),
+          matchId: f ? "preview-final" : "preview-mastare", m }));
       } else if (p.get("straffar") === "1" && kv) {
         const m = { ...nyMatch({ mot: { namn: kv.mot.namn, styrka: kv.mot.styrka }, div: K.div, avgor: true }),
           min: 90, halvlek: 2, slut: true, oss: 1, dem: 1, lagen: 38, mal: [{ min: 23, lag: "oss" }, { min: 71, lag: "dem" }] };

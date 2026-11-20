@@ -894,8 +894,8 @@ matchen), när klubben skapas eller döps om och (#871) efter varje köp, byte o
 | Fält | Typ | Beskrivning |
 | --- | --- | --- |
 | `version` | int | Formens version (1) |
-| `klubb` | `{ namn, farg, legendStjarnor }` | Lagnamn 1–24 tecken, tröjfärg `#rrggbb` (en av 8), legendstjärnor (Etapp 3, 0) |
-| `div` | int 0–7 | Divisionen, 0 = Division 6 … 7 = Superligan. Går bara uppåt, en division per vunnet kval (#870) |
+| `klubb` | `{ namn, farg, legendStjarnor }` | Lagnamn 1–24 tecken, tröjfärg `#rrggbb` (en av 8), `legendStjarnor` = guldstjärnorna på klubbmärket (#873): 0 för en ny klubb, +1 för varje legendklubb – är fältet med i en ändrad klubb godtar reglerna bara det sparade värdet, eller +1 när `klubbhistorik` växer; fältet kan utelämnas (= 0, bara nedåt – Testern F3) |
+| `div` | int 0–7 | Divisionen, 0 = Division 6 … 7 = Superligan. Går bara uppåt, en division per vunnet kval (#870) – utom när en legendklubb startar om i Division 6 (#873) |
 | `sasong` | int | Säsongens nummer, börjar på 1 |
 | `kassa` | number | Klubbkassan – spelets egen valuta, inga pluggmynt. Växer med matcherna, minskar med köpen (#871) |
 | `trupp` | array, exakt 7 | Startelvan i fast ordning (MV, FÖR, FÖR, MIT, MIT, ANF, ANF): `{ id, namn, pos: "MV"\|"FÖR"\|"MIT"\|"ANF", nr, st: 1–5, xp: 0–99, grundpelare?, kapten? }` – namnen är färdiga. En köpt spelare (#871) har id `k…` och ingen `grundpelare`/`kapten` |
@@ -904,7 +904,7 @@ matchen), när klubben skapas eller döps om och (#871) efter varje köp, byte o
 | `lager` | string | #871: det senast använda träningslägret, `"säsong-omgång"` eller `"säsong-k"` (före kvalet); med `"-p"` efter (`"1-3-p"`) är lägret påbörjat men inte klart (docs/MATCHDAGEN.md §15.1). Saknas tills första lägret |
 | `liga` | map | `lag: [{ id, namn?, farg?, styrka? }]` (vårt lag är `{ id: "oss" }`, namnet ur `klubb`), `schema: ["a:b\|c:d\|e:f", …]` (en sträng per omgång – Firestore tillåter inga listor i listor), `tabell: { [id]: { s, v, o, f, gm, im, p } }`, `omg` (spelade omgångar) |
 | `kval` | map \| null | #870: ligavinnaren under Superligan – `{ div, sasong, mot: { namn, farg, styrka }, spelad, vann?, oss?, dem?, straffar?: [vi, de] }`. `null` när ingen kvalmatch väntar eller har spelats (ny säsong) |
-| `pokaler` | array ≤ 300 | #872: rader `"typ\|namn\|säsong\|ÅÅÅÅ-MM-DD"` (appen gör om dem till `{ typ, namn, sasong, datum }`, `md-sasong.js pokalerFranDok`; äldre dokument kan ha objekten kvar tills listan ändras) – ligavinst (`typ` "liga"): "Vinnare Division 6"; uppflyttning (`typ` "kval", #870): "Kvalade upp till Division 5"; Silverpokalen (`typ` "cup", #872) |
+| `pokaler` | array ≤ 300 | #872: rader `"typ\|namn\|säsong\|ÅÅÅÅ-MM-DD"` (appen gör om dem till `{ typ, namn, sasong, datum }`, `md-sasong.js pokalerFranDok`; äldre dokument kan ha objekten kvar tills listan ändras) – ligavinst (`typ` "liga"): "Vinnare Division 6"; uppflyttning (`typ` "kval", #870): "Kvalade upp till Division 5"; Silverpokalen (`typ` "cup", #872); mästare i Superligan (`typ` "superliga", #873 – äldre dokument har "liga\|Vinnare Superligan", som skåpet räknar som Superligan); Mästarcupen (`typ` "mastarcup", #873). Följer med till en legendklubb |
 | `cup` | string | #872: Silverpokalen den här säsongen, `"säsong-spelade"` (`"3-2"`), `"-u"` efter = utslagna i den rundan (`"3-2-u"`), `"säsong-4"` = vunnen. Saknas eller annan säsong = ingen runda spelad (docs/MATCHDAGEN.md §16.1) |
 | `rekord` | string | #872: rekorden som EN rad, `"mm5.3\|ms30.2\|ss6-0.3\|sv12.4\|lt\|os\|ar85.2\|sm2.1\|nu…"` (värde.säsong; tomt = inget rekord) + den här säsongens löpande tal (`nu`) – `md-rekord.js`, docs/MATCHDAGEN.md §16.2 |
 | `summa` | map | `matcher, v, o, f, gjorda, inslappta, fragor, ratt, spelminuter, perKalla: { [källnyckel]: { fragor, ratt, namn? } }` (≤ 150 källor; träningslägrets frågor under `traning`, #871) |
@@ -912,24 +912,25 @@ matchen), när klubben skapas eller döps om och (#871) efter varje köp, byte o
 | `sasonger` | array ≤ 200 | `{ sasong, div, plac, lag, kval? }` per avslutad säsong – `kval` "upp" \| "kvar" efter ett spelat kval (#870) |
 | `dagar` | map ≤ 70 | `"ÅÅÅÅ-MM-DD" → { m, sek, fragor, ratt }` – lärarens speltid 7 dagar och veckolinje |
 | `senast` | timestamp | Serverns tid vid varje skrivning |
-| `mastarcup` | – | Reserverat för Etapp 3 (reglerna nekar det tills dess, #872) |
+| `mastarcup` | string \| null | #873: Mästarcupen, `"säsong-spelade"` – `"13-0"` = inbjudna säsong 13 (sätts när Superligan vinns säsongen före), `"13-2"` = två rundor vunna, `"-u"` efter = utslagna i den rundan, `"säsong-3"` = vunnen. `null` i en legendklubb; saknas, `null` eller en annan säsong = inte inbjudna (docs/MATCHDAGEN.md §17.2) |
+| `klubbhistorik` | array ≤ 50 | #873: de gamla klubbarna, en rad per legendklubb `"namn\|#färg\|från-till\|liga.kval.cup.superliga.mastarcup"` (`"Blixtarna IF\|#2f6fe8\|1-13\|2.3.1.1.1"` – säsongerna och antalet pokaler av varje sort), högst 4 000 tecken. Växer bara med exakt en rad, när en legendklubb startar (`md-legend.js`, docs/MATCHDAGEN.md §17.3). Saknas tills första legendklubben |
 
 Läraren med `hasStudent(uid)` läser och får bara sätta `klubb.namn` = "Pluggporten FC"
 (Återställ lagnamn). Typisk storlek: ~2 kB för en ny klubb; med alla tak fyllda ~61 kB
 (+ ~1 kB med 5 reserver och 6 till salu, #871; spec: ≤ 200 kB – reglerna håller det inte för strängarna i
 ligans lag, `senaste` och `sasonger`, där ett dokument skrivet förbi appen kan nå 1 MiB; `pokaler`, `cup` och `rekord`
-prövas med reguljära uttryck sedan #872; MATCHDAGEN.md §10). ⚠️ rules-deploy.
+prövas med reguljära uttryck sedan #872; `mastarcup` och `klubbhistorik` likaså sedan #873; MATCHDAGEN.md §10). ⚠️ rules-deploy.
 
 ### `matchdagen/{uid}/matcher/{matchId}` – en spelad match (#869)
 
-`matchId` = `s{säsong}-d{div}-o{omgång}-{tid i bas 36}`, för kvalet `s{säsong}-d{div}-kval-{tid}` (#870). Skapas EN gång (bara `create`) i
+`matchId` = `s{säsong}-d{div}-o{omgång}-{tid i bas 36}`, för kvalet `s{säsong}-d{div}-kval-{tid}` (#870), Silverpokalen `…-cup{runda}-{tid}` (#872), Mästarcupen `…-mc{runda}-{tid}` (#873). Skapas EN gång (bara `create`) i
 samma batch som karriären; ingen ändring, radering bara av admin.
 
 | Fält | Typ | Beskrivning |
 | --- | --- | --- |
 | `datum` | timestamp | Serverns tid |
 | `sasong`, `div`, `omg` | int | Var i karriären |
-| `typ` | `"liga"` \| `"kval"` (#870) \| `"cup"` (#872) \| `"mastarcup"` \| `"vanskap"` | Kvalet har ingen `omg`; `div` är divisionen det spelades från. En cupmatch har `omg` = rundan 1–4 |
+| `typ` | `"liga"` \| `"kval"` (#870) \| `"cup"` (#872) \| `"mastarcup"` (#873) \| `"vanskap"` | Kvalet har ingen `omg`; `div` är divisionen det spelades från. En cupmatch har `omg` = rundan 1–4, en match i Mästarcupen `omg` = rundan 1–3 |
 | `mot`, `oss`, `dem` | string, int, int | Motståndarens namn och resultatet |
 | `mal` | array ≤ 80 | `{ min, lag }` |
 | `stat` | map ≤ 20 | Matchens statistik (spec §3.6, utan `perKalla`) |

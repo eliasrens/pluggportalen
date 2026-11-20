@@ -8,19 +8,24 @@
 //   sparaKon(S, K?) → bool         sparar köns matcher i ordning med karriären K
 //                                  (standard köns egen); true = kön är tom
 //   ovanpaServern(K, G, koe) → K   den lokala karriären ovanpå serverns trupp (#871)
+//   legender(K) → antal             gamla klubbar i klubbhistoriken (#873)
+//
+// En legendklubb (#873) som startats någon annanstans – en annan dator, eller en sparning
+// vars svar kom efter tidsgränsen men som gick fram – har en längre klubbhistorik på
+// servern. Då hör kön till den gamla klubben och kan aldrig sparas: serverns nya klubb gäller.
 //
 // Kön ligger kvar tills varje match har sparats, så flera misslyckade sparningar i
 // rad (offline) förlorar ingen match. Kunde karriären inte läsas skrivs ingenting –
 // en gammal lokal kopia får aldrig skriva över en nyare på servern (S.lasfel).
 // ============================================================================
 
-import { CUP, KASSA } from "./delat/md-config.js";
+import { CUP, KASSA, MASTARCUP } from "./delat/md-config.js";
 import { karriarOk, pengarFor } from "./delat/md-sasong.js";
 import { lasOsparad, sparaOsparad } from "./md-lokal.js";
 
 /**
  * Pengarna som köns matcher gav (pengarFor + uppflyttningen efter ett vunnet kval och
- * prispengarna efter en vunnen cupfinal, #872) – ur matchdokumenten.
+ * prispengarna efter en vunnen cupfinal, #872, och en vunnen final i Mästarcupen, #873) – ur matchdokumenten.
  */
 export function konsPengar(koe) {
   return koe.reduce((sum, { match: m }) => {
@@ -28,7 +33,8 @@ export function konsPengar(koe) {
     const st = Array.isArray(m?.straffar) ? m.straffar.map(Number) : null;
     const vann = oss > dem || (oss === dem && st && st[0] > st[1]);
     const extra = m?.typ === "kval" && vann ? KASSA.uppflyttning
-      : m?.typ === "cup" && vann && Number(m?.omg) === CUP.rundor.length ? CUP.seger : 0;
+      : m?.typ === "cup" && vann && Number(m?.omg) === CUP.rundor.length ? CUP.seger
+        : m?.typ === "mastarcup" && vann && Number(m?.omg) === MASTARCUP.rundor.length ? MASTARCUP.seger : 0;
     return sum + pengarFor({ oss, dem }, Number(m?.ratt) || 0, div) + Math.round(extra * (1 + div * KASSA.perDiv));
   }, 0);
 }
@@ -56,6 +62,7 @@ export async function sparaKon(S, K = null) {
   const kvar = [...o.koe];
   let Kn = K || o.K;
   let ovanpa = false;
+  let nyKlubb = false;
   try {
     while (kvar.length) {
       const { matchId, match } = kvar[0];
@@ -66,6 +73,13 @@ export async function sparaKon(S, K = null) {
         if (err?.code !== "permission-denied" || ovanpa) throw err;
         const G = await S.data.lasKarriar(S.uid);
         if (!karriarOk(G)) throw err;
+        if (legender(G) > legender(Kn)) { // en legendklubb (#873): kön hör till den gamla klubben
+          console.warn(`Matchdagen: en ny legendklubb finns på servern – ${kvar.length} match(er) för den gamla klubben sparas inte`);
+          kvar.length = 0;
+          Kn = G;
+          nyKlubb = true;
+          break;
+        }
         Kn = ovanpaServern(Kn, G, kvar);
         ovanpa = true;
         continue;
@@ -75,12 +89,14 @@ export async function sparaKon(S, K = null) {
   } catch (err) {
     console.warn(`Matchdagen: ${kvar.length} match(er) kunde inte sparas än – de ligger kvar på datorn`, err);
   }
-  if (ovanpa) S.K = S.K ? { ...Kn, klubb: S.K.klubb } : Kn;
+  if (nyKlubb) S.K = Kn;
+  else if (ovanpa) S.K = S.K ? { ...Kn, klubb: S.K.klubb } : Kn;
   sparaOsparad(S.lagring, S.uid, kvar.length ? { K: ovanpa ? Kn : o.K, koe: kvar } : null);
   return !kvar.length;
 }
 
 const antalMatcher = (K) => Number(K?.summa?.matcher) || 0;
+export const legender = (K) => (Array.isArray(K?.klubbhistorik) ? K.klubbhistorik.length : 0);
 
 export async function hamtaKarriar(S) {
   let K = null;
@@ -94,6 +110,11 @@ export async function hamtaKarriar(S) {
   K = karriarOk(K) ? K : null;
   const o = lasOsparad(S.lagring, S.uid);
   if (!o) return K;
+  if (K && legender(K) > legender(o.K)) { // en legendklubb på servern (#873): kön hör till den gamla
+    console.warn(`Matchdagen: en ny legendklubb finns på servern – ${o.koe.length} match(er) för den gamla klubben sparas inte`);
+    sparaOsparad(S.lagring, S.uid, null);
+    return K;
+  }
   // Den lokala har fler matcher (de osparade) – men klubben (namnet) är serverns:
   // läraren kan ha återställt lagnamnet medan matcherna låg kvar på datorn.
   S.K = !K || antalMatcher(o.K) > antalMatcher(K) ? (K ? { ...o.K, klubb: K.klubb } : o.K) : K;

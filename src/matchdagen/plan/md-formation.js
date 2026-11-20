@@ -9,6 +9,7 @@
 //   formation({ x, y, innehav, avspark? }) → { vi: [[x, y] × 7], dem: [[x, y] × 7], boll: [x, y], vid: { lag, i } | null }
 //   firande(vi, lag, boll)                → lagets spelare samlas kring målskytten
 //   straffUppstallning(lag)               → { vi, dem, boll, skytt, malvakt, mallinje } vid en straff (#870, §7.4)
+//   festUppstallning(kapten)              → { vi, dem, mitt } när pokalen lyfts (#873, §10.1–10.2)
 // ============================================================================
 
 import { STRAFFPUNKT_M } from "../delat/md-config.js";
@@ -87,4 +88,22 @@ export function straffUppstallning(lag) {
   (skytt.lag === "vi" ? vi : dem)[5] = [punkt + (hoger ? -1.6 : 1.6), PLAN_B / 2 + 0.6];
   (malvakt.lag === "vi" ? vi : dem)[0] = [mallinje + (hoger ? -0.6 : 0.6), PLAN_B / 2];
   return { vi, dem, boll: [punkt, PLAN_B / 2], skytt, malvakt, mallinje };
+}
+
+/**
+ * Firandet efter en titel (#873): vårt lag i en halvcirkel mitt på planen med kaptenen
+ * längst fram (närmast tv-kameran, +y), motståndarna i en rad vid bortre långsidan.
+ */
+export const FEST_MITT = [PLAN_L / 2, PLAN_B / 2 + 4];
+export function festUppstallning(kapten = 1) {
+  const [mx, my] = FEST_MITT;
+  const andra = GRUND.map((_, i) => i).filter((i) => i !== kapten);
+  const vi = GRUND.map(() => [mx, my]);
+  vi[kapten] = [mx, my + 1.5];
+  andra.forEach((i, j) => {
+    const v = Math.PI * (0.12 + (0.76 * j) / (andra.length - 1));
+    vi[i] = [mx - Math.cos(v) * 5.5, my - Math.sin(v) * 3.2];
+  });
+  const dem = GRUND.map((_, i) => [PLAN_L / 2 - 15 + i * 5, 7]);
+  return { vi, dem, mitt: FEST_MITT };
 }

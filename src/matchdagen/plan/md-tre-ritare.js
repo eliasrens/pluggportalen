@@ -6,10 +6,11 @@
 // Lugnt läge / prefers-reduced-motion: fast kamera över hela planen, ingen zoom,
 // spelarna och bollen hoppar direkt till sina platser.
 //
-//   skapa3dRitare({ T, yta, lugnt }) → {
+//   skapa3dRitare({ T, yta, lugnt, final? }) → {
 //     typ: "3d",
 //     lag(sida, { troja, byxor, mv, kapten? }), spelare(sida, pos[7], { direkt }),
 //     boll(x, y, { hojd, ms }), firar(sida, pa), malEffekt(sida), zoom(pa), straffVy(lag | null),
+//     fest(pokal, { vi, dem, mitt })   #873: laget samlas, kaptenen lyfter pokalen, fyrverkerier (md-tre-fest.js)
 //     avatar(canvas), fps() → { snitt, lagst, bilder }, dispose()
 //   }
 //   sida: "vi" | "dem". Positioner i planmeter (0–105, 0–68), se md-formation.js.
@@ -17,6 +18,7 @@
 
 import { byggArena } from "./md-tre-arena.js";
 import { skapaFigur, skapaFigurDelar, stegaFigur } from "./md-tre-figur.js";
+import { skapaFest } from "./md-tre-fest.js";
 import { PLAN_B, PLAN_L } from "./md-formation.js";
 
 const BOLL_R = 0.3;
@@ -35,7 +37,7 @@ function bollTextur(T) {
   return t;
 }
 
-export function skapa3dRitare({ T, yta, lugnt = false }) {
+export function skapa3dRitare({ T, yta, lugnt = false, final = false }) {
   const canvas = document.createElement("canvas");
   canvas.className = "md-canvas";
   yta.appendChild(canvas);
@@ -46,7 +48,7 @@ export function skapa3dRitare({ T, yta, lugnt = false }) {
   renderer.setPixelRatio(pixel);
   const scen = new T.Scene();
   const kamera = new T.PerspectiveCamera(36, 16 / 9, 0.5, 400);
-  const arena = byggArena(T, scen, { lugnt });
+  const arena = byggArena(T, scen, { lugnt, final });
   const delar = skapaFigurDelar(T);
 
   const lagen = { vi: { figurer: [] }, dem: { figurer: [] } };
@@ -137,12 +139,34 @@ export function skapa3dRitare({ T, yta, lugnt = false }) {
   /** Straffläggningen (§7.4): kameran bakom straffpunkten mot målet – "oss" höger mål, "dem" vänster. */
   let straffSida = 0;
   function straffVy(lag) { straffSida = lag === "oss" ? 1 : lag === "dem" ? -1 : 0; }
+  /** Firandet efter en titel (#873): pokalen följer kaptenen och lyfts över huvudet. */
+  let festen = null; // { fx, pokal, kapten, t0, mitt }
+  function fest(sort, { vi, dem, mitt }) {
+    if (festen) return;
+    const fx = skapaFest(T, scen, { lugnt });
+    const pokal = fx.pokal(sort);
+    pokal.scale.setScalar(sort === "mastarcup" ? 1.5 : 1.4);
+    scen.add(pokal);
+    spelare("vi", vi, { direkt: lugnt });
+    spelare("dem", dem, { direkt: lugnt });
+    bollM.visible = false;
+    bollSk.visible = false;
+    const L = lagen.vi;
+    L.figurer.forEach((f, i) => { f.userData.hopp = lugnt ? 0 : i === L.kapten ? 0.6 : 1; });
+    festen = { fx, pokal, kapten: L.figurer[L.kapten >= 0 ? L.kapten : 1], t0: performance.now(), mitt };
+  }
 
   // ---- kameran --------------------------------------------------------------
   const kamPos = new T.Vector3(0, 24, 46), kamMal = new T.Vector3(), kamPosMal = new T.Vector3(), kamMalMal = new T.Vector3();
   function kameraSteg(nu, dt) {
     const bx = bollM.position.x, bz = bollM.position.z;
-    if (lugnt) { // fast vy över hela planen – ingen följning, ingen zoom
+    if (festen) { // firandet: nära laget, pokalen och fyrverkerierna ovanför läktaren – i lugnt läge ett klipp, ingen åkning
+      kamPosMal.set(tillX(festen.mitt[0]), 3.2, tillZ(festen.mitt[1]) + 15);
+      kamMalMal.set(tillX(festen.mitt[0]), 3.4, tillZ(festen.mitt[1]) - 4);
+      const k = lugnt ? 1 : 1 - Math.pow(0.15, dt);
+      kamPos.lerp(kamPosMal, k);
+      kamMal.lerp(kamMalMal, k);
+    } else if (lugnt) { // fast vy över hela planen – ingen följning, ingen zoom
       kamPos.set(0, 52, 62);
       kamMal.set(0, 0, 4);
     } else {
@@ -160,6 +184,7 @@ export function skapa3dRitare({ T, yta, lugnt = false }) {
     kamera.position.copy(kamPos);
     kamera.lookAt(kamMal);
   }
+
 
   // ---- loopen ---------------------------------------------------------------
   const bilder = []; // tidpunkter (ms) för de senaste bilderna
@@ -182,7 +207,18 @@ export function skapa3dRitare({ T, yta, lugnt = false }) {
     }
     bollSk.position.set(bollM.position.x, 0.03, bollM.position.z);
     const tid = nu / 1000;
-    for (const L of [lagen.vi, lagen.dem]) for (const f of L.figurer) stegaFigur(f, dt, { direkt: lugnt, tittaPa: bollM.position, tid });
+    const titta = festen ? kamPos : bollM.position;
+    for (const L of [lagen.vi, lagen.dem]) for (const f of L.figurer) stegaFigur(f, dt, { direkt: lugnt, tittaPa: titta, tid });
+    if (festen) {
+      const k = festen.kapten.position;
+      const lyft = lugnt ? 1 : Math.min(1, Math.max(0, (nu - festen.t0 - 900) / 1600)); // först fram till mitten, sedan upp
+      const e = 1 - (1 - lyft) ** 3;
+      festen.pokal.position.set(k.x, 2.1 + e * 1.3 + k.y, k.z + 0.35);
+      festen.pokal.rotation.y = lugnt ? 0.4 : 0.4 + Math.sin(tid * 0.8) * 0.25;
+      festen.fx.steg(dt, tid);
+      if (!lugnt) arena.publikJubel((tid % 2.5) / 2.5);
+    }
+    arena.steg?.(tid);
     for (let i = effekter.length - 1; i >= 0; i--) {
       const e = effekter[i];
       const t = Math.min(1, (nu - e.t0) / e.ms);
@@ -212,7 +248,7 @@ export function skapa3dRitare({ T, yta, lugnt = false }) {
 
   return {
     typ: "3d",
-    lag, spelare, boll, firar, malEffekt, zoom, straffVy, avatar, uppdateraAvatar,
+    lag, spelare, boll, firar, malEffekt, zoom, straffVy, avatar, uppdateraAvatar, fest,
     /** Uppmätta bilder per sekund över de senaste bilderna. */
     fps() {
       if (bilder.length < 10) return { snitt: 0, lagst: 0, bilder: bilder.length };
@@ -227,6 +263,7 @@ export function skapa3dRitare({ T, yta, lugnt = false }) {
       cancelAnimationFrame(raf);
       ro?.disconnect();
       delar.dispose();
+      festen?.fx.dispose();
       arena.dispose();
       bollTex.dispose();
       avatarSprite?.userData.tex.dispose();

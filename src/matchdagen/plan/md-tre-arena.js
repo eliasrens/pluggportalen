@@ -5,8 +5,11 @@
 // kvällsljuset med fyra strålkastarmaster. Tar three-modulen T som argument –
 // three laddas bara när matchen startar (src/tre/tre-ladda.js).
 //
-//   byggArena(T, scen, { lugnt }) → { natBukt(sida, t), publikJubel(t), dispose() }
+//   byggArena(T, scen, { lugnt, final? }) → { natBukt(sida, t), publikJubel(t), steg(tid), dispose() }
 //   sida: 1 = deras mål (höger, +x), -1 = vårt mål. t = 0–1 (effektens styrka).
+//   final (#873, Mästarcupens final §10.2): fullsatt läktare (tätare publik), flaggor som
+//   vajar längs läktarens framkant (EN InstancedMesh – ett ritanrop) och skyltarna
+//   "MÄSTARCUPEN"/"FINALEN". Lugnt läge: flaggorna står still.
 // ============================================================================
 
 import { PLAN_B, PLAN_L } from "./md-formation.js";
@@ -40,8 +43,8 @@ function planTextur() {
   return c;
 }
 
-/** Reklamskyltarna: PLUGGPORTEN och MATCHDAGEN om vartannat. */
-function skyltTextur() {
+/** Reklamskyltarna: PLUGGPORTEN och MATCHDAGEN om vartannat – i finalen MÄSTARCUPEN och FINALEN. */
+function skyltTextur(final = false) {
   const c = canvas(1024, 64);
   const g = c.getContext("2d");
   for (let i = 0; i < 4; i++) {
@@ -50,13 +53,13 @@ function skyltTextur() {
     g.fillStyle = i % 2 ? "#1b1500" : "#fff";
     g.font = "800 34px 'Barlow Condensed', 'Arial Narrow', sans-serif";
     g.textAlign = "center";
-    g.fillText(i % 2 ? "MATCHDAGEN" : "PLUGGPORTEN", i * 256 + 128, 45);
+    g.fillText(final ? (i % 2 ? "FINALEN" : "MÄSTARCUPEN") : i % 2 ? "MATCHDAGEN" : "PLUGGPORTEN", i * 256 + 128, 45);
   }
   return c;
 }
 
-/** Publiken: små färgade prickar på mörka bänkrader (ingen slump – samma varje gång). */
-function publikTextur() {
+/** Publiken: små färgade prickar på mörka bänkrader (ingen slump – samma varje gång). Fullsatt i finalen. */
+function publikTextur(final = false) {
   const c = canvas(512, 128);
   const g = c.getContext("2d");
   g.fillStyle = "#1c2a42";
@@ -65,14 +68,14 @@ function publikTextur() {
   const farger = ["#e8473f", "#f2f2f2", "#2f6fe8", "#ffd23f", "#8e5cf7", "#f59f1a", "#5a6478", "#2ecc71"];
   let s = 7;
   const slump = () => ((s = (s * 16807) % 2147483647) / 2147483647);
-  for (let i = 0; i < 1500; i++) {
+  for (let i = 0; i < (final ? 4200 : 1500); i++) {
     g.fillStyle = farger[Math.floor(slump() * farger.length)];
     g.fillRect(slump() * 512, Math.floor(slump() * 8) * 16 + 4 + slump() * 6, 3, 5);
   }
   return c;
 }
 
-export function byggArena(T, scen, { lugnt = false } = {}) {
+export function byggArena(T, scen, { lugnt = false, final = false } = {}) {
   const sparat = []; // geometrier, material och texturer att släppa
   const spara = (...x) => { sparat.push(...x); return x[0]; };
   const tex = (c, rep = null) => {
@@ -119,7 +122,7 @@ export function byggArena(T, scen, { lugnt = false } = {}) {
   }
 
   // Reklamskyltar längs långsidorna och bakom målen.
-  const skyltTex = tex(skyltTextur(), 4);
+  const skyltTex = tex(skyltTextur(final), 4);
   const skyltMat = spara(new T.MeshBasicMaterial({ map: skyltTex }));
   const skyltGeo = spara(new T.PlaneGeometry(112, 1.1));
   for (const [z, rot] of [[-37.5, 0], [37.5, Math.PI]]) {
@@ -137,7 +140,7 @@ export function byggArena(T, scen, { lugnt = false } = {}) {
   }
 
   // Läktaren med publik bakom bortre långsidan, och ett tak.
-  const publikTex = tex(publikTextur(), 6);
+  const publikTex = tex(publikTextur(final), 6);
   const lakt = new T.Mesh(spara(new T.PlaneGeometry(130, 18)), lambert({ map: publikTex }));
   lakt.position.set(0, 7.2, -46);
   lakt.rotation.x = -0.55;
@@ -167,7 +170,33 @@ export function byggArena(T, scen, { lugnt = false } = {}) {
     scen.add(l);
   }
 
+  // Finalen: flaggor på stänger längs läktarens framkant (en InstancedMesh, färg per instans).
+  let flaggor = null;
+  const FLAGGOR = 22;
+  if (final) {
+    const flaggGeo = spara(new T.PlaneGeometry(2.2, 1.3));
+    flaggGeo.translate(1.1, 0, 0); // vajar kring stången
+    flaggor = new T.InstancedMesh(flaggGeo, spara(new T.MeshBasicMaterial({ side: T.DoubleSide })), FLAGGOR);
+    const fargerF = ["#ffd23f", "#e8473f", "#2f6fe8", "#ffffff", "#2ecc71", "#8e5cf7"];
+    const c = new T.Color();
+    for (let i = 0; i < FLAGGOR; i++) flaggor.setColorAt(i, c.set(fargerF[i % fargerF.length]));
+    scen.add(flaggor);
+  }
+  const m4 = new T.Matrix4(), q = new T.Quaternion(), eul = new T.Euler(), pv = new T.Vector3(), en = new T.Vector3(1, 1, 1);
+  function flagga(i, tid) {
+    eul.set(0, lugnt ? 0.3 : Math.sin(tid * 1.7 + i * 0.9) * 0.45, 0);
+    pv.set(-60 + (i * 120) / (FLAGGOR - 1), 4.8 + (i % 2) * 2.2, -39.5 - (i % 2) * 2.4);
+    flaggor.setMatrixAt(i, m4.compose(pv, q.setFromEuler(eul), en));
+  }
+  if (flaggor) { for (let i = 0; i < FLAGGOR; i++) flagga(i, 0); flaggor.instanceMatrix.needsUpdate = true; }
+
   return {
+    /** Flaggorna vajar (bara i finalen, inte i lugnt läge). */
+    steg(tid) {
+      if (!flaggor || lugnt) return;
+      for (let i = 0; i < FLAGGOR; i++) flagga(i, tid);
+      flaggor.instanceMatrix.needsUpdate = true;
+    },
     /** Nätet buktar ut (t 0–1). */
     natBukt(sida, t) {
       const n = nat[sida];
@@ -181,6 +210,7 @@ export function byggArena(T, scen, { lugnt = false } = {}) {
       lakt.position.y = 7.2 + (lugnt ? 0 : Math.abs(Math.sin(t * Math.PI * 6)) * 0.35 * (1 - t));
     },
     dispose() {
+      flaggor?.dispose();
       for (const x of sparat) x.dispose?.();
     },
   };

@@ -3,10 +3,12 @@
 // skissens första version. Används utan WebGL (harWebGL() === false), när
 // three inte går att ladda, och med ?2d=1. Samma RITAR-GRÄNSSNITT som
 // 3D-ritaren (md-tre-ritare.js) – matchen är identisk, bara ritandet skiljer.
-// Ingen three.js, inga importer utöver formationens mått.
+// Ingen three.js. Etapp 3 (#873): finalen (flaggor runt planen) och firandet efter en titel
+// (fest: laget samlas, pokalen ur md-pokal-svg.js lyfts, fyrverkerier – inga i lugnt läge).
 // ============================================================================
 
 import { PLAN_B, PLAN_L } from "./md-formation.js";
+import { pokalSvg } from "../vy/md-pokal-svg.js";
 
 const NS = "http://www.w3.org/2000/svg";
 const NUMMER = [1, 2, 3, 6, 8, 9, 10];
@@ -22,7 +24,20 @@ const ljus = (hex) => {
   return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 > 160;
 };
 
-export function skapa2dRitare({ yta, lugnt = false }) {
+const FLAGG_FARGER = ["#ffd23f", "#e8473f", "#2f6fe8", "#ffffff", "#2ecc71", "#8e5cf7"];
+/** Finalens flaggor: små vimplar längs långsidorna. */
+const flaggorSvg = () => `<g class="md2-flaggor">${Array.from({ length: 30 }, (_, i) => {
+  const x = 4 + i * 3.4, y = i % 2 ? 67.2 : 0.8, ner = i % 2 ? -1 : 1;
+  return `<path d="M${x} ${y}l2.6 ${ner * 0.9}-2.6 ${ner * 1.8}z" fill="${FLAGG_FARGER[i % FLAGG_FARGER.length]}" style="--i:${i % 6}"/>`;
+}).join("")}</g>`;
+/** Fyrverkerierna: sex smällar à tolv gnistor, CSS-animerade i lugnt tempo (md-plan-2d i 49-matchdagen-match.css). */
+const fyrverkeriSvg = () => `<g class="md2-fyrverkeri">${Array.from({ length: 6 }, (_, k) => {
+  const cx = 14 + k * 15.5, cy = 9 + (k % 3) * 5;
+  return `<g class="md2-small" style="--k:${k};transform:translate(${cx}px,${cy}px)">${Array.from({ length: 12 }, (_, i) =>
+    `<circle r=".7" fill="${FLAGG_FARGER[(k + i) % FLAGG_FARGER.length]}" style="--v:${i * 30}deg"/>`).join("")}</g>`;
+}).join("")}</g>`;
+
+export function skapa2dRitare({ yta, lugnt = false, final = false }) {
   const svg = svgEl("svg", { viewBox: `0 0 ${PLAN_L} ${PLAN_B}`, class: "md-plan2d", role: "img", "aria-label": "Fotbollsplanen ovanifrån" });
   svg.innerHTML = `<defs><pattern id="md2-rand" width="21" height="68" patternUnits="userSpaceOnUse"><rect width="10.5" height="68" fill="#2f8f45"/><rect x="10.5" width="10.5" height="68" fill="#2a8240"/></pattern></defs>
     <rect width="105" height="68" fill="url(#md2-rand)"/>
@@ -33,6 +48,7 @@ export function skapa2dRitare({ yta, lugnt = false }) {
     <g class="md2-lag" data-lag="dem"></g><g class="md2-lag" data-lag="vi"></g>
     <g class="md2-boll"><ellipse class="md2-bollskugga" rx="1.1" ry=".7" cy=".9" fill="#000" opacity=".3"/><circle class="md2-bollen" r="1.1" fill="#fff" stroke="#111" stroke-width=".3"/></g>`;
   if (lugnt) svg.classList.add("lugnt");
+  if (final) { svg.classList.add("final"); svg.insertAdjacentHTML("beforeend", flaggorSvg()); }
   yta.appendChild(svg);
   const bollG = svg.querySelector(".md2-boll");
   let bollPos = [PLAN_L / 2, PLAN_B / 2];
@@ -113,9 +129,22 @@ export function skapa2dRitare({ yta, lugnt = false }) {
     svg.setAttribute("preserveAspectRatio", hoger ? "xMaxYMid meet" : "xMinYMid meet");
   }
 
+  /** Firandet (#873): laget i en halvcirkel, pokalen lyfts över kaptenen, fyrverkerier ovanför. */
+  function fest(sort, { vi, dem, mitt }) {
+    straffVy(null);
+    spelare("vi", vi, { direkt: lugnt });
+    spelare("dem", dem, { direkt: lugnt });
+    bollG.style.display = "none";
+    firar("vi", true);
+    const g = svgEl("g", { class: `md2-fest${lugnt ? " lugnt" : ""}` });
+    g.innerHTML = `${lugnt ? "" : fyrverkeriSvg()}<g class="md2-lyft" style="transform:translate(${mitt[0] - 6}px,${mitt[1] - 21}px)">${pokalSvg(sort, { id: "fest2d" })
+      .replace("<svg ", '<svg width="12" height="15" ')}</g>`;
+    svg.appendChild(g);
+  }
+
   return {
     typ: "2d",
-    lag, spelare, boll, firar, malEffekt, avatar, straffVy,
+    lag, spelare, boll, firar, malEffekt, avatar, straffVy, fest,
     zoom() {}, uppdateraAvatar() {},
     fps() {
       if (bilder.length < 10) return { snitt: 0, lagst: 0, bilder: bilder.length };

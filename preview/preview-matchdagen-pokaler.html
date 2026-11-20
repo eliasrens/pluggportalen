@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Matchdagen – pokalskåpet och finalscenen (#873)</title>
+  <!-- Förhandsvisning av Etapp 3 (spec §15) med STUBBADE data: pokalskåpet (md-vy-pokaler.js) och
+       finalscenen (md-plan.js med final: true – fullsatt läktare med flaggor, "FINALEN", pokalen som
+       lyfts och fyrverkerier). Ingen Firebase, ingen frågeström.
+       Kör: PORT=8873 node server.mjs → /preview/preview-matchdagen-pokaler.html
+         ?scen=skap|final|mastare   vad som visas först (standard: skåpet och finalscenen)
+         ?skap=tomt|fullt|legend    skåpets innehåll (standard fullt)
+         ?2d=1  2D-reserven     ?lugnt=1  lugnt läge     ?fps=1  bilder/s
+         ?lyft=mastarcup|superliga  börja med pokalen som lyfts (skärmdumpar)
+  -->
+  <link rel="stylesheet" href="../src/styles.css" />
+  <style>
+    body { margin: 0; background: #08111f; }
+    .ram { max-width: 1180px; margin: 0 auto; padding: 12px 16px 24px; }
+    .knappar { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+    .not { color: #a9b8d0; font: 600 13px/1.4 Nunito, system-ui, sans-serif; }
+  </style>
+</head>
+<body>
+  <div class="ram">
+    <section class="md-sida md-app" id="app">
+      <header class="md-huvud">
+        <div class="md-logo"><span>Match<b>dagen</b></span></div>
+        <span class="md-klubbhuvud" id="huvud"></span>
+        <span class="md-kassa">Förhandsvisning · Etapp 3</span>
+      </header>
+      <section id="skap"></section>
+      <section id="final" class="md-vy">
+        <div class="md-panel md-fore md-mcmatch md-final" style="margin-top:14px">
+          <p class="md-overrad">Mästarcupen · Final · Real Solvik</p>
+          <div class="knappar">
+            <button type="button" class="md-stor" data-intro>Finalens intro</button>
+            <button type="button" class="md-ghost" data-lyft="mastarcup">Lyft Mästarcupen</button>
+            <button type="button" class="md-ghost" data-lyft="superliga">Lyft Superligans pokal</button>
+          </div>
+        </div>
+        <div class="md-match" style="margin-top:10px">
+          <div class="md-skylt"><div class="md-skylt-lag"><span class="md-chip" style="background:#2f6fe8"></span>Blixtarna IF</div>
+            <div class="md-skylt-res" id="res">2 – 1</div><div class="md-skylt-lag">Real Solvik<span class="md-chip" style="background:#f2f2f2"></span></div>
+            <div class="md-skylt-tid">90'</div></div>
+          <div class="md-plan" style="--md-plan-h:420px"><div class="md-yta"></div><div class="md-utrop" aria-hidden="true"></div><span class="md-fps" hidden></span></div>
+          <p class="md-kommentar" id="kommentar">Finalen i Mästarcupen – fullsatt läktare!</p>
+        </div>
+      </section>
+    </section>
+    <p class="not">Förhandsvisning med påhittade data – i Pluggporten kommer allt ur elevens karriär.</p>
+  </div>
+  <script type="module">
+    import { skapHtml, marke } from "../src/matchdagen/vy/md-vy-pokaler.js";
+    import { finalIntro } from "../src/matchdagen/vy/md-vy-mastarcup.js";
+    import { skapaPlan } from "../src/matchdagen/plan/md-plan.js";
+    import { laddaTypsnitt } from "../src/matchdagen/vy/md-vy-delat.js";
+
+    laddaTypsnitt();
+    const p = new URLSearchParams(location.search);
+    const lugnt = p.get("lugnt") === "1" || matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const pok = (typ, namn, sasonger) => sasonger.map((sasong) => ({ typ, namn, sasong, datum: "2026-11-20" }));
+    const FULLT = [
+      ...pok("liga", "Vinnare Division 6", [1]), ...pok("kval", "Kvalade upp till Division 5", [1, 3, 5, 7]), ...pok("liga", "Vinnare Division 4", [3, 5, 7]),
+      ...pok("cup", "Silverpokalen", [2, 6]), ...pok("liga", "Vinnare Superligan", [9]), ...pok("superliga", "Mästare i Superligan", [10, 11]),
+      ...pok("mastarcup", "Mästarcupen", [11]),
+    ];
+    const K = {
+      tomt: { klubb: { namn: "Blixtarna IF", farg: "#2f6fe8", legendStjarnor: 0 }, sasong: 1, pokaler: [] },
+      fullt: { klubb: { namn: "Blixtarna IF", farg: "#2f6fe8", legendStjarnor: 0 }, sasong: 11, div: 7, pokaler: FULLT },
+      legend: { klubb: { namn: "Stjärnfallet FC", farg: "#e8473f", legendStjarnor: 2 }, sasong: 25, div: 2,
+        klubbhistorik: ["Blixtarna IF|#2f6fe8|1-11|4.4.2.3.1", "Åskvädret IF|#8e5cf7|12-22|3.3.1.2.1"],
+        pokaler: [...FULLT, ...pok("superliga", "Mästare i Superligan", [20, 21]), ...pok("mastarcup", "Mästarcupen", [22]), ...pok("liga", "Vinnare Division 6", [23])] },
+    }[p.get("skap") || "fullt"] || {};
+    document.getElementById("huvud").innerHTML = `${marke(K)}<span class="md-klubbhuvud-namn">${K.klubb.namn}</span>`;
+    const scen = p.get("scen");
+    if (scen !== "final" && scen !== "mastare") document.getElementById("skap").innerHTML = skapHtml(K, { erbjud: (p.get("skap") || "fullt") === "fullt" });
+    if (scen === "skap") document.getElementById("final").hidden = true;
+    else {
+      const yta = document.querySelector(".md-yta");
+      const utrop = document.querySelector(".md-utrop");
+      const plan = await skapaPlan({
+        yta, lugnt, tvinga2d: p.get("2d") === "1", final: scen !== "mastare",
+        vi: { troja: "#2f6fe8", byxor: "#ffffff", mv: "#ffd23f", kapten: 3 },
+        dem: { troja: "#f2f2f2", byxor: "#1c2433", mv: "#1b1b1b" },
+        hooks: { utrop: (t) => { utrop.textContent = t; utrop.classList.add("visa"); setTimeout(() => utrop.classList.remove("visa"), 1200); } },
+      });
+      window.__plan = plan;
+      plan.stall({ x: 50, y: 34, boll: "oss" }, { avspark: true });
+      if (p.get("fps") === "1") {
+        const f = document.querySelector(".md-fps");
+        f.hidden = false;
+        setInterval(() => { const x = plan.fps(); f.textContent = `${plan.typ} · ${x.snitt} fps${x.lagst ? ` (lägst ${x.lagst})` : ""}${x.ritanrop ? ` · ${x.ritanrop} ritanrop` : ""}`; }, 1000);
+      }
+      const S = { lugnt, K: { klubb: { namn: "Blixtarna IF" } } };
+      const lyft = (pokal) => {
+        plan.fest(pokal);
+        utrop.textContent = pokal === "mastarcup" ? "MÄSTARCUPEN ÄR ER!" : "MÄSTARE!";
+        utrop.classList.add("visa", "titel");
+        document.getElementById("kommentar").textContent = pokal === "mastarcup" ? "Mästarcupen är er – pokalen lyfts!" : "Mästare i Superligan – pokalen lyfts!";
+        document.querySelectorAll("[data-lyft], [data-intro]").forEach((b) => { b.disabled = true; });
+      };
+      document.querySelector("[data-intro]").addEventListener("click", () => finalIntro(S, document.getElementById("final"), { mot: { namn: "Real Solvik" } }));
+      document.querySelectorAll("[data-lyft]").forEach((b) => b.addEventListener("click", () => lyft(b.dataset.lyft)));
+      if (scen === "mastare") lyft("superliga");
+      else if (p.get("lyft")) lyft(p.get("lyft"));
+      else if (scen === "final") finalIntro(S, document.getElementById("final"), { mot: { namn: "Real Solvik" } });
+    }
+  </script>
+</body>
+</html>

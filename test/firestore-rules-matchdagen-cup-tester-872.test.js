@@ -72,7 +72,7 @@ describe("#872 Tester: cup, rekord och pokaler förbi appen", () => {
     await assertSucceeds(p(["cup|Silverpokalen|1|2026-11-20"]));
     for (const pokaler of [
       ["cup|<script>|1|2026-11-20"], ["cup|a&amp;|1|2026-11-20"], ['cup|"x|1|2026-11-20'], ["cup||1|2026-11-20"],
-      ["superliga|x|1|2026-11-20"], [5], [{ typ: "cup" }], "cup|x|1|2026-11-20", { a: "cup|x|1|2026-11-20" },
+      ["legend|x|1|2026-11-20"], [5], [{ typ: "cup" }], "cup|x|1|2026-11-20", { a: "cup|x|1|2026-11-20" },
       ["cup|x|123456|2026-11-20"], ["cup|x|1|2026-11-20|extra"],
     ]) {
       await assertFails(p(pokaler), JSON.stringify(pokaler).slice(0, 50));

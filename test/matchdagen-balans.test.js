@@ -112,3 +112,19 @@ describe("Silverpokalen i balansen (#872, spec §9.1, §12)", () => {
     }
   });
 });
+
+describe("Mästarcupen i balansen (#873, spec §10.2, §12)", () => {
+  it("80 % rätt med ett tränat lag (snitt 4★) vinner Mästarcupen ungefär var femte försök (15–25 %)", async () => {
+    const { mcBalans, bedomMc, mcTabell } = await import("../admin/md-balans-mastarcup.mjs");
+    const r = mcBalans({ andelRatt: 0.8, stjarnor: 4, n: 300 });
+    assert.deepEqual(bedomMc(r), [], `${r.mcVinst}`);
+    assert.ok(Math.abs(r.rundor.reduce((a, b) => a + b, 0) - 1) < 1e-9);
+    assert.ok(r.matcherPerForsok >= 1 && r.matcherPerForsok <= 3);
+    assert.ok(r.straffar > 0, "oavgjort avgörs på straffar");
+    const svag = mcBalans({ andelRatt: 0.7, stjarnor: 4, n: 150 });
+    assert.ok(r.mcVinst > svag.mcVinst, "bättre svar lönar sig");
+    assert.match(bedomMc({ ...r, mcVinst: 0.5 }).join(), /mcVinst/, "fäller en Mästarcup som är för lätt");
+    assert.match(bedomMc({ ...r, mcVinst: 0.05 }).join(), /mcVinst/, "och en som är för svår");
+    assert.match(mcTabell([r]), /80 %/);
+  });
+});

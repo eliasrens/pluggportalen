@@ -8,15 +8,18 @@
 //   • klick på en elev: de senaste matcherna (läses FÖRST då, matcher/ – högst 20),
 //     andelen rätt per vecka som en liten linje (ur karriärens dagar) och lagnamnet
 //     med Återställ lagnamn (md-lagnamn.js), Silverpokalen och rekorden (#872 – bara tal
-//     och fasta texter, aldrig text ur dokumentet).
+//     och fasta texter, aldrig text ur dokumentet). Etapp 3 (#873): titlarna i Superligan, Mästarcupen,
+//     guldstjärnorna och klubbhistoriken (de gamla klubbarnas namn med esc(), resten tal).
 // Laddas med import() – aldrig i bootgrafen (#271).
 // ============================================================================
 
 import { el, esc } from "../../teacher-shared.js";
-import { CUP, DIVISIONER } from "../delat/md-config.js";
+import { CUP, DIVISIONER, MASTARCUP } from "../delat/md-config.js";
 import { cupLage } from "../delat/md-cup.js";
+import { mcLage } from "../delat/md-mastarcup.js";
+import { historikRader, skapet } from "../delat/md-legend.js";
 import { rekordRader } from "../delat/md-rekord.js";
-import { sekunderSenaste, veckoRatt } from "../delat/md-sasong.js";
+import { pokalerFranDok, sekunderSenaste, veckoRatt } from "../delat/md-sasong.js";
 import { harMatchdagen } from "../md-inst.js";
 import { kopplaAterstall } from "./md-lagnamn.js";
 
@@ -42,7 +45,27 @@ export function cupRad(K) {
   if (Number(K.liga?.omg) >= (Number(K.liga?.schema?.length) || 0)) return `${CUP.namn}: ingen cup den här säsongen`;
   return L.spelade ? `${CUP.namn}: klar för ${CUP.rundor[L.spelade].toLowerCase()}en` : `${CUP.namn}: ${CUP.rundor[0].toLowerCase()}en väntar`;
 }
-const MATCH_TAGG = { kval: " (kval)", cup: " (cup)" };
+const MATCH_TAGG = { kval: " (kval)", cup: " (cup)", mastarcup: " (Mästarcupen)" };
+
+/**
+ * Toppen (#873, §10): titlar i Superligan och Mästarcupen, Mästarcupen den här säsongen och
+ * guldstjärnorna – fasta texter och tal. Raderna för de gamla klubbarna: namnet esc():as av anroparen.
+ */
+export function toppRader(K) {
+  // lasKarriarer ger dokumentets pokaler som rader "typ|namn|säsong|datum" (Testern F1) – objekt tål det också
+  const hyllor = Object.fromEntries(skapet(pokalerFranDok(K?.pokaler)).map((x) => [x.id, x.antal]));
+  const L = mcLage(K);
+  const ut = [];
+  if (hyllor.superliga) ut.push(`Mästare i ${DIVISIONER.at(-1)}: ${hyllor.superliga} ${hyllor.superliga === 1 ? "gång" : "gånger"}`);
+  if (L.inbjuden) {
+    ut.push(L.vann ? `${MASTARCUP.namn}: vunnen den här säsongen` : L.ute ? `${MASTARCUP.namn}: utslagen i ${MASTARCUP.rundor[L.spelade - 1].toLowerCase()}en`
+      : `${MASTARCUP.namn}: ${MASTARCUP.rundor[L.spelade].toLowerCase()}en väntar`);
+  }
+  if (hyllor.mastarcup) ut.push(`${MASTARCUP.namn} vunnen: ${hyllor.mastarcup} ${hyllor.mastarcup === 1 ? "gång" : "gånger"}`);
+  const st = Math.max(0, Math.floor(tal(K?.klubb?.legendStjarnor)));
+  if (st) ut.push(`Legendklubbar: ${st} ${st === 1 ? "guldstjärna" : "guldstjärnor"}`);
+  return ut;
+}
 
 /** Andel rätt per vecka som en liten linje (8 veckor, äldst till vänster). */
 export function sparkline(varden, { b = 160, h = 40 } = {}) {
@@ -145,7 +168,9 @@ async function visaElev(host, elev, K, data, efterNamn) {
         <span class="mdl-status" role="status"></span></div></div>
       <div><span class="hint">Andel rätt per vecka (8 veckor)</span><br>${sparkline(veckor)}</div>
       <div><span class="hint">${esc(cupRad(K))}</span>
-        <ul class="mdl-rekord">${rekordRader(K.rekord).filter((r) => r.varde != null && r.sasong).map((r) => `<li>${esc(r.namn)}: <b>${esc(r.varde)}</b></li>`).join("") || `<li class="hint">Inga rekord än</li>`}</ul></div>
+        <ul class="mdl-rekord">${rekordRader(K.rekord).filter((r) => r.varde != null && r.sasong).map((r) => `<li>${esc(r.namn)}: <b>${esc(r.varde)}</b></li>`).join("") || `<li class="hint">Inga rekord än</li>`}</ul>
+        ${toppRader(K).map((t) => `<span class="hint">${esc(t)}</span><br>`).join("")}
+        ${historikRader(K.klubbhistorik).map((h) => `<small class="hint">Tidigare klubb: ${esc(h.namn)} (säsong ${tal(h.fran)}–${tal(h.till)})</small><br>`).join("")}</div>
     </div>
     <div class="mdl-matcher"><div class="spinner">Laddar matcherna…</div></div>
   </div>`);

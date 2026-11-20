@@ -11,8 +11,10 @@
 //   lagInfo(K, id)                        → { id, namn, farg, vi, styrka? }
 //   motFarg(egen, mot)                    → motståndarens tröja i matchen (aldrig samma som vår)
 //   matchKlar(K, { res, rng, nu, matchId, kallNamn? })
-//                                         → { K, match, pengar, sasongKlar, plac, rekord }
-//                                           ligavinnaren under Superligan får K.kval (§7.2, spelas i md-kval.js)
+//                                         → { K, match, pengar, sasongKlar, plac, rekord, mastare }
+//                                           ligavinnaren under Superligan får K.kval (§7.2, spelas i md-kval.js);
+//                                           vinnaren av Superligan blir mästare: pokalen "superliga" och inbjudan
+//                                           till Mästarcupen nästa säsong (K.mastarcup, §10.1–10.2, md-mastarcup.js)
 //                                           och marknaden byts ut (§8.3, md-trupp.js); rekord = nya rekord (§9.2, md-rekord.js)
 //   tabellRader(K)                        → tabellen i placeringsordning med namn och färg
 //   nySasong(K, rng)                      → K för nästa säsong (samma division – kvalet ändrar den, md-kval.js)
@@ -111,7 +113,7 @@ export function nyKarriar({ namn, farg, rng }) {
 export function forstaDokument(K) {
   return {
     ...K, kassa: Math.min(Number(K.kassa) || 0, C.KASSA.start), reserver: [], marknad: [], lager: undefined,
-    cup: undefined, rekord: undefined, kval: null, pokaler: [], summa: tomSumma(), senaste: [], sasonger: [], dagar: {},
+    cup: undefined, rekord: undefined, mastarcup: undefined, klubbhistorik: undefined, kval: null, pokaler: [], summa: tomSumma(), senaste: [], sasonger: [], dagar: {},
   };
 }
 
@@ -219,14 +221,19 @@ export function matchKlar(K0, { res, rng, nu, matchId, kallNamn = {} }) {
     plac = tabellRader(K).findIndex((r) => r.id === OSS) + 1;
     K.sasonger = [{ sasong: K.sasong, div: K.div, plac, lag: K.liga.lag.length }, ...(K.sasonger || [])].slice(0, 200);
     rekord.push(...rekordEfterSasong(K, { plac, forlust: K.liga.tabell[OSS]?.f }));
-    if (plac === 1) {
+    if (plac === 1 && K.div < C.TOPP_DIV) {
       K.pokaler = [...(K.pokaler || []), { typ: "liga", namn: `Vinnare ${C.DIVISIONER[K.div]}`, sasong: K.sasong, datum: dag }];
-      // Bara ligavinnaren kvalar uppåt (§7.2). Superligan är toppen (Mästarcupen: Etapp 3).
-      if (K.div < C.TOPP_DIV) K.kval = nyKval(K, rng);
+      K.kval = nyKval(K, rng); // bara ligavinnaren kvalar uppåt (§7.2)
+    } else if (plac === 1) {
+      // Superligan är toppen (§10.1): mästare – den stora pokalen och inbjudan till Mästarcupen
+      // nästa säsong (md-mastarcup.js, "säsong-0" = inbjudna, inga rundor spelade).
+      K.pokaler = [...(K.pokaler || []), { typ: "superliga", namn: C.SUPERLIGA.pokal, sasong: K.sasong, datum: dag }];
+      K.mastarcup = `${(Number(K.sasong) || 1) + 1}-0`;
     }
   }
   K.marknad = nyMarknad(K, rng); // sex nya spelare till salu efter varje match (§8.3)
-  return { K, match, pengar, sasongKlar, plac, rekord };
+  const mastare = sasongKlar && plac === 1 && K.div >= C.TOPP_DIV;
+  return { K, match, pengar, sasongKlar, plac, rekord, mastare };
 }
 
 /**

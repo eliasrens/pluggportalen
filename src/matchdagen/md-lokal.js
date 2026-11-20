@@ -9,7 +9,7 @@
 //     Kön sparas (md-spara.js) när Matchdagen öppnas och efter varje match, så att
 //     ingen match försvinner om flera sparningar i rad misslyckas.
 //
-//   lasPagaende(lagring, uid, K, typ?, runda?) → post | null  (bara om den hör till nästa match; typ "liga" | "kval" | "cup")
+//   lasPagaende(lagring, uid, K, typ?, runda?) → post | null  (bara om den hör till nästa match; typ "liga" | "kval" | "cup" | "mastarcup")
 //   sparaPagaende(lagring, uid, post), rensaPagaende(lagring, uid)
 //   lasOsparad(lagring, uid) → { K, koe } | null
 //   laggIKo(lagring, uid, { K, matchId, match })   lägger matchen sist i kön, K blir den nya
@@ -41,7 +41,7 @@ export function lasPagaende(lagring, uid, K, typ = "liga", runda = null) {
   const p = las(lagring, MATCH_NYCKEL + uid);
   if (!p || p.v !== 1 || !p.m || typeof p.matchId !== "string") return null;
   if (!K || p.sasong !== K.sasong || p.omg !== K.liga?.omg || (p.typ || "liga") !== typ || arKlar(p.m)) return null;
-  if (typ === "cup" && p.runda !== runda) return null;
+  if ((typ === "cup" || typ === "mastarcup") && p.runda !== runda) return null;
   return p;
 }
 export const sparaPagaende = (lagring, uid, post) => skriv(lagring, MATCH_NYCKEL + uid, { v: 1, ...post });

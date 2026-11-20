@@ -1,6 +1,8 @@
 // ============================================================================
 // Matchdagen (#869, Etapp 1c): elevens app – sidhuvudet med klubbkassan, flikarna
 // Match, Tabell, Truppen och Statistik (spec §14), tillståndet och sparningen.
+// Etapp 3 (#873): fliken Pokalskåpet (§10.4) och klubbmärket i sidhuvudet – guldkant för
+// mästare i Superligan och en guldstjärna per legendklubb (§10.1, §10.3).
 // Firebase skickas in som `data` (page-matchdagen.js ger den riktiga, förhands-
 // visningen en stubbe), så samma kod kör i appen och i preview-matchdagen.html.
 //
@@ -17,8 +19,9 @@ import { harKallor, normalizeInst } from "./md-inst.js";
 import { hamtaKarriar } from "./md-spara.js";
 import { truppFalt } from "./delat/md-trupp.js";
 import { esc, laddaTypsnitt } from "./vy/md-vy-delat.js";
+import { marke } from "./vy/md-vy-pokaler.js";
 
-const FLIKAR = [["match", "Match"], ["tabell", "Tabell"], ["trupp", "Truppen"], ["stat", "Statistik"]];
+const FLIKAR = [["match", "Match"], ["tabell", "Tabell"], ["trupp", "Truppen"], ["stat", "Statistik"], ["pokaler", "Pokalskåpet"]];
 
 function webbLagring() {
   try { return globalThis.localStorage || null; } catch { return null; }
@@ -38,6 +41,7 @@ export async function startaMatchdagen(host, deps) {
   host.className = "md-sida md-app";
   host.innerHTML = `<header class="md-huvud">
       <div class="md-logo"><span class="md-logo-boll" aria-hidden="true">${MATCHDAGEN_IKON}</span><span>Match<b>dagen</b></span></div>
+      <span class="md-klubbhuvud"></span>
       <span class="md-kassa" aria-live="polite"></span>
       <nav class="md-flikar" aria-label="Matchdagen">${FLIKAR.map(([id, t]) => `<button type="button" data-vy="${id}" aria-pressed="false">${t}</button>`).join("")}</nav>
     </header>
@@ -46,8 +50,10 @@ export async function startaMatchdagen(host, deps) {
   S.host = host;
   S.sektion = sektion;
 
+  /** Sidhuvudet: klubbmärket och namnet (nytt namn, guldkant, legendklubb) och klubbkassan. */
   S.kassa = () => {
     host.querySelector(".md-kassa").textContent = S.K ? `${Number(S.K.kassa || 0).toLocaleString("sv-SE")} kr i klubbkassan` : "";
+    host.querySelector(".md-klubbhuvud").innerHTML = S.K ? `${marke(S.K)}<span class="md-klubbhuvud-namn">${esc(S.K.klubb?.namn)}</span>` : "";
   };
   /**
    * Byt flik. Matchen ligger kvar (pausad på frågan) när eleven tittar på en annan flik.
@@ -67,6 +73,7 @@ export async function startaMatchdagen(host, deps) {
     if (vy === "tabell") return (await import("./vy/md-vy-tabell.js")).visaTabell(S, el);
     if (vy === "trupp") return (await import("./vy/md-vy-trupp.js")).visaTrupp(S, el);
     if (vy === "stat") return (await import("./vy/md-vy-stat.js")).visaStat(S, el);
+    if (vy === "pokaler") return (await import("./vy/md-vy-pokaler.js")).visaPokaler(S, el);
   };
   S.signal?.addEventListener("abort", () => S.flik?.abort(), { once: true });
   host.querySelector(".md-flikar").addEventListener("click", (e) => {

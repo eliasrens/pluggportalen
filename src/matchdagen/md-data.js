@@ -41,7 +41,7 @@ export function medTidsgrans(p, ms = TIDSGRANS_MS) {
 const matchRef = (uid, id) => doc(db, "matchdagen", uid, "matcher", id);
 
 /** Bara karriärens kända fält (aldrig något annat i dokumentet). */
-export const KARRIAR_FALT = ["version", "klubb", "div", "sasong", "kassa", "trupp", "reserver", "marknad", "lager", "liga", "kval", "cup", "pokaler", "rekord", "summa", "senaste", "sasonger", "dagar"];
+export const KARRIAR_FALT = ["version", "klubb", "div", "sasong", "kassa", "trupp", "reserver", "marknad", "lager", "liga", "kval", "cup", "pokaler", "rekord", "summa", "senaste", "sasonger", "dagar", "mastarcup", "klubbhistorik"];
 // Marknaden sparas som rader "id|namn|pos|nr|st" (md-trupp.js marknadTillDok) och pokalerna som rader
 // "typ|namn|säsong|datum" (md-sasong.js pokalerTillDok, #872) – reglerna prövar dem billigt. cup och rekord är redan text.
 const TILL_DOK = { marknad: marknadTillDok, pokaler: pokalerTillDok };
