@@ -852,3 +852,39 @@ hela säsongen med cupen i en skrivning).
 - **Inte rättat:** en ligamatch som låg halvspelad lokalt när 2c går ut ersätts av cupmatchen (den cupmatch som väntar
   går först). Matchdagen är inte i drift, så det kan inte hända. Granskaren fann i övrigt inget i XSS, reglernas form
   mot appens skrivningar (simulerade ~400 säsonger) eller köns pengar.
+
+### Testern (872, på d3b20870)
+
+| Svit | Resultat |
+| --- | --- |
+| `npm run test:functions` (hela, `admin/qa-matchdagen-867-svit.sh`) | 573 pass, 0 fail, 2 todo |
+| `npm run test:e2e` | 5 pass, 0 fail |
+| `npm run test:rules` | 1106 pass, 0 fail (+ Testerns `firestore-rules-matchdagen-cup-tester-872.test.js`: 6 pass) |
+| `node --test test/matchdagen-*.test.js` | 285 pass (+ Testerns `matchdagen-cup-tester-872.test.js`: 40 karriärer mot ett oberoende orakel för alla åtta rekord, kassan/kön/pokalen exakt en gång, cupen flyttar aldrig) |
+| Bootgrafen (`admin/qa-bootgraf-bfs.mjs` 0e53ce08 vs HEAD) | 107 = 107, identiska |
+| Marginalen mot 1000-gränsen (stickprov) | säsong + cup + kval 18 – också för en tung karriär i Elitligan (250 pokaler, 139 säsonger, fulla reserver); cup 60; cupfinal 60 |
+
+**Appen mot emulatorn** (Alva, 4a01): sextondelsfinalen väntar direkt efter omgång 1 och står först under Match
+([14](qa-matchdagen-2c/14-testern-app-sextondel-efter-omg1.png)); utslagna 0–1 → `cup "1-1-u"`, ligan fortsätter
+([08](qa-matchdagen-2c/08-testern-app-cup-utslagna.png), [09](qa-matchdagen-2c/09-testern-app-tabell-cup-ute.png));
+finalen vunnen 2–0 → +598 kr (398 + 200), en pokal, "Nytt rekord: största segern någonsin, 2–0!"
+([10](qa-matchdagen-2c/10-testern-app-cupen-vunnen-rekord.png)), omladdning efteråt: ingen ny final, kassan oförändrad;
+semifinal 1–1 → straffar 4–1 → vidare ([11](qa-matchdagen-2c/11-testern-app-cup-straffar-vidare.png)); Statistik → Rekord
+([12](qa-matchdagen-2c/12-testern-app-statistik-rekord.png)). Fel svar + omladdning i facitpausen: svaret står kvar
+(frågor 1, rätt 0) och cupfinalen fortsätter. Omladdning i samma ögonblick som finalen avgörs (kön skrivs): ingen
+omspelning, förlusten sparad (`1-4-u`), inga dubbla pengar. Lagrad XSS (förbi reglerna) i `cup`, `rekord`, pokalerna
+(rader och objekt), `senaste` och ett matchdokument: escapad i Match, Tabell, Statistik och lärarens vy
+([13](qa-matchdagen-2c/13-testern-app-larare-cup-rekord-xss.png)), `window.__xss` aldrig satt.
+
+**Fynd:**
+
+- **F1 (låg): pokalernas storlekstak håller inte.** Uttrycket prövar `pokaler.join('/')`, och namnet får inte innehålla
+  `/` – men ETT element får: `"cup|Silverpokalen|1|2026-11-20/cup|…"` (90 rader i ett element) × 300 element = 837 kB
+  gick igenom reglerna (`firestore-rules-matchdagen-cup-tester-872.test.js`). §16.4 och "Kända gränser" ovan säger att
+  pokalerna nu prövas (~22 kB) – det stämmer inte. Bara elevens eget dokument (som F8). Rättning: t.ex.
+  `d.pokaler.join('/').size() <= 21000` (300 × 70) i samma rad, eller `join('/').split('/').size() == d.pokaler.size()`.
+- **F2 (låg, text):** rutan under tabellen säger "Lag från två divisioner under till två över" också i Division 6 (inget
+  under) och Superligan; efter finalen "Pokalen står i pokalskåpet" – pokalskåpet kommer i Etapp 3 (pokalen syns i Statistik).
+- **F3 (låg, dokumentation):** val 6 säger "en straffseger är ingen förlust" i sviten – men också en straffFÖRLUST
+  (1–1, utslagna) räknas som inte förlorad, så sviten lever vidare efter att laget åkt ur cupen. Antingen skriv det i
+  valet, eller räkna `res.vann === false` som förlust.
