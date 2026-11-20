@@ -7,6 +7,8 @@
 // Anpassningar per elev. MD_PA=1 slår på den för Alva (4a01) direkt, med
 // tabellerna 3 och 7. Lösenord lilla123 (emulator). Används av
 // admin/qa-matchdagen-867-preview.sh.
+// MD_KVAL=1 (#870, kräver MD_PA=1): Alva har redan vunnit Division 6 – kvalmatchen
+// till Division 5 väntar (karriären byggd med de riktiga, rena modulerna).
 // ============================================================================
 
 import { db, isEmulator } from "./_shared.mjs";
@@ -29,7 +31,19 @@ if (process.env.MD_PA === "1") {
     await db.doc("classes/4a").update({ elevModuler: { [alva]: ["matchdagen"] } });
     await db.doc(`matchdagenInst/${alva}`).set({ omraden: [], tabeller: [3, 7], rakna: [], svarssatt: "flerval",
       klocka: 0, lugnt: false, paus: 60, updatedAt: new Date(), updatedBy: "qa-seed" });
+    if (process.env.MD_KVAL === "1") {
+      const { matchKlar, nastaMatch, nyKarriar } = await import("../src/matchdagen/delat/md-sasong.js");
+      const { skapaPrng } = await import("../src/matchdagen/delat/md-prng.js");
+      const r = skapaPrng("qa-kval-870").tal;
+      const stat = { skott: 6, skottPaMal: 4, pass: 14, passOk: 11, tacklingar: 6, vunnaBollar: 4, raddningar: 2, horner: 1, derasSkott: 3,
+        fragor: 28, ratt: 21, perKalla: { "tabell:7": { fragor: 28, ratt: 21 } }, sekunder: 430 };
+      let K = nyKarriar({ namn: "Alvas Blixtar", farg: "#2f6fe8", rng: r });
+      for (let i = 0; nastaMatch(K); i++) {
+        K = matchKlar(K, { res: { oss: 3, dem: 1, utfall: "vinst", mal: [], stat }, rng: r, nu: Date.now() - (5 - i) * 86400000, matchId: `qa${i}` }).K;
+      }
+      await db.doc(`matchdagen/${alva}`).set({ ...K, senast: new Date() });
+    }
   }
 }
-console.log(`✓ Matchdagen: Räkna-områden i Matematik${process.env.MD_PA === "1" ? ", Matchdagen på för Alva (4a01)" : ""}.`);
+console.log(`✓ Matchdagen: Räkna-områden i Matematik${process.env.MD_PA === "1" ? ", Matchdagen på för Alva (4a01)" : ""}${process.env.MD_KVAL === "1" ? ", kvalet väntar" : ""}.`);
 process.exit(0);

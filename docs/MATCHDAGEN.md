@@ -2,7 +2,7 @@
 
 Spec: [`UTVECKLINGSUPPDRAG_MATCHDAGEN.md`](UTVECKLINGSUPPDRAG_MATCHDAGEN.md) (epic #866). Godkänd skiss:
 [`preview/preview-matchdagen-skiss.html`](../preview/preview-matchdagen-skiss.html). Rapporten per etapp:
-[`QA-RAPPORT-matchdagen-etapp-1.md`](QA-RAPPORT-matchdagen-etapp-1.md).
+[`QA-RAPPORT-matchdagen-etapp-1.md`](QA-RAPPORT-matchdagen-etapp-1.md), [`QA-RAPPORT-matchdagen-etapp-2.md`](QA-RAPPORT-matchdagen-etapp-2.md).
 
 Matchdagen är ett fotbollsspel där varje drag kräver ett rätt svar. Läraren slår på det för **enskilda
 elever**, aldrig för en hel klass. Det här dokumentet växer med etapperna:
@@ -12,6 +12,7 @@ elever**, aldrig för en hel klass. Det här dokumentet växer med etapperna:
 | 1a (#867) | Moduler per elev (`elevModuler`, `perElev`), lärarens "Anpassningar per elev" (`matchdagenInst`), platshållarsida | klar |
 | 1b (#868) | Frågekällorna (`md-fragor.js`), frågekortet (`md-svar.js`), den rena matchmotorn och ligan (`src/matchdagen/delat/`), balanssimuleringen | klar |
 | 1c (#869) | 3D-planen med 2D-reserv (§12), matchvyn, säsongen i Division 6 (§10), sparning, kvot (§11) och statistik för elev och lärare (§13) | klar |
+| 2a (#870) | Alla divisioner, kvalet och straffarna, finten från Division 3 (§14), balansen i alla divisioner (§7.1) | klar |
 
 ## 1. Moduler per elev (Etapp 1a)
 
@@ -178,7 +179,7 @@ chansPass/chansSkott/chansSnett/chansForsvar/chansRaddning/chansDerasMal, skottT
   mellan anropen med högst `MAX_LAGE_S` per läge. Halvtidspausen räknas inte.
 - **Tillståndet** är ren JSON. 1c sparar det i `localStorage` efter varje läge (§5).
 - **Med i 1b fast det hör till Etapp 2:** kroken för två frågor per skott från Division 3 och `lagbonus`.
-  Straffarna (§7.4) kommer i 2a.
+  Straffarna (§7.4) och finten kom i 2a (§14).
 
 ## 7. Alla tal och balansen (§12)
 
@@ -232,6 +233,36 @@ och tar ett långskott i 10 % av fallen. På egen planhalva spelar de kort, lån
 planhalva 60/10/30. De tacklar i 70 % av fallen och täcker annars. Tidsmodellen: ett svar tar 8–12 s, ett val
 2 s, animationerna `TID.anim`, halvtiden 12 s, rutorna runt en match 30 s och ett träningsläger 8 frågor + 30 s.
 
+### 7.1 Alla divisioner och karriären (Etapp 2a, #870)
+
+`npm run balans:matchdagen` skriver nu tre tabeller: Division 6 (som ovan, samma frön), **alla divisioner** med
+startlaget (400 säsonger per rad, ligavinnaren spelar kvalet mot `styrka(div + 1)`, oavgjort → straffar) plus
+Superligan-raden ur §12 (80 % rätt, tränat lag med snitt 4★), och **karriären** (100 elever × 30 säsonger: hur
+långt de når och hur snabbt). `test/matchdagen-balans.test.js` fäller Superligan-raden utanför 45–55 %. Inga tal i
+`md-config.js` behövde ändras för 2a; kvalet lägger ~5 minuter till säsongen för den som vinner ligan (Division 6:
+70 % → 51 min, fortfarande inom 45–60).
+
+| Rad (1 000/400 säsonger) | Vinst | Ligan | Kval vunna | Mål/match | Match (min) | Säsong (min) |
+| --- | --- | --- | --- | --- | --- | --- |
+| Division 6, 70 % | 61 % | 59 % | 65 % | 2,56 | 7,0 | 51 |
+| Division 4, 70 % | 43 % | 21 % | 53 % | 2,60 | 7,1 | 68 |
+| Division 3, 70 % (finten) | 25 % | 2 % | – | 2,28 | 7,4 | 69 |
+| Division 2, 80 % | 33 % | 7 % | 38 % | 2,51 | 7,6 | 90 |
+| Superligan, 80 %, 4★ (§12-målet 45–55 %) | **47 %** | 28 % | – | 2,68 | 7,7 | 111 |
+
+**Karriären** (median säsonger · speltimmar till divisionen, andelen som når den inom 30 säsonger):
+
+| Rätt | Laget | Division 5 | Division 3 | Division 1 | Superligan |
+| --- | --- | --- | --- | --- | --- |
+| 80 % | startlaget 2★ | 1 · 0,9 h (100 %) | 6 · 5,9 h (100 %) | 22 · 26 h (25 %) | – |
+| 70 % | startlaget 2★ | 2 · 1,7 h (100 %) | 13 · 12 h (93 %) | – | – |
+| 80 % | tränas 2★ → 4★ | 1 · 0,9 h | 5 · 4,7 h | 10 · 12 h | 18 · 26 h (97 %) |
+| 70 % | tränas 2★ → 4★ | 2 · 1,7 h | 8 · 7,6 h | 23 · 29 h (42 %) | 1 % |
+
+Med startlaget tar det stopp kring Division 3–2: högre upp krävs ett bättre lag, och det kommer med truppen,
+marknaden och träningslägret i Etapp 2b. "Tränas 2★ → 4★" är ett **antagande** för 2b (snittet växer jämnt med
+divisionen, `tranadStjarnor`). Hela utskriften: rapporten.
+
 ## 8. Filer och bootgrafen
 
 
@@ -260,7 +291,9 @@ allt i `src/matchdagen/plan/` laddas först när matchen startar. Stilarna: `src
 | `src/matchdagen/plan/` | planen (§12): `md-plan` (väljer 3D/2D, spelar upp händelserna), `md-formation` (ren), `md-tre-ritare`/`-arena`/`-figur` (3D), `md-plan-2d` (SVG-reserven), `md-ljud` (Web Audio) |
 | `src/matchdagen/larare/md-larare-stat.js`, `md-lagnamn.js` | lärarens underflik Matchdagen i Hur går det? och Återställ lagnamn (§13) |
 | `src/styles/49-matchdagen-match.css` | elevens app och matchvyn (kvällsarenan) |
-| `preview/preview-matchdagen.html` | förhandsvisning 1c med stubbad data (`PORT=8869 node server.mjs`; `?vy=match\|tabell\|trupp\|stat`, `?omg=0–5`, `?klubb=ny`, `?ny=1`, `?2d=1`, `?lugnt=1`, `?fps=1`, `?auto=1`, `?svar=skriv`, `?klocka=30`, `?kallor=inga`) |
+| `src/matchdagen/delat/md-straffar.js`, `md-kval.js` | ren: straffläggningen och kvalet (§14, #870) |
+| `src/matchdagen/vy/md-straff-spel.js` | straffläggningen i matchvyn (#870) |
+| `preview/preview-matchdagen.html` | förhandsvisning 1c med stubbad data (`PORT=8869 node server.mjs`; `?vy=match\|tabell\|trupp\|stat`, `?omg=0–5`, `?klubb=ny`, `?ny=1`, `?2d=1`, `?lugnt=1`, `?fps=1`, `?auto=1`, `?svar=skriv`, `?klocka=30`, `?kallor=inga`; 2a: `?div=0–7`, `?kval=1`, `?straffar=1`) |
 | `preview/preview-matchdagen-fragor.html` | förhandsvisning 1b: frågekortet + motorn som textmatch (`PORT=8868 node server.mjs`; `?svar=skriv`, `?klocka=30`, `?kallor=tabell\|omrade\|rakna\|klocka\|inga`) |
 
 ## 9. Deploy
@@ -272,6 +305,12 @@ Etapp 1b: **ingen deploy**. Inga regler, index eller functions, och ingen ny sam
 
 Etapp 1c: **`firebase deploy --only firestore:rules` före webben** (samlingen `matchdagen/{uid}` med
 `matcher`). Inga index (lärarens historik sorterar bara på `datum` i en undersamling – automatiskt index),
+inga functions.
+
+Etapp 2a: **`firebase deploy --only firestore:rules` före webben** – `kval` i karriären och `straffar` i
+`matcher` prövas nu (`mdKvalOk`, `mdStraffarOk`). De gamla reglerna nekar `kval: null`, som webben nu skickar
+med en ny klubb och med första matchen efter en ny säsong – med webben först kan en ny klubb inte sparas
+(sparas med första matchen) och matcherna blir liggande i den lokala kön tills reglerna är ute. Inga index,
 inga functions.
 
 ## 10. Säsongen och sparningen (Etapp 1c)
@@ -399,3 +438,68 @@ Vänskapsmatcher: Etapp 4.
   7 dagar och totalt, matcher, andel rätt totalt och per källa, division och säsong, senast spelat. Klick på en
   elev: de senaste matcherna (läses då), andel rätt per vecka som en liten linje (8 veckor ur `dagar`) och
   lagnamnet med **Återställ lagnamn** (`md-lagnamn.js`, samma knapp i panelen Anpassningar per elev).
+
+## 14. Divisionerna, kvalet och straffarna (Etapp 2a, #870, spec §7)
+
+### 14.1 Stegen och ligorna
+
+- **Åtta nivåer** (`DIVISIONER`, `LAGANTAL` i `md-config.js`): Division 6, 5 (6 lag, 5 omgångar), 4, 3 (8 lag,
+  7 omgångar), 2, 1 (10 lag, 9 omgångar), Elitligan och Superligan (12 lag, 11 omgångar). `nyLiga(div)` lottar
+  divisionens antal lag med `styrkaFor(div)`; schemat är cirkelmetoden för 6/8/10/12 lag.
+- **Stegen överst i Tabell-fliken** (`stegHtml` i `md-vy-tabell.js`, ren `stegen(div)` i `md-kval.js`): alla åtta
+  nivåer med antalet lag; den nuvarande är gul (`aria-current="step"`), de passerade ljusa. Under stegen skissens
+  rad "Ettan får kvala upp. Man kan bara gå uppåt …" och från Division 3 "Här krävs två rätt i rad …".
+- **Tuffare utan svårare frågor** (§7.3): starkare motståndare (`styrkaFor`), fler lag och omgångar, och
+  **finten** från Division 3: skottet ställer först frågan "Finta bort försvararen – sedan skottet!". Fel på
+  finten avgör direkt med `SKOTT.fintFel` = 0,03 (aldrig mer än ett rätt avslut från samma avstånd) – **ingen
+  andra fråga** (skissen). Rätt på finten → "Rätt – försvararen är bortfintad! Nu skottet!" och skottfrågan med
+  vanliga chanser (fel på den = `SKOTT.fel`). Motorn: `behoverFraga(m, valId, svar)`; `spela` tar ett svar när
+  finten blev fel.
+
+### 14.2 Kvalet (`md-kval.js`, §7.2)
+
+- **Bara ligavinnaren:** när sista omgången är spelad och laget är etta under Superligan får karriären
+  `kval = { div, sasong, mot: { namn, farg, styrka }, spelad: false }` (i `matchKlar`). Motståndaren är ett lag
+  ur namnlistan som inte är med i ligan, med `styrkaFor(div + 1)`. Superligans ettan får pokalen men inget kval
+  (Mästarcupen kommer i Etapp 3).
+- **Matchen:** Match-fliken visar "KVAL till Division 5 · Ödmårdens BK är ett lag från divisionen ovanför"
+  (skissen) och Avspark. Kvalet är en vanlig match med `nyMatch({ avgor: true })` – oavgjort efter 90 minuter →
+  straffar.
+- **`kvalKlar(K, { res, nu, matchId })`:** bokför matchen som en ligamatch (`bokforMatch`: kassa, summa,
+  senaste, dagar, matchdokumentet med `typ: "kval"` och `straffar`). **Vinst** → `div + 1`, pokalen
+  "Kvalade upp till Division 5" (`typ: "kval"`) och `KASSA.uppflyttning` (300 × (1 + div × 0,25)). **Förlust** →
+  samma division. `div` sätts till `max(nuvarande, …)` – ett trasigt dokument kan aldrig flytta laget ned.
+  `sasonger[0].kval` = "upp" | "kvar".
+- **Efter kvalet:** rutan "Uppflyttning! 1 – 1 (straffar 3 – 0)" eller "Nära!" med skissens text och knappen
+  **Starta nästa säsong**, som lottar en ny liga i den (nya) divisionen (`nySasong`, `kval: null`). Nästa säsong
+  kan inte startas innan kvalet är spelat.
+
+### 14.3 Straffarna (`md-straffar.js`, §7.4)
+
+- **Fem var, sedan sudden death.** Vi skjuter först i varje omgång. Vår straff: en fråga, mål 0,82 vid rätt och
+  0,20 vid fel. Deras: "Kan målvakten rädda?", mål 0,45 vid rätt och 0,85 vid fel (`STRAFFAR` i `md-config.js`).
+- **Tidigt avgörande** (`avgjord`): så fort ena laget inte kan komma ikapp med sina återstående straffar (3 – 0
+  efter tre var, 2 – 4 när vi bara har en kvar). I sudden death avgörs det när en omgång är slut och det skiljer.
+  Efter 30 omgångar (praktiskt taget omöjligt) vinner vi – aldrig ändlöst.
+- **Tillståndet** ligger i `m.straffar = { oss: [bool…], dem: [bool…], klar, vinnare }` (ren JSON), så en omladdning
+  mitt i straffläggningen fortsätter där den var ("Straffläggningen pågår: 2 – 1 (1 – 1 efter full tid)").
+  Svaren räknas i matchens statistik som alla frågor. `resultat(m)` ger `straffar: [vi, de]` och `vann`;
+  `utfall` är fortfarande "oavgjort" (på mål) i summan.
+- **Visningen** (`md-straff-spel.js`, `md-plan.js straffStall/straff/straffSlut`): rutan "Straffläggning!", skylten
+  visar hela tiden **"Straffar 3 – 2"**, skytten bakom bollen på straffpunkten, målvakten på linjen och alla andra
+  i mittcirkeln (`straffUppstallning` i `md-formation.js`, samma i 3D och 2D). **3D:** kameran snett bakom
+  skytten mot målet (`straffVy`). **2D:** en mindre viewBox kring straffområdet (`straffVy`). Lugnt läge: fast
+  kamera/hela planen, inga zoomningar. Målvakten kastar sig – åt rätt håll vid en räddning. Utrop "MÅL!",
+  "RÄDDNING!", "I STOLPEN!", "UTANFÖR!".
+
+### 14.4 Sparningen, reglerna och vyerna
+
+- `kval` hör till `KARRIAR_FALT` och skrivs med varje matchsparning (mergeFields); en ny säsong skickar `kval: null`.
+- **Reglerna** (`mdKvalOk`, `mdStraffarOk`, tester `firestore-rules-matchdagen-kval.test.js`, nyckel MQ): `kval`
+  är `null` eller en map med kända nycklar – `div` 0–6, `sasong`, `oss`/`dem` 0–40 och `straffar` (två heltal 0–40)
+  som heltal, `spelad`/`vann` bool, `mot.namn` 1–40 tecken, `mot.farg` `#rrggbb`, `mot.styrka` 0–1. `matcher.straffar`
+  är två heltal 0–40. Prövas bara när fältet ändras (1000-uttrycksgränsen).
+- **Bara tal i HTML:** elevens Statistik (`resText`, kval-etikett, säsongernas "kvalade upp") och lärarens vy
+  ("Kval till Division 5 väntar" – divisionens namn ur listan, aldrig text ur dokumentet; matchradernas "(kval)"
+  och "str. 4–3") skriver straffarna och resultaten med `tal()`/`Number()`; namnen med `esc()`.
+- **Kvoten:** oförändrad – kvalet är en match till per säsong (1 batch = 2 skrivningar), inga nya läsningar.

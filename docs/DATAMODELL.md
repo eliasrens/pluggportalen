@@ -894,18 +894,19 @@ matchen) och när klubben skapas eller döps om. Formen: `src/matchdagen/delat/m
 | --- | --- | --- |
 | `version` | int | Formens version (1) |
 | `klubb` | `{ namn, farg, legendStjarnor }` | Lagnamn 1–24 tecken, tröjfärg `#rrggbb` (en av 8), legendstjärnor (Etapp 3, 0) |
-| `div` | int 0–7 | Divisionen, 0 = Division 6 (bara 0 i Etapp 1) |
+| `div` | int 0–7 | Divisionen, 0 = Division 6 … 7 = Superligan. Går bara uppåt, en division per vunnet kval (#870) |
 | `sasong` | int | Säsongens nummer, börjar på 1 |
 | `kassa` | number | Klubbkassan – spelets egen valuta, inga pluggmynt |
 | `trupp` | array, exakt 7 | `{ id, namn, pos: "MV"\|"FÖR"\|"MIT"\|"ANF", nr, st: 1–5, xp, grundpelare, kapten }` – namnen är färdiga |
 | `liga` | map | `lag: [{ id, namn?, farg?, styrka? }]` (vårt lag är `{ id: "oss" }`, namnet ur `klubb`), `schema: ["a:b\|c:d\|e:f", …]` (en sträng per omgång – Firestore tillåter inga listor i listor), `tabell: { [id]: { s, v, o, f, gm, im, p } }`, `omg` (spelade omgångar) |
-| `pokaler` | array ≤ 300 | `{ typ, namn, sasong, datum }` – ligavinst: "Vinnare Division 6" |
+| `kval` | map \| null | #870: ligavinnaren under Superligan – `{ div, sasong, mot: { namn, farg, styrka }, spelad, vann?, oss?, dem?, straffar?: [vi, de] }`. `null` när ingen kvalmatch väntar eller har spelats (ny säsong) |
+| `pokaler` | array ≤ 300 | `{ typ, namn, sasong, datum }` – ligavinst (`typ` "liga"): "Vinnare Division 6"; uppflyttning (`typ` "kval", #870): "Kvalade upp till Division 5" |
 | `summa` | map | `matcher, v, o, f, gjorda, inslappta, fragor, ratt, spelminuter, perKalla: { [källnyckel]: { fragor, ratt, namn? } }` (≤ 150 källor) |
-| `senaste` | array ≤ 20 | De 20 senaste matcherna `{ id, datum, mot, oss, dem, ratt, fragor, sasong, omg }` – Statistik utan att läsa `matcher` |
-| `sasonger` | array ≤ 200 | `{ sasong, div, plac, lag }` per avslutad säsong |
+| `senaste` | array ≤ 20 | De 20 senaste matcherna `{ id, datum, mot, oss, dem, ratt, fragor, sasong, omg?, typ?, straffar? }` – Statistik utan att läsa `matcher` (`typ` "kval" och `straffar` [vi, de] för kvalet, #870) |
+| `sasonger` | array ≤ 200 | `{ sasong, div, plac, lag, kval? }` per avslutad säsong – `kval` "upp" \| "kvar" efter ett spelat kval (#870) |
 | `dagar` | map ≤ 70 | `"ÅÅÅÅ-MM-DD" → { m, sek, fragor, ratt }` – lärarens speltid 7 dagar och veckolinje |
 | `senast` | timestamp | Serverns tid vid varje skrivning |
-| `reserver`, `marknad`, `kval`, `cup`, `mastarcup`, `rekord` | – | Reserverade för Etapp 2–3 (reglerna tillåter dem redan, med tak) |
+| `reserver`, `marknad`, `cup`, `mastarcup`, `rekord` | – | Reserverade för Etapp 2b–3 (reglerna tillåter dem redan, med tak) |
 
 Läraren med `hasStudent(uid)` läser och får bara sätta `klubb.namn` = "Pluggporten FC"
 (Återställ lagnamn). Typisk storlek: ~2 kB för en ny klubb; med alla tak fyllda ~61 kB
@@ -913,20 +914,20 @@ Läraren med `hasStudent(uid)` läser och får bara sätta `klubb.namn` = "Plugg
 
 ### `matchdagen/{uid}/matcher/{matchId}` – en spelad match (#869)
 
-`matchId` = `s{säsong}-d{div}-o{omgång}-{tid i bas 36}`. Skapas EN gång (bara `create`) i
+`matchId` = `s{säsong}-d{div}-o{omgång}-{tid i bas 36}`, för kvalet `s{säsong}-d{div}-kval-{tid}` (#870). Skapas EN gång (bara `create`) i
 samma batch som karriären; ingen ändring, radering bara av admin.
 
 | Fält | Typ | Beskrivning |
 | --- | --- | --- |
 | `datum` | timestamp | Serverns tid |
 | `sasong`, `div`, `omg` | int | Var i karriären |
-| `typ` | `"liga"` (Etapp 1) \| `"kval"` \| `"cup"` \| `"mastarcup"` \| `"vanskap"` | |
+| `typ` | `"liga"` \| `"kval"` (#870) \| `"cup"` \| `"mastarcup"` \| `"vanskap"` | Kvalet har ingen `omg`; `div` är divisionen det spelades från |
 | `mot`, `oss`, `dem` | string, int, int | Motståndarens namn och resultatet |
 | `mal` | array ≤ 80 | `{ min, lag }` |
 | `stat` | map ≤ 20 | Matchens statistik (spec §3.6, utan `perKalla`) |
 | `fragor`, `ratt`, `sekunder` | int | Frågor, rätt svar (`ratt ≤ fragor`), speltid |
 | `perKalla` | map ≤ 70 | `{ [källnyckel]: { fragor, ratt } }` |
-| `straffar` | array, 2 | Etapp 2a |
+| `straffar` | array, 2 | #870: `[vi, de]` efter en straffläggning (oavgjort kval) – två heltal 0–40 |
 
 Läses av eleven (Statistik → klick på en match: EN läsning) och av läraren (historiken:
 de 20 senaste, läses först vid klick på eleven).
