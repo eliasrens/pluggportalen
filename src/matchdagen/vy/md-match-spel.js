@@ -29,6 +29,7 @@ import { chip, esc, ruta, valMeny, vanta } from "./md-vy-delat.js";
 import { strom } from "./md-strom.js";
 import { nastaSpel, startaNastaSasong } from "./md-vy-match.js";
 import { efterMatchen } from "./md-efter-match.js";
+import { finalIntro } from "./md-vy-mastarcup.js";
 
 const LJUS = new Set(["#f2f2f2"]);
 
@@ -279,16 +280,3 @@ export async function spelaMatch(S, el, { pagaende = null, spel = null } = {}) {
   S.visa(kval ? "match" : "tabell");
 }
 
-/**
- * Introt före finalen i Mästarcupen (§10.2): "FINALEN" över planen med lagen – i lugnt läge
- * och med prefers-reduced-motion utan rörelse och kortare.
- */
-async function finalIntro(S, el, n) {
-  const d = document.createElement("div");
-  d.className = `md-finalintro${S.lugnt ? " lugnt" : ""}`;
-  d.setAttribute("role", "status");
-  d.innerHTML = `<small>Mästarcupen</small><b>FINALEN</b><span>${esc(S.K.klubb.namn)} – ${esc(n.mot.namn)}</span>`;
-  el.querySelector(".md-plan")?.appendChild(d);
-  await vanta(S.lugnt ? 1200 : 3200);
-  d.remove();
-}

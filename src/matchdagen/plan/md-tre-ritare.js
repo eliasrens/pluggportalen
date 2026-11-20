@@ -145,7 +145,7 @@ export function skapa3dRitare({ T, yta, lugnt = false, final = false }) {
     if (festen) return;
     const fx = skapaFest(T, scen, { lugnt });
     const pokal = fx.pokal(sort);
-    pokal.scale.setScalar(sort === "mastarcup" ? 1.05 : 0.95);
+    pokal.scale.setScalar(sort === "mastarcup" ? 1.5 : 1.4);
     scen.add(pokal);
     spelare("vi", vi, { direkt: lugnt });
     spelare("dem", dem, { direkt: lugnt });
@@ -213,7 +213,7 @@ export function skapa3dRitare({ T, yta, lugnt = false, final = false }) {
       const k = festen.kapten.position;
       const lyft = lugnt ? 1 : Math.min(1, Math.max(0, (nu - festen.t0 - 900) / 1600)); // först fram till mitten, sedan upp
       const e = 1 - (1 - lyft) ** 3;
-      festen.pokal.position.set(k.x, 1.35 + e * 1.55 + k.y, k.z + 0.15);
+      festen.pokal.position.set(k.x, 2.1 + e * 1.3 + k.y, k.z + 0.35);
       festen.pokal.rotation.y = lugnt ? 0.4 : 0.4 + Math.sin(tid * 0.8) * 0.25;
       festen.fx.steg(dt, tid);
       if (!lugnt) arena.publikJubel((tid % 2.5) / 2.5);

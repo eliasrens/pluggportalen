@@ -1,0 +1,110 @@
+/* ==========================================================================
+   Matchdagen 3 (#873): toppen – klubbmärket i sidhuvudet (guldkant och
+   guldstjärnor), Pokalskåpet med de tecknade pokalerna, Mästarcupen under
+   tabellen, introt "FINALEN", firandet i 2D (flaggor, fyrverkerier, pokalen
+   som lyfts) och legendklubben. Samma kvällsarena som 49-matchdagen-match.css.
+   Lugnt läge (.lugnt) och prefers-reduced-motion: inga rörelser.
+   ========================================================================== */
+
+/* --- Sidhuvudet: klubbmärket och namnet ----------------------------------- */
+.md-klubbhuvud { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.md-klubbhuvud:empty { display: none; }
+.md-klubbhuvud-namn { font: 800 20px/1.1 var(--md-rubrikfont); color: var(--md-ink); overflow-wrap: anywhere; }
+.md-marke-ram { display: inline-flex; flex: none; }
+.md-marke { display: block; width: 34px; height: 40px; overflow: visible; }
+.md-marke-ram.stor .md-marke { width: 76px; height: 90px; }
+.md-marke.guld { filter: drop-shadow(0 0 6px rgba(255, 210, 63, 0.55)); }
+
+/* --- Pokalskåpet ----------------------------------------------------------- */
+.md-skap-huvud { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+.md-skap-huvud p { margin: 0; }
+.md-hyllor {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none;
+}
+.md-hylla {
+  display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 10px 12px; text-align: center;
+  border-radius: 14px; border: 1px solid var(--md-linje); background: linear-gradient(180deg, #1b2d4b, #14223a);
+}
+/* Hyllplanet under pokalen. */
+.md-hylla .md-pokalbild { width: 84px; height: 105px; padding: 0 22px 2px; border-bottom: 7px solid #4a3520; box-sizing: content-box; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.45)); }
+.md-hylla.superliga .md-pokalbild { width: 100px; height: 125px; }
+.md-hylla.mastarcup .md-pokalbild { width: 112px; height: 140px; }
+.md-hylla.tom .md-pokalbild { filter: none; opacity: 0.8; }
+.md-hylla-text { display: flex; flex-direction: column; gap: 2px; }
+.md-hylla-text b { font: 800 20px/1.1 var(--md-rubrikfont); }
+.md-hylla-antal { color: var(--md-gul); font: 800 22px var(--md-rubrikfont); }
+.md-hylla:not(.tom).mastarcup { border-color: var(--md-gul); box-shadow: 0 0 0 2px rgba(255, 210, 63, 0.3) inset; }
+
+/* Statistik: klubbhistoriken och pokalernas små ikoner */
+.md-historik li { display: flex; align-items: center; gap: 10px; }
+.md-historik .md-marke { flex: none; width: 26px; height: 31px; }
+.md-pokal.guld { background: var(--md-gul); }
+.md-pokal.stor { width: 22px; height: 24px; }
+
+/* --- Mästarcupen ------------------------------------------------------------ */
+.md-mc { border-color: rgba(255, 210, 63, 0.5); }
+.md-mc.vunnen { border-color: var(--md-gul); box-shadow: 0 0 0 2px rgba(255, 210, 63, 0.35) inset; }
+.md-mcmatch .md-overrad { font-size: 20px; }
+.md-final { border-color: var(--md-gul); box-shadow: 0 0 0 2px rgba(255, 210, 63, 0.35) inset; }
+.md-final .md-overrad { font-size: 24px; letter-spacing: 0.06em; }
+.md-guldknapp { background: linear-gradient(180deg, #ffe680, #ffc21a) !important; }
+.md-legendtips .md-lank { font-weight: 800; }
+
+/* Introt före finalen: "FINALEN" över planen. */
+.md-finalintro {
+  position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  background: radial-gradient(circle at 50% 50%, rgba(12, 22, 38, 0.55), rgba(12, 22, 38, 0.92)); text-align: center; pointer-events: none;
+  animation: md-finalin 3.2s ease both;
+}
+.md-finalintro small { font: 800 22px var(--md-rubrikfont); letter-spacing: 0.3em; color: var(--md-svag); text-transform: uppercase; }
+.md-finalintro b {
+  font: 800 clamp(56px, 12vw, 128px)/0.95 var(--md-rubrikfont); color: var(--md-gul); letter-spacing: 0.08em;
+  text-shadow: 0 5px 0 #6b4f00, 0 14px 40px rgba(0, 0, 0, 0.6);
+}
+.md-finalintro span { font: 800 26px var(--md-rubrikfont); color: var(--md-ink); }
+@keyframes md-finalin {
+  0% { opacity: 0; transform: scale(1.25); }
+  18%, 82% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; }
+}
+.md-finalintro.lugnt { animation: none; }
+
+/* Utropet när en titel är vunnen. */
+.md-utrop.titel { font-size: clamp(30px, 6vw, 72px); align-items: flex-end; padding-bottom: 3%; }
+
+/* Rutan efter matchen med pokalen. */
+.md-efter-pokal { display: flex; justify-content: center; margin: 4px 0 8px; }
+.md-efter-pokal .md-pokalbild { width: 96px; height: 120px; filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.5)); }
+.md-titel .md-ruta { box-shadow: 0 0 0 3px var(--md-gul), 0 20px 60px rgba(0, 0, 0, 0.5); }
+.md-legend-ruta .md-ruta { box-shadow: 0 0 0 3px var(--md-gul); }
+
+/* --- 2D: finalens flaggor och firandet ------------------------------------- */
+.md-plan2d .md2-flaggor path { transform-box: fill-box; transform-origin: 0 50%; animation: md2-vaja 1.6s ease-in-out infinite alternate; animation-delay: calc(var(--i) * -0.27s); }
+@keyframes md2-vaja { to { transform: scaleX(0.7) skewY(8deg); } }
+.md-plan2d .md2-lyft { transition: transform 1.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.md-plan2d .md2-fest:not(.lugnt) .md2-lyft svg { animation: md2-lyft 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.6s both; }
+@keyframes md2-lyft { from { transform: translateY(6px); opacity: 0.4; } to { transform: translateY(0); opacity: 1; } }
+.md-plan2d .md2-small circle {
+  transform-box: view-box; opacity: 0;
+  animation: md2-gnista 2.8s ease-out infinite; animation-delay: calc(var(--k) * 0.47s);
+  --dx: calc(cos(var(--v)) * 6px); --dy: calc(sin(var(--v)) * 6px);
+}
+@keyframes md2-gnista {
+  0% { opacity: 0; transform: translate(0, 0); }
+  12% { opacity: 1; }
+  70% { opacity: 0.9; transform: translate(var(--dx), var(--dy)); }
+  100% { opacity: 0; transform: translate(var(--dx), calc(var(--dy) + 2px)); }
+}
+.md-plan2d.lugnt .md2-flaggor path { animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .md-finalintro { animation: none; }
+  .md-plan2d .md2-flaggor path, .md-plan2d .md2-small circle, .md-plan2d .md2-lyft svg { animation: none; }
+  .md-plan2d .md2-small circle { opacity: 0; }
+}
+@media (max-width: 640px) {
+  .md-klubbhuvud-namn { font-size: 18px; }
+  .md-hyllor { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .md-skap-huvud { align-items: flex-start; }
+  .md-marke-ram.stor .md-marke { width: 56px; height: 66px; }
+}

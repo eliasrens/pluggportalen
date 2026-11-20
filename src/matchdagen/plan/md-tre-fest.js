@@ -24,8 +24,9 @@ export function skapaFest(T, scen, { lugnt = false } = {}) {
   /** En pokal av en profil som roteras (LatheGeometry) + handtag (halva torusar). */
   function pokal(sort) {
     const stor = sort === "mastarcup";
-    const guld = spara(new T.MeshStandardMaterial({ color: "#ffcf3a", metalness: 0.85, roughness: 0.28, emissive: "#3a2600" }));
-    const silver = spara(new T.MeshStandardMaterial({ color: "#e6edf7", metalness: 0.9, roughness: 0.22, emissive: "#1a2230" }));
+    // Phong med eget sken: metallen ser blank ut utan miljökarta (inga extra texturer att ladda).
+    const guld = spara(new T.MeshPhongMaterial({ color: "#ffc928", emissive: "#7a5200", specular: "#fff3c0", shininess: 70 }));
+    const silver = spara(new T.MeshPhongMaterial({ color: "#e3eaf5", emissive: "#4a5466", specular: "#ffffff", shininess: 90 }));
     const kropp = stor ? silver : guld;
     const profil = (stor
       ? [[0, 0], [0.34, 0], [0.34, 0.08], [0.2, 0.12], [0.08, 0.2], [0.07, 0.5], [0.14, 0.58], [0.3, 0.7], [0.4, 0.95], [0.43, 1.2], [0.4, 1.22]]
@@ -62,7 +63,16 @@ export function skapaFest(T, scen, { lugnt = false } = {}) {
     for (let i = 0; i < N; i++) pos[i * 3 + 1] = -50;
     geo.setAttribute("position", new T.BufferAttribute(pos, 3));
     geo.setAttribute("color", new T.BufferAttribute(farg, 3));
-    const mat = spara(new T.PointsMaterial({ size: 0.9, vertexColors: true, transparent: true, opacity: 0.95, depthWrite: false, blending: T.AdditiveBlending }));
+    // En rund, mjuk gnista (canvas-textur) i stället för fyrkantiga punkter.
+    const c = document.createElement("canvas");
+    c.width = c.height = 32;
+    const g = c.getContext("2d");
+    const rg = g.createRadialGradient(16, 16, 0, 16, 16, 16);
+    rg.addColorStop(0, "rgba(255,255,255,1)"); rg.addColorStop(0.35, "rgba(255,255,255,.85)"); rg.addColorStop(1, "rgba(255,255,255,0)");
+    g.fillStyle = rg;
+    g.fillRect(0, 0, 32, 32);
+    const gnista = spara(new T.CanvasTexture(c));
+    const mat = spara(new T.PointsMaterial({ map: gnista, size: 1.7, vertexColors: true, transparent: true, opacity: 0.95, depthWrite: false, blending: T.AdditiveBlending }));
     pts = new T.Points(geo, mat);
     pts.frustumCulled = false;
     scen.add(pts);
@@ -72,7 +82,7 @@ export function skapaFest(T, scen, { lugnt = false } = {}) {
   function small(slump) {
     const bas = (nr++ % SMALL) * PER;
     const c = new T.Color(FARGER[nr % FARGER.length]);
-    const cx = (slump() - 0.5) * 50, cy = 12 + slump() * 8, cz = -24 - slump() * 10;
+    const cx = (slump() - 0.5) * 56, cy = 8 + slump() * 5, cz = -20 - slump() * 8;
     const farg = pts.geometry.attributes.color.array;
     for (let i = 0; i < PER; i++) {
       const k = (bas + i) * 3;

@@ -6,12 +6,13 @@
 //   mcEfter(klar)      rubrik och rad i rutan efter matchen
 //   mcHtml(K, uid)     Mästarcupens tre rundor under tabellen (Tabell-fliken)
 //   mastareText()      rubrik och text när Superligan är vunnen
+//   finalIntro(S, el, n)  "FINALEN" över planen före finalen (DOM, väntar tills introt är klart)
 // Allt ur dokumentet med esc() eller som tal (eleven skriver dokumentet).
 // ============================================================================
 
 import { DIVISIONER, KASSA, MASTARCUP, TOPP_DIV } from "../delat/md-config.js";
 import { mcLage, mcLottning, mcSchema } from "../delat/md-mastarcup.js";
-import { chip, esc } from "./md-vy-delat.js";
+import { chip, esc, vanta } from "./md-vy-delat.js";
 
 const tal = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 const rundaNamn = (i) => MASTARCUP.rundor[i].toLowerCase();
@@ -89,4 +90,18 @@ export function mcHtml(K, uid = "") {
     <ol class="md-cup-rundor">${rader}</ol>
     <p class="md-svag">${esc(mcStatus(K))} Toppklubbar från andra länder – oavgjort avgörs på straffar, förlust betyder ute.</p>
   </section>`;
+}
+
+/**
+ * Introt före finalen i Mästarcupen (§10.2): "FINALEN" över planen med lagen – i lugnt läge
+ * och med prefers-reduced-motion utan rörelse och kortare.
+ */
+export async function finalIntro(S, el, n) {
+  const d = document.createElement("div");
+  d.className = `md-finalintro${S.lugnt ? " lugnt" : ""}`;
+  d.setAttribute("role", "status");
+  d.innerHTML = `<small>Mästarcupen</small><b>FINALEN</b><span>${esc(S.K.klubb.namn)} – ${esc(n.mot.namn)}</span>`;
+  el.querySelector(".md-plan")?.appendChild(d);
+  await vanta(S.lugnt ? 1200 : 3200);
+  d.remove();
 }
