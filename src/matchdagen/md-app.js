@@ -7,37 +7,20 @@
 //   startaMatchdagen(host, { uid, inst, data, hamtaOmrade, avatar?, lagring?, tvinga2d?, signal? })
 //     data: { lasKarriar, sparaKarriar, sparaMatch, lasMatch }
 //
-// Kvoten (§13): karriären läses EN gång här (lasKarriar), inga lyssnare. En
-// färdig match som inte hann sparas (offline) ligger i localStorage och sparas
-// om nästa gång (md-lokal.js).
+// Kvoten (§13): karriären läses EN gång här (lasKarriar), inga lyssnare. Färdiga
+// matcher som inte hann sparas (offline) ligger i en kö i localStorage och sparas
+// om nästa gång (md-lokal.js, md-spara.js).
 // ============================================================================
 
 import { MATCHDAGEN_IKON } from "../gamemode-visibility.js";
 import { harKallor, normalizeInst } from "./md-inst.js";
-import { karriarOk } from "./delat/md-sasong.js";
-import { lasOsparad, rensaOsparad } from "./md-lokal.js";
+import { hamtaKarriar } from "./md-spara.js";
 import { esc, laddaTypsnitt } from "./vy/md-vy-delat.js";
 
 const FLIKAR = [["match", "Match"], ["tabell", "Tabell"], ["trupp", "Truppen"], ["stat", "Statistik"]];
 
 function webbLagring() {
   try { return globalThis.localStorage || null; } catch { return null; }
-}
-
-/** Den sparade karriären eller den lokala (osparade) – den som har flest matcher. */
-async function hamtaKarriar(S) {
-  let K = null;
-  try { K = await S.data.lasKarriar(S.uid); } catch (err) { console.warn("Matchdagen: karriären kunde inte läsas", err); S.lasfel = true; }
-  const osparad = lasOsparad(S.lagring, S.uid);
-  if (osparad && (!karriarOk(K) || (osparad.K.summa?.matcher || 0) > (K.summa?.matcher || 0))) {
-    try {
-      await S.data.sparaMatch(S.uid, osparad.K, osparad.matchId, osparad.match);
-      rensaOsparad(S.lagring, S.uid);
-    } catch (err) { console.warn("Matchdagen: den osparade matchen kunde inte sparas än", err); }
-    return osparad.K;
-  }
-  if (osparad) rensaOsparad(S.lagring, S.uid);
-  return karriarOk(K) ? K : null;
 }
 
 export async function startaMatchdagen(host, deps) {

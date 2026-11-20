@@ -161,6 +161,7 @@ export function skapa3dRitare({ T, yta, lugnt = false }) {
     if (!levande) return;
     raf = requestAnimationFrame(loop);
     const dt = Math.min(0.05, (nu - senast) / 1000);
+    if (nu - senast > 250) vaktStart = 0; // uppehåll (dold flik, sovläge): börja mäta om
     senast = nu;
     bilder.push(nu);
     if (bilder.length > 240) bilder.shift();
@@ -223,6 +224,7 @@ export function skapa3dRitare({ T, yta, lugnt = false }) {
       bollTex.dispose();
       avatarSprite?.userData.tex.dispose();
       renderer.dispose();
+      renderer.forceContextLoss(); // släpp WebGL-kontexten direkt (webbläsaren har bara ett fåtal)
       canvas.remove();
     },
   };

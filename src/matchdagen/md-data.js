@@ -6,8 +6,12 @@
 // + matcher/{id}). Lärarens historik läses först när läraren klickar på en elev.
 //
 //   lasKarriar(uid)                       → K | null           1 läsning
-//   sparaKarriar(uid, K)                  ny klubb, nytt namn   1 skrivning
-//   sparaMatch(uid, K, matchId, match)    efter matchen         1 batch (2 skrivningar)
+//   sparaKarriar(uid, K)                  ny klubb, nytt namn   1 skrivning (hela dokumentet)
+//   sparaMatch(uid, K, matchId, match)    efter matchen         1 batch (2 skrivningar) – rör inte klubb
+//
+// Varje skrivning har en tidsgräns (TIDSGRANS_MS): offline löser Firestore aldrig
+// skrivningens promise, och då ska rutan efter matchen och sidan inte hänga. Matchen
+// ligger redan i den lokala kön (md-lokal.js) och skrivningen går fram när nätet är tillbaka.
 //   lasMatch(uid, matchId)                en match (Statistik → detaljer)   1 läsning
 //   lasKarriarer(uids)                    läraren: en läsning per elev
 //   lasMatcher(uid, n)                    läraren: de n senaste matcherna (n läsningar)
@@ -21,36 +25,62 @@ import {
 import { STANDARD_LAGNAMN } from "./delat/md-namn.js";
 
 const karriarRef = (uid) => doc(db, "matchdagen", uid);
+export const TIDSGRANS_MS = 8000;
+
+/** p eller ett fel med code "timeout" efter ms – Firestores skrivningar löses aldrig offline. */
+export function medTidsgrans(p, ms = TIDSGRANS_MS) {
+  let t = 0;
+  const grans = new Promise((_, nej) => {
+    t = setTimeout(() => nej(Object.assign(new Error("Ingen kontakt med servern"), { code: "timeout" })), ms);
+  });
+  return Promise.race([p, grans]).finally(() => clearTimeout(t));
+}
 const matchRef = (uid, id) => doc(db, "matchdagen", uid, "matcher", id);
 
 /** Bara karriärens kända fält (aldrig något annat i dokumentet). */
 export const KARRIAR_FALT = ["version", "klubb", "div", "sasong", "kassa", "trupp", "liga", "pokaler", "summa", "senaste", "sasonger", "dagar"];
-const urval = (K) => Object.fromEntries(KARRIAR_FALT.filter((k) => K[k] !== undefined).map((k) => [k, K[k]]));
+const urval = (K, falt = KARRIAR_FALT) => Object.fromEntries(falt.filter((k) => K[k] !== undefined).map((k) => [k, K[k]]));
+/** Matchsparningen skriver allt UTOM klubb – lärarens Återställ lagnamn får inte skrivas över. */
+const MATCH_FALT = KARRIAR_FALT.filter((k) => k !== "klubb");
 
 export async function lasKarriar(uid) {
-  const snap = await getDoc(karriarRef(uid));
+  const snap = await medTidsgrans(getDoc(karriarRef(uid)), 2 * TIDSGRANS_MS);
   return snap.exists() ? snap.data() : null;
 }
 
 export async function sparaKarriar(uid, K) {
-  await setDoc(karriarRef(uid), { ...urval(K), senast: serverTimestamp() });
+  await medTidsgrans(setDoc(karriarRef(uid), { ...urval(K), senast: serverTimestamp() }));
+}
+
+/** Karriären i batchen: utan klubb (mergeFields = bara de skickade fälten ersätts), eller hela om den saknas. */
+function karriarIBatch(b, uid, K, medKlubb) {
+  const data = { ...urval(K, medKlubb ? KARRIAR_FALT : MATCH_FALT), senast: serverTimestamp() };
+  if (medKlubb) b.set(karriarRef(uid), data);
+  else b.set(karriarRef(uid), data, { mergeFields: Object.keys(data) });
 }
 
 /**
- * Karriären + matchen i EN batch. Om matchen redan finns (ett tidigare försök
- * gick fram men svaret kom aldrig) sparas bara karriären – matcher kan inte ändras.
+ * Karriären (utan klubb) + matchen i EN batch. Nekas den läses de två dokumenten:
+ *   • matchen finns redan (ett tidigare försök gick fram men svaret kom aldrig) →
+ *     bara karriären sparas – matcher kan inte ändras;
+ *   • karriären finns inte (den nya klubben hann aldrig sparas) → hela karriären
+ *     med klubb skickas, annars nekar reglerna ett dokument utan klubb.
  */
-export async function sparaMatch(uid, K, matchId, match) {
+export async function sparaMatch(uid, K, matchId, match, medKlubb = false) {
   const b = writeBatch(db);
-  b.set(karriarRef(uid), { ...urval(K), senast: serverTimestamp() });
+  karriarIBatch(b, uid, K, medKlubb);
   b.set(matchRef(uid, matchId), { ...match, datum: serverTimestamp() });
   try {
-    await b.commit();
+    await medTidsgrans(b.commit());
   } catch (err) {
     if (err?.code !== "permission-denied") throw err;
-    const finns = await getDoc(matchRef(uid, matchId)).then((s) => s.exists()).catch(() => false);
-    if (!finns) throw err;
-    await sparaKarriar(uid, K);
+    const finns = (ref) => medTidsgrans(getDoc(ref)).then((s) => s.exists()).catch(() => null);
+    const [matchFinns, karriarFinns] = await Promise.all([finns(matchRef(uid, matchId)), finns(karriarRef(uid))]);
+    if (karriarFinns === false && !medKlubb) return sparaMatch(uid, K, matchId, match, true);
+    if (!matchFinns) throw err;
+    const b2 = writeBatch(db);
+    karriarIBatch(b2, uid, K, karriarFinns === false);
+    await medTidsgrans(b2.commit());
   }
 }
 

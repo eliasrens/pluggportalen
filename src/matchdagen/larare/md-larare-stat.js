@@ -17,6 +17,8 @@ import { sekunderSenaste, veckoRatt } from "../delat/md-sasong.js";
 import { harMatchdagen } from "../md-inst.js";
 import { kopplaAterstall } from "./md-lagnamn.js";
 
+/** Ett tal ur elevens dokument – aldrig text i lärarens HTML (eleven skriver dokumentet). */
+const tal = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 const pct = (r, f) => (f ? Math.round((100 * r) / f) : null);
 const pctText = (r, f) => (f ? `${pct(r, f)} %` : "–");
 const minText = (sek) => {
@@ -52,9 +54,10 @@ export function elevRad(elev, K, nu = Date.now()) {
   const kallor = Object.entries(s.perKalla || {}).sort((a, b) => b[1].fragor - a[1].fragor);
   return {
     id: elev.id, namn: elev.namn || elev.username || elev.id, startad: !!K,
-    sek7: K ? sekunderSenaste(K.dagar, nu, 7) : 0, minTotalt: Number(s.spelminuter) || 0,
-    matcher: s.matcher || 0, ratt: s.ratt || 0, fragor: s.fragor || 0, kallor,
-    div: K ? DIVISIONER[K.div] || "" : "", sasong: K?.sasong || 0, senast: K?.senast || null, lag: K?.klubb?.namn || "",
+    sek7: K ? tal(sekunderSenaste(K.dagar, nu, 7)) : 0, minTotalt: tal(s.spelminuter),
+    matcher: tal(s.matcher), ratt: tal(s.ratt), fragor: tal(s.fragor),
+    kallor: kallor.map(([k, v]) => [k, { namn: v?.namn, ratt: tal(v?.ratt), fragor: tal(v?.fragor) }]),
+    div: K ? DIVISIONER[K.div] || "" : "", sasong: tal(K?.sasong), senast: K?.senast || null, lag: K?.klubb?.namn || "",
   };
 }
 
@@ -128,8 +131,8 @@ async function visaElev(host, elev, K, data, efterNamn) {
     const matcher = await data.lasMatcher(elev.id, 20);
     yta.replaceChildren(el(matcher.length ? `<div class="table-scroll"><table class="tbl lrt-tbl">
       <thead><tr><th>Datum</th><th>Motståndare</th><th class="lrt-num">Resultat</th><th class="lrt-num">Rätt</th><th class="lrt-num">Speltid</th></tr></thead>
-      <tbody>${matcher.map((m) => `<tr><td>${datumText(m.datum)}</td><td>${esc(m.mot)}</td><td class="lrt-num">${m.oss}–${m.dem}</td>
-        <td class="lrt-num">${m.ratt}/${m.fragor} (${pctText(m.ratt, m.fragor)})</td><td class="lrt-num">${minText(m.sekunder)}</td></tr>`).join("")}</tbody>
+      <tbody>${matcher.map((m) => `<tr><td>${datumText(m.datum)}</td><td>${esc(m.mot)}</td><td class="lrt-num">${tal(m.oss)}–${tal(m.dem)}</td>
+        <td class="lrt-num">${tal(m.ratt)}/${tal(m.fragor)} (${pctText(tal(m.ratt), tal(m.fragor))})</td><td class="lrt-num">${minText(m.sekunder)}</td></tr>`).join("")}</tbody>
     </table></div>` : `<p class="hint">Inga matcher än.</p>`));
   } catch (err) {
     yta.replaceChildren(el(`<div class="msg error">Matcherna kunde inte läsas: ${esc(err.message)}</div>`));

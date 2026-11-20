@@ -794,6 +794,16 @@ service cloud.firestore {
         t[2].st in [1, 2, 3, 4, 5] && t[3].st in [1, 2, 3, 4, 5] && t[4].st in [1, 2, 3, 4, 5] &&
         t[5].st in [1, 2, 3, 4, 5] && t[6].st in [1, 2, 3, 4, 5];
     }
+    // Summan visas i lärarens Hur går det? → Matchdagen: alla tal måste vara tal (aldrig
+    // text som kan bli HTML), perKalla en begränsad map. Skickas som ett värde – billigt.
+    function mdSummaOk(s) {
+      return s is map && s.keys().hasOnly(['matcher', 'v', 'o', 'f', 'gjorda', 'inslappta', 'fragor', 'ratt', 'perKalla', 'spelminuter']) &&
+        s.keys().hasAll(['matcher', 'v', 'o', 'f', 'gjorda', 'inslappta', 'fragor', 'ratt', 'perKalla', 'spelminuter']) &&
+        mdHeltal(s.matcher, 0, 1000000) && mdHeltal(s.v, 0, 1000000) && mdHeltal(s.o, 0, 1000000) && mdHeltal(s.f, 0, 1000000) &&
+        mdHeltal(s.gjorda, 0, 10000000) && mdHeltal(s.inslappta, 0, 10000000) &&
+        mdHeltal(s.fragor, 0, 100000000) && mdHeltal(s.ratt, 0, s.fragor) && mdTal(s.spelminuter, 0, 10000000) &&
+        s.perKalla is map && s.perKalla.size() <= 150;
+    }
     function mdLigaOk(l) {
       return l is map && l.keys().hasOnly(['lag', 'schema', 'tabell', 'omg']) &&
         l.lag is list && l.lag.size() >= 2 && l.lag.size() <= 12 &&
@@ -818,8 +828,7 @@ service cloud.firestore {
         (!('kassa' in a) || mdTal(d.kassa, 0, 100000000)) &&
         (!('trupp' in a) || mdTruppOk(d.trupp)) &&
         (!('liga' in a) || mdLigaOk(d.liga)) &&
-        (!('summa' in a) || (d.summa is map && d.summa.size() <= 12 &&
-          (!('perKalla' in d.summa) || (d.summa.perKalla is map && d.summa.perKalla.size() <= 150)))) &&
+        (!('summa' in a) || mdSummaOk(d.summa)) &&
         (!('reserver' in d) || (d.reserver is list && d.reserver.size() <= 5)) &&
         (!('marknad' in d) || (d.marknad is list && d.marknad.size() <= 6)) &&
         (!('kval' in d) || (d.kval is map && d.kval.size() <= 20)) &&

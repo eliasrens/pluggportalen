@@ -50,6 +50,9 @@ export function ruta(host, { rubrik, html = "", knappar = [{ id: "ok", text: "OK
   });
 }
 
+/** Ligger elementet i en dold flik (Tabell/Truppen/Statistik visas)? Då gäller inte tangenterna. */
+const dold = (el) => !!el.closest?.("[hidden]");
+
 /**
  * Valen när vi har bollen eller försvarar: stora knappar och tangenterna 1–4.
  * @returns {Promise<string|null>} valets id (null = avbrutet)
@@ -62,7 +65,7 @@ export function valMeny(host, val, signal) {
     const klar = (id) => { document.removeEventListener("keydown", tangent); signal?.removeEventListener("abort", avbryt); ok(id); };
     const avbryt = () => klar(null);
     function tangent(e) {
-      if (e.altKey || e.ctrlKey || e.metaKey || e.target?.matches?.("input, textarea")) return;
+      if (e.altKey || e.ctrlKey || e.metaKey || e.target?.matches?.("input, textarea") || dold(host)) return;
       const n = Number(e.key);
       const b = knappar[n - 1];
       if (b && !b.disabled) { e.preventDefault(); klar(b.dataset.id); }

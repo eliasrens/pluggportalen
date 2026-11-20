@@ -80,6 +80,31 @@ describe("matchdagen/{uid} – eleven (#869)", () => {
     await assertFails(setDoc(ref(db), utanLiga), "ligan saknas");
     await assertSucceeds(setDoc(ref(db), karriar({ div: 7, trupp: trupp(5) })), "div 7, st 5");
   });
+  it("summan: bara heltal (aldrig text som blir HTML hos läraren), kända nycklar, ratt ≤ fragor", async () => {
+    await env.seed((db) => setDoc(ref(db), { ...JSON.parse(JSON.stringify(K0)), senast: new Date() }));
+    const db = env.as("e4a", {});
+    const XSS = "<img src=x onerror=alert(1)>";
+    await assertFails(updateDoc(ref(db), { "summa.matcher": XSS, senast: serverTimestamp() }), "text i summa.matcher");
+    await assertFails(updateDoc(ref(db), { "summa.ratt": XSS, senast: serverTimestamp() }), "text i summa.ratt");
+    await assertFails(updateDoc(ref(db), { "summa.matcher": 1.5, senast: serverTimestamp() }), "decimaltal");
+    await assertFails(updateDoc(ref(db), { "summa.ratt": 99, senast: serverTimestamp() }), "ratt > fragor");
+    await assertFails(updateDoc(ref(db), { "summa.okand": 1, senast: serverTimestamp() }), "okänd nyckel");
+    await assertFails(setDoc(ref(db), karriar({ summa: { ...K0.summa, spelminuter: "lång" } })), "spelminuter som text");
+    await assertSucceeds(updateDoc(ref(db), { summa: JSON.parse(JSON.stringify(KLAR.K.summa)), senast: serverTimestamp() }), "matchens summa");
+  });
+  it("matchsparningen rör inte klubb (lärarens återställning står kvar)", async () => {
+    await env.seed((db) => setDoc(ref(db), { ...JSON.parse(JSON.stringify(K0)), klubb: { ...K0.klubb, namn: "Pluggporten FC" }, senast: new Date() }));
+    const db = env.as("e4a", {});
+    const { klubb, ...utanKlubb } = JSON.parse(JSON.stringify(KLAR.K));
+    void klubb;
+    const data = { ...utanKlubb, senast: serverTimestamp() };
+    const b = writeBatch(db);
+    b.set(ref(db), data, { mergeFields: Object.keys(data) });
+    b.set(mref(db), match());
+    await assertSucceeds(b.commit());
+    const efter = (await getDoc(ref(db))).data();
+    if (efter.klubb.namn !== "Pluggporten FC" || efter.summa.matcher !== 1) throw new Error(JSON.stringify(efter.klubb));
+  });
   it("raderar inte – bara admin", async () => {
     await env.seed((db) => setDoc(ref(db), { ...JSON.parse(JSON.stringify(K0)), senast: new Date() }));
     await assertFails(deleteDoc(ref(env.as("e4a", {}))));

@@ -21,7 +21,9 @@ export function kopplaAterstall(knapp, { uid, elevNamn, status, efter }) {
       status.innerHTML = `<span class="ok-inline">Lagnamnet är nu ${esc(STANDARD_LAGNAMN)} ✓</span>`;
       efter?.(STANDARD_LAGNAMN);
     } catch (err) {
-      status.innerHTML = err?.code === "not-found"
+      // Utan lag finns inget dokument: updateDoc ger not-found, eller permission-denied
+      // eftersom regeln (mdBaraLagnamn) läser resource.data som saknas.
+      status.innerHTML = err?.code === "not-found" || err?.code === "permission-denied"
         ? `<span class="err-inline">${esc(elevNamn)} har inte startat något lag än.</span>`
         : `<span class="err-inline">Kunde inte återställa: ${esc(errText(err))}</span>`;
     } finally {

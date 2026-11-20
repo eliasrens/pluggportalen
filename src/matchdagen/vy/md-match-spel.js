@@ -10,7 +10,8 @@
 import { andraHalvlek, antalFragor, lage, lagbonus, nyMatch, resultat, spela } from "../delat/md-motor.js";
 import { LAGE_TEXT } from "../delat/md-texter.js";
 import { matchKlar, nastaMatch } from "../delat/md-sasong.js";
-import { rensaOsparad, rensaPagaende, sparaOsparad, sparaPagaende } from "../md-lokal.js";
+import { laggIKo, rensaPagaende, sparaPagaende } from "../md-lokal.js";
+import { sparaKon } from "../md-spara.js";
 import { kortNamn } from "../plan/md-plan.js";
 import { chip, esc, ruta, valMeny, vanta } from "./md-vy-delat.js";
 import { omgangText } from "./md-vy-match.js";
@@ -133,7 +134,10 @@ export async function spelaMatch(S, el, { pagaende = null } = {}) {
   S.spel = { pagar: true, plan, post };
   const signal = S.signal;
   let fpsTimer = 0;
-  const stang = () => { plan.dispose(); ljud.stang(); clearInterval(fpsTimer); S.spel = null; };
+  const stang = () => {
+    signal?.removeEventListener("abort", stang);
+    plan.dispose(); ljud.stang(); clearInterval(fpsTimer); S.spel = null;
+  };
   signal?.addEventListener("abort", stang, { once: true });
   if (/[?&]fps=1/.test(location.search + location.hash)) {
     v.fps.hidden = false;
@@ -210,16 +214,11 @@ export async function spelaMatch(S, el, { pagaende = null } = {}) {
   const res = resultat(m);
   const klar = matchKlar(S.K, { res, rng: Math.random, nu: Date.now(), matchId: post.matchId, kallNamn: fr.kallNamn });
   S.K = klar.K;
-  sparaOsparad(S.lagring, S.uid, { K: klar.K, matchId: post.matchId, match: klar.match });
+  // Kön först (då försvinner ingen match om sparningen misslyckas), sedan hela kön
+  // med den nya karriären – tidsgränsen i md-data.js gör att rutan aldrig hänger offline.
+  laggIKo(S.lagring, S.uid, { K: klar.K, matchId: post.matchId, match: klar.match });
   rensaPagaende(S.lagring, S.uid);
-  let sparad = true;
-  try {
-    await S.data.sparaMatch(S.uid, klar.K, post.matchId, klar.match);
-    rensaOsparad(S.lagring, S.uid);
-  } catch (err) {
-    sparad = false;
-    console.warn("Matchdagen: matchen kunde inte sparas – sparas nästa gång", err);
-  }
+  const sparad = await sparaKon(S, klar.K);
   S.kassa();
   await vanta(S.lugnt ? 200 : 700);
   const valet = await efterMatchen(S, res, klar, n.mot, sparad, signal);
