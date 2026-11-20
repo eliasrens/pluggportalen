@@ -146,6 +146,7 @@ describe("avstängda moduler (§3.2)", () => {
     assert.deepEqual(modul, {
       amnen: "plugga", omraden: "plugga", lasresan: "lasresan", ekvationsresan: "ekvationsresan", prov: null,
       brakresan: "brakresan", mattematchen: null, live: null, schack: "schack",
+      matchdagen: null, // #869: per elev – aldrig "av" för klassen, fliken syns bara när någon elev har den
     });
   });
   it("nedtonad '· av' + texten med länk till Vad eleverna ser; statistiken står kvar under", () => {

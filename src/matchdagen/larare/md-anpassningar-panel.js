@@ -7,8 +7,8 @@
 // Plugga-områden = områden med quiz eller par; Räkna = områden med generator
 // (areaContentFlags, samma grind som elevens lägen). Klassens tilldelade områden
 // och redan valda står överst i sitt ämne, och de ämnena är utfällda.
-// Återställ lagnamn: lagnamnet finns först när eleven spelat (matchdagen/{uid},
-// Etapp 1c) – knappen är avstängd tills dess.
+// Återställ lagnamn (#869): bara klubb.namn i matchdagen/{uid} (md-lagnamn.js) –
+// har eleven inte startat något lag än står det i svaret.
 // ============================================================================
 
 import { el, esc, errText, icon } from "../../teacher-shared.js";
@@ -91,8 +91,9 @@ export async function renderPanel(ctx, { cls, elev, host, avbryt, loadLibrary, o
       <p class="hint">Efter den tiden visas "Bra jobbat! Dags för en paus." efter nästa slutsignal. Den spärrar ingenting.</p>
     </fieldset>
     <fieldset class="mda-del"><legend>Lagnamn</legend>
-      <button type="button" class="btn ghost small" disabled>${icon("pencil", 16)}<span>Återställ lagnamn</span></button>
-      <p class="hint">Om eleven skriver något olämpligt. Går att använda när ${namn} har startat sitt lag.</p>
+      <button type="button" class="btn ghost small" data-lagnamn disabled>${icon("pencil", 16)}<span>Återställ lagnamn</span></button>
+      <span class="mda-lagnamn-status" role="status"></span>
+      <p class="hint">Om eleven skriver något olämpligt. Lagnamnet blir då Pluggporten FC.</p>
     </fieldset>
 
     <div class="mda-spara">
@@ -102,6 +103,8 @@ export async function renderPanel(ctx, { cls, elev, host, avbryt, loadLibrary, o
   </form>`);
 
   const resultat = box.querySelector(".mda-resultat");
+  import("./md-lagnamn.js").then(({ kopplaAterstall }) => kopplaAterstall(box.querySelector("[data-lagnamn]"),
+    { uid: elev.id, elevNamn: elev.namn || "Eleven", status: box.querySelector(".mda-lagnamn-status") }));
   const las = () => {
     const kryss = (attr) => [...box.querySelectorAll(`input[data-${attr}]:checked`)].map((c) => c.dataset[attr]);
     // Ett sparat område som inte visas (borttaget eller utan innehåll just nu) behålls –

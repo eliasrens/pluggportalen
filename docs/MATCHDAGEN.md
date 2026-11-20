@@ -11,7 +11,7 @@ elever**, aldrig för en hel klass. Det här dokumentet växer med etapperna:
 | --- | --- | --- |
 | 1a (#867) | Moduler per elev (`elevModuler`, `perElev`), lärarens "Anpassningar per elev" (`matchdagenInst`), platshållarsida | klar |
 | 1b (#868) | Frågekällorna (`md-fragor.js`), frågekortet (`md-svar.js`), den rena matchmotorn och ligan (`src/matchdagen/delat/`), balanssimuleringen | klar |
-| 1c | 3D-planen med 2D-reserv, matchvyn, säsongen i Division 6, sparning och statistik | – |
+| 1c (#869) | 3D-planen med 2D-reserv (§12), matchvyn, säsongen i Division 6 (§10), sparning, kvot (§11) och statistik för elev och lärare (§13) | klar |
 
 ## 1. Moduler per elev (Etapp 1a)
 
@@ -238,7 +238,8 @@ planhalva 60/10/30. De tacklar i 70 % av fallen och täcker annars. Tidsmodellen
 Allt nytt ligger i `src/matchdagen/` och laddas med `import()` – bootgrafen är oförändrad (107 filer, testat i
 `test/matchdagen-modul.test.js`). I bootfilerna ändrades bara registret (`gamemode-visibility.js`), en route i
 `app.js` och lärarens sektions-/flikregister (`teacher-classes-sections.js`, `teacher-mina-val.js`,
-`teacher-struktur.js`). Stilarna: `src/styles/48-matchdagen.css` (+ `npm run build:css`).
+`teacher-struktur.js`, och i 1c `STATS_TABS` i `teacher-class.js` med en dynamisk `import()`). three.js och
+allt i `src/matchdagen/plan/` laddas först när matchen startar. Stilarna: `src/styles/48-matchdagen.css` (+ `npm run build:css`).
 
 | Fil | Vad |
 | --- | --- |
@@ -251,6 +252,15 @@ Allt nytt ligger i `src/matchdagen/` och laddas med `import()` – bootgrafen ä
 | `src/matchdagen/md-svar.js` | frågekortet (§5) |
 | `src/matchdagen/delat/` | den rena motorn och ligan (§6) |
 | `admin/md-balans-sim.mjs` | balanssimuleringen (§7) |
+| `src/tre/tre-ladda.js` | delad three-laddning (`harWebGL`, `laddaThree`), utbruten ur Kurragömmas `kg-tre.js` (som re-exporterar) |
+| `src/matchdagen/delat/md-namn.js`, `md-sasong.js` | ren: namnen och färgerna, klubben/säsongen/karriären (§10) |
+| `src/matchdagen/md-app.js` | elevens app: sidhuvud med klubbkassan, flikarna, tillståndet och sparningen |
+| `src/matchdagen/md-data.js`, `md-lokal.js`, `md-spara.js` | Firestore (§10), det som sparas lokalt (pågående match, kön av osparade matcher) och kön + valet av karriär |
+| `src/matchdagen/vy/` | flikarna: `md-vy-match` (före avspark, ny klubb, säsongsslut), `md-match-spel` (matchen), `md-vy-tabell`, `md-vy-trupp`, `md-vy-stat`, `md-vy-klubb`, `md-vy-delat` |
+| `src/matchdagen/plan/` | planen (§12): `md-plan` (väljer 3D/2D, spelar upp händelserna), `md-formation` (ren), `md-tre-ritare`/`-arena`/`-figur` (3D), `md-plan-2d` (SVG-reserven), `md-ljud` (Web Audio) |
+| `src/matchdagen/larare/md-larare-stat.js`, `md-lagnamn.js` | lärarens underflik Matchdagen i Hur går det? och Återställ lagnamn (§13) |
+| `src/styles/49-matchdagen-match.css` | elevens app och matchvyn (kvällsarenan) |
+| `preview/preview-matchdagen.html` | förhandsvisning 1c med stubbad data (`PORT=8869 node server.mjs`; `?vy=match\|tabell\|trupp\|stat`, `?omg=0–5`, `?klubb=ny`, `?ny=1`, `?2d=1`, `?lugnt=1`, `?fps=1`, `?auto=1`, `?svar=skriv`, `?klocka=30`, `?kallor=inga`) |
 | `preview/preview-matchdagen-fragor.html` | förhandsvisning 1b: frågekortet + motorn som textmatch (`PORT=8868 node server.mjs`; `?svar=skriv`, `?klocka=30`, `?kallor=tabell\|omrade\|rakna\|klocka\|inga`) |
 
 ## 9. Deploy
@@ -259,3 +269,133 @@ Etapp 1a: **`firebase deploy --only firestore:rules` före webben** (nya fält o
 Inga index, inga functions.
 
 Etapp 1b: **ingen deploy**. Inga regler, index eller functions, och ingen ny samling. Motorn används först i 1c.
+
+Etapp 1c: **`firebase deploy --only firestore:rules` före webben** (samlingen `matchdagen/{uid}` med
+`matcher`). Inga index (lärarens historik sorterar bara på `datum` i en undersamling – automatiskt index),
+inga functions.
+
+## 10. Säsongen och sparningen (Etapp 1c)
+
+### 10.1 Säsongen i Division 6
+
+`src/matchdagen/delat/md-sasong.js` (ren, testad i `test/matchdagen-sasong.test.js`):
+
+- **Ny klubb:** `nyKarriar({ namn, farg, rng })` – namn 1–24 tecken (`lagnamnOk`), en av 8 tröjfärger
+  (`TROJFARGER`), sju grundpelare med färdiga namn ur `FORNAMN`/`EFTERNAMN` (2★, en av utespelarna är lagkapten).
+  Namnen går inte att ändra. Kassan börjar på `KASSA.start`.
+- **Ligan:** `nyLiga(div, trojfarg, rng)` – 6 lag (vi + 5 ur `MOTSTANDARE`, 66 påhittade namn) med egna färger
+  och dold `styrkaFor(div)`; schemat med cirkelmetoden (`md-liga.js schema`) lagras som strängar
+  `"a:b|c:d|e:f"` per omgång (Firestore tillåter inga listor i listor). Vårt lag är `{ id: "oss" }` – namn och
+  färg kommer ur `klubb`, så lärarens återställning rör bara `klubb.namn`.
+- **Efter elevens match:** `matchKlar(K, { res, rng, nu, matchId, kallNamn })` räknar omgångens övriga matcher
+  med `simMal`, tabellen (3/1/0, sorterad på poäng, målskillnad, gjorda mål), kassan (`pengarFor`: grund
+  300/150/80 + 15 per rätt + 25 per mål, × (1 + div × 0,25)), summan, `senaste`, `dagar` – och efter sista
+  omgången placeringen och pokalen "Vinnare Division 6".
+- **Nästa säsong:** `nySasong(K, rng)` – ny liga, samma division. Etapp 1 har inget kval (kommer i 2a); laget
+  stannar i Division 6. Lottningen seedas med `sasongFro(K, uid)`, så samma liga visas vid omladdning innan den
+  sparas (den sparas med nästa match).
+- **Fortsätta senare** (`md-lokal.js`): den pågående matchen (`m` ur motorn, ren JSON) sparas i `localStorage`
+  (`matchdagen-match:{uid}`) efter varje läge och tas upp igen om den hör till nästa match. Färdiga matcher
+  läggs först i en **kö** (`matchdagen-osparad:{uid}` = `{ K, koe }`, högst 30) och sparas i ordning
+  (`md-spara.js sparaKon`) direkt efter matchen och när Matchdagen öppnas. `hamtaKarriar` väljer den sparade
+  eller den lokala karriären (flest matcher – men alltid serverns `klubb`) och skriver ingenting om
+  karriären inte gick att läsa.
+
+### 10.2 Datamodellen
+
+Fälten står i [`DATAMODELL.md`](DATAMODELL.md#matchdagenuid--elevens-karriär-869). Utöver specens §6.1:
+
+- `senaste` (≤ 20) och `sasonger` – elevens Statistik läser inga `matcher` (bara en vid klick på en match).
+- `dagar` (≤ 70 dagar, `{ m, sek, fragor, ratt }`) – lärarens speltid de senaste 7 dagarna och veckolinjen
+  utan att läsa `matcher`.
+- `summa.perKalla[k].namn` – källans namn ("Vikingatiden", "7:ans tabell") för staplarna.
+
+**Regler** (`firestore.rules`, `validMatchdagen`, `mdBaraLagnamn`, `validMdMatch`; tester i
+`test/firestore-rules-matchdagen.test.js`, nyckel MK):
+
+- Läsa: `isSelf(uid) || hasStudent(uid)` (karriären och `matcher`).
+- Eleven skapar/ändrar sitt dokument: kända fält, `div` 0–7, truppen exakt 7 med `st` 1–5, `summa` med kända
+  nycklar och bara heltal (`mdSummaOk` – summan visas i lärarens vy), lagnamn 1–24, färg
+  `#rrggbb`, `senast` = serverns tid, tak på alla listor och mappar. **Bara de fält som ändras prövas**
+  (`diff().affectedKeys()`, som `schackOk`) – annars spräcks gränsen på 1000 uttryck per begäran.
+- Läraren (`hasStudent`): bara `klubb.namn` och bara till "Pluggporten FC" (`STANDARD_LAGNAMN`).
+- `matcher/{id}`: bara `create` av eleven själv, id ≤ 64 tecken, kända fält, `datum` = serverns tid,
+  `ratt ≤ fragor`, `mal` ≤ 80, `stat` ≤ 20 nycklar, `perKalla` ≤ 70. Ingen ändring; radering bara admin.
+- **Storleken:** reglerna kan inte mäta byte. Taken på listorna och mapparna (`senaste` 20, `dagar` 70,
+  `sasonger` 200, `pokaler` 300, `perKalla` 150, ligan 12 lag) håller ett dokument skrivet av appen under
+  ~61 kB med allt fyllt (en ny klubb ~2 kB), under specens 200 kB. En elev som skriver förbi appen kan bara
+  blåsa upp sitt eget dokument (Firestores tak 1 MiB).
+
+### 10.3 När det sparas
+
+| Händelse | Skrivningar |
+| --- | --- |
+| Ny klubb | 1 (`sparaKarriar`) |
+| Döpa om laget / byta tröjfärg (Truppen) | 1 |
+| Efter varje match | 1 batch = 2 (karriären + `matcher/{id}`) – `sparaMatch` |
+| Ny säsong | 0 (sparas med nästa match) |
+| Läraren: Återställ lagnamn | 1 (`aterstallLagnamn`, bara `klubb.namn`) |
+
+Matchsparningen skriver allt **utom `klubb`** (`mergeFields`), så lärarens Återställ lagnamn står kvar; `klubb`
+skrivs bara av ny klubb och Truppen. Nekas batchen läses de två dokumenten: finns `matcher/{id}` redan (ett
+tidigare försök gick fram men svaret kom aldrig) sparas bara karriären, och saknas karriären (den nya klubben
+hann aldrig sparas) skickas den hela med `klubb`. Varje läsning och skrivning har en tidsgräns (8 s,
+`medTidsgrans`) – offline löser Firestore aldrig skrivningens promise; matchen ligger kvar i kön. Matchdagen ger **inga pluggmynt** – klubbkassan är spelets egen valuta.
+
+## 11. Kvoten (Etapp 1c, spec §13)
+
+Inga lyssnare. Elevens dokument läses en gång när Matchdagen öppnas.
+
+**Eleven under en timme** (~7 matcher; träningsläger kommer i 2b):
+
+| Vad | Läsningar | Skrivningar |
+| --- | --- | --- |
+| Öppna Matchdagen | 2 (`matchdagenInst/{uid}`, `matchdagen/{uid}`) | 0 |
+| Frågekällorna | 1 per valt Plugga-område (`getArea`, cachat i sessionen); tabeller och Räkna 0 | 0 |
+| 7 matcher | 0 | 14 (7 batchar à 2) |
+| Ny klubb + ett namnbyte | 0 | 2 |
+| Statistik, 3 matchdetaljer | 3 | 0 |
+| **Summa** (3 Plugga-områden) | **≈ 8** (mål < 20) | **≈ 16** (mål < 50) |
+
+**Läraren öppnar Hur går det? → Matchdagen** för en klass med 2 elever med åtkomst: 2 läsningar
+(`matchdagen/{uid}` per elev; `elevModuler` ligger på klassdokumentet som redan är läst). Klick på en elev:
+högst 20 läsningar (de 20 senaste `matcher`, minst 1 om inga finns). Återställ lagnamn: 1 skrivning.
+Vänskapsmatcher: Etapp 4.
+
+## 12. 3D-planen och 2D-reserven (Etapp 1c, spec §4)
+
+- **Laddningen:** `src/tre/tre-ladda.js` (`harWebGL`, `laddaThree`) är den enda vägen till
+  `src/vendor/three/`; Kurragömmas `kg-tre.js` re-exporterar den (beteendet oförändrat). `md-plan.js` laddar
+  three först när matchen startar.
+- **Ritar-gränssnittet:** `md-tre-ritare.js` och `md-plan-2d.js` har samma API (`lag`, `spelare`, `boll`,
+  `firar`, `malEffekt`, `zoom`, `avatar`, `fps`, `dispose`). `md-plan.js` spelar upp motorns händelse `h` (passets bana mark/båge/skott,
+  mål, räddning, halvtid) mot vilken ritare som helst – utan WebGL, om three inte laddas och med `?2d=1` tar
+  2D-reserven över och matchen är identisk. Positionerna kommer ur den rena `md-formation.js`.
+- **Scenen** (`md-tre-arena.js`): gräsränder och linjer (canvas-textur), mål med nät som buktar vid mål,
+  reklamskyltar PLUGGPORTEN/MATCHDAGEN, läktare med publik som jublar, kvällsljus med strålkastarmaster.
+- **Spelarna** (`md-tre-figur.js`): ben, skor, strumpor, shorts, tröja, armar, huvud och hår ur enkla former,
+  sammanslagna med vertexfärger till **6 ritanrop per spelare**, blob-skugga, springanimation, vänder sig mot
+  bollen, målvakter i egna färger, kaptensbindel och elevens avatarbricka (`kg-avatar-bild.js`) över kaptenen.
+- **Kameran:** tv-kamera från långsidan som mjukt följer bollen och zoomar in kort vid mål.
+- **Lugnt läge** (`matchdagenInst.lugnt`) **och `prefers-reduced-motion`:** fast kamera över hela planen,
+  ingen zoom eller skakning, spelare och boll hoppar direkt till sina platser, inget jubel eller sorl.
+- **Prestandan:** ingen kantutjämning, pixeltäthet högst 1,5 och en pixelvakt som sänker den (×0,75, aldrig
+  under 0,6) när fps < 45. Mätningarna står i rapporten.
+- **Ljudet** (`md-ljud.js`): Web Audio, inga ljudfiler – vissla, spark, jubel, räddning, publikens sorl. Knappen
+  av/på kommer ihåg valet i `localStorage`.
+- Testat i `test/matchdagen-plan.test.js` (2D utan WebGL och när three inte laddas, lugnt läge, bootgrafen).
+
+## 13. Elevens app och lärarens statistik (Etapp 1c, spec §6.3, §6.4, §14)
+
+- **Eleven** (`md-app.js`): sidhuvud med klubbens namn och klubbkassan; flikarna **Match** (ny klubb, rutan före
+  avspark "Säsong 1 · Division 6 · Omgång 2 av 5", matchen, rutan efter matchen med "Till tabellen" / "Se hur
+  säsongen slutade"), **Tabell**, **Truppen** (döp om laget, tröjfärg, startelvan) och **Statistik** (siffror,
+  rätt per källa som staplar, de 20 senaste matcherna med detaljer, säsongshistoriken, pokalskåpet). Matchen:
+  tv-skylten (lagkort, resultat, minut), planen, kommentatorns rad och frågekortet direkt under (tangenterna
+  1–4). Halvtid med paus, pauspåminnelsen ur `matchdagenInst.paus` i rutan efter matchen. Kvällsarenan med
+  Barlow Condensed + Nunito som skissen; allt syns i 1366 × 768 under en match.
+- **Läraren** (`md-larare-stat.js`): underfliken **Matchdagen** i klassens Hur går det? (`STATS_TABS` i
+  `teacher-class.js`) visas bara när någon elev i klassen har Matchdagen. En rad per elev med åtkomst: speltid
+  7 dagar och totalt, matcher, andel rätt totalt och per källa, division och säsong, senast spelat. Klick på en
+  elev: de senaste matcherna (läses då), andel rätt per vecka som en liten linje (8 veckor ur `dagar`) och
+  lagnamnet med **Återställ lagnamn** (`md-lagnamn.js`, samma knapp i panelen Anpassningar per elev).

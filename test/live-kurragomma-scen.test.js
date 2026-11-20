@@ -219,7 +219,9 @@ describe("filerna (bootgraf, storlek, emojier)", () => {
       assert.ok(!/\bexport\s+[^(]*?from\s+["'][^"']*vendor\//.test(src), `${n}: statisk export från vendor/`);
       if (/import\(\s*["'][^"']*vendor\/three\//.test(src)) dynamiska++;
     }
-    assert.equal(dynamiska, 1, "exakt en plats (kg-tre.js) laddar three lat");
+    // #869: laddningen är utbruten till src/tre/tre-ladda.js (delas med Matchdagen) – kg-tre.js re-exporterar den.
+    assert.equal(dynamiska, 0, "scen/ laddar inte three själv");
+    assert.match(readFileSync(join(SCEN, "kg-tre.js"), "utf8"), /export \{ harWebGL, laddaThree \} from "\.\.\/\.\.\/\.\.\/\.\.\/tre\/tre-ladda\.js"/);
   });
 
   it("ingen fil över 400 rader och inga emojier från Emoji 13+", () => {

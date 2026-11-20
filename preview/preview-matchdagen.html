@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Matchdagen – förhandsvisning (#869)</title>
+  <!-- Förhandsvisning av Etapp 1c med STUBBADE data (spec §15): hela appen
+       (md-app.js) – en hel match i 3D eller 2D, tabellen, truppen och statistiken.
+       Ingen Firebase: karriären och matcherna sparas i localStorage
+       ("preview-md:"), områdena är påhittade. game-shared.js stubbas (importmap).
+       Kör: PORT=8869 node server.mjs → /preview/preview-matchdagen.html
+         ?vy=match|tabell|trupp|stat   flik att öppna
+         ?omg=0–5    spelade omgångar (påhittade resultat) – ?omg=5 = säsongen slut
+         ?klubb=ny   börja utan klubb (formuläret)      ?ny=1  rensa allt sparat
+         ?2d=1       2D-reserven      ?lugnt=1  lugnt läge      ?fps=1  bilder/s
+         ?auto=1     roboten spelar (slumpar svaren)        ?svar=skriv  ?klocka=30  ?kallor=inga
+       Straffarna kommer i Etapp 2a. -->
+  <script type="importmap">
+    { "imports": { "../src/game-shared.js": "./matchdagen-868/game-shared.js" } }
+  </script>
+  <link rel="stylesheet" href="../src/styles.css" />
+  <style>
+    body { margin: 0; background: #08111f; }
+    .ram { padding: 12px 0; }
+    .not { max-width: 1180px; margin: 10px auto 0; padding: 0 16px; color: #a9b8d0; font: 600 13px/1.4 Nunito, system-ui, sans-serif; }
+  </style>
+</head>
+<body>
+  <div class="ram"><section id="app"></section></div>
+  <p class="not">Förhandsvisning med påhittade data – i Pluggporten kommer frågorna från lärarens val och allt sparas i Firestore.</p>
+  <script type="module">
+    import { startaMatchdagen } from "../src/matchdagen/md-app.js";
+    import { matchKlar, nastaMatch, nyKarriar } from "../src/matchdagen/delat/md-sasong.js";
+    import { simMal } from "../src/matchdagen/delat/md-liga.js";
+    import { skapaPrng } from "../src/matchdagen/delat/md-prng.js";
+
+    const p = new URLSearchParams(location.search);
+    const UID = "preview";
+    const NYCKEL = "preview-md:";
+    if (p.get("ny") === "1") Object.keys(localStorage).filter((k) => k.startsWith(NYCKEL) || k.includes("matchdagen-")).forEach((k) => localStorage.removeItem(k));
+
+    const AREAS = {
+      "so/sverige": {
+        name: "Sverige", quiz: [
+          { question: "Vad heter Sveriges huvudstad?", options: ["Stockholm", "Göteborg", "Malmö", "Uppsala"], answerIndex: 0 },
+          { question: "Vilken är Sveriges största sjö?", options: ["Vänern", "Vättern", "Mälaren"], answerIndex: 0 },
+          { question: "Hur många landskap har Sverige?", options: ["25", "21", "30", "12"], answerIndex: 0 },
+        ],
+        pairs: [
+          { term: "landskap", definition: "ett av Sveriges 25 gamla områden" },
+          { term: "län", definition: "ett område med en egen region" },
+          { term: "kommun", definition: "en ort med eget styre" },
+          { term: "socken", definition: "en gammal kyrklig indelning" },
+        ],
+      },
+      "ma/addera": { name: "Addition", generator: { topic: "addition", variants: ["enkel"], grade: "ak4" } },
+    };
+    const k = p.get("kallor") || "alla";
+    const inst = k === "inga" ? {} : {
+      omraden: ["so/sverige"], tabeller: [6, 7, 8], rakna: p.get("svar") === "skriv" ? ["ma/addera"] : [],
+      svarssatt: p.get("svar") === "skriv" ? "skriv" : "flerval", klocka: Number(p.get("klocka")) || 0,
+      lugnt: p.get("lugnt") === "1", paus: Number(p.get("paus") ?? 60),
+    };
+
+    // Stubbad "Firestore" i localStorage.
+    const las = (n) => { try { return JSON.parse(localStorage.getItem(NYCKEL + n) || "null"); } catch { return null; } };
+    const skriv = (n, v) => localStorage.setItem(NYCKEL + n, JSON.stringify(v));
+    const data = {
+      lasKarriar: async () => las("karriar"),
+      sparaKarriar: async (uid, K) => skriv("karriar", K),
+      sparaMatch: async (uid, K, id, match) => { skriv("karriar", K); skriv(`match:${id}`, { ...match, id }); },
+      lasMatch: async (uid, id) => las(`match:${id}`),
+    };
+
+    // ?omg=N: en klubb med N påhittade omgångar (för tabellen och statistiken).
+    if (p.get("klubb") === "ny") localStorage.removeItem(NYCKEL + "karriar");
+    else if (p.has("omg") || !las("karriar")) {
+      const r = skapaPrng("preview-869").tal;
+      let K = nyKarriar({ namn: "Blixtarna IF", farg: "#2f6fe8", rng: r });
+      const n = Math.min(5, Number(p.get("omg")) || 0);
+      for (let i = 0; i < n && nastaMatch(K); i++) {
+        const [oss, dem] = simMal(0.36, nastaMatch(K).mot.styrka, r);
+        const fragor = 26 + Math.floor(r() * 5), ratt = Math.round(fragor * (0.6 + r() * 0.25));
+        const stat = { skott: 4 + oss * 2, skottPaMal: 2 + oss, pass: 14, passOk: 10, tacklingar: 6, vunnaBollar: 4, raddningar: 2, horner: 1, derasSkott: 3,
+          fragor, ratt, perKalla: { "omrade:so/sverige": { fragor: Math.round(fragor / 2), ratt: Math.round(ratt / 2) }, "tabell:7": { fragor: fragor - Math.round(fragor / 2), ratt: ratt - Math.round(ratt / 2) } }, sekunder: 400 + r() * 60 };
+        const mal = [...Array(oss)].map((_, j) => ({ min: 10 + j * 20, lag: "oss" })).concat([...Array(dem)].map((_, j) => ({ min: 15 + j * 25, lag: "dem" })));
+        const ut = matchKlar(K, { res: { oss, dem, utfall: "", mal, stat }, rng: r, nu: Date.now() - (n - i) * 2 * 86400000, matchId: `p${i}`,
+          kallNamn: { "omrade:so/sverige": "Sverige", "tabell:7": "7:ans tabell" } });
+        K = ut.K;
+        skriv(`match:p${i}`, { ...ut.match, id: `p${i}` });
+      }
+      skriv("karriar", K);
+    }
+
+    const S = await startaMatchdagen(document.getElementById("app"), {
+      uid: UID, inst, data,
+      hamtaOmrade: async (s, a) => AREAS[`${s}/${a}`] ?? null,
+      avatar: { avatarId: "fox", avatarItems: [] },
+      tvinga2d: p.get("2d") === "1",
+    });
+    window.__md = S;
+    if (p.get("vy") && p.get("vy") !== "match") S.visa(p.get("vy"));
+
+    // ?auto=1: en robot som spelar (skärmdumpar och fps-mätningen) – den slumpar svaren.
+    if (p.get("auto") === "1") {
+      setInterval(() => {
+        const ruta = document.querySelector(".md-ruta button");
+        if (ruta) return ruta.click();
+        const start = document.querySelector("[data-avspark]:not(:disabled)");
+        if (start) return start.click();
+        const val = [...document.querySelectorAll(".md-val button:not(:disabled)")];
+        if (val.length) {
+          const skjut = val.find((b) => b.dataset.id === "skjut" && /Bra läge|Jätteläge/.test(b.textContent));
+          return (skjut || val.find((b) => b.dataset.id === "tackla") || val[Math.random() < 0.6 ? 0 : 1]).click();
+        }
+        const alt = [...document.querySelectorAll(".md-alt:not(:disabled)")];
+        if (alt.length && !document.querySelector(".md-fraga[data-utfall]")) alt[Math.floor(Math.random() * alt.length)].click();
+      }, 900);
+    }
+  </script>
+</body>
+</html>

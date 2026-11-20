@@ -99,7 +99,7 @@ export function visaFraga(host, fraga, { ratta, klocka = 0, signal, nu = () => p
       resolve({ ratt: r.ratt, svar: tidenUte ? null : svar, sekunder, ...(tidenUte ? { tidenUte: true } : {}) });
     }
     function tangent(e) {
-      if (fraga.typ !== "flerval" || e.altKey || e.ctrlKey || e.metaKey) return;
+      if (fraga.typ !== "flerval" || e.altKey || e.ctrlKey || e.metaKey || kort.closest?.("[hidden]")) return;
       const n = Number(e.key);
       if (Number.isInteger(n) && n >= 1 && n <= Math.min(MAX_TANGENT, knappar.length)) {
         e.preventDefault();

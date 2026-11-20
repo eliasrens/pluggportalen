@@ -2,7 +2,7 @@
    Matchdagen 1a (#867): elevens platshållarsida (#/elev/matchdagen) i skissens
    kvällsarena – djup marin, gräsgrönt, skyltgult – och lärarens sektion
    "Anpassningar per elev" (Mina klasser → Elever), scopad under .teacher-dark.
-   Typsnittet Barlow Condensed laddas inte än (Etapp 1c) – närmaste systemtypsnitt.
+   Platshållaren är ersatt av appen i 1c (49-matchdagen-match.css); loggan står kvar här.
    ========================================================================== */
 
 /* --- Elevens sida ---------------------------------------------------------- */
@@ -18,18 +18,6 @@
   min-height: 60vh;
   padding: 16px;
 }
-.md-kort {
-  max-width: 620px;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 28px 28px 24px;
-  border-radius: 20px;
-  background:
-    radial-gradient(120% 70% at 50% 120%, rgba(47, 163, 90, 0.45), transparent 60%),
-    linear-gradient(180deg, var(--md-panel), var(--md-bg));
-  color: var(--md-ink);
-  box-shadow: 0 14px 40px rgba(6, 14, 28, 0.35);
-}
 .md-logo {
   display: flex;
   align-items: center;
@@ -39,21 +27,6 @@
 }
 .md-logo b { color: var(--md-gul); font-weight: inherit; }
 .md-logo-boll svg { width: 32px; height: 32px; display: block; }
-.md-rubrik {
-  margin: 18px 0 8px;
-  font: 800 clamp(26px, 5vw, 34px)/1.1 "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
-  color: var(--md-ink);
-}
-.md-text { margin: 0 0 14px; color: var(--md-svag); font-size: 1.05rem; line-height: 1.5; }
-.md-fragor {
-  margin: 0;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: rgba(255, 210, 63, 0.14);
-  border: 1px solid rgba(255, 210, 63, 0.45);
-  font-weight: 800;
-}
-.md-fragor.tomt { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.18); }
 
 /* --- Lärarens sektion ------------------------------------------------------ */
 .teacher-dark .mda { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
@@ -255,3 +228,21 @@
 @media (max-width: 520px) {
   .md-fraga-alt { grid-template-columns: 1fr; }
 }
+
+/* --- Hur går det? → Matchdagen (#869, md-larare-stat.js) ------------------- */
+.teacher-dark .mdl { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.teacher-dark .mdl-rad { cursor: pointer; }
+.teacher-dark .mdl-rad:hover td, .teacher-dark .mdl-rad[aria-expanded="true"] td { background: var(--t-surface-2); }
+.teacher-dark .mdl-rad:focus-visible { outline: 2px solid var(--t-accent, #ffd23f); outline-offset: -2px; }
+.teacher-dark .mdl-kallor { display: flex; flex-wrap: wrap; gap: 4px; }
+.teacher-dark .mdl-kalla { padding: 1px 8px; border-radius: 999px; background: var(--t-surface-2); font-size: 0.85rem; white-space: nowrap; }
+.teacher-dark .mdl-elev { padding: 12px 14px; border: 1px solid var(--t-border); border-radius: 12px; background: var(--t-surface-2); }
+.teacher-dark .mdl-elev .subhead { margin: 0 0 8px; }
+.teacher-dark .mdl-topp { display: flex; flex-wrap: wrap; gap: 12px 32px; margin-bottom: 10px; }
+.teacher-dark .mdl-lagnamn { font-size: 1.1rem; }
+.teacher-dark .mdl-rad-knapp { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; }
+.teacher-dark .mdl-linje { display: block; margin-top: 4px; overflow: visible; }
+.teacher-dark .mdl-linje polyline { fill: none; stroke: #3ccf6e; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.teacher-dark .mdl-linje .mdl-prick { fill: #3ccf6e; }
+.teacher-dark .mdl-linje .mdl-mitt { stroke: var(--t-border); stroke-dasharray: 3 3; }
+.teacher-dark .mda-lagnamn-status { margin-left: 8px; }

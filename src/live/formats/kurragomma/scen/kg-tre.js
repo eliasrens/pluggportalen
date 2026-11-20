@@ -6,8 +6,8 @@
 // efterbehandling (spec §4.4).
 //
 // API
-//   harWebGL()                               → bool (utan att skapa en three-renderer)
-//   laddaThree()                             → Promise<three-modulen>
+//   harWebGL()                               → bool (utan att skapa en three-renderer) – ur src/tre/tre-ladda.js
+//   laddaThree()                             → Promise<three-modulen>          – ur src/tre/tre-ladda.js
 //   skapaTreRitare({ T, yta, karta, niva }) → {
 //     T, scen, kamera, varld, gradient,
 //     rita()            → antal ritanrop
@@ -27,23 +27,8 @@ import { NIVAER, normNiva, pixelfaktor } from "./kg-niva.js";
 
 const HIMMEL = 0xbfe6ff;
 
-export function harWebGL() {
-  try {
-    const c = document.createElement("canvas");
-    const gl = c.getContext("webgl2") || c.getContext("webgl");
-    if (!gl) return false;
-    const ext = gl.getExtension("WEBGL_lose_context"); // släpp provkontexten direkt
-    if (ext) ext.loseContext();
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/** Lat laddning – den enda platsen som når src/vendor/three/. */
-export function laddaThree() {
-  return import("../../../../vendor/three/three.module.min.js");
-}
+// harWebGL och laddaThree bor i den delade src/tre/tre-ladda.js (#869, delas med Matchdagen).
+export { harWebGL, laddaThree } from "../../../../tre/tre-ladda.js";
 
 /** 3-stegs gradientkarta för MeshToonMaterial (spec §4.2). */
 function gradientKarta(T) {
