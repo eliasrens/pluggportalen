@@ -1,0 +1,199 @@
+/* ==========================================================================
+   Matchdagen 1c (#869): elevens app i skissens kvällsarena – djup marin,
+   gräsgrönt, kritvita linjer, skyltgult (spec §14). Barlow Condensed för skylt
+   och rubriker, Nunito för text (laddas av md-vy-delat.js laddaTypsnitt).
+   Sidhuvud med kassa och flikar, resultatskylten, planen (3D-canvas eller
+   2D-SVG), kommentatorns rad och frågekortet direkt under planen – allt syns
+   i 1366 × 768 utan att scrolla (planens höjd sätts i md-match-spel.js).
+   ========================================================================== */
+
+.md-app {
+  --md-bg: #0c1626;
+  --md-panel: #14223a;
+  --md-panel2: #1b2d4b;
+  --md-linje: #2a3f63;
+  --md-ink: #eef3fb;
+  --md-svag: #a9b8d0;
+  --md-gul: #ffd23f;
+  --md-gron: #3ccf6e;
+  --md-rod: #ff6b6b;
+  --md-rubrikfont: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  display: block;
+  place-items: initial;
+  min-height: 0;
+  box-sizing: border-box;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 10px 16px 28px;
+  border-radius: 18px;
+  background: var(--md-bg);
+  color: var(--md-ink);
+  font: 600 16px/1.5 Nunito, system-ui, sans-serif;
+}
+.md-app *, .md-app *::before, .md-app *::after { box-sizing: border-box; min-width: 0; }
+.md-app button { font: inherit; color: inherit; cursor: pointer; }
+.md-app button:focus-visible, .md-app input:focus-visible { outline: 3px solid var(--md-gul); outline-offset: 2px; }
+.md-app h2 { margin: 0 0 6px; font: 800 30px/1.05 var(--md-rubrikfont); color: var(--md-ink); }
+.md-app h3 { margin: 16px 0 8px; font: 800 22px/1.1 var(--md-rubrikfont); color: var(--md-ink); }
+.md-app [hidden] { display: none !important; }
+.md-svag { color: var(--md-svag); }
+
+/* --- Sidhuvudet: logga, klubbkassa, flikar --------------------------------- */
+.md-huvud { display: flex; align-items: center; gap: 8px 16px; flex-wrap: wrap; margin-bottom: 10px; }
+.md-kassa { font: 700 18px var(--md-rubrikfont); color: var(--md-gul); }
+.md-flikar { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+.md-flikar button {
+  min-height: 48px; padding: 8px 16px; border-radius: 12px; border: 1px solid var(--md-linje);
+  background: var(--md-panel); font-weight: 800;
+}
+.md-flikar button[aria-pressed="true"] { background: var(--md-gul); color: #1b1500; border-color: var(--md-gul); }
+
+/* --- Paneler, knappar, rutor ------------------------------------------------ */
+.md-panel { background: var(--md-panel); border: 1px solid var(--md-linje); border-radius: 16px; padding: 16px; }
+.md-tom h2 { margin-bottom: 8px; }
+.md-rad { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
+.md-stor {
+  min-height: 52px; padding: 12px 26px; border: 0; border-radius: 14px;
+  background: var(--md-gul); color: #1b1500 !important; font: 800 22px var(--md-rubrikfont) !important;
+}
+.md-stor:disabled { opacity: 0.55; cursor: default; }
+.md-ghost { min-height: 48px; padding: 9px 16px; border-radius: 12px; border: 1px solid var(--md-linje); background: none; font-weight: 800; }
+.md-chip { display: inline-block; width: 12px; height: 22px; border-radius: 3px; vertical-align: middle; flex: none; }
+.md-chip.liten { width: 8px; height: 14px; vertical-align: -1px; }
+.md-fel { min-height: 1.4em; margin: 8px 0 0; color: var(--md-rod); font-weight: 800; }
+.md-overrad { margin: 0 0 4px; color: var(--md-gul); font: 700 18px var(--md-rubrikfont); letter-spacing: 0.02em; }
+.md-motet { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.md-motet > span { display: inline-flex; align-items: center; gap: 8px; }
+.md-mot-streck { color: var(--md-svag); }
+.md-pagar { font-weight: 800; }
+.md-lugnt-etikett { padding: 4px 10px; border-radius: 999px; background: var(--md-panel2); color: var(--md-svag); font-weight: 800; font-size: 14px; }
+.md-overlag {
+  position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center;
+  padding: 16px; background: rgba(5, 10, 20, 0.75);
+}
+.md-ruta {
+  width: 100%; max-width: 560px; padding: 20px; border-radius: 16px; border: 1px solid var(--md-linje);
+  background: var(--md-panel); color: var(--md-ink); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+.md-ruta p { margin: 8px 0; }
+.md-paus { padding: 10px 12px; border-radius: 12px; background: rgba(255, 210, 63, 0.14); border: 1px solid rgba(255, 210, 63, 0.45); font-weight: 800; }
+.md-siffror { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 10px 0; }
+.md-siffror > div { padding: 10px 12px; border-radius: 12px; background: var(--md-panel2); color: var(--md-svag); }
+.md-siffror b { display: block; font: 800 30px/1 var(--md-rubrikfont); color: var(--md-gul); }
+
+/* --- Klubbens namn och färg ------------------------------------------------ */
+.md-klubb { display: flex; flex-direction: column; gap: 6px; max-width: 520px; }
+.md-etikett { margin: 6px 0 0; font-weight: 800; color: var(--md-svag); }
+.md-namnfalt {
+  width: 100%; max-width: 360px; min-height: 48px; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--md-linje);
+  background: #0a1220; color: var(--md-ink); font: 800 24px var(--md-rubrikfont);
+}
+.md-farger { display: flex; gap: 10px; flex-wrap: wrap; }
+.md-farg { width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 3px solid #0a1220; }
+.md-farg[aria-checked="true"] { outline: 3px solid var(--md-gul); outline-offset: 2px; }
+.md-klubb .md-stor { align-self: flex-start; margin-top: 4px; }
+.md-sparat { margin: 8px 0 0; color: var(--md-gron); font-weight: 800; }
+
+/* --- Matchen: skylt, plan, kommentar, frågekort ---------------------------- */
+.md-match { display: flex; flex-direction: column; }
+.md-skylt {
+  display: flex; align-items: stretch; width: max-content; max-width: 100%; margin: 0 0 8px; border-radius: 10px; overflow: hidden;
+  font: 700 22px/1 var(--md-rubrikfont); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+.md-skylt > div { display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: #0a1220; }
+.md-skylt .md-skylt-res { background: var(--md-gul); color: #1b1500; font-size: 26px; padding: 6px 16px; }
+.md-skylt .md-skylt-tid { background: #1d3150; font-size: 18px; }
+.md-plan {
+  position: relative; width: 100%; height: var(--md-plan-h, 380px); margin: 0 auto; border-radius: 14px; overflow: hidden;
+  background: #0a1424; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+.md-yta { position: absolute; inset: 0; }
+.md-canvas { display: block; width: 100% !important; height: 100% !important; }
+.md-plan2d { display: block; width: 100%; height: 100%; }
+.md-plan2d .md2-spelare { transition: transform 0.7s cubic-bezier(0.45, 0.05, 0.3, 1); }
+.md-plan2d.lugnt .md2-spelare { transition: none; }
+.md-plan2d .firar .md2-hopp { animation: md2-hopp 0.45s ease-in-out infinite alternate; }
+@keyframes md2-hopp { to { transform: scale(1.25); } }
+.md-utrop {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; text-align: center;
+  font: 800 clamp(40px, 9vw, 92px)/1 var(--md-rubrikfont); color: var(--md-gul);
+  text-shadow: 0 4px 0 #6b4f00, 0 10px 30px rgba(0, 0, 0, 0.6); opacity: 0; transform: scale(0.6); transition: opacity 0.25s, transform 0.35s;
+}
+.md-utrop.visa { opacity: 1; transform: scale(1); }
+.md-match.lugnt .md-utrop { transform: none; transition: opacity 0.2s; }
+.md-ljudknapp {
+  position: absolute; top: 8px; right: 8px; min-height: 40px; padding: 6px 12px; border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.25); background: rgba(10, 18, 32, 0.7); font-weight: 800; font-size: 14px;
+}
+.md-ljudknapp[aria-pressed="false"] { color: var(--md-svag); }
+.md-fps { position: absolute; left: 8px; top: 8px; padding: 2px 8px; border-radius: 8px; background: rgba(0, 0, 0, 0.6); font: 700 13px/1.4 monospace; }
+.md-kommentar { min-height: 30px; margin: 8px 2px 6px; font: 700 20px/1.3 var(--md-rubrikfont); color: var(--md-ink); }
+.md-kortyta { min-height: 150px; }
+.md-vantar { margin: 0; padding: 14px 16px; border-radius: 16px; background: var(--md-panel); color: var(--md-svag); font-weight: 800; }
+.md-val { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; outline: none; }
+.md-val button {
+  display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 10px; align-items: center;
+  min-height: 64px; padding: 10px 14px; border-radius: 14px; border: 2px solid var(--md-linje); background: var(--md-panel2); text-align: left;
+}
+.md-val button:hover:not(:disabled) { border-color: var(--md-gul); }
+.md-val button:disabled { opacity: 0.4; cursor: not-allowed; }
+.md-val kbd {
+  grid-row: 1 / span 2; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12); font: 800 15px Nunito, sans-serif;
+}
+.md-val b { font: 800 22px/1.1 var(--md-rubrikfont); }
+.md-val small { color: var(--md-svag); font-weight: 700; }
+.md-match .md-fraga { padding: 12px 16px 8px; }
+.md-match .md-fraga-text { margin-bottom: 10px; font-size: clamp(20px, 2.6vw, 26px); }
+.md-match .md-fraga-alt { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+.md-match .md-fraga-facit { margin-top: 6px; }
+
+/* --- Tabell, trupp, statistik ---------------------------------------------- */
+.md-scroll { overflow-x: auto; }
+.md-tabell { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.md-tabell th, .md-tabell td { padding: 8px; border-bottom: 1px solid var(--md-linje); text-align: right; white-space: nowrap; }
+.md-tabell th:nth-child(2), .md-tabell td:nth-child(2) { text-align: left; white-space: normal; }
+.md-tabell th { font-size: 13px; color: var(--md-svag); }
+.md-tabell tr.vi td { background: #22385c; font-weight: 800; }
+.md-tabell tr.etta td:first-child { box-shadow: inset 4px 0 0 var(--md-gron); }
+.md-slut { padding: 10px 12px; border-radius: 12px; background: var(--md-panel2); font-weight: 800; }
+.md-slut.vinst { background: rgba(255, 210, 63, 0.16); color: var(--md-gul); }
+.md-kortrad { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.md-spkort { display: flex; flex-direction: column; gap: 4px; padding: 12px; border-radius: 14px; border: 1px solid var(--md-linje); background: var(--md-panel2); }
+.md-spkort b { font: 800 20px var(--md-rubrikfont); }
+.md-pos { width: max-content; max-width: 100%; padding: 1px 7px; border-radius: 6px; background: #0a1220; font-size: 12px; font-weight: 800; }
+.md-stjarnor { color: var(--md-gul); letter-spacing: 2px; }
+.md-kapten { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--md-gul); color: #1b1500; font: 800 14px Nunito, sans-serif; vertical-align: 2px; }
+.md-staplar { display: flex; flex-direction: column; gap: 6px; }
+.md-stapelrad { display: grid; grid-template-columns: minmax(90px, 200px) 1fr 70px; gap: 10px; align-items: center; }
+.md-stapel { height: 12px; border-radius: 99px; background: #0a1220; overflow: hidden; }
+.md-stapel i { display: block; height: 100%; background: var(--md-gron); }
+.md-tal { text-align: right; font-variant-numeric: tabular-nums; }
+.md-lank { padding: 4px 0; border: 0; background: none; text-align: left; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; min-height: 32px; }
+.md-senaste tr.vinst td:nth-child(3) { color: var(--md-gron); font-weight: 800; }
+.md-senaste tr.forlust td:nth-child(3) { color: var(--md-rod); }
+.md-detaljyta { margin-top: 8px; }
+.md-detalj { padding: 12px; border-radius: 12px; background: var(--md-panel2); }
+.md-detalj p { margin: 0 0 6px; }
+.md-dl { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 6px 14px; margin: 0; }
+.md-dl div { display: flex; justify-content: space-between; gap: 8px; }
+.md-dl dt { color: var(--md-svag); }
+.md-dl dd { margin: 0; font-weight: 800; }
+.md-lista, .md-pokaler { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.md-pokal {
+  display: inline-block; width: 18px; height: 20px; margin-right: 8px; vertical-align: -3px; background: var(--md-gul);
+  clip-path: polygon(10% 0, 90% 0, 85% 40%, 60% 60%, 60% 78%, 80% 86%, 80% 100%, 20% 100%, 20% 86%, 40% 78%, 40% 60%, 15% 40%);
+}
+
+@media (max-width: 640px) {
+  .md-app { padding: 8px 10px 20px; border-radius: 0; }
+  .md-flikar { margin-left: 0; width: 100%; }
+  .md-flikar button { flex: 1 1 0; padding: 8px 6px; }
+  .md-kommentar { font-size: 18px; }
+  .md-tabell th, .md-tabell td { padding: 6px 5px; font-size: 14px; }
+  .md-stapelrad { grid-template-columns: minmax(70px, 120px) 1fr 56px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .md-plan2d .md2-spelare, .md-utrop { transition: none; }
+  .md-plan2d .firar .md2-hopp { animation: none; }
+}
