@@ -108,4 +108,44 @@ describe("lärarens vy och elevens statistik: bara tal ur kval och straffar", ()
     assert.match(straff, /ctx\.satt\(m\);[\s\S]*?await plan\.straff\(/);
     assert.match(src, /if \(klar \|\| !arKlar\(m\)\) return;/, "bara en gång, bara när matchen är avgjord");
   });
+  it("F1: svarets utfall (vidSvar) kommer DIREKT vid klicket, före pausen med rätt svar", async () => {
+    const { visaFraga, FEL_MS } = await import("../src/matchdagen/md-svar.js");
+    // Minimal låtsas-DOM: bara det visaFraga rör.
+    const el = (extra = {}) => ({ dataset: {}, classList: { add() {} }, setAttribute() {}, focus() {}, addEventListener(t, f) { (this.on ||= {})[t] = f; }, ...extra });
+    const knappar = [0, 1, 2, 3].map((i) => el({ dataset: { i: String(i) }, disabled: false }));
+    const facit = el({ innerHTML: "" });
+    const kort = el({
+      querySelector: (q) => (q === ".md-fraga-facit" ? facit : null),
+      querySelectorAll: (q) => (q === ".md-alt" ? knappar : []),
+    });
+    const host = { set innerHTML(_) {}, querySelector: (q) => (q === ".md-fraga" ? kort : null) };
+    const gamlaDoc = globalThis.document;
+    globalThis.document = { addEventListener() {}, removeEventListener() {} };
+    try {
+      const fraga = { typ: "flerval", text: "7 × 9 = ?", alternativ: ["70", "72", "63", "54"], ratt: 2, facit: "63" };
+      const utfall = [];
+      let lost = false;
+      const p = visaFraga(host, fraga, { ratta: (f, i) => ({ giltig: true, ratt: i === f.ratt, facit: f.facit }), vidSvar: (x) => utfall.push(x) })
+        .then((r) => { lost = true; return r; });
+      knappar[0].on.click(); // fel svar
+      assert.deepEqual(utfall.map((x) => x.ratt), [false], "utfallet finns direkt");
+      await new Promise((r) => setTimeout(r, 50));
+      assert.equal(lost, false, `pausen (${FEL_MS} ms) pågår fortfarande`);
+      knappar[2].on.click(); // ett andra klick under pausen räknas inte
+      assert.equal(utfall.length, 1);
+      const r = await p;
+      assert.equal(r.ratt, false);
+      assert.equal(r, utfall[0]);
+    } finally {
+      globalThis.document = gamlaDoc;
+    }
+  });
+  it("F1: skottet, finten och straffen spelas och sparas lokalt i vidSvar – inte efter pausen", () => {
+    const src = readFileSync(new URL("../src/matchdagen/vy/md-match-spel.js", import.meta.url), "utf8");
+    assert.match(src, /vidSvar: \(x\) => \{\s*svar\.push\([^)]*\);\s*if \(!behoverFraga\(m, valId, svar\)\) spelaLaget\(\);/);
+    assert.match(src, /const spelaLaget = \(\) => \{\s*ut = spela\([^;]*;\s*m = ut\.m;\s*sparaLokalt\(\);/);
+    assert.doesNotMatch(src, /svar\.push\(\{ ratt: r\.ratt/, "inget utfall ur det lösta promiset");
+    const straff = readFileSync(new URL("../src/matchdagen/vy/md-straff-spel.js", import.meta.url), "utf8");
+    assert.match(straff, /vidSvar: \(x\) => \{\s*ut = straffa\(m, \[\{ ratt: x\.ratt[^}]*\}\][^;]*;\s*m = ut\.m;\s*ctx\.satt\(m\);\s*ctx\.sparaLokalt\(\);/);
+  });
 });

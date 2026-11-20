@@ -210,20 +210,31 @@ export async function spelaMatch(S, el, { pagaende = null, spel = null } = {}) {
       if (!l.fragor) await vanta(S.lugnt ? 300 : 700);
     }
     const svar = [];
+    // Läget spelas och sparas lokalt SÅ FORT det sista svaret är givet (vidSvar), före
+    // pausen som visar rätt svar – en omladdning då ger ingen ny fråga (#870 F1).
+    let ut = null;
+    const spelaLaget = () => {
+      ut = spela(m, valId, svar, Math.random, Date.now());
+      m = ut.m;
+      sparaLokalt();
+      bokfor();
+    };
     // Från Division 3 (§7.3): först finten, sedan skottet – fel på finten avgör direkt.
     if (antalFragor(m, valId) === 2) sag(LAGE_TEXT.dubbel);
-    while (behoverFraga(m, valId, svar)) {
+    while (!ut && behoverFraga(m, valId, svar)) {
       if (svar.length === 1) sag(LAGE_TEXT.skottEfterFint);
       const f = fr.nasta();
       const { visaFraga } = await import("../md-svar.js");
-      const r = await visaFraga(v.kort, f, { ratta: fr.ratta, klocka: S.inst.klocka, signal });
+      const r = await visaFraga(v.kort, f, {
+        ratta: fr.ratta, klocka: S.inst.klocka, signal,
+        vidSvar: (x) => {
+          svar.push({ ratt: x.ratt, kalla: f.kalla });
+          if (!behoverFraga(m, valId, svar)) spelaLaget();
+        },
+      });
       if (r.avbruten) return;
-      svar.push({ ratt: r.ratt, kalla: f.kalla });
     }
-    const ut = spela(m, valId, svar, Math.random, Date.now());
-    m = ut.m;
-    sparaLokalt();
-    bokfor();
+    if (!ut) spelaLaget();
     v.kort.innerHTML = "";
     sag(ut.h.rad);
     await plan.spela(ut.h, m);

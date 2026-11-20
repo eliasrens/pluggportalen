@@ -215,8 +215,8 @@ Inga index och inga functions.
 
 | Svit | Resultat |
 | --- | --- |
-| `node --test` (de 283 filerna som inte kräver emulatorn) | 4589 pass, 0 fail, 1 skipped |
-| Matchdagen (`test/matchdagen-*.test.js`) | 171 pass (ingår ovan) |
+| `node --test` (de 313 filerna som inte kräver emulatorn) | 4592 pass, 0 fail, 1 skipped (efter F1) |
+| Matchdagen (`test/matchdagen-*.test.js`) | 173 pass (ingår ovan) |
 | `npm run test:rules` (`admin/qa-matchdagen-867-svit.sh`) | 1047 pass, 0 fail (nya i `firestore-rules-matchdagen-kval.test.js`) |
 | `npm run test:functions` (samma rigg) | **ofullständig:** 278 pass, 0 fail (2 kända TODO i schack) innan körningen stoppades för minnesbrist på maskinen. Inga filer i `functions/` är ändrade i 2a |
 | `npm run test:e2e` | 5/5 |
@@ -240,3 +240,15 @@ lärarvy, reglerna mot det appen skriver).
   innan rutan "Nära!" kom. Gäller också ligamatcher (samma lucka fanns sedan 1c).
 - **L2 (låg, inte rättad):** en elev som vann Division 6 med Etapp 1-koden och inte startat nästa säsong får aldrig
   sitt kval. Etapp 1 och 2a deployas tillsammans (samma epic), så det kan inte hända i drift.
+
+### Rättningsrunda 1 (testarens fynd på 482ed5cc)
+
+- **F1, omladdning under pausen efter ett fel svar gav en ny fråga.** Frågekortet visar rätt svar i 1,5 s
+  (`FEL_MS`), och skottet, finten och straffen spelades först efter pausen – en omladdning då kastade svaret, och
+  eleven fick en ny fråga för samma straff eller skott (i kvalet ett sätt att köpa sig en uppflyttning). Nu tar
+  `visaFraga` en `vidSvar(utfall)` som anropas **direkt** när svaret är avgjort; matchvyn spelar läget
+  (`spela`, efter finten när den avgör) och straffvyn straffen (`straffa`) och sparar lokalt (och bokför en avgjord
+  match) i den, före pausen. Pausen är bara visuell. Tester i `matchdagen-kval-vy.test.js` (frågekortet med en
+  låtsas-DOM: utfallet kommer före pausen, ett andra klick räknas inte; skottet/finten/straffen i `vidSvar`).
+  I förhandsvisningen 20 ms efter klicket: straffen (`dem: [true]`, 29 frågor) och finten i Division 3 (läget
+  avgjort, ingen andra fråga) var redan sparade; omladdning → "Straffläggningen pågår: 1 – 1".
