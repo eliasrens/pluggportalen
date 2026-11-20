@@ -10,6 +10,8 @@
 // MD_TRUPP=1 (#871, kräver MD_PA=1): två omgångar spelade, 3 000 kr – köp och träningsläger direkt.
 // MD_KVAL=1 (#870, kräver MD_PA=1): Alva har redan vunnit Division 6 – kvalmatchen
 // till Division 5 väntar (karriären byggd med de riktiga, rena modulerna).
+// MD_VANSKAP=1 (#874): Alva (4a01) OCH Bilal (4a02) har Matchdagen och var sin klubb – för
+// vänskapsmatcherna (två webbläsare, admin/qa-matchdagen-874-preview.sh). Bilal: tabell 6 och Räkna: addition, klocka 30 s.
 // ============================================================================
 
 import { db, isEmulator } from "./_shared.mjs";
@@ -51,5 +53,20 @@ if (process.env.MD_PA === "1") {
     }
   }
 }
-console.log(`✓ Matchdagen: Räkna-områden i Matematik${process.env.MD_PA === "1" ? ", Matchdagen på för Alva (4a01)" : ""}${process.env.MD_KVAL === "1" ? ", kvalet väntar" : ""}${process.env.MD_TRUPP === "1" ? ", två omgångar och 3 000 kr" : ""}.`);
+if (process.env.MD_VANSKAP === "1") {
+  const uid = async (u) => (await db.collection("students").where("username", "==", u).get()).docs[0]?.id;
+  const [alva, bilal] = [await uid("4a01"), await uid("4a02")];
+  const { nyKarriar } = await import("../src/matchdagen/delat/md-sasong.js");
+  const { skapaPrng } = await import("../src/matchdagen/delat/md-prng.js");
+  const { marknadTillDok } = await import("../src/matchdagen/delat/md-trupp.js");
+  await db.doc("classes/4a").update({ elevModuler: { [alva]: ["matchdagen"], [bilal]: ["matchdagen"] } });
+  const inst = { omraden: [], rakna: [], svarssatt: "flerval", klocka: 0, lugnt: false, paus: 60, updatedAt: new Date(), updatedBy: "qa-seed" };
+  await db.doc(`matchdagenInst/${alva}`).set({ ...inst, tabeller: [3, 7] });
+  await db.doc(`matchdagenInst/${bilal}`).set({ ...inst, tabeller: [6], rakna: ["matte/md-addition"], klocka: 30 });
+  for (const [u, namn, farg] of [[alva, "Alvas Blixtar", "#2f6fe8"], [bilal, "FC Bilal", "#e8473f"]]) {
+    const K = nyKarriar({ namn, farg, rng: skapaPrng(`qa-874-${u}`).tal });
+    await db.doc(`matchdagen/${u}`).set({ ...K, marknad: marknadTillDok(K.marknad), senast: new Date() });
+  }
+}
+console.log(`✓ Matchdagen: Räkna-områden i Matematik${process.env.MD_PA === "1" ? ", Matchdagen på för Alva (4a01)" : ""}${process.env.MD_KVAL === "1" ? ", kvalet väntar" : ""}${process.env.MD_TRUPP === "1" ? ", två omgångar och 3 000 kr" : ""}${process.env.MD_VANSKAP === "1" ? ", Alva och Bilal med var sin klubb (vänskap)" : ""}.`);
 process.exit(0);
