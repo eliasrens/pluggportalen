@@ -86,7 +86,9 @@ export async function visaLager(S, yta, opt0 = {}) {
     const post = { nyckel, spelareId: yta.querySelector(".md-lagerval").value, svar: [], sek: 0 };
     sparaLager(S.lagring, S.uid, post);
     S.truppUpptagen = false;
-    return korLager(S, yta, lasLager(S.lagring, S.uid, S.K) || { v: 1, ...post }, opt);
+    // Utan lokal lagring (privat fönster) körs lägret i minnet; annars läses det tillbaka (spelaren finns kvar?).
+    const sparad = S.lagring ? lasLager(S.lagring, S.uid, S.K) : { v: 1, ...post };
+    return sparad ? korLager(S, yta, sparad, opt) : visaLager(S, yta, { ...opt, signal: opt.yttre });
   });
 }
 
