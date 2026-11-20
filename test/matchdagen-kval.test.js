@@ -284,3 +284,27 @@ describe("kvalet: bara ligavinnaren, upp vid vinst, aldrig ned (§7.2)", () => {
     assert.ok(uppflyttningar >= 3, `${uppflyttningar} uppflyttningar`);
   });
 });
+
+describe("straffen på planen (3D och 2D visar samma uppställning)", async () => {
+  const { straffUppstallning, MALLINJE, PLAN_L, PLAN_B } = await import("../src/matchdagen/plan/md-formation.js");
+  for (const lag of ["oss", "dem"]) {
+    it(`${lag}: bollen på straffpunkten, skytten bakom, målvakten på mållinjen, övriga i mittcirkeln`, () => {
+      const f = straffUppstallning(lag);
+      const mallinje = lag === "oss" ? MALLINJE.dem : MALLINJE.vi;
+      assert.equal(f.mallinje, mallinje);
+      assert.equal(Math.abs(f.boll[0] - mallinje), C.STRAFFPUNKT_M);
+      const skytt = f[f.skytt.lag][f.skytt.i];
+      const mv = f[f.malvakt.lag][f.malvakt.i];
+      assert.ok(Math.abs(skytt[0] - f.boll[0]) < 2.5 && Math.abs(skytt[0] - mallinje) > C.STRAFFPUNKT_M, "bakom bollen");
+      assert.ok(Math.abs(mv[0] - mallinje) < 1, "på linjen");
+      assert.equal(f.skytt.lag, lag === "oss" ? "vi" : "dem");
+      for (const sida of ["vi", "dem"]) {
+        f[sida].forEach(([x, y], i) => {
+          assert.ok(x >= 0 && x <= PLAN_L && y >= 0 && y <= PLAN_B);
+          const roll = (f.skytt.lag === sida && f.skytt.i === i) || (f.malvakt.lag === sida && f.malvakt.i === i);
+          if (!roll) assert.ok(Math.hypot(x - PLAN_L / 2, y - PLAN_B / 2) < 12, `${sida}${i} i mittcirkeln`);
+        });
+      }
+    });
+  }
+});
