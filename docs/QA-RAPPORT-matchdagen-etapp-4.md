@@ -55,7 +55,12 @@ walkover efter 3 minuter, klubbkassan (100 + 100 kr, 3 per dag) och de inbördes
 
 ## Skärmdumpar
 
-TODO
+`docs/qa-matchdagen-4/` (appen mot emulatorerna, `admin/qa-matchdagen-874-preview.sh`, två isolerade sidor 1366 × 768: Alva 4a01 och Bilal 4a02):
+01 lobbyn, 02 utmaningen hos Bilal, 03 Alvas val (3D), 04 Bilals försvar (3D), 05 Alvas fråga (tabell, flerval, 3D),
+06 Bilals läge avgjort när hans tid (30 s) gick ut, 07/08 slutet hos båda (1 – 0, +200 / +100 kr, inbördes 1–0–0 / 0–0–1),
+09 lobbyn med inbördes möten, 10 Bilals Räkna-fråga i 2D (`?2d=1`, rättad på servern: "Rätt!"), 11 Alva i 2D,
+12 slutet i 2D (inbördes 0–0–2). Två hela matcher spelades till 90:e minuten (en i 3D, en i 2D) med halvtid; kassan i
+sidhuvudet och efter omladdning stämde med serverns (Alva 600 → 800 → 1 000, Bilal 600 → 700 → 800).
 
 ## Kvoten (§13) – en vänskapsmatch
 
@@ -74,7 +79,35 @@ vänskapsmatch som pågår bevakas då, så att appens nästa sparning inte skri
 
 ## Reglerna och 1000-uttrycksgränsen
 
-TODO
+- `mdLobby/{classId}`: läsning för läraren med klassen (`hasClass`) och för klassens elever som har Matchdagen
+  (`isClassMember` + `mdHarMatchdagen`, en `get` av klassdokumentet). Skrivning: aldrig.
+- `mdVanskap/{id}`: spelarna (`spelare`) och läraren; ett saknat dokument får varje inloggad hämta (som
+  `schackPartier`). `privat/{uid}`: eleven själv och läraren. `facit/{uid}`: bara läraren. `mdVanskapElev/{uid}`: eleven
+  själv och läraren (`hasStudent`). Skrivning: aldrig – Admin SDK i callablarna går förbi reglerna.
+- `matchdagen/{uid}`: `inbordes` står i `hasOnly`, och `validMatchdagen` nekar en ändring från klienten med ETT uttryck,
+  `!('inbordes' in a)` (`a` = de ändrade nycklarna, som redan räknas ut). En ny klubb får inte ha fältet.
+
+**Marginalen** (`admin/qa-matchdagen-marginal.test.js`, extra `(d.div == d.div) &&` som ryms, fina steg 2–30, samma frön):
+"före" = reglerna på `cfda7646` (Etapp 3), "efter" = de här, "efter + inbördes" = dokumentet har redan inbördes möten
+före och efter skrivningen (`INB=1`):
+
+| Skrivning | Före | Efter | Efter + inbördes |
+| --- | --- | --- | --- |
+| **Ny klubb** (`create`, den tunnaste) | 5 | **4** | – (en ny klubb har inga) |
+| Ett köp | 22 | 21 | 21 |
+| Ett köp med fulla reserver | 18 | 17 | 17 |
+| Hela säsongen + cupen + kvalet i en skrivning | 12 | 11 | 11 |
+| Legendklubben | 13 | 12 | 12 |
+| Legendklubben med 48 gamla klubbar | 11 | 10 | 10 |
+| Kvalet | 25 | 24 | 24 |
+| Resten av säsongen i en skrivning | 28 | 28 | 28 |
+| Ett träningsläger | 30 | 30 (grovt) | 30 |
+| En match / mästare | 50 / 50 | 50 / 50 (grovt) | – |
+| Cup, cupfinal, Mästarcupen, final, lägrets start, byte | ≥ 60 | ≥ 60 (grovt) | – |
+| Läger + match i en skrivning | nekas | nekas (oförändrat sedan 2b) | – |
+
+Inbördes kostar **en enhet** i varje skrivning och ingenting extra när dokumentet redan har möten. Ingen skrivning
+går över gränsen; den tunnaste (ny klubb) har 4 kvar. ("Grovt" = standardlistan 0, 2, 4 … 60 i den första körningen.)
 
 ## Deploy
 
@@ -135,7 +168,15 @@ TODO
 
 ## Körningar (Codern)
 
-TODO
+| Svit | Resultat |
+| --- | --- |
+| Matchdagen (`node --test test/matchdagen-*.test.js`) | 360 pass, 0 fail |
+| `test/behorigheter-doc.test.js` | 4 pass |
+| Delade tester (schack, stilar, butik, kurragömma-lärare …) | 526 pass, 1 fail: schackmotorns tidsgräns ("högst ~1 s per drag") under last med emulatorn igång – orörd kod |
+| Functions (`functions-matchdagen-vanskap*.test.mjs`, functions + auth + firestore) | 19 pass, 0 fail |
+| Reglerna (`firestore-rules-matchdagen*`, Coder 1) | 35 pass |
+| Marginalen | tabellen ovan |
+| Hela `node --test`, `test:rules`, `test:functions` | lämnas till Testern (minnet: OOM-risk, en emulator åt gången) |
 
 ## Granskningen (code review på cfda7646..79ce4681) – rättat
 

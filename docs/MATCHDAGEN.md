@@ -1037,6 +1037,9 @@ klassen); matchen – spelarna och läraren (ett saknat dokument får varje inlo
 I `matchdagen/{uid}` får `inbordes` finnas (`hasOnly`), men en skrivning från klienten får inte ändra det:
 `!('inbordes' in a)` – ett enda billigt uttryck. Appen skickar fältet oförändrat när hela dokumentet skrivs
 (`sparaKarriar`, nytt namn, legendklubb) och utelämnar det i matchsparningen (`mergeFields`).
+**Marginalen** mot 1000-gränsen: inbördes kostar en enhet i varje skrivning – ny klubb 4 (var 5), köp 21, köp med
+fulla reserver 17, hela säsongen + cupen + kvalet 11, legendklubben 12 (48 gamla: 10), kvalet 24; oförändrat med möten
+i dokumentet. Mätningen: rapporten (Etapp 4).
 
 ### 18.7 Kvoten (§13) – en vänskapsmatch
 
