@@ -10,6 +10,10 @@
 // skrivning (md-data.js sparaTrupp). Matchen väntar tills lägret är sparat (md-vy-match.js).
 //
 //   visaLager(S, yta, { signal, klar }) – klar() ritar om korten när lägret är sparat
+// Ett nytt anrop för samma yta avbryter det förra (aldrig två frågeslingor samtidigt), och
+// en fråga som avbryts av ett flikbyte visas igen när eleven kommer tillbaka (S.lagerFraga)
+// – att byta flik ska inte hoppa över en svår fråga. Köp/byten och lägrets start väntar på
+// varandra (S.truppUpptagen).
 // ============================================================================
 
 import { TRANING } from "../delat/md-config.js";
@@ -32,7 +36,18 @@ export function lagerStangtText(K) {
 /** "Selma Lind fick en stjärna till!" (§8.4) – html-säker. */
 export const firaText = (p) => `${esc(p.namn)} fick en stjärna till!`;
 
-export async function visaLager(S, yta, opt = {}) {
+/** En egen signal per yta: avbryts av ett nytt visaLager eller av den yttre (flikbytet). */
+function ytansSignal(yta, yttre) {
+  yta.mdLager?.abort();
+  const ac = new AbortController();
+  yta.mdLager = ac;
+  if (yttre?.aborted) ac.abort();
+  else yttre?.addEventListener("abort", () => ac.abort(), { once: true });
+  return ac.signal;
+}
+
+export async function visaLager(S, yta, opt0 = {}) {
+  const opt = { ...opt0, yttre: opt0.signal, signal: ytansSignal(yta, opt0.signal) };
   const pagar = lasLager(S.lagring, S.uid, S.K);
   if (pagar) return korLager(S, yta, pagar, opt);
   const nyckel = lagerNyckel(S.K);
@@ -56,17 +71,21 @@ export async function visaLager(S, yta, opt = {}) {
   const knapp = yta.querySelector("[data-lager]");
   knapp.addEventListener("click", async () => {
     const fel = yta.querySelector(".md-fel");
-    const hinder = hinderMatch(S);
+    const hinder = hinderMatch(S) || (S.truppUpptagen ? "Vänta tills köpet är sparat." : null);
     if (hinder) { fel.textContent = hinder; return; }
     knapp.disabled = true;
+    S.truppUpptagen = true;
     // Lägret sparas mot karriären på servern – en osparad match måste in först.
-    if (!(await sparaKon(S))) {
+    const kon = await sparaKon(S);
+    if (!kon || nyckel !== lagerNyckel(S.K)) {
+      S.truppUpptagen = false;
       knapp.disabled = false;
-      fel.textContent = "Den senaste matchen är inte sparad än. Prova igen när datorn har kontakt med servern.";
+      fel.textContent = kon ? "Laget har redan tränat den här omgången." : "Den senaste matchen är inte sparad än. Prova igen när datorn har kontakt med servern.";
       return;
     }
     const post = { nyckel, spelareId: yta.querySelector(".md-lagerval").value, svar: [], sek: 0 };
     sparaLager(S.lagring, S.uid, post);
+    S.truppUpptagen = false;
     return korLager(S, yta, lasLager(S.lagring, S.uid, S.K) || { v: 1, ...post }, opt);
   });
 }
@@ -90,7 +109,12 @@ async function korLager(S, yta, post, opt) {
       <div class="md-lager-fraga"></div>`;
       const firande = yta.querySelector(".md-firande");
       let fira = false;
-      const r = await visaFraga(yta.querySelector(".md-lager-fraga"), fr.nasta(), {
+      // Samma fråga igen om den förra avbröts av ett flikbyte (samma läger, samma plats).
+      const n = post.svar.length;
+      const sist = S.lagerFraga;
+      const fraga = sist && sist.nyckel === post.nyckel && sist.n === n ? sist.fraga : fr.nasta();
+      S.lagerFraga = { nyckel: post.nyckel, n, fraga };
+      const r = await visaFraga(yta.querySelector(".md-lager-fraga"), fraga, {
         ratta: fr.ratta, klocka: S.inst.klocka, signal: opt.signal,
         vidSvar: (x) => {
           const ut = tranaSpelare(spelaren(), !!x.ratt);
@@ -138,6 +162,6 @@ async function sparaLagret(S, yta, post, opt) {
     ${lagerNyckel(S.K)
       ? `<div class="md-rad"><button type="button" class="md-stor" data-nasta>Ett läger till före kvalet</button></div>`
       : `<p class="md-svag">Spela nästa match, så får ni ett nytt träningsläger.</p>`}`;
-  yta.querySelector("[data-nasta]")?.addEventListener("click", () => visaLager(S, yta, opt));
+  yta.querySelector("[data-nasta]")?.addEventListener("click", () => visaLager(S, yta, { ...opt, signal: opt.yttre }));
   opt.klar?.();
 }

@@ -16,7 +16,9 @@ import { chansRaddning, chansSkott, lagbonus } from "../src/matchdagen/delat/md-
 import { forstaDokument, matchKlar, nastaMatch, nyKarriar } from "../src/matchdagen/delat/md-sasong.js";
 import { kvalKlar } from "../src/matchdagen/delat/md-kval.js";
 import { skapaPrng } from "../src/matchdagen/delat/md-prng.js";
-import { lasLager, rensaLager, sparaLager } from "../src/matchdagen/md-lokal.js";
+import { laggIKo, lasLager, lasOsparad, rensaLager, sparaLager } from "../src/matchdagen/md-lokal.js";
+import { konsPengar, ovanpaServern, sparaKon } from "../src/matchdagen/md-spara.js";
+import { pengarFor } from "../src/matchdagen/delat/md-sasong.js";
 import { lagdelarHtml, marknadKort, reservKort, startKort, traningsStapel } from "../src/matchdagen/vy/md-vy-marknad.js";
 import { firaText, lagerStangtText } from "../src/matchdagen/vy/md-vy-lager.js";
 
@@ -267,5 +269,54 @@ describe("en klubb vars första sparning aldrig gick fram skapas först från no
     assert.deepEqual([F.reserver, F.marknad, F.lager, F.kval], [[], [], undefined, null]);
     assert.deepEqual(F.trupp, K1.trupp);
     assert.deepEqual(F.klubb, K1.klubb);
+  });
+});
+
+describe("kön ovanpå serverns trupp – en kö som ändrats någon annanstans låser inte sparningen (md-spara.js, granskningen)", () => {
+  const lagring = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; };
+  it("köns pengar: matchernas pengar + uppflyttningen efter ett vunnet kval (också på straffar)", () => {
+    const koe = [{ match: { oss: 2, dem: 1, ratt: 20, div: 0 } }, { match: { typ: "kval", oss: 1, dem: 1, straffar: [4, 3], ratt: 18, div: 0 } }];
+    assert.equal(konsPengar(koe), pengarFor({ oss: 2, dem: 1 }, 20, 0) + pengarFor({ oss: 1, dem: 1 }, 18, 0) + C.KASSA.uppflyttning);
+    assert.equal(konsPengar([{ match: { typ: "kval", oss: 0, dem: 1, ratt: 5, div: 2 } }]), pengarFor({ oss: 0, dem: 1 }, 5, 2));
+  });
+  it("ovanpaServern: serverns trupp, reserver och läger; kassan högst serverns + köns pengar; köpta tas ur marknaden", () => {
+    const G = T.kop(med([salu()]), "kny").K;
+    const L = { ...med([salu(), salu({ id: "kb" })]), summa: { ...K1.summa, matcher: K1.summa.matcher + 1 }, kassa: 9000 };
+    const koe = [{ match: { oss: 1, dem: 0, ratt: 10, div: 0 } }];
+    const U = ovanpaServern(L, { ...G, lager: "1-1" }, koe);
+    assert.deepEqual([U.trupp, U.reserver, U.lager], [G.trupp, G.reserver, "1-1"]);
+    assert.equal(U.kassa, G.kassa + konsPengar(koe));
+    assert.deepEqual(U.marknad.map((p) => p.id), ["kb"]);
+    assert.equal(U.summa.matcher, L.summa.matcher, "matcherna är den lokala karriärens");
+    assert.equal(ovanpaServern({ ...L, kassa: 10 }, G, koe).kassa, 10, "aldrig mer än den lokala");
+  });
+  it("en nekad kö läser serverns karriär EN gång, sparas ovanpå den och S.K följer med", async () => {
+    // Servern: truppen ändrades på en annan dator (ett köp). Reglerna (förenklat): truppen måste vara serverns.
+    const G = T.kop(med([salu()]), "kny").K;
+    const srv = { K: G, matcher: [], las: 0 };
+    const data = {
+      lasKarriar: async () => { srv.las++; return srv.K; },
+      sparaMatch: async (uid, K2, id) => {
+        if (JSON.stringify(K2.trupp) !== JSON.stringify(srv.K.trupp)) throw Object.assign(new Error("nej"), { code: "permission-denied" });
+        srv.K = K2; srv.matcher.push(id);
+      },
+    };
+    const S = { uid: "u", lagring: lagring(), data, K: null };
+    const lokal = { ...matchKlar(K1, { res: res(3, 0), rng: rng("q"), nu: NU, matchId: "q1" }).K };
+    S.K = lokal;
+    laggIKo(S.lagring, "u", { K: lokal, matchId: "q1", match: { oss: 3, dem: 0, ratt: 20, div: 0 } });
+    assert.equal(await sparaKon(S, lokal), true);
+    assert.deepEqual(srv.matcher, ["q1"]);
+    assert.equal(srv.las, 1);
+    assert.deepEqual(S.K.trupp, G.trupp);
+    assert.equal(S.K.summa.matcher, lokal.summa.matcher);
+    assert.equal(lasOsparad(S.lagring, "u"), null);
+  });
+  it("nekas den också ovanpå servern ligger kön kvar (ingen evig slinga)", async () => {
+    const data = { lasKarriar: async () => K1, sparaMatch: async () => { throw Object.assign(new Error("nej"), { code: "permission-denied" }); } };
+    const S = { uid: "u", lagring: lagring(), data, K: K1 };
+    laggIKo(S.lagring, "u", { K: K1, matchId: "z", match: {} });
+    assert.equal(await sparaKon(S), false);
+    assert.equal(lasOsparad(S.lagring, "u").koe.length, 1);
   });
 });

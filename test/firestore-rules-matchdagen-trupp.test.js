@@ -14,12 +14,14 @@
 // ============================================================================
 
 import { after, before, beforeEach, describe, it } from "node:test";
+import assert from "node:assert/strict";
 import { assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { createRollerEnv, seedRoller } from "./helpers/roller-env.js";
 import { matchKlar, nyKarriar } from "../src/matchdagen/delat/md-sasong.js";
 import { bytIn, kop, lagerNyckel, lagerResultat } from "../src/matchdagen/delat/md-trupp.js";
 import { skapaPrng } from "../src/matchdagen/delat/md-prng.js";
+import { ovanpaServern } from "../src/matchdagen/md-spara.js";
 
 let env;
 const NU = Date.UTC(2026, 10, 20, 9);
@@ -167,8 +169,27 @@ describe("matchdagen/{uid} – träningslägret och kassan (#871)", () => {
     await seed(K1);
     const M = kopia(matchKlar(K1, { res: res(2, 0), rng: r, nu: NU, matchId: "m3" }).K);
     await assertFails(setDoc(ref(db), medTid(M, { kassa: K1.kassa + 5401 })), "över taket för en match");
-    await assertFails(setDoc(ref(db), medTid(M, { kassa: K1.kassa + 31 * 5000, summa: { ...M.summa, matcher: K1.summa.matcher + 31 } })), "31 matcher i en skrivning");
+    await assertFails(setDoc(ref(db), medTid(M, { kassa: K1.kassa + 501 * 5000, summa: { ...M.summa, matcher: K1.summa.matcher + 501 } })), "501 matcher i en skrivning");
     await assertSucceeds(setDoc(ref(db), medTid(M)), "matchens pengar");
+  });
+  it("en kö med fler än 30 matcher (offline länge) sparas – karriären räknar alla matcher (granskningen)", async () => {
+    const M = kopia(matchKlar(K1, { res: res(2, 0), rng: r, nu: NU, matchId: "m4" }).K);
+    await assertSucceeds(setDoc(ref(elev()), medTid(M, { summa: { ...M.summa, matcher: K1.summa.matcher + 40 } })));
+  });
+  it("en kö som spelats medan truppen ändrades någon annanstans: nekas, men sparas ovanpå serverns trupp (md-spara.js ovanpaServern)", async () => {
+    const SALT = kopia(K1);
+    const i = SALT.trupp.findIndex((p) => p.pos === "ANF");
+    SALT.trupp[i] = { id: "kgammal", namn: "Såld Spelare", pos: "ANF", nr: 70, st: 2, xp: 0 };
+    const j = SALT.trupp.findIndex((p, x) => p.pos === "ANF" && x !== i);
+    SALT.trupp[j] = { ...SALT.trupp[j], st: 3 }; // den köpta är sämst – den säljs
+    // Servern: den köpta spelaren ersattes av en ny (den gamla såldes) på en annan dator.
+    const G = kopia(kop({ ...SALT, marknad: [{ id: "kny2", namn: "Ny Två", pos: "ANF", nr: 71, st: 4, xp: 0 }] }, "kny2").K);
+    await seed(G);
+    const koe = [{ match: { oss: 2, dem: 0, ratt: 20, div: 0 } }];
+    const lokal = kopia(matchKlar(SALT, { res: res(2, 0), rng: r, nu: NU, matchId: "m5" }).K);
+    assert.ok(!G.trupp.some((p) => p.id === "kgammal") && !G.reserver.some((p) => p.id === "kgammal"));
+    await assertFails(setDoc(ref(elev()), medTid(lokal)), "den sålda spelaren finns inte på servern");
+    await assertSucceeds(setDoc(ref(elev()), medTid(ovanpaServern(lokal, G, koe))));
   });
   it("läraren kan inte ändra truppen eller kassan", async () => {
     await assertFails(setDoc(ref(env.ak4()), medTid(LAGER)));

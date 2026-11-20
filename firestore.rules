@@ -843,18 +843,21 @@ service cloud.firestore {
     // det som köps prövas i stället när det kommer in i truppen (mdKopOk). Vyerna escapar allt.
     function mdMarknadOk(m, g) { return m is list && m.size() <= 6 && (g != null || m.size() == 0); }
     // Klubbkassan per skrivning: högst 5 000 kr mer per bokförd match (den största matchen i
-    // Superligan med kval och cup ≈ 2 500) och högst 30 matcher i en skrivning (den lokala
-    // kön, md-lokal.js KO_MAX), plus 400 kr (ett köp där en släppt reserv ger mer än köpet
+    // Superligan med kval och cup ≈ 2 500) och högst 500 matcher i en skrivning (den lokala
+    // kön sparar högst 30 matchdokument, md-lokal.js KO_MAX, men karriären räknar alla som
+    // spelats offline), plus 400 kr (ett köp där en släppt reserv ger mer än köpet
     // kostar: 3 190 / 2 − 1 210). En elev som skriver förbi appen kan alltså bara höja
     // kassan i takt med matcherna – men varje skrivning för sig (se docs/MATCHDAGEN.md §15.4).
     // En ny klubb börjar med högst startkassan (KASSA.start = 600).
     function mdKassaOk(d, g) {
       return mdTal(d.kassa, 0, 100000000) && (g == null ? d.kassa <= 600 :
-        (d.summa.matcher <= g.summa.matcher + 30 && d.kassa <= g.kassa + (d.summa.matcher - g.summa.matcher) * 5000 + 400));
+        (d.summa.matcher <= g.summa.matcher + 500 && d.kassa <= g.kassa + (d.summa.matcher - g.summa.matcher) * 5000 + 400));
     }
     // Det senast använda träningslägret (md-trupp.js lagerNyckel): "säsong-omgång" för en
     // spelad omgång i den här säsongen (omgången får vara äldre – lägret kan sparas ihop med
-    // nästa match), eller "säsong-k" före kvalet.
+    // nästa match), eller "säsong-k" före kvalet. Att lägret är NYARE än det sparade prövas
+    // inte (det kostar för många uttryck): en elev som skriver förbi appen kan växla lägret
+    // fram och tillbaka och träna mer – bara i sitt eget spel, som kassan (docs/MATCHDAGEN.md §15.4).
     function mdLagerOk(d) {
       return d.lager is string && d.lager.size() <= 12 && (d.lager == string(d.sasong) + '-k' ||
         (d.lager.matches('[0-9]{1,5}-[0-9]{1,2}') && d.lager.split('-')[0] == string(d.sasong) &&

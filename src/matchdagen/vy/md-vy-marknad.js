@@ -107,7 +107,7 @@ async function sparaAndring(S, K2) {
     await S.data.sparaTrupp(S.uid, K2);
   } catch (err) {
     console.warn("Matchdagen: truppen kunde inte sparas", err);
-    throw Object.assign(new Error("spara"), { text: "Kunde inte spara just nu – prova igen." });
+    throw Object.assign(new Error("spara"), { text: "Kunde inte spara just nu – prova igen, eller ladda om sidan." });
   }
   S.K = K2;
   S.kassa?.();

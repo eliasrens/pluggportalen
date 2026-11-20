@@ -293,7 +293,10 @@ allt i `src/matchdagen/plan/` laddas först när matchen startar. Stilarna: `src
 | `src/styles/49-matchdagen-match.css` | elevens app och matchvyn (kvällsarenan) |
 | `src/matchdagen/delat/md-straffar.js`, `md-kval.js` | ren: straffläggningen och kvalet (§14, #870) |
 | `src/matchdagen/vy/md-straff-spel.js` | straffläggningen i matchvyn (#870) |
-| `preview/preview-matchdagen.html` | förhandsvisning 1c med stubbad data (`PORT=8869 node server.mjs`; `?vy=match\|tabell\|trupp\|stat`, `?omg=0–5`, `?klubb=ny`, `?ny=1`, `?2d=1`, `?lugnt=1`, `?fps=1`, `?auto=1`, `?svar=skriv`, `?klocka=30`, `?kallor=inga`; 2a: `?div=0–7`, `?kval=1`, `?straffar=1`) |
+| `preview/preview-matchdagen.html` | förhandsvisning 1c med stubbad data (`PORT=8869 node server.mjs`; `?vy=match\|tabell\|trupp\|stat`, `?omg=0–5`, `?klubb=ny`, `?ny=1`, `?2d=1`, `?lugnt=1`, `?fps=1`, `?auto=1`, `?svar=skriv`, `?klocka=30`, `?kallor=inga`; 2a: `?div=0–7`, `?kval=1`, `?straffar=1`; 2b: `?kassa=N`, `?trupp=visa`) |
+| `src/matchdagen/delat/md-trupp.js` | ren: truppen, reserverna, marknaden och träningslägret (§15, #871) |
+| `src/matchdagen/vy/md-vy-marknad.js`, `md-vy-lager.js`, `md-strom.js` | Truppens kort, köpen och bytena; träningslägret; frågeströmmen (delad av matchen och lägret) (#871) |
+| `admin/md-balans-trupp.mjs` | balansen för ekonomin och karriären med truppen (§15.2) |
 | `preview/preview-matchdagen-fragor.html` | förhandsvisning 1b: frågekortet + motorn som textmatch (`PORT=8868 node server.mjs`; `?svar=skriv`, `?klocka=30`, `?kallor=tabell\|omrade\|rakna\|klocka\|inga`) |
 
 ## 9. Deploy
@@ -313,6 +316,11 @@ med en ny klubb och med första matchen efter en ny säsong – med webben förs
 (sparas med första matchen) och matcherna blir liggande i den lokala kön tills reglerna är ute. Inga index,
 inga functions.
 
+Etapp 2b: **`firebase deploy --only firestore:rules` före webben** – `reserver`, `marknad` och `lager` i
+karriären och kontrollen av truppen, reserverna och kassan mot det sparade dokumentet (§15.4). De gamla reglerna
+nekar `lager` (okänt fält) – med webben först kan inget träningsläger sparas. De nya reglerna godtar äldre
+dokument (Etapp 1–2a) utan `reserver`/`marknad`/`lager`. Inga index, inga functions.
+
 ## 10. Säsongen och sparningen (Etapp 1c)
 
 ### 10.1 Säsongen i Division 6
@@ -328,7 +336,7 @@ inga functions.
   färg kommer ur `klubb`, så lärarens återställning rör bara `klubb.namn`.
 - **Efter elevens match:** `matchKlar(K, { res, rng, nu, matchId, kallNamn })` räknar omgångens övriga matcher
   med `simMal`, tabellen (3/1/0, sorterad på poäng, målskillnad, gjorda mål), kassan (`pengarFor`: grund
-  300/150/80 + 15 per rätt + 25 per mål, × (1 + div × 0,25)), summan, `senaste`, `dagar` – och efter sista
+  150/75/40 + 8 per rätt + 12 per mål, × (1 + div × 0,25) – specens belopp halverade i 2b, §15.2), summan, `senaste`, `dagar` – och efter sista
   omgången placeringen och pokalen "Vinnare Division 6".
 - **Nästa säsong:** `nySasong(K, rng)` – ny liga, samma division. Etapp 1 har inget kval (kommer i 2a); laget
   stannar i Division 6. Lottningen seedas med `sasongFro(K, uid)`, så samma liga visas vid omladdning innan den
@@ -371,6 +379,7 @@ Fälten står i [`DATAMODELL.md`](DATAMODELL.md#matchdagenuid--elevens-karriär-
 | --- | --- |
 | Ny klubb | 1 (`sparaKarriar`) |
 | Döpa om laget / byta tröjfärg (Truppen) | 1 |
+| Köp, byte eller träningsläger (Truppen, #871) | 1 (`sparaTrupp`, utan `klubb`) |
 | Efter varje match | 1 batch = 2 (karriären + `matcher/{id}`) – `sparaMatch` |
 | Ny säsong | 0 (sparas med nästa match) |
 | Läraren: Återställ lagnamn | 1 (`aterstallLagnamn`, bara `klubb.namn`) |
@@ -378,14 +387,15 @@ Fälten står i [`DATAMODELL.md`](DATAMODELL.md#matchdagenuid--elevens-karriär-
 Matchsparningen skriver allt **utom `klubb`** (`mergeFields`), så lärarens Återställ lagnamn står kvar; `klubb`
 skrivs bara av ny klubb och Truppen. Nekas batchen läses de två dokumenten: finns `matcher/{id}` redan (ett
 tidigare försök gick fram men svaret kom aldrig) sparas bara karriären, och saknas karriären (den nya klubben
-hann aldrig sparas) skickas den hela med `klubb`. Varje läsning och skrivning har en tidsgräns (8 s,
+hann aldrig sparas) skapas den först från noll (`forstaDokument`, #871 – reglerna skapar bara en ny klubb) och
+batchen skickas igen. Varje läsning och skrivning har en tidsgräns (8 s,
 `medTidsgrans`) – offline löser Firestore aldrig skrivningens promise; matchen ligger kvar i kön. Matchdagen ger **inga pluggmynt** – klubbkassan är spelets egen valuta.
 
 ## 11. Kvoten (Etapp 1c, spec §13)
 
 Inga lyssnare. Elevens dokument läses en gång när Matchdagen öppnas.
 
-**Eleven under en timme** (~7 matcher; träningsläger kommer i 2b):
+**Eleven under en timme** (~7 matcher; med truppen och träningslägret, #871: se §15.5):
 
 | Vad | Läsningar | Skrivningar |
 | --- | --- | --- |

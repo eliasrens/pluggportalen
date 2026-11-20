@@ -51,9 +51,10 @@ export async function visaTrupp(S, el) {
     const b = e.target.closest("button[data-kop], button[data-byt]");
     if (!b || b.disabled || upptagen) return;
     const status = kortYta.querySelector(".md-truppstatus");
-    const hinder = hinderMatch(S) || (lasLager(S.lagring, S.uid, S.K) ? "Gör klart träningslägret först." : null);
+    const hinder = hinderMatch(S) || (lasLager(S.lagring, S.uid, S.K) || S.truppUpptagen ? "Gör klart träningslägret först." : null);
     if (hinder) { status.textContent = hinder; return; }
     upptagen = true;
+    S.truppUpptagen = true;
     kortYta.querySelectorAll("button").forEach((x) => { x.disabled = true; });
     let text = "";
     try {
@@ -63,6 +64,7 @@ export async function visaTrupp(S, el) {
       text = `<span class="md-fel">${esc(err?.text || "Det gick inte – prova igen.")}</span>`;
     }
     upptagen = false;
+    S.truppUpptagen = false;
     if (S.vy !== "trupp") return;
     rita(text || "");
     lager(); // lägret kan ha nya kandidater (en köpt eller inbytt spelare)
