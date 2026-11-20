@@ -188,6 +188,13 @@ describe("rekorden (§9.2, §15)", () => {
     assert.equal(R.sv.v, 6);
     assert.equal(R.nu.svit, 1);
   });
+  it("sviten annonseras också när det gamla svitrekordet är 1 – vid 3 matcher, inte vid 2 (granskningen)", () => {
+    const k = K(undefined);
+    const nya = [];
+    for (const [a, b] of [[0, 1], [1, 0], [0, 1], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0]]) nya.push(...rekordEfterMatch(k, res(a, b)).filter((t) => /i rad/.test(t)));
+    assert.deepEqual(nya, ["Nytt rekord: 3 matcher i rad utan förlust!"]);
+    assert.equal(lasRekord(k.rekord).sv.v, 5);
+  });
   it("säsongens rekord: flest mål, bästa andel rätt (minst 3 matcher), ligatitlar i rad och obesegrad säsong", () => {
     const k = K(undefined, 1);
     for (const [a, b] of [[3, 0], [2, 2], [4, 1]]) rekordEfterMatch(k, { ...res(a, b), stat: stat(20, 15) });

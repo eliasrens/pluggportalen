@@ -39,6 +39,7 @@ export function cupRad(K) {
   const L = cupLage(K);
   if (L.vann) return `${CUP.namn}: vunnen`;
   if (L.ute) return `${CUP.namn}: utslagen i ${CUP.rundor[L.spelade - 1].toLowerCase()}en`;
+  if (Number(K.liga?.omg) >= (Number(K.liga?.schema?.length) || 0)) return `${CUP.namn}: ingen cup den här säsongen`;
   return L.spelade ? `${CUP.namn}: klar för ${CUP.rundor[L.spelade].toLowerCase()}en` : `${CUP.namn}: ${CUP.rundor[0].toLowerCase()}en väntar`;
 }
 const MATCH_TAGG = { kval: " (kval)", cup: " (cup)" };

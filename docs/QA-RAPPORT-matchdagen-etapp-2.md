@@ -3,6 +3,77 @@
 Spec: [`UTVECKLINGSUPPDRAG_MATCHDAGEN.md`](UTVECKLINGSUPPDRAG_MATCHDAGEN.md) §16 (rapport efter varje etapp).
 Arkitekturen: [`MATCHDAGEN.md`](MATCHDAGEN.md). Etapp 1: [`QA-RAPPORT-matchdagen-etapp-1.md`](QA-RAPPORT-matchdagen-etapp-1.md).
 
+## Etapp 2 – sammanfattning (2a #870, 2b #871, 2c #872)
+
+Etapp 2 är klar. Detaljerna per steg står i avsnitten nedan; här är helheten för den som ska deploya och spela.
+
+**Vad som byggts:** hela stegen Division 6 → Superligan (6–12 lag, 5–11 omgångar), kvalet för ligavinnaren med
+straffläggning, finten från Division 3 (2a); truppen med reserver, marknaden, köp/byten och träningslägret, och
+en halverad ekonomi (2b); Silverpokalen mellan ligaomgångarna, rekorden med annons efter matchen och pokalerna
+som rader (2c). Allt nytt ligger i `src/matchdagen/` (motorn ren i `delat/`), bootgrafen är oförändrad (107 filer)
+och ingen fil är över 400 rader. Arkitekturen: `MATCHDAGEN.md` §14–16.
+
+**Skärmdumpar** (spec §16):
+
+| Vad | Bilder |
+| --- | --- |
+| Stegen och tabellen | [2a/01](qa-matchdagen-2a/01-tabell-stegen-kval.png), [2a/02](qa-matchdagen-2a/02-tabell-elitligan-12-lag.png) |
+| Kvalet | [2a/01](qa-matchdagen-2a/01-tabell-stegen-kval.png), [2a/05](qa-matchdagen-2a/05-kval-forlorat-straffar.png), [2a/07](qa-matchdagen-2a/07-uppflyttning.png), [2a/09 appen](qa-matchdagen-2a/09-app-emulator-uppflyttning.png) |
+| Straffarna (3D och 2D) | [2a/03](qa-matchdagen-2a/03-straff-3d-var.png), [2a/04](qa-matchdagen-2a/04-straff-3d-deras.png), [2a/06](qa-matchdagen-2a/06-straff-2d.png), [2a/08 appen](qa-matchdagen-2a/08-app-emulator-straff.png) |
+| Truppen | [2b/01](qa-matchdagen-2b/01-truppen.png), [2b/08 mobil](qa-matchdagen-2b/08-mobil-truppen.png) |
+| Marknaden | [2b/02](qa-matchdagen-2b/02-kopt.png), [2b/03](qa-matchdagen-2b/03-reserverna-fulla.png) |
+| Träningslägret | [2b/04](qa-matchdagen-2b/04-lager-fortsatter-efter-omladdning.png), [2b/05](qa-matchdagen-2b/05-lager-stjarna.png), [2b/06](qa-matchdagen-2b/06-lager-klart.png), [2b/09 appen](qa-matchdagen-2b/09-app-emulator-efter-omladdning.png) |
+| Cupen | [2c/01](qa-matchdagen-2c/01-tabell-silverpokalen.png), [2c/02](qa-matchdagen-2c/02-match-cup-vantar.png), [2c/05](qa-matchdagen-2c/05-cup-vunnen.png), [2c/06 mobil](qa-matchdagen-2c/06-mobil-cup-ute.png) |
+| Rekorden | [2c/03](qa-matchdagen-2c/03-nytt-rekord.png), [2c/04](qa-matchdagen-2c/04-statistik-rekord.png), [2c/07 mobil](qa-matchdagen-2c/07-mobil-rekord.png) |
+| Matchen i 3D och 2D | Etapp 1: [`QA-RAPPORT-matchdagen-etapp-1.md`](QA-RAPPORT-matchdagen-etapp-1.md) (planen är oförändrad i Etapp 2 utom straffarna) |
+
+**Bilder per sekund:** §FPS§
+
+**Balansen** (`npm run balans:matchdagen`, ~2,5 min, fasta frön):
+
+- Division 6 som i Etapp 1: 70 % rätt vinner 61 % och ligan 59 %; 50 % vinner 34 %.
+- **Superligan, 80 % rätt, tränat lag 4★: 47 % vinster** (§12: 45–55 %); helt tränat 5★ 69 %.
+- **Ekonomin:** 60 % rätt har råd med en 3★ efter 2,94 matcher (§12: 2,5–3,5) – inkomsterna halverade mot specen.
+- **Karriären med truppen:** 80 % rätt når Superligan efter median 8 säsonger (15 h), 70 % efter 12 (22 h), 60 %
+  i 44 % av fallen inom 30 säsonger, 50 % sällan förbi Division 1.
+- **Silverpokalen:** 70 % rätt i Division 6 vinner cupen 25 % av säsongerna och slår ett lag från en högre
+  division i 64 % av mötena; säsongen i Division 6 blir 51 → 72 min med cupen.
+
+**Kvoten** (§13), eleven under en timme: **≈ 8 läsningar och ≈ 26 skrivningar** (mål < 20 / < 50) – ~6 matcher
+(cupmatcherna inräknade), 5 träningsläger (2 skrivningar var), 3 köp/byten. Inga lyssnare, inga nya läsningar i
+Etapp 2. Lärarens vy läser ett dokument per elev, som i 1c.
+
+**Deploy** – Matchdagen är inte i drift än, så Etapp 1 och 2 går ut tillsammans:
+
+1. `firebase deploy --only firestore:rules`
+2. Webben (Pages), **direkt efter** – inte senare. Reglerna och webben hör ihop i 2b (marknaden som textrader,
+   `lager`) och 2c (`cup`/`rekord` som text, pokalerna som rader): en gammal webb mot de nya reglerna får pokaler
+   och marknad nekade, en ny webb mot gamla regler får `lager`, `cup` och `rekord` nekade. Matcher som nekas
+   ligger kvar i den lokala kön och sparas när båda är ute – inget går förlorat, men glappet ska vara kort.
+
+Inga index, inga functions, ingen datamigrering.
+
+**Öppna frågor till Elias** (samlade):
+
+1. Träningen går fort – laget är helt tränat (5★) kring Division 2, och 80 % rätt vinner ~69 % i Superligan med
+   5★ (§12-målet gäller 4★). Färre poäng per rätt högre upp, eller ett läger varannan omgång? (2b)
+2. Ekonomin är halverad mot specen, också uppflyttningen och cupens pris (200 × mult.). OK? (2b, 2c)
+3. Säsongen i Division 6 tar ~72 min med cupen (§12: 45–60). Färre cuprundor i de lägsta divisionerna? (2c)
+4. Rekord annonseras bara när ett gammalt slås, inte första gången. OK? (2c)
+
+**Kända gränser** (alla bara elevens eget spel – Matchdagen ger inga pluggmynt; `MATCHDAGEN.md` §15.4, §16.4):
+
+- Att en match verkligen spelats prövas inte: `summa.matcher` +1 ger upp till 5 000 kr och en ny marknad.
+- En egen marknad i rätt form kan skrivas när summan ändras; lägret kan växlas fram och tillbaka; positionerna
+  prövas inte.
+- Att cupen och rekorden stämmer med matcherna prövas inte.
+- Dokumentets storlek: strängarna i ligans lag, `senaste` och `sasonger` prövas inte (upp till 1 MiB förbi appen;
+  appens dokument ≤ ~61 kB). Marknaden och pokalerna prövas.
+- F9: ett köp + en inbytt köpt reserv i samma skrivning ger högst +400 kr.
+- Läger + match i samma skrivning ryms inte i 1000-gränsen – därför väntar Match-fliken på ett påbörjat läger.
+
+**Körningar på Etapp 2:s slutliga kod (2c-grenen):** se "Körningar (Codern, 872)" sist i rapporten.
+
 ## Etapp 2a – alla divisioner, kvalet och straffarna (#870)
 
 Med 2a går det att ta sig uppåt: ligavinnaren spelar kval mot ett lag från divisionen ovanför, oavgjort avgörs
@@ -571,3 +642,170 @@ fulla reserver: +1 kr för mycket och platta 1 600 nekas, 605 tillbaka går igen
 **Körningar (runda 2, 8b9af73f + docs):** `node --test` (319 filer) 4630 pass, 0 fail, 1 skipped; `npm run test:rules`
 1095 pass, 0 fail; marginalen i tabellen ovan (runda 2). Functions och e2e rördes inte i runda 2 (bara regler, tester, docs).
 
+
+## Etapp 2c – Silverpokalen och rekorden (#872)
+
+Med 2c får säsongen en cup vid sidan av ligan: fyra utslagsrundor mot lag från två divisioner under till två
+över, spelade mellan ligaomgångarna – och klubben samlar rekord som annonseras direkt efter matchen. Arkitekturen
+står i `MATCHDAGEN.md` §16.
+
+### Vad som byggts
+
+- **Silverpokalen** (`delat/md-cup.js`, ren): sextondelsfinal, kvartsfinal, semifinal och final, jämnt utspridda
+  mellan ligaomgångarna (`cupSchema`: 5 omgångar → efter 1, 2, 3, 4; 7 → 1, 3, 4, 6; 9 → 2, 4, 5, 7; 11 → 2, 4, 7, 9),
+  alltid före sista ligaomgången. Motståndarna lottas en gång per säsong (samma efter omladdning) ur namnlistan
+  från divisioner inom ±2, de svagaste först. Oavgjort → straffar (2a:s straffläggning), förlust → ute för
+  säsongen, vunnen final → pokalen "Silverpokalen" och 200 kr × multiplikatorn. Cupen flyttar aldrig laget.
+- **Match-fliken** visar cupmatchen före nästa ligamatch: "Silverpokalen · Kvartsfinal · Blåklintens IF från
+  Division 5", vad som står på spel och "Här kan det bli en skräll!" mot en högre division. Rutan efter matchen
+  säger "Vidare till semifinalen!", "Utslagna …" eller "Ni vann Silverpokalen!".
+- **Tabell-fliken** visar cupens fyra rundor under tabellen: resultatet och "vidare"/"utslagna"/"vinnare!" för
+  spelade rundor, motståndaren med division och "efter omgång N" för de kommande, den aktuella markerad, och
+  knappen "Till cupmatchen" när en cupmatch väntar.
+- **Rekorden** (`delat/md-rekord.js`, ren): flest mål i en match och på en säsong, största seger, längsta svit
+  utan förlust, flest ligatitlar i rad, obesegrad säsong, bästa andel rätt på en säsong (minst 3 matcher) och
+  snabbaste mål. "Nytt rekord: 6 mål i en match!" i rutan efter matchen, en rad per slaget rekord. Statistik har
+  en ny sektion **Rekord** med alla åtta (värde och säsong, "–" för ett som inte finns än), och matchlistan märker
+  cupmatcherna "cup". Lärarens elevpanel visar cupens läge och de satta rekorden; matchraderna får "(cup)".
+- **Pokalerna som rader** i dokumentet (`"typ|namn|säsong|datum"`, objekt i appen) – prövas av reglerna (stänger
+  F8 för pokalerna).
+- **Reglerna:** `cup`, `rekord` och `pokaler` med ett reguljärt uttryck var; `mdSummaOk` omskriven till ETT
+  uttryck över summans åtta heltal (gav plats i den tunnaste skrivningen, se Marginalen); `mastarcup` borttaget
+  tills Etapp 3. Nyckel MC i `BEHORIGHETER.md`.
+- **Balansen:** `admin/md-balans-cup.mjs` i `npm run balans:matchdagen`; robotklubbarna i karriärtabellen spelar nu
+  cupen också.
+- **Förhandsvisningen:** `?cup=ute` (utslagna i kvartsfinalen) och `?rekord=1` (ligamatchen står 6 – 0 i 88:e
+  minuten – spela klart så kommer rekordrutan); cupmatcherna spelas med i `?omg=N`.
+
+### Tester
+
+- `test/matchdagen-cup.test.js` (node, 25 tester, §15): schemat för 5/7/9/11 omgångar (jämnt, före sista
+  omgången), lottningen (±2, utanför ligan, samma vid omladdning, skrällar möjliga), ingen cupmatch före omgång 1,
+  vinst → nästa runda, finalen ger pokalen och pengarna (multiplikatorn, köns pengar), förlust → ute, straffar,
+  en hel säsong, **cupen flyttar aldrig ner ett lag** (också med kval och nya säsonger), annan säsongs cup och
+  trasig text; **alla rekord** (mm/ss/sm första gången tyst sedan annonserat, sviten med oavgjort och straffar,
+  annonserad en gång, säsongens mål/andel rätt/ligatitlar/obesegrad, ny säsong nollar räknarna men inte sviten),
+  rekorden ur `matchKlar`/`kvalKlar`/`cupKlar`, texten = reglernas uttryck ordagrant, pokalerna som rader.
+- `test/matchdagen-cup-vy.test.js` (node, 9): Match-fliken (cupmatchen först, texterna), den pågående cupmatchen
+  per runda (`md-lokal.js`), escape av allt ur `cup`/`rekord`/`pokaler`/`senaste` i elevens och lärarens vyer,
+  en hel säsong i appens ordning.
+- `test/matchdagen-balans.test.js`: cupens gränser (`CUP_MAL`) och säsongen med cupen.
+- `test/firestore-rules-matchdagen-cup.test.js` (emulator, i `npm run test:rules`, 8 tester): cupmatch och final,
+  hela säsongen med cupen och kvalet i EN skrivning, `cup`/`rekord`/`pokaler` i fel form (map, tal, HTML, 301
+  pokaler, för långa namn), äldre dokument med pokaler som objekt, `mastarcup` nekas, läraren rör inget av det.
+- Uppdaterade: de övriga `firestore-rules-matchdagen*.test.js` (pokalerna som rader), `matchdagen-liga.test.js`.
+
+### Skärmdumpar
+
+`01`–`05` i förhandsvisningen (`preview/preview-matchdagen.html`, 1366 × 900), `06`–`07` i 375 px.
+
+| Bild | Vad |
+| --- | --- |
+| [`01-tabell-silverpokalen.png`](qa-matchdagen-2c/01-tabell-silverpokalen.png) | Tabell (`?omg=2`): sextondelsfinalen vunnen, kvartsfinalen markerad, "Till cupmatchen" |
+| [`02-match-cup-vantar.png`](qa-matchdagen-2c/02-match-cup-vantar.png) | Match-fliken: "Silverpokalen · Kvartsfinal · Blåklintens IF från Division 5" – skrällen, lägret ledigt |
+| [`03-nytt-rekord.png`](qa-matchdagen-2c/03-nytt-rekord.png) | Efter 6 – 0 (`?rekord=1`): "Nytt rekord: 6 mål i en match!", största segern och snabbaste målet |
+| [`04-statistik-rekord.png`](qa-matchdagen-2c/04-statistik-rekord.png) | Statistik: matchlistan med "cup" och sektionen Rekord |
+| [`05-cup-vunnen.png`](qa-matchdagen-2c/05-cup-vunnen.png) | Säsongen slut (`?omg=5`): alla fyra rundor vunna, "Ni vann Silverpokalen!" |
+| [`06-mobil-cup-ute.png`](qa-matchdagen-2c/06-mobil-cup-ute.png) | 375 px, `?cup=ute`: "1–2 · utslagna" i kvartsfinalen – ingen sidledsscroll |
+| [`07-mobil-rekord.png`](qa-matchdagen-2c/07-mobil-rekord.png) | 375 px: Rekord (16 mål på säsongen, 68 % rätt), Pokalskåpet med Silverpokalen |
+
+### Balansen (`npm run balans:matchdagen`, Silverpokalen)
+
+400 säsonger per rad, motståndare inom ±2 divisioner, oavgjort → straffar. Skrällar = vunna möten mot ett lag
+från en högre division.
+
+| Division | Rätt | Laget | Ute i 1:a | Kvart | Semi | Final förlorad | **Vunnen** | Cupmatcher/säsong | Skrällar | Straffar | kr/säsong | Säsong utan → med cupen |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Division 6 | 70 % | 2★ | 29 % | 18 % | 15 % | 13 % | **25 %** | 2,6 | **64 %** | 24 % | 844 | 51 → 72 min |
+| Division 6 | 50 % | 2★ | 58 % | 28 % | 9 % | 5 % | 1 % | 1,6 | 19 % | 30 % | 355 | 48 → 61 min |
+| Division 6 | 30 % | 2★ | 85 % | 13 % | 3 % | 0 % | 0 % | 1,2 | 12 % | 23 % | 169 | 47 → 56 min |
+| Division 3 | 70 % | 4★ | 15 % | 16 % | 17 % | 17 % | 36 % | 3,1 | 69 % | 25 % | 1 874 | 74 → 100 min |
+| Superligan | 80 % | 4★ | 20 % | 20 % | 17 % | 17 % | 27 % | 2,8 | – | 26 % | 2 888 | 111 → 136 min |
+| Superligan | 80 % | 5★ | 12 % | 12 % | 12 % | 10 % | 54 % | 3,3 | – | 19 % | 3 659 | 112 → 140 min |
+
+Specen har inga tal för cupen; gränserna i `CUP_MAL` (70 % i Division 6 vinner 10–50 %, skrällar 30–90 %; 50 %
+rätt skrällar 5–60 %) fälls av `test/matchdagen-balans.test.js` – båda raderna är inom. Ligans, kvalets och
+ekonomins tabeller är oförändrade mot 2b (fasta frön). Karriären med truppen spelar nu cupen (prispengarna och
+cupens minuter): 80 % rätt når Superligan efter median 8 säsonger (15,3 h med cupen, 11,3 h utan), 70 % efter 12
+(21,6 h), 60 % i 44 % av fallen inom 30 säsonger.
+
+### Kvoten (2c, §13)
+
+Inga nya läsningar och inga lyssnare. En cupmatch är en match (en batch = 2 skrivningar: karriären + matchen);
+rekorden och pokalerna skrivs i samma skrivning. Eleven under en timme spelar fortfarande ~6 matcher (cupmatcherna
+tar ligamatchernas plats i timmen): **≈ 8 läsningar och ≈ 26 skrivningar** – som 2b (mål < 20 / < 50).
+`cup` + `rekord` är < 200 byte; pokalerna som rader ~70 byte styck.
+
+### Reglerna och 1000-uttrycksgränsen (alla skrivningar, mätta om)
+
+Samma rigg som i 2b (`.scratch/zz-mat2.test.js`: hur många extra `(d.div == d.div) &&` som ryms i
+`validMatchdagen` innan skrivningen nekas, karriärer byggda av de riktiga modulerna; mätt upp till 60).
+Före = 2b:s slutliga regler (0e53ce08), 2c = slutliga regler (summan med ett uttryck, cup/rekord/pokaler):
+
+| Skrivning | Före (2b) | 2c |
+| --- | --- | --- |
+| Ny klubb (`create`) | 8 | 10 |
+| En match | 40 | ≥ 60 |
+| Ett träningsläger | 16 | 35 |
+| Lägrets start (`"-p"`) | ≥ 50 | ≥ 60 |
+| Ett köp (grundpelaren till reserverna) | 22 | 26 |
+| Ett köp med fulla reserver | 18 | 22 |
+| Ett byte | ≥ 50 | ≥ 60 |
+| 4 matcher i en skrivning (kön) – med cupmatcher, rekord och pokaler i 2c | 18 | 35 |
+| Kvalet | 12 | 30 |
+| **Hela säsongen + cupen + kvalet i en skrivning** (ny klubb offline) | 2 | **18** |
+| En cupmatch | – | ≥ 60 |
+| Cupfinalen (pokalen + prispengarna) | – | ≥ 60 |
+| Läger + match i samma skrivning | nekas (−1) | nekas – därför väntar Match-fliken fortfarande på lägret |
+
+Utan omskrivningen av `mdSummaOk` hade cupen, rekorden och pokalerna sänkt den tunnaste skrivningen till 1
+(mätt). Med summan som ett uttryck har alla skrivningar mer marginal än före 2c.
+
+### Deploy
+
+**`firebase deploy --only firestore:rules` och webben i samma omgång – reglerna först, webben direkt efter.**
+
+- Gamla regler + ny webb: `cup` och `rekord` är text, de gamla reglerna väntade en map – varje match efter den
+  första cupmatchen nekas och blir liggande i den lokala kön.
+- Nya regler + gammal webb: den gamla webben skriver `pokaler` som objekt, som de nya reglerna nekar när listan
+  ändras (en ligavinst eller ett kval). Den matchen ligger kvar i kön tills sidan laddas om med den nya webben,
+  som gör om pokalerna till rader. Inget går förlorat.
+- Inga index, inga functions, ingen datamigrering (äldre dokument med pokaler som objekt godtas tills listan
+  ändras; då skriver appen om dem).
+
+### Val där dokumentet inte räckte till
+
+1. **Schemat** för 7/9/11 omgångar: ligan delas i fem jämna bitar (`round((i + 1) × n / 5)`) – finalen alltid
+   före sista ligaomgången, så cupen är klar när säsongen är det och säsongens rekord räknar med hela cupen.
+2. **En cupmatch som väntar spelas före nästa ligamatch** (Match-fliken visar den först) – inget val för eleven;
+   det håller tabellen och cupen i takt.
+3. **Lottningen:** fyra lag som inte är med i ligan, divisionerna slumpade inom ±2 och sorterade (svagast först)
+   så finalen är oftast tuffast. I Division 6 blir det oftare lag från Division 6 (inget under).
+4. **Prispengarna 200 kr × multiplikatorn** – specens 400 halverat som alla inkomster i 2b (§8.3/§12). Ingen
+   pengar per runda utöver matchens vanliga.
+5. **Träningslägret förbrukas inte av en cupmatch** – lägret hör till ligaomgången (2b); en cupmatch mellan
+   omgångarna låter eleven ha kvar sitt läger.
+6. **Rekorden:** åtta rader (specens lista + obesegrad säsong). Första gången ett rekord sätts annonseras det
+   inte – bara när det slås. Sviten (liga, cup och kval; en straffseger är ingen förlust) annonseras en gång, när
+   den passerar rekordet från innan sviten började, från 3 matcher. Säsongens rekord (mål, andel rätt) räknas vid
+   sista ligaomgången med ligan + cupen; kvalet efteråt räknas inte. Obesegrad = ingen förlust i ligan.
+7. **Rekordens text och pokalerna som rader** – samma teknik som marknaden i 2b: ett reguljärt uttryck i
+   reglerna i stället för en kontroll per fält (1000-gränsen).
+8. **Att cupen och rekorden stämmer med matcherna prövas inte i reglerna** – en elev som skriver förbi appen kan
+   ge sig själv en vunnen cup eller rekord. Bara det egna spelet (inga pluggmynt); kassan har kvar sitt tak per
+   match.
+9. **`mastarcup` togs bort ur de tillåtna fälten** – det var tillåtet som en obegränsad map; Etapp 3 lägger
+   tillbaka det med en kontroll.
+
+### Öppna frågor till Elias
+
+1. **Säsongen blir längre med cupen:** Division 6 tar ~72 min med fyra cupmatcher (51 utan; §12 säger 45–60).
+   Snittet är 2,6 cupmatcher (61 min med 50 % rätt). Vill du ha färre rundor i de lägsta divisionerna?
+2. **Prispengarna** är halverade (200 × mult.) som resten av ekonomin. OK?
+3. **Rekordannonsen** är tyst första gången ett rekord sätts. Vill du ha en annons också då (blir många i början)?
+
+### Kända gränser
+
+- Att cupen och rekorden stämmer med matcherna prövas inte (se val 8).
+- Storleken: strängarna i ligans lag, `senaste` och `sasonger` prövas fortfarande inte (F8, 2b) – pokalerna gör det nu.
+- F9 (2b): ett köp + en inbytt köpt reserv i samma skrivning räknas som släppt (+385 kr, högst +400 per köp).

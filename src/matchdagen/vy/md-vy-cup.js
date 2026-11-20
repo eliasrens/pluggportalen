@@ -16,11 +16,15 @@ const tal = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 const resultat = (m) => `${tal(m.oss)}–${tal(m.dem)}${Array.isArray(m.straffar) ? ` (str. ${tal(m.straffar[0])}–${tal(m.straffar[1])})` : ""}`;
 const rundaNamn = (i) => CUP.rundor[i].toLowerCase();
 
+/** Ligan är slut utan att cupen blev klar (ett dokument från före 2c) – då väntar ingen cupmatch. */
+const ligaSlut = (K) => Number(K.liga?.omg) >= (Number(K.liga?.schema?.length) || 0);
+
 /** Cupens läge i en mening. */
 export function cupStatus(K) {
   const L = cupLage(K);
   if (L.vann) return `Ni vann ${CUP.namn}!`;
   if (L.ute) return `Utslagna i ${rundaNamn(L.spelade - 1)}en – ny chans nästa säsong.`;
+  if (ligaSlut(K)) return `${CUP.namn} spelas igen nästa säsong.`;
   const efter = cupSchema(K.liga?.schema?.length)[L.spelade];
   return Number(K.liga?.omg) >= efter
     ? `${CUP.rundor[L.spelade]}en väntar – den spelas före nästa ligamatch.`
@@ -33,7 +37,7 @@ export function cupHtml(K, uid = "") {
   const sasong = tal(K.sasong) || 1;
   const spelade = (Array.isArray(K.senaste) ? K.senaste : []).filter((m) => m?.typ === "cup" && tal(m.sasong) === sasong);
   const efter = cupSchema(K.liga?.schema?.length);
-  const kvar = !L.ute && !L.vann;
+  const kvar = !L.ute && !L.vann && !ligaSlut(K);
   const lott = kvar ? cupLottning(K, uid) : [];
   const rader = CUP.rundor.map((namn, i) => {
     let klass = "";

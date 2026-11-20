@@ -13,6 +13,8 @@ elever**, aldrig för en hel klass. Det här dokumentet växer med etapperna:
 | 1b (#868) | Frågekällorna (`md-fragor.js`), frågekortet (`md-svar.js`), den rena matchmotorn och ligan (`src/matchdagen/delat/`), balanssimuleringen | klar |
 | 1c (#869) | 3D-planen med 2D-reserv (§12), matchvyn, säsongen i Division 6 (§10), sparning, kvot (§11) och statistik för elev och lärare (§13) | klar |
 | 2a (#870) | Alla divisioner, kvalet och straffarna, finten från Division 3 (§14), balansen i alla divisioner (§7.1) | klar |
+| 2b (#871) | Truppen, reserverna, marknaden och träningslägret, ekonomin (§15) | klar |
+| 2c (#872) | Silverpokalen, rekorden och pokalerna som rader (§16) | klar |
 
 ## 1. Moduler per elev (Etapp 1a)
 
@@ -293,10 +295,13 @@ allt i `src/matchdagen/plan/` laddas först när matchen startar. Stilarna: `src
 | `src/styles/49-matchdagen-match.css` | elevens app och matchvyn (kvällsarenan) |
 | `src/matchdagen/delat/md-straffar.js`, `md-kval.js` | ren: straffläggningen och kvalet (§14, #870) |
 | `src/matchdagen/vy/md-straff-spel.js` | straffläggningen i matchvyn (#870) |
-| `preview/preview-matchdagen.html` | förhandsvisning 1c med stubbad data (`PORT=8869 node server.mjs`; `?vy=match\|tabell\|trupp\|stat`, `?omg=0–5`, `?klubb=ny`, `?ny=1`, `?2d=1`, `?lugnt=1`, `?fps=1`, `?auto=1`, `?svar=skriv`, `?klocka=30`, `?kallor=inga`; 2a: `?div=0–7`, `?kval=1`, `?straffar=1`; 2b: `?kassa=N`, `?trupp=visa`) |
+| `preview/preview-matchdagen.html` | förhandsvisning 1c med stubbad data (`PORT=8869 node server.mjs`; `?vy=match\|tabell\|trupp\|stat`, `?omg=0–5`, `?klubb=ny`, `?ny=1`, `?2d=1`, `?lugnt=1`, `?fps=1`, `?auto=1`, `?svar=skriv`, `?klocka=30`, `?kallor=inga`; 2a: `?div=0–7`, `?kval=1`, `?straffar=1`; 2b: `?kassa=N`, `?trupp=visa`; 2c: `?cup=ute` (utslagna i kvartsfinalen), `?rekord=1` (ligamatchen står 6 – 0 i 88:e minuten)) |
 | `src/matchdagen/delat/md-trupp.js` | ren: truppen, reserverna, marknaden och träningslägret (§15, #871) |
 | `src/matchdagen/vy/md-vy-marknad.js`, `md-vy-lager.js`, `md-strom.js` | Truppens kort, köpen och bytena; träningslägret; frågeströmmen (delad av matchen och lägret) (#871) |
 | `admin/md-balans-trupp.mjs` | balansen för ekonomin och karriären med truppen (§15.2) |
+| `src/matchdagen/delat/md-cup.js`, `md-rekord.js` | ren: Silverpokalen och rekorden (§16, #872) |
+| `src/matchdagen/vy/md-vy-cup.js`, `md-efter-match.js` | cupens rundor under tabellen och rekorden i Statistik; rutan efter matchen med "Nytt rekord: …" (#872) |
+| `admin/md-balans-cup.mjs` | balansen för Silverpokalen (§16.3) |
 | `preview/preview-matchdagen-fragor.html` | förhandsvisning 1b: frågekortet + motorn som textmatch (`PORT=8868 node server.mjs`; `?svar=skriv`, `?klocka=30`, `?kallor=tabell\|omrade\|rakna\|klocka\|inga`) |
 
 ## 9. Deploy
@@ -320,6 +325,16 @@ Etapp 2b: **`firebase deploy --only firestore:rules` före webben** – `reserve
 karriären och kontrollen av truppen, reserverna och kassan mot det sparade dokumentet (§15.4). De gamla reglerna
 nekar `lager` (okänt fält) – med webben först kan inget träningsläger sparas. De nya reglerna godtar äldre
 dokument (Etapp 1–2a) utan `reserver`/`marknad`/`lager`. Inga index, inga functions.
+
+Etapp 2c: **`firebase deploy --only firestore:rules` och webben i samma omgång, reglerna först.** Gamla regler +
+ny webb: `cup` och `rekord` är text, som de gamla reglerna nekar (de väntade en map) – varje match efter den
+första cupmatchen eller det första rekordet blir liggande i den lokala kön. Nya regler + gammal webb: den gamla
+webben skriver `pokaler` som objekt, som de nya reglerna nekar när listan ändras (en ligavinst eller ett kval) –
+den matchen ligger kvar i kön tills sidan laddas om med den nya webben (som gör om pokalerna till rader).
+Inget går förlorat, men glappet ska vara kort. Inga index, inga functions.
+
+**Hela Matchdagen är ännu inte i drift** (Etapp 1–2 deployas tillsammans): `firebase deploy --only firestore:rules`,
+direkt därefter webben. Inga index, inga functions, ingen datamigrering.
 
 ## 10. Säsongen och sparningen (Etapp 1c)
 
@@ -370,9 +385,9 @@ Fälten står i [`DATAMODELL.md`](DATAMODELL.md#matchdagenuid--elevens-karriär-
   `ratt ≤ fragor`, `mal` ≤ 80, `stat` ≤ 20 nycklar, `perKalla` ≤ 70. Ingen ändring; radering bara admin.
 - **Storleken:** reglerna kan inte mäta byte. Taken på listorna och mapparna (`senaste` 20, `dagar` 70,
   `sasonger` 200, `pokaler` 300, `perKalla` 150, ligan 12 lag) håller ett dokument skrivet av appen under
-  ~61 kB med allt fyllt (en ny klubb ~2 kB), under specens 200 kB. **Reglerna håller INTE 200 kB:** de begränsar
-  antalet, inte strängarnas längd, i ligans lag (`liga.lag[].namn`), `senaste`, `sasonger`, `pokaler` och
-  källnamnen. En elev som skriver förbi appen kan blåsa upp sitt eget dokument till Firestores tak 1 MiB (Testern
+  ~61 kB med allt fyllt (en ny klubb ~2 kB; `cup` + `rekord` < 200 byte, 2c), under specens 200 kB. **Reglerna
+  håller INTE 200 kB:** de begränsar antalet, inte strängarnas längd, i ligans lag (`liga.lag[].namn`), `senaste`,
+  `sasonger` och källnamnen (`pokaler` är sedan 2c rader med namn ≤ 40 tecken, högst ~22 kB). En elev som skriver förbi appen kan blåsa upp sitt eget dokument till Firestores tak 1 MiB (Testern
   #871: ~900 kB gick igenom) – och lärarens Hur går det? läser det. Det som prövas strängt är klubben, truppen,
   reserverna, marknaden (#871), summan och kvalet.
 
@@ -648,14 +663,14 @@ rapporten. Robotklubbens beteende (`KLUBB` i `md-balans-trupp.mjs`) är ett anta
   - **Marknaden:** när summan ändras (t.ex. bara `summa.fragor` +1) kan eleven skriva en egen marknad i rätt form –
     och sedan köpa ur den till fullt pris, högst divisionens stjärntak. Ingen gratis spelare, bara valet av vem.
   - **Lägret:** att det är nyare än det sparade (växlar man lägret fram och tillbaka kan man träna mer).
-  - **Storleken:** strängarna i ligans lag, `senaste`, `sasonger` och `pokaler` (§10) – upp till 1 MiB.
+  - **Storleken:** strängarna i ligans lag, `senaste` och `sasonger` (§10) – upp till 1 MiB (`pokaler` prövas sedan 2c, §16.4).
   - **Köp + inbytt reserv i samma skrivning** (Testern F9): `mdSlapptPris` räknar den som finns i `g.reserver` men
     inte i `d.reserver` som släppt – också en köpt reserv som i samma skrivning byts in på planen. Ett köp med fulla
     reserver ger då +385 kr i stället för −1 210 (högst +400 per köp, `mdKassaOk`). Rättas senare genom att bara
     räkna spelare som lämnar klubben (inte finns i `d.trupp` + `d.reserver`), som `mdUnikaOk`.
   - **Positionerna** (en elev kan bara förstöra sin egen formation). Vyerna `esc()`:ar och `Number()`:ar allt ur
     dokumentet.
-- **Marginalen** mot 1000-gränsen (extra `(d.div == d.div) &&` som ryms, efter rättningsrunda 2): ny klubb 8,
+- **Marginalen** mot 1000-gränsen (extra `(d.div == d.div) &&` som ryms, efter rättningsrunda 2 i 2b – efter 2c se §16.4): ny klubb 8,
   match 40, läger 16, lägrets start ≥ 50, köp 22, köp med fulla reserver 18, byte ≥ 50, 4 matcher i en skrivning 18,
   kvalet 12, hela säsongen + kvalet i en skrivning (en ny klubb offline en hel säsong) 2 (lika som före runda 1); läger + match i en skrivning
   nekas (därför spärren). Mätningen: rapporten (Etapp 2b).
@@ -678,3 +693,94 @@ läsningar (som 1c) och ≈ 12 + 10 + 3 + 1 (namnbyte) = **26 skrivningar** (må
 ### 15.6 Deploy
 
 Se §9: **`firestore:rules` före webben**. Inga index, inga functions.
+
+## 16. Silverpokalen och rekorden (Etapp 2c, #872, spec §9)
+
+### 16.1 Silverpokalen (`md-cup.js`, ren)
+
+- **En utslagscup per säsong** i fyra rundor (`CUP.rundor`: sextondelsfinal, kvartsfinal, semifinal, final),
+  spelad **mellan ligaomgångarna**: `cupSchema(antal)` delar ligan i fem jämna bitar, `round((i + 1) × n / 5)`,
+  aldrig efter sista omgången – 5 omgångar → efter 1, 2, 3, 4 · 7 → 1, 3, 4, 6 · 9 → 2, 4, 5, 7 · 11 → 2, 4, 7, 9.
+  En cupmatch som väntar spelas **före** nästa ligamatch (`cupMatch(K, uid)`; Match-fliken, `nastaSpel` i
+  `md-vy-match.js`). Ligan är aldrig blockerad längre än en match.
+- **Lottningen** (`cupLottning(K, uid)`, fröet `uid|säsong|div|cup` – samma motståndare efter en omladdning):
+  fyra lag ur namnlistan som inte är med i ligan, var och en från en division inom ±2 (`CUP.spridning`, aldrig
+  under Division 6 eller över Superligan), sorterade svagast först – finalen är oftast tuffast. Styrkan är
+  divisionens (`styrkaFor`), så ett lag från en högre division är starkare men går att slå (skrällar, §16.3).
+- **Matchen** är en vanlig match med `avgor: true` (oavgjort → straffar, som kvalet). Vinst → nästa runda;
+  förlust → ute för säsongen; vunnen final → pokalen `{ typ: "cup", namn: "Silverpokalen" }` och
+  `CUP.seger × (1 + div × 0,25)` kr (`cupKlar`). Cupen ändrar **aldrig** `div` (testat).
+- **Sparningen:** `K.cup` är EN rad text `"säsong-spelade"` (`"3-2"` = två rundor vunna säsong 3), `"-u"` efter
+  när laget åkte ut i den rundan (`"3-2-u"`), `"säsong-4"` = vunnen. Ett annat säsongsnummer (eller inget fält)
+  = ingen runda spelad. Matchdokumentet har `typ: "cup"` och `omg` = rundan 1–4; `senaste` får `typ: "cup"`.
+  Cupmatchen bokförs som en match (`bokforMatch`: kassan, summan, dagarna, rekorden) och ger en ny marknad.
+  Träningslägret förbrukas **inte** av en cupmatch (lägret gäller ligaomgången).
+- **Påbörjad cupmatch:** `md-lokal.js` sparar `runda` med den pågående matchen, så en omladdning fortsätter
+  rätt runda; kön (`konsPengar`) räknar prispengarna efter en vunnen final.
+
+### 16.2 Rekorden (`md-rekord.js`, ren)
+
+Specens sju sorter + obesegrad säsong som egen rad (åtta): flest mål i en match (`mm`), flest mål på en säsong
+(`ms`), största seger (`ss`), längsta svit utan förlust (`sv`), flest ligatitlar i rad (`lt`), obesegrade
+säsonger (`os`), bästa andel rätt på en säsong med minst 3 matcher (`ar`) och snabbaste mål (`sm`).
+
+- **Efter varje match** (liga, cup och kval – `rekordEfterMatch`): `mm`, `ss`, `sm` och sviten. En straffseger
+  är ingen förlust. **Efter sista ligaomgången** (`rekordEfterSasong`): `ms` och `ar` (ligan + cupen den
+  säsongen; kvalet efteråt räknas inte), `lt` (etta i ligan) och `os` (ingen förlust i ligan).
+- **Annonsen** "Nytt rekord: 5 mål i en match!" visas i rutan efter matchen (`md-efter-match.js`), en rad per
+  rekord. Ett rekord som sätts **första gången** annonseras inte (då vore varje tidig match ett rekord) – bara när
+  ett gammalt slås. Sviten annonseras EN gång: när den går förbi rekordet från innan sviten började (minst 3).
+- **Sparningen:** `K.rekord` är EN rad text i formen `REKORD_MONSTER` – `"mm5.3|ms30.2|ss6-0.3|sv12.4|lt|os|ar85.2|sm2.1|nu…"`
+  (värde.säsong, tomt = inget rekord än) plus `nu` = den här säsongens löpande mål, frågor, rätt, matcher,
+  pågående svit, ligatitlar i rad och svitrekordet före sviten. `lasRekord` är tålig: en trasig del hoppas över.
+- **Statistik** listar alla åtta (`md-vy-cup.js rekordLista`, "–" för ett rekord som inte finns än, "säsong N").
+  Lärarens elevpanel visar cupens läge och de satta rekorden (bara tal och fasta texter).
+
+### 16.3 Balansen (§12)
+
+Specen sätter inga tal för cupen, bara att skrällar ska vara möjliga. `admin/md-balans-cup.mjs` (i
+`npm run balans:matchdagen`, 400 säsonger per rad) och gränserna `CUP_MAL` (testade i
+`test/matchdagen-balans.test.js`): Division 6, startlaget, 70 % rätt vinner cupen i 10–50 % av säsongerna och
+slår ett lag från en högre division i 30–90 % av mötena; med 50 % rätt 5–60 %.
+
+| Division | Rätt | Laget | Vunnen | Ute i första | Skrällar | Straffar | Cupmatcher/säsong | Säsong utan → med cupen |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Division 6 | 70 % | 2★ | **25 %** | 29 % | **64 %** | 24 % | 2,6 | 51 → 72 min |
+| Division 6 | 50 % | 2★ | 1 % | 58 % | 19 % | 30 % | 1,6 | 48 → 61 min |
+| Division 6 | 30 % | 2★ | 0 % | 85 % | 12 % | 23 % | 1,2 | 47 → 56 min |
+| Division 3 | 70 % | 4★ | 36 % | 15 % | 69 % | 25 % | 3,1 | 74 → 100 min |
+| Superligan | 80 % | 4★ | 27 % | 20 % | – | 26 % | 2,8 | 111 → 136 min |
+| Superligan | 80 % | 5★ | 54 % | 12 % | – | 19 % | 3,3 | 112 → 140 min |
+
+Prispengarna är **200 kr × multiplikatorn** (specens 400 halverat, som alla inkomster i 2b) – en vunnen cup i
+Division 6 är ~0,8 matchers inkomst. Säsongen i Division 6 blir ~20 min längre med cupen (72 min; §12 säger
+45–60 min för en säsong) – en öppen fråga i rapporten.
+
+### 16.4 Reglerna
+
+- `cup`: `'[0-9]{1,5}-[1-4](-u)?'`, prövas bara när fältet ändras. `rekord`: `REKORD_MONSTER` (ETT reguljärt
+  uttryck, samma text i `md-rekord.js` och `firestore.rules`, testat). Båda är text, så ett objekt eller en lista
+  nekas.
+- `pokaler` sparas sedan 2c som **rader** `"typ|namn|säsong|ÅÅÅÅ-MM-DD"` (`md-sasong.js pokalRad`,
+  `pokalerTillDok` i varje skrivning, `pokalerFranDok` vid läsningen – i appen är de objekt) och prövas med ETT
+  uttryck över `join('/')` när listan ändras: typ `liga`/`kval`/`cup`, namn 1–40 tecken utan `| / < > & "`,
+  högst 300. Det stänger storleksgapet (F8, #871) för pokalerna.
+- `mastarcup` är borttaget ur de tillåtna fälten (Etapp 3 lägger till det med en riktig kontroll).
+- **`mdSummaOk` med ett uttryck:** summans åtta heltal prövas som `[string(x + 0), …].join('|').matches(…)` –
+  `+ 0` ger ett fel för text, ett flyttal blir `"5.0"` och ett negativt `"-1"`, som uttrycket nekar. Taken är
+  antalet siffror (matcher/v/o/f 7, gjorda/insläppta 8, frågor/rätt 9). Det gav plats åt cupen, rekorden och
+  pokalerna i den tunnaste skrivningen (hela säsongen + kvalet i en skrivning).
+- **Inte prövat** (bara elevens eget spel, inga pluggmynt): att cupens rundor eller rekorden stämmer med
+  matcherna – en elev som skriver förbi appen kan ge sig själv en vunnen cup (pokalen + 200 kr × mult., inom
+  kassans tak per match) eller vilka rekord som helst i rätt form.
+- **Marginalen** mot 1000-gränsen (extra `(d.div == d.div) &&` som ryms, mätt på de slutliga reglerna, upp till 60):
+  ny klubb 10, match ≥ 60, läger 35, lägrets start ≥ 60, köp 26, köp med fulla reserver 22, byte ≥ 60, 4 matcher i
+  en skrivning 35, kvalet 30, hela säsongen + cupen + kvalet i en skrivning 18 (var 2 före 2c), cupmatch ≥ 60,
+  cupfinalen ≥ 60; läger + match i en skrivning nekas fortfarande (spärren i §15.3). Mätningen: rapporten (Etapp 2c).
+
+### 16.5 Kvoten (§13)
+
+Inga nya läsningar och inga lyssnare. En cupmatch är en match (en batch = 2 skrivningar); 1–4 cupmatcher per
+säsong, i snitt 2,6 i Division 6 med 70 % rätt. Rekorden och pokalerna skrivs med matchen. Eleven under en timme
+(~6 matcher varav ~2 cupmatcher, 5 läger, 3 köp/byten): ≈ 8 läsningar och ≈ 26 skrivningar – oförändrat mot 2b,
+eftersom en cupmatch tar en ligamatchs plats i timmen.

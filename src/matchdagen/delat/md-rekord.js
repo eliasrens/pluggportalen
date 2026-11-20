@@ -112,7 +112,8 @@ export function rekordEfterMatch(K, res) {
     n.svBas = R.sv?.v || 0;
   } else n.svit++;
   if (n.svit > (R.sv?.v || 0)) R.sv = { v: n.svit, s };
-  if (n.svBas > 0 && n.svit === n.svBas + 1 && n.svit >= 3) nya.push(`Nytt rekord: ${n.svit} matcher i rad utan förlust!`);
+  // En gång per svit: när den slår det gamla rekordet, men aldrig under 3 (gammalt rekord 1 → vid 3).
+  if (n.svBas > 0 && n.svit === Math.max(n.svBas + 1, 3)) nya.push(`Nytt rekord: ${n.svit} matcher i rad utan förlust!`);
   K.rekord = rekordText(R);
   return nya;
 }

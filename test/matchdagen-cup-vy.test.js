@@ -87,6 +87,12 @@ describe("vyerna skriver bara tal och esc() ur cup, rekord, pokaler och senaste"
     assert.match(cupStatus(K1), /Sextondelsfinalen väntar/);
     assert.match(cupStatus({ ...K1, cup: "1-2-u" }), /Utslagna i kvartsfinalen/);
     assert.match(cupStatus({ ...K1, cup: "1-4" }), /Ni vann Silverpokalen/);
+    // Ligan slut utan cup (ett dokument från före 2c): ingen cupmatch väntar – och vyerna säger inte det heller.
+    const slut = { ...K1, liga: { ...K1.liga, omg: K1.liga.schema.length } };
+    assert.equal(cupMatch(slut, UID), null);
+    assert.match(cupStatus(slut), /spelas igen nästa säsong/);
+    assert.doesNotMatch(cupHtml(slut, UID), /väntar|efter omgång/);
+    assert.equal(larare.cupRad(slut), "Silverpokalen: ingen cup den här säsongen");
   });
   it("rekorden i Statistik och i rutan efter matchen: bara tal och fasta texter", () => {
     const html = rekordLista(`mm${XSS}|ms5.1|ss3-0.${XSS}|sv|lt|os|ar|sm|nu1.0.0.0.0.0.0.0`);
