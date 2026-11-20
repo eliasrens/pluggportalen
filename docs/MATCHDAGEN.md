@@ -620,7 +620,7 @@ rapporten. Robotklubbens beteende (`KLUBB` i `md-balans-trupp.mjs`) är ett anta
   är nyare än det sparade (växlar man lägret fram och tillbaka kan man träna mer); att kassan och matcherna
   verkligen spelats (varje skrivning för sig får +5 000 kr per ökad match). Vyerna `esc()`:ar och `Number()`:ar
   allt ur dokumentet.
-- **Marginalen** mot 1000-gränsen: se rapporten (Etapp 2b).
+- **Marginalen** mot 1000-gränsen (extra `(d.div == d.div) &&` som ryms): ny klubb 30, match 40, läger 18, köp 35, köp med fulla reserver 30, säsong + kval i en skrivning 15; läger + match i en skrivning nekas (därför spärren). Mätningen: rapporten (Etapp 2b).
 - **En kö som ändrats någon annanstans** (en annan dator, eller ett köp vars svar aldrig kom men som gick fram):
   reglerna nekar spelare som inte finns i det sparade dokumentet. `sparaKon` läser då serverns karriär EN gång och
   lägger kön ovanpå dess trupp, reserver och läger (`ovanpaServern`: matcherna och tabellen lokala, kassan

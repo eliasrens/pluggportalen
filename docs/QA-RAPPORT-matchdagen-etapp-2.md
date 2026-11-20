@@ -365,7 +365,28 @@ trupp läser karriären en gång (sällsynt).
 
 ### Reglerna och 1000-uttrycksgränsen
 
-MARGINS_TODO
+Allt i `validMatchdagen` räknas mot Firestores gräns på 1000 uttryck per begäran, och en ny klubb låg redan nära
+i 2a. Därför prövas spelarnas form bara där de kommer in utifrån (en ny klubb, ett köp) och vid en uppdatering
+varifrån varje startspelare kommer, jämfört med det sparade dokumentet (`MATCHDAGEN.md` §15.4). Två sparade
+uttryck: inga `hasAll` i `mdKlubbOk`/`mdSummaOk`/`mdKvalOk` (en saknad nyckel ger ändå ett utvärderingsfel), och
+en ny klubb jämför summan med en nollad map (`mdTomSumma`) i stället för hela `mdSummaOk`.
+
+**Marginalen** (mätt i emulatorn: hur många extra `(d.div == d.div) &&` som ryms i `validMatchdagen` innan
+skrivningen nekas, med karriärer byggda av de riktiga modulerna):
+
+| Skrivning | Marginal |
+| --- | --- |
+| Ny klubb (`create`) | 30 |
+| En match | 40 |
+| Ett träningsläger | 18 |
+| Ett köp (grundpelaren till reserverna) | 35 |
+| Ett köp med fulla reserver (en köpt släpps) | 30 |
+| Hela säsongen (5 matcher) i en skrivning (kön) | 18 |
+| Hela säsongen + kvalet i en skrivning | 15 |
+| Läger + match i samma skrivning | **nekas** – därför väntar Match-fliken på lägret |
+
+Varje ny regel för karriären bör mätas på samma sätt (riggen: en kopia av reglerna med N extra uttryck,
+`initializeTestEnvironment` per N).
 
 ### Deploy
 
