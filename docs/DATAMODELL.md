@@ -900,7 +900,7 @@ matchen), när klubben skapas eller döps om och (#871) efter varje köp, byte o
 | `kassa` | number | Klubbkassan – spelets egen valuta, inga pluggmynt. Växer med matcherna, minskar med köpen (#871) |
 | `trupp` | array, exakt 7 | Startelvan i fast ordning (MV, FÖR, FÖR, MIT, MIT, ANF, ANF): `{ id, namn, pos: "MV"\|"FÖR"\|"MIT"\|"ANF", nr, st: 1–5, xp: 0–99, grundpelare?, kapten? }` – namnen är färdiga. En köpt spelare (#871) har id `k…` och ingen `grundpelare`/`kapten` |
 | `reserver` | array ≤ 5 | #871: ersatta grundpelare (och köpta som byts ut) – samma form som `trupp`; kan bytas in igen |
-| `marknad` | array ≤ 6 | #871: spelarna till salu `{ id, namn, pos, nr, st: 2–5, xp: 0 }`, nya efter varje match (tom i en ny klubb) |
+| `marknad` | array ≤ 6 | #871: spelarna till salu som rader `"id\|namn\|pos\|nr\|st"` (st 2–5, otränade; appen gör om dem till objekt, `md-trupp.js marknadFranDok`), nya efter varje match (tom i en ny klubb) |
 | `lager` | string | #871: det senast använda träningslägret, `"säsong-omgång"` eller `"säsong-k"` (före kvalet); med `"-p"` efter (`"1-3-p"`) är lägret påbörjat men inte klart (docs/MATCHDAGEN.md §15.1). Saknas tills första lägret |
 | `liga` | map | `lag: [{ id, namn?, farg?, styrka? }]` (vårt lag är `{ id: "oss" }`, namnet ur `klubb`), `schema: ["a:b\|c:d\|e:f", …]` (en sträng per omgång – Firestore tillåter inga listor i listor), `tabell: { [id]: { s, v, o, f, gm, im, p } }`, `omg` (spelade omgångar) |
 | `kval` | map \| null | #870: ligavinnaren under Superligan – `{ div, sasong, mot: { namn, farg, styrka }, spelad, vann?, oss?, dem?, straffar?: [vi, de] }`. `null` när ingen kvalmatch väntar eller har spelats (ny säsong) |

@@ -396,18 +396,25 @@ uttryck: inga `hasAll` i `mdKlubbOk`/`mdSummaOk`/`mdKvalOk` (en saknad nyckel ge
 en ny klubb jämför summan med en nollad map (`mdTomSumma`) i stället för hela `mdSummaOk`.
 
 **Marginalen** (mätt i emulatorn: hur många extra `(d.div == d.div) &&` som ryms i `validMatchdagen` innan
-skrivningen nekas, med karriärer byggda av de riktiga modulerna):
+skrivningen nekas, med karriärer byggda av de riktiga modulerna; riggen `.scratch/zz-mat.test.js`). Före = f84e8500,
+efter = rättningsrunda 1 (marknaden som rader, F1–F5):
 
-| Skrivning | Marginal |
-| --- | --- |
-| Ny klubb (`create`) | 30 |
-| En match | 40 |
-| Ett träningsläger | 18 |
-| Ett köp (grundpelaren till reserverna) | 35 |
-| Ett köp med fulla reserver (en köpt släpps) | 30 |
-| Hela säsongen (5 matcher) i en skrivning (kön) | 18 |
-| Hela säsongen + kvalet i en skrivning | 15 |
-| Läger + match i samma skrivning | **nekas** – därför väntar Match-fliken på lägret |
+| Skrivning | Före | Efter |
+| --- | --- | --- |
+| Ny klubb (`create`) – nu med ett reguljärt uttryck över alla sju spelarna (F2) | 30 | 8 |
+| En match (marknaden prövas nu med ett uttryck) | 40 | 40 |
+| Ett träningsläger | 18 | 16 |
+| Lägrets start (`"-p"`, bara `lager`) | – | ≥ 50 |
+| Ett köp (grundpelaren till reserverna) | 35 | 28 |
+| Ett köp med fulla reserver (en köpt släpps) | 30 | 26 |
+| Ett byte | – | ≥ 50 |
+| 4 matcher i en skrivning (kön) | 18 | 18 |
+| Kvalet | 15 | 12 |
+| Hela säsongen + kvalet i en skrivning (ny klubb offline en hel säsong) | 2 | 2 |
+| Läger + match i samma skrivning | **nekas** | **nekas** – därför väntar Match-fliken på lägret |
+
+Den tunnaste är en ny klubb som spelar en hel säsong och kvalet offline och sparar allt i en skrivning (2, samma
+som före runda 1). En ny regel för karriären som rör en matchsparning bör mätas med den.
 
 Varje ny regel för karriären bör mätas på samma sätt (riggen: en kopia av reglerna med N extra uttryck,
 `initializeTestEnvironment` per N).
@@ -495,3 +502,46 @@ reglerna (kön tom), kassan 2 188 kr, ett nytt läger öppet och en ny marknad.
   mer – att lägret är nyare prövas inte (för många uttryck). Bara det egna spelet; står i reglerna och §15.4.
 - Inget i XSS (allt ur dokumentet `esc()`/tal i vyerna), avbrottet vid flikbyte, de vanliga skrivningarna mot reglerna
   eller äldre dokument.
+
+### Rättningsrunda 1 (Testern på f84e8500) – F1–F5 i reglerna
+
+Alla fem är skrivningar förbi appen. Rättat i `firestore.rules`, varje fall med ett regeltest i
+`test/firestore-rules-matchdagen-trupp.test.js` (sist i filen), och Testerns diagnostik
+(`firestore-rules-matchdagen-trupp-tester-871.test.js`) skriver nu "NEKAS" för alla fem.
+
+- **F1 (hög), marknaden prövades inte alls** (st 9, HTML, 6 × 150 kB gick igenom). Marknaden sparas nu som rader
+  `"id|namn|pos|nr|st"` (`md-trupp.js saluRad`; appen gör om dem vid skrivning och läsning i `md-data.js`) och
+  prövas i varje matchsparning med ETT reguljärt uttryck över hela listan (`join`): högst 6 rader, id `k` + 1–6
+  tecken, namn 1–40 tecken utan `| / < > & "`, en känd position, nr 0–99, 1–5★. Allt annat – ett objekt, en text
+  som inte passar, 7 rader – nekas. Utan match kan marknaden bara krympa med ett köp. Dokumentet hålls därmed långt
+  under 200 kB (marknaden ≤ ~400 byte).
+- **F2 (hög), en ny klubb kunde bära ett extra fält på ~130 kB per spelare.** `create` prövar nu exakt de åtta fälten
+  per grundpelare (`size() == 8`, varje fält läses), `g1`–`g7` i ordning, namn 1–40 utan HTML, en känd position, `nr`
+  ≤ 3 siffror, `st` 2, `xp` 0 och `grundpelare`/`kapten` som sanningsvärden – med ett reguljärt uttryck över alla sju
+  (`"+ 0"` och `"!"` ger ett fel för text). Ett köp tar exakt raden ur marknaden och bara dess sex fält. Efter det
+  kommer varje spelare oförändrad ur det sparade dokumentet eller tränad (bara `st`/`xp`), så formen håller (induktion).
+- **F3 (medel), en grundpelare kunde strykas, och en spelare klonas via reserverna.** Vid ett byte eller köp
+  (`mdUnikaOk`): inga dubbletter i truppen + reserverna, och högst EN spelare lämnar klubben – aldrig en grundpelare.
+  En reserv kommer in på planen bara när reserverna ändras, och ett läger kan inte ändra reserverna (då kunde den
+  otränade kopian hamna där).
+- **F4 (medel), samma marknadsspelare köpt till två platser, betald en gång.** Dubbletten nekas (F3), och ett köp
+  kräver att raden är borta ur marknaden, att marknaden är den sparade minus exakt EN rad och att summan inte ändras
+  i samma skrivning – två köp i en skrivning går inte.
+- **F5 (medel), kassan +400 per skrivning utan match.** Utan en ökad `summa.matcher` får kassan bara växa när
+  reserverna ändras (köpet där en släppt köpt reserv ger mer än köpet kostar, högst 1 600 − priset; `mdKopOk` prövar
+  beloppet).
+
+**Gränser som återstår** (bara elevens eget spel, inga pluggmynt – står också i `MATCHDAGEN.md` §15.4):
+
+- **Påhittade matcher:** att en match spelats prövas inte. `summa.matcher` +1 ger upp till 5 000 kr och en ny marknad
+  (högst 500 matcher per skrivning, för kön).
+- **En egen marknad:** när summan ändras (även bara `summa.fragor` +1) kan eleven skriva en egen marknad i rätt form och
+  sedan köpa ur den – till fullt pris och högst divisionens stjärntak. Valet av spelare, aldrig en gratis spelare.
+- **+400 kr när reserverna ändras:** att stryka en köpt reserv ger 400 kr, men spelaren kostade minst 560 kr.
+- **Lägret** kan växlas fram och tillbaka för mer träning, och **positionerna** prövas inte (som före runda 1).
+- **1000-uttrycksgränsen:** en ny klubb har nu marginal 8 (var 30); hela säsongen + kvalet i en skrivning 2 (oförändrad).
+
+**Körningar (runda 1, HEAD efter rättningen):** `node --test` (319 filer) 4630 pass, 0 fail, 1 skipped; matchdagen
+205 (5 nya: lägrets `-p`, marknadens rader); `npm run test:rules` 1090 pass, 0 fail; `npm run test:functions` 573 pass,
+0 fail, 2 kända TODO; `npm run test:e2e` 5/5; marginalen ovan.
+
