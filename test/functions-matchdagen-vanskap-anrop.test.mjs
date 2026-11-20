@@ -9,6 +9,7 @@
 //   lobbyn läses av klasskompisarna med Matchdagen, inte av Cia; klienten skriver aldrig
 //   matchen läses av spelarna; frågan (privat) bara av eleven själv; facit av ingen elev
 //   mdFraga/mdSvar: frågan utan facit, servern rättar; mdGeUpp → walkover, kassa + inbördes + matcher
+//   efter matchen: klientens S.K (vakten räknar in slutet) sparas som hela dokumentet med nytt lagnamn
 //
 // Körs via:  npm run test:functions  (kräver `npm --prefix functions install`)
 // ============================================================================
@@ -19,8 +20,9 @@ import admin from "firebase-admin";
 import { initializeApp, deleteApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword, signOut, connectAuthEmulator } from "firebase/auth";
 import { getFunctions, httpsCallable, connectFunctionsEmulator } from "firebase/functions";
-import { getFirestore, connectFirestoreEmulator, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { getFirestore, connectFirestoreEmulator, doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { createMvRig, KLASS, ANNA, BO, CIA } from "./helpers/md-vanskap-rig.js";
+import { bevaka } from "../src/matchdagen/vanskap/md-vy-vanskap.js";
 
 const PROJECT_ID = process.env.GCLOUD_PROJECT || "pluggportalen-so-2026";
 const FS_HOST = process.env.FIRESTORE_EMULATOR_HOST || "127.0.0.1:8080";
@@ -82,6 +84,8 @@ test("utloggad → unauthenticated, lärare → permission-denied, elev utan Mat
 });
 
 let matchId;
+// Klientens läge före slutet: S.K som appen läste den (före matchen) och matchen medan den pågick.
+const fore = {};
 
 test("utmaningen: lobbyn läses av Bo, inte av Cia; klienten kan inte skriva den; Bo antar → matchen", async () => {
   await as(ANNA);
@@ -125,6 +129,10 @@ test("ett läge: frågan utan facit i det privata dokumentet (bara eleven själv
 });
 
 test("Bo lämnar (mdGeUpp): walkover – Anna vinner, kassan och de inbördes mötena skrivna av servern, matchen typ vanskap", async () => {
+  for (const uid of [ANNA, BO]) {
+    await as(uid);
+    fore[uid] = { K: (await getDoc(doc(cdb, "matchdagen", uid))).data(), m: (await getDoc(doc(cdb, "mdVanskap", matchId))).data() };
+  }
   await as(BO);
   assert.deepEqual(await call("mdGeUpp", { matchId }), { status: "slut" });
   const m = (await getDoc(doc(cdb, "mdVanskap", matchId))).data();
@@ -139,4 +147,23 @@ test("Bo lämnar (mdGeUpp): walkover – Anna vinner, kassan och de inbördes m�
   // Eleven kan inte skriva de inbördes mötena själv (reglerna) – bara servern.
   await as(ANNA);
   assert.equal(await errCode(updateDoc(doc(cdb, "matchdagen", ANNA), { [`inbordes.${BO}.v`]: 9 })), "permission-denied");
+});
+
+test("efter matchen: S.K som vakten räknade in den sparas som hela dokumentet med nytt lagnamn (sparaKarriar)", async () => {
+  for (const [uid, namn] of [[ANNA, "Nya Blixtarna"], [BO, "FC Omar 2"]]) {
+    await as(uid);
+    const slut = (await getDoc(doc(cdb, "mdVanskap", matchId))).data();
+    let cb = null;
+    const S = { uid, K: fore[uid].K };
+    bevaka(S, { lyssnaMatch: (_id, f) => { cb = f; return () => {}; } }, matchId);
+    cb(fore[uid].m); // pågick när vakten startade …
+    cb(slut); // … slut: kassan och mötet räknas in lokalt, utan att läsa om karriären
+    const server = (await getDoc(doc(cdb, "matchdagen", uid))).data();
+    assert.deepEqual([S.K.kassa, S.K.inbordes], [server.kassa, server.inbordes], `${uid}: som servern skrev dem`);
+    // sparaKarriar (md-data.js): hela dokumentet, inbördes oförändrade, nytt namn i klubben.
+    const { senast, ...K } = { ...S.K, klubb: { ...S.K.klubb, namn } };
+    assert.equal(await errCode(setDoc(doc(cdb, "matchdagen", uid), { ...K, senast: serverTimestamp() })), "ok", uid);
+    const efter = (await getDoc(doc(cdb, "matchdagen", uid))).data();
+    assert.deepEqual([efter.klubb.namn, efter.inbordes], [namn, server.inbordes]);
+  }
 });

@@ -49,7 +49,7 @@ walkover efter 3 minuter, klubbkassan (100 + 100 kr, 3 per dag) och de inbördes
 | `test/matchdagen-vanskap.test.js` | motorn: lägena, båda svaren, chanserna, mål och räddningar, halvtid, walkover, determinism, spegling, tiden, inaktivitet, kassan, balansgränserna |
 | `test/matchdagen-vanskap-server.test.js` | synken (`--check`), frågebanken (källorna, inget facit i frågan, påsen), rättningen |
 | `test/functions-matchdagen-vanskap.test.mjs` | serverkärnan mot Firestore-emulatorn med styrd klocka: grinden, en utmaning åt gången, 2 minuter, anta/nej/ta tillbaka, en match åt gången, frågor, rättning, avgörandet, tiden ute, `svar: null`, halvtid, walkover, avbruten, inbördes, kassan och dagstaket |
-| `test/functions-matchdagen-vanskap-anrop.test.mjs` | callables som klienten (Auth + Functions + Firestore): utloggad, lärare, elev utan Matchdagen, lobbyn och matchen läses av rätt elever, frågan bara av eleven själv, facit av ingen, ett läge, walkover med kassa och inbördes |
+| `test/functions-matchdagen-vanskap-anrop.test.mjs` | callables som klienten (Auth + Functions + Firestore): utloggad, lärare, elev utan Matchdagen, lobbyn och matchen läses av rätt elever, frågan bara av eleven själv, facit av ingen, ett läge, walkover med kassa och inbördes, sedan nytt lagnamn (hela dokumentet) efter matchen |
 | `test/firestore-rules-matchdagen-vanskap.test.js` | reglerna: ingen klientskrivning i duellsamlingarna, läsrätterna (spelarna, eleven själv, läraren, inte klasskamrater utan Matchdagen), `inbordes` bara för servern |
 | `test/matchdagen-vanskap-vy.test.js` | lobbyns HTML (escaping, utmaningar, kompisar, inbördes, dagens matcher), vakten (räknar in en gång, läser om när matchen redan var slut), frågekortet med serverns rättning |
 
@@ -174,6 +174,7 @@ går över gränsen; den tunnaste (ny klubb) har 4 kvar. ("Grovt" = standardlist
 | `test/behorigheter-doc.test.js` | 4 pass |
 | Delade tester (schack, stilar, butik, kurragömma-lärare …) | 526 pass, 1 fail: schackmotorns tidsgräns ("högst ~1 s per drag") under last med emulatorn igång – orörd kod |
 | Functions (`functions-matchdagen-vanskap*.test.mjs`, functions + auth + firestore) | 19 pass, 0 fail |
+| Nytt lagnamn efter en vänskapsmatch (`functions-matchdagen-vanskap-anrop.test.mjs` test 6: vakten räknar in slutet lokalt, sedan `sparaKarriar`-formen, hela dokumentet) | 6 pass, 0 fail – S.K:s kassa och inbördes = serverns, namnet sparas, inbördes orörda |
 | Reglerna (`firestore-rules-matchdagen*`, Coder 1) | 35 pass |
 | Marginalen | tabellen ovan |
 | Hela `node --test`, `test:rules`, `test:functions` | lämnas till Testern (minnet: OOM-risk, en emulator åt gången) |
