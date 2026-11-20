@@ -237,6 +237,8 @@
 .md-kop:disabled { background: #0a1220; color: var(--md-svag) !important; cursor: default; }
 .md-truppstatus { min-height: 1.5em; margin: 14px 0 0; font-weight: 800; color: var(--md-gron); }
 .md-truppstatus .md-fel { margin: 0; }
+.md-truppstatus:empty { min-height: 0; margin: 0; }
+.md-lager .md-fel:empty { min-height: 0; margin: 0; }
 .md-lager { padding: 12px 14px; border-radius: 14px; border: 1px solid var(--md-linje); background: var(--md-panel2); }
 .md-lager > p:first-child { margin-top: 0; }
 .md-lagerval {
@@ -244,12 +246,9 @@
   background: #0a1220; color: var(--md-ink); font: 700 16px Nunito, system-ui, sans-serif;
 }
 .md-lager-huvud p { margin: 0 0 4px; }
-.md-lager-spelare { display: grid; grid-template-columns: auto minmax(80px, 240px) auto; gap: 10px; align-items: center; }
+.md-lager-spelare { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
+.md-lager-spelare .md-stapel { flex: 0 1 240px; }
 .md-firande { min-height: 1.5em; margin: 6px 0; color: var(--md-gul); font: 800 22px var(--md-rubrikfont); }
 .md-firande:empty { min-height: 0; margin: 0; }
 .md-tips { margin: 12px 0 0; color: var(--md-svag); }
 .md-tips .md-lank { min-height: 0; padding: 0; color: var(--md-gul); }
-@media (max-width: 640px) {
-  .md-lager-spelare { grid-template-columns: auto 1fr; }
-  .md-lager-spelare small { grid-column: 1 / -1; }
-}

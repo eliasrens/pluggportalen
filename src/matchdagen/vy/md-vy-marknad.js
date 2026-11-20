@@ -11,7 +11,7 @@
 // matcher är tom (md-spara.js sparaKon) – annars skulle köpet sparas före matchen det kom ur.
 // ============================================================================
 
-import { LAGDELAR, TRANING } from "../delat/md-config.js";
+import { LAGDELAR, RADDNING, TRANING } from "../delat/md-config.js";
 import { lagbonus } from "../delat/md-motor.js";
 import { POS_NAMN } from "../delat/md-namn.js";
 import { bytIn, kop, kopInfo, lagdelSnitt, saljPris } from "../delat/md-trupp.js";
@@ -29,8 +29,9 @@ export const stjarnor = (st) => {
 const posNamn = (pos) => esc(POS_NAMN[pos] || pos);
 const namn = (p) => esc(p?.namn);
 
-/** Vad lagdelens bonus påverkar (§8.1). */
+/** Vad lagdelens bonus påverkar (§8.1) – målvaktens räknas dubbelt i räddningen (md-motor.js chansRaddning). */
 const EFFEKT = { MV: "räddningar", "FÖR": "tacklingar", MIT: "pass", ANF: "skott" };
+const FAKTOR = { MV: RADDNING.bonus };
 const procent = (b) => {
   const n = Math.round(b * 100);
   return `${n > 0 ? "+" : n < 0 ? "−" : "±"}${Math.abs(n)} %`;
@@ -43,7 +44,7 @@ export function lagdelarHtml(trupp) {
   return `<div class="md-lagdelar">${LAGDELAR.map((d) => `<div>
     <span class="md-pos">${posNamn(d)}</span>
     <b>${snitt[d].toLocaleString("sv-SE", { maximumFractionDigits: 1 })}★</b>
-    <small>${EFFEKT[d]} ${procent(bonus[d])}</small></div>`).join("")}</div>`;
+    <small>${EFFEKT[d]} ${procent(bonus[d] * (FAKTOR[d] ?? 1))}</small></div>`).join("")}</div>`;
 }
 
 /** Stapeln mot nästa stjärna (§8.4) – eller "Fullt tränad" vid 5★. */
