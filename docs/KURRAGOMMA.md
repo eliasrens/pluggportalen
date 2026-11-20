@@ -391,7 +391,7 @@ container. Den körs utan server i `preview/preview-kurragomma-scen.html` (`?2d=
 | `scen/kg-scen.js` | **API:t** (§9.2): tillståndet, bildrutans loop, pausen vid dold flik, nivåvakten och bytet till 2D |
 | `scen/kg-ritare-3d.js` | 3D-ritaren: sätter ihop kg-tre, kg-figur, kg-effekter och kg-kamera till ritar-gränssnittet |
 | `scen/kg-2d.js` | **2D-reserven**: samma ritar-gränssnitt på en vanlig canvas (ovanifrån) |
-| `scen/kg-tre.js` | `laddaThree()` – **den enda** platsen som når `src/vendor/three/` (med `import()`); renderer, ljus, dimma, gradientkartan |
+| `scen/kg-tre.js` | renderer, ljus, dimma, gradientkartan; re-exporterar `harWebGL()`/`laddaThree()` ur `src/tre/tre-ladda.js` (#869) – **den enda** platsen som når `src/vendor/three/` (med `import()`), delad med Matchdagen |
 | `scen/kg-varld.js` | Ön och alla föremål ur `kg-karta.js` sammanslagna till få ritanrop (vertexfärger, kontur, blob-skuggor) |
 | `scen/kg-modeller.js` | Modellerna per `typ` som ren data (ingen three.js), paletten ur `art-style.js`/`art-gard.js` |
 | `scen/kg-figur.js` | Figurerna: billboard-sprite med avatarbilden, studs, namnskylt, blob-skuggor (ett InstancedMesh) |
@@ -409,7 +409,7 @@ container. Den körs utan server i `preview/preview-kurragomma-scen.html` (`?2d=
 | `test/live-kurragomma-kamera.test.js` | Kameran mot modellerna (raycast med three): aldrig inne i ett föremål, figuren aldrig inne i ett fast föremål |
 
 `test/live-formats.test.js` bevisar att `src/vendor/` aldrig nås statiskt från `app.js`, och att
-`kg-tre.js` är den enda filen i `src/` som laddar three (dynamiskt).
+`src/tre/tre-ladda.js` (utbruten ur `kg-tre.js` i #869, delad med Matchdagen) är den enda filen i `src/` som laddar three (dynamiskt).
 
 ### 9.2 API:t (`kg-scen.js`)
 

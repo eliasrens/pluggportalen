@@ -124,3 +124,15 @@ export const TID = {
   halvtid: 12,
   slut: 4,
 };
+
+// ---- Säsongen, klubben och sparningen (Etapp 1c, spec §5, §6, §8.3) ----------
+/** Lagnamnet: 1–24 tecken (§5, §14). */
+export const LAGNAMN_MAX = 24;
+/**
+ * Klubbkassan (§8.3): startar på start. Varje match ger grundbelopp (vinst /
+ * oavgjort / förlust) + perRatt per rätt svar + perMal per mål, × (1 + div × perDiv).
+ */
+export const KASSA = { start: 600, vinst: 300, oavgjort: 150, forlust: 80, perRatt: 15, perMal: 25, perDiv: 0.25 };
+/** Karriärdokumentet: de senaste matcherna (Statistik) och dagarna (lärarens 7 dagar / veckolinje). */
+export const SENASTE_MAX = 20;
+export const DAGAR_MAX = 70;

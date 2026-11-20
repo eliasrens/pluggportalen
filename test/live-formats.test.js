@@ -245,7 +245,7 @@ describe("Bootgrafen: formaten bara dynamiskt (#271)", () => {
     }
     assert.ok(seen.has(join(SRC, "game-shared.js")), "BFS:en hittar kända bootfiler");
     assert.deepEqual([...seen].filter((f) => f.startsWith(join(SRC, "live"))), []);
-    // Kurragömma (#837): three.js i src/vendor/three/ nås aldrig statiskt – bara med import() i kg-tre.js.
+    // Kurragömma (#837): three.js i src/vendor/three/ nås aldrig statiskt – bara med import() i src/tre/tre-ladda.js (#869).
     assert.deepEqual([...seen].filter((f) => f.startsWith(join(SRC, "vendor"))), []);
   });
 
@@ -262,7 +262,7 @@ describe("Bootgrafen: formaten bara dynamiskt (#271)", () => {
     const statiska = filer.filter((f) => /\b(?:import|export)\s+[^(;]*?from\s+["'][^"']*vendor\/three\//.test(readFileSync(f, "utf8")));
     assert.deepEqual(statiska, []);
     const dynamiska = filer.filter((f) => /import\(\s*["'][^"']*vendor\/three\/three\.module\.min\.js["']\s*\)/.test(readFileSync(f, "utf8")));
-    assert.deepEqual(dynamiska.map((f) => f.slice(SRC.length + 1)), ["live/formats/kurragomma/scen/kg-tre.js"]);
+    assert.deepEqual(dynamiska.map((f) => f.slice(SRC.length + 1)), ["tre/tre-ladda.js"]); // #869: delad med Matchdagen
     assert.ok(statSync(join(SRC, "vendor", "three", "three.module.min.js")).size > 100_000);
     assert.ok(readFileSync(join(SRC, "vendor", "three", "LICENSE"), "utf8").includes("MIT"));
   });
