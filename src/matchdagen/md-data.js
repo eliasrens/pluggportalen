@@ -49,6 +49,7 @@ const urval = (K, falt = KARRIAR_FALT) => Object.fromEntries(falt.filter((k) => 
   .map((k) => [k, TILL_DOK[k] ? TILL_DOK[k](K[k]) : K[k]]));
 /** Matchsparningen skriver allt UTOM klubb – lärarens Återställ lagnamn får inte skrivas över. */
 const MATCH_FALT = KARRIAR_FALT.filter((k) => k !== "klubb");
+const HELA_FALT = [...KARRIAR_FALT, "inbordes"];
 
 export async function lasKarriar(uid) {
   const snap = await medTidsgrans(getDoc(karriarRef(uid)), 2 * TIDSGRANS_MS);
@@ -56,8 +57,12 @@ export async function lasKarriar(uid) {
 }
 export const franDok = (d) => (d && typeof d === "object" ? { ...d, marknad: marknadFranDok(d.marknad), pokaler: pokalerFranDok(d.pokaler) } : d);
 
+/**
+ * Hela dokumentet (ny klubb, nytt namn, legendklubb). De inbördes mötena (#874) skrivs bara av servern –
+ * de följer med oförändrade (reglerna nekar en ändring), så de försvinner inte när dokumentet skrivs om.
+ */
 export async function sparaKarriar(uid, K) {
-  await medTidsgrans(setDoc(karriarRef(uid), { ...urval(K), senast: serverTimestamp() }));
+  await medTidsgrans(setDoc(karriarRef(uid), { ...urval(K, HELA_FALT), senast: serverTimestamp() }));
 }
 
 /** Karriären utan klubb (mergeFields = bara de skickade fälten ersätts). */

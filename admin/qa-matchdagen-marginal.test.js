@@ -1,5 +1,6 @@
 // Matchdagen (#872, #873): mäter marginalen mot 1000-uttrycksgränsen – hur många "(d.div == d.div) &&" (≈ en enhet)
 // som får plats i validMatchdagen för olika skrivningar. Kör: MDTEST=admin/qa-matchdagen-marginal.test.js bash admin/qa-matchdagen-marginal.sh
+// #874: INB=1 – dokumentet har inbördes möten (servern skrev dem efter en vänskapsmatch) före och efter skrivningen.
 import { it } from "node:test";
 import { readFileSync } from "node:fs";
 import { initializeTestEnvironment } from "@firebase/rules-unit-testing";
@@ -88,6 +89,7 @@ const SCEN = process.env.SCEN ? Object.fromEntries(process.env.SCEN.split(",").m
 const BAS0 = readFileSync(process.env.RULES_FIL || new URL("../firestore.rules", import.meta.url), "utf8");
 const VARIANTER = process.env.VAR ? JSON.parse(readFileSync(process.env.VAR, "utf8")) : { bas: [] };
 const ANKARE = "d.senast == request.time &&";
+const INB = process.env.INB ? { inbordes: { kompis: { v: 1, o: 2, f: 0, namn: "FC Omar" } } } : {};
 let n = 0;
 it("marginal", async () => {
  for (const [vnamn, subs] of Object.entries(VARIANTER)) {
@@ -99,9 +101,9 @@ it("marginal", async () => {
     for (const N of (process.env.NLIST || "0,2,4,6,8,10,12,15,18,22,26,30,35,40,50,60").split(",").map(Number)) {
       const rules = BAS.replace(ANKARE, ANKARE + " " + "(d.div == d.div) && ".repeat(N));
       const env = await initializeTestEnvironment({ projectId: `pp-mat-${n++}`, firestore: { rules } });
-      if (fore) await env.withSecurityRulesDisabled((c) => setDoc(doc(c.firestore(), "matchdagen", "e4a"), tillDok({ ...kopia(fore), senast: new Date() })));
+      if (fore) await env.withSecurityRulesDisabled((c) => setDoc(doc(c.firestore(), "matchdagen", "e4a"), tillDok({ ...kopia(fore), ...INB, senast: new Date() })));
       let ok = true;
-      try { await setDoc(doc(env.authenticatedContext("e4a", {}).firestore(), "matchdagen", "e4a"), tillDok({ ...kopia(efter), senast: serverTimestamp() })); }
+      try { await setDoc(doc(env.authenticatedContext("e4a", {}).firestore(), "matchdagen", "e4a"), tillDok({ ...kopia(efter), ...(fore ? INB : {}), senast: serverTimestamp() })); }
       catch (e) { ok = false; if (N === 0) console.log("NEKAD", namn, String(e.message).slice(20, 140).replace(/\n/g, " ")); }
       await env.cleanup().catch(() => {});
       if (!ok) break;

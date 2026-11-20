@@ -951,7 +951,8 @@ service cloud.firestore {
       // och marknad med billiga likheter i stället för de vanliga kontrollerna (1000-uttrycksgränsen).
       let L = 'klubbhistorik' in a;
       return d.keys().hasOnly(['version', 'klubb', 'div', 'sasong', 'kassa', 'trupp', 'reserver', 'marknad', 'lager',
-          'liga', 'kval', 'cup', 'pokaler', 'rekord', 'summa', 'senaste', 'sasonger', 'dagar', 'senast', 'mastarcup', 'klubbhistorik']) &&
+          'liga', 'kval', 'cup', 'pokaler', 'rekord', 'summa', 'senaste', 'sasonger', 'dagar', 'senast', 'mastarcup', 'klubbhistorik',
+          'inbordes']) && !('inbordes' in a) &&
         d.keys().hasAll(['version', 'klubb', 'div', 'sasong', 'kassa', 'trupp', 'liga', 'summa', 'senast']) &&
         d.senast == request.time &&
         (!('version' in a) || mdHeltal(d.version, 1, 100)) &&
@@ -3141,6 +3142,40 @@ service cloud.firestore {
         request.auth.uid == resource.data.get('vit', '') ||
         request.auth.uid == resource.data.get('svart', '') ||
         hasClass(resource.data.get('classId', '')));
+      allow write: if false;
+    }
+
+    // Matchdagen – vänskapsmatcher i realtid (#874, spec §11.5, docs/MATCHDAGEN.md §18). Klienten
+    // skriver ALDRIG här: allt går genom callables (mdUtmana, mdSvara, mdFraga, mdSvar, mdTick, mdGeUpp –
+    // Admin SDK förbi reglerna). mdLobby/{classId} läses live av klassens elever SOM HAR Matchdagen
+    // (elevModuler) och av läraren med klassen. mdVanskap/{id} läses av de två spelarna och läraren
+    // (ett SAKNAT dokument får varje inloggad hämta, som schackPartier). privat/{uid} = elevens fråga
+    // UTAN facit – bara eleven själv och läraren, aldrig motståndaren. facit/{uid} = frågebanken MED
+    // facit – bara läraren. mdVanskapElev/{uid} = spärren och dagens antal: eleven och läraren.
+    // ⚠️ DEPLOY: rules → functions → webben.
+    function mdHarMatchdagen(classId) {
+      return get(/databases/$(database)/documents/classes/$(classId)).data.get('elevModuler', {})
+        .get(request.auth.uid, []).hasAny(['matchdagen']);
+    }
+    match /mdLobby/{classId} {
+      allow read: if hasClass(classId) || (isClassMember(classId) && mdHarMatchdagen(classId));
+      allow write: if false;
+    }
+    match /mdVanskap/{matchId} {
+      allow read: if signedIn() && (resource == null || request.auth.uid in resource.data.get('spelare', []) ||
+        hasClass(resource.data.get('classId', '')));
+      allow write: if false;
+      match /privat/{uid} {
+        allow read: if isSelf(uid) || (resource != null && hasClass(resource.data.get('classId', '')));
+        allow write: if false;
+      }
+      match /facit/{uid} {
+        allow read: if resource != null && hasClass(resource.data.get('classId', ''));
+        allow write: if false;
+      }
+    }
+    match /mdVanskapElev/{uid} {
+      allow read: if isSelf(uid) || hasStudent(uid);
       allow write: if false;
     }
 
