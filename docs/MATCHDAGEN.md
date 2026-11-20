@@ -636,8 +636,10 @@ rapporten. Robotklubbens beteende (`KLUBB` i `md-balans-trupp.mjs`) är ett anta
   - **Reserverna** ≤ 5, alla ur `g.trupp` + `g.reserver` (`hasAll`). **Marknaden** (`mdMarknadOk`): när summan
     ändras (en match) högst 6 rader som matchar `k[0-9a-z]{1,6}|namn 1–40|MV/FÖR/MIT/ANF|nr 0–99|1–5`; annars
     den sparade minus exakt EN rad (ett köp per skrivning).
-  - **Kassan** per skrivning: högst 5 000 kr per bokförd match (Δ`summa.matcher` ≤ 500), plus 400 kr bara när
-    reserverna ändras (ett köp där en släppt köpt reserv ger mer än köpet kostar).
+  - **Kassan** per skrivning: högst 5 000 kr per bokförd match (Δ`summa.matcher` ≤ 500), plus 400 kr bara i ett
+    köp (`mdKopTillagg`: reserverna och marknaden ändras, inget läger, och en spelare i truppen är ny för klubben)
+    – där en släppt köpt reserv ger mer än köpet kostar. Köpet självt (`mdKopOk`) räknar exakt: tillbaka halva
+    priset för den ersatta köpta spelaren, eller för just den reserv som släpps (`mdSlapptPris`).
   - **Lägret:** `"säsong-omgång"` (omgång 1 till ligans spelade) eller `"säsong-k"`, påbörjat med `"-p"` efter
     (`[0-9]{1,5}-([1-9][0-9]?|k)(-p)?`, den här säsongen).
 - **Gränser som inte prövas** (bara elevens eget spel – Matchdagen ger inga pluggmynt; vad en elev som skriver
@@ -645,13 +647,12 @@ rapporten. Robotklubbens beteende (`KLUBB` i `md-balans-trupp.mjs`) är ett anta
   - **Matcherna:** att en match verkligen spelats – `summa.matcher` +1 ger upp till 5 000 kr och en ny marknad.
   - **Marknaden:** när summan ändras (t.ex. bara `summa.fragor` +1) kan eleven skriva en egen marknad i rätt form –
     och sedan köpa ur den till fullt pris, högst divisionens stjärntak. Ingen gratis spelare, bara valet av vem.
-  - **Kassan utan match:** +400 kr när reserverna ändras – att stryka en köpt reserv ger 400 kr men spelaren
-    kostade minst 560 (förlust); ett köp med släppt reserv ger högst 1 600 − priset (som i appen).
   - **Lägret:** att det är nyare än det sparade (växlar man lägret fram och tillbaka kan man träna mer).
+  - **Storleken:** strängarna i ligans lag, `senaste`, `sasonger` och `pokaler` (§10) – upp till 1 MiB.
   - **Positionerna** (en elev kan bara förstöra sin egen formation). Vyerna `esc()`:ar och `Number()`:ar allt ur
     dokumentet.
-- **Marginalen** mot 1000-gränsen (extra `(d.div == d.div) &&` som ryms, efter rättningsrunda 1): ny klubb 8,
-  match 40, läger 16, lägrets start ≥ 50, köp 28, köp med fulla reserver 26, byte ≥ 50, 4 matcher i en skrivning 18,
+- **Marginalen** mot 1000-gränsen (extra `(d.div == d.div) &&` som ryms, efter rättningsrunda 2): ny klubb 8,
+  match 40, läger 16, lägrets start ≥ 50, köp 22, köp med fulla reserver 18, byte ≥ 50, 4 matcher i en skrivning 18,
   kvalet 12, hela säsongen + kvalet i en skrivning (en ny klubb offline en hel säsong) 2 (lika som före runda 1); läger + match i en skrivning
   nekas (därför spärren). Mätningen: rapporten (Etapp 2b).
 - **En kö som ändrats någon annanstans** (en annan dator, eller ett köp vars svar aldrig kom men som gick fram):
