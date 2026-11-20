@@ -51,12 +51,16 @@ function linje(ut, del) {
 /** En rad per elev ur karriären (null = har inte startat). */
 export function elevRad(elev, K, nu = Date.now()) {
   const s = K?.summa || {};
-  const kallor = Object.entries(s.perKalla || {}).sort((a, b) => b[1].fragor - a[1].fragor);
+  // Bara riktiga källor ({ fragor, ratt }) – dokumentet skrivs av eleven och kan vara trasigt.
+  const kallor = Object.entries(s.perKalla && typeof s.perKalla === "object" ? s.perKalla : {})
+    .filter(([, v]) => v && typeof v === "object")
+    .map(([k, v]) => [k, { namn: typeof v.namn === "string" ? v.namn : undefined, ratt: tal(v.ratt), fragor: tal(v.fragor) }])
+    .sort((a, b) => b[1].fragor - a[1].fragor);
   return {
     id: elev.id, namn: elev.namn || elev.username || elev.id, startad: !!K,
     sek7: K ? tal(sekunderSenaste(K.dagar, nu, 7)) : 0, minTotalt: tal(s.spelminuter),
     matcher: tal(s.matcher), ratt: tal(s.ratt), fragor: tal(s.fragor),
-    kallor: kallor.map(([k, v]) => [k, { namn: v?.namn, ratt: tal(v?.ratt), fragor: tal(v?.fragor) }]),
+    kallor,
     div: K ? DIVISIONER[K.div] || "" : "", sasong: tal(K?.sasong), senast: K?.senast || null, lag: K?.klubb?.namn || "",
   };
 }
@@ -70,7 +74,13 @@ export async function renderClassMatchdagen(ctx, host, { cls, students }) {
   }
   const data = await import("../md-data.js");
   const karriarer = await data.lasKarriarer(elever.map((e) => e.id));
-  const rader = elever.map((e) => elevRad(e, karriarer.get(e.id)));
+  // En elevs trasiga dokument får aldrig ta ner fliken för hela klassen: raden visar då ett fel.
+  const rader = elever.map((e) => {
+    try { return elevRad(e, karriarer.get(e.id)); } catch (err) {
+      console.warn("Matchdagen: elevens lag kunde inte läsas", e.id, err);
+      return { id: e.id, namn: e.namn || e.username || e.id, startad: false, fel: true, lag: "" };
+    }
+  });
   const view = el(`<div class="mdl">
     <p class="hint">Bara elever som har Matchdagen syns här. Klicka på en elev för matcherna, utvecklingen och lagnamnet.</p>
     <div class="table-scroll"><table class="tbl lrt-tbl mdl-tbl">
@@ -82,7 +92,7 @@ export async function renderClassMatchdagen(ctx, host, { cls, students }) {
         <td class="lrt-num">${r.matcher}</td><td class="lrt-num">${pctText(r.ratt, r.fragor)}</td>
         <td class="mdl-kallor">${r.kallor.slice(0, 4).map(([k, v]) => `<span class="mdl-kalla">${esc(kallNamn(k, v))} ${pctText(v.ratt, v.fragor)}</span>`).join("") || "–"}</td>
         <td>${esc(r.div)} · säsong ${r.sasong}</td><td>${datumText(r.senast)}</td>`
-          : `<td colspan="7" class="hint">Har inte startat sitt lag än</td>`}
+          : `<td colspan="7" class="hint">${r.fel ? "Lagets data kunde inte läsas" : "Har inte startat sitt lag än"}</td>`}
       </tr>`).join("")}</tbody></table></div>
     <div class="mdl-detalj" aria-live="polite"></div>
   </div>`);
@@ -110,7 +120,8 @@ async function visaElev(host, elev, K, data, efterNamn) {
     host.replaceChildren(el(`<div class="mdl-elev"><h4 class="subhead">${esc(namn)}</h4><p class="hint">${esc(namn)} har inte startat sitt lag än.</p></div>`));
     return;
   }
-  const veckor = veckoRatt(K.dagar, Date.now(), 8);
+  let veckor = [];
+  try { veckor = veckoRatt(K.dagar, Date.now(), 8); } catch { /* trasigt dokument: ingen linje */ }
   const box = el(`<div class="mdl-elev">
     <h4 class="subhead">${esc(namn)}</h4>
     <div class="mdl-topp">

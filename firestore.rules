@@ -786,13 +786,13 @@ service cloud.firestore {
         (!('legendStjarnor' in k) || mdHeltal(k.legendStjarnor, 0, 1000));
     }
     // Truppen är startelvan: exakt 7 spelare (1 MV, 2 FÖR, 2 MIT, 2 ANF), var och en 1–5
-    // stjärnor. Reglerna kan inte loopa – varje plats prövas, så billigt som möjligt.
-    // ⚠️ Gränsen 1000 uttryck per begäran: allt i validMatchdagen räknas, så bara
-    // stjärnorna prövas per spelare (namnen är färdiga och kan inte ändras i appen).
+    // stjärnor och ett namn på högst 40 tecken (storleken, spec ≤ 200 kB). Reglerna kan
+    // inte loopa – varje plats prövas. ⚠️ Gränsen 1000 uttryck per begäran: allt i
+    // validMatchdagen räknas, och truppen prövas bara när den ändras.
+    function mdSpelareOk(p) { return p.st in [1, 2, 3, 4, 5] && p.namn is string && p.namn.size() <= 40; }
     function mdTruppOk(t) {
-      return t is list && t.size() == 7 && t[0].st in [1, 2, 3, 4, 5] && t[1].st in [1, 2, 3, 4, 5] &&
-        t[2].st in [1, 2, 3, 4, 5] && t[3].st in [1, 2, 3, 4, 5] && t[4].st in [1, 2, 3, 4, 5] &&
-        t[5].st in [1, 2, 3, 4, 5] && t[6].st in [1, 2, 3, 4, 5];
+      return t is list && t.size() == 7 && mdSpelareOk(t[0]) && mdSpelareOk(t[1]) && mdSpelareOk(t[2]) &&
+        mdSpelareOk(t[3]) && mdSpelareOk(t[4]) && mdSpelareOk(t[5]) && mdSpelareOk(t[6]);
     }
     // Summan visas i lärarens Hur går det? → Matchdagen: alla tal måste vara tal (aldrig
     // text som kan bli HTML), perKalla en begränsad map. Skickas som ett värde – billigt.
@@ -802,7 +802,7 @@ service cloud.firestore {
         mdHeltal(s.matcher, 0, 1000000) && mdHeltal(s.v, 0, 1000000) && mdHeltal(s.o, 0, 1000000) && mdHeltal(s.f, 0, 1000000) &&
         mdHeltal(s.gjorda, 0, 10000000) && mdHeltal(s.inslappta, 0, 10000000) &&
         mdHeltal(s.fragor, 0, 100000000) && mdHeltal(s.ratt, 0, s.fragor) && mdTal(s.spelminuter, 0, 10000000) &&
-        s.perKalla is map && s.perKalla.size() <= 150;
+        s.perKalla is map && s.perKalla.size() <= 150 && !s.perKalla.values().hasAny([null]);
     }
     function mdLigaOk(l) {
       return l is map && l.keys().hasOnly(['lag', 'schema', 'tabell', 'omg']) &&
@@ -838,7 +838,7 @@ service cloud.firestore {
         (!('pokaler' in d) || (d.pokaler is list && d.pokaler.size() <= 300)) &&
         (!('senaste' in d) || (d.senaste is list && d.senaste.size() <= 20)) &&
         (!('sasonger' in d) || (d.sasonger is list && d.sasonger.size() <= 200)) &&
-        (!('dagar' in d) || (d.dagar is map && d.dagar.size() <= 70));
+        (!('dagar' in d) || (d.dagar is map && d.dagar.size() <= 70 && !d.dagar.values().hasAny([null])));
     }
     // Läraren: bara klubb.namn, och bara tillbaka till standardnamnet (md-namn.js STANDARD_LAGNAMN).
     function mdBaraLagnamn() {

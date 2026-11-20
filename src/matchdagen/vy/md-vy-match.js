@@ -83,8 +83,15 @@ async function sasongSlut(S, el) {
   </div>`;
   el.querySelector("[data-tabell]").addEventListener("click", () => S.visa("tabell"));
   el.querySelector("[data-ny]").addEventListener("click", () => {
-    // Samma frö vid omladdning: ligan lottas likadant tills första matchen sparar den.
-    S.K = nySasong(S.K, skapaPrng(sasongFro(S.K, S.uid)).tal);
+    startaNastaSasong(S);
     visaMatchFlik(S, el);
   });
+}
+
+/**
+ * Nästa säsong (Match-fliken och Tabell-fliken efter sista omgången). Samma frö vid
+ * omladdning: ligan lottas likadant tills första matchen sparar den.
+ */
+export function startaNastaSasong(S) {
+  if (!nastaMatch(S.K)) S.K = nySasong(S.K, skapaPrng(sasongFro(S.K, S.uid)).tal);
 }

@@ -148,16 +148,20 @@ describe("eleven (#869 tester): typer och form", () => {
   });
 });
 
-describe("kända luckor (#869 tester) – reglerna släpper igenom, se QA-fynden", () => {
-  it("T1: värden i dagar och summa.perKalla prövas inte (null kraschar lärarens Matchdagen-flik)", async () => {
+describe("luckorna T1/T2 (#869 tester) – stängda i Coderns rättningsrunda 1", () => {
+  it("T1: null i dagar och summa.perKalla nekas (en okänd dag-nyckel går, vyn hoppar över den)", async () => {
     const db = env.as("e4a", {});
-    await assertSucceeds(updateDoc(ref(db), { dagar: { "2026-11-20": null }, ...ts }), "dagar null");
-    await assertSucceeds(updateDoc(ref(db), { dagar: { x: { fragor: 1, ratt: 1 } }, ...ts }), "dagar okänd nyckel");
-    await assertSucceeds(updateDoc(ref(db), { "summa.perKalla": { a: null, b: { fragor: 1, ratt: 1 } }, ...ts }), "perKalla null");
+    await assertFails(updateDoc(ref(db), { dagar: { "2026-11-20": null }, ...ts }), "dagar null");
+    await assertFails(updateDoc(ref(db), { "summa.perKalla": { a: null, b: { fragor: 1, ratt: 1 } }, ...ts }), "perKalla null");
+    await assertSucceeds(updateDoc(ref(db), { dagar: { x: { fragor: 1, ratt: 1 } }, ...ts }), "dagar okänd nyckel (vyn tål den)");
   });
-  it("T2: storleken – sju spelarnamn på 100 000 tecken (≈ 700 kB > specens 200 kB)", async () => {
+  it("T2: storleken – spelarnamnen i truppen högst 40 tecken", async () => {
     const db = env.as("e4a", {});
     const stor = "x".repeat(100000);
-    await assertSucceeds(updateDoc(ref(db), { trupp: kopia(K0.trupp).map((p) => ({ ...p, namn: stor })), ...ts }));
+    await assertFails(updateDoc(ref(db), { trupp: kopia(K0.trupp).map((p) => ({ ...p, namn: stor })), ...ts }), "spelarnamn 100 000 tecken");
+    await assertFails(updateDoc(ref(db), { trupp: kopia(K0.trupp).map((p, i) => (i === 6 ? { ...p, namn: "x".repeat(41) } : p)), ...ts }), "41 tecken på sista platsen");
+    // Ligans lagnamn prövas INTE: en kontroll per lag (upp till 12) spräcker gränsen på
+    // 1000 uttryck när hela karriären skapas. Firestores tak (1 MiB) gäller där – se rapporten.
+    await assertSucceeds(updateDoc(ref(db), { trupp: kopia(K0.trupp).map((p, i) => (i === 6 ? { ...p, namn: "x".repeat(40) } : p)), ...ts }), "40 tecken går");
   });
 });

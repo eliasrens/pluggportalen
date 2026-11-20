@@ -387,7 +387,11 @@ functions.
 6. **Reglerna prövar bara de fält som ändras** (som `schackOk`): att pröva hela dokumentet sprängde gränsen
    på 1000 uttryck. Truppen prövas bara på stjärnorna per plats (exakt 7, `st` 1–5).
 7. **200 kB kan inte mätas i reglerna.** Taken på listorna och mapparna håller appens dokument under ~61 kB med
-   allt fyllt (en ny klubb ~2 kB). En elev som skriver förbi appen kan bara blåsa upp sitt eget dokument.
+   allt fyllt (en ny klubb ~2 kB). Reglerna begränsar också lagnamnet (24) och spelarnamnen i truppen (40), och
+   nekar `null` i `dagar` och `summa.perKalla`. Strängarna i ligans lag, `senaste`, `sasonger`, `pokaler` och
+   källnamnen prövas inte: reglerna kan inte loopa, och en kontroll per lag i ligan sprängde gränsen på 1000
+   uttryck när hela karriären skapas. En elev som skriver förbi appen kan alltså fortfarande blåsa upp sitt
+   eget dokument (upp till Firestores 1 MiB) – men bara sitt eget, och lärarens vy tål det (T1 nedan).
 8. **Ny säsong lottas med ett frö** (`sasongFro`), så samma liga visas efter omladdning, och sparas först med
    nästa match (0 extra skrivningar).
 9. **Kassan** (`KASSA` i `md-config.js`) är specens §8.3-idé med egna tal: start 600, vinst 300, oavgjort 150,
@@ -447,3 +451,25 @@ Säsong 2 mot Smedjebacka United, samma lottning efter omladdning. Inga fel i ko
 Omtest i appen mot emulatorn: Alva skapar "Gamla Namnet IF", läraren återställer lagnamnet medan Alvas sida är
 öppen, Alva spelar en hel match (2D) → sparad utan "sparas så fort det går", kön tom, och efter omladdning heter
 laget fortfarande "Pluggporten FC" (omgång 2 av 5, 755 kr); lärarens rad och historik visar matchen.
+
+### Rättningsrunda 1 (testarens fynd på b8c31ab)
+
+- **T1 (medel), en elev kunde fälla lärarens Matchdagen-flik för hela klassen** med `null` i `dagar` eller
+  `summa.perKalla`. Nu hoppar `elevRad`, `sekunderSenaste` och `veckoRatt` över trasiga värden och okända
+  dag-nycklar, varje elevrad byggs för sig (ett trasigt dokument ger "Lagets data kunde inte läsas" på den
+  raden), och reglerna nekar `null` i båda. Testarens todo-tester (`matchdagen-tester-869.test.js`) är riktiga
+  tester nu.
+- **T2 (medel), Truppen ångrade ett namnbyte.** Formuläret fylldes ur en kopia från när fliken öppnades. Nu
+  fylls det ur `S.K` varje gång, och varje Spara sparar (också samma namn igen efter lärarens återställning).
+  Test: `klubbLoop` i `matchdagen-sasong.test.js`.
+- **T3 (låg), samma tröjfärg som motståndaren** efter ett färgbyte mitt i säsongen: vid avspark väljer
+  `motFarg` en annan färg åt motståndaren.
+- **T4 (låg), säsongsslutet upprepade sig.** "Se hur säsongen slutade" → Tabell, där knappen nu heter
+  **Starta nästa säsong** och startar den direkt (Match-flikens sammanfattning visas bara om eleven går dit
+  själv).
+- **Små:** tabellen säger "Säsongen har inte börjat – 5 omgångar" i stället för "Omgång 0 av 5 spelad"; sju
+  olika förnamn i varje trupp; spelarnamnen högst 40 tecken i reglerna (val 7).
+
+Körningar efter rundan: `node --test` (315 filer utan emulator) 4553 pass, 0 fail; `npm run test:rules` 1038
+pass, 0 fail. Förhandsvisningen: säsongsslut → Starta nästa säsong → Säsong 2; Truppen: namn och sedan bara
+färg – namnet står kvar.

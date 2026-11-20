@@ -23,16 +23,23 @@ export async function visaTrupp(S, el) {
       <b>${esc(p.namn)}${p.kapten ? ` <span class="md-kapten" title="Lagkapten">C</span>` : ""}</b>
       ${stjarnor(p.st)}<small class="md-svag">Nr ${p.nr ?? ""}</small></div>`).join("")}</div>
   </div>`;
-  const yta = el.querySelector(".md-klubbyta");
+  return klubbLoop(S, el.querySelector(".md-klubbyta"));
+}
+
+/**
+ * Formuläret för namn och tröjfärg, om och om igen så länge Truppen visas. Fylls
+ * ALLTID ur S.K (inte en kopia från när fliken öppnades), och varje Spara sparar –
+ * också samma namn igen, t.ex. efter att läraren återställt lagnamnet på servern.
+ */
+export async function klubbLoop(S, yta, { formular = klubbFormular, paus = 1200 } = {}) {
   for (;;) {
-    const v = await klubbFormular(yta, { namn: K.klubb.namn, farg: K.klubb.farg, knapp: "Spara namn och färg" });
+    const v = await formular(yta, { namn: S.K.klubb.namn, farg: S.K.klubb.farg, knapp: "Spara namn och färg" });
     if (S.vy !== "trupp") return;
-    if (v.namn === S.K.klubb.namn && v.farg === S.K.klubb.farg) continue;
     S.K = { ...S.K, klubb: { ...S.K.klubb, namn: v.namn, farg: v.farg } };
     let ok = true;
     try { await S.data.sparaKarriar(S.uid, S.K); } catch (err) { ok = false; console.warn("Matchdagen: namnet kunde inte sparas", err); }
     yta.insertAdjacentHTML("beforeend", `<p class="md-sparat" role="status">${ok ? "Sparat!" : "Kunde inte spara just nu – prova igen."}</p>`);
-    await new Promise((r) => setTimeout(r, 1200));
+    await new Promise((r) => setTimeout(r, paus));
     if (S.vy !== "trupp") return;
   }
 }

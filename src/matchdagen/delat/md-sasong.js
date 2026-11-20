@@ -9,6 +9,7 @@
 //   lagnamnOk(s)                          → trimmat namn (1–24 tecken) eller null
 //   nastaMatch(K)                         → { omg, antal, mot, hemma } | null (säsongen klar)
 //   lagInfo(K, id)                        → { id, namn, farg, vi, styrka? }
+//   motFarg(egen, mot)                    → motståndarens tröja i matchen (aldrig samma som vår)
 //   matchKlar(K, { res, rng, nu, matchId, kallNamn? })
 //                                         → { K, match, pengar, sasongKlar, plac }
 //   tabellRader(K)                        → tabellen i placeringsordning med namn och färg
@@ -43,12 +44,13 @@ export function lagnamnOk(s) {
 
 /** De sju grundpelarna med färdiga namn (§5, §8.2): alla 2★, en av dem lagkapten. */
 export function nyTrupp(rng) {
-  const anvanda = new Set();
+  const anvanda = new Set(); // förnamnen – två "Jonatan" i samma lag blir förvirrande
   const kapten = 1 + Math.floor(rng() * (STARTELVA.length - 1)); // aldrig målvakten
   return STARTELVA.map(({ pos, nr }, i) => {
-    let namn;
-    do namn = `${valj(rng, FORNAMN)} ${valj(rng, EFTERNAMN)}`; while (anvanda.has(namn));
-    anvanda.add(namn);
+    let fornamn;
+    do fornamn = valj(rng, FORNAMN); while (anvanda.has(fornamn));
+    anvanda.add(fornamn);
+    const namn = `${fornamn} ${valj(rng, EFTERNAMN)}`;
     return { id: `g${i + 1}`, namn, pos, nr, st: 2, xp: 0, grundpelare: true, kapten: i === kapten };
   });
 }
@@ -96,6 +98,12 @@ export function lagInfo(K, id) {
   if (id === OSS) return { id, namn: K.klubb.namn, farg: K.klubb.farg, vi: true };
   const l = K.liga.lag.find((x) => x.id === id);
   return l ? { id, namn: l.namn, farg: l.farg, styrka: l.styrka, vi: false } : { id, namn: "?", farg: "#7a8899", vi: false };
+}
+
+/** Motståndarens tröja i matchen: deras egen, eller en annan om eleven bytt till samma färg mitt i säsongen. */
+export function motFarg(egen, mot) {
+  const lika = (a, b) => String(a || "").toLowerCase() === String(b || "").toLowerCase();
+  return !lika(egen, mot) ? mot : LAGFARGER.find((f) => !lika(f, egen)) || "#1c2433";
 }
 
 /** Nästa ligamatch, eller null när säsongens alla omgångar är spelade. */
@@ -227,16 +235,21 @@ export function nySasong(K0, rng) {
 export const sasongFro = (K, uid = "") => `${uid}|${K.sasong}|${K.div}|liga`;
 
 /** Speltid i sekunder de senaste n dagarna (idag inräknat). */
+/** Bara riktiga dagar ("ÅÅÅÅ-MM-DD" → map) – dokumentet skrivs av eleven och kan vara trasigt. */
+const DAG = /^\d{4}-\d{2}-\d{2}$/;
+const dagRader = (dagar) => Object.entries(dagar && typeof dagar === "object" ? dagar : {})
+  .filter(([k, v]) => DAG.test(k) && v && typeof v === "object");
+
 export function sekunderSenaste(dagar = {}, nu, n = 7) {
   const grans = dagNyckel(nu - (n - 1) * 86400000);
-  return Object.entries(dagar).filter(([k]) => k >= grans).reduce((s, [, v]) => s + (Number(v.sek) || 0), 0);
+  return dagRader(dagar).filter(([k]) => k >= grans).reduce((s, [, v]) => s + (Number(v.sek) || 0), 0);
 }
 
 /** Andel rätt per vecka, de n senaste veckorna (äldst först) – null för en vecka utan frågor. */
 export function veckoRatt(dagar = {}, nu, n = 8) {
   const ut = Array.from({ length: n }, () => ({ fragor: 0, ratt: 0 }));
   const idag = dagNr(dagNyckel(nu));
-  for (const [k, v] of Object.entries(dagar)) {
+  for (const [k, v] of dagRader(dagar)) {
     const dagarSedan = idag - dagNr(k);
     const vecka = Math.floor(dagarSedan / 7);
     if (vecka < 0 || vecka >= n) continue;

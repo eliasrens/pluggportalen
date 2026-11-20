@@ -33,7 +33,7 @@ function detaljer(m) {
 export function visaStat(S, el) {
   const K = S.K;
   const s = K.summa || {};
-  const kallor = Object.entries(s.perKalla || {}).sort((a, b) => b[1].fragor - a[1].fragor);
+  const kallor = Object.entries(s.perKalla || {}).filter(([, v]) => v && typeof v === "object").sort((a, b) => (Number(b[1].fragor) || 0) - (Number(a[1].fragor) || 0));
   const senaste = K.senaste || [];
   el.innerHTML = `<div class="md-panel md-stat">
     <h2>Statistik</h2>

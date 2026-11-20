@@ -7,7 +7,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
-  OSS, dagNyckel, karriarOk, lagInfo, lagnamnOk, matchKlar, nastaMatch, nyKarriar, nySasong, omgangsPar,
+  OSS, dagNyckel, karriarOk, motFarg, lagInfo, lagnamnOk, matchKlar, nastaMatch, nyKarriar, nySasong, omgangsPar,
   pengarFor, sasongFro, sekunderSenaste, tabellRader, veckoRatt,
 } from "../src/matchdagen/delat/md-sasong.js";
 import { MOTSTANDARE, STANDARD_LAGNAMN, TROJFARGER } from "../src/matchdagen/delat/md-namn.js";
@@ -299,5 +299,38 @@ describe("sparningen: kön och valet av karriär (md-spara.js, #869 granskning)"
     assert.equal(S.lasfel, true);
     assert.deepEqual(srv.matcher, []);
     assert.equal(lasOsparad(S.lagring, "u").koe.length, 1);
+  });
+});
+
+describe("rättningsrunda 1 (#869 tester T2–T4 och små fynd)", () => {
+  it("sju olika förnamn i varje trupp (aldrig två Jonatan)", () => {
+    for (let i = 0; i < 200; i++) {
+      const fn = nyKarriar({ namn: "L", farg: TROJFARGER[0], rng: rng(`f${i}`) }).trupp.map((p) => p.namn.split(" ")[0]);
+      assert.equal(new Set(fn).size, 7, fn.join(", "));
+    }
+  });
+  it("motståndaren byter tröja om eleven har samma färg", () => {
+    assert.equal(motFarg("#2f6fe8", "#e8473f"), "#e8473f");
+    const ny = motFarg("#E8473F", "#e8473f");
+    assert.notEqual(ny.toLowerCase(), "#e8473f");
+    assert.match(ny, /^#[0-9a-f]{6}$/i);
+  });
+  it("Truppen fylls ur S.K varje gång och sparar även samma namn igen (T2)", async () => {
+    const { klubbLoop } = await import("../src/matchdagen/vy/md-vy-trupp.js");
+    const K = nyKarriar({ namn: "Bananerna", farg: TROJFARGER[0], rng: rng("t2") });
+    const sparat = [], visat = [];
+    const S = { uid: "u", vy: "trupp", K, data: { sparaKarriar: async (uid, k) => { sparat.push(k.klubb.namn + "/" + k.klubb.farg); } } };
+    const svar = [{ namn: "Citronerna", farg: TROJFARGER[0] }, { farg: TROJFARGER[2] }, { namn: "Citronerna" }];
+    let i = 0;
+    const formular = async (yta, { namn, farg }) => {
+      visat.push(namn);
+      if (i === svar.length) { S.vy = "tabell"; return { namn, farg }; }
+      const v = svar[i++];
+      return { namn: v.namn ?? namn, farg: v.farg ?? farg };
+    };
+    await klubbLoop(S, { insertAdjacentHTML() {} }, { formular, paus: 0 });
+    assert.deepEqual(visat, ["Bananerna", "Citronerna", "Citronerna", "Citronerna"], "formuläret visar det senast sparade namnet");
+    assert.deepEqual(sparat, [`Citronerna/${TROJFARGER[0]}`, `Citronerna/${TROJFARGER[2]}`, `Citronerna/${TROJFARGER[2]}`],
+      "bara färgen byts – namnet står kvar; samma namn sparas igen");
   });
 });

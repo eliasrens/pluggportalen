@@ -9,7 +9,7 @@
 
 import { andraHalvlek, antalFragor, lage, lagbonus, nyMatch, resultat, spela } from "../delat/md-motor.js";
 import { LAGE_TEXT } from "../delat/md-texter.js";
-import { matchKlar, nastaMatch } from "../delat/md-sasong.js";
+import { matchKlar, motFarg, nastaMatch } from "../delat/md-sasong.js";
 import { laggIKo, rensaPagaende, sparaPagaende } from "../md-lokal.js";
 import { sparaKon } from "../md-spara.js";
 import { kortNamn } from "../plan/md-plan.js";
@@ -95,7 +95,9 @@ function layout(S, el, mot) {
 }
 
 export async function spelaMatch(S, el, { pagaende = null } = {}) {
-  const n = nastaMatch(S.K);
+  const n0 = nastaMatch(S.K);
+  // Samma tröjfärg som motståndaren (eleven bytte färg mitt i säsongen)? De spelar i en annan.
+  const n = { ...n0, mot: { ...n0.mot, farg: motFarg(S.K.klubb.farg, n0.mot.farg) } };
   const fr = await strom(S);
   if (fr.tom) throw Object.assign(new Error("inga frågor"), { meddelande: fr.meddelande });
   const nu = Date.now();
