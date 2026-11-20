@@ -149,3 +149,133 @@ En tidigare körning av `test:functions` gav 416/157 (`internal` från callablar
   (se val 10).
 - **N2.** "Sparat ✓"-sammanfattningen visade inte pauspåminnelsen. Rättat: den visas när den avviker från
   standarden 60 min ("paus 30 min", "paus av"), som klockan och lugnt läge.
+
+## Etapp 1b – frågekällorna, den rena matchmotorn och balansen (#868)
+
+### Vad som byggts
+
+- **Frågekällorna** (`src/matchdagen/md-fragor.js`, `md-kallor.js`, spec §2): en frågeström ur `matchdagenInst`.
+  Plugga-områden ger quiz utan passage (`plainQuizPool`) och par som "Vad betyder X?". Giltigheten kommer från
+  `omradetsSaker` i provet. Multiplikationen använder Live-läget `multiplication_0_10`, begränsat till de valda
+  tabellerna. Räkna använder `rakna-core.js`. Källorna blandas jämnt med `createTopicBag`, och varje källa har en
+  egen påse i `localStorage` som inte upprepar något förrän källan är slut. Saknas källor visas "Din lärare har
+  inte valt några frågor än".
+- **Frågekortet** (`md-svar.js`): stora knappar och tangenterna 1–6, eller skriv själv med Enter. Rätt svar blir
+  grönt. Fel svar visar det rätta svaret i 1,5 s. Klockan på 30/60 s räknar en tid som har gått ut som fel.
+- **Matchmotorn** (`src/matchdagen/delat/md-motor.js`, §3): en ren tillståndsmaskin med klocka och halvlekar.
+  Den har våra val med sannolikhetstabellen, skotten med formeln, hörna efter räddning, motståndarens
+  automatiska pass, Tackla/Täck och "Kan målvakten rädda?", avspark och inspark, kommentatorn (`md-texter.js`) och
+  statistiken per match (§3.6). Kroken för två frågor per skott från Division 3 (§7.3) och `lagbonus` (§8.1) är
+  också med. Straffarna kommer i 2a.
+- **Ligan** (`md-liga.js`): round robin med cirkelmetoden, `styrkaFor(div)`, `simMal` och tabellen (poäng,
+  målskillnad, gjorda mål).
+- **Alla tal** står i `md-config.js`.
+- **Balansen:** `admin/md-balans-sim.mjs` och `npm run balans:matchdagen`, med testet
+  `test/matchdagen-balans.test.js`.
+- **Tester:** `test/matchdagen-motor.test.js` (val, skott, hörnor, tacklingar, räddningar, klocka, halvtid,
+  determinism), `test/matchdagen-liga.test.js` (schemat för 6/8/10/12 lag, tabellen, renheten och tal bara i
+  config) och `test/matchdagen-fragor.test.js` (källorna, påsen, blandningen och de saknade frågorna).
+- **Förhandsvisning:** `preview/preview-matchdagen-fragor.html` visar frågekortet och motorn som en textmatch,
+  utan plan (`PORT=8868 node server.mjs`).
+- **Docs:** `MATCHDAGEN.md` §5–§9.
+
+### Balansen (Division 6, 1 000 säsonger per rad)
+
+| Rätt | Vinst | Oavgj. | Förlust | Ligan | Mål/match | ≥1 eget mål | Förlust ≥4 | Skillnad ≥6 | Match (min) | Säsong (min) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 70 % | 61 % | 25 % | 14 % | 59 % | 2,56 | 87 % | 0 % | 0,0 % | 7,0 | 46 |
+| 50 % | 34 % | 30 % | 36 % | 14 % | 2,38 | 73 % | 0 % | 0,0 % | 7,0 | 47 |
+| 30 % | 12 % | 24 % | 64 % | 1 % | 2,39 | 53 % | 2 % | 0,0 % | 7,0 | 47 |
+
+Alla mål i §12 för Division 6 nås. Med specens startvärden vann 70 %-eleven 16 %, matchen hade 0,8 mål och tog
+4 minuter. Vilka tal som ändrades och varför står i `MATCHDAGEN.md` §7. Raderna för Superligan och Mästarcupen
+(§12, rad 3) hör till Etapp 2–3.
+
+### Skärmdumpar
+
+| Bild | Vad |
+| --- | --- |
+| [`qa-matchdagen-1b/fragekort-flerval-fel-1366.png`](qa-matchdagen-1b/fragekort-flerval-fel-1366.png) | Multiplikation, flerval, fel svar med tangent 1: valet rött, det rätta grönt, "Rätt svar: 8" (1366 × 768) |
+| [`qa-matchdagen-1b/fragekort-vad-betyder.png`](qa-matchdagen-1b/fragekort-vad-betyder.png) | Ett par från ett Plugga-område som "Vad betyder socken?" med klockan på 30 s |
+| [`qa-matchdagen-1b/fragekort-rakna-klocka-bild-1366.png`](qa-matchdagen-1b/fragekort-rakna-klocka-bild-1366.png) | Räkna-räknesättet klocka: urtavlan från `matte-visuals.js` och tipset "Svara med klockslag" (1366 × 768) |
+| [`qa-matchdagen-1b/fragekort-skriv-rakna-klocka.png`](qa-matchdagen-1b/fragekort-skriv-rakna-klocka.png) | Räkna, skriv själv, fel svar: "Rätt svar: 585", klockan räknar ned |
+
+### Körningar (Codern, c82fa3e)
+
+| Svit | Resultat |
+| --- | --- |
+| `node --test` (filerna utan emulator, 306 filer) | 4500 pass, 0 fail, 1 skipped |
+| Matchdagen 1b (`test/matchdagen-{motor,liga,fragor,balans}.test.js`) | 57 pass, 0 fail (ingår ovan) |
+| `npm run test:rules` (`admin/qa-matchdagen-867-svit.sh`) | 1015 pass, 0 fail |
+| `npm run test:functions` (samma rigg, `FUNCTIONS_EMULATOR_HOST`) | 573 pass, 0 fail, 2 todo |
+| `npm run test:e2e` | 5/5 |
+| `npm run balans:matchdagen` | alla rader "ja" (tabellen ovan) |
+| Bootgrafen | 107 filer (oförändrad, `test/matchdagen-modul.test.js`) |
+| Förhandsvisningen i webbläsaren | flerval (tangent 1, fel, facit), "Vad betyder X?", skriv själv med klocka, Räkna-klocka med bild, inga källor; inga konsolfel |
+
+### Deploy
+
+Ingen. Det finns inga regler, index, functions eller nya samlingar. Motorn och källorna används först i 1c.
+
+### Kvoten (1b)
+
+Inga Firestore-läsningar eller -skrivningar i 1b. Påsen ligger i `localStorage`. I 1c läser strömmen varje valt
+område en gång när Matchdagen öppnas, via `getArea` med cache (samma läsning som Plugga). Det tas med i 1c:s
+budget (§13).
+
+### Val där dokumentet inte räckte till
+
+1. **Balansen ändrade tio grupper av specens tal** (`MATCHDAGEN.md` §7). Specens 8–10 lägen per halvlek och 6–8 minuter per match
+   går inte ihop när ett svar tar 8–12 s. Därför gäller §12, och klockan går 1,8–2,9 minuter per läge, vilket ger
+   ~19 lägen per halvlek och ~28 frågor per match. Ett fel svar på ett kort pass lyckas nu i 60 % av fallen (specen
+   har 25 %) och ett skott efter fel svar går in i 15 % (specen har 3 %), dock aldrig oftare än ett rätt svar från samma avstånd (F1 nedan). Annars når 30 %-eleven aldrig målet "minst
+   ett mål i hälften av matcherna". Rätt svar ger fortfarande mest: 0,90 mot 0,60 för pass och 0,50 mot 0,15 för
+   skott från 20 m. Styrkeformeln för divisionerna är oförändrad.
+2. **Tidsmodellen:** "varje svar räknas som 8–12 sekunder och animationerna ingår" tolkas som 8–12 s per svar,
+   plus 2 s för valet och skissens animationer (`TID.anim`, 1–4,5 s per händelse). Halvtiden räknas som 12 s,
+   rutorna runt en match som 30 s och ett träningsläger som 8 frågor + 30 s (säsongslängden §12).
+3. **Robotarnas spelstil** (`ROBOT` i simuleringen) är ett antagande: de skjuter vid "Bra läge", och på egen
+   planhalva spelar de kort, långt och dribblar 40/40/20.
+4. **Hörna** blir det bara efter en räddning vid rätt svar, som specen säger. Skissen gav hörna efter alla missar
+   vid rätt svar. En hörna är ett vanligt anfallsläge på x = 92 med "Hörna till oss! Bollen slås in högt." och
+   `horna: true` för 1c:s höga boll.
+5. **Deras planhalva** = `x ≥ 50` (specen säger "på motståndarens planhalva", skissen har 55). Deras avspark från
+   mitten blir alltså ett automatiskt pass.
+6. **Andra halvlek:** laget som inte gjorde avspark i första halvleken börjar, det vill säga motståndarna, som i
+   skissen.
+7. **Multiplikation är EN källa** för alla valda tabeller. Annars skulle nio valda tabeller och ett område ge 90 %
+   multiplikation. `perKalla` räknas ändå per tabell (`tabell:7`), som `kallNycklar` i 1a.
+8. **Live-läget `createSource` används inte.** Det kan inte begränsas till vissa tabeller och har ingen påse som
+   går att spara. Frågan kommer i stället ur samma motor (`makeQuestion`), och Live-lägets `choices`/`checkAnswer`
+   ger alternativen och rättningen.
+9. **Svarssätt per källa:** Plugga-områden är bara flerval (quiz har alternativ, par blir flerval). Räkna är bara
+   skriv själv, eftersom generatorn saknar felalternativ. Multiplikationen följer lärarens val.
+10. **Passagefrågor tas aldrig med**, inte heller via `plainQuizPool`s reserv, som ger hela poolen när alla frågor
+    har passage. Matchdagen visar ingen källtext.
+11. **Valda områden som saknas eller är tomma** ger ett eget meddelande: "Frågorna din lärare valt går inte att
+    hitta just nu. Säg till din lärare!" Ingen match kan startas.
+12. **Räkna-påsen:** generatorn tar aldrig slut. Därför sparas bara hur många uppgifter som har dragits, och nästa
+    session startar en ny ström med ett frö ur det talet. Det blir inga upprepningar i praktiken.
+13. **`createQuestionFlow` passade inte**, eftersom det skickar varje svar till servern och tar sina frågor ur ett
+    GameMode. `md-svar.js` har samma beteende. Vid flerval får kortet fokus, inte första knappen, så att Enter
+    inte råkar svara 1.
+14. **`md-prng.js`** är en egen kopia av `kg-prng.js`, eftersom `delat/` bara importerar inom `delat/` och ska
+    kunna kopieras till `functions/` i Etapp 4.
+15. **game-shared.js i node:** den drar in Firebase och DOM. Testet byter den mot en modul med de riktiga
+    `plainQuizPool`/`hasPassage`, utklippta ur källkoden. Förhandsvisningen stubbar den med importmap.
+16. **Visuella Räkna-uppgifter** (klocka, statistik, sannolikhet och koordinatsystem) får sin bild ur
+    `matte-visuals.js` och samma tips om svarsformatet som i Räkna. Granskningen hittade att de annars inte gick
+    att besvara. Kladdytan från Räkna finns inte på frågekortet.
+17. **Räkna-strömmens frö** blandar in sessionens slump. Annars skulle en elev med blockerad `localStorage` få
+    samma uppgifter i varje match.
+
+### Rättningsrunda 1 (testarens fynd på f4422a5)
+
+- **F1 (medel), rättat.** Ett fel svar på ett långskott gav större målchans än ett rätt svar, eftersom
+  `SKOTT.fel` (0,15) var platt. Vid 44 m gav fel svar 15 % och rätt svar 2,7 %. Nu ger fel svar
+  `min(SKOTT.fel, chansen vid rätt svar från samma avstånd)`. Testarens F1-test
+  (`test/matchdagen-tester-868.test.js`) är inte längre todo. Balansen efteråt, med 1 000 säsonger:
+  70 % vinner 61 % och ligan 59 %, 50 % vinner 34 %, 30 % gör minst ett mål i 53 % av matcherna. Alla mål nås.
+- **F2 (låg), rättat.** Skriv själv-kortet flödade över vid 375 px: `scrollWidth` 543 och Svara-knappen utanför
+  skärmen. Fältets egen bredd (size=20) gav kortet en minsta bredd. `.md-fraga-input { width: 0 }` löste det,
+  nu är `scrollWidth` 375 och Svara slutar vid 341 px.

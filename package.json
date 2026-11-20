@@ -11,6 +11,7 @@
     "build:css": "node admin/bygg-styles.mjs",
     "balans:datakuppen": "node admin/datakuppen-balans.mjs",
     "balans:kurragomma": "node admin/kg-balans-sim.mjs",
+    "balans:matchdagen": "node admin/md-balans-sim.mjs",
     "sync:guldrush": "node admin/sync-guldrush-functions.mjs",
     "sync:kistspel": "node admin/sync-guldrush-functions.mjs",
     "sync:datakuppen": "node admin/sync-guldrush-functions.mjs",
