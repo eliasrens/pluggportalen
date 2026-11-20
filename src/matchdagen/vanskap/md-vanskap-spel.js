@@ -54,6 +54,7 @@ export async function spelaVanskap(S, el, { moln, vakt }) {
       // Ett saknat dokument (M = null efter första ögonblicksbilden) löser också – anroparen avslutar.
       if (!(sig?.aborted || signal?.aborted || vakt.fel || (vakt.laddad && (!vakt.M || villkor(vakt.M))))) return;
       vantare.delete(f);
+      sig?.removeEventListener("abort", f);
       ok(vakt.M);
     };
     vantare.add(f);
@@ -99,12 +100,12 @@ export async function spelaVanskap(S, el, { moln, vakt }) {
   });
   el.querySelector(".md-match").dataset.ritare = plan.typ;
   el.querySelector(".md-match").classList.add("mdv-match");
-  // mdTick när serverns tid i läget (eller halvtiden) har gått – högst var 4:e sekund.
-  let tickTill = Infinity;
+  // mdTick när serverns tid i läget (eller halvtiden) har gått och läget väntar på den – högst var 4:e sekund.
+  let tickVillkor = () => false;
   let senastTick = 0;
   const tickTimer = setInterval(() => {
     const nu = moln.serverNow();
-    if (nu < tickTill || nu - senastTick < 4000) return;
+    if (!tickVillkor(nu) || nu - senastTick < 4000) return;
     senastTick = nu;
     moln.tick(matchId).catch(() => {});
   }, 500);
@@ -142,12 +143,23 @@ export async function spelaVanskap(S, el, { moln, vakt }) {
     const n = m.fas.nr;
     const ac = new AbortController();
     const nytt = (x) => !x || x.fas?.nr !== n || x.status !== "pagar" || !!x.halvtid || (x.h?.nr ?? 0) > visad;
-    // Läget avgjort (motståndaren svarade, eller tiden gick på servern): valet/frågan stängs –
-    // men ett givet svar får visa rätt svar klart först.
+    // Läget avgjort (motståndaren svarade, eller tiden gick på servern): valet/frågan stängs – men ett
+    // givet svar får visa rätt svar klart först. Läget avgörs ofta av elevens EGET svar: ögonblicksbilden
+    // kan komma före callablens svar, så kortet stängs inte medan svaret är på väg (skickar).
     let besvarad = false;
-    vantaPa(nytt).then(() => { if (!besvarad) ac.abort(); });
-    tickTill = Math.max(deadline(m, "a"), deadline(m, "b")) + 300;
-    const minGrans = deadline(m, s) - VANSKAP.anim * 1000; // elevens egen klocka (animationen räknas inte)
+    let skickar = false;
+    vantaPa(nytt).then(() => { if (!besvarad && !skickar) ac.abort(); });
+    const slapp = () => { skickar = false; if (nytt(vakt.M)) ac.abort(); };
+    const skicka = (svar) => {
+      skickar = true;
+      return moln.svar(matchId, svar).then((r) => { if (!r?.giltig) slapp(); return r; }, (err) => { slapp(); throw err; });
+    };
+    // Servern väntar på den andra när den egna sidan är klar (svarat, eller tiden ute) och den andras tid gått.
+    tickVillkor = (nu) => (svaradFas === n || nu >= deadline(m, s)) && nu >= deadline(m, o) + 300;
+    // Elevens klocka: högst tid[s] från att frågan visas, och aldrig förbi serverns gräns (animationstiden
+    // i början av läget räknas inte bort – den ingår i serverns marginal), 1,5 s säkerhet för nätet.
+    const grans = deadline(m, s) - 1500;
+    const tidS = Number(m.tid?.[s]) || VANSKAP.tid;
     if (svaradFas !== n) {
       let p = null;
       if (forsta) { // tillbaka i en pågående match: läget kan redan vara valt eller besvarat
@@ -160,7 +172,7 @@ export async function spelaVanskap(S, el, { moln, vakt }) {
         const l = vLage(m.V);
         const roll = l.anf === s ? "anf" : "forsv";
         sag(valText(l, roll, mot.namn));
-        const tidUte = setTimeout(() => ac.abort(), Math.max(0, minGrans - moln.serverNow()));
+        const tidUte = setTimeout(() => ac.abort(), Math.max(0, grans - moln.serverNow()));
         const val = await valMeny(v.kort, roll === "anf" ? l.valAnf : l.valForsv, ac.signal);
         clearTimeout(tidUte);
         if (val) q = await moln.fraga(matchId, val).catch((err) => { sag(err?.message || "Det gick inte just nu."); return null; });
@@ -170,9 +182,9 @@ export async function spelaVanskap(S, el, { moln, vakt }) {
       else if (q?.fraga && !ac.signal.aborted) {
         const { visaFraga } = await import("../md-svar.js");
         const r = await visaFraga(v.kort, await kortFraga(q.fraga), {
-          ratta: (_f, svar) => moln.svar(matchId, svar),
-          ute: () => moln.svar(matchId, null),
-          klocka: Math.max(1, Math.ceil((minGrans - moln.serverNow()) / 1000)),
+          ratta: (_f, svar) => skicka(svar),
+          ute: () => skicka(null),
+          klocka: Math.max(1, Math.min(tidS, Math.ceil((grans - moln.serverNow()) / 1000))),
           signal: ac.signal,
           vidSvar: () => { besvarad = true; svaradFas = n; },
         });
@@ -190,7 +202,7 @@ export async function spelaVanskap(S, el, { moln, vakt }) {
     plan.stall(vy(m.V, s), { avspark: false });
     v.kort.innerHTML = "";
     sag(VANSKAP_TEXT.halvtid);
-    tickTill = m.halvtid.start + VANSKAP.halvtid * 1000 + 300;
+    tickVillkor = (nu) => nu >= m.halvtid.start + VANSKAP.halvtid * 1000 + 300;
     const ac = new AbortController();
     const slut = (x) => !x || !x.halvtid || x.status !== "pagar";
     vantaPa(slut).then(() => ac.abort());
@@ -217,6 +229,7 @@ export async function spelaVanskap(S, el, { moln, vakt }) {
   while (!signal?.aborted && !vakt.fel && vakt.M) {
     const m = vakt.M;
     if (m.h && m.h.nr > visad) {
+      tickVillkor = () => false;
       visad = m.h.nr;
       v.kort.innerHTML = "";
       sag(m.h.rad);

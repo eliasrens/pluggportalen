@@ -25,8 +25,15 @@ import { esc } from "../vy/md-vy-delat.js";
 const UTMANING_MS = VANSKAP.utmaning * 1000;
 const tal = (x) => Math.max(0, Math.floor(Number(x) || 0));
 
-/** Slutet sett av den här sidan: kassan och de inbördes mötena in i S.K (som servern skrev dem). */
-function rakneIn(S, m) {
+/** Antalet vänskapsmatcher i de inbördes mötena (v + o + f) – ett räknat möte per avslutad match. */
+export const inbordesSumma = (I) => Object.values(I && typeof I === "object" ? I : {})
+  .reduce((n, r) => n + (r && typeof r === "object" ? tal(r.v) + tal(r.o) + tal(r.f) : 0), 0);
+
+/**
+ * Slutet: kassan och de inbördes mötena in i S.K som servern skrev dem. `inbordes` = serverns (en omläst
+ * karriär) i stället för att räkna upp det egna.
+ */
+function rakneIn(S, m, inbordes = null) {
   const r = m.resultat;
   const s = m.a === S.uid ? "a" : "b";
   const o = motsida(s);
@@ -36,9 +43,21 @@ function rakneIn(S, m) {
   const g = S.K.inbordes?.[mot] || {};
   S.K = {
     ...S.K, kassa: tal(S.K.kassa) + tal(r.kassa?.[s]),
-    inbordes: { ...S.K.inbordes, [mot]: { ...g, [vof]: tal(g[vof]) + 1, namn: String(m.V?.lag?.[o]?.namn || "").slice(0, 24) } },
+    inbordes: inbordes || { ...S.K.inbordes, [mot]: { ...g, [vof]: tal(g[vof]) + 1, namn: String(m.V?.lag?.[o]?.namn || "").slice(0, 24) } },
   };
   S.kassa?.();
+}
+
+/**
+ * Matchen var redan slut när vakten startade: karriären kan vara läst före eller efter slutet. EN läsning
+ * avgör – har serverns karriär fler inbördes möten än S.K saknas den här matchen och räknas in.
+ */
+async function kollaSlut(S, m) {
+  if (!m.resultat || !S.K || !S.data?.lasKarriar) return;
+  try {
+    const G = await S.data.lasKarriar(S.uid);
+    if (inbordesSumma(G?.inbordes) > inbordesSumma(S.K.inbordes)) rakneIn(S, m, G.inbordes);
+  } catch (err) { console.warn("Matchdagen: karriären kunde inte läsas efter vänskapsmatchen", err); }
 }
 
 export function bevaka(S, moln, matchId) {
@@ -52,8 +71,9 @@ export function bevaka(S, moln, matchId) {
     vakt.M = m;
     vakt.laddad = true;
     if (m?.status === "pagar") sagPagar = true;
-    // Bara en match som pågick när vakten startade – karriären som lästes före slutet saknar pengarna.
-    if (m && m.status !== "pagar" && sagPagar && !inraknad) { inraknad = true; rakneIn(S, m); }
+    // Pågick matchen när vakten startade saknar karriären (läst före) pengarna: räkna in. Var den redan
+    // slut kan karriären ha dem – då avgör en läsning.
+    if (m && m.status !== "pagar" && !inraknad) { inraknad = true; if (sagPagar) rakneIn(S, m); else kollaSlut(S, m); }
     lyss.forEach((f) => f());
     if (m?.status !== "pagar" && !lyss.size) vakt.stopp();
   }, (err) => { vakt.fel = err; lyss.forEach((f) => f()); });
@@ -64,8 +84,12 @@ export function bevaka(S, moln, matchId) {
   return vakt;
 }
 
+/** En match i lobbyn som ingen spelar längre (båda borta) står kvar tills någon av dem anropar servern igen. */
+const GAMMAL_MS = 20 * 60 * 1000;
+const pagaende = (lob, nu) => Object.values(lob.matcher).filter((x) => !(nu - Number(x.start) > GAMMAL_MS));
+
 function kompisRad(k, { lob, uid, nu }) {
-  const spelar = Object.values(lob.matcher).some((x) => x.a === k.uid || x.b === k.uid);
+  const spelar = pagaende(lob, nu).some((x) => x.a === k.uid || x.b === k.uid);
   const utmanad = Object.entries(lob.utmaningar).find(([, u]) => u.fran === uid && u.till === k.uid && nu - u.sedan < UTMANING_MS);
   const knapp = spelar ? `<span class="md-svag">spelar just nu</span>`
     : utmanad ? `<span class="md-svag">väntar på svar …</span> <button type="button" class="md-ghost" data-tillbaka="${esc(utmanad[0])}">Ta tillbaka</button>`
@@ -76,7 +100,7 @@ function kompisRad(k, { lob, uid, nu }) {
 export function lobbyHtml(S, { lob, kompisar, elev, nu }) {
   const uid = S.uid;
   const inkomna = Object.entries(lob.utmaningar).filter(([, u]) => u.till === uid && nu - u.sedan < UTMANING_MS);
-  const andra = Object.values(lob.matcher).filter((x) => x.a !== uid && x.b !== uid);
+  const andra = pagaende(lob, nu).filter((x) => x.a !== uid && x.b !== uid);
   const idag = elev?.dag === dagNyckel(nu) ? tal(elev.antal) : 0;
   const k = VANSKAP.kassa;
   const inb = Object.entries(S.K?.inbordes || {}).filter(([, r]) => r && typeof r === "object")
@@ -108,6 +132,7 @@ export function lobbyHtml(S, { lob, kompisar, elev, nu }) {
 export async function visaVanskap(S, el) {
   const VS = S.vanskap;
   const signal = S.flik?.signal;
+  S.vanskapBakgrund?.(); // en lobby som lyssnade i bakgrunden (väntande utmaning) – den här tar över
   el.innerHTML = `<div class="md-panel"><p class="md-svag">Hämtar lobbyn …</p></div>`;
   const moln = await VS.moln();
   // Kommer eleven tillbaka till en pågående match (vakten finns) öppnas den direkt.
@@ -134,13 +159,36 @@ export async function visaVanskap(S, el) {
     const map = (v) => (v && typeof v === "object" && !Array.isArray(v) ? v : {});
     return { utmaningar: map(d?.utmaningar), matcher: map(d?.matcher) };
   };
-  const av = moln.lyssnaLobby(VS.classId, (d) => { lob = norm(d); rita(); }, (err) => {
+  // Eleven byter flik medan den egna utmaningen väntar: lobbyn lyssnas på tills den antas (då öppnas
+  // matchen – Vänskap visas igen), tas bort eller går ut. Annars skulle eleven förlora på walkover utan att veta.
+  let bakgrund = false;
+  const minUtmaning = () => !!lob && Object.values(lob.utmaningar).some((u) => u.fran === S.uid && moln.serverNow() - u.sedan < UTMANING_MS);
+  const iBakgrunden = () => {
+    const egen = Object.entries(lob.matcher).find(([, x]) => x.a === S.uid || x.b === S.uid);
+    if (egen) { stang(); bevaka(S, moln, egen[0]); if (!S.signal?.aborted) S.visa("vanskap"); } else if (!minUtmaning()) stang();
+  };
+  const av = moln.lyssnaLobby(VS.classId, (d) => { lob = norm(d); if (bakgrund) iBakgrunden(); else rita(); }, (err) => {
     console.warn("Matchdagen: lobbyn kunde inte läsas", err);
+    if (bakgrund) { stang(); return; }
     el.innerHTML = `<div class="md-panel"><p>Lobbyn går inte att öppna just nu. Prova igen om en stund.</p></div>`;
   });
-  const timer = setInterval(rita, 5000); // utmaningar som gått ut försvinner
-  const stang = () => { av(); clearInterval(timer); };
-  signal?.addEventListener("abort", stang, { once: true });
+  let timer = setInterval(rita, 5000); // utmaningar som gått ut försvinner
+  let stangd = false;
+  const stang = () => {
+    if (stangd) return;
+    stangd = true;
+    av();
+    clearInterval(timer);
+    if (S.vanskapBakgrund === stang) S.vanskapBakgrund = null;
+  };
+  S.signal?.addEventListener("abort", stang, { once: true });
+  signal?.addEventListener("abort", () => {
+    if (stangd || oppnad || !minUtmaning()) return stang();
+    bakgrund = true;
+    S.vanskapBakgrund = stang;
+    clearInterval(timer);
+    timer = setInterval(() => iBakgrunden(), 5000);
+  }, { once: true });
 
   async function gor(fn) {
     upptagen = true;
@@ -150,7 +198,8 @@ export async function visaVanskap(S, el) {
       // En match som inte hann sparas (offline) sparas först – annars skriver den över kassan efteråt.
       if (!(await sparaKon(S).catch(() => false))) throw new Error("Din senaste match är inte sparad än. Kontrollera nätet och försök igen.");
       const r = await fn();
-      if (r?.matchId && !signal?.aborted) { oppnad = true; stang(); return oppna(S, el, moln, r.matchId); }
+      // Lobbyn hinner ofta öppna matchen (ögonblicksbilden före svaret) – då inte en gång till.
+      if (r?.matchId && !oppnad && !signal?.aborted) { oppnad = true; stang(); return oppna(S, el, moln, r.matchId); }
     } catch (err) {
       felText = err?.message || "Det gick inte just nu – försök igen.";
     }

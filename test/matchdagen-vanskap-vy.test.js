@@ -78,12 +78,27 @@ describe("vakten räknar in slutet som servern (§11.4)", () => {
     assert.ok(r.av() >= 1);
     assert.equal(r.S.vanskapVakt, null);
   });
-  it("redan slut när vakten startade (karriären har pengarna): ingenting räknas in", () => {
+  it("redan slut när vakten startade, karriären läst EFTER slutet (har mötet): ingenting räknas in", async () => {
     const r = rigg();
+    r.S.data = { lasKarriar: async () => ({ kassa: 600, inbordes: { u1: { v: 1, o: 0, f: 0, namn: "Gamla" } } }) };
     bevaka(r.S, r.moln, "m1");
     r.skicka(slut);
+    await new Promise((ok) => setTimeout(ok, 0));
     assert.equal(r.S.K.kassa, 500);
     assert.equal(r.S.K.inbordes.u1.f, 0);
+  });
+  it("redan slut när vakten startade, karriären läst FÖRE slutet: EN läsning visar det – räknas in", async () => {
+    const r = rigg();
+    let lasningar = 0;
+    const server = { u1: { v: 1, o: 0, f: 1, namn: "FC Ny" } };
+    r.S.data = { lasKarriar: async () => { lasningar++; return { kassa: 700, inbordes: server }; } };
+    bevaka(r.S, r.moln, "m1");
+    r.skicka(slut);
+    r.skicka(slut);
+    await new Promise((ok) => setTimeout(ok, 0));
+    assert.equal(lasningar, 1);
+    assert.equal(r.S.K.kassa, 600, "den egna kassan + matchens pengar (köp och matcher i appen finns kvar)");
+    assert.deepEqual(r.S.K.inbordes, server);
   });
   it("avbruten (båda borta): inget resultat, ingen kassa", () => {
     const r = rigg();
@@ -118,7 +133,7 @@ describe("frågekortet med serverns rättning (md-svar.js)", () => {
       knappar[1].on.click(); // medan servern rättar
       assert.deepEqual(anrop, [0]);
       assert.ok("rattar" in kort.dataset);
-      svara.nej(new Error("offline"));
+      svara.nej(new Error("Det gick inte just nu – försök igen.")); // serverns/molnets text visas
       await new Promise((r) => setTimeout(r, 0));
       assert.match(facit.textContent, /försök igen/);
       knappar[1].on.click();

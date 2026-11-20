@@ -89,11 +89,11 @@ export function visaFraga(host, fraga, { ratta, klocka = 0, signal, vidSvar, ute
       if (r?.then) {
         rattar = true;
         kort.dataset.rattar = "";
-        try { r = await r; } catch { r = { fel: true }; }
+        try { r = await r; } catch (err) { r = { fel: true, text: err?.message }; }
         rattar = false;
         delete kort.dataset.rattar;
         if (klar) return; // avbrutet under tiden
-        if (r.fel && !tidenUte) { facit.textContent = "Ingen kontakt med servern – försök igen."; return; }
+        if (r.fel && !tidenUte) { facit.textContent = r.text || "Ingen kontakt med servern – försök igen."; return; }
         if (r.fel) r = { giltig: true, ratt: false, facit: fraga.facit }; // servern avgör läget ändå när tiden gått
       }
       if (!r.giltig) {
