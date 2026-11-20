@@ -116,6 +116,7 @@ Alla ligger i dag under Statistik → klass → underflik, och efter B under Min
 | Mattematchen `statistik.mattematchen`: välj period → klassens tabell | Statistik → Mattematchen | alla | Hur går det? → Mattematchen [B] | 2 → 2 |
 | Live `statistik.live`: klassens Live-matcher + elevernas summa | Statistik → Live | alla | Hur går det? → Live [B] | 2 → 2 |
 | Schack `statistik.schack`: Slå på/Stäng av schack, pågående partier (Titta = åskådarläge, Avsluta partiet), topplistan (Dölj/Visa för eleverna, Nollställ topplistan), statistik (förr sektionen `sektioner.schack`) | Klasser → klass → Schack | alla | Hur går det? → **Schack**; på/av även i Vad eleverna ser → 2 [B] | 2 → 2 |
+| Matchdagen `statistik.matchdagen` (#869): en rad per elev med Matchdagen (speltid 7 dagar/totalt, matcher, andel rätt totalt och per källa, division, säsong, senast spelat); klick → senaste matcherna, veckolinje, lagnamn + Återställ lagnamn. Visas bara när någon elev i klassen har Matchdagen | – (ny) | alla | Hur går det? → **Matchdagen** [–] | – → 2 |
 | Hitta rätt! (klassens statistik) | – (finns inte i dag) | – | **Ingen underflik i B:** det finns ingen statistik per klass för Hitta rätt! (topplistorna gäller hela skolan, #609). På/av ligger i Vad eleverna ser → 2 [B] | – |
 
 ## 5. Hem (dagens Översikt)

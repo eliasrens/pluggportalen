@@ -116,11 +116,14 @@ export function pengarFor({ oss, dem }, ratt, div = 0) {
   return Math.round((grund + ratt * k.perRatt + oss * k.perMal) * (1 + div * k.perDiv));
 }
 
-/** Datumnyckeln YYYY-MM-DD i lokal tid. */
-export function dagNyckel(nu) {
-  const d = new Date(nu);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
+/**
+ * Datumnyckeln ÅÅÅÅ-MM-DD i svensk tid – samma dag i webbläsaren och (Etapp 4)
+ * på servern, oberoende av maskinens tidszon. Ingen klocka: tiden skickas in.
+ */
+const SVENSK_DAG = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Stockholm", year: "numeric", month: "2-digit", day: "2-digit" });
+export const dagNyckel = (nu) => SVENSK_DAG.format(nu);
+/** Dagnummer (dagar sedan 1970-01-01) för en datumnyckel – för att räkna dagar mellan två nycklar. */
+const dagNr = (k) => Math.round(Date.UTC(+k.slice(0, 4), +k.slice(5, 7) - 1, +k.slice(8, 10)) / 86400000);
 
 /** Tabellen i placeringsordning, med namn och färg. */
 export function tabellRader(K) {
@@ -232,9 +235,9 @@ export function sekunderSenaste(dagar = {}, nu, n = 7) {
 /** Andel rätt per vecka, de n senaste veckorna (äldst först) – null för en vecka utan frågor. */
 export function veckoRatt(dagar = {}, nu, n = 8) {
   const ut = Array.from({ length: n }, () => ({ fragor: 0, ratt: 0 }));
-  const idag = new Date(dagNyckel(nu) + "T12:00:00");
+  const idag = dagNr(dagNyckel(nu));
   for (const [k, v] of Object.entries(dagar)) {
-    const dagarSedan = Math.round((idag - new Date(k + "T12:00:00")) / 86400000);
+    const dagarSedan = idag - dagNr(k);
     const vecka = Math.floor(dagarSedan / 7);
     if (vecka < 0 || vecka >= n) continue;
     ut[n - 1 - vecka].fragor += Number(v.fragor) || 0;

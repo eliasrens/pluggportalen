@@ -70,7 +70,7 @@ describe("delat/ är ren och har alla tal i md-config.js", () => {
   const filer = readdirSync(DIR).filter((f) => f.endsWith(".js")).sort();
   const utanKommentarer = (f) => readFileSync(new URL(f, DIR), "utf8")
     .replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "").replace(/\s\/\/.*$/gm, "");
-  it("filerna", () => assert.deepEqual(filer, ["md-config.js", "md-liga.js", "md-motor.js", "md-prng.js", "md-texter.js"]));
+  it("filerna", () => assert.deepEqual(filer, ["md-config.js", "md-liga.js", "md-motor.js", "md-namn.js", "md-prng.js", "md-sasong.js", "md-texter.js"]));
   it("ingen DOM, Firebase, three.js, klocka eller Math.random – bara importer inom delat/", () => {
     for (const f of filer) {
       const src = utanKommentarer(f);

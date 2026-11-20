@@ -66,6 +66,8 @@ export const PLACERING = {
     live: { roll: "alla", efter: "Mina klasser → Hur går det? → Live", del: "B" },
     // #804: förr klassens sektion "Schack" (på/av även under Vad eleverna ser).
     schack: { roll: "alla", efter: "Mina klasser → Hur går det? → Schack (på/av även under Vad eleverna ser)", del: "B" },
+    // #869: bara när någon elev i klassen har Matchdagen (elevModuler).
+    matchdagen: { roll: "alla", efter: "Mina klasser → Hur går det? → Matchdagen (bara elever med Matchdagen)", del: "–" },
   },
 };
 
