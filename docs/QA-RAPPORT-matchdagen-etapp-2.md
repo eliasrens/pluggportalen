@@ -27,7 +27,11 @@ och ingen fil är över 400 rader. Arkitekturen: `MATCHDAGEN.md` §14–16.
 | Rekorden | [2c/03](qa-matchdagen-2c/03-nytt-rekord.png), [2c/04](qa-matchdagen-2c/04-statistik-rekord.png), [2c/07 mobil](qa-matchdagen-2c/07-mobil-rekord.png) |
 | Matchen i 3D och 2D | Etapp 1: [`QA-RAPPORT-matchdagen-etapp-1.md`](QA-RAPPORT-matchdagen-etapp-1.md) (planen är oförändrad i Etapp 2 utom straffarna) |
 
-**Bilder per sekund:** §FPS§
+**Bilder per sekund:** planen är oförändrad sedan Etapp 1, utom straffkameran (2a). Mätt igen på 2c:s kod i
+förhandsvisningen, en cupmatch i 3D (`?omg=2&fps=1&auto=1`, 1366 × 900, huvudlös Chromium med SwiftShader,
+mjukvaru-WebGL på en lastad server utan GPU): **19,8 fps i snitt, lägst 12** – samma nivå som Etapp 1:s 20–32 fps i
+samma miljö. **Specens ≥ 50 fps på skolans HP-datorer är fortfarande inte uppmätt** (ingen GPU här). Mät på en
+HP-dator med `/?fps=1#/elev/matchdagen` (Etapp 1-rapporten); under 50 fps → `?2d=1` för de eleverna.
 
 **Balansen** (`npm run balans:matchdagen`, ~2,5 min, fasta frön):
 
