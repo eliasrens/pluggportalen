@@ -35,7 +35,8 @@ export async function startaLegend(S, el, tillbaka) {
   </div>`;
   el.querySelector("[data-tillbaka]").addEventListener("click", () => tillbaka());
   const yta = el.querySelector(".md-legend-form");
-  const fel = (t) => { const p = yta.querySelector(".md-fel"); if (p) p.textContent = t; };
+  // "Sparar …" står i svag färg, felen i rött (.md-fel)
+  const fel = (t, svag = false) => { const p = yta.querySelector(".md-fel"); if (p) { p.textContent = t; p.classList.toggle("md-svag", svag); } };
   let v = { namn: "", farg: undefined };
   let meddelande = "";
   for (;;) {
@@ -51,7 +52,7 @@ export async function startaLegend(S, el, tillbaka) {
     if (!yta.isConnected) return; // eleven bytte flik
     const knapp = yta.querySelector(".md-stor");
     knapp.disabled = true;
-    fel("Sparar …");
+    fel("Sparar …", true);
     const tom = await sparaKon(S);
     if (!tom) { meddelande = "Matcherna är inte sparade än – prova igen när datorn har kontakt med servern."; continue; }
     const Kny = nyLegendklubb(S.K, { ...v, rng: Math.random });
@@ -63,6 +64,7 @@ export async function startaLegend(S, el, tillbaka) {
       continue;
     }
     S.K = Kny;
+    fel("");
     rensaPagaende(S.lagring, S.uid);
     S.kassa();
     await ruta(S.host, {

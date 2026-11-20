@@ -77,6 +77,7 @@
 .md-efter-pokal .md-pokalbild { width: 96px; height: 120px; filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.5)); }
 .md-titel .md-ruta { box-shadow: 0 0 0 3px var(--md-gul), 0 20px 60px rgba(0, 0, 0, 0.5); }
 .md-legend-ruta .md-ruta { box-shadow: 0 0 0 3px var(--md-gul); }
+.md-legend .md-fel.md-svag { color: var(--md-svag); font-weight: 600; }
 
 /* --- 2D: finalens flaggor och firandet ------------------------------------- */
 .md-plan2d .md2-flaggor path { transform-box: fill-box; transform-origin: 0 50%; animation: md2-vaja 1.6s ease-in-out infinite alternate; animation-delay: calc(var(--i) * -0.27s); }
@@ -107,4 +108,7 @@
   .md-hyllor { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .md-skap-huvud { align-items: flex-start; }
   .md-marke-ram.stor .md-marke { width: 56px; height: 66px; }
+  /* fem flikar sedan Pokalskåpet: smalare knappar, och de bryts hellre än sticker ut */
+  .md-flikar { gap: 4px; }
+  .md-flikar button { flex: 1 1 auto; min-width: 0; padding: 8px 4px; font-size: 13px; }
 }
