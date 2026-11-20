@@ -390,3 +390,16 @@ rättas före merge. F1 är en ren visningsmiss.
   till Elias; DATAMODELL.md säger nu att `legendStjarnor` kan utelämnas (bara nedåt).
 - **Inte rättat:** F2 (bara dokumenterat), F3 (eget spel), F4 (fråga till Elias), punkten i skåpets text utan
   stjärnor (bara förbi appen).
+
+### Testerns omtest (rättning 1, 88e16112) – PASS
+
+- **F1 stängd:** `toppRader` räknar ur `pokalerFranDok`. Den nya `test/matchdagen-mastarcup-vy.test.js` (3) fäller med
+  den gamla `md-larare-stat.js`/`md-vy-tabell.js` (0 pass / 3 fail) och går igenom med rättningen. Mot emulatorn
+  (karriär med raderna `superliga|…|12`, `mastarcup|…|13`): lärarens panel visar nu "Mästare i Superligan: 1 gång"
+  och "Mästarcupen vunnen: 1 gång" (`20-testern-larare-titlar-omtest.png`).
+- **F5 stängd:** Superligans tabell säger "Ettan blir mästare och bjuds in till Mästarcupen", Division 6 som förut
+  (testat); rapporten och MATCHDAGEN.md säger 1 375 kr.
+- **Rapporten/docs:** marginalen för en ny klubb 5; F2 och F3 under Kända gränser, F4 som fråga 4 till Elias;
+  DATAMODELL.md säger att `legendStjarnor` kan utelämnas (= 0, bara nedåt).
+- **Regression:** Matchdagen enhet 321/0 (`test/matchdagen-*.test.js`, bootgrafen 107 i `matchdagen-modul.test.js`),
+  `npm run test:rules` 1140/1141 – samma tidsflake i `firestore-rules-prov-helskarm.test.js`, filen ensam 20/20.
