@@ -219,3 +219,37 @@
 @media (max-width: 640px) {
   .md-stege li { min-width: 0; flex: 1 1 22%; padding: 5px 6px; font-size: 14px; }
 }
+
+/* --- Etapp 2b (#871): truppen, reserverna, marknaden och träningslägret ---- */
+.md-kassarad { margin: 14px 0 0; font-weight: 800; }
+.md-kassarad b { color: var(--md-gul); font: 800 22px var(--md-rubrikfont); }
+.md-lagdelar { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin: 8px 0 0; }
+.md-lagdelar > div { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 12px; background: var(--md-panel2); }
+.md-lagdelar b { font: 800 24px/1 var(--md-rubrikfont); color: var(--md-gul); }
+.md-lagdelar small { color: var(--md-svag); font-weight: 800; }
+.md-spkort .md-stapel i { background: var(--md-gul); }
+.md-kortknappar { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.md-kortknappar .md-ghost { min-height: 44px; text-align: left; }
+.md-kop {
+  min-height: 44px; margin-top: 4px; padding: 8px 12px; border: 0; border-radius: 12px;
+  background: var(--md-gul); color: #1b1500 !important; font-weight: 800;
+}
+.md-kop:disabled { background: #0a1220; color: var(--md-svag) !important; cursor: default; }
+.md-truppstatus { min-height: 1.5em; margin: 14px 0 0; font-weight: 800; color: var(--md-gron); }
+.md-truppstatus .md-fel { margin: 0; }
+.md-lager { padding: 12px 14px; border-radius: 14px; border: 1px solid var(--md-linje); background: var(--md-panel2); }
+.md-lager > p:first-child { margin-top: 0; }
+.md-lagerval {
+  min-height: 48px; max-width: 100%; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--md-linje);
+  background: #0a1220; color: var(--md-ink); font: 700 16px Nunito, system-ui, sans-serif;
+}
+.md-lager-huvud p { margin: 0 0 4px; }
+.md-lager-spelare { display: grid; grid-template-columns: auto minmax(80px, 240px) auto; gap: 10px; align-items: center; }
+.md-firande { min-height: 1.5em; margin: 6px 0; color: var(--md-gul); font: 800 22px var(--md-rubrikfont); }
+.md-firande:empty { min-height: 0; margin: 0; }
+.md-tips { margin: 12px 0 0; color: var(--md-svag); }
+.md-tips .md-lank { min-height: 0; padding: 0; color: var(--md-gul); }
+@media (max-width: 640px) {
+  .md-lager-spelare { grid-template-columns: auto 1fr; }
+  .md-lager-spelare small { grid-column: 1 / -1; }
+}

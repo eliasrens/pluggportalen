@@ -7,11 +7,12 @@
 // rutan berättar sedan hur kvalet gick. Själva matchen spelas i md-match-spel.js.
 // ============================================================================
 
-import { DIVISIONER, TOPP_DIV } from "../delat/md-config.js";
+import { DIVISIONER, TOPP_DIV, TRANING } from "../delat/md-config.js";
 import { kvalMatch } from "../delat/md-kval.js";
 import { nastaMatch, nyKarriar, nySasong, sasongFro, tabellRader } from "../delat/md-sasong.js";
 import { skapaPrng } from "../delat/md-prng.js";
-import { lasPagaende } from "../md-lokal.js";
+import { lagerNyckel } from "../delat/md-trupp.js";
+import { lasLager, lasPagaende } from "../md-lokal.js";
 import { klubbFormular } from "./md-vy-klubb.js";
 import { chip, esc } from "./md-vy-delat.js";
 
@@ -43,6 +44,10 @@ export async function visaMatchFlik(S, el) {
   const n = nastaSpel(S.K);
   if (!n) return sasongSlut(S, el);
   const pagaende = lasPagaende(S.lagring, S.uid, S.K, n.typ);
+  // Ett påbörjat träningsläger sparas före nästa match (lägret och matchen i samma skrivning
+  // ryms inte i reglerna, och nästa match skulle stänga lägret) – #871.
+  const lager = !pagaende && lasLager(S.lagring, S.uid, S.K);
+  if (lager) return lagerVantar(S, el, lager);
   const vi = S.K.klubb;
   const kval = n.typ === "kval";
   el.innerHTML = `<div class="md-panel md-fore${kval ? " md-kval" : ""}">
@@ -53,12 +58,14 @@ export async function visaMatchFlik(S, el) {
       : kval
         ? `<p>Ni vann ${esc(DIVISIONER[n.kval.div])}! Vinner ni kvalet går ni upp till <b>${esc(DIVISIONER[n.kval.till])}</b>. Blir det oavgjort avgörs det på straffar – fem var, sedan sudden death.</p>`
         : `<p class="md-svag">Varje drag ger en fråga. Svarar du rätt lyckas passet eller skottet oftare – men även snygga skott kan räddas, och långskott går sällan in.</p>`}
+    ${!pagaende && lagerNyckel(S.K) ? `<p class="md-tips">Ni har ett träningsläger ledigt under <button type="button" class="md-lank" data-trupp>Truppen</button> – det går förlorat när nästa match spelas.</p>` : ""}
     <div class="md-rad">
       <button type="button" class="md-stor" data-avspark>${pagaende ? "Fortsätt matchen" : "Avspark!"}</button>
       ${S.lugnt ? `<span class="md-lugnt-etikett">Lugnt läge</span>` : ""}
     </div>
     <p class="md-fel" aria-live="polite"></p>
   </div>`;
+  el.querySelector("[data-trupp]")?.addEventListener("click", () => S.visa("trupp"));
   el.querySelector("[data-avspark]").addEventListener("click", async (e) => {
     e.currentTarget.disabled = true;
     const { spelaMatch } = await import("./md-match-spel.js");
@@ -70,6 +77,19 @@ export async function visaMatchFlik(S, el) {
       el.innerHTML = `<div class="md-panel md-tom"><h2>Något gick fel</h2><p>${esc(err?.meddelande || "Matchen kunde inte startas. Ladda om sidan och prova igen.")}</p></div>`;
     }
   });
+}
+
+/** Ett påbörjat (eller osparat) träningsläger: eleven gör klart det under Truppen först. */
+function lagerVantar(S, el, lager) {
+  const p = S.K.trupp.find((x) => x.id === lager.spelareId);
+  const klart = lager.svar.length >= TRANING.fragor;
+  el.innerHTML = `<div class="md-panel md-fore">
+    <p class="md-overrad">Träningslägret</p>
+    <h2>Gör klart träningen först</h2>
+    <p>${klart ? `Träningen med ${esc(p?.namn)} är klar men inte sparad än.` : `${esc(p?.namn)} tränar – ${Number(lager.svar.length)} av ${TRANING.fragor} frågor besvarade.`} Gör klart lägret under Truppen innan nästa match.</p>
+    <div class="md-rad"><button type="button" class="md-stor" data-trupp>Till Truppen</button></div>
+  </div>`;
+  el.querySelector("[data-trupp]").addEventListener("click", () => S.visa("trupp"));
 }
 
 async function nyKlubb(S, el) {

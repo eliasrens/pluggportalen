@@ -15,6 +15,7 @@
 import { MATCHDAGEN_IKON } from "../gamemode-visibility.js";
 import { harKallor, normalizeInst } from "./md-inst.js";
 import { hamtaKarriar } from "./md-spara.js";
+import { truppFalt } from "./delat/md-trupp.js";
 import { esc, laddaTypsnitt } from "./vy/md-vy-delat.js";
 
 const FLIKAR = [["match", "Match"], ["tabell", "Tabell"], ["trupp", "Truppen"], ["stat", "Statistik"]];
@@ -48,9 +49,15 @@ export async function startaMatchdagen(host, deps) {
   S.kassa = () => {
     host.querySelector(".md-kassa").textContent = S.K ? `${Number(S.K.kassa || 0).toLocaleString("sv-SE")} kr i klubbkassan` : "";
   };
-  /** Byt flik. Matchen ligger kvar (pausad på frågan) när eleven tittar på en annan flik. */
+  /**
+   * Byt flik. Matchen ligger kvar (pausad på frågan) när eleven tittar på en annan flik.
+   * S.flik avbryts vid varje flikbyte – träningslägrets fråga (Truppen) stängs då; svaren
+   * är redan sparade lokalt och lägret fortsätter när eleven kommer tillbaka (#871).
+   */
   S.visa = async (vy) => {
     S.vy = vy;
+    S.flik?.abort();
+    S.flik = new AbortController();
     host.querySelectorAll(".md-flikar button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.vy === vy)));
     for (const [id] of FLIKAR) sektion(id).hidden = id !== vy;
     S.kassa();
@@ -61,6 +68,7 @@ export async function startaMatchdagen(host, deps) {
     if (vy === "trupp") return (await import("./vy/md-vy-trupp.js")).visaTrupp(S, el);
     if (vy === "stat") return (await import("./vy/md-vy-stat.js")).visaStat(S, el);
   };
+  S.signal?.addEventListener("abort", () => S.flik?.abort(), { once: true });
   host.querySelector(".md-flikar").addEventListener("click", (e) => {
     const b = e.target.closest("[data-vy]");
     if (b) S.visa(b.dataset.vy);
@@ -72,7 +80,7 @@ export async function startaMatchdagen(host, deps) {
     host.querySelector(".md-flikar").hidden = true;
     return S;
   }
-  S.K = await hamtaKarriar(S);
+  S.K = truppFalt(await hamtaKarriar(S));
   await S.visa("match");
   return S;
 }

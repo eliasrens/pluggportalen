@@ -14,30 +14,14 @@ import { LAGE_TEXT } from "../delat/md-texter.js";
 import { matchKlar, motFarg } from "../delat/md-sasong.js";
 import { kvalKlar } from "../delat/md-kval.js";
 import { laggIKo, rensaPagaende, sparaPagaende } from "../md-lokal.js";
+import { kaptenPlats } from "../delat/md-trupp.js";
 import { sparaKon } from "../md-spara.js";
 import { kortNamn } from "../plan/md-plan.js";
 import { chip, esc, ruta, valMeny, vanta } from "./md-vy-delat.js";
+import { strom } from "./md-strom.js";
 import { kvalResultat, nastaSpel, sasongSlutText, startaNastaSasong } from "./md-vy-match.js";
 
 const LJUS = new Set(["#f2f2f2"]);
-
-/** Frågeströmmen (en per besök – områdena läses en gång, §13) och källornas namn till statistiken. */
-async function strom(S) {
-  if (S.strom) return S.strom;
-  const kallNamn = {};
-  const { skapaFragestrom } = await import("../md-fragor.js");
-  const s = await skapaFragestrom({
-    inst: S.inst, uid: S.uid,
-    hamtaOmrade: async (subj, area) => {
-      const a = await S.hamtaOmrade(subj, area);
-      if (a?.name) { kallNamn[`omrade:${subj}/${area}`] = a.name; kallNamn[`rakna:${subj}/${area}`] = a.name; }
-      return a;
-    },
-  });
-  for (const t of S.inst.tabeller) kallNamn[`tabell:${t}`] = `${t}:ans tabell`;
-  S.strom = { ...s, kallNamn };
-  return S.strom;
-}
 
 async function avatarBild(S) {
   if (!S.avatar) return null;
@@ -114,7 +98,7 @@ export async function spelaMatch(S, el, { pagaende = null, spel = null } = {}) {
   let m = post.m;
   if (pagaende) m.senast = nu; // tiden borta räknas inte (MAX_LAGE_S)
   const v = layout(S, el, n.mot);
-  const kapten = S.K.trupp.findIndex((p) => p.kapten);
+  const kapten = kaptenPlats(S.K.trupp);
   const [{ skapaPlan }, { skapaLjud }, avatar] = await Promise.all([import("../plan/md-plan.js"), import("../plan/md-ljud.js"), avatarBild(S)]);
   const ljud = skapaLjud({ lugnt: S.lugnt });
   const sattLjudknapp = () => {
@@ -165,7 +149,7 @@ export async function spelaMatch(S, el, { pagaende = null, spel = null } = {}) {
     if (klar || !arKlar(m)) return;
     const res = resultat(m);
     klar = kval
-      ? kvalKlar(S.K, { res, nu: Date.now(), matchId: post.matchId, kallNamn: fr.kallNamn })
+      ? kvalKlar(S.K, { res, rng: Math.random, nu: Date.now(), matchId: post.matchId, kallNamn: fr.kallNamn })
       : matchKlar(S.K, { res, rng: Math.random, nu: Date.now(), matchId: post.matchId, kallNamn: fr.kallNamn });
     S.K = klar.K;
     laggIKo(S.lagring, S.uid, { K: klar.K, matchId: post.matchId, match: klar.match });

@@ -102,6 +102,18 @@ export function nyKarriar({ namn, farg, rng }) {
   };
 }
 
+/**
+ * Den nya klubben som den såg ut när den skapades – för en klubb vars första sparning
+ * aldrig gick fram (md-data.js sparaMatch skapar den först, sedan matchen). Reglerna
+ * skapar bara en klubb från noll (firestore.rules mdTomSumma, inga reserver, ingen marknad).
+ */
+export function forstaDokument(K) {
+  return {
+    ...K, kassa: Math.min(Number(K.kassa) || 0, C.KASSA.start), reserver: [], marknad: [], lager: undefined,
+    kval: null, pokaler: [], summa: tomSumma(), senaste: [], sasonger: [], dagar: {},
+  };
+}
+
 /** Är dokumentet en användbar karriär? (annars börjar eleven med en ny klubb) */
 export function karriarOk(K) {
   return !!(K && K.klubb && typeof K.klubb.namn === "string" && K.liga && Array.isArray(K.liga.lag) &&
