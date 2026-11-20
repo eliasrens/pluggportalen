@@ -28,6 +28,7 @@ import { MAX_STARS_PER_MODE, areaModes, areaEarned, progressLevel } from "./teac
 import { openStudentDetail } from "./teacher-class-detail.js";
 import { avNotis, lastStatsTab, modulAv, sparaStatsTab } from "./teacher-stats-av.js";
 import { schackLararIkon } from "./teacher-schack-ikon.js";
+import { MATCHDAGEN_IKON } from "./gamemode-visibility.js";
 
 /** Cellens innehåll för en elev × ett område. */
 function cellHtml(earned, maxStars) {
@@ -64,7 +65,7 @@ function cellHtml(earned, maxStars) {
  */
 export async function renderClassStats(ctx, host, opts) {
   // Underflikar ur STATS_TABS (#402 Läsresan, #446 Per område, #459 Mattematchen,
-  // #460 Live, #804 Schack). `when` döljer flikar som kräver t.ex. classId. Elevernas
+  // #460 Live, #804 Schack, #869 Matchdagen). `when` döljer flikar som kräver t.ex. classId. Elevernas
   // progress läses EN gång och delas mellan flikarna (kvot-regeln #114).
   let progressPromise = null;
   const loadProgress = () => (progressPromise ||= loadClassProgress(opts.students));
@@ -179,6 +180,14 @@ export const STATS_TABS = [
       (await import("./schack/larare/schack-larare.js")).renderSchackSektion(ctx, o.cls, pane, {
         students: o.studentById ? [...o.studentById.values()] : o.students,
       }),
+  },
+  {
+    key: "matchdagen", label: "Matchdagen", svg: () => MATCHDAGEN_IKON, what: "Matchdagen", lazy: true,
+    // #869 (§6.4): bara när någon elev i klassen har Matchdagen (elevModuler) – en läsning per elev.
+    when: (o) => !!o.cls?.elevModuler && Object.entries(o.cls.elevModuler).some(([uid, l]) =>
+      Array.isArray(l) && l.includes("matchdagen") && (o.students || []).some((s) => s.id === uid)),
+    render: async (ctx, pane, o) =>
+      (await import("./matchdagen/larare/md-larare-stat.js")).renderClassMatchdagen(ctx, pane, { cls: o.cls, students: o.students }),
   },
 ];
 

@@ -10569,6 +10569,24 @@ html.reduce-motion .schack-pokal-ny { animation: none; }
   .md-fraga-alt { grid-template-columns: 1fr; }
 }
 
+/* --- Hur går det? → Matchdagen (#869, md-larare-stat.js) ------------------- */
+.teacher-dark .mdl { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.teacher-dark .mdl-rad { cursor: pointer; }
+.teacher-dark .mdl-rad:hover td, .teacher-dark .mdl-rad[aria-expanded="true"] td { background: var(--t-surface-2); }
+.teacher-dark .mdl-rad:focus-visible { outline: 2px solid var(--t-accent, #ffd23f); outline-offset: -2px; }
+.teacher-dark .mdl-kallor { display: flex; flex-wrap: wrap; gap: 4px; }
+.teacher-dark .mdl-kalla { padding: 1px 8px; border-radius: 999px; background: var(--t-surface-2); font-size: 0.85rem; white-space: nowrap; }
+.teacher-dark .mdl-elev { padding: 12px 14px; border: 1px solid var(--t-border); border-radius: 12px; background: var(--t-surface-2); }
+.teacher-dark .mdl-elev .subhead { margin: 0 0 8px; }
+.teacher-dark .mdl-topp { display: flex; flex-wrap: wrap; gap: 12px 32px; margin-bottom: 10px; }
+.teacher-dark .mdl-lagnamn { font-size: 1.1rem; }
+.teacher-dark .mdl-rad-knapp { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; }
+.teacher-dark .mdl-linje { display: block; margin-top: 4px; overflow: visible; }
+.teacher-dark .mdl-linje polyline { fill: none; stroke: #3ccf6e; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.teacher-dark .mdl-linje .mdl-prick { fill: #3ccf6e; }
+.teacher-dark .mdl-linje .mdl-mitt { stroke: var(--t-border); stroke-dasharray: 3 3; }
+.teacher-dark .mda-lagnamn-status { margin-left: 8px; }
+
 /* ── src/styles/49-matchdagen-match.css ── */
 /* ==========================================================================
    Matchdagen 1c (#869): elevens app i skissens kvällsarena – djup marin,
