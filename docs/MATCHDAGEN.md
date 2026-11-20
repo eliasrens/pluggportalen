@@ -255,7 +255,7 @@ allt i `src/matchdagen/plan/` laddas först när matchen startar. Stilarna: `src
 | `src/tre/tre-ladda.js` | delad three-laddning (`harWebGL`, `laddaThree`), utbruten ur Kurragömmas `kg-tre.js` (som re-exporterar) |
 | `src/matchdagen/delat/md-namn.js`, `md-sasong.js` | ren: namnen och färgerna, klubben/säsongen/karriären (§10) |
 | `src/matchdagen/md-app.js` | elevens app: sidhuvud med klubbkassan, flikarna, tillståndet och sparningen |
-| `src/matchdagen/md-data.js`, `md-lokal.js` | Firestore (§10) och det som sparas lokalt (pågående match, osparad match) |
+| `src/matchdagen/md-data.js`, `md-lokal.js`, `md-spara.js` | Firestore (§10), det som sparas lokalt (pågående match, kön av osparade matcher) och kön + valet av karriär |
 | `src/matchdagen/vy/` | flikarna: `md-vy-match` (före avspark, ny klubb, säsongsslut), `md-match-spel` (matchen), `md-vy-tabell`, `md-vy-trupp`, `md-vy-stat`, `md-vy-klubb`, `md-vy-delat` |
 | `src/matchdagen/plan/` | planen (§12): `md-plan` (väljer 3D/2D, spelar upp händelserna), `md-formation` (ren), `md-tre-ritare`/`-arena`/`-figur` (3D), `md-plan-2d` (SVG-reserven), `md-ljud` (Web Audio) |
 | `src/matchdagen/larare/md-larare-stat.js`, `md-lagnamn.js` | lärarens underflik Matchdagen i Hur går det? och Återställ lagnamn (§13) |
@@ -295,9 +295,11 @@ inga functions.
   stannar i Division 6. Lottningen seedas med `sasongFro(K, uid)`, så samma liga visas vid omladdning innan den
   sparas (den sparas med nästa match).
 - **Fortsätta senare** (`md-lokal.js`): den pågående matchen (`m` ur motorn, ren JSON) sparas i `localStorage`
-  (`matchdagen-match:{uid}`) efter varje läge och tas upp igen om den hör till nästa match. En färdig match vars
-  sparning misslyckades ligger i `matchdagen-osparad:{uid}` och sparas om nästa gång (knappen "Försök igen" i
-  appen eller när Matchdagen öppnas).
+  (`matchdagen-match:{uid}`) efter varje läge och tas upp igen om den hör till nästa match. Färdiga matcher
+  läggs först i en **kö** (`matchdagen-osparad:{uid}` = `{ K, koe }`, högst 30) och sparas i ordning
+  (`md-spara.js sparaKon`) direkt efter matchen och när Matchdagen öppnas. `hamtaKarriar` väljer den sparade
+  eller den lokala karriären (flest matcher – men alltid serverns `klubb`) och skriver ingenting om
+  karriären inte gick att läsa.
 
 ### 10.2 Datamodellen
 
@@ -312,7 +314,8 @@ Fälten står i [`DATAMODELL.md`](DATAMODELL.md#matchdagenuid--elevens-karriär-
 `test/firestore-rules-matchdagen.test.js`, nyckel MK):
 
 - Läsa: `isSelf(uid) || hasStudent(uid)` (karriären och `matcher`).
-- Eleven skapar/ändrar sitt dokument: kända fält, `div` 0–7, truppen exakt 7 med `st` 1–5, lagnamn 1–24, färg
+- Eleven skapar/ändrar sitt dokument: kända fält, `div` 0–7, truppen exakt 7 med `st` 1–5, `summa` med kända
+  nycklar och bara heltal (`mdSummaOk` – summan visas i lärarens vy), lagnamn 1–24, färg
   `#rrggbb`, `senast` = serverns tid, tak på alla listor och mappar. **Bara de fält som ändras prövas**
   (`diff().affectedKeys()`, som `schackOk`) – annars spräcks gränsen på 1000 uttryck per begäran.
 - Läraren (`hasStudent`): bara `klubb.namn` och bara till "Pluggporten FC" (`STANDARD_LAGNAMN`).
@@ -333,8 +336,11 @@ Fälten står i [`DATAMODELL.md`](DATAMODELL.md#matchdagenuid--elevens-karriär-
 | Ny säsong | 0 (sparas med nästa match) |
 | Läraren: Återställ lagnamn | 1 (`aterstallLagnamn`, bara `klubb.namn`) |
 
-Om batchen nekas för att `matcher/{id}` redan finns (ett tidigare försök gick fram men svaret kom aldrig) sparas
-bara karriären. Matchdagen ger **inga pluggmynt** – klubbkassan är spelets egen valuta.
+Matchsparningen skriver allt **utom `klubb`** (`mergeFields`), så lärarens Återställ lagnamn står kvar; `klubb`
+skrivs bara av ny klubb och Truppen. Nekas batchen läses de två dokumenten: finns `matcher/{id}` redan (ett
+tidigare försök gick fram men svaret kom aldrig) sparas bara karriären, och saknas karriären (den nya klubben
+hann aldrig sparas) skickas den hela med `klubb`. Varje läsning och skrivning har en tidsgräns (8 s,
+`medTidsgrans`) – offline löser Firestore aldrig skrivningens promise; matchen ligger kvar i kön. Matchdagen ger **inga pluggmynt** – klubbkassan är spelets egen valuta.
 
 ## 11. Kvoten (Etapp 1c, spec §13)
 

@@ -406,9 +406,9 @@ functions.
 
 | Svit | Resultat |
 | --- | --- |
-| `node --test` (de 313 filerna som inte kräver emulatorn) | 4538 pass, 0 fail, 1 skipped |
-| Matchdagen 1c (`test/matchdagen-sasong.test.js`, `test/matchdagen-plan.test.js`) | 27 pass (ingår ovan) |
-| `npm run test:rules` (`admin/qa-matchdagen-867-svit.sh`) | 1025 pass, 0 fail (10 nya i `firestore-rules-matchdagen.test.js`) |
+| `node --test` (de 314 filerna som inte kräver emulatorn) | 4545 pass, 0 fail, 1 skipped (efter granskningen) |
+| Matchdagen 1c (`test/matchdagen-sasong.test.js`, `-plan`, `-larare`) | 34 pass (ingår ovan) |
+| `npm run test:rules` (`admin/qa-matchdagen-867-svit.sh`) | 1027 pass, 0 fail (12 nya i `firestore-rules-matchdagen.test.js`, efter granskningen) |
 | `npm run test:functions` (samma rigg) | 572 pass, 1 fail, 2 todo – felet är `functions-kurragomma.test.mjs` "letfasen" (två slumpvis placerade gömda på samma ställe); filen ensam: 7/7. Inga filer i `functions/` är ändrade |
 | `npm run test:e2e` | 5/5 |
 | Bootgrafen | 107 filer (oförändrad) |
@@ -419,3 +419,31 @@ functions.
 återställer lagnamnet → Alva ser "Pluggporten FC"; en hel match med `?2d=1` sparades (omgång 3 av 5 nästa);
 omgång 3–5 i 3D (en robot klickade svaren) → "Se hur säsongen slutade" → plats 5 av 6 → Starta nästa säsong →
 Säsong 2 mot Smedjebacka United, samma lottning efter omladdning. Inga fel i konsolen.
+
+### Granskningen (code review på 1fed1ec4..efter rapporten) – rättat
+
+- **G1 (hög), lagrad XSS hos läraren.** `summa.matcher` skrevs rått in i lärarens tabell, och reglerna prövade
+  bara att `summa` var en map. Nu kräver `mdSummaOk` kända nycklar och heltal (`ratt ≤ fragor`), och
+  `md-larare-stat.js` tvättar varje tal ur elevens dokument (`tal()`), även matchraderna. Tester:
+  `firestore-rules-matchdagen.test.js` (text, decimaltal, okänd nyckel) och `matchdagen-larare.test.js`.
+- **G2 (medel), Återställ lagnamn skrevs över.** Matchsparningen skrev hela karriären med `klubb`. Nu skriver
+  `sparaMatch` allt utom `klubb` (`mergeFields`); `klubb` skrivs bara av ny klubb och Truppen. Saknas
+  karriären (den nya klubben hann aldrig sparas) skickas den hela. En lokal karriär med fler matcher tar
+  serverns `klubb` när sidan öppnas.
+- **G3 (medel), en osparad match kunde försvinna.** Lokalt fanns bara EN osparad match. Nu är det en kö
+  (`laggIKo`, högst 30) som `md-spara.js` sparar i ordning när sidan öppnas och efter varje match.
+- **G4 (medel), offline hängde rutan efter matchen.** Firestores skrivningar löses aldrig offline. Varje
+  läsning och skrivning i `md-data.js` har nu en tidsgräns (8 s, läsningen 16 s); matchen ligger kvar i kön.
+- **G5 (låg).** Kunde karriären inte läsas skrivs ingenting (Match-fliken säger "Klubben kunde inte hämtas"),
+  så en gammal lokal kopia skriver aldrig över en nyare.
+- **G6 (låg).** Återställ lagnamn för en elev utan lag säger "har inte startat något lag än" även när
+  reglerna svarar `permission-denied`.
+- **G7 (låg).** Matchens avbrottslyssnare tas bort när matchen är slut, och 3D-ritaren släpper WebGL-kontexten
+  (`forceContextLoss`).
+- **G8 (låg).** Pixelvakten börjar mäta om efter ett uppehåll över 250 ms (dold flik, sovläge) och sänker inte
+  längre skärpan i onödan.
+- **G9 (låg).** Tangenterna 1–4 gör inget när matchen ligger i en dold flik.
+
+Omtest i appen mot emulatorn: Alva skapar "Gamla Namnet IF", läraren återställer lagnamnet medan Alvas sida är
+öppen, Alva spelar en hel match (2D) → sparad utan "sparas så fort det går", kön tom, och efter omladdning heter
+laget fortfarande "Pluggporten FC" (omgång 2 av 5, 755 kr); lärarens rad och historik visar matchen.
