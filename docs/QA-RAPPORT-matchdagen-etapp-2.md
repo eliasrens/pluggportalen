@@ -213,4 +213,30 @@ Inga index och inga functions.
 
 ### Körningar (Codern, 870)
 
-KÖRNINGAR
+| Svit | Resultat |
+| --- | --- |
+| `node --test` (de 283 filerna som inte kräver emulatorn) | 4589 pass, 0 fail, 1 skipped |
+| Matchdagen (`test/matchdagen-*.test.js`) | 171 pass (ingår ovan) |
+| `npm run test:rules` (`admin/qa-matchdagen-867-svit.sh`) | 1047 pass, 0 fail (nya i `firestore-rules-matchdagen-kval.test.js`) |
+| `npm run test:functions` (samma rigg) | **ofullständig:** 278 pass, 0 fail (2 kända TODO i schack) innan körningen stoppades för minnesbrist på maskinen. Inga filer i `functions/` är ändrade i 2a |
+| `npm run test:e2e` | 5/5 |
+| Bootgrafen | 107 filer (oförändrad, `test/matchdagen-modul.test.js`) |
+| `npm run balans:matchdagen` | omkörd – identisk med tabellerna ovan (fasta frön) |
+
+**I appen mot emulatorn** (Alva, `MD_PA=1 MD_KVAL=1`): Match → kvalet → oavgjort → straffar 3 – 0 → "Uppflyttning!"
+sparad (kön tom) → omladdning visar Division 5 → Starta nästa säsong → en ligamatch sparad. Läraren ser "(kval)" och
+"str. 3–0".
+
+### Granskningen (code review på e9f9a90b..a6776b0a) – rättat
+
+Inga höga eller medelhöga fynd (straffläggningens avgörande prövat mot en referens för alla utfall, XSS i elev- och
+lärarvy, reglerna mot det appen skriver).
+
+- **L1 (låg), ett förlorat kval kunde spelas om.** Den avgjorda matchen låg som "pågående" i `localStorage` tills
+  sista animationen var klar; en flik som stängdes då kastade den (den var ju klar) och kvalet började om från
+  0 – 0. Nu bokförs matchen i kön (`bokfor()` i `md-match-spel.js`: `matchKlar`/`kvalKlar` + `laggIKo` +
+  `rensaPagaende`) så fort den är avgjord – efter sista draget eller den avgörande straffen, **före** animationen.
+  Test i `matchdagen-kval-vy.test.js`; i förhandsvisningen var den pågående matchen borta och matchen i kön 3,3 s
+  innan rutan "Nära!" kom. Gäller också ligamatcher (samma lucka fanns sedan 1c).
+- **L2 (låg, inte rättad):** en elev som vann Division 6 med Etapp 1-koden och inte startat nästa säsong får aldrig
+  sitt kval. Etapp 1 och 2a deployas tillsammans (samma epic), så det kan inte hända i drift.
