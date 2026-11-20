@@ -302,7 +302,7 @@ stjärnor för rätt svar. Arkitekturen står i `MATCHDAGEN.md` §15.
 
 ### Skärmdumpar
 
-Förhandsvisningen (`preview/preview-matchdagen.html`, 1366 × 900; `08` i 375 px).
+`01`–`08` i förhandsvisningen (`preview/preview-matchdagen.html`, 1366 × 900; `08` i 375 px), `09` i appen mot emulatorn.
 
 | Bild | Vad |
 | --- | --- |
@@ -314,6 +314,7 @@ Förhandsvisningen (`preview/preview-matchdagen.html`, 1366 × 900; `08` i 375 p
 | [`06-lager-klart.png`](qa-matchdagen-2b/06-lager-klart.png) | "Träningen är klar! 7 av 8 rätt. Melvin Lind har nu 4★ och 68/100 träningspoäng." |
 | [`07-match-vantar-pa-lagret.png`](qa-matchdagen-2b/07-match-vantar-pa-lagret.png) | Match-fliken under ett påbörjat läger: "Gör klart träningen först" |
 | [`08-mobil-truppen.png`](qa-matchdagen-2b/08-mobil-truppen.png) | 375 px: lagdelarna två och två, lägret, statusraden efter köpet – ingen sidledsscroll |
+| [`09-app-emulator-efter-omladdning.png`](qa-matchdagen-2b/09-app-emulator-efter-omladdning.png) | Appen mot emulatorn (Alva, `MD_PA=1 MD_TRUPP=1`): efter köp, byte fram och tillbaka och ett läger – omladdad: 1 790 kr, Leah Ström 3★ 96/100, Isak Berglund bland reserverna, lägret använt |
 
 ### Balansen (`npm run balans:matchdagen`)
 
@@ -430,10 +431,43 @@ index, inga functions.
 - **Förhandsvisningen:** `PORT=8871 node server.mjs` → `preview/preview-matchdagen.html?ny=1&omg=2&trupp=visa&vy=trupp`
   (Truppen, köp, byt in, lägret), `?omg=3&kassa=4000&vy=trupp` (köp med grundpelare till reserverna). Ladda om
   mitt i lägret → det fortsätter; Match-fliken → "Gör klart träningen först".
-- **Appen mot emulatorn:** `MD_PA=1 PORT=8871 bash admin/qa-matchdagen-867-preview.sh` – Alva: spela en match →
+- **Appen mot emulatorn:** `MD_PA=1 MD_TRUPP=1 PORT=8872 bash admin/qa-matchdagen-867-preview.sh` (Alva har spelat två omgångar och har 3 000 kr) – Alva:
   Truppen: köp en spelare (kassan i sidhuvudet minskar), kör ett läger (stjärnan/stapeln växer) → ladda om →
   allt finns kvar.
 
 ### Körningar (Codern, 871)
 
-SUITES_TODO
+| Svit | Resultat |
+| --- | --- |
+| `node --test` (de 319 filerna som inte kräver emulatorn) | 4621 pass, 0 fail, 1 skipped. (6 "cancelled" i `firestore-rules-amneslasning-texter.test.js` – en emulatorfil som inte står i något npm-skript, oförändrad) |
+| Matchdagen (`test/matchdagen-*.test.js`) | 200 pass (ingår ovan; 27 nya i `matchdagen-trupp.test.js`) |
+| `npm run test:rules` (`admin/qa-matchdagen-867-svit.sh`) | 1071 pass, 0 fail (17 i `firestore-rules-matchdagen-trupp.test.js`) |
+| `npm run test:functions` (samma rigg) | FUNCTIONS_TODO |
+| `npm run test:e2e` | 5/5 |
+| Bootgrafen | 107 filer (oförändrad, `test/matchdagen-modul.test.js`) |
+| `npm run balans:matchdagen` | 116 s – tabellerna ovan; Division 6/alla divisioner/startlaget identiska med 2a |
+| Marginalen mot 1000-gränsen | mätt per skrivning (tabellen ovan) |
+
+**I appen mot emulatorn** (Alva, `MD_PA=1 MD_TRUPP=1`, 2D): Truppen → köp Leah Ström 3★ för 1 210 kr ("Isak Berglund
+sitter bland reserverna", kassan i sidhuvudet 3 000 → 1 790) → byt in Isak och tillbaka → träningslägret 8 av 8
+rätt (Leah 96/100) → omladdning: allt kvar, lägret använt. Sedan en hel match (2 – 1, +398 kr) – sparad mot
+reglerna (kön tom), kassan 2 188 kr, ett nytt läger öppet och en ny marknad.
+
+### Granskningen (code review på 70cd7504..6f9f6fd2) – rättat
+
+- **M1 (medel), en kö som spelats medan truppen ändrades någon annanstans låstes för alltid.** Reglerna godtar
+  bara spelare ur det sparade dokumentet, och `hamtaKarriar` väljer den lokala karriären (flest matcher). Spelade
+  eleven offline på en dator och köpte/tränade på en annan – eller gick ett köp fram fast svaret aldrig kom – nekades
+  varje matchsparning, och köp/läger väntade på kön. Nu läser `sparaKon` serverns karriär EN gång vid ett nekande och
+  lägger kön ovanpå dess trupp, reserver och läger (`ovanpaServern`; kassan = serverns + köns pengar, högst den
+  lokala). Tester i `matchdagen-trupp.test.js` och regeltestet "en kö som spelats medan truppen ändrades …".
+- **L1, mer än 30 osparade matcher låste sparningen** (regeln Δ`summa.matcher` ≤ 30, men kön räknar alla matcher
+  i karriären). Nu ≤ 500 per skrivning (samma kostnad); regeltest med 40.
+- **L2, lägret kunde startas medan ett köp sparades** – två frågeslingor i samma yta. Nu väntar köp och läger på
+  varandra (`S.truppUpptagen`), och ett nytt `visaLager` avbryter det förra (en signal per yta).
+- **L3, ett flikbyte hoppade över en svår fråga** i lägret. Nu visas samma fråga igen när eleven kommer tillbaka
+  (samma läger och plats; en omladdning ger en ny, som i matchen).
+- **L4 (dokumenterat, inte rättat):** en elev som skriver förbi appen kan växla `lager` fram och tillbaka och träna
+  mer – att lägret är nyare prövas inte (för många uttryck). Bara det egna spelet; står i reglerna och §15.4.
+- Inget i XSS (allt ur dokumentet `esc()`/tal i vyerna), avbrottet vid flikbyte, de vanliga skrivningarna mot reglerna
+  eller äldre dokument.
