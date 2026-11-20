@@ -14,12 +14,20 @@
 //   lasOsparad(lagring, uid) → { K, koe } | null
 //   laggIKo(lagring, uid, { K, matchId, match })   lägger matchen sist i kön, K blir den nya
 //   sparaOsparad(lagring, uid, { K, koe } | null), rensaOsparad(lagring, uid)
+//   • det pågående träningslägret (#871, §8.4): matchdagen-lager:{uid}
+//     { v, nyckel, spelareId, svar: [{ ratt }], sek } – varje svar sparas SÅ FORT det
+//     är givet, så en omladdning fortsätter på nästa fråga (aldrig en ny chans på samma)
+//   lasLager(lagring, uid, K) → post | null  (bara om lägret fortfarande är ledigt i K)
+//   pagaendeLager(S)          → samma, eller lägret i minnet (S.lagerMinne) utan lokal lagring
+//   sparaLager(lagring, uid, post), rensaLager(lagring, uid)
 // ============================================================================
 
 import { arKlar } from "./delat/md-motor.js";
+import { lagerNyckel } from "./delat/md-trupp.js";
 
 export const MATCH_NYCKEL = "matchdagen-match:";
 export const OSPARAD_NYCKEL = "matchdagen-osparad:";
+export const LAGER_NYCKEL = "matchdagen-lager:";
 
 function las(lagring, nyckel) {
   try { return JSON.parse(lagring?.getItem(nyckel) || "null"); } catch { return null; }
@@ -56,3 +64,17 @@ export function laggIKo(lagring, uid, { K, matchId, match }) {
 }
 export const sparaOsparad = (lagring, uid, post) => skriv(lagring, OSPARAD_NYCKEL + uid, post);
 export const rensaOsparad = (lagring, uid) => skriv(lagring, OSPARAD_NYCKEL + uid, null);
+
+/** Det pågående träningslägret – bara om det gäller klubbens lediga läger och spelaren finns i startelvan. */
+export function lasLager(lagring, uid, K) {
+  return giltigtLager(las(lagring, LAGER_NYCKEL + uid), K);
+}
+/** Samma läger ur lagringen – eller ur minnet (S.lagerMinne) när lagringen saknas eller inte går att skriva (privat fönster). */
+export const pagaendeLager = (S) => lasLager(S.lagring, S.uid, S.K) || giltigtLager(S.lagerMinne, S.K);
+function giltigtLager(p, K) {
+  if (!p || p.v !== 1 || typeof p.nyckel !== "string" || !Array.isArray(p.svar)) return null;
+  if (!K || p.nyckel !== lagerNyckel(K) || !K.trupp?.some((x) => x.id === p.spelareId)) return null;
+  return { ...p, svar: p.svar.map((x) => ({ ratt: x?.ratt === true })), sek: Math.max(0, Number(p.sek) || 0) };
+}
+export const sparaLager = (lagring, uid, post) => skriv(lagring, LAGER_NYCKEL + uid, { v: 1, ...post });
+export const rensaLager = (lagring, uid) => skriv(lagring, LAGER_NYCKEL + uid, null);

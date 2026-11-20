@@ -18,6 +18,9 @@
 // Superligan-målet (80 % rätt, tränat lag med snitt 4★: vinner 45–55 %) och
 // karriären – hur många säsonger det tar att gå upp genom stegen (bara uppåt).
 //
+// Etapp 2b (#871): ekonomin (§12: 60 % rätt köper en 3★ efter ~3 matcher) och karriären
+// med den riktiga truppen, marknaden och träningslägret – admin/md-balans-trupp.mjs.
+//
 // Robotarnas beteende (antaganden, inte spelregler – står i docs/MATCHDAGEN.md):
 // ROBOT nedan. Exporterar spelaMatch/spelaSasong/korBalans/bedom/tabell så att
 // testet (test/matchdagen-balans.test.js) kan köra en kort variant.
@@ -58,11 +61,6 @@ export const MAL = {
 };
 /** Superligan-raden: 80 % rätt och ett tränat lag med snitt 4★ (lagbonus ur stjärnorna, §8.1). */
 export const SUPER = { andelRatt: 0.8, stjarnor: 4 };
-/**
- * Antagande för karriären med träning (Etapp 2b ger truppen, marknaden och lägret): lagets
- * snitt växer jämnt från startlagets 2★ i Division 6 till 4★ i Superligan.
- */
-export const tranadStjarnor = (div) => 2 + (2 * div) / TOPP_DIV;
 export const tranatLag = (st) => lagbonus(["MV", "FÖR", "FÖR", "MIT", "MIT", "ANF", "ANF"].map((pos) => ({ pos, st })));
 export const NIVAER = [0.7, 0.5, 0.3];
 /** En "stor förlust": så här många mål eller mer i underläge. "9–0"-gränsen: så här stor skillnad. */
@@ -138,8 +136,12 @@ export function spelaMatch({ seed, andelRatt, styrka, div = 0, bonus = {}, avgor
 /**
  * En säsong i en division: eleven + datorlag, round robin, övriga matcher med simMal.
  * Ligavinnaren under Superligan spelar kvalet mot styrka(div + 1), oavgjort → straffar (§7.2).
+ * bonus är lagbonusen, eller (Etapp 2b) en funktion (omgång | "kval") → lagbonus före varje
+ * match; efterMatch(r, omgång | "kval") anropas efter varje egen match
+ * (klubbkassan, marknaden och träningslägret i md-balans-trupp.mjs).
  */
-export function spelaSasong({ seed, andelRatt, div = 0, bonus = {} }) {
+export function spelaSasong({ seed, andelRatt, div = 0, bonus = {}, efterMatch = null }) {
+  const bonusFor = (o) => (typeof bonus === "function" ? bonus(o) : bonus);
   const rng = skapaPrng(seed, "liga");
   const n = LAGANTAL[div];
   const ids = ["oss", ...Array.from({ length: n - 1 }, (_, i) => `lag${i + 1}`)];
@@ -151,8 +153,9 @@ export function spelaSasong({ seed, andelRatt, div = 0, bonus = {} }) {
     for (const [a, b] of omg) {
       if (a === "oss" || b === "oss") {
         const mot = a === "oss" ? b : a;
-        const r = spelaMatch({ seed: `${seed}|${o}`, andelRatt, styrka: styrka[mot], div, bonus });
+        const r = spelaMatch({ seed: `${seed}|${o}`, andelRatt, styrka: styrka[mot], div, bonus: bonusFor(o) });
         matcher.push(r);
+        efterMatch?.(r, o);
         sek += r.sekunder + ROBOT.mellanMatchS + ROBOT.traningFragor * (TID.svar.min + TID.svar.max) / 2 + ROBOT.traningExtraS;
         tabell = a === "oss" ? laggTill(tabell, a, b, r.oss, r.dem) : laggTill(tabell, a, b, r.dem, r.oss);
       } else {
@@ -164,14 +167,15 @@ export function spelaSasong({ seed, andelRatt, div = 0, bonus = {} }) {
   const placering = sorteraTabell(tabell).findIndex((r) => r.id === "oss") + 1;
   let kval = null;
   if (placering === 1 && div < TOPP_DIV) {
-    kval = spelaMatch({ seed: `${seed}|kval`, andelRatt, styrka: styrkaFor(div + 1, skapaPrng(seed, "kval").tal), div, bonus, avgor: true });
+    kval = spelaMatch({ seed: `${seed}|kval`, andelRatt, styrka: styrkaFor(div + 1, skapaPrng(seed, "kval").tal), div, bonus: bonusFor("kval"), avgor: true });
     sek += kval.sekunder + ROBOT.mellanMatchS;
+    efterMatch?.(kval, "kval");
   }
   return { matcher, placering, sekunder: sek, tabell, kval };
 }
 
 /** n säsonger vid andelRatt → måtten. kvalVinst = andelen vunna kval (null utan kval); straffar = andelen kval som gick till straffar. */
-export function korBalans({ andelRatt, n = 1000, div = 0, bonus = {}, namn = null }) {
+export function korBalans({ andelRatt, n = 1000, div = 0, bonus = {}, namn = null, stjarnor = null }) {
   const matcher = [];
   const kval = [];
   let ligor = 0;
@@ -202,7 +206,7 @@ export function korBalans({ andelRatt, n = 1000, div = 0, bonus = {}, namn = nul
     fragorPerMatch: snitt((m) => m.fragor),
     matchMin: snitt((m) => m.sekunder) / 60,
     sasongMin: sasongS / n / 60,
-    div, namn,
+    div, namn, stjarnor,
     kval: kval.length / n,
     kvalVinst: kval.length ? kval.filter((k) => k.vann).length / kval.length : null,
     kvalStraffar: kval.length ? kval.filter((k) => k.straffar).length / kval.length : null,
@@ -231,14 +235,14 @@ export function korDivisioner({ andelRatt, n = 400, bonus = {}, namn = null }) {
  * via ett vunnet kval, aldrig ned. Ger för varje division andelen karriärer som når
  * den och medianen säsonger och speltimmar dit (bland dem som når den).
  */
-export function karriar({ andelRatt, n = 100, sasonger = 30, bonus = {}, tranad = false }) {
+export function karriar({ andelRatt, n = 100, sasonger = 30, bonus = {} }) {
   const nar = DIVISIONER.map(() => []);
   for (let k = 0; k < n; k++) {
     let div = 0;
     let sek = 0;
     nar[0].push({ sasong: 0, h: 0 });
     for (let s = 1; s <= sasonger && div < TOPP_DIV; s++) {
-      const S = spelaSasong({ seed: `kar|${andelRatt}|${k}|${s}`, andelRatt, div, bonus: tranad ? tranatLag(tranadStjarnor(div)) : bonus });
+      const S = spelaSasong({ seed: `kar|${andelRatt}|${k}|${s}`, andelRatt, div, bonus });
       sek += S.sekunder;
       if (S.kval?.vann) {
         div++;
@@ -247,7 +251,7 @@ export function karriar({ andelRatt, n = 100, sasonger = 30, bonus = {}, tranad 
     }
   }
   const median = (a) => (a.length ? a.slice().sort((x, y) => x - y)[Math.floor(a.length / 2)] : null);
-  return { andelRatt, n, sasonger, tranad, div: nar.map((l, d) => ({ div: d, andel: l.length / n, sasonger: median(l.map((x) => x.sasong)), timmar: median(l.map((x) => x.h)) })) };
+  return { andelRatt, n, sasonger, div: nar.map((l, d) => ({ div: d, andel: l.length / n, sasonger: median(l.map((x) => x.sasong)), timmar: median(l.map((x) => x.h)) })) };
 }
 
 const pct = (v) => `${Math.round(v * 100)} %`;
@@ -268,7 +272,7 @@ export function tabell(rader, md = false) {
 /** Divisionstabellen: en rad per division och nivå – vinst, ligan, kvalet, mål, tid. */
 export function divTabell(rader, md = false) {
   const huvud = ["Division", "Rätt", "Lag", "Vinst", "Oavgj.", "Ligan", "Kval vunna", "Kval på straffar", "Mål/match", "Gjorda", "Insl.", "≥1 eget mål", "Match (min)", "Säsong (min)", "Mål"];
-  const rad = (r) => [DIVISIONER[r.div] + (r.namn === "super" ? ` (${SUPER.stjarnor}★)` : ""), pct(r.andelRatt), String(LAGANTAL[r.div]), pct(r.vinst), pct(r.oavgjort), pct(r.liga),
+  const rad = (r) => [DIVISIONER[r.div] + (r.stjarnor ? ` (${r.stjarnor}★)` : ""), pct(r.andelRatt), String(LAGANTAL[r.div]), pct(r.vinst), pct(r.oavgjort), pct(r.liga),
     r.kvalVinst == null ? "–" : pct(r.kvalVinst), r.kvalStraffar == null ? "–" : pct(r.kvalStraffar), dec(r.malPerMatch), dec(r.gjorda), dec(r.insl), pct(r.minstEttMal),
     dec(r.matchMin, 1), dec(r.sasongMin, 0), r.namn === "super" || !r.div ? (bedom(r).length ? `NEJ: ${bedom(r).join("; ")}` : "ja") : "–"];
   return skriv(huvud, rader.map(rad), md);
@@ -278,7 +282,7 @@ export function divTabell(rader, md = false) {
 export function karriarTabell(karriarer, md = false) {
   const huvud = ["Rätt", "Laget", ...DIVISIONER.slice(1)];
   const cell = (d) => (d.andel ? `${pct(d.andel)} · ${d.sasonger} säs. · ${dec(d.timmar, 1)} h` : "–");
-  return skriv(huvud, karriarer.map((k) => [pct(k.andelRatt), k.tranad ? "tränas 2★→4★" : "startlaget 2★", ...k.div.slice(1).map(cell)]), md);
+  return skriv(huvud, karriarer.map((k) => [pct(k.andelRatt), "startlaget 2★", ...k.div.slice(1).map(cell)]), md);
 }
 
 function skriv(huvud, rader, md) {
@@ -291,7 +295,10 @@ function skriv(huvud, rader, md) {
 /** Divisionernas nivåer (startlaget) och karriärens nivåer. */
 export const DIV_NIVAER = [0.8, 0.7, 0.5];
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+// Ingen top-level await: md-balans-trupp.mjs importerar den här modulen, som måste vara färdig först.
+if (process.argv[1] === fileURLToPath(import.meta.url)) huvud();
+
+async function huvud() {
   const arg = process.argv.slice(2);
   const n = Number(arg[arg.indexOf("--n") + 1]) || 1000;
   const md = arg.includes("--md");
@@ -300,14 +307,24 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   console.log(`Matchdagen – balans i Division 6 (${n} säsonger à 5 matcher per rad)\n`);
   console.log(tabell(rader, md));
   const nDiv = Math.max(20, Math.round(n / 2.5));
-  const sup = korBalans({ andelRatt: SUPER.andelRatt, n: nDiv, div: TOPP_DIV, bonus: tranatLag(SUPER.stjarnor), namn: "super" });
+  const sup = korBalans({ andelRatt: SUPER.andelRatt, n: nDiv, div: TOPP_DIV, bonus: tranatLag(SUPER.stjarnor), namn: "super", stjarnor: SUPER.stjarnor });
+  // Etapp 2b: ett fullt tränat lag (5★) – dit når den riktiga träningen långt före Superligan.
+  const sup5 = korBalans({ andelRatt: SUPER.andelRatt, n: nDiv, div: TOPP_DIV, bonus: tranatLag(5), namn: "super5", stjarnor: 5 });
   const divRader = DIV_NIVAER.flatMap((andelRatt) => korDivisioner({ andelRatt, n: nDiv }));
   console.log(`\nAlla divisioner med startlaget (2★) – ${nDiv} säsonger per rad; kvalet mot styrka(div + 1), oavgjort → straffar\n`);
-  console.log(divTabell([...divRader, sup], md));
+  console.log(divTabell([...divRader, sup, sup5], md));
   const nKar = Math.max(20, Math.round(n / 10));
-  const kar = [...DIV_NIVAER.map((andelRatt) => karriar({ andelRatt, n: nKar })), ...DIV_NIVAER.map((andelRatt) => karriar({ andelRatt, n: nKar, tranad: true }))];
-  console.log(`\nKarriären (${nKar} elever × 30 säsonger, med startlaget och med ett lag som tränas upp): andel som når divisionen · median säsonger · median speltimmar\n`);
+  const kar = DIV_NIVAER.map((andelRatt) => karriar({ andelRatt, n: nKar }));
+  console.log(`\nKarriären med startlaget (${nKar} elever × 30 säsonger): andel som når divisionen · median säsonger · median speltimmar\n`);
   console.log(karriarTabell(kar, md));
+  // Etapp 2b (#871): ekonomin (§12) och karriären med den riktiga truppen, marknaden och träningslägret.
+  const { ekonomi, ekonomiTabell, bedomEkonomi, karriarMedTrupp, truppKarriarTabell, EKONOMI_MAL } = await import("./md-balans-trupp.mjs");
+  const eko = [0.5, EKONOMI_MAL.andelRatt, 0.7].map((andelRatt) => ekonomi({ andelRatt, n }));
+  console.log(`\nEkonomin i Division 6 (${n} elever per rad): efter hur många matcher har eleven råd med en ${EKONOMI_MAL.stjarnor}★ som finns till salu?\n`);
+  console.log(ekonomiTabell(eko, md));
+  const truppKar = [...DIV_NIVAER, 0.6].map((andelRatt) => karriarMedTrupp({ andelRatt, n: nKar }));
+  console.log(`\nKarriären med truppen (${nKar} elever × 30 säsonger; tränar varje läger, köper den största förbättringen): andel · median säsonger · speltimmar · lagets snitt när divisionen nås · vinst där\n`);
+  console.log(truppKarriarTabell(truppKar, md));
   console.log(`\n${Math.round(performance.now() - t0)} ms`);
-  process.exitCode = [...rader, sup].some((r) => bedom(r).length) ? 1 : 0;
+  process.exitCode = [...rader, sup].some((r) => bedom(r).length) || eko.some((r) => bedomEkonomi(r).length) ? 1 : 0;
 }

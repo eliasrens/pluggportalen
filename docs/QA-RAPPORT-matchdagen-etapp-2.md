@@ -252,3 +252,322 @@ lärarvy, reglerna mot det appen skriver).
   låtsas-DOM: utfallet kommer före pausen, ett andra klick räknas inte; skottet/finten/straffen i `vidSvar`).
   I förhandsvisningen 20 ms efter klicket: straffen (`dem: [true]`, 29 frågor) och finten i Division 3 (läget
   avgjort, ingen andra fråga) var redan sparade; omladdning → "Straffläggningen pågår: 1 – 1".
+
+## Etapp 2b – truppen, reserverna, marknaden och träningslägret (#871)
+
+Med 2b får laget ett eget liv mellan matcherna: klubbkassan köper spelare på marknaden, grundpelarna som ersätts
+väntar bland reserverna, och träningslägret – ett per spelad omgång och ett extra före kvalet – ger spelarna
+stjärnor för rätt svar. Arkitekturen står i `MATCHDAGEN.md` §15.
+
+### Vad som byggts
+
+- **Motorn** `src/matchdagen/delat/md-trupp.js` (ren): priset `avrunda(150 × st^1,9; 10)`, marknaden (6 spelare,
+  stjärnor efter divisionen, nya efter varje match och kval), köpet (ersätter den sämsta på positionen; en köpt
+  säljs för halva priset, en grundpelare går till reserverna; fulla reserver → eleven släpper en köpt reserv),
+  byten, träningslägret (12 poäng per rätt, 100 → en stjärna, taket 5★), kaptensbindeln och lagdelarnas snitt.
+- **Truppen** (`vy/md-vy-trupp.js`, `md-vy-marknad.js`): klubbkassan, lagdelarna med lagbonusen ("räddningar
+  +10 %"), förklaringen "Bättre spelare ger bättre chans, men rätt svar avgör ändå mest.", startelvan med
+  stjärnor och träningsstapel ("36/100 träning"), Grundpelare och C, reserverna ("Byt in för …") och marknaden
+  ("Köp för 1 210 kr" – "Ersätter Alvin Virtanen – grundpelaren går till reserverna", eller varför det inte går).
+  Sidhuvudets kassa följer med.
+- **Träningslägret** (`vy/md-vy-lager.js`): välj en startspelare under 5★ → 8 frågor ur samma frågeström som
+  matchen (`vy/md-strom.js`) → stjärnorna och stapeln växer vid varje rätt svar och "Melvin Lind fick en stjärna
+  till!". Lägret märks som påbörjat på servern före första frågan (EN skrivning), varje svar sparas lokalt vid
+  klicket (`vidSvar`), lägret med EN skrivning när alla 8 är besvarade. Frågorna räknas i statistiken som källan
+  "Träning". Omladdning mitt i lägret: se nedan.
+- **Spärrarna:** Match-fliken väntar på ett påbörjat läger ("Gör klart träningen först"); köp, byten och läger
+  väntar på en pågående match och på kön av osparade matcher. Före avspark påminns eleven om ett ledigt läger.
+- **Sparningen:** `reserver`, `marknad`, `lager` i karriären; `sparaTrupp` (en skrivning per köp/byte/läger);
+  en ny klubb som aldrig hann sparas skapas först från noll (`forstaDokument`); en kö som nekas för att truppen
+  ändrats någon annanstans sparas ovanpå serverns trupp (`ovanpaServern`).
+- **Reglerna:** truppen, reserverna, marknaden, kassan och lägret prövas per skrivning mot det sparade dokumentet
+  (nyckel MT i `BEHORIGHETER.md`).
+- **Ekonomin:** inkomsterna halverade mot specen (§8.3) för målet i §12 (se Balansen).
+- **Förhandsvisningen:** `?kassa=N` och `?trupp=visa` (två köpta spelare, grundpelare bland reserverna, träning).
+
+### Tester
+
+- `test/matchdagen-trupp.test.js` (node, §15 Motorn): priserna och reglernas pristabell/stjärntak, marknaden (6,
+  otränade, unika, deterministiska, ny efter match och kval), köpet (grundpelaren till reserverna, köpt säljs för
+  halva priset, inte bättre/för dyrt, fulla reserver: bara köpta kan släppas, fem grundpelare stoppar köpet),
+  byten, kaptensbindeln, äldre dokument; lägret (12 per rätt, 100 → stjärna, resten följer med, taket 5★,
+  nycklarna per omgång och före kvalet, statistiken som "traning", två läger → stjärna, nekade läger, påbörjat
+  läger `-p`: samma läger tills klart/avbrutet, gammal omgång öppnar ett nytt, kvalets extra läger, minnet utan
+  lokal lagring);
+  lagbonusen (tränad lagdel ger högre skott- och räddningschans); det pågående lägret i `localStorage`; korten
+  escapar allt (XSS i namn, position, id, `st`/`xp`/`nr` som text); `forstaDokument`; kön ovanpå serverns trupp.
+- `test/firestore-rules-matchdagen-trupp.test.js` (emulator, i `npm run test:rules`): en ny klubb (bara nya
+  grundpelare, ingen marknad/reserv), äldre dokument, marknaden ≤ 6 och det som köps (otränat, utan grundpelare,
+  2★ till divisionens tak), köp med och utan betalning, påhittade spelare och reserver, byten, fulla reserver,
+  lägret (+96, en stjärna för mycket, utan att lägret byts, nycklarna med och utan `-p`, start → klart och start →
+  avbrutet), lägret och matchen var för sig, kassan
+  (+400 utan match, 5 000 per match, 501 matcher), en kö med 40 matcher, kön ovanpå serverns trupp, läraren.
+- Uppdaterade: `firestore-rules-matchdagen*.test.js` (nya fält), `matchdagen-balans`, `-kval`, `-liga`, `-sasong`.
+
+### Skärmdumpar
+
+`01`–`08` i förhandsvisningen (`preview/preview-matchdagen.html`, 1366 × 900; `08` i 375 px), `09` i appen mot emulatorn.
+
+| Bild | Vad |
+| --- | --- |
+| [`01-truppen.png`](qa-matchdagen-2b/01-truppen.png) | Truppen (`?omg=2&trupp=visa`): kassan, lagdelarna, lägret, startelvan med stjärnor och stapel, två reserver, marknaden med orsakerna |
+| [`02-kopt.png`](qa-matchdagen-2b/02-kopt.png) | Efter ett köp med fulla reserver: "Wilma Forsberg är köpt för 2 090 kr! … Liam Holm såldes för 605 kr." och kassan 1 115 kr |
+| [`03-reserverna-fulla.png`](qa-matchdagen-2b/03-reserverna-fulla.png) | Rutan "Reserverna är fulla" – bara den köpta reserven kan släppas |
+| [`04-lager-fortsatter-efter-omladdning.png`](qa-matchdagen-2b/04-lager-fortsatter-efter-omladdning.png) | Lägret efter en omladdning: fortsätter på fråga 4 av 8 |
+| [`05-lager-stjarna.png`](qa-matchdagen-2b/05-lager-stjarna.png) | "Melvin Lind fick en stjärna till!" – 3★ → 4★, stapeln börjar om på 8/100 |
+| [`06-lager-klart.png`](qa-matchdagen-2b/06-lager-klart.png) | "Träningen är klar! 7 av 8 rätt. Melvin Lind har nu 4★ och 68/100 träningspoäng." |
+| [`07-match-vantar-pa-lagret.png`](qa-matchdagen-2b/07-match-vantar-pa-lagret.png) | Match-fliken under ett påbörjat läger: "Gör klart träningen först" |
+| [`08-mobil-truppen.png`](qa-matchdagen-2b/08-mobil-truppen.png) | 375 px: lagdelarna två och två, lägret, statusraden efter köpet – ingen sidledsscroll |
+| [`09-app-emulator-efter-omladdning.png`](qa-matchdagen-2b/09-app-emulator-efter-omladdning.png) | Appen mot emulatorn (Alva, `MD_PA=1 MD_TRUPP=1`): efter köp, byte fram och tillbaka och ett läger – omladdad: 1 790 kr, Leah Ström 3★ 96/100, Isak Berglund bland reserverna, lägret använt |
+
+### Balansen (`npm run balans:matchdagen`)
+
+- **Ekonomin (§12): 60 % rätt har råd med en 3★ efter 2,94 matcher** i snitt (median 3, 89 % inom tre matcher;
+  mål 2,5–3,5). Med specens belopp (300/150/80 + 15/rätt + 25/mål) var det 1,74 – alla inkomster halverades
+  (`KASSA`: 150/75/40 + 8/rätt + 12/mål, uppflyttningen 300). Priset och stjärnorna på marknaden är specens.
+- **Superligan (§12): 80 % rätt med tränat lag (snitt 4★) vinner 47 %** (mål 45–55 %). Helt tränat (5★): 69 %.
+- **Karriären med truppen** (robotklubbar som tränar varje läger och köper den största förbättringen): 80 % når
+  Superligan efter median 8 säsonger (11 h), 70 % efter 12 (17 h), 60 % i 44 % av fallen inom 30 säsonger; 50 %
+  kommer sällan förbi Division 1. Laget är helt tränat (5★) kring Division 2 – se öppna frågan nedan.
+- Resten av utskriften (Division 6, alla divisioner, karriären med startlaget) är oförändrad mot 2a (fasta frön).
+
+<details><summary>2b-tabellerna ur utskriften (116 s)</summary>
+
+```
+Ekonomin i Division 6 (1000 elever per rad): efter hur många matcher har eleven råd med en 3★ som finns till salu?
+
+Rätt  Spelare  Pris     kr/match  Matcher (snitt)  Median  Inom 2  Inom 3  Inom 4  Mål
+50 %  3★       1210 kr  214       3,42             3       3 %     57 %    97 %    –
+60 %  3★       1210 kr  254       2,94             3       17 %    89 %    100 %   ja
+70 %  3★       1210 kr  291       2,65             3       37 %    98 %    100 %   –
+
+Karriären med truppen (100 elever × 30 säsonger; tränar varje läger, köper den största förbättringen): andel · median säsonger · speltimmar · lagets snitt när divisionen nås · vinst där
+
+Rätt  Division 6         Division 5                                  Division 4                                  Division 3                                   Division 2                                   Division 1                                    Elitligan                                    Superligan
+80 %  2,0★ · vinst 79 %  100 % · 1 säs. · 0,9 h · 2,3★ · vinst 81 %  100 % · 2 säs. · 1,9 h · 3,1★ · vinst 88 %  100 % · 3 säs. · 3,2 h · 4,1★ · vinst 88 %   100 % · 5 säs. · 5,1 h · 5,0★ · vinst 87 %   100 % · 6 säs. · 6,8 h · 5,0★ · vinst 81 %    100 % · 7 säs. · 8,7 h · 5,0★ · vinst 76 %   100 % · 8 säs. · 11,3 h · 5,0★
+70 %  2,0★ · vinst 68 %  100 % · 2 säs. · 1,6 h · 3,0★ · vinst 73 %  100 % · 3 säs. · 2,7 h · 3,6★ · vinst 82 %  100 % · 4 säs. · 4,1 h · 4,4★ · vinst 74 %   100 % · 6 säs. · 6,0 h · 5,0★ · vinst 72 %   100 % · 7 säs. · 8,5 h · 5,0★ · vinst 65 %    100 % · 9 säs. · 11,4 h · 5,0★ · vinst 56 %  100 % · 12 säs. · 17,1 h · 5,0★
+50 %  2,0★ · vinst 48 %  100 % · 5 säs. · 4,0 h · 3,3★ · vinst 61 %  100 % · 8 säs. · 6,6 h · 4,9★ · vinst 72 %  100 % · 10 säs. · 8,6 h · 5,0★ · vinst 44 %  92 % · 15 säs. · 15,0 h · 5,0★ · vinst 36 %  40 % · 21 säs. · 23,3 h · 5,0★ · vinst 30 %   7 % · 22 säs. · 26,1 h · 5,0★ · vinst 22 %   –
+60 %  2,0★ · vinst 58 %  100 % · 3 säs. · 2,4 h · 3,0★ · vinst 67 %  100 % · 5 säs. · 4,3 h · 4,0★ · vinst 75 %  100 % · 6 säs. · 6,0 h · 5,0★ · vinst 59 %   100 % · 9 säs. · 8,9 h · 5,0★ · vinst 54 %   100 % · 12 säs. · 13,7 h · 5,0★ · vinst 48 %  93 % · 18 säs. · 23,5 h · 5,0★ · vinst 39 %  44 % · 25 säs. · 34,8 h · 5,0★
+
+
+```
+
+</details>
+
+### Omladdning eller stängd flik mitt i lägret
+
+Lägret **fortsätter med svaren det redan har** – eller räknas som **använt**. Aldrig ett nytt läger, aldrig en
+ny chans på en fråga som redan besvarats:
+
+- **Start:** innan första frågan sparas `lager = "säsong-omgång-p"` (påbörjat) på servern – EN skrivning. Går den
+  inte fram startar lägret inte ("Träningen kunde inte startas …").
+- **Omladdning / stängd flik / flikbyte:** svaren ligger i `localStorage` (`matchdagen-lager:{uid}`, sparade vid
+  klicket, före pausen med rätt svar). Lägret fortsätter på nästa obesvarade fråga med samma spelare.
+- **`localStorage` rensad** (eller en annan dator, eller den tränade spelaren finns inte kvar i startelvan): servern
+  säger påbörjat men inga svar finns – lägret räknas som **använt** ("Träningslägret avbröts innan det var klart
+  – det räknas som använt."), `lager = "säsong-omgång"` utan träning (EN skrivning). Före kvalet blir sedan
+  kvalets extra läger ledigt som vanligt. Ett påbörjat läger stänger också sig självt när nästa match spelas.
+- **Privat fönster** (ingen lokal lagring): lägret gäller i minnet så länge sidan är öppen (flikbyten inom
+  Matchdagen fortsätter); en omladdning räknas som rensad lagring → använt.
+- **Kvar** (bara förbi appen eller samtidigt på två datorer, inga pluggmynt): en elev som skriver förbi appen kan
+  fortfarande växla lägret fram och tillbaka (§15.4, val 11); en andra dator som laddades **innan** lägret
+  startades på den första kan starta samma läger igen.
+
+### Kvoten (2b, §13)
+
+Inga nya läsningar och inga lyssnare: lägret använder frågeströmmen som redan är laddad, köpen och bytena läser
+inget. Ett läger = 2 skrivningar (start + klart), ett köp eller byte = 1 skrivning. En kö som nekas och sparas ovanpå serverns
+trupp läser karriären en gång (sällsynt).
+
+| Eleven under en timme | Läsningar | Skrivningar |
+| --- | --- | --- |
+| Öppna Matchdagen, frågekällorna (3 Plugga-områden), 3 matchdetaljer | ≈ 8 | 0 |
+| ~6 matcher (lägren tar ~1,5 min var) | 0 | 12 (6 batchar à 2) |
+| **5 träningsläger** | 0 | 10 (start + klart) |
+| 3 köp/byten + ett namnbyte | 0 | 4 |
+| **Summa** | **≈ 8** (mål < 20) | **≈ 26** (mål < 50) |
+
+### Reglerna och 1000-uttrycksgränsen
+
+Allt i `validMatchdagen` räknas mot Firestores gräns på 1000 uttryck per begäran, och en ny klubb låg redan nära
+i 2a. Därför prövas spelarnas form bara där de kommer in utifrån (en ny klubb, ett köp) och vid en uppdatering
+varifrån varje startspelare kommer, jämfört med det sparade dokumentet (`MATCHDAGEN.md` §15.4). Två sparade
+uttryck: inga `hasAll` i `mdKlubbOk`/`mdSummaOk`/`mdKvalOk` (en saknad nyckel ger ändå ett utvärderingsfel), och
+en ny klubb jämför summan med en nollad map (`mdTomSumma`) i stället för hela `mdSummaOk`.
+
+**Marginalen** (mätt i emulatorn: hur många extra `(d.div == d.div) &&` som ryms i `validMatchdagen` innan
+skrivningen nekas, med karriärer byggda av de riktiga modulerna; riggen `.scratch/zz-mat.test.js`). Före = f84e8500,
+runda 1 = marknaden som rader och F1–F5, runda 2 = F6–F7 (mätt på slutliga regler):
+
+| Skrivning | Före (f84e8500) | Runda 1 | Runda 2 |
+| --- | --- | --- | --- |
+| Ny klubb (`create`) – nu med ett reguljärt uttryck över alla sju spelarna (F2) | 30 | 8 | 8 |
+| En match (marknaden prövas nu med ett uttryck) | 40 | 40 | 40 |
+| Ett träningsläger | 18 | 16 | 16 |
+| Lägrets start (`"-p"`, bara `lager`) | – | ≥ 50 | ≥ 50 |
+| Ett köp (grundpelaren till reserverna) | 35 | 28 | 22 |
+| Ett köp med fulla reserver (en köpt släpps) | 30 | 26 | 18 |
+| Ett byte | – | ≥ 50 | ≥ 50 |
+| 4 matcher i en skrivning (kön) | 18 | 18 | 18 |
+| Kvalet | 15 | 12 | 12 |
+| Hela säsongen + kvalet i en skrivning (ny klubb offline en hel säsong) | 2 | 2 | 2 |
+| Läger + match i samma skrivning | **nekas** | **nekas** | **nekas** – därför väntar Match-fliken på lägret |
+
+Den tunnaste är en ny klubb som spelar en hel säsong och kvalet offline och sparar allt i en skrivning (2, samma
+som före runda 1). En ny regel för karriären som rör en matchsparning bör mätas med den.
+
+Varje ny regel för karriären bör mätas på samma sätt (riggen: en kopia av reglerna med N extra uttryck,
+`initializeTestEnvironment` per N).
+
+### Deploy
+
+**`firebase deploy --only firestore:rules` före webben.** De gamla reglerna nekar fältet `lager` – med webben
+först kan inget träningsläger sparas (köp och byten går, men utan kontrollen). De nya reglerna godtar äldre
+dokument utan `reserver`/`marknad`/`lager`, så reglerna kan gå ut före webben utan att något går sönder. Inga
+index, inga functions.
+
+### Val där dokumentet inte räckte till
+
+1. **Ekonomin halverad** (§8.3-beloppen × 0,5) för §12-målet; uppflyttningen 300 = 600 × 0,5.
+2. **Priset för 5★ är 3 190 kr** (formeln) – specen skriver "ungefär 3 150".
+3. **Marknaden är tom i en ny klubb** och fylls efter första matchen (en ny klubb ska vara billig för reglerna).
+   Äldre dokument får en marknad efter nästa match.
+4. **"Den sämsta på samma position"** = lägst stjärnor, sedan träningspoäng; vid lika ersätts grundpelaren (den
+   går till reserverna i stället för att en köpt säljs). Ett köp som inte ger fler stjärnor än den ersatta går
+   inte ("Inte bättre än …").
+5. **Kassan räcker** när kassan + återbetalningen för en såld startspelare täcker priset; en släppt reserv räknas
+   inte in.
+6. **Reserver tränas inte och lägret gäller startelvan** (skissens lista); en reserv byts in på samma position.
+7. **Lägret:** ett per spelad omgång (inget före första matchen), ett extra före kvalet; ett läger som inte
+   används före nästa match går förlorat (skissen). Alltid 8 frågor, också när spelaren når 5★ mitt i.
+   Poängen över 100 följer med till nästa stjärna (skissens `xp -= 100`); vid 5★ nollas de.
+8. **Lägret sparas två gånger: påbörjat (före första frågan) och klart (efter 8 svar)** – svaren sparas lokalt
+   vid varje klick; utan lokala svar räknas ett påbörjat läger som använt (se Omladdning ovan). Match-fliken väntar på ett
+   påbörjat läger (lägret och matchen i samma skrivning spräcker 1000-gränsen, och matchen skulle stänga lägret).
+9. **Lagkaptenen kan säljas till reserverna** (specen förbjuder det inte); bindeln går då till den första
+   grundpelaren ute på planen.
+10. **Målvaktens bonus visas dubbel** ("räddningar +10 %" vid 3★) – så räknar motorn sedan 1b (`RADDNING.bonus`).
+11. **Reglerna prövar inte positionerna** eller att lägret är nyare än det sparade, och kassan bara per skrivning
+    – bara elevens eget spel (inga pluggmynt), se `MATCHDAGEN.md` §15.4.
+
+### Öppna frågor till Elias
+
+1. **Träningen går fort:** med specens tal (12 poäng, ett läger per omgång) är laget helt tränat (5★) kring
+   Division 2, och i Superligan vinner 80 % rätt med 5★ ~69 % (§12-målet 45–55 % gäller 4★). Vill du ha det
+   tuffare högst upp: färre poäng per rätt högre upp, eller ett läger varannan omgång?
+2. **Ekonomin:** halveringen gäller också uppflyttningen (300 × multiplikatorn). OK?
+
+### Så testas det
+
+- **Förhandsvisningen:** `PORT=8871 node server.mjs` → `preview/preview-matchdagen.html?ny=1&omg=2&trupp=visa&vy=trupp`
+  (Truppen, köp, byt in, lägret), `?omg=3&kassa=4000&vy=trupp` (köp med grundpelare till reserverna). Ladda om
+  mitt i lägret → det fortsätter; Match-fliken → "Gör klart träningen först".
+- **Appen mot emulatorn:** `MD_PA=1 MD_TRUPP=1 PORT=8872 bash admin/qa-matchdagen-867-preview.sh` (Alva har spelat två omgångar och har 3 000 kr) – Alva:
+  Truppen: köp en spelare (kassan i sidhuvudet minskar), kör ett läger (stjärnan/stapeln växer) → ladda om →
+  allt finns kvar.
+
+### Körningar (Codern, 871)
+
+| Svit | Resultat |
+| --- | --- |
+| `node --test` (de 319 filerna som inte kräver emulatorn) | 4621 pass, 0 fail, 1 skipped. (6 "cancelled" i `firestore-rules-amneslasning-texter.test.js` – en emulatorfil som inte står i något npm-skript, oförändrad) |
+| Matchdagen (`test/matchdagen-*.test.js`) | 200 pass (ingår ovan; 27 nya i `matchdagen-trupp.test.js`) |
+| `npm run test:rules` (`admin/qa-matchdagen-867-svit.sh`) | 1071 pass, 0 fail (17 i `firestore-rules-matchdagen-trupp.test.js`) |
+| `npm run test:functions` (samma rigg) | 573 pass, 0 fail, 2 kända TODO (schack F9) – inga filer i `functions/` ändrade i 2b |
+| `npm run test:e2e` | 5/5 |
+| Bootgrafen | 107 filer (oförändrad, `test/matchdagen-modul.test.js`) |
+| `npm run balans:matchdagen` | 116 s – tabellerna ovan; Division 6/alla divisioner/startlaget identiska med 2a |
+| Marginalen mot 1000-gränsen | mätt per skrivning (tabellen ovan) |
+
+**I appen mot emulatorn** (Alva, `MD_PA=1 MD_TRUPP=1`, 2D): Truppen → köp Leah Ström 3★ för 1 210 kr ("Isak Berglund
+sitter bland reserverna", kassan i sidhuvudet 3 000 → 1 790) → byt in Isak och tillbaka → träningslägret 8 av 8
+rätt (Leah 96/100) → omladdning: allt kvar, lägret använt. Sedan en hel match (2 – 1, +398 kr) – sparad mot
+reglerna (kön tom), kassan 2 188 kr, ett nytt läger öppet och en ny marknad.
+
+### Granskningen (code review på 70cd7504..6f9f6fd2) – rättat
+
+- **M1 (medel), en kö som spelats medan truppen ändrades någon annanstans låstes för alltid.** Reglerna godtar
+  bara spelare ur det sparade dokumentet, och `hamtaKarriar` väljer den lokala karriären (flest matcher). Spelade
+  eleven offline på en dator och köpte/tränade på en annan – eller gick ett köp fram fast svaret aldrig kom – nekades
+  varje matchsparning, och köp/läger väntade på kön. Nu läser `sparaKon` serverns karriär EN gång vid ett nekande och
+  lägger kön ovanpå dess trupp, reserver och läger (`ovanpaServern`; kassan = serverns + köns pengar, högst den
+  lokala). Tester i `matchdagen-trupp.test.js` och regeltestet "en kö som spelats medan truppen ändrades …".
+- **L1, mer än 30 osparade matcher låste sparningen** (regeln Δ`summa.matcher` ≤ 30, men kön räknar alla matcher
+  i karriären). Nu ≤ 500 per skrivning (samma kostnad); regeltest med 40.
+- **L2, lägret kunde startas medan ett köp sparades** – två frågeslingor i samma yta. Nu väntar köp och läger på
+  varandra (`S.truppUpptagen`), och ett nytt `visaLager` avbryter det förra (en signal per yta).
+- **L3, ett flikbyte hoppade över en svår fråga** i lägret. Nu visas samma fråga igen när eleven kommer tillbaka
+  (samma läger och plats; en omladdning ger en ny, som i matchen).
+- **L4 (dokumenterat, inte rättat):** en elev som skriver förbi appen kan växla `lager` fram och tillbaka och träna
+  mer – att lägret är nyare prövas inte (för många uttryck). Bara det egna spelet; står i reglerna och §15.4.
+- Inget i XSS (allt ur dokumentet `esc()`/tal i vyerna), avbrottet vid flikbyte, de vanliga skrivningarna mot reglerna
+  eller äldre dokument.
+
+### Rättningsrunda 1 (Testern på f84e8500) – F1–F5 i reglerna
+
+Alla fem är skrivningar förbi appen. Rättat i `firestore.rules`, varje fall med ett regeltest i
+`test/firestore-rules-matchdagen-trupp.test.js` (sist i filen), och Testerns diagnostik
+(`firestore-rules-matchdagen-trupp-tester-871.test.js`) skriver nu "NEKAS" för alla fem.
+
+- **F1 (hög), marknaden prövades inte alls** (st 9, HTML, 6 × 150 kB gick igenom). Marknaden sparas nu som rader
+  `"id|namn|pos|nr|st"` (`md-trupp.js saluRad`; appen gör om dem vid skrivning och läsning i `md-data.js`) och
+  prövas i varje matchsparning med ETT reguljärt uttryck över hela listan (`join`): högst 6 rader, id `k` + 1–6
+  tecken, namn 1–40 tecken utan `| / < > & "`, en känd position, nr 0–99, 1–5★. Allt annat – ett objekt, en text
+  som inte passar, 7 rader – nekas. Utan match kan marknaden bara krympa med ett köp. Marknaden är därmed högst
+  ~400 byte (dokumentets totala storlek prövas inte – se F8 i rättningsrunda 2).
+- **F2 (hög), en ny klubb kunde bära ett extra fält på ~130 kB per spelare.** `create` prövar nu exakt de åtta fälten
+  per grundpelare (`size() == 8`, varje fält läses), `g1`–`g7` i ordning, namn 1–40 utan HTML, en känd position, `nr`
+  ≤ 3 siffror, `st` 2, `xp` 0 och `grundpelare`/`kapten` som sanningsvärden – med ett reguljärt uttryck över alla sju
+  (`"+ 0"` och `"!"` ger ett fel för text). Ett köp tar exakt raden ur marknaden och bara dess sex fält. Efter det
+  kommer varje spelare oförändrad ur det sparade dokumentet eller tränad (bara `st`/`xp`), så formen håller (induktion).
+- **F3 (medel), en grundpelare kunde strykas, och en spelare klonas via reserverna.** Vid ett byte eller köp
+  (`mdUnikaOk`): inga dubbletter i truppen + reserverna, och högst EN spelare lämnar klubben – aldrig en grundpelare.
+  En reserv kommer in på planen bara när reserverna ändras, och ett läger kan inte ändra reserverna (då kunde den
+  otränade kopian hamna där).
+- **F4 (medel), samma marknadsspelare köpt till två platser, betald en gång.** Dubbletten nekas (F3), och ett köp
+  kräver att raden är borta ur marknaden, att marknaden är den sparade minus exakt EN rad och att summan inte ändras
+  i samma skrivning – två köp i en skrivning går inte.
+- **F5 (medel), kassan +400 per skrivning utan match.** Utan en ökad `summa.matcher` får kassan bara växa när
+  reserverna ändras (skärpt i runda 2 till bara ett köp, F6) (köpet där en släppt köpt reserv ger mer än köpet kostar, högst 1 600 − priset; `mdKopOk` prövar
+  beloppet).
+
+**Gränser som återstår** (bara elevens eget spel, inga pluggmynt – står också i `MATCHDAGEN.md` §15.4):
+
+- **Påhittade matcher:** att en match spelats prövas inte. `summa.matcher` +1 ger upp till 5 000 kr och en ny marknad
+  (högst 500 matcher per skrivning, för kön).
+- **En egen marknad:** när summan ändras (även bara `summa.fragor` +1) kan eleven skriva en egen marknad i rätt form och
+  sedan köpa ur den – till fullt pris och högst divisionens stjärntak. Valet av spelare, aldrig en gratis spelare.
+- **Lägret** kan växlas fram och tillbaka för mer träning, och **positionerna** prövas inte (som före runda 1).
+- **Dokumentets storlek** (F8): strängarna i ligans lag, `senaste`, `sasonger` och `pokaler` prövas inte – upp till 1 MiB.
+- **Köp + inbytt reserv i samma skrivning** (F9, Testern runda 3): en skrivning förbi appen som köper en spelare och i
+  samma skrivning byter in en köpt reserv räknas av `mdSlapptPris` (`g.reserver − d.reserver`) som en släppt reserv –
+  den går igenom med +385 kr i stället för −1 210, högst +400 per köp. Rättas senare genom att bara ersätta spelare som
+  lämnar klubben (inte finns i truppen + reserverna efteråt), som `mdUnikaOk` räknar.
+- **1000-uttrycksgränsen:** en ny klubb har nu marginal 8 (var 30); hela säsongen + kvalet i en skrivning 2 (oförändrad).
+
+**Körningar (runda 1, HEAD efter rättningen):** `node --test` (319 filer) 4630 pass, 0 fail, 1 skipped; matchdagen
+205 (5 nya: lägrets `-p`, marknadens rader); `npm run test:rules` 1090 pass, 0 fail; `npm run test:functions` 573 pass,
+0 fail, 2 kända TODO; `npm run test:e2e` 5/5; marginalen ovan.
+
+### Rättningsrunda 2 (Testern på 91ac1bc4) – F6–F8
+
+- **F6 (medel), kassan +400 vid varje byte.** Tillägget i `mdKassaOk` gällde så fort reserverna ändrades – tre byten
+  fram och tillbaka gav +1 200 kr, en släppt reserv +400. Nu bara i ett köp (`mdKopTillagg`, anropas bara när
+  reserverna ändras): marknaden ändras, inget läger, och en spelare i truppen är ny för klubben – utan läger kan det
+  bara vara en köpt. Ett byte, en släppt reserv eller ett byte + en struken marknadsrad ger inga pengar. Matchens väg
+  är oförändrad: hela säsongen + kvalet i en skrivning har kvar marginalen 2.
+- **F7 (låg), platta 1 600 kr tillbaka med fulla reserver.** `mdKopOk` räknar nu halva priset för just den släppta
+  reserven (`mdSlapptPris`: den som finns i det sparade dokumentets reserver men inte i de nya) – en släppt 3★ ger
+  605 kr, som i appen.
+- **F8 (låg, sedan 1c/2a), 200 kB hålls inte av reglerna.** Reglerna begränsar antalet i listorna och mapparna, inte
+  strängarnas längd i ligans lag (`liga.lag[].namn`), `senaste`, `sasonger` och `pokaler` – Testerns ~900 kB gick
+  igenom. Ingen ny regel över de äldre fälten (scopet); `MATCHDAGEN.md` §10, `DATAMODELL.md`, `BEHORIGHETER.md`,
+  reglernas kommentar och F1 ovan säger nu bara det som prövas: appens dokument ~61 kB, förbi appen upp till 1 MiB.
+  Det egna dokumentet – men lärarens Hur går det? läser det.
+
+Tester: `firestore-rules-matchdagen-trupp.test.js` (sist: byte +400/+1, släppt reserv +400, byte + struken rad,
+fulla reserver: +1 kr för mycket och platta 1 600 nekas, 605 tillbaka går igenom).
+
+**Körningar (runda 2, 8b9af73f + docs):** `node --test` (319 filer) 4630 pass, 0 fail, 1 skipped; `npm run test:rules`
+1095 pass, 0 fail; marginalen i tabellen ovan (runda 2). Functions och e2e rördes inte i runda 2 (bara regler, tester, docs).
+

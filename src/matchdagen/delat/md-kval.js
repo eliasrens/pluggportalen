@@ -7,13 +7,14 @@
 // säsong. Ingen åker någonsin ner.
 //
 //   kvalMatch(K)                                → { div, till, mot } | null   (ett ospelat kval)
-//   kvalKlar(K, { res, nu, matchId, kallNamn? }) → { K, match, pengar, vann, div }
+//   kvalKlar(K, { res, nu, matchId, kallNamn?, rng? }) → { K, match, pengar, vann, div }   (rng → ny marknad)
 //     res = resultat(m) ur md-motor.js för en match med avgor: true (res.vann satt)
 //   stegen(div)                                 → [{ div, namn, lag, omgangar, nu }] (tabellens stege, §7.1)
 // ============================================================================
 
 import * as C from "./md-config.js";
 import { bokforMatch } from "./md-sasong.js";
+import { nyMarknad } from "./md-trupp.js";
 
 const kopia = (v) => JSON.parse(JSON.stringify(v));
 
@@ -37,7 +38,7 @@ function vannKvalet(res) {
  * pokalen och uppflyttningspengarna. Förlust: samma division. Säsongshistoriken
  * får kvalets utfall ("upp" / "kvar").
  */
-export function kvalKlar(K0, { res, nu, matchId, kallNamn = {} }) {
+export function kvalKlar(K0, { res, nu, matchId, kallNamn = {}, rng = null }) {
   const kv = kvalMatch(K0);
   if (!kv) throw new Error("kvalKlar: inget kval att spela");
   const vann = vannKvalet(res);
@@ -52,6 +53,7 @@ export function kvalKlar(K0, { res, nu, matchId, kallNamn = {} }) {
   if (match.straffar) K.kval.straffar = match.straffar;
   const sasong = (K.sasonger || [])[0];
   if (sasong && sasong.sasong === K.sasong) K.sasonger[0] = { ...sasong, kval: vann ? "upp" : "kvar" };
+  if (rng) K.marknad = nyMarknad(K, rng); // nya spelare efter matchen – i den nya divisionen efter en uppflyttning (§8.3)
   return { K, match, pengar, vann, div: K.div };
 }
 

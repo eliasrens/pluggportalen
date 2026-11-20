@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Matchdagen – förhandsvisning (#869, #870)</title>
+  <title>Matchdagen – förhandsvisning (#869, #870, #871)</title>
   <!-- Förhandsvisning av Etapp 1c med STUBBADE data (spec §15): hela appen
        (md-app.js) – en hel match i 3D eller 2D, tabellen, truppen och statistiken.
        Ingen Firebase: karriären och matcherna sparas i localStorage
@@ -17,7 +17,10 @@
        Etapp 2a (#870):
          ?div=0–7    klubben i en annan division (stegen, 8–12 lag, två frågor per skott från 3)
          ?kval=1     ligan är vunnen – kvalmatchen väntar (oavgjort → straffar)
-         ?straffar=1 kvalet står 1 – 1 efter full tid – "Fortsätt matchen" går direkt till straffarna -->
+         ?straffar=1 kvalet står 1 – 1 efter full tid – "Fortsätt matchen" går direkt till straffarna
+       Etapp 2b (#871):
+         ?kassa=N    klubbkassan (köp på marknaden under Truppen)
+         ?trupp=visa två köpta spelare, grundpelare bland reserverna och träningspoäng (kräver ?omg≥1) -->
   <script type="importmap">
     { "imports": { "../src/game-shared.js": "./matchdagen-868/game-shared.js" } }
   </script>
@@ -38,6 +41,7 @@
     import { nyMatch } from "../src/matchdagen/delat/md-motor.js";
     import { simMal } from "../src/matchdagen/delat/md-liga.js";
     import { skapaPrng } from "../src/matchdagen/delat/md-prng.js";
+    import { kop, kopInfo } from "../src/matchdagen/delat/md-trupp.js";
 
     const p = new URLSearchParams(location.search);
     const UID = "preview";
@@ -74,12 +78,13 @@
       lasKarriar: async () => las("karriar"),
       sparaKarriar: async (uid, K) => skriv("karriar", K),
       sparaMatch: async (uid, K, id, match) => { skriv("karriar", K); skriv(`match:${id}`, { ...match, id }); },
+      sparaTrupp: async (uid, K) => skriv("karriar", { ...K, klubb: las("karriar")?.klubb || K.klubb }),
       lasMatch: async (uid, id) => las(`match:${id}`),
     };
 
     // ?omg=N: en klubb med N påhittade omgångar (för tabellen och statistiken).
     if (p.get("klubb") === "ny") localStorage.removeItem(NYCKEL + "karriar");
-    else if (p.has("omg") || p.has("div") || p.has("kval") || p.has("straffar") || !las("karriar")) {
+    else if (p.has("omg") || p.has("div") || p.has("kval") || p.has("straffar") || p.has("kassa") || p.has("trupp") || !las("karriar")) {
       const r = skapaPrng("preview-869").tal;
       let K = nyKarriar({ namn: "Blixtarna IF", farg: "#2f6fe8", rng: r });
       const div = Math.max(0, Math.min(7, Number(p.get("div")) || 0));
@@ -97,6 +102,17 @@
         K = ut.K;
         skriv(`match:p${i}`, { ...ut.match, id: `p${i}` });
       }
+      // ?trupp=visa: köp de två bästa som går att köpa (grundpelarna till reserverna) och lite träning.
+      if (p.get("trupp") === "visa") {
+        K = { ...K, kassa: 20000 };
+        for (let i = 0; i < 2; i++) {
+          const kan = (K.marknad || []).filter((x) => kopInfo(K, x.id).kan).sort((a, b) => b.st - a.st)[0];
+          if (kan) K = kop(K, kan.id).K;
+        }
+        K.trupp = K.trupp.map((x, i) => (x.st < 5 ? { ...x, xp: [36, 72, 12, 84, 48, 0, 24][i] } : x));
+        K.kassa = 1500;
+      }
+      if (p.has("kassa")) K.kassa = Math.max(0, Number(p.get("kassa")) || 0);
       skriv("karriar", K);
       // ?straffar=1: kvalet står 1 – 1 efter full tid och ligger som en pågående match (md-lokal.js).
       const kv = kvalMatch(K);

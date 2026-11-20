@@ -122,11 +122,13 @@ describe("matchen klar: tabellen, kassan och statistiken (§5, §6.1, §8.3)", (
       assert.ok(a.p > b.p || (a.p === b.p && (a.md > b.md || (a.md === b.md && a.gm >= b.gm))));
     }
   });
-  it("kassan: (grund + 15/rätt + 25/mål) × (1 + div × 0,25)", () => {
-    assert.equal(pengarFor({ oss: 2, dem: 1 }, 20, 0), 300 + 300 + 50);
-    assert.equal(pengarFor({ oss: 1, dem: 1 }, 10, 0), 150 + 150 + 25);
-    assert.equal(pengarFor({ oss: 0, dem: 3 }, 0, 0), 80);
-    assert.equal(pengarFor({ oss: 0, dem: 3 }, 0, 4), 160);
+  it("kassan: (grund + per rätt svar + per mål) × (1 + div × 0,25) – #871 halverade specens tal (ekonomin, §12)", () => {
+    const kr = C.KASSA;
+    assert.deepEqual([kr.start, kr.vinst, kr.oavgjort, kr.forlust, kr.perRatt, kr.perMal, kr.perDiv], [600, 150, 75, 40, 8, 12, 0.25]);
+    assert.equal(pengarFor({ oss: 2, dem: 1 }, 20, 0), 150 + 160 + 24);
+    assert.equal(pengarFor({ oss: 1, dem: 1 }, 10, 0), 75 + 80 + 12);
+    assert.equal(pengarFor({ oss: 0, dem: 3 }, 0, 0), 40);
+    assert.equal(pengarFor({ oss: 0, dem: 3 }, 0, 4), 80);
     const k = matchKlar(K0, { res: res(2, 1), rng: rng(), nu: NU, matchId: "a" });
     assert.equal(k.K.kassa, 600 + k.pengar);
   });

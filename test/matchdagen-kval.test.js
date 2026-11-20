@@ -213,7 +213,7 @@ describe("kvalet: bara ligavinnaren, upp vid vinst, aldrig ned (§7.2)", () => {
     assert.equal(ut.K.div, 1);
     assert.equal(ut.K.pokaler.at(-1).namn, "Kvalade upp till Division 5");
     assert.equal(ut.K.pokaler.at(-1).typ, "kval");
-    assert.equal(ut.pengar, 300 + 300 + 50 + C.KASSA.uppflyttning);
+    assert.equal(ut.pengar, C.KASSA.vinst + 20 * C.KASSA.perRatt + 2 * C.KASSA.perMal + C.KASSA.uppflyttning);
     assert.equal(ut.K.kassa, K.kassa + ut.pengar);
     assert.equal(ut.match.typ, "kval");
     assert.equal(ut.match.div, 0, "matchen spelades från Division 6");
@@ -249,7 +249,7 @@ describe("kvalet: bara ligavinnaren, upp vid vinst, aldrig ned (§7.2)", () => {
     assert.equal(ut.K.div, 0);
     assert.equal(ut.K.pokaler.filter((p) => p.typ === "kval").length, 0);
     assert.equal(ut.K.sasonger[0].kval, "kvar");
-    assert.equal(ut.pengar, 80 + 300);
+    assert.equal(ut.pengar, C.KASSA.forlust + 20 * C.KASSA.perRatt);
     assert.equal(nySasong(ut.K, rng()).div, 0);
   });
   it("Superligan är toppen: ligavinnaren får pokalen men inget kval", () => {

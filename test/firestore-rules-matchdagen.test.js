@@ -17,6 +17,7 @@ import { deleteDoc, doc, getDoc, serverTimestamp, setDoc, updateDoc, writeBatch 
 import { createRollerEnv, seedRoller } from "./helpers/roller-env.js";
 import { nyKarriar, matchKlar } from "../src/matchdagen/delat/md-sasong.js";
 import { skapaPrng } from "../src/matchdagen/delat/md-prng.js";
+import { marknadTillDok } from "../src/matchdagen/delat/md-trupp.js";
 
 let env;
 const K0 = nyKarriar({ namn: "Blixtarna IF", farg: "#e8473f", rng: skapaPrng("regler").tal });
@@ -24,6 +25,7 @@ const STAT = { skott: 5, skottPaMal: 3, pass: 12, passOk: 9, tacklingar: 6, vunn
   fragor: 28, ratt: 20, perKalla: { "tabell:7": { fragor: 28, ratt: 20 } }, sekunder: 420 };
 const KLAR = matchKlar(K0, { res: { oss: 2, dem: 1, utfall: "vinst", mal: [{ min: 12, lag: "oss" }, { min: 40, lag: "dem" }, { min: 77, lag: "oss" }], stat: STAT },
   rng: skapaPrng("regler-2").tal, nu: Date.UTC(2026, 10, 20, 9), matchId: "s1-d0-o1-x" });
+KLAR.K.marknad = marknadTillDok(KLAR.K.marknad); // dokumentets form (md-data.js, #871)
 const karriar = (over = {}) => ({ ...JSON.parse(JSON.stringify(K0)), senast: serverTimestamp(), ...over });
 const match = (over = {}) => ({ ...JSON.parse(JSON.stringify(KLAR.match)), datum: serverTimestamp(), ...over });
 const ref = (db, uid = "e4a") => doc(db, "matchdagen", uid);
@@ -78,7 +80,8 @@ describe("matchdagen/{uid} – eleven (#869)", () => {
     const { liga, ...utanLiga } = karriar();
     void liga;
     await assertFails(setDoc(ref(db), utanLiga), "ligan saknas");
-    await assertSucceeds(setDoc(ref(db), karriar({ div: 7, trupp: trupp(5) })), "div 7, st 5");
+    await assertFails(setDoc(ref(db), karriar({ trupp: trupp(5) })), "#871: en ny klubb har bara nya grundpelare (2★)");
+    await assertSucceeds(setDoc(ref(db), karriar({ div: 7 })), "div 7");
   });
   it("summan: bara heltal (aldrig text som blir HTML hos läraren), kända nycklar, ratt ≤ fragor", async () => {
     await env.seed((db) => setDoc(ref(db), { ...JSON.parse(JSON.stringify(K0)), senast: new Date() }));
@@ -134,6 +137,9 @@ describe("matchdagen/{uid} – läraren (#869): läser, och återställer bara l
 describe("matchdagen/{uid}/matcher/{id} (#869): bara create, storleksgränser", () => {
   it("eleven sparar karriären och matchen i EN batch (som md-data.js sparaMatch)", async () => {
     const db = env.as("e4a", {});
+    // #871: en ny klubb skapas alltid från noll (md-data.js skapar den först om den saknas).
+    await assertFails(setDoc(ref(db), { ...JSON.parse(JSON.stringify(KLAR.K)), senast: serverTimestamp() }), "skapa med en spelad match");
+    await assertSucceeds(setDoc(ref(db), karriar()));
     const b = writeBatch(db);
     b.set(ref(db), { ...JSON.parse(JSON.stringify(KLAR.K)), senast: serverTimestamp() });
     b.set(mref(db), match());
