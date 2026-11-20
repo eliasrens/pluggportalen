@@ -11,12 +11,29 @@
 // stänger sidan (learning). Kvoten (§13): matchdagenInst/{uid} och
 // matchdagen/{uid} läses EN gång var när sidan öppnas, inga lyssnare. Avataren
 // kommer ur getStudentData (sidomenyns cache – ingen ny läsning).
+// Vänskapsmatcher (#874): elevens klass med Matchdagen ur getClasses() (klasslistans
+// cache) och kompisarnas namn ur classProjections – EN läsning, först när fliken öppnas.
 // ============================================================================
 
 import { app, renderTopbar } from "../ui.js";
-import { currentStudentId, getArea, getStudentData } from "../data.js";
+import { currentStudentId, ensureClassProjection, getArea, getClasses, getStudentData } from "../data.js";
 
 let aktiv = null; // sidans AbortController – avbryts när eleven lämnar sidan
+
+/** Klassen där eleven har Matchdagen och kompisarna som också har den (§11.1); null utan klass. */
+function vanskapFor(klasser, uid, harMatchdagen) {
+  const k = (klasser || []).find((c) => Array.isArray(c.studentIds) && c.studentIds.includes(uid) && harMatchdagen(c, uid));
+  if (!k) return null;
+  const ids = k.studentIds.filter((x) => x !== uid && harMatchdagen(k, x));
+  let namn = null;
+  return {
+    classId: k.id,
+    kompisar: () => (namn ||= ensureClassProjection(k.id, ids).then(({ members }) => ids
+      .map((x) => ({ uid: x, namn: String(members?.[x]?.namn || "Okänd") }))
+      .sort((a, b) => a.namn.localeCompare(b.namn, "sv")))),
+    moln: () => import("./vanskap/md-vanskap-moln.js"),
+  };
+}
 
 export async function pageMatchdagen() {
   aktiv?.abort();
@@ -28,7 +45,7 @@ export async function pageMatchdagen() {
 
   const uid = currentStudentId();
   let instFel = false;
-  const [, inst, sd, data, { startaMatchdagen }] = await Promise.all([
+  const [, inst, sd, data, { startaMatchdagen }, klasser, { harMatchdagen }] = await Promise.all([
     renderTopbar(),
     import("./md-inst-data.js").then((m) => m.lasInst(uid)).catch((err) => {
       console.warn("Matchdagen: inställningarna kunde inte läsas", err);
@@ -38,6 +55,8 @@ export async function pageMatchdagen() {
     getStudentData().catch(() => null),
     import("./md-data.js"),
     import("./md-app.js"),
+    getClasses().catch(() => []),
+    import("./md-inst.js"),
   ]);
   if (ac.signal.aborted) return;
   const host = document.createElement("section");
@@ -51,6 +70,7 @@ export async function pageMatchdagen() {
     hamtaOmrade: (s, a) => getArea(s, a),
     avatar: sd ? { avatarId: sd.avatarId, avatarItems: sd.avatarItems || [] } : null,
     tvinga2d: sok.get("2d") === "1",
+    vanskap: vanskapFor(klasser, uid, harMatchdagen),
     signal: ac.signal,
   });
 }

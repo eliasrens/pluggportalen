@@ -38,6 +38,9 @@ schackMynt/{uid}                         ← Schack (#798): kvittot för schacke
 matchdagenInst/{uid}                     ← Matchdagen (#867): lärarens inställningar per elev – läraren skriver, eleven läser
 matchdagen/{uid}                         ← Matchdagen (#869): elevens karriär (klubb, liga, kassa, summa) – eleven skriver, läraren läser
 matchdagen/{uid}/matcher/{matchId}       ← Matchdagen (#869): en per spelad match – bara create av eleven
+mdLobby/{classId}                        ← Matchdagen (#874): vänskapslobbyn per klass – bara servern skriver
+mdVanskap/{matchId}(/privat|/facit/{uid}) ← Matchdagen (#874): en vänskapsmatch, elevens fråga, frågebanken – bara servern skriver
+mdVanskapElev/{uid}                      ← Matchdagen (#874): spärren och dagens antal vänskapsmatcher – bara servern skriver
 mathCompetitions/{cid}/…                 ← Mattematchen (#457), se "Mattematchen & Live"
 liveSessions/{sid}/…                     ← Live-matcher (#457), se "Mattematchen & Live"
 liveClock/{uid}                          ← Live: klocksynk per inloggad (#460)
@@ -914,6 +917,7 @@ matchen), när klubben skapas eller döps om och (#871) efter varje köp, byte o
 | `senast` | timestamp | Serverns tid vid varje skrivning |
 | `mastarcup` | string \| null | #873: Mästarcupen, `"säsong-spelade"` – `"13-0"` = inbjudna säsong 13 (sätts när Superligan vinns säsongen före), `"13-2"` = två rundor vunna, `"-u"` efter = utslagna i den rundan, `"säsong-3"` = vunnen. `null` i en legendklubb; saknas, `null` eller en annan säsong = inte inbjudna (docs/MATCHDAGEN.md §17.2) |
 | `klubbhistorik` | array ≤ 50 | #873: de gamla klubbarna, en rad per legendklubb `"namn\|#färg\|från-till\|liga.kval.cup.superliga.mastarcup"` (`"Blixtarna IF\|#2f6fe8\|1-13\|2.3.1.1.1"` – säsongerna och antalet pokaler av varje sort), högst 4 000 tecken. Växer bara med exakt en rad, när en legendklubb startar (`md-legend.js`, docs/MATCHDAGEN.md §17.3). Saknas tills första legendklubben |
+| `inbordes` | map | #874: de inbördes vänskapsmötena `{ [motståndarUid]: { v, o, f, namn } }` (vinster, oavgjorda, förluster sett från eleven, motståndarlagets namn ≤ 24 tecken). **Bara servern skriver** (`FieldValue.increment` när en vänskapsmatch slutar, samtidigt som `kassa` ökar); reglerna nekar en ändring från klienten, appen skickar fältet oförändrat när hela dokumentet skrivs. Saknas tills första vänskapsmatchen |
 
 Läraren med `hasStudent(uid)` läser och får bara sätta `klubb.namn` = "Pluggporten FC"
 (Återställ lagnamn). Typisk storlek: ~2 kB för en ny klubb; med alla tak fyllda ~61 kB
@@ -940,6 +944,25 @@ samma batch som karriären; ingen ändring, radering bara av admin.
 
 Läses av eleven (Statistik → klick på en match: EN läsning) och av läraren (historiken:
 de 20 senaste, läses först vid klick på eleven).
+
+En vänskapsmatch (#874, `typ: "vanskap"`, id = matchens `mdVanskap`-id) skrivs av **servern** i båda elevernas
+`matcher` när den slutar – samma fält (utan `sasong`-omgång och straffar); den räknas inte in i `summa`, `senaste` eller
+`dagar` (ligan påverkas inte).
+
+### Vänskapsmatcherna (#874) – `mdLobby`, `mdVanskap`, `mdVanskapElev`
+
+**Allt skrivs av Cloud Functions** (`mdUtmana`, `mdSvara`, `mdFraga`, `mdSvar`, `mdTick`, `mdGeUpp`); ingen klient skriver
+(reglerna nekar). Tider i epoch-ms ur serverns klocka. Hela beskrivningen: [`MATCHDAGEN.md`](MATCHDAGEN.md) §18.
+
+| Dokument | Fält | Läses av |
+| --- | --- | --- |
+| `mdLobby/{classId}` | `utmaningar: { [id]: { fran, franNamn, franLag, till, sedan } }` (2 minuter), `matcher: { [matchId]: { a, b, aNamn, bNamn, aLag, bLag, start } }` (pågående) | klassens elever med Matchdagen (`onSnapshot` medan fliken Vänskap är öppen), läraren med klassen |
+| `mdVanskap/{matchId}` | `classId`, `a`, `b`, `spelare`, `namn: { a, b }`, `tid: { a, b }` (sekunder per läge), `status` (`pagar`/`slut`/`avbruten`), `V` (motorns tillstånd, `md-vanskap.js`), `h` (senaste händelsen), `fas: { nr, start }`, `halvtid: { start, redo: { a, b } } \| null`, `resultat: { vinnare, walkover, stallning, kassa } \| null`, `skapad`, `uppdaterad` | de två spelarna (`onSnapshot`), läraren |
+| `mdVanskap/{id}/privat/{uid}` | `classId`, `sida`, `fas`, `roll` (`anf`/`forsv`), `val`, `fraga` (utan facit), `kalla`, `svar: { ratt, facit, tidenUte? } \| null`, `aktiv` | eleven själv, läraren |
+| `mdVanskap/{id}/facit/{uid}` | `classId`, `sida`, `bank: [{ pub, kalla, r }]` (36 frågor med rättningen) | läraren |
+| `mdVanskapElev/{uid}` | `aktiv` (matchId \| null – en vänskapsmatch åt gången), `dag` (`"ÅÅÅÅ-MM-DD"`, Stockholm), `antal` (spelade i dag – de 3 första ger pengar) | eleven själv, läraren |
+
+Ingen städning: en avslutad match ligger kvar (~10–20 kB med banken). ⚠️ DEPLOY: rules → functions → webben.
 
 ---
 

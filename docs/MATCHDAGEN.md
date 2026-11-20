@@ -3,7 +3,7 @@
 Spec: [`UTVECKLINGSUPPDRAG_MATCHDAGEN.md`](UTVECKLINGSUPPDRAG_MATCHDAGEN.md) (epic #866). Godkänd skiss:
 [`preview/preview-matchdagen-skiss.html`](../preview/preview-matchdagen-skiss.html). Rapporten per etapp:
 [`QA-RAPPORT-matchdagen-etapp-1.md`](QA-RAPPORT-matchdagen-etapp-1.md), [`QA-RAPPORT-matchdagen-etapp-2.md`](QA-RAPPORT-matchdagen-etapp-2.md),
-[`QA-RAPPORT-matchdagen-etapp-3.md`](QA-RAPPORT-matchdagen-etapp-3.md).
+[`QA-RAPPORT-matchdagen-etapp-3.md`](QA-RAPPORT-matchdagen-etapp-3.md), [`QA-RAPPORT-matchdagen-etapp-4.md`](QA-RAPPORT-matchdagen-etapp-4.md).
 
 Matchdagen är ett fotbollsspel där varje drag kräver ett rätt svar. Läraren slår på det för **enskilda
 elever**, aldrig för en hel klass. Det här dokumentet växer med etapperna:
@@ -17,6 +17,7 @@ elever**, aldrig för en hel klass. Det här dokumentet växer med etapperna:
 | 2b (#871) | Truppen, reserverna, marknaden och träningslägret, ekonomin (§15) | klar |
 | 2c (#872) | Silverpokalen, rekorden och pokalerna som rader (§16) | klar |
 | 3 (#873) | Superligans mästare, Mästarcupen med finalscen, legendklubben och Pokalskåpet (§17) | klar |
+| 4 (#874) | Vänskapsmatcher i realtid: lobbyn, callables, den synkade motorn, rättning på servern, inbördes möten (§18) | klar |
 
 ## 1. Moduler per elev (Etapp 1a)
 
@@ -927,3 +928,131 @@ säsongen i en skrivning 26, kvalet 22, hela säsongen + cupen + kvalet i en skr
 mästare 50, match och final i Mästarcupen ≥ 60, **legendklubben 12** (48 gamla klubbar: 10); läger + match i en
 skrivning nekas fortfarande. Etapp 3 kostar 4–9 uttryck per skrivning. ⚠️ `h[0:0]` (en tom del av en lista)
 spräckte gränsen – jämför bara när listan inte är tom. Mätningen: rapporten (Etapp 3).
+
+## 18. Vänskapsmatcher i realtid (Etapp 4, #874, spec §11)
+
+Två elever i samma klass som båda har Matchdagen spelar mot varandra med **sina egna lag** (namn, färg, lagbonus ur
+truppen). Servern spelar matchen: klienterna väljer, svarar och visar animationerna. Ligan påverkas inte.
+
+### 18.1 Flödet
+
+1. **Lobbyn** (fliken **Vänskap**, `src/matchdagen/vanskap/md-vy-vanskap.js`): klasskompisarna med Matchdagen
+   (`classes/{id}.elevModuler`, namnen ur `classProjections`), "Utmana", en inkommande utmaning med "Anta"/"Nej tack",
+   "Ta tillbaka", pågående matcher i klassen, dagens betalda matcher och de inbördes mötena
+   ("Blixtarna IF – FC Omar: 3–1–2", vinster–oavgjorda–förluster).
+2. `mdUtmana({ classId, till })` → en utmaning i `mdLobby/{classId}` (en per utmanare – en ny ersätter den gamla).
+   Den försvinner efter **2 minuter** (`VANSKAP.utmaning`). `mdSvara({ utmaningId, ja })`: den utmanade antar eller
+   tackar nej; den som utmanade tar tillbaka med `ja: false`.
+3. Antagen → matchen skapas (`mdVanskap/{matchId}`), båda elevernas `matchdagenInst` och valda områden läses EN gång
+   och en **frågebank per elev** (36 frågor ur elevens egna källor, `functions/md-vanskap-fragor.js`) läggs i
+   `facit/{uid}`. Den som utmanade är sidan `a` och gör avspark. Båda klienterna ser matchen i lobbyn och öppnar den.
+4. **Varje läge** (`md-vanskap.js vLage`): anfallaren väljer kort pass, långt pass, dribbling eller skott (≤ 45 m),
+   försvararen tackla eller täck – vid ett skott blir försvararens svar målvaktens räddning. `mdFraga({ matchId, val })`
+   skriver frågan **utan facit** i elevens `privat/{uid}` och svarar med den; `mdSvar({ matchId, svar })` rättas på
+   servern (Live:s rättning: `kistspel-rattning.js` för multiplikation och quiz, `rakna-core.js checkAnswer` för
+   Räkna) och svarar `{ ratt, facit }`. När **båda** har svarat avgörs läget med motorn (`vSpela`: anfallarens och
+   försvararens svar och lagbonus) och händelsen skrivs till matchdokumentet. Båda klienterna lyssnar (`onSnapshot`)
+   och spelar animationen sett från sitt lag (`spegla`, `vy`).
+5. **Tiden:** 60 s per läge (`VANSKAP.tid`) eller elevens klocka om den är kortare, + 6 s för animationen
+   (`VANSKAP.anim`). Tar elevens klocka slut skickar klienten `svar: null` (fel). Har den andra inte svarat när serverns
+   tid gått anropar klienterna `mdTick` – uteblivet svar = fel, inget val = standardvalet (kort pass / täck).
+6. **Halvtid:** "Andra halvlek" (`mdTick({ redo: true })`); den andra halvleken börjar när båda är redo, senast efter
+   60 s. Laget som inte började gör avspark. Inga straffar – oavgjort är tillåtet.
+7. **Walkover:** den som inte gjort något på **3 minuter** (`VANSKAP.inaktiv`, räknat på elevens senaste
+   `mdFraga`/`mdSvar`/redo) förlorar; "Lämna" (`mdGeUpp`) är en walkover direkt. Är båda borta lika länge blir matchen
+   **avbruten** (inget resultat, ingen kassa). En match som ingen längre spelar avslutas när någon av eleverna utmanar
+   eller antar nästa gång.
+8. **Slutet** (`md-vanskap-spel.js avsluta`, EN transaktion): resultatet i matchdokumentet, båda elevernas spärr och
+   dagsräkning (`mdVanskapElev`), kassan och de inbördes mötena (`FieldValue.increment` i `matchdagen/{uid}`) och
+   matchen i båda elevernas `matcher/{matchId}` med `typ: "vanskap"`. Klubbkassan: **100 kr** för att spela och
+   **100 kr** extra vid vinst, för högst **3 vänskapsmatcher per dag** (Stockholmsdygnet, `dagNyckel`); den som förlorar
+   på walkover får ingenting. Fler matcher får spelas, utan pengar.
+
+### 18.2 Motorn (`src/matchdagen/delat/md-vanskap.js`, ren)
+
+Synkad till `functions/matchdagen/` med `admin/sync-matchdagen-functions.mjs` (`npm run sync:matchdagen`, predeploy för
+functions, `--check` i testerna) tillsammans med frågekällornas rena kod (`functions/matchdagen/kallor/`). API:
+
+`nyVanskap({ a, b, avspark })`, `vLage(V)`, `vSpela(V, { a: { val, ratt, kalla }, b }, rng) → { V, h }`, `vAndraHalvlek`,
+`vWalkover(V, forlorare)`, `vResultat(V)`, `spegla(h, sida)` (händelsen för `md-plan.js spela`), `vy(V, sida)` (för
+`plan.stall`), `fasSekunder(klocka)`, `inaktivUtfall({ a, b }, nu)`, `kassaFor(vann, betaldaIdag)`, `inbordesText(eget, mot, r)`.
+Chanserna är solospelets (`chansPass`, `chansForsvar`, `chansSkott`, `chansRaddning`) med motståndarstyrkan 0 och lagens
+egna bonusar; försvarets vikt `VANSKAP.forsvar` = 0,5 och räddningens `VANSKAP.raddning` = 0,55. En fråga per skott
+(ingen finta från Division 3 i en vänskapsmatch).
+
+**Balansen** (`admin/md-balans-vanskap.mjs`, i `npm run balans:matchdagen`, gränserna `VANSKAP_MAL` testade):
+
+| Rätt a / b | Stjärnor a / b | Vinst a | Oavgj. | Vinst b | Mål/match | Lägen | Match (min) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 70 % / 70 % | 2 / 2 | 36 % | 31 % | 33 % | 2,21 | 29,1 | 7,3 |
+| 70 % / 50 % | 2 / 2 | 52 % | 28 % | 19 % | 2,07 | 29,2 | 7,3 |
+| 50 % / 50 % | 2 / 2 | 34 % | 33 % | 33 % | 1,86 | 29,1 | 7,3 |
+| 90 % / 30 % | 2 / 2 | 87 % | 11 % | 2 % | 2,59 | 29,2 | 7,3 |
+| 70 % / 70 % | 4 / 2 | 56 % | 27 % | 17 % | 2,39 | 29,1 | 7,3 |
+
+### 18.3 Datamodellen (bara Cloud Functions skriver)
+
+| Dokument | Innehåll | Läses av |
+| --- | --- | --- |
+| `mdLobby/{classId}` | `utmaningar { id: { fran, franNamn, franLag, till, sedan } }`, `matcher { id: { a, b, aNamn, bNamn, aLag, bLag, start } }` | klassens elever med Matchdagen (live), läraren med klassen |
+| `mdVanskap/{matchId}` | `classId, a, b, spelare, namn, tid { a, b }, status` (`pagar`/`slut`/`avbruten`), `V` (motorns tillstånd), `h` (senaste händelsen), `fas { nr, start }`, `halvtid { start, redo }`, `resultat { vinnare, walkover, stallning, kassa }`, `skapad, uppdaterad` | de två spelarna (live), läraren |
+| `mdVanskap/{id}/privat/{uid}` | elevens läge: `sida, fas, roll, val, fraga` (utan facit), `kalla, svar { ratt, facit, tidenUte? }, aktiv` | eleven själv, läraren – aldrig motståndaren |
+| `mdVanskap/{id}/facit/{uid}` | frågebanken MED facit: `sida, bank [{ pub, kalla, r }]` | bara läraren |
+| `mdVanskapElev/{uid}` | spärren och dagstaket: `aktiv` (matchId eller null), `dag`, `antal` | eleven själv, läraren |
+| `matchdagen/{uid}.inbordes` | `{ [motståndarUid]: { v, o, f, namn } }` – motståndarlagets namn ≤ 24 tecken | som karriären |
+
+Alla tider är serverns epoch-ms; klienten jämför mot `serverNow()` (`data-class-lock.js`). Frågan för läge `n` är
+`bank[(n − 1) % 36]`. Elevens tid i läget: `fas.start + (tid[sida] + anim) s`.
+
+### 18.4 Callables (`functions/md-vanskap-anrop.js`, europe-west1)
+
+`mdUtmana`, `mdSvara`, `mdFraga`, `mdSvar`, `mdTick`, `mdGeUpp` – bara inloggade elever (lärare: `permission-denied`).
+Grinden (`hamtaKlass`): eleven (och kompisen) står i klassens `studentIds`, har Matchdagen i `elevModuler`, inget aktivt
+fokuslås, och båda har en klubb och minst en frågekälla. Bara en vänskapsmatch åt gången per elev
+(`mdVanskapElev.aktiv`, läst i transaktionen – gäller över klasser, självläkande). EN transaktion per anrop.
+Logiken: `md-vanskap-state.js` (det gemensamma), `md-vanskap-lobby.js`, `md-vanskap-spel.js`, `md-vanskap-fragor.js`.
+
+### 18.5 Klienten
+
+- `md-vanskap-moln.js`: callables och två lyssnare (`lyssnaLobby`, `lyssnaMatch`), `lasPrivat` (bara när eleven kommer
+  tillbaka till en match), `lasElev` (dagens matcher). Skriver aldrig i duellsamlingarna.
+- `md-vy-vanskap.js`: lobbyn och **vakten** (`bevaka`): EN lyssnare per match, kvar över flikbyten. När matchen slutar
+  räknas kassan och de inbördes mötena in i `S.K` precis som servern skrev dem – annars skulle appens nästa sparning
+  (karriären, `sparaMatch`/`sparaTrupp`) skriva över serverns kassa. Pågår en match när Matchdagen öppnas
+  (`mdVanskapElev.aktiv`) startar vakten direkt. Före en utmaning eller ett ja sparas kön (en osparad match offline
+  skulle annars skriva över kassan efteråt).
+- `md-vanskap-spel.js`: matchvyn – samma skylt, plan, kommentar och frågekort som solospelet (`md-match-spel.js layout`),
+  frågekortet `md-svar.js` med serverns rättning (ett Promise: kortet väntar, inga dubbelklick, ett nätfel → "försök
+  igen"). Bilden till en Räkna-fråga (klockan, figurer) ritas i klienten ur problemet (`matte-visuals.js`).
+- `page-matchdagen.js` hittar elevens klass med Matchdagen i `getClasses()` (klasslistans cache) och skickar
+  `vanskap: { classId, kompisar(), moln() }`; utan klass finns ingen Vänskap-flik.
+- Lärarens statistik: vänskapsmatcherna märks "(vänskapsmatch)" i matchlistan och de inbördes mötena står i elevpanelen.
+
+### 18.6 Reglerna
+
+Klienten skriver ingenting i `mdLobby`, `mdVanskap` (med `privat` och `facit`) och `mdVanskapElev`. Läsning:
+lobbyn – läraren med klassen (`hasClass`) och klassens elever som har Matchdagen (`mdHarMatchdagen`: en `get` av
+klassen); matchen – spelarna och läraren (ett saknat dokument får varje inloggad hämta, som `schackPartier`);
+`privat/{uid}` – eleven själv och läraren; `facit` – bara läraren; `mdVanskapElev/{uid}` – eleven själv och läraren.
+I `matchdagen/{uid}` får `inbordes` finnas (`hasOnly`), men en skrivning från klienten får inte ändra det:
+`!('inbordes' in a)` – ett enda billigt uttryck. Appen skickar fältet oförändrat när hela dokumentet skrivs
+(`sparaKarriar`, nytt namn, legendklubb) och utelämnar det i matchsparningen (`mergeFields`).
+**Marginalen** mot 1000-gränsen: inbördes kostar en enhet i varje skrivning – ny klubb 4 (var 5), köp 21, köp med
+fulla reserver 17, hela säsongen + cupen + kvalet 11, legendklubben 12 (48 gamla: 10), kvalet 24; oförändrat med möten
+i dokumentet. Mätningen: rapporten (Etapp 4).
+
+### 18.7 Kvoten (§13) – en vänskapsmatch
+
+Räknat för en match med ~29 lägen (balansen) där båda svarar i varje läge:
+
+| | Antal |
+| --- | --- |
+| Callables | 2 (utmana, svara) + 2 × 2 per läge (fråga + svar per elev) ≈ **118**, + 2 vid halvtid; `mdTick` bara när någons tid går ut |
+| Skrivningar (servern) | utmaning 1, start 6 (match, 2 facit, 2 spärrar, lobbyn), per läge ~5 (2 privata vid valet, 2 vid svaret, matchen), slutet 8 ≈ **160** |
+| Läsningar (servern, i transaktionerna) | start ~15 (klass, karriärer, inställningar, områden), per läge ~14, slutet 5 ≈ **430** |
+| Lyssnare | lobbyn (1 per elev, bara medan fliken är öppen) och matchen (1 per elev) – ~31 uppdateringar per elev |
+| Klientens egna läsningar | `mdVanskapElev` 1–2, `classProjections` 1, `privat` 0–1 (bara när eleven kommer tillbaka) |
+
+Solospelet är oförändrat (inga lyssnare, karriären läses en gång) – utom EN läsning av `mdVanskapElev/{uid}` när
+Matchdagen öppnas för en elev i en klass (vakten för en pågående vänskapsmatch).
+

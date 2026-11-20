@@ -71,7 +71,7 @@ describe("delat/ är ren och har alla tal i md-config.js", () => {
   const utanKommentarer = (f) => readFileSync(new URL(f, DIR), "utf8")
     .replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "").replace(/\s\/\/.*$/gm, "");
   it("filerna", () => assert.deepEqual(filer, ["md-config.js", "md-cup.js", "md-kval.js", "md-legend.js", "md-liga.js", "md-mastarcup.js", "md-motor.js", "md-namn.js",
-    "md-prng.js", "md-rekord.js", "md-sasong.js", "md-straffar.js", "md-texter.js", "md-trupp.js"]));
+    "md-prng.js", "md-rekord.js", "md-sasong.js", "md-straffar.js", "md-texter.js", "md-trupp.js", "md-vanskap.js"]));
   it("ingen DOM, Firebase, three.js, klocka eller Math.random – bara importer inom delat/", () => {
     for (const f of filer) {
       const src = utanKommentarer(f);
@@ -81,7 +81,7 @@ describe("delat/ är ren och har alla tal i md-config.js", () => {
   });
   it("motorn och ligan har inga speltal – de ligger i md-config.js", () => {
     const tillatna = new Set(["0", "1", "2", "0.5", "15", "7", "14", "61", "1000"]);
-    for (const f of ["md-motor.js", "md-liga.js", "md-straffar.js", "md-kval.js", "md-cup.js", "md-mastarcup.js"]) {
+    for (const f of ["md-motor.js", "md-liga.js", "md-straffar.js", "md-kval.js", "md-cup.js", "md-mastarcup.js", "md-vanskap.js"]) {
       const src = utanKommentarer(f).replace(/"[^"\n]*"|`[^`\n]*`/g, "\"\"");
       const tal = [...src.matchAll(/(?<![\w.])(\d+(?:\.\d+)?)(?![\w.])/g)].map((m) => m[1]);
       assert.deepEqual(tal.filter((t) => !tillatna.has(t)), [], f);

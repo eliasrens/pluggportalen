@@ -361,7 +361,12 @@ async function huvud() {
   const mc = MC_RADER.map(([andelRatt, stjarnor]) => mcBalans({ andelRatt, stjarnor, n: nCup }));
   console.log(`\n${MC_RUBRIK} (${nCup} försök per rad; kvartsfinal, semifinal, final, oavgjort → straffar)\n`);
   console.log(mcTabell(mc, md));
+  // Etapp 4 (#874): vänskapsmatcherna (§11.3) – två robotelever mot varandra med md-vanskap.js.
+  const { vanskapTabell } = await import("./md-balans-vanskap.mjs");
+  const vs = vanskapTabell(Math.max(200, n * 2));
+  console.log(`\nVänskapsmatcherna (${Math.max(200, n * 2)} matcher per rad; båda svarar i varje läge, avspark växlar)\n`);
+  console.log(vs.text);
   console.log(`\n${Math.round(performance.now() - t0)} ms`);
   process.exitCode = [...rader, sup].some((r) => bedom(r).length) || eko.some((r) => bedomEkonomi(r).length) || cup.some((r) => bedomCup(r).length) ||
-    mc.some((r) => bedomMc(r).length) ? 1 : 0;
+    mc.some((r) => bedomMc(r).length) || vs.fel ? 1 : 0;
 }
