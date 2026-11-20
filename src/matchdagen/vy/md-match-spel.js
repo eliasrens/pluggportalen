@@ -50,6 +50,23 @@ async function avatarBild(S) {
 /** Hela namnet på bred skärm, förkortningen ("BIF") på smal – som på tv. */
 const namnPar = (namn) => `<span class="md-lang">${esc(namn)}</span><span class="md-kortnamn" aria-hidden="true">${esc(kortNamn(namn))}</span>`;
 
+/**
+ * Planens höjd efter fönstret (§14): skylt, plan, kommentar och frågekort ska synas
+ * samtidigt i 1366 × 768 utan att scrolla – också med appens sidhuvud ovanför.
+ * UNDER = kommentarens rad + frågekortet (fyra val i två rader) + appens marginal.
+ */
+const UNDER = 262;
+function passaPlanen(plan) {
+  const passa = () => {
+    if (!plan.isConnected) { window.removeEventListener("resize", passa); return; }
+    const topp = plan.getBoundingClientRect().top + window.scrollY;
+    const h = Math.round(Math.min(420, Math.max(220, window.innerHeight - topp - UNDER)));
+    plan.style.setProperty("--md-plan-h", `${h}px`);
+  };
+  passa();
+  window.addEventListener("resize", passa);
+}
+
 function layout(S, el, mot) {
   const vi = S.K.klubb;
   el.innerHTML = `<div class="md-match${S.lugnt ? " lugnt" : ""}">
@@ -68,6 +85,7 @@ function layout(S, el, mot) {
     <p class="md-kommentar" aria-live="polite"></p>
     <div class="md-kortyta"></div>
   </div>`;
+  passaPlanen(el.querySelector(".md-plan"));
   return {
     yta: el.querySelector(".md-yta"), utrop: el.querySelector(".md-utrop"), kommentar: el.querySelector(".md-kommentar"),
     kort: el.querySelector(".md-kortyta"), res: el.querySelector("[data-res]"), tid: el.querySelector("[data-tid]"),
