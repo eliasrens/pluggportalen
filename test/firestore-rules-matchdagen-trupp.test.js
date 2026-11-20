@@ -86,8 +86,8 @@ describe("matchdagen/{uid} – truppen och marknaden, formen (#871)", () => {
     const kopAv = async (spelare, div = 0, ok = false) => {
       const G = { ...kopia(K1), div, marknad: [spelare] };
       await seed(G);
-      // Spelaren ersätter grundpelaren helt (ingen sammanslagning med dess fält).
-      const N = { ...kopia(G), marknad: [], kassa: G.kassa - 3190, trupp: G.trupp.map((p, j) => (j === 5 ? spelare : p)) };
+      // Spelaren ersätter grundpelaren helt (ingen sammanslagning med dess fält); grundpelaren går till reserverna.
+      const N = { ...kopia(G), marknad: [], kassa: G.kassa - 3190, trupp: G.trupp.map((p, j) => (j === 5 ? spelare : p)), reserver: [G.trupp[5]] };
       await (ok ? assertSucceeds : assertFails)(setDoc(ref(elev()), medTid(N)), JSON.stringify(spelare));
     };
     await kopAv({ ...salu, st: 4 });
@@ -159,11 +159,11 @@ describe("matchdagen/{uid} – träningslägret och kassan (#871)", () => {
     await assertFails(setDoc(ref(db), medTid(LAGER, { lager: "1-0" })), "omgång 0");
     await assertFails(setDoc(ref(db), medTid(LAGER, { lager: "<b>1-1</b>" })), "HTML");
     await assertSucceeds(setDoc(ref(db), medTid(LAGER, { lager: "1-k" })), "före kvalet");
-    await assertSucceeds(setDoc(ref(db), medTid(K1, { lager: "1-1-p" })), "påbörjat");
-    await assertSucceeds(setDoc(ref(db), medTid(K1, { lager: "1-k-p" })), "påbörjat före kvalet");
-    await assertFails(setDoc(ref(db), medTid(K1, { lager: "1-1-x" })), "okänd ändelse");
-    await assertFails(setDoc(ref(db), medTid(K1, { lager: "1-1-p-p" })), "dubbel ändelse");
-    await assertFails(setDoc(ref(db), medTid(K1, { lager: "1-2-p" })), "påbörjat i en ospelad omgång");
+    await assertSucceeds(setDoc(ref(db), medTid(LAGER, { lager: "1-1-p" })), "påbörjat");
+    await assertSucceeds(setDoc(ref(db), medTid(LAGER, { lager: "1-k-p" })), "påbörjat före kvalet");
+    await assertFails(setDoc(ref(db), medTid(LAGER, { lager: "1-1-x" })), "okänd ändelse");
+    await assertFails(setDoc(ref(db), medTid(LAGER, { lager: "1-1-p-p" })), "dubbel ändelse");
+    await assertFails(setDoc(ref(db), medTid(LAGER, { lager: "1-2-p" })), "påbörjat i en ospelad omgång");
   });
   it("lägret påbörjas (EN skrivning, bara lager), sparas sedan med träningen – eller räknas som använt utan träning", async () => {
     const START = lagerStart(K1);
@@ -171,16 +171,18 @@ describe("matchdagen/{uid} – träningslägret och kassan (#871)", () => {
     await seed(START);
     const ut = kopia(lagerResultat(START, { nyckel: lagerNyckel(START), spelareId: K1.trupp[3].id, svar: Array(8).fill({ ratt: true }), nu: NU }).K);
     await assertSucceeds(setDoc(ref(elev()), medTid(ut)), "träningen sparas från det påbörjade lägret");
+    await seed(START);
     await assertSucceeds(setDoc(ref(elev()), medTid(lagerAvbrutet(START))), "avbrutet – räknas som använt");
   });
   it("lägret och nästa match sparas var för sig (appen spärrar matchen tills lägret är sparat)", async () => {
     await assertSucceeds(setDoc(ref(elev()), medTid(LAGER)));
     await assertSucceeds(setDoc(ref(elev()), medTid(matchKlar(LAGER, { res: res(3, 0), rng: r, nu: NU, matchId: "m2" }).K)));
   });
-  it("kassan växer bara med matcherna: högst 5 000 kr per match och 400 kr utan match", async () => {
+  it("kassan växer bara med matcherna: högst 5 000 kr per match, utan match aldrig (F5 – bara ett köp med släppt reserv)", async () => {
     const db = elev();
     await assertFails(setDoc(ref(db), medTid(K1, { kassa: K1.kassa + 401 })), "+401 utan match");
-    await assertSucceeds(setDoc(ref(db), medTid(K1, { kassa: K1.kassa + 400 })), "+400 utan match");
+    await assertFails(setDoc(ref(db), medTid(K1, { kassa: K1.kassa + 1 })), "+1 utan match");
+    await assertSucceeds(setDoc(ref(db), medTid(K1, { kassa: K1.kassa - 100 })), "mindre går (eleven förstör bara sitt eget)");
     await seed(K1);
     const M = kopia(matchKlar(K1, { res: res(2, 0), rng: r, nu: NU, matchId: "m3" }).K);
     await assertFails(setDoc(ref(db), medTid(M, { kassa: K1.kassa + 5401 })), "över taket för en match");
@@ -211,3 +213,97 @@ describe("matchdagen/{uid} – träningslägret och kassan (#871)", () => {
     await assertFails(setDoc(ref(env.ak4()), medTid(K1, { kassa: 99999 })));
   });
 });
+
+// ---- Rättningsrunda 1 (Testern #871, F1–F5): skrivningar förbi appen ----------------------
+const XSS = "<img src=x onerror=alert(1)>";
+const STOR = "x".repeat(150 * 1024);
+const rad = (p) => [p.id, p.namn, p.pos, p.nr, p.st].join("|");
+const ENKEL = (K) => ({ ...kopia(K), marknad: [] });
+
+describe("matchdagen/{uid} – marknaden som rader (F1)", () => {
+  beforeEach(() => seed(K1));
+  const M = () => kopia(matchKlar(K1, { res: res(2, 0), rng: r, nu: NU, matchId: "f1" }).K);
+  it("en match: den lottade marknaden går igenom, en påhittad nekas", async () => {
+    const db = elev();
+    const m = M();
+    await assertSucceeds(setDoc(ref(db), medTid(m)), "kontroll: matchens marknad");
+    const fel = (p) => setDoc(ref(db), medTid(m, { marknad: [...m.marknad.slice(0, 5).map(rad), p] }));
+    await assertFails(fel(rad({ ...m.marknad[0], st: 9 })), "st 9");
+    await assertFails(fel(rad({ ...m.marknad[0], st: 0 })), "st 0");
+    await assertFails(fel(rad({ ...m.marknad[0], namn: XSS })), "HTML i namnet");
+    await assertFails(fel(rad({ ...m.marknad[0], pos: XSS })), "HTML som position");
+    await assertFails(fel(rad({ ...m.marknad[0], id: XSS })), "HTML som id");
+    await assertFails(fel(rad({ ...m.marknad[0], nr: "<b>" })), "nr som text");
+    await assertFails(fel(rad({ ...m.marknad[0], namn: STOR })), "150 kB i namnet");
+    await assertFails(fel({ ...m.marknad[0] }), "ett objekt i stället för en rad");
+    await assertFails(fel(`${rad(m.marknad[0])}/${rad(m.marknad[1])}`), "två rader i en");
+    await assertFails(setDoc(ref(db), medTid(m, { marknad: [...m.marknad.map(rad), rad({ ...m.marknad[0], id: "kx" })] })), "7 spelare");
+  });
+  it("utan match kan marknaden inte skrivas om – bara krympa med ett köp", async () => {
+    const db = elev();
+    const egen = [{ id: "kegen", namn: "Egen Stjärna", pos: "ANF", nr: 10, st: 3, xp: 0 }];
+    await assertFails(setDoc(ref(db), medTid(K1, { marknad: egen })), "egen marknad utan match");
+    await assertFails(setDoc(ref(db), medTid(K1, { marknad: [...K1.marknad, ...egen].slice(-6) })), "en egen rad in");
+    await assertSucceeds(setDoc(ref(db), medTid(KOPT)), "kontroll: ett köp");
+  });
+});
+
+describe("matchdagen/{uid} – spelarnas fält och längder (F2)", () => {
+  it("en ny klubb: bara kända fält, namn ≤ 40 utan HTML, känd position, g1–g7, heltal och sanningsvärden", async () => {
+    const db = elev();
+    const ny = (i, over) => setDoc(ref(db), medTid(K0, { trupp: truppMed(K0, i, over) }));
+    await assertFails(ny(2, { bio: STOR.slice(0, 130 * 1024) }), "extra fält 130 kB");
+    await assertFails(ny(2, { namn: XSS }), "HTML i namnet");
+    await assertFails(ny(2, { namn: "x".repeat(41) }), "41 tecken");
+    await assertFails(ny(2, { pos: XSS }), "HTML som position");
+    await assertFails(ny(2, { nr: XSS }), "nr som text");
+    await assertFails(ny(2, { id: XSS }), "id som HTML");
+    await assertFails(ny(2, { id: "g1" }), "två g1");
+    await assertFails(ny(2, { grundpelare: STOR }), "grundpelare som text");
+    await assertFails(ny(2, { kapten: "ja" }), "kapten som text");
+    await assertSucceeds(setDoc(ref(db), medTid(K0)), "kontroll: en riktig ny klubb");
+  });
+  it("ett köp: bara raden ur marknaden – inga extra fält, inget annat namn", async () => {
+    await seed(K1);
+    const i = KOPT.trupp.findIndex((p) => p.id === TRE.id);
+    await assertFails(setDoc(ref(elev()), medTid(KOPT, { trupp: truppMed(KOPT, i, { bio: STOR }) })), "extra fält");
+    await assertFails(setDoc(ref(elev()), medTid(KOPT, { trupp: truppMed(KOPT, i, { grundpelare: true }) })), "köpt som grundpelare");
+    await assertFails(setDoc(ref(elev()), medTid(KOPT, { trupp: truppMed(KOPT, i, { nr: String(TRE.nr) }) })), "nr som text");
+  });
+});
+
+describe("matchdagen/{uid} – grundpelarna och dubbletter (F3, F4)", () => {
+  beforeEach(() => seed(K1));
+  it("en grundpelare som ersätts måste till reserverna – den kan inte försvinna", async () => {
+    const db = elev();
+    assert.equal(KOPT.reserver.length, 1, "fixturen: köpet ersatte en grundpelare");
+    await assertFails(setDoc(ref(db), medTid(KOPT, { reserver: [] })), "köp där grundpelaren försvinner");
+    await assertSucceeds(setDoc(ref(db), medTid(KOPT)), "kontroll: grundpelaren till reserverna");
+    await assertFails(setDoc(ref(db), medTid(KOPT, { reserver: [] })), "grundpelare struken ur reserverna");
+  });
+  it("ingen spelare två gånger: inte kopierad till reserverna, inte samma reserv på flera platser", async () => {
+    const db = elev();
+    await assertFails(setDoc(ref(db), medTid(K1, { reserver: [K1.trupp[0]] })), "startspelare kopierad till reserverna");
+    const R = { ...kopia(K1), reserver: [{ ...K1.trupp[5], id: "kres", namn: "Res Erv" }] };
+    await env.seed((c) => setDoc(ref(c), tillDok({ ...kopia(R), senast: new Date() })));
+    await assertFails(setDoc(ref(db), medTid(R, { trupp: R.trupp.map((p, j) => (j >= 5 ? R.reserver[0] : p)) })), "samma reserv på två platser");
+    await assertFails(setDoc(ref(db), medTid(R, { trupp: truppMed(R, 6, R.reserver[0]) })), "reserven in utan att reserverna ändras");
+    await assertSucceeds(setDoc(ref(db), medTid(bytIn(R, "kres", R.trupp[5].id))), "kontroll: ett riktigt byte");
+  });
+  it("ett köp per skrivning: samma spelare på två platser, eller två spelare för ett pris, nekas", async () => {
+    const db = elev();
+    const ANF = [5, 6];
+    const salu = K1.marknad.filter((p) => p.id !== TRE.id);
+    await assertFails(setDoc(ref(db), medTid(K1, { marknad: salu, kassa: K1.kassa - 1210,
+      trupp: K1.trupp.map((p, j) => (ANF.includes(j) ? TRE : p)), reserver: [K1.trupp[5], K1.trupp[6]] })), "samma köpta på två platser");
+    const tva = K1.marknad.slice(0, 2);
+    const T2 = ENKEL(K1);
+    T2.marknad = K1.marknad.slice(2);
+    T2.trupp = K1.trupp.map((p, j) => (j === 5 ? tva[0] : j === 6 ? tva[1] : p));
+    T2.reserver = [K1.trupp[5], K1.trupp[6]];
+    T2.kassa = K1.kassa - 3190;
+    await assertFails(setDoc(ref(db), medTid(T2)), "två köp i en skrivning");
+    await assertFails(setDoc(ref(db), medTid(KOPT, { marknad: K1.marknad })), "den köpta kvar i marknaden");
+  });
+});
+

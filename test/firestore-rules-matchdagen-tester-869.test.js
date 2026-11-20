@@ -13,6 +13,7 @@ import { deleteDoc, doc, getDoc, serverTimestamp, setDoc, updateDoc, writeBatch 
 import { createRollerEnv, seedRoller } from "./helpers/roller-env.js";
 import { nyKarriar, matchKlar } from "../src/matchdagen/delat/md-sasong.js";
 import { skapaPrng } from "../src/matchdagen/delat/md-prng.js";
+import { marknadTillDok } from "../src/matchdagen/delat/md-trupp.js";
 
 let env;
 const K0 = nyKarriar({ namn: "Blixtarna IF", farg: "#e8473f", rng: skapaPrng("t869").tal });
@@ -20,6 +21,7 @@ const STAT = { skott: 5, skottPaMal: 3, pass: 12, passOk: 9, tacklingar: 6, vunn
   fragor: 28, ratt: 20, perKalla: { "tabell:7": { fragor: 28, ratt: 20 } }, sekunder: 420 };
 const KLAR = matchKlar(K0, { res: { oss: 2, dem: 1, utfall: "vinst", mal: [{ min: 12, lag: "oss" }, { min: 77, lag: "oss" }, { min: 40, lag: "dem" }], stat: STAT },
   rng: skapaPrng("t869-2").tal, nu: Date.UTC(2026, 10, 20, 9), matchId: "s1-d0-o1-t" });
+KLAR.K.marknad = marknadTillDok(KLAR.K.marknad); // dokumentets form (md-data.js, #871)
 const kopia = (x) => JSON.parse(JSON.stringify(x));
 const ref = (db, uid = "e4a") => doc(db, "matchdagen", uid);
 const mref = (db, id = "s1-d0-o1-t", uid = "e4a") => doc(db, "matchdagen", uid, "matcher", id);

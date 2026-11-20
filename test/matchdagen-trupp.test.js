@@ -262,6 +262,24 @@ describe("träningslägret (§8.4)", () => {
   });
 });
 
+describe("marknaden i dokumentet: rader \"id|namn|pos|nr|st\" (#871 F1)", () => {
+  it("fram och tillbaka utan förlust; redan rader och äldre objekt går igenom; trasiga rader faller bort", () => {
+    const rader = T.marknadTillDok(K1.marknad);
+    assert.ok(rader.every((x) => typeof x === "string" && x.split("|").length === 5));
+    assert.deepEqual(T.marknadFranDok(rader), K1.marknad);
+    assert.deepEqual(T.marknadTillDok(rader), rader, "en gång till ändrar inget");
+    assert.deepEqual(T.marknadFranDok([K1.marknad[0], "trasig", null]), [K1.marknad[0]]);
+    assert.deepEqual(T.truppFalt({ ...K1, marknad: rader }).marknad, K1.marknad, "appen får objekt");
+  });
+  it("raden matchar reglernas uttryck för varje lottad marknad (namn, id, nr, stjärnor)", () => {
+    const RAD = /^k[0-9a-z]{1,6}[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,2}[|][1-5]$/;
+    for (let i = 0; i < 200; i++) {
+      const K = { ...K1, div: i % 8 };
+      for (const r of T.marknadTillDok(T.nyMarknad(K, rng(`m${i}`)))) assert.match(r, RAD);
+    }
+  });
+});
+
 describe("lagbonusen används (§8.1)", () => {
   it("en tränad lagdel ger högre chans: anfallet skotten, målvakten räddningarna", () => {
     const tranad = K0.trupp.map((p) => ({ ...p, st: 4 }));

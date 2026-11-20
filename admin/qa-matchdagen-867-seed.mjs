@@ -45,7 +45,9 @@ if (process.env.MD_PA === "1") {
         K = matchKlar(K, { res: { oss: 3, dem: 1, utfall: "vinst", mal: [], stat }, rng: r, nu: Date.now() - (5 - i) * 86400000, matchId: `qa${i}` }).K;
       }
       if (process.env.MD_TRUPP === "1") K = { ...K, kassa: 3000 };
-      await db.doc(`matchdagen/${alva}`).set({ ...K, senast: new Date() });
+      // Marknaden sparas som rader "id|namn|pos|nr|st" (md-data.js, #871 F1).
+      const { marknadTillDok } = await import("../src/matchdagen/delat/md-trupp.js");
+      await db.doc(`matchdagen/${alva}`).set({ ...K, marknad: marknadTillDok(K.marknad), senast: new Date() });
     }
   }
 }

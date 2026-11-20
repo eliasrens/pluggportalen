@@ -796,17 +796,20 @@ service cloud.firestore {
     // med det sparade dokumentet g – ur truppen eller reserverna, som redan har prövats
     // (induktion), eller köpta ur marknaden. Positionerna prövas inte: en elev som skriver förbi appen
     // kan bara förstöra sin egen formation (lagbonusen är ett snitt per lagdel).
-    // En ny klubb: sju grundpelare g1–g7 i ordning, bara kända fält, namn ≤ 40 tecken utan HTML,
-    // en känd position (join kräver text – ett tal eller en lista där nekas).
+    // En ny klubb (#871 F2): sju grundpelare g1–g7 i ordning, exakt de åtta fälten (size 8 och
+    // varje fält läses – ett saknat ger ett fel), namn 1–40 tecken utan HTML, en känd position,
+    // nr högst tre siffror, 2★, 0 poäng, grundpelare och kapten sanningsvärden. Allt prövas med
+    // ETT reguljärt uttryck över alla sju (billigast mot 1000-uttrycksgränsen): "+ 0" och "!" ger
+    // ett fel för text, så ett tal eller sanningsvärde skrivet som text nekas.
     function mdTruppOk(t) { return t is list && t.size() == 7; }
-    function mdNyOk(p) {
-      return p.keys().hasOnly(['id', 'namn', 'pos', 'nr', 'st', 'xp', 'grundpelare', 'kapten']) &&
-        p.st == 2 && p.xp == 0 && p.grundpelare == true && p.kapten is bool && p.nr is int &&
-        [p.namn, p.pos].join('|').matches('[^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)');
+    function mdNyRad(p) {
+      return [p.id, p.namn, p.pos, string(p.nr + 0), string(p.st + 0), string(p.xp + 0), string(!p.grundpelare), string(!p.kapten)].join('|');
     }
     function mdNyTruppOk(t) {
-      return mdNyOk(t[0]) && mdNyOk(t[1]) && mdNyOk(t[2]) && mdNyOk(t[3]) && mdNyOk(t[4]) && mdNyOk(t[5]) && mdNyOk(t[6]) &&
-        [t[0].id, t[1].id, t[2].id, t[3].id, t[4].id, t[5].id, t[6].id] == ['g1', 'g2', 'g3', 'g4', 'g5', 'g6', 'g7'];
+      return t[0].size() == 8 && t[1].size() == 8 && t[2].size() == 8 && t[3].size() == 8 && t[4].size() == 8 &&
+        t[5].size() == 8 && t[6].size() == 8 &&
+        [mdNyRad(t[0]), mdNyRad(t[1]), mdNyRad(t[2]), mdNyRad(t[3]), mdNyRad(t[4]), mdNyRad(t[5]), mdNyRad(t[6])].join('/')
+          .matches('g1[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,3}[|]2[|]0[|]false[|](true|false)/g2[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,3}[|]2[|]0[|]false[|](true|false)/g3[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,3}[|]2[|]0[|]false[|](true|false)/g4[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,3}[|]2[|]0[|]false[|](true|false)/g5[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,3}[|]2[|]0[|]false[|](true|false)/g6[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,3}[|]2[|]0[|]false[|](true|false)/g7[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,3}[|]2[|]0[|]false[|](true|false)');
     }
     // Priset på marknaden (md-trupp.js pris, avrunda(150 × st^1,9; 10)) per stjärnor 0–5.
     function mdPris(st) { return [0, 150, 560, 1210, 2090, 3190][st]; }
@@ -814,27 +817,28 @@ service cloud.firestore {
     // kan skrivas fritt. En plats är (1) oförändrad, (2) en reserv som byts in, (3) en spelare
     // ur marknaden (köpt, otränad) – då minskar kassan med priset (mdKopOk) – eller (4) samma
     // spelare tränad i ett läger: bara st/xp ändras, st 1–5 och xp 0–99 som heltal, 1–96
-    // poäng mer (8 frågor × 12), och lägret (lager) byts i samma skrivning. En reserv kommer in
+    // poäng mer (8 frågor × 12), och lägret (lager) byts i samma skrivning – men inte reserverna
+    // (då kunde den otränade kopian hamna bland reserverna). En reserv kommer in
     // bara när reserverna ändras (ett byte) – då prövas också att ingen spelare finns två gånger (mdUnikaOk).
     function mdPlatsOk(n, o, g, d, a) {
-      return n == o || ('reserver' in a && n in g.get('reserver', [])) || mdKopOk(n, o, g, d) ||
-        ('lager' in a && n.diff(o).affectedKeys().hasOnly(['st', 'xp']) && n.st is int && n.st <= 5 &&
+      return n == o || ('reserver' in a && n in g.get('reserver', [])) || mdKopOk(n, o, g, d, a) ||
+        ('lager' in a && !('reserver' in a) && n.diff(o).affectedKeys().hasOnly(['st', 'xp']) && n.st is int && n.st <= 5 &&
           n.xp is int && n.xp >= 0 && n.xp <= 99 &&
           n.st * 100 + n.xp > o.st * 100 + o.xp && n.st * 100 + n.xp <= o.st * 100 + o.xp + 96);
     }
     // Köpt: stod till salu i den sparade marknaden (raden "id|namn|pos|nr|st", md-trupp.js saluRad),
     // bara de fälten och xp 0 (ingen grundpelare/kapten), 2★ till divisionens tak (md-trupp.js
-    // marknadMaxSt: [3, 4, 4, 4, 4, 5, 5, 5]), raden är borta ur marknaden och marknaden är den
-    // sparade minus EN rad (ett köp per skrivning – två köp betalda en gång nekas) – och kassan
+    // marknadMaxSt: [3, 4, 4, 4, 4, 5, 5, 5]), raden är borta ur marknaden, ingen match i samma
+    // skrivning – då är marknaden den sparade minus EN rad (mdMarknadOk: ett köp per skrivning,
+    // två köp betalda en gång nekas) – och kassan
     // minskar med priset. Tillbaka: halva priset för den ersatta om den var köpt, annars
     // (grundpelaren går till reserverna) högst 1 600 kr för en köpt reserv som släpps när
     // reserverna var fulla (3 190 / 2).
-    function mdKopOk(n, o, g, d) {
+    function mdKopOk(n, o, g, d, a) {
       let rad = [n.id, n.namn, n.pos, string(n.nr), string(n.st)].join('|');
       return n.keys().hasOnly(['id', 'namn', 'pos', 'nr', 'st', 'xp']) && n.xp == 0 && n.nr is int && n.st is int &&
-        rad in g.get('marknad', []) && !(rad in d.marknad) &&
-        g.marknad.hasAll(d.marknad) && d.marknad.size() == g.marknad.size() - 1 &&
-        n.st >= 2 && n.st <= [3, 4, 4, 4, 4, 5, 5, 5][d.div] &&
+        rad in g.get('marknad', []) && !(rad in d.marknad) && !('summa' in a) &&
+        n.st >= 2 && n.st <= [3, 4, 4, 4, 4, 5, 5, 5][d.div] && n.namn.size() <= 40 &&
         d.kassa <= g.kassa - mdPris(n.st) + (o.get('grundpelare', false) == true ?
           (g.get('reserver', []).size() >= 5 ? 1600 : 0) : mdPris(o.st) / 2);
     }
@@ -846,41 +850,39 @@ service cloud.firestore {
     }
     // Reserverna (högst 5): en ny klubb har inga, och sedan kommer en reserv bara ur truppen
     // eller reserverna i det sparade dokumentet (en ersatt grundpelare, ett byte) – och tränas inte.
-    function mdReservOk(r, i, g) { return r.size() <= i || r[i] in g.trupp || r[i] in g.get('reserver', []); }
     function mdReserverOk(r, g) {
-      return r is list && r.size() <= 5 && (g == null ? r.size() == 0 :
-        mdReservOk(r, 0, g) && mdReservOk(r, 1, g) && mdReservOk(r, 2, g) && mdReservOk(r, 3, g) && mdReservOk(r, 4, g));
+      return r is list && r.size() <= 5 && (g == null ? r.size() == 0 : g.trupp.concat(g.get('reserver', [])).hasAll(r));
     }
-    // Ingen spelare två gånger i truppen och reserverna, och grundpelarna g1–g7 finns alltid kvar
-    // (en ersatt grundpelare går till reserverna, den säljs aldrig). Prövas vid ett byte eller köp.
-    function mdRid(r, i) { return r.size() > i ? r[i].id : i; }
-    function mdUnikaOk(d) {
-      let r = d.get('reserver', []);
-      let ids = [d.trupp[0].id, d.trupp[1].id, d.trupp[2].id, d.trupp[3].id, d.trupp[4].id, d.trupp[5].id, d.trupp[6].id,
-        mdRid(r, 0), mdRid(r, 1), mdRid(r, 2), mdRid(r, 3), mdRid(r, 4)];
-      return r.size() <= 5 && ids.toSet().size() == 12 && ids.hasAll(['g1', 'g2', 'g3', 'g4', 'g5', 'g6', 'g7']);
+    // Ingen spelare två gånger i truppen och reserverna (samma map – en spelare kommer bara
+    // oförändrad ur det sparade dokumentet eller marknaden, mdPlatsOk), och högst EN spelare
+    // lämnar klubben – aldrig en grundpelare (en ersatt grundpelare går till reserverna, den
+    // säljs aldrig). Prövas vid ett byte eller köp. Listor av hela spelare: billigare än id:n.
+    function mdUnikaOk(d, g) {
+      let alla = d.trupp.concat(d.get('reserver', []));
+      let ut = g.trupp.concat(g.get('reserver', [])).removeAll(alla);
+      return alla.toSet().size() == alla.size() &&
+        (ut.size() == 0 || (ut.size() == 1 && ut[0].get('grundpelare', false) != true));
     }
     // Marknaden (#871 F1): högst 6 rader "id|namn|pos|nr|st" (md-trupp.js saluRad), tom i en ny
     // klubb. Den lottas efter VARJE match, så hela listan prövas med ETT reguljärt uttryck (join
-    // kräver text): id k + 1–6 tecken, namn 1–40 tecken utan HTML, en känd position, nr 0–99,
-    // 1–5★. Den byts bara med en match (fler bokförda matcher) – annars är den den sparade minus
-    // ett köp (mdKopOk), så att eleven inte kan skriva sin egen marknad.
-    function mdMarknadOk(m, g, d) {
-      return m is list && m.size() <= 6 && (g == null ? m.size() == 0 :
-        m.join('/').matches('(k[0-9a-z]{1,6}[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,2}[|][1-5](/k[0-9a-z]{1,6}[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,2}[|][1-5]){0,5})?') &&
-        (d.summa.matcher > g.summa.matcher || (g.get('marknad', []).hasAll(m) && m.size() == g.get('marknad', []).size() - 1)));
+    // kräver en lista med text, uttrycket högst 6 rader): id k + 1–6 tecken, namn 1–40 tecken utan HTML, en känd position, nr 0–99,
+    // 1–5★. Den byts bara när summan ändras (en match) – annars är den den sparade minus ett köp
+    // (mdKopOk), så att eleven inte kan skriva sin egen marknad utan att röra summan.
+    function mdMarknadOk(m, g, a) {
+      return g == null ? m == [] : 'summa' in a ? m.join('/').matches('(k[0-9a-z]{1,6}[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,2}[|][1-5](/k[0-9a-z]{1,6}[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,2}[|][1-5]){0,5})?') :
+        g.get('marknad', []).hasAll(m) && m.size() == g.get('marknad', []).size() - 1;
     }
     // Klubbkassan per skrivning: högst 5 000 kr mer per bokförd match (den största matchen i
     // Superligan med kval och cup ≈ 2 500) och högst 500 matcher i en skrivning (den lokala
     // kön sparar högst 30 matchdokument, md-lokal.js KO_MAX, men karriären räknar alla som
-    // spelats offline), plus 400 kr BARA i ett köp där en släppt reserv ger mer än köpet
-    // kostar (3 190 / 2 − 1 210; reserverna och marknaden ändras, mdKopOk prövar beloppet). En
+    // spelats offline), plus 400 kr BARA när reserverna ändras: ett köp där en släppt reserv ger
+    // mer än köpet kostar (3 190 / 2 − 1 210; mdKopOk prövar beloppet). En
     // elev som skriver förbi appen kan alltså bara höja kassan i takt med matcherna – men varje
     // skrivning för sig (se docs/MATCHDAGEN.md §15.4). En ny klubb börjar med högst startkassan (KASSA.start = 600).
     function mdKassaOk(d, g, a) {
       return mdTal(d.kassa, 0, 100000000) && (g == null ? d.kassa <= 600 :
         (d.summa.matcher <= g.summa.matcher + 500 && d.kassa <= g.kassa + (d.summa.matcher - g.summa.matcher) * 5000 +
-          ('reserver' in a && 'marknad' in a ? 400 : 0)));
+          ('reserver' in a ? 400 : 0)));
     }
     // Det senast använda träningslägret (md-trupp.js lagerNyckel): "säsong-omgång" för en
     // spelad omgång i den här säsongen (omgången får vara äldre – lägret kan sparas ihop med
@@ -937,10 +939,10 @@ service cloud.firestore {
         (!('div' in a) || mdHeltal(d.div, 0, 7)) &&
         (!('sasong' in a) || mdHeltal(d.sasong, 1, 10000)) &&
         (!('kassa' in a) || mdKassaOk(d, g, a)) &&
-        (!('trupp' in a) || (mdTruppOk(d.trupp) && (g == null ? mdNyTruppOk(d.trupp) : mdTruppDeltaOk(d, g, a)))) &&
-        (!('reserver' in a) || mdReserverOk(d.reserver, g)) &&
-        (g == null || !('reserver' in a || ('trupp' in a && 'marknad' in a)) || mdUnikaOk(d)) &&
-        (!('marknad' in a) || mdMarknadOk(d.marknad, g, d)) &&
+        (!('trupp' in a) || (mdTruppOk(d.trupp) && (g == null ? mdNyTruppOk(d.trupp) :
+          mdTruppDeltaOk(d, g, a) && (!('marknad' in a || 'reserver' in a) || mdUnikaOk(d, g))))) &&
+        (!('reserver' in a) || (mdReserverOk(d.reserver, g) && (g == null || 'trupp' in a || mdUnikaOk(d, g)))) &&
+        (!('marknad' in a) || mdMarknadOk(d.marknad, g, a)) &&
         (!('lager' in a) || mdLagerOk(d)) &&
         (!('liga' in a) || mdLigaOk(d.liga)) &&
         (g == null ? d.summa == mdTomSumma() : (!('summa' in a) || mdSummaOk(d.summa))) &&
