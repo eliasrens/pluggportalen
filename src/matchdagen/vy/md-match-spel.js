@@ -5,16 +5,19 @@
 // motorn (md-motor.js spela), animationen, och den pågående matchen sparas
 // lokalt (md-lokal.js) – en omladdning fortsätter där eleven slutade. Halvtid
 // med paus, slutsignal, rutan efter matchen och EN sparning (karriär + matcher).
+// Kvalet (#870, §7.2): samma match mot laget från divisionen ovanför; oavgjort →
+// straffläggningen (md-straff-spel.js), och rutan efter berättar om uppflyttningen.
 // ============================================================================
 
-import { andraHalvlek, antalFragor, lage, lagbonus, nyMatch, resultat, spela } from "../delat/md-motor.js";
+import { andraHalvlek, antalFragor, behoverFraga, behoverStraffar, lage, lagbonus, nyMatch, resultat, spela } from "../delat/md-motor.js";
 import { LAGE_TEXT } from "../delat/md-texter.js";
-import { matchKlar, motFarg, nastaMatch } from "../delat/md-sasong.js";
+import { matchKlar, motFarg } from "../delat/md-sasong.js";
+import { kvalKlar } from "../delat/md-kval.js";
 import { laggIKo, rensaPagaende, sparaPagaende } from "../md-lokal.js";
 import { sparaKon } from "../md-spara.js";
 import { kortNamn } from "../plan/md-plan.js";
 import { chip, esc, ruta, valMeny, vanta } from "./md-vy-delat.js";
-import { omgangText } from "./md-vy-match.js";
+import { kvalResultat, nastaSpel, sasongSlutText, startaNastaSasong } from "./md-vy-match.js";
 
 const LJUS = new Set(["#f2f2f2"]);
 
@@ -76,6 +79,7 @@ function layout(S, el, mot) {
       <div class="md-skylt-res" data-res>0 – 0</div>
       <div class="md-skylt-lag">${namnPar(mot.namn)}${chip(mot.farg)}</div>
       <div class="md-skylt-tid" data-tid>0'</div>
+      <div class="md-skylt-straff" data-straff hidden></div>
     </div>
     <div class="md-plan">
       <div class="md-yta"></div>
@@ -89,21 +93,23 @@ function layout(S, el, mot) {
   passaPlanen(el.querySelector(".md-plan"));
   return {
     yta: el.querySelector(".md-yta"), utrop: el.querySelector(".md-utrop"), kommentar: el.querySelector(".md-kommentar"),
-    kort: el.querySelector(".md-kortyta"), res: el.querySelector("[data-res]"), tid: el.querySelector("[data-tid]"),
+    kort: el.querySelector(".md-kortyta"), res: el.querySelector("[data-res]"), tid: el.querySelector("[data-tid]"), straff: el.querySelector("[data-straff]"),
     ljudKnapp: el.querySelector("[data-ljud]"), fps: el.querySelector(".md-fps"),
   };
 }
 
-export async function spelaMatch(S, el, { pagaende = null } = {}) {
-  const n0 = nastaMatch(S.K);
+export async function spelaMatch(S, el, { pagaende = null, spel = null } = {}) {
+  const n0 = spel || nastaSpel(S.K);
+  const kval = n0.typ === "kval";
   // Samma tröjfärg som motståndaren (eleven bytte färg mitt i säsongen)? De spelar i en annan.
   const n = { ...n0, mot: { ...n0.mot, farg: motFarg(S.K.klubb.farg, n0.mot.farg) } };
   const fr = await strom(S);
   if (fr.tom) throw Object.assign(new Error("inga frågor"), { meddelande: fr.meddelande });
   const nu = Date.now();
   const post = pagaende || {
-    sasong: S.K.sasong, omg: S.K.liga.omg, matchId: `s${S.K.sasong}-d${S.K.div}-o${n.omg + 1}-${nu.toString(36)}`,
-    m: nyMatch({ mot: { namn: n.mot.namn, styrka: n.mot.styrka }, bonus: lagbonus(S.K.trupp), div: S.K.div, nu }),
+    sasong: S.K.sasong, omg: S.K.liga.omg, typ: n.typ,
+    matchId: `s${S.K.sasong}-d${S.K.div}-${kval ? "kval" : `o${n.omg + 1}`}-${nu.toString(36)}`,
+    m: nyMatch({ mot: { namn: n.mot.namn, styrka: n.mot.styrka }, bonus: lagbonus(S.K.trupp), div: S.K.div, avgor: kval, nu }),
   };
   let m = post.m;
   if (pagaende) m.senast = nu; // tiden borta räknas inte (MAX_LAGE_S)
@@ -151,10 +157,10 @@ export async function spelaMatch(S, el, { pagaende = null } = {}) {
     v.tid.textContent = `${Math.min(90, Math.round(m.min))}'`;
   };
   const sag = (t) => { v.kommentar.textContent = t; };
-  const sparaLokalt = () => sparaPagaende(S.lagring, S.uid, { sasong: post.sasong, omg: post.omg, matchId: post.matchId, m });
+  const sparaLokalt = () => sparaPagaende(S.lagring, S.uid, { sasong: post.sasong, omg: post.omg, typ: post.typ || "liga", matchId: post.matchId, m });
   plan.stall(m, { avspark: m.lagen === 0 || m.x === 50 });
   skylt();
-  sag(m.lagen ? "Matchen fortsätter!" : `${omgangText(S.K, n)} · Avspark!`);
+  sag(m.lagen ? "Matchen fortsätter!" : `${n.text} · Avspark!`);
   ljud.sorl(true);
   if (!m.lagen) { ljud.spela("vissla"); await vanta(S.lugnt ? 300 : 900); }
 
@@ -191,8 +197,10 @@ export async function spelaMatch(S, el, { pagaende = null } = {}) {
       if (!l.fragor) await vanta(S.lugnt ? 300 : 700);
     }
     const svar = [];
-    for (let i = 0; i < antalFragor(m, valId); i++) {
-      if (i === 1) sag(LAGE_TEXT.dubbel);
+    // Från Division 3 (§7.3): först finten, sedan skottet – fel på finten avgör direkt.
+    if (antalFragor(m, valId) === 2) sag(LAGE_TEXT.dubbel);
+    while (behoverFraga(m, valId, svar)) {
+      if (svar.length === 1) sag(LAGE_TEXT.skottEfterFint);
       const f = fr.nasta();
       const { visaFraga } = await import("../md-svar.js");
       const r = await visaFraga(v.kort, f, { ratta: fr.ratta, klocka: S.inst.klocka, signal });
@@ -208,13 +216,22 @@ export async function spelaMatch(S, el, { pagaende = null } = {}) {
     skylt();
   }
 
-  // Slutsignal → resultatet, sparningen (EN batch) och rutan efter matchen.
-  ljud.spela("slutvissla");
-  ljud.sorl(false);
+  // Slutsignal → (kvalet: straffar vid oavgjort) → resultatet, sparningen (EN batch) och rutan efter matchen.
+  if (!m.straffar) ljud.spela("slutvissla");
   sag("Slutsignal!");
   v.kort.innerHTML = "";
+  if (behoverStraffar(m)) {
+    if (!pagaende?.m?.straffar) await vanta(S.lugnt ? 300 : 900);
+    const { spelaStraffar } = await import("./md-straff-spel.js");
+    const ok = await spelaStraffar(S, { m, v, plan, fr, signal, sag, sparaLokalt, satt: (x) => { m = x; } });
+    if (!ok) return;
+    skylt();
+  }
+  ljud.sorl(false);
   const res = resultat(m);
-  const klar = matchKlar(S.K, { res, rng: Math.random, nu: Date.now(), matchId: post.matchId, kallNamn: fr.kallNamn });
+  const klar = kval
+    ? kvalKlar(S.K, { res, nu: Date.now(), matchId: post.matchId, kallNamn: fr.kallNamn })
+    : matchKlar(S.K, { res, rng: Math.random, nu: Date.now(), matchId: post.matchId, kallNamn: fr.kallNamn });
   S.K = klar.K;
   // Kön först (då försvinner ingen match om sparningen misslyckas), sedan hela kön
   // med den nya karriären – tidsgränsen i md-data.js gör att rutan aldrig hänger offline.
@@ -223,27 +240,31 @@ export async function spelaMatch(S, el, { pagaende = null } = {}) {
   const sparad = await sparaKon(S, klar.K);
   S.kassa();
   await vanta(S.lugnt ? 200 : 700);
-  const valet = await efterMatchen(S, res, klar, n.mot, sparad, signal);
+  const valet = await efterMatchen(S, res, klar, n.mot, sparad, signal, kval);
   stang();
-  if (valet) S.visa("tabell");
+  if (!valet) return;
+  if (kval) startaNastaSasong(S);
+  S.visa(kval ? "match" : "tabell");
 }
 
 /** Rutan efter matchen (§5): resultat, rätt svar, skott, lyckade pass och pengar – och pauspåminnelsen (§1.2). */
-function efterMatchen(S, res, klar, mot, sparad, signal) {
+function efterMatchen(S, res, klar, mot, sparad, signal, kval = false) {
   const st = res.stat;
-  const rubrik = res.utfall === "vinst" ? "Seger!" : res.utfall === "oavgjort" ? "Oavgjort" : "Förlust – nästa gång!";
+  const rubrik = kval ? (res.vann ? "Uppflyttning!" : "Nära!")
+    : res.utfall === "vinst" ? "Seger!" : res.utfall === "oavgjort" ? "Oavgjort" : "Förlust – nästa gång!";
+  const kvalRad = kval ? `<p class="md-kvalrad">${esc(sasongSlutText(S.K, 1, 0).text)}</p>` : "";
   const paus = S.inst.paus > 0 && Date.now() - S.sessionStart >= S.inst.paus * 60000;
   if (paus) S.sessionStart = Date.now();
   return ruta(S.host, {
-    rubrik: `${rubrik} ${res.oss} – ${res.dem}`,
+    rubrik: kval ? `${rubrik} ${esc(kvalResultat(res))}` : `${rubrik} ${res.oss} – ${res.dem}`,
     klass: "md-efter",
-    html: `<p class="md-svag">mot ${esc(mot.namn)}</p>
+    html: `<p class="md-svag">mot ${esc(mot.namn)}${kval ? " (kval)" : ""}</p>${kvalRad}
       <div class="md-siffror">
         <div><b>${st.ratt}/${st.fragor}</b>rätt svar</div><div><b>${st.skott}</b>skott</div>
         <div><b>${st.passOk}/${st.pass}</b>lyckade pass</div><div><b>+${klar.pengar}</b>kr till klubbkassan</div>
       </div>
       ${paus ? `<p class="md-paus">Bra jobbat! Dags för en paus.</p>` : ""}
       ${sparad ? "" : `<p class="md-svag">Matchen sparas så fort det går – den finns kvar på den här datorn.</p>`}`,
-    knappar: [{ id: "vidare", text: klar.sasongKlar ? "Se hur säsongen slutade" : "Till tabellen" }],
+    knappar: [{ id: "vidare", text: kval ? "Starta nästa säsong" : klar.sasongKlar ? "Se hur säsongen slutade" : "Till tabellen" }],
   }, signal);
 }

@@ -2,18 +2,21 @@
 // Matchdagen (#869, Etapp 1c): det som sparas LOKALT (spec §5) – ren modul,
 // lagringen skickas in (localStorage på webben, en Map i testerna).
 //   • den pågående matchen, efter varje läge: matchdagen-match:{uid}
-//     { v, sasong, omg, matchId, m, kallNamn } – fortsätter efter omladdning
+//     { v, sasong, omg, typ, matchId, m } – fortsätter efter omladdning (också mitt i
+//     en straffläggning: matchen är inte klar förrän straffarna är avgjorda)
 //   • färdiga matcher som inte hann sparas – en KÖ: matchdagen-osparad:{uid}
 //     { K, koe: [{ matchId, match }] } – K är karriären efter den senaste matchen.
 //     Kön sparas (md-spara.js) när Matchdagen öppnas och efter varje match, så att
 //     ingen match försvinner om flera sparningar i rad misslyckas.
 //
-//   lasPagaende(lagring, uid, K) → post | null  (bara om den hör till nästa match)
+//   lasPagaende(lagring, uid, K, typ?) → post | null  (bara om den hör till nästa match; typ "liga" | "kval")
 //   sparaPagaende(lagring, uid, post), rensaPagaende(lagring, uid)
 //   lasOsparad(lagring, uid) → { K, koe } | null
 //   laggIKo(lagring, uid, { K, matchId, match })   lägger matchen sist i kön, K blir den nya
 //   sparaOsparad(lagring, uid, { K, koe } | null), rensaOsparad(lagring, uid)
 // ============================================================================
+
+import { arKlar } from "./delat/md-motor.js";
 
 export const MATCH_NYCKEL = "matchdagen-match:";
 export const OSPARAD_NYCKEL = "matchdagen-osparad:";
@@ -25,11 +28,11 @@ function skriv(lagring, nyckel, v) {
   try { if (v == null) lagring?.removeItem(nyckel); else lagring?.setItem(nyckel, JSON.stringify(v)); } catch { /* privat fönster */ }
 }
 
-/** Den pågående matchen – bara om den gäller klubbens nästa match (samma säsong och omgång). */
-export function lasPagaende(lagring, uid, K) {
+/** Den pågående matchen – bara om den gäller klubbens nästa match (samma säsong, omgång och typ). */
+export function lasPagaende(lagring, uid, K, typ = "liga") {
   const p = las(lagring, MATCH_NYCKEL + uid);
   if (!p || p.v !== 1 || !p.m || typeof p.matchId !== "string") return null;
-  if (!K || p.sasong !== K.sasong || p.omg !== K.liga?.omg || p.m.slut) return null;
+  if (!K || p.sasong !== K.sasong || p.omg !== K.liga?.omg || (p.typ || "liga") !== typ || arKlar(p.m)) return null;
   return p;
 }
 export const sparaPagaende = (lagring, uid, post) => skriv(lagring, MATCH_NYCKEL + uid, { v: 1, ...post });

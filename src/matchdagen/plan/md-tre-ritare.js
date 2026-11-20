@@ -9,7 +9,7 @@
 //   skapa3dRitare({ T, yta, lugnt }) → {
 //     typ: "3d",
 //     lag(sida, { troja, byxor, mv, kapten? }), spelare(sida, pos[7], { direkt }),
-//     boll(x, y, { hojd, ms }), firar(sida, pa), malEffekt(sida), zoom(pa),
+//     boll(x, y, { hojd, ms }), firar(sida, pa), malEffekt(sida), zoom(pa), straffVy(lag | null),
 //     avatar(canvas), fps() → { snitt, lagst, bilder }, dispose()
 //   }
 //   sida: "vi" | "dem". Positioner i planmeter (0–105, 0–68), se md-formation.js.
@@ -134,6 +134,9 @@ export function skapa3dRitare({ T, yta, lugnt = false }) {
   }
   let zoomTill = 0;
   function zoom(pa) { zoomTill = pa && !lugnt ? performance.now() + 2200 : 0; }
+  /** Straffläggningen (§7.4): kameran bakom straffpunkten mot målet – "oss" höger mål, "dem" vänster. */
+  let straffSida = 0;
+  function straffVy(lag) { straffSida = lag === "oss" ? 1 : lag === "dem" ? -1 : 0; }
 
   // ---- kameran --------------------------------------------------------------
   const kamPos = new T.Vector3(0, 24, 46), kamMal = new T.Vector3(), kamPosMal = new T.Vector3(), kamMalMal = new T.Vector3();
@@ -143,9 +146,13 @@ export function skapa3dRitare({ T, yta, lugnt = false }) {
       kamPos.set(0, 52, 62);
       kamMal.set(0, 0, 4);
     } else {
-      const narbild = nu < zoomTill;
+      const narbild = nu < zoomTill || !!straffSida;
       const bred = kamera.aspect < 1.4 ? 1.35 : 1;
-      if (narbild) { kamPosMal.set(bx * 0.92, 8, bz + 17); kamMalMal.set(bx, 1, bz); } else { kamPosMal.set(bx * 0.72, 19 * bred, 37 * bred); kamMalMal.set(bx * 0.86, 0, bz * 0.4); }
+      if (straffSida) { // snett bakom skytten, straffpunkten och målet i bild
+        const mal = straffSida * (PLAN_L / 2 - 2);
+        kamPosMal.set(mal - straffSida * 25 * bred, 6.5, 9 * bred);
+        kamMalMal.set(mal - straffSida * 5, 1, 0);
+      } else if (narbild) { kamPosMal.set(bx * 0.92, 8, bz + 17); kamMalMal.set(bx, 1, bz); } else { kamPosMal.set(bx * 0.72, 19 * bred, 37 * bred); kamMalMal.set(bx * 0.86, 0, bz * 0.4); }
       const k = 1 - Math.pow(narbild ? 0.04 : 0.12, dt);
       kamPos.lerp(kamPosMal, k);
       kamMal.lerp(kamMalMal, k);
@@ -205,7 +212,7 @@ export function skapa3dRitare({ T, yta, lugnt = false }) {
 
   return {
     typ: "3d",
-    lag, spelare, boll, firar, malEffekt, zoom, avatar, uppdateraAvatar,
+    lag, spelare, boll, firar, malEffekt, zoom, straffVy, avatar, uppdateraAvatar,
     /** Uppmätta bilder per sekund över de senaste bilderna. */
     fps() {
       if (bilder.length < 10) return { snitt: 0, lagst: 0, bilder: bilder.length };

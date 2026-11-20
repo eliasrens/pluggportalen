@@ -10791,3 +10791,21 @@ html.reduce-motion .schack-pokal-ny { animation: none; }
   .md-skylt .md-lang { display: none; }
   .md-skylt .md-kortnamn { display: inline; }
 }
+
+/* --- Etapp 2a (#870): stegen, kvalet och straffarna ------------------------ */
+.md-stege { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 10px; padding: 0; list-style: none; counter-reset: none; }
+.md-stege li {
+  display: flex; flex-direction: column; min-width: 92px; padding: 6px 10px; border-radius: 10px;
+  background: var(--md-panel2); color: var(--md-svag); font: 700 16px/1.1 var(--md-rubrikfont);
+}
+.md-stege li small { font: 700 12px Nunito, system-ui, sans-serif; opacity: 0.85; }
+.md-stege li.klar { color: var(--md-ink); }
+.md-stege li.nu { background: var(--md-gul); color: #1b1500; box-shadow: 0 0 0 2px #6b4f00 inset; }
+.md-kval .md-overrad { font-size: 20px; }
+.md-kvalrad { font-weight: 800; }
+.md-tagg { padding: 2px 8px; border-radius: 999px; background: rgba(255, 210, 63, 0.16); color: var(--md-gul); font-size: 13px; font-weight: 800; }
+.md-skylt .md-skylt-straff { background: #3a1d5c; color: #fff; font-size: 18px; }
+.md-skylt .md-skylt-straff[hidden] { display: none; }
+@media (max-width: 640px) {
+  .md-stege li { min-width: 0; flex: 1 1 22%; padding: 5px 6px; font-size: 14px; }
+}

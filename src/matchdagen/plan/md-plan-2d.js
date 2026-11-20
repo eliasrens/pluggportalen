@@ -98,9 +98,24 @@ export function skapa2dRitare({ yta, lugnt = false }) {
     m?.animate?.([{ fill: "#fff" }, { fill: "#ffd23f" }, { fill: "#fff" }], { duration: 900 });
   }
 
+  /**
+   * Straffläggningen (§7.4): "kameran" visar straffområdet – en mindre viewBox kring
+   * målet, förankrad vid målets kant. Lugnt läge: hela planen (ingen zoom).
+   */
+  function straffVy(lag) {
+    if (lugnt || !lag) {
+      svg.setAttribute("viewBox", `0 0 ${PLAN_L} ${PLAN_B}`);
+      svg.removeAttribute("preserveAspectRatio");
+      return;
+    }
+    const hoger = lag === "oss";
+    svg.setAttribute("viewBox", hoger ? `${PLAN_L - 40} 12 40 44` : "0 12 40 44");
+    svg.setAttribute("preserveAspectRatio", hoger ? "xMaxYMid meet" : "xMinYMid meet");
+  }
+
   return {
     typ: "2d",
-    lag, spelare, boll, firar, malEffekt, avatar,
+    lag, spelare, boll, firar, malEffekt, avatar, straffVy,
     zoom() {}, uppdateraAvatar() {},
     fps() {
       if (bilder.length < 10) return { snitt: 0, lagst: 0, bilder: bilder.length };

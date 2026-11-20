@@ -38,7 +38,7 @@ export function medTidsgrans(p, ms = TIDSGRANS_MS) {
 const matchRef = (uid, id) => doc(db, "matchdagen", uid, "matcher", id);
 
 /** Bara karriärens kända fält (aldrig något annat i dokumentet). */
-export const KARRIAR_FALT = ["version", "klubb", "div", "sasong", "kassa", "trupp", "liga", "pokaler", "summa", "senaste", "sasonger", "dagar"];
+export const KARRIAR_FALT = ["version", "klubb", "div", "sasong", "kassa", "trupp", "liga", "kval", "pokaler", "summa", "senaste", "sasonger", "dagar"];
 const urval = (K, falt = KARRIAR_FALT) => Object.fromEntries(falt.filter((k) => K[k] !== undefined).map((k) => [k, K[k]]));
 /** Matchsparningen skriver allt UTOM klubb – lärarens Återställ lagnamn får inte skrivas över. */
 const MATCH_FALT = KARRIAR_FALT.filter((k) => k !== "klubb");
