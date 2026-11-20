@@ -14,7 +14,7 @@ import { assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { createRollerEnv, seedRoller } from "./helpers/roller-env.js";
 import { matchKlar, nyKarriar } from "../src/matchdagen/delat/md-sasong.js";
-import { kop, lagerNyckel, lagerResultat } from "../src/matchdagen/delat/md-trupp.js";
+import { kop, lagerNyckel, lagerResultat, marknadTillDok } from "../src/matchdagen/delat/md-trupp.js";
 import { skapaPrng } from "../src/matchdagen/delat/md-prng.js";
 
 let env;
@@ -33,9 +33,11 @@ const KM = { ...kopia(K1), marknad: [...K1.marknad.slice(0, 5), SALU] };
 const XSS = `<img src=x onerror=alert(1)>`;
 
 const ref = (db, uid = "e4a") => doc(db, "matchdagen", uid);
-const medTid = (K, over = {}) => ({ ...kopia(K), senast: serverTimestamp(), ...over });
+// Marknaden sparas som rader "id|namn|pos|nr|st" (md-data.js → md-trupp.js marknadTillDok).
+const tillDok = (D) => (Array.isArray(D.marknad) ? { ...D, marknad: marknadTillDok(D.marknad) } : D);
+const medTid = (K, over = {}) => tillDok({ ...kopia(K), senast: serverTimestamp(), ...over });
 const truppMed = (K, i, over) => K.trupp.map((p, j) => (j === i ? { ...p, ...over } : p));
-const seed = (K) => env.seed((db) => setDoc(ref(db), { ...kopia(K), senast: new Date() }));
+const seed = (K) => env.seed((db) => setDoc(ref(db), tillDok({ ...kopia(K), senast: new Date() })));
 const elev = () => env.as("e4a", {});
 const tranad = (K, i, svar = 8) =>
   kopia(lagerResultat(K, { nyckel: lagerNyckel(K), spelareId: K.trupp[i].id, svar: Array(svar).fill({ ratt: true }), nu: NU }).K);

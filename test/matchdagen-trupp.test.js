@@ -158,7 +158,7 @@ describe("köpet och reserverna – grundpelarna säljs aldrig (§8.2–8.3)", (
     void reserver; void marknad;
     const K = T.truppFalt(gammal);
     assert.deepEqual([K.reserver, K.marknad], [[], []]);
-    assert.equal(T.truppFalt(K1), K1);
+    assert.deepEqual(T.truppFalt(K1), K1);
   });
 });
 

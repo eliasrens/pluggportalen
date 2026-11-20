@@ -11,6 +11,7 @@ import { assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
 import { doc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 import { createRollerEnv, seedRoller } from "./helpers/roller-env.js";
 import { matchKlar, nastaMatch, nyKarriar } from "../src/matchdagen/delat/md-sasong.js";
+import { marknadTillDok } from "../src/matchdagen/delat/md-trupp.js";
 import { kvalKlar } from "../src/matchdagen/delat/md-kval.js";
 import { skapaPrng } from "../src/matchdagen/delat/md-prng.js";
 
@@ -30,7 +31,9 @@ const KVAL = kvalKlar(VANTAR, { res: res(2, 2, { straffar: [30, 29], vann: true 
 
 const ref = (db, uid = "e4a") => doc(db, "matchdagen", uid);
 const mref = (db, id = "s1-d0-kval-t", uid = "e4a") => doc(db, "matchdagen", uid, "matcher", id);
-const medTid = (K0, over = {}) => ({ ...kopia(K0), senast: serverTimestamp(), ...over });
+// Marknaden sparas som rader "id|namn|pos|nr|st" (md-data.js → md-trupp.js marknadTillDok).
+const tillDok = (D) => (Array.isArray(D.marknad) ? { ...D, marknad: marknadTillDok(D.marknad) } : D);
+const medTid = (K0, over = {}) => tillDok({ ...kopia(K0), senast: serverTimestamp(), ...over });
 const kvalMed = (over) => ({ ...VANTAR.kval, ...over });
 const motMed = (over) => kvalMed({ mot: { ...VANTAR.kval.mot, ...over } });
 
@@ -46,7 +49,7 @@ beforeEach(async () => {
   await env.seed(async (db) => {
     await setDoc(doc(db, "classes", "4a"), { studentIds: ["e4a", "kompis"], elevModuler: { e4a: ["matchdagen"], kompis: ["matchdagen"] } }, { merge: true });
     await setDoc(doc(db, "students", "kompis"), { namn: "kompis", username: "kompis", classIds: ["4a"] });
-    await setDoc(ref(db), { ...START, senast: new Date() });
+    await setDoc(ref(db), tillDok({ ...START, senast: new Date() }));
   });
 });
 

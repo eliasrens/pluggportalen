@@ -25,6 +25,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { STANDARD_LAGNAMN } from "./delat/md-namn.js";
 import { forstaDokument } from "./delat/md-sasong.js";
+import { marknadFranDok, marknadTillDok } from "./delat/md-trupp.js";
 
 const karriarRef = (uid) => doc(db, "matchdagen", uid);
 export const TIDSGRANS_MS = 8000;
@@ -41,14 +42,17 @@ const matchRef = (uid, id) => doc(db, "matchdagen", uid, "matcher", id);
 
 /** Bara karriärens kända fält (aldrig något annat i dokumentet). */
 export const KARRIAR_FALT = ["version", "klubb", "div", "sasong", "kassa", "trupp", "reserver", "marknad", "lager", "liga", "kval", "pokaler", "summa", "senaste", "sasonger", "dagar"];
-const urval = (K, falt = KARRIAR_FALT) => Object.fromEntries(falt.filter((k) => K[k] !== undefined).map((k) => [k, K[k]]));
+// Marknaden sparas som rader "id|namn|pos|nr|st" (md-trupp.js marknadTillDok – reglerna prövar dem billigt).
+const urval = (K, falt = KARRIAR_FALT) => Object.fromEntries(falt.filter((k) => K[k] !== undefined)
+  .map((k) => [k, k === "marknad" ? marknadTillDok(K[k]) : K[k]]));
 /** Matchsparningen skriver allt UTOM klubb – lärarens Återställ lagnamn får inte skrivas över. */
 const MATCH_FALT = KARRIAR_FALT.filter((k) => k !== "klubb");
 
 export async function lasKarriar(uid) {
   const snap = await medTidsgrans(getDoc(karriarRef(uid)), 2 * TIDSGRANS_MS);
-  return snap.exists() ? snap.data() : null;
+  return snap.exists() ? franDok(snap.data()) : null;
 }
+const franDok = (d) => (Array.isArray(d?.marknad) ? { ...d, marknad: marknadFranDok(d.marknad) } : d);
 
 export async function sparaKarriar(uid, K) {
   await medTidsgrans(setDoc(karriarRef(uid), { ...urval(K), senast: serverTimestamp() }));

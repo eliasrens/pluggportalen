@@ -20,6 +20,7 @@
 //   lagerResultat(K, { nyckel, spelareId, svar, sekunder?, nu }) → { K, spelare, stjarnor }
 //   kaptenPlats(trupp)               → index för kaptensbindeln på planen
 //   truppFalt(K)                     → K med reserver och marknad (äldre dokument från Etapp 1–2a)
+//   marknadTillDok(m), marknadFranDok(m) → marknaden i dokumentet: en rad "id|namn|pos|nr|st" per spelare
 // ============================================================================
 
 import * as C from "./md-config.js";
@@ -53,6 +54,21 @@ const BAS36 = 36;
 const ID_TAL = BAS36 ** 6;
 const FORSOK = 50;
 const allaSpelare = (K) => [...(K.trupp || []), ...(K.reserver || [])];
+
+/**
+ * Marknaden i dokumentet (#871 F1): en rad "id|namn|pos|nr|st" per spelare (otränad, xp 0) –
+ * så att reglerna kan pröva hela listan med ETT reguljärt uttryck i varje matchsparning
+ * (firestore.rules mdMarknadOk) och ett köp med en jämförelse (mdKopOk). I appen är spelarna objekt.
+ */
+export const saluRad = (p) => (typeof p === "string" ? p : [p.id, p.namn, p.pos, p.nr, p.st].join("|"));
+export const marknadTillDok = (m) => (Array.isArray(m) ? m : []).map(saluRad);
+export function marknadFranDok(m) {
+  return (Array.isArray(m) ? m : []).flatMap((x) => {
+    if (x && typeof x === "object") return [x]; // ett dokument från före radformen
+    const [id, namn, pos, nr, st] = String(x).split("|");
+    return id && namn && pos ? [{ id, namn, pos, nr: Number(nr) || 0, st: Number(st) || 0, xp: 0 }] : [];
+  });
+}
 
 /** Sex nya spelare till salu – namn, id och tröjnummer som ingen i klubben redan har. */
 export function nyMarknad(K, rng) {
@@ -244,8 +260,8 @@ export function kaptenPlats(trupp = []) {
 
 /** Ett äldre dokument (Etapp 1–2a) saknar reserver och marknad: tomma (nya spelare till salu efter nästa match). */
 export function truppFalt(K) {
-  if (!K || (Array.isArray(K.reserver) && Array.isArray(K.marknad))) return K;
-  return { ...K, reserver: Array.isArray(K.reserver) ? K.reserver : [], marknad: Array.isArray(K.marknad) ? K.marknad : [] };
+  if (!K) return K;
+  return { ...K, reserver: Array.isArray(K.reserver) ? K.reserver : [], marknad: marknadFranDok(K.marknad) };
 }
 
 /** Lagdelarnas snittstjärnor (Truppen visar dem med lagbonusen). */
