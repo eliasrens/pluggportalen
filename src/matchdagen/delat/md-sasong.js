@@ -13,6 +13,7 @@
 //   matchKlar(K, { res, rng, nu, matchId, kallNamn? })
 //                                         → { K, match, pengar, sasongKlar, plac }
 //                                           ligavinnaren under Superligan får K.kval (§7.2, spelas i md-kval.js)
+//                                           och marknaden byts ut (§8.3, md-trupp.js)
 //   tabellRader(K)                        → tabellen i placeringsordning med namn och färg
 //   nySasong(K, rng)                      → K för nästa säsong (samma division – kvalet ändrar den, md-kval.js)
 //   bokforMatch(K, { res, nu, matchId, kallNamn, mot, typ, omg? }) → { match, pengar }   (ändrar K – liga och kval)
@@ -23,6 +24,7 @@
 import * as C from "./md-config.js";
 import { schema, simMal, styrkaFor, nyTabell, laggTill, sorteraTabell } from "./md-liga.js";
 import { EFTERNAMN, FORNAMN, LAGFARGER, MOTSTANDARE, STARTELVA, STANDARD_LAGNAMN, TROJFARGER } from "./md-namn.js";
+import { nyMarknad } from "./md-trupp.js";
 
 export const VERSION = 1;
 export const OSS = "oss";
@@ -88,14 +90,17 @@ const tomSumma = () => ({ matcher: 0, v: 0, o: 0, f: 0, gjorda: 0, inslappta: 0,
 /** En ny klubb: namn (1–24 tecken) och en av de 8 tröjfärgerna (§5). */
 export function nyKarriar({ namn, farg, rng }) {
   const klubbFarg = TROJFARGER.includes(farg) ? farg : TROJFARGER[0];
-  return {
+  const K = {
     version: VERSION,
     klubb: { namn: lagnamnOk(namn) || STANDARD_LAGNAMN, farg: klubbFarg, legendStjarnor: 0 },
     div: 0, sasong: 1, kassa: C.KASSA.start,
-    trupp: nyTrupp(rng),
+    trupp: nyTrupp(rng), reserver: [],
     liga: nyLiga(0, klubbFarg, rng),
     kval: null, pokaler: [], summa: tomSumma(), senaste: [], sasonger: [], dagar: {},
   };
+  // Marknaden (§8.3, Etapp 2b) lottas sist – samma frö ger samma lag och liga som förut.
+  K.marknad = nyMarknad(K, rng);
+  return K;
 }
 
 /** Är dokumentet en användbar karriär? (annars börjar eleven med en ny klubb) */
@@ -189,6 +194,7 @@ export function matchKlar(K0, { res, rng, nu, matchId, kallNamn = {} }) {
       if (K.div < C.TOPP_DIV) K.kval = nyKval(K, rng);
     }
   }
+  K.marknad = nyMarknad(K, rng); // sex nya spelare till salu efter varje match (§8.3)
   return { K, match, pengar, sasongKlar, plac };
 }
 

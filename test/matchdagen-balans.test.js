@@ -55,7 +55,7 @@ describe("balansen i Division 6 (spec §12)", () => {
 
 describe("balansen i alla divisioner (#870, spec §7, §12)", () => {
   it("Superligan: 80 % rätt med ett tränat lag (snitt 4★) vinner 45–55 %", () => {
-    const r = korBalans({ andelRatt: SUPER.andelRatt, n: 150, div: TOPP_DIV, bonus: tranatLag(SUPER.stjarnor), namn: "super" });
+    const r = korBalans({ andelRatt: SUPER.andelRatt, n: 150, div: TOPP_DIV, bonus: tranatLag(SUPER.stjarnor), namn: "super", stjarnor: SUPER.stjarnor });
     assert.deepEqual(bedom(r), []);
     assert.match(divTabell([r]), /Superligan \(4★\)/);
   });

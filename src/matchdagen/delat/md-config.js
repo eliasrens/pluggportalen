@@ -112,6 +112,19 @@ export const INSPARK_VAR = 12;
 export const LAGBONUS = { bas: 2, perStjarna: 0.05 };
 export const LAGDELAR = ["MV", "FÖR", "MIT", "ANF"];
 
+// ---- Truppen, marknaden och träningslägret (Etapp 2b, spec §8) -----------------
+/** Högst så många reserver (grundpelare som ersatts, §8.2). */
+export const RESERVER_MAX = 5;
+/**
+ * Marknaden (§8.3): antal spelare till salu (nya efter varje match), stjärnorna
+ * kl(avrunda(slump(min; bas + div × perDiv)); min; max) och priset
+ * avrunda(bas × st^exponent; avrunda). En köpt spelare som ersätts säljs för salj × priset.
+ * Tröjnumret (nr) lottas bland de lediga.
+ */
+export const MARKNAD = { antal: 6, nr: { min: 11, max: 99 }, st: { min: 2, bas: 3.2, perDiv: 0.3, max: 5 }, pris: { bas: 150, exponent: 1.9, avrunda: 10 }, salj: 0.5 };
+/** Träningslägret (§8.4): frågor per läger, träningspoäng per rätt svar, poäng per stjärna, taket. */
+export const TRANING = { fragor: 8, xpPerRatt: 12, xpPerStjarna: 100, maxSt: 5 };
+
 // ---- Ligan (spec §5, §7.1) ---------------------------------------------------
 /** styrka(div) = kl(bas + div × perDiv ± spridning; min; max), div 0 = Division 6. */
 export const STYRKA = { bas: 0.2, perDiv: 0.09, spridning: 0.05, min: 0.12, max: 0.92 };
@@ -152,7 +165,7 @@ export const LAGNAMN_MAX = 24;
  * oavgjort / förlust) + perRatt per rätt svar + perMal per mål, × (1 + div × perDiv).
  * Ett vunnet kval (uppflyttning, §7.2) ger dessutom uppflyttning × (1 + div × perDiv).
  */
-export const KASSA = { start: 600, vinst: 300, oavgjort: 150, forlust: 80, perRatt: 15, perMal: 25, perDiv: 0.25, uppflyttning: 300 };
+export const KASSA = { start: 600, vinst: 150, oavgjort: 75, forlust: 40, perRatt: 8, perMal: 12, perDiv: 0.25, uppflyttning: 300 };
 /** Karriärdokumentet: de senaste matcherna (Statistik) och dagarna (lärarens 7 dagar / veckolinje). */
 export const SENASTE_MAX = 20;
 export const DAGAR_MAX = 70;
