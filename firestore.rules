@@ -858,10 +858,12 @@ service cloud.firestore {
     // nästa match), eller "säsong-k" före kvalet. Att lägret är NYARE än det sparade prövas
     // inte (det kostar för många uttryck): en elev som skriver förbi appen kan växla lägret
     // fram och tillbaka och träna mer – bara i sitt eget spel, som kassan (docs/MATCHDAGEN.md §15.4).
+    // Påbörjat läger: samma nyckel + "-p" (sparas när lägret startar, så att en omladdning eller
+    // rensad lokal lagring aldrig ger ett nytt läger – det påbörjade räknas då som använt).
     function mdLagerOk(d) {
-      return d.lager is string && d.lager.size() <= 12 && (d.lager == string(d.sasong) + '-k' ||
-        (d.lager.matches('[0-9]{1,5}-[0-9]{1,2}') && d.lager.split('-')[0] == string(d.sasong) &&
-          int(d.lager.split('-')[1]) >= 1 && int(d.lager.split('-')[1]) <= d.liga.omg));
+      return d.lager is string && d.lager.size() <= 14 &&
+        d.lager.matches('[0-9]{1,5}-([1-9][0-9]?|k)(-p)?') && d.lager.split('-')[0] == string(d.sasong) &&
+        (d.lager.split('-')[1] == 'k' || int(d.lager.split('-')[1]) <= d.liga.omg);
     }
     // Summan visas i lärarens Hur går det? → Matchdagen: alla tal måste vara tal (aldrig
     // text som kan bli HTML), perKalla en begränsad map. Skickas som ett värde – billigt.

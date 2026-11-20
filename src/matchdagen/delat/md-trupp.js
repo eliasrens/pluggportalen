@@ -14,7 +14,8 @@
 //   kopInfo(K, id)                   → vem som ersätts, vad det kostar, om reserverna är fulla
 //   kop(K, id, { slapp? })           → { K, info, salda }   (slapp = köpt reserv som släpps när reserverna är fulla)
 //   bytIn(K, reservId, truppId)      → K   (reserv ↔ startspelare på samma position)
-//   lagerNyckel(K)                   → nyckeln för ett ledigt träningsläger, eller null
+//   lagerNyckel(K)                   → nyckeln för ett ledigt (eller påbörjat) träningsläger, eller null
+//   lagerPaborjat(K), lagerStart(K), lagerAvbrutet(K)  → påbörjat? / starta / räkna som använt
 //   tranaSpelare(p, ratt)            → { p, nyStjarna }
 //   lagerResultat(K, { nyckel, spelareId, svar, sekunder?, nu }) → { K, spelare, stjarnor }
 //   kaptenPlats(trupp)               → index för kaptensbindeln på planen
@@ -145,9 +146,14 @@ export function bytIn(K0, reservId, truppId) {
   return K;
 }
 
+/** Ett påbörjat läger: nyckeln + PABORJAT (sparas på servern när lägret startar). */
+export const PABORJAT = "-p";
+
 /**
  * Träningslägret (§8.4): ett per spelad omgång ("säsong-omgång", när minst en omgång
- * är spelad) och ett extra före kvalet ("säsong-k"). K.lager är det senast använda.
+ * är spelad) och ett extra före kvalet ("säsong-k"). K.lager är det senast använda –
+ * eller det påbörjade ("säsong-omgång-p"): då är det lägret som gäller tills det är klart
+ * (bara med svaren som redan sparats lokalt – annars räknas det som använt, lagerAvbrutet).
  * Ett läger som inte används före nästa match går förlorat – eleven varvar match och träning.
  */
 export function lagerNyckel(K) {
@@ -155,10 +161,19 @@ export function lagerNyckel(K) {
   if (omg < 1) return null;
   const omgang = `${K.sasong}-${omg}`;
   const kval = `${K.sasong}-k`;
-  if (K.lager === kval) return null;
-  if (K.lager !== omgang) return omgang;
+  const L = K.lager;
+  if (L === kval) return null;
+  if (L === kval + PABORJAT) return kval;
+  if (L === omgang + PABORJAT) return omgang;
+  if (L !== omgang) return omgang;
   return K.kval && !K.kval.spelad ? kval : null;
 }
+/** Är det lediga lägret redan påbörjat (på servern)? */
+export const lagerPaborjat = (K) => { const n = lagerNyckel(K); return !!n && K.lager === n + PABORJAT; };
+/** Lägret startar: nyckeln + "-p" i karriären (EN skrivning) – en omladdning ger aldrig ett nytt läger. Ändrar inte K. */
+export const lagerStart = (K) => ({ ...K, lager: lagerNyckel(K) + PABORJAT });
+/** Ett påbörjat läger utan sparade svar (lokal lagring rensad, annan dator): räknas som använt, ingen träning. */
+export const lagerAvbrutet = (K) => ({ ...K, lager: lagerNyckel(K) });
 
 /** Ett svar i lägret: rätt ger 12 träningspoäng, vid 100 en stjärna till och poängen räknas om från 0 (taket 5★). */
 export function tranaSpelare(p, ratt) {
