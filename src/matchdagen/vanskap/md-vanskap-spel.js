@@ -51,7 +51,8 @@ export async function spelaVanskap(S, el, { moln, vakt }) {
   /** Vänta tills den senaste ögonblicksbilden uppfyller villkoret (eller avbrott/fel). */
   const vantaPa = (villkor, sig = signal) => new Promise((ok) => {
     const f = () => {
-      if (!(sig?.aborted || signal?.aborted || vakt.fel || (vakt.M && villkor(vakt.M)))) return;
+      // Ett saknat dokument (M = null efter första ögonblicksbilden) löser också – anroparen avslutar.
+      if (!(sig?.aborted || signal?.aborted || vakt.fel || (vakt.laddad && (!vakt.M || villkor(vakt.M))))) return;
       vantare.delete(f);
       ok(vakt.M);
     };
@@ -140,7 +141,7 @@ export async function spelaVanskap(S, el, { moln, vakt }) {
   async function lage(m) {
     const n = m.fas.nr;
     const ac = new AbortController();
-    const nytt = (x) => x.fas?.nr !== n || x.status !== "pagar" || !!x.halvtid || (x.h?.nr ?? 0) > visad;
+    const nytt = (x) => !x || x.fas?.nr !== n || x.status !== "pagar" || !!x.halvtid || (x.h?.nr ?? 0) > visad;
     // Läget avgjort (motståndaren svarade, eller tiden gick på servern): valet/frågan stängs –
     // men ett givet svar får visa rätt svar klart först.
     let besvarad = false;
@@ -191,7 +192,7 @@ export async function spelaVanskap(S, el, { moln, vakt }) {
     sag(VANSKAP_TEXT.halvtid);
     tickTill = m.halvtid.start + VANSKAP.halvtid * 1000 + 300;
     const ac = new AbortController();
-    const slut = (x) => !x.halvtid || x.status !== "pagar";
+    const slut = (x) => !x || !x.halvtid || x.status !== "pagar";
     vantaPa(slut).then(() => ac.abort());
     const st = m.V.stat[s];
     const redo = m.halvtid.redo?.[s] ? "redo" : await ruta(S.host, {

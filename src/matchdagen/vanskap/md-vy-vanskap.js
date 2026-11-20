@@ -47,9 +47,10 @@ export function bevaka(S, moln, matchId) {
   const lyss = new Set();
   let sagPagar = false;
   let inraknad = false;
-  const vakt = { id: matchId, M: null, fel: null };
+  const vakt = { id: matchId, M: null, fel: null, laddad: false };
   const av = moln.lyssnaMatch(matchId, (m) => {
     vakt.M = m;
+    vakt.laddad = true;
     if (m?.status === "pagar") sagPagar = true;
     // Bara en match som pågick när vakten startade – karriären som lästes före slutet saknar pengarna.
     if (m && m.status !== "pagar" && sagPagar && !inraknad) { inraknad = true; rakneIn(S, m); }
