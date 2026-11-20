@@ -541,6 +541,10 @@ Vänskapsmatcher: Etapp 4.
   nästa match går förlorat. Eleven väljer en startspelare under 5★ och får alltid 8 frågor; rätt ger 12 poäng,
   vid 100 en stjärna till och resten följer med (`xp −= 100`, som skissen), vid 5★ nollas poängen. Frågorna
   räknas i `summa` och `dagar` som källan `traning` ("Träning"), inte som en match.
+- **Påbörjat läger** (`lagerStart`, `lagerPaborjat`, `lagerAvbrutet`): när lägret startar sparas
+  `lager = nyckel + "-p"` (`"1-3-p"`, `"1-k-p"`). `lagerNyckel` ger då samma läger tills det är klart (`lager =
+  nyckel` med träningen) eller avbrutet (`lager = nyckel` utan träning – räknas som använt). Ett påbörjat läger
+  från en tidigare omgång gäller inte: nästa match öppnar ett nytt som vanligt.
 
 ### 15.2 Ekonomin och balansen (§12)
 
@@ -589,11 +593,17 @@ rapporten. Robotklubbens beteende (`KLUBB` i `md-balans-trupp.mjs`) är ett anta
   nästa fråga och ger aldrig en ny chans på samma (#870 F1). När alla 8 är besvarade sparas lägret med EN
   skrivning; misslyckas den ligger svaren kvar ("Spara träningen"). En fråga som avbryts av ett flikbyte
   (`S.flik`, en AbortController per flikbyte i `md-app.js`) visas igen när eleven kommer tillbaka.
+- **Omladdning, stängd flik, rensad lagring:** lägret märks som påbörjat **på servern** innan första frågan
+  (`lagerStart`, EN skrivning – går den inte fram startar lägret inte). Kommer eleven tillbaka och svaren finns
+  lokalt fortsätter lägret med dem. Finns de **inte** (lokal lagring rensad, en annan dator) räknas lägret som
+  **använt**: "Träningslägret avbröts innan det var klart – det räknas som använt." (`lagerAvbrutet`, EN
+  skrivning, ingen träning) – aldrig ett nytt läger eller nya frågor. Utan lokal lagring (privat fönster) gäller
+  lägret i minnet (`S.lagerMinne`, `md-lokal.js pagaendeLager`) tills sidan laddas om.
 - **Spärrarna:** köp, byten och lägret väntar medan en match pågår (också en sparad lokalt) och tills kön av
   osparade matcher är sparad (`sparaKon` först – annars skulle köpet sparas före matchen det kom ur). Köp och
   byten väntar på ett påbörjat läger, och **Match-fliken** visar "Gör klart träningen först" medan ett läger är
   påbörjat eller osparat (lägret och matchen i samma skrivning ryms inte i reglerna, och nästa match stänger
-  lägret). Före avspark påminner Match-fliken om ett ledigt läger.
+  lägret). Före avspark påminner Match-fliken om ett ledigt läger (inte om ett påbörjat utan svar – det är använt).
 - **Äldre dokument** (Etapp 1–2a) får tomma `reserver`/`marknad` (`truppFalt`); marknaden fylls efter nästa match.
 - **Förhandsvisningen:** `?kassa=N`, `?trupp=visa` (två köpta spelare, grundpelare bland reserverna, träning).
 
@@ -615,7 +625,8 @@ rapporten. Robotklubbens beteende (`KLUBB` i `md-balans-trupp.mjs`) är ett anta
   - **Reserverna** ≤ 5, var och en ur `g.trupp` eller `g.reserver`. **Marknaden** ≤ 6 (prövas inte spelare för
     spelare – det skulle kosta i varje matchsparning; det som köps prövas när det kommer in i truppen).
   - **Kassan** per skrivning: högst 5 000 kr per bokförd match (Δ`summa.matcher` ≤ 500) plus 400 kr.
-  - **Lägret:** `"säsong-omgång"` (omgång 1 till ligans spelade) eller `"säsong-k"`.
+  - **Lägret:** `"säsong-omgång"` (omgång 1 till ligans spelade) eller `"säsong-k"`, påbörjat med `"-p"` efter
+    (`[0-9]{1,5}-([1-9][0-9]?|k)(-p)?`, den här säsongen).
 - **Gränser som inte prövas** (bara elevens eget spel – Matchdagen ger inga pluggmynt): positionerna; att lägret
   är nyare än det sparade (växlar man lägret fram och tillbaka kan man träna mer); att kassan och matcherna
   verkligen spelats (varje skrivning för sig får +5 000 kr per ökad match). Vyerna `esc()`:ar och `Number()`:ar
@@ -630,12 +641,12 @@ rapporten. Robotklubbens beteende (`KLUBB` i `md-balans-trupp.mjs`) är ett anta
 
 | Vad | Läsningar | Skrivningar |
 | --- | --- | --- |
-| Ett träningsläger | 0 (samma frågeström, områdena redan lästa) | 1 |
+| Ett träningsläger | 0 (samma frågeström, områdena redan lästa) | 2 (start + klart) |
 | Ett köp eller byte | 0 | 1 |
 | En nekad kö (ovanpå servern, sällsynt) | 1 | 0 |
 
 **Eleven under en timme** med 5 träningsläger (~6 matcher, ett läger tar ~1,5 min) och 3 köp/byten: ≈ 8
-läsningar (som 1c) och ≈ 12 + 5 + 3 + 1 (namnbyte) = **21 skrivningar** (mål < 50).
+läsningar (som 1c) och ≈ 12 + 10 + 3 + 1 (namnbyte) = **26 skrivningar** (mål < 50).
 
 ### 15.6 Deploy
 

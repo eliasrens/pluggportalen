@@ -272,8 +272,9 @@ stjärnor för rätt svar. Arkitekturen står i `MATCHDAGEN.md` §15.
   Sidhuvudets kassa följer med.
 - **Träningslägret** (`vy/md-vy-lager.js`): välj en startspelare under 5★ → 8 frågor ur samma frågeström som
   matchen (`vy/md-strom.js`) → stjärnorna och stapeln växer vid varje rätt svar och "Melvin Lind fick en stjärna
-  till!". Varje svar sparas lokalt vid klicket (`vidSvar`), lägret med EN skrivning när alla 8 är besvarade.
-  Frågorna räknas i statistiken som källan "Träning".
+  till!". Lägret märks som påbörjat på servern före första frågan (EN skrivning), varje svar sparas lokalt vid
+  klicket (`vidSvar`), lägret med EN skrivning när alla 8 är besvarade. Frågorna räknas i statistiken som källan
+  "Träning". Omladdning mitt i lägret: se nedan.
 - **Spärrarna:** Match-fliken väntar på ett påbörjat läger ("Gör klart träningen först"); köp, byten och läger
   väntar på en pågående match och på kön av osparade matcher. Före avspark påminns eleven om ett ledigt läger.
 - **Sparningen:** `reserver`, `marknad`, `lager` i karriären; `sparaTrupp` (en skrivning per köp/byte/läger);
@@ -290,13 +291,16 @@ stjärnor för rätt svar. Arkitekturen står i `MATCHDAGEN.md` §15.
   otränade, unika, deterministiska, ny efter match och kval), köpet (grundpelaren till reserverna, köpt säljs för
   halva priset, inte bättre/för dyrt, fulla reserver: bara köpta kan släppas, fem grundpelare stoppar köpet),
   byten, kaptensbindeln, äldre dokument; lägret (12 per rätt, 100 → stjärna, resten följer med, taket 5★,
-  nycklarna per omgång och före kvalet, statistiken som "traning", två läger → stjärna, nekade läger);
+  nycklarna per omgång och före kvalet, statistiken som "traning", två läger → stjärna, nekade läger, påbörjat
+  läger `-p`: samma läger tills klart/avbrutet, gammal omgång öppnar ett nytt, kvalets extra läger, minnet utan
+  lokal lagring);
   lagbonusen (tränad lagdel ger högre skott- och räddningschans); det pågående lägret i `localStorage`; korten
   escapar allt (XSS i namn, position, id, `st`/`xp`/`nr` som text); `forstaDokument`; kön ovanpå serverns trupp.
 - `test/firestore-rules-matchdagen-trupp.test.js` (emulator, i `npm run test:rules`): en ny klubb (bara nya
   grundpelare, ingen marknad/reserv), äldre dokument, marknaden ≤ 6 och det som köps (otränat, utan grundpelare,
   2★ till divisionens tak), köp med och utan betalning, påhittade spelare och reserver, byten, fulla reserver,
-  lägret (+96, en stjärna för mycket, utan att lägret byts, nycklarna), lägret och matchen var för sig, kassan
+  lägret (+96, en stjärna för mycket, utan att lägret byts, nycklarna med och utan `-p`, start → klart och start →
+  avbrutet), lägret och matchen var för sig, kassan
   (+400 utan match, 5 000 per match, 501 matcher), en kö med 40 matcher, kön ovanpå serverns trupp, läraren.
 - Uppdaterade: `firestore-rules-matchdagen*.test.js` (nya fält), `matchdagen-balans`, `-kval`, `-liga`, `-sasong`.
 
@@ -350,19 +354,38 @@ Rätt  Division 6         Division 5                                  Division 4
 
 </details>
 
+### Omladdning eller stängd flik mitt i lägret
+
+Lägret **fortsätter med svaren det redan har** – eller räknas som **använt**. Aldrig ett nytt läger, aldrig en
+ny chans på en fråga som redan besvarats:
+
+- **Start:** innan första frågan sparas `lager = "säsong-omgång-p"` (påbörjat) på servern – EN skrivning. Går den
+  inte fram startar lägret inte ("Träningen kunde inte startas …").
+- **Omladdning / stängd flik / flikbyte:** svaren ligger i `localStorage` (`matchdagen-lager:{uid}`, sparade vid
+  klicket, före pausen med rätt svar). Lägret fortsätter på nästa obesvarade fråga med samma spelare.
+- **`localStorage` rensad** (eller en annan dator, eller den tränade spelaren finns inte kvar i startelvan): servern
+  säger påbörjat men inga svar finns – lägret räknas som **använt** ("Träningslägret avbröts innan det var klart
+  – det räknas som använt."), `lager = "säsong-omgång"` utan träning (EN skrivning). Före kvalet blir sedan
+  kvalets extra läger ledigt som vanligt. Ett påbörjat läger stänger också sig självt när nästa match spelas.
+- **Privat fönster** (ingen lokal lagring): lägret gäller i minnet så länge sidan är öppen (flikbyten inom
+  Matchdagen fortsätter); en omladdning räknas som rensad lagring → använt.
+- **Kvar** (bara förbi appen eller samtidigt på två datorer, inga pluggmynt): en elev som skriver förbi appen kan
+  fortfarande växla lägret fram och tillbaka (§15.4, val 11); en andra dator som laddades **innan** lägret
+  startades på den första kan starta samma läger igen.
+
 ### Kvoten (2b, §13)
 
 Inga nya läsningar och inga lyssnare: lägret använder frågeströmmen som redan är laddad, köpen och bytena läser
-inget. Ett läger = 1 skrivning, ett köp eller byte = 1 skrivning. En kö som nekas och sparas ovanpå serverns
+inget. Ett läger = 2 skrivningar (start + klart), ett köp eller byte = 1 skrivning. En kö som nekas och sparas ovanpå serverns
 trupp läser karriären en gång (sällsynt).
 
 | Eleven under en timme | Läsningar | Skrivningar |
 | --- | --- | --- |
 | Öppna Matchdagen, frågekällorna (3 Plugga-områden), 3 matchdetaljer | ≈ 8 | 0 |
 | ~6 matcher (lägren tar ~1,5 min var) | 0 | 12 (6 batchar à 2) |
-| **5 träningsläger** | 0 | 5 |
+| **5 träningsläger** | 0 | 10 (start + klart) |
 | 3 köp/byten + ett namnbyte | 0 | 4 |
-| **Summa** | **≈ 8** (mål < 20) | **≈ 21** (mål < 50) |
+| **Summa** | **≈ 8** (mål < 20) | **≈ 26** (mål < 50) |
 
 ### Reglerna och 1000-uttrycksgränsen
 
@@ -411,7 +434,8 @@ index, inga functions.
 7. **Lägret:** ett per spelad omgång (inget före första matchen), ett extra före kvalet; ett läger som inte
    används före nästa match går förlorat (skissen). Alltid 8 frågor, också när spelaren når 5★ mitt i.
    Poängen över 100 följer med till nästa stjärna (skissens `xp -= 100`); vid 5★ nollas de.
-8. **Lägret sparas en gång, efter 8 svar** – svaren sparas lokalt vid varje klick. Match-fliken väntar på ett
+8. **Lägret sparas två gånger: påbörjat (före första frågan) och klart (efter 8 svar)** – svaren sparas lokalt
+   vid varje klick; utan lokala svar räknas ett påbörjat läger som använt (se Omladdning ovan). Match-fliken väntar på ett
    påbörjat läger (lägret och matchen i samma skrivning spräcker 1000-gränsen, och matchen skulle stänga lägret).
 9. **Lagkaptenen kan säljas till reserverna** (specen förbjuder det inte); bindeln går då till den första
    grundpelaren ute på planen.
