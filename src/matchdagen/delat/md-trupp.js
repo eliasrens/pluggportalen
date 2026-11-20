@@ -18,7 +18,7 @@
 //   tranaSpelare(p, ratt)            → { p, nyStjarna }
 //   lagerResultat(K, { nyckel, spelareId, svar, sekunder?, nu }) → { K, spelare, stjarnor }
 //   kaptenPlats(trupp)               → index för kaptensbindeln på planen
-//   truppFalt(K, rng)                → K med reserver och marknad (äldre dokument från Etapp 1)
+//   truppFalt(K)                     → K med reserver och marknad (äldre dokument från Etapp 1–2a)
 // ============================================================================
 
 import * as C from "./md-config.js";
@@ -226,11 +226,10 @@ export function kaptenPlats(trupp = []) {
   return g >= 0 ? g : 1;
 }
 
-/** Ett äldre dokument (Etapp 1–2a) saknar reserver och marknad: lägg till dem (sparas med nästa skrivning). */
-export function truppFalt(K, rng) {
+/** Ett äldre dokument (Etapp 1–2a) saknar reserver och marknad: tomma (nya spelare till salu efter nästa match). */
+export function truppFalt(K) {
   if (!K || (Array.isArray(K.reserver) && Array.isArray(K.marknad))) return K;
-  const ut = { ...K, reserver: Array.isArray(K.reserver) ? K.reserver : [] };
-  return { ...ut, marknad: Array.isArray(K.marknad) ? K.marknad : nyMarknad(ut, rng) };
+  return { ...K, reserver: Array.isArray(K.reserver) ? K.reserver : [], marknad: Array.isArray(K.marknad) ? K.marknad : [] };
 }
 
 /** Lagdelarnas snittstjärnor (Truppen visar dem med lagbonusen). */

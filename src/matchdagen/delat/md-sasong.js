@@ -90,17 +90,16 @@ const tomSumma = () => ({ matcher: 0, v: 0, o: 0, f: 0, gjorda: 0, inslappta: 0,
 /** En ny klubb: namn (1–24 tecken) och en av de 8 tröjfärgerna (§5). */
 export function nyKarriar({ namn, farg, rng }) {
   const klubbFarg = TROJFARGER.includes(farg) ? farg : TROJFARGER[0];
-  const K = {
+  // Reserverna och marknaden (§8.2–8.3, Etapp 2b) är tomma: de första spelarna kommer till
+  // salu efter första matchen (reglerna prövar en ny klubb billigt – firestore.rules mdMarknadOk).
+  return {
     version: VERSION,
     klubb: { namn: lagnamnOk(namn) || STANDARD_LAGNAMN, farg: klubbFarg, legendStjarnor: 0 },
     div: 0, sasong: 1, kassa: C.KASSA.start,
-    trupp: nyTrupp(rng), reserver: [],
+    trupp: nyTrupp(rng), reserver: [], marknad: [],
     liga: nyLiga(0, klubbFarg, rng),
     kval: null, pokaler: [], summa: tomSumma(), senaste: [], sasonger: [], dagar: {},
   };
-  // Marknaden (§8.3, Etapp 2b) lottas sist – samma frö ger samma lag och liga som förut.
-  K.marknad = nyMarknad(K, rng);
-  return K;
 }
 
 /** Är dokumentet en användbar karriär? (annars börjar eleven med en ny klubb) */

@@ -162,6 +162,7 @@ describe("luckorna T1/T2 (#869 tester) – stängda i Coderns rättningsrunda 1"
     await assertFails(updateDoc(ref(db), { trupp: kopia(K0.trupp).map((p, i) => (i === 6 ? { ...p, namn: "x".repeat(41) } : p)), ...ts }), "41 tecken på sista platsen");
     // Ligans lagnamn prövas INTE: en kontroll per lag (upp till 12) spräcker gränsen på
     // 1000 uttryck när hela karriären skapas. Firestores tak (1 MiB) gäller där – se rapporten.
-    await assertSucceeds(updateDoc(ref(db), { trupp: kopia(K0.trupp).map((p, i) => (i === 6 ? { ...p, namn: "x".repeat(40) } : p)), ...ts }), "40 tecken går");
+    // #871: spelarnas namn går inte att ändra alls (spec §5) – truppen prövas mot det sparade dokumentet.
+    await assertFails(updateDoc(ref(db), { trupp: kopia(K0.trupp).map((p, i) => (i === 6 ? { ...p, namn: "x".repeat(40) } : p)), ...ts }), "nytt namn, 40 tecken");
   });
 });

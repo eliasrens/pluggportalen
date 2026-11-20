@@ -78,7 +78,8 @@ describe("matchdagen/{uid} – eleven (#869)", () => {
     const { liga, ...utanLiga } = karriar();
     void liga;
     await assertFails(setDoc(ref(db), utanLiga), "ligan saknas");
-    await assertSucceeds(setDoc(ref(db), karriar({ div: 7, trupp: trupp(5) })), "div 7, st 5");
+    await assertFails(setDoc(ref(db), karriar({ trupp: trupp(5) })), "#871: en ny klubb har bara nya grundpelare (2★)");
+    await assertSucceeds(setDoc(ref(db), karriar({ div: 7 })), "div 7");
   });
   it("summan: bara heltal (aldrig text som blir HTML hos läraren), kända nycklar, ratt ≤ fragor", async () => {
     await env.seed((db) => setDoc(ref(db), { ...JSON.parse(JSON.stringify(K0)), senast: new Date() }));
@@ -134,6 +135,9 @@ describe("matchdagen/{uid} – läraren (#869): läser, och återställer bara l
 describe("matchdagen/{uid}/matcher/{id} (#869): bara create, storleksgränser", () => {
   it("eleven sparar karriären och matchen i EN batch (som md-data.js sparaMatch)", async () => {
     const db = env.as("e4a", {});
+    // #871: en ny klubb skapas alltid från noll (md-data.js skapar den först om den saknas).
+    await assertFails(setDoc(ref(db), { ...JSON.parse(JSON.stringify(KLAR.K)), senast: serverTimestamp() }), "skapa med en spelad match");
+    await assertSucceeds(setDoc(ref(db), karriar()));
     const b = writeBatch(db);
     b.set(ref(db), { ...JSON.parse(JSON.stringify(KLAR.K)), senast: serverTimestamp() });
     b.set(mref(db), match());

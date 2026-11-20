@@ -82,6 +82,8 @@ describe("kvalet (Tester #870)", () => {
   });
   it("det längsta straffresultatet (sudden death till taket) går att spara", async () => {
     const db = env.as("e4a", {});
+    // #871: en klubb skapas alltid från noll – kvalet sparas över ligan som väntar på det.
+    await env.seed((sdb) => setDoc(ref(sdb), { ...VANTAR, senast: new Date() }));
     await assertSucceeds(setDoc(ref(db), medTid(KVAL.K)));
     await assertSucceeds(setDoc(mref(db), { ...KVAL.match, datum: serverTimestamp() }));
   });
