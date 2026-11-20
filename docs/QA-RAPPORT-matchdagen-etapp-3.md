@@ -93,6 +93,7 @@ klubbhistoriken under Statistik. **Pokalskåpet** är en egen flik med en teckna
 | [`10-statistik-klubbhistorik.png`](qa-matchdagen-3/10-statistik-klubbhistorik.png) | Statistik för den nya klubben: matcherna märkta "Mästarcupen", rekorden följde med, klubbhistoriken |
 | [`11-mobil-pokalskapet.png`](qa-matchdagen-3/11-mobil-pokalskapet.png) | 375 px: Pokalskåpet, alla fem flikar ryms (se Rättat), ingen sidledsscroll |
 | [`12-tabell-mastarcupen.png`](qa-matchdagen-3/12-tabell-mastarcupen.png) | Tabell: Silverpokalen och Mästarcupens tre rundor under Superligan |
+| [`13-superliga-mastare-3d.png`](qa-matchdagen-3/13-superliga-mastare-3d.png) | Mästare i Superligan i 3D (`?scen=mastare`): guldpokalen lyfts, fyrverkerier, vanlig arena (inga finalflaggor) |
 
 ## Balansen (`npm run balans:matchdagen`, Mästarcupen)
 
