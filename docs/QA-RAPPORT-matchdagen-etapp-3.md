@@ -231,9 +231,9 @@ legendklubben – därför `gh.size() == 0 ||` före jämförelsen.
 | `node --test` (alla filer som inte kräver emulatorn, 324 st) | 4724 pass, 1 fail (`importera-elever.test.mjs` – kräver emulatorn, "kör mot emulatorn"), 1 skipped – före granskningens tester |
 | Matchdagen (`test/matchdagen-*.test.js`) | 309 pass, 0 fail (22 i `matchdagen-mastarcup.test.js`) |
 | Matchdagens regeltester (alla 10 `firestore-rules-matchdagen*.test.js`, emulatorn) | 124 pass, 0 fail (13 i `firestore-rules-matchdagen-mastarcup.test.js`) |
-| `npm run test:rules` (hela) | KORNING_RULES |
+| `npm run test:rules` (hela) | 1126 pass, 0 fail (`admin/qa-matchdagen-867-svit.sh test:rules`) |
 | `npm run test:functions` | inga filer i `functions/` ändrade – lämnas till Testern (minnet) |
-| `npm run test:e2e` | KORNING_E2E |
+| `npm run test:e2e` | 5 pass, 0 fail (samma rigg) |
 | `npm run balans:matchdagen` | 112 s – tabellen ovan |
 | Marginalen mot 1000-gränsen | alla skrivningar mätta (tabellen ovan) |
 | Bilder per sekund | finalen 20–27 fps (lägst 15), firandet 18–21 (lägst 12), ~98 ritanrop (SwiftShader, 1366 × 768) |
