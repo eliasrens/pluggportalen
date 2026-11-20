@@ -36,6 +36,11 @@ export const LAGE_TEXT = {
   dubbel: "Finta bort försvararen – sedan skottet!",
   halvtid: "Halvtid! Ta en kort paus.",
   slut: "Slutsignal!",
+  // Straffläggningen (§7.4)
+  straffOss: "Straff {nr}: vi skjuter. Svara rätt för en säker straff!",
+  straffDem: "Straff {nr}: {mot} skjuter. Kan målvakten rädda?",
+  suddenDeath: "Sudden death!",
+  skottEfterFint: "Rätt – försvararen är bortfintad! Nu skottet!",
 };
 
 /** Kommentatorn efter läget (§3.5). */
@@ -63,4 +68,17 @@ export const KOMMENTAR = {
   varRaddning: ["Vår målvakt räddar!", "Vilken räddning av vår målvakt!"],
   derasUtanfor: ["Puh, skottet gick utanför.", "Utanför – vår inspark."],
   derasMal: ["Mål för {mot}. Vi kör igen!", "{mot} gör mål. Upp med huvudet – vi kör igen!"],
+  // Straffarna (§7.4)
+  straffMal: ["Mål! Säkert placerat.", "I nät! Målvakten gick åt fel håll.", "Straffen sitter!"],
+  straffRaddad: ["Målvakten räddar – snyggt läst!", "Räddad! Det var en bra straff ändå."],
+  straffFel: ["Fel svar – straffen blir svag och målvakten tar den."],
+  straffStolpe: ["I stolpen! Så nära!"],
+  straffUtanfor: ["Fel svar – straffen går utanför.", "Utanför! Nästa gång."],
+  derasStraffMal: ["Rätt svar, men {mot} sätter straffen ändå.", "Målvakten var på rätt håll – men den gick in."],
+  derasStraffFel: ["Fel svar – {mot} sätter straffen."],
+  varStraffRaddning: ["Vår målvakt räddar straffen!", "RÄDDNING! Vår målvakt tar straffen!"],
+  derasStraffMiss: ["{mot} skjuter utanför!", "Utanför – {mot} missar!"],
+  derasStraffStolpe: ["{mot} sätter den i stolpen!"],
+  straffVinst: ["Vi vinner straffläggningen!"],
+  straffForlust: ["{mot} vinner på straffar. Så nära – nästa gång!"],
 };

@@ -13,6 +13,7 @@ import {
 import { MOTSTANDARE, STANDARD_LAGNAMN, TROJFARGER } from "../src/matchdagen/delat/md-namn.js";
 import { skapaPrng } from "../src/matchdagen/delat/md-prng.js";
 import * as C from "../src/matchdagen/delat/md-config.js";
+import { kvalKlar, kvalMatch } from "../src/matchdagen/delat/md-kval.js";
 import { firande, formation, planX, PLAN_B, PLAN_L } from "../src/matchdagen/plan/md-formation.js";
 import { KO_MAX, laggIKo, lasOsparad, lasPagaende, rensaPagaende, sparaOsparad, sparaPagaende } from "../src/matchdagen/md-lokal.js";
 import { hamtaKarriar, sparaKon } from "../src/matchdagen/md-spara.js";
@@ -145,11 +146,12 @@ describe("matchen klar: tabellen, kassan och statistiken (§5, §6.1, §8.3)", (
     assert.deepEqual(k.match.perKalla, { "tabell:7": { fragor: 28, ratt: 20 } });
     let K = K0;
     for (let i = 0; i < 80; i++) {
+      if (kvalMatch(K)) { K = kvalKlar(K, { res: res(0, 1), nu: NU + i * 86400000, matchId: `k${i}` }).K; continue; }
       if (!nastaMatch(K)) K = nySasong(K, rng(`n${i}`));
       K = matchKlar(K, { res: res(1, 0), rng: rng(`r${i}`), nu: NU + i * 86400000, matchId: `x${i}` }).K;
     }
     assert.equal(K.senaste.length, C.SENASTE_MAX);
-    assert.equal(K.senaste[0].id, "x79");
+    assert.match(K.senaste[0].id, /^[xk]79$/);
     assert.equal(Object.keys(K.dagar).length, C.DAGAR_MAX);
     assert.ok(utanNastladeListor(K));
     assert.ok(JSON.stringify(K).length < 60_000, "långt under 200 kB efter 16 säsonger");
@@ -167,8 +169,10 @@ describe("matchen klar: tabellen, kassan och statistiken (§5, §6.1, §8.3)", (
     assert.equal(forlust.K.pokaler.length, 0);
     assert.throws(() => matchKlar(K, { res: res(1, 0), rng: rng(), nu: NU, matchId: "z" }), /redan slut/);
   });
-  it("nästa säsong: nya motståndare, omgång 1, samma division (Etapp 1) – samma frö ger samma liga", () => {
-    const { K } = sasong(K0, [[1, 0], [1, 0], [1, 0], [1, 0], [1, 0]]);
+  it("nästa säsong: nya motståndare, omgång 1, samma division utan vunnet kval – samma frö ger samma liga", () => {
+    const vann = sasong(K0, [[1, 0], [1, 0], [1, 0], [1, 0], [1, 0]]).K;
+    assert.throws(() => nySasong(vann, rng()), /kvalet/, "ligavinnaren spelar kvalet först");
+    const K = kvalKlar(vann, { res: res(0, 2), nu: NU, matchId: "kv" }).K;
     const a = nySasong(K, skapaPrng(sasongFro(K, "u1")).tal);
     const b = nySasong(K, skapaPrng(sasongFro(K, "u1")).tal);
     assert.deepEqual(a.liga, b.liga);

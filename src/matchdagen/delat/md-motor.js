@@ -6,13 +6,17 @@
 // (test/matchdagen-motor.test.js), körs av balanssimuleringen
 // (admin/md-balans-sim.mjs) och delas med servern i Etapp 4.
 //
-//   nyMatch({ mot, bonus?, div?, nu? })      → tillstånd (avspark för oss)
+//   nyMatch({ mot, bonus?, div?, avgor?, nu? }) → tillstånd (avspark för oss); avgor = kval/cup:
+//                                              oavgjort efter 90 → straffar (md-straffar.js)
 //   lage(m)                                  → vad händer nu: { typ, val, fragor, rad, d? }
 //                                              typ: anfall | forsvar | derasPass | derasSkott | halvtid | slut
 //   spela(m, valId, svar, rng, nu?)          → { m, h } – nytt tillstånd + händelsen (m ändras inte)
 //                                              svar: [{ ratt, kalla? }] eller [bool], så många som lagets fragor
+//                                              (dubbelskott: ett svar räcker när finten blev fel)
+//   behoverFraga(m, valId, svar)             → ska eleven få en fråga till? (finten rätt → skottet)
 //   andraHalvlek(m, nu?)                     → tillstånd för andra halvlek (efter halvtid)
-//   resultat(m)                              → { oss, dem, utfall, mal, stat }
+//   resultat(m)                              → { oss, dem, utfall, mal, stat, klar, straffar, vann }
+//   arKlar(m), behoverStraffar(m), raknaSvar(m, svar, nu)   (delas med md-straffar.js)
 //   chansPass/chansSkott/chansSnett/chansForsvar/chansRaddning/chansDerasMal, skottText, lagbonus
 //
 // Tillståndet är ren data (JSON) – 1c sparar det i localStorage efter varje läge.
@@ -109,7 +113,7 @@ const tomStat = () => ({
  * En ny match, avspark för oss.
  * @param {{ mot: { namn?: string, styrka: number }, bonus?: object, div?: number, nu?: number }} o
  */
-export function nyMatch({ mot, bonus = {}, div = 0, nu = null } = {}) {
+export function nyMatch({ mot, bonus = {}, div = 0, avgor = false, nu = null } = {}) {
   const styrka = Number(mot?.styrka);
   if (!Number.isFinite(styrka)) throw new Error("nyMatch: mot.styrka saknas");
   return {
@@ -117,6 +121,7 @@ export function nyMatch({ mot, bonus = {}, div = 0, nu = null } = {}) {
     mot: { namn: String(mot.namn || "Motståndarna"), styrka },
     bonus: Object.fromEntries(C.LAGDELAR.map((d) => [d, bonusAv(bonus, d)])),
     div: Number(div) || 0,
+    avgor: !!avgor,
     min: 0, halvlek: 1, halvtid: false, slut: false,
     avspark: "oss", boll: "oss", x: C.AVSPARK.x, y: C.AVSPARK.y, horna: false,
     oss: 0, dem: 0, mal: [], lagen: 0,
@@ -149,13 +154,44 @@ export function lage(m) {
   return { typ: "forsvar", val: [valPost("tackla"), valPost("tack")], fragor: 0, rad: mot(LAGE_TEXT.forsvar) };
 }
 
-/** Antal frågor för ett val i läget (0 = inget svar behövs). */
+/** Antal frågor för ett val i läget (0 = inget svar behövs). Ett dubbelskott är 2, men se behoverFraga. */
 export function antalFragor(m, valId = null) {
   const l = lage(m);
   return l.val.length ? (l.val.find((v) => v.id === valId)?.fragor ?? 0) : l.fragor;
 }
 
-const normaliseraSvar = (svar) => (Array.isArray(svar) ? svar : []).map((s) =>
+/** Fel på finten avgör dubbelskottet direkt (§7.3) – då ställs ingen andra fråga. */
+const fintenFel = (fragor, s) => fragor === 2 && s.length === 1 && !s[0].ratt;
+
+/** Ska eleven få en fråga till? svar = svaren hittills. Efter fel på finten: nej. */
+export function behoverFraga(m, valId, svar = []) {
+  const n = antalFragor(m, valId);
+  const s = normaliseraSvar(svar);
+  return s.length < n && !fintenFel(n, s);
+}
+
+/**
+ * Räkna svaren i statistiken (frågor, rätt, per källa) och tiden sedan förra läget.
+ * Ändrar m – anroparen har redan kopierat (spela, straffa i md-straffar.js).
+ */
+export function raknaSvar(m, s, nu) {
+  const st = m.stat;
+  for (const { ratt, kalla } of s) {
+    st.fragor++;
+    if (ratt) st.ratt++;
+    if (kalla) {
+      const k = (st.perKalla[kalla] ??= { fragor: 0, ratt: 0 });
+      k.fragor++;
+      if (ratt) k.ratt++;
+    }
+  }
+  if (typeof nu === "number") {
+    if (typeof m.senast === "number") st.sekunder += Math.min(C.MAX_LAGE_S, Math.max(0, nu - m.senast) / 1000);
+    m.senast = nu;
+  }
+}
+
+export const normaliseraSvar = (svar) => (Array.isArray(svar) ? svar : []).map((s) =>
   (typeof s === "object" && s ? { ratt: s.ratt === true, kalla: typeof s.kalla === "string" ? s.kalla : null } : { ratt: s === true, kalla: null }));
 
 function flytta(m, x, rng, y = null) {
@@ -202,23 +238,11 @@ export function spela(m0, valId, svar, rng, nu) {
     fragor = v.fragor;
   } else valId = null;
   const s = normaliseraSvar(svar);
-  if (s.length !== fragor) throw new Error(`spela: ${fragor} svar behövs, fick ${s.length}`);
+  if (s.length !== fragor && !fintenFel(fragor, s)) throw new Error(`spela: ${fragor} svar behövs, fick ${s.length}`);
 
   const m = kopiera(m0);
   const st = m.stat;
-  for (const { ratt, kalla } of s) {
-    st.fragor++;
-    if (ratt) st.ratt++;
-    if (kalla) {
-      const k = (st.perKalla[kalla] ??= { fragor: 0, ratt: 0 });
-      k.fragor++;
-      if (ratt) k.ratt++;
-    }
-  }
-  if (typeof nu === "number") {
-    if (typeof m.senast === "number") st.sekunder += Math.min(C.MAX_LAGE_S, Math.max(0, nu - m.senast) / 1000);
-    m.senast = nu;
-  }
+  raknaSvar(m, s, nu);
   const ratt = s.every((x) => x.ratt);
   const rad = (lista) => valj(rng, lista).replace("{mot}", m.mot.namn);
   const h = { typ: l.typ, val: valId, svar: s.map((x) => x.ratt), ratt: fragor ? ratt : null, min: malMinut(m), fran: { x: m.x, y: m.y } };
@@ -280,7 +304,10 @@ function skott(m, h, s, d, rng, rad) {
   st.skott++;
   h.hojd = "skott";
   h.d = d;
-  if (rng() < chansSkott(d, ratt, m.bonus, m.mot.styrka)) {
+  // Dubbelskottet (§7.3): fel på finten ger fintFel (aldrig mer än ett rätt avslut från samma avstånd).
+  const fintFel = dubbelSkott(m.div) && !s[0].ratt;
+  const chans = fintFel ? Math.min(C.SKOTT.fintFel, chansSkott(d, true, m.bonus, m.mot.styrka)) : chansSkott(d, ratt, m.bonus, m.mot.styrka);
+  if (rng() < chans) {
     st.skottPaMal++;
     m.oss++;
     m.mal.push({ min: h.min, lag: "oss" });
@@ -292,7 +319,7 @@ function skott(m, h, s, d, rng, rad) {
   if (utfall === "raddning") st.skottPaMal++;
   h.utfall = utfall;
   if (ratt) h.rad = rad(utfall === "raddning" ? KOMMENTAR.raddningRatt : utfall === "stolpe" ? KOMMENTAR.stolpe : KOMMENTAR.utanforRatt);
-  else if (s.length > 1 && !s[0].ratt) h.rad = rad(KOMMENTAR.dubbelFel);
+  else if (fintFel) h.rad = rad(KOMMENTAR.dubbelFel);
   else h.rad = rad(utfall === "raddning" ? KOMMENTAR.raddningFel : KOMMENTAR.skottFel);
   if (ratt && utfall === "raddning" && rng() < C.HORNA_CHANS) {
     st.horner++;
@@ -345,8 +372,22 @@ export function andraHalvlek(m0, nu) {
   return m;
 }
 
-/** Resultatet: ställningen, vinst/oavgjort/förlust, målen med minut och statistiken (§3.6). */
+/** Oavgjort efter full tid i en match som måste avgöras (kval, cup) och straffarna är inte klara. */
+export const behoverStraffar = (m) => !!(m.slut && m.avgor && m.oss === m.dem && !m.straffar?.klar);
+/** Matchen är helt slut: slutsignal och (vid behov) straffläggningen avgjord. */
+export const arKlar = (m) => !!m.slut && !behoverStraffar(m);
+
+/**
+ * Resultatet: ställningen, vinst/oavgjort/förlust (på mål – en straffläggning är
+ * oavgjort i statistiken), målen med minut och statistiken (§3.6). straffar =
+ * [vi, de] efter en straffläggning, annars null. vann: vi gick vidare (fler mål
+ * eller straffarna), null om matchen inte är klar.
+ */
 export function resultat(m) {
   const utfall = m.oss > m.dem ? "vinst" : m.oss < m.dem ? "forlust" : "oavgjort";
-  return { oss: m.oss, dem: m.dem, utfall, mal: m.mal.map((x) => ({ ...x })), stat: kopiera(m.stat), klar: m.slut };
+  const sf = m.straffar;
+  const straffar = sf ? [sf.oss.filter(Boolean).length, sf.dem.filter(Boolean).length] : null;
+  const klar = arKlar(m);
+  const vann = !klar ? null : utfall === "oavgjort" ? (sf ? sf.vinnare === "oss" : null) : utfall === "vinst";
+  return { oss: m.oss, dem: m.dem, utfall, mal: m.mal.map((x) => ({ ...x })), stat: kopiera(m.stat), klar, straffar, vann };
 }

@@ -46,9 +46,9 @@ export const SKOTT_MAX_D = 45;
 export const SKOTT_LAGE = { langt: 28, bra: 15 };
 /**
  * Målchansen vid rätt svar: kl(bas − d × perMeter; min; max) × (1 − styrka × styrka-faktor) + anfallsbonus.
- * Vid fel svar: fel.
+ * Vid fel svar: fel. Från Division 3 (två frågor): fel på den första (finten) ger fintFel (§7.3).
  */
-export const SKOTT = { bas: 1, perMeter: 0.023, min: 0.03, max: 0.8, styrka: 0.35, fel: 0.15 };
+export const SKOTT = { bas: 1, perMeter: 0.023, min: 0.03, max: 0.8, styrka: 0.35, fel: 0.15, fintFel: 0.03 };
 /** Inte mål: vikterna för hur skottet slutar (rätt svar / fel svar). */
 export const SKOTT_MISS = {
   ratt: { raddning: 1, stolpe: 1, utanfor: 1 },
@@ -59,6 +59,23 @@ export const HORNA_CHANS = 0.45;
 export const HORNA = { x: 92, y: 6 };
 /** Från den här divisionen (div 3 = Division 3) kräver ett skott två rätt i rad (spec §7.3). */
 export const DUBBEL_SKOTT_FRAN_DIV = 3;
+
+// ---- Straffar (spec §7.4) ------------------------------------------------------
+/**
+ * Straffläggningen efter ett oavgjort kval (och i Etapp 2c–3 cup och Mästarcupen):
+ * antal straffar var, sedan sudden death. Vi skjuter först i varje omgång.
+ * egen = vår straff går in vid rätt / fel svar; deras = deras straff går in när
+ * eleven svarar rätt / fel på "Kan målvakten rädda?". Efter max omgångar i
+ * sudden death (praktiskt taget omöjligt) vinner vi – ingen ändlös straffläggning.
+ */
+export const STRAFFAR = { antal: 5, max: 30, egen: { ratt: 0.82, fel: 0.2 }, deras: { ratt: 0.45, fel: 0.85 } };
+/** Inte mål på straff: vikterna för hur den slutar (vår straff vid rätt / fel svar, deras straff vid rätt / fel). */
+export const STRAFF_MISS = {
+  egen: { ratt: { raddning: 2, stolpe: 1, utanfor: 1 }, fel: { raddning: 1, utanfor: 1 } },
+  deras: { ratt: { raddning: 3, stolpe: 1 }, fel: { raddning: 1, utanfor: 1 } },
+};
+/** Straffpunkten: så här många meter från mållinjen (planens meter, 2D och 3D). */
+export const STRAFFPUNKT_M = 11;
 
 // ---- När motståndarna har bollen (spec §3.3) --------------------------------
 /** På deras planhalva (x ≥ detta) spelar de framåt automatiskt. */
@@ -100,6 +117,8 @@ export const LAGDELAR = ["MV", "FÖR", "MIT", "ANF"];
 export const STYRKA = { bas: 0.2, perDiv: 0.09, spridning: 0.05, min: 0.12, max: 0.92 };
 export const DIVISIONER = ["Division 6", "Division 5", "Division 4", "Division 3", "Division 2", "Division 1", "Elitligan", "Superligan"];
 export const LAGANTAL = [6, 6, 8, 8, 10, 10, 12, 12];
+/** Den högsta divisionen (Superligan): ligavinnaren där kvalar inte – Mästarcupen kommer i Etapp 3. */
+export const TOPP_DIV = DIVISIONER.length - 1;
 export const POANG = { vinst: 3, oavgjort: 1, forlust: 0 };
 /**
  * simMal(styrka, motståndarstyrka) för omgångens övriga matcher: varje lag gör
@@ -131,8 +150,9 @@ export const LAGNAMN_MAX = 24;
 /**
  * Klubbkassan (§8.3): startar på start. Varje match ger grundbelopp (vinst /
  * oavgjort / förlust) + perRatt per rätt svar + perMal per mål, × (1 + div × perDiv).
+ * Ett vunnet kval (uppflyttning, §7.2) ger dessutom uppflyttning × (1 + div × perDiv).
  */
-export const KASSA = { start: 600, vinst: 300, oavgjort: 150, forlust: 80, perRatt: 15, perMal: 25, perDiv: 0.25 };
+export const KASSA = { start: 600, vinst: 300, oavgjort: 150, forlust: 80, perRatt: 15, perMal: 25, perDiv: 0.25, uppflyttning: 300 };
 /** Karriärdokumentet: de senaste matcherna (Statistik) och dagarna (lärarens 7 dagar / veckolinje). */
 export const SENASTE_MAX = 20;
 export const DAGAR_MAX = 70;
