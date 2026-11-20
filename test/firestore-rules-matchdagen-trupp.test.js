@@ -19,7 +19,7 @@ import { assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { createRollerEnv, seedRoller } from "./helpers/roller-env.js";
 import { matchKlar, nyKarriar } from "../src/matchdagen/delat/md-sasong.js";
-import { bytIn, kop, lagerNyckel, lagerResultat } from "../src/matchdagen/delat/md-trupp.js";
+import { bytIn, kop, lagerAvbrutet, lagerNyckel, lagerResultat, lagerStart } from "../src/matchdagen/delat/md-trupp.js";
 import { skapaPrng } from "../src/matchdagen/delat/md-prng.js";
 import { ovanpaServern } from "../src/matchdagen/md-spara.js";
 
@@ -157,6 +157,19 @@ describe("matchdagen/{uid} – träningslägret och kassan (#871)", () => {
     await assertFails(setDoc(ref(db), medTid(LAGER, { lager: "1-0" })), "omgång 0");
     await assertFails(setDoc(ref(db), medTid(LAGER, { lager: "<b>1-1</b>" })), "HTML");
     await assertSucceeds(setDoc(ref(db), medTid(LAGER, { lager: "1-k" })), "före kvalet");
+    await assertSucceeds(setDoc(ref(db), medTid(K1, { lager: "1-1-p" })), "påbörjat");
+    await assertSucceeds(setDoc(ref(db), medTid(K1, { lager: "1-k-p" })), "påbörjat före kvalet");
+    await assertFails(setDoc(ref(db), medTid(K1, { lager: "1-1-x" })), "okänd ändelse");
+    await assertFails(setDoc(ref(db), medTid(K1, { lager: "1-1-p-p" })), "dubbel ändelse");
+    await assertFails(setDoc(ref(db), medTid(K1, { lager: "1-2-p" })), "påbörjat i en ospelad omgång");
+  });
+  it("lägret påbörjas (EN skrivning, bara lager), sparas sedan med träningen – eller räknas som använt utan träning", async () => {
+    const START = lagerStart(K1);
+    await assertSucceeds(setDoc(ref(elev()), medTid(START)), "start");
+    await seed(START);
+    const ut = kopia(lagerResultat(START, { nyckel: lagerNyckel(START), spelareId: K1.trupp[3].id, svar: Array(8).fill({ ratt: true }), nu: NU }).K);
+    await assertSucceeds(setDoc(ref(elev()), medTid(ut)), "träningen sparas från det påbörjade lägret");
+    await assertSucceeds(setDoc(ref(elev()), medTid(lagerAvbrutet(START))), "avbrutet – räknas som använt");
   });
   it("lägret och nästa match sparas var för sig (appen spärrar matchen tills lägret är sparat)", async () => {
     await assertSucceeds(setDoc(ref(elev()), medTid(LAGER)));

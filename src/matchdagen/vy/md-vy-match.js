@@ -11,8 +11,8 @@ import { DIVISIONER, TOPP_DIV, TRANING } from "../delat/md-config.js";
 import { kvalMatch } from "../delat/md-kval.js";
 import { nastaMatch, nyKarriar, nySasong, sasongFro, tabellRader } from "../delat/md-sasong.js";
 import { skapaPrng } from "../delat/md-prng.js";
-import { lagerNyckel } from "../delat/md-trupp.js";
-import { lasLager, lasPagaende } from "../md-lokal.js";
+import { lagerNyckel, lagerPaborjat } from "../delat/md-trupp.js";
+import { lasPagaende, pagaendeLager } from "../md-lokal.js";
 import { klubbFormular } from "./md-vy-klubb.js";
 import { chip, esc } from "./md-vy-delat.js";
 
@@ -46,7 +46,7 @@ export async function visaMatchFlik(S, el) {
   const pagaende = lasPagaende(S.lagring, S.uid, S.K, n.typ);
   // Ett påbörjat träningsläger sparas före nästa match (lägret och matchen i samma skrivning
   // ryms inte i reglerna, och nästa match skulle stänga lägret) – #871.
-  const lager = !pagaende && lasLager(S.lagring, S.uid, S.K);
+  const lager = !pagaende && pagaendeLager(S);
   if (lager) return lagerVantar(S, el, lager);
   const vi = S.K.klubb;
   const kval = n.typ === "kval";
@@ -58,7 +58,7 @@ export async function visaMatchFlik(S, el) {
       : kval
         ? `<p>Ni vann ${esc(DIVISIONER[n.kval.div])}! Vinner ni kvalet går ni upp till <b>${esc(DIVISIONER[n.kval.till])}</b>. Blir det oavgjort avgörs det på straffar – fem var, sedan sudden death.</p>`
         : `<p class="md-svag">Varje drag ger en fråga. Svarar du rätt lyckas passet eller skottet oftare – men även snygga skott kan räddas, och långskott går sällan in.</p>`}
-    ${!pagaende && lagerNyckel(S.K) ? `<p class="md-tips">Ni har ett träningsläger ledigt under <button type="button" class="md-lank" data-trupp>Truppen</button> – det går förlorat när nästa match spelas.</p>` : ""}
+    ${!pagaende && lagerNyckel(S.K) && !lagerPaborjat(S.K) ? `<p class="md-tips">Ni har ett träningsläger ledigt under <button type="button" class="md-lank" data-trupp>Truppen</button> – det går förlorat när nästa match spelas.</p>` : ""}
     <div class="md-rad">
       <button type="button" class="md-stor" data-avspark>${pagaende ? "Fortsätt matchen" : "Avspark!"}</button>
       ${S.lugnt ? `<span class="md-lugnt-etikett">Lugnt läge</span>` : ""}

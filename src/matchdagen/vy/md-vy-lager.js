@@ -6,7 +6,10 @@
 //
 // Varje svar sparas lokalt SÅ FORT det är givet (md-lokal.js sparaLager, vidSvar före
 // pausen som visar rätt svar) – en omladdning fortsätter på nästa fråga och ger aldrig
-// en ny chans på samma (#870 F1). När alla 8 är besvarade sparas lägret med EN
+// en ny chans på samma (#870 F1). Lägret märks som påbörjat på servern innan första
+// frågan (md-trupp.js lagerStart, EN skrivning): finns det inga sparade svar när eleven
+// kommer tillbaka (lokal lagring rensad, en annan dator) räknas lägret som använt
+// (lagerAvbrutet) – aldrig ett nytt läger. När alla 8 är besvarade sparas lägret med EN
 // skrivning (md-data.js sparaTrupp). Matchen väntar tills lägret är sparat (md-vy-match.js).
 //
 //   visaLager(S, yta, { signal, klar }) – klar() ritar om korten när lägret är sparat
@@ -17,8 +20,8 @@
 // ============================================================================
 
 import { TRANING } from "../delat/md-config.js";
-import { lagerNyckel, lagerResultat, tranaSpelare } from "../delat/md-trupp.js";
-import { lasLager, rensaLager, sparaLager } from "../md-lokal.js";
+import { lagerAvbrutet, lagerNyckel, lagerPaborjat, lagerResultat, lagerStart, tranaSpelare } from "../delat/md-trupp.js";
+import { pagaendeLager, rensaLager, sparaLager } from "../md-lokal.js";
 import { sparaKon } from "../md-spara.js";
 import { esc, vanta } from "./md-vy-delat.js";
 import { hinderMatch, stjarnor, traningsStapel } from "./md-vy-marknad.js";
@@ -35,6 +38,7 @@ export function lagerStangtText(K) {
 }
 /** "Selma Lind fick en stjärna till!" (§8.4) – html-säker. */
 export const firaText = (p) => `${esc(p.namn)} fick en stjärna till!`;
+export const AVBRUTET_TEXT = "Träningslägret avbröts innan det var klart – det räknas som använt.";
 
 /** En egen signal per yta: avbryts av ett nytt visaLager eller av den yttre (flikbytet). */
 function ytansSignal(yta, yttre) {
@@ -48,8 +52,9 @@ function ytansSignal(yta, yttre) {
 
 export async function visaLager(S, yta, opt0 = {}) {
   const opt = { ...opt0, yttre: opt0.signal, signal: ytansSignal(yta, opt0.signal) };
-  const pagar = lasLager(S.lagring, S.uid, S.K);
+  const pagar = pagaendeLager(S);
   if (pagar) return korLager(S, yta, pagar, opt);
+  if (lagerPaborjat(S.K)) return avbrutet(S, yta, opt);
   const nyckel = lagerNyckel(S.K);
   if (!nyckel) {
     yta.innerHTML = `<p class="md-svag">${esc(lagerStangtText(S.K))}</p>`;
@@ -83,17 +88,48 @@ export async function visaLager(S, yta, opt0 = {}) {
       fel.textContent = kon ? "Laget har redan tränat den här omgången." : "Den senaste matchen är inte sparad än. Prova igen när datorn har kontakt med servern.";
       return;
     }
-    const post = { nyckel, spelareId: yta.querySelector(".md-lagerval").value, svar: [], sek: 0 };
+    // Påbörjat på servern FÖRE första frågan – går skrivningen inte fram startar lägret inte.
+    const startat = lagerStart(S.K);
+    try {
+      await S.data.sparaTrupp(S.uid, startat);
+    } catch (err) {
+      console.warn("Matchdagen: träningslägret kunde inte startas", err);
+      S.truppUpptagen = false;
+      knapp.disabled = false;
+      fel.textContent = "Träningen kunde inte startas. Prova igen när datorn har kontakt med servern.";
+      return;
+    }
+    S.K = startat;
+    const post = { v: 1, nyckel, spelareId: yta.querySelector(".md-lagerval").value, svar: [], sek: 0 };
     sparaLager(S.lagring, S.uid, post);
+    S.lagerMinne = post;
     S.truppUpptagen = false;
-    // Utan lokal lagring (privat fönster) körs lägret i minnet; annars läses det tillbaka (spelaren finns kvar?).
-    const sparad = S.lagring ? lasLager(S.lagring, S.uid, S.K) : { v: 1, ...post };
-    return sparad ? korLager(S, yta, sparad, opt) : visaLager(S, yta, { ...opt, signal: opt.yttre });
+    // Utan lokal lagring (privat fönster) körs lägret i minnet (S.lagerMinne, tills sidan laddas om).
+    return korLager(S, yta, pagaendeLager(S) || post, opt);
   });
+}
+
+/** Påbörjat på servern men inga sparade svar här: lägret räknas som använt (EN skrivning, ingen träning). */
+async function avbrutet(S, yta, opt) {
+  yta.innerHTML = `<p class="md-svag" role="status">${esc(AVBRUTET_TEXT)}</p>`;
+  const K = lagerAvbrutet(S.K);
+  try {
+    await S.data.sparaTrupp(S.uid, K);
+  } catch (err) {
+    // Lägret startar ändå inte – nästa gång Truppen visas sparas det igen.
+    console.warn("Matchdagen: det avbrutna träningslägret kunde inte sparas", err);
+    return;
+  }
+  S.K = K;
+  if (opt.signal?.aborted || !lagerNyckel(S.K)) return;
+  // Kvalets extra läger är fortfarande ledigt.
+  yta.innerHTML += `<div class="md-rad"><button type="button" class="md-stor" data-nasta>Ett läger till före kvalet</button></div>`;
+  yta.querySelector("[data-nasta]").addEventListener("click", () => visaLager(S, yta, { ...opt, signal: opt.yttre }));
 }
 
 /** Frågorna som är kvar (en omladdning fortsätter där eleven var), sedan sparningen. */
 async function korLager(S, yta, post, opt) {
+  S.lagerMinne = post;
   const bas = S.K.trupp.find((p) => p.id === post.spelareId);
   const spelaren = () => post.svar.reduce((p, s) => tranaSpelare(p, s.ratt).p, bas);
   if (post.svar.length < TRANING.fragor) {
@@ -142,6 +178,7 @@ async function sparaLagret(S, yta, post, opt) {
   } catch (err) {
     console.warn("Matchdagen: träningslägret gäller inte längre", err);
     rensaLager(S.lagring, S.uid);
+    S.lagerMinne = null;
     yta.innerHTML = `<p class="md-svag">${esc(lagerStangtText(S.K))}</p>`;
     return;
   }
@@ -157,6 +194,7 @@ async function sparaLagret(S, yta, post, opt) {
   }
   S.K = ut.K;
   rensaLager(S.lagring, S.uid);
+  S.lagerMinne = null;
   const p = ut.spelare;
   const ratt = post.svar.filter((s) => s.ratt).length;
   yta.innerHTML = `<p><b>Träningen är klar!</b> ${ratt} av ${post.svar.length} rätt. ${esc(p.namn)} har nu ${st(p)}★${st(p) < TRANING.maxSt ? ` och ${xp(p)}/${TRANING.xpPerStjarna} träningspoäng` : " – fullt tränad"}.</p>

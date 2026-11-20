@@ -16,7 +16,7 @@ import { chansRaddning, chansSkott, lagbonus } from "../src/matchdagen/delat/md-
 import { forstaDokument, matchKlar, nastaMatch, nyKarriar } from "../src/matchdagen/delat/md-sasong.js";
 import { kvalKlar } from "../src/matchdagen/delat/md-kval.js";
 import { skapaPrng } from "../src/matchdagen/delat/md-prng.js";
-import { laggIKo, lasLager, lasOsparad, rensaLager, sparaLager } from "../src/matchdagen/md-lokal.js";
+import { laggIKo, lasLager, lasOsparad, pagaendeLager, rensaLager, sparaLager } from "../src/matchdagen/md-lokal.js";
 import { konsPengar, ovanpaServern, sparaKon } from "../src/matchdagen/md-spara.js";
 import { pengarFor } from "../src/matchdagen/delat/md-sasong.js";
 import { lagdelarHtml, marknadKort, reservKort, startKort, traningsStapel } from "../src/matchdagen/vy/md-vy-marknad.js";
@@ -222,6 +222,43 @@ describe("träningslägret (§8.4)", () => {
     assert.equal(lasLager(L, "u", T.bytIn({ ...kopia(K1), reserver: [{ ...K1.trupp[2], id: "r" }] }, "r", id)), null, "spelaren är inte kvar");
     rensaLager(L, "u");
     assert.equal(lasLager(L, "u", K1), null);
+  });
+  it("påbörjat läger ('-p'): samma läger gäller tills det sparas eller räknas som använt – aldrig ett nytt", () => {
+    const S1 = T.lagerStart(K1);
+    assert.equal(S1.lager, "1-1-p");
+    assert.equal(K1.lager, undefined, "K ändras inte");
+    assert.equal(T.lagerNyckel(S1), "1-1");
+    assert.equal(T.lagerPaborjat(S1), true);
+    assert.equal(T.lagerPaborjat(K1), false);
+    const id = K1.trupp[3].id;
+    const ut = T.lagerResultat(S1, { nyckel: "1-1", spelareId: id, svar: Array(8).fill({ ratt: true }), nu: NU });
+    assert.equal(ut.K.lager, "1-1", "klart – lägret byts från det påbörjade");
+    assert.equal(T.lagerNyckel(ut.K), null);
+    const A = T.lagerAvbrutet(S1);
+    assert.deepEqual([A.lager, T.lagerNyckel(A), A.trupp], ["1-1", null, K1.trupp], "avbrutet: använt, ingen träning");
+    // Ett påbörjat läger i en gammal omgång gäller inte: nästa match öppnar ett nytt.
+    const K2 = matchKlar(S1, { res: res(1, 0), rng: rng("p"), nu: NU, matchId: "p" }).K;
+    assert.deepEqual([T.lagerNyckel(K2), T.lagerPaborjat(K2)], ["1-2", false]);
+  });
+  it("påbörjat före kvalet: först omgångens läger avbryts, sedan är kvalets ledigt; kvalets påbörjade avbryts till använt", () => {
+    let V = K1;
+    for (let i = 0; nastaMatch(V); i++) V = matchKlar(V, { res: res(4, 0), rng: rng(`q${i}`), nu: NU, matchId: `q${i}` }).K;
+    const sista = `1-${V.liga.omg}`;
+    const P = T.lagerStart(V);
+    assert.deepEqual([P.lager, T.lagerNyckel(P)], [`${sista}-p`, sista]);
+    const A = T.lagerAvbrutet(P);
+    assert.deepEqual([A.lager, T.lagerNyckel(A)], [sista, "1-k"]);
+    const PK = T.lagerStart(A);
+    assert.deepEqual([PK.lager, T.lagerNyckel(PK), T.lagerPaborjat(PK)], ["1-k-p", "1-k", true]);
+    assert.equal(T.lagerNyckel(T.lagerAvbrutet(PK)), null);
+  });
+  it("utan lokal lagring (privat fönster) gäller lägret i minnet – ett flikbyte startar inget nytt", () => {
+    const id = K1.trupp[2].id;
+    const S1 = T.lagerStart(K1);
+    const minne = { v: 1, nyckel: "1-1", spelareId: id, svar: [{ ratt: false }], sek: 3 };
+    assert.deepEqual(pagaendeLager({ lagring: null, uid: "u", K: S1, lagerMinne: minne }), minne);
+    assert.equal(pagaendeLager({ lagring: null, uid: "u", K: S1, lagerMinne: null }), null);
+    assert.equal(pagaendeLager({ lagring: null, uid: "u", K: { ...S1, lager: "1-1" }, lagerMinne: minne }), null, "sparat");
   });
 });
 

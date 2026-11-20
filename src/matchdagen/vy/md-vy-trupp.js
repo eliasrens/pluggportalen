@@ -7,7 +7,7 @@
 // ============================================================================
 
 import { RESERVER_MAX } from "../delat/md-config.js";
-import { lasLager } from "../md-lokal.js";
+import { pagaendeLager } from "../md-lokal.js";
 import { klubbFormular } from "./md-vy-klubb.js";
 import { esc } from "./md-vy-delat.js";
 import { bytaIn, hinderMatch, kopa, kr, lagdelarHtml, marknadKort, reservKort, startKort } from "./md-vy-marknad.js";
@@ -51,7 +51,7 @@ export async function visaTrupp(S, el) {
     const b = e.target.closest("button[data-kop], button[data-byt]");
     if (!b || b.disabled || upptagen) return;
     const status = kortYta.querySelector(".md-truppstatus");
-    const hinder = hinderMatch(S) || (lasLager(S.lagring, S.uid, S.K) || S.truppUpptagen ? "Gör klart träningslägret först." : null);
+    const hinder = hinderMatch(S) || (pagaendeLager(S) || S.truppUpptagen ? "Gör klart träningslägret först." : null);
     if (hinder) { status.textContent = hinder; return; }
     upptagen = true;
     S.truppUpptagen = true;

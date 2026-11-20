@@ -18,6 +18,7 @@
 //     { v, nyckel, spelareId, svar: [{ ratt }], sek } – varje svar sparas SÅ FORT det
 //     är givet, så en omladdning fortsätter på nästa fråga (aldrig en ny chans på samma)
 //   lasLager(lagring, uid, K) → post | null  (bara om lägret fortfarande är ledigt i K)
+//   pagaendeLager(S)          → samma, eller lägret i minnet (S.lagerMinne) utan lokal lagring
 //   sparaLager(lagring, uid, post), rensaLager(lagring, uid)
 // ============================================================================
 
@@ -66,7 +67,11 @@ export const rensaOsparad = (lagring, uid) => skriv(lagring, OSPARAD_NYCKEL + ui
 
 /** Det pågående träningslägret – bara om det gäller klubbens lediga läger och spelaren finns i startelvan. */
 export function lasLager(lagring, uid, K) {
-  const p = las(lagring, LAGER_NYCKEL + uid);
+  return giltigtLager(las(lagring, LAGER_NYCKEL + uid), K);
+}
+/** Samma läger ur lagringen – eller ur minnet (S.lagerMinne) när lagringen saknas eller inte går att skriva (privat fönster). */
+export const pagaendeLager = (S) => lasLager(S.lagring, S.uid, S.K) || giltigtLager(S.lagerMinne, S.K);
+function giltigtLager(p, K) {
   if (!p || p.v !== 1 || typeof p.nyckel !== "string" || !Array.isArray(p.svar)) return null;
   if (!K || p.nyckel !== lagerNyckel(K) || !K.trupp?.some((x) => x.id === p.spelareId)) return null;
   return { ...p, svar: p.svar.map((x) => ({ ratt: x?.ratt === true })), sek: Math.max(0, Number(p.sek) || 0) };
