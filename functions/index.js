@@ -67,7 +67,7 @@
 //   kgStarta / kgAnslut / kgLas / kgSvara / kgLeta / kgTick / kgAvsluta / kgLarareVissla
 // Logiken: kurragomma-core.js (+ -sess/-fas/-rtdb/-tick/-resultat), docs/KURRAGOMMA.md §8.
 //
-// Butiken (#854, epic #851): butikKop – alla köp; priset och mysterylådans lottning på servern (butik-kop.js).
+// Butiken (#854): butikKop (butik-kop.js). Matchdagen (#874): mdUtmana/mdSvara/mdFraga/mdSvar/mdTick/mdGeUpp – vänskapsmatcherna (md-vanskap-anrop.js).
 // ⚠️ DEPLOY KRÄVS: firebase deploy --only functions (Blaze-planen). Klienterna visar ett tydligt fel tills funktionerna finns.
 // ============================================================================
 
@@ -109,6 +109,7 @@ import {
 } from "./kurragomma-core.js";
 import { kgDatabaseUrl } from "./kurragomma-rtdb.js";
 export { butikKop } from "./butik-kop.js";
+export { mdUtmana, mdSvara, mdFraga, mdSvar, mdTick, mdGeUpp } from "./md-vanskap-anrop.js";
 
 initializeApp();
 
@@ -279,7 +280,6 @@ export const brakresaAckDragon = brakresaCall("brakresaAckDragon", brAckDragon);
 export const brakresaRenameDragon = brakresaCall("brakresaRenameDragon", brRenameDragon); // #713
 // Servertid avgör dagen (Europe/Stockholm) – klienten skickar inga fält (#715).
 export const brakresaHunt = brakresaCall("brakresaHunt", (deps, uid) => brHunt(deps, uid));
-
 // --- Schack (#779) ---------------------------------------------------------------
 // Ett anrop per drag/lobbyhandling. Lärarkonton nekas i elevanropen redan av
 // klassgrinden (en lärare står inte i studentIds); lärarens egna anrop går

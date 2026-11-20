@@ -35,6 +35,12 @@ brakresaRecommendations/{recId}          ← Bråkresan: lärarens rekommendatio
 schackKlass/{classId}                    ← Schack (#779): lobbyn, pågående partier och topplistan – EN doc per klass, bara servern skriver
 schackPartier/{partiId}                  ← Schack: ett parti elev mot elev (FEN, drag, klocka) – bara servern skriver
 schackMynt/{uid}                         ← Schack (#798): kvittot för schackets pluggmynt – bara servern skriver
+matchdagenInst/{uid}                     ← Matchdagen (#867): lärarens inställningar per elev – läraren skriver, eleven läser
+matchdagen/{uid}                         ← Matchdagen (#869): elevens karriär (klubb, liga, kassa, summa) – eleven skriver, läraren läser
+matchdagen/{uid}/matcher/{matchId}       ← Matchdagen (#869): en per spelad match – bara create av eleven
+mdLobby/{classId}                        ← Matchdagen (#874): vänskapslobbyn per klass – bara servern skriver
+mdVanskap/{matchId}(/privat|/facit/{uid}) ← Matchdagen (#874): en vänskapsmatch, elevens fråga, frågebanken – bara servern skriver
+mdVanskapElev/{uid}                      ← Matchdagen (#874): spärren och dagens antal vänskapsmatcher – bara servern skriver
 mathCompetitions/{cid}/…                 ← Mattematchen (#457), se "Mattematchen & Live"
 liveSessions/{sid}/…                     ← Live-matcher (#457), se "Mattematchen & Live"
 liveClock/{uid}                          ← Live: klocksynk per inloggad (#460)
@@ -750,6 +756,8 @@ flera klasser utan extra kopplingsdata).
 | `studentIds`    | array\<string\>       | Id:n på eleverna i klassen (pekar på `students`)|
 | `assignedAreas` | array\<Assignment\>   | Aktiva/tilldelade arbetsområden (valfritt, se nedan) |
 | `lock`          | ClassLock             | Fokusläge (#436): klassen låst till ETT mål till ett klockslag (valfritt, se nedan) |
+| `hiddenModules` / `enabledModules` | array\<string\> | Moduler som döljs (#412) respektive opt-in-moduler som slås på (#605) för hela klassen. `enabledModules` får aldrig innehålla en per-elev-modul (`"matchdagen"`) – reglerna nekar. |
+| `elevModuler`   | map uid → array\<string\> | Moduler per ELEV (#867): `{ [uid]: ["matchdagen"] }` – modulen syns bara för de listade eleverna (`perElev` i `STUDENT_MODULES`). Högst 100 elever, bara klassens `studentIds` som nycklar, i dag bara listan `["matchdagen"]`. Läsbart för alla inloggade (elevens meny), skrivs av lärare med klassen (Elever → Anpassningar per elev). En elev utan modul har ingen nyckel. Se [MATCHDAGEN.md](MATCHDAGEN.md). |
 | `lasresaStartLevel10` | int 1–10      | Läsresans startnivå (#505, skala 1–10 i #519) för klassens elever som INTE börjat Läsresan (saknar `studentData.lasresa`) och nya elever. Saknas = 4. Påverkar inte elever som är igång. Bara lärare skriver (regeln validerar heltal 1–10; ⚠️ rules-deploy). Se [LASRESAN.md](LASRESAN.md). |
 | `lasresaStartLevel` | int 1–7           | SPEGEL av startnivån i gammal skala (ny − 3, klampad 1–7) för gamla cachade klienter. Skrivs alltid tillsammans med `lasresaStartLevel10`. Finns bara detta fält är värdet gammalt och tolkas +3 (gammal 3 → 6). |
 
@@ -853,6 +861,108 @@ eller lärare (`isClassMember` i `firestore.rules`; regeltester i
 `test/firestore-rules-class-docs.test.js`).
 **⚠️ Reglerna är live först efter `firebase deploy --only firestore:rules`**
 (separat från Pages-deployen).
+
+---
+
+## Matchdagen (#866–, epic Matchdagen)
+
+Spec `docs/UTVECKLINGSUPPDRAG_MATCHDAGEN.md`; arkitekturen i [`docs/MATCHDAGEN.md`](MATCHDAGEN.md).
+Åtkomsten per elev ligger på klassen (`classes/{classId}.elevModuler`, ovan).
+
+### `matchdagenInst/{uid}` – lärarens inställningar per elev (#867)
+
+| Fält | Typ | Beskrivning |
+| --- | --- | --- |
+| `omraden` | array\<string\> ≤ 60 | Plugga-områden som frågekälla, `"<subjectId>/<areaId>"` (quiz utan passage + par) |
+| `tabeller` | array\<int 0–10\> | Multiplikationstabeller |
+| `rakna` | array\<string\> ≤ 60 | Räkna-områden (område med `generator`), `"<subjectId>/<areaId>"` |
+| `svarssatt` | `"flerval"` \| `"skriv"` | Standard flerval; skriv själv där källan stödjer det |
+| `klocka` | 0 \| 30 \| 60 | Sekunder per fråga, 0 = av (standard) |
+| `lugnt` | bool | Lugnt läge: färre effekter, ingen publik, inga skakningar, dämpat ljud |
+| `paus` | 0 \| 30 \| 45 \| 60 | Minuter till "Bra jobbat! Dags för en paus.", 0 = av (standard 60) |
+| `updatedAt`, `updatedBy` | timestamp, string | Serverns tid och lärarens uid (reglerna kräver båda) |
+
+Skrivs av lärare med `hasStudent(uid)` i samma batch som klassens `elevModuler`
+(`src/matchdagen/md-inst-data.js`), läses av läraren och av eleven själv (EN getDoc när
+Matchdagen öppnas). Saknat dokument = standardvärdena och inga frågekällor. Formen och
+standardvärdena: `src/matchdagen/md-inst.js`. ⚠️ rules-deploy.
+
+### `matchdagen/{uid}` – elevens karriär (#869)
+
+Skrivs av eleven själv (`src/matchdagen/md-data.js`), EN gång per match (i samma batch som
+matchen), när klubben skapas eller döps om och (#871) efter varje köp, byte och träningsläger
+(`sparaTrupp`, EN skrivning). Formen: `src/matchdagen/delat/md-sasong.js`
+(`nyKarriar`, `matchKlar`, `nySasong`). Läses EN gång när Matchdagen öppnas, inga lyssnare.
+
+| Fält | Typ | Beskrivning |
+| --- | --- | --- |
+| `version` | int | Formens version (1) |
+| `klubb` | `{ namn, farg, legendStjarnor }` | Lagnamn 1–24 tecken, tröjfärg `#rrggbb` (en av 8), `legendStjarnor` = guldstjärnorna på klubbmärket (#873): 0 för en ny klubb, +1 för varje legendklubb – är fältet med i en ändrad klubb godtar reglerna bara det sparade värdet, eller +1 när `klubbhistorik` växer; fältet kan utelämnas (= 0, bara nedåt – Testern F3) |
+| `div` | int 0–7 | Divisionen, 0 = Division 6 … 7 = Superligan. Går bara uppåt, en division per vunnet kval (#870) – utom när en legendklubb startar om i Division 6 (#873) |
+| `sasong` | int | Säsongens nummer, börjar på 1 |
+| `kassa` | number | Klubbkassan – spelets egen valuta, inga pluggmynt. Växer med matcherna, minskar med köpen (#871) |
+| `trupp` | array, exakt 7 | Startelvan i fast ordning (MV, FÖR, FÖR, MIT, MIT, ANF, ANF): `{ id, namn, pos: "MV"\|"FÖR"\|"MIT"\|"ANF", nr, st: 1–5, xp: 0–99, grundpelare?, kapten? }` – namnen är färdiga. En köpt spelare (#871) har id `k…` och ingen `grundpelare`/`kapten` |
+| `reserver` | array ≤ 5 | #871: ersatta grundpelare (och köpta som byts ut) – samma form som `trupp`; kan bytas in igen |
+| `marknad` | array ≤ 6 | #871: spelarna till salu som rader `"id\|namn\|pos\|nr\|st"` (st 2–5, otränade; appen gör om dem till objekt, `md-trupp.js marknadFranDok`), nya efter varje match (tom i en ny klubb) |
+| `lager` | string | #871: det senast använda träningslägret, `"säsong-omgång"` eller `"säsong-k"` (före kvalet); med `"-p"` efter (`"1-3-p"`) är lägret påbörjat men inte klart (docs/MATCHDAGEN.md §15.1). Saknas tills första lägret |
+| `liga` | map | `lag: [{ id, namn?, farg?, styrka? }]` (vårt lag är `{ id: "oss" }`, namnet ur `klubb`), `schema: ["a:b\|c:d\|e:f", …]` (en sträng per omgång – Firestore tillåter inga listor i listor), `tabell: { [id]: { s, v, o, f, gm, im, p } }`, `omg` (spelade omgångar) |
+| `kval` | map \| null | #870: ligavinnaren under Superligan – `{ div, sasong, mot: { namn, farg, styrka }, spelad, vann?, oss?, dem?, straffar?: [vi, de] }`. `null` när ingen kvalmatch väntar eller har spelats (ny säsong) |
+| `pokaler` | array ≤ 300 | #872: rader `"typ\|namn\|säsong\|ÅÅÅÅ-MM-DD"` (appen gör om dem till `{ typ, namn, sasong, datum }`, `md-sasong.js pokalerFranDok`; äldre dokument kan ha objekten kvar tills listan ändras) – ligavinst (`typ` "liga"): "Vinnare Division 6"; uppflyttning (`typ` "kval", #870): "Kvalade upp till Division 5"; Silverpokalen (`typ` "cup", #872); mästare i Superligan (`typ` "superliga", #873 – äldre dokument har "liga\|Vinnare Superligan", som skåpet räknar som Superligan); Mästarcupen (`typ` "mastarcup", #873). Följer med till en legendklubb |
+| `cup` | string | #872: Silverpokalen den här säsongen, `"säsong-spelade"` (`"3-2"`), `"-u"` efter = utslagna i den rundan (`"3-2-u"`), `"säsong-4"` = vunnen. Saknas eller annan säsong = ingen runda spelad (docs/MATCHDAGEN.md §16.1) |
+| `rekord` | string | #872: rekorden som EN rad, `"mm5.3\|ms30.2\|ss6-0.3\|sv12.4\|lt\|os\|ar85.2\|sm2.1\|nu…"` (värde.säsong; tomt = inget rekord) + den här säsongens löpande tal (`nu`) – `md-rekord.js`, docs/MATCHDAGEN.md §16.2 |
+| `summa` | map | `matcher, v, o, f, gjorda, inslappta, fragor, ratt, spelminuter, perKalla: { [källnyckel]: { fragor, ratt, namn? } }` (≤ 150 källor; träningslägrets frågor under `traning`, #871) |
+| `senaste` | array ≤ 20 | De 20 senaste matcherna `{ id, datum, mot, oss, dem, ratt, fragor, sasong, omg?, typ?, straffar? }` – Statistik utan att läsa `matcher` (`typ` "kval" och `straffar` [vi, de] för kvalet, #870) |
+| `sasonger` | array ≤ 200 | `{ sasong, div, plac, lag, kval? }` per avslutad säsong – `kval` "upp" \| "kvar" efter ett spelat kval (#870) |
+| `dagar` | map ≤ 70 | `"ÅÅÅÅ-MM-DD" → { m, sek, fragor, ratt }` – lärarens speltid 7 dagar och veckolinje |
+| `senast` | timestamp | Serverns tid vid varje skrivning |
+| `mastarcup` | string \| null | #873: Mästarcupen, `"säsong-spelade"` – `"13-0"` = inbjudna säsong 13 (sätts när Superligan vinns säsongen före), `"13-2"` = två rundor vunna, `"-u"` efter = utslagna i den rundan, `"säsong-3"` = vunnen. `null` i en legendklubb; saknas, `null` eller en annan säsong = inte inbjudna (docs/MATCHDAGEN.md §17.2) |
+| `klubbhistorik` | array ≤ 50 | #873: de gamla klubbarna, en rad per legendklubb `"namn\|#färg\|från-till\|liga.kval.cup.superliga.mastarcup"` (`"Blixtarna IF\|#2f6fe8\|1-13\|2.3.1.1.1"` – säsongerna och antalet pokaler av varje sort), högst 4 000 tecken. Växer bara med exakt en rad, när en legendklubb startar (`md-legend.js`, docs/MATCHDAGEN.md §17.3). Saknas tills första legendklubben |
+| `inbordes` | map | #874: de inbördes vänskapsmötena `{ [motståndarUid]: { v, o, f, namn } }` (vinster, oavgjorda, förluster sett från eleven, motståndarlagets namn ≤ 24 tecken). **Bara servern skriver** (`FieldValue.increment` när en vänskapsmatch slutar, samtidigt som `kassa` ökar); reglerna nekar en ändring från klienten, appen skickar fältet oförändrat när hela dokumentet skrivs. Saknas tills första vänskapsmatchen |
+
+Läraren med `hasStudent(uid)` läser och får bara sätta `klubb.namn` = "Pluggporten FC"
+(Återställ lagnamn). Typisk storlek: ~2 kB för en ny klubb; med alla tak fyllda ~61 kB
+(+ ~1 kB med 5 reserver och 6 till salu, #871; spec: ≤ 200 kB – reglerna håller det inte för strängarna i
+ligans lag, `senaste` och `sasonger`, där ett dokument skrivet förbi appen kan nå 1 MiB; `pokaler`, `cup` och `rekord`
+prövas med reguljära uttryck sedan #872; `mastarcup` och `klubbhistorik` likaså sedan #873; MATCHDAGEN.md §10). ⚠️ rules-deploy.
+
+### `matchdagen/{uid}/matcher/{matchId}` – en spelad match (#869)
+
+`matchId` = `s{säsong}-d{div}-o{omgång}-{tid i bas 36}`, för kvalet `s{säsong}-d{div}-kval-{tid}` (#870), Silverpokalen `…-cup{runda}-{tid}` (#872), Mästarcupen `…-mc{runda}-{tid}` (#873). Skapas EN gång (bara `create`) i
+samma batch som karriären; ingen ändring, radering bara av admin.
+
+| Fält | Typ | Beskrivning |
+| --- | --- | --- |
+| `datum` | timestamp | Serverns tid |
+| `sasong`, `div`, `omg` | int | Var i karriären |
+| `typ` | `"liga"` \| `"kval"` (#870) \| `"cup"` (#872) \| `"mastarcup"` (#873) \| `"vanskap"` | Kvalet har ingen `omg`; `div` är divisionen det spelades från. En cupmatch har `omg` = rundan 1–4, en match i Mästarcupen `omg` = rundan 1–3 |
+| `mot`, `oss`, `dem` | string, int, int | Motståndarens namn och resultatet |
+| `mal` | array ≤ 80 | `{ min, lag }` |
+| `stat` | map ≤ 20 | Matchens statistik (spec §3.6, utan `perKalla`) |
+| `fragor`, `ratt`, `sekunder` | int | Frågor, rätt svar (`ratt ≤ fragor`), speltid |
+| `perKalla` | map ≤ 70 | `{ [källnyckel]: { fragor, ratt } }` |
+| `straffar` | array, 2 | #870: `[vi, de]` efter en straffläggning (oavgjort kval eller cupmatch, #872) – två heltal 0–40 |
+
+Läses av eleven (Statistik → klick på en match: EN läsning) och av läraren (historiken:
+de 20 senaste, läses först vid klick på eleven).
+
+En vänskapsmatch (#874, `typ: "vanskap"`, id = matchens `mdVanskap`-id) skrivs av **servern** i båda elevernas
+`matcher` när den slutar – samma fält (utan `sasong`-omgång och straffar); den räknas inte in i `summa`, `senaste` eller
+`dagar` (ligan påverkas inte).
+
+### Vänskapsmatcherna (#874) – `mdLobby`, `mdVanskap`, `mdVanskapElev`
+
+**Allt skrivs av Cloud Functions** (`mdUtmana`, `mdSvara`, `mdFraga`, `mdSvar`, `mdTick`, `mdGeUpp`); ingen klient skriver
+(reglerna nekar). Tider i epoch-ms ur serverns klocka. Hela beskrivningen: [`MATCHDAGEN.md`](MATCHDAGEN.md) §18.
+
+| Dokument | Fält | Läses av |
+| --- | --- | --- |
+| `mdLobby/{classId}` | `utmaningar: { [id]: { fran, franNamn, franLag, till, sedan } }` (2 minuter), `matcher: { [matchId]: { a, b, aNamn, bNamn, aLag, bLag, start } }` (pågående) | klassens elever med Matchdagen (`onSnapshot` medan fliken Vänskap är öppen), läraren med klassen |
+| `mdVanskap/{matchId}` | `classId`, `a`, `b`, `spelare`, `namn: { a, b }`, `tid: { a, b }` (sekunder per läge), `status` (`pagar`/`slut`/`avbruten`), `V` (motorns tillstånd, `md-vanskap.js`), `h` (senaste händelsen), `fas: { nr, start }`, `halvtid: { start, redo: { a, b } } \| null`, `resultat: { vinnare, walkover, stallning, kassa } \| null`, `skapad`, `uppdaterad` | de två spelarna (`onSnapshot`), läraren |
+| `mdVanskap/{id}/privat/{uid}` | `classId`, `sida`, `fas`, `roll` (`anf`/`forsv`), `val`, `fraga` (utan facit), `kalla`, `svar: { ratt, facit, tidenUte? } \| null`, `aktiv` | eleven själv, läraren |
+| `mdVanskap/{id}/facit/{uid}` | `classId`, `sida`, `bank: [{ pub, kalla, r }]` (36 frågor med rättningen) | läraren |
+| `mdVanskapElev/{uid}` | `aktiv` (matchId \| null – en vänskapsmatch åt gången), `dag` (`"ÅÅÅÅ-MM-DD"`, Stockholm), `antal` (spelade i dag – de 3 första ger pengar) | eleven själv, läraren |
+
+Ingen städning: en avslutad match ligger kvar (~10–20 kB med banken). ⚠️ DEPLOY: rules → functions → webben.
 
 ---
 

@@ -51,6 +51,8 @@ export const PLACERING = {
     synlighet: { roll: "alla", efter: "Mina klasser → Vad eleverna ser → 2. Delar i elevernas meny", del: "B" },
     fokus: { roll: "alla", efter: "Mina klasser → Fokusläge", del: "B" },
     klasscenter: { roll: "admin", efter: "Mina klasser → Elever (admin: Klasscentret under tabellen)", del: "C" },
+    // #867 (Matchdagen 1a): ny sektion, kom efter epic #802.
+    anpassningar: { roll: "alla", efter: "Mina klasser → Elever → Anpassningar per elev (Matchdagen per elev)", del: "–" },
     statistik: { roll: "alla", efter: "Mina klasser → Hur går det?", del: "B" },
   },
   statistik: {
@@ -64,6 +66,8 @@ export const PLACERING = {
     live: { roll: "alla", efter: "Mina klasser → Hur går det? → Live", del: "B" },
     // #804: förr klassens sektion "Schack" (på/av även under Vad eleverna ser).
     schack: { roll: "alla", efter: "Mina klasser → Hur går det? → Schack (på/av även under Vad eleverna ser)", del: "B" },
+    // #869: bara när någon elev i klassen har Matchdagen (elevModuler).
+    matchdagen: { roll: "alla", efter: "Mina klasser → Hur går det? → Matchdagen (bara elever med Matchdagen)", del: "–" },
   },
 };
 

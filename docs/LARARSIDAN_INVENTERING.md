@@ -66,6 +66,7 @@ Efter C (#805): Inloggning och Elever är samma kompakta elevtabell (`src/teache
 | Fokusläge `sektioner.fokus`: Lås klassen (mål, sluttid, vad eleven får göra efter inlämning #788), +N min, Lås upp nu | Klasser → klass → Fokusläge | alla | Mina klasser → **Fokusläge** [B] | 2 → 2 |
 | Schack `sektioner.schack`: Slå på/Stäng av schack, pågående partier (Titta = åskådarläge, Avsluta partiet), topplistan (Dölj/Visa för eleverna, Nollställ topplistan), statistik | Klasser → klass → Schack | alla | Flyttad till statistikens underflik `statistik.schack` (se §4) [B] | 2 → 2 |
 | Klasscentret `sektioner.klasscenter`: vem får inreda (Alla får inreda, Spara), kassörer (Spara kassörer), Lägg från klasskassan, insamling med donatorer, pokaler, historik | Admin → Klasser & elevkonton → klass → Klasscentret | admin | Mina klasser → **Elever** (admin, under elevtabellen) [B, C] | 3 → 2 |
+| Anpassningar per elev `sektioner.anpassningar` (#867, ny efter epic #802): Matchdagen på/av per elev, frågekällor, svarssätt, klocka, lugnt läge, paus, Återställ lagnamn, Spara | – (ny) | alla | Mina klasser → **Elever** → Anpassningar per elev (under tabellen) | – → 3 |
 | Statistik `sektioner.statistik` (matrisen + underflikarna nedan) | Statistik → klass | alla | Mina klasser → **Hur går det?** [B] | 1 → 1 |
 | Skapa en ny klass (+ N elevkonton) | Admin → Klasser & elevkonton → Skapa en ny klass | admin | Admin → kort **Skapa klass** (samma formulär och kontoeditor); landar sedan på klassens Elever med lösenorden kvar [C] | 2 → 2 |
 | Döp om klass | Admin → Klasser & elevkonton → klass → Döp om (prompt) | admin | Admin → kort **Döp om klass** → namnfält + Spara namn per klass [C] | 3 → 3 |
@@ -115,6 +116,7 @@ Alla ligger i dag under Statistik → klass → underflik, och efter B under Min
 | Mattematchen `statistik.mattematchen`: välj period → klassens tabell | Statistik → Mattematchen | alla | Hur går det? → Mattematchen [B] | 2 → 2 |
 | Live `statistik.live`: klassens Live-matcher + elevernas summa | Statistik → Live | alla | Hur går det? → Live [B] | 2 → 2 |
 | Schack `statistik.schack`: Slå på/Stäng av schack, pågående partier (Titta = åskådarläge, Avsluta partiet), topplistan (Dölj/Visa för eleverna, Nollställ topplistan), statistik (förr sektionen `sektioner.schack`) | Klasser → klass → Schack | alla | Hur går det? → **Schack**; på/av även i Vad eleverna ser → 2 [B] | 2 → 2 |
+| Matchdagen `statistik.matchdagen` (#869): en rad per elev med Matchdagen (speltid 7 dagar/totalt, matcher, andel rätt totalt och per källa, division, säsong, senast spelat); klick → senaste matcherna, veckolinje, lagnamn + Återställ lagnamn. Visas bara när någon elev i klassen har Matchdagen | – (ny) | alla | Hur går det? → **Matchdagen** [–] | – → 2 |
 | Hitta rätt! (klassens statistik) | – (finns inte i dag) | – | **Ingen underflik i B:** det finns ingen statistik per klass för Hitta rätt! (topplistorna gäller hela skolan, #609). På/av ligger i Vad eleverna ser → 2 [B] | – |
 
 ## 5. Hem (dagens Översikt)

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Matchdagen 1b – frågekort och motor (#868)</title>
+  <!-- Förhandsvisning av Etapp 1b: frågekällorna (md-fragor.js) med påhittade områden,
+       frågekortet (md-svar.js) och den rena motorn (delat/md-motor.js) som en textmatch.
+       Ingen plan, ingen Firebase – 3D och matchvyn kommer i 1c. game-shared.js stubbas
+       (importmap). Kör: PORT=8868 node server.mjs → /preview/preview-matchdagen-fragor.html
+       ?svar=skriv (skriv själv), ?klocka=30, ?kallor=tabell|omrade|rakna|klocka|inga -->
+  <script type="importmap">
+    { "imports": { "../src/game-shared.js": "./matchdagen-868/game-shared.js" } }
+  </script>
+  <link rel="stylesheet" href="../src/styles.css" />
+  <style>
+    body { margin: 0; background: #0b1626; color: #eef4ff; font-family: Nunito, system-ui, sans-serif; }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 16px; display: grid; gap: 12px; }
+    h1 { margin: 0; font: 800 26px/1.1 "Barlow Condensed", "Arial Narrow", system-ui, sans-serif; }
+    h1 b { color: #ffd23f; }
+    .skylt { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-radius: 12px; background: #13243b; font-weight: 800; }
+    .skylt .res { font: 800 28px/1 "Barlow Condensed", system-ui, sans-serif; }
+    .kommentar { min-height: 1.4em; padding: 8px 12px; border-left: 4px solid #ffd23f; background: rgba(255, 255, 255, 0.05); }
+    .val { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+    .val button { min-height: 56px; border-radius: 12px; border: 2px solid rgba(255,255,255,.2); background: #1c3352; color: #eef4ff; font: 700 1rem/1.2 Nunito, system-ui, sans-serif; cursor: pointer; }
+    .val button small { display: block; color: #a9bad3; font-weight: 600; }
+    .val button:disabled { opacity: .45; cursor: default; }
+    .tom { padding: 16px; border-radius: 12px; background: rgba(255,255,255,.06); font-weight: 800; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Match<b>dagen</b> · 1b förhandsvisning</h1>
+    <div class="skylt"><span>Pluggporten FC</span><span class="res" id="res">0 – 0</span><span>Ekebacka IF</span><span id="min">0'</span></div>
+    <div class="kommentar" id="kommentar">Avspark!</div>
+    <div class="val" id="val"></div>
+    <div id="fraga"></div>
+  </div>
+  <script type="module">
+    import { skapaFragestrom } from "../src/matchdagen/md-fragor.js";
+    import { visaFraga } from "../src/matchdagen/md-svar.js";
+    import { nyMatch, lage, spela, andraHalvlek, resultat } from "../src/matchdagen/delat/md-motor.js";
+
+    const p = new URLSearchParams(location.search);
+    const AREAS = {
+      "so/sverige": {
+        quiz: [
+          { question: "Vad heter Sveriges huvudstad?", options: ["Stockholm", "Göteborg", "Malmö", "Uppsala"], answerIndex: 0 },
+          { question: "Vilken är Sveriges längsta älv?", options: ["Klarälven", "Torne älv", "Dalälven"], answerIndex: 1 },
+        ],
+        pairs: [
+          { term: "landskap", definition: "ett av Sveriges 25 gamla områden" },
+          { term: "län", definition: "ett område med en egen region" },
+          { term: "kommun", definition: "en ort med eget styre" },
+          { term: "socken", definition: "en gammal kyrklig indelning" },
+        ],
+      },
+      "ma/addera": { generator: { topic: "addition", variants: ["enkel"], grade: "ak4" } },
+      "ma/klocka": { generator: { topic: "klocka", variants: ["las-av"], grade: "ak4" } },
+    };
+    const k = p.get("kallor") || "alla";
+    const inst = k === "inga" ? {} : {
+      omraden: ["alla", "omrade"].includes(k) ? ["so/sverige"] : [],
+      tabeller: ["alla", "tabell"].includes(k) ? [6, 7, 8] : [],
+      rakna: ["alla", "rakna"].includes(k) ? ["ma/addera"] : k === "klocka" ? ["ma/klocka"] : [],
+      svarssatt: p.get("svar") === "skriv" ? "skriv" : "flerval",
+      klocka: Number(p.get("klocka")) || 0,
+    };
+    const $ = (id) => document.getElementById(id);
+    const strom = await skapaFragestrom({ inst, uid: "preview", hamtaOmrade: async (s, a) => AREAS[`${s}/${a}`] ?? null });
+    if (strom.tom) {
+      $("val").innerHTML = `<p class="tom">${strom.meddelande}</p>`;
+      $("kommentar").textContent = "Ingen match kan startas.";
+    } else {
+      let m = nyMatch({ mot: { namn: "Ekebacka IF", styrka: 0.2 }, nu: Date.now() });
+      const visa = () => { $("res").textContent = `${m.oss} – ${m.dem}`; $("min").textContent = `${Math.round(m.min)}'`; };
+      const valj = (l) => new Promise((ok) => {
+        $("val").innerHTML = l.val.map((v) => `<button data-id="${v.id}"${v.av ? " disabled" : ""}>${v.namn}<small>${v.text || ""}</small></button>`).join("");
+        $("val").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => ok(b.dataset.id)));
+      });
+      while (!m.slut) {
+        visa();
+        if (m.halvtid) { $("kommentar").textContent = `Halvtid: ${m.oss} – ${m.dem}`; $("val").innerHTML = "<button id=andra>Andra halvlek</button>"; await new Promise((ok) => $("andra").onclick = ok); m = andraHalvlek(m, Date.now()); continue; }
+        const l = lage(m);
+        $("kommentar").textContent = l.rad;
+        const valId = l.val.length ? await valj(l) : null;
+        $("val").innerHTML = "";
+        const svar = [];
+        for (let i = 0; i < (valId ? l.val.find((v) => v.id === valId).fragor : l.fragor); i++) {
+          const f = strom.nasta();
+          const r = await visaFraga($("fraga"), f, { ratta: strom.ratta, klocka: inst.klocka });
+          svar.push({ ratt: r.ratt, kalla: f.kalla });
+        }
+        if (!svar.length) await new Promise((ok) => setTimeout(ok, 700));
+        $("fraga").innerHTML = "";
+        const r = spela(m, valId, svar, Math.random, Date.now());
+        m = r.m;
+        $("kommentar").textContent = r.h.rad;
+        visa();
+        await new Promise((ok) => setTimeout(ok, 1100));
+      }
+      const res = resultat(m);
+      $("kommentar").textContent = `Slutsignal! ${res.oss} – ${res.dem}. Rätt svar: ${res.stat.ratt} av ${res.stat.fragor}.`;
+      $("val").innerHTML = "";
+    }
+  </script>
+</body>
+</html>

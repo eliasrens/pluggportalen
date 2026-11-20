@@ -10336,3 +10336,680 @@ html.reduce-motion .schack-pokal-ny { animation: none; }
 @media (max-width: 600px) {
   .teacher-dark .hj-ruta .hj-text { padding-left: 12px; }
 }
+
+/* ── src/styles/48-matchdagen.css ── */
+/* ==========================================================================
+   Matchdagen 1a (#867): elevens platshållarsida (#/elev/matchdagen) i skissens
+   kvällsarena – djup marin, gräsgrönt, skyltgult – och lärarens sektion
+   "Anpassningar per elev" (Mina klasser → Elever), scopad under .teacher-dark.
+   Platshållaren är ersatt av appen i 1c (49-matchdagen-match.css); loggan står kvar här.
+   ========================================================================== */
+
+/* --- Elevens sida ---------------------------------------------------------- */
+.md-sida {
+  --md-bg: #0b1626;
+  --md-panel: #13243b;
+  --md-ink: #eef4ff;
+  --md-svag: #a9bad3;
+  --md-gron: #2fa35a;
+  --md-gul: #ffd23f;
+  display: grid;
+  place-items: center;
+  min-height: 60vh;
+  padding: 16px;
+}
+.md-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: 800 30px/1 "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  letter-spacing: 0.01em;
+}
+.md-logo b { color: var(--md-gul); font-weight: inherit; }
+.md-logo-boll svg { width: 32px; height: 32px; display: block; }
+
+/* --- Lärarens sektion ------------------------------------------------------ */
+.teacher-dark .mda { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.teacher-dark .mda-intro { margin: 0; }
+.teacher-dark .mda-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--t-border);
+  border-radius: 12px;
+  background: var(--t-surface-2);
+}
+.teacher-dark .mda-elev + .mda-elev { border-top: 1px solid var(--t-border); }
+.teacher-dark .mda-rad {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 20px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 46px;
+  padding: 8px 12px;
+  border: 0;
+  background: none;
+  color: var(--t-text);
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+.teacher-dark .mda-rad:hover { background: var(--t-raised); }
+.teacher-dark .mda-rad:focus-visible { outline: 2px solid var(--t-accent); outline-offset: -2px; border-radius: 10px; }
+.teacher-dark .mda-namn { min-width: 0; overflow-wrap: anywhere; }
+.teacher-dark .mda-pil { color: var(--t-muted); font-size: 1.3rem; line-height: 1; transition: transform 0.15s; }
+.teacher-dark .mda-elev.oppen .mda-pil { transform: rotate(90deg); color: var(--t-accent); }
+.teacher-dark .mda-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--t-border-strong);
+  color: var(--t-muted);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+.teacher-dark .mda-chip.pa { border-color: var(--t-accent); background: var(--t-accent-soft); color: var(--t-text); }
+.teacher-dark .mda-boll svg { width: 15px; height: 15px; display: block; }
+
+/* Panelen under raden */
+.teacher-dark .mda-panel { padding: 4px 12px 14px; }
+.teacher-dark .mda-form { display: flex; flex-direction: column; gap: 12px; }
+.teacher-dark .mda-pa {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--t-accent-soft);
+  cursor: pointer;
+}
+.teacher-dark .mda-pa input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--t-accent); }
+.teacher-dark .mda-pa small { display: block; color: var(--t-muted); font-weight: 600; }
+.teacher-dark .mda-del {
+  margin: 0;
+  padding: 10px 12px 12px;
+  border: 1px solid var(--t-border);
+  border-radius: 10px;
+  min-width: 0;
+}
+.teacher-dark .mda-del legend { padding: 0 6px; font-weight: 800; color: var(--t-text); }
+.teacher-dark .mda-del h4 { margin: 12px 0 6px; font-size: 0.9rem; color: var(--t-text); }
+.teacher-dark .mda-del .hint { margin: 6px 0 0; }
+.teacher-dark .mda-del .btn:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
+.teacher-dark .mda-amne { margin: 4px 0; }
+.teacher-dark .mda-amne summary { cursor: pointer; font-weight: 700; padding: 4px 0; }
+.teacher-dark .mda-antal { color: var(--t-accent); font-size: 0.8rem; margin-left: 6px; }
+.teacher-dark .mda-kryss,
+.teacher-dark .mda-rad-val { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.teacher-dark .mda-val {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 4px 10px;
+  border-radius: 9px;
+  background: var(--t-raised);
+  font-weight: 600;
+  cursor: pointer;
+}
+.teacher-dark .mda-val input { accent-color: var(--t-accent); }
+.teacher-dark .mda-val small { color: var(--t-muted); }
+.teacher-dark .mda-val:has(input:checked) { box-shadow: inset 0 0 0 1.5px var(--t-accent); }
+.teacher-dark .mda-val:has(input:focus-visible) { outline: 2px solid var(--t-accent); outline-offset: 1px; }
+.teacher-dark .mda-tal { min-width: 46px; justify-content: center; }
+.teacher-dark .mda-tagg {
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--t-accent-soft);
+  color: var(--t-accent);
+  font-size: 0.72rem;
+}
+.teacher-dark .mda-spara { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.teacher-dark .mda-resultat:empty { display: none; }
+@media (max-width: 520px) {
+  .teacher-dark .mda-rad { grid-template-columns: minmax(0, 1fr) 20px; }
+  .teacher-dark .mda-status { grid-column: 1; grid-row: 2; }
+  .teacher-dark .mda-pil { grid-column: 2; grid-row: 1 / span 2; }
+}
+
+/* --- Frågekortet (#868, md-svar.js) ---------------------------------------- */
+.md-fraga {
+  --md-ink: #eef4ff;
+  --md-svag: #a9bad3;
+  --md-gron: #2fa35a;
+  --md-gul: #ffd23f;
+  --md-rod: #e8564b;
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 16px 18px 12px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #13243b, #0b1626);
+  color: var(--md-ink);
+  box-shadow: 0 10px 28px rgba(6, 14, 28, 0.35);
+}
+.md-fraga-text {
+  margin: 0 0 12px;
+  padding-right: 64px;
+  font: 800 clamp(22px, 3.2vw, 30px)/1.2 "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  overflow-wrap: anywhere;
+}
+.md-fraga-alt { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.md-fraga:focus { outline: none; }
+.md-alt, .md-skicka {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 10px 14px;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--md-ink);
+  font: 700 1.1rem/1.25 Nunito, system-ui, sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+.md-alt kbd {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--md-gul);
+  color: #1b2433;
+  font: 800 1rem/1 Nunito, system-ui, sans-serif;
+}
+.md-alt span { overflow-wrap: anywhere; }
+.md-alt:hover:not(:disabled), .md-skicka:hover:not(:disabled) { border-color: var(--md-gul); }
+.md-alt:focus-visible, .md-skicka:focus-visible, .md-fraga-input:focus-visible { outline: 3px solid var(--md-gul); outline-offset: 2px; }
+.md-alt:disabled, .md-skicka:disabled { cursor: default; }
+.md-alt.ratt { background: var(--md-gron); border-color: #7be09e; color: #fff; }
+.md-alt.fel { background: rgba(232, 86, 75, 0.25); border-color: var(--md-rod); }
+.md-fraga-skriv { display: flex; gap: 10px; }
+.md-fraga-input {
+  flex: 1;
+  width: 0; /* annars ger fältets egen bredd (size=20) kortet en minbredd – 375 px flödade över */
+  min-width: 0;
+  min-height: 56px;
+  padding: 0 14px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  background: #0a1422;
+  color: var(--md-ink);
+  font: 800 1.5rem/1 Nunito, system-ui, sans-serif;
+}
+.md-skicka { flex: none; justify-content: center; min-width: 110px; background: var(--md-gul); color: #1b2433; border-color: var(--md-gul); }
+.md-fraga[data-ogiltig] .md-fraga-input { border-color: var(--md-rod); }
+.md-fraga[data-utfall="ratt"] .md-fraga-input { border-color: var(--md-gron); background: rgba(47, 163, 90, 0.2); }
+.md-fraga[data-utfall="fel"] .md-fraga-input { border-color: var(--md-rod); }
+.md-fraga-bild { display: flex; justify-content: center; margin: 0 0 12px; }
+.md-fraga-bild svg { width: auto; max-width: 100%; max-height: 180px; height: auto; border-radius: 12px; background: #fff; }
+.md-fraga-tips { margin: 8px 0 0; color: var(--md-svag); font-size: 0.95rem; }
+.md-fraga-facit { min-height: 1.5em; margin: 10px 0 0; color: var(--md-svag); font-weight: 700; font-size: 1.05rem; }
+.md-fraga[data-utfall="ratt"] .md-fraga-facit { color: #7be09e; }
+.md-fraga[data-utfall="fel"] .md-fraga-facit { color: var(--md-ink); }
+.md-fraga[data-utfall="fel"] .md-fraga-facit b { color: #7be09e; }
+.md-fraga-klocka {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  font: 800 1rem/1.2 Nunito, system-ui, sans-serif;
+}
+.md-fraga[data-brattom] .md-fraga-klocka { background: rgba(255, 210, 63, 0.25); color: var(--md-gul); }
+@media (max-width: 520px) {
+  .md-fraga-alt { grid-template-columns: 1fr; }
+}
+
+/* --- Hur går det? → Matchdagen (#869, md-larare-stat.js) ------------------- */
+.teacher-dark .mdl { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.teacher-dark .mdl-rad { cursor: pointer; }
+.teacher-dark .mdl-rad:hover td, .teacher-dark .mdl-rad[aria-expanded="true"] td { background: var(--t-surface-2); }
+.teacher-dark .mdl-rad:focus-visible { outline: 2px solid var(--t-accent, #ffd23f); outline-offset: -2px; }
+.teacher-dark .mdl-kallor { display: flex; flex-wrap: wrap; gap: 4px; }
+.teacher-dark .mdl-kalla { padding: 1px 8px; border-radius: 999px; background: var(--t-surface-2); font-size: 0.85rem; white-space: nowrap; }
+.teacher-dark .mdl-elev { padding: 12px 14px; border: 1px solid var(--t-border); border-radius: 12px; background: var(--t-surface-2); }
+.teacher-dark .mdl-elev .subhead { margin: 0 0 8px; }
+.teacher-dark .mdl-topp { display: flex; flex-wrap: wrap; gap: 12px 32px; margin-bottom: 10px; }
+.teacher-dark .mdl-lagnamn { font-size: 1.1rem; }
+.teacher-dark .mdl-rad-knapp { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; }
+.teacher-dark .mdl-linje { display: block; margin-top: 4px; overflow: visible; }
+.teacher-dark .mdl-linje polyline { fill: none; stroke: #3ccf6e; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.teacher-dark .mdl-linje .mdl-prick { fill: #3ccf6e; }
+.teacher-dark .mdl-linje .mdl-mitt { stroke: var(--t-border); stroke-dasharray: 3 3; }
+.teacher-dark .mda-lagnamn-status { margin-left: 8px; }
+/* #872: Silverpokalen och rekorden i elevens detalj */
+.teacher-dark .mdl-rekord { margin: 4px 0 0; padding-left: 18px; font-size: 0.9rem; }
+
+/* ── src/styles/49-matchdagen-match.css ── */
+/* ==========================================================================
+   Matchdagen 1c (#869): elevens app i skissens kvällsarena – djup marin,
+   gräsgrönt, kritvita linjer, skyltgult (spec §14). Barlow Condensed för skylt
+   och rubriker, Nunito för text (laddas av md-vy-delat.js laddaTypsnitt).
+   Sidhuvud med kassa och flikar, resultatskylten, planen (3D-canvas eller
+   2D-SVG), kommentatorns rad och frågekortet direkt under planen – allt syns
+   i 1366 × 768 utan att scrolla (planens höjd sätts i md-match-spel.js).
+   ========================================================================== */
+
+.md-app {
+  --md-bg: #0c1626;
+  --md-panel: #14223a;
+  --md-panel2: #1b2d4b;
+  --md-linje: #2a3f63;
+  --md-ink: #eef3fb;
+  --md-svag: #a9b8d0;
+  --md-gul: #ffd23f;
+  --md-gron: #3ccf6e;
+  --md-rod: #ff6b6b;
+  --md-rubrikfont: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  display: block;
+  place-items: initial;
+  min-height: 0;
+  box-sizing: border-box;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 10px 16px 28px;
+  border-radius: 18px;
+  background: var(--md-bg);
+  color: var(--md-ink);
+  font: 600 16px/1.5 Nunito, system-ui, sans-serif;
+}
+.md-app *, .md-app *::before, .md-app *::after { box-sizing: border-box; min-width: 0; }
+.md-app button { font: inherit; color: inherit; cursor: pointer; }
+.md-app button:focus-visible, .md-app input:focus-visible { outline: 3px solid var(--md-gul); outline-offset: 2px; }
+.md-app h2 { margin: 0 0 6px; font: 800 30px/1.05 var(--md-rubrikfont); color: var(--md-ink); }
+.md-app h3 { margin: 16px 0 8px; font: 800 22px/1.1 var(--md-rubrikfont); color: var(--md-ink); }
+.md-app [hidden] { display: none !important; }
+.md-svag { color: var(--md-svag); }
+
+/* --- Sidhuvudet: logga, klubbkassa, flikar --------------------------------- */
+.md-huvud { display: flex; align-items: center; gap: 8px 16px; flex-wrap: wrap; margin-bottom: 10px; }
+.md-kassa { font: 700 18px var(--md-rubrikfont); color: var(--md-gul); }
+.md-flikar { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+.md-flikar button {
+  min-height: 48px; padding: 8px 16px; border-radius: 12px; border: 1px solid var(--md-linje);
+  background: var(--md-panel); font-weight: 800;
+}
+.md-flikar button[aria-pressed="true"] { background: var(--md-gul); color: #1b1500; border-color: var(--md-gul); }
+
+/* --- Paneler, knappar, rutor ------------------------------------------------ */
+.md-panel { background: var(--md-panel); border: 1px solid var(--md-linje); border-radius: 16px; padding: 16px; }
+.md-tom h2 { margin-bottom: 8px; }
+.md-rad { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
+.md-stor {
+  min-height: 52px; padding: 12px 26px; border: 0; border-radius: 14px;
+  background: var(--md-gul); color: #1b1500 !important; font: 800 22px var(--md-rubrikfont) !important;
+}
+.md-stor:disabled { opacity: 0.55; cursor: default; }
+.md-ghost { min-height: 48px; padding: 9px 16px; border-radius: 12px; border: 1px solid var(--md-linje); background: none; font-weight: 800; }
+.md-chip { display: inline-block; width: 12px; height: 22px; border-radius: 3px; vertical-align: middle; flex: none; }
+.md-chip.liten { width: 8px; height: 14px; vertical-align: -1px; }
+.md-fel { min-height: 1.4em; margin: 8px 0 0; color: var(--md-rod); font-weight: 800; }
+.md-overrad { margin: 0 0 4px; color: var(--md-gul); font: 700 18px var(--md-rubrikfont); letter-spacing: 0.02em; }
+.md-motet { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.md-motet > span { display: inline-flex; align-items: center; gap: 8px; }
+.md-mot-streck { color: var(--md-svag); }
+.md-pagar { font-weight: 800; }
+.md-lugnt-etikett { padding: 4px 10px; border-radius: 999px; background: var(--md-panel2); color: var(--md-svag); font-weight: 800; font-size: 14px; }
+.md-overlag {
+  position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center;
+  padding: 16px; background: rgba(5, 10, 20, 0.75);
+}
+.md-ruta {
+  width: 100%; max-width: 560px; padding: 20px; border-radius: 16px; border: 1px solid var(--md-linje);
+  background: var(--md-panel); color: var(--md-ink); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+.md-ruta p { margin: 8px 0; }
+.md-paus { padding: 10px 12px; border-radius: 12px; background: rgba(255, 210, 63, 0.14); border: 1px solid rgba(255, 210, 63, 0.45); font-weight: 800; }
+.md-siffror { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 10px 0; }
+.md-siffror > div { padding: 10px 12px; border-radius: 12px; background: var(--md-panel2); color: var(--md-svag); }
+.md-siffror b { display: block; font: 800 30px/1 var(--md-rubrikfont); color: var(--md-gul); }
+
+/* --- Klubbens namn och färg ------------------------------------------------ */
+.md-klubb { display: flex; flex-direction: column; gap: 6px; max-width: 520px; }
+.md-etikett { margin: 6px 0 0; font-weight: 800; color: var(--md-svag); }
+.md-namnfalt {
+  width: 100%; max-width: 360px; min-height: 48px; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--md-linje);
+  background: #0a1220; color: var(--md-ink); font: 800 24px var(--md-rubrikfont);
+}
+.md-farger { display: flex; gap: 10px; flex-wrap: wrap; }
+.md-farg { width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 3px solid #0a1220; }
+.md-farg[aria-checked="true"] { outline: 3px solid var(--md-gul); outline-offset: 2px; }
+.md-klubb .md-stor { align-self: flex-start; margin-top: 4px; }
+.md-sparat { margin: 8px 0 0; color: var(--md-gron); font-weight: 800; }
+
+/* --- Matchen: skylt, plan, kommentar, frågekort ---------------------------- */
+.md-match { display: flex; flex-direction: column; }
+.md-skylt {
+  display: flex; align-items: stretch; width: max-content; max-width: 100%; margin: 0 0 8px; border-radius: 10px; overflow: hidden;
+  font: 700 22px/1 var(--md-rubrikfont); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+.md-skylt > div { display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: #0a1220; }
+.md-skylt .md-skylt-res { background: var(--md-gul); color: #1b1500; font-size: 26px; padding: 6px 16px; }
+.md-skylt .md-skylt-tid { background: #1d3150; font-size: 18px; }
+.md-plan {
+  position: relative; width: 100%; height: var(--md-plan-h, 380px); margin: 0 auto; border-radius: 14px; overflow: hidden;
+  background: #0a1424; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+.md-yta { position: absolute; inset: 0; }
+.md-canvas { display: block; width: 100% !important; height: 100% !important; }
+.md-plan2d { display: block; width: 100%; height: 100%; }
+.md-plan2d .md2-spelare { transition: transform 0.7s cubic-bezier(0.45, 0.05, 0.3, 1); }
+.md-plan2d.lugnt .md2-spelare { transition: none; }
+.md-plan2d .firar .md2-hopp { animation: md2-hopp 0.45s ease-in-out infinite alternate; }
+@keyframes md2-hopp { to { transform: scale(1.25); } }
+.md-utrop {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; text-align: center;
+  font: 800 clamp(40px, 9vw, 92px)/1 var(--md-rubrikfont); color: var(--md-gul);
+  text-shadow: 0 4px 0 #6b4f00, 0 10px 30px rgba(0, 0, 0, 0.6); opacity: 0; transform: scale(0.6); transition: opacity 0.25s, transform 0.35s;
+}
+.md-utrop.visa { opacity: 1; transform: scale(1); }
+.md-match.lugnt .md-utrop { transform: none; transition: opacity 0.2s; }
+.md-ljudknapp {
+  position: absolute; top: 8px; right: 8px; min-height: 40px; padding: 6px 12px; border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.25); background: rgba(10, 18, 32, 0.7); font-weight: 800; font-size: 14px;
+}
+.md-ljudknapp[aria-pressed="false"] { color: var(--md-svag); }
+.md-fps { position: absolute; left: 8px; top: 8px; padding: 2px 8px; border-radius: 8px; background: rgba(0, 0, 0, 0.6); font: 700 13px/1.4 monospace; }
+.md-kommentar { min-height: 30px; margin: 8px 2px 6px; font: 700 20px/1.3 var(--md-rubrikfont); color: var(--md-ink); }
+.md-kortyta { min-height: 150px; }
+.md-val { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; outline: none; }
+.md-val button {
+  display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 10px; align-items: center;
+  min-height: 64px; padding: 10px 14px; border-radius: 14px; border: 2px solid var(--md-linje); background: var(--md-panel2); text-align: left;
+}
+.md-val button:hover:not(:disabled) { border-color: var(--md-gul); }
+.md-val button:disabled { opacity: 0.4; cursor: not-allowed; }
+.md-val kbd {
+  grid-row: 1 / span 2; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12); font: 800 15px Nunito, sans-serif;
+}
+.md-val b { font: 800 22px/1.1 var(--md-rubrikfont); }
+.md-val small { color: var(--md-svag); font-weight: 700; }
+.md-match .md-fraga { padding: 12px 16px 8px; }
+.md-match .md-fraga-text { margin-bottom: 10px; font-size: clamp(20px, 2.6vw, 26px); }
+.md-match .md-fraga-alt { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.md-match .md-fraga-facit { margin-top: 6px; }
+
+/* --- Tabell, trupp, statistik ---------------------------------------------- */
+.md-scroll { overflow-x: auto; }
+.md-tabell { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.md-tabell th, .md-tabell td { padding: 8px; border-bottom: 1px solid var(--md-linje); text-align: right; white-space: nowrap; }
+.md-tabell th:nth-child(2), .md-tabell td:nth-child(2) { text-align: left; white-space: normal; }
+.md-tabell th { font-size: 13px; color: var(--md-svag); }
+.md-tabell tr.vi td { background: #22385c; font-weight: 800; }
+.md-tabell tr.etta td:first-child { box-shadow: inset 4px 0 0 var(--md-gron); }
+.md-slut { padding: 10px 12px; border-radius: 12px; background: var(--md-panel2); font-weight: 800; }
+.md-slut.vinst { background: rgba(255, 210, 63, 0.16); color: var(--md-gul); }
+.md-kortrad { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.md-spkort { display: flex; flex-direction: column; gap: 4px; padding: 12px; border-radius: 14px; border: 1px solid var(--md-linje); background: var(--md-panel2); }
+.md-spkort b { font: 800 20px var(--md-rubrikfont); }
+.md-pos { width: max-content; max-width: 100%; padding: 1px 7px; border-radius: 6px; background: #0a1220; font-size: 12px; font-weight: 800; }
+.md-stjarnor { color: var(--md-gul); letter-spacing: 2px; }
+.md-kapten { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--md-gul); color: #1b1500; font: 800 14px Nunito, sans-serif; vertical-align: 2px; }
+.md-staplar { display: flex; flex-direction: column; gap: 6px; }
+.md-stapelrad { display: grid; grid-template-columns: minmax(90px, 200px) 1fr 70px; gap: 10px; align-items: center; }
+.md-stapel { height: 12px; border-radius: 99px; background: #0a1220; overflow: hidden; }
+.md-stapel i { display: block; height: 100%; background: var(--md-gron); }
+.md-tal { text-align: right; font-variant-numeric: tabular-nums; }
+.md-lank { padding: 4px 0; border: 0; background: none; text-align: left; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; min-height: 32px; }
+.md-senaste tr.vinst td:nth-child(3) { color: var(--md-gron); font-weight: 800; }
+.md-senaste tr.forlust td:nth-child(3) { color: var(--md-rod); }
+.md-detaljyta { margin-top: 8px; }
+.md-detalj { padding: 12px; border-radius: 12px; background: var(--md-panel2); }
+.md-detalj p { margin: 0 0 6px; }
+.md-dl { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 6px 14px; margin: 0; }
+.md-dl div { display: flex; justify-content: space-between; gap: 8px; }
+.md-dl dt { color: var(--md-svag); }
+.md-dl dd { margin: 0; font-weight: 800; }
+.md-lista, .md-pokaler { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.md-pokal {
+  display: inline-block; width: 18px; height: 20px; margin-right: 8px; vertical-align: -3px; background: var(--md-gul);
+  clip-path: polygon(10% 0, 90% 0, 85% 40%, 60% 60%, 60% 78%, 80% 86%, 80% 100%, 20% 100%, 20% 86%, 40% 78%, 40% 60%, 15% 40%);
+}
+
+@media (max-width: 640px) {
+  .md-app { padding: 8px 10px 20px; border-radius: 0; }
+  .md-flikar { margin-left: 0; width: 100%; }
+  .md-flikar button { flex: 1 1 0; padding: 8px 6px; }
+  .md-kommentar { font-size: 18px; }
+  .md-tabell th, .md-tabell td { padding: 6px 5px; font-size: 14px; }
+  .md-stapelrad { grid-template-columns: minmax(70px, 120px) 1fr 56px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .md-plan2d .md2-spelare, .md-utrop { transition: none; }
+  .md-plan2d .firar .md2-hopp { animation: none; }
+}
+.md-skylt .md-kortnamn { display: none; }
+@media (max-width: 760px) {
+  .md-skylt .md-lang { display: none; }
+  .md-skylt .md-kortnamn { display: inline; }
+}
+
+/* --- Etapp 2a (#870): stegen, kvalet och straffarna ------------------------ */
+.md-stege { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 10px; padding: 0; list-style: none; counter-reset: none; }
+.md-stege li {
+  display: flex; flex-direction: column; min-width: 92px; padding: 6px 10px; border-radius: 10px;
+  background: var(--md-panel2); color: var(--md-svag); font: 700 16px/1.1 var(--md-rubrikfont);
+}
+.md-stege li small { font: 700 12px Nunito, system-ui, sans-serif; opacity: 0.85; }
+.md-stege li.klar { color: var(--md-ink); }
+.md-stege li.nu { background: var(--md-gul); color: #1b1500; box-shadow: 0 0 0 2px #6b4f00 inset; }
+.md-kval .md-overrad { font-size: 20px; }
+.md-kvalrad { font-weight: 800; }
+.md-tagg { padding: 2px 8px; border-radius: 999px; background: rgba(255, 210, 63, 0.16); color: var(--md-gul); font-size: 13px; font-weight: 800; }
+.md-skylt .md-skylt-straff { background: #3a1d5c; color: #fff; font-size: 18px; }
+.md-skylt .md-skylt-straff[hidden] { display: none; }
+@media (max-width: 640px) {
+  .md-stege li { min-width: 0; flex: 1 1 22%; padding: 5px 6px; font-size: 14px; }
+}
+
+/* --- Etapp 2b (#871): truppen, reserverna, marknaden och träningslägret ---- */
+.md-kassarad { margin: 14px 0 0; font-weight: 800; }
+.md-kassarad b { color: var(--md-gul); font: 800 22px var(--md-rubrikfont); }
+.md-lagdelar { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin: 8px 0 0; }
+.md-lagdelar > div { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 12px; background: var(--md-panel2); }
+.md-lagdelar b { font: 800 24px/1 var(--md-rubrikfont); color: var(--md-gul); }
+.md-lagdelar small { color: var(--md-svag); font-weight: 800; }
+.md-spkort .md-stapel i { background: var(--md-gul); }
+.md-kortknappar { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.md-kortknappar .md-ghost { min-height: 44px; text-align: left; }
+.md-kop {
+  min-height: 44px; margin-top: 4px; padding: 8px 12px; border: 0; border-radius: 12px;
+  background: var(--md-gul); color: #1b1500 !important; font-weight: 800;
+}
+.md-kop:disabled { background: #0a1220; color: var(--md-svag) !important; cursor: default; }
+.md-truppstatus { min-height: 1.5em; margin: 14px 0 0; font-weight: 800; color: var(--md-gron); }
+.md-truppstatus .md-fel { margin: 0; }
+.md-truppstatus:empty { min-height: 0; margin: 0; }
+.md-lager .md-fel:empty { min-height: 0; margin: 0; }
+.md-lager { padding: 12px 14px; border-radius: 14px; border: 1px solid var(--md-linje); background: var(--md-panel2); }
+.md-lager > p:first-child { margin-top: 0; }
+.md-lagerval {
+  min-height: 48px; max-width: 100%; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--md-linje);
+  background: #0a1220; color: var(--md-ink); font: 700 16px Nunito, system-ui, sans-serif;
+}
+.md-lager-huvud p { margin: 0 0 4px; }
+.md-lager-spelare { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
+.md-lager-spelare .md-stapel { flex: 0 1 240px; }
+.md-firande { min-height: 1.5em; margin: 6px 0; color: var(--md-gul); font: 800 22px var(--md-rubrikfont); }
+.md-firande:empty { min-height: 0; margin: 0; }
+.md-tips { margin: 12px 0 0; color: var(--md-svag); }
+.md-tips .md-lank { min-height: 0; padding: 0; color: var(--md-gul); }
+
+/* --- Etapp 2c (#872): Silverpokalen och rekorden --------------------------- */
+.md-pokal.silver { background: #d9e2ee; }
+.md-cup { margin-top: 18px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--md-linje); background: var(--md-panel2); }
+.md-cup h3 { margin: 0 0 8px; }
+.md-cup.vunnen { border-color: #d9e2ee; box-shadow: 0 0 0 2px rgba(217, 226, 238, 0.35) inset; }
+.md-cup-rundor { display: flex; flex-direction: column; gap: 4px; margin: 0 0 8px; padding: 0; list-style: none; }
+.md-cup-rundor li {
+  display: grid; grid-template-columns: 150px minmax(0, 1fr) auto; gap: 10px; align-items: center;
+  padding: 8px 10px; border-radius: 10px; background: var(--md-panel); color: var(--md-svag);
+}
+.md-cup-rundor li b { font: 800 18px/1.1 var(--md-rubrikfont); color: var(--md-ink); }
+.md-cup-mot { color: var(--md-ink); font-weight: 800; overflow-wrap: anywhere; }
+.md-cup-info { text-align: right; font-variant-numeric: tabular-nums; }
+.md-cup-rundor li.vidare .md-cup-info { color: var(--md-gron); font-weight: 800; }
+.md-cup-rundor li.ute .md-cup-info { color: var(--md-rod); font-weight: 800; }
+.md-cup-rundor li.nu { box-shadow: 0 0 0 2px var(--md-gul) inset; }
+.md-cupmatch .md-overrad { font-size: 20px; color: #d9e2ee; }
+.md-nya-rekord { margin: 6px 0 10px; }
+.md-nytt-rekord {
+  margin: 0 0 6px; padding: 8px 12px; border-radius: 12px; background: rgba(255, 210, 63, 0.16);
+  color: var(--md-gul); font: 800 20px/1.2 var(--md-rubrikfont);
+}
+.md-cupvinst .md-ruta { box-shadow: 0 0 0 3px #d9e2ee; }
+.md-rekordlista { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.md-rekordlista dd { text-align: right; }
+@media (max-width: 640px) {
+  .md-cup-rundor li { grid-template-columns: 1fr auto; }
+  .md-cup-rundor li .md-cup-mot { grid-column: 1 / -1; grid-row: 2; }
+}
+
+/* ── src/styles/50-matchdagen-pokaler.css ── */
+/* ==========================================================================
+   Matchdagen 3 (#873): toppen – klubbmärket i sidhuvudet (guldkant och
+   guldstjärnor), Pokalskåpet med de tecknade pokalerna, Mästarcupen under
+   tabellen, introt "FINALEN", firandet i 2D (flaggor, fyrverkerier, pokalen
+   som lyfts) och legendklubben. Samma kvällsarena som 49-matchdagen-match.css.
+   Lugnt läge (.lugnt) och prefers-reduced-motion: inga rörelser.
+   ========================================================================== */
+
+/* --- Sidhuvudet: klubbmärket och namnet ----------------------------------- */
+.md-klubbhuvud { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.md-klubbhuvud:empty { display: none; }
+.md-klubbhuvud-namn { font: 800 20px/1.1 var(--md-rubrikfont); color: var(--md-ink); overflow-wrap: anywhere; }
+.md-marke-ram { display: inline-flex; flex: none; }
+.md-marke { display: block; width: 34px; height: 40px; overflow: visible; }
+.md-marke-ram.stor .md-marke { width: 76px; height: 90px; }
+.md-marke.guld { filter: drop-shadow(0 0 6px rgba(255, 210, 63, 0.55)); }
+
+/* --- Pokalskåpet ----------------------------------------------------------- */
+.md-skap-huvud { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+.md-skap-huvud p { margin: 0; }
+.md-hyllor {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none;
+}
+.md-hylla {
+  display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 10px 12px; text-align: center;
+  border-radius: 14px; border: 1px solid var(--md-linje); background: linear-gradient(180deg, #1b2d4b, #14223a);
+}
+/* Hyllplanet under pokalen. */
+.md-hylla .md-pokalbild { width: 84px; height: 105px; padding: 0 22px 2px; border-bottom: 7px solid #4a3520; box-sizing: content-box; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.45)); }
+.md-hylla.superliga .md-pokalbild { width: 100px; height: 125px; }
+.md-hylla.mastarcup .md-pokalbild { width: 112px; height: 140px; }
+.md-hylla.tom .md-pokalbild { filter: none; opacity: 0.8; }
+.md-hylla-text { display: flex; flex-direction: column; gap: 2px; }
+.md-hylla-text b { font: 800 20px/1.1 var(--md-rubrikfont); }
+.md-hylla-antal { color: var(--md-gul); font: 800 22px var(--md-rubrikfont); }
+.md-hylla:not(.tom).mastarcup { border-color: var(--md-gul); box-shadow: 0 0 0 2px rgba(255, 210, 63, 0.3) inset; }
+
+/* Statistik: klubbhistoriken och pokalernas små ikoner */
+.md-historik li { display: flex; align-items: center; gap: 10px; }
+.md-historik .md-marke { flex: none; width: 26px; height: 31px; }
+.md-pokal.guld { background: var(--md-gul); }
+.md-pokal.stor { width: 22px; height: 24px; }
+
+/* --- Mästarcupen ------------------------------------------------------------ */
+.md-mc { border-color: rgba(255, 210, 63, 0.5); }
+.md-mc.vunnen { border-color: var(--md-gul); box-shadow: 0 0 0 2px rgba(255, 210, 63, 0.35) inset; }
+.md-mcmatch .md-overrad { font-size: 20px; }
+.md-final { border-color: var(--md-gul); box-shadow: 0 0 0 2px rgba(255, 210, 63, 0.35) inset; }
+.md-final .md-overrad { font-size: 24px; letter-spacing: 0.06em; }
+.md-guldknapp { background: linear-gradient(180deg, #ffe680, #ffc21a) !important; }
+.md-legendtips .md-lank { font-weight: 800; }
+
+/* Introt före finalen: "FINALEN" över planen. */
+.md-finalintro {
+  position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  background: radial-gradient(circle at 50% 50%, rgba(12, 22, 38, 0.55), rgba(12, 22, 38, 0.92)); text-align: center; pointer-events: none;
+  animation: md-finalin 3.2s ease both;
+}
+.md-finalintro small { font: 800 22px var(--md-rubrikfont); letter-spacing: 0.3em; color: var(--md-svag); text-transform: uppercase; }
+.md-finalintro b {
+  font: 800 clamp(56px, 12vw, 128px)/0.95 var(--md-rubrikfont); color: var(--md-gul); letter-spacing: 0.08em;
+  text-shadow: 0 5px 0 #6b4f00, 0 14px 40px rgba(0, 0, 0, 0.6);
+}
+.md-finalintro span { font: 800 26px var(--md-rubrikfont); color: var(--md-ink); }
+@keyframes md-finalin {
+  0% { opacity: 0; transform: scale(1.25); }
+  18%, 82% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; }
+}
+.md-finalintro.lugnt { animation: none; }
+
+/* Utropet när en titel är vunnen. */
+.md-utrop.titel { font-size: clamp(30px, 6vw, 72px); align-items: flex-end; padding-bottom: 3%; }
+
+/* Rutan efter matchen med pokalen. */
+.md-efter-pokal { display: flex; justify-content: center; margin: 4px 0 8px; }
+.md-efter-pokal .md-pokalbild { width: 96px; height: 120px; filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.5)); }
+.md-titel .md-ruta { box-shadow: 0 0 0 3px var(--md-gul), 0 20px 60px rgba(0, 0, 0, 0.5); }
+.md-legend-ruta .md-ruta { box-shadow: 0 0 0 3px var(--md-gul); }
+.md-legend .md-fel.md-svag { color: var(--md-svag); font-weight: 600; }
+
+/* --- 2D: finalens flaggor och firandet ------------------------------------- */
+.md-plan2d .md2-flaggor path { transform-box: fill-box; transform-origin: 0 50%; animation: md2-vaja 1.6s ease-in-out infinite alternate; animation-delay: calc(var(--i) * -0.27s); }
+@keyframes md2-vaja { to { transform: scaleX(0.7) skewY(8deg); } }
+.md-plan2d .md2-lyft { transition: transform 1.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.md-plan2d .md2-fest:not(.lugnt) .md2-lyft svg { animation: md2-lyft 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.6s both; }
+@keyframes md2-lyft { from { transform: translateY(6px); opacity: 0.4; } to { transform: translateY(0); opacity: 1; } }
+.md-plan2d .md2-small circle {
+  transform-box: view-box; opacity: 0;
+  animation: md2-gnista 2.8s ease-out infinite; animation-delay: calc(var(--k) * 0.47s);
+  --dx: calc(cos(var(--v)) * 6px); --dy: calc(sin(var(--v)) * 6px);
+}
+@keyframes md2-gnista {
+  0% { opacity: 0; transform: translate(0, 0); }
+  12% { opacity: 1; }
+  70% { opacity: 0.9; transform: translate(var(--dx), var(--dy)); }
+  100% { opacity: 0; transform: translate(var(--dx), calc(var(--dy) + 2px)); }
+}
+.md-plan2d.lugnt .md2-flaggor path { animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .md-finalintro { animation: none; }
+  .md-plan2d .md2-flaggor path, .md-plan2d .md2-small circle, .md-plan2d .md2-lyft svg { animation: none; }
+  .md-plan2d .md2-small circle { opacity: 0; }
+}
+@media (max-width: 640px) {
+  .md-klubbhuvud-namn { font-size: 18px; }
+  .md-hyllor { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .md-skap-huvud { align-items: flex-start; }
+  .md-marke-ram.stor .md-marke { width: 56px; height: 66px; }
+  /* fem flikar sedan Pokalskåpet: smalare knappar, och de bryts hellre än sticker ut */
+  .md-flikar { gap: 4px; }
+  .md-flikar button { flex: 1 1 auto; min-width: 0; padding: 8px 4px; font-size: 13px; }
+}
+
+/* ── src/styles/51-matchdagen-vanskap.css ── */
+/* ==========================================================================
+   Matchdagen 4 (#874): fliken Vänskap – lobbyn (kompisarna, utmaningarna,
+   pågående matcher, inbördes möten) och vänskapsmatchens egna detaljer
+   (knappen Lämna på planen, väntan på kompisen, slutresultatet).
+   Samma kvällsarena som 49-matchdagen-match.css.
+   ========================================================================== */
+
+.mdv { display: grid; gap: 12px; }
+.mdv-lista { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }
+.mdv-lista > li { padding: 8px 12px; border-radius: 12px; background: var(--md-panel2); font-weight: 700; }
+.mdv-kompis { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; min-height: 64px; }
+.mdv-kompis b { font: 800 22px/1.1 var(--md-rubrikfont); }
+.mdv-hoger { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.mdv-hoger .md-stor { min-height: 48px; padding: 8px 22px; font-size: 20px !important; }
+.mdv-inbjudan { border: 2px solid var(--md-gul); }
+.mdv-inbjudan h2 { font-size: 26px; }
+.mdv-kassa { margin: 10px 0 0; }
+.mdv-lamna { right: 104px; }
+.mdv-vantar { text-align: center; color: var(--md-svag); font: 700 20px/1.3 var(--md-rubrikfont); }
+.mdv-slutres { margin: 4px 0 8px; font: 800 28px/1.1 var(--md-rubrikfont); color: var(--md-gul); }
+.md-fraga[data-rattar] { opacity: 0.75; }

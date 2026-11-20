@@ -75,10 +75,10 @@ describe("knapparna för hela klassen + sök (§3.4)", () => {
 });
 
 describe("rollen styr vad som ritas", () => {
-  it("Elever-fliken: årskurs = Inloggning (utan adminval), admin = Elever + Klasscentret", () => {
+  it("Elever-fliken: årskurs = Inloggning (utan adminval), admin = Elever + Klasscentret (+ Anpassningar per elev, #867)", () => {
     const elever = MINA_FLIKAR.find((f) => f.key === "elever");
-    assert.deepEqual(flikSektioner(elever, false), ["inloggning"]);
-    assert.deepEqual(flikSektioner(elever, true), ["elever", "klasscenter"]);
+    assert.deepEqual(flikSektioner(elever, false), ["inloggning", "anpassningar"]);
+    assert.deepEqual(flikSektioner(elever, true), ["elever", "anpassningar", "klasscenter"]);
     const sek = src("teacher-classes-sections.js");
     assert.match(sek, /key: "inloggning",[\s\S]*?render: elevSection\(false\)/);
     assert.match(sek, /key: "elever",[\s\S]*?render: elevSection\(true\)/);

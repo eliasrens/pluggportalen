@@ -106,9 +106,17 @@ describe("placeringskartan (§0.1)", () => {
     assert.equal(sektionsRoll("statistik"), "alla");
     for (const s of stats) {
       assert.equal(PLACERING.statistik[s.key].roll, "alla", s.key);
-      // `when` kräver bara en vald klass – den finns alltid i klassvyn.
-      assert.ok(!s.when || s.when({ classId: "4a" }), `${s.key} syns med vald klass`);
+      // `when` kräver bara en vald klass – den finns alltid i klassvyn. Matchdagen (#869)
+      // kräver dessutom en elev i klassen med Matchdagen (per elev, spec §6.4).
+      const o = s.key === "matchdagen"
+        ? { classId: "4a", cls: { id: "4a", elevModuler: { e1: ["matchdagen"] } }, students: [{ id: "e1" }] }
+        : { classId: "4a" };
+      assert.ok(!s.when || s.when(o), `${s.key} syns med vald klass`);
     }
+    const md = stats.find((s) => s.key === "matchdagen");
+    assert.equal(md.when({ classId: "4a", cls: { id: "4a" }, students: [{ id: "e1" }] }), false, "ingen elev med Matchdagen → ingen flik");
+    assert.equal(md.when({ classId: "4a", cls: { id: "4a", elevModuler: { x: ["matchdagen"] } }, students: [{ id: "e1" }] }), false,
+      "bara elever i klassen räknas");
   });
   it("docs/LARARSIDAN_INVENTERING.md tar upp varje rad", () => {
     const doc = readFileSync(new URL("../docs/LARARSIDAN_INVENTERING.md", import.meta.url), "utf8");
