@@ -307,3 +307,35 @@ describe("matchdagen/{uid} – grundpelarna och dubbletter (F3, F4)", () => {
   });
 });
 
+
+// ---- Rättningsrunda 2 (Testern #871, F6–F7) -------------------------------------------------
+describe("matchdagen/{uid} – kassan i byten och köp med fulla reserver (F6, F7)", () => {
+  const g = (i, pos) => ({ id: `g${i}`, namn: `Grund Pelare${i}`, pos, nr: i, st: 2, xp: 0, grundpelare: true, kapten: false });
+  it("ett byte eller en släppt reserv ger aldrig pengar – +400 bara i ett köp (F6)", async () => {
+    await seed(KOPT);
+    const res0 = KOPT.reserver[0];
+    const ut = KOPT.trupp.find((p) => p.pos === res0.pos && p.id !== TRE.id) || TRE;
+    const BYTT = bytIn(KOPT, res0.id, ut.id);
+    await assertFails(setDoc(ref(elev()), medTid(BYTT, { kassa: KOPT.kassa + 400 })), "byte +400");
+    await assertFails(setDoc(ref(elev()), medTid(BYTT, { kassa: KOPT.kassa + 1 })), "byte +1");
+    await assertSucceeds(setDoc(ref(elev()), medTid(BYTT)), "kontroll: bytet utan pengar");
+    const KR = { ...kopia(K1), reserver: [{ id: "kr3", namn: "Köpt Trea", pos: "MIT", nr: 66, st: 3, xp: 0 }] };
+    await seed(KR);
+    await assertFails(setDoc(ref(elev()), medTid({ ...KR, reserver: [] }, { kassa: KR.kassa + 400 })), "släppt reserv +400");
+    const BYTT2 = bytIn(KOPT, res0.id, ut.id);
+    await seed(KOPT);
+    await assertFails(setDoc(ref(elev()), medTid({ ...BYTT2, marknad: KOPT.marknad.slice(1) }, { kassa: KOPT.kassa + 400 })),
+      "byte + en marknadsrad struken, +400");
+  });
+  it("köp med fulla reserver: tillbaka halva priset för just den släppta reserven (F7)", async () => {
+    const tre = { id: "kr3", namn: "Köpt Trea", pos: "ANF", nr: 77, st: 3, xp: 0 };
+    const FULL3 = { ...kopia(K1), reserver: [g(11, "FÖR"), g(12, "MIT"), g(13, "MIT"), g(14, "ANF"), tre],
+      marknad: [...K1.marknad.slice(0, 5), { id: "kfor3", namn: "Test Försvar", pos: "FÖR", nr: 40, st: 3, xp: 0 }] };
+    await seed(FULL3);
+    const ut = kop(FULL3, "kfor3", { slapp: "kr3" }).K;
+    assert.equal(ut.kassa, FULL3.kassa - 1210 + 605);
+    await assertFails(setDoc(ref(elev()), medTid(ut, { kassa: ut.kassa + 1 })), "en krona för mycket");
+    await assertFails(setDoc(ref(elev()), medTid(ut, { kassa: FULL3.kassa - 1210 + 1600 })), "platta 1 600");
+    await assertSucceeds(setDoc(ref(elev()), medTid(ut)), "rätt: 605 tillbaka");
+  });
+});

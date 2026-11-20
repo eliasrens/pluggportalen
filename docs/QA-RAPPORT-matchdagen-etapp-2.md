@@ -513,8 +513,8 @@ Alla fem är skrivningar förbi appen. Rättat i `firestore.rules`, varje fall m
   `"id|namn|pos|nr|st"` (`md-trupp.js saluRad`; appen gör om dem vid skrivning och läsning i `md-data.js`) och
   prövas i varje matchsparning med ETT reguljärt uttryck över hela listan (`join`): högst 6 rader, id `k` + 1–6
   tecken, namn 1–40 tecken utan `| / < > & "`, en känd position, nr 0–99, 1–5★. Allt annat – ett objekt, en text
-  som inte passar, 7 rader – nekas. Utan match kan marknaden bara krympa med ett köp. Dokumentet hålls därmed långt
-  under 200 kB (marknaden ≤ ~400 byte).
+  som inte passar, 7 rader – nekas. Utan match kan marknaden bara krympa med ett köp. Marknaden är därmed högst
+  ~400 byte (dokumentets totala storlek prövas inte – se F8 i rättningsrunda 2).
 - **F2 (hög), en ny klubb kunde bära ett extra fält på ~130 kB per spelare.** `create` prövar nu exakt de åtta fälten
   per grundpelare (`size() == 8`, varje fält läses), `g1`–`g7` i ordning, namn 1–40 utan HTML, en känd position, `nr`
   ≤ 3 siffror, `st` 2, `xp` 0 och `grundpelare`/`kapten` som sanningsvärden – med ett reguljärt uttryck över alla sju

@@ -759,8 +759,9 @@ service cloud.firestore {
     // matchdagen/{uid} = klubben, divisionen, säsongen, kassan, truppen, ligan och
     // statistiken (src/matchdagen/delat/md-sasong.js). Eleven själv skriver – EN gång
     // per match (+ ny klubb/nytt namn, träningsläger, köp och byten) – och reglerna prövar
-    // formen: kända fält, div 0–7, st 1–5, begränsade listor och mappar (≈ högst 200 kB, se
-    // docs), kvalet (#870), och (#871) truppen/reserverna/marknaden/kassan/lägret mot det
+    // formen: kända fält, div 0–7, st 1–5, listor och mappar med tak på ANTALET (byte-storleken
+    // prövas inte: strängarna i ligans lag, senaste, sasonger och pokaler kan växa till 1 MiB –
+    // docs/MATCHDAGEN.md §10), kvalet (#870), och (#871) truppen/reserverna/marknaden/kassan/lägret mot det
     // sparade dokumentet: per skrivning kan stjärnor, träning och kassa bara växa som i spelet.
     // Läraren med eleven (hasStudent) läser och får BARA återställa klubb.namn till
     // standardnamnet. matcher/{id}: en per spelad match, bara create av eleven, ingen
@@ -832,15 +833,16 @@ service cloud.firestore {
     // skrivning – då är marknaden den sparade minus EN rad (mdMarknadOk: ett köp per skrivning,
     // två köp betalda en gång nekas) – och kassan
     // minskar med priset. Tillbaka: halva priset för den ersatta om den var köpt, annars
-    // (grundpelaren går till reserverna) högst 1 600 kr för en köpt reserv som släpps när
-    // reserverna var fulla (3 190 / 2).
+    // (grundpelaren går till reserverna) halva priset för den köpta reserv som släpps när
+    // reserverna var fulla (den som finns i g.reserver men inte i d.reserver, #871 F7).
+    function mdSlapptPris(ut) { return ut.size() > 0 ? mdPris(ut[0].st) / 2 : 0; }
     function mdKopOk(n, o, g, d, a) {
       let rad = [n.id, n.namn, n.pos, string(n.nr), string(n.st)].join('|');
       return n.keys().hasOnly(['id', 'namn', 'pos', 'nr', 'st', 'xp']) && n.xp == 0 && n.nr is int && n.st is int &&
         rad in g.get('marknad', []) && !(rad in d.marknad) && !('summa' in a) &&
         n.st >= 2 && n.st <= [3, 4, 4, 4, 4, 5, 5, 5][d.div] && n.namn.size() <= 40 &&
         d.kassa <= g.kassa - mdPris(n.st) + (o.get('grundpelare', false) == true ?
-          (g.get('reserver', []).size() >= 5 ? 1600 : 0) : mdPris(o.st) / 2);
+          mdSlapptPris(g.get('reserver', []).removeAll(d.reserver)) : mdPris(o.st) / 2);
     }
     function mdTruppDeltaOk(d, g, a) {
       return mdPlatsOk(d.trupp[0], g.trupp[0], g, d, a) && mdPlatsOk(d.trupp[1], g.trupp[1], g, d, a) &&
@@ -875,14 +877,18 @@ service cloud.firestore {
     // Klubbkassan per skrivning: högst 5 000 kr mer per bokförd match (den största matchen i
     // Superligan med kval och cup ≈ 2 500) och högst 500 matcher i en skrivning (den lokala
     // kön sparar högst 30 matchdokument, md-lokal.js KO_MAX, men karriären räknar alla som
-    // spelats offline), plus 400 kr BARA när reserverna ändras: ett köp där en släppt reserv ger
-    // mer än köpet kostar (3 190 / 2 − 1 210; mdKopOk prövar beloppet). En
+    // spelats offline), plus 400 kr BARA i ett köp där en släppt reserv ger mer än köpet kostar
+    // (3 190 / 2 − 1 210; mdKopOk prövar beloppet): reserverna och marknaden ändras, inget läger,
+    // och en spelare i truppen är ny för klubben – utan läger kan det bara vara en köpt (#871 F6). En
     // elev som skriver förbi appen kan alltså bara höja kassan i takt med matcherna – men varje
     // skrivning för sig (se docs/MATCHDAGEN.md §15.4). En ny klubb börjar med högst startkassan (KASSA.start = 600).
+    function mdKopTillagg(d, g, a) {
+      return 'marknad' in a && !('lager' in a) && d.trupp.removeAll(g.trupp.concat(g.get('reserver', []))).size() > 0 ? 400 : 0;
+    }
     function mdKassaOk(d, g, a) {
       return mdTal(d.kassa, 0, 100000000) && (g == null ? d.kassa <= 600 :
         (d.summa.matcher <= g.summa.matcher + 500 && d.kassa <= g.kassa + (d.summa.matcher - g.summa.matcher) * 5000 +
-          ('reserver' in a ? 400 : 0)));
+          ('reserver' in a ? mdKopTillagg(d, g, a) : 0)));
     }
     // Det senast använda träningslägret (md-trupp.js lagerNyckel): "säsong-omgång" för en
     // spelad omgång i den här säsongen (omgången får vara äldre – lägret kan sparas ihop med

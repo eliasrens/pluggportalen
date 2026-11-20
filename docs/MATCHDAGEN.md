@@ -370,8 +370,11 @@ Fälten står i [`DATAMODELL.md`](DATAMODELL.md#matchdagenuid--elevens-karriär-
   `ratt ≤ fragor`, `mal` ≤ 80, `stat` ≤ 20 nycklar, `perKalla` ≤ 70. Ingen ändring; radering bara admin.
 - **Storleken:** reglerna kan inte mäta byte. Taken på listorna och mapparna (`senaste` 20, `dagar` 70,
   `sasonger` 200, `pokaler` 300, `perKalla` 150, ligan 12 lag) håller ett dokument skrivet av appen under
-  ~61 kB med allt fyllt (en ny klubb ~2 kB), under specens 200 kB. En elev som skriver förbi appen kan bara
-  blåsa upp sitt eget dokument (Firestores tak 1 MiB).
+  ~61 kB med allt fyllt (en ny klubb ~2 kB), under specens 200 kB. **Reglerna håller INTE 200 kB:** de begränsar
+  antalet, inte strängarnas längd, i ligans lag (`liga.lag[].namn`), `senaste`, `sasonger`, `pokaler` och
+  källnamnen. En elev som skriver förbi appen kan blåsa upp sitt eget dokument till Firestores tak 1 MiB (Testern
+  #871: ~900 kB gick igenom) – och lärarens Hur går det? läser det. Det som prövas strängt är klubben, truppen,
+  reserverna, marknaden (#871), summan och kvalet.
 
 ### 10.3 När det sparas
 

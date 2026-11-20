@@ -914,7 +914,8 @@ matchen), när klubben skapas eller döps om och (#871) efter varje köp, byte o
 
 Läraren med `hasStudent(uid)` läser och får bara sätta `klubb.namn` = "Pluggporten FC"
 (Återställ lagnamn). Typisk storlek: ~2 kB för en ny klubb; med alla tak fyllda ~61 kB
-(+ ~1 kB med 5 reserver och 6 till salu, #871; spec: ≤ 200 kB). ⚠️ rules-deploy.
+(+ ~1 kB med 5 reserver och 6 till salu, #871; spec: ≤ 200 kB – reglerna håller det inte för strängarna i
+ligans lag, `senaste`, `sasonger` och `pokaler`, där ett dokument skrivet förbi appen kan nå 1 MiB; MATCHDAGEN.md §10). ⚠️ rules-deploy.
 
 ### `matchdagen/{uid}/matcher/{matchId}` – en spelad match (#869)
 
