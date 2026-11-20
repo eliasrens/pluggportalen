@@ -269,3 +269,103 @@ legendklubben – därför `gh.size() == 0 ||` före jämförelsen.
   divisionen sedan Etapp 2, kosmetiskt. Granskaren fann i övrigt inget i motorn (schemat, ordningen mot
   Silverpokalen, ingen nedflyttning, det som följer med en legendklubb, köns pengar), XSS (allt ur dokumentet
   `esc()`:as eller är tal) eller firandets livscykel (`dispose`, lugnt läge).
+
+## Testern (#873, på 31177ed8)
+
+**Utfall: PASS med ett medelfynd (F1, lärarens elevpanel) och låga fynd.** Inget i reglerna eller motorn behöver
+rättas före merge. F1 är en ren visningsmiss.
+
+### Körningar (Testern)
+
+| Svit | Resultat |
+| --- | --- |
+| `npm run test:functions` (hela, `admin/qa-matchdagen-867-svit.sh`, `functions/node_modules` länkad) | 573 pass, 0 fail, 2 todo |
+| `npm run test:rules` (hela, med Testerns nya fil) | 1141 tester: 1140 pass, 1 fail = `firestore-rules-prov-helskarm.test.js` "MÄTNING …" (tidsmätning under last). Filen ensam: 20/20 pass – flake, orörd av #873 |
+| `npm run test:e2e` | 5 pass, 0 fail |
+| `npm run test:import` (`importera-elever`, Coderns enda fail) | 15/15 pass mot emulatorn – Coderns fail var miljön |
+| `node --test` (322 filer utan emulator) | 4733 pass, 1 fail = `schack-motor.test.js` "tidsgränsen ~1 s per drag" under last (functions-sviten körde samtidigt). Filen ensam: 25/25 pass |
+| Matchdagen enhet (`test/matchdagen-*.test.js` + Testerns) | 309 + 9 pass, 0 fail |
+| Regeltester Mästarcupen (Coderns 13 + Testerns 15) | 28/28 pass |
+| `npm run balans:matchdagen` | Mästarcupen 80 % / 4★ **22 %** vunnen (mål 15–25 % "ja"), Superligan 80 % / 4★ **47 %** matchvinster (mål 45–55 % "ja") – samma som Coderns tabell |
+
+**Marginalen mot 1000-gränsen, mätt oberoende** (eget frö, steg om 1 vid de tunna; `.scratch`-kopia av
+`admin/qa-matchdagen-marginal.test.js` med tre egna skrivningar):
+
+| Skrivning | Codern | Testern |
+| --- | --- | --- |
+| Ny klubb (`create`) – fyra frön | 4 | **5** (Coderns lista hoppade 4 → 6) |
+| Legendklubben (första) | 12 | 12 |
+| Legendklubben med 48 gamla klubbar | 10 | 10 |
+| Legendklubben från en tung karriär (49 långa historikrader, 300 pokaler à 62 tecken) | – | 10 |
+| Hela säsongen + cupen + kvalet i en skrivning | 12 | 12 |
+| Mästare / hela Superliga-säsongen offline med mästartiteln / hela den inbjudna säsongen offline (3 MC-rundor + cup) / finalen | 50 / – / – / ≥ 60 | ≥ 50 / ≥ 50 / ≥ 50 / ≥ 50 |
+
+### Nya tester (Testern)
+
+- `test/firestore-rules-matchdagen-mastarcup-tester-873.test.js` (15, i `npm run test:rules`): kassan exakt 600
+  (0/599/601/100 000/−1/null/600,5/true nekas), två legendklubbar i rad på samma Mästarcup nekas, legendskrivning
+  utan reserver/marknad/trupp/kassa/div/säsong nekas, säsong/div/stjärna som text nekas, tränad eller HTML-trupp
+  nekas, historikrader med `& " >`, fel antal sorter, fel form och 4 001 tecken nekas, `mastarcup`-former
+  (radbrytning, `-0-u`, `-u` utan runda …), `superliga`/`mastarcup`-pokaler med HTML/41 tecken/sexsiffrig säsong
+  nekas, en vanlig match kan inte röra historiken eller höja stjärnorna, **äldre dokument** (1c utan pokaler/rekord/
+  cup/stjärnor; 2c med "liga|Vinnare Superligan" och klubb utan `legendStjarnor`) sparar match, namn och lärarens
+  återställning. Kända gränser (F3) står som `assertSucceeds`.
+- `test/matchdagen-mastarcup-tester-873.test.js` (9, ren motor): inbjudan bara säsongen efter titeln (inte samma
+  säsong, inte för tvåan, inte säsong +2 utan ny titel), QF/SF/F efter omgång 3/6/8 mot 0,86–0,95 svagast först
+  och samma lottning efter omladdning, oavgjort utan straffar kastar, straffförlust i semin → `"S-2-u"` och inget
+  erbjudande, sist i Superligan flyttas inte ned, erbjudandet går ut nästa säsong (`nyLegendklubb` kastar), legenden
+  behåller pokaler/rekord/summa/säsonger/senaste, historikraden räknar pokalerna, en andra legend räknar från den
+  förra klubbens slut, trasiga rader tåls.
+
+### Appen mot emulatorn (Alva, `MD_PA=1 MD_TRUPP=1 PORT=8873 admin/qa-matchdagen-867-preview.sh`, karriären satt via preview-REST)
+
+- **Mästare:** sista ligamatchen i Superligan spelad (4 – 0) → "MÄSTARE!" och pokalen lyfts i 3D, rutan "Mästare! …
+  inbjudna till Mästarcupen", sparat `superliga|…|12` + `mastarcup: "13-0"`, guldkant i sidhuvudet. Nästa säsong:
+  Tabell visar Mästarcupens tre rundor efter omgång 3/6/8. (`14-testern-mastare-app-3d.png`)
+- **Finalen i 3D med `?fps=1`:** introt "MÄSTARCUPEN · FINALEN · Alvas Blixtar – Athletic Granfors", flaggor och
+  skyltar, **24–25 fps (lägst 15)** i SwiftShader. Omladdning mitt i finalen → "Matchen pågår: 0 – 1 efter 27
+  minuter", Fortsätt utan nytt intro. Förlorad final 2 – 4 → "Ute – men vilken resa!", `"13-3-u"`. (`15-…`)
+- **Finalen i `?2d=1`** (5★-lag): 6 – 0 → "MÄSTARCUPEN ÄR ER!" med pokal och fyrverkerier i 2D, +2 844 kr (pris
+  1 375 kr), rutan med "Starta en legendklubb" / "Fortsätt i Superligan"; erbjudandet kvar på Match-fliken och i
+  skåpet. (`16-…`)
+- **Legendklubben online:** "Norrsken FF", orange → sparad på ~0,3 s: div 0, säsong 14, 600 kr, inga reserver, ingen
+  marknad, sju nya 2★, en stjärna, historiken +1 rad (`12-13|0.0.0.1.1` efter en seedad rad), pokalerna kvar.
+  Namnet `<b>Ny</b> "Legend" & Co` blev `bNy/b "Legend" & Co`.
+- **Statistik** visar klubbhistoriken med märke, säsonger och pokaler (`18-…`); **375 px**: alla fem flikar, ingen
+  sidledsscroll på Match/Tabell/Statistik/Pokalskåpet (`19-…`); 1366 × 768 likaså.
+- **XSS:** `klubb.namn`, `legendStjarnor`, `mastarcup`, `klubbhistorik` (namn, färg med `"`, säsong, pokalantal),
+  `pokaler` (rader och objekt) med `<img onerror>` skrivna förbi reglerna → 0 körningar och 0 `<img>` i elevens fem
+  flikar och i lärarens elevpanel (allt som text).
+- **Lugnt läge:** förhandsvisningen 3D och 2D med `?lugnt=1` – inga fyrverkerier, armarna nere, 29–39 fps.
+  `prefers-reduced-motion` i appen kunde inte emuleras med Testerns webbläsarverktyg (koden: `md-app.js` läser den).
+- **Kodkoll:** bootgrafen 107 (`matchdagen-modul.test.js`), största nya/ändrade fil 367 rader, three.js bara via
+  `src/tre/tre-ladda.js` i `md-plan.js` vid matchstart, `md-tre-*` tar `T` som argument.
+
+### Fynd
+
+- **F1 (medel) – lärarens elevpanel visar aldrig "Mästare i Superligan: n gånger" eller "Mästarcupen vunnen: n
+  gånger".** `lasKarriarer` (`md-data.js`) ger rådata – `pokaler` är rader `"typ|namn|säsong|datum"` sedan #872 –
+  men `toppRader` (`md-larare-stat.js`) räknar med `skapet(K.pokaler)`, som bara förstår objekt. Repro: karriär med
+  `pokaler: ["superliga|Mästare i Superligan|12|…", "mastarcup|Mästarcupen|13|…"]` → lärarens panel visar
+  "Mästarcupen: vunnen den här säsongen" och "Tidigare klubb …" men inga titelrader (`17-testern-larare-utan-titlar.png`).
+  Med en pokal som objekt (bara förbi appen) syns raden. Förslag: `skapet(pokalerFranDok(K.pokaler))` i
+  `toppRader`, och ett test med rader.
+- **F2 (låg) – legendklubben "sparas" offline.** Sparningen tar tidsgräns (8 s), legendvyn läser då karriären med
+  `getDoc`, som offline svarar ur cachen – med den väntande skrivningen. Appen visar "En ny legend föds!" fast
+  servern har den gamla klubben. Kommer nätet tillbaka med fliken öppen går skrivningen fram (testat). Stängs fliken
+  först är legendklubben borta och den gamla klubben med erbjudandet tillbaka (testat) – ingen halv klubb, men
+  kommentaren "Går den inte fram blir det ingen ny klubb" stämmer inte offline. Förslag: `getDocFromServer` (eller
+  `metadata.hasPendingWrites`) i kontrollen. En match offline efteråt gick inte att starta i Testerns miljö
+  (frågorna/modulerna laddas från nätet), så hybridfallet nåddes inte.
+- **F3 (låg, känd gräns, dokumenterad av Codern) – reglerna prövar formen, inte förtjänsten:** en förfalskad
+  `mastarcup`-pokal i en skrivning och en legendklubb i nästa går – även från Division 3 (reglerna läser inte
+  `g.div`); en legendskrivning utan `klubb` ger ingen stjärna, och `legendStjarnor` kan strykas ur klubben (bara
+  nedåt, till 0) – DATAMODELL.md säger "bara exakt det sparade värdet, eller +1"; en legendklubb via `updateDoc` kan
+  behålla Superligans liga. Allt bara eget spel. Testat som `assertSucceeds`.
+- **F4 (låg, fråga till Elias) – balansen med 5★:** §12 räknar med snitt 4★ (22 %, i mål), men balansens egen
+  karriärtabell når Superligan med **5,0★** – och med 5★ vinns Mästarcupen i 47 % av försöken (ungefär varannan,
+  inte var femte). Specens villkor är uppfyllt; frågan är om "var femte" ska gälla det lag eleverna faktiskt har.
+- **F5 (låg, text):** Tabell i Superligan säger fortfarande "Ettan får kvala upp. Man kan bara gå uppåt" (från 1c,
+  `md-vy-tabell.js:50`) – i Superligan blir ettan mästare. Rapportens "~1 500 kr" i prispengar är 1 375 kr i appen
+  (500 × 2,75). Skåpet utan stjärnor men med historik skriver "2 pokaler Pokalerna från …" utan punkt (bara förbi
+  appen).
