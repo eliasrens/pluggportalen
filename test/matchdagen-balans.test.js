@@ -85,3 +85,30 @@ describe("balansen i alla divisioner (#870, spec §7, §12)", () => {
     assert.match(karriarTabell([k]), /Division 5/);
   });
 });
+
+describe("Silverpokalen i balansen (#872, spec §9.1, §12)", () => {
+  it("70 % rätt i Division 6 vinner cupen ibland men inte alltid; skrällar mot högre divisioner händer", async () => {
+    const { cupBalans, bedomCup, cupTabell } = await import("../admin/md-balans-cup.mjs");
+    const r70 = cupBalans({ andelRatt: 0.7, div: 0, n: 120 });
+    const r50 = cupBalans({ andelRatt: 0.5, div: 0, n: 120 });
+    assert.deepEqual(bedomCup(r70), []);
+    assert.deepEqual(bedomCup(r50), []);
+    assert.ok(r70.cupVinst > r50.cupVinst, "bättre svar lönar sig i cupen också");
+    assert.ok(Math.abs(r70.rundor.reduce((a, b) => a + b, 0) - 1) < 1e-9);
+    assert.ok(r70.matcherPerSasong >= 1 && r70.matcherPerSasong <= 4);
+    assert.ok(r70.sasongMedCupMin > r70.sasongMin);
+    assert.match(bedomCup({ ...r70, cupVinst: 0.9 }).join(), /cupVinst/, "fäller en cup som är för lätt");
+    assert.match(cupTabell([r70, r50]), /Division 6/);
+  });
+  it("säsongen med cupen: fyra rundor efter ligaomgång 1–4 så länge laget är kvar; utan cup som förut", () => {
+    const utan = spelaSasong({ seed: "c", andelRatt: 0.7 });
+    assert.equal(utan.cup, undefined);
+    for (let i = 0; i < 20; i++) {
+      const s = spelaSasong({ seed: `c${i}`, andelRatt: 0.7, cup: true });
+      assert.equal(s.matcher.length, 5, "ligan som förut");
+      assert.ok(s.cup.matcher.length >= 1 && s.cup.matcher.length <= 4);
+      assert.equal(s.cup.vann, s.cup.matcher.length === 4 && s.cup.matcher.every((m) => m.vann));
+      assert.ok(s.cup.matcher.every((m) => typeof m.vann === "boolean"), "oavgjort → straffar");
+    }
+  });
+});

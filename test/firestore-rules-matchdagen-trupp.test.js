@@ -18,7 +18,7 @@ import assert from "node:assert/strict";
 import { assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { createRollerEnv, seedRoller } from "./helpers/roller-env.js";
-import { matchKlar, nyKarriar } from "../src/matchdagen/delat/md-sasong.js";
+import { matchKlar, nyKarriar, pokalerTillDok } from "../src/matchdagen/delat/md-sasong.js";
 import { bytIn, kop, lagerAvbrutet, lagerNyckel, lagerResultat, lagerStart, marknadTillDok } from "../src/matchdagen/delat/md-trupp.js";
 import { skapaPrng } from "../src/matchdagen/delat/md-prng.js";
 import { ovanpaServern } from "../src/matchdagen/md-spara.js";
@@ -40,7 +40,9 @@ const LAGER = kopia(lagerResultat(K1, { nyckel: lagerNyckel(K1), spelareId: K1.t
 
 const ref = (db, uid = "e4a") => doc(db, "matchdagen", uid);
 // Marknaden sparas som rader "id|namn|pos|nr|st" (md-data.js → md-trupp.js marknadTillDok).
-const tillDok = (D) => (Array.isArray(D.marknad) ? { ...D, marknad: marknadTillDok(D.marknad) } : D);
+// Pokalerna som rader "typ|namn|säsong|datum" (md-data.js → md-sasong.js pokalerTillDok, #872).
+const tillDok = (D) => ({ ...D, ...(Array.isArray(D.marknad) ? { marknad: marknadTillDok(D.marknad) } : {}),
+  ...(Array.isArray(D.pokaler) ? { pokaler: pokalerTillDok(D.pokaler) } : {}) });
 const medTid = (K, over = {}) => tillDok({ ...kopia(K), senast: serverTimestamp(), ...over });
 const truppMed = (K, i, over) => K.trupp.map((p, j) => (j === i ? { ...p, ...over } : p));
 const seed = (K) => env.seed((db) => setDoc(ref(db), tillDok({ ...kopia(K), senast: new Date() })));

@@ -95,7 +95,7 @@ export function rekordEfterMatch(K, res) {
     if (R.mm) nya.push(`Nytt rekord: ${oss} mål i en match!`);
     R.mm = { v: oss, s };
   }
-  if (oss > dem && (!R.ss || oss - dem > R.ss.oss - R.ss.dem || (oss - dem === R.ss.oss - R.ss.dem && oss > R.ss.oss))) {
+  if (oss > dem && (!R.ss || oss - dem > R.ss.oss - R.ss.dem)) {
     if (R.ss) nya.push(`Nytt rekord: största segern någonsin, ${oss}–${dem}!`);
     R.ss = { oss, dem, s };
   }

@@ -914,12 +914,16 @@ service cloud.firestore {
     }
     // (#871: inga hasAll i mdKlubbOk/mdSummaOk/mdKvalOk – varje nyckel läses ändå, och en saknad
     // nyckel ger ett utvärderingsfel = nekad. Det sparar uttryck till 1000-gränsen.)
+    // (#872: summans åtta heltal prövas med ETT reguljärt uttryck – "+ 0" ger ett fel för text,
+    // ett flyttal blir "5.0" och ett negativt tal "-1", som uttrycket nekar; taken är antalet
+    // siffror. Det gav Etapp 2c:s cup, rekord och pokaler plats på den tunnaste skrivningen.)
     function mdSummaOk(s) {
-      return s is map && s.keys().hasOnly(['matcher', 'v', 'o', 'f', 'gjorda', 'inslappta', 'fragor', 'ratt', 'perKalla', 'spelminuter']) &&
-        mdHeltal(s.matcher, 0, 1000000) && mdHeltal(s.v, 0, 1000000) && mdHeltal(s.o, 0, 1000000) && mdHeltal(s.f, 0, 1000000) &&
-        mdHeltal(s.gjorda, 0, 10000000) && mdHeltal(s.inslappta, 0, 10000000) &&
-        mdHeltal(s.fragor, 0, 100000000) && mdHeltal(s.ratt, 0, s.fragor) && mdTal(s.spelminuter, 0, 10000000) &&
-        s.perKalla is map && s.perKalla.size() <= 150 && !s.perKalla.values().hasAny([null]);
+      return s.keys().hasOnly(['matcher', 'v', 'o', 'f', 'gjorda', 'inslappta', 'fragor', 'ratt', 'perKalla', 'spelminuter']) &&
+        [string(s.matcher + 0), string(s.v + 0), string(s.o + 0), string(s.f + 0), string(s.gjorda + 0), string(s.inslappta + 0),
+          string(s.fragor + 0), string(s.ratt + 0)].join('|')
+          .matches('[0-9]{1,7}[|][0-9]{1,7}[|][0-9]{1,7}[|][0-9]{1,7}[|][0-9]{1,8}[|][0-9]{1,8}[|][0-9]{1,9}[|][0-9]{1,9}') &&
+        s.ratt <= s.fragor && mdTal(s.spelminuter, 0, 10000000) &&
+        s.perKalla.size() <= 150 && !s.perKalla.values().hasAny([null]);
     }
     function mdLigaOk(l) {
       return l is map && l.keys().hasOnly(['lag', 'schema', 'tabell', 'omg']) &&

@@ -15,7 +15,7 @@ import { after, before, beforeEach, describe, it } from "node:test";
 import { assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
 import { deleteDoc, doc, getDoc, serverTimestamp, setDoc, updateDoc, writeBatch } from "firebase/firestore";
 import { createRollerEnv, seedRoller } from "./helpers/roller-env.js";
-import { nyKarriar, matchKlar } from "../src/matchdagen/delat/md-sasong.js";
+import { nyKarriar, matchKlar, pokalerTillDok } from "../src/matchdagen/delat/md-sasong.js";
 import { skapaPrng } from "../src/matchdagen/delat/md-prng.js";
 import { marknadTillDok } from "../src/matchdagen/delat/md-trupp.js";
 
@@ -26,6 +26,7 @@ const STAT = { skott: 5, skottPaMal: 3, pass: 12, passOk: 9, tacklingar: 6, vunn
 const KLAR = matchKlar(K0, { res: { oss: 2, dem: 1, utfall: "vinst", mal: [{ min: 12, lag: "oss" }, { min: 40, lag: "dem" }, { min: 77, lag: "oss" }], stat: STAT },
   rng: skapaPrng("regler-2").tal, nu: Date.UTC(2026, 10, 20, 9), matchId: "s1-d0-o1-x" });
 KLAR.K.marknad = marknadTillDok(KLAR.K.marknad); // dokumentets form (md-data.js, #871)
+KLAR.K.pokaler = pokalerTillDok(KLAR.K.pokaler); // pokalerna som rader (#872)
 const karriar = (over = {}) => ({ ...JSON.parse(JSON.stringify(K0)), senast: serverTimestamp(), ...over });
 const match = (over = {}) => ({ ...JSON.parse(JSON.stringify(KLAR.match)), datum: serverTimestamp(), ...over });
 const ref = (db, uid = "e4a") => doc(db, "matchdagen", uid);
@@ -90,6 +91,10 @@ describe("matchdagen/{uid} – eleven (#869)", () => {
     await assertFails(updateDoc(ref(db), { "summa.matcher": XSS, senast: serverTimestamp() }), "text i summa.matcher");
     await assertFails(updateDoc(ref(db), { "summa.ratt": XSS, senast: serverTimestamp() }), "text i summa.ratt");
     await assertFails(updateDoc(ref(db), { "summa.matcher": 1.5, senast: serverTimestamp() }), "decimaltal");
+    // #872: summans heltal prövas med ett reguljärt uttryck – negativa, för stora, sanningsvärden och listor nekas.
+    for (const [k, v] of [["v", -1], ["gjorda", 1e9], ["f", true], ["o", [1]], ["inslappta", "12"], ["fragor", 2.0000001]]) {
+      await assertFails(updateDoc(ref(db), { [`summa.${k}`]: v, senast: serverTimestamp() }), `summa.${k} = ${JSON.stringify(v)}`);
+    }
     await assertFails(updateDoc(ref(db), { "summa.ratt": 99, senast: serverTimestamp() }), "ratt > fragor");
     await assertFails(updateDoc(ref(db), { "summa.okand": 1, senast: serverTimestamp() }), "okänd nyckel");
     await assertFails(setDoc(ref(db), karriar({ summa: { ...K0.summa, spelminuter: "lång" } })), "spelminuter som text");
