@@ -100,4 +100,12 @@ describe("lärarens vy och elevens statistik: bara tal ur kval och straffar", ()
       assert.match(src, /tal\(m\.straffar\[0\]\)/, f);
     }
   });
+  it("en avgjord match bokförs i kön FÖRE sista animationen (stängd flik ger inget nytt kval)", () => {
+    const src = readFileSync(new URL("../src/matchdagen/vy/md-match-spel.js", import.meta.url), "utf8");
+    assert.match(src, /m = ut\.m;\s*sparaLokalt\(\);\s*bokfor\(\);[\s\S]*?await plan\.spela\(ut\.h, m\)/, "ligamatchen/kvalet");
+    assert.match(src, /satt: \(x\) => \{ m = x; bokfor\(\); \}/, "straffläggningen");
+    const straff = readFileSync(new URL("../src/matchdagen/vy/md-straff-spel.js", import.meta.url), "utf8");
+    assert.match(straff, /ctx\.satt\(m\);[\s\S]*?await plan\.straff\(/);
+    assert.match(src, /if \(klar \|\| !arKlar\(m\)\) return;/, "bara en gång, bara när matchen är avgjord");
+  });
 });

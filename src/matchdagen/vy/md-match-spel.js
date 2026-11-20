@@ -9,7 +9,7 @@
 // straffläggningen (md-straff-spel.js), och rutan efter berättar om uppflyttningen.
 // ============================================================================
 
-import { andraHalvlek, antalFragor, behoverFraga, behoverStraffar, lage, lagbonus, nyMatch, resultat, spela } from "../delat/md-motor.js";
+import { andraHalvlek, antalFragor, arKlar, behoverFraga, behoverStraffar, lage, lagbonus, nyMatch, resultat, spela } from "../delat/md-motor.js";
 import { LAGE_TEXT } from "../delat/md-texter.js";
 import { matchKlar, motFarg } from "../delat/md-sasong.js";
 import { kvalKlar } from "../delat/md-kval.js";
@@ -157,7 +157,20 @@ export async function spelaMatch(S, el, { pagaende = null, spel = null } = {}) {
     v.tid.textContent = `${Math.min(90, Math.round(m.min))}'`;
   };
   const sag = (t) => { v.kommentar.textContent = t; };
-  const sparaLokalt = () => sparaPagaende(S.lagring, S.uid, { sasong: post.sasong, omg: post.omg, typ: post.typ || "liga", matchId: post.matchId, m });
+  let klar = null;
+  const sparaLokalt = () => { if (!klar) sparaPagaende(S.lagring, S.uid, { sasong: post.sasong, omg: post.omg, typ: post.typ || "liga", matchId: post.matchId, m }); };
+  // Bokförs i kön SÅ FORT matchen är avgjord, före sista animationen: en flik som
+  // stängs under den får inte ge ett nytt försök (allra minst på ett förlorat kval).
+  const bokfor = () => {
+    if (klar || !arKlar(m)) return;
+    const res = resultat(m);
+    klar = kval
+      ? kvalKlar(S.K, { res, nu: Date.now(), matchId: post.matchId, kallNamn: fr.kallNamn })
+      : matchKlar(S.K, { res, rng: Math.random, nu: Date.now(), matchId: post.matchId, kallNamn: fr.kallNamn });
+    S.K = klar.K;
+    laggIKo(S.lagring, S.uid, { K: klar.K, matchId: post.matchId, match: klar.match });
+    rensaPagaende(S.lagring, S.uid);
+  };
   plan.stall(m, { avspark: m.lagen === 0 || m.x === 50 });
   skylt();
   sag(m.lagen ? "Matchen fortsätter!" : `${n.text} · Avspark!`);
@@ -210,6 +223,7 @@ export async function spelaMatch(S, el, { pagaende = null, spel = null } = {}) {
     const ut = spela(m, valId, svar, Math.random, Date.now());
     m = ut.m;
     sparaLokalt();
+    bokfor();
     v.kort.innerHTML = "";
     sag(ut.h.rad);
     await plan.spela(ut.h, m);
@@ -223,20 +237,15 @@ export async function spelaMatch(S, el, { pagaende = null, spel = null } = {}) {
   if (behoverStraffar(m)) {
     if (!pagaende?.m?.straffar) await vanta(S.lugnt ? 300 : 900);
     const { spelaStraffar } = await import("./md-straff-spel.js");
-    const ok = await spelaStraffar(S, { m, v, plan, fr, signal, sag, sparaLokalt, satt: (x) => { m = x; } });
+    const ok = await spelaStraffar(S, { m, v, plan, fr, signal, sag, sparaLokalt, satt: (x) => { m = x; bokfor(); } });
     if (!ok) return;
     skylt();
   }
   ljud.sorl(false);
   const res = resultat(m);
-  const klar = kval
-    ? kvalKlar(S.K, { res, nu: Date.now(), matchId: post.matchId, kallNamn: fr.kallNamn })
-    : matchKlar(S.K, { res, rng: Math.random, nu: Date.now(), matchId: post.matchId, kallNamn: fr.kallNamn });
-  S.K = klar.K;
-  // Kön först (då försvinner ingen match om sparningen misslyckas), sedan hela kön
-  // med den nya karriären – tidsgränsen i md-data.js gör att rutan aldrig hänger offline.
-  laggIKo(S.lagring, S.uid, { K: klar.K, matchId: post.matchId, match: klar.match });
-  rensaPagaende(S.lagring, S.uid);
+  // Kön först (bokfor, då försvinner ingen match om sparningen misslyckas), sedan hela
+  // kön med den nya karriären – tidsgränsen i md-data.js gör att rutan aldrig hänger offline.
+  bokfor();
   const sparad = await sparaKon(S, klar.K);
   S.kassa();
   await vanta(S.lugnt ? 200 : 700);
