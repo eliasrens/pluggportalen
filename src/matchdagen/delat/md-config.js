@@ -130,7 +130,7 @@ export const TRANING = { fragor: 8, xpPerRatt: 12, xpPerStjarna: 100, maxSt: 5 }
 export const STYRKA = { bas: 0.2, perDiv: 0.09, spridning: 0.05, min: 0.12, max: 0.92 };
 export const DIVISIONER = ["Division 6", "Division 5", "Division 4", "Division 3", "Division 2", "Division 1", "Elitligan", "Superligan"];
 export const LAGANTAL = [6, 6, 8, 8, 10, 10, 12, 12];
-/** Den högsta divisionen (Superligan): ligavinnaren där kvalar inte – Mästarcupen kommer i Etapp 3. */
+/** Den högsta divisionen (Superligan): ligavinnaren där kvalar inte – den blir mästare och bjuds in till Mästarcupen (Etapp 3). */
 export const TOPP_DIV = DIVISIONER.length - 1;
 export const POANG = { vinst: 3, oavgjort: 1, forlust: 0 };
 /**
@@ -174,6 +174,20 @@ export const KASSA = { start: 600, vinst: 150, oavgjort: 75, forlust: 40, perRat
  * – specens 400 kr halverade som alla inkomster i Etapp 2b (KASSA).
  */
 export const CUP = { namn: "Silverpokalen", rundor: ["Sextondelsfinal", "Kvartsfinal", "Semifinal", "Final"], spridning: 2, seger: 200 };
+// ---- Superligan, Mästarcupen och legendklubben (Etapp 3, spec §10) -----------
+/** Mästare i Superligan (§10.1): pokalens namn. Inbjudan till Mästarcupen nästa säsong. */
+export const SUPERLIGA = { pokal: "Mästare i Superligan" };
+/**
+ * Mästarcupen (§10.2): utslagning i tre rundor mot påhittade toppklubbar från andra länder
+ * (md-namn.js TOPPKLUBBAR) med styrkan styrka.min–styrka.max, inlagda mellan Superligans
+ * omgångar (md-mastarcup.js mcSchema). Finalvinst: den största pokalen och seger × (1 + div × KASSA.perDiv).
+ */
+export const MASTARCUP = { namn: "Mästarcupen", rundor: ["Kvartsfinal", "Semifinal", "Final"], styrka: { min: 0.86, max: 0.95 }, seger: 500 };
+/**
+ * Legendklubben (§10.3): klubbhistoriken (de gamla klubbarna) har högst max rader – en legendklubb
+ * tar minst ~8 säsonger, så taket nås aldrig i praktiken men håller dokumentet litet (≤ tecken).
+ */
+export const LEGEND = { max: 50, tecken: 4000 };
 /** Rekorden (§9.2): bästa andel rätt på en säsong räknas från så här många matcher. */
 export const REKORD = { minMatcher: 3 };
 

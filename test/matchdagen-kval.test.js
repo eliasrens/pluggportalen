@@ -255,7 +255,9 @@ describe("kvalet: bara ligavinnaren, upp vid vinst, aldrig ned (§7.2)", () => {
   it("Superligan är toppen: ligavinnaren får pokalen men inget kval", () => {
     let K = { ...K0, div: C.TOPP_DIV, liga: nyLiga(C.TOPP_DIV, K0.klubb.farg, rng("sl")) };
     K = spelaLigan(K, [6, 0]);
-    assert.equal(K.pokaler.at(-1).namn, "Vinnare Superligan");
+    // Etapp 3 (#873, §10.1): mästarpokalen "superliga" och inbjudan till Mästarcupen nästa säsong.
+    assert.deepEqual([K.pokaler.at(-1).typ, K.pokaler.at(-1).namn], ["superliga", "Mästare i Superligan"]);
+    assert.equal(K.mastarcup, `${K.sasong + 1}-0`);
     assert.equal(kvalMatch(K), null);
     assert.equal(nySasong(K, rng()).div, C.TOPP_DIV);
   });
