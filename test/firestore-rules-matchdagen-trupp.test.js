@@ -82,7 +82,8 @@ describe("matchdagen/{uid} – truppen och marknaden, formen (#871)", () => {
     const kopAv = async (spelare, div = 0, ok = false) => {
       const G = { ...kopia(K1), div, marknad: [spelare] };
       await seed(G);
-      const N = { ...kopia(G), marknad: [], kassa: G.kassa - 3190, trupp: truppMed(G, 5, spelare) };
+      // Spelaren ersätter grundpelaren helt (ingen sammanslagning med dess fält).
+      const N = { ...kopia(G), marknad: [], kassa: G.kassa - 3190, trupp: G.trupp.map((p, j) => (j === 5 ? spelare : p)) };
       await (ok ? assertSucceeds : assertFails)(setDoc(ref(elev()), medTid(N)), JSON.stringify(spelare));
     };
     await kopAv({ ...salu, st: 4 });
