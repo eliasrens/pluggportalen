@@ -202,8 +202,9 @@ export const DAGAR_MAX = 70;
  * Pass/dribbling lyckas med chansPass(anfallarens val och svar) × (1 − chansForsvar(försvararens
  * val och svar) × forsvar); ett rätt Täck som ändå passeras halverar passets längd. Ett skott går in
  * med chansSkott(d, anfallarens svar) × (1 − chansRaddning(försvararens svar) × raddning).
- * Tiden (sekunder, serverns klocka): tid per läge (eller elevens klocka om den är kortare), walkover
- * efter inaktiv utan att göra något, halvtiden högst halvtid, en utmaning gäller i utmaning.
+ * Tiden (sekunder, serverns klocka): tid per läge (eller elevens klocka om den är kortare) + anim för
+ * animationen före valet, walkover efter inaktiv utan att göra något, halvtiden högst halvtid, en
+ * utmaning gäller i utmaning.
  * Kassan (§11.4): deltagande + vinst, för högst perDag vänskapsmatcher per dag och elev.
  * Utan val (tiden ute) spelar anfallaren ett kort pass och försvararen täcker. steg = matchminuter
  * per läge: båda svarar i varje läge (inga automatiska lägen), så stegen är längre än STEG_MIN –
@@ -211,7 +212,7 @@ export const DAGAR_MAX = 70;
  */
 export const VANSKAP = {
   forsvar: 0.5, raddning: 0.55, steg: { min: 2.6, max: 3.8 },
-  tid: 60, inaktiv: 180, halvtid: 60, utmaning: 120,
+  tid: 60, anim: 6, inaktiv: 180, halvtid: 60, utmaning: 120,
   kassa: { deltagande: 100, vinst: 100, perDag: 3 },
   standardVal: { anfall: "kort", forsvar: "tack" },
 };
