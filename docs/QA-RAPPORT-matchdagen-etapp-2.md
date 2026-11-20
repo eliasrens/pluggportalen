@@ -813,3 +813,42 @@ Utan omskrivningen av `mdSummaOk` hade cupen, rekorden och pokalerna sänkt den 
 - Att cupen och rekorden stämmer med matcherna prövas inte (se val 8).
 - Storleken: strängarna i ligans lag, `senaste` och `sasonger` prövas fortfarande inte (F8, 2b) – pokalerna gör det nu.
 - F9 (2b): ett köp + en inbytt köpt reserv i samma skrivning räknas som släppt (+385 kr, högst +400 per köp).
+
+### Så testas det (2c)
+
+- **Förhandsvisningen:** `PORT=8872 node server.mjs` → `preview/preview-matchdagen.html?ny=1&omg=2&vy=tabell` (cupen
+  under tabellen), `?ny=1&omg=2` (Match-fliken: kvartsfinalen väntar), `?ny=1&omg=3&rekord=1` → Fortsätt matchen →
+  spela klart → "Nytt rekord: 6 mål i en match!", `?vy=stat` (Rekord), `?ny=1&omg=5&vy=tabell` (vunnen),
+  `?ny=1&omg=3&cup=ute&vy=tabell` (utslagna).
+- **Appen mot emulatorn:** `MD_PA=1 MD_TRUPP=1 PORT=8872 bash admin/qa-matchdagen-867-preview.sh` – Alva har spelat
+  två omgångar men ingen cupmatch: Match-fliken visar sextondelsfinalen → spela → sparad → Tabell visar cupen →
+  nästa ligamatch → kvartsfinalen. Statistik → Rekord.
+
+### Körningar (Codern, 872)
+
+| Svit | Resultat |
+| --- | --- |
+| `node --test` (de 319 filerna som inte kräver emulatorn) | 4661 pass, 0 fail, 1 skipped |
+| Matchdagen (`test/matchdagen-*.test.js`) | 242 pass (ingår ovan; 26 i `matchdagen-cup.test.js`, 9 i `matchdagen-cup-vy.test.js`) |
+| `npm run test:rules` (`admin/qa-matchdagen-867-svit.sh`) | 1106 pass, 0 fail (8 i `firestore-rules-matchdagen-cup.test.js`) |
+| `npm run test:functions` (samma rigg) | 278 pass, 0 fail fram till test 280 – avbruten av minnesbrist på maskinen (OOM), körs i sin helhet av Testern. Inga filer i `functions/` ändrade i 2c |
+| `npm run test:e2e` | körs av Testern |
+| Bootgrafen | 107 filer (oförändrad, `test/matchdagen-modul.test.js`) |
+| `npm run balans:matchdagen` | 148 s – tabellerna ovan |
+| Marginalen mot 1000-gränsen | alla skrivningar mätta (tabellen ovan) |
+| Bilder per sekund | 19,8 i snitt, lägst 12 (SwiftShader, se sammanfattningen) |
+
+Appen mot emulatorn kördes inte av Codern (en emulator åt gången, minnet) – cupens och rekordens flöde är visat i
+förhandsvisningen (skärmdumparna) och i reglerna (`firestore-rules-matchdagen-cup.test.js`: cupmatch, final och
+hela säsongen med cupen i en skrivning).
+
+### Granskningen (code review på 0e53ce08..81cd6022) – rättat
+
+- **Sviten annonserades inte när det gamla svitrekordet var 1** (låg–medel): annonsen krävde exakt `gamla + 1`
+  matcher, vilket då är 2 – under minimum 3 – så sviten passerade utan annons. Nu vid `max(gamla + 1, 3)`, fortfarande
+  en gång per svit. Test i `matchdagen-cup.test.js`.
+- **Cupen visades som "väntar" när ligan var slut utan cup** (låg, bara ett dokument från före 2c): Tabell och
+  lärarens vy säger nu "spelas igen nästa säsong" / "ingen cup den här säsongen". Test i `matchdagen-cup-vy.test.js`.
+- **Inte rättat:** en ligamatch som låg halvspelad lokalt när 2c går ut ersätts av cupmatchen (den cupmatch som väntar
+  går först). Matchdagen är inte i drift, så det kan inte hända. Granskaren fann i övrigt inget i XSS, reglernas form
+  mot appens skrivningar (simulerade ~400 säsonger) eller köns pengar.
