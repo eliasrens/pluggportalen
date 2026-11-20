@@ -159,6 +159,45 @@ describe("matchdagen/{uid} – runda 2: marknadsraderna, dubbelköp och kassan (
   });
 });
 
+// ---- Del 2b (runda 3, efter F6/F7): kassan i byten, släpp och köp med fulla reserver ------------
+const gp = (i, pos) => ({ id: `g${i}`, namn: `Grund Pelare${i}`, pos, nr: i, st: 2, xp: 0, grundpelare: true, kapten: false });
+const kopt = (id, pos, st) => ({ id, namn: `Köpt ${id}`, pos, nr: 60 + st, st, xp: 0 });
+describe("matchdagen/{uid} – runda 3: F6 och F7 (Testern #871)", () => {
+  it("F6: byte fram och tillbaka, släppt reserv och struken marknadsrad ger inga pengar; utan pengar går de", async () => {
+    const K2 = kop(KM, SALU.id).K;
+    await seed(K2);
+    const grund = K2.reserver[0];
+    const ersatt = K2.trupp.find((p) => p.pos === grund.pos && !p.grundpelare);
+    const byt = K2.trupp.map((p) => (p.id === ersatt.id ? grund : p));
+    const D = tillDok(K2);
+    await assertFails(ra(D, { trupp: byt, reserver: [ersatt], kassa: K2.kassa + 400 }), "byte +400");
+    await assertFails(ra(D, { trupp: byt, reserver: [ersatt], kassa: K2.kassa + 1 }), "byte +1");
+    await assertFails(ra(D, { trupp: byt, reserver: [ersatt], marknad: D.marknad.slice(1), kassa: K2.kassa + 400 }), "byte + struken rad +400");
+    await assertSucceeds(ra(D, { trupp: byt, reserver: [ersatt] }), "kontroll: byte in");
+    await seed({ ...K2, trupp: byt, reserver: [ersatt] });
+    await assertFails(ra(D, { kassa: K2.kassa + 400 }), "byte tillbaka +400");
+    await assertSucceeds(ra(D), "kontroll: byte tillbaka");
+    const KR = { ...kopia(K2), reserver: [...K2.reserver, kopt("kr5", "MIT", 5)] };
+    await seed(KR);
+    await assertFails(ra(tillDok(KR), { reserver: K2.reserver, kassa: KR.kassa + 400 }), "släpp utan köp +400");
+    await assertFails(ra(tillDok(KR), { reserver: K2.reserver, kassa: KR.kassa + 1 }), "släpp utan köp +1");
+    await assertSucceeds(ra(tillDok(KR), { reserver: K2.reserver }), "kontroll: släpp utan pengar");
+  });
+  for (const st of [3, 4, 5]) {
+    it(`F7: köp med fulla reserver, en släppt köpt ${st}★ ger halva sitt pris`, async () => {
+      const FULL = { ...kopia(KM), div: 7, kassa: 6000, reserver: [gp(11, "FÖR"), gp(12, "MIT"), gp(13, "MIT"), gp(14, "MV"), kopt("kr", "MIT", st)] };
+      await seed(FULL);
+      const ut = kop(FULL, SALU.id, { slapp: "kr" }).K;
+      const ratt = 6000 - 1210 + Math.round([0, 150, 560, 1210, 2090, 3190][st] / 2);
+      if (ut.kassa !== ratt) throw new Error(`motorn ${ut.kassa} ≠ ${ratt}`);
+      await assertSucceeds(ra(tillDok(ut)), `rätt kassa ${ratt}`);
+      await seed(FULL);
+      await assertFails(ra(tillDok(ut), { kassa: ratt + 1 }), "+1 kr");
+      await assertFails(ra(tillDok(ut), { kassa: 6000 - 1210 + 1600 }), "platta 1 600");
+    });
+  }
+});
+
 // ---- Del 3: de gränser som §15.4 säger att reglerna INTE prövar (diagnostik) ------------
 const UTFALL = [];
 async function prova(vad, p) {
@@ -182,31 +221,19 @@ describe("matchdagen/{uid} – återstående gränser (diagnostik, ingen assert)
     await seed(KM);
     await prova("alla 7 startspelare +96 i ett läger", ra(tillDok(KM), { lager: "1-1", trupp: KM.trupp.map((p) => ({ ...p, xp: 96 })) }));
   });
-  it("kassan +400 med ett byte (reserverna ändras, inget köp) – F6", async () => {
-    const K2 = kop(KM, SALU.id).K;
-    await seed(K2);
-    const grund = K2.reserver[0];
-    const ersatt = K2.trupp.find((p) => p.pos === grund.pos && !p.grundpelare);
-    const byt = K2.trupp.map((p) => (p.id === ersatt.id ? grund : p));
-    let K = { ...tillDok(K2) };
-    for (let n = 0; n < 3; n++) {
-      const N = n % 2 === 0 ? { ...K, trupp: byt, reserver: [ersatt] } : { ...K, trupp: tillDok(K2).trupp, reserver: [grund] };
-      N.kassa = K.kassa + 400;
-      if (await prova(`byte ${n + 1} med kassa +400 (${N.kassa} kr)`, ra(N))) K = N;
-    }
-    await seed({ ...K2, reserver: [...K2.reserver, { id: "kr9", namn: "Köpt Reserv", pos: "MIT", nr: 70, st: 4, xp: 0 }] });
-    await prova("en köpt reserv släpps utan köp, kassa +400", ra(tillDok(K2), { kassa: K2.kassa + 400 }));
-  });
-  it("fulla reserver: återbetalningen 1 600 kr oavsett den släppta reservens värde", async () => {
-    const g = (i, pos) => ({ id: `g${i}`, namn: `Grund Pelare${i}`, pos, nr: i, st: 2, xp: 0, grundpelare: true, kapten: false });
-    const billig = { id: "kr3", namn: "Billig Reserv", pos: "MIT", nr: 77, st: 3, xp: 0 };
-    const FULL = { ...kopia(KM), kassa: 5000, reserver: [g(11, "FÖR"), g(12, "MIT"), g(13, "MIT"), g(14, "ANF"), billig] };
-    await seed(FULL);
-    const ut = kop(FULL, SALU.id, { slapp: "kr3" });
-    // Rätt kassa: 5000 − 1210 + 605 = 4395. Prövar 5000 − 1210 + 1600 = 5390 (taket +400 → 5400).
-    await prova(`köp med fulla reserver, rätt kassa ${ut.K.kassa}`, ra(tillDok(ut.K)));
-    await seed(FULL);
-    await prova("samma köp men kassan 5 390 (släppt 3★ räknad som 1 600)", ra(tillDok(ut.K), { kassa: 5390 }));
+  it("F7-variant: köp + en köpt reserv byts in i samma skrivning (räknas den som 'släppt'?)", async () => {
+    // Grundpelaren på MV ersätts av ett köp (→ reserverna); samtidigt byts den köpta 5★ ANF-reserven
+    // in för en ANF-grundpelare (→ reserverna). Ingen lämnar klubben – rätt kassa är 6000 − 1210.
+    const MVK = { id: "kmv3", namn: "Ny Malvakt", pos: "MV", nr: 50, st: 3, xp: 0 };
+    const R5 = kopt("kr5", "ANF", 5);
+    const G = { ...kopia(KM), kassa: 6000, marknad: [...KM.marknad.slice(0, 5), MVK], reserver: [R5] };
+    await seed(G);
+    const mv = G.trupp[0], anf = G.trupp[5];
+    const N = { ...G, marknad: G.marknad.filter((p) => p.id !== "kmv3"),
+      trupp: G.trupp.map((p, j) => (j === 0 ? MVK : j === 5 ? R5 : p)), reserver: [mv, anf] };
+    await prova("köp MV 3★ + byt in köpt 5★-reserv, kassa 6000 − 1210 (rätt)", ra(tillDok(N), { kassa: 4790 }));
+    await seed(G);
+    await prova("samma men kassa 6000 − 1210 + 1595 = 6385 (+385, reserven räknad som såld)", ra(tillDok(N), { kassa: 6385 }));
   });
   it("storleken (spec ≤ 200 kB): fält från 1c/2a som inte prövas innehållsmässigt", async () => {
     const STOR = "x".repeat(150 * 1024);
