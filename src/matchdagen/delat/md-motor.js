@@ -57,11 +57,14 @@ export function chansPass(val, ratt, bonus, styrka) {
   return kl((ratt ? p.ratt : p.fel) + bonusAv(bonus, "MIT") - styrka * C.PASS_STYRKA, 0, 1);
 }
 
-/** Vårt skott går in (d = avståndet till mål i meter). */
+/**
+ * Vårt skott går in (d = avståndet till mål i meter). Fel svar ger SKOTT.fel, men
+ * aldrig mer än ett rätt svar från samma avstånd (ett långskott går nästan aldrig in).
+ */
 export function chansSkott(d, ratt, bonus, styrka) {
-  if (!ratt) return C.SKOTT.fel;
   const s = C.SKOTT;
-  return kl(kl(s.bas - d * s.perMeter, s.min, s.max) * (1 - styrka * s.styrka) + bonusAv(bonus, "ANF"), 0, 1);
+  const rattChans = kl(kl(s.bas - d * s.perMeter, s.min, s.max) * (1 - styrka * s.styrka) + bonusAv(bonus, "ANF"), 0, 1);
+  return ratt ? rattChans : Math.min(s.fel, rattChans);
 }
 
 /** Deras pass på deras planhalva går snett och blir vår boll. */

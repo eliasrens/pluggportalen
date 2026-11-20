@@ -184,8 +184,8 @@ En tidigare körning av `test:functions` gav 416/157 (`internal` från callablar
 | Rätt | Vinst | Oavgj. | Förlust | Ligan | Mål/match | ≥1 eget mål | Förlust ≥4 | Skillnad ≥6 | Match (min) | Säsong (min) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 70 % | 61 % | 25 % | 14 % | 59 % | 2,56 | 87 % | 0 % | 0,0 % | 7,0 | 46 |
-| 50 % | 34 % | 30 % | 36 % | 14 % | 2,39 | 73 % | 0 % | 0,0 % | 7,0 | 47 |
-| 30 % | 13 % | 24 % | 64 % | 1 % | 2,40 | 54 % | 2 % | 0,0 % | 7,0 | 47 |
+| 50 % | 34 % | 30 % | 36 % | 14 % | 2,38 | 73 % | 0 % | 0,0 % | 7,0 | 47 |
+| 30 % | 12 % | 24 % | 64 % | 1 % | 2,39 | 53 % | 2 % | 0,0 % | 7,0 | 47 |
 
 Alla mål i §12 för Division 6 nås. Med specens startvärden vann 70 %-eleven 16 %, matchen hade 0,8 mål och tog
 4 minuter. Vilka tal som ändrades och varför står i `MATCHDAGEN.md` §7. Raderna för Superligan och Mästarcupen
@@ -228,7 +228,7 @@ budget (§13).
 1. **Balansen ändrade tio grupper av specens tal** (`MATCHDAGEN.md` §7). Specens 8–10 lägen per halvlek och 6–8 minuter per match
    går inte ihop när ett svar tar 8–12 s. Därför gäller §12, och klockan går 1,8–2,9 minuter per läge, vilket ger
    ~19 lägen per halvlek och ~28 frågor per match. Ett fel svar på ett kort pass lyckas nu i 60 % av fallen (specen
-   har 25 %) och ett skott efter fel svar går in i 15 % (specen har 3 %). Annars når 30 %-eleven aldrig målet "minst
+   har 25 %) och ett skott efter fel svar går in i 15 % (specen har 3 %), dock aldrig oftare än ett rätt svar från samma avstånd (F1 nedan). Annars når 30 %-eleven aldrig målet "minst
    ett mål i hälften av matcherna". Rätt svar ger fortfarande mest: 0,90 mot 0,60 för pass och 0,50 mot 0,15 för
    skott från 20 m. Styrkeformeln för divisionerna är oförändrad.
 2. **Tidsmodellen:** "varje svar räknas som 8–12 sekunder och animationerna ingår" tolkas som 8–12 s per svar,
@@ -268,3 +268,14 @@ budget (§13).
     att besvara. Kladdytan från Räkna finns inte på frågekortet.
 17. **Räkna-strömmens frö** blandar in sessionens slump. Annars skulle en elev med blockerad `localStorage` få
     samma uppgifter i varje match.
+
+### Rättningsrunda 1 (testarens fynd på f4422a5)
+
+- **F1 (medel), rättat.** Ett fel svar på ett långskott gav större målchans än ett rätt svar, eftersom
+  `SKOTT.fel` (0,15) var platt. Vid 44 m gav fel svar 15 % och rätt svar 2,7 %. Nu ger fel svar
+  `min(SKOTT.fel, chansen vid rätt svar från samma avstånd)`. Testarens F1-test
+  (`test/matchdagen-tester-868.test.js`) är inte längre todo. Balansen efteråt, med 1 000 säsonger:
+  70 % vinner 61 % och ligan 59 %, 50 % vinner 34 %, 30 % gör minst ett mål i 53 % av matcherna. Alla mål nås.
+- **F2 (låg), rättat.** Skriv själv-kortet flödade över vid 375 px: `scrollWidth` 543 och Svara-knappen utanför
+  skärmen. Fältets egen bredd (size=20) gav kortet en minsta bredd. `.md-fraga-input { width: 0 }` löste det,
+  nu är `scrollWidth` 375 och Svara slutar vid 341 px.

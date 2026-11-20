@@ -5,7 +5,7 @@
 //   • varje fråga ur strömmen går att rätta: facit ger rätt, ett annat svar fel
 //   • motorn: samma frö + samma svar → identisk match; en hel match i ~20 lägen
 //     per halvlek, halvtid exakt en gång, klockan når 90
-//   • F1 (todo): fel svar på ett långskott ska inte ge större målchans än rätt
+//   • F1: fel svar på ett långskott ska inte ge större målchans än rätt
 // Ren node: node --test test/matchdagen-tester-868.test.js
 // ============================================================================
 
@@ -141,7 +141,7 @@ describe("motorn (tester #868)", () => {
     }
   });
 
-  it("F1: fel svar ger aldrig större målchans än rätt svar från samma avstånd", { todo: "F1 – SKOTT.fel 0,15 > rätt svar bortom ~37 m" }, () => {
+  it("F1: fel svar ger aldrig större målchans än rätt svar från samma avstånd", () => {
     for (let d = 0; d <= 45; d++) {
       assert.ok(M.chansSkott(d, false, {}, 0.2) <= M.chansSkott(d, true, {}, 0.2), `d=${d}: fel ${M.chansSkott(d, false, {}, 0.2)} > rätt ${M.chansSkott(d, true, {}, 0.2).toFixed(3)}`);
     }

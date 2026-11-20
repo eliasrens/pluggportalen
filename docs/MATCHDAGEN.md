@@ -202,9 +202,9 @@ svar tar 8–12 s.
 
 | Rätt | Vinst | Oavgj. | Förlust | Ligan | Mål/match | Gjorda | Insl. | ≥1 eget mål | Förlust ≥4 | Skillnad ≥6 | Frågor/match | Match (min) | Säsong (min) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 70 % | 61 % | 25 % | 14 % | 59 % | 2,56 | 1,74 | 0,82 | 87 % | 0 % | 0,0 % | 27,9 | 7,0 | 46 |
-| 50 % | 34 % | 30 % | 36 % | 14 % | 2,39 | 1,18 | 1,21 | 73 % | 0 % | 0,0 % | 28,2 | 7,0 | 47 |
-| 30 % | 13 % | 24 % | 64 % | 1 % | 2,40 | 0,73 | 1,67 | 54 % | 2 % | 0,0 % | 28,6 | 7,0 | 47 |
+| 70 % | 61 % | 25 % | 14 % | 59 % | 2,56 | 1,73 | 0,82 | 87 % | 0 % | 0,0 % | 27,9 | 7,0 | 46 |
+| 50 % | 34 % | 30 % | 36 % | 14 % | 2,38 | 1,18 | 1,21 | 73 % | 0 % | 0,0 % | 28,2 | 7,0 | 47 |
+| 30 % | 12 % | 24 % | 64 % | 1 % | 2,39 | 0,72 | 1,67 | 53 % | 2 % | 0,0 % | 28,6 | 7,0 | 47 |
 
 Målen (`MAL` i simuleringen): 70 % vinner 55–65 % och ligan 35–65 % av säsongerna. 50 % vinner 30–40 % och
 ligan 3–35 %. 30 % gör minst ett mål i minst 50 % av matcherna och förlorar med 4 mål eller mer i högst 15 %. För
@@ -218,7 +218,7 @@ alla gäller 1,5–4 mål per match, högst 1 % matcher med 6 måls skillnad (st
 | `STEG_MIN` | 3,5–6 | 1,8–2,9 | fler lägen (~38 per match, 28 frågor) – matchen blir 6–8 min och laget hinner anfalla |
 | `PASS` fram (kort/långt/dribbla) | 10–16 / 22–32 / 12–16 | 17–23 / 25–35 / 18–23 | färre pass i rad krävs för ett skottläge |
 | `PASS` fel svar (kort/långt/dribbla) | 0,25 / 0,10 / 0,12 | 0,60 / 0,25 / 0,30 | 30 %-eleven ska göra mål i hälften av matcherna; rätt svar ger fortfarande mest |
-| `SKOTT.bas` / `SKOTT.fel` | 0,85 / 0,03 | 1,0 / 0,15 | fler mål från bra lägen; ett långskott (40 m) är fortfarande 7 % och ett perfekt avslut högst 0,8 × 0,93 |
+| `SKOTT.bas` / `SKOTT.fel` | 0,85 / 0,03 | 1,0 / 0,15 | fler mål från bra lägen; ett långskott (40 m) är fortfarande 7 % och ett perfekt avslut högst 0,8 × 0,93. Fel svar ger `min(SKOTT.fel, chansen vid rätt svar)`, så ett fel svar går aldrig bättre än ett rätt från samma avstånd (#868 F1) |
 | `HORNA_CHANS` | 0,30 | 0,45 | fler skottlägen efter en räddning |
 | `SNETT.bas` | 0,18 | 0,25 | fler bollvinster på deras planhalva |
 | `TACKLA` | 0,66 / 0,12 | 0,61 / 0,15 | jämnare mellan 70 % och 50 % |
