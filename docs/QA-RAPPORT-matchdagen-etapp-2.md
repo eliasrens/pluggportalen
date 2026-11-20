@@ -442,7 +442,7 @@ index, inga functions.
 | `node --test` (de 319 filerna som inte kräver emulatorn) | 4621 pass, 0 fail, 1 skipped. (6 "cancelled" i `firestore-rules-amneslasning-texter.test.js` – en emulatorfil som inte står i något npm-skript, oförändrad) |
 | Matchdagen (`test/matchdagen-*.test.js`) | 200 pass (ingår ovan; 27 nya i `matchdagen-trupp.test.js`) |
 | `npm run test:rules` (`admin/qa-matchdagen-867-svit.sh`) | 1071 pass, 0 fail (17 i `firestore-rules-matchdagen-trupp.test.js`) |
-| `npm run test:functions` (samma rigg) | FUNCTIONS_TODO |
+| `npm run test:functions` (samma rigg) | 573 pass, 0 fail, 2 kända TODO (schack F9) – inga filer i `functions/` ändrade i 2b |
 | `npm run test:e2e` | 5/5 |
 | Bootgrafen | 107 filer (oförändrad, `test/matchdagen-modul.test.js`) |
 | `npm run balans:matchdagen` | 116 s – tabellerna ovan; Division 6/alla divisioner/startlaget identiska med 2a |
