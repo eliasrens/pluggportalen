@@ -755,6 +755,102 @@ service cloud.firestore {
         d.updatedBy == request.auth.uid;
     }
 
+    // MATCHDAGEN – elevens karriär (#869, spec §6.1–6.2, docs/MATCHDAGEN.md §10):
+    // matchdagen/{uid} = klubben, divisionen, säsongen, kassan, truppen, ligan och
+    // statistiken (src/matchdagen/delat/md-sasong.js). Eleven själv skriver – EN gång
+    // per match (+ ny klubb/nytt namn) – och reglerna prövar formen: kända fält,
+    // div 0–7, st 1–5, begränsade listor och mappar (≈ högst 200 kB, se docs).
+    // Läraren med eleven (hasStudent) läser och får BARA återställa klubb.namn till
+    // standardnamnet. matcher/{id}: en per spelad match, bara create av eleven, ingen
+    // ändring, radering bara av admin. Matchdagen ger inga pluggmynt.
+    // ⚠️ DEPLOY: `firebase deploy --only firestore:rules` FÖRE webben (1c).
+    match /matchdagen/{uid} {
+      allow read: if isSelf(uid) || hasStudent(uid);
+      allow create: if isSelf(uid) && validMatchdagen();
+      allow update: if (isSelf(uid) && validMatchdagen()) ||
+                       (hasStudent(uid) && mdBaraLagnamn());
+      allow delete: if isAdmin();
+      match /matcher/{matchId} {
+        allow read: if isSelf(uid) || hasStudent(uid);
+        allow create: if isSelf(uid) && matchId.size() <= 64 && validMdMatch(request.resource.data);
+        allow update: if false;
+        allow delete: if isAdmin();
+      }
+    }
+    function mdTal(v, lo, hi) { return (v is int || v is float) && v >= lo && v <= hi; }
+    function mdHeltal(v, lo, hi) { return v is int && v >= lo && v <= hi; }
+    function mdKlubbOk(k) {
+      return k is map && k.keys().hasOnly(['namn', 'farg', 'legendStjarnor']) && k.keys().hasAll(['namn', 'farg']) &&
+        k.namn is string && k.namn.size() >= 1 && k.namn.size() <= 24 &&
+        k.farg is string && k.farg.matches('#[0-9a-fA-F]{6}') &&
+        (!('legendStjarnor' in k) || mdHeltal(k.legendStjarnor, 0, 1000));
+    }
+    // Truppen är startelvan: exakt 7 spelare (1 MV, 2 FÖR, 2 MIT, 2 ANF), var och en 1–5
+    // stjärnor. Reglerna kan inte loopa – varje plats prövas, så billigt som möjligt.
+    // ⚠️ Gränsen 1000 uttryck per begäran: allt i validMatchdagen räknas, så bara
+    // stjärnorna prövas per spelare (namnen är färdiga och kan inte ändras i appen).
+    function mdTruppOk(t) {
+      return t is list && t.size() == 7 && t[0].st in [1, 2, 3, 4, 5] && t[1].st in [1, 2, 3, 4, 5] &&
+        t[2].st in [1, 2, 3, 4, 5] && t[3].st in [1, 2, 3, 4, 5] && t[4].st in [1, 2, 3, 4, 5] &&
+        t[5].st in [1, 2, 3, 4, 5] && t[6].st in [1, 2, 3, 4, 5];
+    }
+    function mdLigaOk(l) {
+      return l is map && l.keys().hasOnly(['lag', 'schema', 'tabell', 'omg']) &&
+        l.lag is list && l.lag.size() >= 2 && l.lag.size() <= 12 &&
+        l.schema is list && l.schema.size() <= 11 &&
+        l.tabell is map && l.tabell.size() <= 12 && mdHeltal(l.omg, 0, 11);
+    }
+    // Bara de fält som ÄNDRAS prövas (diff().affectedKeys(), som schackOk) – en match-
+    // sparning rör kassa, liga, summa, senaste, dagar (+ säsonger/pokaler), aldrig truppen.
+    // En ny klubb (create) prövar allt. Fälten prövas inline: att skicka hela dokumentet
+    // till en hjälpfunktion eller indexera det dynamiskt (d[k]) kostar för mycket.
+    function validMatchdagen() {
+      let d = request.resource.data;
+      let a = resource == null ? d.keys().toSet() : d.diff(resource.data).affectedKeys();
+      return d.keys().hasOnly(['version', 'klubb', 'div', 'sasong', 'kassa', 'trupp', 'reserver', 'marknad',
+          'liga', 'kval', 'cup', 'mastarcup', 'pokaler', 'rekord', 'summa', 'senaste', 'sasonger', 'dagar', 'senast']) &&
+        d.keys().hasAll(['version', 'klubb', 'div', 'sasong', 'kassa', 'trupp', 'liga', 'summa', 'senast']) &&
+        d.senast == request.time &&
+        (!('version' in a) || mdHeltal(d.version, 1, 100)) &&
+        (!('klubb' in a) || mdKlubbOk(d.klubb)) &&
+        (!('div' in a) || mdHeltal(d.div, 0, 7)) &&
+        (!('sasong' in a) || mdHeltal(d.sasong, 1, 10000)) &&
+        (!('kassa' in a) || mdTal(d.kassa, 0, 100000000)) &&
+        (!('trupp' in a) || mdTruppOk(d.trupp)) &&
+        (!('liga' in a) || mdLigaOk(d.liga)) &&
+        (!('summa' in a) || (d.summa is map && d.summa.size() <= 12 &&
+          (!('perKalla' in d.summa) || (d.summa.perKalla is map && d.summa.perKalla.size() <= 150)))) &&
+        (!('reserver' in d) || (d.reserver is list && d.reserver.size() <= 5)) &&
+        (!('marknad' in d) || (d.marknad is list && d.marknad.size() <= 6)) &&
+        (!('kval' in d) || (d.kval is map && d.kval.size() <= 20)) &&
+        (!('cup' in d) || (d.cup is map && d.cup.size() <= 20)) &&
+        (!('mastarcup' in d) || (d.mastarcup is map && d.mastarcup.size() <= 20)) &&
+        (!('rekord' in d) || (d.rekord is map && d.rekord.size() <= 30)) &&
+        (!('pokaler' in d) || (d.pokaler is list && d.pokaler.size() <= 300)) &&
+        (!('senaste' in d) || (d.senaste is list && d.senaste.size() <= 20)) &&
+        (!('sasonger' in d) || (d.sasonger is list && d.sasonger.size() <= 200)) &&
+        (!('dagar' in d) || (d.dagar is map && d.dagar.size() <= 70));
+    }
+    // Läraren: bara klubb.namn, och bara tillbaka till standardnamnet (md-namn.js STANDARD_LAGNAMN).
+    function mdBaraLagnamn() {
+      let d = request.resource.data;
+      return d.diff(resource.data).affectedKeys().hasOnly(['klubb']) &&
+        d.klubb.diff(resource.data.klubb).affectedKeys().hasOnly(['namn']) &&
+        d.klubb.namn == 'Pluggporten FC';
+    }
+    function validMdMatch(d) {
+      return d.keys().hasOnly(['datum', 'sasong', 'div', 'typ', 'omg', 'mot', 'oss', 'dem', 'straffar', 'mal',
+          'stat', 'fragor', 'ratt', 'perKalla', 'sekunder']) &&
+        d.keys().hasAll(['datum', 'sasong', 'div', 'typ', 'mot', 'oss', 'dem', 'mal', 'stat', 'fragor', 'ratt', 'sekunder']) &&
+        d.datum == request.time && mdHeltal(d.sasong, 1, 10000) && mdHeltal(d.div, 0, 7) &&
+        d.typ in ['liga', 'kval', 'cup', 'mastarcup', 'vanskap'] &&
+        d.mot is string && d.mot.size() >= 1 && d.mot.size() <= 40 &&
+        mdHeltal(d.oss, 0, 40) && mdHeltal(d.dem, 0, 40) && d.mal is list && d.mal.size() <= 80 &&
+        d.stat is map && d.stat.size() <= 20 && mdHeltal(d.fragor, 0, 500) && mdHeltal(d.ratt, 0, 500) && d.ratt <= d.fragor &&
+        (!('perKalla' in d) || (d.perKalla is map && d.perKalla.size() <= 70)) && mdTal(d.sekunder, 0, 36000) &&
+        (!('omg' in d) || mdHeltal(d.omg, 1, 11)) && (!('straffar' in d) || (d.straffar is list && d.straffar.size() == 2));
+    }
+
     // Klass-projektion (#231/#232): ETT förberäknat dokument per klass som
     // by-/grannby-översikten läser i O(1) läsningar (1 getDoc för hela klassen)
     // i stället för ett studentData-dok PER elev (prod-incident 2026-09-09).
