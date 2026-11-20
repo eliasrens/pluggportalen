@@ -109,7 +109,7 @@ export function skapa2dRitare({ yta, lugnt = false }) {
       return;
     }
     const hoger = lag === "oss";
-    svg.setAttribute("viewBox", hoger ? `${PLAN_L - 40} 12 40 44` : "0 12 40 44");
+    svg.setAttribute("viewBox", hoger ? `${PLAN_L - 40} 18 40 32` : "0 18 40 32");
     svg.setAttribute("preserveAspectRatio", hoger ? "xMaxYMid meet" : "xMinYMid meet");
   }
 

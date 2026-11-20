@@ -759,7 +759,7 @@ service cloud.firestore {
     // matchdagen/{uid} = klubben, divisionen, säsongen, kassan, truppen, ligan och
     // statistiken (src/matchdagen/delat/md-sasong.js). Eleven själv skriver – EN gång
     // per match (+ ny klubb/nytt namn) – och reglerna prövar formen: kända fält,
-    // div 0–7, st 1–5, begränsade listor och mappar (≈ högst 200 kB, se docs).
+    // div 0–7, st 1–5, begränsade listor och mappar (≈ högst 200 kB, se docs), kvalet (#870).
     // Läraren med eleven (hasStudent) läser och får BARA återställa klubb.namn till
     // standardnamnet. matcher/{id}: en per spelad match, bara create av eleven, ingen
     // ändring, radering bara av admin. Matchdagen ger inga pluggmynt.
@@ -831,7 +831,7 @@ service cloud.firestore {
         (!('summa' in a) || mdSummaOk(d.summa)) &&
         (!('reserver' in d) || (d.reserver is list && d.reserver.size() <= 5)) &&
         (!('marknad' in d) || (d.marknad is list && d.marknad.size() <= 6)) &&
-        (!('kval' in d) || (d.kval is map && d.kval.size() <= 20)) &&
+        (!('kval' in a) || d.kval == null || mdKvalOk(d.kval)) &&
         (!('cup' in d) || (d.cup is map && d.cup.size() <= 20)) &&
         (!('mastarcup' in d) || (d.mastarcup is map && d.mastarcup.size() <= 20)) &&
         (!('rekord' in d) || (d.rekord is map && d.rekord.size() <= 30)) &&
@@ -840,6 +840,22 @@ service cloud.firestore {
         (!('sasonger' in d) || (d.sasonger is list && d.sasonger.size() <= 200)) &&
         (!('dagar' in d) || (d.dagar is map && d.dagar.size() <= 70 && !d.dagar.values().hasAny([null])));
     }
+    // Kvalet (#870, spec §7.2, md-kval.js): null eller { div, sasong, mot: { namn, farg, styrka },
+    // spelad, vann?, oss?, dem?, straffar? } – bara tal, bool och ett kort lagnamn, så inget
+    // i dokumentet kan bli HTML i lärarens vy (som summan, #869 G1). Prövas bara när det ändras.
+    function mdKvalOk(k) {
+      return k is map && k.keys().hasOnly(['div', 'sasong', 'mot', 'spelad', 'vann', 'oss', 'dem', 'straffar']) &&
+        k.keys().hasAll(['div', 'sasong', 'mot', 'spelad']) &&
+        mdHeltal(k.div, 0, 6) && mdHeltal(k.sasong, 1, 10000) && k.spelad is bool &&
+        k.mot is map && k.mot.keys().hasOnly(['namn', 'farg', 'styrka']) && k.mot.keys().hasAll(['namn', 'farg', 'styrka']) &&
+        k.mot.namn is string && k.mot.namn.size() >= 1 && k.mot.namn.size() <= 40 &&
+        k.mot.farg is string && k.mot.farg.matches('#[0-9a-fA-F]{6}') && mdTal(k.mot.styrka, 0, 1) &&
+        (!('vann' in k) || k.vann is bool) &&
+        (!('oss' in k) || mdHeltal(k.oss, 0, 40)) && (!('dem' in k) || mdHeltal(k.dem, 0, 40)) &&
+        (!('straffar' in k) || mdStraffarOk(k.straffar));
+    }
+    // Straffläggningen [vi, de]: två heltal (sudden death högst 30 omgångar).
+    function mdStraffarOk(s) { return s is list && s.size() == 2 && mdHeltal(s[0], 0, 40) && mdHeltal(s[1], 0, 40); }
     // Läraren: bara klubb.namn, och bara tillbaka till standardnamnet (md-namn.js STANDARD_LAGNAMN).
     function mdBaraLagnamn() {
       let d = request.resource.data;
@@ -857,7 +873,7 @@ service cloud.firestore {
         mdHeltal(d.oss, 0, 40) && mdHeltal(d.dem, 0, 40) && d.mal is list && d.mal.size() <= 80 &&
         d.stat is map && d.stat.size() <= 20 && mdHeltal(d.fragor, 0, 500) && mdHeltal(d.ratt, 0, 500) && d.ratt <= d.fragor &&
         (!('perKalla' in d) || (d.perKalla is map && d.perKalla.size() <= 70)) && mdTal(d.sekunder, 0, 36000) &&
-        (!('omg' in d) || mdHeltal(d.omg, 1, 11)) && (!('straffar' in d) || (d.straffar is list && d.straffar.size() == 2));
+        (!('omg' in d) || mdHeltal(d.omg, 1, 11)) && (!('straffar' in d) || mdStraffarOk(d.straffar));
     }
 
     // Klass-projektion (#231/#232): ETT förberäknat dokument per klass som
