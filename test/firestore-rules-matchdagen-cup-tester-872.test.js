@@ -92,6 +92,21 @@ describe("#872 Tester: cup, rekord och pokaler förbi appen", () => {
     // join('/').size() <= 20000 hela listan (appens största: 300 × 62 tecken + avgränsare).
     assert.equal(gick, false, `pokaler med ${bytes} byte`);
   });
+  it("pokaler: appens största lista (300 rader, namn 40 tecken, säsong 5 siffror) går igenom taket; en rad till eller 20 001 tecken nekas", async () => {
+    await seed(K1);
+    const rad = (i) => `kval|${"Kvalade upp till Superligan med bravur!!".slice(0, 40)}|${String(10000 + i).slice(0, 5)}|2026-11-20`;
+    const max = Array.from({ length: 300 }, (_, i) => rad(i));
+    assert.equal(rad(0).length, 62);
+    const langd = max.join("/").length;
+    assert.ok(langd <= 20000, `${langd}`);
+    await assertSucceeds(setDoc(ref(elev()), medTid(CUP1.K, { pokaler: max })), `300 × 62 = ${langd} tecken`);
+    await assertFails(setDoc(ref(elev()), medTid(CUP1.K, { pokaler: [...max, rad(1)] })), "301");
+    // Strax över taket i FÄRRE element ('/' inuti): 323 rader i två element = 20 348 tecken
+    const rader = Array.from({ length: 323 }, (_, i) => rad(i));
+    const over = [rader.slice(0, 160).join("/"), rader.slice(160).join("/")];
+    assert.equal(over.join("/").length, 20348);
+    await assertFails(setDoc(ref(elev()), medTid(CUP1.K, { pokaler: over })), "20 348 tecken i 2 element");
+  });
   it("summa: flyttal, negativt, text, för många siffror och ratt > fragor nekas; gräns-heltal godkänns", async () => {
     const s0 = { ...kopia(CUP1.K.summa), matcher: 9999998 };
     await seed({ ...CUP1.K, summa: s0 });

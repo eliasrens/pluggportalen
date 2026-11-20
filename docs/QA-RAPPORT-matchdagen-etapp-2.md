@@ -906,3 +906,10 @@ omspelning, förlusten sparad (`1-4-u`), inga dubbla pengar. Lagrad XSS (förbi 
 utbruten till `mdPokalerOk`, så listan sammanfogas en gång): ny klubb 9 (var 10), hela säsongen + cupen + kvalet
 i en skrivning **16** (var 18), kvalet 28 (30), 4 matcher i en skrivning 30 (35); oförändrade: match ≥ 60, läger 35,
 köp 26, köp med fulla reserver 22, cupfinalen ≥ 60 (tabellen ovan uppdaterad).
+
+**Omtest på 377d2848 (rättning 1):** `npm run test:rules` 1113 pass, 0 fail (Testerns fil 7: 837 kB-listan nekas nu;
+appens största lista – 300 rader à 62 tecken, 18 899 tecken – går igenom; 323 rader i två element, 20 348 tecken,
+nekas). Marginalen säsong + cup + kval 16, också för en tung Elitliga-karriär med 297 + 3 pokaler à 62 tecken.
+F2: rutan säger "Motståndarna kommer från Division 6 till Division 4" (Div 6), "… Division 1 till Superligan" (Superligan);
+efter finalen "Pokalen finns under Statistik". F3: oraklet med straffförlust = förlust stämmer i alla 40 karriärer
+(med den gamla regeln skiljer 11). Matchdagen-testerna 286/0. F1–F3 stängda.
