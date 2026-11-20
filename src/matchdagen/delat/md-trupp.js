@@ -91,12 +91,13 @@ export function kopInfo(K, id) {
   const index = samstaPa(K.trupp, ny.pos);
   const ersatt = K.trupp[index];
   const kostnad = pris(ny.st);
-  const tillReserv = !!ersatt?.grundpelare;
+  // En position som inte finns i startelvan (ett dokument skrivet förbi appen) – inget köp, ingen krasch.
+  if (!ersatt) return { ny, index, kostnad, kan: false, orsak: "position" };
+  const tillReserv = !!ersatt.grundpelare;
   const reserver = K.reserver || [];
   const slappbara = reserver.filter((p) => !p.grundpelare);
   const masteSlappa = tillReserv && reserver.length >= C.RESERVER_MAX;
   const info = { ny, index, ersatt, kostnad, tillReserv, aterbetalning: tillReserv ? 0 : saljPris(ersatt.st), masteSlappa, slappbara };
-  if (!ersatt) return { ...info, kan: false, orsak: "position" };
   if (ny.st <= ersatt.st) return { ...info, kan: false, orsak: "inteBattre" };
   if (masteSlappa && !slappbara.length) return { ...info, kan: false, orsak: "reserverFulla" };
   // Pengarna: en släppt reserv ger sin halva i samma köp, men eleven ska ha råd utan den.
