@@ -246,3 +246,5 @@
 .teacher-dark .mdl-linje .mdl-prick { fill: #3ccf6e; }
 .teacher-dark .mdl-linje .mdl-mitt { stroke: var(--t-border); stroke-dasharray: 3 3; }
 .teacher-dark .mda-lagnamn-status { margin-left: 8px; }
+/* #872: Silverpokalen och rekorden i elevens detalj */
+.teacher-dark .mdl-rekord { margin: 4px 0 0; padding-left: 18px; font-size: 0.9rem; }

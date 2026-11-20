@@ -11,12 +11,12 @@
 //   lagInfo(K, id)                        → { id, namn, farg, vi, styrka? }
 //   motFarg(egen, mot)                    → motståndarens tröja i matchen (aldrig samma som vår)
 //   matchKlar(K, { res, rng, nu, matchId, kallNamn? })
-//                                         → { K, match, pengar, sasongKlar, plac }
+//                                         → { K, match, pengar, sasongKlar, plac, rekord }
 //                                           ligavinnaren under Superligan får K.kval (§7.2, spelas i md-kval.js)
-//                                           och marknaden byts ut (§8.3, md-trupp.js)
+//                                           och marknaden byts ut (§8.3, md-trupp.js); rekord = nya rekord (§9.2, md-rekord.js)
 //   tabellRader(K)                        → tabellen i placeringsordning med namn och färg
 //   nySasong(K, rng)                      → K för nästa säsong (samma division – kvalet ändrar den, md-kval.js)
-//   bokforMatch(K, { res, nu, matchId, kallNamn, mot, typ, omg? }) → { match, pengar }   (ändrar K – liga och kval)
+//   bokforMatch(K, { res, nu, matchId, kallNamn, mot, typ, omg? }) → { match, pengar, dag, rekord }   (ändrar K – liga, kval och cup)
 //   sasongFro(K, uid)                     → frö för nästa ligas lottning (samma vid omladdning)
 //   dagNyckel(nu), sekunderSenaste(dagar, nu, n), veckoRatt(dagar, nu, n)
 // ============================================================================
@@ -25,6 +25,7 @@ import * as C from "./md-config.js";
 import { schema, simMal, styrkaFor, nyTabell, laggTill, sorteraTabell } from "./md-liga.js";
 import { EFTERNAMN, FORNAMN, LAGFARGER, MOTSTANDARE, STARTELVA, STANDARD_LAGNAMN, TROJFARGER } from "./md-namn.js";
 import { nyMarknad } from "./md-trupp.js";
+import { rekordEfterMatch, rekordEfterSasong } from "./md-rekord.js";
 
 export const VERSION = 1;
 export const OSS = "oss";
@@ -110,8 +111,26 @@ export function nyKarriar({ namn, farg, rng }) {
 export function forstaDokument(K) {
   return {
     ...K, kassa: Math.min(Number(K.kassa) || 0, C.KASSA.start), reserver: [], marknad: [], lager: undefined,
-    kval: null, pokaler: [], summa: tomSumma(), senaste: [], sasonger: [], dagar: {},
+    cup: undefined, rekord: undefined, kval: null, pokaler: [], summa: tomSumma(), senaste: [], sasonger: [], dagar: {},
   };
+}
+
+/**
+ * Pokalerna i dokumentet (#872) är rader "typ|namn|säsong|datum" – så att reglerna prövar
+ * hela listan med ETT reguljärt uttryck (namnet 1–40 tecken utan | / < > & ", typ liga/kval/cup).
+ * I appen och i den lokala kön är de objekt { typ, namn, sasong, datum }; äldre dokument (1c–2b) har objekt.
+ */
+const POKAL_TECKEN = /[|/<>&"]/g;
+export const pokalRad = (p) => (typeof p === "string" ? p
+  : [p.typ, String(p.namn ?? "").replace(POKAL_TECKEN, "").slice(0, 40), Number(p.sasong) || 1, p.datum].join("|"));
+export const pokalerTillDok = (l) => (Array.isArray(l) ? l.map(pokalRad) : l);
+export function pokalerFranDok(l) {
+  if (!Array.isArray(l)) return [];
+  return l.map((p) => {
+    if (typeof p !== "string") return p;
+    const [typ, namn, sasong, datum] = p.split("|");
+    return { typ, namn, sasong: Number(sasong) || 1, datum };
+  }).filter((p) => p && typeof p === "object");
 }
 
 /** Är dokumentet en användbar karriär? (annars börjar eleven med en ny klubb) */
@@ -192,13 +211,14 @@ export function matchKlar(K0, { res, rng, nu, matchId, kallNamn = {} }) {
   }
   K.liga.tabell = tabell;
   K.liga.omg = nasta.omg + 1;
-  const { match, pengar, dag } = bokforMatch(K, { res, nu, matchId, kallNamn, mot: nasta.mot.namn, typ: "liga", omg: nasta.omg + 1 });
+  const { match, pengar, dag, rekord } = bokforMatch(K, { res, nu, matchId, kallNamn, mot: nasta.mot.namn, typ: "liga", omg: nasta.omg + 1 });
 
   const sasongKlar = K.liga.omg >= K.liga.schema.length;
   let plac = null;
   if (sasongKlar) {
     plac = tabellRader(K).findIndex((r) => r.id === OSS) + 1;
     K.sasonger = [{ sasong: K.sasong, div: K.div, plac, lag: K.liga.lag.length }, ...(K.sasonger || [])].slice(0, 200);
+    rekord.push(...rekordEfterSasong(K, { plac, forlust: K.liga.tabell[OSS]?.f }));
     if (plac === 1) {
       K.pokaler = [...(K.pokaler || []), { typ: "liga", namn: `Vinnare ${C.DIVISIONER[K.div]}`, sasong: K.sasong, datum: dag }];
       // Bara ligavinnaren kvalar uppåt (§7.2). Superligan är toppen (Mästarcupen: Etapp 3).
@@ -206,13 +226,14 @@ export function matchKlar(K0, { res, rng, nu, matchId, kallNamn = {} }) {
     }
   }
   K.marknad = nyMarknad(K, rng); // sex nya spelare till salu efter varje match (§8.3)
-  return { K, match, pengar, sasongKlar, plac };
+  return { K, match, pengar, sasongKlar, plac, rekord };
 }
 
 /**
  * Bokför en spelad match i K (ändrar K – anroparen har kopierat): kassan, summan,
- * de senaste matcherna och dagarna. Ger matchdokumentet (matcher/{id}) och pengarna.
- * typ "liga" har omg; "kval" har straffar när det avgjordes på straffar.
+ * de senaste matcherna, dagarna och rekorden (§9.2). Ger matchdokumentet (matcher/{id}),
+ * pengarna och de nya rekorden. typ "liga" har omg (ligaomgången), "cup" omg = rundan 1–4;
+ * "kval" och "cup" har straffar när de avgjordes på straffar.
  */
 export function bokforMatch(K, { res, nu, matchId, kallNamn = {}, mot, typ, omg = null, div = K.div, extraPengar = 0 }) {
   const { oss, dem, stat } = res;
@@ -258,7 +279,8 @@ export function bokforMatch(K, { res, nu, matchId, kallNamn = {}, mot, typ, omg 
   if (omg != null) match.omg = omg;
   if (straffar) match.straffar = straffar;
   delete match.stat.perKalla;
-  return { match, pengar, dag };
+  const rekord = rekordEfterMatch(K, res);
+  return { match, pengar, dag, rekord };
 }
 
 function simMalFor(K, a, b, rng) {

@@ -15,6 +15,7 @@ import { LAGDELAR, RADDNING, TRANING } from "../delat/md-config.js";
 import { lagbonus } from "../delat/md-motor.js";
 import { POS_NAMN } from "../delat/md-namn.js";
 import { bytIn, kop, kopInfo, lagdelSnitt, saljPris } from "../delat/md-trupp.js";
+import { cupLage } from "../delat/md-cup.js";
 import { lasPagaende } from "../md-lokal.js";
 import { sparaKon } from "../md-spara.js";
 import { esc, ruta } from "./md-vy-delat.js";
@@ -94,7 +95,8 @@ export function marknadKort(K, p) {
 
 /** En pågående match (också en sparad lokalt efter omladdning) stoppar köp, byten och träningsläger. */
 export function hinderMatch(S) {
-  const pagar = S.spel?.pagar || ["liga", "kval"].some((typ) => lasPagaende(S.lagring, S.uid, S.K, typ));
+  const pagar = S.spel?.pagar || ["liga", "kval"].some((typ) => lasPagaende(S.lagring, S.uid, S.K, typ)) ||
+    !!lasPagaende(S.lagring, S.uid, S.K, "cup", cupLage(S.K).spelade);
   return pagar ? "Spela klart matchen först – den väntar under Match." : null;
 }
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Matchdagen – förhandsvisning (#869, #870, #871)</title>
+  <title>Matchdagen – förhandsvisning (#869, #870, #871, #872)</title>
   <!-- Förhandsvisning av Etapp 1c med STUBBADE data (spec §15): hela appen
        (md-app.js) – en hel match i 3D eller 2D, tabellen, truppen och statistiken.
        Ingen Firebase: karriären och matcherna sparas i localStorage
@@ -20,7 +20,12 @@
          ?straffar=1 kvalet står 1 – 1 efter full tid – "Fortsätt matchen" går direkt till straffarna
        Etapp 2b (#871):
          ?kassa=N    klubbkassan (köp på marknaden under Truppen)
-         ?trupp=visa två köpta spelare, grundpelare bland reserverna och träningspoäng (kräver ?omg≥1) -->
+         ?trupp=visa två köpta spelare, grundpelare bland reserverna och träningspoäng (kräver ?omg≥1)
+       Etapp 2c (#872):
+         ?omg=N      spelar också Silverpokalens matcher som kommer före omgång N (vunna) – den som
+                     väntar efter omgång N står kvar under Match ("Silverpokalen · Kvartsfinal · …")
+         ?cup=ute    förlorar cupens andra match (utslagna)
+         ?rekord=1   en ligamatch står 6 – 0 i 88:e minuten – "Fortsätt matchen" → "Nytt rekord: 6 mål i en match!" -->
   <script type="importmap">
     { "imports": { "../src/game-shared.js": "./matchdagen-868/game-shared.js" } }
   </script>
@@ -38,6 +43,7 @@
     import { startaMatchdagen } from "../src/matchdagen/md-app.js";
     import { matchKlar, nastaMatch, nyKarriar, nyLiga } from "../src/matchdagen/delat/md-sasong.js";
     import { kvalMatch } from "../src/matchdagen/delat/md-kval.js";
+    import { cupKlar, cupMatch } from "../src/matchdagen/delat/md-cup.js";
     import { nyMatch } from "../src/matchdagen/delat/md-motor.js";
     import { simMal } from "../src/matchdagen/delat/md-liga.js";
     import { skapaPrng } from "../src/matchdagen/delat/md-prng.js";
@@ -84,14 +90,28 @@
 
     // ?omg=N: en klubb med N påhittade omgångar (för tabellen och statistiken).
     if (p.get("klubb") === "ny") localStorage.removeItem(NYCKEL + "karriar");
-    else if (p.has("omg") || p.has("div") || p.has("kval") || p.has("straffar") || p.has("kassa") || p.has("trupp") || !las("karriar")) {
+    else if (p.has("omg") || p.has("div") || p.has("kval") || p.has("straffar") || p.has("kassa") || p.has("trupp") || p.has("cup") || p.has("rekord") || !las("karriar")) {
       const r = skapaPrng("preview-869").tal;
       let K = nyKarriar({ namn: "Blixtarna IF", farg: "#2f6fe8", rng: r });
       const div = Math.max(0, Math.min(7, Number(p.get("div")) || 0));
       if (div) K = { ...K, div, liga: nyLiga(div, K.klubb.farg, r) };
       const kval = p.get("kval") === "1" || p.get("straffar") === "1";
       const n = kval ? K.liga.schema.length : Math.min(K.liga.schema.length, Number(p.get("omg")) || 0);
+      // Silverpokalen (#872): en cupmatch som väntar spelas före ligamatchen, som i appen.
+      let cupNr = 0;
+      const spelaCup = (i) => {
+        const ute = p.get("cup") === "ute" && ++cupNr === 2;
+        const stat = { skott: 6, skottPaMal: 3, pass: 14, passOk: 10, tacklingar: 6, vunnaBollar: 4, raddningar: 2, horner: 1, derasSkott: 3,
+          fragor: 28, ratt: 20, perKalla: { "tabell:7": { fragor: 28, ratt: 20 } }, sekunder: 420 };
+        const [oss, dem] = ute ? [1, 2] : [2, 1];
+        const mal = [{ min: 12, lag: "oss" }, { min: 40, lag: ute ? "dem" : "oss" }, { min: 77, lag: ute ? "dem" : "oss" }].slice(0, oss + dem);
+        const ut = cupKlar(K, { res: { oss, dem, utfall: "", mal, stat }, rng: r, nu: Date.now() - (n - i) * 2 * 86400000 - 3600000, matchId: `c${i}`, uid: UID,
+          kallNamn: { "tabell:7": "7:ans tabell" } });
+        K = ut.K;
+        skriv(`match:c${i}`, { ...ut.match, id: `c${i}` });
+      };
       for (let i = 0; i < n && nastaMatch(K); i++) {
+        if (cupMatch(K, UID)) spelaCup(i);
         const [oss, dem] = kval ? [3 + (i % 2), i % 2] : simMal(0.36, nastaMatch(K).mot.styrka, r);
         const fragor = 26 + Math.floor(r() * 5), ratt = Math.round(fragor * (0.6 + r() * 0.25));
         const stat = { skott: 4 + oss * 2, skottPaMal: 2 + oss, pass: 14, passOk: 10, tacklingar: 6, vunnaBollar: 4, raddningar: 2, horner: 1, derasSkott: 3,
@@ -116,7 +136,15 @@
       skriv("karriar", K);
       // ?straffar=1: kvalet står 1 – 1 efter full tid och ligger som en pågående match (md-lokal.js).
       const kv = kvalMatch(K);
-      if (p.get("straffar") === "1" && kv) {
+      if (p.get("rekord") === "1" && cupMatch(K, UID)) { spelaCup(n); skriv("karriar", K); }
+      if (p.get("rekord") === "1" && nastaMatch(K)) {
+        // ?rekord=1: ligamatchen står 6 – 0 i 88:e minuten – ett läge till och slutsignalen.
+        const nm = nastaMatch(K);
+        const m = { ...nyMatch({ mot: { namn: nm.mot.namn, styrka: nm.mot.styrka }, div: K.div }), min: 88, halvlek: 2, oss: 6, dem: 0, lagen: 40,
+          mal: [3, 17, 29, 44, 61, 80].map((min) => ({ min, lag: "oss" })) };
+        Object.assign(m.stat, { skott: 11, skottPaMal: 8, pass: 16, passOk: 13, fragor: 30, ratt: 26, sekunder: 420 });
+        localStorage.setItem(`matchdagen-match:${UID}`, JSON.stringify({ v: 1, sasong: K.sasong, omg: K.liga.omg, typ: "liga", matchId: "preview-rekord", m }));
+      } else if (p.get("straffar") === "1" && kv) {
         const m = { ...nyMatch({ mot: { namn: kv.mot.namn, styrka: kv.mot.styrka }, div: K.div, avgor: true }),
           min: 90, halvlek: 2, slut: true, oss: 1, dem: 1, lagen: 38, mal: [{ min: 23, lag: "oss" }, { min: 71, lag: "dem" }] };
         Object.assign(m.stat, { skott: 6, skottPaMal: 3, pass: 15, passOk: 11, fragor: 27, ratt: 19, sekunder: 410 });

@@ -7,7 +7,7 @@
 // säsong. Ingen åker någonsin ner.
 //
 //   kvalMatch(K)                                → { div, till, mot } | null   (ett ospelat kval)
-//   kvalKlar(K, { res, nu, matchId, kallNamn?, rng? }) → { K, match, pengar, vann, div }   (rng → ny marknad)
+//   kvalKlar(K, { res, nu, matchId, kallNamn?, rng? }) → { K, match, pengar, vann, div, rekord }   (rng → ny marknad; rekord = nya rekord, md-rekord.js)
 //     res = resultat(m) ur md-motor.js för en match med avgor: true (res.vann satt)
 //   stegen(div)                                 → [{ div, namn, lag, omgangar, nu }] (tabellens stege, §7.1)
 // ============================================================================
@@ -44,7 +44,7 @@ export function kvalKlar(K0, { res, nu, matchId, kallNamn = {}, rng = null }) {
   const vann = vannKvalet(res);
   const K = kopia(K0);
   const extraPengar = vann ? Math.round(C.KASSA.uppflyttning * (1 + kv.div * C.KASSA.perDiv)) : 0;
-  const { match, pengar, dag } = bokforMatch(K, { res, nu, matchId, kallNamn, mot: kv.mot.namn, typ: "kval", div: kv.div, extraPengar });
+  const { match, pengar, dag, rekord } = bokforMatch(K, { res, nu, matchId, kallNamn, mot: kv.mot.namn, typ: "kval", div: kv.div, extraPengar });
   // Uppåt eller kvar – aldrig ned, oavsett vad dokumentet säger om divisionen.
   const fore = Number(K.div) || 0;
   K.div = vann ? Math.max(fore, kv.till) : Math.max(fore, kv.div);
@@ -54,7 +54,7 @@ export function kvalKlar(K0, { res, nu, matchId, kallNamn = {}, rng = null }) {
   const sasong = (K.sasonger || [])[0];
   if (sasong && sasong.sasong === K.sasong) K.sasonger[0] = { ...sasong, kval: vann ? "upp" : "kvar" };
   if (rng) K.marknad = nyMarknad(K, rng); // nya spelare efter matchen – i den nya divisionen efter en uppflyttning (§8.3)
-  return { K, match, pengar, vann, div: K.div };
+  return { K, match, pengar, vann, div: K.div, rekord };
 }
 
 /** Stegen överst i tabellen (§7.1): alla åtta nivåer, den nuvarande markerad. */
