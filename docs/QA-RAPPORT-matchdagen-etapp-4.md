@@ -192,3 +192,46 @@ går över gränsen; den tunnaste (ny klubb) har 4 kvar. ("Grovt" = standardlist
 - **L1/L2** `mdTick` bara när den egna sidan är klar och den andras tid gått (inte under animationerna); lyssnare tas bort.
 - **L5** serverns feltext visas på frågekortet.
 - **Inte rättat:** L3 (walkover-kassan – fråga 1 ovan), L4 (lås mitt i matchen – Kända gränser).
+
+## Testern (a1f0f1b4 + testfiler 1ddbc1f6)
+
+Alla punkter **PASS**. Inga fynd som stoppar en merge, bara låga (F1–F4).
+
+| # | Punkt | Resultat |
+| --- | --- | --- |
+| 1 | Hela sviterna | **PASS**: enhet 4 785/0 (de 327 filer som inte står i något `emulators:exec`-skript – vanlig `node --test` hänger på e2e-auth), `test:rules` 1 151/0, `test:functions` 593/0 (2 todo), `test:e2e` 5/0. Schackets "högst ~1 s per drag" grönt i hela körningen. Bootgrafen 107 (`matchdagen-modul.test.js`). |
+| 2 | Synken | **PASS**: `npm run sync:matchdagen` ger ingen diff; en ändrad kopia fäller `--check` (exit 1) och `matchdagen-vanskap-server.test.js`. |
+| 3 | Serverrättning och säkerhet | **PASS**: `test/functions-matchdagen-vanskap-tester-874.test.mjs` (12) och `test/firestore-rules-matchdagen-vanskap-tester-874.test.js` (8) – se nedan. |
+| 4 | Marginalen | **PASS**, oberoende körning (fina steg 0–32, grova 40–80): ny klubb 4, köp 21, köp fulla reserver 17, säsong+cup+kval 11, legend 12 (48 gamla 10), kval 24, resten av säsongen 28, läger 31, match 58, mästare 52, cup/cupfinal/Mästarcupen/Mästarcupfinal ≥ 65 (vid 70 vägrar kompilatorn reglerna, "too complex"), lägrets start ≥ 65, byte 60, läger + match nekas (som förut). Med inbördes (`INB=1`): samma tal. |
+| 5 | Kassan och inbördes | **PASS**: 100 + 100 vid vinst, oavgjort 100/100, dagstaket (också för walkover-förloraren), walkover på millisekunden (179 999 ms pågår, 180 000 ms förlorar den frånvarande, förloraren 0 kr), båda borta → avbruten. "Alvas Blixtar – FC Bilal: 1–1–0" hos eleven, i lobbyn efter omladdning och i lärarvyn; allt escapat (lagnamnen `<i>Alva</i> & 'Co"` och `<img src=x onerror=1>` syns som text överallt). |
+| 6 | Två webbläsare | **PASS**: Alva (4a01) – Bilal (4a02), två hela matcher med halvtid: 3D 2–0 (Bilal laddade om mitt i andra halvlek och spelade vidare), `?2d=1` 0–0. Kassan 600 → 800 → 900 / 600 → 700 → 800, samma i sidhuvudet, efter omladdning och på servern. Skärmdumpar `docs/qa-matchdagen-4/t20`–`t27`. |
+| 7 | Nytt lagnamn efter en vänskapsmatch | **PASS** i appen: Alva "Sparat!" (vakten räknade in matchen), Bilal sparat efter omladdning mitt i matchen (servern: FC Bilal, kassan 700 och inbördes orörda). |
+| 8 | Kvoten | **PASS**: match 2 i nätverkslistan: Alva 29 `mdFraga` + 29 `mdSvar` + `mdSvara` + `mdTick` (halvtid), Bilal `mdUtmana` + 29 + 29 + `mdTick` = 120 callables för 29 lägen – som rapportens ~118 + 2. Skrivningar/läsningar per läge stämmer med koden (5 skrivningar, 14 läsningar; start 6 + 1, slut 8). |
+
+**Attackproven (functions):** den som svarar måste ha Matchdagen (läraren stänger av mellan utmaning och ja → `failed-precondition`, för båda sidor);
+elev utanför klassen kan inte utmana i den, svara på dess utmaningar eller bli utmanad; konstiga id:n (`../`, `__x__`) nekas; en match åt
+gången även över två klasser; utmaningen gäller 119 999 ms men inte 120 000 ms (och kan då inte tas tillbaka); ingen kan anta sin egen eller
+någon annans utmaning. Inget facit lämnar servern före rättningen (mdFraga-svaret, det privata dokumentet och matchdokumentet saknar
+facit/bank/answerIndex; Räknas `bild` innehåller bara bildens data – kontrollerat för alla 22 räknesätt, `.scratch/tester/bild-lacka.mjs`).
+Förfalskade svar (`{}`, `[]`, `true`, `1.5`, 201 tecken) → `invalid-argument`; index utanför → `{ giltig: false }` utan rättning; ett avgivet
+svar går inte att ändra (fel → rätt ger fortfarande fel); svar efter serverns gräns = fel med `tidenUte`, drag efter gränsen nekas;
+`mdTick`/`mdGeUpp`/`mdSvar`/`mdFraga` för den som inte spelar → `permission-denied`.
+**Attackproven (regler):** listningar och collection group-frågor på `privat`/`facit`, alla matcher, alla spärrar och alla lobbyer nekas
+(egen `spelare`-fråga går); en elev med Matchdagen i en annan klass läser inget; lärare utan klassen och utloggade nekas, läraren med klassen
+läser men skriver inget; eleven kan inte höja kassan med 100/200 utan bokförd match, inte tömma/byta namn på/nolla/ta bort inbördes (också
+via `mergeFields` och `deleteField`), inte skriva en `vanskap`-match själv.
+
+### Fynd
+
+- **F1 (låg)** – Omladdning mitt i en vänskapsmatch öppnar fliken **Match**, inte Vänskap (`src/matchdagen/md-app.js:96`, `S.visa("match")`
+  även när `vanskapPagar` hittar en pågående match). Matchen går vidare på servern och klockan tickar – eleven måste själv klicka Vänskap
+  (annars walkover efter 3 min). Repro: starta en match, ladda om ena sidan → Match-fliken visas; Vänskap öppnar matchen med rätt
+  fråga och återstående tid.
+- **F2 (låg, kosmetiskt)** – De inbördes mötena visar motståndarlagets namn från den SENASTE vänskapsmatchen (val 7). Byter kompisen namn
+  står det gamla kvar tills nästa match (Alva såg `<img src=x onerror=1>` efter Bilals namnbyte till FC Bilal).
+- **F3 (låg)** – Walkover-farmning (öppen fråga 1): två elever kan ge den ena 200 kr per match genom att den andra lämnar direkt, men
+  dagstaket håller – högst 3 betalda matcher per elev och dag (600 kr), också den som förlorar på walkover förbrukar sina tre. Bara
+  spelpengar; prövat i `dagstaket gäller förloraren också`.
+- **F4 (låg)** – En övergiven match (båda borta) står kvar i `mdLobby.matcher` tills någon av dem anropar servern igen (klienten döljer den
+  efter 20 min). Lobbydokumentet växer bara med sådana, högst en per elev.
+- Info: en elevskrivning som BARA höjer kassan nekas genom att 1000-gränsen nås (inte av logiken) – nekad ändå; ingen appväg skriver så.
