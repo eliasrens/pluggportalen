@@ -10734,7 +10734,7 @@ html.reduce-motion .schack-pokal-ny { animation: none; }
 .md-val small { color: var(--md-svag); font-weight: 700; }
 .md-match .md-fraga { padding: 12px 16px 8px; }
 .md-match .md-fraga-text { margin-bottom: 10px; font-size: clamp(20px, 2.6vw, 26px); }
-.md-match .md-fraga-alt { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+.md-match .md-fraga-alt { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
 .md-match .md-fraga-facit { margin-top: 6px; }
 
 /* --- Tabell, trupp, statistik ---------------------------------------------- */

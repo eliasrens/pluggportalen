@@ -279,3 +279,140 @@ budget (§13).
 - **F2 (låg), rättat.** Skriv själv-kortet flödade över vid 375 px: `scrollWidth` 543 och Svara-knappen utanför
   skärmen. Fältets egen bredd (size=20) gav kortet en minsta bredd. `.md-fraga-input { width: 0 }` löste det,
   nu är `scrollWidth` 375 och Svara slutar vid 341 px.
+
+## Etapp 1c – 3D-planen, matchvyn, säsongen i Division 6, sparning och statistik (#869)
+
+Med 1c är **Etapp 1 klar**: en vald elev skapar en klubb och spelar en hel säsong i Division 6 i 3D (eller
+2D-reserven), framstegen sparas, och eleven och läraren ser statistiken. Arkitekturen står i `MATCHDAGEN.md`
+§10–13.
+
+### Vad som byggts
+
+- **3D-planen** (`src/matchdagen/plan/`, spec §4): three.js ur `src/vendor/three/` via den nya delade
+  `src/tre/tre-ladda.js` (`harWebGL`/`laddaThree` utbrutna ur Kurragömmas `kg-tre.js`, som re-exporterar dem –
+  Kurragömmas beteende och tester oförändrade). Plan med gräsränder och linjer, mål med nät som buktar vid mål,
+  reklamskyltar PLUGGPORTEN/MATCHDAGEN, läktare med publik, kvällsljus. 7 spelare per lag av enkla former med
+  springanimation, målvakter i egna färger, blob-skuggor, kaptensbindel och elevens avatar som bricka över
+  kaptenen. Bollen rullar, går i båge eller flyger mot mål efter motorns händelse. Tv-kamera från långsidan som
+  följer bollen och zoomar kort vid mål; "MÅÅÅL!", "RÄDDNING!", jubel, firande och vissla. three laddas först
+  när matchen startar.
+- **2D-reserven** (`md-plan-2d.js`): planen ovanifrån i SVG som skissens första version – utan WebGL, om three
+  inte laddas och med `?2d=1`. Samma ritar-gränssnitt, så matchen är identisk.
+- **Lugnt läge** (`matchdagenInst.lugnt`) och `prefers-reduced-motion`: fast kamera, ingen zoom eller
+  skakning, spelare och boll hoppar direkt, inget jubel eller sorl.
+- **Ljud** (`md-ljud.js`): Web Audio utan ljudfiler (vissla, spark, jubel, räddning, sorl), knappen
+  "Ljud på/av" kommer ihåg valet.
+- **Säsongen** (`delat/md-sasong.js`, ren): ny klubb (namn 1–24 tecken, 8 tröjfärger), sju grundpelare med
+  färdiga namn, 6 lag med påhittade motståndare (66 namn) och dold styrka, cirkelmetoden, övriga matcher med
+  `simMal`, tabellen (3/1/0, poäng → målskillnad → gjorda), kassan, rutan före avspark ("Säsong 1 · Division 6 ·
+  Omgång 2 av 5"), rutan efter matchen (resultat, rätt svar, skott, lyckade pass, kronor) med "Till tabellen"
+  eller "Se hur säsongen slutade", och nästa säsong.
+- **Fortsätta senare:** den pågående matchen sparas i `localStorage` efter varje läge; efter omladdning visar
+  Match-fliken "Matchen pågår: 0 – 0 efter 4 minuter. Fortsätt matchen".
+- **Sparningen** (`md-data.js`): `matchdagen/{uid}` läses en gång när Matchdagen öppnas; efter varje match EN
+  batch (karriären + `matcher/{id}`). En match som inte gick att spara ligger kvar lokalt och sparas om.
+- **Regler** för `matchdagen/{uid}` och `matcher/{id}` (spec §6.1) med tester.
+- **Elevens app** (`md-app.js`, `vy/`): sidhuvud med klubbkassan, flikarna Match, Tabell, Truppen (döp om
+  laget, tröjfärg, startelvan) och Statistik (siffror, rätt per källa, de 20 senaste matcherna med detaljer,
+  säsongerna, pokalskåpet). Kvällsarenan med Barlow Condensed + Nunito. Halvtid med paus, pauspåminnelsen ur
+  `matchdagenInst.paus`.
+- **Läraren:** underfliken **Matchdagen** i Hur går det? (bara när någon elev har Matchdagen), tabell per elev,
+  klick → senaste matcherna, veckolinje och **Återställ lagnamn** (också kopplad i 1a-panelen).
+- **Förhandsvisningen** `preview/preview-matchdagen.html` med stubbad data (`?vy`, `?omg`, `?klubb=ny`, `?2d=1`,
+  `?lugnt=1`, `?fps=1`, `?auto=1`).
+
+### Skärmdumpar
+
+Tagna i appen mot emulatorn (`MD_PA=1 admin/qa-matchdagen-867-preview.sh`), Alva (4a01) och `qaarskurs4`.
+Fönstret 1366 × 657 är vad en 1366 × 768-skärm visar i Chrome (flikar, adressfält och aktivitetsfält borträknade).
+
+| Bild | Vad |
+| --- | --- |
+| [`01-match-3d-1366.png`](qa-matchdagen-1c/01-match-3d-1366.png) | Match i 3D med appens sidomeny: skylt, plan, kommentar och frågekort syns utan scroll (1366 × 657) |
+| [`02-match-2d-1366.png`](qa-matchdagen-1c/02-match-2d-1366.png) | Samma app med `?2d=1`: 2D-reserven i SVG |
+| [`03-efter-matchen.png`](qa-matchdagen-1c/03-efter-matchen.png) | Rutan efter matchen: "Förlust – nästa gång! 0 – 1", 12/30 rätt, 1 skott, 7/14 pass, +260 kr |
+| [`04-tabell.png`](qa-matchdagen-1c/04-tabell.png) | Tabellen efter omgång 1, eget lag markerat |
+| [`05-truppen.png`](qa-matchdagen-1c/05-truppen.png) | Truppen efter lärarens återställning: namnet är "Pluggporten FC" |
+| [`06-statistik-elev.png`](qa-matchdagen-1c/06-statistik-elev.png) | Elevens Statistik |
+| [`07-larare-matchdagen.png`](qa-matchdagen-1c/07-larare-matchdagen.png) | Lärarens Hur går det? → Matchdagen med Alvas rad, historik och Återställ lagnamn |
+
+### Bilder per sekund
+
+| Miljö | Upplösning | Resultat |
+| --- | --- | --- |
+| Huvudlös Chromium med **SwiftShader** (WebGL i mjukvara på CPU:n, lastad server) | 1366 × 768, appen med sidomeny | **24,7 fps i snitt, lägst 15** (`?fps=1`), pixelvakten sänker pixeltätheten till 0,6 |
+| Samma, förhandsvisningen (Codern före) | 1366 × 768 | 20–32 fps, 94–103 ritanrop per bild |
+
+**Specens krav, ≥ 50 fps på skolans HP-datorer, är inte uppmätt** – den här miljön har ingen GPU, så siffran
+ovan är ett golv för mjukvarurendering, inte HP-datorns. Vad som gjorts för att nå kravet: ingen kantutjämning,
+pixeltäthet högst 1,5, pixelvakten (fps < 45 → ×0,75, aldrig under 0,6), figurerna sammanslagna med
+vertexfärger till 6 ritanrop per spelare och ett delat material (≈ 100 ritanrop för hela scenen). **Mät på en
+HP-dator:** öppna `#/elev/matchdagen` med `?fps=1` före `#` (t.ex. `/?fps=1#/elev/matchdagen`), spela en
+minut och läs rutan uppe till vänster. Under 50 fps → kör `?2d=1` för de eleverna eller sänk taket för
+pixeltätheten i `md-tre-ritare.js`.
+
+### Balansen
+
+Oförändrad från 1b (tabellen ovan, `MATCHDAGEN.md` §7): 70 % rätt vinner 61 % och ligan 59 %, 50 % vinner 34 %,
+30 % gör minst ett mål i 53 % av matcherna, ~7 minuter per match och ~46 minuter per säsong. 1c lägger bara
+till klubbkassan (`KASSA`: 300/150/80 + 15 per rätt + 25 per mål) som inte påverkar matchen.
+
+### Kvoten (1c)
+
+Budgeten i `MATCHDAGEN.md` §11. Kort: **eleven under en timme** (~7 matcher, 3 valda Plugga-områden, ny klubb,
+ett namnbyte, 3 matchdetaljer) ≈ **8 läsningar och 16 skrivningar** (mål < 20 och < 50). Träningsläger kommer i
+2b. **Läraren** som öppnar Matchdagen för en klass med 2 elever: **2 läsningar**; klick på en elev ≤ 20;
+Återställ lagnamn 1 skrivning. Inga lyssnare.
+
+### Deploy
+
+1. `firebase deploy --only firestore:rules` – samlingen `matchdagen/{uid}` med `matcher` – **före** webben,
+   annars nekas elevens första sparning (matchen ligger då kvar lokalt och sparas om senare).
+2. Webben (Pages).
+
+Inga index (lärarens historik sorterar på `datum` inom en undersamling – automatiskt enfältsindex) och inga
+functions.
+
+### Val där dokumentet inte räckte till
+
+1. **Inget kval i Etapp 1.** Ligavinnaren får pokalen "Vinnare Division 6" och laget stannar i Division 6
+   nästa säsong (kval och uppflyttning kommer i 2a).
+2. **Extra fält i karriären:** `senaste` (20 matcher), `sasonger` och `dagar` (70 dagar). Då kostar elevens
+   Statistik och lärarens tabell (7 dagars speltid, veckolinje) inga läsningar av `matcher`.
+3. **Schemat lagras som strängar** `"a:b|c:d|e:f"` per omgång – Firestore tillåter inga listor i listor.
+4. **Vårt lag i ligan är `{ id: "oss" }`**; namn och färg kommer ur `klubb`, så lärarens återställning rör bara
+   `klubb.namn` och tabellen följer med.
+5. **Läraren får bara sätta `klubb.namn` till "Pluggporten FC"** (standardnamnet), inget annat namn.
+6. **Reglerna prövar bara de fält som ändras** (som `schackOk`): att pröva hela dokumentet sprängde gränsen
+   på 1000 uttryck. Truppen prövas bara på stjärnorna per plats (exakt 7, `st` 1–5).
+7. **200 kB kan inte mätas i reglerna.** Taken på listorna och mapparna håller appens dokument under ~61 kB med
+   allt fyllt (en ny klubb ~2 kB). En elev som skriver förbi appen kan bara blåsa upp sitt eget dokument.
+8. **Ny säsong lottas med ett frö** (`sasongFro`), så samma liga visas efter omladdning, och sparas först med
+   nästa match (0 extra skrivningar).
+9. **Kassan** (`KASSA` i `md-config.js`) är specens §8.3-idé med egna tal: start 600, vinst 300, oavgjort 150,
+   förlust 80, +15 per rätt svar, +25 per mål, ×(1 + 0,25 × div). Den används först av marknaden i 2b.
+10. **Datumnyckeln är svensk tid** (`Intl` med `Europe/Stockholm`), inte webbläsarens tidszon, så samma dag
+    gäller i appen och i Etapp 4 på servern, och `delat/` förblir ren (ingen `new Date`).
+11. **Planens höjd följer fönstret** (220–420 px, `passaPlanen` i `md-match-spel.js`): med appens sidhuvud och
+    en vanlig webbläsare vid 1366 × 768 blir planen ~257 px hög och allt syns utan scroll. Svarsknapparna ligger
+    fyra i rad i matchen.
+12. **Pauspåminnelsen** visas i rutan efter matchen när `matchdagenInst.paus` minuter har gått sedan sessionen
+    började, aldrig mitt i ett läge.
+13. **Spelarnas namn** är påhittade för- och efternamn (svenska och vanliga i svenska skolor), lottade per klubb;
+    lagkaptenen är aldrig målvakten.
+
+### Körningar (Codern, 869-coder-2)
+
+| Svit | Resultat |
+| --- | --- |
+| `node --test` (de 313 filerna som inte kräver emulatorn) | 4538 pass, 0 fail, 1 skipped |
+| Matchdagen 1c (`test/matchdagen-sasong.test.js`, `test/matchdagen-plan.test.js`) | 27 pass (ingår ovan) |
+| `npm run test:rules` (`admin/qa-matchdagen-867-svit.sh`) | 1025 pass, 0 fail (10 nya i `firestore-rules-matchdagen.test.js`) |
+| `npm run test:functions` (samma rigg) | 572 pass, 1 fail, 2 todo – felet är `functions-kurragomma.test.mjs` "letfasen" (två slumpvis placerade gömda på samma ställe); filen ensam: 7/7. Inga filer i `functions/` är ändrade |
+| `npm run test:e2e` | 5/5 |
+| Bootgrafen | 107 filer (oförändrad) |
+| I appen mot emulatorn | se nedan |
+
+**I appen mot emulatorn** (Alva, 1366 × 657 och 1366 × 768): ny klubb → avspark → omladdning mitt i matchen →
+"Fortsätt matchen" → hela matchen i 3D → rutan efter matchen → tabellen; läraren ser Alvas rad, historiken och
+återställer lagnamnet → Alva ser "Pluggporten FC"; en hel match med `?2d=1` sparades (omgång 3 av 5 nästa).
