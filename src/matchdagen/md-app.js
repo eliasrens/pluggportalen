@@ -3,10 +3,12 @@
 // Match, Tabell, Truppen och Statistik (spec §14), tillståndet och sparningen.
 // Etapp 3 (#873): fliken Pokalskåpet (§10.4) och klubbmärket i sidhuvudet – guldkant för
 // mästare i Superligan och en guldstjärna per legendklubb (§10.1, §10.3).
-// Firebase skickas in som `data` (page-matchdagen.js ger den riktiga, förhands-
+// Etapp 4 (#874): fliken Vänskap (vänskapsmatcher mot klasskompisar, vanskap/md-vy-vanskap.js) –
+// bara när page-matchdagen.js hittat elevens klass (deps.vanskap). Firebase skickas in som `data` (page-matchdagen.js ger den riktiga, förhands-
 // visningen en stubbe), så samma kod kör i appen och i preview-matchdagen.html.
 //
-//   startaMatchdagen(host, { uid, inst, data, hamtaOmrade, avatar?, lagring?, tvinga2d?, signal? })
+//   startaMatchdagen(host, { uid, inst, data, hamtaOmrade, avatar?, lagring?, tvinga2d?, signal?, vanskap? })
+//     vanskap: { classId, kompisar(), moln() } (md-vy-vanskap.js)
 //     data: { lasKarriar, sparaKarriar, sparaMatch, lasMatch }
 //
 // Kvoten (§13): karriären läses EN gång här (lasKarriar), inga lyssnare. Färdiga
@@ -29,12 +31,13 @@ function webbLagring() {
 
 export async function startaMatchdagen(host, deps) {
   laddaTypsnitt();
+  const flikar = deps.vanskap ? [...FLIKAR, ["vanskap", "Vänskap"]] : FLIKAR;
   const lugntMedia = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
   const inst = normalizeInst(deps.inst);
   const S = {
     uid: deps.uid, inst, data: deps.data, hamtaOmrade: deps.hamtaOmrade, avatar: deps.avatar || null,
     lagring: deps.lagring === undefined ? webbLagring() : deps.lagring,
-    tvinga2d: !!deps.tvinga2d, signal: deps.signal, lugnt: !!inst.lugnt || lugntMedia,
+    tvinga2d: !!deps.tvinga2d, signal: deps.signal, lugnt: !!inst.lugnt || lugntMedia, vanskap: deps.vanskap || null,
     K: null, vy: "match", lasfel: false, sessionStart: Date.now(),
   };
   host.replaceChildren();
@@ -43,9 +46,9 @@ export async function startaMatchdagen(host, deps) {
       <div class="md-logo"><span class="md-logo-boll" aria-hidden="true">${MATCHDAGEN_IKON}</span><span>Match<b>dagen</b></span></div>
       <span class="md-klubbhuvud"></span>
       <span class="md-kassa" aria-live="polite"></span>
-      <nav class="md-flikar" aria-label="Matchdagen">${FLIKAR.map(([id, t]) => `<button type="button" data-vy="${id}" aria-pressed="false">${t}</button>`).join("")}</nav>
+      <nav class="md-flikar" aria-label="Matchdagen">${flikar.map(([id, t]) => `<button type="button" data-vy="${id}" aria-pressed="false">${t}</button>`).join("")}</nav>
     </header>
-    ${FLIKAR.map(([id]) => `<section class="md-vy" data-vy-sektion="${id}" hidden></section>`).join("")}`;
+    ${flikar.map(([id]) => `<section class="md-vy" data-vy-sektion="${id}" hidden></section>`).join("")}`;
   const sektion = (id) => host.querySelector(`[data-vy-sektion="${id}"]`);
   S.host = host;
   S.sektion = sektion;
@@ -65,7 +68,7 @@ export async function startaMatchdagen(host, deps) {
     S.flik?.abort();
     S.flik = new AbortController();
     host.querySelectorAll(".md-flikar button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.vy === vy)));
-    for (const [id] of FLIKAR) sektion(id).hidden = id !== vy;
+    for (const [id] of flikar) sektion(id).hidden = id !== vy;
     S.kassa();
     const el = sektion(vy);
     if (vy === "match") return (await import("./vy/md-vy-match.js")).visaMatchFlik(S, el);
@@ -74,6 +77,7 @@ export async function startaMatchdagen(host, deps) {
     if (vy === "trupp") return (await import("./vy/md-vy-trupp.js")).visaTrupp(S, el);
     if (vy === "stat") return (await import("./vy/md-vy-stat.js")).visaStat(S, el);
     if (vy === "pokaler") return (await import("./vy/md-vy-pokaler.js")).visaPokaler(S, el);
+    if (vy === "vanskap") return (await import("./vanskap/md-vy-vanskap.js")).visaVanskap(S, el);
   };
   S.signal?.addEventListener("abort", () => S.flik?.abort(), { once: true });
   host.querySelector(".md-flikar").addEventListener("click", (e) => {
@@ -88,6 +92,19 @@ export async function startaMatchdagen(host, deps) {
     return S;
   }
   S.K = truppFalt(await hamtaKarriar(S));
+  if (S.vanskap && S.K) vanskapPagar(S);
   await S.visa("match");
   return S;
+}
+
+/**
+ * En vänskapsmatch som pågår (en annan flik, en omladdning): vakten lyssnar tills den slutar, så att
+ * kassan och de inbördes mötena räknas in i S.K innan appen sparar karriären igen. EN läsning.
+ */
+async function vanskapPagar(S) {
+  try {
+    const moln = await S.vanskap.moln();
+    const { aktiv } = await moln.lasElev(S.uid);
+    if (typeof aktiv === "string" && aktiv) (await import("./vanskap/md-vy-vanskap.js")).bevaka(S, moln, aktiv);
+  } catch (err) { console.warn("Matchdagen: vänskapsmatchen kunde inte kollas", err); }
 }

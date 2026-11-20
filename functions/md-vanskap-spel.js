@@ -5,7 +5,7 @@
 // (md-vanskap.js vLage) säger vem som anfaller. Var och en av eleverna:
 //   fraga  { matchId, val } → väljer sitt drag och får lägets fråga ur SIN bank i sitt
 //          privata dokument (utan facit). Samma läge igen = samma fråga (idempotent).
-//   svar   { matchId, svar } → servern rättar (md-vanskap-fragor.js ratta: Live:s rättning) och
+//   svar   { matchId, svar } → (svar = null: elevens klocka tog slut – räknas som fel) servern rättar (md-vanskap-fragor.js ratta: Live:s rättning) och
 //          svarar { ratt, facit }. När båda har svarat – eller den andras tid är ute – avgörs
 //          läget med motorn och resultatet skrivs till matchdokumentet (båda lyssnar).
 //   tick   { matchId, redo? } → klienten anropar när en tid gått ut: lägen vars tid är ute avgörs
@@ -154,7 +154,7 @@ export async function svar(deps, uid, data = {}) {
   const c = ctx(deps);
   const matchId = idEller(data.matchId, "match-id");
   const raw = data.svar;
-  if (!(Number.isInteger(raw) || (typeof raw === "string" && raw.length <= 200))) throw new MdFel("invalid-argument", "Ogiltigt svar.");
+  if (!(raw === null || Number.isInteger(raw) || (typeof raw === "string" && raw.length <= 200))) throw new MdFel("invalid-argument", "Ogiltigt svar.");
   return c.db.runTransaction(async (tx) => {
     const nu = c.now();
     const m = await lasMatch(c, tx, matchId, uid);
@@ -167,7 +167,7 @@ export async function svar(deps, uid, data = {}) {
     if (p.svar) return { giltig: true, ...p.svar };
     const bank = fs.data()?.bank || [];
     const post = bank[(m.fas.nr - 1) % bank.length];
-    const ute = nu >= deadline(m, s);
+    const ute = raw === null || nu >= deadline(m, s); // null = elevens klocka tog slut: fel
     const r = ute ? { giltig: true, ratt: false, facit: String(post?.r?.facit ?? "") } : ratta(post, raw);
     if (!r.giltig) return { giltig: false };
     const ny = { ...p, svar: { ratt: r.ratt, facit: r.facit, ...(ute ? { tidenUte: true } : {}) }, aktiv: nu };

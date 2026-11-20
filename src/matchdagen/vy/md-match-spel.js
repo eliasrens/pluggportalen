@@ -31,9 +31,9 @@ import { nastaSpel, startaNastaSasong } from "./md-vy-match.js";
 import { efterMatchen } from "./md-efter-match.js";
 import { finalIntro } from "./md-vy-mastarcup.js";
 
-const LJUS = new Set(["#f2f2f2"]);
+export const LJUS = new Set(["#f2f2f2"]);
 
-async function avatarBild(S) {
+export async function avatarBild(S) {
   if (!S.avatar) return null;
   try {
     const { ritaAvatar, BILD_BREDD, BILD_HOJD } = await import("../../live/formats/kurragomma/scen/kg-avatar-bild.js");
@@ -65,8 +65,8 @@ function passaPlanen(plan) {
   window.addEventListener("resize", passa);
 }
 
-function layout(S, el, mot) {
-  const vi = S.K.klubb;
+/** Skylten, planen, kommentaren och frågekortet (delas med vänskapsmatchen, #874). */
+export function layout(S, el, mot, vi = S.K.klubb) {
   el.innerHTML = `<div class="md-match${S.lugnt ? " lugnt" : ""}">
     <div class="md-skylt" aria-live="polite">
       <div class="md-skylt-lag">${chip(vi.farg)}${namnPar(vi.namn)}</div>

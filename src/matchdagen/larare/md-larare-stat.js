@@ -10,6 +10,7 @@
 //     med Återställ lagnamn (md-lagnamn.js), Silverpokalen och rekorden (#872 – bara tal
 //     och fasta texter, aldrig text ur dokumentet). Etapp 3 (#873): titlarna i Superligan, Mästarcupen,
 //     guldstjärnorna och klubbhistoriken (de gamla klubbarnas namn med esc(), resten tal).
+//     Etapp 4 (#874): vänskapsmatcherna i matchlistan och de inbördes mötena (motståndarlagets namn med esc()).
 // Laddas med import() – aldrig i bootgrafen (#271).
 // ============================================================================
 
@@ -20,6 +21,7 @@ import { mcLage } from "../delat/md-mastarcup.js";
 import { historikRader, skapet } from "../delat/md-legend.js";
 import { rekordRader } from "../delat/md-rekord.js";
 import { pokalerFranDok, sekunderSenaste, veckoRatt } from "../delat/md-sasong.js";
+import { inbordesText } from "../delat/md-vanskap.js";
 import { harMatchdagen } from "../md-inst.js";
 import { kopplaAterstall } from "./md-lagnamn.js";
 
@@ -45,7 +47,7 @@ export function cupRad(K) {
   if (Number(K.liga?.omg) >= (Number(K.liga?.schema?.length) || 0)) return `${CUP.namn}: ingen cup den här säsongen`;
   return L.spelade ? `${CUP.namn}: klar för ${CUP.rundor[L.spelade].toLowerCase()}en` : `${CUP.namn}: ${CUP.rundor[0].toLowerCase()}en väntar`;
 }
-const MATCH_TAGG = { kval: " (kval)", cup: " (cup)", mastarcup: " (Mästarcupen)" };
+const MATCH_TAGG = { kval: " (kval)", cup: " (cup)", mastarcup: " (Mästarcupen)", vanskap: " (vänskapsmatch)" };
 
 /**
  * Toppen (#873, §10): titlar i Superligan och Mästarcupen, Mästarcupen den här säsongen och
@@ -170,7 +172,9 @@ async function visaElev(host, elev, K, data, efterNamn) {
       <div><span class="hint">${esc(cupRad(K))}</span>
         <ul class="mdl-rekord">${rekordRader(K.rekord).filter((r) => r.varde != null && r.sasong).map((r) => `<li>${esc(r.namn)}: <b>${esc(r.varde)}</b></li>`).join("") || `<li class="hint">Inga rekord än</li>`}</ul>
         ${toppRader(K).map((t) => `<span class="hint">${esc(t)}</span><br>`).join("")}
-        ${historikRader(K.klubbhistorik).map((h) => `<small class="hint">Tidigare klubb: ${esc(h.namn)} (säsong ${tal(h.fran)}–${tal(h.till)})</small><br>`).join("")}</div>
+        ${historikRader(K.klubbhistorik).map((h) => `<small class="hint">Tidigare klubb: ${esc(h.namn)} (säsong ${tal(h.fran)}–${tal(h.till)})</small><br>`).join("")}
+        ${Object.values(K.inbordes && typeof K.inbordes === "object" ? K.inbordes : {}).filter((r) => r && typeof r === "object")
+    .map((r) => `<small class="hint">Vänskapsmatcher: ${esc(inbordesText(K.klubb?.namn || "", String(r.namn || ""), r))}</small><br>`).join("")}</div>
     </div>
     <div class="mdl-matcher"><div class="spinner">Laddar matcherna…</div></div>
   </div>`);

@@ -160,6 +160,15 @@ describe("lägena: frågor, rättning och avgörandet (§11.3)", () => {
     assert.deepEqual([m.V.stat.a.fragor, m.V.stat.a.ratt, m.V.stat.b.fragor, m.V.stat.b.ratt], [1, 1, 1, 0]);
     assert.deepEqual(m.V.stat.b.perKalla, { "omrade:mvso/vikingar": { fragor: 1, ratt: 0 } });
     assert.deepEqual(await svar(deps, ANNA, { matchId: id, svar: 0 }).catch((e) => e.code), "failed-precondition"); // nytt läge
+    // Elevens klocka tog slut (svar null): fel med facit, före serverns tid – läget avgörs direkt när båda svarat.
+    const l2 = vLage((await rig.match(id)).V);
+    await fraga(deps, ANNA, { matchId: id, val: l2.anf === "a" ? "kort" : "tackla" });
+    await fraga(deps, BO, { matchId: id, val: l2.anf === "b" ? "kort" : "tackla" });
+    assert.equal(await kod(svar(deps, ANNA, { matchId: id, svar: {} })), "invalid-argument");
+    const rn = await svar(deps, ANNA, { matchId: id, svar: null });
+    assert.deepEqual([rn.giltig, rn.ratt, rn.tidenUte, typeof rn.facit], [true, false, true, "string"]);
+    await svar(deps, BO, { matchId: id, svar: null });
+    assert.equal((await rig.match(id)).fas.nr, 3);
   });
 
   it("tiden ute: mdTick avgör läget först när tiden gått – uteblivet svar = fel, inget val = standardvalet", async () => {

@@ -10990,3 +10990,26 @@ html.reduce-motion .schack-pokal-ny { animation: none; }
   .md-flikar { gap: 4px; }
   .md-flikar button { flex: 1 1 auto; min-width: 0; padding: 8px 4px; font-size: 13px; }
 }
+
+/* ── src/styles/51-matchdagen-vanskap.css ── */
+/* ==========================================================================
+   Matchdagen 4 (#874): fliken Vänskap – lobbyn (kompisarna, utmaningarna,
+   pågående matcher, inbördes möten) och vänskapsmatchens egna detaljer
+   (knappen Lämna på planen, väntan på kompisen, slutresultatet).
+   Samma kvällsarena som 49-matchdagen-match.css.
+   ========================================================================== */
+
+.mdv { display: grid; gap: 12px; }
+.mdv-lista { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }
+.mdv-lista > li { padding: 8px 12px; border-radius: 12px; background: var(--md-panel2); font-weight: 700; }
+.mdv-kompis { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; min-height: 64px; }
+.mdv-kompis b { font: 800 22px/1.1 var(--md-rubrikfont); }
+.mdv-hoger { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.mdv-hoger .md-stor { min-height: 48px; padding: 8px 22px; font-size: 20px !important; }
+.mdv-inbjudan { border: 2px solid var(--md-gul); }
+.mdv-inbjudan h2 { font-size: 26px; }
+.mdv-kassa { margin: 10px 0 0; }
+.mdv-lamna { right: 104px; }
+.mdv-vantar { text-align: center; color: var(--md-svag); font: 700 20px/1.3 var(--md-rubrikfont); }
+.mdv-slutres { margin: 4px 0 8px; font: 800 28px/1.1 var(--md-rubrikfont); color: var(--md-gul); }
+.md-fraga[data-rattar] { opacity: 0.75; }

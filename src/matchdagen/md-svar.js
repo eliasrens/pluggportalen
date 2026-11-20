@@ -9,8 +9,11 @@
 //   • fel svar visar det rätta svaret i 1,5 sekunder innan spelet fortsätter
 //   • klockan (lärarens val 30/60 s, 0 = av): tiden ute räknas som fel
 //
-//   visaFraga(host, fraga, { ratta, klocka?, signal?, vidSvar? })
+//   visaFraga(host, fraga, { ratta, klocka?, signal?, vidSvar?, ute? })
 //     → Promise<{ ratt, svar, sekunder, tidenUte? } | { avbruten: true }>
+//   Vänskapsmatchen (#874) rättar på servern: ratta får då ge ett Promise (kortet väntar,
+//   inga dubbelklick; ett fel visas och eleven kan svara igen), och ute() ger rättningen när
+//   klockan tagit slut (servern känner facit – frågan har det inte).
 //   vidSvar(utfall) anropas DIREKT när svaret är avgjort, före pausen som visar
 //   rätt svar – då hinner spelet spara utfallet (en omladdning under pausen får
 //   inte ge en ny fråga för samma skott eller straff, #870 F1).
@@ -51,7 +54,7 @@ function kortHtml(fraga, klocka) {
  * @param {object} fraga
  * @param {{ ratta: Function, klocka?: number, signal?: AbortSignal, vidSvar?: Function, nu?: () => number }} o
  */
-export function visaFraga(host, fraga, { ratta, klocka = 0, signal, vidSvar, nu = () => performance.now() }) {
+export function visaFraga(host, fraga, { ratta, klocka = 0, signal, vidSvar, ute = null, nu = () => performance.now() }) {
   host.innerHTML = kortHtml(fraga, klocka);
   const kort = host.querySelector(".md-fraga");
   const facit = kort.querySelector(".md-fraga-facit");
@@ -59,6 +62,7 @@ export function visaFraga(host, fraga, { ratta, klocka = 0, signal, vidSvar, nu 
   const input = kort.querySelector(".md-fraga-input");
   const start = nu();
   let klar = false; // svaret är avgjort (inga fler klick/tangenter)
+  let rattar = false; // servern rättar (vänskapsmatchen) – inga fler klick under tiden
   let slut = false; // promiset är löst
   let timer = 0;
 
@@ -80,8 +84,18 @@ export function visaFraga(host, fraga, { ratta, klocka = 0, signal, vidSvar, nu 
       resolve({ avbruten: true });
     };
     async function avgor(svar, tidenUte = false) {
-      if (klar) return;
-      const r = tidenUte ? { giltig: true, ratt: false, facit: fraga.facit } : ratta(fraga, svar);
+      if (klar || rattar) return;
+      let r = tidenUte ? (ute ? ute() : { giltig: true, ratt: false, facit: fraga.facit }) : ratta(fraga, svar);
+      if (r?.then) {
+        rattar = true;
+        kort.dataset.rattar = "";
+        try { r = await r; } catch { r = { fel: true }; }
+        rattar = false;
+        delete kort.dataset.rattar;
+        if (klar) return; // avbrutet under tiden
+        if (r.fel && !tidenUte) { facit.textContent = "Ingen kontakt med servern – försök igen."; return; }
+        if (r.fel) r = { giltig: true, ratt: false, facit: fraga.facit }; // servern avgör läget ändå när tiden gått
+      }
       if (!r.giltig) {
         if (input) { input.select(); kort.dataset.ogiltig = ""; setTimeout(() => delete kort.dataset.ogiltig, 400); }
         return;
@@ -97,7 +111,7 @@ export function visaFraga(host, fraga, { ratta, klocka = 0, signal, vidSvar, nu 
         if (!r.ratt && Number.isInteger(svar)) knappar[svar]?.classList.add("fel");
       }
       kort.dataset.utfall = r.ratt ? "ratt" : "fel";
-      facit.innerHTML = r.ratt ? "Rätt!" : `${tidenUte ? "Tiden är ute. " : ""}Rätt svar: <b>${esc(r.facit)}</b>`;
+      facit.innerHTML = r.ratt ? "Rätt!" : `${tidenUte ? "Tiden är ute. " : ""}${r.facit != null && r.facit !== "" ? `Rätt svar: <b>${esc(r.facit)}</b>` : ""}`;
       const utfall = { ratt: r.ratt, svar: tidenUte ? null : svar, sekunder, ...(tidenUte ? { tidenUte: true } : {}) };
       vidSvar?.(utfall);
       await vanta(r.ratt ? RATT_MS : FEL_MS);
