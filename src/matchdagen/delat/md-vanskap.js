@@ -18,6 +18,8 @@
 //   vAndraHalvlek(V) · vWalkover(V, forlorare) · vResultat(V)
 //   spegla(h, sida) → händelsen som md-plan.js spelar (oss = elevens eget lag)
 //   vy(V, sida) → { x, y, boll, mot } för plan.stall
+// Servern och vyerna (§11.3–11.4):
+//   fasSekunder(klocka) · inaktivUtfall({ a, b }, nu) · kassaFor(vann, betaldaIdag) · inbordesText(…)
 // ============================================================================
 
 import * as C from "./md-config.js";
@@ -254,4 +256,43 @@ export function spegla(h, sida) {
     utfall: h.utfall, hojd: h.hojd, rad: h.rad,
     ...(h.mal ? { mal: h.mal === sida ? "oss" : "dem" } : {}), ...(h.horna && egen ? { horna: true } : {}),
   };
+}
+
+// ---- Tiden, walkover, kassan och de inbördes mötena (§11.3, §11.4) -------------
+
+/** Sekunder per läge: VANSKAP.tid, eller elevens klocka (matchdagenInst.klocka) om den är kortare. */
+export const fasSekunder = (klocka) => {
+  const k = Number(klocka) || 0;
+  return k > 0 ? Math.min(C.VANSKAP.tid, k) : C.VANSKAP.tid;
+};
+
+/**
+ * Walkover (§11.3): den som inte har gjort något på VANSKAP.inaktiv sekunder förlorar. aktiv = senaste
+ * handlingen per sida (ms). Är båda inaktiva förlorar den som slutade först – om den andra var aktiv
+ * när gränsen passerades; annars slutade båda ungefär samtidigt och matchen är "avbruten" (inget resultat).
+ * @returns {null|"a"|"b"|"avbruten"}
+ */
+export function inaktivUtfall(aktiv, nu) {
+  const grans = C.VANSKAP.inaktiv * 1000;
+  const a = Number(aktiv?.a) || 0;
+  const b = Number(aktiv?.b) || 0;
+  const ute = { a: nu - a >= grans, b: nu - b >= grans };
+  if (!ute.a && !ute.b) return null;
+  if (ute.a !== ute.b) return ute.a ? "a" : "b";
+  if (b - a >= grans) return "a";
+  if (a - b >= grans) return "b";
+  return "avbruten";
+}
+
+/** Klubbkassan (§11.4): deltagande + vinst, för högst perDag vänskapsmatcher per dag (betaldaIdag före den här). */
+export function kassaFor(vann, betaldaIdag) {
+  const k = C.VANSKAP.kassa;
+  if ((Number(betaldaIdag) || 0) >= k.perDag) return 0;
+  return k.deltagande + (vann ? k.vinst : 0);
+}
+
+/** "Blixtarna IF – FC Omar: 3–1–2" (vinster–oavgjorda–förluster, sett från det egna laget). */
+export function inbordesText(eget, mot, r) {
+  const t = (x) => Math.max(0, Math.floor(Number(x) || 0));
+  return `${eget} – ${mot}: ${t(r?.v)}–${t(r?.o)}–${t(r?.f)}`;
 }
