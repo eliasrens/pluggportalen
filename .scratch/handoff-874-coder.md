@@ -44,18 +44,22 @@ Every phase both answer (no automatic phases) → longer steps; defender's answe
 3 friendlies/day (counted on Stockholm day, mdVanskapElev.antal), more matches allowed without money; inbordes stores opp team
 `namn` too; friendlies don't touch summa/dagar/senaste (teacher sees them via matcher typ vanskap); challenger = side a, kickoff.
 
+## Coder 2 (after 3349190e)
+- a63691a7 client: src/matchdagen/vanskap/{md-vanskap-moln,md-vy-vanskap,md-vanskap-spel}.js, tab in md-app (only with deps.vanskap),
+  page-matchdagen vanskapFor(getClasses, harMatchdagen, ensureClassProjection), md-svar async ratta + ute(), mdSvar svar:null = time out
+  (server + test), vakt (bevaka) mirrors server kassa/inbordes into S.K, teacher tag + inbördes, CSS 51-matchdagen-vanskap.css,
+  test/matchdagen-vanskap-vy.test.js (12 pass).
+- b37fcf70 test/functions-matchdagen-vanskap-anrop.test.mjs (callable e2e), package.json test:rules/test:functions, proxy whitelist,
+  admin/qa-matchdagen-874-preview.sh + seed MD_VANSKAP=1 (Alva 4a01 + Bilal 4a02).
+- next commit: docs MATCHDAGEN §18, DATAMODELL, BEHORIGHETER (doc test green).
+- Margins base run (coarse): skapa 4, match 50, lager 30, kop 18, kopFull 15, sistaOmg 26, kval 22, sasongKval 10, legend 12,
+  legend49 10, mastare 50, mc/mcFinal/cup/cupFinal/lagerStart/byt >=60, lagerMatch -1 (was already "nekas" in Etapp 3).
+- Running: .scratch/kor-874.sh (fine margins fore/efter/INB → .scratch/marg-{fore,efter,inb}.log, then functions tests →
+  .scratch/fn-vanskap.log, then writes .scratch/kor-874.klar).
+
 ## Next steps
-1. Client (task 7): `src/matchdagen/vanskap/md-vanskap-moln.js` (callables like src/schack/schack-moln.js, onSnapshot lobby +
-   match, getDoc own privat), `md-vy-vanskap.js` (lobby: classmates with matchdagen via getClasses()+harMatchdagen, names via
-   ensureClassProjection; challenge/accept/decline/withdraw; inbordes list with inbordesText, esc everything), `md-vanskap-spel.js`
-   (match view: reuse md-plan skapaPlan with spegla/vy, md-svar visaFraga). md-svar: support async ratta WITHOUT breaking the sync
-   test in test/matchdagen-kval-vy.test.js (`let r = ratta(); if (r?.then) r = await r;`, guard double click).
-   Add tab ["vanskap","Vänskap"] in md-app.js; page-matchdagen passes classId/kompisar. Require empty queue (sparaKon) before
-   challenge/accept; after the match re-read career (lasKarriar) → S.K. Teacher: MATCH_TAGG vanskap " (vänskap)" in md-larare-stat.
-   CSS in src/styles/49-matchdagen-match.css (+ npm run build:css). Bootgraph test must stay 107.
-2. Callable e2e test (functions emulator) test/functions-matchdagen-vanskap-anrop.test.mjs like test/functions-schack.test.mjs;
-   add both functions tests to package.json test:functions and the rules test to test:rules.
-3. Two-browser e2e (max two headless pages) against emulator, screenshots to docs/qa-matchdagen-4/ (3D and ?2d=1).
-4. Docs: docs/QA-RAPPORT-matchdagen-etapp-4.md (built, choices above, quota for one friendly, margins, deploy rules→functions→web,
-   whole-epic deploy section), MATCHDAGEN.md §18, DATAMODELL.md, BEHORIGHETER.md (collections + 6 callables).
-5. Full suites: node --test, test:rules, test:functions (via admin/qa-matchdagen-867-svit.sh), then report to lead.
+1. Read margins + fn-vanskap.log; fix failures.
+2. Two-browser e2e: barista_serve "PORT=8874 bash admin/qa-matchdagen-874-preview.sh" (needs emulator lock), log in 4a01 + 4a02
+   (lilla123) in two isolated pages, Vänskap → challenge/accept → play phases; screenshots to docs/qa-matchdagen-4/ (3D + ?2d=1).
+3. docs/QA-RAPPORT-matchdagen-etapp-4.md (built, choices, quota §18.7, margins, deploy rules→functions→web, whole-epic deploy).
+4. Full suites: node --test, test:rules (svit), test:functions (svit); code review (foreground Agent); report to 874-issue-lead.
