@@ -32,7 +32,7 @@ const bonusAv = (bonus, del) => Number(bonus?.[del]) || 0;
 const kopiera = (m) => JSON.parse(JSON.stringify(m));
 
 /** Ett utfall ur { namn: vikt }. */
-function viktat(rng, vikter) {
+export function viktat(rng, vikter) {
   const poster = Object.entries(vikter);
   const summa = poster.reduce((s, [, v]) => s + v, 0);
   let u = rng() * summa;

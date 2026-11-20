@@ -82,3 +82,29 @@ export const KOMMENTAR = {
   straffVinst: ["Vi vinner straffläggningen!"],
   straffForlust: ["{mot} vinner på straffar. Så nära – nästa gång!"],
 };
+
+// ---- Vänskapsmatcherna (Etapp 4, §11) – {anf}/{forsv}/{mot} = lagens namn --------
+/** Raden innan eleven väljer, sedd från elevens eget lag. */
+export const VANSKAP_TEXT = {
+  anfall: "Ni har bollen – välj ert drag!",
+  nara: "Nu är ni nära målet!",
+  horna: "Hörna till er! Bollen slås in högt.",
+  forsvar: "{mot} har bollen – tackla eller täck?",
+  forsvarNara: "{mot} är nära ert mål – försvara!",
+  vantar: "Väntar på {mot} …",
+  halvtid: "Halvtid!",
+  slut: "Slutsignal!",
+};
+/** Kommentatorn – samma rad för båda, därför med lagens namn i stället för vi/de. */
+export const VANSKAP_KOMMENTAR = {
+  passOk: ["{anf} spelar fram bollen.", "Fint passat av {anf}!", "{anf} tar sig framåt."],
+  dribblaOk: ["{anf} dribblar sig förbi!", "Vilken fint av {anf}!"],
+  stoppad: ["{forsv} täcker och bromsar farten, men {anf} har kvar bollen."],
+  bruten: ["{forsv} bryter och tar bollen!", "{forsv} vinner bollen!"],
+  tackad: ["{forsv} täcker och tar bollen!"],
+  mal: ["MÅL för {anf}!", "{anf} sätter den i krysset!", "Målvakten var chanslös – mål för {anf}!"],
+  raddning: ["Målvakten i {forsv} räddar!", "En kanonräddning av målvakten i {forsv}!"],
+  stolpe: ["I stolpen! Så nära för {anf}!", "I ribban!"],
+  utanfor: ["Skottet från {anf} går utanför.", "Strax över ribban!"],
+  horna: ["Hörna till {anf}!"],
+};
