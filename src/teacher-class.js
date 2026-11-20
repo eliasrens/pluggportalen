@@ -183,9 +183,11 @@ export const STATS_TABS = [
   },
   {
     key: "matchdagen", label: "Matchdagen", svg: () => MATCHDAGEN_IKON, what: "Matchdagen", lazy: true,
-    // #869 (§6.4): bara när någon elev i klassen har Matchdagen (elevModuler) – en läsning per elev.
-    when: (o) => !!o.cls?.elevModuler && Object.entries(o.cls.elevModuler).some(([uid, l]) =>
-      Array.isArray(l) && l.includes("matchdagen") && (o.students || []).some((s) => s.id === uid)),
+    // #869 (§6.4): bara när någon elev i klassen har Matchdagen (elevModuler, eller hela klassen
+    // via enabledModules, #876) – en läsning per elev.
+    when: (o) => (Array.isArray(o.cls?.enabledModules) && o.cls.enabledModules.includes("matchdagen") && (o.students || []).length > 0) ||
+      (!!o.cls?.elevModuler && Object.entries(o.cls.elevModuler).some(([uid, l]) =>
+        Array.isArray(l) && l.includes("matchdagen") && (o.students || []).some((s) => s.id === uid))),
     render: async (ctx, pane, o) =>
       (await import("./matchdagen/larare/md-larare-stat.js")).renderClassMatchdagen(ctx, pane, { cls: o.cls, students: o.students }),
   },

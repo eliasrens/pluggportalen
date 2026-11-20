@@ -6,18 +6,20 @@
 //   svara   { utmaningId, ja, classId? } → { matchId } | { matchId: null }
 //           ja = den utmanade antar → matchen startar; nej = den utmanade tackar nej ELLER
 //           den som utmanade tar tillbaka sin utmaning.
-// Grinden: båda går i klassen och har Matchdagen (elevModuler), inget fokuslås, båda har en klubb.
+// Grinden: båda går i klassen och har Matchdagen (enabledModules eller elevModuler), inget fokuslås,
+// båda har en klubb.
 // En utmaning försvinner efter VANSKAP.utmaning sekunder. Bara en vänskapsmatch åt gången per elev
 // (mdVanskapElev/{uid}.aktiv, läses i transaktionen – håller även över klasser); en gammal match där
 // någon varit borta i VANSKAP.inaktiv sekunder avslutas först (walkover/avbruten, tick).
-// När matchen startar läses båda elevernas matchdagenInst och valda områden (en gång) och en frågebank
+// När matchen startar läses båda elevernas matchdagenInst (saknas den: klassens classes/{id}.matchdagenInst,
+// annars tabellerna 0–10 – #876, som klientens md-inst.js effektivInst) och valda områden (en gång) och en frågebank
 // per elev läggs i facit-dokumentet (md-vanskap-fragor.js). Lagen (namn, färg, lagbonus ur truppen)
 // tas ur karriärerna matchdagen/{uid}. Den som utmanade är "a" och gör avspark.
 // ============================================================================
 
 import { HALVLEK_MIN, HALVLEKAR, VANSKAP } from "./matchdagen/md-config.js";
 import { fasSekunder, nyVanskap } from "./matchdagen/md-vanskap.js";
-import { byggBank, byggKallor, harKallor, normInst, omradesNycklar } from "./md-vanskap-fragor.js";
+import { byggBank, byggKallor, effektivInst, harKallor, omradesNycklar } from "./md-vanskap-fragor.js";
 import {
   MdFel, ctx, idEller, hamtaKlass, klassIdsForElev, namnFor, post, lobbyRef, matchRef, facitRef, elevRef, karriarRef,
   lobbyData, aktivFor, lagUr, rensaUtmaningar,
@@ -83,12 +85,12 @@ async function klassForUtmaning(c, uid, data, utmaningId) {
   throw new MdFel("not-found", "Utmaningen finns inte längre.");
 }
 
-/** Elevens lag, frågebank och tid per läge – läses EN gång när matchen startar. */
-async function forbered(c, uid, vem) {
+/** Elevens lag, frågebank och tid per läge – läses EN gång när matchen startar. k = matchens klass. */
+async function forbered(c, uid, vem, k) {
   const [K, is] = await Promise.all([karriar(c, uid), c.db.collection("matchdagenInst").doc(uid).get()]);
   const lag = lagUr(K);
   if (!lag) throw new MdFel("failed-precondition", `${vem} har ingen klubb än.`);
-  const inst = normInst(is.exists ? is.data() : null);
+  const inst = effektivInst(is.exists ? is.data() : null, k);
   if (!harKallor(inst)) throw new MdFel("failed-precondition", `${vem} har inga frågor valda av läraren än.`);
   const omraden = {};
   await Promise.all(omradesNycklar(inst).map(async (k) => {
@@ -119,9 +121,9 @@ export async function svara(deps, uid, data = {}) {
   let B = null;
   let namn = {};
   if (ja) {
-    await hamtaKlass(c.db, uid, classId, c.now(), fran);
+    const k = await hamtaKlass(c.db, uid, classId, c.now(), fran);
     await stadaAktiva(c, [uid, fran]);
-    [A, B, namn] = await Promise.all([forbered(c, fran, "Kompisen"), forbered(c, uid, "Du"), namnFor(c.db, classId, [uid, fran])]);
+    [A, B, namn] = await Promise.all([forbered(c, fran, "Kompisen", k), forbered(c, uid, "Du", k), namnFor(c.db, classId, [uid, fran])]);
   }
   return c.db.runTransaction(async (tx) => {
     const nu = c.now();

@@ -9,13 +9,15 @@
 // sidomeny (ui.renderTopbar) och routern (app.js) respekterar valet.
 // Opt-in-moduler (#605, Hitta rätt!) är AV som standard: ikryssat sparas i
 // stället i classes/{id}.enabledModules (samma knapp, samma skrivning).
+// Matchdagen (#876) står här för HELA klassen; klassens frågeinställningar och
+// enskilda elever sätts under Elever → Anpassningar per elev.
 //
 // Laddas DYNAMISKT från teacher-classes.js (vid klick på "Synliga moduler") så att
 // filen aldrig hamnar i den statiska bootgrafen (incident #271).
 // ============================================================================
 
 import * as data from "./data.js";
-import { TOGGLABLE_MODULES, normalizeHiddenModules, normalizeEnabledModules } from "./gamemode-visibility.js";
+import { MATCHDAGEN_IKON, TOGGLABLE_MODULES, normalizeHiddenModules, normalizeEnabledModules } from "./gamemode-visibility.js";
 import { el, esc, icon } from "./teacher-shared.js";
 import { schackLararIkon } from "./teacher-schack-ikon.js";
 
@@ -35,7 +37,7 @@ export function renderClassModules(ctx, cls, host) {
   const rows = TOGGLABLE_MODULES.map(
     (m) => `<label class="member-row">
         <input type="checkbox" data-module="${esc(m.id)}"${m.optIn ? ' data-opt-in="1"' : ""}${synlig(m) ? " checked" : ""} />
-        <span class="member-avatar">${m.id === "schack" ? schackLararIkon(20) : icon(LARAR_IKON[m.id] || "eye", 20)}</span>
+        <span class="member-avatar">${m.id === "schack" ? schackLararIkon(20) : m.id === "matchdagen" ? MATCHDAGEN_IKON : icon(LARAR_IKON[m.id] || "eye", 20)}</span>
         <span class="member-name">${esc(m.label)}${m.optIn ? ' <span class="hint">(av som standard)</span>' : ""}</span>
       </label>`
   ).join("");

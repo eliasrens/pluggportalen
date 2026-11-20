@@ -1,7 +1,8 @@
 // ============================================================================
 // Matchdagen på SERVERN – frågorna i en vänskapsmatch (functions/md-vanskap-fragor.js, #874)
 // ----------------------------------------------------------------------------
-// Spec §11.3: varje elev får frågor ur SINA EGNA frågekällor (matchdagenInst/{uid}), och
+// Spec §11.3: varje elev får frågor ur SINA EGNA frågekällor (matchdagenInst/{uid}; saknas de:
+// klassens, annars tabellerna 0–10 – #876 effektivInst), och
 // servern rättar med samma rättning som Live. När matchen startar (mdSvara ja) byggs en
 // BANK per elev – lika många frågor som en match kan ha lägen – som ligger i det lärar-
 // skyddade facit-dokumentet (mdVanskap/{id}/facit/{uid}). mdFraga skriver läge n:s fråga
@@ -19,7 +20,7 @@
 //                  som JSON i `bild` – klienten ritar den med matte-visuals.js som i solospelet.
 // Källorna turas om med createTopicBag; en ändlig källa upprepar inget förrän den är slut.
 //
-//   normInst(raw) · harKallor(inst) · omradePool(area) · omradesNycklar(inst)
+//   normInst(raw) · effektivInst(egen, klass) · harKallor(inst) · omradePool(area) · omradesNycklar(inst)
 //   byggKallor(inst, omraden) → källor          omraden: { "ämne/område": area | null }
 //   byggBank(kallor, { antal, rng, fro, svarssatt }) → [post]   post = { pub, kalla, r }
 //   ratta(post, svar) → { giltig, ratt, facit }   svar: index (flerval) eller text (skriv själv)
@@ -71,6 +72,18 @@ export function normInst(raw) {
   };
 }
 export const harKallor = (i) => i.omraden.length + i.tabeller.length + i.rakna.length > 0;
+/**
+ * Inställningarna eleven spelar med (#876, som md-inst.js effektivInst): egna, annars klassens
+ * (classes/{id}.matchdagenInst), annars multiplikationstabellerna 0–10.
+ * @param {object|null} egen  matchdagenInst/{uid} (null = saknas)
+ * @param {object|null} k     klassdokumentet
+ */
+export function effektivInst(egen, k) {
+  if (egen) return normInst(egen);
+  const ki = k?.matchdagenInst;
+  if (ki && typeof ki === "object" && !Array.isArray(ki)) return normInst(ki);
+  return normInst({ tabeller: FAKTORER });
+}
 /** Områdena som ska läsas (subjects/{s}/areas/{a}) – Plugga och Räkna. */
 export const omradesNycklar = (i) => [...new Set([...i.omraden, ...i.rakna])];
 

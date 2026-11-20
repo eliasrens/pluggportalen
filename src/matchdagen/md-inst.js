@@ -14,12 +14,15 @@
 //   paus:      0 | 30 | 45 | 60     minuter till "Dags för en paus", 0 = av (standard 60)
 //   updatedAt, updatedBy            serverns tid + lärarens uid (sätts av md-inst-data.js)
 //
-// Åtkomsten (på/av) bor INTE här utan i classes/{id}.elevModuler (gamemode-visibility.js).
+// Åtkomsten (på/av) bor INTE här utan i classes/{id}.enabledModules (hela klassen, #876)
+// och classes/{id}.elevModuler (per elev, #867) – gamemode-visibility.js.
+// Klassens inställningar (#876): classes/{id}.matchdagenInst i samma form. Eleven spelar med
+// sina EGNA om de finns, annars klassens, annars STANDARD_FRAGOR (tabellerna 0–10) – effektivInst.
 // Frågekällorna läses av md-fragor.js i Etapp 1b; kallNycklar() är nycklarna i
 // statistikens perKalla (spec §6.1).
 // ============================================================================
 
-import { normalizeElevModuler } from "../gamemode-visibility.js";
+import { normalizeElevModuler, normalizeEnabledModules } from "../gamemode-visibility.js";
 
 export const MODUL = "matchdagen";
 export const SVARSSATT = ["flerval", "skriv"];
@@ -32,6 +35,9 @@ export const INGA_FRAGOR = "Din lärare har inte valt några frågor än";
 export const STANDARD_INST = Object.freeze({
   omraden: [], tabeller: [], rakna: [], svarssatt: "flerval", klocka: 0, lugnt: false, paus: 60,
 });
+
+/** Utan egna och klassens inställningar (#876): multiplikationstabellerna 0–10, resten som standard. */
+export const STANDARD_FRAGOR = Object.freeze({ ...STANDARD_INST, tabeller: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] });
 
 /** Områdets nyckel i omraden/rakna: "ämne/område" (samma som fokuslåsets mal.id). */
 export const omradeNyckel = (subjectId, areaId) => `${subjectId}/${areaId}`;
@@ -66,6 +72,15 @@ export function normalizeInst(raw) {
   };
 }
 
+/** Samma inställning (ordningen i listorna spelar ingen roll)? */
+export function sammaInst(a, b) {
+  const nyckel = (x) => {
+    const i = normalizeInst(x);
+    return JSON.stringify({ ...i, omraden: [...i.omraden].sort(), rakna: [...i.rakna].sort() });
+  };
+  return nyckel(a) === nyckel(b);
+}
+
 /** Har läraren valt minst en frågekälla? Annars kan ingen match startas (§2). */
 export function harKallor(inst) {
   const i = normalizeInst(inst);
@@ -78,27 +93,69 @@ export function kallNycklar(inst) {
   return [...i.omraden.map((k) => `omrade:${k}`), ...i.tabeller.map((t) => `tabell:${t}`), ...i.rakna.map((k) => `rakna:${k}`)];
 }
 
-/** Har eleven Matchdagen påslagen i klassen? */
-export function harMatchdagen(cls, uid) {
+/** Är Matchdagen påslagen för HELA klassen (enabledModules, #876)? */
+export function klassPa(cls) {
+  return normalizeEnabledModules(cls?.enabledModules).includes(MODUL);
+}
+
+/** Är Matchdagen påslagen för just eleven (elevModuler, #867)? */
+export function elevPa(cls, uid) {
   return (normalizeElevModuler(cls?.elevModuler, cls?.studentIds)[uid] || []).includes(MODUL);
 }
 
+/** Har eleven Matchdagen i klassen – för hela klassen ELLER för eleven? */
+export function harMatchdagen(cls, uid) {
+  return (klassPa(cls) && Array.isArray(cls?.studentIds) && cls.studentIds.includes(uid)) || elevPa(cls, uid);
+}
+
 /**
- * Klassens nya elevModuler när Matchdagen slås på/av för `uid` – hela mapen
- * (skrivs med updateDoc så att en avstängd elev försvinner helt). Elever som
- * inte längre går i klassen rensas bort (reglerna kräver klassens studentIds).
- * @param {object} cls
+ * Inställningarna eleven spelar med (#876) och var de kommer ifrån: elevens egna
+ * (matchdagenInst/{uid}), annars klassens (classes/{id}.matchdagenInst – den första av
+ * elevens klasser där eleven har Matchdagen och som har inställningar), annars STANDARD_FRAGOR.
+ * @param {object|null} egen   matchdagenInst/{uid} (null = inga egna)
+ * @param {Array<object>} klasser  klassdokumenten (getClasses)
  * @param {string} uid
+ * @returns {{inst:object, kalla:"egen"|"klass"|"standard"}}
+ */
+export function effektivInst(egen, klasser, uid) {
+  if (egen) return { inst: normalizeInst(egen), kalla: "egen" };
+  const egna = (Array.isArray(klasser) ? klasser : []).filter((c) => Array.isArray(c?.studentIds) && c.studentIds.includes(uid));
+  const k = egna.find((c) => harMatchdagen(c, uid) && klassInst(c)) || egna.find((c) => klassInst(c));
+  return k ? { inst: klassInst(k), kalla: "klass" } : { inst: normalizeInst(STANDARD_FRAGOR), kalla: "standard" };
+}
+
+/** Klassens inställningar (classes/{id}.matchdagenInst), normaliserade – null om läraren inte sparat några. */
+export function klassInst(cls) {
+  const r = cls?.matchdagenInst;
+  return r && typeof r === "object" && !Array.isArray(r) ? normalizeInst(r) : null;
+}
+
+/**
+ * Klassens nya elevModuler när Matchdagen slås på/av för `uid` (eller en lista elever,
+ * "Välj alla", #876) – hela mapen (skrivs med updateDoc så att en avstängd elev
+ * försvinner helt). Elever som inte längre går i klassen rensas bort (reglerna kräver
+ * klassens studentIds).
+ * @param {object} cls
+ * @param {string|string[]} uid
  * @param {boolean} pa
  * @returns {Record<string, string[]>}
  */
 export function nyaElevModuler(cls, uid, pa) {
   const map = normalizeElevModuler(cls?.elevModuler, cls?.studentIds);
-  const egna = (map[uid] || []).filter((id) => id !== MODUL);
-  if (pa) egna.push(MODUL);
-  if (egna.length) map[uid] = egna;
-  else delete map[uid];
+  for (const u of Array.isArray(uid) ? uid : [uid]) {
+    const egna = (map[u] || []).filter((id) => id !== MODUL);
+    if (pa) egna.push(MODUL);
+    if (egna.length) map[u] = egna;
+    else delete map[u];
+  }
   return map;
+}
+
+/** Klassens nya enabledModules när Matchdagen slås på/av för hela klassen (#876). */
+export function nyaEnabledModules(cls, pa) {
+  const ut = normalizeEnabledModules(cls?.enabledModules).filter((id) => id !== MODUL);
+  if (pa) ut.push(MODUL);
+  return ut;
 }
 
 /** Elevens rad i lärarens lista, t.ex. "2 områden · tabell 3, 7 · klocka 30 s". */

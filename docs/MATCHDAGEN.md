@@ -6,7 +6,7 @@ Spec: [`UTVECKLINGSUPPDRAG_MATCHDAGEN.md`](UTVECKLINGSUPPDRAG_MATCHDAGEN.md) (ep
 [`QA-RAPPORT-matchdagen-etapp-3.md`](QA-RAPPORT-matchdagen-etapp-3.md), [`QA-RAPPORT-matchdagen-etapp-4.md`](QA-RAPPORT-matchdagen-etapp-4.md).
 
 Matchdagen är ett fotbollsspel där varje drag kräver ett rätt svar. Läraren slår på det för **enskilda
-elever**, aldrig för en hel klass. Det här dokumentet växer med etapperna:
+elever** eller (#876, §19) för **hela klassen**. Det här dokumentet växer med etapperna:
 
 | Etapp | Innehåll | Status |
 | --- | --- | --- |
@@ -18,6 +18,7 @@ elever**, aldrig för en hel klass. Det här dokumentet växer med etapperna:
 | 2c (#872) | Silverpokalen, rekorden och pokalerna som rader (§16) | klar |
 | 3 (#873) | Superligans mästare, Mästarcupen med finalscen, legendklubben och Pokalskåpet (§17) | klar |
 | 4 (#874) | Vänskapsmatcher i realtid: lobbyn, callables, den synkade motorn, rättning på servern, inbördes möten (§18) | klar |
+| #876 | Hela klassen: `enabledModules`, klassens inställningar (`classes/{id}.matchdagenInst`), "Välj alla" (§19) | klar |
 
 ## 1. Moduler per elev (Etapp 1a)
 
@@ -32,8 +33,8 @@ enskilda elever i `classes/{classId}.elevModuler = { [uid]: ["matchdagen"] }`. M
 ```
 
 - `MATCHDAGEN_IKON` är en SVG-fotboll (samma som skissens logga), ingen emoji.
-- En per-elev-modul står **inte** i `TOGGLABLE_MODULES` (lärarens klassvisa av/på i Vad eleverna ser) och
-  `normalizeEnabledModules`/`normalizeHiddenModules` släpper den. Den ligger i `PER_ELEV_MODULES`, och
+- Sedan #876 står en per-elev-modul **också** i `TOGGLABLE_MODULES` (lärarens klassvisa av/på i Vad eleverna
+  ser, `enabledModules`) – se §19. Den ligger i `PER_ELEV_MODULES`, och
   `moduleForRoute` grindar dess route som för andra moduler. `OPT_IN_MODULES` innehåller den (dold när
   klasslistan inte går att läsa).
 - `normalizeElevModuler(map, studentIds?)`: bara kända per-elev-moduler, inga tomma listor, högst 100 elever
@@ -43,8 +44,9 @@ enskilda elever i `classes/{classId}.elevModuler = { [uid]: ["matchdagen"] }`. M
 
 `modulesHiddenForStudent(classes, meId)` (sidomenyn i `ui.js` och routern i `app.js`): en opt-in-modul syns om
 någon av elevens klasser har den i `enabledModules` **eller** har eleven i `elevModuler` för den. Bara klasser
-där eleven står i `studentIds` räknas, så en lista i en annan klass gör ingenting. Eftersom `enabledModules`
-aldrig innehåller `matchdagen` syns den bara för de valda eleverna. Testat i `test/matchdagen-modul.test.js`.
+där eleven står i `studentIds` räknas, så en lista i en annan klass gör ingenting. Med `matchdagen` i klassens
+`enabledModules` (#876) ser alla klassens elever den. Testat i `test/matchdagen-modul.test.js` och
+`test/matchdagen-klass.test.js`.
 
 ### 1.3 Fokusläget
 
@@ -59,7 +61,7 @@ via direktlänk (`class-lock.js lockAllowsRoute`). `lockable: false` – klassen
   årskurskontots tillåtna fält). En **ändrad** map: högst 100 nycklar, bara klassens `studentIds`, och varje
   värde exakt `["matchdagen"]` (`values().hasOnly([['matchdagen']])` – en ny per-elev-modul lägger till sina
   listor där). En oförändrad map stoppar inte andra klass-skrivningar.
-- `enabledModules` får aldrig innehålla `"matchdagen"` (`validEnabledModules`, gäller även admin).
+- `enabledModules` får innehålla `"matchdagen"` sedan #876 (förut nekat). Klassens inställningar: §19.
 - `matchdagenInst/{uid}`: läsa `isSelf(uid) || hasStudent(uid)`, skriva och radera `hasStudent(uid)` med
   formen i `validMatchdagenInst`. Eleven skriver aldrig.
 - Tester: `test/firestore-rules-matchdagen-inst.test.js` (nyckel MI i `docs/BEHORIGHETER.md`).
@@ -86,7 +88,8 @@ sektionen `anpassningar` i `CLASS_SECTIONS`, laddas med `import()`). Beskrivning
 `kallNycklar(inst)` ger statistikens nycklar (`omrade:ä/o`, `tabell:7`, `rakna:ä/o`) för `perKalla` i §6.1.
 
 Sparningen (`md-inst-data.js sparaAnpassning`) skriver `classes/{id}.elevModuler` (hela mapen, gamla elever
-rensas) och `matchdagenInst/{uid}` i **en** batch.
+rensas) och `matchdagenInst/{uid}` i **en** batch. Sedan #876 skrivs `matchdagenInst/{uid}` bara om läraren
+ändrat något för en elev som följer klassen (§19).
 
 ## 3. Elevens sida (Etapp 1a)
 
@@ -279,8 +282,8 @@ allt i `src/matchdagen/plan/` laddas först när matchen startar. Stilarna: `src
 
 | Fil | Vad |
 | --- | --- |
-| `src/matchdagen/md-inst.js` | ren: formen på `matchdagenInst`, `normalizeInst`, `harKallor`, `kallNycklar`, `nyaElevModuler`, `sammanfattning`, `fragorText` |
-| `src/matchdagen/md-inst-data.js` | Firestore: `lasInst(uid)`, `sparaAnpassning(cls, uid, { pa, inst })` |
+| `src/matchdagen/md-inst.js` | ren: formen på `matchdagenInst`, `normalizeInst`, `harKallor`, `kallNycklar`, `nyaElevModuler`, `sammanfattning`, `fragorText`; #876: `klassPa`, `elevPa`, `harMatchdagen`, `klassInst`, `effektivInst`, `STANDARD_FRAGOR`, `nyaEnabledModules`, `sammaInst` |
+| `src/matchdagen/md-inst-data.js` | Firestore: `lasInst(uid)`, `sparaAnpassning(cls, uid, { pa, inst })`; #876: `sparaKlass`, `sparaElevModuler`, `foljKlassen` |
 | `src/matchdagen/page-matchdagen.js` | elevens sida (platshållare i 1a) |
 | `src/matchdagen/larare/md-anpassningar.js` | lärarens lista per elev |
 | `src/matchdagen/larare/md-anpassningar-panel.js` | panelen för en elev |
@@ -1055,4 +1058,72 @@ Räknat för en match med ~29 lägen (balansen) där båda svarar i varje läge:
 
 Solospelet är oförändrat (inga lyssnare, karriären läses en gång) – utom EN läsning av `mdVanskapElev/{uid}` när
 Matchdagen öppnas för en elev i en klass (vakten för en pågående vänskapsmatch).
+
+## 19. Hela klassen (#876)
+
+Matchdagen kan slås på för **hela klassen** utöver enskilda elever. Spelet är oförändrat.
+
+### 19.1 Åtkomsten
+
+- Matchdagen står i `TOGGLABLE_MODULES` (Vad eleverna ser, "av som standard") och får ligga i
+  `classes/{id}.enabledModules`. Eleven ser den om klassen har den påslagen **eller** eleven står i
+  `elevModuler` (`modulesHiddenForStudent`; `md-inst.js harMatchdagen`, servern `md-vanskap-state.js
+  harMatchdagen`). Fokusläget och låset fungerar som förut (`learning`, inget låsmål).
+- Samma av/på finns i panelen **Hela klassen** överst i Elever → Anpassningar per elev (skriver
+  `enabledModules` + klassens inställningar i en skrivning, `sparaKlass`).
+- **Välj alla:** en kryssruta per elev, "Välj alla"/"Avmarkera alla" och "Slå på/av för valda" – EN skrivning
+  av `elevModuler` (`sparaElevModuler`). Elever som slås på så får inga egna inställningar (de följer klassen).
+
+### 19.2 Inställningarna (`effektivInst`)
+
+`classes/{id}.matchdagenInst` har samma form som `matchdagenInst/{uid}` (§2, med `updatedAt`/`updatedBy`).
+Eleven spelar med:
+
+1. sina **egna** (`matchdagenInst/{uid}` finns) – gäller alltid före klassens;
+2. annars **klassens** – från den första av elevens klasser där eleven har Matchdagen och som har inställningar
+   (annars den första med inställningar);
+3. annars **standard** (`STANDARD_FRAGOR`): multiplikationstabellerna 0–10, flerval, ingen klocka, paus 60 min.
+
+Klienten (`page-matchdagen.js`) och servern (`functions/md-vanskap-fragor.js effektivInst`, vänskapsmatchen –
+den använder matchens klass) räknar likadant. Gick elevens egna inte att läsa används inget av det (meddelandet
+"Inställningarna kunde inte läsas" som förut).
+
+Lärarens panel för en elev **utan** egna visar klassens (eller standard) och säger det. Sparar läraren utan att
+ändra något skrivs bara på/av; ändrar läraren något får eleven egna. En elev **med** egna har knappen "Följ
+klassens inställningar" (raderar `matchdagenInst/{uid}`).
+
+### 19.3 Reglerna
+
+- `validEnabledModules` nekar inte längre `matchdagen`.
+- `validKlassMatchdagenInst`: en **ändrad** `matchdagenInst` på klassen är en map som klarar `validMatchdagenInst`
+  (serverns tid, egen uid). En oförändrad map stoppar inte andra klass-skrivningar; fältet får tas bort.
+  `matchdagenInst` står i årskurskontots tillåtna klassfält.
+- `mdHarMatchdagen` (vänskapslobbyn): `enabledModules` **eller** `elevModuler`.
+- Tester: `test/firestore-rules-matchdagen-klass.test.js` (+ `-inst`), rena: `test/matchdagen-klass.test.js`.
+
+### 19.4 Kvoten per extra spelare
+
+Klassens inställningar ligger på klassdokumentet som eleven och läraren redan läser – **0 nya läsningar**. En elev
+utan egna sparar en läsning ändå (`matchdagenInst/{uid}` läses och saknas – det räknas som en läsning).
+
+Varje elev som får Matchdagen genom klassen kostar som en elev per elev (§11, §15.5, §17.7):
+
+| Per extra spelare | Läsningar | Skrivningar |
+| --- | --- | --- |
+| En timmes spel (~6–7 matcher, läger, köp) | ≈ 8 + 1 (`mdVanskapElev`) | ≈ 26 |
+| Lärarens Hur går det? → Matchdagen | 1 (`matchdagen/{uid}`) | 0 |
+| En vänskapsmatch (två spelare, servern) | ≈ 215 per spelare | ≈ 80 per spelare |
+
+**Exempel:** en klass med 25 elever som spelar en lektion (1 h) solo ≈ 225 läsningar och ≈ 650 skrivningar; med
+en vänskapsmatch per elev dessutom ≈ 5 400 läsningar och ≈ 2 000 skrivningar. Gratiskvoten (50 000 läsningar och
+20 000 skrivningar per dag) räcker alltså för ~30 klasslektioner solo per dag, men vänskapsmatcherna är det dyra –
+några klasser per dag. Inga lyssnare i solospelet.
+
+### 19.5 Deploy
+
+**`firebase deploy --only firestore:rules` före webben och functions** (`enabledModules` med `matchdagen` och
+`matchdagenInst` på klassen nekas av de gamla reglerna – lärarens Spara misslyckas då), därefter
+Matchdagens functions (`mdUtmana`, `mdSvara`, `mdFraga`, `mdSvar`, `mdTick`, `mdGeUpp` – grinden och klassens
+inställningar i vänskapsmatchen; utan dem nekas en elev som bara har Matchdagen via klassen "Matchdagen är inte påslaget för
+dig"), sist webben. Inga index, ingen datamigrering.
 

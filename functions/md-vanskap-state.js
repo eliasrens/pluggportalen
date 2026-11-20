@@ -61,12 +61,13 @@ export function lobbyData(snap) {
   return { utmaningar: map(d.utmaningar), matcher: map(d.matcher) };
 }
 
-/** Har eleven Matchdagen i klassen (classes/{id}.elevModuler, §11.1)? */
-export const harMatchdagen = (k, uid) => Array.isArray(post(k?.elevModuler, uid)) && post(k.elevModuler, uid).includes(MODUL);
+/** Har eleven Matchdagen i klassen – hela klassen (enabledModules, #876) eller per elev (elevModuler, §11.1)? */
+export const harMatchdagen = (k, uid) => (Array.isArray(k?.enabledModules) && k.enabledModules.includes(MODUL)) ||
+  (Array.isArray(post(k?.elevModuler, uid)) && post(k.elevModuler, uid).includes(MODUL));
 
 /**
- * Grinden (§11.1): uid går i klassen, läraren har slagit på Matchdagen för eleven
- * (elevModuler) och inget fokuslås är aktivt (Matchdagen är learning och inte låsbar –
+ * Grinden (§11.1): uid går i klassen, läraren har slagit på Matchdagen för klassen
+ * (enabledModules, #876) eller eleven (elevModuler) och inget fokuslås är aktivt (Matchdagen är learning och inte låsbar –
  * varje aktivt lås stänger den, som klientens class-lock.js). `andra` = klasskompisen.
  * @returns {Promise<object>} klassdokumentet
  */

@@ -756,8 +756,9 @@ flera klasser utan extra kopplingsdata).
 | `studentIds`    | array\<string\>       | Id:n på eleverna i klassen (pekar på `students`)|
 | `assignedAreas` | array\<Assignment\>   | Aktiva/tilldelade arbetsområden (valfritt, se nedan) |
 | `lock`          | ClassLock             | Fokusläge (#436): klassen låst till ETT mål till ett klockslag (valfritt, se nedan) |
-| `hiddenModules` / `enabledModules` | array\<string\> | Moduler som döljs (#412) respektive opt-in-moduler som slås på (#605) för hela klassen. `enabledModules` får aldrig innehålla en per-elev-modul (`"matchdagen"`) – reglerna nekar. |
-| `elevModuler`   | map uid → array\<string\> | Moduler per ELEV (#867): `{ [uid]: ["matchdagen"] }` – modulen syns bara för de listade eleverna (`perElev` i `STUDENT_MODULES`). Högst 100 elever, bara klassens `studentIds` som nycklar, i dag bara listan `["matchdagen"]`. Läsbart för alla inloggade (elevens meny), skrivs av lärare med klassen (Elever → Anpassningar per elev). En elev utan modul har ingen nyckel. Se [MATCHDAGEN.md](MATCHDAGEN.md). |
+| `hiddenModules` / `enabledModules` | array\<string\> | Moduler som döljs (#412) respektive opt-in-moduler som slås på (#605) för hela klassen. `enabledModules` får också innehålla `"matchdagen"` (#876, hela klassen). |
+| `matchdagenInst` | map | Matchdagen (#876): klassens frågeinställningar, samma form som `matchdagenInst/{uid}` nedan (med `updatedAt`/`updatedBy`). Gäller elever utan egna. Läsbart för alla inloggade, skrivs av lärare med klassen (Elever → Anpassningar per elev → Hela klassen). Saknas = multiplikationstabellerna 0–10. |
+| `elevModuler`   | map uid → array\<string\> | Moduler per ELEV (#867): `{ [uid]: ["matchdagen"] }` – modulen syns för de listade eleverna (`perElev` i `STUDENT_MODULES`). Högst 100 elever, bara klassens `studentIds` som nycklar, i dag bara listan `["matchdagen"]`. Läsbart för alla inloggade (elevens meny), skrivs av lärare med klassen (Elever → Anpassningar per elev). En elev utan modul har ingen nyckel. Se [MATCHDAGEN.md](MATCHDAGEN.md). |
 | `lasresaStartLevel10` | int 1–10      | Läsresans startnivå (#505, skala 1–10 i #519) för klassens elever som INTE börjat Läsresan (saknar `studentData.lasresa`) och nya elever. Saknas = 4. Påverkar inte elever som är igång. Bara lärare skriver (regeln validerar heltal 1–10; ⚠️ rules-deploy). Se [LASRESAN.md](LASRESAN.md). |
 | `lasresaStartLevel` | int 1–7           | SPEGEL av startnivån i gammal skala (ny − 3, klampad 1–7) för gamla cachade klienter. Skrivs alltid tillsammans med `lasresaStartLevel10`. Finns bara detta fält är värdet gammalt och tolkas +3 (gammal 3 → 6). |
 
@@ -867,7 +868,8 @@ eller lärare (`isClassMember` i `firestore.rules`; regeltester i
 ## Matchdagen (#866–, epic Matchdagen)
 
 Spec `docs/UTVECKLINGSUPPDRAG_MATCHDAGEN.md`; arkitekturen i [`docs/MATCHDAGEN.md`](MATCHDAGEN.md).
-Åtkomsten per elev ligger på klassen (`classes/{classId}.elevModuler`, ovan).
+Åtkomsten ligger på klassen: `classes/{classId}.enabledModules` (hela klassen, #876) och `.elevModuler` (per elev),
+ovan. Klassens inställningar: `classes/{classId}.matchdagenInst`.
 
 ### `matchdagenInst/{uid}` – lärarens inställningar per elev (#867)
 
@@ -884,7 +886,8 @@ Spec `docs/UTVECKLINGSUPPDRAG_MATCHDAGEN.md`; arkitekturen i [`docs/MATCHDAGEN.m
 
 Skrivs av lärare med `hasStudent(uid)` i samma batch som klassens `elevModuler`
 (`src/matchdagen/md-inst-data.js`), läses av läraren och av eleven själv (EN getDoc när
-Matchdagen öppnas). Saknat dokument = standardvärdena och inga frågekällor. Formen och
+Matchdagen öppnas). Saknat dokument = klassens inställningar, annars multiplikationstabellerna 0–10
+(#876, `md-inst.js effektivInst`); läraren kan radera det ("Följ klassens inställningar"). Formen och
 standardvärdena: `src/matchdagen/md-inst.js`. ⚠️ rules-deploy.
 
 ### `matchdagen/{uid}` – elevens karriär (#869)

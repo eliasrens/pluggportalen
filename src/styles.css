@@ -10380,6 +10380,16 @@ html.reduce-motion .schack-pokal-ny { animation: none; }
   background: var(--t-surface-2);
 }
 .teacher-dark .mda-elev + .mda-elev { border-top: 1px solid var(--t-border); }
+.teacher-dark .mda-klassrad { background: var(--t-raised); border-radius: 12px 12px 0 0; }
+.teacher-dark .mda-klassrad .mda-namn small { display: block; color: var(--t-muted); font-weight: 600; font-size: 0.8rem; }
+.teacher-dark .mda-radrad { display: flex; align-items: center; min-width: 0; }
+.teacher-dark .mda-radrad .mda-rad { flex: 1; min-width: 0; }
+.teacher-dark .mda-valj { display: flex; align-items: center; padding: 8px 0 8px 12px; cursor: pointer; }
+.teacher-dark .mda-valj input { width: 18px; height: 18px; accent-color: var(--t-accent); }
+.teacher-dark .mda-verktyg { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.teacher-dark .mda-verktyg .btn:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
+.teacher-dark .mda-massa-resultat:empty { display: none; }
+.teacher-dark .mda-kalla { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0; }
 .teacher-dark .mda-rad {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto 20px;

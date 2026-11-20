@@ -9,11 +9,18 @@
 // och redan valda står överst i sitt ämne, och de ämnena är utfällda.
 // Återställ lagnamn (#869): bara klubb.namn i matchdagen/{uid} (md-lagnamn.js) –
 // har eleven inte startat något lag än står det i svaret.
+// Hela klassen (#876, elev = null): samma formulär för classes/{id}.matchdagenInst och
+// Matchdagen för klassen (enabledModules) – md-inst-data.js sparaKlass. En elev utan egna
+// inställningar visar klassens (annars tabellerna 0–10); Spara skriver egna bara om
+// läraren ändrat något. "Följ klassens inställningar" raderar elevens egna.
 // ============================================================================
 
 import { el, esc, errText, icon } from "../../teacher-shared.js";
 import { areaContentFlags } from "../../gamemode-visibility.js";
-import { KLOCKA_VAL, PAUS_VAL, STANDARD_INST, TABELLER, harKallor, harMatchdagen, omradeNyckel, sammanfattning } from "../md-inst.js";
+import {
+  KLOCKA_VAL, PAUS_VAL, STANDARD_FRAGOR, TABELLER, elevPa, harKallor, klassInst, klassPa, normalizeInst, omradeNyckel,
+  sammaInst, sammanfattning,
+} from "../md-inst.js";
 
 const antalText = (n) => (n ? `${n} ${n === 1 ? "vald" : "valda"}` : "");
 
@@ -46,27 +53,42 @@ function omradesHtml(typ, gs) {
 }
 
 /**
- * Rita panelen för `elev` i `host`.
+ * Rita panelen för `elev` (null = hela klassen, #876) i `host`.
  * @param {object} ctx
- * @param {{cls:object, elev:object, host:HTMLElement, avbryt:{aborted:boolean},
+ * @param {{cls:object, elev:object|null, host:HTMLElement, avbryt:{aborted:boolean},
  *   loadLibrary:Function, onSaved:Function}} o
  */
-export async function renderPanel(ctx, { cls, elev, host, avbryt, loadLibrary, onSaved }) {
+export async function renderPanel(ctx, o) {
+  const { cls, elev, host, avbryt, loadLibrary, onSaved } = o;
   host.replaceChildren(el(`<div class="spinner">Laddar inställningar…</div>`));
   let inst, library;
   try {
     const data = await import("../md-inst-data.js");
-    [inst, library] = await Promise.all([data.lasInst(elev.id), loadLibrary()]);
+    // Klassens inställningar ligger på klassdokumentet – ingen läsning.
+    [inst, library] = await Promise.all([elev ? data.lasInst(elev.id) : klassInst(cls), loadLibrary()]);
   } catch (err) {
     if (!avbryt.aborted) host.replaceChildren(el(`<p class="err-inline">Kunde inte ladda inställningarna: ${esc(errText(err))}</p>`));
     return;
   }
   if (avbryt.aborted) return;
-  const i = inst || { ...STANDARD_INST };
-  const namn = esc(elev.namn || elev.username || elev.id);
+  const egna = !!inst;
+  const arvd = elev && !egna ? klassInst(cls) : null; // vad en elev utan egna spelar med
+  const i = inst || arvd || normalizeInst(STANDARD_FRAGOR);
+  const namn = elev ? esc(elev.namn || elev.username || elev.id) : "";
+  const kalla = !elev ? "" : egna
+    ? `<p class="hint mda-kalla">${namn} har egna inställningar, som gäller före klassens.
+        <button type="button" class="btn ghost small" data-folj>Följ klassens inställningar</button></p>`
+    : `<p class="hint mda-kalla">${namn} följer ${arvd ? "klassens inställningar" : "standard (multiplikationstabellerna 0–10) – klassen har inga inställningar än"}.
+        Ändrar du något här får ${namn} egna.</p>`;
+  const paRad = elev
+    ? `<label class="mda-pa"><input type="checkbox" name="pa"${elevPa(cls, elev.id) ? " checked" : ""} />
+      <span><b>Matchdagen</b> för ${namn}<small>${klassPa(cls) ? "Matchdagen är redan på för hela klassen." : "Syns under Öva i elevens meny. Klasskamraterna ser den inte."}</small></span></label>`
+    : `<label class="mda-pa"><input type="checkbox" name="pa"${klassPa(cls) ? " checked" : ""} />
+      <span><b>Matchdagen</b> för hela ${esc(cls.name || cls.id)}<small>Alla elever i klassen ser den under Öva (samma som i Vad eleverna ser).
+        Inställningarna gäller elever utan egna.</small></span></label>`;
   const box = el(`<form class="mda-form" novalidate>
-    <label class="mda-pa"><input type="checkbox" name="pa"${harMatchdagen(cls, elev.id) ? " checked" : ""} />
-      <span><b>Matchdagen</b> för ${namn}<small>Syns under Öva i elevens meny. Klasskamraterna ser den inte.</small></span></label>
+    ${paRad}
+    ${kalla}
 
     <fieldset class="mda-del"><legend>Frågekällor</legend>
       <p class="hint">Välj en eller flera. Frågorna blir aldrig svårare högre upp i divisionerna. Utan källor kan eleven inte starta någon match.</p>
@@ -90,11 +112,11 @@ export async function renderPanel(ctx, { cls, elev, host, avbryt, loadLibrary, o
       <div class="mda-rad-val">${PAUS_VAL.map((p) => radio("paus", p, p ? `${p} minuter${p === 60 ? " <small>(standard)</small>" : ""}` : "Av", i.paus === p)).join("")}</div>
       <p class="hint">Efter den tiden visas "Bra jobbat! Dags för en paus." efter nästa slutsignal. Den spärrar ingenting.</p>
     </fieldset>
-    <fieldset class="mda-del"><legend>Lagnamn</legend>
+    ${elev ? `<fieldset class="mda-del"><legend>Lagnamn</legend>
       <button type="button" class="btn ghost small" data-lagnamn disabled>${icon("pencil", 16)}<span>Återställ lagnamn</span></button>
       <span class="mda-lagnamn-status" role="status"></span>
       <p class="hint">Om eleven skriver något olämpligt. Lagnamnet blir då Pluggporten FC.</p>
-    </fieldset>
+    </fieldset>` : ""}
 
     <div class="mda-spara">
       <button type="submit" class="btn gron small">${icon("save", 16)}<span>Spara</span></button>
@@ -103,8 +125,19 @@ export async function renderPanel(ctx, { cls, elev, host, avbryt, loadLibrary, o
   </form>`);
 
   const resultat = box.querySelector(".mda-resultat");
-  import("./md-lagnamn.js").then(({ kopplaAterstall }) => kopplaAterstall(box.querySelector("[data-lagnamn]"),
+  if (elev) import("./md-lagnamn.js").then(({ kopplaAterstall }) => kopplaAterstall(box.querySelector("[data-lagnamn]"),
     { uid: elev.id, elevNamn: elev.namn || "Eleven", status: box.querySelector(".mda-lagnamn-status") }));
+  box.querySelector("[data-folj]")?.addEventListener("click", async (e) => {
+    const knapp = e.currentTarget;
+    knapp.disabled = true;
+    try {
+      await (await import("../md-inst-data.js")).foljKlassen(elev.id);
+      if (!avbryt.aborted) renderPanel(ctx, o);
+    } catch (err) {
+      knapp.disabled = false;
+      resultat.innerHTML = `<span class="err-inline">Kunde inte ändra: ${esc(errText(err))}</span>`;
+    }
+  });
   const las = () => {
     const kryss = (attr) => [...box.querySelectorAll(`input[data-${attr}]:checked`)].map((c) => c.dataset[attr]);
     // Ett sparat område som inte visas (borttaget eller utan innehåll just nu) behålls –
@@ -140,10 +173,22 @@ export async function renderPanel(ctx, { cls, elev, host, avbryt, loadLibrary, o
     knapp.disabled = true;
     resultat.innerHTML = "Sparar…";
     try {
-      const sparad = await (await import("../md-inst-data.js")).sparaAnpassning(cls, elev.id, val);
-      const varning = val.pa && !harKallor(sparad) ? " – välj frågor, annars kan eleven inte spela" : "";
-      resultat.innerHTML = `<span class="ok-inline">Sparat ✓ ${esc(sammanfattning(sparad))}${varning}</span>`;
+      const data = await import("../md-inst-data.js");
+      // En elev utan egna som läraren inte ändrat: bara på/av – eleven följer klassen vidare.
+      const foljer = elev && !egna && sammaInst(val.inst, i);
+      const sparad = elev
+        ? await data.sparaAnpassning(cls, elev.id, { pa: val.pa, inst: foljer ? null : val.inst })
+        : await data.sparaKlass(cls, val);
+      const galler = sparad || i;
+      const vem = elev ? "eleven" : "eleverna";
+      const varning = val.pa && !harKallor(galler) ? ` – välj frågor, annars kan ${vem} inte spela` : "";
+      resultat.innerHTML = `<span class="ok-inline">Sparat ✓ ${esc(sammanfattning(galler))}${foljer ? (arvd ? " (klassens)" : " (standard)") : ""}${varning}</span>`;
       onSaved();
+      // Fick eleven nyss egna: rita om så att "Följ klassens inställningar" syns.
+      if (elev && !egna && sparad && !avbryt.aborted) renderPanel(ctx, o).then(() => {
+        const r = host.querySelector(".mda-resultat");
+        if (r) r.innerHTML = `<span class="ok-inline">Sparat ✓ ${esc(sammanfattning(sparad))}</span>`;
+      });
     } catch (err) {
       resultat.innerHTML = `<span class="err-inline">Kunde inte spara: ${esc(errText(err))}</span>`;
     } finally {

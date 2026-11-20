@@ -4,7 +4,8 @@
 // Spec docs/UTVECKLINGSUPPDRAG_MATCHDAGEN.md §1.1–1.2, §15 (Regler):
 //   • elevModuler skrivs av lärare med hasClass(classId), formen valideras
 //     (≤ 100 elever, bara klassens elever, bara ["matchdagen"]); eleven skriver aldrig
-//   • enabledModules kan aldrig innehålla "matchdagen" (aldrig hela klassen)
+//   • enabledModules får innehålla "matchdagen" (hela klassen, #876 – mer i
+//     firestore-rules-matchdagen-klass.test.js)
 //   • matchdagenInst: läraren med hasStudent(uid) skriver och läser, eleven läser
 //     sitt eget och skriver aldrig, klasskamrater läser inte
 // Rollerna ur test/helpers/roller-env.js (admin1, ak4 = årskurskonto 4a/4b, ak5 = 5a).
@@ -80,10 +81,11 @@ describe("elevModuler (#867): bara lärare med klassen, bara rätt form", () => 
     await assertFails(updateDoc(doc(env.ak4(), "classes", "4a"), { elevModuler: { e4a: [MD], kompis: [MD] } }));
     await assertSucceeds(updateDoc(doc(env.ak4(), "classes", "4a"), { elevModuler: { kompis: [MD] } }));
   });
-  it("Matchdagen kan aldrig slås på för hela klassen (enabledModules)", async () => {
-    await assertFails(updateDoc(doc(env.admin(), "classes", "4a"), { enabledModules: [MD] }));
-    await assertFails(updateDoc(doc(env.ak4(), "classes", "4a"), { enabledModules: ["schack", MD] }));
+  it("Matchdagen kan också slås på för hela klassen (enabledModules, #876)", async () => {
+    await assertSucceeds(updateDoc(doc(env.admin(), "classes", "4a"), { enabledModules: [MD] }));
+    await assertSucceeds(updateDoc(doc(env.ak4(), "classes", "4a"), { enabledModules: ["schack", MD] }));
     await assertSucceeds(updateDoc(doc(env.ak4(), "classes", "4a"), { enabledModules: ["schack"] }));
+    await assertFails(updateDoc(doc(env.ak5(), "classes", "4a"), { enabledModules: [MD] }), "utan klassen");
   });
 });
 

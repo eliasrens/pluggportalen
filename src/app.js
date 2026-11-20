@@ -228,7 +228,7 @@ const routes = {
   "/elev/brakresan": dynSida(async () => (await import("./brakresan/page-brakresan.js")).pageBrakresan(), "🐉", "Bråkresan"), // #709
   // Schack (#776): opt-in per klass (enabledModules), hela modulen i src/schack/ laddas lazy.
   "/elev/schack": dynSida(async () => (await import("./schack/page-schack.js")).pageSchack(), SCHACK_IKON, "Schack"),
-  // Matchdagen (#867): bara för elever läraren slagit på den för (elevModuler), src/matchdagen/ lazy.
+  // Matchdagen (#867/#876): för klassen (enabledModules) eller enskilda elever (elevModuler), src/matchdagen/ lazy.
   "/elev/matchdagen": dynSida(async () => (await import("./matchdagen/page-matchdagen.js")).pageMatchdagen(), MATCHDAGEN_IKON, "Matchdagen"),
   // Husvärlden – samma scen för alla tre routes: "by" startar i klassbyn,
   // "hus" ute och "rum" inne. Är scenen redan uppe byter route-bytet bara
