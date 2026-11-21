@@ -10,7 +10,7 @@
 //   rakna:     ["subj/area", ...]   Räkna-områden (område med generator), ≤ 60
 //   svarssatt: "flerval" | "skriv"  flerval är standard (där källan stödjer det)
 //   klocka:    0 | 30 | 60          sekunder per fråga, 0 = av (standard)
-//   lugnt:     bool                 lugnt läge: färre effekter, ingen publik, dämpat ljud
+//   lugnt:     bool                 lugnt läge: färre effekter, ingen publik
 //   paus:      0 | 30 | 45 | 60     minuter till "Dags för en paus", 0 = av (standard 60)
 //   updatedAt, updatedBy            serverns tid + lärarens uid (sätts av md-inst-data.js)
 //

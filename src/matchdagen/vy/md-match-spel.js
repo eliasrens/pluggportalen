@@ -78,7 +78,6 @@ export function layout(S, el, mot, vi = S.K.klubb) {
     <div class="md-plan">
       <div class="md-yta"></div>
       <div class="md-utrop" aria-hidden="true"></div>
-      <button type="button" class="md-ljudknapp" data-ljud aria-pressed="false"></button>
       <span class="md-fps" hidden></span>
     </div>
     <p class="md-kommentar" aria-live="polite"></p>
@@ -88,7 +87,7 @@ export function layout(S, el, mot, vi = S.K.klubb) {
   return {
     yta: el.querySelector(".md-yta"), utrop: el.querySelector(".md-utrop"), kommentar: el.querySelector(".md-kommentar"),
     kort: el.querySelector(".md-kortyta"), res: el.querySelector("[data-res]"), tid: el.querySelector("[data-tid]"), straff: el.querySelector("[data-straff]"),
-    ljudKnapp: el.querySelector("[data-ljud]"), fps: el.querySelector(".md-fps"),
+    fps: el.querySelector(".md-fps"),
   };
 }
 
@@ -112,21 +111,13 @@ export async function spelaMatch(S, el, { pagaende = null, spel = null } = {}) {
   if (pagaende) m.senast = nu; // tiden borta räknas inte (MAX_LAGE_S)
   const v = layout(S, el, n.mot);
   const kapten = kaptenPlats(S.K.trupp);
-  const [{ skapaPlan }, { skapaLjud }, avatar] = await Promise.all([import("../plan/md-plan.js"), import("../plan/md-ljud.js"), avatarBild(S)]);
-  const ljud = skapaLjud({ lugnt: S.lugnt, final });
-  const sattLjudknapp = () => {
-    v.ljudKnapp.setAttribute("aria-pressed", String(ljud.pa));
-    v.ljudKnapp.textContent = ljud.pa ? "Ljud på" : "Ljud av";
-  };
-  sattLjudknapp();
-  v.ljudKnapp.addEventListener("click", () => { ljud.satt(!ljud.pa); sattLjudknapp(); });
+  const [{ skapaPlan }, avatar] = await Promise.all([import("../plan/md-plan.js"), avatarBild(S)]);
   let utropTimer = 0;
   const plan = await skapaPlan({
     yta: v.yta, lugnt: S.lugnt, tvinga2d: S.tvinga2d, avatar, final,
     vi: { troja: S.K.klubb.farg, byxor: LJUS.has(S.K.klubb.farg) ? "#1d2c4a" : "#ffffff", mv: "#ffd23f", kapten },
     dem: { troja: n.mot.farg, byxor: "#1c2433", mv: "#1b1b1b" },
     hooks: {
-      ljud: (x) => ljud.spela(x),
       utrop(text, ms) {
         clearTimeout(utropTimer);
         v.utrop.textContent = text;
@@ -141,7 +132,7 @@ export async function spelaMatch(S, el, { pagaende = null, spel = null } = {}) {
   let fpsTimer = 0;
   const stang = () => {
     signal?.removeEventListener("abort", stang);
-    plan.dispose(); ljud.stang(); clearInterval(fpsTimer); S.spel = null;
+    plan.dispose(); clearInterval(fpsTimer); S.spel = null;
   };
   signal?.addEventListener("abort", stang, { once: true });
   if (/[?&]fps=1/.test(location.search + location.hash)) {
@@ -170,14 +161,12 @@ export async function spelaMatch(S, el, { pagaende = null, spel = null } = {}) {
   plan.stall(m, { avspark: m.lagen === 0 || m.x === 50 });
   skylt();
   sag(m.lagen ? "Matchen fortsätter!" : `${n.text} · Avspark!`);
-  ljud.sorl(true);
   if (!m.lagen && final) await finalIntro(S, el, n);
-  if (!m.lagen) { ljud.spela("vissla"); await vanta(S.lugnt ? 300 : 900); }
+  if (!m.lagen) await vanta(S.lugnt ? 300 : 900);
 
   while (!m.slut) {
     if (signal?.aborted) return;
     if (m.halvtid) {
-      ljud.spela("slutvissla");
       plan.stall(m, { avspark: false });
       v.kort.innerHTML = "";
       const st = m.stat;
@@ -191,7 +180,6 @@ export async function spelaMatch(S, el, { pagaende = null, spel = null } = {}) {
       sparaLokalt();
       plan.stall(m, { avspark: true });
       skylt();
-      ljud.spela("vissla");
       sag("Andra halvlek – avspark!");
       await vanta(S.lugnt ? 300 : 800);
       continue;
@@ -239,7 +227,6 @@ export async function spelaMatch(S, el, { pagaende = null, spel = null } = {}) {
   }
 
   // Slutsignal → (kval och cup: straffar vid oavgjort) → resultatet, sparningen (EN batch) och rutan efter matchen.
-  if (!m.straffar) ljud.spela("slutvissla");
   sag("Slutsignal!");
   v.kort.innerHTML = "";
   if (behoverStraffar(m)) {
@@ -249,7 +236,6 @@ export async function spelaMatch(S, el, { pagaende = null, spel = null } = {}) {
     if (!ok) return;
     skylt();
   }
-  ljud.sorl(false);
   const res = resultat(m);
   // Kön först (bokfor, då försvinner ingen match om sparningen misslyckas), sedan hela
   // kön med den nya karriären – tidsgränsen i md-data.js gör att rutan aldrig hänger offline.
@@ -262,8 +248,6 @@ export async function spelaMatch(S, el, { pagaende = null, spel = null } = {}) {
   if (titel) {
     sag(titel === "mastarcup" ? "Mästarcupen är er – pokalen lyfts!" : "Mästare i Superligan – pokalen lyfts!");
     plan.fest(titel);
-    ljud.spela("fanfar");
-    ljud.spela("jubel");
     v.utrop.textContent = titel === "mastarcup" ? "MÄSTARCUPEN ÄR ER!" : "MÄSTARE!";
     v.utrop.classList.add("visa", "titel");
     await vanta(S.lugnt ? 1500 : 5000);

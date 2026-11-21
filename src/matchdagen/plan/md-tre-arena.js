@@ -1,11 +1,11 @@
 // ============================================================================
 // Matchdagen (#869): 3D-ARENAN – det som står still (spec §4, skissen): planen
 // med gräsränder och linjer (canvas-textur), mål med nät, reklamskyltar
-// "PLUGGPORTEN"/"MATCHDAGEN", läktaren med publik (canvas-textur) och
+// "PLUGGPORTEN"/"MATCHDAGEN", läktaren med publik (md-tre-publik.js, #882) och
 // kvällsljuset med fyra strålkastarmaster. Tar three-modulen T som argument –
 // three laddas bara när matchen startar (src/tre/tre-ladda.js).
 //
-//   byggArena(T, scen, { lugnt, final? }) → { natBukt(sida, t), publikJubel(t), steg(tid), dispose() }
+//   byggArena(T, scen, { lugnt, final? }) → { natBukt(sida, t), publikJubel(t, lag?), publikFarg(sida, farg), steg(tid), dispose() }
 //   sida: 1 = deras mål (höger, +x), -1 = vårt mål. t = 0–1 (effektens styrka).
 //   final (#873, Mästarcupens final §10.2): fullsatt läktare (tätare publik), flaggor som
 //   vajar längs läktarens framkant (EN InstancedMesh – ett ritanrop) och skyltarna
@@ -13,6 +13,7 @@
 // ============================================================================
 
 import { PLAN_B, PLAN_L } from "./md-formation.js";
+import { byggPublik } from "./md-tre-publik.js";
 
 const K = 20; // pixlar per meter i plantexturen
 const MAL_B = 7.32, MAL_H = 2.44;
@@ -54,23 +55,6 @@ function skyltTextur(final = false) {
     g.font = "800 34px 'Barlow Condensed', 'Arial Narrow', sans-serif";
     g.textAlign = "center";
     g.fillText(final ? (i % 2 ? "FINALEN" : "MÄSTARCUPEN") : i % 2 ? "MATCHDAGEN" : "PLUGGPORTEN", i * 256 + 128, 45);
-  }
-  return c;
-}
-
-/** Publiken: små färgade prickar på mörka bänkrader (ingen slump – samma varje gång). Fullsatt i finalen. */
-function publikTextur(final = false) {
-  const c = canvas(512, 128);
-  const g = c.getContext("2d");
-  g.fillStyle = "#1c2a42";
-  g.fillRect(0, 0, 512, 128);
-  for (let r = 0; r < 8; r++) { g.fillStyle = r % 2 ? "#22324d" : "#1a2840"; g.fillRect(0, r * 16, 512, 16); }
-  const farger = ["#e8473f", "#f2f2f2", "#2f6fe8", "#ffd23f", "#8e5cf7", "#f59f1a", "#5a6478", "#2ecc71"];
-  let s = 7;
-  const slump = () => ((s = (s * 16807) % 2147483647) / 2147483647);
-  for (let i = 0; i < (final ? 4200 : 1500); i++) {
-    g.fillStyle = farger[Math.floor(slump() * farger.length)];
-    g.fillRect(slump() * 512, Math.floor(slump() * 8) * 16 + 4 + slump() * 6, 3, 5);
   }
   return c;
 }
@@ -139,14 +123,10 @@ export function byggArena(T, scen, { lugnt = false, final = false } = {}) {
     scen.add(b);
   }
 
-  // Läktaren med publik bakom bortre långsidan, och ett tak.
-  const publikTex = tex(publikTextur(final), 6);
-  const lakt = new T.Mesh(spara(new T.PlaneGeometry(130, 18)), lambert({ map: publikTex }));
-  lakt.position.set(0, 7.2, -46);
-  lakt.rotation.x = -0.55;
-  scen.add(lakt);
-  const tak = new T.Mesh(spara(new T.BoxGeometry(132, 0.6, 9)), lambert({ color: "#16233a" }));
-  tak.position.set(0, 16, -52);
+  // Läktaren med publik bakom bortre långsidan (#882: bänkrader och figurer i lagens färger), och ett tak.
+  const publik = byggPublik(T, scen, { final, spara });
+  const tak = new T.Mesh(spara(new T.BoxGeometry(132, 0.6, 10)), lambert({ color: "#16233a" }));
+  tak.position.set(0, 10.6, -49.5); // vilar på bakväggen (md-tre-publik.js)
   scen.add(tak);
 
   // Kvällsljuset: himmel, dimma, ljus och fyra strålkastarmaster.
@@ -205,12 +185,15 @@ export function byggArena(T, scen, { lugnt = false, final = false } = {}) {
       n.mesh.scale.set(1 + b * 0.6, 1, 1 + b * 0.08);
       n.mesh.position.x = n.x + sida * b * 0.6;
     },
-    /** Publiken jublar: läktaren gungar lite (inte i lugnt läge). */
-    publikJubel(t) {
-      lakt.position.y = 7.2 + (lugnt ? 0 : Math.abs(Math.sin(t * Math.PI * 6)) * 0.35 * (1 - t));
+    /** Publiken jublar och hoppar – bara lag:ets halva om lag anges (inte i lugnt läge). */
+    publikJubel(t, lag = null) {
+      if (!lugnt) publik.jubel(t, lag);
     },
+    /** Lagets tröjfärg på dess halva av läktaren. */
+    publikFarg: (sida, farg) => publik.lagFarg(sida, farg),
     dispose() {
       flaggor?.dispose();
+      publik.dispose();
       for (const x of sparat) x.dispose?.();
     },
   };
