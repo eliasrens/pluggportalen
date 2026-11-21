@@ -39,6 +39,9 @@ const KURRAGOMMA = {
   icon: "🙈",
   description: "Göm dig på ön i 3D – svara rätt, annars visslar det! Den som hittas blir sökare.",
   scope: "inom-klass",
+  // #884: dold i lärarnas formatväljare – bara admin ser den, under "Experiment".
+  // Registret hittar den som förut (historik, projektor, elevvy, återuppta).
+  experiment: true,
   minClasses: KG_MIN_CLASSES,
   maxClasses: KG_MAX_CLASSES,
   answerKinds: ["free", "choice"],

@@ -144,6 +144,9 @@ body.live-lage .container {
 }
 .live-format-card small { color: var(--t-muted, #667); line-height: 1.3; }
 .live-format-icon { font-size: 2rem; line-height: 1; }
+/* Experiment-format (#884) – bara admin, egen grupp under de vanliga */
+.live-format-experiment { margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--t-border-strong, #ccd); }
+.live-format-grupp { margin: 0 0 8px; font-size: 1rem; }
 .live-format-card input:checked + span { border-color: var(--t-accent, #27ae60); background: var(--t-accent-soft, #e8f8ef); }
 .live-format-card input:focus-visible + span { outline: 2px solid var(--t-accent, #27ae60); outline-offset: 2px; }
 .live-wizard-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 6px; }

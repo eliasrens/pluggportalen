@@ -30,7 +30,7 @@ import { requireFormat, listFormats, answerKindsFor, defaultAnswerKind, DEFAULT_
 import { createLiveSession } from "./live-data.js";
 import { validateSessionInput } from "./live-core.js";
 import { defaultSessionName } from "./formats/klassmatch/klassmatch-core.js";
-import { liveClassChoices, liveFieldsFor } from "../teacher-role-core.js";
+import { liveClassChoices, liveFieldsFor, liveFormatChoices } from "../teacher-role-core.js";
 import {
   fieldsFor, setupFieldsHtml, perClassRowsHtml, coerceSetupValue, CUSTOM_CHOICE, coerceCustomChoice, formatPickerHtml, answerKindHtml, classHint,
   answerKindDefaults,
@@ -53,7 +53,7 @@ function drawForm(host, opts, keep) {
     : modes.some((m) => m.id === DEFAULT_GAME_MODE) ? DEFAULT_GAME_MODE : modes[0]?.id;
   const form = el(`<form class="panel live-form" novalidate>
     <h2 class="live-h2">Skapa Live-match</h2>
-    ${formatPickerHtml(listFormats(), format.id)}
+    ${formatPickerHtml(liveFormatChoices(listFormats(), role), format.id)}
     <div class="field"><label>Spelläge</label>
       <div class="live-modes">${modes.map((m) => `<label class="live-chip">
         <input type="radio" name="mode" value="${esc(m.id)}" ${m.id === modeId ? "checked" : ""} />

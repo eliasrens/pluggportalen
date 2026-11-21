@@ -49,5 +49,5 @@ export async function myRole() {
 // så de kan testas i node; de re-exporteras här.
 export {
   canEditArea, createdByLabel, duplicateValue, filterClasses, studentsInClasses, withOwner,
-  canSeeLiveSession, liveClassChoices, liveFieldsFor,
+  canSeeLiveSession, liveClassChoices, liveFieldsFor, liveFormatChoices,
 } from "./teacher-role-core.js";

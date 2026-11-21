@@ -108,6 +108,14 @@ test("liveClassChoices/liveFieldsFor: valfri motståndare bara i Klassmatchen, i
   assert.equal(liveFieldsFor(fields, admin).length, 2);
 });
 
+test("liveFormatChoices (#884): experiment-format bara för admin", async () => {
+  const { liveFormatChoices } = await import("../src/teacher-role-core.js");
+  const formats = [{ id: "klassmatch" }, { id: "kurragomma", experiment: true }];
+  assert.deepEqual(liveFormatChoices(formats, ak4).map((f) => f.id), ["klassmatch"]);
+  assert.deepEqual(liveFormatChoices(formats, null).map((f) => f.id), ["klassmatch"]);
+  assert.deepEqual(liveFormatChoices(formats, admin).map((f) => f.id), ["klassmatch", "kurragomma"]);
+});
+
 test("withOwner (#680): nytt område stämplas, befintligt behåller ägaren", () => {
   // Nytt: anroparen äger, även om värdet försöker ange någon annan.
   assert.deepEqual(withOwner({ name: "Ny", createdBy: "u5" }, null, ak4),
