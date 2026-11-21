@@ -10889,6 +10889,32 @@ html.reduce-motion .schack-pokal-ny { animation: none; }
   .md-cup-rundor li .md-cup-mot { grid-column: 1 / -1; grid-row: 2; }
 }
 
+/* --- Helskärm (#878, md-helskarm.js) ---------------------------------------
+   Knappen står före flikarna. I helskärm (Fullscreen-API:t) och i reserven utan
+   API:t (iPhone: appen fyller fönstret, menyn döljs) skrollar appen själv och
+   innehållet hålls i appens vanliga bredd. Modaler (--z-modal) ligger kvar ovanpå. */
+.md-helskarm-knapp {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 6px 12px;
+  border-radius: 12px; border: 1px solid var(--md-linje); background: var(--md-panel2); font-weight: 800;
+}
+.md-helskarm-knapp svg { flex: 0 0 auto; width: 1.2em; height: 1.2em; }
+.md-app.md-helskarm-pa {
+  max-width: none; width: 100%; height: 100%; margin: 0; border-radius: 0; overflow: auto;
+  padding-inline: max(16px, calc((100% - 1180px) / 2));
+}
+.md-app.md-helskarm-reserv {
+  position: fixed; inset: 0; z-index: calc(var(--z-modal) - 1); height: 100vh; height: 100dvh;
+  padding-top: max(10px, env(safe-area-inset-top)); padding-bottom: max(28px, env(safe-area-inset-bottom));
+  overscroll-behavior: contain;
+}
+html.md-helskarm-sida, html.md-helskarm-sida body { overflow: hidden; }
+html.md-helskarm-sida .sidebar, html.md-helskarm-sida .hamburger, html.md-helskarm-sida .sidebar-overlay { display: none !important; }
+@media (max-width: 640px) {
+  .md-helskarm-knapp { padding: 6px 10px; }
+  .md-helskarm-knapp .md-helskarm-text { display: none; }
+  .md-app.md-helskarm-pa { padding-inline: 10px; }
+}
+
 /* ── src/styles/50-matchdagen-pokaler.css ── */
 /* ==========================================================================
    Matchdagen 3 (#873): toppen – klubbmärket i sidhuvudet (guldkant och

@@ -19,7 +19,7 @@ elever** eller (#876, §19) för **hela klassen**. Det här dokumentet växer me
 | 3 (#873) | Superligans mästare, Mästarcupen med finalscen, legendklubben och Pokalskåpet (§17) | klar |
 | 4 (#874) | Vänskapsmatcher i realtid: lobbyn, callables, den synkade motorn, rättning på servern, inbördes möten (§18) | klar |
 | #876 | Hela klassen: `enabledModules`, klassens inställningar (`classes/{id}.matchdagenInst`), "Välj alla" (§19) | klar |
-| #878 | Hotfix: versionsglapp efter deploy, klassens frågor i Vad eleverna ser (§19.6) | klar |
+| #878 | Hotfix: versionsglapp efter deploy, klassens frågor i Vad eleverna ser, helskärm (§19.6) | klar |
 
 ## 1. Moduler per elev (Etapp 1a)
 
@@ -1128,7 +1128,7 @@ Matchdagens functions (`mdUtmana`, `mdSvara`, `mdFraga`, `mdSvar`, `mdTick`, `md
 inställningar i vänskapsmatchen; utan dem nekas en elev som bara har Matchdagen via klassen "Matchdagen är inte påslaget för
 dig"), sist webben. Inga index, ingen datamigrering.
 
-### 19.6 Hotfix (#878): versionsglapp och klassens frågor i Vad eleverna ser
+### 19.6 Hotfix (#878): versionsglapp, klassens frågor i Vad eleverna ser och helskärm
 
 - **"Matchdagen kunde inte laddas" direkt efter deployen** gick inte att återskapa i emulatorn (alla fall: klassen,
   per elev, egna, utan inställningar). Felet kom fyra minuter efter deployen av #876: Pages-filerna har
@@ -1140,6 +1140,11 @@ dig"), sist webben. Inga index, ingen datamigrering.
 - **Klassens frågor syns där Matchdagen slås på:** Vad eleverna ser → modullistan har knappen
   **Matchdagen: välj frågor för hela klassen** – samma panel som Hela klassen i Anpassningar per elev
   (`renderPanel` med `elev = null`, lat). Panelens på/av och kryssrutan i listan speglar varandra.
+- **Helskärm i elevens vy:** knappen **Helskärm** före flikarna (`md-helskarm.js`, monteras i `md-app.js`). Med
+  Fullscreen-API:t (dator, Chromebook, iPad; `src/helskarm.js`) visas hela appen i helskärm. Utan API:t (Safari på
+  iPhone) blir det en reserv: sidomenyn, hamburgaren och överlägget döljs (`html.md-helskarm-sida`) och appen fyller
+  fönstret (`.md-helskarm-reserv`, `position: fixed`). Esc eller knappen lämnar; att lämna sidan också. Planens höjd
+  räknas om vid bytet (resize). CSS: `49-matchdagen-match.css`.
 - Inga ändringar i reglerna eller functions. Test: `test/matchdagen-sida-878.test.js` (sidan med stubbar, även
-  med en "gammal" `md-inst.js`).
+  med en "gammal" `md-inst.js`) och `test/matchdagen-helskarm-878.test.js`.
 

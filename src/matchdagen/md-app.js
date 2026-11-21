@@ -4,7 +4,8 @@
 // Etapp 3 (#873): fliken Pokalskåpet (§10.4) och klubbmärket i sidhuvudet – guldkant för
 // mästare i Superligan och en guldstjärna per legendklubb (§10.1, §10.3).
 // Etapp 4 (#874): fliken Vänskap (vänskapsmatcher mot klasskompisar, vanskap/md-vy-vanskap.js) –
-// bara när page-matchdagen.js hittat elevens klass (deps.vanskap). Firebase skickas in som `data` (page-matchdagen.js ger den riktiga, förhands-
+// bara när page-matchdagen.js hittat elevens klass (deps.vanskap). #878: helskärmsknappen i
+// sidhuvudet (md-helskarm.js). Firebase skickas in som `data` (page-matchdagen.js ger den riktiga, förhands-
 // visningen en stubbe), så samma kod kör i appen och i preview-matchdagen.html.
 //
 //   startaMatchdagen(host, { uid, inst, data, hamtaOmrade, avatar?, lagring?, tvinga2d?, signal?, vanskap? })
@@ -22,6 +23,7 @@ import { hamtaKarriar } from "./md-spara.js";
 import { truppFalt } from "./delat/md-trupp.js";
 import { esc, laddaTypsnitt } from "./vy/md-vy-delat.js";
 import { marke } from "./vy/md-vy-pokaler.js";
+import { monteraHelskarm } from "./md-helskarm.js";
 
 const FLIKAR = [["match", "Match"], ["tabell", "Tabell"], ["trupp", "Truppen"], ["stat", "Statistik"], ["pokaler", "Pokalskåpet"]];
 
@@ -50,6 +52,9 @@ export async function startaMatchdagen(host, deps) {
     </header>
     ${flikar.map(([id]) => `<section class="md-vy" data-vy-sektion="${id}" hidden></section>`).join("")}`;
   const sektion = (id) => host.querySelector(`[data-vy-sektion="${id}"]`);
+  // Helskärm (#878): knappen före flikarna; reserv utan Fullscreen-API (iPhone).
+  S.helskarm = monteraHelskarm(host, { signal: S.signal });
+  host.querySelector(".md-flikar").before(S.helskarm.knapp);
   S.host = host;
   S.sektion = sektion;
 
