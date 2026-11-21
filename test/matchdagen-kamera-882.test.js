@@ -124,3 +124,25 @@ describe("#882 inget ljud i Matchdagen", () => {
     assert.ok(!/ljud/.test(readFileSync("src/matchdagen/larare/md-anpassningar-panel.js", "utf8")));
   });
 });
+
+describe("#882 läktaren: bänkrader och publik i lagens färger", () => {
+  it("platserna är desamma varje gång, finalen är fullsatt och halvorna hör till var sitt lag", async () => {
+    const { platser, RADER } = await import("../src/matchdagen/plan/md-tre-publik.js");
+    const a = platser(), b = platser(), f = platser({ final: true });
+    assert.deepEqual(a, b);
+    assert.ok(f.length > a.length * 1.3, `finalen ${f.length} mot ${a.length}`);
+    assert.ok(a.length > 400 && f.length < 1200, "lagom många figurer (två InstancedMesh)");
+    assert.ok(a.every((p) => p.r >= 0 && p.r < RADER && Math.abs(p.x) < 64));
+    assert.ok(a.every((p) => Math.abs(p.x) < 0.2 || p.sida === (p.x < 0 ? "vi" : "dem")), "vänster halva = vi, höger = dem");
+    assert.ok(a.some((p) => p.lagFarg) && a.some((p) => !p.lagFarg), "lagfärger blandat med neutrala");
+  });
+  it("arenan bygger publiken med instansning – ingen publiktextur kvar", () => {
+    const arena = readFileSync("src/matchdagen/plan/md-tre-arena.js", "utf8");
+    const publik = readFileSync("src/matchdagen/plan/md-tre-publik.js", "utf8");
+    assert.ok(!/publikTextur/.test(arena));
+    assert.match(arena, /byggPublik\(T, scen/);
+    assert.equal((publik.match(/new T\.InstancedMesh/g) || []).length, 3, "tre ritanrop: bänkrader, kroppar, huvuden");
+    assert.match(arena, /if \(!lugnt\) publik\.jubel/, "lugnt läge: ingen publik som jublar");
+    assert.match(readFileSync("src/matchdagen/plan/md-tre-ritare.js", "utf8"), /arena\.publikFarg\(sida, troja\)/);
+  });
+});

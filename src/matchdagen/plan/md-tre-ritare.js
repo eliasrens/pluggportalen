@@ -86,6 +86,7 @@ export function skapa3dRitare({ T, yta, lugnt = false, final = false }) {
       return f;
     });
     L.kapten = kapten;
+    arena.publikFarg(sida, troja);
     if (sida === "vi" && avatarSprite) placeraAvatar();
   }
   function spelare(sida, pos, { direkt = false } = {}) {
@@ -133,7 +134,7 @@ export function skapa3dRitare({ T, yta, lugnt = false, final = false }) {
   function firar(sida, pa) { lagen[sida].figurer.forEach((f, i) => { f.userData.hopp = pa && i ? 1 : 0; }); }
   function malEffekt(sida) {
     const s = sida === "dem" ? 1 : -1; // vi gör mål i deras mål (höger)
-    effekt(1400, (t) => { arena.natBukt(s, Math.sin(Math.min(1, t * 3) * Math.PI / 2) * (1 - t)); arena.publikJubel(t); });
+    effekt(1400, (t) => { arena.natBukt(s, Math.sin(Math.min(1, t * 3) * Math.PI / 2) * (1 - t)); arena.publikJubel(t, sida === "dem" ? "vi" : "dem"); });
   }
   let zoomTill = 0;
   function zoom(pa) { zoomTill = pa && !lugnt ? performance.now() + 2200 : 0; }
@@ -221,7 +222,7 @@ export function skapa3dRitare({ T, yta, lugnt = false, final = false }) {
       festen.pokal.position.set(k.x, 2.1 + e * 1.3 + k.y, k.z + 0.35);
       festen.pokal.rotation.y = lugnt ? 0.4 : 0.4 + Math.sin(tid * 0.8) * 0.25;
       festen.fx.steg(dt, tid);
-      if (!lugnt) arena.publikJubel((tid % 2.5) / 2.5);
+      if (!lugnt) arena.publikJubel((tid % 2.5) / 2.5, "vi");
     }
     arena.steg?.(tid);
     for (let i = effekter.length - 1; i >= 0; i--) {

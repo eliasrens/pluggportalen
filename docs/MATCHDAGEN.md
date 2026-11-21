@@ -297,7 +297,7 @@ allt i `src/matchdagen/plan/` laddas först när matchen startar. Stilarna: `src
 | `src/matchdagen/md-app.js` | elevens app: sidhuvud med klubbkassan, flikarna, tillståndet och sparningen |
 | `src/matchdagen/md-data.js`, `md-lokal.js`, `md-spara.js` | Firestore (§10), det som sparas lokalt (pågående match, kön av osparade matcher) och kön + valet av karriär |
 | `src/matchdagen/vy/` | flikarna: `md-vy-match` (före avspark, ny klubb, säsongsslut), `md-match-spel` (matchen), `md-vy-tabell`, `md-vy-trupp`, `md-vy-stat`, `md-vy-klubb`, `md-vy-delat` |
-| `src/matchdagen/plan/` | planen (§12): `md-plan` (väljer 3D/2D, spelar upp händelserna), `md-formation` (ren), `md-tre-ritare`/`-arena`/`-figur` (3D), `md-plan-2d` (SVG-reserven), `md-tre-kamera` (kamerans mål, ren) |
+| `src/matchdagen/plan/` | planen (§12): `md-plan` (väljer 3D/2D, spelar upp händelserna), `md-formation` (ren), `md-tre-ritare`/`-arena`/`-figur` (3D), `md-plan-2d` (SVG-reserven), `md-tre-kamera` (kamerans mål, ren), `md-tre-publik` (läktaren, #882) |
 | `src/matchdagen/larare/md-larare-stat.js`, `md-lagnamn.js` | lärarens underflik Matchdagen i Hur går det? och Återställ lagnamn (§13) |
 | `src/styles/49-matchdagen-match.css` | elevens app och matchvyn (kvällsarenan) |
 | `src/matchdagen/delat/md-straffar.js`, `md-kval.js` | ren: straffläggningen och kvalet (§14, #870) |
@@ -466,6 +466,9 @@ Vänskapsmatcher: Etapp 4.
 - **Kameran** (`md-tre-kamera.js`, ren): tv-kamera från långsidan som mjukt följer bollen – dit den är på väg – längs
   planen och på tvären, och zoomar in kort vid mål. #882: bollen och spelarna runt den ska alltid synas, också vid den
   närmaste långsidan och i alla ytors proportioner (`test/matchdagen-kamera-882.test.js` projicerar med three).
+- **Läktaren** (`md-tre-publik.js`, #882): bänkrader i trappsteg och publiken som små figurer i spelarnas stil (kropp +
+  huvud), tre `InstancedMesh` = tre ritanrop, ingen textur. Vänstra halvan bär vår tröjfärg, högra motståndarnas, blandat
+  med neutrala jackor; finalen fullsatt. Vid mål hoppar den halva vars lag gjorde mål (inte i lugnt läge).
 - **Lugnt läge** (`matchdagenInst.lugnt`) **och `prefers-reduced-motion`:** fast kamera över hela planen,
   ingen zoom eller skakning, spelare och boll hoppar direkt till sina platser. Den fasta vyn backar på smala ytor så att
   hela planen ryms (`lugnVy`).
