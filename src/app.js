@@ -180,14 +180,26 @@ async function pageElevLive() {
   }
 }
 
+// Versionsglapp (#878): precis efter en deploy kan en ny modul hamna bredvid en GAMMAL
+// cachad (Pages max-age=600, modulkartan i en flik som varit öppen) – ett saknat export ger
+// SyntaxError vid länkningen, en saknad funktion "is not a function". Det läker av sig självt.
+function versionsGlapp(err) {
+  return err instanceof SyntaxError ||
+    /does not provide an export|is not a function|dynamically imported module|importing a module script failed/i
+      .test(String(err?.message || ""));
+}
+
 // Opt-in-moduler (#605 Hitta rätt!, #618 Ekvationsresan): dynamisk import, snällt fel.
 const dynSida = (ladda, ikon, namn) => async () => {
   loading();
   try { return await ladda(); } catch (err) {
     console.error(`${namn} kunde inte laddas:`, err);
     renderTopbar();
+    const nyss = versionsGlapp(err);
     app.replaceChildren(el(`<div class="panel center"><div class="big-emoji">${ikon}</div>
-      <h2>${namn} kunde inte laddas</h2><p class="hint">Något gick fel. Prova igen om en stund.</p></div>`));
+      <h2>${namn} kunde inte laddas</h2><p class="hint">${nyss ? "Pluggporten uppdaterades nyss. Vänta någon minut och ladda om sidan."
+        : "Något gick fel. Prova igen om en stund."}</p>${nyss ? `<button type="button" class="btn" data-ladda-om>Ladda om</button>` : ""}</div>`));
+    app.querySelector("[data-ladda-om]")?.addEventListener("click", () => location.reload());
   }
 };
 const pageElevHittaRatt = dynSida(async () => (await import("./hitta-ratt/page-hitta-ratt.js")).pageHittaRatt(), "🗺️", "Hitta rätt!");

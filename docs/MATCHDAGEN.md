@@ -19,6 +19,7 @@ elever** eller (#876, §19) för **hela klassen**. Det här dokumentet växer me
 | 3 (#873) | Superligans mästare, Mästarcupen med finalscen, legendklubben och Pokalskåpet (§17) | klar |
 | 4 (#874) | Vänskapsmatcher i realtid: lobbyn, callables, den synkade motorn, rättning på servern, inbördes möten (§18) | klar |
 | #876 | Hela klassen: `enabledModules`, klassens inställningar (`classes/{id}.matchdagenInst`), "Välj alla" (§19) | klar |
+| #878 | Hotfix: versionsglapp efter deploy, klassens frågor i Vad eleverna ser, helskärm (§19.6) | klar |
 
 ## 1. Moduler per elev (Etapp 1a)
 
@@ -1126,4 +1127,27 @@ några klasser per dag. Inga lyssnare i solospelet.
 Matchdagens functions (`mdUtmana`, `mdSvara`, `mdFraga`, `mdSvar`, `mdTick`, `mdGeUpp` – grinden och klassens
 inställningar i vänskapsmatchen; utan dem nekas en elev som bara har Matchdagen via klassen "Matchdagen är inte påslaget för
 dig"), sist webben. Inga index, ingen datamigrering.
+
+### 19.6 Hotfix (#878): versionsglapp, klassens frågor i Vad eleverna ser och helskärm
+
+- **"Matchdagen kunde inte laddas" direkt efter deployen** gick inte att återskapa i emulatorn (alla fall: klassen,
+  per elev, egna, utan inställningar). Felet kom fyra minuter efter deployen av #876: Pages-filerna har
+  `max-age=600`, och en flik som varit öppen håller sina moduler i modulkartan – en **gammal** `md-inst.js` (utan
+  `effektivInst`) bredvid den nya `page-matchdagen.js` gav `TypeError: effektivInst is not a function`.
+  `page-matchdagen.js` startar nu ändå (de egna inställningarna; utan egna "Pluggporten uppdaterades nyss…").
+  `dynSida` i `app.js` känner igen versionsglapp (`versionsGlapp`: SyntaxError vid länkningen, "is not a function",
+  en modul som inte gick att hämta) och visar "Pluggporten uppdaterades nyss" med **Ladda om** för alla lata elevsidor.
+- **Klassens frågor syns där Matchdagen slås på:** Vad eleverna ser → modullistan har knappen
+  **Matchdagen: välj frågor för hela klassen** – samma panel som Hela klassen i Anpassningar per elev
+  (`renderPanel` med `elev = null`, lat). Panelens på/av och kryssrutan i listan speglar varandra.
+- **Helskärm i elevens vy:** knappen **Helskärm** före flikarna (`md-helskarm.js`, monteras i `md-app.js`). Med
+  Fullscreen-API:t (dator, Chromebook, iPad; `src/helskarm.js`) visas hela appen i helskärm. Utan API:t (Safari på
+  iPhone) blir det en reserv: sidomenyn, hamburgaren och överlägget döljs (`html.md-helskarm-sida`) och appen fyller
+  fönstret (`.md-helskarm-reserv`, `position: fixed`). Esc eller knappen lämnar; att lämna sidan också. Planens höjd
+  räknas om vid bytet (resize). CSS: `49-matchdagen-match.css`.
+- **Fler spelarnamn:** `md-namn.js` har 120 förnamn och 100 efternamn (≈ 12 000 kombinationer, förut 1 152), bara
+  bokstäver, inga dubbletter, de gamla först. Namnen sparas i karriären när de lottas – längre listor rör inga sparade
+  trupper eller marknader. Serverns kopia via `npm run sync:matchdagen`. Test: `test/matchdagen-namn-878.test.js`.
+- Inga ändringar i reglerna; functions bara via den synkade `md-namn.js`. Test: `test/matchdagen-sida-878.test.js` (sidan med stubbar, även
+  med en "gammal" `md-inst.js`) och `test/matchdagen-helskarm-878.test.js`.
 

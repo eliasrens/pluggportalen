@@ -43,8 +43,8 @@ export const MINA_FLIKAR = [
     // #867: Anpassningar per elev (Matchdagen) under tabellen, för båda rollerna.
     key: "elever", label: "Elever", sub: "Inloggning och konton", sections: ["inloggning", "anpassningar"],
     admin: ["elever", "anpassningar", "klasscenter"],
-    hjalp: "Här ser du klassens elever med användarnamn och lösenord, skriver ut inloggningskort och slår på Matchdagen för enskilda elever under Anpassningar per elev. Byt lösenord ligger i menyn ⋯ på varje rad.",
-    hjalpAdmin: "Här ser du klassens elever med användarnamn och lösenord, skriver ut inloggningskort och slår på Matchdagen för enskilda elever under Anpassningar per elev. Som admin lägger du också till elever, ger mynt och tar bort konton i menyn ⋯.",
+    hjalp: "Här ser du klassens elever med användarnamn och lösenord, skriver ut inloggningskort och slår på Matchdagen för hela klassen eller enskilda elever och väljer frågorna under Anpassningar per elev. Byt lösenord ligger i menyn ⋯ på varje rad.",
+    hjalpAdmin: "Här ser du klassens elever med användarnamn och lösenord, skriver ut inloggningskort och slår på Matchdagen för hela klassen eller enskilda elever och väljer frågorna under Anpassningar per elev. Som admin lägger du också till elever, ger mynt och tar bort konton i menyn ⋯.",
   },
 ];
 

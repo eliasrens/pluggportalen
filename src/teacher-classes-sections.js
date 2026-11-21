@@ -115,7 +115,9 @@ export const CLASS_SECTIONS = [
       host.replaceChildren(...(byar ? [modulesEl, villagesEl] : [modulesEl]));
       await Promise.all([
         withLoading(modulesEl, "moduler", async () =>
-          (await import("./teacher-class-modules.js")).renderClassModules(ctx, cls, modulesEl)
+          (await import("./teacher-class-modules.js")).renderClassModules(ctx, cls, modulesEl, {
+            loadLibrary: () => store.loadLibrary(), // Matchdagens frågeval för klassen (#878)
+          })
         ),
         byar && withLoading(villagesEl, "byar", async () =>
           (await import("./teacher-class-villages.js")).renderClassVillages(ctx, cls, villagesEl, store.classes)
