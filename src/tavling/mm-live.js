@@ -14,6 +14,11 @@
 //     (perioden tog nyss slut, tävlingen pausades) skickas Live-svaret om utan
 //     MM-delen, så Live-poängen aldrig går förlorad. Live-svarets eget
 //     dokument kan bara skapas en gång → MM-delen räknas högst en gång.
+//   mmRaknaIn({ uid, record, isCorrect }) → Promise<boolean> (#879) – ett
+//     svar UTAN eget Live-svar (Matchdagens solospel): MM-delen ensam i EN
+//     batch med ett nytt attemptId (ankaret liveAnswers kan bara skapas en
+//     gång → aldrig dubbelt; inga mynt). Klassen = den deltagande klassen ur
+//     bevakaren. false = ingen aktiv match / nekad / fel. Kastar aldrig.
 //
 // Laddas bara via de lata Live-modulerna – aldrig i bootgrafen (#271).
 // ============================================================================
@@ -25,6 +30,7 @@ import {
 import * as data from "../data.js";
 import { getMattematch } from "../ui.js";
 import { planLiveMmWrites } from "./answer-writes.js";
+import { newAttemptId } from "../mult/attempt-id.js";
 
 const fv = { increment, serverTimestamp };
 
@@ -57,5 +63,20 @@ export async function commitMedMm(writes, mmWrites = []) {
     if (err?.code !== "permission-denied") throw err;
     console.warn("Mattematchen (Live): MM-delen nekades – Live-svaret skickas utan", err?.code);
     return commit(writes);
+  }
+}
+
+/** Matchdagens solosvar i multiplikation (#879): bara MM-delen, i EN batch. */
+export async function mmRaknaIn({ uid, record, isCorrect }) {
+  try {
+    const m = await getMattematch();
+    if (!m?.competition || !m.classId) return false;
+    const writes = await mmLiveWrites({ uid, classId: m.classId, attemptId: newAttemptId(), record, isCorrect });
+    if (!writes.length) return false;
+    await commit(writes);
+    return true;
+  } catch (err) {
+    console.warn("Mattematchen (Matchdagen): svaret kunde inte räknas in", err?.code || err);
+    return false;
   }
 }

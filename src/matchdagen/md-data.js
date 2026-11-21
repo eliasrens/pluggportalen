@@ -17,6 +17,8 @@
 //   lasKarriarer(uids)                    läraren: en läsning per elev
 //   lasMatcher(uid, n)                    läraren: de n senaste matcherna (n läsningar)
 //   aterstallLagnamn(uid)                 läraren: bara klubb.namn       1 skrivning
+//   mmRaknaIn({ uid, record, isCorrect }) Mattematchen (#879): ett multiplikationssvar i elevens
+//                                         aktiva match (src/tavling/mm-live.js, laddas först då)
 // ============================================================================
 
 import { db } from "../firebase-config.js";
@@ -119,6 +121,17 @@ export async function lasKarriarer(uids) {
 export async function lasMatcher(uid, n = 20) {
   const snap = await getDocs(query(collection(db, "matchdagen", uid, "matcher"), orderBy("datum", "desc"), limit(n)));
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+/** Mattematchen (#879): MM-delen ensam (2 resp. 4 skrivningar), inga mynt. Kastar aldrig. */
+export async function mmRaknaIn(svar) {
+  try {
+    const { mmRaknaIn: rakna } = await import("../tavling/mm-live.js");
+    return await rakna(svar);
+  } catch (err) {
+    console.warn("Matchdagen: Mattematchen kunde inte laddas", err);
+    return false;
+  }
 }
 
 /** Läraren får BARA ändra klubb.namn (reglerna). */

@@ -12,6 +12,9 @@
 //          (uteblivet svar = fel, inget val = standardvalet), halvtiden tar slut (båda redo eller
 //          VANSKAP.halvtid s), och den som inte gjort något på VANSKAP.inaktiv s förlorar på walkover.
 //   geUpp  { matchId } → walkover direkt (eleven lämnar matchen).
+// Mattematchen (#879): ett besvarat multiplikationsläge (inte tiden ute) räknas i elevens aktiva
+// Mattematch – mmLiveWrites (mattematchen-live.js) i svarets transaktion, som Live (#847). Svaret
+// sparas i samma transaktion och ett omförsök svarar ur det → aldrig dubbelt. Inga mynt.
 // EN transaktion per anrop. Slutet (avsluta) skriver i samma transaktion: matchdokumentet,
 // båda elevernas spärr och dagsräkning (mdVanskapElev), kassan och de inbördes mötena
 // (matchdagen/{uid}, FieldValue.increment) och matchen i båda elevernas matcher (typ "vanskap").
@@ -21,6 +24,7 @@ import { VANSKAP } from "./matchdagen/md-config.js";
 import { SIDOR, kassaFor, inaktivUtfall, motsida, vAndraHalvlek, vLage, vResultat, vSpela, vWalkover } from "./matchdagen/md-vanskap.js";
 import { dagNyckel } from "./matchdagen/md-sasong.js";
 import { ratta } from "./md-vanskap-fragor.js";
+import { mmForLive, mmLiveWrites } from "./mattematchen-live.js";
 import { MdFel, ctx, elevRef, facitRef, idEller, karriarRef, lobbyRef, matchRef, privatRef } from "./md-vanskap-state.js";
 
 export { MdFel };
@@ -171,8 +175,13 @@ export async function svar(deps, uid, data = {}) {
     const r = ute ? { giltig: true, ratt: false, facit: String(post?.r?.facit ?? "") } : ratta(post, raw);
     if (!r.giltig) return { giltig: false };
     const ny = { ...p, svar: { ratt: r.ratt, facit: r.facit, ...(ute ? { tidenUte: true } : {}) }, aktiv: nu };
+    const mm = !ute && post?.r?.s === "mult" ? await mmForLive(c, m.classId) : null; // cachat
     await stega(c, tx, matchId, m, { ...P, [s]: ny }, nu);
     tx.set(privatRef(c, matchId, uid), ny);
+    mmLiveWrites(tx, c, mm, {
+      uid, classId: m.classId, name: m.namn?.[s], attemptId: `md_${matchId}_${m.fas.nr}`.slice(0, 64),
+      svar: [{ factorA: post.r.a, factorB: post.r.b, isCorrect: r.ratt }],
+    });
     return { giltig: true, ...ny.svar };
   });
 }
