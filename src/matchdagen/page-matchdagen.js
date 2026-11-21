@@ -15,6 +15,7 @@
 // kommer ur getStudentData (sidomenyns cache – ingen ny läsning).
 // Vänskapsmatcher (#874): elevens klass med Matchdagen ur getClasses() (klasslistans
 // cache) och kompisarnas namn ur classProjections – EN läsning, först när fliken öppnas.
+// #878: sidan klarar en gammal cachad md-inst.js (versionsglapp precis efter en deploy).
 // ============================================================================
 
 import { app, renderTopbar } from "../ui.js";
@@ -47,7 +48,7 @@ export async function pageMatchdagen() {
 
   const uid = currentStudentId();
   let instFel = false;
-  const [, egenInst, sd, data, { startaMatchdagen }, klasser, { harMatchdagen, effektivInst }] = await Promise.all([
+  const [, egenInst, sd, data, { startaMatchdagen }, klasser, mdInst] = await Promise.all([
     renderTopbar(),
     import("./md-inst-data.js").then((m) => m.lasInst(uid)).catch((err) => {
       console.warn("Matchdagen: inställningarna kunde inte läsas", err);
@@ -63,14 +64,20 @@ export async function pageMatchdagen() {
   if (ac.signal.aborted) return;
   // Egna inställningar, annars klassens, annars tabellerna 0–10 (#876). Gick de egna inte
   // att läsa vet vi inte om de finns – då inga frågor och ett meddelande, som förr.
-  const inst = instFel ? null : effektivInst(egenInst, klasser, uid).inst;
+  // #878: precis efter en deploy kan webbläsaren (eller Pages-cachen, max-age 600) ge en
+  // GAMMAL md-inst.js utan effektivInst bredvid den nya sidan – då de egna, som före #876,
+  // i stället för "Matchdagen kunde inte laddas" (utan egna: be eleven ladda om).
+  const { harMatchdagen, effektivInst } = mdInst;
+  const glapp = typeof effektivInst !== "function";
+  const inst = instFel ? null : glapp ? egenInst : effektivInst(egenInst, klasser, uid).inst;
   const host = document.createElement("section");
   host.setAttribute("aria-label", "Matchdagen");
   app.replaceChildren(host);
   const sok = new URLSearchParams(location.search || location.hash.split("?")[1] || "");
   await startaMatchdagen(host, {
     uid, inst,
-    meddelande: instFel ? "Inställningarna kunde inte läsas just nu. Prova igen om en stund." : undefined,
+    meddelande: instFel ? "Inställningarna kunde inte läsas just nu. Prova igen om en stund."
+      : glapp ? "Pluggporten uppdaterades nyss. Vänta någon minut och ladda om sidan." : undefined,
     data,
     hamtaOmrade: (s, a) => getArea(s, a),
     avatar: sd ? { avatarId: sd.avatarId, avatarItems: sd.avatarItems || [] } : null,

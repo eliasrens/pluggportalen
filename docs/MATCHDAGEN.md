@@ -19,6 +19,7 @@ elever** eller (#876, §19) för **hela klassen**. Det här dokumentet växer me
 | 3 (#873) | Superligans mästare, Mästarcupen med finalscen, legendklubben och Pokalskåpet (§17) | klar |
 | 4 (#874) | Vänskapsmatcher i realtid: lobbyn, callables, den synkade motorn, rättning på servern, inbördes möten (§18) | klar |
 | #876 | Hela klassen: `enabledModules`, klassens inställningar (`classes/{id}.matchdagenInst`), "Välj alla" (§19) | klar |
+| #878 | Hotfix: versionsglapp efter deploy, klassens frågor i Vad eleverna ser (§19.6) | klar |
 
 ## 1. Moduler per elev (Etapp 1a)
 
@@ -1126,4 +1127,19 @@ några klasser per dag. Inga lyssnare i solospelet.
 Matchdagens functions (`mdUtmana`, `mdSvara`, `mdFraga`, `mdSvar`, `mdTick`, `mdGeUpp` – grinden och klassens
 inställningar i vänskapsmatchen; utan dem nekas en elev som bara har Matchdagen via klassen "Matchdagen är inte påslaget för
 dig"), sist webben. Inga index, ingen datamigrering.
+
+### 19.6 Hotfix (#878): versionsglapp och klassens frågor i Vad eleverna ser
+
+- **"Matchdagen kunde inte laddas" direkt efter deployen** gick inte att återskapa i emulatorn (alla fall: klassen,
+  per elev, egna, utan inställningar). Felet kom fyra minuter efter deployen av #876: Pages-filerna har
+  `max-age=600`, och en flik som varit öppen håller sina moduler i modulkartan – en **gammal** `md-inst.js` (utan
+  `effektivInst`) bredvid den nya `page-matchdagen.js` gav `TypeError: effektivInst is not a function`.
+  `page-matchdagen.js` startar nu ändå (de egna inställningarna; utan egna "Pluggporten uppdaterades nyss…").
+  `dynSida` i `app.js` känner igen versionsglapp (`versionsGlapp`: SyntaxError vid länkningen, "is not a function",
+  en modul som inte gick att hämta) och visar "Pluggporten uppdaterades nyss" med **Ladda om** för alla lata elevsidor.
+- **Klassens frågor syns där Matchdagen slås på:** Vad eleverna ser → modullistan har knappen
+  **Matchdagen: välj frågor för hela klassen** – samma panel som Hela klassen i Anpassningar per elev
+  (`renderPanel` med `elev = null`, lat). Panelens på/av och kryssrutan i listan speglar varandra.
+- Inga ändringar i reglerna eller functions. Test: `test/matchdagen-sida-878.test.js` (sidan med stubbar, även
+  med en "gammal" `md-inst.js`).
 

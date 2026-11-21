@@ -10598,6 +10598,10 @@ html.reduce-motion .schack-pokal-ny { animation: none; }
 .teacher-dark .mda-lagnamn-status { margin-left: 8px; }
 /* #872: Silverpokalen och rekorden i elevens detalj */
 .teacher-dark .mdl-rekord { margin: 4px 0 0; padding-left: 18px; font-size: 0.9rem; }
+/* #878: Matchdagens frågor för hela klassen direkt under Vad eleverna ser → modullistan */
+.teacher-dark .cls-md-klass { margin-top: 14px; }
+.teacher-dark .cls-md-klass > [data-act="md-klass"] { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; max-width: 100%; white-space: normal; text-align: left; }
+.teacher-dark .cls-md-klass > .mda-panel { border: 1px solid var(--t-border); border-radius: 12px; padding: 12px; }
 
 /* ── src/styles/49-matchdagen-match.css ── */
 /* ==========================================================================
