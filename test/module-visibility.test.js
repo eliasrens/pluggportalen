@@ -117,7 +117,7 @@ test("STUDENT_MODULES: unika id/rutter; TOGGLABLE = registret utan toggle:false"
   assert.equal(new Set(ids).size, ids.length);
   const routes = STUDENT_MODULES.flatMap((m) => m.routes);
   assert.equal(new Set(routes).size, routes.length, "en route får bara ägas av en modul");
-  assert.deepEqual(TOGGLABLE_MODULES.map((m) => m.id), ["plugga", "lasresan", "shop", "hittaratt", "ekvationsresan", "brakresan", "schack"]);
+  assert.deepEqual(TOGGLABLE_MODULES.map((m) => m.id), ["plugga", "lasresan", "shop", "hittaratt", "ekvationsresan", "brakresan", "schack", "matchdagen"]);
   assert.ok(!TOGGLABLE_MODULES.some((m) => m.id === "mattematchen"), "Mattematchen styrs av perioden");
   for (const m of STUDENT_MODULES) assert.ok(m.label && m.ikon && ["mitt", "ova"].includes(m.grupp), m.id);
 });

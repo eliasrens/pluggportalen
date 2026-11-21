@@ -4,7 +4,7 @@
 // ----------------------------------------------------------------------------
 // Spec docs/UTVECKLINGSUPPDRAG_MATCHDAGEN.md §1 och §15 "Modulen per elev":
 //   • syns bara för valda elever, aldrig för klasskamrater
-//   • kan inte slås på för hela klassen (enabledModules)
+//   • kan också slås på för hela klassen (enabledModules, #876 – se matchdagen-klass.test.js)
 //   • fokusläget spärrar den
 //   • lärarens inställningar sparas och läses (formen; regler: emulatortestet)
 //   • bootgrafen oförändrad (107) – allt nytt i src/matchdagen/ via import()
@@ -29,7 +29,7 @@ const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const read = (p) => readFileSync(join(ROOT, p), "utf8");
 const MD = "matchdagen";
 
-describe("registret: Matchdagen är en per-elev-modul", () => {
+describe("registret: Matchdagen är en per-elev- och klassmodul", () => {
   const m = STUDENT_MODULES.find((x) => x.id === MD);
   it("perElev + optIn + learning, gruppen Öva, egen route, inget låsmål", () => {
     assert.ok(m, "matchdagen saknas i STUDENT_MODULES");
@@ -48,11 +48,11 @@ describe("registret: Matchdagen är en per-elev-modul", () => {
     assert.match(m.ikon, /<circle /);
     assert.doesNotMatch(m.ikon, /\p{Extended_Pictographic}/u);
   });
-  it("kan inte slås på eller döljas för hela klassen", () => {
-    assert.ok(!TOGGLABLE_MODULES.includes(m), "inte i lärarens klassvisa modullista");
+  it("kan slås på för hela klassen (#876) och för enskilda elever", () => {
+    assert.ok(TOGGLABLE_MODULES.includes(m), "i lärarens klassvisa modullista (Vad eleverna ser)");
     assert.deepEqual(PER_ELEV_MODULES.map((x) => x.id), [MD]);
-    assert.deepEqual(normalizeEnabledModules(["hittaratt", MD, "schack"]), ["hittaratt", "schack"]);
-    assert.deepEqual(normalizeHiddenModules([MD, "plugga"]), ["plugga"]);
+    assert.deepEqual(normalizeEnabledModules(["hittaratt", MD, "schack"]), ["hittaratt", MD, "schack"]);
+    assert.deepEqual(normalizeHiddenModules([MD, "plugga"]), [MD, "plugga"]);
   });
   it("räknas som opt-in (dold när klasslistan inte går att läsa)", () => {
     assert.deepEqual(OPT_IN_MODULES, ["hittaratt", "ekvationsresan", "schack", MD]);
@@ -94,10 +94,11 @@ describe("synligheten: bara för valda elever, aldrig för klasskamrater", () =>
     k[1].elevModuler = { cia: [MD] };
     assert.equal(dold("cia", k), false);
   });
-  it("enabledModules med matchdagen slår INTE på den för hela klassen", () => {
+  it("enabledModules med matchdagen slår på den för hela klassen (#876)", () => {
     const k = klasser();
     k[0].enabledModules = [MD, "schack"];
-    assert.equal(dold("bo", k), true);
+    assert.equal(dold("bo", k), false);
+    assert.equal(dold("dan", k), true, "en annan klass påverkas inte");
     assert.equal(modulesHiddenForStudent(k, "bo").includes("schack"), false, "schack (klassvis opt-in) fungerar som förut");
   });
   it("ingen elev / ingen klass / trasig data → dold", () => {

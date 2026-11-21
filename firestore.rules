@@ -620,12 +620,11 @@ service cloud.firestore {
     // läsbart för alla inloggade, skrivbart bara av lärare, lista med max 20 id.
     // Saknat fält = opt-in-modulerna är AV.
     // ⚠️ DEPLOY: `firebase deploy --only firestore:rules` (separat från Pages).
-    // Matchdagen (#867) slås bara på PER ELEV (elevModuler nedan) – aldrig här.
+    // Matchdagen slås på för hela klassen här (#876) eller per elev (elevModuler nedan, #867).
     function validEnabledModules() {
       return !('enabledModules' in request.resource.data) ||
         (request.resource.data.enabledModules is list &&
-         request.resource.data.enabledModules.size() <= 20 &&
-         !request.resource.data.enabledModules.hasAny(['matchdagen']));
+         request.resource.data.enabledModules.size() <= 20);
     }
     // MODULER PER ELEV (#867, docs/MATCHDAGEN.md): `elevModuler` = { [uid]: [modul-id] }
     // – moduler som bara de listade eleverna ser (perElev i STUDENT_MODULES). Läsbart
@@ -642,6 +641,17 @@ service cloud.firestore {
         (d.elevModuler is map && d.elevModuler.size() <= 100 &&
          d.elevModuler.keys().hasOnly(d.get('studentIds', [])) &&
          d.elevModuler.values().hasOnly([['matchdagen']]));
+    }
+    // MATCHDAGEN FÖR KLASSEN (#876, docs/MATCHDAGEN.md): `matchdagenInst` = klassens
+    // frågeinställningar, samma form som matchdagenInst/{uid} (validMatchdagenInst nedan).
+    // Elever utan egna spelar med dem. Läsbart för alla inloggade (klassdokumentet),
+    // skrivbart av lärare med klassen. Bara en ÄNDRAD map prövas (uttrycksgränsen).
+    // ⚠️ DEPLOY: `firebase deploy --only firestore:rules` (separat från Pages).
+    function validKlassMatchdagenInst() {
+      let d = request.resource.data;
+      return !('matchdagenInst' in d) ||
+        (resource != null && d.matchdagenInst == resource.data.get('matchdagenInst', null)) ||
+        (d.matchdagenInst is map && validMatchdagenInst(d.matchdagenInst));
     }
     // FOKUSLÄGE / KLASS-LÅS (#436): fältet `lock` = { mal: { typ, id?, namn? },
     // till: <epoch-ms>, doljOvrigt: bool, efter?: { lage, moduler? } (#788) }.
@@ -709,14 +719,14 @@ service cloud.firestore {
     // name, studentIds, byarna (hiddenVillages) eller annat.
     function classValid() {
       return validHiddenVillages() && validHiddenModules() && validEnabledModules() &&
-        validElevModuler() && validLock() && validLasresaStartLevel();
+        validElevModuler() && validKlassMatchdagenInst() && validLock() && validLasresaStartLevel();
     }
     match /classes/{classId} {
       allow read:  if signedIn();
       allow create: if isAdmin() && classValid();
       allow update: if classValid() && (isAdmin() || (gradeClass(classId) &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['assignedAreas',
-          'hiddenModes', 'areaModes', 'hiddenModules', 'enabledModules', 'elevModuler', 'lock',
+          'hiddenModes', 'areaModes', 'hiddenModules', 'enabledModules', 'elevModuler', 'matchdagenInst', 'lock',
           'lasresaStartLevel10', 'lasresaStartLevel'])));
       allow delete: if isAdmin();
     }
@@ -3148,14 +3158,15 @@ service cloud.firestore {
     // Matchdagen – vänskapsmatcher i realtid (#874, spec §11.5, docs/MATCHDAGEN.md §18). Klienten
     // skriver ALDRIG här: allt går genom callables (mdUtmana, mdSvara, mdFraga, mdSvar, mdTick, mdGeUpp –
     // Admin SDK förbi reglerna). mdLobby/{classId} läses live av klassens elever SOM HAR Matchdagen
-    // (elevModuler) och av läraren med klassen. mdVanskap/{id} läses av de två spelarna och läraren
+    // (enabledModules eller elevModuler, #876) och av läraren med klassen. mdVanskap/{id} läses av de två spelarna och läraren
     // (ett SAKNAT dokument får varje inloggad hämta, som schackPartier). privat/{uid} = elevens fråga
     // UTAN facit – bara eleven själv och läraren, aldrig motståndaren. facit/{uid} = frågebanken MED
     // facit – bara läraren. mdVanskapElev/{uid} = spärren och dagens antal: eleven och läraren.
     // ⚠️ DEPLOY: rules → functions → webben.
     function mdHarMatchdagen(classId) {
-      return get(/databases/$(database)/documents/classes/$(classId)).data.get('elevModuler', {})
-        .get(request.auth.uid, []).hasAny(['matchdagen']);
+      let k = get(/databases/$(database)/documents/classes/$(classId)).data;
+      return k.get('enabledModules', []).hasAny(['matchdagen']) ||
+        k.get('elevModuler', {}).get(request.auth.uid, []).hasAny(['matchdagen']);
     }
     match /mdLobby/{classId} {
       allow read: if hasClass(classId) || (isClassMember(classId) && mdHarMatchdagen(classId));

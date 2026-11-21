@@ -382,9 +382,9 @@ export function visibleVillageClasses(classes, meId) {
 //                       ("Kör i klass"), inte i lärarens målväljare
 //   ovning            – övningsmodul (#788): öppen för en elev som lämnat in provet
 //                       när läraren valt "Bara övning" (docs/FOKUSLAGE.md)
-//   perElev           – slås på för ENSKILDA elever (classes/{id}.elevModuler, #867),
-//                       aldrig för hela klassen: inte i TOGGLABLE_MODULES/enabledModules.
-//                       Kräver optIn (av för alla andra). Se docs/MATCHDAGEN.md
+//   perElev           – kan OCKSÅ slås på för enskilda elever (classes/{id}.elevModuler,
+//                       #867), utöver hela klassen (enabledModules, #876). Kräver optIn.
+//                       Se docs/MATCHDAGEN.md
 //
 // Hem (huset) är elevens startsida och går inte att dölja – den står inte här.
 // Live (#460) är ingen inlärningsmodul: syns som Live-rutan när klassen bjudits in.
@@ -433,8 +433,9 @@ export const STUDENT_MODULES = [
   // inga unicode-schacktecken (de ser olika ut på olika datorer).
   { id: "schack", label: "Schack", ikon: SCHACK_IKON, grupp: "ova", learning: true, lockable: false,
     optIn: true, routes: ["/elev/schack"] },
-  // Matchdagen (#866/#867, docs/MATCHDAGEN.md): BARA per elev (elevModuler) – läraren slår
-  // på den i Elever → Anpassningar per elev. Fokusläget stänger den (learning); inget låsmål.
+  // Matchdagen (#866/#867/#876, docs/MATCHDAGEN.md): OPT-IN för hela klassen (Vad eleverna ser)
+  // eller per elev (elevModuler, Elever → Anpassningar per elev). Fokusläget stänger den
+  // (learning); inget låsmål.
   { id: "matchdagen", label: "Matchdagen", ikon: MATCHDAGEN_IKON, grupp: "ova", learning: true, lockable: false,
     optIn: true, perElev: true, routes: ["/elev/matchdagen"] },
 ];
@@ -442,8 +443,8 @@ export const STUDENT_MODULES = [
 /** Moduler med modulgrind (dolda → routern och menyn spärrar): klassvisa + per elev. */
 const GRINDADE_MODULES = STUDENT_MODULES.filter((m) => m.toggle !== false);
 
-/** Moduler läraren kan slå av/på per klass (#412, ordning = lärar-UI:ts ordning). */
-export const TOGGLABLE_MODULES = GRINDADE_MODULES.filter((m) => !m.perElev);
+/** Moduler läraren kan slå av/på per klass (#412, ordning = lärar-UI:ts ordning; #876: även perElev). */
+export const TOGGLABLE_MODULES = GRINDADE_MODULES;
 
 /** Moduler som slås på per elev (#867, classes/{id}.elevModuler). */
 export const PER_ELEV_MODULES = GRINDADE_MODULES.filter((m) => m.perElev);

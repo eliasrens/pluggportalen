@@ -82,6 +82,13 @@ under raden (en åt gången) som läser elevens `matchdagenInst/{uid}` (EN getDo
   ett lag, Etapp 1c).
 - **Spara** skriver `elevModuler` och `matchdagenInst/{uid}` i EN batch och visar "Sparat ✓" med en sammanfattning.
 
+**Hela klassen (#876):** överst en rad *Hela klassen* som fäller ut samma panel för klassen: Matchdagen på/av
+för alla klassens elever (`enabledModules`, samma som i Vad eleverna ser) och klassens inställningar
+(`classes/{id}.matchdagenInst`, ingen läsning – klassdokumentet), som gäller elever utan egna. Elevens panel säger
+om eleven följer klassen eller har egna (knappen *Följ klassens inställningar* raderar de egna); Spara utan ändring
+skriver bara på/av. **Välj alla:** en kryssruta per elev, *Välj alla*/*Avmarkera alla* och *Slå på/av för valda*
+(EN skrivning av `elevModuler`).
+
 Datamodellen: `docs/DATAMODELL.md` (Matchdagen), behörigheterna: `docs/BEHORIGHETER.md` (`matchdagenInst`, `classes`).
 
 ## Admin (`src/teacher-admin.js`, #805)

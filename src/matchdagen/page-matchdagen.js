@@ -7,8 +7,10 @@
 //
 // Routen ligger i app.js med DYNAMISK import (dynSida) – inget i src/matchdagen/
 // hamnar i bootgrafen (#271). Grinden i app.js/ui.js släpper bara in elever som
-// läraren slagit på Matchdagen för (classes/{id}.elevModuler) och fokusläget
-// stänger sidan (learning). Kvoten (§13): matchdagenInst/{uid} och
+// läraren slagit på Matchdagen för (classes/{id}.enabledModules för hela klassen, #876,
+// eller .elevModuler per elev) och fokusläget stänger sidan (learning). Inställningarna:
+// egna, annars klassens (klassdokumentet, ingen läsning), annars tabellerna 0–10
+// (md-inst.js effektivInst). Kvoten (§13): matchdagenInst/{uid} och
 // matchdagen/{uid} läses EN gång var när sidan öppnas, inga lyssnare. Avataren
 // kommer ur getStudentData (sidomenyns cache – ingen ny läsning).
 // Vänskapsmatcher (#874): elevens klass med Matchdagen ur getClasses() (klasslistans
@@ -45,7 +47,7 @@ export async function pageMatchdagen() {
 
   const uid = currentStudentId();
   let instFel = false;
-  const [, inst, sd, data, { startaMatchdagen }, klasser, { harMatchdagen }] = await Promise.all([
+  const [, egenInst, sd, data, { startaMatchdagen }, klasser, { harMatchdagen, effektivInst }] = await Promise.all([
     renderTopbar(),
     import("./md-inst-data.js").then((m) => m.lasInst(uid)).catch((err) => {
       console.warn("Matchdagen: inställningarna kunde inte läsas", err);
@@ -59,6 +61,9 @@ export async function pageMatchdagen() {
     import("./md-inst.js"),
   ]);
   if (ac.signal.aborted) return;
+  // Egna inställningar, annars klassens, annars tabellerna 0–10 (#876). Gick de egna inte
+  // att läsa vet vi inte om de finns – då inga frågor och ett meddelande, som förr.
+  const inst = instFel ? null : effektivInst(egenInst, klasser, uid).inst;
   const host = document.createElement("section");
   host.setAttribute("aria-label", "Matchdagen");
   app.replaceChildren(host);
