@@ -48,11 +48,14 @@ export async function pageMatchdagen() {
 
   const uid = currentStudentId();
   let instFel = false;
+  let glapp = false; // #878: en ny modul bredvid en gammal cachad (se nedan)
   const [, egenInst, sd, data, { startaMatchdagen }, klasser, mdInst] = await Promise.all([
     renderTopbar(),
     import("./md-inst-data.js").then((m) => m.lasInst(uid)).catch((err) => {
       console.warn("Matchdagen: inställningarna kunde inte läsas", err);
-      instFel = true;
+      // Ny md-inst-data.js mot en gammal md-inst.js: länkningen ger SyntaxError (saknat export).
+      if (err instanceof SyntaxError) glapp = true;
+      else instFel = true;
       return null;
     }),
     getStudentData().catch(() => null),
@@ -68,7 +71,7 @@ export async function pageMatchdagen() {
   // GAMMAL md-inst.js utan effektivInst bredvid den nya sidan – då de egna, som före #876,
   // i stället för "Matchdagen kunde inte laddas" (utan egna: be eleven ladda om).
   const { harMatchdagen, effektivInst } = mdInst;
-  const glapp = typeof effektivInst !== "function";
+  if (typeof effektivInst !== "function") glapp = true;
   const inst = instFel ? null : glapp ? egenInst : effektivInst(egenInst, klasser, uid).inst;
   const host = document.createElement("section");
   host.setAttribute("aria-label", "Matchdagen");

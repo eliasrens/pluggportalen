@@ -58,12 +58,16 @@ before(async () => {
 });
 
 /** Sätt elevens klasser och egna inställningar, öppna sidan, ge det startaMatchdagen fick. */
-async function oppna(sida, { klasser, egen = null, instFel = false, klassFel = false }) {
+async function oppna(sida, { klasser, egen = null, instFel = false, klassFel = false, lankFel = false }) {
   globalThis.__md878 = {
     uid: UID,
     deps: null,
     getClasses: async () => { if (klassFel) throw new Error("offline"); return klasser; },
-    lasInst: async () => { if (instFel) throw Object.assign(new Error("nekad"), { code: "permission-denied" }); return egen; },
+    lasInst: async () => {
+      if (lankFel) throw new SyntaxError("The requested module './md-inst.js' does not provide an export named 'nyaEnabledModules'");
+      if (instFel) throw Object.assign(new Error("nekad"), { code: "permission-denied" });
+      return egen;
+    },
   };
   await sida();
   const { deps } = globalThis.__md878;
@@ -119,6 +123,11 @@ describe("Versionsglapp efter en deploy (#878-regressionen)", () => {
   it("en gammal cachad md-inst.js utan effektivInst: sidan startar med de egna", async () => {
     const d = await oppna(gammal, { klasser: [elevPa()], egen: EGEN });
     assert.deepEqual(d.inst.tabeller, [3, 7]);
+  });
+  it("ny md-inst-data.js mot gammal md-inst.js (SyntaxError vid länkningen): 'ladda om', inte 'kunde inte läsas'", async () => {
+    const d = await oppna(gammal, { klasser: [klassPa({ matchdagenInst: KLASS_INST })], lankFel: true });
+    assert.equal(d.inst, null);
+    assert.match(d.meddelande, /uppdaterades nyss/);
   });
   it("…och utan egna: inga frågor och 'ladda om' i stället för att krascha", async () => {
     const d = await oppna(gammal, { klasser: [klassPa({ matchdagenInst: KLASS_INST })] });
