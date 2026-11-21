@@ -179,7 +179,7 @@ export async function svar(deps, uid, data = {}) {
     await stega(c, tx, matchId, m, { ...P, [s]: ny }, nu);
     tx.set(privatRef(c, matchId, uid), ny);
     mmLiveWrites(tx, c, mm, {
-      uid, classId: m.classId, name: m.namn?.[s], attemptId: `md_${matchId}_${m.fas.nr}`.slice(0, 64),
+      uid, classId: m.classId, name: m.namn?.[s], attemptId: `md_${matchId}_${s}${m.fas.nr}`.slice(0, 64),
       svar: [{ factorA: post.r.a, factorB: post.r.b, isCorrect: r.ratt }],
     });
     return { giltig: true, ...ny.svar };

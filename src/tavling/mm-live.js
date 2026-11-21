@@ -71,7 +71,11 @@ export async function mmRaknaIn({ uid, record, isCorrect }) {
   try {
     const m = await getMattematch();
     if (!m?.competition || !m.classId) return false;
-    const writes = await mmLiveWrites({ uid, classId: m.classId, attemptId: newAttemptId(), record, isCorrect });
+    const { mmNow } = await import("./mm-watch.js"); // redan laddad av getMattematch
+    const name = data.getSession()?.namn || uid;
+    const writes = planLiveMmWrites({
+      competition: m.competition, now: mmNow(), uid, classId: m.classId, name, attemptId: newAttemptId(), record, isCorrect, fv,
+    });
     if (!writes.length) return false;
     await commit(writes);
     return true;

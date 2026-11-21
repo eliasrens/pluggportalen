@@ -18,7 +18,8 @@ const faktor = (t) => Number.isInteger(t) && t >= 0 && t <= 10;
 export function mmSvar(fraga, svar) {
   const q = fraga?.kallTyp === "tabell" ? fraga.data?.q : null;
   if (!q || !faktor(q.a) || !faktor(q.b)) return null;
-  const raw = fraga.typ !== "flerval" ? svar : Number.isInteger(svar) ? fraga.data.options?.[svar] : null;
+  const i = svar == null || svar === "" ? NaN : Number(svar); // som rattaFraga: "2" är alternativ 2
+  const raw = fraga.typ !== "flerval" ? svar : Number.isInteger(i) ? fraga.data.options?.[i] : null;
   if (raw == null) return null;
   const r = MULTIPLICATION_0_10.checkAnswer(q, String(raw));
   return r.valid ? { record: MULTIPLICATION_0_10.answerRecord(q, r), isCorrect: r.correct } : null;

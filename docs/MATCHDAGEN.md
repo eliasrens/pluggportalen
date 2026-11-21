@@ -1182,7 +1182,10 @@ tävling, klassen inte med) händer ingenting. Spelkänslan är oförändrad –
 anropar `mmForLive` (cachad, `functions/mattematchen-live.js`) och `mmLiveWrites` i **svarets transaktion**, efter
 lägets avgörande (läsningarna först). Svaret sparas i elevens privata dokument i samma transaktion och ett omförsök
 svarar ur det utan att skriva → aldrig dubbelt. Klassen = matchens klass, namnet = matchens namn för eleven,
-`lastAttemptId` = `md_{matchId}_{läge}`.
+`lastAttemptId` = `md_{matchId}_{sida}{läge}`. Känd gräns: matchen räknas bara i en Mattematch där
+**matchens** klass deltar – går eleven i två klasser och tävlingen gäller den andra räknas vänskapssvaren inte
+(solospelet tar bevakarens klass). Namnet i `scores` är klassens projektionsnamn (`namnFor`); reglerna godtar
+ändå MM-sidans `students/{uid}.namn` vid nästa svar där.
 
 ### 20.3 Kvoten
 

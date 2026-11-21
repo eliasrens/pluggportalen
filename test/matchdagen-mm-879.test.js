@@ -55,6 +55,7 @@ describe("mmSvar (#879)", () => {
       assert.equal(x.isCorrect, false);
       assert.equal(x.record.answer, f.data.options[fel]);
       assert.equal(K.rattaFraga(f, fel).ratt, x.isCorrect, "samma rättning som spelet");
+      assert.deepEqual(mmSvar(f, String(f.ratt)), mmSvar(f, f.ratt), "indexet som text, som rattaFraga");
     }
   });
 
@@ -67,7 +68,7 @@ describe("mmSvar (#879)", () => {
 
   it("flerval utanför alternativen, andra källor och faktorer utanför 0–10 → null", () => {
     const f = tabellFraga("flerval");
-    for (const i of [-1, 4, 1.5, "x", null]) assert.equal(mmSvar(f, i), null, String(i));
+    for (const i of [-1, 4, 1.5, "x", "4", "", null]) assert.equal(mmSvar(f, i), null, String(i));
     const omrade = { kallTyp: "omrade", typ: "flerval", alternativ: ["a", "b"], data: { ratt: 0 } };
     const rakna = { kallTyp: "rakna", typ: "skriv", data: { problem: {}, answer: 56 } };
     assert.equal(mmSvar(omrade, 0), null);
