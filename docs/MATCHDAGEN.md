@@ -1145,6 +1145,9 @@ dig"), sist webben. Inga index, ingen datamigrering.
   iPhone) blir det en reserv: sidomenyn, hamburgaren och överlägget döljs (`html.md-helskarm-sida`) och appen fyller
   fönstret (`.md-helskarm-reserv`, `position: fixed`). Esc eller knappen lämnar; att lämna sidan också. Planens höjd
   räknas om vid bytet (resize). CSS: `49-matchdagen-match.css`.
-- Inga ändringar i reglerna eller functions. Test: `test/matchdagen-sida-878.test.js` (sidan med stubbar, även
+- **Fler spelarnamn:** `md-namn.js` har 120 förnamn och 100 efternamn (≈ 12 000 kombinationer, förut 1 152), bara
+  bokstäver, inga dubbletter, de gamla först. Namnen sparas i karriären när de lottas – längre listor rör inga sparade
+  trupper eller marknader. Serverns kopia via `npm run sync:matchdagen`. Test: `test/matchdagen-namn-878.test.js`.
+- Inga ändringar i reglerna; functions bara via den synkade `md-namn.js`. Test: `test/matchdagen-sida-878.test.js` (sidan med stubbar, även
   med en "gammal" `md-inst.js`) och `test/matchdagen-helskarm-878.test.js`.
 
