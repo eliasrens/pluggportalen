@@ -19,7 +19,7 @@
 import { byggArena } from "./md-tre-arena.js";
 import { skapaFigur, skapaFigurDelar, stegaFigur } from "./md-tre-figur.js";
 import { skapaFest } from "./md-tre-fest.js";
-import { SMAL, fovFor, foljVy, lugnVy } from "./md-tre-kamera.js";
+import { SMAL, dimma, fovFor, foljVy, lugnVy } from "./md-tre-kamera.js";
 import { PLAN_B, PLAN_L } from "./md-formation.js";
 
 const BOLL_R = 0.3;
@@ -162,6 +162,7 @@ export function skapa3dRitare({ T, yta, lugnt = false, final = false }) {
   const kamPos = new T.Vector3(0, 24, 46), kamMal = new T.Vector3(), kamPosMal = new T.Vector3(), kamMalMal = new T.Vector3();
   const satt = (v, [x, y, z]) => v.set(x, y, z);
   function kameraSteg(nu, dt) {
+    let fov = fovFor(kamera.aspect);
     const bx = bollM.position.x, bz = bollM.position.z;
     // #882: följ dit bollen är på väg – kameran hinner då med också vid en lång boll mot kanten.
     const fx = bana ? bana.till.x : bx, fz = bana ? bana.till.z : bz;
@@ -175,6 +176,7 @@ export function skapa3dRitare({ T, yta, lugnt = false, final = false }) {
       const v = lugnVy(kamera.aspect);
       satt(kamPos, v.pos);
       satt(kamMal, v.mal);
+      fov = v.fov;
     } else {
       const narbild = nu < zoomTill || !!straffSida;
       const bred = kamera.aspect < SMAL ? 1.35 : 1;
@@ -187,8 +189,11 @@ export function skapa3dRitare({ T, yta, lugnt = false, final = false }) {
       kamPos.lerp(kamPosMal, k);
       kamMal.lerp(kamMalMal, k);
     }
+    if (kamera.fov !== fov) { kamera.fov = fov; kamera.updateProjectionMatrix(); }
     kamera.position.copy(kamPos);
     kamera.lookAt(kamMal);
+    // #882 F1: dimman börjar alltid bortom planens bortersta hörn (också i lugnt läges fasta vy).
+    if (scen.fog) [scen.fog.near, scen.fog.far] = dimma([kamPos.x, kamPos.y, kamPos.z]);
   }
 
 

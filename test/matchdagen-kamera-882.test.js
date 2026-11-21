@@ -16,7 +16,7 @@ import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import * as T from "../src/vendor/three/three.module.min.js";
 import { formation, PLAN_B, PLAN_L } from "../src/matchdagen/plan/md-formation.js";
-import { foljVy, lugnVy } from "../src/matchdagen/plan/md-tre-kamera.js";
+import { DIMMA, dimma, foljVy, lugnVy } from "../src/matchdagen/plan/md-tre-kamera.js";
 
 // Planytans bredd/höjd i de storlekarna (md-match-spel.js passaPlanen: 220–420 px hög), och kantfall.
 const ASPEKTER = [0.9, 1.2, 1.39, 1.4, 1.49, 1.5, 1.59, 1.6, 1.61, 1.68, 1.88, 2.3, 2.73, 2.9, 3.6, 3.7, 4.2];
@@ -83,6 +83,24 @@ describe("#882 kameran: bollen och spelarna syns överallt på planen", () => {
         assert.ok(iBild(n, 0.97), `aspekt ${a}, hörn (${x}, ${y}, ${h}): ${n.x.toFixed(2)}, ${n.y.toFixed(2)}`);
       }
     }
+  });
+
+  it("F1: dimman börjar bortom planens bortersta hörn, och lugnt läge står inte för långt bort", () => {
+    const horn = [[-52.5, -34], [52.5, -34], [-52.5, 34], [52.5, 34]];
+    const fjarrast = (p) => Math.max(...horn.map(([x, z]) => Math.hypot(x - p[0], p[1], z - p[2])));
+    for (const a of ASPEKTER) {
+      const vyer = [lugnVy(a)];
+      for (let x = -50; x <= 50; x += 10) for (let z = -32; z <= 32; z += 8) vyer.push(foljVy(x, z, a));
+      for (const v of vyer) {
+        const [near, far] = dimma(v.pos);
+        assert.ok(fjarrast(v.pos) < near, `aspekt ${a}: hörn ${fjarrast(v.pos).toFixed(0)} m, dimman från ${near}`);
+        assert.ok(near >= DIMMA.near && far - near === DIMMA.djup);
+      }
+      const l = lugnVy(a);
+      const avstand = Math.hypot(l.pos[0] - l.mal[0], l.pos[1] - l.mal[1], l.pos[2] - l.mal[2]);
+      assert.ok(avstand <= 130, `aspekt ${a}: lugnt läge ${avstand.toFixed(0)} m bort`);
+    }
+    assert.match(readFileSync("src/matchdagen/plan/md-tre-ritare.js", "utf8"), /scen\.fog\.near, scen\.fog\.far\] = dimma\(/);
   });
 
   it("3D-ritaren använder kamerans mål och följer bollens destination", () => {
