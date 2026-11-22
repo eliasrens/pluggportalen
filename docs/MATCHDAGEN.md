@@ -23,6 +23,7 @@ elever** eller (#876, §19) för **hela klassen**. Det här dokumentet växer me
 | #879 | Mattematchen räknas in: multiplikationssvaren (§20) | klar |
 | #880 | Topplistan per årskurs: topp 5 i hela skolan, byggd av servern varje timme (§21) | klar |
 | #883 | Nya karriärer börjar på 1★, stjärnorna kostar 50/100/250/500 poäng, tre träningsläger per omgång, balansen (§22) | klar |
+| #895 | Vänskapsmatcherna snabbare: klockfelet, EN callable (`mdVanskap`), krockar utan väntan, svaret kvar under animationen (§23) | klar |
 
 ## 1. Moduler per elev (Etapp 1a)
 
@@ -1029,6 +1030,8 @@ Alla tider är serverns epoch-ms; klienten jämför mot `serverNow()` (`data-cla
 ### 18.4 Callables (`functions/md-vanskap-anrop.js`, europe-west1)
 
 `mdUtmana`, `mdSvara`, `mdFraga`, `mdSvar`, `mdTick`, `mdGeUpp` – bara inloggade elever (lärare: `permission-denied`).
+**Sedan #895 anropar klienten bara `mdVanskap({ op, ...data })`** med `op` = `utmana`/`svara`/`fraga`/`svar`/`tick`/`geUpp`/`varm`
+(samma kärna – en Cloud Run-tjänst i stället för sex, §23); de sex namnen finns kvar för webben som redan är ute.
 Grinden (`hamtaKlass`): eleven (och kompisen) står i klassens `studentIds`, har Matchdagen i `elevModuler`, inget aktivt
 fokuslås, och båda har en klubb och minst en frågekälla. Bara en vänskapsmatch åt gången per elev
 (`mdVanskapElev.aktiv`, läst i transaktionen – gäller över klasser, självläkande). EN transaktion per anrop.
@@ -1069,7 +1072,7 @@ Räknat för en match med ~29 lägen (balansen) där båda svarar i varje läge:
 
 | | Antal |
 | --- | --- |
-| Callables | 2 (utmana, svara) + 2 × 2 per läge (fråga + svar per elev) ≈ **118**, + 2 vid halvtid; `mdTick` bara när någons tid går ut |
+| Callables | 2 (utmana, svara) + 2 × 2 per läge (fråga + svar per elev) ≈ **118**, + 2 vid halvtid; `mdTick` bara när någons tid går ut; + 1 `varm` per öppnad lobby (#895). Alla går till `mdVanskap` |
 | Skrivningar (servern) | utmaning 1, start 6 (match, 2 facit, 2 spärrar, lobbyn), per läge ~5 (2 privata vid valet, 2 vid svaret, matchen), slutet 8 ≈ **160** |
 | Läsningar (servern, i transaktionerna) | start ~15 (klass, karriärer, inställningar, områden), per läge ~14, slutet 5 ≈ **430** |
 | Lyssnare | lobbyn (1 per elev, bara medan fliken är öppen) och matchen (1 per elev) – ~31 uppdateringar per elev |
@@ -1470,3 +1473,107 @@ Nya regler + gammal webb: varje 4★/5★-köp till det gamla priset nekas (spar
 Det första glappet är ovanligare, så är #883:s regler redan ute: **webben först, sedan
 `firebase deploy --only firestore:rules` direkt efter** – annars gäller §22.5 ovan (reglerna först, samma glapp för
 den som har en gammal flik öppen). Functions bara via den synkade kopian.
+
+## 23. Vänskapsmatcherna laggade (#895)
+
+Elias provade en vänskapsmatch i två fönster på samma dator (www.pluggporten.se, 2026-11-22 08:22): långa väntetider,
+och matchen lämnades efter ett läge. Orsakerna är **mätta** – Cloud Logging för den matchen (Cloud Run-loggarna för
+`md*`), matchdokumentet i Firestore, sajtens HTTP-huvuden och emulatorn (`npm run bench:vanskap`, två klienter).
+
+### 23.1 Orsakerna
+
+1. **Klockan gick upp till 10 minuter för fort** (huvudorsaken). `syncServerClock` (`src/data-class-lock.js`) räknade
+   serverns tid som `Date + Age`. Sajten ligger bakom GitHub Pages/Fastly (`cache-control: max-age=600`): `Date` sätts
+   när svaret levereras och `Age` är hur länge sidan legat i cachen – så klockan blev `Age` sekunder för snabb
+   (mätt: Age 0/20/40/60/80/100 s → gammal avvikelse 0/+21/+41/+61/+81/+101 s, ny 0). I en vänskapsmatch med 66 s per
+   läge (60 + 6) var lägets tid "ute" direkt så fort Age > ~65 s: valet stängdes ("Tiden är ute – nästa läge kommer"),
+   klienten anropade `mdTick` var 4:e sekund (loggen: 7 tick på 26 s, alla utan verkan) och läget väntade på
+   serverns riktiga tid, upp till en minut. Med Age < 65 s blev elevens klocka i stället kortare. Samma fel gällde
+   allt som använder `serverNow()` (fokuslåsen, proven, schackklockan, myntdagen).
+2. **Kallstarter.** De sex callables är sex Cloud Run-tjänster som skalar till noll; första anropet till var och en
+   startar en instans. I loggen: CORS-förfrågan (OPTIONS) **2,2–3,0 s** + första POST **0,4–0,7 s** för `mdUtmana`,
+   `mdSvara`, `mdFraga`, `mdTick`, `mdSvar` och `mdGeUpp` – alltså ~3 s extra på varje nytt steg i den första matchen
+   (och efter ~15 minuter utan anrop). Varma anrop: **63–171 ms** (`mdTick`).
+3. **Transaktionskrockar.** Två svar (eller två `mdTick`) samtidigt läser varandras dokument; Firestore avbryter den
+   ena (ABORTED) och SDK:t (`@google-cloud/firestore` 7.11, `backoff.js`) väntar **1 s ± 50 %** innan nästa försök
+   (1,5 s därefter). Båda klienterna anropade `mdTick` på exakt samma tid (lägets gräns + 300 ms) – en säker krock.
+   Emulatorn löser krockar med en låstimeout (2 s), så dess tider för samtidiga svar är inget mått på driften.
+4. **Pauser i klienten.** Efter det sista svaret: kortets paus (0,6 s rätt / 1,5 s fel) och SEDAN animationen
+   (pass 1,2 s, skott/mål längre). Mätt i webbläsaren: det sista svaret → nästa val **3,0 s** i median.
+
+Ingen ändring behövdes för antalet anrop per läge: varma `fraga`/`svar` tar ~30–60 ms i emulatorn och 60–170 ms i drift.
+
+### 23.2 Ändringarna
+
+| Orsak | Ändring | Fil |
+| --- | --- | --- |
+| 1 | `syncServerClock` räknar bara `Date` (inte `Age`) | `src/data-class-lock.js`, test `test/server-klocka-895.test.js` |
+| 2 | EN callable `mdVanskap({ op })` (samma kärna, samma grind) – utmana, svara och hela matchen håller samma instans varm. Lobbyn anropar `op: "varm"` när fliken Vänskap öppnas, så kallstarten sker medan eleven tittar på lobbyn | `functions/md-vanskap-anrop.js`, `src/matchdagen/vanskap/md-vanskap-moln.js`, `md-vy-vanskap.js` |
+| 3 | `snabbTx`: en krock (ABORTED) görs om **direkt**, upp till 5 gånger, sedan SDK:ts vanliga omförsök; nätfel som förut. Alla vänskapstransaktioner. Sidan b anropar `mdTick` 1 s efter sidan a (1 300 i stället för 300 ms) | `functions/md-vanskap-state.js`, `-spel.js`, `-lobby.js`, `src/matchdagen/vanskap/md-vanskap-spel.js` |
+| 4 | Är läget redan avgjort när svaret visas spelas animationen direkt – rätt svar står kvar på kortet under animationen | `src/matchdagen/vanskap/md-vanskap-spel.js` |
+
+Spelregler, balans, frågor, tider och datamodell är oförändrade. Reglerna (`firestore.rules`) är oförändrade.
+
+### 23.3 Före och efter
+
+**Drift, före** (Cloud Logging, Elias match 2026-11-22; ms): första anropet per callable = kallstart.
+
+| Steg | OPTIONS (kall) | POST | Varmt |
+| --- | --- | --- | --- |
+| mdUtmana | 2 971 | 671 | – |
+| mdSvara | 2 265 | 687 | – |
+| mdFraga | 2 237 | 414 | – |
+| mdSvar | 2 868 | 518 | – |
+| mdTick | 2 456 | 464 | 63–171 |
+| mdGeUpp | 2 447 | 536 | – |
+
+Efter: en kallstart (`varm`, medan lobbyn visas) i stället för sex; resten är varma anrop (63–171 ms enligt `mdTick`).
+
+**Emulatorn** (`npm run bench:vanskap`, två klienter, 9 lägen, ms; "första" = kall worker, som en ny Cloud Run-instans):
+
+| Steg | Före: första | Före: median | Efter: första | Efter: median |
+| --- | --- | --- | --- | --- |
+| lobbyn öppnas (`varm`) | – | – | 1 150–1 850 | – |
+| utmana | 1 370–1 860 | – | 180–226 | – |
+| svara (anta) | 1 330–1 690 | – | 108–131 | – |
+| fraga | 1 190–1 440 | 35–38 | 34–46 | 26–36 |
+| svar | 1 250–1 560 | 34–84 | 45–94 | 28–73 |
+| svar → nästa läge hos den andra | – | 68–119 | – | 54–111 |
+| tick | 1 250–2 380 | – | 20–37 | – |
+| geUpp | 1 210–2 100 | – | 55–101 | – |
+
+**Webbläsaren** (två elever i två fönster spelar en hel match mot emulatorerna, robot som väljer efter 0,5/1,5 s och
+svarar efter 0,75/2,25 s; ms, median (max)):
+
+| Steg | Före | Efter |
+| --- | --- | --- |
+| valet → frågan syns (`fraga`) | 275–285 (703) | 443–449 (2 925)¹ |
+| svaret → rättat (`svar`) | 186–262 (697) | 249–279 (514) |
+| det sista svaret → nästa val | **3 013** (4 039) | **1 883** (3 098) |
+| hela matchen (robotar) | 211 s | 187 s |
+| callables (resurstid) | 55–68 | 53–65 |
+
+¹ Spridningen kommer från att båda fönstren delar en processor och animationen nu spelas samtidigt; ett anrop tog
+2,7 s (emulatorns låstimeout vid en krock). I drift är klockfelet (orsak 1) borta helt, och de ~3 s kallstart per steg
+blir en enda, medan lobbyn visas. Det som återstår mellan två lägen är animationen (~1,2 s) + ett varmt anrop.
+
+Skärmbilder: [`qa-matchdagen-895/`](qa-matchdagen-895/) – svaret står kvar under animationen, slutet för båda.
+
+### 23.4 minInstances – inte påslaget
+
+`minInstances: 1` på `mdVanskap` skulle ta bort den sista kallstarten (~3 s när ingen spelat på ~15 minuter).
+Uppskattning (Cloud Run, europe-west1, priser för en vilande min-instans med debitering per förfrågan: 0,0000025 USD per
+vCPU-sekund och per GiB-sekund): 1 vCPU + 0,25 GiB × 2 628 000 s/månad ≈ 6,6 + 1,6 ≈ **8 USD (~90 kr) per månad**,
+dygnet runt. Det är inte påslaget: `varm` när lobbyn öppnas ger samma effekt gratis för den som spelar. Vill Elias ha
+det: `minInstances: 1` i `MD_OPTS` (gäller då alla sju md-callables – lägg det bara på `mdVanskap`). Kontrollera priset
+i Cloud Run-prislistan först.
+
+### 23.5 Deploy
+
+**Functions först (`firebase deploy --only functions`), sedan webben.** Den nya webben anropar `mdVanskap`, som inte
+finns förrän functions är ute. Den gamla webben fortsätter med de sex gamla namnen (kvar, samma kärna, nu med
+`snabbTx`). Klockfelet rättas med webben. Inga regler, inga index. De sex gamla callables kan tas bort i en senare
+deploy när ingen gammal flik längre kan vara öppen (`firebase functions:delete mdUtmana mdSvara mdFraga mdSvar mdTick
+mdGeUpp --region europe-west1`). Mät igen efter deploy: `admin/md-vanskap-latens-895.mjs` (emulatorn) och Cloud
+Logging-filtret `resource.type="cloud_run_revision" AND resource.labels.service_name="mdvanskap"`.
+

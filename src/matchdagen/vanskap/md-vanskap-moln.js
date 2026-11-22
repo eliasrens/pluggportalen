@@ -1,8 +1,10 @@
 // ============================================================================
 // Matchdagen (#874, Etapp 4): vänskapsmatchernas tunna lager mot molnet (spec §11).
 // Laddas BARA med import() (bootgrafen, #271), som src/schack/schack-moln.js. Klienten
-// skriver ALDRIG i duellsamlingarna – allt går genom callables (functions/md-vanskap-anrop.js).
+// skriver ALDRIG i duellsamlingarna – allt går genom EN callable, mdVanskap { op } (#895,
+// functions/md-vanskap-anrop.js): en tjänst = en kallstart, och den hålls varm av hela matchen.
 //
+//   varm()                                          väcker tjänsten (lobbyn, när fliken öppnas)
 //   utmana(classId, till) → { utmaningId }         svara(utmaningId, ja, classId) → { matchId|null }
 //   fraga(matchId, val) → { fas, roll, val, fraga, svar, deadline }
 //   svar(matchId, svar) → { giltig, ratt, facit, tidenUte? }   svar = null: "tiden är ute" (fel)
@@ -33,11 +35,11 @@ export class MdMolnFel extends Error {
   }
 }
 
-const calls = new Map();
-async function call(name, data) {
-  if (!calls.has(name)) calls.set(name, httpsCallable(getFunctions(app, globalThis.__PP_FUNCTIONS_URL || REGION), name, { timeout: TIMEOUT_MS }));
+let anrop = null;
+async function call(op, data = {}) {
+  anrop ||= httpsCallable(getFunctions(app, globalThis.__PP_FUNCTIONS_URL || REGION), "mdVanskap", { timeout: TIMEOUT_MS });
   try {
-    return (await calls.get(name)(data)).data;
+    return (await anrop({ op, ...data })).data;
   } catch (err) {
     const code = String(err?.code || "").replace(/^functions\//, "") || "unknown";
     const msg = String(err?.message || "");
@@ -45,12 +47,13 @@ async function call(name, data) {
   }
 }
 
-export const utmana = (classId, till) => call("mdUtmana", { classId, till });
-export const svara = (utmaningId, ja, classId) => call("mdSvara", { utmaningId, ja: ja === true, classId });
-export const fraga = (matchId, val) => call("mdFraga", { matchId, val });
-export const svar = (matchId, s) => call("mdSvar", { matchId, svar: s });
-export const tick = (matchId, redo = false) => call("mdTick", { matchId, ...(redo ? { redo: true } : {}) });
-export const geUpp = (matchId) => call("mdGeUpp", { matchId });
+export const varm = () => call("varm").catch(() => null);
+export const utmana = (classId, till) => call("utmana", { classId, till });
+export const svara = (utmaningId, ja, classId) => call("svara", { utmaningId, ja: ja === true, classId });
+export const fraga = (matchId, val) => call("fraga", { matchId, val });
+export const svar = (matchId, s) => call("svar", { matchId, svar: s });
+export const tick = (matchId, redo = false) => call("tick", { matchId, ...(redo ? { redo: true } : {}) });
+export const geUpp = (matchId) => call("geUpp", { matchId });
 
 export function lyssnaLobby(classId, cb, onError = () => {}) {
   syncServerClock();

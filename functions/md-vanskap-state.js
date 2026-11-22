@@ -41,6 +41,26 @@ export const ctx = (deps) => ({
   rng: deps.rng || (() => randomInt(0, 2 ** 32) / 2 ** 32),
 });
 
+/**
+ * runTransaction för duellsamlingarna (#895). Två elever i samma match (eller lobby) skriver samtidigt:
+ * Firestore avbryter då den ena transaktionen (gRPC 10 ABORTED) – och SDK:t väntar 1 s (± 50 %), sedan
+ * 1,5 s … innan omförsöket. Här görs en krock om DIREKT (den andra är redan klar). Andra nät-/serverfel
+ * (gRPC-koder, inte MdFel) får SDK:ts vanliga omförsök.
+ */
+const ABORTED = 10;
+const NATFEL = new Set([1, 2, 4, 8, 13, 14, 16]);
+export async function snabbTx(c, fn, forsok = 5) {
+  for (let i = 1; ; i++) {
+    try {
+      return await c.db.runTransaction(fn, { maxAttempts: 1 });
+    } catch (err) {
+      if (err?.code === ABORTED && i < forsok) continue;
+      if (err?.code === ABORTED || NATFEL.has(err?.code)) return c.db.runTransaction(fn);
+      throw err;
+    }
+  }
+}
+
 const ID_OK = /^[A-Za-z0-9_-]{1,64}$/;
 export function idEller(v, vad) {
   if (typeof v !== "string" || !ID_OK.test(v) || /^__.*__$/.test(v)) throw new MdFel("invalid-argument", `Ogiltigt ${vad}.`);

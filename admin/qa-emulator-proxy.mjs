@@ -41,7 +41,7 @@ const FN_NAMES = new Set(["/updateStudentLogin", "/guldrushAnswer", "/guldrushOp
   "/schackKravaVinst", "/schackLarareAvsluta", "/schackLarareTopplista",
   "/schackDatorVinst", "/schackLektionMynt", "/schackPusselMynt", // #798
   "/butikKop", // #854
-  "/mdUtmana", "/mdSvara", "/mdFraga", "/mdSvar", "/mdTick", "/mdGeUpp"]); // #874
+  "/mdUtmana", "/mdSvara", "/mdFraga", "/mdSvar", "/mdTick", "/mdGeUpp", "/mdVanskap"]); // #874, #895
 const SDK = "https://www.gstatic.com/firebasejs/10.12.2";
 
 const TYPES = {

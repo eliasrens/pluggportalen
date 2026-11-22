@@ -22,7 +22,7 @@ import { fasSekunder, nyVanskap } from "./matchdagen/md-vanskap.js";
 import { byggBank, byggKallor, effektivInst, harKallor, omradesNycklar } from "./md-vanskap-fragor.js";
 import {
   MdFel, ctx, idEller, hamtaKlass, klassIdsForElev, namnFor, post, lobbyRef, matchRef, facitRef, elevRef, karriarRef,
-  lobbyData, aktivFor, lagUr, rensaUtmaningar,
+  lobbyData, aktivFor, lagUr, rensaUtmaningar, snabbTx,
 } from "./md-vanskap-state.js";
 import { tick } from "./md-vanskap-spel.js";
 
@@ -61,7 +61,7 @@ export async function utmana(deps, uid, data = {}) {
   const lag = lagUr(K);
   if (!lag) throw new MdFel("failed-precondition", "Starta din klubb under Match först.");
   await stadaAktiva(c, [uid, till]);
-  return c.db.runTransaction(async (tx) => {
+  return snabbTx(c, async (tx) => {
     const nu = c.now();
     const lob = lobbyData(await tx.get(lobbyRef(c, classId)));
     ledig(await aktivFor(c, uid, (r) => tx.get(r)), uid, "Du");
@@ -125,7 +125,7 @@ export async function svara(deps, uid, data = {}) {
     await stadaAktiva(c, [uid, fran]);
     [A, B, namn] = await Promise.all([forbered(c, fran, "Kompisen", k), forbered(c, uid, "Du", k), namnFor(c.db, classId, [uid, fran])]);
   }
-  return c.db.runTransaction(async (tx) => {
+  return snabbTx(c, async (tx) => {
     const nu = c.now();
     const lob = lobbyData(await tx.get(lobbyRef(c, classId)));
     const u = post(lob.utmaningar, utmaningId);

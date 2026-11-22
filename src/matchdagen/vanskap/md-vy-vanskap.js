@@ -135,6 +135,7 @@ export async function visaVanskap(S, el) {
   S.vanskapBakgrund?.(); // en lobby som lyssnade i bakgrunden (väntande utmaning) – den här tar över
   el.innerHTML = `<div class="md-panel"><p class="md-svag">Hämtar lobbyn …</p></div>`;
   const moln = await VS.moln();
+  moln.varm?.(); // #895: tjänsten startar medan eleven ser lobbyn – inte på första "Utmana"/"Anta"
   // Kommer eleven tillbaka till en pågående match (vakten finns) öppnas den direkt.
   if (S.vanskapVakt?.M?.status === "pagar") return oppna(S, el, moln, S.vanskapVakt.id);
   const [kompisar, elev] = await Promise.all([VS.kompisar().catch(() => []), moln.lasElev(S.uid).catch(() => ({}))]);
