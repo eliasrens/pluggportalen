@@ -77,19 +77,14 @@ export async function spelaVanskap(S, el, { moln, vakt }) {
   const mot = { ...M0.V.lag[o], farg: motFarg(egen.farg, M0.V.lag[o].farg) };
   const kompis = String(M0.namn?.[o] || "kompisen");
   const v = layout(S, el, mot, egen);
-  v.ljudKnapp.insertAdjacentHTML("beforebegin", `<button type="button" class="md-ljudknapp mdv-lamna" data-lamna>Lämna</button>`);
-  const [{ skapaPlan }, { skapaLjud }, avatar] = await Promise.all([import("../plan/md-plan.js"), import("../plan/md-ljud.js"), avatarBild(S)]);
-  const ljud = skapaLjud({ lugnt: S.lugnt });
-  const sattLjudknapp = () => { v.ljudKnapp.setAttribute("aria-pressed", String(ljud.pa)); v.ljudKnapp.textContent = ljud.pa ? "Ljud på" : "Ljud av"; };
-  sattLjudknapp();
-  v.ljudKnapp.addEventListener("click", () => { ljud.satt(!ljud.pa); sattLjudknapp(); });
+  v.utrop.insertAdjacentHTML("afterend", `<button type="button" class="md-planknapp mdv-lamna" data-lamna>Lämna</button>`);
+  const [{ skapaPlan }, avatar] = await Promise.all([import("../plan/md-plan.js"), avatarBild(S)]);
   let utropTimer = 0;
   const plan = await skapaPlan({
     yta: v.yta, lugnt: S.lugnt, tvinga2d: S.tvinga2d, avatar,
     vi: { troja: egen.farg, byxor: LJUS.has(egen.farg) ? "#1d2c4a" : "#ffffff", mv: "#ffd23f", kapten: kaptenPlats(S.K?.trupp || []) },
     dem: { troja: mot.farg, byxor: "#1c2433", mv: "#1b1b1b" },
     hooks: {
-      ljud: (x) => ljud.spela(x),
       utrop(text, ms) {
         clearTimeout(utropTimer);
         v.utrop.textContent = text;
@@ -110,11 +105,11 @@ export async function spelaVanskap(S, el, { moln, vakt }) {
     moln.tick(matchId).catch(() => {});
   }, 500);
   let stangd = false;
-  const stang = () => { if (stangd) return; stangd = true; clearInterval(tickTimer); plan.dispose(); ljud.stang(); };
+  const stang = () => { if (stangd) return; stangd = true; clearInterval(tickTimer); plan.dispose(); };
   signal?.addEventListener("abort", stang, { once: true });
   const slutAc = new AbortController(); // frågan "Lämna matchen?" stängs om matchen tar slut
   vantaPa((x) => x.status !== "pagar").then(() => slutAc.abort());
-  v.ljudKnapp.parentElement.querySelector("[data-lamna]").addEventListener("click", async () => {
+  el.querySelector("[data-lamna]").addEventListener("click", async () => {
     if (slutAc.signal.aborted) return;
     const svar = await ruta(S.host, {
       rubrik: "Lämna matchen?",
@@ -135,8 +130,7 @@ export async function spelaVanskap(S, el, { moln, vakt }) {
   plan.stall(vy(M0.V, s), { avspark: !M0.V.lagen || M0.V.x === 50 });
   skylt(M0.V);
   sag(M0.V.lagen ? "Matchen fortsätter!" : `Vänskapsmatch mot ${kompis} · Avspark!`);
-  ljud.sorl(true);
-  if (!M0.V.lagen) { ljud.spela("vissla"); await vanta(S.lugnt ? 300 : 900); }
+  if (!M0.V.lagen) await vanta(S.lugnt ? 300 : 900);
 
   /** Ett läge: valet, frågan och svaret – sedan väntan tills servern avgjort läget. */
   async function lage(m) {
@@ -198,7 +192,6 @@ export async function spelaVanskap(S, el, { moln, vakt }) {
   }
 
   async function halvtid(m) {
-    ljud.spela("slutvissla");
     plan.stall(vy(m.V, s), { avspark: false });
     v.kort.innerHTML = "";
     sag(VANSKAP_TEXT.halvtid);
@@ -221,7 +214,6 @@ export async function spelaVanskap(S, el, { moln, vakt }) {
     if (!M || M.halvtid || M.status !== "pagar") return;
     plan.stall(vy(M.V, s), { avspark: true });
     skylt(M.V);
-    ljud.spela("vissla");
     sag("Andra halvlek – avspark!");
     await vanta(S.lugnt ? 300 : 800);
   }
@@ -244,8 +236,6 @@ export async function spelaVanskap(S, el, { moln, vakt }) {
   if (signal?.aborted) return;
   const M = vakt.M;
   clearInterval(tickTimer);
-  ljud.sorl(false);
-  ljud.spela("slutvissla");
   v.kort.innerHTML = "";
   if (!M || vakt.fel) {
     sag("Kontakten med matchen bröts.");

@@ -136,7 +136,6 @@ describe("lugnt läge och prefers-reduced-motion (§4)", () => {
     assert.match(src, /if \(lugnt\) \{ \/\/ fast vy över hela planen/);
     assert.match(src, /zoomTill = pa && !lugnt/);
     assert.match(readFileSync("src/matchdagen/md-app.js", "utf8"), /prefers-reduced-motion: reduce/);
-    assert.match(readFileSync("src/matchdagen/plan/md-ljud.js", "utf8"), /jubel: \(t\) => \{ if \(!lugnt\)/);
   });
   it("kortNamn för skylten och utropet", () => {
     assert.equal(kortNamn("Ekebacka IF"), "EI");

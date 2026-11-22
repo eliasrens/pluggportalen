@@ -6,7 +6,7 @@
 // samma händelser, samma tider, samma match.
 //
 //   skapaPlan({ yta, lugnt, tvinga2d, vi, dem, avatar?, hooks?, final? }) → Promise<plan>
-//     vi/dem: { troja, byxor, mv, kapten? }   hooks: { utrop(text, ms), ljud(namn) }
+//     vi/dem: { troja, byxor, mv, kapten? }   hooks: { utrop(text, ms) }
 //     final (#873): Mästarcupens final – fullsatt läktare med flaggor (§10.2)
 //   plan.typ                    "3d" | "2d"
 //   plan.stall(m, { avspark })  ställ upp direkt efter motorns tillstånd
@@ -49,7 +49,6 @@ export async function skapaPlan({ yta, lugnt = false, tvinga2d = false, vi, dem,
   r.lag("dem", dem);
   if (avatar) r.avatar(avatar);
   const utrop = (t, ms) => hooks.utrop?.(t, ms);
-  const ljud = (n) => hooks.ljud?.(n);
   const vanta = (ms) => new Promise((ok) => setTimeout(ok, lugnt ? Math.min(ms, 350) : ms));
 
   /** Spelarna till sina platser för läget (bollen ligger kvar där den är). */
@@ -74,7 +73,6 @@ export async function skapaPlan({ yta, lugnt = false, tvinga2d = false, vi, dem,
       const { till } = h;
       if (h.hojd === "skott") return skott(h, m);
       if (h.typ === "anfall") {
-        ljud("spark");
         const lang = h.val === "lang";
         bollTill(till.x, till.y, { hojd: lang ? 6 : 0, ms: lang ? ANIM.lang : ANIM.pass });
         stallUpp(till.x, till.y, h.boll);
@@ -82,7 +80,6 @@ export async function skapaPlan({ yta, lugnt = false, tvinga2d = false, vi, dem,
         return;
       }
       // derasPass, forsvar: bollen förs/tas – samma rörelse, innehavet efteråt avgör formationen.
-      if (h.utfall !== "vunnen" && h.utfall !== "stoppad") ljud("spark");
       bollTill(till.x, till.y, { ms: ANIM.pass });
       stallUpp(till.x, till.y, h.boll);
       await vanta(ANIM.pass + ANIM.efter);
@@ -124,19 +121,15 @@ export async function skapaPlan({ yta, lugnt = false, tvinga2d = false, vi, dem,
     const lagPos = (mv.lag === "vi" ? straff.vi : straff.dem).slice();
     // Målvakten kastar sig: mot bollen vid en räddning, åt fel håll annars.
     lagPos[0] = [lagPos[0][0], 34 + (h.utfall === "raddning" ? hoger * 1.6 : -hoger * 2.4)];
-    ljud("spark");
     r.boll(mal, y, { hojd: h.utfall === "utanfor" ? 1.8 : 1, ms: ANIM.skott });
     r.spelare(mv.lag, lagPos);
     await vanta(ANIM.skott);
     if (h.mal) {
       r.malEffekt(sida);
-      ljud(vart ? "jubel" : "sorl");
       utrop(vart ? "MÅL!" : `Mål för ${kortNamn(m.mot.namn)}`, ANIM.raddning);
     } else if (h.utfall === "raddning") {
-      ljud("raddning");
       utrop("RÄDDNING!", ANIM.raddning);
     } else {
-      ljud("oj");
       utrop(h.utfall === "stolpe" ? "I STOLPEN!" : "UTANFÖR!", ANIM.raddning);
     }
     await vanta(ANIM.raddning + ANIM.efter);
@@ -148,14 +141,12 @@ export async function skapaPlan({ yta, lugnt = false, tvinga2d = false, vi, dem,
     const malX = vart ? 100 : 0;
     const sida = vart ? "dem" : "vi"; // målet som skottet går mot
     const y = 34 + (h.utfall === "stolpe" ? (h.till.y < 34 ? -3.6 : 3.6) : h.utfall === "utanfor" ? (h.fran.y < 34 ? -6 : 6) : ((h.fran.y - 34) / 34) * 2.5);
-    ljud("spark");
     bollTill(malX + (h.utfall === "utanfor" ? (vart ? 2 : -2) : 0), y, { hojd: h.utfall === "utanfor" ? 2.2 : 1.3, ms: ANIM.skott });
     await vanta(ANIM.skott);
     if (h.utfall === "mal") {
       r.malEffekt(sida);
       r.firar(vart ? "vi" : "dem", true);
       if (vart) r.zoom(true);
-      ljud(vart ? "jubel" : "sorl");
       utrop(vart ? "MÅÅÅL!" : `Mål för ${kortNamn(m.mot.namn)}`, ANIM.mal - 600);
       const f = formation({ x: h.fran.x, y: h.fran.y, innehav: vart ? "oss" : "dem" });
       r.spelare(vart ? "vi" : "dem", firande(vart ? f.vi : f.dem, [planX(malX), y]));
@@ -168,10 +159,7 @@ export async function skapaPlan({ yta, lugnt = false, tvinga2d = false, vi, dem,
       await vanta(ANIM.tillbaka);
       return;
     }
-    if (h.utfall === "raddning") {
-      utrop("RÄDDNING!", ANIM.raddning);
-      ljud("raddning");
-    } else ljud("oj");
+    if (h.utfall === "raddning") utrop("RÄDDNING!", ANIM.raddning);
     await vanta(ANIM.raddning);
     if (h.horna) {
       bollTill(h.till.x, h.till.y, { ms: ANIM.pass });

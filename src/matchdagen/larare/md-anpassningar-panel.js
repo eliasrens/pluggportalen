@@ -106,7 +106,7 @@ export async function renderPanel(ctx, o) {
       <div class="mda-rad-val">${KLOCKA_VAL.map((k) => radio("klocka", k, k ? `${k} sekunder` : "Av <small>(standard)</small>", i.klocka === k)).join("")}</div>
     </fieldset>
     <fieldset class="mda-del"><legend>Lugnt läge</legend>
-      <label class="mda-val"><input type="checkbox" name="lugnt"${i.lugnt ? " checked" : ""} /><span>På – färre effekter, ingen publik som jublar, inga skakningar och dämpade ljud</span></label>
+      <label class="mda-val"><input type="checkbox" name="lugnt"${i.lugnt ? " checked" : ""} /><span>På – färre effekter, ingen publik som jublar och inga skakningar</span></label>
     </fieldset>
     <fieldset class="mda-del"><legend>Påminnelse om paus</legend>
       <div class="mda-rad-val">${PAUS_VAL.map((p) => radio("paus", p, p ? `${p} minuter${p === 60 ? " <small>(standard)</small>" : ""}` : "Av", i.paus === p)).join("")}</div>

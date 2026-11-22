@@ -19,6 +19,7 @@
 import { byggArena } from "./md-tre-arena.js";
 import { skapaFigur, skapaFigurDelar, stegaFigur } from "./md-tre-figur.js";
 import { skapaFest } from "./md-tre-fest.js";
+import { SMAL, dimma, fovFor, foljVy, lugnVy } from "./md-tre-kamera.js";
 import { PLAN_B, PLAN_L } from "./md-formation.js";
 
 const BOLL_R = 0.3;
@@ -68,7 +69,7 @@ export function skapa3dRitare({ T, yta, lugnt = false, final = false }) {
     renderer.setSize(w, h, false);
     kamera.aspect = w / h;
     // Smal yta (mobil): bredare synfält så att planen ryms.
-    kamera.fov = kamera.aspect < 1.4 ? 50 : 36;
+    kamera.fov = fovFor(kamera.aspect);
     kamera.updateProjectionMatrix();
   }
   storlek();
@@ -85,6 +86,7 @@ export function skapa3dRitare({ T, yta, lugnt = false, final = false }) {
       return f;
     });
     L.kapten = kapten;
+    arena.publikFarg(sida, troja);
     if (sida === "vi" && avatarSprite) placeraAvatar();
   }
   function spelare(sida, pos, { direkt = false } = {}) {
@@ -132,7 +134,7 @@ export function skapa3dRitare({ T, yta, lugnt = false, final = false }) {
   function firar(sida, pa) { lagen[sida].figurer.forEach((f, i) => { f.userData.hopp = pa && i ? 1 : 0; }); }
   function malEffekt(sida) {
     const s = sida === "dem" ? 1 : -1; // vi gör mål i deras mål (höger)
-    effekt(1400, (t) => { arena.natBukt(s, Math.sin(Math.min(1, t * 3) * Math.PI / 2) * (1 - t)); arena.publikJubel(t); });
+    effekt(1400, (t) => { arena.natBukt(s, Math.sin(Math.min(1, t * 3) * Math.PI / 2) * (1 - t)); arena.publikJubel(t, sida === "dem" ? "vi" : "dem"); });
   }
   let zoomTill = 0;
   function zoom(pa) { zoomTill = pa && !lugnt ? performance.now() + 2200 : 0; }
@@ -158,8 +160,12 @@ export function skapa3dRitare({ T, yta, lugnt = false, final = false }) {
 
   // ---- kameran --------------------------------------------------------------
   const kamPos = new T.Vector3(0, 24, 46), kamMal = new T.Vector3(), kamPosMal = new T.Vector3(), kamMalMal = new T.Vector3();
+  const satt = (v, [x, y, z]) => v.set(x, y, z);
   function kameraSteg(nu, dt) {
+    let fov = fovFor(kamera.aspect);
     const bx = bollM.position.x, bz = bollM.position.z;
+    // #882: följ dit bollen är på väg – kameran hinner då med också vid en lång boll mot kanten.
+    const fx = bana ? bana.till.x : bx, fz = bana ? bana.till.z : bz;
     if (festen) { // firandet: nära laget, pokalen och fyrverkerierna ovanför läktaren – i lugnt läge ett klipp, ingen åkning
       kamPosMal.set(tillX(festen.mitt[0]), 3.2, tillZ(festen.mitt[1]) + 15);
       kamMalMal.set(tillX(festen.mitt[0]), 3.4, tillZ(festen.mitt[1]) - 4);
@@ -167,22 +173,27 @@ export function skapa3dRitare({ T, yta, lugnt = false, final = false }) {
       kamPos.lerp(kamPosMal, k);
       kamMal.lerp(kamMalMal, k);
     } else if (lugnt) { // fast vy över hela planen – ingen följning, ingen zoom
-      kamPos.set(0, 52, 62);
-      kamMal.set(0, 0, 4);
+      const v = lugnVy(kamera.aspect);
+      satt(kamPos, v.pos);
+      satt(kamMal, v.mal);
+      fov = v.fov;
     } else {
       const narbild = nu < zoomTill || !!straffSida;
-      const bred = kamera.aspect < 1.4 ? 1.35 : 1;
+      const bred = kamera.aspect < SMAL ? 1.35 : 1;
       if (straffSida) { // snett bakom skytten, straffpunkten och målet i bild
         const mal = straffSida * (PLAN_L / 2 - 2);
         kamPosMal.set(mal - straffSida * 25 * bred, 6.5, 9 * bred);
         kamMalMal.set(mal - straffSida * 5, 1, 0);
-      } else if (narbild) { kamPosMal.set(bx * 0.92, 8, bz + 17); kamMalMal.set(bx, 1, bz); } else { kamPosMal.set(bx * 0.72, 19 * bred, 37 * bred); kamMalMal.set(bx * 0.86, 0, bz * 0.4); }
+      } else if (narbild) { kamPosMal.set(bx * 0.92, 8, bz + 17); kamMalMal.set(bx, 1, bz); } else { const v = foljVy(fx, fz, kamera.aspect); satt(kamPosMal, v.pos); satt(kamMalMal, v.mal); }
       const k = 1 - Math.pow(narbild ? 0.04 : 0.12, dt);
       kamPos.lerp(kamPosMal, k);
       kamMal.lerp(kamMalMal, k);
     }
+    if (kamera.fov !== fov) { kamera.fov = fov; kamera.updateProjectionMatrix(); }
     kamera.position.copy(kamPos);
     kamera.lookAt(kamMal);
+    // #882 F1: dimman börjar alltid bortom planens bortersta hörn (också i lugnt läges fasta vy).
+    if (scen.fog) [scen.fog.near, scen.fog.far] = dimma([kamPos.x, kamPos.y, kamPos.z]);
   }
 
 
@@ -216,7 +227,7 @@ export function skapa3dRitare({ T, yta, lugnt = false, final = false }) {
       festen.pokal.position.set(k.x, 2.1 + e * 1.3 + k.y, k.z + 0.35);
       festen.pokal.rotation.y = lugnt ? 0.4 : 0.4 + Math.sin(tid * 0.8) * 0.25;
       festen.fx.steg(dt, tid);
-      if (!lugnt) arena.publikJubel((tid % 2.5) / 2.5);
+      if (!lugnt) arena.publikJubel((tid % 2.5) / 2.5, "vi");
     }
     arena.steg?.(tid);
     for (let i = effekter.length - 1; i >= 0; i--) {
