@@ -13,7 +13,7 @@ import {
   rimligKarriar, sorteraNycklar, TAK, TOPP,
 } from "../src/matchdagen/delat/md-topplista.js";
 import { arskursAvKlass as mmArskurs } from "../src/tavling/arskurs.js";
-import { arskursKnappar, topplistaHtml } from "../src/matchdagen/vy/md-vy-topplista.js";
+import { arskursKnappar, paVagIn, topplistaHtml } from "../src/matchdagen/vy/md-vy-topplista.js";
 import { matchKlar, nyKarriar, nySasong, sasongFro } from "../src/matchdagen/delat/md-sasong.js";
 import { kvalKlar, kvalMatch } from "../src/matchdagen/delat/md-kval.js";
 import { skapaPrng } from "../src/matchdagen/delat/md-prng.js";
@@ -203,6 +203,19 @@ describe("fliken – placeringspolicyn", () => {
     const h = topplistaHtml(lista, { ak: "6", uid: "u", egen: "4" });
     assert.match(h, /data-ak="6" aria-pressed="true"/);
     assert.match(h, /data-ak="4" aria-pressed="false"/);
+  });
+  it("delad plats bortom raderna eller bättre sedan bygget: ingen 'fortsätt kämpa', ingen placering", () => {
+    const sista = lista.arskurser[4].at(-1); // Division 4 (d 3), 5 vinster, 20–5
+    const lika = K({ div: 3, sasong: 4, summa: { matcher: 30, v: 5, o: 0, f: 25, gjorda: 20, inslappta: 5, fragor: 900, ratt: 700 } });
+    assert.equal(sista.v, 5);
+    assert.equal(paVagIn(lika, lista.arskurser[4]), true);
+    assert.equal(paVagIn(K(), lista.arskurser[4]), false, "Division 6 räcker inte");
+    assert.equal(paVagIn(K({ div: 7, sasong: 8 }), lista.arskurser[4]), false, "en orimlig karriär räknas inte");
+    assert.equal(paVagIn(K(), lista.arskurser[4].slice(0, 3)), true, "färre än 5 på listan");
+    const h = topplistaHtml(lista, { ak: "4", uid: "nisse", egen: "4", K: lika });
+    assert.match(h, /lika bra som de bästa/);
+    assert.doesNotMatch(h, /fortsätt kämpa|\(du\)/);
+    assert.doesNotMatch(topplistaHtml(lista, { ak: "4", uid: "nisse", egen: "4", K: K() }), /lika bra som de bästa/);
   });
   it("tom årskurs: en uppmuntran, ingen tabell", () => {
     const h = topplistaHtml(lista, { ak: "3", uid: "u", egen: "3" });

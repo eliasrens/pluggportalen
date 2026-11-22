@@ -113,6 +113,17 @@ describe("mdTopplista (#880)", () => {
     assert.deepEqual(egna((await las("mdTopplista/skolan")).arskurser["7"]).map((x) => x.uid), ["tl-b1"]);
   });
 
+  it("lärarens Återställ lagnamn (bara klubb.namn, inte senast) byggs om nästa timme", async () => {
+    await byggTopplista(deps);
+    ctl.clock += 3600000;
+    await db.doc("matchdagen/tl-a1").update({ "klubb.namn": "Pluggporten FC" });
+    assert.equal((await byggTopplista(deps)).byggd, true);
+    assert.equal(egna((await las("mdTopplista/skolan")).arskurser["7"]).find((x) => x.uid === "tl-a1").lag, "Pluggporten FC");
+    ctl.clock += 3600000;
+    await db.doc("matchdagen/tl-a6").update({ "klubb.namn": "Pluggporten FC" }); // inte på listan → inget bygge
+    assert.equal((await byggTopplista(deps)).byggd, false);
+  });
+
   it("tvinga: true bygger alltid", async () => {
     await byggTopplista(deps);
     assert.equal((await byggTopplista(deps, { tvinga: true })).byggd, true);

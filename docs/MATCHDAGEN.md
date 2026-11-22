@@ -1240,6 +1240,9 @@ En elev utan Matchdagen syns aldrig, inte heller en karriär utan klubb eller ut
 
 **Placeringspolicyn** (som Guldrushen): bara topp 5 med namn står i dokumentet. Elevens egen placering utanför
 topp 5 räknas aldrig ut och visas aldrig – i den egna årskursen står "Du är inte på topp 5 än – fortsätt kämpa!".
+Är elevens egen karriär (redan läst, `S.K`) minst lika bra som listans sista rad – en delad plats som inte fick
+plats bland de 8 raderna, eller bättre sedan bygget – står i stället "Ditt lag är lika bra som de bästa – listan
+uppdateras varje timme" (`paVagIn`, bara ja/nej, ingen placering).
 
 ### 21.2 Rimlighetskontrollen (`rimligKarriar`)
 
@@ -1264,12 +1267,14 @@ det omöjliga, inte allt fusk. Matchdagen ger inga pluggmynt, så insatsen är e
 rad = `{ uid, n, lag, f, k, d, ls, v, gm, im, m, plats }`. Alla årskurser i **ett** dokument – byta årskurs kostar
 ingen läsning. Bygget:
 
-1. läser topplistan och frågar `matchdagen where senast > byggd limit 1` (bara id). Ingen karriär sparad sedan förra
-   bygget, och det är yngre än 6 timmar → klart, ingen skrivning;
+1. läser topplistan och frågar `matchdagen where senast > byggd limit 1` (bara id), och läser lagnamnen för lagen
+   på listan (fältmask `klubb.namn` – lärarens Återställ lagnamn skriver bara namnet, inte `senast`, som är lärarens
+   "senast spelat"). Ingen karriär sparad, inget namn ändrat, och bygget är yngre än 6 timmar → klart, ingen skrivning;
 2. annars alla `classes`, `classProjections` för klasserna med Matchdagen och karriärerna för eleverna med Matchdagen
    (`getAll` med fältmask: `klubb`, `div`, `sasong`, `summa`, `sasonger`, `dagar`), `students/{uid}` bara för den som
-   saknar namn i projektionen → **en** skrivning. Var 6:e timme byggs listan om ändå (namn, klassnamn och Matchdagen
-   på/av ändrar inga karriärer).
+   saknar namn i projektionen → **en** skrivning. Var 6:e timme byggs listan om ändå: elevnamn, klassnamn och
+   Matchdagen på/av ändrar inga karriärer – **känd gräns:** slår läraren av Matchdagen syns eleven på listan i
+   högst 6 timmar till.
 
 Reglerna: `mdTopplista/{docId}` läses av varje inloggad (som `hittaRattBoards` – namn, lag och klass för topp 5) och
 skrivs aldrig av någon klient (`test/firestore-rules-matchdagen-topplista.test.js`). Servern:
@@ -1281,12 +1286,12 @@ Förhandsvisning: `preview/preview-matchdagen.html?vy=topplista` (`&ak=3|4|6|ovr
 | Vem | Läsningar | Skrivningar |
 | --- | --- | --- |
 | Eleven öppnar Topplista | **1** (första gången i besöket; byta årskurs och flik 0) | 0 |
-| Servern, en timme utan sparade matcher | 2 (topplistan + frågan, som kostar 1 läsning även tom) | 0 |
+| Servern, en timme utan sparade matcher | 2 (topplistan + frågan, som kostar 1 läsning även tom) + en per rad på listan (lagnamnen, ~5 per årskurs) | 0 |
 | Servern, ett bygge | 2 + klasserna + projektionerna + eleverna med Matchdagen (+ elever utan namn) | 1 |
 
 **Exempel:** 40 klasser, 10 med Matchdagen, 250 elever med Matchdagen → ~300 läsningar per bygge. Spel varje timme
-8–17 (10 byggen) + ett par tvingade → ~3 600 läsningar och ≤ 24 skrivningar per dag; nätter och helger ~2 läsningar
-i timmen. 250 elever som öppnar Topplista en gång om dagen = 250 läsningar. Cloud Scheduler: ett jobb (gratis upp till 3
+8–17 (10 byggen) + ett par tvingade → ~3 600 läsningar och ≤ 24 skrivningar per dag; nätter och helger ~2 + 30
+läsningar i timmen (sex årskurser à 5 rader) ≈ 800 per dygn. 250 elever som öppnar Topplista en gång om dagen = 250 läsningar. Cloud Scheduler: ett jobb (gratis upp till 3
 per konto), ~720 körningar i månaden.
 
 ### 21.5 Deploy

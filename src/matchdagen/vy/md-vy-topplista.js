@@ -6,12 +6,14 @@
 // den egna placeringen utanför topp 5 visas aldrig – bara "Fortsätt kämpa!".
 // Kvoten: EN läsning första gången fliken öppnas (S.topplista, sedan cachat i sessionen).
 //
-//   topplistaHtml(lista, { ak, uid, egen })   tabellen + knapparna (förhandsvisningen och testerna)
+//   paVagIn(K, rader)                         elevens egen karriär (S.K) räcker till listan fast eleven inte står där
+//                                             (delad plats bortom raderna, eller bättre sedan bygget)
+//   topplistaHtml(lista, { ak, uid, egen, K })  tabellen + knapparna (förhandsvisningen och testerna)
 //   visaTopplista(S, el)                      fliken
 // Allt ur dokumentet med esc() eller som tal.
 // ============================================================================
 
-import { akLabel, divNamn, sorteraNycklar, TOPP } from "../delat/md-topplista.js";
+import { akLabel, divNamn, jamfor, radFor, rimligKarriar, sorteraNycklar, TOPP } from "../delat/md-topplista.js";
 import { chip, esc } from "./md-vy-delat.js";
 
 const tal = (v) => (Number.isFinite(Number(v)) ? Math.max(0, Math.floor(Number(v))) : 0);
@@ -35,11 +37,23 @@ function radHtml(r, uid) {
     <td title="Målskillnad ${ms > 0 ? "+" : ""}${ms}">${tal(r.gm)}–${tal(r.im)}</td></tr>`;
 }
 
-/** Tabellen för årskursen ak, knapparna och raden om eleven själv. */
-export function topplistaHtml(lista, { ak, uid, egen }) {
+/**
+ * Räcker elevens egen karriär till listan fast eleven inte står där? Listan har färre än TOPP platser, eller
+ * karriären är minst lika bra som sista raden (en delad plats bortom TAK rader, eller bättre sedan bygget).
+ * Ingen placering räknas ut – bara ja/nej.
+ */
+export function paVagIn(K, rader) {
+  if (!K?.klubb || !K.summa?.matcher || !rimligKarriar(K).ok) return false;
+  const sista = rader.at(-1);
+  return rader.length < TOPP || jamfor(radFor("", K), sista) <= 0;
+}
+
+/** Tabellen för årskursen ak, knapparna och raden om eleven själv (K = elevens karriär). */
+export function topplistaHtml(lista, { ak, uid, egen, K = null }) {
   const knappar = arskursKnappar(lista, egen);
   const rader = Array.isArray(lista?.arskurser?.[ak]) ? lista.arskurser[ak].slice(0, 8) : [];
   const arMed = rader.some((r) => r.uid === uid);
+  const paVag = ak === egen && !arMed && paVagIn(K, rader);
   const byggd = lista?.byggd ? `Uppdaterad kl. ${KLOCKA.format(lista.byggd)} – listan uppdateras varje timme.` : "Listan uppdateras varje timme.";
   return `<div class="md-panel md-topplista">
     <h2>Topplista – ${esc(akLabel(ak))}</h2>
@@ -49,8 +63,9 @@ export function topplistaHtml(lista, { ak, uid, egen }) {
     ${rader.length ? `<div class="md-scroll"><table class="md-tabell md-topp-tabell">
       <thead><tr><th scope="col">#</th><th scope="col">Spelare</th><th scope="col">Division</th><th scope="col" title="Vunna matcher">Vinster</th><th scope="col" title="Gjorda–insläppta mål">Mål</th></tr></thead>
       <tbody>${rader.map((r) => radHtml(r, uid)).join("")}</tbody>
-    </table></div>` : `<p class="md-svag">Ingen i ${esc(akLabel(ak).toLowerCase())} är på listan än – spela en match så kan du bli först!</p>`}
-    ${ak === egen && rader.length && !arMed ? `<p class="md-slut">Du är inte på topp ${TOPP} än – fortsätt kämpa! Vinn matcher och ta dig upp i divisionerna.</p>` : ""}
+    </table></div>` : paVag ? "" : `<p class="md-svag">Ingen i ${esc(akLabel(ak).toLowerCase())} är på listan än – spela en match så kan du bli först!</p>`}
+    ${paVag ? `<p class="md-slut vinst">Ditt lag är lika bra som de bästa – listan uppdateras varje timme.</p>`
+      : ak === egen && rader.length && !arMed ? `<p class="md-slut">Du är inte på topp ${TOPP} än – fortsätt kämpa! Vinn matcher och ta dig upp i divisionerna.</p>` : ""}
     ${ak === egen && arMed ? `<p class="md-slut vinst">Du är på topp ${TOPP} i din årskurs – snyggt!</p>` : ""}
     <p class="md-svag md-topp-tid">${byggd}</p>
   </div>`;
@@ -77,7 +92,7 @@ export async function visaTopplista(S, el) {
   const forsta = arskursKnappar(lista, egen)[0];
   S.topplistaAk ||= egen || forsta || "ovriga";
   const rita = () => {
-    el.innerHTML = topplistaHtml(lista, { ak: S.topplistaAk, uid: S.uid, egen });
+    el.innerHTML = topplistaHtml(lista, { ak: S.topplistaAk, uid: S.uid, egen, K: S.K });
     el.querySelector(".md-ak")?.addEventListener("click", (e) => {
       const b = e.target.closest("[data-ak]");
       if (b) { S.topplistaAk = b.dataset.ak; rita(); }

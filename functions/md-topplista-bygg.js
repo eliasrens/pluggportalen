@@ -7,8 +7,9 @@
 // Eleven läser EN gång när fliken Topplista öppnas – alla årskurser i samma dokument.
 //
 // Byggs en gång i timmen (mdTopplista, onSchedule i index.js):
-//   1. topplistan + EN fråga "har någon karriär sparats sedan förra bygget?" (matchdagen där senast > byggd, limit 1).
-//      Nej, och förra bygget är yngre än TVINGA_MS → klart (2 läsningar, ingen skrivning).
+//   1. topplistan + EN fråga "har någon karriär sparats sedan förra bygget?" (matchdagen där senast > byggd, limit 1)
+//      + lagnamnen för lagen på listan (lärarens Återställ lagnamn rör inte senast). Inget ändrat, och förra bygget
+//      är yngre än TVINGA_MS → klart (2 läsningar + en per rad på listan, ingen skrivning).
 //   2. annars: alla classes, classProjections för klasserna med Matchdagen (namnen), och karriärerna för eleverna
 //      med Matchdagen (getAll med fältmask – bara fälten listan behöver) → EN skrivning.
 // deps = { db, now?() }  →  { byggd: bool, elever, uteslutna }
@@ -47,12 +48,23 @@ export function eleverMedMatchdagen(klasser) {
   return ut;
 }
 
-async function getAllMask(db, refs) {
+async function getAllMask(db, refs, fieldMask = FALT) {
   const ut = [];
   for (let i = 0; i < refs.length; i += GET_ALL_MAX) {
-    ut.push(...await db.getAll(...refs.slice(i, i + GET_ALL_MAX), { fieldMask: FALT }));
+    ut.push(...await db.getAll(...refs.slice(i, i + GET_ALL_MAX), { fieldMask }));
   }
   return ut;
+}
+
+/**
+ * Lärarens "Återställ lagnamn" skriver bara klubb.namn (inte senast – lärarens "senast spelat") och syns därför
+ * inte i frågan på senast. Bara lagen på listan spelar roll: deras namn läses (fältmask) och jämförs.
+ */
+async function lagnamnAndrat(db, d) {
+  const rader = Object.values(d?.arskurser || {}).flat().filter((r) => typeof r?.uid === "string" && r.uid);
+  if (!rader.length) return false;
+  const snaps = await getAllMask(db, rader.map((r) => db.collection("matchdagen").doc(r.uid)), ["klubb.namn"]);
+  return snaps.some((s, i) => !s.exists || kort(s.data().klubb?.namn, 24) !== rader[i].lag);
 }
 
 export async function byggTopplista(deps, { tvinga = false } = {}) {
@@ -63,7 +75,7 @@ export async function byggTopplista(deps, { tvinga = false } = {}) {
   const byggdFore = fore.exists ? msAv(fore.data().byggd) : 0;
   if (!tvinga && byggdFore && nu - byggdFore < TVINGA_MS) {
     const andrad = await db.collection("matchdagen").where("senast", ">", new Date(byggdFore)).select().limit(1).get();
-    if (andrad.empty) return { byggd: false, elever: 0, uteslutna: 0 };
+    if (andrad.empty && !(await lagnamnAndrat(db, fore.data()))) return { byggd: false, elever: 0, uteslutna: 0 };
   }
 
   const klasser = (await db.collection("classes").get()).docs.map((d) => ({ id: d.id, ...d.data() }));
