@@ -35,6 +35,7 @@ const FIRA_MS = 1400;
 export function lagerStangtText(K) {
   if (!(Number(K?.liga?.omg) > 0)) return "Spela första matchen, så öppnar träningslägret.";
   if (K.kval?.spelad) return "Kvalet är spelat. Nästa säsong öppnar träningslägret igen.";
+  if (String(K.lager ?? "").endsWith("-k")) return "Laget har tränat inför kvalet. Nästa säsong öppnar träningslägret igen."; // äldre nyckel (före #883)
   return `Laget har tränat i alla ${TRANING.perOmgang} träningsläger den här omgången. Spela nästa match, så får ni nya.`;
 }
 /** "Träningsläger 2/3" för nyckeln (kvalets äldre extra läger: bara "Träningsläger"). */

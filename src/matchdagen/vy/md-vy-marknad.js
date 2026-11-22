@@ -53,7 +53,7 @@ export function lagdelarHtml(trupp) {
 export function traningsStapel(p) {
   const st = tal(p.st, 0, 5);
   if (st >= TRANING.maxSt) return `<small class="md-svag">Fullt tränad</small>`;
-  const mal = xpTill(st);
+  const mal = xpTill(st) || 1;
   const xp = tal(p.xp, 0, mal - 1);
   const bredd = Math.round((100 * xp) / mal);
   return `<div class="md-stapel" role="progressbar" aria-label="Träning mot ${st + 1} stjärnor" aria-valuemin="0" aria-valuemax="${mal}" aria-valuenow="${xp}"><i style="width:${bredd}%"></i></div>
