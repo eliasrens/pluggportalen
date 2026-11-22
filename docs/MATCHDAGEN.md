@@ -1580,3 +1580,25 @@ deploy när ingen gammal flik längre kan vara öppen (`firebase functions:delet
 mdGeUpp --region europe-west1`). Mät igen efter deploy: `admin/md-vanskap-latens-895.mjs` (emulatorn) och Cloud
 Logging-filtret `resource.type="cloud_run_revision" AND resource.labels.service_name="mdvanskap"`.
 
+
+### 23.6 Bedömning: realtid eller plan B (Elias fråga)
+
+**Målet (≤ ~1 s varmt från svar till nästa steg) nås för det servern gör.** Varmt: `fraga`/`svar` 60–170 ms i drift
+(`mdTick` i loggen), 30–75 ms i emulatorn; svaret rättat på ~250 ms i webbläsaren. Det som återstår mellan två lägen är
+avsiktligt: animationen (~1,2 s pass, längre vid skott/mål) – som nu spelas medan svaret visas – och **väntan på
+kompisen**, som är inbyggd i realtid (upp till lägets 60 s). Kvarvarande risker: en kallstart (~3 s) när lobbyn öppnas
+efter en stund utan spelare (döljs medan eleven tittar på lobbyn; `minInstances` tar bort den, ~90 kr/månad) och en
+sällsynt krock när båda svarar inom samma ~100 ms (ett direkt omförsök). Klockfelet var det som gjorde Elias test
+oanvändbart – det är borta.
+
+**Rekommendation: behåll realtid**, deploya (functions → webben) och mät i drift med två riktiga datorer (Cloud
+Logging-filtret i §23.5) innan läget slås på igen. Plan B är värd att bygga **som komplement** om det som stör i
+klassrummet visar sig vara väntan på en långsam kompis eller att båda måste vara inne samtidigt – inte för att
+realtiden är för långsam.
+
+**Ungefärlig insats:**
+
+| Alternativ | Vad | Insats |
+| --- | --- | --- |
+| Realtid (det här) | Deploy, mätning i drift med två datorer, ev. `minInstances`, slå på `VANSKAP.pausad` igen | ~0,5 dag |
+| Plan B – utmana kompisens lag | Kompisens lag (namn, färger, `lagbonus` ur truppen i `matchdagen/{uid}`) som motståndare i solomotorn med egna frågor; resultatet till kompisen efteråt (inbördes, ev. notis i lobbyn). Resultat och kassa måste skrivas av servern (en callable som spelar om/kontrollerar matchen, dagstak mot farmning) – klienten kan inte skriva i kompisens dokument. Delar: callable + regler (1–1,5 d), lobby/utmaningsvy + matchen med kompisens lag (1–1,5 d), tester/QA/docs (1 d) | ~3–4 dagar |
