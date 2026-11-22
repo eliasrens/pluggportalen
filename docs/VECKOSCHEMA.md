@@ -171,12 +171,17 @@ din klass just nu." – schemat visar aldrig något som annars är dolt.
 | Grindbyte medan eleven står kvar | `onLockChange` i `app.js` grindar om den aktuella routen |
 | Prov, Live, avatarvalet, hus/värld, Shoppen, profil | påverkas inte (B.5) |
 
-**Kvot.** En klass utan aktiverat schema: **0 nya läsningar** (`schemaInfoBehov` → `null`,
-inget hämtas). Med aktiverat schema hämtar bevakaren en gång per ändrat behov ämneslistan
+**Kvot.** **0 nya läsningar** när ingen lektion pågår eller återstår **i dag** i någon av
+elevens klasser med aktiverat schema – en klass utan schema, en helg, en kväll efter dagens
+sista lektion eller en dag utan lektioner läser exakt lika mycket som i dag
+(`schemaInfoBehov` → `null`). Pågår eller återstår en lektion i dag hämtar bevakaren ämneslistan
 (för ämnesnamnet och den gissade kopplingen) och – bara när klassen ser hela biblioteket –
-lektionsämnenas områdeslistor, genom **samma TTL-cache som Plugga-listan** (`getSubjects`,
-`getAreas`). Det är exakt läsningarna Plugga-listan gör, och under lektionen läser
-Plugga-listan i stället bara lektionens ämnen. Inga nya lyssnare.
+dagens lektionsämnens områdeslistor, genom **samma TTL-cache som Plugga-listan**
+(`getSubjects`, `getAreas`). Det är exakt läsningarna Plugga-listan gör, och under
+lektionen läser Plugga-listan i stället bara lektionens ämnen. Hämtningen görs en gång per
+ändrat behov; när dagens lektioner tar slut och färre ämnen återstår hämtas inget nytt.
+Timern går ändå till nästa ändring (nästa dags första lektion), så hämtningen sker först
+när lektionen börjar. Inga nya lyssnare.
 
 QA mot emulatorn: `admin/qa-veckoschema-902.mjs` sätter schema/lås via QA-proxyn
 (`admin/qa-matchdagen-867-preview.sh`). Lärarsidans sektion är Del C (#901).
@@ -193,7 +198,7 @@ Ingen Firebase, ingen DOM; laddas bara med `import()` (bootgrafen oförändrad, 
 | `gateForSchema(lage)` | samma gränssnitt som `gateFor`: `allows(path, query)`, `isTarget` (alltid falsk), `allowsArea(subjectId, areaId)`, `label`, `klockslag` (lektionens slut, `"HH:MM"`), `home` (Plugga-listan, eller huset om Plugga är dold), `fri: null`, `lock: null`, `schema` = läget |
 | `kombineradGrind(lock, lage)` | låset om det finns, annars schemat, annars `null` |
 | `nastaSchemaAndring(classes, meId, now)` | epoch-ms för nästa lektions start eller den pågående lektionens slut (D:s timer) |
-| `schemaInfoBehov(classes, meId)` | vad elevens bevakare behöver hämta (ämnen, ev. lektionsämnenas områden), eller `null` – 0 läsningar utan aktiverat schema |
+| `schemaInfoBehov(classes, meId, now)` | vad elevens bevakare behöver hämta för dagens pågående/återstående lektioner (ämnen, ev. lektionsämnenas områden), eller `null` – 0 läsningar utan lektion kvar i dag |
 | `lektionKrock`, `nyttLektionsId`, `sorteradeLektioner`, `gissaKoppling`, `effektivKoppling`, `okandaKopplingar` | hjälp till lärarsidan |
 
 `lage.matchdagen === false` spärrar Matchdagen under lektionen (sätts i Del E när ämnet
@@ -201,9 +206,9 @@ inte kan ge några frågor). Utan fältet är Matchdagen öppen.
 
 ## Kvot
 
-Elevsidan: **0 nya läsningar** för en klass utan aktiverat schema – schemat ligger på
-klassdokumentet som `class-lock-watch.js` redan bevakar. Med aktiverat schema: ämnena (och ev.
-lektionsämnenas områden) ur Plugga-listans TTL-cache, se §Elevsidan. Lärarsidan: en skrivning per sparning.
+Elevsidan: **0 nya läsningar** utan en lektion som pågår eller återstår i dag – schemat ligger
+på klassdokumentet som `class-lock-watch.js` redan bevakar. Med en lektion kvar i dag: ämnena
+(och ev. lektionsämnenas områden) ur Plugga-listans TTL-cache, se §Elevsidan. Lärarsidan: en skrivning per sparning.
 
 ## Deploy
 

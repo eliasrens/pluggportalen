@@ -14,9 +14,9 @@
 //   5. veckoschemat (#902, docs/VECKOSCHEMA.md): samma klass-dokument ger
 //      schemaForStudent – en timer till nästa ändring (lektionens start/slut)
 //      med samma skyddsnät. Fokuslåset går alltid före (kombineradGrind).
-//      0 nya läsningar för klasser utan aktiverat schema; med schema hämtas
-//      ämnena (+ lektionsämnenas områden om klassen ser hela biblioteket) ur
-//      samma TTL-cache som Plugga-listan, en gång per ändrat behov.
+//      0 nya läsningar utan en lektion som pågår eller återstår i dag; annars
+//      hämtas ämnena (+ lektionsämnenas områden om klassen ser hela biblioteket)
+//      ur samma TTL-cache som Plugga-listan, en gång per ändrat behov.
 // Tiden jämförs mot serverNow() (klock-korrigerad, data-class-lock.js).
 //
 // Laddas DYNAMISKT (ui.getLockGate) – aldrig i den statiska bootgrafen (#271).
@@ -37,7 +37,7 @@ let currentLage = null; // veckoschemats läge (#902) – null när ett lås gä
 let currentKey = "null";
 let timer = null;
 // Ämnesnamn/-områden till schemaForStudent (#902): { nyckel, opts } när laddat, `laddar` = pågående nyckel.
-let schemaInfo = { nyckel: null, opts: null, laddar: null, klar: null };
+let schemaInfo = { nyckel: null, opts: null, laddar: null, klar: null, amnen: null, omraden: false };
 const lyssnare = new Set();
 
 /**
@@ -75,7 +75,7 @@ function schemalaggSlut(lock, andring) {
  */
 function laddaSchemaInfo(behov) {
   if (schemaInfo.laddar === behov.nyckel) return schemaInfo.klar;
-  const info = { nyckel: null, opts: null, laddar: behov.nyckel, klar: null };
+  const info = { nyckel: null, opts: null, laddar: behov.nyckel, klar: null, amnen: null, omraden: false };
   schemaInfo = info;
   info.klar = (async () => {
     const subjects = await getSubjects().catch(() => null);
@@ -85,6 +85,8 @@ function laddaSchemaInfo(behov) {
     if (schemaInfo !== info) return;
     info.opts = { subjects: subjects || undefined, amnenMedOmraden };
     info.nyckel = behov.nyckel;
+    info.amnen = new Set(behov.amnen);
+    info.omraden = behov.omraden;
     info.laddar = null;
     if (watch?.uppe) omrakna(); // i startläget räknar lockForMe om själv (tyst)
   })();
@@ -92,10 +94,14 @@ function laddaSchemaInfo(behov) {
 }
 
 /** Schemaläget ur klasserna – eller det förra medan ämnesinfon laddas (inget flimmer). */
+/** Täcker den laddade ämnesinfon behovet? (Färre ämnen kvar i dag → ingen ny hämtning.) */
+const tacker = (info, behov) => info.nyckel !== null &&
+  behov.amnen.every((a) => info.amnen.has(a)) && behov.omraden === info.omraden;
+
 function schemaLage(klasser, now) {
-  const behov = schemaInfoBehov(klasser, watch.meId);
-  if (!behov) return null;
-  if (schemaInfo.nyckel !== behov.nyckel) {
+  const behov = schemaInfoBehov(klasser, watch.meId, now);
+  if (!behov) return null; // ingen lektion kvar i dag → ingen läsning
+  if (!tacker(schemaInfo, behov)) {
     laddaSchemaInfo(behov);
     return currentLage;
   }
@@ -180,7 +186,7 @@ export function stopLockWatch() {
   current = null;
   currentLage = null;
   currentKey = "null";
-  schemaInfo = { nyckel: null, opts: null, laddar: null, klar: null };
+  schemaInfo = { nyckel: null, opts: null, laddar: null, klar: null, amnen: null, omraden: false };
 }
 
 /**
@@ -209,7 +215,7 @@ export async function lockForMe(meId) {
     w.order = mina.map((c) => c.id);
     mina.forEach((c) => w.docs.set(c.id, c));
     // Veckoschemat (#902): ämnesinfon först (högst 3 s) så första sidan grindas med rätt läge.
-    const behov = schemaInfoBehov(mina, meId);
+    const behov = schemaInfoBehov(mina, meId, serverNow());
     if (behov) await Promise.race([laddaSchemaInfo(behov), new Promise((r) => setTimeout(r, 3000))]);
     if (watch !== w) return;
     w.startar = true;

@@ -21,6 +21,7 @@ import {
   schemaInfoBehov,
 } from "../src/klass-schema.js";
 import { gateFor, lockForStudent } from "../src/class-lock.js";
+import { moduleForRoute } from "../src/gamemode-visibility.js";
 import { vidareHtml } from "../src/prov/prov-vidare.js";
 
 const MIN = 60_000;
@@ -390,26 +391,50 @@ describe("klass utan schema: grinden är exakt som i dag", () => {
 });
 
 describe("elevens bevakare (#902): vad som behöver hämtas", () => {
+  // MAN_VINTER = måndag 09:00 svensk tid.
   it("ingen klass med aktiverat schema → null (0 nya läsningar)", () => {
     for (const schema of [undefined, null, {}, { pa: false, lektioner: [L()] }, { pa: true, lektioner: [] }, "trasigt"]) {
-      assert.equal(schemaInfoBehov([klass(schema)], "e1"), null, JSON.stringify(schema));
+      assert.equal(schemaInfoBehov([klass(schema)], "e1", MAN_VINTER), null, JSON.stringify(schema));
     }
-    assert.equal(schemaInfoBehov([klass(pa([L()]))], "annan"), null, "inte elevens klass");
+    assert.equal(schemaInfoBehov([klass(pa([L()]))], "annan", MAN_VINTER), null, "inte elevens klass");
   });
-  it("lektionsämnena (unionen, sorterad); områden bara när Plugga-klassen ser hela biblioteket", () => {
-    const a = klass(pa([L({ amne: "so" }), L({ id: "l2", dag: 2, amne: "no" })]));
-    const b = klass(pa([L({ id: "b1", amne: "no" })]), { id: "4b", assignedAreas: [{ subjectId: "no", areaId: "x" }] });
-    const behov = schemaInfoBehov([a, b], "e1");
-    assert.deepEqual(behov.amnen, ["no", "so"]);
+  it("dagens pågående och återstående lektioners ämnen (unionen, sorterad); områden bara när Plugga-klassen ser hela biblioteket", () => {
+    const a = klass(pa([L({ amne: "so" }), L({ id: "l2", start: "13:00", slut: "14:00", amne: "no" }), L({ id: "l3", dag: 2, amne: "sv" })]));
+    const b = klass(pa([L({ id: "b1", start: "10:00", slut: "11:00", amne: "ma" })]), { id: "4b", assignedAreas: [{ subjectId: "no", areaId: "x" }] });
+    const behov = schemaInfoBehov([a, b], "e1", MAN_VINTER);
+    assert.deepEqual(behov.amnen, ["ma", "no", "so"], "tisdagens sv räknas inte på måndagen");
     assert.equal(behov.omraden, true, "första klassen har tom assignedAreas");
-    assert.equal(schemaInfoBehov([b, a], "e1").omraden, false, "första klassen har valda områden");
-    assert.equal(schemaInfoBehov([a, b], "e1").nyckel, behov.nyckel, "samma behov → samma nyckel");
-    assert.notEqual(schemaInfoBehov([b, a], "e1").nyckel, behov.nyckel);
+    assert.equal(schemaInfoBehov([b, a], "e1", MAN_VINTER).omraden, false, "första klassen har valda områden");
+    assert.equal(schemaInfoBehov([a, b], "e1", MAN_VINTER).nyckel, behov.nyckel, "samma behov → samma nyckel");
+    assert.notEqual(schemaInfoBehov([b, a], "e1", MAN_VINTER).nyckel, behov.nyckel);
+    assert.deepEqual(schemaInfoBehov([a, b], "e1", MAN_VINTER + 90 * MIN).amnen, ["ma", "no"], "SO-lektionen är slut");
   });
-  it("utan aktiv lektion just nu behövs ändå ämnena (lektionen kan börja utan ny hämtning)", () => {
-    const k = klass(pa([L({ dag: 3 })]));
-    assert.equal(schemaForStudent([k], "e1", MAN_VINTER), null);
-    assert.deepEqual(schemaInfoBehov([k], "e1").amnen, ["no"]);
+  it("ingen lektion kvar i dag → null: annan dag, efter dagens sista lektion, helg, kväll", () => {
+    const k = klass(pa([L({ dag: 3 }), L({ id: "l2", dag: 1, start: "08:00", slut: "09:00" })]));
+    assert.equal(schemaInfoBehov([k], "e1", MAN_VINTER), null, "måndagens lektion slutade 09:00 (slut räknas inte med)");
+    assert.deepEqual(schemaInfoBehov([k], "e1", MAN_VINTER - MIN)?.amnen, ["no"], "08:59: lektionen pågår");
+    assert.equal(schemaInfoBehov([k], "e1", MAN_VINTER - 2 * 86_400_000), null, "lördag");
+    assert.equal(schemaInfoBehov([k], "e1", MAN_VINTER + 12 * 60 * MIN), null, "måndag kväll");
+    assert.deepEqual(schemaInfoBehov([k], "e1", MAN_VINTER + 2 * 86_400_000 - 8 * 60 * MIN).amnen, ["no"], "onsdag 01:00: lektionen 09:00 återstår");
+  });
+});
+
+describe("routerns spärrmål under en lektion (app.js sparrMal)", () => {
+  // sparrMal bor i app.js (bootgrafen) – funktionen plockas ur källan och körs med registrets moduleForRoute.
+  const kalla = readFileSync(new URL("../src/app.js", import.meta.url), "utf8");
+  const fn = kalla.slice(kalla.indexOf("function sparrMal("), kalla.indexOf("\n}\n", kalla.indexOf("function sparrMal(")) + 2);
+  const sparrMal = new Function("moduleForRoute", `${fn}; return sparrMal;`)(moduleForRoute);
+  const k = klass(pa([L({ amne: "so" })]), { hiddenModules: [] });
+  const gate = kombineradGrind(null, schemaForStudent([k], "e1", MAN_VINTER + 5 * MIN, { subjects: SUBJECTS }));
+  it("dold modul → huset (som utan schema), inte Plugga-listan", () => {
+    assert.equal(sparrMal("/elev/schack", q(""), gate, ["schack"]), "#/elev/hus");
+    assert.equal(sparrMal("/elev/schack", q(""), null, ["schack"]), "#/elev/hus");
+  });
+  it("spärrat av lektionen → Plugga-listan; tillåtet → null", () => {
+    assert.equal(sparrMal("/elev/schack", q(""), gate, []), "#/elev/plugga");
+    assert.equal(sparrMal("/elev/omrade", q("subj=ma&area=x"), gate, []), "#/elev/plugga");
+    assert.equal(sparrMal("/elev/omrade", q("subj=so&area=x"), gate, []), null);
+    assert.equal(sparrMal("/elev/shop", q(""), gate, []), null);
   });
 });
 

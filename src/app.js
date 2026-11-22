@@ -307,8 +307,9 @@ function aktuellRutt() {
 function sparrMal(path, query, las, dolda) {
   const modul = moduleForRoute(path);
   const modulOk = !modul || !dolda.includes(modul);
-  // Veckoschemat (#902): spärrat under lektionen → Plugga-listan; annars modul-grinden som vanligt.
-  if (las?.schema) return !las.allows(path, query) ? las.home : modulOk ? null : "#/elev/hus";
+  // Veckoschemat (#902): dold modul → hem som vanligt (schemat visar aldrig något dolt);
+  // annars spärrat under lektionen → Plugga-listan.
+  if (las?.schema) return !modulOk ? "#/elev/hus" : las.allows(path, query) ? null : las.home;
   if (las) {
     return las.allows(path, query) && (las.isTarget(path, query) || modulOk) ? null : las.home;
   }
@@ -419,7 +420,7 @@ function router(e) {
     if (seq !== routeSeq) return; // eleven hann navigera vidare
     const dit = sparrMal(path, aktuellRutt().query, las, dolda);
     if (!dit) return handler();
-    flash(las?.schema && dit === las.home
+    flash(las?.schema && !(modul && dolda.includes(modul))
       ? `Just nu är det ${escHtml(las.label)}-lektion. Det här öppnas igen klockan ${svKlocka(las.klockslag)}.`
       : las?.lock
       ? `🎯 Fokusläge: din klass jobbar med ${escHtml(las.label)} just nu.`
