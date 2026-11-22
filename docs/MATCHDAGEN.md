@@ -25,6 +25,7 @@ elever** eller (#876, §19) för **hela klassen**. Det här dokumentet växer me
 | #883 | Nya karriärer börjar på 1★, stjärnorna kostar 50/100/250/500 poäng, tre träningsläger per omgång, balansen (§22) | klar |
 | #895 | Vänskapsmatcherna snabbare: klockfelet, EN callable (`mdVanskap`), krockar utan väntan, svaret kvar under animationen (§23) | klar |
 | #899 | Matchdagen följer det som är synligt: aldrig frågor ur dolda områden, "Samma som Plugga" (ny standard), panelen visar vad som används (§24) | klar |
+| #903 | Matchdagen under en lektion (Veckoschema Del E): bara lektionens ämne, reserven "Samma som Plugga inom ämnet", spärren med gråad menylänk, samma regler på servern (§25) | klar |
 
 ## 1. Moduler per elev (Etapp 1a)
 
@@ -295,7 +296,7 @@ allt i `src/matchdagen/plan/` laddas först när matchen startar. Stilarna: `src
 | --- | --- |
 | `src/matchdagen/md-inst.js` | ren: formen på `matchdagenInst`, `normalizeInst`, `harKallor`, `kallNycklar`, `nyaElevModuler`, `sammanfattning`, `fragorText`; #876: `klassPa`, `elevPa`, `harMatchdagen`, `klassInst`, `effektivInst`, `STANDARD_FRAGOR`, `nyaEnabledModules`, `sammaInst` |
 | `src/matchdagen/md-synlig.js` | #899: `losKallor` (elevens källor ∩ det synliga, Samma som Plugga med Plugga-listans cachade läsningar), `raderUrBibliotek` (panelen); bara `import()` |
-| `src/matchdagen/delat/md-synlighet.js` | #899, ren och delad med servern: `synligaOmraden`, `effektivaKallor`, `pluggaKallor`, `MAX_OMRADEN` (§24) |
+| `src/matchdagen/delat/md-synlighet.js` | #899, ren och delad med servern: `synligaOmraden`, `effektivaKallor`, `pluggaKallor`, `MAX_OMRADEN` (§24); #903: `lektionsFilter`, `lektionsKallor`, `lektionsBesked`, `iLektionen`, `klassOrdning` (§25) |
 | `src/matchdagen/md-inst-data.js` | Firestore: `lasInst(uid)`, `sparaAnpassning(cls, uid, { pa, inst })`; #876: `sparaKlass`, `sparaElevModuler`, `foljKlassen` |
 | `src/matchdagen/page-matchdagen.js` | elevens sida (platshållare i 1a) |
 | `src/matchdagen/larare/md-anpassningar.js` | lärarens lista per elev |
@@ -1708,4 +1709,68 @@ Spara skulle misslyckas. Gamla webben med nya regler fungerar (fältet är valfr
 räknar den gamla servern en klass/elev med Samma som Plugga som "inga källor" (gamla `normInst` ignorerar fältet).
 Under glappet med ny server och gammal webb får elever utan inställningar Samma som Plugga i vänskapsmatchen men
 tabellerna i solospelet tills webben är ute.
+
+## 25. Matchdagen under en lektion (#903, Veckoschema Del E)
+
+Spec: `UTVECKLINGSUPPDRAG_VECKOSCHEMA.md` Del E (epic #898), ovanpå §24 och elevens grind ur Del D
+([VECKOSCHEMA.md](VECKOSCHEMA.md)). Utan aktiverat schema, och utanför lektionstid, är allt som i §24.
+
+### 25.1 Reglerna
+
+Elevens schemaläge (`klass-schema.js schemaForStudent`: lektionens ämnen, `tabeller` = `matchdagen:tabeller` är
+kopplad till ett av dem) läggs ovanpå de effektiva källorna (§24, `effektivaKallor`):
+
+1. **E.1 Ämnesfiltret.** `omraden` och `rakna` bara i lektionens ämnen; multiplikationstabellerna bara när
+   `matchdagen:tabeller` är kopplad till lektionens ämne (`lektionsFilter`). En elev i flera klasser: unionen av
+   de aktiva lektionernas ämnen.
+2. **E.2 Reserven.** Lämnar filtret inget kvar används **"Samma som Plugga inom ämnet"**: de synliga områdena med
+   underlag i lektionens ämnen (samma grind och tak som §24.2). Har ämnet inga sådana men tabellerna är kopplade
+   till det blir det tabellerna 0–10 (vårt val: tabellerna hör då till lektionen).
+3. **E.3 Spärren.** Finns inget alls i ämnet att göra frågor av är Matchdagen **spärrad** under lektionen:
+   - grindens `lage.matchdagen === false` → menylänken står kvar, gråad, med "Öppnar 10.00" (`ui.js`,
+     `.sido-nav-gratt`); en direktlänk ger Plugga-listan och toasten "Just nu är det NO-lektion. Det här öppnas
+     igen klockan 10.00." (Del D:s väg);
+   - på sidan (och i träningslägret) i stället för en tom match: `lektionsBesked` – "Just nu är det Svenska-lektion
+     och Matchdagen har inga frågor i Svenska. Matchdagen öppnar igen klockan 10.00."
+4. **E.4 En pågående match spelas klart** med sin frågeström. Börjar, slutar eller byter en lektion medan sidan är
+   öppen räknar `page-matchdagen.js` om källorna (`onLockChange`) och `S.bytKallor` byter dem till **nästa** match
+   och nästa träningsfråga. `app.js` lämnar Matchdagen orörd medan en match pågår (`window.__ppMatchdagenPagar`),
+   även när lektionen spärrar den – beskedet visas efter slutsignalen. En sparad halvspelad match som återupptas
+   efter en omladdning får lektionens källor (frågorna är inte sparade, bara ställningen).
+5. **E.5 Vänskapsmatcher.** Servern gör samma sak när matchen antas (`functions/md-vanskap-lobby.js forbered`) med
+   **samma rena funktioner** och **serverns tid** (`c.now()`): `schemaForStudent` ur
+   `functions/matchdagen/kallor/klass-schema.js` och `lektionsKallor` ur `functions/matchdagen/md-synlighet.js`
+   (båda synkade med `npm run sync:matchdagen`). Varje elev får frågor ur sina egna filtrerade källor. Får den ena
+   inga frågor under sin lektion blir det ingen match, och servern svarar med ett vänligt besked
+   (`failed-precondition`, visas i lobbyn): "Kompisen har NO-lektion just nu och kan inte få några frågor till
+   Matchdagen. Prova igen efter klockan 10.00." / "Just nu är det NO-lektion och Matchdagen har inga frågor i NO. …".
+   Vänskapsmatcherna är pausade (`VANSKAP.pausad`, #894), men logiken är byggd och testad.
+
+**Grindens `matchdagen`** (Del D:s bevakare, `class-lock-watch.js`): sant om något lektionsämne har tabellerna
+kopplade eller minst ett synligt område med underlag (`opts.underlagAmnen`). Medan områdeslistorna laddas räcker
+synliga områden i ämnet – aldrig ett stängt läge av ett nätverksfel. Fältet saknas för en elev utan Matchdagen.
+Har lektionens ämne varken synliga områden eller en kopplad modul filtrerar lektionen inget alls (B.4), och
+Matchdagen är som vanligt.
+
+### 25.2 Kvoten
+
+- **Eleven, grinden:** har eleven Matchdagen och pågår eller återstår en lektion **i dag** hämtar bevakaren
+  lektionsämnenas områdeslistor (`getAreas`, samma TTL-cache som Plugga-listan, som under lektionen läser just de
+  listorna) en gång per ändrat behov. Utan lektion kvar i dag, och för elever utan Matchdagen: 0 nya läsningar.
+- **Eleven, sidan:** inga nya läsningar per fråga. Under en lektion läses **färre** områden än utan: bara
+  lektionsämnenas (`getArea` för de tilldelade i ämnet, annars `getAreas` för lektionsämnena). Reserven läses bara
+  när filtret inte lämnar något; med Samma som Plugga är den redan läst. En lektion som börjar medan sidan är öppen
+  räknas om ur samma cache.
+- **Servern, per elev när en vänskapsmatch antas** (utöver §24.4):
+  - ingen lektion pågår i någon av elevens klasser: **0 extra** (`aktivLektion` på de redan lästa klassdokumenten);
+  - under en lektion: **+1 fråga** mot `subjects` (ämnesnamnen och den gissade kopplingen), och när Plugga-klassen
+    ser hela biblioteket **+1 fråga med `limit(1)`** per lektionsämne (har ämnet några områden?);
+  - områdena: bara i lektionens ämnen, fortfarande **högst `MAX_OMRADEN` (60)** – reserven läser bara om filtret
+    inte lämnar något, och samma områden läses inte två gånger.
+
+### 25.3 Deploy
+
+**Functions före webben** (`firebase deploy --only functions`, `npm run sync:matchdagen` körs som predeploy).
+Inga nya regler eller index för Del E. Gammal server + ny webb: vänskapsmatchen följer inte lektionen förrän
+servern är ute (pausad ändå, #894). Ny server + gammal webb: solospelet följer inte lektionen förrän webben är ute.
 

@@ -61,6 +61,11 @@ const pagarText = (p) => {
 export async function visaMatchFlik(S, el) {
   if (S.spel?.pagar) return; // matchen ligger kvar där eleven lämnade den
   if (!S.K) return nyKlubb(S, el);
+  // Veckoschemat (#903): lektionens ämne kan inte ge några frågor just nu (E.3).
+  if (S.sparrad) {
+    el.innerHTML = `<div class="md-panel md-tom"><h2>📅 Matchdagen väntar</h2><p>${esc(S.sparrad)}</p></div>`;
+    return;
+  }
   const n = nastaSpel(S.K, S.uid);
   if (!n) return sasongSlut(S, el);
   const pagaende = lasPagaende(S.lagring, S.uid, S.K, n.typ, n.runda);
@@ -93,6 +98,7 @@ export async function visaMatchFlik(S, el) {
   el.querySelector("[data-legend]")?.addEventListener("click", () => legend(S, el));
   el.querySelector("[data-avspark]").addEventListener("click", async (e) => {
     e.currentTarget.disabled = true;
+    if (S.sparrad) return visaMatchFlik(S, el); // lektionen började medan knappen stod framme (#903)
     const { spelaMatch } = await import("./md-match-spel.js");
     try {
       await spelaMatch(S, el, { pagaende, spel: n });

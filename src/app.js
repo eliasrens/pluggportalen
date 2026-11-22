@@ -353,6 +353,9 @@ onLockChange(async (las, prev, next, prevSchema, schema) => {
   } else schemaFlash(prevSchema, schema);
   renderTopbar();
   const dit = sparrMal(path, query, las, await getHiddenModules());
+  // Veckoschemat (#903, E.4): en pågående Matchdagen-match spelas klart, även om lektionen spärrar
+  // Matchdagen – sidan visar beskedet efter slutsignalen (page-matchdagen.js).
+  if (dit && las?.schema && path === "/elev/matchdagen" && window.__ppMatchdagenPagar?.()) return;
   if (dit) window.location.replace(dit);
   else if (path === "/elev/plugga") router();
 });

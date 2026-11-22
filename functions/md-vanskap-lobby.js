@@ -18,12 +18,22 @@
 // #899: elevens källor = de valda ∩ det eleven ser i Plugga (klasserna med eleven – EN fråga), och
 // "Samma som Plugga" räknas fram ur synligheten med klientens rena kod (matchdagen/md-synlighet.js).
 // Högst MAX_OMRADEN områden läses per elev, som förr.
+// #903 (Veckoschema E): under en lektion (klass-schema.js schemaForStudent med SERVERNS tid, c.now())
+// bara lektionens ämne, med reserven "Samma som Plugga inom ämnet" (md-synlighet.js lektionsKallor).
+// Båda måste få frågor – annars ett vänligt besked (lektionsBesked) och ingen match. Extra läsningar
+// bara när en av elevens klasser har en lektion som pågår: ämneslistan (1 fråga), vid hela biblioteket
+// en områdesfråga (limit 1) per lektionsämne, och reserven läser områden bara i lektionens ämnen –
+// fortfarande högst MAX_OMRADEN områden per elev.
 // ============================================================================
 
 import { HALVLEK_MIN, HALVLEKAR, VANSKAP } from "./matchdagen/md-config.js";
 import { fasSekunder, nyVanskap } from "./matchdagen/md-vanskap.js";
 import { byggBank, byggKallor, arStandard, effektivInst, flaggor, harKallor, omradesNycklar } from "./md-vanskap-fragor.js";
-import { MAX_OMRADEN, effektivaKallor, pluggaKallor, synligaOmraden, underlag } from "./matchdagen/md-synlighet.js";
+import {
+  MAX_OMRADEN, effektivaKallor, harKonkretaKallor, iLektionen, klassOrdning, lektionsBesked, lektionsFilter, lektionsKallor,
+  pluggaKallor, synligaOmraden, underlag,
+} from "./matchdagen/md-synlighet.js";
+import { aktivLektion, schemaForStudent } from "./matchdagen/kallor/klass-schema.js";
 import {
   MdFel, ctx, idEller, hamtaKlass, klassIdsForElev, namnFor, post, lobbyRef, matchRef, facitRef, elevRef, karriarRef,
   lobbyData, aktivFor, lagUr, rensaUtmaningar, snabbTx,
@@ -100,7 +110,7 @@ const lasOmrade = async (c, k) => {
  * områdena (klassens ordning, eller bibliotekets: ämnenas och områdenas order – som Plugga-listan).
  * De lästa områdena läggs i `omraden`. Högst MAX_OMRADEN områden läses.
  */
-async function pluggaRader(c, synliga, omraden) {
+async function pluggaRader(c, synliga, omraden, amnen = null) {
   if (synliga) {
     return Promise.all(synliga.slice(0, MAX_OMRADEN).map(async (k) => {
       omraden[k] = await lasOmrade(c, k);
@@ -108,9 +118,10 @@ async function pluggaRader(c, synliga, omraden) {
     }));
   }
   const rader = [];
-  const amnen = await c.db.collection("subjects").orderBy("order").get();
-  for (const s of amnen.docs) {
+  const amnenSnap = await c.db.collection("subjects").orderBy("order").get();
+  for (const s of amnenSnap.docs) {
     if (rader.length >= MAX_OMRADEN) break;
+    if (amnen && !amnen.includes(s.id)) continue;
     const areas = await s.ref.collection("areas").orderBy("order").limit(MAX_OMRADEN - rader.length).get();
     for (const a of areas.docs) {
       const k = `${s.id}/${a.id}`;
@@ -121,10 +132,30 @@ async function pluggaRader(c, synliga, omraden) {
   return rader;
 }
 
-/** Elevens klasser (synligheten följer Plugga-listans klass – md-synlighet.js elevensKlass). */
+/** Elevens klasser i getClasses-ordningen (synligheten följer Plugga-listans klass – md-synlighet.js elevensKlass). */
 async function elevensKlasser(c, uid) {
   const s = await c.db.collection("classes").where("studentIds", "array-contains", uid).get();
-  return s.docs.map((d) => ({ id: d.id, ...d.data() }));
+  return klassOrdning(s.docs.map((d) => ({ id: d.id, ...d.data() })));
+}
+
+/**
+ * Elevens schemaläge just nu (#903) med serverns tid – samma rena funktion som klientens grind
+ * (klass-schema.js schemaForStudent). Ingen lektion pågår → null utan en enda läsning. Annars
+ * ämneslistan (namnen och den gissade kopplingen) och, när Plugga-klassen ser hela biblioteket,
+ * om lektionsämnena har några områden (en fråga med limit 1 per ämne) – som klientens bevakare.
+ */
+async function lektionFor(c, klasser, uid) {
+  const now = c.now();
+  const egna = klasser.filter((k) => Array.isArray(k.studentIds) && k.studentIds.includes(uid));
+  const amnen = [...new Set(egna.map((k) => aktivLektion(k, now)?.amne).filter(Boolean))];
+  if (!amnen.length) return null;
+  const subjects = (await c.db.collection("subjects").orderBy("order").get()).docs.map((d) => ({ id: d.id, name: d.data().name }));
+  const helaBiblioteket = synligaOmraden(klasser, uid) === null;
+  const amnenMedOmraden = helaBiblioteket
+    ? (await Promise.all(amnen.map(async (a) => ((await c.db.collection("subjects").doc(a).collection("areas").limit(1).get()).empty ? null : a))))
+      .filter(Boolean)
+    : null;
+  return schemaForStudent(klasser, uid, now, { subjects, amnenMedOmraden });
 }
 
 /** Elevens lag, frågebank och tid per läge – läses EN gång när matchen startar. k = matchens klass. */
@@ -134,10 +165,20 @@ async function forbered(c, uid, vem, k) {
   if (!lag) throw new MdFel("failed-precondition", `${vem} har ingen klubb än.`);
   const egen = is.exists ? is.data() : null;
   const vald = effektivInst(egen, k);
-  const synliga = synligaOmraden(klasser, uid);
+  const lektion = await lektionFor(c, klasser, uid);
+  const amnen = lektion ? lektion.amnen : null;
+  const synliga = lektion ? iLektionen(synligaOmraden(klasser, uid), amnen) : synligaOmraden(klasser, uid);
   const omraden = {};
-  const plugga = vald.foljPlugga ? pluggaKallor(await pluggaRader(c, synliga, omraden)) : null;
-  const inst = effektivaKallor(vald, { synliga, plugga, standard: arStandard(egen, k) });
+  const plugga = vald.foljPlugga ? pluggaKallor(await pluggaRader(c, synliga, omraden, amnen)) : null;
+  let inst = effektivaKallor(vald, { synliga, plugga, standard: arStandard(egen, k) });
+  if (lektion) {
+    // E.2: reserven "Samma som Plugga inom ämnet" läses bara när filtret inte lämnar något.
+    const inom = harKonkretaKallor(lektionsFilter(inst, lektion)) ? null
+      : plugga || pluggaKallor(await pluggaRader(c, synliga, omraden, amnen));
+    const e = lektionsKallor(inst, lektion, inom);
+    if (e.sparrad) throw new MdFel("failed-precondition", lektionsBesked(lektion, vem !== "Du"));
+    inst = e.inst;
+  }
   if (!harKallor(inst)) throw new MdFel("failed-precondition", `${vem === "Du" ? "Din" : "Kompisens"} lärare behöver välja frågor till Matchdagen.`);
   await Promise.all(omradesNycklar(inst).filter((n) => !(n in omraden)).map(async (n) => { omraden[n] = await lasOmrade(c, n); }));
   const fro = Math.floor(c.rng() * 2 ** 32);
