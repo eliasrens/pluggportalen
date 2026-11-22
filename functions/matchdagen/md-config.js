@@ -134,7 +134,7 @@ export const TRANING = { fragor: 8, xpPerRatt: 12, xpTillStjarna: { 2: 50, 3: 10
  * styrka(div) = kl(bas + div × perDiv − avdrag[div] ± spridning; min; max), div 0 = Division 6.
  * avdrag (#883): nybörjarlaget är 1★ och tränas upp under den första säsongen – Division 6 är
  * svagare (0,12 ± 0,05 i stället för 0,20 ± 0,05, golvet min 0,06), så att nybörjaren vinner ungefär
- * lika ofta som med det gamla 2★-laget (docs/MATCHDAGEN.md §21). Högre upp behövs inget avdrag.
+ * lika ofta som med det gamla 2★-laget (docs/MATCHDAGEN.md §22). Högre upp behövs inget avdrag.
  * Gäller nya ligor; en sparad liga behåller sina styrkor.
  */
 export const STYRKA = { bas: 0.2, perDiv: 0.09, avdrag: [0.08], spridning: 0.05, min: 0.06, max: 0.92 };
@@ -226,3 +226,10 @@ export const VANSKAP = {
   kassa: { deltagande: 100, vinst: 100, perDag: 3 },
   standardVal: { anfall: "kort", forsvar: "tack" },
 };
+
+/**
+ * Topplistan per årskurs (#880, md-topplista.js, docs/MATCHDAGEN.md §21): platserna 1–topp med namn,
+ * en delad sista plats tas med upp till tak rader. Rimlighetskontrollen: högst maxMatcherDag matcher
+ * en dag (en match tar minst ~4 minuter), maxMalMatch mål per match och maxLegend legendstjärnor.
+ */
+export const TOPPLISTA = { topp: 5, tak: 8, maxMatcherDag: 120, maxMalMatch: 20, maxLegend: 50 };

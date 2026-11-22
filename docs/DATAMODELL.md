@@ -41,6 +41,7 @@ matchdagen/{uid}/matcher/{matchId}       ← Matchdagen (#869): en per spelad ma
 mdLobby/{classId}                        ← Matchdagen (#874): vänskapslobbyn per klass – bara servern skriver
 mdVanskap/{matchId}(/privat|/facit/{uid}) ← Matchdagen (#874): en vänskapsmatch, elevens fråga, frågebanken – bara servern skriver
 mdVanskapElev/{uid}                      ← Matchdagen (#874): spärren och dagens antal vänskapsmatcher – bara servern skriver
+mdTopplista/skolan                       ← Matchdagen (#880): topp 5 per årskurs – bara servern skriver (varje timme)
 mathCompetitions/{cid}/…                 ← Mattematchen (#457), se "Mattematchen & Live"
 liveSessions/{sid}/…                     ← Live-matcher (#457), se "Mattematchen & Live"
 liveClock/{uid}                          ← Live: klocksynk per inloggad (#460)
@@ -966,6 +967,17 @@ En vänskapsmatch (#874, `typ: "vanskap"`, id = matchens `mdVanskap`-id) skrivs 
 | `mdVanskapElev/{uid}` | `aktiv` (matchId \| null – en vänskapsmatch åt gången), `dag` (`"ÅÅÅÅ-MM-DD"`, Stockholm), `antal` (spelade i dag – de 3 första ger pengar) | eleven själv, läraren |
 
 Ingen städning: en avslutad match ligger kvar (~10–20 kB med banken). ⚠️ DEPLOY: rules → functions → webben.
+
+### `mdTopplista/skolan` – topplistan per årskurs (#880)
+
+Skrivs bara av Cloud Functions (`mdTopplista`, schemalagd varje timme – docs/MATCHDAGEN.md §21); varje inloggad läser.
+
+| Fält | Typ | Beskrivning |
+| --- | --- | --- |
+| `version` | int | 1 |
+| `byggd` | timestamp | när listan byggdes |
+| `arskurser` | map | `"3"`, `"4"` … `"ovriga"` → lista ≤ 8 rader `{ uid, n (namn ≤ 40), lag (≤ 24), f (#rrggbb), k (klass ≤ 20), d (bästa division 0–7), ls (legendstjärnor), v (vinster), gm, im (mål), m (matcher), plats (1–5) }` |
+| `antal` | map | årskurs → antal elever med (rimlig) karriär på listan |
 
 ---
 

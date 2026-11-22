@@ -20,7 +20,9 @@ elever** eller (#876, §19) för **hela klassen**. Det här dokumentet växer me
 | 4 (#874) | Vänskapsmatcher i realtid: lobbyn, callables, den synkade motorn, rättning på servern, inbördes möten (§18) | klar |
 | #876 | Hela klassen: `enabledModules`, klassens inställningar (`classes/{id}.matchdagenInst`), "Välj alla" (§19) | klar |
 | #878 | Hotfix: versionsglapp efter deploy, klassens frågor i Vad eleverna ser, helskärm (§19.6) | klar |
-| #883 | Nya karriärer börjar på 1★, stjärnorna kostar 50/100/250/500 poäng, tre träningsläger per omgång, balansen (§21) | klar |
+| #879 | Mattematchen räknas in: multiplikationssvaren (§20) | klar |
+| #880 | Topplistan per årskurs: topp 5 i hela skolan, byggd av servern varje timme (§21) | klar |
+| #883 | Nya karriärer börjar på 1★, stjärnorna kostar 50/100/250/500 poäng, tre träningsläger per omgång, balansen (§22) | klar |
 
 ## 1. Moduler per elev (Etapp 1a)
 
@@ -273,7 +275,7 @@ Med startlaget tar det stopp kring Division 3–2: högre upp krävs ett bättre
 marknaden och träningslägret i Etapp 2b. "Tränas 2★ → 4★" var ett **antagande** för 2b (snittet växer jämnt med
 divisionen). Hela utskriften: rapporten.
 
-**Realistiskt (#883, §21.3):** laget börjar på 1★ och tränas med tre läger per omgång. Med 70 % rätt har laget
+**Realistiskt (#883, §22.3):** laget börjar på 1★ och tränas med tre läger per omgång. Med 70 % rätt har laget
 ~3★ när det når Division 5, ~4★ i Division 4–3 och 5★ först från Division 2 (8–10 säsonger, 11–15 speltimmar);
 med 50 % rätt 4★ i Division 4 och 5★ från Division 3. Tabellerna ovan (otränat 2★-lag) gäller oförändrat.
 
@@ -322,6 +324,7 @@ allt i `src/matchdagen/plan/` laddas först när matchen startar. Stilarna: `src
 | `admin/md-balans-mastarcup.mjs` | balansen för Mästarcupen (§17.5) |
 | `preview/preview-matchdagen-pokaler.html` | förhandsvisning 3: skåpet och finalscenen utan Firebase (`PORT=8873 node server.mjs`; `?scen=skap\|final\|mastare`, `?lyft=mastarcup\|superliga`, `?skap=tomt\|fullt\|legend`, `?2d=1`, `?lugnt=1`, `?fps=1`); i `preview-matchdagen.html` (3): `?mastare=1` (sista omgången i Superligan), `?mc=1\|final\|vunnen` (`&slut=1`: finalen står 2 – 0 i 88:e minuten), `?legend=1` (en legendklubb med fullt skåp) |
 | `preview/preview-matchdagen-fragor.html` | förhandsvisning 1b: frågekortet + motorn som textmatch (`PORT=8868 node server.mjs`; `?svar=skriv`, `?klocka=30`, `?kallor=tabell\|omrade\|rakna\|klocka\|inga`) |
+| `src/matchdagen/delat/md-topplista.js`, `vy/md-vy-topplista.js`, `functions/md-topplista-bygg.js` | topplistan per årskurs (§21, #880): ren rangordning + rimlighetskontroll, fliken Topplista, serverns bygge (`mdTopplista`, schemalagd) |
 | `src/matchdagen/md-mm.js` | ren: `mmSvar` – ett tabellsvar som Mattematchens svar; skrivningen i `md-data.js mmRaknaIn` → `src/tavling/mm-live.js` (§20, #879) |
 
 ## 9. Deploy
@@ -588,7 +591,7 @@ Vänskapsmatcher: Etapp 4.
   eller när kassan (plus återbetalningen för en såld) inte räcker.
 - **Byten** (`bytIn`): en reserv och en startspelare på samma position byter plats – när som helst.
 - **Träningslägret** (`lagerNyckel`, `tranaSpelare`, `lagerResultat`): sedan #883 upp till **tre läger per
-  spelad omgång** (`"säsong-omgång-1"` … `"-3"`, från omgång 1) och inget extra före kvalet – se §21. Läger som
+  spelad omgång** (`"säsong-omgång-1"` … `"-3"`, från omgång 1) och inget extra före kvalet – se §22. Läger som
   inte används före nästa match går förlorade. Eleven väljer en startspelare under 5★ och får alltid 8 frågor;
   rätt ger 12 poäng, vid **50/100/250/500** (till 2★/3★/4★/5★, `TRANING.xpTillStjarna`) en stjärna till och
   resten följer med (`xp −= kostnaden`), vid 5★ nollas poängen. Frågorna räknas i `summa` och `dagar` som
@@ -1219,11 +1222,99 @@ Tester: `test/matchdagen-mm-879.test.js` (rena), `test/firestore-rules-matchdage
 
 **functions först** (`mdSvar` – vänskapsmatchen räknas in), sedan webben. Inga regler, inga index.
 
-## 21. Svårare stjärnor och tre träningsläger (#883)
+## 21. Topplistan per årskurs (#880)
+
+Fliken **Topplista** i elevens app visar de **5 bästa lagen i elevens årskurs på hela skolan** – och knappar för
+de andra årskurserna (Åk 3, Åk 4, Åk 6 … Övriga sist). Varje rad: plats, elevens namn (som på de andra listorna:
+klassprojektionens namn, reserv `students/{uid}.namn`), lagets namn och tröjfärg, klassen, **bästa division**,
+**vinster** och **mål** (gjorda–insläppta). Den egna raden är markerad ("(du)"). Fliken finns även innan klubben är
+skapad. Ingen lärarvy än (önskemålet i issuen – inte gjort).
+
+### 21.1 Rangordningen (`delat/md-topplista.js`, ren)
+
+1. **Bästa division** som klubben nått (den nuvarande, säsongshistoriken `sasonger[].div`; en legendklubb = Superligan),
+2. **legendstjärnor** (`klubb.legendStjarnor`, klubbar tagna hela vägen, §17.3),
+3. **vinster totalt** (`summa.v`),
+4. **målskillnad totalt** (`summa.gjorda − summa.inslappta`).
+
+Lika på alla fyra = **delad plats** (1, 2, 2, 4), inom platsen i namnordning. Listan har platserna 1–5; en delad
+femteplats tas med (högst 8 rader). Varför totalt och inte "den här säsongen": säsongerna är olika långa i olika
+divisioner och nollställs i olika takt – totalen är enkel att förstå och belönar den som spelar och vinner. Divisionen
+först gör att den som tagit sig högst alltid leder.
+
+**Årskursen** härleds ur klassnamnet precis som Mattematchens årskursfilter (#845, `arskursAvKlass`: "4B" → 4,
+"Fritids" → Övriga). Bara klasser där eleven **har Matchdagen** räknas (hela klassen `enabledModules` eller
+`elevModuler`, `harMatchdagen`); går eleven i flera sådana gäller den **lägsta** årskursen (en siffra före Övriga).
+En elev utan Matchdagen syns aldrig, inte heller en karriär utan klubb eller utan spelade matcher.
+
+**Placeringspolicyn** (som Guldrushen): bara topp 5 med namn står i dokumentet. Elevens egen placering utanför
+topp 5 räknas aldrig ut och visas aldrig – i den egna årskursen står "Du är inte på topp 5 än – fortsätt kämpa!".
+Är elevens egen karriär (redan läst, `S.K`) minst lika bra som listans sista rad – en delad plats som inte fick
+plats bland de 8 raderna, eller bättre sedan bygget – står i stället "Ditt lag är lika bra som de bästa – listan
+uppdateras varje timme" (`paVagIn`, bara ja/nej, ingen placering).
+
+### 21.2 Rimlighetskontrollen (`rimligKarriar`)
+
+Karriären skrivs av eleven själv; reglerna prövar formen men inte att talen hänger ihop. En karriär som inte är
+rimlig **kommer inte med på listan** (servern loggar antalet, eleven märker inget):
+
+- summans tal är heltal ≥ 0, vunna + oavgjorda + förlorade = matcher, rätt ≤ frågor, frågor ≥ matcher,
+  mål (gjorda och insläppta) ≤ 20 per match;
+- **inga omöjliga hopp:** varje uppflyttning kräver en hel säsong och ett kval, så Division *d* kräver minst
+  `minMatcherTill(d)` = Σ `LAGANTAL[k]` (k < d) matcher (Superligan: 60) – plus 60 per legendstjärna – och
+  `sasong` ≥ antalet uppflyttningar (division + 7 per legendstjärna); bästa division i historiken prövas likadant;
+- `div` 0–7, legendstjärnor ≤ 50, högst 120 matcher en dag i `dagar` och dagarnas matcher ≤ alla matcher.
+
+Testat mot en riktig karriär genom två kval (precis efter kvalet står `div` på nästa division i samma säsong).
+Den som skriver förbi appen kan fortfarande hitta på *rimliga* tal (till exempel fler vinster) – kontrollen tar bort
+det omöjliga, inte allt fusk. Matchdagen ger inga pluggmynt, så insatsen är en plats på listan.
+
+### 21.3 Servern (`functions/md-topplista-bygg.js`) och datamodellen
+
+`mdTopplista` (onSchedule, `every 60 minutes`, Europe/Stockholm, europe-west1, en instans) bygger
+`mdTopplista/skolan` = `{ version: 1, byggd, arskurser: { "3": [rad…], "ovriga": [...] }, antal: { "3": n } }`,
+rad = `{ uid, n, lag, f, k, d, ls, v, gm, im, m, plats }`. Alla årskurser i **ett** dokument – byta årskurs kostar
+ingen läsning. Bygget:
+
+1. läser topplistan och frågar `matchdagen where senast > byggd limit 1` (bara id), och läser lagnamnen för lagen
+   på listan (fältmask `klubb.namn` – lärarens Återställ lagnamn skriver bara namnet, inte `senast`, som är lärarens
+   "senast spelat"). Ingen karriär sparad, inget namn ändrat, och bygget är yngre än 6 timmar → klart, ingen skrivning;
+2. annars alla `classes`, `classProjections` för klasserna med Matchdagen och karriärerna för eleverna med Matchdagen
+   (`getAll` med fältmask: `klubb`, `div`, `sasong`, `summa`, `sasonger`, `dagar`), `students/{uid}` bara för den som
+   saknar namn i projektionen → **en** skrivning. Var 6:e timme byggs listan om ändå: elevnamn, klassnamn och
+   Matchdagen på/av ändrar inga karriärer – **känd gräns:** slår läraren av Matchdagen syns eleven på listan i
+   högst 6 timmar till.
+
+Reglerna: `mdTopplista/{docId}` läses av varje inloggad (som `hittaRattBoards` – namn, lag och klass för topp 5) och
+skrivs aldrig av någon klient (`test/firestore-rules-matchdagen-topplista.test.js`). Servern:
+`test/functions-matchdagen-topplista.test.mjs`; det rena: `test/matchdagen-topplista.test.js`.
+Förhandsvisning: `preview/preview-matchdagen.html?vy=topplista` (`&ak=3|4|6|ovriga`, `&topp=utanfor|tom`).
+
+### 21.4 Kvoten
+
+| Vem | Läsningar | Skrivningar |
+| --- | --- | --- |
+| Eleven öppnar Topplista | **1** (första gången i besöket; byta årskurs och flik 0) | 0 |
+| Servern, en timme utan sparade matcher | 2 (topplistan + frågan, som kostar 1 läsning även tom) + en per rad på listan (lagnamnen, ~5 per årskurs) | 0 |
+| Servern, ett bygge | 2 + klasserna + projektionerna + eleverna med Matchdagen (+ elever utan namn) | 1 |
+
+**Exempel:** 40 klasser, 10 med Matchdagen, 250 elever med Matchdagen → ~300 läsningar per bygge. Spel varje timme
+8–17 (10 byggen) + ett par tvingade → ~3 600 läsningar och ≤ 24 skrivningar per dag; nätter och helger ~2 + 30
+läsningar i timmen (sex årskurser à 5 rader) ≈ 800 per dygn. 250 elever som öppnar Topplista en gång om dagen = 250 läsningar. Cloud Scheduler: ett jobb (gratis upp till 3
+per konto), ~720 körningar i månaden.
+
+### 21.5 Deploy
+
+**Reglerna först** (`mdTopplista` – utan dem nekas elevens läsning och fliken säger "kunde inte hämtas"), sedan
+**functions** (`firebase deploy --only functions:mdTopplista` – skapar Cloud Scheduler-jobbet, Blaze; predeploy kör
+`sync:matchdagen`), sedan webben. Inga index (frågan på `senast` använder det automatiska enfältsindexet). Innan första
+bygget (upp till en timme) visar fliken "Topplistan byggs en gång i timmen".
+
+## 22. Svårare stjärnor och tre träningsläger (#883)
 
 Att uppgradera spelare ska vara **svårt, särskilt på toppen** – och mer träning betyder fler frågor.
 
-### 21.1 Reglerna i spelet (`md-config.js TRANING`, `md-trupp.js`, `md-sasong.js nyTrupp`)
+### 22.1 Reglerna i spelet (`md-config.js TRANING`, `md-trupp.js`, `md-sasong.js nyTrupp`)
 
 - **En ny karriär börjar på 1★** (de sju grundpelarna i `nyTrupp`, också en ny legendklubb). Lagbonusen
   `(snitt − 2) × 0,05` ger startlaget −5 % per lagdel tills det är tränat.
@@ -1244,7 +1335,7 @@ Att uppgradera spelare ska vara **svårt, särskilt på toppen** – och mer tr�
   3/3)" efter ett klart läger, och Match-fliken säger "Ni har 2 träningsläger lediga".
 - **Förhandsvisningen:** `?gammal=1` – en karriär från före #883 (2★-grundpelare, 0–99 poäng, lägret `"1-N"`).
 
-### 21.2 Äldre karriärer (ingen migrering)
+### 22.2 Äldre karriärer (ingen migrering)
 
 En karriär från före #883 behåller sina spelare – **ingen nedgradering, ingen migrering**:
 
@@ -1260,7 +1351,7 @@ En karriär från före #883 behåller sina spelare – **ingen nedgradering, in
   den en 1★ förbi 49 poäng, eller en 3★/4★ över en stjärna, nekar de nya reglerna sparningen. Svaren ligger kvar lokalt
   ("Spara träningen"); efter en omladdning räknar den nya appen om samma svar med de nya kostnaderna och sparar.
 
-### 21.3 Balansen (`npm run balans:matchdagen`)
+### 22.3 Balansen (`npm run balans:matchdagen`)
 
 **Division 6 = nybörjaren:** raderna med §12-målen spelas nu av en ny klubb per säsong (1★-laget, `KASSA.start`)
 som tränar den sämsta spelaren i alla tre lägren efter varje ligamatch och köper den största förbättringen den
@@ -1318,7 +1409,7 @@ att toppen ska vara svår också på marknaden: behåll 1★–3★ (§12-ekonom
 2 090 → 3 150 kr och 5★ 3 190 → 5 200 kr (≈ +50 %/+60 %, som exponenten 2,2 ger för de två). Det kräver
 `MARKNAD.pris` som en tabell, `mdPris` i reglerna och en ny körning av karriären.
 
-### 21.4 Reglerna och marginalen
+### 22.4 Reglerna och marginalen
 
 - **Ny klubb:** `mdNyTruppOk` godtar `st` 1 eller 2 (`[12]`), resten som förut.
 - **Tränad spelare** (`mdPlatsOk`): `xp` under poängen till nästa stjärna (`n.xp < [0, 50, 100, 250, 500, 1][n.st]`
@@ -1334,8 +1425,8 @@ att toppen ska vara svår också på marknaden: behåll 1★–3★ (§12-ekonom
   tabellerna kostar ~6 uttryck för den tränade spelaren), lägrets start 50, ny klubb 4, köp med fulla reserver 16,
   hela säsongen + kvalet 10, legendklubben 12, match 50; läger + match i en skrivning nekas som förut.
 
-### 21.5 Deploy
+### 22.5 Deploy
 
 **`firebase deploy --only firestore:rules` före webben.** Gamla regler + ny webb: en ny klubb (1★) och varje
-läger med den nya nyckeln (`"1-3-2"`) nekas. Nya regler + gammal webb: se versionsglappet i §21.2. Functions
+läger med den nya nyckeln (`"1-3-2"`) nekas. Nya regler + gammal webb: se versionsglappet i §22.2. Functions
 bara via den synkade kopian (`npm run sync:matchdagen`; vänskapsmatchen läser bara lagbonusen). Inga index.

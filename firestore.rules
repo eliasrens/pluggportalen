@@ -3196,6 +3196,13 @@ service cloud.firestore {
       allow read: if isSelf(uid) || hasStudent(uid);
       allow write: if false;
     }
+    // Matchdagen (#880): topplistan per årskurs, mdTopplista/skolan – topp 5 per årskurs med namn,
+    // lag och klass (som hittaRattBoards). Varje inloggad läser; bara Cloud Functions (mdTopplista,
+    // schemalagd varje timme) skriver. ⚠️ DEPLOY: rules → functions → webben.
+    match /mdTopplista/{docId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
 
     // Allt annat nekas.
     match /{document=**} {

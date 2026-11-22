@@ -17,6 +17,7 @@
 //   lasKarriarer(uids)                    läraren: en läsning per elev
 //   lasMatcher(uid, n)                    läraren: de n senaste matcherna (n läsningar)
 //   aterstallLagnamn(uid)                 läraren: bara klubb.namn       1 skrivning
+//   lasTopplista()                        topplistan per årskurs (#880, mdTopplista/skolan)   1 läsning
 //   mmRaknaIn({ uid, record, isCorrect }) Mattematchen (#879): ett multiplikationssvar i elevens
 //                                         aktiva match (src/tavling/mm-live.js, laddas först då)
 // ============================================================================
@@ -121,6 +122,14 @@ export async function lasKarriarer(uids) {
 export async function lasMatcher(uid, n = 20) {
   const snap = await getDocs(query(collection(db, "matchdagen", uid, "matcher"), orderBy("datum", "desc"), limit(n)));
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+/** Topplistan per årskurs (#880): alla årskurser i ETT dokument, byggt av servern varje timme. null = inte byggd än. */
+export async function lasTopplista() {
+  const snap = await medTidsgrans(getDoc(doc(db, "mdTopplista", "skolan")), 2 * TIDSGRANS_MS);
+  if (!snap.exists()) return null;
+  const d = snap.data();
+  return { arskurser: d.arskurser || {}, antal: d.antal || {}, byggd: d.byggd?.toMillis?.() ?? null };
 }
 
 /** Mattematchen (#879): MM-delen ensam (2 resp. 4 skrivningar), inga mynt. Kastar aldrig. */
