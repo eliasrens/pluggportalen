@@ -7,7 +7,7 @@
 // bootgrafen – den här filen laddas bara DYNAMISKT (lärarpanelen och elevens
 // lås-bevakare, class-lock-watch.js), så bootgrafen växer inte (incident #271).
 //
-// serverNow(): klientens klocka korrigerad mot serverns (HTTP Date + Age på en
+// serverNow(): klientens klocka korrigerad mot serverns (HTTP Date på en
 // HEAD mot sajten). Både lärarens "klockslaget måste ligga framåt" och elevens
 // "har låset gått ut?" jämför mot den, så en elevdator som går fel inte släpper
 // låset för tidigt (eller håller kvar det). Reglerna validerar dessutom `till`
@@ -48,9 +48,10 @@ export function syncServerClock() {
       const t1 = Date.now();
       const datum = Date.parse(res.headers.get("Date") || "");
       if (!Number.isFinite(datum)) return offset;
-      // Ett CDN-cachat svar bär ursprungets Date + Age (sekunder sedan dess).
-      const age = Number(res.headers.get("Age")) || 0;
-      const est = datum + age * 1000 + 500 - (t0 + t1) / 2;
+      // Bara Date – INTE Age (#895): sajtens CDN (GitHub Pages/Fastly, max-age=600) sätter Date när
+      // svaret levereras och Age = hur länge det legat i cachen. Date + Age gjorde klockan upp till
+      // 10 minuter för snabb (vänskapsmatchens tid "ute" direkt, lås som gick ut för tidigt).
+      const est = datum + 500 - (t0 + t1) / 2;
       offset = Math.abs(est) > 5000 ? Math.round(est) : 0;
     } catch {}
     return offset;

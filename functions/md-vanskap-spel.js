@@ -15,7 +15,7 @@
 // Mattematchen (#879): ett besvarat multiplikationsläge (inte tiden ute) räknas i elevens aktiva
 // Mattematch – mmLiveWrites (mattematchen-live.js) i svarets transaktion, som Live (#847). Svaret
 // sparas i samma transaktion och ett omförsök svarar ur det → aldrig dubbelt. Inga mynt.
-// EN transaktion per anrop. Slutet (avsluta) skriver i samma transaktion: matchdokumentet,
+// EN transaktion per anrop (snabbTx: en krock med den andra spelaren görs om direkt, #895). Slutet (avsluta) skriver i samma transaktion: matchdokumentet,
 // båda elevernas spärr och dagsräkning (mdVanskapElev), kassan och de inbördes mötena
 // (matchdagen/{uid}, FieldValue.increment) och matchen i båda elevernas matcher (typ "vanskap").
 // ============================================================================
@@ -25,9 +25,9 @@ import { SIDOR, kassaFor, inaktivUtfall, motsida, vAndraHalvlek, vLage, vResulta
 import { dagNyckel } from "./matchdagen/md-sasong.js";
 import { ratta } from "./md-vanskap-fragor.js";
 import { mmForLive, mmLiveWrites } from "./mattematchen-live.js";
-import { MdFel, ctx, elevRef, facitRef, idEller, karriarRef, lobbyRef, matchRef, privatRef } from "./md-vanskap-state.js";
+import { MdFel, ctx, elevRef, facitRef, idEller, karriarRef, lobbyRef, matchRef, privatRef, snabbTx } from "./md-vanskap-state.js";
 
-export { MdFel };
+export { MdFel, snabbTx };
 
 export const sidaFor = (m, uid) => (m.a === uid ? "a" : m.b === uid ? "b" : null);
 /** När sidans tid i läget är ute (ms): lägets start + elevens sekunder + animationen. */
@@ -130,7 +130,7 @@ const fasSvar = (m, s, p) => ({ fas: m.fas.nr, roll: p.roll, val: p.val, fraga: 
 export async function fraga(deps, uid, data = {}) {
   const c = ctx(deps);
   const matchId = idEller(data.matchId, "match-id");
-  return c.db.runTransaction(async (tx) => {
+  return snabbTx(c, async (tx) => {
     const nu = c.now();
     const m = await lasMatch(c, tx, matchId, uid);
     pagar(m);
@@ -159,7 +159,7 @@ export async function svar(deps, uid, data = {}) {
   const matchId = idEller(data.matchId, "match-id");
   const raw = data.svar;
   if (!(raw === null || Number.isInteger(raw) || (typeof raw === "string" && raw.length <= 200))) throw new MdFel("invalid-argument", "Ogiltigt svar.");
-  return c.db.runTransaction(async (tx) => {
+  return snabbTx(c, async (tx) => {
     const nu = c.now();
     const m = await lasMatch(c, tx, matchId, uid);
     pagar(m);
@@ -190,7 +190,7 @@ export async function svar(deps, uid, data = {}) {
 export async function tick(deps, uid, data = {}) {
   const c = ctx(deps);
   const matchId = idEller(data.matchId, "match-id");
-  return c.db.runTransaction(async (tx) => {
+  return snabbTx(c, async (tx) => {
     const nu = c.now();
     const m = await lasMatch(c, tx, matchId, uid);
     if (m.status !== "pagar") return { status: m.status, fas: m.fas?.nr ?? null };
@@ -206,7 +206,7 @@ export async function tick(deps, uid, data = {}) {
 export async function geUpp(deps, uid, data = {}) {
   const c = ctx(deps);
   const matchId = idEller(data.matchId, "match-id");
-  return c.db.runTransaction(async (tx) => {
+  return snabbTx(c, async (tx) => {
     const m = await lasMatch(c, tx, matchId, uid);
     pagar(m);
     const r = await avsluta(c, tx, matchId, m, { typ: "walkover", forlorare: sidaFor(m, uid) }, c.now());
