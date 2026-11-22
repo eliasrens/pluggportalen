@@ -5,7 +5,8 @@
 // ger samma input och samma fel som formuläret före #548.
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { requireFormat, listFormats, answerKindsFor } from "../src/live/formats/index.js";
+import { requireFormat, listFormats, answerKindsFor, formatOf } from "../src/live/formats/index.js";
+import { liveFormatChoices } from "../src/teacher-role-core.js";
 import { registerFormat } from "../src/live/live-formats.js";
 import { requireGameMode } from "../src/live/modes/index.js";
 import { validateSessionInput, buildSessionDoc, LIVE_DURATIONS_MIN } from "../src/live/live-core.js";
@@ -121,6 +122,25 @@ describe("formatväljaren + svarssätt + klassledtext", () => {
     const html = formatPickerHtml(listFormats(), "klassmatch");
     assert.match(html, /value="klassmatch" checked/);
     assert.match(html, /value="snilleblixt"\s+\/>/);
+  });
+
+  it("#884: Kurragömma dold för årskurskontot, admin ser den under \"Experiment\"; registret hittar den", () => {
+    const ak4 = { admin: false, uid: "u4", name: "Årskurs 4", classIds: new Set(["4a"]) };
+    const admin = { admin: true, uid: "a1", name: "Elias", classIds: null };
+    const larare = formatPickerHtml(liveFormatChoices(listFormats(), ak4), "klassmatch");
+    assert.doesNotMatch(larare, /kurragomma|Kurragömma|Experiment/);
+    assert.match(larare, /value="meteorstorm"/);
+    // Utan roll (okänt konto) → också dold.
+    assert.doesNotMatch(formatPickerHtml(liveFormatChoices(listFormats(), null), "klassmatch"), /kurragomma/);
+    const adm = formatPickerHtml(liveFormatChoices(listFormats(), admin), "klassmatch");
+    const [vanliga, exp] = adm.split('class="live-format-experiment"');
+    assert.doesNotMatch(vanliga, /kurragomma/);
+    assert.match(exp, /<h3 class="live-format-grupp">Experiment/);
+    assert.match(exp, /value="kurragomma"/);
+    assert.doesNotMatch(exp, /value="klassmatch"|value="meteorstorm"/);
+    // Historik/projektor/elevvy: uppslaget per id filtreras inte.
+    assert.equal(formatOf({ format: "kurragomma" })?.id, "kurragomma");
+    assert.equal(requireFormat("kurragomma").experiment, true);
   });
 
   it("svarssätt: Klassmatchen + multiplikation har bara free → inget val", () => {

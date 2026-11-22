@@ -56,6 +56,16 @@ export function liveClassChoices(classes, formatId, role) {
   return filterClasses(classes, role);
 }
 
+/**
+ * Formaten i "Skapa Live-match" (#884): experiment-format (`experiment: true`,
+ * t.ex. Kurragömma) bara för admin. Filtrerar BARA väljaren – registret hittar
+ * dem som förut (historik, projektor, elevvy).
+ */
+export function liveFormatChoices(formats, role) {
+  if (role?.admin) return formats;
+  return formats.filter((f) => !f.experiment);
+}
+
 /** Inställningar bara admin får sätta (mynt-pris till klasskassan). */
 export const ADMIN_ONLY_LIVE_FIELDS = ["coinPrize"];
 export function liveFieldsFor(fields, role) {

@@ -210,14 +210,23 @@ function intIn(v, f) {
   return Number.isInteger(n) && (f.min == null || n >= f.min) && (f.max == null || n <= f.max);
 }
 
-/** Steg 1: formatkorten. Ett enda format = inget val (auto-valt, inga platshållare). */
+/**
+ * Steg 1: formatkorten. Ett enda format = inget val (auto-valt, inga platshållare).
+ * Experiment-format (#884, `experiment: true`) i en egen grupp "Experiment" under
+ * de vanliga – vem som får se dem avgör anroparen (liveFormatChoices).
+ */
 export function formatPickerHtml(formats, selectedId) {
   if (!formats || formats.length <= 1) return "";
-  return `<div class="field live-format-field"><label>Format</label>
-      <div class="live-formats">${formats.map((f) => `<label class="live-format-card">
+  const card = (f) => `<label class="live-format-card">
         <input type="radio" name="format" value="${esc(f.id)}" ${f.id === selectedId ? "checked" : ""} />
         <span><span class="live-format-icon" aria-hidden="true">${esc(f.icon)}</span><b>${esc(f.displayName)}</b>${
-          f.description ? `<small>${esc(f.description)}</small>` : ""}</span></label>`).join("")}</div></div>`;
+          f.description ? `<small>${esc(f.description)}</small>` : ""}</span></label>`;
+  const vanliga = formats.filter((f) => !f.experiment);
+  const experiment = formats.filter((f) => f.experiment);
+  return `<div class="field live-format-field"><label>Format</label>
+      <div class="live-formats">${vanliga.map(card).join("")}</div>${experiment.length ? `
+      <div class="live-format-experiment"><h3 class="live-format-grupp">Experiment <small class="hint">(bara admin)</small></h3>
+      <div class="live-formats">${experiment.map(card).join("")}</div></div>` : ""}</div>`;
 }
 
 /** Steg 3: svarssätt – bara om fler än ett gemensamt finns. */

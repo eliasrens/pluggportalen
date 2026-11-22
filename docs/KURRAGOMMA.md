@@ -5,6 +5,12 @@ Kurragömma är ett Live-format i 3D (`format: "kurragomma"`, epic #835). Specen
 [`kurragomma/skiss.html`](kurragomma/skiss.html). Där skissen och specen skiljer
 sig gäller specen.
 
+> **Experiment (#884):** formatet har `experiment: true` och syns därför bara för
+> admin i "Skapa Live-match", under rubriken "Experiment" (`liveFormatChoices` i
+> `src/teacher-role-core.js`). Årskurskonton ser det inte. Registret, historiken,
+> projektorn, elevvyn, reglerna och servern är oförändrade – gamla och pågående
+> matcher öppnas som förut.
+
 Det här är **formatets kontraktsdokument**. Del A (#836) beskriver den delade
 motorn i `delat/`. B (3D-scenen), C (servern), D (projektorn och elevskärmen) och
 E (lärarformuläret, historiken, pluggmynten och lärarens vissling, §12) bygger mot
