@@ -55,7 +55,9 @@ describe("ligan (§5, §7.1)", () => {
     const rng = skapaPrng("s").tal;
     for (let i = 0; i < 500; i++) {
       const s = styrkaFor(0, rng);
-      assert.ok(s >= C.STYRKA.bas - C.STYRKA.spridning && s <= C.STYRKA.bas + C.STYRKA.spridning);
+      const mitt = C.STYRKA.bas - C.STYRKA.avdrag[0]; // #883: Division 6 är 0,12 ± 0,05
+      assert.ok(s >= mitt - C.STYRKA.spridning - 1e-9 && s <= mitt + C.STYRKA.spridning + 1e-9);
+      assert.ok(styrkaFor(1, rng) >= C.STYRKA.bas + C.STYRKA.perDiv - C.STYRKA.spridning - 1e-9, "inget avdrag i Division 5");
       assert.ok(styrkaFor(7, rng) <= C.STYRKA.max);
     }
     const a = Array.from({ length: 50 }, (_, i) => simMal(0.2, 0.25, skapaPrng(`m${i}`).tal));

@@ -8,8 +8,9 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { spelaMatch, spelaSasong, korBalans, bedom, tabell, divTabell, karriar, karriarTabell, tranatLag, NIVAER, MAL, SUPER } from "../admin/md-balans-sim.mjs";
 import { TOPP_DIV } from "../src/matchdagen/delat/md-config.js";
+import { nyborjare } from "../admin/md-balans-trupp.mjs";
 
-describe("balansen i Division 6 (spec §12)", () => {
+describe("balansen i Division 6 (spec §12) – nybörjaren: 1★, tre läger per omgång, marknaden (#883)", () => {
   it("en match och en säsong: samma frö → samma resultat; 6 lag, 5 omgångar", () => {
     const a = spelaMatch({ seed: "t", andelRatt: 0.7, styrka: 0.2 });
     assert.deepEqual(spelaMatch({ seed: "t", andelRatt: 0.7, styrka: 0.2 }), a);
@@ -21,7 +22,7 @@ describe("balansen i Division 6 (spec §12)", () => {
     assert.ok(s.placering >= 1 && s.placering <= 6);
   });
 
-  const rader = NIVAER.map((andelRatt) => korBalans({ andelRatt, n: 200 }));
+  const rader = NIVAER.map((andelRatt) => korBalans({ andelRatt, n: 200, klubb: nyborjare(andelRatt) }));
   for (const r of rader) {
     it(`${Math.round(r.andelRatt * 100)} % rätt: målen nås`, () => {
       assert.deepEqual(bedom(r), []);
@@ -41,6 +42,11 @@ describe("balansen i Division 6 (spec §12)", () => {
     assert.match(bedom({ ...ok, matchMin: 4 }).join(), /matchMin/);
     assert.match(bedom({ ...rader[2], minstEttMal: 0.3 }).join(), /minstEttMal/);
     assert.match(bedom({ ...rader[2], jattestor: 0.05 }).join(), /jattestor/);
+  });
+
+  it("nybörjaren (1★) vinner mindre än ett otränat 2★-lag i samma säsonger – men ungefär som förr (#883)", () => {
+    const tva = korBalans({ andelRatt: 0.7, n: 200 });
+    assert.ok(rader[0].vinst < tva.vinst, `${rader[0].vinst} < ${tva.vinst}`);
   });
 
   it("tabellen skrivs ut med alla mått", () => {

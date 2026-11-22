@@ -6,6 +6,7 @@
 //
 //   ekonomi({ andelRatt, n })   §12 "Ekonomin": efter hur många matcher i Division 6
 //                               har eleven råd med en 3-stjärnig spelare som finns till salu?
+//   nyborjare(andelRatt)        #883: (frö) → en ny robotklubb (1★) för korBalans({ klubb }) – Division 6-målen
 //   karriarMedTrupp({ andelRatt, n, sasonger })
 //                               karriären med en klubb som tränar i varje läger och köper på
 //                               marknaden (ersätter 2a:s antagande "tränas 2★ → 4★")
@@ -17,7 +18,7 @@
 import { lagbonus } from "../src/matchdagen/delat/md-motor.js";
 import { styrkaFor } from "../src/matchdagen/delat/md-liga.js";
 import { nyTrupp, pengarFor } from "../src/matchdagen/delat/md-sasong.js";
-import { kop, kopInfo, nyMarknad, pris, tranaSpelare } from "../src/matchdagen/delat/md-trupp.js";
+import { kop, kopInfo, nyMarknad, pris, tranaSpelare, traningsVarde } from "../src/matchdagen/delat/md-trupp.js";
 import { CUP, DIVISIONER, KASSA, TOPP_DIV, TRANING } from "../src/matchdagen/delat/md-config.js";
 import { skapaPrng } from "../src/matchdagen/delat/md-prng.js";
 import { spelaMatch, spelaSasong } from "./md-balans-sim.mjs";
@@ -26,6 +27,8 @@ import { spelaMatch, spelaSasong } from "./md-balans-sim.mjs";
 export const KLUBB = {
   /** Köp bara när förbättringen är minst så här många stjärnor (1 = varje bättre spelare). */
   minForbattring: 1,
+  /** Så många av omgångens läger (TRANING.perOmgang = 3, #883) som klubben använder efter varje ligamatch. */
+  lager: TRANING.perOmgang,
 };
 
 /** §12: 60 % rätt ska kunna köpa en 3★ efter ungefär 3 matcher i Division 6 (snittet). */
@@ -72,7 +75,7 @@ export function bedomEkonomi(r) {
 const snittSt = (trupp) => trupp.reduce((s, p) => s + p.st, 0) / trupp.length;
 
 /** En robotklubb: kassan, marknaden och träningslägret mellan matcherna. */
-export function robotKlubb({ andelRatt, seed }) {
+export function robotKlubb({ andelRatt, seed, lager: antalLager = KLUBB.lager }) {
   const rng = skapaPrng(seed, "klubb");
   const K = { div: 0, sasong: 1, kassa: KASSA.start, trupp: nyTrupp(rng.tal), reserver: [], marknad: [] };
   K.marknad = nyMarknad(K, rng.tal);
@@ -81,7 +84,7 @@ export function robotKlubb({ andelRatt, seed }) {
   function lager() {
     const kandidater = K.trupp.map((p, i) => [p, i]).filter(([p]) => p.st < TRANING.maxSt);
     if (!kandidater.length) return;
-    const [, i] = kandidater.reduce((a, b) => (b[0].st * 100 + b[0].xp < a[0].st * 100 + a[0].xp ? b : a));
+    const [, i] = kandidater.reduce((a, b) => (traningsVarde(b[0]) < traningsVarde(a[0]) ? b : a));
     let p = K.trupp[i];
     for (let f = 0; f < TRANING.fragor; f++) p = tranaSpelare(p, rng.tal() < andelRatt).p;
     K.trupp[i] = p;
@@ -97,40 +100,40 @@ export function robotKlubb({ andelRatt, seed }) {
       klubb.kop++;
     }
   }
-  /** Före matchen: lagbonusen ur truppen – före kvalet först det extra träningslägret (§8.4). */
-  klubb.bonus = (o) => {
-    if (o === "kval") lager();
-    return lagbonus(K.trupp);
-  };
-  /** Efter matchen: pengarna, en ny marknad, lägret (efter en ligaomgång – inte efter kval och cup) och köpen. */
+  /** Före matchen: lagbonusen ur truppen (#883: inget extra läger före kvalet – omgångens tre räcker). */
+  klubb.bonus = () => lagbonus(K.trupp);
+  /** Efter matchen: pengarna, en ny marknad, lägren (efter en ligaomgång – inte efter kval och cup) och köpen. */
   klubb.efterMatch = (r, o) => {
     const extra = o === "kval" && r.vann ? KASSA.uppflyttning : r.cupSeger ? CUP.seger : 0;
     K.kassa += pengarFor(r, r.ratt, K.div) + Math.round(extra * (1 + K.div * KASSA.perDiv));
     if (o === "kval" && r.vann) K.div = Math.min(TOPP_DIV, K.div + 1);
     K.marknad = nyMarknad(K, rng.tal);
-    if (o !== "kval" && o !== "cup") lager();
+    if (o !== "kval" && o !== "cup") for (let l = 0; l < antalLager; l++) lager();
     handla();
   };
   klubb.snittSt = () => snittSt(K.trupp);
   return klubb;
 }
 
+/** #883: nybörjarens säsong i korBalans – en ny klubb (1★, KASSA.start) per säsong, samma frö som raden. */
+export const nyborjare = (andelRatt) => (seed) => robotKlubb({ andelRatt, seed: `ny|${seed}` });
+
 /**
  * Karriären med den riktiga truppen och Silverpokalen (#872): n elever × `sasonger` säsonger. Per division:
  * andelen som når den, median säsonger och speltimmar dit, lagets snittstjärnor då
  * och andelen vunna matcher medan laget spelade där.
  */
-export function karriarMedTrupp({ andelRatt, n = 100, sasonger = 30 }) {
+export function karriarMedTrupp({ andelRatt, n = 100, sasonger = 30, lager = KLUBB.lager }) {
   const nar = DIVISIONER.map(() => []);
   const spelat = DIVISIONER.map(() => ({ matcher: 0, vinst: 0 }));
   for (let k = 0; k < n; k++) {
-    const klubb = robotKlubb({ andelRatt, seed: `trupp|${andelRatt}|${k}` });
+    const klubb = robotKlubb({ andelRatt, seed: `trupp|${andelRatt}|${k}`, lager });
     let sek = 0;
     nar[0].push({ sasong: 0, h: 0, st: klubb.snittSt() });
     for (let s = 1; s <= sasonger && klubb.K.div < TOPP_DIV; s++) {
       const div = klubb.K.div;
       klubb.K.sasong = s;
-      const S = spelaSasong({ seed: `trupp|${andelRatt}|${k}|${s}`, andelRatt, div, bonus: klubb.bonus, efterMatch: klubb.efterMatch, cup: true });
+      const S = spelaSasong({ seed: `trupp|${andelRatt}|${k}|${s}`, andelRatt, div, bonus: klubb.bonus, efterMatch: klubb.efterMatch, cup: true, lager });
       sek += S.sekunder;
       spelat[div].matcher += S.matcher.length;
       spelat[div].vinst += S.matcher.filter((m) => m.utfall === "vinst").length;

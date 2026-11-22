@@ -1,7 +1,7 @@
 // ============================================================================
 // Matchdagen 2b (#871): truppen, reserverna, marknaden och träningslägret – den rena
 // modulen md-trupp.js (spec §8, §15 Motorn: "marknaden, priserna och reserverna
-// (grundpelarna säljs aldrig), träningslägret (100 poäng ger en stjärna, taket 5),
+// (grundpelarna säljs aldrig), träningslägret (#883: 50/100/250/500 poäng per stjärna, tre läger per omgång, taket 5),
 // lagbonusen används"), det pågående lägret i md-lokal.js och korten i Truppen
 // (allt ur dokumentet escapas eller blir tal – eleven skriver dokumentet, #869 G1).
 // Reglerna: firestore-rules-matchdagen-trupp.test.js.
@@ -20,7 +20,7 @@ import { laggIKo, lasLager, lasOsparad, pagaendeLager, rensaLager, sparaLager } 
 import { konsPengar, ovanpaServern, sparaKon } from "../src/matchdagen/md-spara.js";
 import { pengarFor } from "../src/matchdagen/delat/md-sasong.js";
 import { lagdelarHtml, marknadKort, reservKort, startKort, traningsStapel } from "../src/matchdagen/vy/md-vy-marknad.js";
-import { firaText, lagerStangtText } from "../src/matchdagen/vy/md-vy-lager.js";
+import { firaText, lagerRubrik, lagerStangtText, stangtHtml } from "../src/matchdagen/vy/md-vy-lager.js";
 
 const NU = Date.UTC(2026, 10, 20, 10);
 const rng = (f) => skapaPrng(f).tal;
@@ -50,11 +50,12 @@ describe("priserna och marknaden (§8.3)", () => {
     const tak = JSON.parse(regler.match(/n\.st <= (\[[^\]]+\])\[d\.div\]/)[1]);
     assert.deepEqual(tak, C.DIVISIONER.map((_, d) => T.marknadMaxSt(d)));
   });
-  it("stjärnorna kl(avrunda(slump(2; 3,2 + div × 0,3)); 2; 5) – högre upp i stegen, bättre spelare", () => {
+  it("stjärnorna kl(avrunda(slump(1; 3,2 + div × 0,3)); 1; 5) – högre upp i stegen, bättre spelare (#883: från 1★)", () => {
     for (let div = 0; div < C.DIVISIONER.length; div++) {
       const r = rng(`st${div}`);
       const st = Array.from({ length: 400 }, () => T.marknadStjarnor(div, r));
-      assert.ok(st.every((s) => s >= 2 && s <= T.marknadMaxSt(div)), `div ${div}`);
+      assert.ok(st.every((s) => s >= 1 && s <= T.marknadMaxSt(div)), `div ${div}`);
+      if (div === 0) assert.ok(st.includes(1) && st.includes(3), "Division 6: 1★–3★");
     }
     assert.equal(T.marknadMaxSt(0), 3);
     assert.equal(T.marknadMaxSt(7), 5);
@@ -114,11 +115,11 @@ describe("köpet och reserverna – grundpelarna säljs aldrig (§8.2–8.3)", (
     assert.equal(r.K.reserver.length, 0, "en köpt spelare går inte till reserverna");
   });
   it("inte bättre än den som ersätts, eller kassan räcker inte → går inte", () => {
-    assert.equal(T.kopInfo(med([salu({ st: 2 })]), "kny").orsak, "inteBattre");
+    assert.equal(T.kopInfo(med([salu({ st: 1 })]), "kny").orsak, "inteBattre");
     assert.equal(T.kopInfo(med([salu()], { kassa: 1209 }), "kny").orsak, "kassa");
     assert.equal(T.kopInfo(med([salu()], { kassa: 1210 }), "kny").kan, true);
     assert.equal(T.kopInfo(med([]), "kny").orsak, "saknas");
-    assert.throws(() => T.kop(med([salu({ st: 2 })]), "kny"), /inteBattre/);
+    assert.throws(() => T.kop(med([salu({ st: 1 })]), "kny"), /inteBattre/);
   });
   it("fulla reserver: eleven släpper en KÖPT reserv (halva priset) – grundpelare kan aldrig släppas", () => {
     const K = med([salu()], { reserver: [grund(1, "FÖR"), grund(2, "MIT"), grund(3, "MIT"), grund(4, "ANF"), kopt(9, "MV", 4)] });
@@ -162,33 +163,108 @@ describe("köpet och reserverna – grundpelarna säljs aldrig (§8.2–8.3)", (
   });
 });
 
-describe("träningslägret (§8.4)", () => {
-  it("12 poäng per rätt, vid 100 en stjärna till (resten följer med), fel ger inget, taket 5★", () => {
-    const p = { ...K0.trupp[1], st: 2, xp: 0 };
+describe("träningslägret (§8.4, #883)", () => {
+  /** K med `n` spelade omgångar (alla vunna). */
+  const efter = (n) => {
+    let V = K0;
+    for (let i = 0; i < n && nastaMatch(V); i++) V = matchKlar(V, { res: res(4, 0), rng: rng(`e${i}`), nu: NU, matchId: `e${i}` }).K;
+    return V;
+  };
+  const atta = Array(8).fill({ ratt: true });
+  it("en stjärna kostar 50, 100, 250 och 500 poäng (nyckeln = stjärnan man når); reglerna har samma tabell", () => {
+    assert.deepEqual(C.TRANING.xpTillStjarna, { 2: 50, 3: 100, 4: 250, 5: 500 });
+    assert.deepEqual([1, 2, 3, 4, 5].map(T.xpTill), [50, 100, 250, 500, 0]);
+    assert.deepEqual([1, 2, 3, 4, 5].map((st) => T.traningsVarde({ st, xp: 0 })), [0, 50, 150, 400, 900]);
+    const regler = readFileSync(new URL("../firestore.rules", import.meta.url), "utf8");
+    const varde = JSON.parse(regler.match(/function mdTranVarde\(p\) \{ return (\[[^\]]+\])\[p\.st\]/)[1]);
+    assert.deepEqual(varde, [0, 1, 2, 3, 4, 5].map((st) => (st ? T.traningsVarde({ st, xp: 0 }) : 0)));
+    const tak = JSON.parse(regler.match(/n\.xp < (\[[^\]]+\])\[n\.st\]/)[1]);
+    assert.deepEqual(tak, [0, 50, 100, 250, 500, 1], "xp under poängen till nästa stjärna; vid 5★ bara 0");
+  });
+  it("12 poäng per rätt, vid 50/100/250/500 en stjärna till (resten följer med), fel ger inget, taket 5★", () => {
+    const p = { ...K0.trupp[1], st: 1, xp: 0 };
     assert.deepEqual(T.tranaSpelare(p, false), { p, nyStjarna: false });
     assert.equal(T.tranaSpelare(p, true).p.xp, 12);
-    const r = T.tranaSpelare({ ...p, xp: 96 }, true);
-    assert.deepEqual([r.p.st, r.p.xp, r.nyStjarna], [3, 8, true]);
-    const fem = T.tranaSpelare({ ...p, st: 4, xp: 90 }, true);
-    assert.deepEqual([fem.p.st, fem.p.xp], [5, 0], "vid 5★ nollas poängen");
+    const r = T.tranaSpelare({ ...p, xp: 48 }, true);
+    assert.deepEqual([r.p.st, r.p.xp, r.nyStjarna], [2, 10, true], "1★ → 2★ vid 50");
+    assert.deepEqual([T.tranaSpelare({ ...p, st: 2, xp: 96 }, true).p.st, T.tranaSpelare({ ...p, st: 2, xp: 96 }, true).p.xp], [3, 8], "2★ → 3★ vid 100");
+    assert.deepEqual([T.tranaSpelare({ ...p, st: 3, xp: 237 }, true).p.st, T.tranaSpelare({ ...p, st: 3, xp: 237 }, true).p.xp], [3, 249], "249 är inte 250");
+    assert.deepEqual([T.tranaSpelare({ ...p, st: 3, xp: 240 }, true).p.st, T.tranaSpelare({ ...p, st: 3, xp: 240 }, true).p.xp], [4, 2], "3★ → 4★ vid 250");
+    const fem = T.tranaSpelare({ ...p, st: 4, xp: 495 }, true);
+    assert.deepEqual([fem.p.st, fem.p.xp], [5, 0], "4★ → 5★ vid 500, vid 5★ nollas poängen");
     assert.equal(T.tranaSpelare(fem.p, true).p.xp, 0);
+    assert.equal(T.tranaSpelare({ ...p, st: 4, xp: 480 }, true).p.st, 4);
   });
-  it("ett läger per spelad omgång och ett extra före kvalet; inget före första matchen", () => {
+  it("hur många rätt svar det tar från 1★: 2★ efter 5, 3★ efter 13, 4★ efter 34, 5★ efter 75 (900 poäng, ~10 fulla läger)", () => {
+    let p = { ...K0.trupp[1], st: 1, xp: 0 };
+    const nar = {};
+    for (let n = 1; p.st < 5; n++) {
+      const r = T.tranaSpelare(p, true);
+      p = r.p;
+      if (r.nyStjarna) nar[p.st] = n;
+    }
+    assert.deepEqual(nar, { 2: 5, 3: 13, 4: 34, 5: 75 });
+  });
+  it("en ny karriär börjar med 1★; en äldre spelare (2★, 0–99 poäng) tränar vidare utan att flyttas", () => {
+    assert.ok(K0.trupp.every((p) => p.st === 1 && p.xp === 0));
+    const gammal = { ...K0.trupp[2], st: 2, xp: 99 };
+    assert.equal(T.xpTill(2), 100, "99 < 100: fortfarande giltig träning mot 3★");
+    assert.deepEqual([T.tranaSpelare(gammal, true).p.st, T.tranaSpelare(gammal, true).p.xp], [3, 11]);
+    const g3 = T.tranaSpelare({ ...gammal, st: 3, xp: 60 }, true).p;
+    assert.deepEqual([g3.st, g3.xp], [3, 72], "3★ med 60 poäng: mot 250 nu");
+  });
+  it("tre läger per spelad omgång ('säsong-omgång-1…3'), ett fjärde nekas; inget före första matchen", () => {
     assert.equal(T.lagerNyckel(K0), null);
-    assert.equal(T.lagerNyckel(K1), "1-1");
-    assert.equal(T.lagerNyckel({ ...K1, lager: "1-1" }), null);
-    let V = K1;
-    for (let i = 0; nastaMatch(V); i++) V = matchKlar(V, { res: res(4, 0), rng: rng(`l${i}`), nu: NU, matchId: `l${i}` }).K;
-    const sista = `1-${V.liga.omg}`;
-    assert.equal(T.lagerNyckel(V), sista);
-    assert.equal(T.lagerNyckel({ ...V, lager: sista }), "1-k", "kvalet väntar – ett extra läger");
+    assert.equal(T.lagerKvar(K0), 0);
+    assert.equal(T.lagerNyckel(K1), "1-1-1");
+    assert.equal(T.lagerKvar(K1), 3);
+    assert.equal(T.lagerNyckel({ ...K1, lager: "1-1-1" }), "1-1-2");
+    assert.equal(T.lagerKvar({ ...K1, lager: "1-1-1" }), 2);
+    assert.equal(T.lagerNyckel({ ...K1, lager: "1-1-2" }), "1-1-3");
+    assert.equal(T.lagerNyckel({ ...K1, lager: "1-1-3" }), null, "det fjärde lägret nekas");
+    assert.equal(T.lagerKvar({ ...K1, lager: "1-1-3" }), 0);
+    const id = K1.trupp[3].id;
+    let K = K1;
+    for (const n of [1, 2, 3]) K = T.lagerResultat(K, { nyckel: T.lagerNyckel(K), spelareId: id, svar: atta, nu: NU }).K;
+    assert.equal(K.lager, "1-1-3");
+    assert.throws(() => T.lagerResultat(K, { nyckel: "1-1-4", spelareId: id, svar: atta, nu: NU }), /ledigt/);
+    assert.deepEqual([K.trupp[3].st, K.trupp[3].xp], [3, 288 - 150], "3 × 96 = 288 poäng: 1★ → 3★ och 138 mot 250");
+    // Nästa match nollar räknaren.
+    const K2 = matchKlar(K, { res: res(1, 0), rng: rng("x"), nu: NU, matchId: "x" }).K;
+    assert.deepEqual([T.lagerNyckel(K2), T.lagerKvar(K2)], ["1-2-1", 3]);
+  });
+  it("lägrets nummer och rubriken 'Träningsläger 2/3'", () => {
+    assert.deepEqual(["1-1-1", "1-4-3", "12-10-2-p", "1-3", "1-k", null].map(T.lagerNummer), [1, 3, 2, 1, null, null]);
+    assert.equal(lagerRubrik("1-1-2"), "Träningsläger 2/3");
+    assert.equal(lagerRubrik("1-3"), "Träningsläger 1/3");
+    assert.equal(lagerRubrik("1-k"), "Träningsläger");
+  });
+  it("äldre nycklar (före #883): 'säsong-omgång' = det första lägret, påbörjat fortsätter; 'säsong-k' = slut", () => {
+    assert.equal(T.lagerNyckel({ ...K1, lager: "1-1" }), "1-1-2", "ett läger använt – två kvar");
+    assert.equal(T.lagerNyckel({ ...K1, lager: "1-1-p" }), "1-1", "ett påbörjat läger i gamla formen fortsätter med samma nyckel");
+    const id = K1.trupp[3].id;
+    const ut = T.lagerResultat({ ...K1, lager: "1-1-p" }, { nyckel: "1-1", spelareId: id, svar: atta, nu: NU }).K;
+    assert.deepEqual([ut.lager, T.lagerNyckel(ut)], ["1-1", "1-1-2"]);
+    const V = efter(99);
+    assert.ok(V.kval && !V.kval.spelad);
     assert.equal(T.lagerNyckel({ ...V, lager: "1-k" }), null);
+    assert.equal(T.lagerNyckel({ ...V, lager: "1-k-p" }), "1-k");
+  });
+  it("före kvalet: omgångens tre läger – inget extra; efter kvalet inga fler", () => {
+    const V = efter(99);
+    const sista = `1-${V.liga.omg}`;
+    assert.equal(T.lagerNyckel(V), `${sista}-1`);
+    assert.equal(T.lagerNyckel({ ...V, lager: `${sista}-2` }), `${sista}-3`);
+    assert.equal(T.lagerNyckel({ ...V, lager: `${sista}-3` }), null, "inget extra läger före kvalet (#883: tre räcker)");
+    const spelat = kvalKlar(V, { res: { ...res(0, 1), vann: false }, rng: rng("kq"), nu: NU, matchId: "kq" }).K;
+    assert.equal(T.lagerNyckel(spelat), null, "kvalet är en match – säsongens läger är slut");
+    assert.match(lagerStangtText(spelat), /Kvalet är spelat/);
   });
   it("8 rätt: +96 poäng, frågorna räknas som källan 'träning' i statistiken och dagarna", () => {
     const id = K1.trupp[3].id;
-    const ut = T.lagerResultat(K1, { nyckel: "1-1", spelareId: id, svar: Array(8).fill({ ratt: true }), sekunder: 95, nu: NU });
-    assert.equal(ut.K.lager, "1-1");
-    assert.deepEqual([ut.spelare.st, ut.spelare.xp, ut.stjarnor], [2, 96, 0]);
+    const ut = T.lagerResultat(K1, { nyckel: "1-1-1", spelareId: id, svar: atta, sekunder: 95, nu: NU });
+    assert.equal(ut.K.lager, "1-1-1");
+    assert.deepEqual([ut.spelare.st, ut.spelare.xp, ut.stjarnor], [2, 46, 1], "1★ + 96 → 2★ och 46 mot 100");
     assert.equal(ut.K.summa.fragor, K1.summa.fragor + 8);
     assert.equal(ut.K.summa.ratt, K1.summa.ratt + 8);
     assert.deepEqual(ut.K.summa.perKalla.traning, { fragor: 8, ratt: 8, namn: "Träning" });
@@ -196,69 +272,53 @@ describe("träningslägret (§8.4)", () => {
     assert.equal(Object.values(ut.K.dagar).reduce((s, d) => s + d.fragor, 0), Object.values(K1.dagar).reduce((s, d) => s + d.fragor, 0) + 8);
     assert.equal(K1.lager, undefined, "K ändras inte");
   });
-  it("100 poäng ger en stjärna – två läger med 96+12 → 3★", () => {
-    const id = K1.trupp[3].id;
-    const a = T.lagerResultat(K1, { nyckel: "1-1", spelareId: id, svar: Array(8).fill({ ratt: true }), nu: NU }).K;
-    const K2 = matchKlar(a, { res: res(1, 0), rng: rng("x"), nu: NU, matchId: "x" }).K;
-    const b = T.lagerResultat(K2, { nyckel: "1-2", spelareId: id, svar: [{ ratt: true }, { ratt: false }], nu: NU });
-    assert.deepEqual([b.spelare.st, b.spelare.xp, b.stjarnor], [3, 8, 1]);
-  });
   it("inget ledigt läger, eller en spelare med 5★ → nekas", () => {
     const id = K1.trupp[3].id;
-    assert.throws(() => T.lagerResultat(K0, { nyckel: "1-0", spelareId: id, svar: [], nu: NU }), /ledigt/);
-    assert.throws(() => T.lagerResultat({ ...K1, lager: "1-1" }, { nyckel: "1-1", spelareId: id, svar: [], nu: NU }), /ledigt/);
+    assert.throws(() => T.lagerResultat(K0, { nyckel: "1-0-1", spelareId: id, svar: [], nu: NU }), /ledigt/);
+    assert.throws(() => T.lagerResultat({ ...K1, lager: "1-1-1" }, { nyckel: "1-1-1", spelareId: id, svar: [], nu: NU }), /ledigt/);
     const fem = { ...kopia(K1) };
     fem.trupp[3].st = 5;
-    assert.throws(() => T.lagerResultat(fem, { nyckel: "1-1", spelareId: id, svar: [], nu: NU }), /5 stjärnor/);
+    assert.throws(() => T.lagerResultat(fem, { nyckel: "1-1-1", spelareId: id, svar: [], nu: NU }), /5 stjärnor/);
   });
   it("det pågående lägret sparas lokalt och fortsätter – bara för klubbens lediga läger och en spelare i startelvan", () => {
     const m = new Map();
     const L = { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v), removeItem: (k) => m.delete(k) };
     const id = K1.trupp[2].id;
-    sparaLager(L, "u", { nyckel: "1-1", spelareId: id, svar: [{ ratt: true }, { ratt: "ja" }], sek: 12 });
-    assert.deepEqual(lasLager(L, "u", K1), { v: 1, nyckel: "1-1", spelareId: id, svar: [{ ratt: true }, { ratt: false }], sek: 12 });
+    sparaLager(L, "u", { nyckel: "1-1-1", spelareId: id, svar: [{ ratt: true }, { ratt: "ja" }], sek: 12 });
+    assert.deepEqual(lasLager(L, "u", K1), { v: 1, nyckel: "1-1-1", spelareId: id, svar: [{ ratt: true }, { ratt: false }], sek: 12 });
     assert.equal(lasLager(L, "annan", K1), null);
-    assert.equal(lasLager(L, "u", { ...K1, lager: "1-1" }), null, "lägret är redan sparat");
+    assert.equal(lasLager(L, "u", { ...K1, lager: "1-1-1" }), null, "lägret är redan sparat");
     assert.equal(lasLager(L, "u", T.bytIn({ ...kopia(K1), reserver: [{ ...K1.trupp[2], id: "r" }] }, "r", id)), null, "spelaren är inte kvar");
     rensaLager(L, "u");
     assert.equal(lasLager(L, "u", K1), null);
   });
   it("påbörjat läger ('-p'): samma läger gäller tills det sparas eller räknas som använt – aldrig ett nytt", () => {
     const S1 = T.lagerStart(K1);
-    assert.equal(S1.lager, "1-1-p");
+    assert.equal(S1.lager, "1-1-1-p");
     assert.equal(K1.lager, undefined, "K ändras inte");
-    assert.equal(T.lagerNyckel(S1), "1-1");
+    assert.equal(T.lagerNyckel(S1), "1-1-1");
+    assert.equal(T.lagerKvar(S1), 3, "det påbörjade räknas med");
     assert.equal(T.lagerPaborjat(S1), true);
     assert.equal(T.lagerPaborjat(K1), false);
     const id = K1.trupp[3].id;
-    const ut = T.lagerResultat(S1, { nyckel: "1-1", spelareId: id, svar: Array(8).fill({ ratt: true }), nu: NU });
-    assert.equal(ut.K.lager, "1-1", "klart – lägret byts från det påbörjade");
-    assert.equal(T.lagerNyckel(ut.K), null);
+    const ut = T.lagerResultat(S1, { nyckel: "1-1-1", spelareId: id, svar: atta, nu: NU });
+    assert.equal(ut.K.lager, "1-1-1", "klart – lägret byts från det påbörjade");
+    assert.equal(T.lagerNyckel(ut.K), "1-1-2");
     const A = T.lagerAvbrutet(S1);
-    assert.deepEqual([A.lager, T.lagerNyckel(A), A.trupp], ["1-1", null, K1.trupp], "avbrutet: använt, ingen träning");
-    // Ett påbörjat läger i en gammal omgång gäller inte: nästa match öppnar ett nytt.
+    assert.deepEqual([A.lager, T.lagerNyckel(A), A.trupp], ["1-1-1", "1-1-2", K1.trupp], "avbrutet: använt, ingen träning");
+    const S3 = T.lagerStart({ ...K1, lager: "1-1-2" });
+    assert.deepEqual([S3.lager, T.lagerNyckel(T.lagerAvbrutet(S3))], ["1-1-3-p", null], "det tredje avbrutet: alla använda");
+    // Ett påbörjat läger i en gammal omgång gäller inte: nästa match öppnar nya.
     const K2 = matchKlar(S1, { res: res(1, 0), rng: rng("p"), nu: NU, matchId: "p" }).K;
-    assert.deepEqual([T.lagerNyckel(K2), T.lagerPaborjat(K2)], ["1-2", false]);
-  });
-  it("påbörjat före kvalet: först omgångens läger avbryts, sedan är kvalets ledigt; kvalets påbörjade avbryts till använt", () => {
-    let V = K1;
-    for (let i = 0; nastaMatch(V); i++) V = matchKlar(V, { res: res(4, 0), rng: rng(`q${i}`), nu: NU, matchId: `q${i}` }).K;
-    const sista = `1-${V.liga.omg}`;
-    const P = T.lagerStart(V);
-    assert.deepEqual([P.lager, T.lagerNyckel(P)], [`${sista}-p`, sista]);
-    const A = T.lagerAvbrutet(P);
-    assert.deepEqual([A.lager, T.lagerNyckel(A)], [sista, "1-k"]);
-    const PK = T.lagerStart(A);
-    assert.deepEqual([PK.lager, T.lagerNyckel(PK), T.lagerPaborjat(PK)], ["1-k-p", "1-k", true]);
-    assert.equal(T.lagerNyckel(T.lagerAvbrutet(PK)), null);
+    assert.deepEqual([T.lagerNyckel(K2), T.lagerPaborjat(K2)], ["1-2-1", false]);
   });
   it("utan lokal lagring (privat fönster) gäller lägret i minnet – ett flikbyte startar inget nytt", () => {
     const id = K1.trupp[2].id;
     const S1 = T.lagerStart(K1);
-    const minne = { v: 1, nyckel: "1-1", spelareId: id, svar: [{ ratt: false }], sek: 3 };
+    const minne = { v: 1, nyckel: "1-1-1", spelareId: id, svar: [{ ratt: false }], sek: 3 };
     assert.deepEqual(pagaendeLager({ lagring: null, uid: "u", K: S1, lagerMinne: minne }), minne);
     assert.equal(pagaendeLager({ lagring: null, uid: "u", K: S1, lagerMinne: null }), null);
-    assert.equal(pagaendeLager({ lagring: null, uid: "u", K: { ...S1, lager: "1-1" }, lagerMinne: minne }), null, "sparat");
+    assert.equal(pagaendeLager({ lagring: null, uid: "u", K: { ...S1, lager: "1-1-1" }, lagerMinne: minne }), null, "sparat");
   });
 });
 
@@ -284,7 +344,9 @@ describe("lagbonusen används (§8.1)", () => {
   it("en tränad lagdel ger högre chans: anfallet skotten, målvakten räddningarna", () => {
     const tranad = K0.trupp.map((p) => ({ ...p, st: 4 }));
     const [start, b] = [lagbonus(K0.trupp), lagbonus(tranad)];
-    assert.deepEqual(start, { MV: 0, "FÖR": 0, MIT: 0, ANF: 0 });
+    // #883: startlaget är 1★ – en lagdel under 2★ (LAGBONUS.bas) ger −5 %.
+    for (const d of C.LAGDELAR) assert.ok(Math.abs(start[d] + 0.05) < 1e-9, d);
+    assert.deepEqual(lagbonus(K0.trupp.map((p) => ({ ...p, st: 2 }))), { MV: 0, "FÖR": 0, MIT: 0, ANF: 0 });
     assert.ok(Math.abs(b.ANF - 0.1) < 1e-9);
     assert.ok(chansSkott(12, true, b, 0.5) > chansSkott(12, true, start, 0.5));
     assert.ok(chansRaddning(true, b, 0.5) > chansRaddning(true, start, 0.5));
@@ -300,19 +362,24 @@ describe("Truppens kort: allt ur dokumentet escapas eller blir tal", () => {
       assert.ok(!html.includes("<script"), html);
       assert.ok(!html.includes(`"><b>`), html);
     }
-    assert.match(startKort({ ...ond, st: 3, xp: 40 }), /40\/100 träning/);
+    assert.match(startKort({ ...ond, st: 3, xp: 143 }), /143 \/ 250 till ★★★★</);
+    assert.match(startKort({ ...ond, st: 3, xp: 143 }), /aria-valuemax="250" aria-valuenow="143"><i style="width:57%">/);
+    assert.match(startKort({ ...ond, st: 1, xp: 30 }), /30 \/ 50 till ★★</);
+    assert.match(startKort({ ...ond, st: 4, xp: 9999 }), /499 \/ 500 till ★★★★★</, "taket: aldrig över poängen till nästa stjärna");
     assert.match(startKort({ ...ond, st: 9 }), /Fullt tränad/);
     assert.match(startKort(ond), /Nr 0/);
     assert.equal(firaText({ namn: XSS }), "&lt;img src=x onerror=alert(1)&gt; fick en stjärna till!");
   });
   it("marknadskortet: köpknappen med priset och vem som ersätts – annars varför det inte går", () => {
-    const K = med([salu(), salu({ id: "kb", st: 2 })]);
+    const K = med([salu(), salu({ id: "kb", st: 1 })]);
     assert.match(marknadKort(K, K.marknad[0]), /data-kop="kny">Köp för 1\s210 kr<\/button>[\s\S]*grundpelaren går till reserverna/);
     assert.match(marknadKort(K, K.marknad[1]), /disabled>[\s\S]*Inte bättre än/);
   });
   it("lägrets texter", () => {
     assert.match(lagerStangtText(K0), /första matchen/);
-    assert.match(lagerStangtText({ ...K1, lager: "1-1" }), /tränat den här omgången/);
+    assert.match(lagerStangtText({ ...K1, lager: "1-1-3" }), /alla 3 träningsläger/);
+    assert.match(stangtHtml({ ...K1, lager: "1-1-3" }), /<button type="button" class="md-stor" disabled>Starta träningen<\/button>/, "det fjärde: avstängd knapp");
+    assert.ok(!stangtHtml(K0).includes("<button"), "före första matchen: ingen knapp");
   });
 });
 

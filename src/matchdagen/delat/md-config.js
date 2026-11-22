@@ -108,7 +108,7 @@ export const INSPARK_DERAS = 88;
 export const INSPARK_VAR = 12;
 
 // ---- Lagbonus (spec §8.1, används fullt ut i Etapp 2b) ------------------------
-/** Lagbonus per lagdel: (snittstjärnor − bas) × perStjarna. Startlaget (2★) har 0. */
+/** Lagbonus per lagdel: (snittstjärnor − bas) × perStjarna. Ett 2★-lag har 0; startlaget (1★, #883) −0,05. */
 export const LAGBONUS = { bas: 2, perStjarna: 0.05 };
 export const LAGDELAR = ["MV", "FÖR", "MIT", "ANF"];
 
@@ -121,13 +121,23 @@ export const RESERVER_MAX = 5;
  * avrunda(bas × st^exponent; avrunda). En köpt spelare som ersätts säljs för salj × priset.
  * Tröjnumret (nr) lottas bland de lediga.
  */
-export const MARKNAD = { antal: 6, nr: { min: 11, max: 99 }, st: { min: 2, bas: 3.2, perDiv: 0.3, max: 5 }, pris: { bas: 150, exponent: 1.9, avrunda: 10 }, salj: 0.5 };
-/** Träningslägret (§8.4): frågor per läger, träningspoäng per rätt svar, poäng per stjärna, taket. */
-export const TRANING = { fragor: 8, xpPerRatt: 12, xpPerStjarna: 100, maxSt: 5 };
+export const MARKNAD = { antal: 6, nr: { min: 11, max: 99 }, st: { min: 1, bas: 3.2, perDiv: 0.3, max: 5 }, pris: { bas: 150, exponent: 1.9, avrunda: 10 }, salj: 0.5 };
+/**
+ * Träningslägret (§8.4, #883): frågor per läger, träningspoäng per rätt svar, poängen som krävs
+ * för att NÅ en stjärna (nyckeln = stjärnan man når: 1★ → 2★ kostar 50 … 4★ → 5★ 500), taket och
+ * högst så många läger mellan två ligamatcher (per spelad omgång).
+ */
+export const TRANING = { fragor: 8, xpPerRatt: 12, xpTillStjarna: { 2: 50, 3: 100, 4: 250, 5: 500 }, maxSt: 5, perOmgang: 3 };
 
 // ---- Ligan (spec §5, §7.1) ---------------------------------------------------
-/** styrka(div) = kl(bas + div × perDiv ± spridning; min; max), div 0 = Division 6. */
-export const STYRKA = { bas: 0.2, perDiv: 0.09, spridning: 0.05, min: 0.12, max: 0.92 };
+/**
+ * styrka(div) = kl(bas + div × perDiv − avdrag[div] ± spridning; min; max), div 0 = Division 6.
+ * avdrag (#883): nybörjarlaget är 1★ och tränas upp under den första säsongen – Division 6 är
+ * svagare (0,12 ± 0,05 i stället för 0,20 ± 0,05, golvet min 0,06), så att nybörjaren vinner ungefär
+ * lika ofta som med det gamla 2★-laget (docs/MATCHDAGEN.md §22). Högre upp behövs inget avdrag.
+ * Gäller nya ligor; en sparad liga behåller sina styrkor.
+ */
+export const STYRKA = { bas: 0.2, perDiv: 0.09, avdrag: [0.08], spridning: 0.05, min: 0.06, max: 0.92 };
 export const DIVISIONER = ["Division 6", "Division 5", "Division 4", "Division 3", "Division 2", "Division 1", "Elitligan", "Superligan"];
 export const LAGANTAL = [6, 6, 8, 8, 10, 10, 12, 12];
 /** Den högsta divisionen (Superligan): ligavinnaren där kvalar inte – den blir mästare och bjuds in till Mästarcupen (Etapp 3). */

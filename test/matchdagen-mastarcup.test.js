@@ -194,7 +194,7 @@ describe("Legendklubben (§10.3, §15)", () => {
     assert.equal(N.kassa, C.KASSA.start);
     assert.equal(C.KASSA.start, 600, "firestore.rules mdLegendOk: d.kassa == 600");
     assert.deepEqual([N.klubb.namn, N.klubb.farg], ["Legenderna FC", "#e8473f"]);
-    assert.deepEqual(N.trupp.map((p) => [p.id, p.st, p.xp, p.grundpelare]), [1, 2, 3, 4, 5, 6, 7].map((i) => [`g${i}`, 2, 0, true]));
+    assert.deepEqual(N.trupp.map((p) => [p.id, p.st, p.xp, p.grundpelare]), [1, 2, 3, 4, 5, 6, 7].map((i) => [`g${i}`, 1, 0, true]));
     assert.deepEqual([N.reserver, N.marknad, N.kval, N.mastarcup], [[], [], null, null]);
     assert.equal(N.liga.lag.length, C.LAGANTAL[0]);
     assert.equal(N.liga.omg, 0);

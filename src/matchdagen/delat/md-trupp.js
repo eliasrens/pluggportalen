@@ -15,7 +15,10 @@
 //   kop(K, id, { slapp? })           → { K, info, salda }   (slapp = köpt reserv som släpps när reserverna är fulla)
 //   bytIn(K, reservId, truppId)      → K   (reserv ↔ startspelare på samma position)
 //   lagerNyckel(K)                   → nyckeln för ett ledigt (eller påbörjat) träningsläger, eller null
+//   lagerNummer(nyckel)              → lägrets nummer i omgången (1–3), "Träningsläger 2/3"
+//   lagerKvar(K)                     → hur många läger som är kvar före nästa match (också det påbörjade)
 //   lagerPaborjat(K), lagerStart(K), lagerAvbrutet(K)  → påbörjat? / starta / räkna som använt
+//   xpTill(st), traningsVarde(p)     → poängen till nästa stjärna / stjärnor + poäng som ett tal (#883)
 //   tranaSpelare(p, ratt)            → { p, nyStjarna }
 //   lagerResultat(K, { nyckel, spelareId, svar, sekunder?, nu }) → { K, spelare, stjarnor }
 //   kaptenPlats(trupp)               → index för kaptensbindeln på planen
@@ -29,8 +32,20 @@ import { EFTERNAMN, FORNAMN } from "./md-namn.js";
 const kl = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 const kopia = (v) => JSON.parse(JSON.stringify(v));
 const valj = (rng, lista) => lista[Math.floor(rng() * lista.length)];
+/** Poängen som krävs från st till st + 1 (#883: 50, 100, 250, 500) – 0 vid taket. */
+export const xpTill = (st) => C.TRANING.xpTillStjarna[(Number(st) || 0) + 1] || 0;
+/**
+ * Spelarens träning som ETT tal (stjärnorna + poängen): poängen för alla stjärnor från 1★ upp
+ * till st, plus xp. Ökar med exakt 12 per rätt svar – samma tal som reglerna (mdPlatsOk) jämför.
+ */
+export function traningsVarde(p) {
+  const st = Number(p?.st) || 0;
+  let v = Number(p?.xp) || 0;
+  for (let s = 2; s <= st; s++) v += C.TRANING.xpTillStjarna[s] || 0;
+  return v;
+}
 /** Spelarens "värde" för att jämföra: stjärnor först, sedan träningspoängen. */
-const varde = (p) => (Number(p?.st) || 0) * C.TRANING.xpPerStjarna + (Number(p?.xp) || 0);
+const varde = traningsVarde;
 
 /** Priset för en spelare med st stjärnor (§8.3): ~560, 1 210, 2 080, 3 190 kr för 2–5. */
 export function pris(st) {
@@ -165,24 +180,40 @@ export function bytIn(K0, reservId, truppId) {
 /** Ett påbörjat läger: nyckeln + PABORJAT (sparas på servern när lägret startar). */
 export const PABORJAT = "-p";
 
+/** Ett läger i K.lager: "säsong-omgång[-nummer][-p]" (utan nummer = det första, före #883) eller "säsong-k[-p]". */
+const LAGER_FORM = /^(\d+)-(\d+|k)(?:-([1-9]))?(-p)?$/;
+
 /**
- * Träningslägret (§8.4): ett per spelad omgång ("säsong-omgång", när minst en omgång
- * är spelad) och ett extra före kvalet ("säsong-k"). K.lager är det senast använda –
- * eller det påbörjade ("säsong-omgång-p"): då är det lägret som gäller tills det är klart
- * (bara med svaren som redan sparats lokalt – annars räknas det som använt, lagerAvbrutet).
- * Ett läger som inte används före nästa match går förlorat – eleven varvar match och träning.
+ * Träningslägret (§8.4, #883): upp till TRANING.perOmgang (3) läger per spelad omgång,
+ * "säsong-omgång-nummer" (när minst en omgång är spelad). K.lager är det senast använda –
+ * eller det påbörjade (+ "-p"): då är det lägret som gäller tills det är klart (bara med
+ * svaren som redan sparats lokalt – annars räknas det som använt, lagerAvbrutet). Läger som
+ * inte används före nästa ligamatch (eller kvalet) går förlorade – eleven varvar match och träning.
+ * Äldre nycklar (före #883) gäller fortfarande: "säsong-omgång" = det första lägret i omgången,
+ * "säsong-k" = kvalets extra läger (då är omgångens läger slut – nya ges inte längre).
  */
 export function lagerNyckel(K) {
   const omg = Number(K?.liga?.omg) || 0;
   if (omg < 1) return null;
   const omgang = `${K.sasong}-${omg}`;
-  const kval = `${K.sasong}-k`;
-  const L = K.lager;
-  if (L === kval) return null;
-  if (L === kval + PABORJAT) return kval;
-  if (L === omgang + PABORJAT) return omgang;
-  if (L !== omgang) return omgang;
-  return K.kval && !K.kval.spelad ? kval : null;
+  const L = String(K.lager ?? "");
+  const m = LAGER_FORM.exec(L);
+  const denna = !!m && m[1] === String(K.sasong) && (m[2] === String(omg) || m[2] === "k");
+  if (denna && m[4]) return L.slice(0, -PABORJAT.length); // påbörjat: samma läger tills det är klart
+  if (K.kval?.spelad) return null; // kvalet är en match – säsongens läger är slut
+  if (denna && m[2] === "k") return null;
+  const nr = denna ? Number(m[3] || 1) : 0;
+  return nr < C.TRANING.perOmgang ? `${omgang}-${nr + 1}` : null;
+}
+/** Lägrets nummer i omgången (1–3) ur nyckeln – null för kvalets äldre extra läger. */
+export function lagerNummer(nyckel) {
+  const m = LAGER_FORM.exec(String(nyckel ?? ""));
+  return m && m[2] !== "k" ? Number(m[3] || 1) : null;
+}
+/** Läger kvar före nästa match – det påbörjade räknas med. */
+export function lagerKvar(K) {
+  const n = lagerNummer(lagerNyckel(K));
+  return n ? C.TRANING.perOmgang - n + 1 : lagerNyckel(K) ? 1 : 0;
 }
 /** Är det lediga lägret redan påbörjat (på servern)? */
 export const lagerPaborjat = (K) => { const n = lagerNyckel(K); return !!n && K.lager === n + PABORJAT; };
@@ -191,14 +222,17 @@ export const lagerStart = (K) => ({ ...K, lager: lagerNyckel(K) + PABORJAT });
 /** Ett påbörjat läger utan sparade svar (lokal lagring rensad, annan dator): räknas som använt, ingen träning. */
 export const lagerAvbrutet = (K) => ({ ...K, lager: lagerNyckel(K) });
 
-/** Ett svar i lägret: rätt ger 12 träningspoäng, vid 100 en stjärna till och poängen räknas om från 0 (taket 5★). */
+/**
+ * Ett svar i lägret: rätt ger 12 träningspoäng, vid xpTill(st) (50/100/250/500) en stjärna till
+ * och resten följer med (taket 5★, då nollas poängen).
+ */
 export function tranaSpelare(p, ratt) {
   const t = C.TRANING;
   if (!ratt || p.st >= t.maxSt) return { p, nyStjarna: false };
   let st = p.st;
   let xp = (Number(p.xp) || 0) + t.xpPerRatt;
   let nyStjarna = false;
-  if (xp >= t.xpPerStjarna) { st++; xp -= t.xpPerStjarna; nyStjarna = true; }
+  if (xp >= xpTill(st)) { xp -= xpTill(st); st++; nyStjarna = true; }
   if (st >= t.maxSt) xp = 0;
   return { p: { ...p, st, xp }, nyStjarna };
 }

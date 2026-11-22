@@ -133,7 +133,7 @@ describe("#873 Tester: legendklubben", () => {
     assert.equal(h.pokaler.mastarcup, 1);
     assert.equal(L.mastarcup, null, "den gamla klubbens inbjudan (32-0) följer inte med");
     assert.equal(guldkant(L), false, "den nya klubben har inte vunnit Superligan");
-    assert.ok(L.trupp.every((p) => p.st === 2 && p.xp === 0 && p.grundpelare));
+    assert.ok(L.trupp.every((p) => p.st === 1 && p.xp === 0 && p.grundpelare));
     assert.ok(L.trupp.every((p) => !VUNNEN.trupp.some((q) => q.namn === p.namn && q.id === p.id && q.st !== 2)));
     const s = skapet(L.pokaler);
     assert.equal(s.find((x) => x.id === "superliga").antal, 2);

@@ -6,7 +6,7 @@
 // säsongen i Etapp 1c.
 //
 //   schema(ids)                       → omgångar: [[[hemma, borta], …], …] (n − 1 omgångar, jämnt n)
-//   styrkaFor(div, rng)               → kl(0,20 + div × 0,09 ± 0,05; 0,12; 0,92)
+//   styrkaFor(div, rng)               → kl(0,20 + div × 0,09 − avdrag(div) ± 0,05; 0,06; 0,92) – avdrag 0,08 i Division 6 (#883)
 //   simMal(styrka, motStyrka, rng)    → [mål, motståndarmål]
 //   nyTabell(ids)                     → { [id]: { s, v, o, f, gm, im, p } }
 //   laggTill(tabell, a, b, malA, malB)→ ny tabell med matchen inräknad
@@ -43,7 +43,7 @@ export function schema(ids) {
 /** Ett motståndarlags dolda styrka i divisionen (div 0 = Division 6). */
 export function styrkaFor(div, rng) {
   const s = C.STYRKA;
-  return kl(s.bas + div * s.perDiv + (rng() * 2 - 1) * s.spridning, s.min, s.max);
+  return kl(s.bas + div * s.perDiv - (s.avdrag[div] || 0) + (rng() * 2 - 1) * s.spridning, s.min, s.max);
 }
 
 /** Poisson-fördelat antal (Knuths metod), högst max. */
