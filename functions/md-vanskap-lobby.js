@@ -34,6 +34,7 @@ import {
   pluggaKallor, synligaOmraden, underlag,
 } from "./matchdagen/md-synlighet.js";
 import { aktivLektion, schemaForStudent } from "./matchdagen/kallor/klass-schema.js";
+import { lockForStudent } from "./matchdagen/kallor/class-lock.js";
 import {
   MdFel, ctx, idEller, hamtaKlass, klassIdsForElev, namnFor, post, lobbyRef, matchRef, facitRef, elevRef, karriarRef,
   lobbyData, aktivFor, lagUr, rensaUtmaningar, snabbTx,
@@ -143,9 +144,12 @@ async function elevensKlasser(c, uid) {
  * (klass-schema.js schemaForStudent). Ingen lektion pågår → null utan en enda läsning. Annars
  * ämneslistan (namnen och den gissade kopplingen) och, när Plugga-klassen ser hela biblioteket,
  * om lektionsämnena har några områden (en fråga med limit 1 per ämne) – som klientens bevakare.
+ * Fokuslåset går före schemat (kombineradGrind): har någon av elevens klasser ett aktivt lås
+ * gäller inget schemafilter (även ett inlämnat prov med "klassens vanliga läge").
  */
 async function lektionFor(c, klasser, uid) {
   const now = c.now();
+  if (lockForStudent(klasser, uid, now)) return null;
   const egna = klasser.filter((k) => Array.isArray(k.studentIds) && k.studentIds.includes(uid));
   const amnen = [...new Set(egna.map((k) => aktivLektion(k, now)?.amne).filter(Boolean))];
   if (!amnen.length) return null;

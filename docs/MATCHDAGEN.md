@@ -1735,8 +1735,9 @@ kopplad till ett av dem) läggs ovanpå de effektiva källorna (§24, `effektiva
 4. **E.4 En pågående match spelas klart** med sin frågeström. Börjar, slutar eller byter en lektion medan sidan är
    öppen räknar `page-matchdagen.js` om källorna (`onLockChange`) och `S.bytKallor` byter dem till **nästa** match
    och nästa träningsfråga. `app.js` lämnar Matchdagen orörd medan en match pågår (`window.__ppMatchdagenPagar`),
-   även när lektionen spärrar den – beskedet visas efter slutsignalen. En sparad halvspelad match som återupptas
-   efter en omladdning får lektionens källor (frågorna är inte sparade, bara ställningen).
+   även när lektionen spärrar den – beskedet visas efter slutsignalen. Det gäller också en vänskapsmatch som pågår
+   (`S.vanskapVakt`). En sparad halvspelad match som återupptas efter en omladdning får lektionens källor
+   (frågorna är inte sparade, bara ställningen); spärrar lektionen Matchdagen fortsätter den efter lektionen.
 5. **E.5 Vänskapsmatcher.** Servern gör samma sak när matchen antas (`functions/md-vanskap-lobby.js forbered`) med
    **samma rena funktioner** och **serverns tid** (`c.now()`): `schemaForStudent` ur
    `functions/matchdagen/kallor/klass-schema.js` och `lektionsKallor` ur `functions/matchdagen/md-synlighet.js`
@@ -1744,7 +1745,13 @@ kopplad till ett av dem) läggs ovanpå de effektiva källorna (§24, `effektiva
    inga frågor under sin lektion blir det ingen match, och servern svarar med ett vänligt besked
    (`failed-precondition`, visas i lobbyn): "Kompisen har NO-lektion just nu och kan inte få några frågor till
    Matchdagen. Prova igen efter klockan 10.00." / "Just nu är det NO-lektion och Matchdagen har inga frågor i NO. …".
-   Vänskapsmatcherna är pausade (`VANSKAP.pausad`, #894), men logiken är byggd och testad.
+   Fokuslåset går före schemat även här: har någon av elevens klasser ett aktivt lås filtrerar schemat inget
+   (`lockForStudent`, samma som klientens `kombineradGrind`). Vänskapsmatcherna är pausade (`VANSKAP.pausad`,
+   #894), men logiken är byggd och testad.
+
+**Klockslaget** i "Öppnar 10.00" och i beskedet är grindens `klockslag` – den tidigast slutande pågående
+lektionen. Följer en ny spärrande lektion direkt efter (SO 9–10, SO 10–11) står det 10.00, och vid 10.00 visar
+grinden nästa lektions slut (känd förenkling, samma klockslag som Plugga-raden i Del D).
 
 **Grindens `matchdagen`** (Del D:s bevakare, `class-lock-watch.js`): sant om något lektionsämne har tabellerna
 kopplade eller minst ett synligt område med underlag (`opts.underlagAmnen`). Medan områdeslistorna laddas räcker

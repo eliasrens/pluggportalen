@@ -117,6 +117,17 @@ describe("vänskapsmatchen under en lektion (#903, serverns tid)", () => {
       await db.doc("classes/mvl903-sv").delete();
     }
   });
+  it("fokuslåset går före schemat: ett aktivt lås i elevens andra klass → inget schemafilter", async () => {
+    await db.doc("classes/mvl903-sv").set({ name: "Svenska-gruppen", order: 5, studentIds: [ANNA],
+      lock: { mal: { typ: "omrade", id: "mvlsv/lasa" }, till: LEKTION + 3_600_000 },
+      schema: { pa: true, lektioner: [lektion("mvlsv")], koppling: {} } });
+    try {
+      const id = await match(ANNA, CIA);
+      assert.deepEqual(await kallor(id, ANNA), ["tabell:7"]);
+    } finally {
+      await db.doc("classes/mvl903-sv").delete();
+    }
+  });
   it("serverns tid avgör: samma schema efter lektionen → som vanligt", async () => {
     await schema([lektion("mvlsv")]);
     ctl.clock = EFTER;

@@ -143,6 +143,7 @@ export async function pageMatchdagen() {
       else if (!r.sparrad && mdInst.harKallor?.(r.inst)) pageMatchdagen();
     } catch (err) { console.warn("Matchdagen: källorna kunde inte räknas om", err); }
   });
-  window.__ppMatchdagenPagar = () => !!S?.spel?.pagar;
+  // Solomatchen (S.spel) eller en vänskapsmatch (S.vanskapVakt) som pågår.
+  window.__ppMatchdagenPagar = () => !!S?.spel?.pagar || S?.vanskapVakt?.M?.status === "pagar";
   ac.signal.addEventListener("abort", () => { av(); delete window.__ppMatchdagenPagar; }, { once: true });
 }
