@@ -18,6 +18,7 @@ import {
   SCHEMA_MAX_LEKTIONER, KOPPLING_NYCKLAR, MATCHDAGEN_TABELLER, normalizeSchema, normalizeLektion, aktivLektion,
   schemaForStudent, gateForSchema, kombineradGrind, lektionKrock, nyttLektionsId, gissaKoppling,
   effektivKoppling, okandaKopplingar, nastaSchemaAndring, svenskTid, nastaSvenskTid, sorteradeLektioner,
+  schemaInfoBehov,
 } from "../src/klass-schema.js";
 import { gateFor, lockForStudent } from "../src/class-lock.js";
 import { vidareHtml } from "../src/prov/prov-vidare.js";
@@ -385,6 +386,30 @@ describe("klass utan schema: grinden är exakt som i dag", () => {
     }
     assert.equal(kombineradGrind(null, null), null);
     assert.equal(gateForSchema(null), null);
+  });
+});
+
+describe("elevens bevakare (#902): vad som behöver hämtas", () => {
+  it("ingen klass med aktiverat schema → null (0 nya läsningar)", () => {
+    for (const schema of [undefined, null, {}, { pa: false, lektioner: [L()] }, { pa: true, lektioner: [] }, "trasigt"]) {
+      assert.equal(schemaInfoBehov([klass(schema)], "e1"), null, JSON.stringify(schema));
+    }
+    assert.equal(schemaInfoBehov([klass(pa([L()]))], "annan"), null, "inte elevens klass");
+  });
+  it("lektionsämnena (unionen, sorterad); områden bara när Plugga-klassen ser hela biblioteket", () => {
+    const a = klass(pa([L({ amne: "so" }), L({ id: "l2", dag: 2, amne: "no" })]));
+    const b = klass(pa([L({ id: "b1", amne: "no" })]), { id: "4b", assignedAreas: [{ subjectId: "no", areaId: "x" }] });
+    const behov = schemaInfoBehov([a, b], "e1");
+    assert.deepEqual(behov.amnen, ["no", "so"]);
+    assert.equal(behov.omraden, true, "första klassen har tom assignedAreas");
+    assert.equal(schemaInfoBehov([b, a], "e1").omraden, false, "första klassen har valda områden");
+    assert.equal(schemaInfoBehov([a, b], "e1").nyckel, behov.nyckel, "samma behov → samma nyckel");
+    assert.notEqual(schemaInfoBehov([b, a], "e1").nyckel, behov.nyckel);
+  });
+  it("utan aktiv lektion just nu behövs ändå ämnena (lektionen kan börja utan ny hämtning)", () => {
+    const k = klass(pa([L({ dag: 3 })]));
+    assert.equal(schemaForStudent([k], "e1", MAN_VINTER), null);
+    assert.deepEqual(schemaInfoBehov([k], "e1").amnen, ["no"]);
   });
 });
 

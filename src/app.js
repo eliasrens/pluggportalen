@@ -300,30 +300,56 @@ function aktuellRutt() {
  *  - Fokusläget (#436, lärarens klass-lås) styr när det är aktivt: målet nås
  *    alltid (även om modulen är dold), resten bara om låset OCH modul-valet
  *    tillåter – annars till låsets mål (som alltid är öppet → ingen loop).
+ *  - Veckoschemat (#902) under en lektion: det som inte hör till lektionens ämne
+ *    → Plugga-listan (grindens home); dolda moduler → hem som vanligt.
  *  - Annars modul-grinden (#412): dold modul (classes/{id}.hiddenModules) → hem.
  */
 function sparrMal(path, query, las, dolda) {
   const modul = moduleForRoute(path);
   const modulOk = !modul || !dolda.includes(modul);
+  // Veckoschemat (#902): spärrat under lektionen → Plugga-listan; annars modul-grinden som vanligt.
+  if (las?.schema) return !las.allows(path, query) ? las.home : modulOk ? null : "#/elev/hus";
   if (las) {
     return las.allows(path, query) && (las.isTarget(path, query) || modulOk) ? null : las.home;
   }
   return modulOk ? null : "#/elev/hus";
 }
 
+/** Schemats klockslag "09:00" → "9.00" (svensk skrivning, som lärarens vecka). */
+const svKlocka = (hhmm) => String(hhmm || "").replace(/^0(?=\d)/, "").replace(":", ".");
+
+// Veckoschemat (#902): en lektion börjar, byter ämne eller slutar. "Lektionen är
+// slut" visas bara EN gång per lektion (och bara för den som är inloggad då).
+const schemaSlutVisat = new Set();
+function schemaFlash(prev, lage) {
+  if (lage && JSON.stringify(lage.amnen) !== JSON.stringify(prev?.amnen)) {
+    flash(`📅 Nu är det <b>${escHtml(lage.label)}</b> till ${svKlocka(lage.klockslag)}.`);
+  } else if (!lage && prev) {
+    // Läraren bockade ur schemat (eller ändrade lektionen) före sluttiden: ingen "slut"-text.
+    if (!prev.avslutad) return void flash("Nu syns allt igen.");
+    const nyckel = prev.lektioner.map((l) => `${l.classId}/${l.id}/${l.till}`).join(",");
+    if (schemaSlutVisat.has(nyckel)) return;
+    schemaSlutVisat.add(nyckel);
+    flash("Lektionen är slut – nu syns allt igen. 🎉");
+  }
+}
+
 // Lärarens lås/upplåsning eller ett passerat klockslag (#436): rita om menyn och
 // grinda om den route eleven står på – UTAN att ladda om sidan. Ett pågående
 // spel i målområdet lämnas orört; bara Plugga-listan (vars innehåll beror på
 // låset) ritas om, och en route som nu är spärrad byts mot låsets mål.
-onLockChange(async (las, prev, next) => {
+onLockChange(async (las, prev, next, prevSchema, schema) => {
   const { path, query } = aktuellRutt();
   if (!path.startsWith("/elev/") || path === "/elev/avatar") return;
-  // Eleven lämnade in provet (#788): lugn text, inget firande (andra skriver än).
-  if (next?.fri && !prev?.fri) flash(next.fri === "klass" ? "Provet är inlämnat. Nu kan du jobba som vanligt."
-    : next.fri === "ovning" ? "Provet är inlämnat. Nu kan du öva." : "Provet är inlämnat.");
-  else if (las && !prev) flash(`🎯 Fokusläge: din klass jobbar med ${escHtml(las.label)} till ${las.klockslag}.`);
-  else if (las) flash(`🎯 Fokusläget ändrades: ${escHtml(las.label)} till ${las.klockslag}.`);
-  else if (!next && prev?.fri !== "klass") flash("Fokusläget är slut – nu är allt öppet igen! 🎉");
+  if (JSON.stringify(prev) !== JSON.stringify(next)) {
+    // Eleven lämnade in provet (#788): lugn text, inget firande (andra skriver än).
+    if (next?.fri && !prev?.fri) flash(next.fri === "klass" ? "Provet är inlämnat. Nu kan du jobba som vanligt."
+      : next.fri === "ovning" ? "Provet är inlämnat. Nu kan du öva." : "Provet är inlämnat.");
+    else if (las?.lock && !prev) flash(`🎯 Fokusläge: din klass jobbar med ${escHtml(las.label)} till ${las.klockslag}.`);
+    else if (las?.lock) flash(`🎯 Fokusläget ändrades: ${escHtml(las.label)} till ${las.klockslag}.`);
+    else if (!next && las?.schema) flash(`Fokusläget är slut – nu är det ${escHtml(las.label)} till ${svKlocka(las.klockslag)}.`);
+    else if (!next && prev?.fri !== "klass") flash("Fokusläget är slut – nu är allt öppet igen! 🎉");
+  } else schemaFlash(prevSchema, schema);
   renderTopbar();
   const dit = sparrMal(path, query, las, await getHiddenModules());
   if (dit) window.location.replace(dit);
@@ -393,7 +419,9 @@ function router(e) {
     if (seq !== routeSeq) return; // eleven hann navigera vidare
     const dit = sparrMal(path, aktuellRutt().query, las, dolda);
     if (!dit) return handler();
-    flash(las
+    flash(las?.schema && dit === las.home
+      ? `Just nu är det ${escHtml(las.label)}-lektion. Det här öppnas igen klockan ${svKlocka(las.klockslag)}.`
+      : las?.lock
       ? `🎯 Fokusläge: din klass jobbar med ${escHtml(las.label)} just nu.`
       : "Den delen är stängd för din klass just nu.");
     window.location.replace(dit);

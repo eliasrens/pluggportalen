@@ -226,6 +226,26 @@ export function nastaSchemaAndring(classes, meId, now) {
   return forst;
 }
 
+/**
+ * Vad elevens klient behöver hämta för schemaForStudent (#902, class-lock-watch.js):
+ * null = ingen av elevens klasser har ett aktiverat schema med lektioner (0 läsningar).
+ * Annars { amnen, omraden, nyckel }: ämnena behövs alltid (namn + gissad koppling);
+ * lektionsämnenas områden bara när Plugga-klassen ser hela biblioteket (omraden: true).
+ * `nyckel` ändras bara när behovet ändras (ny lektion i ett nytt ämne …).
+ */
+export function schemaInfoBehov(classes, meId) {
+  const egna = egnaKlasser(classes, meId);
+  const amnen = new Set();
+  for (const c of egna) {
+    const s = normalizeSchema(c.schema);
+    if (s?.pa) s.lektioner.forEach((l) => amnen.add(l.amne));
+  }
+  if (!amnen.size) return null;
+  const lista = [...amnen].sort();
+  const omraden = tilldelade(egna[0]).length === 0;
+  return { amnen: lista, omraden, nyckel: JSON.stringify([lista, omraden]) };
+}
+
 // --- Elevens schemaläge (B.4) ----------------------------------------------------
 
 /** Plugga-modulen (områdena) – listan är grindens `home`. */

@@ -124,16 +124,19 @@ export async function getHiddenModules() {
   }
 }
 
-// --- Fokusläget / klass-låset (#436) -----------------------------------------
-// Lås-logiken + bevakaren (onSnapshot på elevens klass-dokument) laddas
+// --- Fokusläget / klass-låset (#436) + veckoschemat (#902) -------------------
+// EN kombinerad grind: låset om det finns, annars veckoschemat, annars null
+// (klass-schema.js kombineradGrind). Lås-logiken + bevakaren (onSnapshot på
+// elevens klass-dokument) laddas
 // DYNAMISKT – aldrig i den statiska bootgrafen (#271). Fel → null (öppet):
 // ett trasigt lås ska aldrig låsa ute eleven från hela sidan.
 let lasModP = null;
 const lasLyssnare = new Set();
 
 /**
- * Elevens aktiva lås som grind-vy ({ home, label, klockslag, allows(path,q),
- * isTarget(path,q), allowsArea(subj,area) }) eller null. Efter första anropet
+ * Elevens aktiva grind ({ home, label, klockslag, allows(path,q), isTarget(path,q),
+ * allowsArea(subj,area), lock, schema }) eller null. `lock` = fokuslåset (null under
+ * en schemalektion), `schema` = lektionsläget (bara när inget lås gäller). Efter första anropet
  * svarar den ur minnet (ingen nätverksrunda per sidbyte).
  */
 export async function getLockGate() {
@@ -144,14 +147,15 @@ export async function getLockGate() {
       return null;
     }
     lasModP ||= import("./class-lock-watch.js").then((mod) => {
-      mod.onLockChange((next, prev) => {
-        const gate = mod.gateFor(next);
-        lasLyssnare.forEach((fn) => fn(gate, prev, next));
+      mod.onLockChange((next, prev, lage, prevLage) => {
+        const gate = mod.kombineradGrind(next, lage);
+        lasLyssnare.forEach((fn) => fn(gate, prev, next, prevLage, lage));
       });
       return mod;
     });
     const mod = await lasModP;
-    return mod.gateFor(await mod.lockForMe(meId));
+    await mod.lockForMe(meId);
+    return mod.aktuellGrind();
   } catch (err) {
     console.warn("Fokusläget kunde inte läsas – allt öppet:", err);
     lasModP = null;
@@ -160,8 +164,9 @@ export async function getLockGate() {
 }
 
 /**
- * Lyssna på lås-byten (lärare låser/låser upp, klockslaget passerar, eleven
- * lämnar in provet #788): fn(grind|null, förraLåset|null, nyttLåset|null).
+ * Lyssna på grind-byten (lärare låser/låser upp, klockslaget passerar, eleven
+ * lämnar in provet #788, en schemalektion börjar/slutar #902):
+ * fn(grind|null, förraLåset|null, nyttLåset|null, förraSchemat|null, nyttSchemat|null).
  */
 export function onLockChange(fn) {
   lasLyssnare.add(fn);
@@ -342,6 +347,7 @@ export async function renderTopbar() {
   const villkor = Object.fromEntries(await villkorP);
   // Fokusläget (#436) styr när det är aktivt: målet syns alltid (även om dess
   // modul annars är dold), resten bara om låset och modul-valet tillåter.
+  // Veckoschemat (#902) samma väg: isTarget är alltid falsk → bara spärrat döljs.
   const lankar = NAV_LANKAR.filter((l) => {
     if (!villkorSynlig(l, villkor, path)) return false;
     const synlig = !l.modul || !dolda.has(l.modul);
@@ -349,7 +355,8 @@ export async function renderTopbar() {
     const p = l.hash.slice(1);
     return las.allows(p) && (las.isTarget(p) || synlig);
   });
-  const fokusHtml = las
+  // Veckoschemat (#902) visar ingen fokusruta: spärrade moduler syns bara inte.
+  const fokusHtml = las?.lock
     ? `<a class="sido-fokus" href="${las.home}" title="Din lärare har låst klassen hit">
         <span class="sido-fokus-ikon" aria-hidden="true">🎯</span>
         <span class="sido-fokus-text">Fokus: <b>${escHtml(las.label)}</b>

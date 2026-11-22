@@ -250,7 +250,7 @@ export async function pageElevPlugga() {
   let subjects;
   let studentClass = null; // elevens klass – för tilldelning OCH lägessynlighet.
   let assigned = null; // Map "subjectId/areaId" → tilldelningsraden om klassen har tilldelning, annars null.
-  let las = null; // fokusläget (#436): aktivt klass-lås → bara målområdet listas
+  let las = null; // fokusläget (#436): aktivt klass-lås → bara målområdet listas; veckoschemat (#902): lektionens ämne
   let progress = {}; // studentData.progress – cachad läsning, samma som sidomenyn (#231)
   try {
     // Elevens klass (för att ev. filtrera på tilldelade områden) parallellt med ämnen.
@@ -276,11 +276,14 @@ export async function pageElevPlugga() {
   }
   const mod = await framstegMod;
 
+  const lektion = las?.schema ? las : null; // veckoschemat (#902): lektionens ämnen
   const areaCards = [];
   for (const [subjIndex, subj] of subjects.entries()) {
+    if (lektion && !lektion.schema.amnen.includes(subj.id)) continue; // andra ämnen läses inte ens
     const areas = await data.getAreas(subj.id);
     for (const a of areas) {
-      // Fokusläge (#436)? Visa BARA låsets mål. Annars: har klassen en
+      // Fokusläge (#436)? Visa BARA låsets mål. Schemalektion (#902)? Bara
+      // lektionens ämnesområden (som klassen ser). Annars: har klassen en
       // tilldelning? Visa då BARA de tilldelade områdena.
       if (las) {
         if (!las.allowsArea(subj.id, a.id)) continue;
@@ -294,10 +297,14 @@ export async function pageElevPlugga() {
     }
   }
 
+  if (lektion) las = null; // rubriken: vänlig rad, ingen låsikon (inget straff)
+  const klocka = (hhmm) => String(hhmm || "").replace(/^0(?=\d)/, "").replace(":", ".");
   const view = el(`<div>
     <div class="pl-huvud">
       <h1>${las ? "Fokus just nu" : "Plugga"}</h1>
-      <p>${las
+      <p${lektion ? ' class="pl-lektion"' : ""}>${lektion
+        ? `📅 Nu är det <b>${escHtml(lektion.label)}</b> till ${klocka(lektion.klockslag)}`
+        : las
         ? `Din lärare har låst klassen till <b>${escHtml(las.label)}</b> till ${las.klockslag}. Sen är allt öppet igen!`
         : assigned
         ? "Din lärare har valt ut det här åt klassen."
@@ -305,7 +312,9 @@ export async function pageElevPlugga() {
     </div>
     <div class="sektion-rubrik"><h2>Dina områden</h2></div>
     <div class="kompakt-grid">
-      ${areaCards.join("") || '<p class="hint">Inga arbetsområden ännu. Be din lärare fylla på innehåll.</p>'}
+      ${areaCards.join("") || (lektion
+        ? `<p class="hint">Det finns inga områden att öva på i ${escHtml(lektion.label)} just nu.</p>`
+        : '<p class="hint">Inga arbetsområden ännu. Be din lärare fylla på innehåll.</p>')}
     </div>
   </div>`);
 
