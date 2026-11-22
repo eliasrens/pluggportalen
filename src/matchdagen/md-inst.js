@@ -12,32 +12,43 @@
 //   klocka:    0 | 30 | 60          sekunder per fråga, 0 = av (standard)
 //   lugnt:     bool                 lugnt läge: färre effekter, ingen publik
 //   paus:      0 | 30 | 45 | 60     minuter till "Dags för en paus", 0 = av (standard 60)
+//   foljPlugga: bool                "Samma som Plugga" (#899): omraden/rakna ignoreras och räknas
+//                                   fram ur det eleven ser (delat/md-synlighet.js). Saknas = false.
 //   updatedAt, updatedBy            serverns tid + lärarens uid (sätts av md-inst-data.js)
 //
 // Åtkomsten (på/av) bor INTE här utan i classes/{id}.enabledModules (hela klassen, #876)
 // och classes/{id}.elevModuler (per elev, #867) – gamemode-visibility.js.
 // Klassens inställningar (#876): classes/{id}.matchdagenInst i samma form. Eleven spelar med
-// sina EGNA om de finns, annars klassens, annars STANDARD_FRAGOR (tabellerna 0–10) – effektivInst.
+// sina EGNA om de finns, annars klassens, annars STANDARD_FRAGOR – effektivInst.
+// #899: STANDARD_FRAGOR är "Samma som Plugga"; utan synliga områden med underlag blir det
+// tabellerna 0–10 som förr (delat/md-synlighet.js effektivaKallor, kalla "standard").
+// Källorna som faktiskt används = de valda ∩ elevens synliga områden (md-synlig.js, servern samma).
 // Frågekällorna läses av md-fragor.js i Etapp 1b; kallNycklar() är nycklarna i
 // statistikens perKalla (spec §6.1).
 // ============================================================================
 
 import { normalizeElevModuler, normalizeEnabledModules } from "../gamemode-visibility.js";
+import { MAX_OMRADEN } from "./delat/md-synlighet.js";
+
+export { MAX_OMRADEN };
 
 export const MODUL = "matchdagen";
 export const SVARSSATT = ["flerval", "skriv"];
 export const KLOCKA_VAL = [0, 30, 60];
 export const PAUS_VAL = [0, 30, 45, 60];
 export const TABELLER = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-export const MAX_OMRADEN = 60;
-export const INGA_FRAGOR = "Din lärare har inte valt några frågor än";
+export const INGA_FRAGOR = "Din lärare behöver välja frågor till Matchdagen";
+export const SAMMA_SOM_PLUGGA = "Samma som Plugga";
 
 export const STANDARD_INST = Object.freeze({
-  omraden: [], tabeller: [], rakna: [], svarssatt: "flerval", klocka: 0, lugnt: false, paus: 60,
+  omraden: [], tabeller: [], rakna: [], svarssatt: "flerval", klocka: 0, lugnt: false, paus: 60, foljPlugga: false,
 });
 
-/** Utan egna och klassens inställningar (#876): multiplikationstabellerna 0–10, resten som standard. */
-export const STANDARD_FRAGOR = Object.freeze({ ...STANDARD_INST, tabeller: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] });
+/**
+ * Utan egna och klassens inställningar (#899): "Samma som Plugga". Ser eleven inga områden med
+ * underlag blir det multiplikationstabellerna 0–10 (som före #899 – effektivaKallor).
+ */
+export const STANDARD_FRAGOR = Object.freeze({ ...STANDARD_INST, foljPlugga: true });
 
 /** Områdets nyckel i omraden/rakna: "ämne/område" (samma som fokuslåsets mal.id). */
 export const omradeNyckel = (subjectId, areaId) => `${subjectId}/${areaId}`;
@@ -56,7 +67,7 @@ function nycklar(v) {
 /**
  * Hela inställningen med standardvärden för det som saknas eller är ogiltigt.
  * @param {*} raw  matchdagenInst-dokumentet (eller null)
- * @returns {{omraden:string[], tabeller:number[], rakna:string[], svarssatt:string, klocka:number, lugnt:boolean, paus:number}}
+ * @returns {{omraden:string[], tabeller:number[], rakna:string[], svarssatt:string, klocka:number, lugnt:boolean, paus:number, foljPlugga:boolean}}
  */
 export function normalizeInst(raw) {
   const r = raw && typeof raw === "object" ? raw : {};
@@ -69,6 +80,7 @@ export function normalizeInst(raw) {
     klocka: KLOCKA_VAL.includes(r.klocka) ? r.klocka : STANDARD_INST.klocka,
     lugnt: r.lugnt === true,
     paus: PAUS_VAL.includes(r.paus) ? r.paus : STANDARD_INST.paus,
+    foljPlugga: r.foljPlugga === true, // gamla sparade inställningar saknar fältet = "Välj områden själv"
   };
 }
 
@@ -81,10 +93,13 @@ export function sammaInst(a, b) {
   return nyckel(a) === nyckel(b);
 }
 
-/** Har läraren valt minst en frågekälla? Annars kan ingen match startas (§2). */
+/**
+ * Har läraren valt minst en frågekälla? Annars kan ingen match startas (§2). "Samma som Plugga"
+ * räknas som en källa – om den ger några frågor avgör synligheten (effektivaKallor).
+ */
 export function harKallor(inst) {
   const i = normalizeInst(inst);
-  return i.omraden.length + i.tabeller.length + i.rakna.length > 0;
+  return i.foljPlugga || i.omraden.length + i.tabeller.length + i.rakna.length > 0;
 }
 
 /** Källornas nycklar (statistikens perKalla): omrade:ä/o, tabell:7, rakna:ä/o. */
@@ -162,9 +177,10 @@ export function nyaEnabledModules(cls, pa) {
 export function sammanfattning(inst) {
   const i = normalizeInst(inst);
   const delar = [];
-  if (i.omraden.length) delar.push(`${i.omraden.length} ${i.omraden.length === 1 ? "område" : "områden"}`);
+  if (i.foljPlugga) delar.push(SAMMA_SOM_PLUGGA);
+  else if (i.omraden.length) delar.push(`${i.omraden.length} ${i.omraden.length === 1 ? "område" : "områden"}`);
   if (i.tabeller.length) delar.push(`${i.tabeller.length === 1 ? "tabell" : "tabellerna"} ${i.tabeller.join(", ")}`);
-  if (i.rakna.length) delar.push(`${i.rakna.length} Räkna`);
+  if (!i.foljPlugga && i.rakna.length) delar.push(`${i.rakna.length} Räkna`);
   if (!delar.length) delar.push("inga frågor valda");
   if (i.svarssatt === "skriv") delar.push("skriv själv");
   if (i.klocka) delar.push(`klocka ${i.klocka} s`);
@@ -181,8 +197,9 @@ export function fragorText(inst) {
   const i = normalizeInst(inst);
   if (!harKallor(i)) return `${INGA_FRAGOR}.`;
   const delar = [];
-  if (i.omraden.length) delar.push(i.omraden.length === 1 ? "ett Plugga-område" : `${i.omraden.length} Plugga-områden`);
+  if (i.foljPlugga) delar.push("områdena du ser i Plugga");
+  else if (i.omraden.length) delar.push(i.omraden.length === 1 ? "ett Plugga-område" : `${i.omraden.length} Plugga-områden`);
   if (i.tabeller.length) delar.push(`${i.tabeller.length === 1 ? "tabell" : "tabellerna"} ${ochLista(i.tabeller)}`);
-  if (i.rakna.length) delar.push(i.rakna.length === 1 ? "ett Räkna-område" : `${i.rakna.length} Räkna-områden`);
+  if (!i.foljPlugga && i.rakna.length) delar.push(i.rakna.length === 1 ? "ett Räkna-område" : `${i.rakna.length} Räkna-områden`);
   return `Dina frågor kommer från ${delar.length > 1 ? `${delar.slice(0, -1).join(", ")} samt ${delar.at(-1)}` : delar[0]}.`;
 }

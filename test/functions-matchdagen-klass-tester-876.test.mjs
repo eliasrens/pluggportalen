@@ -41,6 +41,9 @@ async function match(fran, till) {
 
 describe("Matchdagen för hela klassen i vänskapsmatcherna (#876)", () => {
   it("klassen på: Cia (bara klassen) kan utmana och antas; utan klassens inst → tabellerna 0–10", async () => {
+    // #899: utan inställningar gäller "Samma som Plugga" – tabellerna 0–10 bara när klassen inte ser
+    // något område med frågor (här ett område som inte finns).
+    await db.doc(`classes/${KLASS}`).update({ assignedAreas: [{ subjectId: "mvso", areaId: "finnsinte-876" }] });
     const id = await match(CIA, ANNA);
     assert.ok(id);
     const k = await kallor(id, CIA);

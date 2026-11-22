@@ -17,10 +17,12 @@
 // cache) och kompisarnas namn ur classProjections – EN läsning, först när fliken öppnas.
 // #878: sidan klarar en gammal cachad md-inst.js (versionsglapp precis efter en deploy).
 // #880: elevens årskurs för Topplistan ur klassnamnet (klasserna med Matchdagen, ingen läsning).
+// #899: källorna som används = de valda ∩ det eleven ser i Plugga, och "Samma som Plugga"
+// räknas fram ur synligheten (md-synlig.js) – Plugga-listans cachade läsningar, en gång här.
 // ============================================================================
 
 import { app, renderTopbar } from "../ui.js";
-import { currentStudentId, ensureClassProjection, getArea, getClasses, getStudentData } from "../data.js";
+import { currentStudentId, ensureClassProjection, getArea, getAreas, getClasses, getStudentData, getSubjects } from "../data.js";
 import { elevArskurs } from "./delat/md-topplista.js";
 
 let aktiv = null; // sidans AbortController – avbryts när eleven lämnar sidan
@@ -51,6 +53,7 @@ export async function pageMatchdagen() {
   const uid = currentStudentId();
   let instFel = false;
   let glapp = false; // #878: en ny modul bredvid en gammal cachad (se nedan)
+  let klassFel = false; // #899: utan klasslistan vet vi inte vad eleven ser – då inga områden alls
   const [, egenInst, sd, data, { startaMatchdagen }, klasser, mdInst] = await Promise.all([
     renderTopbar(),
     import("./md-inst-data.js").then((m) => m.lasInst(uid)).catch((err) => {
@@ -63,7 +66,7 @@ export async function pageMatchdagen() {
     getStudentData().catch(() => null),
     import("./md-data.js"),
     import("./md-app.js"),
-    getClasses().catch(() => []),
+    getClasses().catch(() => { klassFel = true; return []; }),
     import("./md-inst.js"),
   ]);
   if (ac.signal.aborted) return;
@@ -74,7 +77,25 @@ export async function pageMatchdagen() {
   // i stället för "Matchdagen kunde inte laddas" (utan egna: be eleven ladda om).
   const { harMatchdagen, effektivInst } = mdInst;
   if (typeof effektivInst !== "function") glapp = true;
-  const inst = instFel ? null : glapp ? egenInst : effektivInst(egenInst, klasser, uid).inst;
+  const eff = instFel || glapp ? null : effektivInst(egenInst, klasser, uid);
+  let inst = instFel ? null : glapp ? egenInst : eff.inst;
+  // #899: aldrig frågor ur ett område eleven inte ser. De lästa områdena återanvänds av frågeströmmen.
+  let lasta = new Map();
+  if (inst) {
+    try {
+      const r = await (await import("./md-synlig.js")).losKallor({
+        inst, kalla: eff?.kalla || "egen", klasser, uid, hamta: { getSubjects, getAreas, getArea },
+        ...(klassFel ? { synliga: [] } : {}),
+      });
+      inst = r.inst;
+      lasta = r.omraden;
+    } catch (err) {
+      console.warn("Matchdagen: områdena eleven ser kunde inte läsas", err);
+      inst = null;
+      instFel = true;
+    }
+    if (ac.signal.aborted) return;
+  }
   const host = document.createElement("section");
   host.setAttribute("aria-label", "Matchdagen");
   app.replaceChildren(host);
@@ -84,7 +105,7 @@ export async function pageMatchdagen() {
     meddelande: instFel ? "Inställningarna kunde inte läsas just nu. Prova igen om en stund."
       : glapp ? "Pluggporten uppdaterades nyss. Vänta någon minut och ladda om sidan." : undefined,
     data,
-    hamtaOmrade: (s, a) => getArea(s, a),
+    hamtaOmrade: (s, a) => (lasta.has(`${s}/${a}`) ? Promise.resolve(lasta.get(`${s}/${a}`)) : getArea(s, a)),
     avatar: sd ? { avatarId: sd.avatarId, avatarItems: sd.avatarItems || [] } : null,
     tvinga2d: sok.get("2d") === "1",
     vanskap: vanskapFor(klasser, uid, harMatchdagen),
