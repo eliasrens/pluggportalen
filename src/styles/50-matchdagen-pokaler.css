@@ -4,6 +4,7 @@
    tabellen, introt "FINALEN", firandet i 2D (flaggor, fyrverkerier, pokalen
    som lyfts) och legendklubben. Samma kvällsarena som 49-matchdagen-match.css.
    Lugnt läge (.lugnt) och prefers-reduced-motion: inga rörelser.
+   #880: fliken Topplista (årskursknapparna och tabellen).
    ========================================================================== */
 
 /* --- Sidhuvudet: klubbmärket och namnet ----------------------------------- */
@@ -111,4 +112,23 @@
   /* fem flikar sedan Pokalskåpet: smalare knappar, och de bryts hellre än sticker ut */
   .md-flikar { gap: 4px; }
   .md-flikar button { flex: 1 1 auto; min-width: 0; padding: 8px 4px; font-size: 13px; }
+}
+
+/* --- Topplistan per årskurs (#880) ----------------------------------------- */
+.md-ak { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0; }
+.md-ak button {
+  min-height: 44px; min-width: 64px; padding: 6px 14px; border-radius: 12px; border: 1px solid var(--md-linje);
+  background: var(--md-panel2); font-weight: 800;
+}
+.md-ak button[aria-pressed="true"] { background: var(--md-gul); color: #1b1500; border-color: var(--md-gul); }
+.md-topp-tabell td:first-child { font: 800 20px var(--md-rubrikfont); }
+.md-topp-tabell tr.etta td:first-child { color: var(--md-gul); }
+.md-topp-namn { display: block; font-weight: 800; }
+.md-topp-lag { display: block; color: var(--md-svag); font-size: 13px; }
+.md-topp-stjarnor { color: var(--md-gul); }
+.md-topplista .md-slut { margin-top: 12px; }
+.md-topp-tid { margin: 10px 0 0; font-size: 13px; }
+@media (max-width: 640px) {
+  .md-topp-tabell th, .md-topp-tabell td { padding: 6px 4px; }
+  .md-topp-tabell td:nth-child(3) { white-space: normal; }
 }
