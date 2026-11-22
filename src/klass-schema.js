@@ -271,7 +271,7 @@ export function amnetsInnehall(klass, amne, { amnenMedOmraden = null, subjects =
 export function schemaForStudent(classes, meId, now, opts = {}) {
   const egna = egnaKlasser(classes, meId);
   if (!egna.length) return null;
-  const dolda = modulesHiddenForStudent(classes, meId);
+  const dolda = modulesHiddenForStudent(egna, meId); // bara elevens klasser (tål trasiga poster)
   // Synliga områden = Plugga-listans: den första klassen (samma lista prövas och grindas).
   const synliga = tilldelade(egna[0]);
   const amnen = [];

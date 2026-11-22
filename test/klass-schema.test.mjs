@@ -63,6 +63,21 @@ describe("normalizeSchema: säker form eller null", () => {
     assert.deepEqual(normalizeLektion(L({ start: "00:00", slut: "23:59", amne: "x".repeat(100) })),
       L({ start: "00:00", slut: "23:59", amne: "x".repeat(100) }));
   });
+  it("skräp skrivet förbi klienten släpps utan att kasta", () => {
+    const skrap = [null, undefined, 7, "lektion", true, [], [L()], {}, { id: "x" },
+      { ...L(), dag: null }, { ...L(), start: null }, { ...L(), slut: undefined }, { ...L(), amne: null },
+      { ...L(), id: 5 }, { ...L(), id: null }, { ...L(), start: { h: 9 } }, { ...L(), dag: [1] },
+      { ...L(), start: "10:00", slut: "09:00" }, { ...L(), dag: -1 }, { ...L(), dag: Infinity }, { ...L(), dag: NaN },
+      Object.create(null)];
+    const s = normalizeSchema({ pa: true, lektioner: [...skrap, L({ id: "ok" })], koppling: { lasresan: { x: 1 }, brakresan: [] } });
+    assert.deepEqual(s.lektioner, [L({ id: "ok" })]);
+    assert.deepEqual(s.koppling, {});
+    const k = klass({ pa: true, lektioner: skrap });
+    assert.equal(aktivLektion(k, MAN_VINTER), null);
+    assert.equal(schemaForStudent([k], "e1", MAN_VINTER), null);
+    assert.equal(nastaSchemaAndring([k], "e1", MAN_VINTER), null);
+    assert.equal(schemaForStudent([null, 3, { id: "x" }, k], "e1", MAN_VINTER), null, "trasiga klasser");
+  });
   it("dubblerat lektions-id: den första gäller", () => {
     const s = normalizeSchema(pa([L(), L({ dag: 2 })]));
     assert.deepEqual(s.lektioner, [L()]);

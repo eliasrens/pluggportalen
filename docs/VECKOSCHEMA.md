@@ -34,12 +34,24 @@ Det är ett slags fokusläge, fast ändå inte: det låser inte till ett mål ut
 
 **Behörighet** ([BEHORIGHETER.md](BEHORIGHETER.md)): samma lärare som får ändra klassens
 fokusläge (`hasClass`, även årskurskontot för sina klasser). Eleverna läser klassdokumentet
-som i dag. Reglerna prövar formen (exakt fälten, `pa` bool, högst 60 lektioner, kopplingens
-nycklar och värden, `updatedAt` = serverns tid, `updatedBy` = läraren).
-**Lektionernas innehåll** (dag, tider, ämne) prövas i klienten: reglerna kan inte loopa,
-och en kontroll per lektion, utrullad 60 gånger, når reglernas gräns på 1000 uttryck redan
-vid cirka tio lektioner (uppmätt i emulatorn). `normalizeSchema` släpper en ogiltig
-lektion, så den gör ingenting hos eleven. Bara klassens lärare kan skriva.
+som i dag och skriver det aldrig.
+
+| Gräns | Var den prövas |
+| --- | --- |
+| vem som skriver (`hasClass`) | reglerna |
+| exakt fälten `pa`, `lektioner`, `koppling`, `updatedAt`, `updatedBy`; `pa` bool | reglerna |
+| `lektioner` en lista med högst 60 | reglerna (+ klienten: fler = inget schema) |
+| `koppling`: bara kända nycklar, värdet ett ämnes-id ≤ 100 tecken eller `null` | reglerna (+ klienten) |
+| `updatedAt` = serverns tid, `updatedBy` = den som skriver | reglerna |
+| varje lektion: exakt fälten, `id`, `dag` 1–5, `"HH:MM"`, `start < slut`, `amne` ≤ 100 tecken | **bara klienten** (`normalizeSchema`) |
+| inget överlapp samma dag | **bara klienten** (`lektionKrock`, lärarsidan) |
+
+**Varför lektionerna bara prövas i klienten:** reglerna kan inte loopa, och en kontroll per
+lektion, utrullad 60 gånger, når reglernas gräns på 1000 uttryck redan vid cirka tio
+lektioner (uppmätt i emulatorn, #900). Samma sak gäller Prov `fragor`, som också prövas i
+klienten (`validateProv`). `normalizeSchema` släpper en ogiltig lektion – fel typer,
+saknade fält, `start ≥ slut`, `dag` utanför 1–5 – utan att kasta, så en lektion som skrivits
+förbi klienten gör ingenting hos eleven. Bara klassens lärare kan skriva.
 
 ## Tiden
 
