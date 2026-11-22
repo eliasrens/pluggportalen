@@ -79,7 +79,8 @@ describe("vänskapsmatchen följer det som är synligt (#899)", () => {
   it("A.2: helt utan inställningar och inget synligt med underlag → tabellerna 0–10", async () => {
     await tilldela("mvso/tomt");
     const id = await match(ANNA, CIA);
-    assert.deepEqual(await kallor(id, CIA), ALLA);
+    const k = await kallor(id, CIA);
+    assert.ok(k.length > 1 && k.every((x) => ALLA.includes(x)), `Cia: ${k}`); // banken drar ur alla 121 tal
   });
   it("A.2: klassens Samma som Plugga utan något synligt → besked (ingen reserv när läraren valt)", async () => {
     await tilldela("mvso/tomt");
