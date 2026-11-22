@@ -190,12 +190,12 @@ describe("matchdagen/{uid} – runda 3: F6 och F7 (Testern #871)", () => {
       const FULL = { ...kopia(KM), div: 7, kassa: 6000, reserver: [gp(11, "FÖR"), gp(12, "MIT"), gp(13, "MIT"), gp(14, "MV"), kopt("kr", "MIT", st)] };
       await seed(FULL);
       const ut = kop(FULL, SALU.id, { slapp: "kr" }).K;
-      const ratt = 6000 - 1210 + Math.round([0, 150, 560, 1210, 2090, 3190][st] / 2);
+      const ratt = 6000 - 1210 + Math.round([0, 150, 560, 1210, 3150, 5200][st] / 2);
       if (ut.kassa !== ratt) throw new Error(`motorn ${ut.kassa} ≠ ${ratt}`);
       await assertSucceeds(ra(tillDok(ut)), `rätt kassa ${ratt}`);
       await seed(FULL);
       await assertFails(ra(tillDok(ut), { kassa: ratt + 1 }), "+1 kr");
-      await assertFails(ra(tillDok(ut), { kassa: 6000 - 1210 + 1600 }), "platta 1 600");
+      await assertFails(ra(tillDok(ut), { kassa: 6000 - 1210 + 2700 }), "platta 2 700"); // över varje halva priset (#890: högst 2 600)
     });
   }
 });
@@ -235,7 +235,7 @@ describe("matchdagen/{uid} – återstående gränser (diagnostik, ingen assert)
       trupp: G.trupp.map((p, j) => (j === 0 ? MVK : j === 5 ? R5 : p)), reserver: [mv, anf] };
     await prova("köp MV 3★ + byt in köpt 5★-reserv, kassa 6000 − 1210 (rätt)", ra(tillDok(N), { kassa: 4790 }));
     await seed(G);
-    await prova("samma men kassa 6000 − 1210 + 1595 = 6385 (+385, reserven räknad som såld)", ra(tillDok(N), { kassa: 6385 }));
+    await prova("samma men kassa 6000 − 1210 + 2600 = 7390 (+1 390, reserven räknad som såld; #890 5★ 5 200)", ra(tillDok(N), { kassa: 7390 }));
   });
   it("storleken (spec ≤ 200 kB): fält från 1c/2a som inte prövas innehållsmässigt", async () => {
     const STOR = "x".repeat(150 * 1024);

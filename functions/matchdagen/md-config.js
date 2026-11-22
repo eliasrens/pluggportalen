@@ -117,11 +117,12 @@ export const LAGDELAR = ["MV", "FÖR", "MIT", "ANF"];
 export const RESERVER_MAX = 5;
 /**
  * Marknaden (§8.3): antal spelare till salu (nya efter varje match), stjärnorna
- * kl(avrunda(slump(min; bas + div × perDiv)); min; max) och priset
- * avrunda(bas × st^exponent; avrunda). En köpt spelare som ersätts säljs för salj × priset.
+ * kl(avrunda(slump(min; bas + div × perDiv)); min; max) och priset per stjärnor (pris[st], #890:
+ * 1★–3★ som 150 × st^1,9 – §12-ekonomin – men 4★ och 5★ dyrare, så toppen är svår också på
+ * marknaden). En köpt spelare som ersätts säljs för salj × priset.
  * Tröjnumret (nr) lottas bland de lediga.
  */
-export const MARKNAD = { antal: 6, nr: { min: 11, max: 99 }, st: { min: 1, bas: 3.2, perDiv: 0.3, max: 5 }, pris: { bas: 150, exponent: 1.9, avrunda: 10 }, salj: 0.5 };
+export const MARKNAD = { antal: 6, nr: { min: 11, max: 99 }, st: { min: 1, bas: 3.2, perDiv: 0.3, max: 5 }, pris: [0, 150, 560, 1210, 3150, 5200], salj: 0.5 };
 /**
  * Träningslägret (§8.4, #883): frågor per läger, träningspoäng per rätt svar, poängen som krävs
  * för att NÅ en stjärna (nyckeln = stjärnan man når: 1★ → 2★ kostar 50 … 4★ → 5★ 500), taket och
