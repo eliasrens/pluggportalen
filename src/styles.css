@@ -11092,3 +11092,159 @@ html.md-helskarm-sida .sidebar, html.md-helskarm-sida .hamburger, html.md-helska
 .mdv-vantar { text-align: center; color: var(--md-svag); font: 700 20px/1.3 var(--md-rubrikfont); }
 .mdv-slutres { margin: 4px 0 8px; font: 800 28px/1.1 var(--md-rubrikfont); color: var(--md-gul); }
 .md-fraga[data-rattar] { opacity: 0.75; }
+
+/* ── src/styles/52-larare-veckoschema.css ── */
+/* ==========================================================================
+   === Veckoschema #901 (docs/VECKOSCHEMA.md, Del C) ===
+   --------------------------------------------------------------------------
+   Sektionen längst ned i fliken Fokusläge: kryssrutan, raden om läget, veckan
+   (fem smala kolumner; en lista per dag när sektionen är smal) och den lilla
+   rutan "Lägg till lektion". Samma mörka tema som resten av lärarsidan, scopat
+   under .teacher-dark – inga horisontella scrollbars ner till 320 px.
+   ========================================================================== */
+.teacher-dark .vs { container-type: inline-size; min-width: 0; }
+.teacher-dark .vs-rubrik { margin: 0 0 10px; font-size: 1.1rem; }
+.teacher-dark .vs-topp {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+}
+.teacher-dark .vs-pa {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--t-border-strong);
+  border-radius: 12px;
+  background: var(--t-surface);
+  cursor: pointer;
+  max-width: 100%;
+}
+.teacher-dark .vs-pa input { width: 20px; height: 20px; margin: 1px 0 0; flex: none; accent-color: var(--t-accent); }
+.teacher-dark .vs-pa:hover { border-color: var(--t-accent); }
+.teacher-dark .vs-lage { margin: 10px 0; }
+.teacher-dark .vs-lage b { color: var(--t-text); }
+
+/* --- Veckan ---------------------------------------------------------------- */
+.teacher-dark .vs-vecka {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin: 6px 0 10px;
+  transition: opacity 0.15s;
+}
+.teacher-dark .vs-vecka.vs-blek { opacity: 0.55; }
+.teacher-dark .vs-vecka.vs-blek:hover,
+.teacher-dark .vs-vecka.vs-blek:focus-within { opacity: 0.8; }
+.teacher-dark .vs-dag {
+  min-width: 0;
+  padding: 8px;
+  border-radius: 10px;
+  background: var(--t-surface-2);
+}
+.teacher-dark .vs-dag-namn { margin: 0 0 6px; font-size: 0.9rem; color: var(--t-muted); }
+.teacher-dark .vs-dag-lang { display: none; }
+.teacher-dark .vs-dag-tom { margin: 0; color: var(--t-muted); }
+.teacher-dark .vs-kort-plats + .vs-kort-plats { margin-top: 6px; }
+.teacher-dark .vs-kort {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--t-border-strong);
+  border-radius: 8px;
+  background: var(--t-raised);
+  color: var(--t-text);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.teacher-dark .vs-kort:hover,
+.teacher-dark .vs-kort[aria-expanded="true"] { border-color: var(--t-accent); }
+.teacher-dark .vs-kort:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 2px; }
+.teacher-dark .vs-kort-not {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--t-muted);
+}
+.teacher-dark .vs-kort-borta .vs-kort-text { color: var(--t-muted); text-decoration: line-through; }
+.teacher-dark .vs-meny {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+/* --- Rutan Lägg till / Ändra lektion -------------------------------------- */
+.teacher-dark .vs-ruta {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--t-border-strong);
+  border-radius: 12px;
+  background: var(--t-surface);
+  max-width: 520px;
+}
+.teacher-dark .vs-ruta-titel { margin: 0 0 8px; font-size: 1rem; }
+.teacher-dark .vs-falt { display: flex; flex-wrap: wrap; gap: 8px 12px; }
+.teacher-dark .vs-falt label { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.teacher-dark .vs-dagar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 10px 0 0;
+  padding: 0;
+  border: 0;
+}
+.teacher-dark .vs-dagar legend { padding: 0; margin-bottom: 4px; color: var(--t-muted); }
+.teacher-dark .vs-dagar label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+.teacher-dark .vs-dagar input { width: 18px; height: 18px; margin: 0; accent-color: var(--t-accent); }
+.teacher-dark .vs-fel { display: block; margin: 8px 0 0; }
+.teacher-dark .vs-fel[hidden] { display: none; }
+.teacher-dark .vs-ruta-knappar { margin-top: 10px; }
+
+/* --- Ämneskopplingen (bara när gissningen misslyckas; annars ihopfälld) --- */
+.teacher-dark .vs-okanda { margin: 6px 0 10px; }
+.teacher-dark .vs-lank {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--t-accent);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.teacher-dark .vs-koppling { margin-top: 14px; color: var(--t-muted); font-size: 0.9rem; }
+.teacher-dark .vs-koppling summary { cursor: pointer; }
+.teacher-dark .vs-koppling-lista { display: grid; gap: 6px; margin-top: 8px; max-width: 480px; }
+.teacher-dark .vs-koppling-rad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 10px;
+}
+.teacher-dark .vs-koppling-rad .select { min-width: 0; max-width: 100%; }
+.teacher-dark [hidden].vs-vecka,
+.teacher-dark [hidden].vs-okanda,
+.teacher-dark [hidden].vs-lage,
+.teacher-dark [hidden].vs-koppling { display: none; }
+
+/* --- Smal sektion: en lista per dag ---------------------------------------- */
+@container (max-width: 560px) {
+  .teacher-dark .vs-vecka { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .teacher-dark .vs-dag { display: flex; gap: 8px; align-items: flex-start; }
+  .teacher-dark .vs-dag-namn { flex: none; width: 74px; margin: 6px 0 0; }
+  .teacher-dark .vs-dag-lektioner { flex: 1 1 auto; min-width: 0; }
+  .teacher-dark .vs-dag-kort { display: none; }
+  .teacher-dark .vs-dag-lang { display: inline; }
+  .teacher-dark .vs-dag-tom { padding-top: 6px; }
+}
+
+/* Klassväljarens 📅 (bredvid 🔒). */
+.teacher-dark .mk-schema { display: inline-flex; font-size: 0.95em; line-height: 1; }
