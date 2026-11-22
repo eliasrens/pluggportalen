@@ -16,11 +16,13 @@
 // sparad i localStorage (nyckel PASE_NYCKEL + uid) efter varje fråga, så den
 // håller över omladdningar och sessioner. Ändrar läraren innehållet börjar
 // källans påse om. Svårigheten är alltid elevens egen – inget hänger på divisionen.
+// mmSvar (md-mm.js, #879) följer med för frågeströmmen (vy/md-strom.js) – Mattematchen.
 // Laddas bara med import() – aldrig i bootgrafen (#271).
 // ============================================================================
 
 import { INGA_FRAGOR, harKallor, normalizeInst } from "./md-inst.js";
 import { omradeKalla, raknaKalla, rattaFraga, tabellKalla } from "./md-kallor.js";
+export { mmSvar } from "./md-mm.js";
 import { createTopicBag, hashSeed } from "../rakna-core.js";
 
 export { INGA_FRAGOR };

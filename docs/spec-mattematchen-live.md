@@ -1355,6 +1355,23 @@ Kända gränser:
   Live-svaret – det ger exakt vad ett svar på MM-sidan ger (taket 200 mynt/dag
   gäller), inget mer.
 
+## Matchdagen räknas in (#879)
+
+Samma regel för **Matchdagen** (Elias, #879): ett multiplikationssvar (tabellkällan, faktorer 0–10) räknas
+i elevens aktiva Mattematch, **utan mynt** (inga MM-mynt, inga pluggmynt; klubbkassan oförändrad). Andra
+källor och "tiden ute" räknas inte.
+
+* **Solospelet** (klienten rättar): `src/tavling/mm-live.js mmRaknaIn` – MM-delen ENSAM i en batch med ett
+  nytt `attemptId`, ankaret i `liveAnswers` (inget Live-svar finns). Reglerna är #847:s, oförändrade:
+  ankaret kan bara skapas (aldrig dubbelt), `mmMyntOk` betalar aldrig mot det, och eleven kan inget mer än
+  på MM-sidan.
+* **Vänskapsmatchen** (servern rättar, `mdSvar`): `mmForLive` + `mmLiveWrites` i svarets transaktion;
+  omförsöket svarar ur det sparade svaret.
+
+Kvoten per svar: solo som klientvägen ovan (rätt 4, fel 2 skrivningar), vänskap som servervägen (rätt 3,
+fel 1). En klass med 25 elever som spelar Matchdagen med bara tabellerna en lektion under en aktiv match ≈
+17 000 skrivningar (se docs/MATCHDAGEN.md §20.3).
+
 ---
 
 # LIVE OCH MATTEMATCHEN SKA HÅLLAS SEPARATA (ersatt 2026-11-13, #847 – se ovan)

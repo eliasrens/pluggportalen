@@ -317,6 +317,7 @@ allt i `src/matchdagen/plan/` laddas först när matchen startar. Stilarna: `src
 | `admin/md-balans-mastarcup.mjs` | balansen för Mästarcupen (§17.5) |
 | `preview/preview-matchdagen-pokaler.html` | förhandsvisning 3: skåpet och finalscenen utan Firebase (`PORT=8873 node server.mjs`; `?scen=skap\|final\|mastare`, `?lyft=mastarcup\|superliga`, `?skap=tomt\|fullt\|legend`, `?2d=1`, `?lugnt=1`, `?fps=1`); i `preview-matchdagen.html` (3): `?mastare=1` (sista omgången i Superligan), `?mc=1\|final\|vunnen` (`&slut=1`: finalen står 2 – 0 i 88:e minuten), `?legend=1` (en legendklubb med fullt skåp) |
 | `preview/preview-matchdagen-fragor.html` | förhandsvisning 1b: frågekortet + motorn som textmatch (`PORT=8868 node server.mjs`; `?svar=skriv`, `?klocka=30`, `?kallor=tabell\|omrade\|rakna\|klocka\|inga`) |
+| `src/matchdagen/md-mm.js` | ren: `mmSvar` – ett tabellsvar som Mattematchens svar; skrivningen i `md-data.js mmRaknaIn` → `src/tavling/mm-live.js` (§20, #879) |
 
 ## 9. Deploy
 
@@ -1155,3 +1156,56 @@ dig"), sist webben. Inga index, ingen datamigrering.
 - Inga ändringar i reglerna; functions bara via den synkade `md-namn.js`. Test: `test/matchdagen-sida-878.test.js` (sidan med stubbar, även
   med en "gammal" `md-inst.js`) och `test/matchdagen-helskarm-878.test.js`.
 
+## 20. Mattematchen räknas in (#879)
+
+Pågår en **Mattematch** för elevens klass räknas Matchdagens **multiplikationssvar** (tabellkällan `tabell:N`,
+faktorer 0–10 = `multiplication_0_10`) i Mattematchen – exakt som ett svar på MM-sidan och som Live (#847):
+rätt = +1 i `scores`, `studentStats` (`correct` + `c{t}`) och en shard i `classCounters`; fel = `incorrect` + `w{t}`.
+**Inga mynt** – varken MM-mynt eller pluggmynt; Matchdagens klubbkassa är oförändrad. Plugga- och Räkna-frågor
+räknas inte, inte heller en fråga där tiden tog slut (inget svar). Utan aktiv match (eller utanför perioden, pausad
+tävling, klassen inte med) händer ingenting. Spelkänslan är oförändrad – skrivningen väntas aldrig in.
+
+### 20.1 Solospelet (klienten)
+
+- Alla solofrågor (match, straffar, träningslägret) rättas i frågeströmmens `ratta` (`vy/md-strom.js`). Den skickar
+  varje **giltigt** tabellsvar till `S.data.mmRaknaIn` (`md-data.js`, laddar `src/tavling/mm-live.js` först då);
+  förhandsvisningens stubbe saknar funktionen → ingenting skickas.
+- `md-mm.js mmSvar(fraga, svar)` gör svaret till Live-lägets `answerRecord` `{ factorA, factorB, answer,
+  correctAnswer }` + `isCorrect` (samma rättning som spelet), annars `null`.
+- `mm-live.js mmRaknaIn`: aktiv match ur elevens bevakare (`mm-watch.js`, sidomenyn – inga läsningar), sedan
+  `planLiveMmWrites` med ett nytt `attemptId` och ankaret `mathCompetitions/{cid}/liveAnswers/{attemptId}`, i EN batch.
+- **Reglerna är oförändrade** – #847:s `liveAnswers`-regler godtar MM-delen ensam: aktiv tävling, perioden mot
+  `request.time`, klassen deltar, facit räknas om, räknarna exakt +1 i samma batch. Eleven kan alltså inte ge sig
+  själv mer än MM-sidan redan tillåter (där kan hen ändå svara på vilken tabellfråga som helst). Ankaret kan bara
+  skapas → ett omförsök räknas aldrig två gånger. `mmMyntOk` betalar bara mot `answers` → aldrig mynt.
+- Offline: batchen köas av Firestore och prövas av reglerna när den når servern (är perioden slut nekas den).
+
+### 20.2 Vänskapsmatchen (servern)
+
+`functions/md-vanskap-spel.js svar`: ett besvarat multiplikationsläge (bankens `r.s === "mult"`, inte tiden ute)
+anropar `mmForLive` (cachad, `functions/mattematchen-live.js`) och `mmLiveWrites` i **svarets transaktion**, efter
+lägets avgörande (läsningarna först). Svaret sparas i elevens privata dokument i samma transaktion och ett omförsök
+svarar ur det utan att skriva → aldrig dubbelt. Klassen = matchens klass, namnet = matchens namn för eleven,
+`lastAttemptId` = `md_{matchId}_{sida}{läge}`. Känd gräns: matchen räknas bara i en Mattematch där
+**matchens** klass deltar – går eleven i två klasser och tävlingen gäller den andra räknas vänskapssvaren inte
+(solospelet tar bevakarens klass). Namnet i `scores` är klassens projektionsnamn (`namnFor`); reglerna godtar
+ändå MM-sidans `students/{uid}.namn` vid nästa svar där.
+
+### 20.3 Kvoten
+
+| Väg | Läsningar | Skrivningar |
+| --- | --- | --- |
+| Solo, per tabellsvar | 0 i klienten (bevakaren finns redan); reglerna läser tävlingen, elevens namn och ankaret | rätt 4 (ankare, `studentStats`, `scores`, `classCounters`), fel 2 |
+| Vänskap, per tabellsvar | 0 per svar; aktiva matcher 1 fråga per instans och minut | rätt 3, fel 1 – i svarets transaktion |
+
+Svar utan aktiv match kostar ingenting. **Exempel:** en solomatch har ~28 frågor; med bara tabellerna (standard,
+`STANDARD_FRAGOR`) och ~80 % rätt ≈ 100 skrivningar per match. En klass med 25 elever som spelar en lektion (~6–7
+matcher) under en aktiv Mattematch ≈ **17 000 skrivningar** – lika mycket som om de svarat lika många gånger på
+MM-sidan, men nära gratiskvotens 20 000 per dag. Blandas källorna (Plugga, Räkna) blir det färre.
+
+Tester: `test/matchdagen-mm-879.test.js` (rena), `test/firestore-rules-matchdagen-mm-879.test.js`,
+`test/functions-matchdagen-mm-879.test.mjs`.
+
+### 20.4 Deploy
+
+**functions först** (`mdSvar` – vänskapsmatchen räknas in), sedan webben. Inga regler, inga index.
