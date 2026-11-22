@@ -15,7 +15,6 @@
 .mdv-inbjudan { border: 2px solid var(--md-gul); }
 .mdv-inbjudan h2 { font-size: 26px; }
 .mdv-kassa { margin: 10px 0 0; }
-.mdv-lamna { right: 104px; }
 .mdv-vantar { text-align: center; color: var(--md-svag); font: 700 20px/1.3 var(--md-rubrikfont); }
 .mdv-slutres { margin: 4px 0 8px; font: 800 28px/1.1 var(--md-rubrikfont); color: var(--md-gul); }
 .md-fraga[data-rattar] { opacity: 0.75; }

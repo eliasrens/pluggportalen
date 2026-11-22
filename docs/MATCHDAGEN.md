@@ -297,7 +297,7 @@ allt i `src/matchdagen/plan/` laddas först när matchen startar. Stilarna: `src
 | `src/matchdagen/md-app.js` | elevens app: sidhuvud med klubbkassan, flikarna, tillståndet och sparningen |
 | `src/matchdagen/md-data.js`, `md-lokal.js`, `md-spara.js` | Firestore (§10), det som sparas lokalt (pågående match, kön av osparade matcher) och kön + valet av karriär |
 | `src/matchdagen/vy/` | flikarna: `md-vy-match` (före avspark, ny klubb, säsongsslut), `md-match-spel` (matchen), `md-vy-tabell`, `md-vy-trupp`, `md-vy-stat`, `md-vy-klubb`, `md-vy-delat` |
-| `src/matchdagen/plan/` | planen (§12): `md-plan` (väljer 3D/2D, spelar upp händelserna), `md-formation` (ren), `md-tre-ritare`/`-arena`/`-figur` (3D), `md-plan-2d` (SVG-reserven), `md-ljud` (Web Audio) |
+| `src/matchdagen/plan/` | planen (§12): `md-plan` (väljer 3D/2D, spelar upp händelserna), `md-formation` (ren), `md-tre-ritare`/`-arena`/`-figur` (3D), `md-plan-2d` (SVG-reserven), `md-tre-kamera` (kamerans mål, ren), `md-tre-publik` (läktaren, #882) |
 | `src/matchdagen/larare/md-larare-stat.js`, `md-lagnamn.js` | lärarens underflik Matchdagen i Hur går det? och Återställ lagnamn (§13) |
 | `src/styles/49-matchdagen-match.css` | elevens app och matchvyn (kvällsarenan) |
 | `src/matchdagen/delat/md-straffar.js`, `md-kval.js` | ren: straffläggningen och kvalet (§14, #870) |
@@ -464,13 +464,18 @@ Vänskapsmatcher: Etapp 4.
 - **Spelarna** (`md-tre-figur.js`): ben, skor, strumpor, shorts, tröja, armar, huvud och hår ur enkla former,
   sammanslagna med vertexfärger till **6 ritanrop per spelare**, blob-skugga, springanimation, vänder sig mot
   bollen, målvakter i egna färger, kaptensbindel och elevens avatarbricka (`kg-avatar-bild.js`) över kaptenen.
-- **Kameran:** tv-kamera från långsidan som mjukt följer bollen och zoomar in kort vid mål.
+- **Kameran** (`md-tre-kamera.js`, ren): tv-kamera från långsidan som mjukt följer bollen – dit den är på väg – längs
+  planen och på tvären, och zoomar in kort vid mål. #882: bollen och spelarna runt den ska alltid synas, också vid den
+  närmaste långsidan och i alla ytors proportioner (`test/matchdagen-kamera-882.test.js` projicerar med three).
+- **Läktaren** (`md-tre-publik.js`, #882): bänkrader i trappsteg och publiken som små figurer i spelarnas stil (kropp +
+  huvud), tre `InstancedMesh` = tre ritanrop, ingen textur. Vänstra halvan bär vår tröjfärg, högra motståndarnas, blandat
+  med neutrala jackor; finalen fullsatt. Vid mål hoppar den halva vars lag gjorde mål (inte i lugnt läge).
 - **Lugnt läge** (`matchdagenInst.lugnt`) **och `prefers-reduced-motion`:** fast kamera över hela planen,
-  ingen zoom eller skakning, spelare och boll hoppar direkt till sina platser, inget jubel eller sorl.
+  ingen zoom eller skakning, spelare och boll hoppar direkt till sina platser. Den fasta vyn backar på smala ytor så att
+  hela planen ryms (`lugnVy`).
 - **Prestandan:** ingen kantutjämning, pixeltäthet högst 1,5 och en pixelvakt som sänker den (×0,75, aldrig
   under 0,6) när fps < 45. Mätningarna står i rapporten.
-- **Ljudet** (`md-ljud.js`): Web Audio, inga ljudfiler – vissla, spark, jubel, räddning, publikens sorl. Knappen
-  av/på kommer ihåg valet i `localStorage`.
+- **Inget ljud** (#882, beslut av Elias): Matchdagen spelar inga ljud och har ingen ljudknapp (`md-ljud.js` borttagen).
 - Testat i `test/matchdagen-plan.test.js` (2D utan WebGL och när three inte laddas, lugnt läge, bootgrafen).
 
 ## 13. Elevens app och lärarens statistik (Etapp 1c, spec §6.3, §6.4, §14)
@@ -874,8 +879,7 @@ eftersom en cupmatch tar en ligamatchs plats i timmen.
 - **Sidhuvudet** visar klubbmärket (initialerna på en sköld i tröjfärgen) bredvid lagnamnet; märkets `aria-label` säger guldkanten och
   stjärnorna i ord.
 - **Finalen** (`skapaPlan({ final: true })`): finalens intro "FINALEN" över planen (`finalIntro`), en fullsatt
-  läktare med viftande flaggor (EN `InstancedMesh`, `md-tre-arena.js`), skyltar "FINALEN · MÄSTARCUPEN" och ett
-  större jubel (`md-ljud.js`, `final`). 2D-reserven har flaggorna som SVG.
+  läktare med viftande flaggor (EN `InstancedMesh`, `md-tre-arena.js`), skyltar "FINALEN · MÄSTARCUPEN". 2D-reserven har flaggorna som SVG.
 - **Firandet** (`plan.fest(pokal)`, §10.1–10.2): laget samlas vid mittcirkeln (`md-formation.js
   festUppstallning`), kaptenen lyfter pokalen (Superligans guldpokal eller Mästarcupens större silverpokal,
   `md-tre-fest.js`) och fyrverkerier (EN `Points`-mesh) i lugnt tempo, med en fanfar. **Lugnt läge:** inga

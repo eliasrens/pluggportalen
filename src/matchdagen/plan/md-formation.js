@@ -55,7 +55,8 @@ export function formation({ x, y, innehav = "oss", avspark = false }) {
       lag.forEach(([px, py], i) => { const d = (px - bx) ** 2 + (py - by) ** 2; if (i && d < nd) { nd = d; n = i; } });
       const har = (namn === "vi") === (innehav === "oss");
       const sida = namn === "vi" ? 1 : -1;
-      lag[n] = har ? [bx - 1.2 * sida, by] : [bx + 3.5 * sida, by + 1.5];
+      // Inom samma kant som resten av laget (#882): nära långsidan hamnade försvararen annars utanför 2D-planen.
+      lag[n] = [kl(har ? bx - 1.2 * sida : bx + 3.5 * sida, 3, PLAN_L - 3), kl(har ? by : by + 1.5, 3, PLAN_B - 3)];
       if (har) vid = { lag: namn, i: n };
     }
   }
