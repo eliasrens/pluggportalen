@@ -1562,6 +1562,13 @@ blir en enda, medan lobbyn visas. Det som återstår mellan två lägen är anim
 
 Skärmbilder: [`qa-matchdagen-895/`](qa-matchdagen-895/) – svaret står kvar under animationen, slutet för båda.
 
+**Testern, oberoende körning** (egen robot, två isolerade fönster, `admin/qa-matchdagen-874-preview.sh`, 29 lägen, ms):
+lobbyn öppnas → `varm` 1 688 (kall), sedan alla anrop varma: median 57/78, max 390 (utmana) och en `fraga` på 2 006
+(emulatorns låstimeout). Det sista svaret → nästa val: **median 1 363**, 54 av 56 under 1,7 s; de två över 4 s är halvtiden
+(robotens betänketid). Svaret → rättat 140/245. Hela matchen 191 s. En elev som inte svarar: läget avgörs 0,3 s efter
+kompisens gräns och nästa val syns 1,4 s senare. Omladdning mitt i matchen öppnar matchen igen ("Matchen fortsätter!"),
+och Lämna ger walkover på 1,5 s, med rätt text hos båda.
+
 ### 23.4 minInstances – inte påslaget
 
 `minInstances: 1` på `mdVanskap` skulle ta bort den sista kallstarten (~3 s när ingen spelat på ~15 minuter).
