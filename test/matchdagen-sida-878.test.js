@@ -23,7 +23,9 @@ const STUBBAR = {
   "../data.js": `export const currentStudentId = () => ${T}.uid;
     export const getClasses = () => ${T}.getClasses();
     export const getStudentData = async () => null;
-    export const getArea = async () => null;
+    export const getArea = async (s, a) => ${T}.area?.(s, a) ?? null;
+    export const getAreas = async () => [];
+    export const getSubjects = async () => [];
     export const ensureClassProjection = async () => ({ members: {} });`,
   "./md-inst-data.js": `export const lasInst = (uid) => ${T}.lasInst(uid);`,
   "./md-data.js": `export const lasKarriar = async () => null;`,

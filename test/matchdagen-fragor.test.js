@@ -81,8 +81,8 @@ function giltig(f) {
 }
 
 describe("inga frågor (§2)", () => {
-  it("inga valda källor → \"Din lärare har inte valt några frågor än\"", async () => {
-    assert.equal(F.INGA_FRAGOR, "Din lärare har inte valt några frågor än");
+  it("inga valda källor → \"Din lärare behöver välja frågor till Matchdagen\"", async () => {
+    assert.equal(F.INGA_FRAGOR, "Din lärare behöver välja frågor till Matchdagen");
     for (const inst of [null, {}, { omraden: [], tabeller: [], rakna: [] }]) {
       assert.deepEqual(await strom(inst), { tom: true, meddelande: F.INGA_FRAGOR });
     }

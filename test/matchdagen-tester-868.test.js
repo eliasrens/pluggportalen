@@ -100,7 +100,7 @@ describe("frågekällorna (tester #868)", () => {
   it("inga källor / bara tomma listor → meddelandet, ingen ström", async () => {
     for (const inst of [undefined, { omraden: [], tabeller: [], rakna: [] }, { tabeller: ["x", 99] }]) {
       const s = await F.skapaFragestrom({ inst, uid: "e", hamtaOmrade, lagring: minne() });
-      assert.deepEqual(s, { tom: true, meddelande: "Din lärare har inte valt några frågor än" });
+      assert.deepEqual(s, { tom: true, meddelande: "Din lärare behöver välja frågor till Matchdagen" });
     }
   });
 });

@@ -24,6 +24,7 @@ elever** eller (#876, §19) för **hela klassen**. Det här dokumentet växer me
 | #880 | Topplistan per årskurs: topp 5 i hela skolan, byggd av servern varje timme (§21) | klar |
 | #883 | Nya karriärer börjar på 1★, stjärnorna kostar 50/100/250/500 poäng, tre träningsläger per omgång, balansen (§22) | klar |
 | #895 | Vänskapsmatcherna snabbare: klockfelet, EN callable (`mdVanskap`), krockar utan väntan, svaret kvar under animationen (§23) | klar |
+| #899 | Matchdagen följer det som är synligt: aldrig frågor ur dolda områden, "Samma som Plugga" (ny standard), panelen visar vad som används (§24) | klar |
 
 ## 1. Moduler per elev (Etapp 1a)
 
@@ -88,8 +89,9 @@ sektionen `anpassningar` i `CLASS_SECTIONS`, laddas med `import()`). Beskrivning
 | `klocka` | 0, 30, 60 (sekunder) | 0 |
 | `lugnt` | bool | false |
 | `paus` | 0, 30, 45, 60 (minuter) | 60 |
+| `foljPlugga` | bool – "Samma som Plugga" (#899, §24); saknas = false | false (men standard utan inställningar = true, §24.2) |
 
-`harKallor(inst)` – utan källor visas "Din lärare har inte valt några frågor än" och ingen match kan startas.
+`harKallor(inst)` – utan källor visas "Din lärare behöver välja frågor till Matchdagen." (#899) och ingen match kan startas.
 `kallNycklar(inst)` ger statistikens nycklar (`omrade:ä/o`, `tabell:7`, `rakna:ä/o`) för `perKalla` i §6.1.
 
 Sparningen (`md-inst-data.js sparaAnpassning`) skriver `classes/{id}.elevModuler` (hela mapen, gamla elever
@@ -292,6 +294,8 @@ allt i `src/matchdagen/plan/` laddas först när matchen startar. Stilarna: `src
 | Fil | Vad |
 | --- | --- |
 | `src/matchdagen/md-inst.js` | ren: formen på `matchdagenInst`, `normalizeInst`, `harKallor`, `kallNycklar`, `nyaElevModuler`, `sammanfattning`, `fragorText`; #876: `klassPa`, `elevPa`, `harMatchdagen`, `klassInst`, `effektivInst`, `STANDARD_FRAGOR`, `nyaEnabledModules`, `sammaInst` |
+| `src/matchdagen/md-synlig.js` | #899: `losKallor` (elevens källor ∩ det synliga, Samma som Plugga med Plugga-listans cachade läsningar), `raderUrBibliotek` (panelen); bara `import()` |
+| `src/matchdagen/delat/md-synlighet.js` | #899, ren och delad med servern: `synligaOmraden`, `effektivaKallor`, `pluggaKallor`, `MAX_OMRADEN` (§24) |
 | `src/matchdagen/md-inst-data.js` | Firestore: `lasInst(uid)`, `sparaAnpassning(cls, uid, { pa, inst })`; #876: `sparaKlass`, `sparaElevModuler`, `foljKlassen` |
 | `src/matchdagen/page-matchdagen.js` | elevens sida (platshållare i 1a) |
 | `src/matchdagen/larare/md-anpassningar.js` | lärarens lista per elev |
@@ -1109,7 +1113,8 @@ Eleven spelar med:
 1. sina **egna** (`matchdagenInst/{uid}` finns) – gäller alltid före klassens;
 2. annars **klassens** – från den första av elevens klasser där eleven har Matchdagen och som har inställningar
    (annars den första med inställningar);
-3. annars **standard** (`STANDARD_FRAGOR`): multiplikationstabellerna 0–10, flerval, ingen klocka, paus 60 min.
+3. annars **standard** (`STANDARD_FRAGOR`): **sedan #899 "Samma som Plugga"** (§24.2) – multiplikationstabellerna
+   0–10 bara om eleven inte ser några områden med frågor; flerval, ingen klocka, paus 60 min.
 
 Klienten (`page-matchdagen.js`) och servern (`functions/md-vanskap-fragor.js effektivInst`, vänskapsmatchen –
 den använder matchens klass) räknar likadant. Gick elevens egna inte att läsa används inget av det (meddelandet
@@ -1614,3 +1619,87 @@ realtiden är för långsam.
 | --- | --- | --- |
 | Realtid (det här) | Deploy, mätning i drift med två datorer, ev. `minInstances`, slå på `VANSKAP.pausad` igen | ~0,5 dag |
 | Plan B – utmana kompisens lag | Kompisens lag (namn, färger, `lagbonus` ur truppen i `matchdagen/{uid}`) som motståndare i solomotorn med egna frågor; resultatet till kompisen efteråt (inbördes, ev. notis i lobbyn). Resultat och kassa måste skrivas av servern (en callable som spelar om/kontrollerar matchen, dagstak mot farmning) – klienten kan inte skriva i kompisens dokument. Delar: callable + regler (1–1,5 d), lobby/utmaningsvy + matchen med kompisens lag (1–1,5 d), tester/QA/docs (1 d) | ~3–4 dagar |
+
+## 24. Matchdagen följer det som är synligt (#899, Veckoschema Del A)
+
+Spec: `UTVECKLINGSUPPDRAG_VECKOSCHEMA.md` Del A (epic #898). Före #899 valdes frågekällorna för sig och tog ingen
+hänsyn till vad klassen ser i Plugga – Matchdagen kunde fråga om ett gammalt eller dolt område.
+
+### 24.1 Regeln (A.1): aldrig frågor från ett område eleven inte ser
+
+**Elevens synliga områden** = klassens `assignedAreas`, eller **hela biblioteket** när listan är tom eller saknas.
+Klassen är den som Plugga-listan använder (`pages-elev.js` → `getClassForStudent`): den **första** av klasserna i
+`getClasses`-ordningen (`order`, sedan namnet på svenska) som har eleven. En elev i flera klasser följer alltså
+samma klass som i Plugga.
+
+**De effektiva källorna = de valda ∩ de synliga**, både `omraden` och `rakna`. Multiplikationstabellerna är inga
+områden och rörs inte (Del E, schemat, kopplar dem till ett ämne).
+
+Den rena koden ligger i **`src/matchdagen/delat/md-synlighet.js`** (synkas till `functions/matchdagen/` med
+`npm run sync:matchdagen`, aldrig kopierad för hand): `elevensKlass`, `synligaOmraden`, `underlag`, `pluggaKallor`,
+`effektivaKallor`, `MAX_OMRADEN`. Den används:
+
+1. **hos eleven** – `page-matchdagen.js` → `md-synlig.js losKallor` när Matchdagen-sidan öppnas (före första
+   matchen); frågeströmmen (`md-fragor.js`) får de konkreta källorna;
+2. **på servern** – `functions/md-vanskap-lobby.js forbered` när en vänskapsmatch antas (båda elevernas källor).
+
+En match som redan pågår behåller sina källor till slutsignalen (källorna räknas en gång per sidbesök, och
+vänskapsmatchens bank ligger i facit). Ändringar slår igenom vid nästa sidbesök/match.
+
+### 24.2 "Samma som Plugga" (A.2) – ny standard
+
+Överst bland frågekällorna i **Anpassningar per elev** (per elev och för hela klassen):
+
+- **"Samma som Plugga – frågor från de områden eleven ser just nu"** (rekommenderat) → `foljPlugga: true`
+- **"Välj områden själv"** → `foljPlugga: false` (det som fanns före #899)
+
+Med `foljPlugga: true` ignoreras `omraden`/`rakna` (de sparas kvar, så att Välj själv kommer tillbaka som det var).
+Källorna är elevens synliga områden med underlag, samma grind som panelen (`areaContentFlags`): Plugga-område =
+quiz eller par, Räkna-område = generator (ett område med båda ger båda källorna). Byter läraren område i Plugga
+följer Matchdagen med. Multiplikationstabellerna är egna kryssrutor och kan kombineras med valet.
+
+**Taket** `MAX_OMRADEN` (60): de 60 **första synliga** områdena i klassens ordning (hela biblioteket: ämnenas
+`order`, sedan områdenas – som Plugga-listan) prövas; panelen säger "de 60 första används" när klassen ser fler.
+Samma regel på klienten och servern, så att servern aldrig läser fler än 60 områden.
+
+**Datamodellen:** `foljPlugga: bool` i `matchdagenInst/{uid}` och `classes/{id}.matchdagenInst`. Gamla sparade
+inställningar ändras inte – de saknar fältet och läses som `foljPlugga: false`. `normalizeInst`, `sammaInst`,
+`harKallor` (Samma som Plugga räknas som en källa), `sammanfattning` ("Samma som Plugga") och reglernas
+`validMatchdagenInst` (valfri bool) känner till fältet.
+
+**Den nya standarden.** Elever och klasser **helt utan inställningar** (varken egna eller klassens) får
+`STANDARD_FRAGOR` = "Samma som Plugga". Ser eleven inga områden med underlag blir det multiplikationstabellerna
+0–10 som före #899. Har läraren **själv** valt Samma som Plugga och klassen ser inget med frågor blir det ingen
+reserv, utan beskedet i §24.3.
+
+### 24.3 Panelen visar vad som faktiskt används (A.3)
+
+- **Välj områden själv:** ett valt område som inte är synligt för klassen står kvar men gråat med texten
+  "Dolt för klassen – används inte just nu". Synligheten i panelen är den klass läraren har öppen.
+- **Samma som Plugga:** en rad säger vad det ger just nu ("Just nu: 3 Plugga-områden och 1 Räkna-område som klassen
+  ser.") och taket när det nås.
+- **Inga frågor alls efter filtret:** överst i panelen "Inga frågor just nu …" med knappen
+  **"Byt till Samma som Plugga"** (byter valet och sparar).
+- **Eleven** får då ingen tom match utan beskedet `INGA_FRAGOR`: "Din lärare behöver välja frågor till Matchdagen."
+  Vänskapsmatchen svarar med samma text ("Din/Kompisens lärare behöver …") i stället för ett fel.
+
+### 24.4 Kvoten
+
+- **Eleven, Välj själv:** 0 nya läsningar (snittet räknas ur klassdokumentet i `getClasses`-cachen).
+- **Eleven, Samma som Plugga:** områdena läses med Plugga-listans cachade läsningar (`getArea` för de ≤ 60 tilldelade,
+  annars `getSubjects` + `getAreas` ämne för ämne tills taket är nått), en gång när sidan öppnas. Frågeströmmen läser
+  dem inte igen (de lästa följer med). Har eleven nyss varit i Plugga är de redan i cachen.
+- **Servern, per elev när en vänskapsmatch antas:** +1 fråga mot `classes` (elevens klasser, normalt 1 dokument) –
+  för att följa Plugga-listans klass. Områdena: högst `MAX_OMRADEN` (60) som förut. Samma som Plugga utan tilldelning:
+  `subjects` (ett dokument per ämne) + `areas` med `limit` så att högst 60 områden läses totalt.
+- **Läraren:** 0 nya läsningar (panelen räknar ur biblioteket som redan laddas).
+
+### 24.5 Deploy
+
+**Regler först (`firebase deploy --only firestore:rules`), sedan functions (`npm run sync:matchdagen` körs som
+predeploy), sedan webben.** Den nya webben skriver `foljPlugga`, som de gamla reglerna nekar (`hasOnly`) – lärarens
+Spara skulle misslyckas. Gamla webben med nya regler fungerar (fältet är valfritt). Functions före webben: annars
+räknar den gamla servern en klass/elev med Samma som Plugga som "inga källor" (gamla `normInst` ignorerar fältet).
+Under glappet med ny server och gammal webb får elever utan inställningar Samma som Plugga i vänskapsmatchen men
+tabellerna i solospelet tills webben är ute.
+

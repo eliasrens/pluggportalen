@@ -19,21 +19,26 @@
 //                  Ett visuellt räknesätt (klocka, statistik …) skickar uppgiften (problem, utan facit)
 //                  som JSON i `bild` – klienten ritar den med matte-visuals.js som i solospelet.
 // Källorna turas om med createTopicBag; en ändlig källa upprepar inget förrän den är slut.
+// #899: källorna = de valda ∩ elevens synliga områden, och "Samma som Plugga" (foljPlugga) räknas
+// fram ur synligheten – med SAMMA rena kod som klienten (matchdagen/md-synlighet.js, en kopia av
+// src/matchdagen/delat/). Utan några inställningar alls: "Samma som Plugga", annars tabellerna 0–10.
 //
-//   normInst(raw) · effektivInst(egen, klass) · harKallor(inst) · omradePool(area) · omradesNycklar(inst)
+//   normInst(raw) · effektivInst(egen, klass) · arStandard(egen, klass) · harKallor(inst) · omradePool(area)
+//   omradesNycklar(inst) · flaggor(area) (= gamemode-visibility.js areaContentFlags för källorna)
 //   byggKallor(inst, omraden) → källor          omraden: { "ämne/område": area | null }
 //   byggBank(kallor, { antal, rng, fro, svarssatt }) → [post]   post = { pub, kalla, r }
 //   ratta(post, svar) → { giltig, ratt, facit }   svar: index (flerval) eller text (skriv själv)
 // ============================================================================
 
 import { checkAnswer as raknaRatta, createProblemSource, createTopicBag, expectedAnswerText, hashSeed, problemDisplay } from "./matchdagen/kallor/rakna-core.js";
-import { normalizeGenerator } from "./matchdagen/kallor/exercise-types.js";
+import { hasGeneratorContent, normalizeGenerator } from "./matchdagen/kallor/exercise-types.js";
+import { MAX_OMRADEN } from "./matchdagen/md-synlighet.js";
 import { makeQuestion, multChoices } from "./matchdagen/kallor/mult/generator.js";
 import { gradeMult, gradeQuiz, KsError } from "./kistspel-rattning.js";
 
 /** Samma gränser som provets "Hämta från område" (src/prov/typer/delat.js GRANS) – testat. */
 export const GRANS = { fragetext: 1000, alternativ: 300 };
-export const MAX_OMRADEN = 60;
+export { MAX_OMRADEN };
 const PAR_ALTERNATIV = 4;
 const FAKTORER = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 /** Samma hjälptexter som solospelet (md-kallor.js TIPS). */
@@ -69,21 +74,31 @@ export function normInst(raw) {
     rakna: nycklar(r.rakna),
     svarssatt: r.svarssatt === "skriv" ? "skriv" : "flerval",
     klocka: [30, 60].includes(r.klocka) ? r.klocka : 0,
+    foljPlugga: r.foljPlugga === true,
   };
 }
+/** Konkreta källor (efter effektivaKallor) – "Samma som Plugga" räknas inte förrän den är uträknad. */
 export const harKallor = (i) => i.omraden.length + i.tabeller.length + i.rakna.length > 0;
+const klassensInst = (k) => {
+  const ki = k?.matchdagenInst;
+  return ki && typeof ki === "object" && !Array.isArray(ki) ? ki : null;
+};
 /**
  * Inställningarna eleven spelar med (#876, som md-inst.js effektivInst): egna, annars klassens
- * (classes/{id}.matchdagenInst), annars multiplikationstabellerna 0–10.
+ * (classes/{id}.matchdagenInst), annars standard = "Samma som Plugga" (#899).
  * @param {object|null} egen  matchdagenInst/{uid} (null = saknas)
  * @param {object|null} k     klassdokumentet
  */
 export function effektivInst(egen, k) {
   if (egen) return normInst(egen);
-  const ki = k?.matchdagenInst;
-  if (ki && typeof ki === "object" && !Array.isArray(ki)) return normInst(ki);
-  return normInst({ tabeller: FAKTORER });
+  return normInst(klassensInst(k) || { foljPlugga: true });
 }
+/** Inga inställningar alls – då blir det tabellerna 0–10 om eleven inte ser något med underlag. */
+export const arStandard = (egen, k) => !egen && !klassensInst(k);
+/** Källornas underlag (gamemode-visibility.js areaContentFlags: quiz, pairs, generator). */
+export const flaggor = (area) => ({
+  quiz: lista(area?.quiz).length > 0, pairs: lista(area?.pairs).length > 0, generator: hasGeneratorContent(area),
+});
 /** Områdena som ska läsas (subjects/{s}/areas/{a}) – Plugga och Räkna. */
 export const omradesNycklar = (i) => [...new Set([...i.omraden, ...i.rakna])];
 

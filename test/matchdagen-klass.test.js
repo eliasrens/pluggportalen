@@ -58,8 +58,8 @@ describe("Matchdagen för hela klassen (enabledModules)", () => {
 });
 
 describe("inställningarna eleven spelar med (effektivInst)", () => {
-  const klassens = { omraden: ["so/vikingar"], tabeller: [3], rakna: [], svarssatt: "skriv", klocka: 30, lugnt: true, paus: 45 };
-  const egna = { omraden: [], tabeller: [7], rakna: [], svarssatt: "flerval", klocka: 0, lugnt: false, paus: 60 };
+  const klassens = { omraden: ["so/vikingar"], tabeller: [3], rakna: [], svarssatt: "skriv", klocka: 30, lugnt: true, paus: 45, foljPlugga: false };
+  const egna = { omraden: [], tabeller: [7], rakna: [], svarssatt: "flerval", klocka: 0, lugnt: false, paus: 60, foljPlugga: false };
   const k = (over = {}) => ({ id: "3a", studentIds: ["alva"], enabledModules: [MD], matchdagenInst: klassens, ...over });
   it("egna går före klassens", () => {
     assert.deepEqual(effektivInst(egna, [k()], "alva"), { inst: egna, kalla: "egen" });
@@ -67,12 +67,12 @@ describe("inställningarna eleven spelar med (effektivInst)", () => {
   it("utan egna: klassens", () => {
     assert.deepEqual(effektivInst(null, [k()], "alva"), { inst: klassens, kalla: "klass" });
   });
-  it("utan egna och utan klassens: multiplikationstabellerna 0–10", () => {
+  it("utan egna och utan klassens: Samma som Plugga (#899; tabellerna 0–10 avgörs av synligheten)", () => {
     const r = effektivInst(null, [k({ matchdagenInst: undefined })], "alva");
     assert.equal(r.kalla, "standard");
-    assert.deepEqual(r.inst, { ...STANDARD_INST, tabeller: ALLA });
-    assert.deepEqual(STANDARD_FRAGOR.tabeller, ALLA);
-    assert.deepEqual(effektivInst(null, [], "alva").inst.tabeller, ALLA, "ingen klass alls");
+    assert.deepEqual(r.inst, { ...STANDARD_INST, foljPlugga: true });
+    assert.equal(STANDARD_FRAGOR.foljPlugga, true);
+    assert.equal(effektivInst(null, [], "alva").inst.foljPlugga, true, "ingen klass alls");
   });
   it("en klass eleven inte går i räknas inte", () => {
     assert.equal(effektivInst(null, [k({ studentIds: ["bo"] })], "alva").kalla, "standard");
@@ -95,13 +95,13 @@ describe("inställningarna eleven spelar med (effektivInst)", () => {
 });
 
 describe("servern speglar klienten (functions/)", () => {
-  it("effektivInst: egna > klassens > tabellerna 0–10", () => {
+  it("effektivInst: egna > klassens > Samma som Plugga", () => {
     const egna = { tabeller: [7] };
     const klass = { matchdagenInst: { omraden: ["so/v"], tabeller: [], rakna: [], klocka: 30 } };
     assert.deepEqual(serverInst(egna, klass), normInst(egna));
     assert.deepEqual(serverInst(null, klass), normInst(klass.matchdagenInst));
-    assert.deepEqual(serverInst(null, {}).tabeller, ALLA);
-    assert.deepEqual(serverInst(null, null).tabeller, ALLA);
+    assert.equal(serverInst(null, {}).foljPlugga, true);
+    assert.equal(serverInst(null, null).foljPlugga, true);
   });
   it("harMatchdagen: enabledModules eller elevModuler", () => {
     assert.equal(serverHar({ enabledModules: [MD] }, "a"), true);

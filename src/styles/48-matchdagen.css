@@ -138,6 +138,22 @@
   color: var(--t-accent);
   font-size: 0.72rem;
 }
+/* #899: Samma som Plugga, dolda områden och "Inga frågor just nu" */
+.teacher-dark .mda-folj { flex-direction: column; align-items: flex-start; }
+.teacher-dark .mda-dolt .mda-dolt-text { display: none; }
+.teacher-dark .mda-dolt.mda-dolt-vald { opacity: 0.6; box-shadow: inset 0 0 0 1.5px var(--t-border-strong); }
+.teacher-dark .mda-dolt.mda-dolt-vald .mda-dolt-text { display: inline; font-style: italic; }
+.teacher-dark .mda-tom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--t-border-strong);
+  background: var(--t-raised);
+}
+.teacher-dark .mda-tom[hidden] { display: none; }
 .teacher-dark .mda-spara { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
 .teacher-dark .mda-resultat:empty { display: none; }
 @media (max-width: 520px) {

@@ -749,9 +749,11 @@ service cloud.firestore {
         (l.join('|').size() <= 12000 && l.join('|').split('[|]').size() == l.size() &&
          l.join('|').matches('[^/|\\s]+/[^/|\\s]+([|][^/|\\s]+/[^/|\\s]+)*')));
     }
+    // foljPlugga (#899, "Samma som Plugga"): valfri bool – gamla inställningar saknar den (= false).
     function validMatchdagenInst(d) {
       return d.keys().hasOnly(['omraden', 'tabeller', 'rakna', 'svarssatt', 'klocka', 'lugnt', 'paus',
-          'updatedAt', 'updatedBy']) &&
+          'foljPlugga', 'updatedAt', 'updatedBy']) &&
+        (!('foljPlugga' in d) || d.foljPlugga is bool) &&
         d.keys().hasAll(['omraden', 'tabeller', 'rakna', 'svarssatt', 'klocka', 'lugnt', 'paus',
           'updatedAt', 'updatedBy']) &&
         mdNycklarOk(d.omraden) && mdNycklarOk(d.rakna) &&
