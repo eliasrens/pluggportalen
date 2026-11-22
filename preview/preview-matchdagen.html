@@ -34,7 +34,10 @@
                      2 – 0 i 88:e minuten: "Fortsätt matchen" → pokalen lyfts → "Starta en legendklubb"
          ?mc=vunnen  Mästarcupen är vunnen den här säsongen – erbjudandet under Match
          ?legend=1   en legendklubb (två guldstjärnor, två gamla klubbar i klubbhistoriken, fullt pokalskåp)
-         ?vy=pokaler Pokalskåpet -->
+         ?vy=pokaler Pokalskåpet
+       #880:
+         ?vy=topplista  topp 5 per årskurs (stubbad lista: åk 3, 4, 6, Övriga; eleven på plats 3 i åk 4)
+         ?ak=3|4|6|ovriga  elevens årskurs (standard 4)   ?topp=utanfor  inte på topp 5   ?topp=tom  inte byggd än -->
   <script type="importmap">
     { "imports": { "../src/game-shared.js": "./matchdagen-868/game-shared.js" } }
   </script>
@@ -96,7 +99,23 @@
       sparaMatch: async (uid, K, id, match) => { skriv("karriar", K); skriv(`match:${id}`, { ...match, id }); },
       sparaTrupp: async (uid, K) => skriv("karriar", { ...K, klubb: las("karriar")?.klubb || K.klubb }),
       lasMatch: async (uid, id) => las(`match:${id}`),
+      lasTopplista: async () => (p.get("topp") === "tom" ? null : topplistaStub()),
     };
+
+    // #880: topplistan per årskurs (Topplista-fliken). ?topp=utanfor – eleven är inte på topp 5; ?topp=tom – inte byggd än.
+    function topplistaStub() {
+      const NAMN = ["Alva Berg", "Bilal Ahmed", "Cleo Lind", "Dante Nyström", "Ella Svensson", "Filip Ek", "Greta Holm", "Hugo Sjö", "Iris Wallin", "Jonatan Öberg"];
+      const LAG = ["Blixtarna IF", "FC Åskan", "Raketerna BK", "Månskenet FF", "Tigrarna IK", "Stjärnfallet SK", "Vulkanen FC", "Polarna IF"];
+      const FARG = ["#e8473f", "#2f6fe8", "#2bb673", "#ffd23f", "#8e5cf7", "#ff8a3d", "#14b8c4", "#f2f2f2"];
+      const rad = (ak, i, extra = {}) => ({ uid: `${ak}-${i}`, n: NAMN[(i * 3 + Number(ak) || 0) % NAMN.length], lag: LAG[(i + ak.length) % LAG.length],
+        f: FARG[i % FARG.length], k: `${ak}${"ABCD"[i % 4]}`, d: Math.max(0, 6 - i - (ak === "3" ? 2 : 0)), ls: ak === "6" && i === 0 ? 1 : 0,
+        v: 40 - i * 6, gm: 90 - i * 11, im: 30 + i * 3, m: 60 - i * 5, plats: i + 1, ...extra });
+      const fyra = [0, 1, 2, 3, 4].map((i) => rad("4", i));
+      if (p.get("topp") !== "utanfor") fyra[2] = { ...fyra[2], uid: UID, n: "Du Själv", lag: "Blixtarna IF", f: "#2f6fe8" };
+      fyra[4] = { ...fyra[4], d: fyra[3].d, v: fyra[3].v, gm: fyra[3].gm, im: fyra[3].im, plats: 4 };
+      return { arskurser: { 3: [0, 1, 2].map((i) => rad("3", i)), 4: fyra, 6: [0, 1, 2, 3, 4].map((i) => rad("6", i)), ovriga: [rad("ovriga", 0, { k: "Fritids" })] },
+        antal: { 3: 3, 4: 12, 6: 9, ovriga: 1 }, byggd: Date.now() - 20 * 60000 };
+    }
 
     // ?omg=N: en klubb med N påhittade omgångar (för tabellen och statistiken).
     if (p.get("klubb") === "ny") localStorage.removeItem(NYCKEL + "karriar");
@@ -205,6 +224,7 @@
       hamtaOmrade: async (s, a) => AREAS[`${s}/${a}`] ?? null,
       avatar: { avatarId: "fox", avatarItems: [] },
       tvinga2d: p.get("2d") === "1",
+      arskurs: p.get("ak") || "4",
     });
     window.__md = S;
     if (p.get("vy") && p.get("vy") !== "match") S.visa(p.get("vy"));

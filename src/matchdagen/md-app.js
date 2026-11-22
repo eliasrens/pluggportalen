@@ -5,12 +5,15 @@
 // mästare i Superligan och en guldstjärna per legendklubb (§10.1, §10.3).
 // Etapp 4 (#874): fliken Vänskap (vänskapsmatcher mot klasskompisar, vanskap/md-vy-vanskap.js) –
 // bara när page-matchdagen.js hittat elevens klass (deps.vanskap). #878: helskärmsknappen i
-// sidhuvudet (md-helskarm.js). Firebase skickas in som `data` (page-matchdagen.js ger den riktiga, förhands-
+// sidhuvudet (md-helskarm.js). #880: fliken Topplista (topp 5 per årskurs, vy/md-vy-topplista.js) –
+// öppen även innan klubben finns; deps.arskurs = elevens årskurs (page-matchdagen.js).
+// Firebase skickas in som `data` (page-matchdagen.js ger den riktiga, förhands-
 // visningen en stubbe), så samma kod kör i appen och i preview-matchdagen.html.
 //
-//   startaMatchdagen(host, { uid, inst, data, hamtaOmrade, avatar?, lagring?, tvinga2d?, signal?, vanskap? })
+//   startaMatchdagen(host, { uid, inst, data, hamtaOmrade, avatar?, lagring?, tvinga2d?, signal?, vanskap?, arskurs? })
 //     vanskap: { classId, kompisar(), moln() } (md-vy-vanskap.js)
-//     data: { lasKarriar, sparaKarriar, sparaMatch, lasMatch }
+//     data: { lasKarriar, sparaKarriar, sparaMatch, lasMatch, lasTopplista }
+//     arskurs: "4" | "ovriga" | null (md-topplista.js elevArskurs)
 //
 // Kvoten (§13): karriären läses EN gång här (lasKarriar), inga lyssnare. Färdiga
 // matcher som inte hann sparas (offline) ligger i en kö i localStorage och sparas
@@ -25,7 +28,7 @@ import { esc, laddaTypsnitt } from "./vy/md-vy-delat.js";
 import { marke } from "./vy/md-vy-pokaler.js";
 import { monteraHelskarm } from "./md-helskarm.js";
 
-const FLIKAR = [["match", "Match"], ["tabell", "Tabell"], ["trupp", "Truppen"], ["stat", "Statistik"], ["pokaler", "Pokalskåpet"]];
+const FLIKAR = [["match", "Match"], ["tabell", "Tabell"], ["trupp", "Truppen"], ["stat", "Statistik"], ["pokaler", "Pokalskåpet"], ["topplista", "Topplista"]];
 
 function webbLagring() {
   try { return globalThis.localStorage || null; } catch { return null; }
@@ -39,7 +42,7 @@ export async function startaMatchdagen(host, deps) {
   const S = {
     uid: deps.uid, inst, data: deps.data, hamtaOmrade: deps.hamtaOmrade, avatar: deps.avatar || null,
     lagring: deps.lagring === undefined ? webbLagring() : deps.lagring,
-    tvinga2d: !!deps.tvinga2d, signal: deps.signal, lugnt: !!inst.lugnt || lugntMedia, vanskap: deps.vanskap || null,
+    tvinga2d: !!deps.tvinga2d, signal: deps.signal, lugnt: !!inst.lugnt || lugntMedia, vanskap: deps.vanskap || null, arskurs: deps.arskurs ?? null,
     K: null, vy: "match", lasfel: false, sessionStart: Date.now(),
   };
   host.replaceChildren();
@@ -77,6 +80,7 @@ export async function startaMatchdagen(host, deps) {
     S.kassa();
     const el = sektion(vy);
     if (vy === "match") return (await import("./vy/md-vy-match.js")).visaMatchFlik(S, el);
+    if (vy === "topplista") return (await import("./vy/md-vy-topplista.js")).visaTopplista(S, el);
     if (!S.K) { el.innerHTML = `<div class="md-panel"><p class="md-svag">Skapa ditt lag under <b>Match</b> först.</p></div>`; return; }
     if (vy === "tabell") return (await import("./vy/md-vy-tabell.js")).visaTabell(S, el);
     if (vy === "trupp") return (await import("./vy/md-vy-trupp.js")).visaTrupp(S, el);

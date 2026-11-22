@@ -86,6 +86,8 @@ tabellerna, om en rad saknar test, eller om en testfil inte körs av
 | MM | `test/firestore-rules-matchdagen-mastarcup.test.js` |
 | MV | `test/firestore-rules-matchdagen-vanskap.test.js` |
 | VF | `test/functions-matchdagen-vanskap-anrop.test.mjs` |
+| MP | `test/firestore-rules-matchdagen-topplista.test.js` |
+| TF | `test/functions-matchdagen-topplista.test.mjs` |
 
 Admin-kolumnen bevisas dessutom av OG test 25 (lärare utan roll gör allt som
 admin) och av alla äldre regeltester, som kör sina lärare som admin (§7 test 26).
@@ -115,6 +117,7 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `mdLobby` (Matchdagens vänskapslobby per klass, #874) | L (Cloud Functions skriver) | L: egna klasser (`hasClass`). S: aldrig. Eleven läser sin klass lobby bara om hen har Matchdagen (`enabledModules` för klassen, #876, eller `elevModuler`; en `get` av klassen); skriver aldrig – allt går via `mdUtmana`/`mdSvara`. Klasskamrater utan Matchdagen nekas. | MV, VF |
 | `mdVanskap` (en vänskapsmatch, #874) med `privat/{uid}` och `facit/{uid}` | L (servern skriver) | L: matcher i egna klasser (`hasClass(classId)`), också `privat` och `facit`. S: aldrig. De två spelarna läser matchen (ett saknat dokument får varje inloggad hämta); `privat/{uid}` (frågan utan facit) bara eleven själv – aldrig motståndaren; `facit` (frågebanken med svar) ingen elev. Skriver aldrig – `mdFraga`/`mdSvar`/`mdTick`/`mdGeUpp`. | MV, VF |
 | `mdVanskapElev` (spärren och dagens antal vänskapsmatcher, #874) | L (servern skriver) | L: egna elever (`hasStudent`). S: aldrig. Eleven läser sitt eget, skriver aldrig. | MV |
+| `mdTopplista` (Matchdagens topplista per årskurs, #880 – ett dokument, `skolan`) | L (Cloud Functions skriver) | L (som alla inloggade). S: aldrig. Topp 5 per årskurs med elevens namn, lag och klass (som `hittaRattBoards`); bara `mdTopplista` (schemalagd) skriver. | MP, TF |
 | `matchdagen/{uid}/matcher` (en spelad match, #869) | L/radera | L: egna elever. S: aldrig. Eleven skapar sina egna (bara `create`, `datum` = serverns tid, kända fält, `ratt ≤ fragor`, `mal` ≤ 80, `stat` ≤ 20 nycklar, id ≤ 64 tecken, `straffar` (#870) bara två heltal 0–40); ingen ändring, ingen radering. | MK, MQ |
 | `classProjections`, `classProjects` | L/S | L. S: aldrig. | RO klassprojektioner |
 | `mathCompetitions` (tävlingen) | L/S | L (som alla inloggade). Skapa, styra, nollställa och radera: aldrig. | LE test 17 |
@@ -165,6 +168,7 @@ admin, eller ett årskurskonto med minst en egen klass i sessionens
 | `schackVanta`, `schackSlutaVanta`, `schackGaMed`, `schackUtmana`, `schackSvara`, `schackDrag`, `schackGeUpp`, `schackRemi`, `schackKravaVinst` (#779) | nej – elevfunktioner: anroparen måste stå i klassens `studentIds`, klassen ha `schack` i `enabledModules` och inget aktivt fokuslås (kärnan: `test/functions-schack-core.test.mjs`, `test/functions-schack-parti.test.mjs`) | nej | SF |
 | `schackDatorVinst`, `schackLektionMynt`, `schackPusselMynt` (#798) | nej – elevfunktioner: anroparen måste stå i en klass med `schack` i `enabledModules` (inte dold) och ingen av elevens klasser får ha ett aktivt fokuslås. Servern kontrollerar partiet/lösningen och betalar en gång per nivå/lektion/pussel (kvittot `schackMynt/{uid}`) | nej | SX |
 | `mdUtmana`, `mdSvara`, `mdFraga`, `mdSvar`, `mdTick`, `mdGeUpp` (#874) | nej – elevfunktioner; lärarkonton (claim `teacher`) nekas. Anroparen (och kompisen) måste stå i klassens `studentIds`, ha Matchdagen (klassens `enabledModules`, #876, eller `elevModuler`), ingen aktivt fokuslås och var sin klubb; en vänskapsmatch åt gången. Bara spelarna anropar matchens callables. Servern rättar svaren och skriver kassan och de inbördes mötena (kärnan: `test/functions-matchdagen-vanskap.test.mjs`) | nej | VF |
+| `mdTopplista` (#880, schemalagd varje timme – ingen callable) | – (ingen anropar den) | – | TF |
 | `butikKop` (#854) | nej – elevfunktion; lärarkonton (claim `teacher`) nekas. Ingen klass- eller låskontroll (butiken är inte låsgrindad). Klienten skickar bara varans id: priset tas ur katalogen och mysterylådan lottas på servern, en transaktion per köp | nej | BK |
 | `msAgera`, `msRatta`, `msLage` (#821) | nej – elevfunktioner: anroparen måste ha gått med (`players/{uid}`) i en av sessionens klasser | nej | MF |
 | `kgAnslut`, `kgLas`, `kgSvara`, `kgLeta` (#838) | nej – elevfunktioner: anroparen måste ha gått med (`players/{uid}`) i en av sessionens klasser. Fasbytet sker lat i varje anrop. | nej | KF |

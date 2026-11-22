@@ -16,10 +16,12 @@
 // Vänskapsmatcher (#874): elevens klass med Matchdagen ur getClasses() (klasslistans
 // cache) och kompisarnas namn ur classProjections – EN läsning, först när fliken öppnas.
 // #878: sidan klarar en gammal cachad md-inst.js (versionsglapp precis efter en deploy).
+// #880: elevens årskurs för Topplistan ur klassnamnet (klasserna med Matchdagen, ingen läsning).
 // ============================================================================
 
 import { app, renderTopbar } from "../ui.js";
 import { currentStudentId, ensureClassProjection, getArea, getClasses, getStudentData } from "../data.js";
+import { elevArskurs } from "./delat/md-topplista.js";
 
 let aktiv = null; // sidans AbortController – avbryts när eleven lämnar sidan
 
@@ -86,6 +88,7 @@ export async function pageMatchdagen() {
     avatar: sd ? { avatarId: sd.avatarId, avatarItems: sd.avatarItems || [] } : null,
     tvinga2d: sok.get("2d") === "1",
     vanskap: vanskapFor(klasser, uid, harMatchdagen),
+    arskurs: typeof harMatchdagen === "function" ? elevArskurs(klasser, uid, harMatchdagen) : null,
     signal: ac.signal,
   });
 }

@@ -216,3 +216,10 @@ export const VANSKAP = {
   kassa: { deltagande: 100, vinst: 100, perDag: 3 },
   standardVal: { anfall: "kort", forsvar: "tack" },
 };
+
+/**
+ * Topplistan per årskurs (#880, md-topplista.js, docs/MATCHDAGEN.md §21): platserna 1–topp med namn,
+ * en delad sista plats tas med upp till tak rader. Rimlighetskontrollen: högst maxMatcherDag matcher
+ * en dag (en match tar minst ~4 minuter), maxMalMatch mål per match och maxLegend legendstjärnor.
+ */
+export const TOPPLISTA = { topp: 5, tak: 8, maxMatcherDag: 120, maxMalMatch: 20, maxLegend: 50 };

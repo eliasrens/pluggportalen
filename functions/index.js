@@ -68,6 +68,7 @@
 // Logiken: kurragomma-core.js (+ -sess/-fas/-rtdb/-tick/-resultat), docs/KURRAGOMMA.md §8.
 //
 // Butiken (#854): butikKop (butik-kop.js). Matchdagen (#874): mdUtmana/mdSvara/mdFraga/mdSvar/mdTick/mdGeUpp – vänskapsmatcherna (md-vanskap-anrop.js).
+// mdTopplista (#880): schemalagd varje timme – topplistan per årskurs i mdTopplista/skolan (md-topplista-bygg.js).
 // ⚠️ DEPLOY KRÄVS: firebase deploy --only functions (Blaze-planen). Klienterna visar ett tydligt fel tills funktionerna finns.
 // ============================================================================
 
@@ -110,6 +111,7 @@ import {
 import { kgDatabaseUrl } from "./kurragomma-rtdb.js";
 export { butikKop } from "./butik-kop.js";
 export { mdUtmana, mdSvara, mdFraga, mdSvar, mdTick, mdGeUpp } from "./md-vanskap-anrop.js";
+export { mdTopplista } from "./md-topplista-bygg.js";
 
 initializeApp();
 
