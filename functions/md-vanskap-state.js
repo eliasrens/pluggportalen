@@ -55,7 +55,8 @@ export async function snabbTx(c, fn, forsok = 5) {
       return await c.db.runTransaction(fn, { maxAttempts: 1 });
     } catch (err) {
       if (err?.code === ABORTED && i < forsok) continue;
-      if (err?.code === ABORTED || NATFEL.has(err?.code)) return c.db.runTransaction(fn);
+      const utgangen = err?.code === 3 && /transaction has expired/.test(String(err.message)); // SDK:t gör om även den
+      if (err?.code === ABORTED || NATFEL.has(err?.code) || utgangen) return c.db.runTransaction(fn);
       throw err;
     }
   }

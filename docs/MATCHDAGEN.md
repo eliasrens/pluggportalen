@@ -1512,6 +1512,9 @@ Ingen ändring behövdes för antalet anrop per läge: varma `fraga`/`svar` tar 
 | 3 | `snabbTx`: en krock (ABORTED) görs om **direkt**, upp till 5 gånger, sedan SDK:ts vanliga omförsök; nätfel som förut. Alla vänskapstransaktioner. Sidan b anropar `mdTick` 1 s efter sidan a (1 300 i stället för 300 ms) | `functions/md-vanskap-state.js`, `-spel.js`, `-lobby.js`, `src/matchdagen/vanskap/md-vanskap-spel.js` |
 | 4 | Är läget redan avgjort när svaret visas spelas animationen direkt – rätt svar står kvar på kortet under animationen | `src/matchdagen/vanskap/md-vanskap-spel.js` |
 
+`snabbTx` gör om med en ny transaktion – den förlorar Firestores företräde för ett omförsök (wound-wait) och kan
+avbrytas igen; efter fem försök tar SDK:ts omförsök (med företräde och väntan) över.
+
 Spelregler, balans, frågor, tider och datamodell är oförändrade. Reglerna (`firestore.rules`) är oförändrade.
 
 ### 23.3 Före och efter

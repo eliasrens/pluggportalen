@@ -82,6 +82,10 @@ describe("snabbTx", () => {
     f = falsk([new MdFel("failed-precondition", "Matchen är slut.")]);
     await assert.rejects(snabbTx(f.c, async () => "ok"), /Matchen är slut/);
     assert.deepEqual(f.anrop, [1]);
+    f = falsk([Object.assign(new Error("3 INVALID_ARGUMENT: The referenced transaction has expired"), { code: 3 })]);
+    assert.equal(await snabbTx(f.c, async () => "ok"), "ok", "utgången transaktion → SDK:ts omförsök");
+    f = falsk([grpc(3)]);
+    await assert.rejects(snabbTx(f.c, async () => "ok"), /grpc 3/);
     f = falsk([grpc(7)]);
     await assert.rejects(snabbTx(f.c, async () => "ok"), /grpc 7/);
   });
