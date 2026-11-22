@@ -53,6 +53,7 @@ export async function pageMatchdagen() {
   const uid = currentStudentId();
   let instFel = false;
   let glapp = false; // #878: en ny modul bredvid en gammal cachad (se nedan)
+  let klassFel = false; // #899: utan klasslistan vet vi inte vad eleven ser – då inga områden alls
   const [, egenInst, sd, data, { startaMatchdagen }, klasser, mdInst] = await Promise.all([
     renderTopbar(),
     import("./md-inst-data.js").then((m) => m.lasInst(uid)).catch((err) => {
@@ -65,7 +66,7 @@ export async function pageMatchdagen() {
     getStudentData().catch(() => null),
     import("./md-data.js"),
     import("./md-app.js"),
-    getClasses().catch(() => []),
+    getClasses().catch(() => { klassFel = true; return []; }),
     import("./md-inst.js"),
   ]);
   if (ac.signal.aborted) return;
@@ -84,6 +85,7 @@ export async function pageMatchdagen() {
     try {
       const r = await (await import("./md-synlig.js")).losKallor({
         inst, kalla: eff?.kalla || "egen", klasser, uid, hamta: { getSubjects, getAreas, getArea },
+        ...(klassFel ? { synliga: [] } : {}),
       });
       inst = r.inst;
       lasta = r.omraden;

@@ -166,6 +166,14 @@ describe("klienten: losKallor (md-synlig.js)", () => {
     assert.equal(h.lasningar.length, 60);
     assert.equal(r.fler, true);
   });
+  it("klasslistan gick inte att läsa (synliga: []): inga områden alls, standard → tabellerna 0–10", async () => {
+    const h = hamta();
+    const egen = await losKallor({ inst: normalizeInst({ omraden: ["so/a"], foljPlugga: false, tabeller: [4] }), kalla: "egen", klasser: [], uid: "alva", hamta: h, synliga: [] });
+    assert.deepEqual([egen.inst.omraden, egen.inst.tabeller], [[], [4]]);
+    const std = await losKallor({ inst: normalizeInst(STANDARD_FRAGOR), kalla: "standard", klasser: [], uid: "alva", hamta: h, synliga: [] });
+    assert.deepEqual([std.inst.omraden, std.inst.tabeller], [[], ALLA]);
+    assert.deepEqual(h.lasningar, []);
+  });
   it("panelens rader ur biblioteket = elevens", () => {
     assert.deepEqual(raderUrBibliotek(BIB, null).map((x) => x.nyckel), ["so/a", "so/tom", "so/r", "ma/x"]);
     assert.deepEqual(raderUrBibliotek(BIB, ["ma/x", "so/borta"]), [{ nyckel: "ma/x", plugga: true, rakna: false }, { nyckel: "so/borta", plugga: false, rakna: false }]);

@@ -37,10 +37,10 @@ export function raderUrBibliotek(library, synliga) {
  * @param {Array} o.klasser     getClasses()
  * @param {string} o.uid
  * @param {{getSubjects:Function, getAreas:Function, getArea:Function}} o.hamta
+ * @param {string[]|null} [o.synliga]  i stället för klassernas (sidan: [] när klasslistan inte gick att läsa)
  * @returns {Promise<{inst:object, omraden:Map<string, object|null>, fler:boolean}>}
  */
-export async function losKallor({ inst, kalla, klasser, uid, hamta }) {
-  const synliga = synligaOmraden(klasser, uid);
+export async function losKallor({ inst, kalla, klasser, uid, hamta, synliga = synligaOmraden(klasser, uid) }) {
   const omraden = new Map();
   let plugga = null;
   if (inst.foljPlugga) {

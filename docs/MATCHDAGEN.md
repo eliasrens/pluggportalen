@@ -1680,6 +1680,12 @@ reserv, utan beskedet i §24.3.
   ser.") och taket när det nås.
 - **Inga frågor alls efter filtret:** överst i panelen "Inga frågor just nu …" med knappen
   **"Byt till Samma som Plugga"** (byter valet och sparar).
+- Panelen prövar synligheten mot **den klass som är öppen**. En elev i flera klasser spelar med Plugga-listans klass
+  (§24.1) – för den eleven kan panelen och eleven skilja sig (sällsynt, dokumenterat val).
+- Sparar läraren klassens panel blir valet uttryckligt: klassen har då inställningar, och "Samma som Plugga" utan
+  synliga områden med frågor ger beskedet i stället för tabellreserven (Spara varnar).
+- Gick klasslistan inte att läsa hos eleven räknas inga områden som synliga (aldrig ett dolt område); standarden blir
+  då tabellerna 0–10 som förut.
 - **Eleven** får då ingen tom match utan beskedet `INGA_FRAGOR`: "Din lärare behöver välja frågor till Matchdagen."
   Vänskapsmatchen svarar med samma text ("Din/Kompisens lärare behöver …") i stället för ett fel.
 

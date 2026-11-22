@@ -113,7 +113,9 @@ export async function renderPanel(ctx, o) {
   const standard = elev ? !egna && !arvd : !inst;
   const box = el(`<form class="mda-form" novalidate>
     <div class="mda-tom" data-tom role="status" hidden>
-      <span><b>Inga frågor just nu.</b> Inget av det som är valt syns för klassen, så eleven kan inte spela.</span>
+      <span data-tom-valj><b>Inga frågor just nu.</b> Inget av det som är valt syns för klassen, så eleven kan inte spela.</span>
+      <span data-tom-folj hidden><b>Inga frågor just nu.</b> Klassen ser inga områden med frågor. Välj multiplikationstabeller
+        eller områden under Vad eleverna ser.</span>
       <button type="button" class="btn gron small" data-byt-plugga>Byt till Samma som Plugga</button>
     </div>
     ${paRad}
@@ -204,6 +206,9 @@ export async function renderPanel(ctx, o) {
     box.querySelectorAll(".mda-dolt").forEach((l) => l.classList.toggle("mda-dolt-vald", l.querySelector("input").checked));
     const anvands = effektivaKallor(normalizeInst(v), { synliga, plugga, standard: standard && sammaInst(v, i) });
     tom.hidden = harKallor(anvands);
+    tom.querySelector("[data-tom-valj]").hidden = v.foljPlugga;
+    tom.querySelector("[data-tom-folj]").hidden = !v.foljPlugga;
+    tom.querySelector("[data-byt-plugga]").hidden = v.foljPlugga;
   };
   // Antalet valda per ämne följer kryssen; ändrat = "Sparat" bort.
   box.addEventListener("change", (e) => {
