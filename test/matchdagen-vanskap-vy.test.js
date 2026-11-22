@@ -151,7 +151,8 @@ describe("frågekortet med serverns rättning (md-svar.js)", () => {
 describe("appen", () => {
   it("fliken Vänskap finns bara när sidan hittat elevens klass (deps.vanskap)", () => {
     const src = readFileSync(new URL("../src/matchdagen/md-app.js", import.meta.url), "utf8");
-    assert.match(src, /const flikar = deps\.vanskap \? \[\.\.\.FLIKAR, \["vanskap", "Vänskap"\]\] : FLIKAR;/);
+    assert.match(src, /const flikar = flikarFor\(deps\.vanskap\);/);
+    assert.match(src, /return vanskap && !pausad \? \[\.\.\.FLIKAR, \["vanskap", "Vänskap"\]\] : FLIKAR;/); // #894
     assert.match(src, /import\("\.\/vanskap\/md-vy-vanskap\.js"\)/, "lat – aldrig i bootgrafen");
   });
   it("klienten skriver aldrig i duellsamlingarna – bara callables, två lyssnare och två läsningar", () => {
