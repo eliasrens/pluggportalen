@@ -60,11 +60,11 @@ describe("ny klubb (§5)", () => {
     assert.equal(nyKarriar({ namn: "", farg: "#123456", rng: rng() }).klubb.namn, STANDARD_LAGNAMN);
     assert.equal(nyKarriar({ namn: "A", farg: "#123456", rng: rng() }).klubb.farg, TROJFARGER[0]);
   });
-  it("sju grundpelare med färdiga, olika namn, alla 2★, en kapten som inte är målvakten", () => {
+  it("sju grundpelare med färdiga, olika namn, alla 1★ (#883), en kapten som inte är målvakten", () => {
     assert.equal(K.trupp.length, 7);
     assert.deepEqual(K.trupp.map((p) => p.pos), ["MV", "FÖR", "FÖR", "MIT", "MIT", "ANF", "ANF"]);
     assert.equal(new Set(K.trupp.map((p) => p.namn)).size, 7);
-    assert.ok(K.trupp.every((p) => p.st === 2 && p.xp === 0 && p.grundpelare));
+    assert.ok(K.trupp.every((p) => p.st === 1 && p.xp === 0 && p.grundpelare));
     const kaptener = K.trupp.filter((p) => p.kapten);
     assert.equal(kaptener.length, 1);
     assert.notEqual(kaptener[0].pos, "MV");

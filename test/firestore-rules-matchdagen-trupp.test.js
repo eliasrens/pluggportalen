@@ -3,8 +3,8 @@
 // träningslägret i matchdagen/{uid}.
 // ----------------------------------------------------------------------------
 // Spec docs/UTVECKLINGSUPPDRAG_MATCHDAGEN.md §6.1, §8, §15 (Regler):
-//   • formen: kända nycklar per spelare, st 1–5 och xp 0–99 som heltal, truppen i fast
-//     ordning, reserverna ≤ 5, marknaden ≤ 6 (otränade, 2★ till divisionens tak)
+//   • formen: kända nycklar per spelare, st 1–5 och xp under poängen till nästa stjärna som heltal
+//     (#883), truppen i fast ordning, reserverna ≤ 5, marknaden ≤ 6 (otränade, 1★ till divisionens tak)
 //   • per skrivning, mot det sparade dokumentet: en startspelare är oförändrad, tränad
 //     (+1–96 poäng och lägret byts), en reserv som byts in eller köpt ur marknaden (kassan
 //     minskar med priset); reserverna kommer ur truppen; kassan växer bara med matcherna
@@ -71,17 +71,17 @@ describe("matchdagen/{uid} – truppen och marknaden, formen (#871)", () => {
     await seed(gammal);
     await assertSucceeds(setDoc(ref(elev()), medTid(matchKlar(K0, { res: res(0, 2), rng: r, nu: NU, matchId: "m1" }).K)));
   });
-  it("en ny klubb har bara nya grundpelare (2★, 0 poäng, namn ≤ 40), inga reserver och ingen marknad", async () => {
+  it("en ny klubb har bara nya grundpelare (1★ – #883 –, 0 poäng, namn ≤ 40), inga reserver och ingen marknad", async () => {
     const db = elev();
     await assertFails(setDoc(ref(db), medTid(K0, { trupp: truppMed(K0, 2, { st: 3 }) })), "3★");
-    await assertFails(setDoc(ref(db), medTid(K0, { trupp: truppMed(K0, 2, { st: "2" }) })), "st som text");
+    await assertFails(setDoc(ref(db), medTid(K0, { trupp: truppMed(K0, 2, { st: "1" }) })), "st som text");
     await assertFails(setDoc(ref(db), medTid(K0, { trupp: truppMed(K0, 2, { xp: 12 }) })), "tränad");
     await assertFails(setDoc(ref(db), medTid(K0, { trupp: truppMed(K0, 2, { namn: "x".repeat(41) }) })), "namn 41 tecken");
     await assertFails(setDoc(ref(db), medTid(K0, { trupp: K0.trupp.slice(0, 6) })), "6 spelare");
     await assertFails(setDoc(ref(db), medTid(K0, { reserver: [K0.trupp[1]] })), "en reserv");
     await assertFails(setDoc(ref(db), medTid(K0, { marknad: K1.marknad.slice(0, 1) })), "en marknad");
   });
-  it("marknaden högst 6 – det som köps ur den är otränat, utan grundpelare, 2★ till divisionens tak", async () => {
+  it("marknaden högst 6 – det som köps ur den är otränat, utan grundpelare, 1★ (#883) till divisionens tak", async () => {
     const salu = { id: "kny", namn: "Ny Spelare", pos: "ANF", nr: 50, st: 3, xp: 0 };
     await seed(K1);
     await assertFails(setDoc(ref(elev()), medTid(K1, { marknad: [...K1.marknad, salu] })), "7 till salu");
@@ -93,7 +93,7 @@ describe("matchdagen/{uid} – truppen och marknaden, formen (#871)", () => {
       await (ok ? assertSucceeds : assertFails)(setDoc(ref(elev()), medTid(N)), JSON.stringify(spelare));
     };
     await kopAv({ ...salu, st: 4 });
-    await kopAv({ ...salu, st: 1 });
+    await kopAv({ ...salu, st: 0 });
     await kopAv({ ...salu, st: "3" });
     await kopAv({ ...salu, xp: 12 });
     await kopAv({ ...salu, grundpelare: true });

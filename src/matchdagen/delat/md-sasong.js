@@ -49,7 +49,7 @@ export function lagnamnOk(s) {
   return t.length >= 1 && t.length <= C.LAGNAMN_MAX ? t : null;
 }
 
-/** De sju grundpelarna med färdiga namn (§5, §8.2): alla 2★, en av dem lagkapten. */
+/** De sju grundpelarna med färdiga namn (§5, §8.2): alla 1★ (#883 – äldre karriärer behåller sina 2★), en av dem lagkapten. */
 export function nyTrupp(rng) {
   const anvanda = new Set(); // förnamnen – två "Jonatan" i samma lag blir förvirrande
   const kapten = 1 + Math.floor(rng() * (STARTELVA.length - 1)); // aldrig målvakten
@@ -58,7 +58,7 @@ export function nyTrupp(rng) {
     do fornamn = valj(rng, FORNAMN); while (anvanda.has(fornamn));
     anvanda.add(fornamn);
     const namn = `${fornamn} ${valj(rng, EFTERNAMN)}`;
-    return { id: `g${i + 1}`, namn, pos, nr, st: 2, xp: 0, grundpelare: true, kapten: i === kapten };
+    return { id: `g${i + 1}`, namn, pos, nr, st: 1, xp: 0, grundpelare: true, kapten: i === kapten };
   });
 }
 

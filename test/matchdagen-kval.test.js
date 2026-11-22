@@ -162,7 +162,7 @@ describe("stegen och ligorna i alla divisioner (§7.1)", () => {
       assert.equal(L.schema.length, n - 1);
       const moten = new Set(L.schema.flatMap((o) => o.split("|").map((p) => p.split(":").sort().join("-"))));
       assert.equal(moten.size, (n * (n - 1)) / 2);
-      const lo = C.STYRKA.bas + div * C.STYRKA.perDiv - C.STYRKA.spridning - 1e-9;
+      const lo = C.STYRKA.bas + div * C.STYRKA.perDiv - (C.STYRKA.avdrag[div] || 0) - C.STYRKA.spridning - 1e-9; // #883: avdraget i Division 6
       assert.ok(L.lag.slice(1).every((l) => l.styrka >= Math.max(C.STYRKA.min, lo) && l.styrka <= C.STYRKA.max));
     });
   }

@@ -25,6 +25,9 @@
 // rundor mellan ligaomgångarna (md-cup.js cupSchema/cupLottning); cupens egen tabell och
 // säsongens längd med cupen: admin/md-balans-cup.mjs.
 // Etapp 3 (#873): Mästarcupen (§10.2) – admin/md-balans-mastarcup.mjs.
+// #883: nybörjaren – Division 6-raderna (målen i §12) spelas nu av en ny klubb med 1★-laget som
+// tränar i omgångarnas tre läger och köper på marknaden (korBalans({ klubb }), md-balans-trupp.mjs
+// nyborjare); säsongens tid räknar alla tre lägren. De andra raderna har ett otränat 2★-lag (bonus {}).
 //
 // Robotarnas beteende (antaganden, inte spelregler – står i docs/MATCHDAGEN.md):
 // ROBOT nedan. Exporterar spelaMatch/spelaSasong/korBalans/bedom/tabell så att
@@ -49,9 +52,11 @@ export const ROBOT = {
   pass: { egen: { kort: 0.4, lang: 0.4, dribbla: 0.2 }, deras: { kort: 0.6, lang: 0.1, dribbla: 0.3 } },
   /** Försvar: tackla så här ofta, annars täck. */
   tackla: 0.7,
-  /** Träningslägret (Etapp 2b) i säsongens tid: 8 frågor + så här många sekunder runt omkring. */
+  /** Träningslägret (Etapp 2b) i säsongens tid: 8 frågor + så här många sekunder runt omkring … */
   traningFragor: 8,
   traningExtraS: 30,
+  /** … och så många läger efter varje ligaomgång (#883: upp till 3, TRANING.perOmgang). */
+  traningLager: 3,
   /** Rutorna runt en match (före avspark, efter matchen, tabellen): sekunder per match. */
   mellanMatchS: 30,
 };
@@ -60,8 +65,10 @@ export const ROBOT = {
 export const MAL = {
   0.7: { vinst: [0.55, 0.65], liga: [0.35, 0.65] },
   0.5: { vinst: [0.3, 0.4], liga: [0.03, 0.35] },
-  0.3: { minstEttMal: [0.5, 1], storForlust: [0, 0.15] },
-  alla: { malPerMatch: [1.5, 4], jattestor: [0, 0.01], matchMin: [6, 8], sasongMin: [45, 60] },
+  /** minstEttMal (#883): nybörjarens 1★-lag gör mål i ~49 % (förut 50 %, med 2★); ett lag som tränat ~57 %. */
+  0.3: { minstEttMal: [0.45, 1], storForlust: [0, 0.15] },
+  /** sasongMin: matcherna och tre träningsläger per omgång (#883: ~18 min träning – förut ett läger, 45–60). */
+  alla: { malPerMatch: [1.5, 4], jattestor: [0, 0.01], matchMin: [6, 8], sasongMin: [55, 75] },
   /** §12: 80 % rätt, tränat lag (snitt 4★), Superligan. Säsongens längd har inget mål där (11 omgångar). */
   super: { vinst: [0.45, 0.55], malPerMatch: [1.5, 4], jattestor: [0, 0.01], matchMin: [6, 8] },
 };
@@ -148,7 +155,7 @@ export function spelaMatch({ seed, andelRatt, styrka, div = 0, bonus = {}, avgor
  * cup (#872): Silverpokalen mellan ligaomgångarna – efterMatch(r, "cup"), r.cupSeger efter en
  * vunnen final; resultatet har cup = { rundor, vann, matcher }.
  */
-export function spelaSasong({ seed, andelRatt, div = 0, bonus = {}, efterMatch = null, cup = false }) {
+export function spelaSasong({ seed, andelRatt, div = 0, bonus = {}, efterMatch = null, cup = false, lager = ROBOT.traningLager }) {
   const bonusFor = (o) => (typeof bonus === "function" ? bonus(o) : bonus);
   const rng = skapaPrng(seed, "liga");
   const n = LAGANTAL[div];
@@ -168,7 +175,7 @@ export function spelaSasong({ seed, andelRatt, div = 0, bonus = {}, efterMatch =
         const r = spelaMatch({ seed: `${seed}|${o}`, andelRatt, styrka: styrka[mot], div, bonus: bonusFor(o) });
         matcher.push(r);
         efterMatch?.(r, o);
-        sek += r.sekunder + ROBOT.mellanMatchS + ROBOT.traningFragor * (TID.svar.min + TID.svar.max) / 2 + ROBOT.traningExtraS;
+        sek += r.sekunder + ROBOT.mellanMatchS + lager * (ROBOT.traningFragor * (TID.svar.min + TID.svar.max) / 2 + ROBOT.traningExtraS);
         tabell = a === "oss" ? laggTill(tabell, a, b, r.oss, r.dem) : laggTill(tabell, a, b, r.dem, r.oss);
       } else {
         const [ma, mb] = simMal(styrka[a], styrka[b], rng.tal);
@@ -199,15 +206,21 @@ export function spelaSasong({ seed, andelRatt, div = 0, bonus = {}, efterMatch =
   return { matcher, placering, sekunder: sek, tabell, kval, ...(cup ? { cup: C } : {}) };
 }
 
-/** n säsonger vid andelRatt → måtten. kvalVinst = andelen vunna kval (null utan kval); straffar = andelen kval som gick till straffar. */
-export function korBalans({ andelRatt, n = 1000, div = 0, bonus = {}, namn = null, stjarnor = null }) {
+/**
+ * n säsonger vid andelRatt → måtten. kvalVinst = andelen vunna kval (null utan kval); straffar = andelen kval som gick till straffar.
+ * klubb (#883): (frö) → en robotklubb (md-balans-trupp.mjs robotKlubb) som börjar om i varje säsong – nybörjarens
+ * första säsong: 1★-laget tränas i omgångarnas läger och köper på marknaden; lagbonusen följer truppen.
+ */
+export function korBalans({ andelRatt, n = 1000, div = 0, bonus = {}, namn = null, stjarnor = null, klubb = null, utanMal = false }) {
   const matcher = [];
   const kval = [];
   let ligor = 0;
   let sasongS = 0;
   for (let i = 0; i < n; i++) {
     // Division 6 utan bonus har samma frön som i 1b – raderna jämförs mellan etapperna.
-    const s = spelaSasong({ seed: `md|${andelRatt}|${div}|${i}${namn ? `|${namn}` : ""}`, andelRatt, div, bonus });
+    const seed = `md|${andelRatt}|${div}|${i}${namn ? `|${namn}` : ""}`;
+    const k = klubb?.(seed);
+    const s = spelaSasong({ seed, andelRatt, div, bonus: k ? k.bonus : bonus, efterMatch: k?.efterMatch });
     matcher.push(...s.matcher);
     if (s.kval) kval.push(s.kval);
     if (s.placering === 1) ligor++;
@@ -231,7 +244,7 @@ export function korBalans({ andelRatt, n = 1000, div = 0, bonus = {}, namn = nul
     fragorPerMatch: snitt((m) => m.fragor),
     matchMin: snitt((m) => m.sekunder) / 60,
     sasongMin: sasongS / n / 60,
-    div, namn, stjarnor,
+    div, namn, stjarnor, utanMal,
     kval: kval.length / n,
     kvalVinst: kval.length ? kval.filter((k) => k.vann).length / kval.length : null,
     kvalStraffar: kval.length ? kval.filter((k) => k.straffar).length / kval.length : null,
@@ -241,7 +254,8 @@ export function korBalans({ andelRatt, n = 1000, div = 0, bonus = {}, namn = nul
 /** Raden mot målen: en lista med det som ligger utanför (tom = godkänd). */
 export function bedom(rad) {
   const fel = [];
-  const mal = rad.namn === "super" ? MAL.super : rad.div ? null : { ...MAL.alla, ...(MAL[rad.andelRatt] || {}) };
+  // utanMal (#883): det otränade 2★-laget i Division 6 redovisas bara – målen gäller nybörjaren (1★).
+  const mal = rad.namn === "super" ? MAL.super : rad.div || rad.utanMal ? null : { ...MAL.alla, ...(MAL[rad.andelRatt] || {}) };
   if (!mal) return fel; // högre divisioner utan mål i §12: bara redovisade
   for (const [matt, [lo, hi]] of Object.entries(mal)) {
     const v = rad[matt];
@@ -252,7 +266,7 @@ export function bedom(rad) {
 
 /** Varje division (§7.1) vid andelRatt med startlaget (och Superligan-raden med tränat lag). */
 export function korDivisioner({ andelRatt, n = 400, bonus = {}, namn = null }) {
-  return DIVISIONER.map((_, div) => korBalans({ andelRatt, n, div, bonus, namn }));
+  return DIVISIONER.map((_, div) => korBalans({ andelRatt, n, div, bonus, namn, utanMal: true }));
 }
 
 /**
@@ -287,7 +301,7 @@ export function tabell(rader, md = false) {
   const huvud = ["Rätt", "Vinst", "Oavgj.", "Förlust", "Ligan", "Mål/match", "Gjorda", "Insl.", "≥1 eget mål", "Förlust ≥4", "Skillnad ≥6", "Störst", "Frågor/match", "Match (min)", "Säsong (min)", "Mål"];
   const rad = (r) => [pct(r.andelRatt), pct(r.vinst), pct(r.oavgjort), pct(r.forlust), pct(r.liga), dec(r.malPerMatch), dec(r.gjorda), dec(r.insl),
     pct(r.minstEttMal), pct(r.storForlust), `${dec(r.jattestor * 100, 1)} %`, String(r.storstaSkillnad), dec(r.fragorPerMatch, 1), dec(r.matchMin, 1), dec(r.sasongMin, 0),
-    bedom(r).length ? `NEJ: ${bedom(r).join("; ")}` : "ja"];
+    r.utanMal ? "–" : bedom(r).length ? `NEJ: ${bedom(r).join("; ")}` : "ja"];
   if (md) return [`| ${huvud.join(" | ")} |`, `|${huvud.map(() => " --- ").join("|")}|`, ...rader.map((r) => `| ${rad(r).join(" | ")} |`)].join("\n");
   const alla = [huvud, ...rader.map(rad)];
   const bredd = huvud.map((_, i) => Math.max(...alla.map((r) => r[i].length)));
@@ -299,7 +313,7 @@ export function divTabell(rader, md = false) {
   const huvud = ["Division", "Rätt", "Lag", "Vinst", "Oavgj.", "Ligan", "Kval vunna", "Kval på straffar", "Mål/match", "Gjorda", "Insl.", "≥1 eget mål", "Match (min)", "Säsong (min)", "Mål"];
   const rad = (r) => [DIVISIONER[r.div] + (r.stjarnor ? ` (${r.stjarnor}★)` : ""), pct(r.andelRatt), String(LAGANTAL[r.div]), pct(r.vinst), pct(r.oavgjort), pct(r.liga),
     r.kvalVinst == null ? "–" : pct(r.kvalVinst), r.kvalStraffar == null ? "–" : pct(r.kvalStraffar), dec(r.malPerMatch), dec(r.gjorda), dec(r.insl), pct(r.minstEttMal),
-    dec(r.matchMin, 1), dec(r.sasongMin, 0), r.namn === "super" || !r.div ? (bedom(r).length ? `NEJ: ${bedom(r).join("; ")}` : "ja") : "–"];
+    dec(r.matchMin, 1), dec(r.sasongMin, 0), r.namn === "super" || (!r.div && !r.utanMal) ? (bedom(r).length ? `NEJ: ${bedom(r).join("; ")}` : "ja") : "–"];
   return skriv(huvud, rader.map(rad), md);
 }
 
@@ -307,7 +321,7 @@ export function divTabell(rader, md = false) {
 export function karriarTabell(karriarer, md = false) {
   const huvud = ["Rätt", "Laget", ...DIVISIONER.slice(1)];
   const cell = (d) => (d.andel ? `${pct(d.andel)} · ${d.sasonger} säs. · ${dec(d.timmar, 1)} h` : "–");
-  return skriv(huvud, karriarer.map((k) => [pct(k.andelRatt), "startlaget 2★", ...k.div.slice(1).map(cell)]), md);
+  return skriv(huvud, karriarer.map((k) => [pct(k.andelRatt), "otränat 2★", ...k.div.slice(1).map(cell)]), md);
 }
 
 function skriv(huvud, rader, md) {
@@ -328,19 +342,23 @@ async function huvud() {
   const n = Number(arg[arg.indexOf("--n") + 1]) || 1000;
   const md = arg.includes("--md");
   const t0 = performance.now();
-  const rader = NIVAER.map((andelRatt) => korBalans({ andelRatt, n }));
-  console.log(`Matchdagen – balans i Division 6 (${n} säsonger à 5 matcher per rad)\n`);
+  const { nyborjare } = await import("./md-balans-trupp.mjs");
+  const rader = NIVAER.map((andelRatt) => korBalans({ andelRatt, n, klubb: nyborjare(andelRatt) }));
+  console.log(`Matchdagen – balans i Division 6 (${n} säsonger à 5 matcher per rad): nybörjaren – en ny klubb (1★) som tränar i omgångarnas tre läger och köper på marknaden\n`);
   console.log(tabell(rader, md));
+  const rader2 = NIVAER.map((andelRatt) => korBalans({ andelRatt, n, utanMal: true }));
+  console.log(`\nSamma säsonger med ett otränat 2★-lag (så började en karriär före #883)\n`);
+  console.log(tabell(rader2, md));
   const nDiv = Math.max(20, Math.round(n / 2.5));
   const sup = korBalans({ andelRatt: SUPER.andelRatt, n: nDiv, div: TOPP_DIV, bonus: tranatLag(SUPER.stjarnor), namn: "super", stjarnor: SUPER.stjarnor });
   // Etapp 2b: ett fullt tränat lag (5★) – dit når den riktiga träningen långt före Superligan.
   const sup5 = korBalans({ andelRatt: SUPER.andelRatt, n: nDiv, div: TOPP_DIV, bonus: tranatLag(5), namn: "super5", stjarnor: 5 });
   const divRader = DIV_NIVAER.flatMap((andelRatt) => korDivisioner({ andelRatt, n: nDiv }));
-  console.log(`\nAlla divisioner med startlaget (2★) – ${nDiv} säsonger per rad; kvalet mot styrka(div + 1), oavgjort → straffar\n`);
+  console.log(`\nAlla divisioner med ett otränat 2★-lag – ${nDiv} säsonger per rad; kvalet mot styrka(div + 1), oavgjort → straffar\n`);
   console.log(divTabell([...divRader, sup, sup5], md));
   const nKar = Math.max(20, Math.round(n / 10));
   const kar = DIV_NIVAER.map((andelRatt) => karriar({ andelRatt, n: nKar }));
-  console.log(`\nKarriären med startlaget (${nKar} elever × 30 säsonger): andel som når divisionen · median säsonger · median speltimmar\n`);
+  console.log(`\nKarriären med ett otränat 2★-lag (${nKar} elever × 30 säsonger): andel som når divisionen · median säsonger · median speltimmar\n`);
   console.log(karriarTabell(kar, md));
   // Etapp 2b (#871): ekonomin (§12) och karriären med den riktiga truppen, marknaden och träningslägret.
   const { ekonomi, ekonomiTabell, bedomEkonomi, karriarMedTrupp, truppKarriarTabell, EKONOMI_MAL } = await import("./md-balans-trupp.mjs");
@@ -348,7 +366,7 @@ async function huvud() {
   console.log(`\nEkonomin i Division 6 (${n} elever per rad): efter hur många matcher har eleven råd med en ${EKONOMI_MAL.stjarnor}★ som finns till salu?\n`);
   console.log(ekonomiTabell(eko, md));
   const truppKar = [...DIV_NIVAER, 0.6].map((andelRatt) => karriarMedTrupp({ andelRatt, n: nKar }));
-  console.log(`\nKarriären med truppen (${nKar} elever × 30 säsonger; tränar varje läger, köper den största förbättringen): andel · median säsonger · speltimmar · lagets snitt när divisionen nås · vinst där\n`);
+  console.log(`\nKarriären med truppen (${nKar} elever × 30 säsonger; börjar på 1★, tränar i alla tre lägren per omgång, köper den största förbättringen): andel · median säsonger · speltimmar · lagets snitt när divisionen nås · vinst där\n`);
   console.log(truppKarriarTabell(truppKar, md));
   // Etapp 2c (#872): Silverpokalen – hur långt laget går, skrällarna och säsongens längd med cupen.
   const { cupBalans, cupTabell, bedomCup, CUP_RADER } = await import("./md-balans-cup.mjs");

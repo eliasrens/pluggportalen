@@ -20,6 +20,7 @@ elever** eller (#876, §19) för **hela klassen**. Det här dokumentet växer me
 | 4 (#874) | Vänskapsmatcher i realtid: lobbyn, callables, den synkade motorn, rättning på servern, inbördes möten (§18) | klar |
 | #876 | Hela klassen: `enabledModules`, klassens inställningar (`classes/{id}.matchdagenInst`), "Välj alla" (§19) | klar |
 | #878 | Hotfix: versionsglapp efter deploy, klassens frågor i Vad eleverna ser, helskärm (§19.6) | klar |
+| #883 | Nya karriärer börjar på 1★, stjärnorna kostar 50/100/250/500 poäng, tre träningsläger per omgång, balansen (§21) | klar |
 
 ## 1. Moduler per elev (Etapp 1a)
 
@@ -269,8 +270,12 @@ långt de når och hur snabbt). `test/matchdagen-balans.test.js` fäller Superli
 | 70 % | tränas 2★ → 4★ | 2 · 1,7 h | 8 · 7,6 h | 23 · 29 h (42 %) | 1 % |
 
 Med startlaget tar det stopp kring Division 3–2: högre upp krävs ett bättre lag, och det kommer med truppen,
-marknaden och träningslägret i Etapp 2b. "Tränas 2★ → 4★" är ett **antagande** för 2b (snittet växer jämnt med
-divisionen, `tranadStjarnor`). Hela utskriften: rapporten.
+marknaden och träningslägret i Etapp 2b. "Tränas 2★ → 4★" var ett **antagande** för 2b (snittet växer jämnt med
+divisionen). Hela utskriften: rapporten.
+
+**Realistiskt (#883, §21.3):** laget börjar på 1★ och tränas med tre läger per omgång. Med 70 % rätt har laget
+~3★ när det når Division 5, ~4★ i Division 4–3 och 5★ först från Division 2 (8–10 säsonger, 11–15 speltimmar);
+med 50 % rätt 4★ i Division 4 och 5★ från Division 3. Tabellerna ovan (otränat 2★-lag) gäller oförändrat.
 
 ## 8. Filer och bootgrafen
 
@@ -364,7 +369,8 @@ direkt därefter webben. Inga index, inga functions, ingen datamigrering.
 `src/matchdagen/delat/md-sasong.js` (ren, testad i `test/matchdagen-sasong.test.js`):
 
 - **Ny klubb:** `nyKarriar({ namn, farg, rng })` – namn 1–24 tecken (`lagnamnOk`), en av 8 tröjfärger
-  (`TROJFARGER`), sju grundpelare med färdiga namn ur `FORNAMN`/`EFTERNAMN` (2★, en av utespelarna är lagkapten).
+  (`TROJFARGER`), sju grundpelare med färdiga namn ur `FORNAMN`/`EFTERNAMN` (1★ sedan #883 – förut 2★ –, en av
+  utespelarna är lagkapten).
   Namnen går inte att ändra. Kassan börjar på `KASSA.start`.
 - **Ligan:** `nyLiga(div, trojfarg, rng)` – 6 lag (vi + 5 ur `MOTSTANDARE`, 66 påhittade namn) med egna färger
   och dold `styrkaFor(div)`; schemat med cirkelmetoden (`md-liga.js schema`) lagras som strängar
@@ -563,30 +569,32 @@ Vänskapsmatcher: Etapp 4.
 ### 15.1 Motorn (`md-trupp.js`, ren)
 
 - **Startelvan** är `trupp` i fast ordning (MV, FÖR, FÖR, MIT, MIT, ANF, ANF – samma index som formationen).
-  Lagbonusen per lagdel `(snitt − 2) × 0,05` (`md-motor.js lagbonus`) räknas ur startelvan när matchen börjar.
+  Lagbonusen per lagdel `(snitt − 2) × 0,05` (`md-motor.js lagbonus`) räknas ur startelvan när matchen börjar –
+  startlaget (1★, #883) har −5 %.
   Truppen visar lagdelarnas snitt och effekt ("räddningar +10 %": målvaktens bonus räknas dubbelt i
   `chansRaddning`, `RADDNING.bonus`).
-- **Grundpelarna** (`grundpelare: true`, 2★) säljs aldrig. Kaptensbindeln: lagkaptenen, eller – när kaptenen
+- **Grundpelarna** (`grundpelare: true`, 1★ i en ny karriär, 2★ i en från före #883) säljs aldrig. Kaptensbindeln: lagkaptenen, eller – när kaptenen
   sitter bland reserverna – den första grundpelaren ute på planen (`kaptenPlats`).
 - **Marknaden:** `nyMarknad(K, rng)` – 6 spelare (id `k…`, namn och tröjnummer som klubben inte har, `xp` 0,
-  ingen `grundpelare`), stjärnorna `kl(avrunda(slump(2; 3,2 + div × 0,3)); 2; 5)` (taket per division
+  ingen `grundpelare`), stjärnorna `kl(avrunda(slump(1; 3,2 + div × 0,3)); 1; 5)` (#883: från 1★; taket per division
   `marknadMaxSt`: 3, 4, 4, 4, 4, 5, 5, 5). Ny marknad efter **varje** match och kval (`matchKlar`/`kvalKlar` med
   `rng`); en ny klubb har ingen (den första kommer efter första matchen).
 - **Priset** `avrunda(150 × st^1,9; 10)`: 560, 1 210, 2 090, 3 190 kr (specen skriver "ungefär 3 150" för 5★ –
   formeln gäller). En köpt spelare säljs för halva priset (`saljPris`).
-- **Köpet** (`kopInfo`, `kop`): den köpta ersätter den **sämsta på samma position** (lägst `st × 100 + xp`; vid
+- **Köpet** (`kopInfo`, `kop`): den köpta ersätter den **sämsta på samma position** (lägst `traningsVarde`; vid
   lika en grundpelare). En köpt som ersätts säljs, en grundpelare flyttas till reserverna (högst 5). Är
   reserverna fulla väljer eleven först en **köpt** reserv som släpps (säljs för halva priset); är alla fem
   grundpelare går köpet inte. Köpet går inte heller när den nya inte har fler stjärnor än den som ersätts,
   eller när kassan (plus återbetalningen för en såld) inte räcker.
 - **Byten** (`bytIn`): en reserv och en startspelare på samma position byter plats – när som helst.
-- **Träningslägret** (`lagerNyckel`, `tranaSpelare`, `lagerResultat`): ett läger per spelad omgång
-  (`"säsong-omgång"`, från omgång 1) och ett extra före kvalet (`"säsong-k"`). Ett läger som inte används före
-  nästa match går förlorat. Eleven väljer en startspelare under 5★ och får alltid 8 frågor; rätt ger 12 poäng,
-  vid 100 en stjärna till och resten följer med (`xp −= 100`, som skissen), vid 5★ nollas poängen. Frågorna
-  räknas i `summa` och `dagar` som källan `traning` ("Träning"), inte som en match.
+- **Träningslägret** (`lagerNyckel`, `tranaSpelare`, `lagerResultat`): sedan #883 upp till **tre läger per
+  spelad omgång** (`"säsong-omgång-1"` … `"-3"`, från omgång 1) och inget extra före kvalet – se §21. Läger som
+  inte används före nästa match går förlorade. Eleven väljer en startspelare under 5★ och får alltid 8 frågor;
+  rätt ger 12 poäng, vid **50/100/250/500** (till 2★/3★/4★/5★, `TRANING.xpTillStjarna`) en stjärna till och
+  resten följer med (`xp −= kostnaden`), vid 5★ nollas poängen. Frågorna räknas i `summa` och `dagar` som
+  källan `traning` ("Träning"), inte som en match.
 - **Påbörjat läger** (`lagerStart`, `lagerPaborjat`, `lagerAvbrutet`): när lägret startar sparas
-  `lager = nyckel + "-p"` (`"1-3-p"`, `"1-k-p"`). `lagerNyckel` ger då samma läger tills det är klart (`lager =
+  `lager = nyckel + "-p"` (`"1-3-2-p"`; före #883 `"1-3-p"`, `"1-k-p"`). `lagerNyckel` ger då samma läger tills det är klart (`lager =
   nyckel` med träningen) eller avbrutet (`lager = nyckel` utan träning – räknas som använt). Ett påbörjat läger
   från en tidigare omgång gäller inte: nästa match öppnar ett nytt som vanligt.
 
@@ -626,7 +634,7 @@ rapporten. Robotklubbens beteende (`KLUBB` i `md-balans-trupp.mjs`) är ett anta
 ### 15.3 Appen
 
 - **Truppen** (`vy/md-vy-trupp.js`): namn och tröjfärg, klubbkassan, lagdelarna med lagbonusen, träningslägret,
-  startelvan (stjärnor, stapeln "x/100 träning", Grundpelare, C), reserverna ("Byt in för X") och marknaden
+  startelvan (stjärnor, stapeln "143 / 250 till ★★★★" – #883, Grundpelare, C), reserverna ("Byt in för X") och marknaden
   ("Köp för N kr" och vem som ersätts – annars varför det inte går). Korten och köpen: `vy/md-vy-marknad.js`
   (rena strängar, allt ur dokumentet `esc()`/tal); rutan "Reserverna är fulla" när en reserv måste släppas.
 - **Sidhuvudets kassa** uppdateras efter köp och match (`S.kassa()`).
@@ -662,16 +670,16 @@ rapporten. Robotklubbens beteende (`KLUBB` i `md-balans-trupp.mjs`) är ett anta
   per begäran styr allt (en ny klubb låg redan nära i 2a), så spelarnas **form** prövas bara där de kommer in
   utifrån, och vid en uppdatering prövas **varifrån** varje startspelare kommer, jämfört med det sparade
   dokumentet `g`:
-  - **Ny klubb** (`create`): sju nya grundpelare `g1`–`g7` i ordning, exakt de åtta fälten, `st` 2, `xp` 0,
+  - **Ny klubb** (`create`): sju nya grundpelare `g1`–`g7` i ordning, exakt de åtta fälten, `st` 1 (#883; 2 från en äldre app godtas), `xp` 0,
     `nr` ≤ 3 siffror, namn 1–40 tecken utan `| / < > & "`, en känd position, `grundpelare`/`kapten` sanningsvärden
     (ett reguljärt uttryck över alla sju, `mdNyTruppOk`), inga reserver, ingen marknad, kassan ≤ 600 och summan
     från noll (`mdTomSumma`). Hann den nya klubben aldrig sparas skapar `sparaMatch`
     den först från noll (`forstaDokument`) och sparar sedan matchen.
   - **En plats i startelvan** (`mdPlatsOk`) är oförändrad, en reserv ur `g.reserver` som byts in, köpt ur
-    `g.marknad` (`mdKopOk`: exakt raden ur marknaden och bara dess fält, `xp` 0, heltal, 2★ till divisionens tak,
+    `g.marknad` (`mdKopOk`: exakt raden ur marknaden och bara dess fält, `xp` 0, heltal, 1★ till divisionens tak,
     raden borta ur `d.marknad`, ingen match i samma skrivning, och kassan ≤ `g.kassa − pris + återbetalning`) –
-    eller samma spelare tränad (bara `st`/`xp`, heltal, `xp` 0–99, +1–96 poäng, `lager` byts i samma skrivning,
-    reserverna inte). En reserv kommer in bara när reserverna ändras.
+    eller samma spelare tränad (bara `st`/`xp`, heltal, `xp` under poängen till nästa stjärna, +1–96 poäng räknat
+    som `mdTranVarde` – #883 –, `lager` byts i samma skrivning, reserverna inte). En reserv kommer in bara när reserverna ändras.
   - **Ingen spelare två gånger, grundpelarna kvar** (`mdUnikaOk`, vid ett byte eller köp): truppen + reserverna
     har inga dubbletter, och högst EN spelare lämnar klubben – aldrig en grundpelare.
   - **Reserverna** ≤ 5, alla ur `g.trupp` + `g.reserver` (`hasAll`). **Marknaden** (`mdMarknadOk`): när summan
@@ -681,8 +689,9 @@ rapporten. Robotklubbens beteende (`KLUBB` i `md-balans-trupp.mjs`) är ett anta
     köp (`mdKopTillagg`: reserverna och marknaden ändras, inget läger, och en spelare i truppen är ny för klubben)
     – där en släppt köpt reserv ger mer än köpet kostar. Köpet självt (`mdKopOk`) räknar exakt: tillbaka halva
     priset för den ersatta köpta spelaren, eller för just den reserv som släpps (`mdSlapptPris`).
-  - **Lägret:** `"säsong-omgång"` (omgång 1 till ligans spelade) eller `"säsong-k"`, påbörjat med `"-p"` efter
-    (`[0-9]{1,5}-([1-9][0-9]?|k)(-p)?`, den här säsongen).
+  - **Lägret:** `"säsong-omgång-nummer"` (omgång 1 till ligans spelade, nummer 1–3 – #883), de äldre formerna
+    `"säsong-omgång"` och `"säsong-k"`, påbörjat med `"-p"` efter (`[0-9]{1,5}-([1-9][0-9]?(-[1-3])?|k)(-p)?`, den
+    här säsongen).
 - **Gränser som inte prövas** (bara elevens eget spel – Matchdagen ger inga pluggmynt; vad en elev som skriver
   förbi appen kan göra):
   - **Matcherna:** att en match verkligen spelats – `summa.matcher` +1 ger upp till 5 000 kr och en ny marknad.
@@ -1209,3 +1218,124 @@ Tester: `test/matchdagen-mm-879.test.js` (rena), `test/firestore-rules-matchdage
 ### 20.4 Deploy
 
 **functions först** (`mdSvar` – vänskapsmatchen räknas in), sedan webben. Inga regler, inga index.
+
+## 21. Svårare stjärnor och tre träningsläger (#883)
+
+Att uppgradera spelare ska vara **svårt, särskilt på toppen** – och mer träning betyder fler frågor.
+
+### 21.1 Reglerna i spelet (`md-config.js TRANING`, `md-trupp.js`, `md-sasong.js nyTrupp`)
+
+- **En ny karriär börjar på 1★** (de sju grundpelarna i `nyTrupp`, också en ny legendklubb). Lagbonusen
+  `(snitt − 2) × 0,05` ger startlaget −5 % per lagdel tills det är tränat.
+- **Poängen per stjärna ökar:** `xpTillStjarna: { 2: 50, 3: 100, 4: 250, 5: 500 }` (nyckeln = stjärnan man når;
+  100/250/500 är Elias tal, 50 för 1★ → 2★ valde assistenten). `xpTill(st)` är kostnaden till nästa stjärna och
+  `traningsVarde(p)` stjärnorna + poängen som ett tal (0, 50, 150, 400, 900 + xp) – samma tal som reglerna
+  jämför och som köpet använder för "den sämsta på positionen". Från 1★ till 5★: 900 poäng = 75 rätt svar
+  (2★ efter 5, 3★ efter 13, 4★ efter 34). Resten följer med (`xp −= kostnaden`), vid 5★ nollas poängen.
+- **Upp till tre läger mellan två ligamatcher** (`TRANING.perOmgang`): nyckeln `"säsong-omgång-nummer"`
+  (`lagerNyckel`, `lagerNummer`, `lagerKvar`), varje läger 8 frågor. Nästa ligamatch nollar räknaren; en
+  cupmatch gör det inte (som förut). Det extra lägret före kvalet finns inte längre – omgångens tre räcker – och
+  när kvalet är spelat är säsongens läger slut. Efter det tredje visar Truppen "Laget har tränat i alla 3
+  träningsläger …" och en **avstängd** "Starta träningen".
+- **Marknaden** lottar från 1★: `kl(avrunda(slump(1; 3,2 + div × 0,3)); 1; 5)` (Division 6: 1★–3★). En 1★ kan
+  aldrig köpas in i ett 1★-lag (bara bättre spelare går att köpa), så den fyller bara ut marknaden.
+- **Appen:** "Träningsläger 2/3" över lägret och i frågorna, stapeln **"143 / 250 till ★★★★"** på spelarkorten
+  (`traningsStapel`, `aria-valuemax` = kostnaden), "x/250" i spelarvalet, "Nästa träningsläger (Träningsläger
+  3/3)" efter ett klart läger, och Match-fliken säger "Ni har 2 träningsläger lediga".
+- **Förhandsvisningen:** `?gammal=1` – en karriär från före #883 (2★-grundpelare, 0–99 poäng, lägret `"1-N"`).
+
+### 21.2 Äldre karriärer (ingen migrering)
+
+En karriär från före #883 behåller sina spelare – **ingen nedgradering, ingen migrering**:
+
+- 2★–4★ med 0–99 poäng ligger alltid under det nya taket (100/250/500), så poängen är fortfarande giltig
+  träning mot nästa stjärna (en 2★ med 99 poäng får 3★ efter ett rätt svar, en 3★ med 60 poäng har 60/250).
+- Lägret i gamla formen gäller: `"säsong-omgång"` = det första lägret i omgången (två till är lediga),
+  `"säsong-omgång-p"` fortsätter med samma nyckel (de lokalt sparade svaren hör till den), `"säsong-k"` = slut
+  för säsongen och `"säsong-k-p"` fortsätter.
+- Reglerna godtar en ny klubb med 2★ (en flik med den gamla appen öppen). Testat: `test/matchdagen-trupp.test.js`
+  ("en äldre spelare …", "äldre nycklar …") och `test/firestore-rules-matchdagen-traning-883.test.js`
+  ("en äldre karriär …").
+- **Versionsglapp:** en flik med den **gamla** appen (≤ 10 min efter deployen) räknar 100 poäng per stjärna. Tränar
+  den en 1★ förbi 49 poäng, eller en 3★/4★ över en stjärna, nekar de nya reglerna sparningen. Svaren ligger kvar lokalt
+  ("Spara träningen"); efter en omladdning räknar den nya appen om samma svar med de nya kostnaderna och sparar.
+
+### 21.3 Balansen (`npm run balans:matchdagen`)
+
+**Division 6 = nybörjaren:** raderna med §12-målen spelas nu av en ny klubb per säsong (1★-laget, `KASSA.start`)
+som tränar den sämsta spelaren i alla tre lägren efter varje ligamatch och köper den största förbättringen den
+har råd med (`md-balans-trupp.mjs nyborjare`, `korBalans({ klubb })`). Med den gamla motståndarstyrkan vann
+nybörjaren för sällan (70 % rätt: 56 % i första säsongen mot 64 % förut), så **Division 6 är svagare**:
+`STYRKA.avdrag = [0,08]` och golvet `STYRKA.min` 0,12 → 0,06 (Division 6: 0,12 ± 0,05 i stället för 0,20 ± 0,05).
+Högre divisioner har inget avdrag (Superligan och Mästarcupen oförändrade). Gäller nya ligor – en sparad liga
+behåller sina styrkor.
+
+| Division 6, nybörjaren (1 000 säsonger) | Vinst | Oavgj. | Ligan | ≥1 eget mål | Förlust ≥4 | Mål/match | Säsong (min) | Mål |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 70 % | **63 %** | 23 % | 60 % | 86 % | 0 % | 2,50 | 69 | ja |
+| 50 % | **33 %** | 30 % | 11 % | 71 % | 0 % | 2,29 | 66 | ja |
+| 30 % | 11 % | 21 % | 1 % | **49 %** | 3 % | 2,37 | 65 | ja |
+
+Förut (otränat 2★-lag, gamla styrkan): 61 % / 34 % / 12 %, ≥1 eget mål 53 % på 30 %. Samma säsonger med ett
+otränat 2★-lag mot den nya styrkan: 69 % / 41 % / 17 % (redovisas, inga mål). **Målen ändrade:** säsongen
+55–75 min (förut 45–60 – tre läger per omgång är ~18 min träning, förut ett), och 30 % rätt gör minst ett mål i
+≥ 45 % av matcherna (förut 50 %: 1★-laget gör mål i 49 %; efter de första lägren som förut).
+
+**Nybörjarens första säsonger** (400 klubbar, med Silverpokalen; vinst · lagets snitt efter säsongen):
+
+| Rätt | Säsong 1 förut → nu | Säsong 2 förut → nu |
+| --- | --- | --- |
+| 80 % | 77 % · 2,5★ → 78 % · 3,0★ | 87 % → 92 % |
+| 70 % | 65 % · 2,3★ → **64 %** · 2,7★ | 74 % → 85 % |
+| 60 % | 49 % · 2,2★ → 47 % · 2,3★ | 56 % → 70 % |
+| 50 % | 36 % · 2,2★ → 34 % · 2,1★ | 36 % → 53 % |
+| 30 % | 13 % · 2,1★ → 11 % · 1,9★ | 14 % → 18 % |
+
+Första säsongen är som förut. Den andra blir lättare: 1★ → 3★ är billigt (150 poäng, ~2 läger per spelare med
+70 % rätt) och tre läger per omgång ger tre gånger så mycket träning, så laget har 3★ efter en säsong – men
+Division 6:s marknad ger högst 3★ och 3★ → 4★ kostar 250. Den som stannar i Division 6 vinner alltså oftare
+andra säsongen än förut.
+
+**Karriären med truppen** (100 robotklubbar × 30 säsonger, 1★, alla tre lägren; andel · median säsonger ·
+speltimmar · lagets snitt · vinst där). Förut (2★, ett läger, §15.2) inom parentes:
+
+| Rätt | Division 6 vinst | Division 3 | Division 1 | Superligan |
+| --- | --- | --- | --- | --- |
+| 80 % | 81 % (78 %) | 100 % · 3 · 5,7 h · 4,0★ · 81 % (3 · 3,2 h · 4,1★) | 100 % · 6 · 12,0 h · 5,0★ (6 · 6,8 h) | 100 % · 8 · 19,3 h (8 · 11,3 h) |
+| 70 % | 73 % (66 %) | 100 % · 4 · 7,0 h · 4,0★ · 69 % (4 · 4,1 h · 4,4★) | 100 % · 7 · 14,8 h · 5,0★ (7 · 8,5 h) | 100 % · 12 · 28,3 h (12 · 17,1 h) |
+| 60 % | 63 % (59 %) | 100 % · 6 · 10,1 h · 4,0★ · 57 % (6 · 6,0 h · 5,0★) | 100 % · 12 · 22,6 h · 5,0★ (12 · 13,7 h) | 44 % · 25 · 57 h (44 % · 25 · 34,8 h) |
+| 50 % | 54 % (49 %) | 100 % · 9 · 14,5 h · 5,0★ · 43 % (10 · 8,6 h · 5,0★) | 43 % · 20 · 36,7 h (40 % · 21 · 23,3 h) | – |
+
+Samma säsonger till toppen, men **~65–70 % fler speltimmar** – det är frågorna i lägren (en säsong i Division 6 tar
+69 min i stället för 51). Laget når 5★ först kring Division 2 (förut Division 3–2), och i Division 3 vinner 70 %
+rätt 69 % i stället för 78 % – mellandivisionerna är tuffare, men fortfarande rättvisa. Ekonomin (§15.2) och
+Superligan-målet (4★, 47 %) är oförändrade.
+
+**Marknadens priser (förslag, inte ändrat):** `150 × st^1,9` ger 150/560/1 210/2 090/3 190 kr. En 1★ till salu
+går aldrig att köpa in (laget har redan 1★). Med de dyra stjärnorna på toppen blir köpet relativt billigare: en
+5★ för 3 190 kr sparar 900 träningspoäng (~13 läger med 70 % rätt) – ungefär 4 matcher i Division 2. Vill Elias
+att toppen ska vara svår också på marknaden: behåll 1★–3★ (§12-ekonomin: en 3★ efter ~3 matcher) och höj 4★
+2 090 → 3 150 kr och 5★ 3 190 → 5 200 kr (≈ +50 %/+60 %, som exponenten 2,2 ger för de två). Det kräver
+`MARKNAD.pris` som en tabell, `mdPris` i reglerna och en ny körning av karriären.
+
+### 21.4 Reglerna och marginalen
+
+- **Ny klubb:** `mdNyTruppOk` godtar `st` 1 eller 2 (`[12]`), resten som förut.
+- **Tränad spelare** (`mdPlatsOk`): `xp` under poängen till nästa stjärna (`n.xp < [0, 50, 100, 250, 500, 1][n.st]`
+  – vid 5★ bara 0) och `mdTranVarde` (`[0, 0, 50, 150, 400, 900][st] + xp`) +1–96 per skrivning. Den gamla regeln
+  `st × 100 + xp` hade gett en 3★ → 4★ för 100 poäng.
+- **Köpt spelare:** 1★ till divisionens tak (`n.st >= 1`).
+- **Lägret:** `[0-9]{1,5}-([1-9][0-9]?(-[1-3])?|k)(-p)?`, högst 16 tecken – ett fjärde läger (`"-4"`) nekas.
+  Fortfarande prövas inte att lägret är nyare än det sparade (§15.4): den som skriver förbi appen kan växla
+  tillbaka och träna mer – bara i sitt eget spel.
+- Tester: `test/firestore-rules-matchdagen-traning-883.test.js` (ny klubb 1★/2★, tre läger + fjärde nekat,
+  kostnaderna 50/100/250/500 och kanterna 49/99/249/499, äldre karriärer).
+- **Marginalen** (`admin/qa-matchdagen-marginal.test.js`, extra `(d.div == d.div) &&`): läger 24 (förut 30 –
+  tabellerna kostar ~6 uttryck för den tränade spelaren), lägrets start 50, ny klubb 4, köp med fulla reserver 16,
+  hela säsongen + kvalet 10, legendklubben 12, match 50; läger + match i en skrivning nekas som förut.
+
+### 21.5 Deploy
+
+**`firebase deploy --only firestore:rules` före webben.** Gamla regler + ny webb: en ny klubb (1★) och varje
+läger med den nya nyckeln (`"1-3-2"`) nekas. Nya regler + gammal webb: se versionsglappet i §21.2. Functions
+bara via den synkade kopian (`npm run sync:matchdagen`; vänskapsmatchen läser bara lagbonusen). Inga index.

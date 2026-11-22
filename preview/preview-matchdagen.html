@@ -21,6 +21,8 @@
        Etapp 2b (#871):
          ?kassa=N    klubbkassan (köp på marknaden under Truppen)
          ?trupp=visa två köpta spelare, grundpelare bland reserverna och träningspoäng (kräver ?omg≥1)
+       #883:
+         ?gammal=1   en äldre karriär (före #883): grundpelarna 2★ med 0–99 poäng och lägret "1-N" (gamla formen)
        Etapp 2c (#872):
          ?omg=N      spelar också Silverpokalens matcher som kommer före omgång N (vunna) – den som
                      väntar efter omgång N står kvar under Match ("Silverpokalen · Kvartsfinal · …")
@@ -100,7 +102,7 @@
 
     // ?omg=N: en klubb med N påhittade omgångar (för tabellen och statistiken).
     if (p.get("klubb") === "ny") localStorage.removeItem(NYCKEL + "karriar");
-    else if (p.has("omg") || p.has("div") || p.has("kval") || p.has("straffar") || p.has("kassa") || p.has("trupp") || p.has("cup") || p.has("rekord") || p.has("mastare") || p.has("mc") || p.has("legend") || !las("karriar")) {
+    else if (p.has("omg") || p.has("div") || p.has("kval") || p.has("straffar") || p.has("kassa") || p.has("trupp") || p.has("cup") || p.has("rekord") || p.has("mastare") || p.has("mc") || p.has("legend") || p.has("gammal") || !las("karriar")) {
       const r = skapaPrng("preview-869").tal;
       let K = nyKarriar({ namn: "Blixtarna IF", farg: "#2f6fe8", rng: r });
       // Etapp 3 (#873): toppen – Superligan, Mästarcupen och legendklubben.
@@ -167,8 +169,13 @@
           const kan = (K.marknad || []).filter((x) => kopInfo(K, x.id).kan).sort((a, b) => b.st - a.st)[0];
           if (kan) K = kop(K, kan.id).K;
         }
-        K.trupp = K.trupp.map((x, i) => (x.st < 5 ? { ...x, xp: [36, 72, 12, 84, 48, 0, 24][i] } : x));
+        K.trupp = K.trupp.map((x, i) => (x.st < 5 ? { ...x, xp: [36, 44, 12, 28, 48, 0, 24][i] } : x));
         K.kassa = 1500;
+      }
+      // ?gammal=1 (#883): så ser en karriär från före #883 ut – 2★-grundpelare och ett använt läger i gamla formen.
+      if (p.get("gammal") === "1") {
+        K.trupp = K.trupp.map((x, i) => (x.grundpelare ? { ...x, st: 2, xp: [0, 60, 96, 12, 84, 36, 99][i] } : x));
+        if (K.liga.omg > 0) K.lager = `${K.sasong}-${K.liga.omg}`;
       }
       if (mc === "vunnen" && mcMatch(K, UID)) spelaMc(n);
       if (p.has("kassa")) K.kassa = Math.max(0, Number(p.get("kassa")) || 0);

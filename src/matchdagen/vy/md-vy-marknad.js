@@ -14,7 +14,7 @@
 import { LAGDELAR, RADDNING, TRANING } from "../delat/md-config.js";
 import { lagbonus } from "../delat/md-motor.js";
 import { POS_NAMN } from "../delat/md-namn.js";
-import { bytIn, kop, kopInfo, lagdelSnitt, saljPris } from "../delat/md-trupp.js";
+import { bytIn, kop, kopInfo, lagdelSnitt, saljPris, xpTill } from "../delat/md-trupp.js";
 import { cupLage } from "../delat/md-cup.js";
 import { mcLage } from "../delat/md-mastarcup.js";
 import { lasPagaende } from "../md-lokal.js";
@@ -49,13 +49,15 @@ export function lagdelarHtml(trupp) {
     <small>${EFFEKT[d]} ${procent(bonus[d] * (FAKTOR[d] ?? 1))}</small></div>`).join("")}</div>`;
 }
 
-/** Stapeln mot nästa stjärna (§8.4) – eller "Fullt tränad" vid 5★. */
+/** Stapeln mot nästa stjärna (§8.4, #883): "143 / 250 till ★★★★" – eller "Fullt tränad" vid 5★. */
 export function traningsStapel(p) {
-  if (tal(p.st, 0, 5) >= TRANING.maxSt) return `<small class="md-svag">Fullt tränad</small>`;
-  const xp = tal(p.xp, 0, TRANING.xpPerStjarna - 1);
-  const bredd = Math.round((100 * xp) / TRANING.xpPerStjarna);
-  return `<div class="md-stapel" role="progressbar" aria-label="Träning mot nästa stjärna" aria-valuemin="0" aria-valuemax="${TRANING.xpPerStjarna}" aria-valuenow="${xp}"><i style="width:${bredd}%"></i></div>
-    <small class="md-svag">${xp}/${TRANING.xpPerStjarna} träning</small>`;
+  const st = tal(p.st, 0, 5);
+  if (st >= TRANING.maxSt) return `<small class="md-svag">Fullt tränad</small>`;
+  const mal = xpTill(st);
+  const xp = tal(p.xp, 0, mal - 1);
+  const bredd = Math.round((100 * xp) / mal);
+  return `<div class="md-stapel" role="progressbar" aria-label="Träning mot ${st + 1} stjärnor" aria-valuemin="0" aria-valuemax="${mal}" aria-valuenow="${xp}"><i style="width:${bredd}%"></i></div>
+    <small class="md-svag">${xp} / ${mal} till ${"★".repeat(st + 1)}</small>`;
 }
 
 function kort(p, under = "") {

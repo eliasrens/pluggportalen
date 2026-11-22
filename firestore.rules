@@ -804,14 +804,14 @@ service cloud.firestore {
     // ⚠️ Gränsen 1000 uttryck per begäran: allt i validMatchdagen räknas, och varje läsning av
     // ett fält i request.resource.data kostar flera uttryck – en ny klubb (create) låg redan nära
     // gränsen i 2a. Därför (#871) prövas spelarnas FORM bara där de kommer in utifrån: truppen
-    // när klubben skapas (sju nya grundpelare: 2★, 0 poäng, namn ≤ 40 tecken) och en köpt
+    // när klubben skapas (sju nya grundpelare: 1★ – eller 2★ som före #883 –, 0 poäng, namn ≤ 40 tecken) och en köpt
     // spelare (mdKopOk). Vid en uppdatering prövas bara VARIFRÅN spelarna kommer, jämfört
     // med det sparade dokumentet g – ur truppen eller reserverna, som redan har prövats
     // (induktion), eller köpta ur marknaden. Positionerna prövas inte: en elev som skriver förbi appen
     // kan bara förstöra sin egen formation (lagbonusen är ett snitt per lagdel).
     // En ny klubb (#871 F2): sju grundpelare g1–g7 i ordning, exakt de åtta fälten (size 8 och
     // varje fält läses – ett saknat ger ett fel), namn 1–40 tecken utan HTML, en känd position,
-    // nr högst tre siffror, 2★, 0 poäng, grundpelare och kapten sanningsvärden. Allt prövas med
+    // nr högst tre siffror, 1★ (#883; 2★ från en äldre app godtas), 0 poäng, grundpelare och kapten sanningsvärden. Allt prövas med
     // ETT reguljärt uttryck över alla sju (billigast mot 1000-uttrycksgränsen): "+ 0" och "!" ger
     // ett fel för text, så ett tal eller sanningsvärde skrivet som text nekas.
     function mdTruppOk(t) { return t is list && t.size() == 7; }
@@ -822,25 +822,30 @@ service cloud.firestore {
       return t[0].size() == 8 && t[1].size() == 8 && t[2].size() == 8 && t[3].size() == 8 && t[4].size() == 8 &&
         t[5].size() == 8 && t[6].size() == 8 &&
         [mdNyRad(t[0]), mdNyRad(t[1]), mdNyRad(t[2]), mdNyRad(t[3]), mdNyRad(t[4]), mdNyRad(t[5]), mdNyRad(t[6])].join('/')
-          .matches('g1[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,3}[|]2[|]0[|]false[|](true|false)/g2[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,3}[|]2[|]0[|]false[|](true|false)/g3[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,3}[|]2[|]0[|]false[|](true|false)/g4[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,3}[|]2[|]0[|]false[|](true|false)/g5[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,3}[|]2[|]0[|]false[|](true|false)/g6[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,3}[|]2[|]0[|]false[|](true|false)/g7[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,3}[|]2[|]0[|]false[|](true|false)');
+          .matches('g1[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,3}[|][12][|]0[|]false[|](true|false)/g2[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,3}[|][12][|]0[|]false[|](true|false)/g3[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,3}[|][12][|]0[|]false[|](true|false)/g4[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,3}[|][12][|]0[|]false[|](true|false)/g5[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,3}[|][12][|]0[|]false[|](true|false)/g6[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,3}[|][12][|]0[|]false[|](true|false)/g7[|][^|/<>&"]{1,40}[|](MV|FÖR|MIT|ANF)[|][0-9]{1,3}[|][12][|]0[|]false[|](true|false)');
     }
     // Priset på marknaden (md-trupp.js pris, avrunda(150 × st^1,9; 10)) per stjärnor 0–5.
     function mdPris(st) { return [0, 150, 560, 1210, 2090, 3190][st]; }
     // #871 (spec §8): varifrån en startspelare kommer – så att stjärnor och träningspoäng inte
     // kan skrivas fritt. En plats är (1) oförändrad, (2) en reserv som byts in, (3) en spelare
     // ur marknaden (köpt, otränad) – då minskar kassan med priset (mdKopOk) – eller (4) samma
-    // spelare tränad i ett läger: bara st/xp ändras, st 1–5 och xp 0–99 som heltal, 1–96
-    // poäng mer (8 frågor × 12), och lägret (lager) byts i samma skrivning – men inte reserverna
-    // (då kunde den otränade kopian hamna bland reserverna). En reserv kommer in
-    // bara när reserverna ändras (ett byte) – då prövas också att ingen spelare finns två gånger (mdUnikaOk).
+    // spelare tränad i ett läger: bara st/xp ändras, st 1–5 och xp under poängen till nästa
+    // stjärna som heltal (#883, md-config.js TRANING.xpTillStjarna: 50/100/250/500, vid 5★ 0),
+    // 1–96 poäng mer (8 frågor × 12) räknat som mdTranVarde, och lägret (lager) byts i samma
+    // skrivning – men inte reserverna (då kunde den otränade kopian hamna bland reserverna).
+    // En äldre spelare (2★–4★ med 0–99 poäng från före #883) ligger alltid under det nya taket.
+    // En reserv kommer in bara när reserverna ändras (ett byte) – då prövas också att ingen
+    // spelare finns två gånger (mdUnikaOk).
+    // Träningen som ETT tal (md-trupp.js traningsVarde): poängen för stjärnorna upp till st, plus xp.
+    function mdTranVarde(p) { return [0, 0, 50, 150, 400, 900][p.st] + p.xp; }
     function mdPlatsOk(n, o, g, d, a) {
       return n == o || ('reserver' in a && n in g.get('reserver', [])) || mdKopOk(n, o, g, d, a) ||
         ('lager' in a && !('reserver' in a) && n.diff(o).affectedKeys().hasOnly(['st', 'xp']) && n.st is int && n.st <= 5 &&
-          n.xp is int && n.xp >= 0 && n.xp <= 99 &&
-          n.st * 100 + n.xp > o.st * 100 + o.xp && n.st * 100 + n.xp <= o.st * 100 + o.xp + 96);
+          n.xp is int && n.xp >= 0 && n.xp < [0, 50, 100, 250, 500, 1][n.st] &&
+          mdTranVarde(n) > mdTranVarde(o) && mdTranVarde(n) <= mdTranVarde(o) + 96);
     }
     // Köpt: stod till salu i den sparade marknaden (raden "id|namn|pos|nr|st", md-trupp.js saluRad),
-    // bara de fälten och xp 0 (ingen grundpelare/kapten), 2★ till divisionens tak (md-trupp.js
+    // bara de fälten och xp 0 (ingen grundpelare/kapten), 1★ (#883) till divisionens tak (md-trupp.js
     // marknadMaxSt: [3, 4, 4, 4, 4, 5, 5, 5]), raden är borta ur marknaden, ingen match i samma
     // skrivning – då är marknaden den sparade minus EN rad (mdMarknadOk: ett köp per skrivning,
     // två köp betalda en gång nekas) – och kassan
@@ -852,7 +857,7 @@ service cloud.firestore {
       let rad = [n.id, n.namn, n.pos, string(n.nr), string(n.st)].join('|');
       return n.keys().hasOnly(['id', 'namn', 'pos', 'nr', 'st', 'xp']) && n.xp == 0 && n.nr is int && n.st is int &&
         rad in g.get('marknad', []) && !(rad in d.marknad) && !('summa' in a) &&
-        n.st >= 2 && n.st <= [3, 4, 4, 4, 4, 5, 5, 5][d.div] && n.namn.size() <= 40 &&
+        n.st >= 1 && n.st <= [3, 4, 4, 4, 4, 5, 5, 5][d.div] && n.namn.size() <= 40 &&
         d.kassa <= g.kassa - mdPris(n.st) + (o.get('grundpelare', false) == true ?
           mdSlapptPris(g.get('reserver', []).removeAll(d.reserver)) : mdPris(o.st) / 2);
     }
@@ -902,16 +907,18 @@ service cloud.firestore {
         (d.summa.matcher <= g.summa.matcher + 500 && d.kassa <= g.kassa + (d.summa.matcher - g.summa.matcher) * 5000 +
           ('reserver' in a ? mdKopTillagg(d, g, a) : 0)));
     }
-    // Det senast använda träningslägret (md-trupp.js lagerNyckel): "säsong-omgång" för en
-    // spelad omgång i den här säsongen (omgången får vara äldre – lägret kan sparas ihop med
-    // nästa match), eller "säsong-k" före kvalet. Att lägret är NYARE än det sparade prövas
+    // Det senast använda träningslägret (md-trupp.js lagerNyckel): "säsong-omgång-nummer" (#883:
+    // upp till 3 läger per omgång – nummer 1–3, ett fjärde nekas) för en spelad omgång i den här
+    // säsongen (omgången får vara äldre – lägret kan sparas ihop med nästa match). Äldre former
+    // godtas: "säsong-omgång" (det första lägret) och "säsong-k" (kvalets extra läger, före #883).
+    // Att lägret är NYARE än det sparade prövas
     // inte (det kostar för många uttryck): en elev som skriver förbi appen kan växla lägret
     // fram och tillbaka och träna mer – bara i sitt eget spel, som kassan (docs/MATCHDAGEN.md §15.4).
     // Påbörjat läger: samma nyckel + "-p" (sparas när lägret startar, så att en omladdning eller
     // rensad lokal lagring aldrig ger ett nytt läger – det påbörjade räknas då som använt).
     function mdLagerOk(d) {
-      return d.lager is string && d.lager.size() <= 14 &&
-        d.lager.matches('[0-9]{1,5}-([1-9][0-9]?|k)(-p)?') && d.lager.split('-')[0] == string(d.sasong) &&
+      return d.lager is string && d.lager.size() <= 16 &&
+        d.lager.matches('[0-9]{1,5}-([1-9][0-9]?(-[1-3])?|k)(-p)?') && d.lager.split('-')[0] == string(d.sasong) &&
         (d.lager.split('-')[1] == 'k' || int(d.lager.split('-')[1]) <= d.liga.omg);
     }
     // Summan visas i lärarens Hur går det? → Matchdagen: alla tal måste vara tal (aldrig

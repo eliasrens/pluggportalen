@@ -20,7 +20,7 @@ import { mastareText, mcFore, mcText } from "./md-vy-mastarcup.js";
 import { kvalMatch } from "../delat/md-kval.js";
 import { nastaMatch, nyKarriar, nySasong, sasongFro, tabellRader } from "../delat/md-sasong.js";
 import { skapaPrng } from "../delat/md-prng.js";
-import { lagerNyckel, lagerPaborjat } from "../delat/md-trupp.js";
+import { lagerKvar, lagerNyckel, lagerPaborjat } from "../delat/md-trupp.js";
 import { lasPagaende, pagaendeLager } from "../md-lokal.js";
 import { klubbFormular } from "./md-vy-klubb.js";
 import { chip, esc } from "./md-vy-delat.js";
@@ -81,7 +81,7 @@ export async function visaMatchFlik(S, el) {
         ? `<p>Ni vann ${esc(DIVISIONER[n.kval.div])}! Vinner ni kvalet går ni upp till <b>${esc(DIVISIONER[n.kval.till])}</b>. Blir det oavgjort avgörs det på straffar – fem var, sedan sudden death.</p>`
         : cup ? cupFore(S.K, n) : mc ? mcFore(S.K, n)
           : `<p class="md-svag">Varje drag ger en fråga. Svarar du rätt lyckas passet eller skottet oftare – men även snygga skott kan räddas, och långskott går sällan in.</p>`}
-    ${!pagaende && lagerNyckel(S.K) && !lagerPaborjat(S.K) ? `<p class="md-tips">Ni har ett träningsläger ledigt under <button type="button" class="md-lank" data-trupp>Truppen</button> – det går förlorat när nästa ${cup || mc ? "ligamatch" : "match"} spelas.</p>` : ""}
+    ${!pagaende && lagerNyckel(S.K) && !lagerPaborjat(S.K) ? `<p class="md-tips">Ni har ${lagerKvar(S.K) > 1 ? `${lagerKvar(S.K)} träningsläger lediga` : "ett träningsläger ledigt"} under <button type="button" class="md-lank" data-trupp>Truppen</button> – ${lagerKvar(S.K) > 1 ? "de går förlorade" : "det går förlorat"} när nästa ${cup || mc ? "ligamatch" : "match"} spelas.</p>` : ""}
     ${!pagaende && legendErbjudande(S.K) ? legendTips : ""}
     <div class="md-rad">
       <button type="button" class="md-stor" data-avspark>${pagaende ? "Fortsätt matchen" : "Avspark!"}</button>
