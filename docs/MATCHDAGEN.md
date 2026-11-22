@@ -582,8 +582,9 @@ Vänskapsmatcher: Etapp 4.
   ingen `grundpelare`), stjärnorna `kl(avrunda(slump(1; 3,2 + div × 0,3)); 1; 5)` (#883: från 1★; taket per division
   `marknadMaxSt`: 3, 4, 4, 4, 4, 5, 5, 5). Ny marknad efter **varje** match och kval (`matchKlar`/`kvalKlar` med
   `rng`); en ny klubb har ingen (den första kommer efter första matchen).
-- **Priset** `avrunda(150 × st^1,9; 10)`: 560, 1 210, 2 090, 3 190 kr (specen skriver "ungefär 3 150" för 5★ –
-  formeln gäller). En köpt spelare säljs för halva priset (`saljPris`).
+- **Priset** – en tabell per stjärnor (`MARKNAD.pris`, #890): 150, 560, 1 210, **3 150**, **5 200** kr för 1★–5★
+  (förut `avrunda(150 × st^1,9; 10)`, 2 090 och 3 190 för 4★/5★ – se §22.3). En köpt spelare säljs för halva
+  priset (`saljPris`).
 - **Köpet** (`kopInfo`, `kop`): den köpta ersätter den **sämsta på samma position** (lägst `traningsVarde`; vid
   lika en grundpelare). En köpt som ersätts säljs, en grundpelare flyttas till reserverna (högst 5). Är
   reserverna fulla väljer eleven först en **köpt** reserv som släpps (säljs för halva priset); är alla fem
@@ -688,7 +689,7 @@ rapporten. Robotklubbens beteende (`KLUBB` i `md-balans-trupp.mjs`) är ett anta
   - **Reserverna** ≤ 5, alla ur `g.trupp` + `g.reserver` (`hasAll`). **Marknaden** (`mdMarknadOk`): när summan
     ändras (en match) högst 6 rader som matchar `k[0-9a-z]{1,6}|namn 1–40|MV/FÖR/MIT/ANF|nr 0–99|1–5`; annars
     den sparade minus exakt EN rad (ett köp per skrivning).
-  - **Kassan** per skrivning: högst 5 000 kr per bokförd match (Δ`summa.matcher` ≤ 500), plus 400 kr bara i ett
+  - **Kassan** per skrivning: högst 5 000 kr per bokförd match (Δ`summa.matcher` ≤ 500), plus 2 040 kr (#890; förut 400) bara i ett
     köp (`mdKopTillagg`: reserverna och marknaden ändras, inget läger, och en spelare i truppen är ny för klubben)
     – där en släppt köpt reserv ger mer än köpet kostar. Köpet självt (`mdKopOk`) räknar exakt: tillbaka halva
     priset för den ersatta köpta spelaren, eller för just den reserv som släpps (`mdSlapptPris`).
@@ -704,7 +705,7 @@ rapporten. Robotklubbens beteende (`KLUBB` i `md-balans-trupp.mjs`) är ett anta
   - **Storleken:** strängarna i ligans lag, `senaste` och `sasonger` (§10) – upp till 1 MiB (`pokaler` prövas sedan 2c, §16.4).
   - **Köp + inbytt reserv i samma skrivning** (Testern F9): `mdSlapptPris` räknar den som finns i `g.reserver` men
     inte i `d.reserver` som släppt – också en köpt reserv som i samma skrivning byts in på planen. Ett köp med fulla
-    reserver ger då +385 kr i stället för −1 210 (högst +400 per köp, `mdKassaOk`). Rättas senare genom att bara
+    reserver ger då (#890: en köpt 5★-reserv, 2 600) +1 390 kr i stället för −1 210 (högst +2 040 per köp, `mdKassaOk`). Rättas senare genom att bara
     räkna spelare som lämnar klubben (inte finns i `d.trupp` + `d.reserver`), som `mdUnikaOk`.
   - **Positionerna** (en elev kan bara förstöra sin egen formation). Vyerna `esc()`:ar och `Number()`:ar allt ur
     dokumentet.
@@ -1402,12 +1403,43 @@ Samma säsonger till toppen, men **~65–70 % fler speltimmar** – det är frå
 rätt 69 % i stället för 78 % – mellandivisionerna är tuffare, men fortfarande rättvisa. Ekonomin (§15.2) och
 Superligan-målet (4★, 47 %) är oförändrade.
 
-**Marknadens priser (förslag, inte ändrat):** `150 × st^1,9` ger 150/560/1 210/2 090/3 190 kr. En 1★ till salu
-går aldrig att köpa in (laget har redan 1★). Med de dyra stjärnorna på toppen blir köpet relativt billigare: en
-5★ för 3 190 kr sparar 900 träningspoäng (~13 läger med 70 % rätt) – ungefär 4 matcher i Division 2. Vill Elias
-att toppen ska vara svår också på marknaden: behåll 1★–3★ (§12-ekonomin: en 3★ efter ~3 matcher) och höj 4★
-2 090 → 3 150 kr och 5★ 3 190 → 5 200 kr (≈ +50 %/+60 %, som exponenten 2,2 ger för de två). Det kräver
-`MARKNAD.pris` som en tabell, `mdPris` i reglerna och en ny körning av karriären.
+**Marknadens priser (#890, Elias godkände förslaget):** förut `150 × st^1,9` = 150/560/1 210/2 090/3 190 kr – med
+de dyra stjärnorna på toppen blev köpet relativt billigt (en 5★ för 3 190 kr sparar 900 träningspoäng, ~13 läger
+med 70 % rätt). Nu en tabell (`MARKNAD.pris`, `md-trupp.js pris`, reglernas `mdPris`):
+
+| Stjärnor | 1★ | 2★ | 3★ | 4★ | 5★ |
+| --- | --- | --- | --- | --- | --- |
+| Pris | 150 | 560 | 1 210 | **3 150** (2 090) | **5 200** (3 190) |
+| Säljs för (halva) | 75 | 280 | 605 | 1 575 | 2 600 |
+
+1★–3★ är oförändrade, så §12-ekonomin håller: en 3★ efter i snitt 2,96 matcher med 60 % rätt (`npm run
+balans:matchdagen`, 1 000 elever per rad: 50 % 3,41 · 60 % 2,96 · 70 % 2,64 – samma som förut). En 1★ till
+salu går aldrig att köpa in (laget har redan 1★).
+
+**Karriären med truppen** efter #890 (samma körning, 100 robotklubbar × 30 säsonger; andel · median säsonger ·
+speltimmar · lagets snitt · vinst där):
+
+| Rätt | Division 3 | Division 1 | Superligan |
+| --- | --- | --- | --- |
+| 80 % | 100 % · 3 · 5,7 h · 4,0★ · 81 % | 100 % · 6 · 11,9 h · 5,0★ · 81 % | 100 % · 8 · 19,3 h |
+| 70 % | 100 % · 4 · 7,0 h · 4,0★ · 69 % | 100 % · 7 · 14,8 h · 5,0★ · 64 % | 100 % · 12 · 28,5 h |
+| 60 % | 100 % · 6 · 10,1 h · 4,0★ · 57 % | 100 % · 12 · 22,6 h · 5,0★ · 48 % | 44 % · 25 · 57,0 h |
+| 50 % | 100 % · 9 · 14,5 h · 5,0★ · 43 % | 43 % · 20 · 36,7 h · 5,0★ · 29 % | – |
+
+Samma som tabellen ovan (±0,2 h): robotklubben tränar i alla tre lägren och når 4★–5★ genom träningen innan
+kassan räcker till en 4★/5★ på marknaden, så de dyrare toppspelarna ändrar inte karriären – de gör bara att
+pengar inte är en genväg förbi träningen. Superligan-målet (4★, 47 %) och Mästarcupen påverkas inte (inga köp i
+de körningarna).
+
+**Sparade marknader:** raden `"id|namn|pos|nr|st"` har inget pris, så en marknad sparad före #890 kostar det nya
+priset i appen, och reglerna nekar ett köp till det gamla (`test/firestore-rules-matchdagen-pris-890.test.js`).
+Spelare som redan köpts behåller sina stjärnor; säljs de senare får eleven halva det **nya** priset (en köpt 5★
+från förr ger 2 600 i stället för 1 595).
+
+**Kassatillägget vid ett köp** (`mdKopTillagg`): en släppt köpt reserv kan ge mer än köpet kostar. Största
+överskottet är nu en släppt 5★ (2 600) mot en 2★ som ersätter en 1★-grundpelare (560): **+2 040** (förut 400 –
+som redan efter #883 var för lite för en släppt 5★ mot en 2★). Köpet självt räknas fortfarande exakt i `mdKopOk`;
+tillägget är bara taket per skrivning. Luckan F9 (§15.4) blir därmed högst +2 040 per köp i elevens eget spel.
 
 ### 22.4 Reglerna och marginalen
 
@@ -1430,3 +1462,9 @@ att toppen ska vara svår också på marknaden: behåll 1★–3★ (§12-ekonom
 **`firebase deploy --only firestore:rules` före webben.** Gamla regler + ny webb: en ny klubb (1★) och varje
 läger med den nya nyckeln (`"1-3-2"`) nekas. Nya regler + gammal webb: se versionsglappet i §22.2. Functions
 bara via den synkade kopian (`npm run sync:matchdagen`; vänskapsmatchen läser bara lagbonusen). Inga index.
+
+**#890 (priserna):** reglerna kräver kassan ≤ den sparade − priset, så gamla regler + ny webb går bra (den nya webben
+betalar mer än de gamla reglerna kräver). Nya regler + gammal webb nekar ett 4★/5★-köp till det gamla priset
+(sparningen misslyckas, eleven får ladda om). Är #883:s regler redan ute: **webben först, sedan
+`firebase deploy --only firestore:rules`** – då gäller glappet bara den som har en gammal flik öppen. Annars
+gäller §22.5 ovan (reglerna först) och glappet är detsamma. Functions bara via den synkade kopian.

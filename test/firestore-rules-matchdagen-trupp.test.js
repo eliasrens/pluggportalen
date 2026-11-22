@@ -86,10 +86,10 @@ describe("matchdagen/{uid} – truppen och marknaden, formen (#871)", () => {
     await seed(K1);
     await assertFails(setDoc(ref(elev()), medTid(K1, { marknad: [...K1.marknad, salu] })), "7 till salu");
     const kopAv = async (spelare, div = 0, ok = false) => {
-      const G = { ...kopia(K1), div, marknad: [spelare] };
+      const G = { ...kopia(K1), div, kassa: 6000, marknad: [spelare] };
       await seed(G);
-      // Spelaren ersätter grundpelaren helt (ingen sammanslagning med dess fält); grundpelaren går till reserverna.
-      const N = { ...kopia(G), marknad: [], kassa: G.kassa - 3190, trupp: G.trupp.map((p, j) => (j === 5 ? spelare : p)), reserver: [G.trupp[5]] };
+      // Betalar 5 200 (#890: 5★, det dyraste – mer än priset går). Spelaren ersätter grundpelaren helt (ingen sammanslagning med dess fält); grundpelaren går till reserverna.
+      const N = { ...kopia(G), marknad: [], kassa: G.kassa - 5200, trupp: G.trupp.map((p, j) => (j === 5 ? spelare : p)), reserver: [G.trupp[5]] };
       await (ok ? assertSucceeds : assertFails)(setDoc(ref(elev()), medTid(N)), JSON.stringify(spelare));
     };
     await kopAv({ ...salu, st: 4 });

@@ -39,8 +39,8 @@ const grund = (i, pos) => ({ id: `r${i}`, namn: `Reserv ${i}`, pos, nr: 30 + i, 
 const kopt = (i, pos, st = 3) => ({ id: `kr${i}`, namn: `Köpt ${i}`, pos, nr: 60 + i, st, xp: 0 });
 
 describe("priserna och marknaden (§8.3)", () => {
-  it("priset avrunda(150 × st^1,9; 10): 560, 1 210, 2 090, 3 190 kr; säljs för halva", () => {
-    assert.deepEqual([2, 3, 4, 5].map(T.pris), [560, 1210, 2090, 3190]);
+  it("pristabellen (#890): 150, 560, 1 210, 3 150, 5 200 kr; säljs för halva (mer i matchdagen-pris-890.test.js)", () => {
+    assert.deepEqual([1, 2, 3, 4, 5].map(T.pris), [150, 560, 1210, 3150, 5200]);
     assert.equal(T.saljPris(3), 605);
   });
   it("reglernas pristabell och stjärntak är desamma som modulens", () => {
@@ -111,7 +111,7 @@ describe("köpet och reserverna – grundpelarna säljs aldrig (§8.2–8.3)", (
     const r = T.kop(K, "kny");
     assert.equal(r.K.trupp[i].id, "kny", "3★ är sämst och ersätts");
     assert.deepEqual(r.salda, [{ namn: "Köpt 1", belopp: 605 }]);
-    assert.equal(r.K.kassa, 5000 - 3190 + 605);
+    assert.equal(r.K.kassa, 5000 - 5200 + 605);
     assert.equal(r.K.reserver.length, 0, "en köpt spelare går inte till reserverna");
   });
   it("inte bättre än den som ersätts, eller kassan räcker inte → går inte", () => {

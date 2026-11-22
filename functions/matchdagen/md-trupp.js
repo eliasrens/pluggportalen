@@ -8,7 +8,7 @@
 // aldrig: ersätts en av dem flyttas den till reserverna (högst 5). En köpt spelare
 // har ingen grundpelare-flagga och säljs för halva priset när den ersätts.
 //
-//   pris(st)                         → kr (avrunda(150 × st^1,9; 10))
+//   pris(st)                         → kr (tabellen MARKNAD.pris: 150, 560, 1 210, 3 150, 5 200)
 //   marknadMaxSt(div)                → högsta stjärnorna marknaden kan ge i divisionen (reglerna)
 //   nyMarknad(K, rng)                → 6 spelare till salu (nya efter varje match)
 //   kopInfo(K, id)                   → vem som ersätts, vad det kostar, om reserverna är fulla
@@ -47,10 +47,9 @@ export function traningsVarde(p) {
 /** Spelarens "värde" för att jämföra: stjärnor först, sedan träningspoängen. */
 const varde = traningsVarde;
 
-/** Priset för en spelare med st stjärnor (§8.3): ~560, 1 210, 2 080, 3 190 kr för 2–5. */
+/** Priset för en spelare med st stjärnor (§8.3, #890): 150, 560, 1 210, 3 150, 5 200 kr för 1–5. */
 export function pris(st) {
-  const p = C.MARKNAD.pris;
-  return Math.round((p.bas * Number(st) ** p.exponent) / p.avrunda) * p.avrunda;
+  return C.MARKNAD.pris[Number(st)] ?? 0;
 }
 /** Vad en köpt spelare säljs för när den ersätts eller släpps: halva priset för dess stjärnor. */
 export const saljPris = (st) => Math.round(pris(st) * C.MARKNAD.salj);
