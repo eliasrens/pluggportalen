@@ -11,6 +11,12 @@
 //      mot strypta bakgrunds-timers) → automatisk återgång när klockslaget går
 //   4. provlås med ett efter-val (#788): en onSnapshot på elevens eget svar
 //      (provTillfallen/{t}/svar/{uid}) → inlämnat ger lärarens efter-läge direkt
+//   5. veckoschemat (#902, docs/VECKOSCHEMA.md): samma klass-dokument ger
+//      schemaForStudent – en timer till nästa ändring (lektionens start/slut)
+//      med samma skyddsnät. Fokuslåset går alltid före (kombineradGrind).
+//      0 nya läsningar utan en lektion som pågår eller återstår i dag; annars
+//      hämtas ämnena (+ lektionsämnenas områden om klassen ser hela biblioteket)
+//      ur samma TTL-cache som Plugga-listan, en gång per ändrat behov.
 // Tiden jämförs mot serverNow() (klock-korrigerad, data-class-lock.js).
 //
 // Laddas DYNAMISKT (ui.getLockGate) – aldrig i den statiska bootgrafen (#271).
@@ -19,32 +25,87 @@
 import { db } from "./firebase-config.js";
 import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getClasses, clearClassCache } from "./data-classes.js";
+import { getSubjects, getAreas } from "./data-content.js";
 import { gateFor, lockForStudent, lockBehoverInlamning, lockEfterInlamning } from "./class-lock.js";
+import { schemaForStudent, nastaSchemaAndring, kombineradGrind, schemaInfoBehov } from "./klass-schema.js";
 import { serverNow, syncServerClock } from "./data-class-lock.js";
 
 let watch = null; // { meId, order: classId[], docs: Map, unsubs: fn[], iv, ready }
 let svarWatch = null; // { t, unsub, inlamnad } – elevens svar under ett provlås med efter-val (#788)
 let current = null; // aktivt lås (+ classId) eller null
+let currentLage = null; // veckoschemats läge (#902) – null när ett lås gäller eller ingen lektion pågår
 let currentKey = "null";
 let timer = null;
+// Ämnesnamn/-områden till schemaForStudent (#902): { nyckel, opts } när laddat, `laddar` = pågående nyckel.
+let schemaInfo = { nyckel: null, opts: null, laddar: null, klar: null, amnen: null, omraden: false };
 const lyssnare = new Set();
 
-/** Lyssna på lås-byten: fn(nyttLås|null, förraLås|null). Returnerar avregistrering. */
+/**
+ * Lyssna på grind-byten: fn(nyttLås|null, förraLås|null, nyttSchema|null, förraSchema|null).
+ * Schemaläget är null medan ett lås gäller (låset går före). När schemat blir null har
+ * förraSchema `avslutad: true` om lektionen nådde sin sluttid. Returnerar avregistrering.
+ */
 export function onLockChange(fn) {
   lyssnare.add(fn);
   return () => lyssnare.delete(fn);
 }
 
-/** Router-/meny-vänlig vy av ett lås (bor i class-lock.js, ren logik – testbar). */
-export { gateFor };
+/** Router-/meny-vänlig vy av ett lås / den kombinerade grinden (ren logik – testbar). */
+export { gateFor, kombineradGrind };
 
-function schemalaggSlut(lock) {
+/** Den kombinerade grinden just nu: låset, annars schemat, annars null (efter lockForMe). */
+export function aktuellGrind() {
+  return kombineradGrind(current, currentLage);
+}
+
+function schemalaggSlut(lock, andring) {
   clearTimeout(timer);
   timer = null;
-  if (!lock) return;
+  const nasta = Math.min(lock ? lock.till : Infinity, andring ?? Infinity);
+  if (nasta === Infinity) return;
   // +200 ms så vi garanterat landar EFTER sluttiden; taket = setTimeout-max.
-  const ms = Math.min(Math.max(0, lock.till - serverNow() + 200), 2_000_000_000);
+  const ms = Math.min(Math.max(0, nasta - serverNow() + 200), 2_000_000_000);
   timer = setTimeout(omrakna, ms);
+}
+
+/**
+ * Ladda ämnena (och vid behov lektionsämnenas områden) för schemaForStudent.
+ * Samma TTL-cachade läsningar som Plugga-listan. Fel → utan namn/områdesinfo
+ * (label = ämnes-id, varje ämne antas ha områden) – aldrig ett stängt läge.
+ */
+function laddaSchemaInfo(behov) {
+  if (schemaInfo.laddar === behov.nyckel) return schemaInfo.klar;
+  const info = { nyckel: null, opts: null, laddar: behov.nyckel, klar: null, amnen: null, omraden: false };
+  schemaInfo = info;
+  info.klar = (async () => {
+    const subjects = await getSubjects().catch(() => null);
+    const amnenMedOmraden = behov.omraden
+      ? (await Promise.all(behov.amnen.map((a) => getAreas(a).then((l) => (l.length ? a : null), () => a)))).filter(Boolean)
+      : null;
+    if (schemaInfo !== info) return;
+    info.opts = { subjects: subjects || undefined, amnenMedOmraden };
+    info.nyckel = behov.nyckel;
+    info.amnen = new Set(behov.amnen);
+    info.omraden = behov.omraden;
+    info.laddar = null;
+    if (watch?.uppe) omrakna(); // i startläget räknar lockForMe om själv (tyst)
+  })();
+  return info.klar;
+}
+
+/** Schemaläget ur klasserna – eller det förra medan ämnesinfon laddas (inget flimmer). */
+/** Täcker den laddade ämnesinfon behovet? (Färre ämnen kvar i dag → ingen ny hämtning.) */
+const tacker = (info, behov) => info.nyckel !== null &&
+  behov.amnen.every((a) => info.amnen.has(a)) && behov.omraden === info.omraden;
+
+function schemaLage(klasser, now) {
+  const behov = schemaInfoBehov(klasser, watch.meId, now);
+  if (!behov) return null; // ingen lektion kvar i dag → ingen läsning
+  if (!tacker(schemaInfo, behov)) {
+    laddaSchemaInfo(behov);
+    return currentLage;
+  }
+  return schemaForStudent(klasser, watch.meId, now, schemaInfo.opts);
 }
 
 function stoppaSvar() {
@@ -89,18 +150,25 @@ function inlamnadFor(lock) {
 function omrakna({ tyst = false } = {}) {
   if (!watch) return;
   const klasser = watch.order.map((id) => watch.docs.get(id)).filter(Boolean);
-  const las = lockForStudent(klasser, watch.meId, serverNow());
+  const now = serverNow();
+  const las = lockForStudent(klasser, watch.meId, now);
   const next = lockEfterInlamning(las, inlamnadFor(las));
-  const key = JSON.stringify(next);
-  schemalaggSlut(next);
+  // Fokuslåset går alltid före schemat: medan ett lås gäller räknas schemat som null.
+  const lage = next ? null : schemaLage(klasser, now);
+  const key = JSON.stringify([next, lage]);
+  schemalaggSlut(next, nastaSchemaAndring(klasser, watch.meId, now));
   if (key === currentKey) return;
   const prev = current;
+  const prevLage = currentLage;
   current = next;
+  currentLage = lage;
   currentKey = key;
   if (tyst) return;
+  // avslutad: lektionen nådde sin sluttid (inte urbockad/ändrad före) – "Lektionen är slut".
+  const forra = prevLage && !lage ? { ...prevLage, avslutad: now >= prevLage.till - 1000 } : prevLage;
   for (const fn of lyssnare) {
     try {
-      fn(next, prev);
+      fn(next, prev, lage, forra);
     } catch (err) {
       console.error("Fokusläget: lyssnare kastade", err);
     }
@@ -116,7 +184,9 @@ export function stopLockWatch() {
   clearTimeout(timer);
   watch = null;
   current = null;
+  currentLage = null;
   currentKey = "null";
+  schemaInfo = { nyckel: null, opts: null, laddar: null, klar: null, amnen: null, omraden: false };
 }
 
 /**
@@ -144,6 +214,10 @@ export async function lockForMe(meId) {
     const mina = klasser.filter((c) => Array.isArray(c.studentIds) && c.studentIds.includes(meId));
     w.order = mina.map((c) => c.id);
     mina.forEach((c) => w.docs.set(c.id, c));
+    // Veckoschemat (#902): ämnesinfon först (högst 3 s) så första sidan grindas med rätt läge.
+    const behov = schemaInfoBehov(mina, meId, serverNow());
+    if (behov) await Promise.race([laddaSchemaInfo(behov), new Promise((r) => setTimeout(r, 3000))]);
+    if (watch !== w) return;
     w.startar = true;
     omrakna({ tyst: true }); // startläget: routern grindar själv, ingen notis
     // Provlås med efter-val (#788): vänta in elevens svar (högst 3 s) så en elev
@@ -152,6 +226,7 @@ export async function lockForMe(meId) {
     if (watch !== w) return;
     omrakna({ tyst: true });
     w.startar = false;
+    w.uppe = true;
     for (const id of w.order) {
       let forsta = true;
       w.unsubs.push(
