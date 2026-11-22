@@ -51,11 +51,16 @@ describe("Veckoschema (#900, testaren): roller", () => {
 });
 
 describe("Veckoschema (#900, testaren): formen", () => {
-  it("schema: null, sträng och tom map nekas", async () => {
+  it("schema: sträng och tom map nekas; null bara som 'oförändrat' när inget schema finns", async () => {
     const db = env.ak4();
-    await assertFails(updateDoc(klass(db, "4a"), { schema: null }));
     await assertFails(updateDoc(klass(db, "4a"), { schema: "på" }));
     await assertFails(updateDoc(klass(db, "4a"), { schema: {} }));
+    // Oförändrat-grenen (som för lock): saknat schema == get('schema', null), så null godtas
+    // för läraren med klassen. Ofarligt – normalizeSchema(null) = inget schema.
+    await assertSucceeds(updateDoc(klass(db, "4a"), { schema: null }));
+    await assertFails(updateDoc(klass(env.as("e4a"), "4a"), { schema: null }));
+    await assertSucceeds(updateDoc(klass(db, "4b"), s("ak4")));
+    await assertFails(updateDoc(klass(db, "4b"), { schema: null }), "null över ett sparat schema");
   });
   it("updatedAt: gammal Timestamp nekas; updatedBy saknas nekas", async () => {
     const db = env.ak4();
