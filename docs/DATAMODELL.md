@@ -759,7 +759,7 @@ flera klasser utan extra kopplingsdata).
 | `lock`          | ClassLock             | Fokusläge (#436): klassen låst till ETT mål till ett klockslag (valfritt, se nedan) |
 | `schema`        | ClassSchema           | Veckoschema (#900): klassens lektioner (dag, tid, ämne) – under en lektion ser eleverna bara lektionens ämne (valfritt, se nedan) |
 | `hiddenModules` / `enabledModules` | array\<string\> | Moduler som döljs (#412) respektive opt-in-moduler som slås på (#605) för hela klassen. `enabledModules` får också innehålla `"matchdagen"` (#876, hela klassen). |
-| `matchdagenInst` | map | Matchdagen (#876): klassens frågeinställningar, samma form som `matchdagenInst/{uid}` nedan (med `updatedAt`/`updatedBy`). Gäller elever utan egna. Läsbart för alla inloggade, skrivs av lärare med klassen (Elever → Anpassningar per elev → Hela klassen). Saknas = multiplikationstabellerna 0–10. |
+| `matchdagenInst` | map | Matchdagen (#876): klassens frågeinställningar, samma form som `matchdagenInst/{uid}` nedan (med `updatedAt`/`updatedBy`). Gäller elever utan egna. Läsbart för alla inloggade, skrivs av lärare med klassen (Elever → Anpassningar per elev → Hela klassen). Saknas = "Samma som Plugga" (#899), utan synliga områden med frågor multiplikationstabellerna 0–10. |
 | `elevModuler`   | map uid → array\<string\> | Moduler per ELEV (#867): `{ [uid]: ["matchdagen"] }` – modulen syns för de listade eleverna (`perElev` i `STUDENT_MODULES`). Högst 100 elever, bara klassens `studentIds` som nycklar, i dag bara listan `["matchdagen"]`. Läsbart för alla inloggade (elevens meny), skrivs av lärare med klassen (Elever → Anpassningar per elev). En elev utan modul har ingen nyckel. Se [MATCHDAGEN.md](MATCHDAGEN.md). |
 | `lasresaStartLevel10` | int 1–10      | Läsresans startnivå (#505, skala 1–10 i #519) för klassens elever som INTE börjat Läsresan (saknar `studentData.lasresa`) och nya elever. Saknas = 4. Påverkar inte elever som är igång. Bara lärare skriver (regeln validerar heltal 1–10; ⚠️ rules-deploy). Se [LASRESAN.md](LASRESAN.md). |
 | `lasresaStartLevel` | int 1–7           | SPEGEL av startnivån i gammal skala (ny − 3, klampad 1–7) för gamla cachade klienter. Skrivs alltid tillsammans med `lasresaStartLevel10`. Finns bara detta fält är värdet gammalt och tolkas +3 (gammal 3 → 6). |
@@ -901,12 +901,13 @@ ovan. Klassens inställningar: `classes/{classId}.matchdagenInst`.
 | `klocka` | 0 \| 30 \| 60 | Sekunder per fråga, 0 = av (standard) |
 | `lugnt` | bool | Lugnt läge: färre effekter, ingen publik, inga skakningar, dämpat ljud |
 | `paus` | 0 \| 30 \| 45 \| 60 | Minuter till "Bra jobbat! Dags för en paus.", 0 = av (standard 60) |
+| `foljPlugga` | bool (valfri) | #899 "Samma som Plugga": `omraden`/`rakna` ignoreras och källorna räknas fram ur elevens synliga områden (`assignedAreas`, tom = hela biblioteket). Saknas = false (gamla inställningar). Källorna är alltid de valda ∩ de synliga – `docs/MATCHDAGEN.md` §24 |
 | `updatedAt`, `updatedBy` | timestamp, string | Serverns tid och lärarens uid (reglerna kräver båda) |
 
 Skrivs av lärare med `hasStudent(uid)` i samma batch som klassens `elevModuler`
 (`src/matchdagen/md-inst-data.js`), läses av läraren och av eleven själv (EN getDoc när
-Matchdagen öppnas). Saknat dokument = klassens inställningar, annars multiplikationstabellerna 0–10
-(#876, `md-inst.js effektivInst`); läraren kan radera det ("Följ klassens inställningar"). Formen och
+Matchdagen öppnas). Saknat dokument = klassens inställningar, annars "Samma som Plugga" och utan synliga
+områden med frågor multiplikationstabellerna 0–10 (#876/#899, `md-inst.js effektivInst`); läraren kan radera det ("Följ klassens inställningar"). Formen och
 standardvärdena: `src/matchdagen/md-inst.js`. ⚠️ rules-deploy.
 
 ### `matchdagen/{uid}` – elevens karriär (#869)

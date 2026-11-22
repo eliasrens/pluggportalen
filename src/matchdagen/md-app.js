@@ -22,7 +22,7 @@
 // ============================================================================
 
 import { MATCHDAGEN_IKON } from "../gamemode-visibility.js";
-import { harKallor, normalizeInst } from "./md-inst.js";
+import { INGA_FRAGOR, harKallor, normalizeInst } from "./md-inst.js";
 import { hamtaKarriar } from "./md-spara.js";
 import { truppFalt } from "./delat/md-trupp.js";
 import { esc, laddaTypsnitt } from "./vy/md-vy-delat.js";
@@ -107,7 +107,7 @@ export async function startaMatchdagen(host, deps) {
 
   if (!harKallor(inst)) {
     sektion("match").hidden = false;
-    sektion("match").innerHTML = `<div class="md-panel md-tom"><h2>Ingen match än</h2><p>${esc(deps.meddelande || "Din lärare har inte valt några frågor än")}</p></div>`;
+    sektion("match").innerHTML = `<div class="md-panel md-tom"><h2>Ingen match än</h2><p>${esc(deps.meddelande || `${INGA_FRAGOR}.`)}</p></div>`;
     host.querySelector(".md-flikar").hidden = true;
     return S;
   }

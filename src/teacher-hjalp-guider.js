@@ -47,6 +47,16 @@ export const GUIDER = [
     ],
   },
   {
+    key: "veckoschema", titel: "Veckoschema",
+    kort: "Lägg in klassens lektioner, så ser eleverna bara lektionens ämne under lektionstid.",
+    steg: [
+      { text: "Öppna <b>Mina klasser</b>, välj klassen och fliken <b>Fokusläge</b>. Veckoschemat ligger längst ned.", hash: `${MINA}?flik=fokus`, knapp: "Fokusläge" },
+      { text: "Klicka <b>+ Lägg till lektion</b>, välj ämne och tid och bocka i dagarna. Samma lektion kan läggas in alla dagar på en gång.", hash: `${MINA}?flik=fokus`, knapp: "Lägg till lektion" },
+      { text: "Bocka i <b>Aktivera veckoschemat</b>. Under en lektion ser eleverna bara lektionens ämne, annars allt som vanligt. Bockar du ur finns lektionerna kvar.", hash: `${MINA}?flik=fokus`, knapp: "Aktivera" },
+      { text: "Klicka på en lektion för att <b>Ändra</b> eller <b>Ta bort</b> den. Allt sparas direkt. Är fokusläget på gäller det före schemat.", hash: `${MINA}?flik=fokus`, knapp: "Veckoschema" },
+    ],
+  },
+  {
     key: "omrade-ai", titel: "Skapa ett område med AI",
     kort: "Låt en AI-tjänst skriva frågorna och klistra in resultatet i Pluggporten.",
     steg: [
