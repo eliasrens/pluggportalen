@@ -220,8 +220,11 @@ export const DAGAR_MAX = 70;
  * Utan val (tiden ute) spelar anfallaren ett kort pass och försvararen täcker. steg = matchminuter
  * per läge: båda svarar i varje läge (inga automatiska lägen), så stegen är längre än STEG_MIN –
  * annars blir matchen ~10 minuter (balansen, admin/md-balans-vanskap.mjs).
+ * pausad (#894): fliken Vänskap visas inte och ingen ny utmaning kan göras från appen (det laggade
+ * med två spelare). Vakten för en match som redan pågår finns kvar (md-app.js). false = tillbaka.
  */
 export const VANSKAP = {
+  pausad: true,
   forsvar: 0.5, raddning: 0.55, steg: { min: 2.6, max: 3.8 },
   tid: 60, anim: 6, inaktiv: 180, halvtid: 60, utmaning: 120,
   kassa: { deltagande: 100, vinst: 100, perDag: 3 },

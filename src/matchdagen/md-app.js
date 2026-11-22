@@ -4,7 +4,8 @@
 // Etapp 3 (#873): fliken Pokalskåpet (§10.4) och klubbmärket i sidhuvudet – guldkant för
 // mästare i Superligan och en guldstjärna per legendklubb (§10.1, §10.3).
 // Etapp 4 (#874): fliken Vänskap (vänskapsmatcher mot klasskompisar, vanskap/md-vy-vanskap.js) –
-// bara när page-matchdagen.js hittat elevens klass (deps.vanskap). #878: helskärmsknappen i
+// bara när page-matchdagen.js hittat elevens klass (deps.vanskap) och den inte är pausad (#894,
+// VANSKAP.pausad i md-config.js). #878: helskärmsknappen i
 // sidhuvudet (md-helskarm.js). #880: fliken Topplista (topp 5 per årskurs, vy/md-vy-topplista.js) –
 // öppen även innan klubben finns; deps.arskurs = elevens årskurs (page-matchdagen.js).
 // Firebase skickas in som `data` (page-matchdagen.js ger den riktiga, förhands-
@@ -27,8 +28,17 @@ import { truppFalt } from "./delat/md-trupp.js";
 import { esc, laddaTypsnitt } from "./vy/md-vy-delat.js";
 import { marke } from "./vy/md-vy-pokaler.js";
 import { monteraHelskarm } from "./md-helskarm.js";
+import { VANSKAP } from "./delat/md-config.js";
 
 const FLIKAR = [["match", "Match"], ["tabell", "Tabell"], ["trupp", "Truppen"], ["stat", "Statistik"], ["pokaler", "Pokalskåpet"], ["topplista", "Topplista"]];
+
+/**
+ * Flikarna: Vänskap bara med en klass (deps.vanskap) och när vänskapsmatcherna inte är pausade
+ * (#894, VANSKAP.pausad). Utan fliken går det inte att utmana någon från appen.
+ */
+export function flikarFor(vanskap, pausad = VANSKAP.pausad) {
+  return vanskap && !pausad ? [...FLIKAR, ["vanskap", "Vänskap"]] : FLIKAR;
+}
 
 function webbLagring() {
   try { return globalThis.localStorage || null; } catch { return null; }
@@ -36,7 +46,7 @@ function webbLagring() {
 
 export async function startaMatchdagen(host, deps) {
   laddaTypsnitt();
-  const flikar = deps.vanskap ? [...FLIKAR, ["vanskap", "Vänskap"]] : FLIKAR;
+  const flikar = flikarFor(deps.vanskap);
   const lugntMedia = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
   const inst = normalizeInst(deps.inst);
   const S = {
@@ -72,6 +82,7 @@ export async function startaMatchdagen(host, deps) {
    * är redan sparade lokalt och lägret fortsätter när eleven kommer tillbaka (#871).
    */
   S.visa = async (vy) => {
+    if (!flikar.some(([id]) => id === vy)) vy = "match"; // t.ex. Vänskap när den är pausad (#894)
     S.vy = vy;
     S.flik?.abort();
     S.flik = new AbortController();
@@ -101,6 +112,8 @@ export async function startaMatchdagen(host, deps) {
     return S;
   }
   S.K = truppFalt(await hamtaKarriar(S));
+  // Även när vänskapsmatcherna är pausade (#894): en match som redan pågick räknas in i S.K när
+  // den slutar, så att appen inte sparar över serverns kassa.
   if (S.vanskap && S.K) vanskapPagar(S);
   await S.visa("match");
   return S;
