@@ -20,6 +20,7 @@ import {
   effektivKoppling, okandaKopplingar, nastaSchemaAndring, svenskTid, nastaSvenskTid, sorteradeLektioner,
 } from "../src/klass-schema.js";
 import { gateFor, lockForStudent } from "../src/class-lock.js";
+import { vidareHtml } from "../src/prov/prov-vidare.js";
 
 const MIN = 60_000;
 /** Svensk väggtid → epoch-ms, uttryckt i UTC (vintertid +1 h, sommartid +2 h). */
@@ -217,9 +218,12 @@ describe("schemaForStudent", () => {
     const tom = klass(pa([L({ amne: "no" })]));
     assert.equal(schemaForStudent([tom], "e1", MAN_VINTER, { amnenMedOmraden: ["so", "ma"] }), null);
     assert.ok(schemaForStudent([tom], "e1", MAN_VINTER, { amnenMedOmraden: ["no"] }));
-    // En filtrerande klass + en klass vars lektion inget har: unionen = allt.
+    // En filtrerande klass + en klass vars lektion (Svenska, inga områden) inget har: unionen = allt.
     const no = klass(pa([L({ amne: "no" })]), { id: "4b" });
-    assert.equal(schemaForStudent([no, k], "e1", MAN_VINTER), null);
+    const sv = klass(pa([L({ amne: "sv" })]), { id: "4c" });
+    const opts = { amnenMedOmraden: ["no", "so"] };
+    assert.ok(schemaForStudent([no], "e1", MAN_VINTER, opts));
+    assert.equal(schemaForStudent([no, sv], "e1", MAN_VINTER, opts), null);
   });
   it("matte utan synliga matteområden men med en kopplad modul filtrerar (bara modulerna)", () => {
     const k = klass(pa([L({ amne: "ma" })], { koppling: { brakresan: "ma" } }), { assignedAreas: [{ subjectId: "so", areaId: "vik" }] });
@@ -236,6 +240,17 @@ describe("schemaForStudent", () => {
     assert.equal(g.allowsArea("no", "kropp"), true);
     assert.equal(g.allowsArea("no", "rymden"), false, "NO-område som inte är valt för klassen");
     assert.equal(g.allowsArea("so", "vik"), false, "valt men inte lektionens ämne");
+  });
+  it("flera klasser: områdena prövas mot Plugga-klassens lista (den första), samma som grinden", () => {
+    // A (först, matteområden) och B (NO-lektion, NO-områden): eleven ser A:s områden i Plugga →
+    // NO har inga synliga områden för eleven → filtrerar inget (aldrig en helt stängd vy).
+    const a = klass(pa([]), { assignedAreas: [{ subjectId: "ma", areaId: "m1" }] });
+    const b = klass(pa([L({ amne: "no" })]), { id: "4b", assignedAreas: [{ subjectId: "no", areaId: "n1" }] });
+    assert.equal(schemaForStudent([a, b], "e1", MAN_VINTER), null);
+    // Omvänt: B först → NO-områdena syns i Plugga → filtret gäller med B:s områden.
+    const g = gateForSchema(schemaForStudent([b, a], "e1", MAN_VINTER));
+    assert.equal(g.allowsArea("no", "n1"), true);
+    assert.equal(g.allowsArea("ma", "m1"), false);
   });
   it("ett borttaget ämne (när ämnena ges) räknas inte som lektionens innehåll i kopplingen", () => {
     const k = klass(pa([L({ amne: "borta" })], { koppling: { brakresan: "borta" } }), { assignedAreas: [{ subjectId: "so", areaId: "v" }] });
@@ -289,6 +304,13 @@ describe("grinden under en lektion (B.5, rad för rad)", () => {
     assert.equal(g.label, "Matematik");
     assert.equal(g.klockslag, "10:00");
     assert.equal(g.home, "#/elev/plugga");
+  });
+});
+
+describe("konsumenter som läser gate.lock", () => {
+  it("provets väg vidare (prov-vidare.js) under en lektion: som utan lås", () => {
+    const g = gateForSchema(schemaForStudent([klass(pa([L()]))], "e1", MAN_VINTER));
+    assert.equal(vidareHtml(g, "t-1"), vidareHtml(null, "t-1"));
   });
 });
 

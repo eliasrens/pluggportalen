@@ -239,11 +239,12 @@ const tilldelade = (klass) => (Array.isArray(klass?.assignedAreas) ? klass.assig
  * biblioteket när listan är tom – `amnenMedOmraden` säger vilka ämnen som har
  * områden; saknas den antas varje ämne ha det) eller en modul kopplad till ämnet
  * som eleven annars ser. Nej → lektionen filtrerar inget ("har man inte kryssat
- * i ett NO-område, då är allt").
+ * i ett NO-område, då är allt"). `synliga` = områdeslistan att pröva mot (för en
+ * elev: Plugga-klassens, se schemaForStudent); standard = klassens egen.
  * @returns {{omraden:boolean, moduler:string[]}}
  */
-export function amnetsInnehall(klass, amne, { amnenMedOmraden = null, subjects = null, dolda = [] } = {}) {
-  const lista = tilldelade(klass);
+export function amnetsInnehall(klass, amne, { amnenMedOmraden = null, subjects = null, dolda = [], synliga } = {}) {
+  const lista = Array.isArray(synliga) ? synliga : tilldelade(klass);
   const omraden = lista.length > 0 ? lista.some((a) => a?.subjectId === amne)
     : !amnenMedOmraden || new Set(amnenMedOmraden).has(amne);
   const koppling = effektivKoppling(klass?.schema, subjects);
@@ -271,6 +272,8 @@ export function schemaForStudent(classes, meId, now, opts = {}) {
   const egna = egnaKlasser(classes, meId);
   if (!egna.length) return null;
   const dolda = modulesHiddenForStudent(classes, meId);
+  // Synliga områden = Plugga-listans: den första klassen (samma lista prövas och grindas).
+  const synliga = tilldelade(egna[0]);
   const amnen = [];
   const moduler = new Set();
   let tabeller = false;
@@ -278,7 +281,7 @@ export function schemaForStudent(classes, meId, now, opts = {}) {
   for (const c of egna) {
     const l = aktivLektion(c, now);
     if (!l) continue;
-    const innehall = amnetsInnehall(c, l.amne, { ...opts, dolda });
+    const innehall = amnetsInnehall(c, l.amne, { ...opts, dolda, synliga });
     if (!innehall.omraden && !innehall.moduler.length) return null;
     if (!amnen.includes(l.amne)) amnen.push(l.amne);
     // Alla moduler kopplade till ämnet (även dolda): modulgrinden prövar synligheten som vanligt.
@@ -289,13 +292,12 @@ export function schemaForStudent(classes, meId, now, opts = {}) {
   }
   if (!lektioner.length) return null;
   const forstSlut = lektioner.reduce((a, b) => (b.till < a.till ? b : a));
-  const lista = tilldelade(egna[0]);
   const namn = new Map((opts.subjects || []).map((s) => [s?.id, s?.name]));
   return {
     amnen,
     moduler: [...moduler],
     tabeller,
-    omraden: lista.length ? lista.map((a) => areaNyckel(a?.subjectId, a?.areaId)) : null,
+    omraden: synliga.length ? synliga.map((a) => areaNyckel(a?.subjectId, a?.areaId)) : null,
     lektioner,
     label: amnen.map((a) => namn.get(a) || a).join(" och "),
     klockslag: forstSlut.slut,
@@ -336,7 +338,7 @@ export function schemaAllowsRoute(lage, path, query) {
 export function gateForSchema(lage) {
   if (!lage) return null;
   return {
-    lock: null,
+    lock: null, // inget fokuslås – konsumenter som läser gate.lock prövar det först
     schema: lage,
     fri: null,
     home: lage.home,

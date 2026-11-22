@@ -76,7 +76,13 @@ eller hela biblioteket när listan är tom (`amnenMedOmraden` = ämnen som har o
 **En elev i flera klasser:** har någon av klasserna en aktiv lektion gäller filtret, och de
 tillåtna ämnena är **unionen** av de aktiva lektionernas ämnen. Filtrerar en av lektionerna
 inget blir unionen "allt". Synliga områden följer Plugga-listans regel (första klassen,
-`getClassForStudent`). Klockslaget är det tidigaste slutet.
+`getClassForStudent`) – både när grinden släpper in ett område och när det prövas om
+lektionens ämne har några områden, så eleven aldrig får en helt stängd vy. Klockslaget är
+det tidigaste slutet.
+
+**Konsumenter av grinden:** `gate.lock` är `null` under en lektion. Den som läser
+`gate.lock` prövar det först (provets väg vidare, `src/prov/prov-vidare.js`, visar då
+"Till startsidan" som utan lås).
 
 ## Ämneskopplingen
 
