@@ -757,6 +757,7 @@ flera klasser utan extra kopplingsdata).
 | `studentIds`    | array\<string\>       | Id:n på eleverna i klassen (pekar på `students`)|
 | `assignedAreas` | array\<Assignment\>   | Aktiva/tilldelade arbetsområden (valfritt, se nedan) |
 | `lock`          | ClassLock             | Fokusläge (#436): klassen låst till ETT mål till ett klockslag (valfritt, se nedan) |
+| `schema`        | ClassSchema           | Veckoschema (#900): klassens lektioner (dag, tid, ämne) – under en lektion ser eleverna bara lektionens ämne (valfritt, se nedan) |
 | `hiddenModules` / `enabledModules` | array\<string\> | Moduler som döljs (#412) respektive opt-in-moduler som slås på (#605) för hela klassen. `enabledModules` får också innehålla `"matchdagen"` (#876, hela klassen). |
 | `matchdagenInst` | map | Matchdagen (#876): klassens frågeinställningar, samma form som `matchdagenInst/{uid}` nedan (med `updatedAt`/`updatedBy`). Gäller elever utan egna. Läsbart för alla inloggade, skrivs av lärare med klassen (Elever → Anpassningar per elev → Hela klassen). Saknas = multiplikationstabellerna 0–10. |
 | `elevModuler`   | map uid → array\<string\> | Moduler per ELEV (#867): `{ [uid]: ["matchdagen"] }` – modulen syns för de listade eleverna (`perElev` i `STUDENT_MODULES`). Högst 100 elever, bara klassens `studentIds` som nycklar, i dag bara listan `["matchdagen"]`. Läsbart för alla inloggade (elevens meny), skrivs av lärare med klassen (Elever → Anpassningar per elev). En elev utan modul har ingen nyckel. Se [MATCHDAGEN.md](MATCHDAGEN.md). |
@@ -791,6 +792,23 @@ omladdning. Reglerna kräver att ett nytt/ändrat lås har `till` framåt och h�
 vad en elev som **lämnat in** provet får göra medan låset gäller resten av klassen
 (`moduler` bara i `"egna"`). Saknas = `"prov"` (stanna på provsidan, som förr).
 Samma val sparas som förval på tillfället (`provTillfallen/{t}.fokus.efter`).
+
+**ClassSchema** (#900, veckoschema, [VECKOSCHEMA.md](VECKOSCHEMA.md)):
+`{ pa, lektioner: [{ id, dag, start, slut, amne }], koppling, updatedAt, updatedBy }`.
+`pa` = kryssrutan "Aktivera veckoschemat" (saknas = av – planeringen ligger kvar).
+`lektioner` (högst 60): `id` kort slumpat id (1–20 tecken `A–Z a–z 0–9 _ -`), `dag` 1–5
+(måndag–fredag), `start`/`slut` `"HH:MM"` i svensk tid (Europe/Stockholm) med `start < slut`
+(start räknas med, slut inte), `amne` = ett `subjects/{id}` (≤ 100 tecken). Samma varje
+vecka; lektioner samma dag överlappar inte (klienten nekar). `koppling` = `{ [nyckel]:
+subjectId | null }` – vilket ämne en inlärningsmodul hör till; nycklarna är registrets
+moduler med `amnesTips` (`lasresan`, `mattematchen`, `hittaratt`, `ekvationsresan`,
+`brakresan`, `schack` – alltid `null`) och `"matchdagen:tabeller"`. En saknad nyckel gissas
+ur ämnenas namn. `updatedAt` = serverns tid, `updatedBy` = läraren. Ett ämne som inte längre
+finns gör lektionen overksam. Läsbart för alla inloggade (elevens klient bevakar redan
+klassdokumentet – 0 nya läsningar), skrivs av lärare med klassen (`hasClass`); reglerna
+prövar formen, taket 60 och kopplingen – lektionernas innehåll prövar klienten
+(`normalizeSchema` släpper en ogiltig lektion; uttrycksgränsen 1000). Logik:
+`src/klass-schema.js` (+ `klass-schema-tid.js`). Fokuslåset går alltid före schemat.
 
 Exempel (`classes/6a`):
 

@@ -385,6 +385,11 @@ export function visibleVillageClasses(classes, meId) {
 //   perElev           – kan OCKSÅ slås på för enskilda elever (classes/{id}.elevModuler,
 //                       #867), utöver hela klassen (enabledModules, #876). Kräver optIn.
 //                       Se docs/MATCHDAGEN.md
+//   amnesTips         – veckoschemat (#900, docs/VECKOSCHEMA.md): vilket ämne modulen hör
+//                       till gissas ur ämnenas namn med de här orden (classes/{id}.schema.
+//                       koppling). null = hör aldrig till något ämne (spärrad under en
+//                       lektion). Saknas fältet styr schemat inte modulen (Plugga har sina
+//                       områdens ämnen, Prov sitt eget lås, Matchdagen sina frågekällor)
 //
 // Hem (huset) är elevens startsida och går inte att dölja – den står inte här.
 // Live (#460) är ingen inlärningsmodul: syns som Live-rutan när klassen bjudits in.
@@ -412,27 +417,27 @@ export const STUDENT_MODULES = [
     routes: ["/elev/plugga", "/elev/omrade", "/elev/spela", "/elev/aventyr"] },
   // Läsresan (#398): egen huvudmodul, fristående från Plugga.
   { id: "lasresan", label: "Läsresan", ikon: "📖", grupp: "ova", learning: true, lockable: true,
-    lockGrupp: "Läsning", ovning: true, routes: ["/elev/lasresan"] },
+    lockGrupp: "Läsning", ovning: true, amnesTips: ["svenska", "sv"], routes: ["/elev/lasresan"] },
   { id: "shop", label: "Shoppen", ikon: "🛒", grupp: "mitt", routes: ["/elev/shop"] },
   // Mattematchen (#458): bara under en aktiv period för elevens klass – inte av/på-bar.
   { id: "mattematchen", label: "Mattematchen", ikon: "🧮", grupp: "ova", learning: true, lockable: true,
-    toggle: false, villkor: "mattematchen", routes: ["/elev/mattematchen"] },
+    toggle: false, villkor: "mattematchen", amnesTips: ["matte", "matematik", "ma"], routes: ["/elev/mattematchen"] },
   // Hitta rätt! (#605) och Ekvationsresan (#618, E1.11): OPT-IN – av tills läraren
   // aktiverar dem för klassen. Läraren kan alltså inte "dölja" dem utan bara slå på/av.
   { id: "hittaratt", label: "Hitta rätt!", ikon: "🗺️", grupp: "ova", learning: true, lockable: true,
-    optIn: true, ovning: true, routes: ["/elev/hitta-ratt"] },
+    optIn: true, ovning: true, amnesTips: ["so", "geografi"], routes: ["/elev/hitta-ratt"] },
   { id: "ekvationsresan", label: "Ekvationsresan", ikon: "⚖️", grupp: "ova", learning: true, lockable: true,
-    optIn: true, ovning: true, routes: ["/elev/ekvationsresan"] },
+    optIn: true, ovning: true, amnesTips: ["matte", "matematik", "ma"], routes: ["/elev/ekvationsresan"] },
   // Bråkresan (#705/#713/#735): synlig som standard, döljbar per klass (hiddenModules).
   { id: "brakresan", label: "Bråkresan", ikon: "🐉", grupp: "ova", learning: true, lockable: true,
-    ovning: true, routes: ["/elev/brakresan"] },
+    ovning: true, amnesTips: ["matte", "matematik", "ma"], routes: ["/elev/brakresan"] },
   // Schack (#776, docs/SCHACK.md): OPT-IN per klass. Pluggmynt (#798): första vinsten mot
   // varje datornivå, lektionerna och pusslen – inte partier mot kompisar.
   // Fokusläget stänger det som alla andra moduler (learning), men det går inte att
   // låsa klassen TILL schack (lockable: false). Ikonen är en egen SVG-bonde –
   // inga unicode-schacktecken (de ser olika ut på olika datorer).
   { id: "schack", label: "Schack", ikon: SCHACK_IKON, grupp: "ova", learning: true, lockable: false,
-    optIn: true, routes: ["/elev/schack"] },
+    optIn: true, amnesTips: null, routes: ["/elev/schack"] },
   // Matchdagen (#866/#867/#876, docs/MATCHDAGEN.md): OPT-IN för hela klassen (Vad eleverna ser)
   // eller per elev (elevModuler, Elever → Anpassningar per elev). Fokusläget stänger den
   // (learning); inget låsmål.
