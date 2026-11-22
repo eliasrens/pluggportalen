@@ -957,6 +957,11 @@ spräckte gränsen – jämför bara när listan inte är tom. Mätningen: rappo
 Två elever i samma klass som båda har Matchdagen spelar mot varandra med **sina egna lag** (namn, färg, lagbonus ur
 truppen). Servern spelar matchen: klienterna väljer, svarar och visar animationerna. Ligan påverkas inte.
 
+> **Pausad (#894):** `VANSKAP.pausad: true` i `md-config.js` döljer fliken Vänskap för alla elever (`flikarFor` i
+> `md-app.js`), så ingen ny utmaning kan göras från appen. Vakten för en match som redan pågick körs ändå, så kassan
+> räknas in om matchen slutar. Servern (`mdUtmana`) nekar inte – en gammal cachad app kan i teorin utmana tills den
+> laddas om. `false` + `npm run sync:matchdagen` + webbdeploy tar tillbaka allt.
+
 ### 18.1 Flödet
 
 1. **Lobbyn** (fliken **Vänskap**, `src/matchdagen/vanskap/md-vy-vanskap.js`): klasskompisarna med Matchdagen
