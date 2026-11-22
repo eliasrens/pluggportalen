@@ -694,6 +694,44 @@ service cloud.firestore {
         (resource != null && request.resource.data.lock == resource.data.get('lock', null)) ||
         validLockShape(request.resource.data.lock);
     }
+    // VECKOSCHEMA (#900, docs/VECKOSCHEMA.md): `schema` = { pa, lektioner, koppling, updatedAt,
+    // updatedBy } – klassens lektioner (högst 60) och vilket ämne varje inlärningsmodul hör till
+    // (src/klass-schema.js). Läsbart för alla inloggade (elevens klient tillämpar det), skrivbart
+    // av lärare med klassen (hasClass via classes-regeln). Bara ett ÄNDRAT schema prövas.
+    // Lektionernas innehåll (dag 1–5, "HH:MM", start < slut, ämnet ≤ 100 tecken, inget överlapp)
+    // prövar KLIENTEN (normalizeSchema släpper en ogiltig lektion): reglerna kan inte loopa, och
+    // utrullat per lektion når 60 lektioner uttrycksgränsen 1000 (uppmätt i emulatorn, #900).
+    // ⚠️ DEPLOY: `firebase deploy --only firestore:rules` FÖRE webben.
+    function validSchema() {
+      let d = request.resource.data;
+      return !('schema' in d) ||
+        (resource != null && d.schema == resource.data.get('schema', null)) ||
+        validSchemaShape(d.schema);
+    }
+    function validSchemaShape(s) {
+      return s is map &&
+        s.keys().hasOnly(['pa', 'lektioner', 'koppling', 'updatedAt', 'updatedBy']) &&
+        s.keys().hasAll(['pa', 'lektioner', 'koppling', 'updatedAt', 'updatedBy']) &&
+        s.pa is bool &&
+        s.lektioner is list && s.lektioner.size() <= 60 &&
+        s.updatedAt == request.time &&
+        s.updatedBy == request.auth.uid &&
+        validSchemaKoppling(s.koppling);
+    }
+    // Kopplingen: bara kända nycklar (registrets moduler med amnesTips + Matchdagens tabeller,
+    // src/klass-schema.js KOPPLING_NYCKLAR – test/klass-schema.test.mjs jämför), värdet ett
+    // ämnes-id (≤ 100 tecken) eller null.
+    function schemaAmneOk(k, n) {
+      return !(n in k) || k[n] == null || (k[n] is string && k[n].size() <= 100);
+    }
+    function validSchemaKoppling(k) {
+      return k is map &&
+        k.keys().hasOnly(['lasresan', 'mattematchen', 'hittaratt', 'ekvationsresan', 'brakresan', 'schack',
+          'matchdagen:tabeller']) &&
+        schemaAmneOk(k, 'lasresan') && schemaAmneOk(k, 'mattematchen') && schemaAmneOk(k, 'hittaratt') &&
+        schemaAmneOk(k, 'ekvationsresan') && schemaAmneOk(k, 'brakresan') && schemaAmneOk(k, 'schack') &&
+        schemaAmneOk(k, 'matchdagen:tabeller');
+    }
     // LÄSRESAN STARTNIVÅ (#505, skala 1–10 i #519): startnivån för klassens
     // elever som INTE börjat Läsresan (ersätter standardnivån 4). Två fält:
     //   `lasresaStartLevel10` – heltal 1–10, nya skalan (gäller)
@@ -715,11 +753,12 @@ service cloud.firestore {
     }
     // ROLLER (#678, §2.1/§2.2): admin skapar, raderar och ändrar allt.
     // Årskurskontot ändrar BARA sina klasser och bara synlighet (områden,
-    // lägen, moduler), fokusläget och Läsresans startnivå + spegeln – aldrig
+    // lägen, moduler), fokusläget, veckoschemat (#900) och Läsresans startnivå + spegeln – aldrig
     // name, studentIds, byarna (hiddenVillages) eller annat.
     function classValid() {
       return validHiddenVillages() && validHiddenModules() && validEnabledModules() &&
-        validElevModuler() && validKlassMatchdagenInst() && validLock() && validLasresaStartLevel();
+        validElevModuler() && validKlassMatchdagenInst() && validLock() && validSchema() &&
+        validLasresaStartLevel();
     }
     match /classes/{classId} {
       allow read:  if signedIn();
@@ -727,7 +766,7 @@ service cloud.firestore {
       allow update: if classValid() && (isAdmin() || (gradeClass(classId) &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['assignedAreas',
           'hiddenModes', 'areaModes', 'hiddenModules', 'enabledModules', 'elevModuler', 'matchdagenInst', 'lock',
-          'lasresaStartLevel10', 'lasresaStartLevel'])));
+          'schema', 'lasresaStartLevel10', 'lasresaStartLevel'])));
       allow delete: if isAdmin();
     }
 
