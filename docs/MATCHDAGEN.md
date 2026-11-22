@@ -1463,8 +1463,10 @@ tillägget är bara taket per skrivning. Luckan F9 (§15.4) blir därmed högst 
 läger med den nya nyckeln (`"1-3-2"`) nekas. Nya regler + gammal webb: se versionsglappet i §22.2. Functions
 bara via den synkade kopian (`npm run sync:matchdagen`; vänskapsmatchen läser bara lagbonusen). Inga index.
 
-**#890 (priserna):** reglerna kräver kassan ≤ den sparade − priset, så gamla regler + ny webb går bra (den nya webben
-betalar mer än de gamla reglerna kräver). Nya regler + gammal webb nekar ett 4★/5★-köp till det gamla priset
-(sparningen misslyckas, eleven får ladda om). Är #883:s regler redan ute: **webben först, sedan
-`firebase deploy --only firestore:rules`** – då gäller glappet bara den som har en gammal flik öppen. Annars
-gäller §22.5 ovan (reglerna först) och glappet är detsamma. Functions bara via den synkade kopian.
+**#890 (priserna):** reglerna kräver kassan ≤ den sparade − priset + återbetalningen. Gamla regler + ny webb: ett
+vanligt köp går (den nya webben betalar mer), men ett köp med fulla reserver som släpper en köpt 4★/5★-reserv nekas
+(den nya webben räknar med halva det nya priset, 1 575/2 600, de gamla reglerna med 1 045/1 595 och taket 400).
+Nya regler + gammal webb: varje 4★/5★-köp till det gamla priset nekas (sparningen misslyckas, eleven får ladda om).
+Det första glappet är ovanligare, så är #883:s regler redan ute: **webben först, sedan
+`firebase deploy --only firestore:rules` direkt efter** – annars gäller §22.5 ovan (reglerna först, samma glapp för
+den som har en gammal flik öppen). Functions bara via den synkade kopian.
