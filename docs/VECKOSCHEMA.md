@@ -1,7 +1,7 @@
 # Veckoschema per klass
 
-> **Utkast (#900, Del B – kärnan).** Lärarsidan (C), elevsidan (D) och Matchdagen under en
-> lektion (E) byggs i egna issues och fyller på det här dokumentet.
+> **Utkast (#900 Del B – kärnan, #901 Del C – lärarsidan).** Elevsidan (D) och Matchdagen
+> under en lektion (E) byggs i egna issues och fyller på det här dokumentet.
 
 Läraren lägger in klassens lektioner (dag, tid och ämne). Under en lektion ser eleverna
 **bara det som hör till lektionens ämne**. Står det ingenting på schemat just nu syns allt
@@ -129,6 +129,33 @@ om den visas under just den lektionen.
 aktivt lås gäller låset och schemat ignoreras – även ett inlämnat prov med "klassens
 vanliga läge" (där låsgrinden är `null`). När låset upphör och en lektion fortfarande pågår
 tar schemat över direkt.
+
+## Lärarsidan (#901)
+
+Sektionen **Veckoschema** längst ned i fliken Fokusläge (Mina klasser) – ingen ny flik, sida eller
+meny ([LARARSIDAN_STRUKTUR.md](LARARSIDAN_STRUKTUR.md)). Enkelheten är ett krav:
+
+- **Kryssrutan "Aktivera veckoschemat"** är alltid synlig och slår på/av med ett klick (`pa`).
+  Planeringen ligger kvar när den bockas ur.
+- **Raden om läget** (`lageRad`): "Nu: **NO** till 10.00 – eleverna ser NO." · "Ingen lektion just nu –
+  eleverna ser allt som vanligt." · "Schemat är inte aktiverat – eleverna ser allt som vanligt." ·
+  "Lägg till lektioner så börjar schemat gälla." Är fokusläget på säger raden att det gäller före.
+- **Veckan**: fem kolumner Mån–Fre (en lista per dag när sektionen är smal, container query).
+  Kortet "NO 9.00–10.00"; klick → Ändra / Ta bort. Liten grå text "inga områden valda – allt syns"
+  när ämnet inget har i klassen (`amnetsInnehall`), "ämnet finns inte längre" när ämnet tagits bort.
+- **+ Lägg till lektion**: Ämne, Från, Till, Dagar (alla fem förbockade). `laggTillLektioner` lägger
+  in samma lektion på alla valda dagar eller ingen: krockar någon dag nekas allt med "Lektionen
+  krockar med NO 9.00–10.00 på måndag." Ändra: den ändrade lektionen behåller sitt id och får den
+  första valda dagen, övriga valda dagar blir nya lektioner.
+- **Ämneskopplingen** syns bara när gissningen misslyckas för en modul klassen har ("Vi vet inte
+  vilket ämne **Läsresan** hör till – välj"); annars i en ihopfälld länk längst ned.
+- **Sparandet**: direkt, i tur och ordning, "Sparat ✓"; fel via `errText`, och vyn går tillbaka till
+  det som faktiskt är sparat. En skrivning per ändring (`setClassSchema`, hela fältet).
+- **Klassväljaren**: 📅 på klasser med `schema.pa`, efter 🔒 – läst direkt ur fältet, utan att ladda
+  schemats moduler.
+
+Filer: `src/teacher-class-schema.js` (vyn), `src/klass-schema-larare.js` (ren logik),
+`src/data-class-schema.js` (skrivningen) – alla nås bara med `import()`.
 
 ## Den rena logiken – `src/klass-schema.js`
 
