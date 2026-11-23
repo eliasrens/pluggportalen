@@ -274,6 +274,7 @@ describe("synken till functions/butik/ (admin/sync-butik-functions.mjs)", () => 
     assert.deepEqual(sharedFiles(), [
       "butik-core.js", "shop-items.js", "mystery-items.js", "season-config.js", "farm-core.js", "klass-membership.js",
       "halloween/hw-kostymer.js", "halloween/hw-djur-katalog.js", "jul/jul-katalog.js",
+      "jul/jul-djur-katalog.js",
     ]);
   });
   it("--check går igenom", () => {

@@ -57,7 +57,8 @@ test("lazy katalog: okänd före loadCollectionArt, sedan i SHOP_ITEMS utan dubb
   await loadCollectionArt();
   await loadCollectionArt(); // idempotent
   assert.equal(getItem("jul-julgran").category, "mobler");
-  assert.deepEqual(itemsInCollection("jul").map((it) => it.id), Object.keys(PRISER));
+  // Julvarorna (#910) och sedan Jul-djurens julklappsägg (#912, test/jul-djur.test.js).
+  assert.deepEqual(itemsInCollection("jul").filter((it) => !it.hatchSpecies).map((it) => it.id), Object.keys(PRISER));
   const ids = SHOP_ITEMS.map((it) => it.id);
   assert.equal(new Set(ids).size, ids.length, "inga dubbla id:n i hela katalogen");
   for (const cat of ["dekor", "mobler", "tradgard", "hus"]) {
@@ -104,7 +105,7 @@ test("fliken: Halloween och Jul delar samling-butik.js, undergrupperna i Hallowe
   assert.deepEqual(jul.undergrupper.map((g) => g.rubrik), ["🕯️ Dekor och möbler", "⛄ Trädgård", "🏠 Hus", "🦌 Djur", "🎅 Avatarer"]);
   await loadCollectionArt();
   const sek = jul.sektioner();
-  assert.deepEqual(sek.map((s) => [s.id, s.items.length]), [["inne", 12], ["tradgard", 8], ["hus", 3]]);
+  assert.deepEqual(sek.map((s) => [s.id, s.items.length]), [["inne", 12], ["tradgard", 8], ["hus", 3], ["djur", 10]]);
   // Halloween-fliken är orörd av julvarorna och tvärtom.
   assert.ok(hw.sektioner().every((s) => s.items.every((it) => it.collection === "halloween")));
   // Samlingarnas undergruppslistor är separata (E:s kostymer registreras per samling).

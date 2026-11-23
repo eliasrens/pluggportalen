@@ -11,7 +11,8 @@
 // Kopieras till functions/butik/ av admin/sync-butik-functions.mjs (npm run
 // sync:butik, predeploy) – redigera alltid här. Bara relativa importer av andra
 // rena filer i listan där (shop-items, mystery-items, season-config, farm-core,
-// klass-membership, halloween/hw-kostymer, halloween/hw-djur-katalog, jul/jul-katalog).
+// klass-membership, halloween/hw-kostymer, halloween/hw-djur-katalog, jul/jul-katalog,
+// jul/jul-djur-katalog).
 //
 // Nytt mot de gamla klientköpen: ägg (K3), vanliga djur (K6) och gårdsdjur (K7)
 // skriver ägarbeviset agdaDjur.<uid> = <varu-id> i samma skrivning – kartan som
@@ -26,13 +27,14 @@ import { newPetId, ownedCount, petsFromData } from "./klass-membership.js";
 import { HW_KOSTYMER_KATALOG } from "./halloween/hw-kostymer.js";
 import { HW_DJUR_VAROR } from "./halloween/hw-djur-katalog.js";
 import { JUL_VAROR } from "./jul/jul-katalog.js";
+import { JUL_DJUR_VAROR } from "./jul/jul-djur-katalog.js";
 
 export const EGG_ITEM_ID = "mystery-egg";
 export const LAMP_ITEM_ID = "varmelampa";
 
-// Halloween-kostymerna och -djuren och Jul-samlingen (#910) slås in i SHOP_ITEMS
+// Halloween-kostymerna och -djuren och Jul-samlingen (#910) och -djuren (#912) slås in i SHOP_ITEMS
 // lazy i webbläsaren; servern läser raderna direkt.
-const LAZY_VAROR = new Map([...HW_KOSTYMER_KATALOG, ...HW_DJUR_VAROR, ...JUL_VAROR].map((it) => [it.id, it]));
+const LAZY_VAROR = new Map([...HW_KOSTYMER_KATALOG, ...HW_DJUR_VAROR, ...JUL_VAROR, ...JUL_DJUR_VAROR].map((it) => [it.id, it]));
 
 /** Katalogposten för ett varu-id (statiska katalogen + de lazy samlingsvarorna) eller null. */
 export function butikVara(id) {
@@ -117,7 +119,7 @@ export function kopVara(data, vara, { nu = Date.now(), rng = Math.random, sasong
     return r;
   }
 
-  // K3 – ägg (vanligt eller Halloween-djurens pumpaägg, arten ur katalogen).
+  // K3 – ägg (vanligt, pumpaägg eller julklappsägg, arten ur katalogen).
   if (id === EGG_ITEM_ID || vara.hatchSpecies) {
     const pets = petsFromData(d, newPetId(nu, rng));
     if (fattig) return nej("För få mynt.", { pets });

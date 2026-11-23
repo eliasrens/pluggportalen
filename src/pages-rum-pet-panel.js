@@ -49,10 +49,10 @@ export function renderPetPanel(container, pet, opts) {
 
 function eggPanel(pet, opts) {
   const hatchAt = petData.hatchTimeFor(pet, opts.hasLamp);
-  // Valt djur (Halloween-pumpaägget, #695): eleven vet redan vem som bor där.
+  // Valt djur (pumpaägget #695, julklappsägget #912): eleven vet redan vem som bor där.
   const valt = pet.eggSpecies ? getSpecies(pet.eggSpecies) : null;
   const view = el(`<div class="panel center rum-pet-panel">
-    <h2>${valt ? "Ett pumpaägg ruvar… 🎃" : "Ett ägg ruvar… 🥚"}</h2>
+    <h2>${valt ? `Ett ${valt.eggName || "ägg"} ruvar… ${valt.eggEmoji || "🥚"}` : "Ett ägg ruvar… 🥚"}</h2>
     <p class="pet-nedrakning" id="nedrakning">Ägget ${countdownText(hatchAt - Date.now())}</p>
     ${pet.hasHeatLamp || opts.hasLamp
       ? '<p class="hint">🔦 Din värmelampa värmer ägget – det kläcks dubbelt så snabbt!</p>'
