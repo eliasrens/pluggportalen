@@ -175,6 +175,9 @@ const HUS_SKAL = {
 /** Fler skal efter start (#692: Halloween-husen laddas lazy, art-items.js). */
 export const registerHusSkal = (reg) => Object.assign(HUS_SKAL, reg);
 
+/** Husskalet + vinterns snötäcke (#908): ute-scenen, byn och husbytet (#910). */
+export const husSkalMedSno = (id = DEFAULT_HUS_SKAL) => husSkalMarkup(id) + snoTak(husSkalMarkup(id), { x: 150, y: 0, w: 660, h: 600 });
+
 /** Exteriör-markup för ett husskal, med säkert fallback till stugan. */
 export function husSkalMarkup(skalId = DEFAULT_HUS_SKAL) {
   return (HUS_SKAL[skalId] || HUS_SKAL[DEFAULT_HUS_SKAL]).markup();
@@ -344,7 +347,7 @@ export function husScen(avatarHtml, { skalId = DEFAULT_HUS_SKAL, skylt = null } 
       <circle cx="820" cy="404" r="6" fill="#EF6F6C" ${THIN}/></g>
 
     <g id="husgrupp" role="button" tabindex="0" aria-label="Gå in i huset">
-      ${husSkalMarkup(skalId)}${snoTak(husSkalMarkup(skalId), { x: 150, y: 0, w: 660, h: 600 })}
+      ${husSkalMedSno(skalId)}
     </g>
 
     <!-- Gången (trapets, vidgas nedåt): sidorna FORTSÄTTER under viewBoxen ner i
@@ -393,7 +396,7 @@ export function husScen(avatarHtml, { skalId = DEFAULT_HUS_SKAL, skylt = null } 
 export function husMini({ skalId = DEFAULT_HUS_SKAL, avatarHtml = "" } = {}) {
   return `<svg viewBox="230 100 500 460" aria-hidden="true" focusable="false"
       preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
-    ${husSkalMarkup(skalId)}${snoTak(husSkalMarkup(skalId), { x: 150, y: 0, w: 660, h: 600 })}
+    ${husSkalMedSno(skalId)}
     <foreignObject x="256" y="346" width="120" height="190" pointer-events="none">
       <div xmlns="http://www.w3.org/1999/xhtml" class="varld-avatar">${avatarHtml}</div>
     </foreignObject>

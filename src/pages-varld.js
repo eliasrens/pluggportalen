@@ -38,7 +38,7 @@ import * as petData from "./data-pet.js";
 import { app, el, go, loading, renderTopbar, pageError, flash, getParams } from "./ui.js";
 import { getPalette, paletteIdFromStudentData, renderPalettePicker } from "./room-palettes.js";
 import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
-import { husScen, husSkalMarkup, renderHusSkalPicker, navSkyltSvg } from "./art-hus-ute.js";
+import { husScen, husSkalMedSno, renderHusSkalPicker, navSkyltSvg } from "./art-hus-ute.js";
 import { loadCollectionArt } from "./art-items.js";
 import { mountRumScen } from "./varld-rum.js";
 import { mountTradgard } from "./varld-tradgard.js";
@@ -972,7 +972,8 @@ export async function pageElevVarld(startNiva) {
     activeId: sd.husSkalId,
     owned: sd.ownedItems || [],
     onPick: (skalId) => {
-      if (husgruppEl) husgruppEl.innerHTML = husSkalMarkup(skalId);
+      // Med snötäcket (#908) – annars försvann snön på taket till nästa omladdning (#910).
+      if (husgruppEl) husgruppEl.innerHTML = husSkalMedSno(skalId);
       data.saveHusSkal(skalId).catch((err) => {
         flash("Kunde inte spara husbytet: " + err.message, true);
       });

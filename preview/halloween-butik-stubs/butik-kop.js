@@ -5,7 +5,8 @@ import { butikVara, kopVara } from "/src/butik-core.js";
 import { MEM } from "/preview/halloween-butik-stubs/data.js";
 
 export async function kop(itemId) {
-  const sasong = { halloween: !!globalThis.__season?.get().halloweenActive };
+  const s = globalThis.__season?.get();
+  const sasong = { halloween: !!s?.halloweenActive, jul: !!s?.julActive }; // #910: Jul-samlingen
   const r = kopVara(MEM, butikVara(itemId), { sasong });
   for (const [k, v] of Object.entries(r.patch || {})) {
     const delar = k.split(".");

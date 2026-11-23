@@ -126,6 +126,21 @@ describe("säsongsvaror (Halloween)", () => {
   });
 });
 
+describe("säsongsvaror (Jul, #910) – lazy i webben, okända för serverns SHOP_ITEMS", () => {
+  const JUL = { season: "vinter", jul: true };
+  it("dekor/möbler/trädgård räknas upp i ownedCounts vid varje köp, husen är single", () => {
+    assert.equal(getItem("jul-snogubbe"), null, "som på servern: inte i SHOP_ITEMS");
+    const forsta = kop({ coins: 200 }, "jul-snogubbe", { sasong: JUL });
+    assert.deepEqual(forsta.patch, { coins: 140, ownedItems: ["jul-snogubbe"], ownedCounts: { "jul-snogubbe": 1 } });
+    const andra = kop({ coins: 140, ...forsta.patch }, "jul-snogubbe", { sasong: JUL });
+    assert.deepEqual(andra.patch, { coins: 80, ownedItems: ["jul-snogubbe"], ownedCounts: { "jul-snogubbe": 2 } });
+    assert.equal(kop({ coins: 999 }, "jul-julgran", { sasong: JUL }).patch.ownedCounts["jul-julgran"], 1);
+    assert.equal(kop({ coins: 999 }, "jul-mistel", { sasong: JUL }).patch.ownedCounts["jul-mistel"], 1);
+    const hus = kop({ coins: 9000, ownedItems: ["jul-snohydda"] }, "jul-snohydda", { sasong: JUL });
+    assert.equal(hus.patch, null, "ett ägt hus köps inte igen");
+  });
+});
+
 describe("ägg, värmelampa och Mysterymat (K3–K5)", () => {
   it("vanligt ägg: nytt ägg i pets[], 200 mynt, agdaDjur[id] = mystery-egg", () => {
     const r = kop({ coins: 250, pets: [{ id: "p1" }] }, "mystery-egg");
@@ -258,7 +273,7 @@ describe("synken till functions/butik/ (admin/sync-butik-functions.mjs)", () => 
     assert.deepEqual(driftedFiles(), []);
     assert.deepEqual(sharedFiles(), [
       "butik-core.js", "shop-items.js", "mystery-items.js", "season-config.js", "farm-core.js", "klass-membership.js",
-      "halloween/hw-kostymer.js", "halloween/hw-djur-katalog.js",
+      "halloween/hw-kostymer.js", "halloween/hw-djur-katalog.js", "jul/jul-katalog.js",
     ]);
   });
   it("--check går igenom", () => {
