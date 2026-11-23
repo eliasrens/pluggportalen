@@ -49,12 +49,42 @@ classCenters/{classId}/…                 ← Klasscentret (#476–): Klass-EXP
 teacherAccounts/{uid}                    ← lärarkonto: admin eller årskurskonto (#677)
 prov/{provId}                            ← Prov (#738): provet MED facit – bara lärare
 provTillfallen/{t}/…                     ← Prov: ett prov i en klass, elevernas svar och rättningen
+config/season                            ← säsong + tillägg (Halloween, Jul) – bara admin skriver, alla läser (se nedan)
 ```
 
 Vem som får läsa och skriva varje samling (admin respektive årskurskonto) står i
 [`docs/BEHORIGHETER.md`](BEHORIGHETER.md).
 
 `studentData` har **samma dokument-id** som `students` (elevens id), så de hör ihop.
+
+---
+
+## `config/season` – säsong och tillägg (#690, #907)
+
+Ett dokument. Bara admin skriver (`validSeasonDoc` i `firestore.rules`), alla läser,
+även utloggade (porten). Klienten har EN lyssnare (`src/season.js`). Hur en säsong
+eller ett tillägg läggs till står i [SASONGER.md](SASONGER.md).
+
+| Fält | Typ | Beskrivning |
+| --- | --- | --- |
+| `season` | string | `"sommar"`, `"host"` eller `"vinter"` (`SEASONS` i `src/season-config.js`) |
+| `halloween` | bool | Halloween på |
+| `halloweenUntil` | timestamp/null | *(valfri)* Halloween slutar då; `null` = inget slutdatum |
+| `jul` | bool | *(valfri, #907)* Jul på. Saknas fältet (gamla dokument) = Jul av |
+| `julUntil` | timestamp/null | *(valfri, #907)* Jul slutar då; förval 13 jan 23.59 (tjugondag Knut) |
+| `updatedAt` | timestamp | `== request.time` |
+| `updatedBy` | string | admins uid |
+
+Saknas dokumentet = sommar utan tillägg. Ett tillägg är på när fältet är `true` och
+slutdatumet inte har passerat (server-korrigerad klocka). Fältnamnen kommer ur
+tilläggsregistret `TILLAGG` (`falt`/`tillFalt`).
+
+**Butikens samlingar:** varor med `collection: "halloween"` eller `collection: "jul"`
+(`src/shop-items.js`, registreras lazy) säljs bara i tilläggets flik medan tillägget är
+på, men behålls och används året runt (`ownedItems` som vanligt). Julens katalog:
+`src/jul/jul-katalog.js` (23 dekor, möbler, trädgård och hus), `src/jul/jul-kostymer.js`
+(11), `src/jul/jul-avatarer.js` (6) och `src/jul/jul-djur-katalog.js` (10 julklappsägg).
+Servern (`butikKop`) läser samma rader via `npm run sync:butik`.
 
 ---
 
@@ -629,7 +659,7 @@ aldrig dö.
 | `pos`         | map         | `{ x, y }` – position i **procent** (0–100) av rumsscenen |
 | `eggBoughtAt` | number      | När ägget köptes (ms). Kläcks ~3 dagar senare            |
 | `hasHeatLamp` | bool        | Värmelampa köpt → ägget kläcks på **halva** tiden        |
-| `eggSpecies`  | string      | *(valfri, #695)* Valt djur för Halloween-pumpaägget (`HW_SPECIES`, t.ex. `"spokis"`) – ägget kläcks till just den arten |
+| `eggSpecies`  | string      | *(valfri, #695/#912)* Valt djur för Halloween-pumpaägget (`HW_SPECIES`, t.ex. `"spokis"`) eller julklappsägget (`JUL_SPECIES`, t.ex. `"renis"`; båda i `src/art-pets-creatures.js`) – ägget kläcks till just den arten |
 | `speciesId`   | string/null | Art vid kläckning: `eggSpecies` om satt, annars slumpad sprite-art (se `src/art-pets-creatures.js`) |
 | `hatchedAt`   | number/null | När ägget kläcktes (ms); `null` = ruvar fortfarande      |
 | `stage`       | number      | Tillväxtsteg 1–3 (0 = okläckt ägg). Härleds ur `feedCount` |
