@@ -348,12 +348,14 @@ export async function renderTopbar() {
   // Fokusläget (#436) styr när det är aktivt: målet syns alltid (även om dess
   // modul annars är dold), resten bara om låset och modul-valet tillåter.
   // Veckoschemat (#902) samma väg: isTarget är alltid falsk → bara spärrat döljs.
+  // Matchdagen (#903, E.3) spärrad under lektionen står kvar, gråad med "Öppnar 10.00".
+  const gratt = (l) => las?.schema?.matchdagen === false && l.modul === "matchdagen";
   const lankar = NAV_LANKAR.filter((l) => {
     if (!villkorSynlig(l, villkor, path)) return false;
     const synlig = !l.modul || !dolda.has(l.modul);
     if (!las) return synlig;
     const p = l.hash.slice(1);
-    return las.allows(p) && (las.isTarget(p) || synlig);
+    return (las.allows(p) || (gratt(l) && synlig)) && (las.isTarget(p) || synlig);
   });
   // Veckoschemat (#902) visar ingen fokusruta: spärrade moduler syns bara inte.
   const fokusHtml = las?.lock
@@ -363,7 +365,13 @@ export async function renderTopbar() {
           <small>till ${las.klockslag}</small></span>
       </a>`
     : "";
-  const lankHtml = (l) => `<a class="sido-nav-lank${l.hash.slice(1) === path ? " aktiv" : ""}" href="${l.hash}">
+  const oppnar = String(las?.klockslag || "").replace(/^0(?=\d)/, "").replace(":", ".");
+  const lankHtml = (l) => gratt(l)
+    ? `<span class="sido-nav-lank sido-nav-gratt" aria-disabled="true" title="Just nu är det ${escHtml(las.label)}-lektion">
+        <span class="sido-nav-ikon" aria-hidden="true">${l.ikon}</span>
+        <span class="sido-nav-text">${l.label}<small>Öppnar ${oppnar}</small></span>
+      </span>`
+    : `<a class="sido-nav-lank${l.hash.slice(1) === path ? " aktiv" : ""}" href="${l.hash}">
         <span class="sido-nav-ikon" aria-hidden="true">${l.ikon}</span>
         <span class="sido-nav-text">${l.label}</span>
       </a>`;

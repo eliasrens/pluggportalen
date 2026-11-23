@@ -12,6 +12,7 @@
 // visningen en stubbe), så samma kod kör i appen och i preview-matchdagen.html.
 //
 //   startaMatchdagen(host, { uid, inst, data, hamtaOmrade, avatar?, lagring?, tvinga2d?, signal?, vanskap?, arskurs? })
+//     → S; S.bytKallor({ inst, hamtaOmrade, sparrad }) byter källorna till nästa match (#903)
 //     vanskap: { classId, kompisar(), moln() } (md-vy-vanskap.js)
 //     data: { lasKarriar, sparaKarriar, sparaMatch, lasMatch, lasTopplista }
 //     arskurs: "4" | "ovriga" | null (md-topplista.js elevArskurs)
@@ -111,6 +112,17 @@ export async function startaMatchdagen(host, deps) {
     host.querySelector(".md-flikar").hidden = true;
     return S;
   }
+  /**
+   * Nya källor (#903, Veckoschema E): en lektion började, slutade eller bytte ämne. De gäller från
+   * nästa match och nästa träningsfråga – en pågående match har redan sin frågeström och spelas
+   * klart med den. sparrad = beskedet när lektionens ämne inte kan ge några frågor.
+   */
+  S.bytKallor = ({ inst: ny, hamtaOmrade, sparrad = null }) => {
+    S.inst = normalizeInst(ny);
+    S.hamtaOmrade = hamtaOmrade;
+    S.sparrad = sparrad;
+    S.strom = null;
+  };
   S.K = truppFalt(await hamtaKarriar(S));
   // Även när vänskapsmatcherna är pausade (#894): en match som redan pågick räknas in i S.K när
   // den slutar, så att appen inte sparar över serverns kassa.

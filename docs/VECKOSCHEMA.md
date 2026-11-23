@@ -1,7 +1,7 @@
 # Veckoschema per klass
 
-> **Utkast (#900 Del B – kärnan, #901 Del C – lärarsidan, #902 Del D – elevsidan).** Matchdagen
-> under en lektion (E) byggs i ett eget issue och fyller på det här dokumentet.
+> **Utkast (#900 Del B – kärnan, #901 Del C – lärarsidan, #902 Del D – elevsidan, #903 Del E –
+> Matchdagen under en lektion).**
 
 Läraren lägger in klassens lektioner (dag, tid och ämne). Under en lektion ser eleverna
 **bara det som hör till lektionens ämne**. Står det ingenting på schemat just nu syns allt
@@ -228,8 +228,29 @@ Ingen Firebase, ingen DOM; laddas bara med `import()` (bootgrafen oförändrad, 
 | `schemaInfoBehov(classes, meId, now)` | vad elevens bevakare behöver hämta för dagens pågående/återstående lektioner (ämnen, ev. lektionsämnenas områden), eller `null` – 0 läsningar utan lektion kvar i dag |
 | `lektionKrock`, `nyttLektionsId`, `sorteradeLektioner`, `gissaKoppling`, `effektivKoppling`, `okandaKopplingar` | hjälp till lärarsidan |
 
-`lage.matchdagen === false` spärrar Matchdagen under lektionen (sätts i Del E när ämnet
-inte kan ge några frågor). Utan fältet är Matchdagen öppen.
+`lage.matchdagen === false` spärrar Matchdagen under lektionen (Del E: ämnet kan inte ge några
+frågor). Utan fältet (elev utan Matchdagen) är routen öppen och modulgrinden gäller som vanligt.
+
+## Matchdagen under en lektion (#903)
+
+Detaljerna står i [MATCHDAGEN.md §25](MATCHDAGEN.md). Kort:
+
+- **Ämnesfiltret:** Plugga- och Räkna-källor bara i lektionens ämnen; multiplikationstabellerna bara när
+  `matchdagen:tabeller` är kopplad till lektionens ämne.
+- **Reserven:** lämnar filtret inget kvar används "Samma som Plugga inom ämnet" (de synliga områdena med underlag i
+  ämnet); har ämnet inga men tabellerna är kopplade blir det tabellerna 0–10.
+- **Spärren:** finns inget alls blir `lage.matchdagen === false` – menylänken står kvar, gråad, med "Öppnar 10.00",
+  och en direktlänk ger Plugga-listan med toasten. `schemaForStudent` räknar fältet ur `opts.underlagAmnen`
+  (lektionsämnen med ett synligt område med quiz, par eller generator), som bevakaren hämtar med `getAreas` bara
+  för elever med Matchdagen (`schemaInfoBehov().matchdagen`).
+- **En pågående match spelas klart**; nästa match följer lektionen (utan omladdning).
+- **Vänskapsmatcher:** servern kör samma `schemaForStudent` (kopian `functions/matchdagen/kallor/klass-schema.js`,
+  `npm run sync:matchdagen`) med serverns tid. Båda måste få frågor, annars ett vänligt besked och ingen match.
+
+**Serverns extra läsningar när en vänskapsmatch startar** (per elev, F.2): ingen lektion pågår → 0 extra.
+Under en lektion: +1 fråga mot `subjects`, och vid hela biblioteket +1 fråga med `limit(1)` per lektionsämne;
+områdena bara i lektionens ämnen, högst `MAX_OMRADEN` (60) som förut. Utöver det som #899 lade till
+(+1 fråga mot `classes` för elevens klasser, se MATCHDAGEN.md §24.4).
 
 ## Kvot
 
@@ -240,4 +261,5 @@ på klassdokumentet som `class-lock-watch.js` redan bevakar. Med en lektion kvar
 ## Deploy
 
 ⚠️ `firebase deploy --only firestore:rules` **före** webben (annars nekas lärarens
-sparning av `schema`).
+sparning av `schema`). Del E (#903): `firebase deploy --only functions` före webben (inga nya
+regler); ordningen för hela epicen: regler → functions → webben.

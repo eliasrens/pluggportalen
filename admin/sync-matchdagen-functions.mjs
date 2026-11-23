@@ -10,6 +10,9 @@
 //                                                                   så "./matte-generator.js" fungerar):
 //     rakna-core.js (generatorn och Räknas rättning), matte-generator.js + matte-generator/,
 //     exercise-types.js, grades.js och mult/generator.js (multiplikationsfrågan och alternativen)
+//   veckoschemats rena kod (#903, Del E) → functions/matchdagen/kallor/…: klass-schema.js och
+//     klass-schema-tid.js (schemaForStudent med serverns tid) med det den importerar –
+//     class-lock.js, gamemode-visibility.js, sanningsjakt-content.js, adventure/themes/meta.js
 // Plugga-områdenas quiz och par byggs på servern i functions/md-vanskap-fragor.js (game-shared.js
 // och prov-fran-omrade.js drar in sidans moduler och kan inte följa med).
 //
@@ -30,6 +33,7 @@ export const DST = join(ROOT, "functions/matchdagen");
 /** Frågekällornas filer, relativt src/ (kopieras till functions/matchdagen/kallor/). */
 export const KALLOR = [
   "rakna-core.js", "matte-generator.js", "exercise-types.js", "grades.js", "mult/generator.js",
+  "klass-schema.js", "klass-schema-tid.js", "class-lock.js", "gamemode-visibility.js", "sanningsjakt-content.js", "adventure/themes/meta.js",
   ...readdirSync(join(SRC, "matte-generator")).filter((f) => f.endsWith(".js")).sort().map((f) => `matte-generator/${f}`),
 ];
 

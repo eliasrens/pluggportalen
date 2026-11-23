@@ -17,6 +17,8 @@
 //      0 nya läsningar utan en lektion som pågår eller återstår i dag; annars
 //      hämtas ämnena (+ lektionsämnenas områden om klassen ser hela biblioteket)
 //      ur samma TTL-cache som Plugga-listan, en gång per ändrat behov.
+//      Del E (#903): har eleven Matchdagen hämtas lektionsämnenas områden (samma
+//      getAreas som Plugga-listan under lektionen) – kan ämnet ge Matchdagen frågor?
 // Tiden jämförs mot serverNow() (klock-korrigerad, data-class-lock.js).
 //
 // Laddas DYNAMISKT (ui.getLockGate) – aldrig i den statiska bootgrafen (#271).
@@ -26,6 +28,7 @@ import { db } from "./firebase-config.js";
 import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getClasses, clearClassCache } from "./data-classes.js";
 import { getSubjects, getAreas } from "./data-content.js";
+import { areaContentFlags } from "./gamemode-visibility.js";
 import { gateFor, lockForStudent, lockBehoverInlamning, lockEfterInlamning } from "./class-lock.js";
 import { schemaForStudent, nastaSchemaAndring, kombineradGrind, schemaInfoBehov } from "./klass-schema.js";
 import { serverNow, syncServerClock } from "./data-class-lock.js";
@@ -37,7 +40,7 @@ let currentLage = null; // veckoschemats läge (#902) – null när ett lås gä
 let currentKey = "null";
 let timer = null;
 // Ämnesnamn/-områden till schemaForStudent (#902): { nyckel, opts } när laddat, `laddar` = pågående nyckel.
-let schemaInfo = { nyckel: null, opts: null, laddar: null, klar: null, amnen: null, omraden: false };
+let schemaInfo = { nyckel: null, opts: null, laddar: null, klar: null, amnen: null, omraden: false, matchdagen: false };
 const lyssnare = new Set();
 
 /**
@@ -68,25 +71,41 @@ function schemalaggSlut(lock, andring) {
   timer = setTimeout(omrakna, ms);
 }
 
+/** Underlag för Matchdagen (quiz, par eller generator) – samma grind som delat/md-synlighet.js underlag. */
+const harUnderlag = (area) => {
+  const f = areaContentFlags(area);
+  return f.quiz || f.pairs || f.generator;
+};
+
 /**
  * Ladda ämnena (och vid behov lektionsämnenas områden) för schemaForStudent.
  * Samma TTL-cachade läsningar som Plugga-listan. Fel → utan namn/områdesinfo
  * (label = ämnes-id, varje ämne antas ha områden) – aldrig ett stängt läge.
+ * Del E (#903): med Matchdagen även underlagAmnen – lektionsämnen med minst ett
+ * synligt område (Plugga-klassens assignedAreas, eller alla) med underlag.
  */
-function laddaSchemaInfo(behov) {
+function laddaSchemaInfo(behov, klasser) {
   if (schemaInfo.laddar === behov.nyckel) return schemaInfo.klar;
-  const info = { nyckel: null, opts: null, laddar: behov.nyckel, klar: null, amnen: null, omraden: false };
+  const info = { nyckel: null, opts: null, laddar: behov.nyckel, klar: null, amnen: null, omraden: false, matchdagen: false };
   schemaInfo = info;
+  const tilldelade = Array.isArray(klasser?.[0]?.assignedAreas) ? klasser[0].assignedAreas : [];
+  const synlig = (amne, id) => !tilldelade.length || tilldelade.some((a) => a?.subjectId === amne && a?.areaId === id);
   info.klar = (async () => {
     const subjects = await getSubjects().catch(() => null);
-    const amnenMedOmraden = behov.omraden
-      ? (await Promise.all(behov.amnen.map((a) => getAreas(a).then((l) => (l.length ? a : null), () => a)))).filter(Boolean)
-      : null;
+    const listor = behov.omraden || behov.matchdagen
+      ? await Promise.all(behov.amnen.map((a) => getAreas(a).catch(() => null)))
+      : [];
+    // Gick listan inte att läsa: ämnet antas ha områden (och underlag) – aldrig ett stängt läge.
+    const amnenMedOmraden = behov.omraden ? behov.amnen.filter((a, i) => !listor[i] || listor[i].length) : null;
+    const underlagAmnen = behov.matchdagen
+      ? behov.amnen.filter((a, i) => !listor[i] || listor[i].some((ar) => synlig(a, ar.id) && harUnderlag(ar)))
+      : undefined;
     if (schemaInfo !== info) return;
-    info.opts = { subjects: subjects || undefined, amnenMedOmraden };
+    info.opts = { subjects: subjects || undefined, amnenMedOmraden, ...(underlagAmnen ? { underlagAmnen } : {}) };
     info.nyckel = behov.nyckel;
     info.amnen = new Set(behov.amnen);
     info.omraden = behov.omraden;
+    info.matchdagen = behov.matchdagen;
     info.laddar = null;
     if (watch?.uppe) omrakna(); // i startläget räknar lockForMe om själv (tyst)
   })();
@@ -96,13 +115,13 @@ function laddaSchemaInfo(behov) {
 /** Schemaläget ur klasserna – eller det förra medan ämnesinfon laddas (inget flimmer). */
 /** Täcker den laddade ämnesinfon behovet? (Färre ämnen kvar i dag → ingen ny hämtning.) */
 const tacker = (info, behov) => info.nyckel !== null &&
-  behov.amnen.every((a) => info.amnen.has(a)) && behov.omraden === info.omraden;
+  behov.amnen.every((a) => info.amnen.has(a)) && behov.omraden === info.omraden && behov.matchdagen === info.matchdagen;
 
 function schemaLage(klasser, now) {
   const behov = schemaInfoBehov(klasser, watch.meId, now);
   if (!behov) return null; // ingen lektion kvar i dag → ingen läsning
   if (!tacker(schemaInfo, behov)) {
-    laddaSchemaInfo(behov);
+    laddaSchemaInfo(behov, klasser);
     return currentLage;
   }
   return schemaForStudent(klasser, watch.meId, now, schemaInfo.opts);
@@ -186,7 +205,7 @@ export function stopLockWatch() {
   current = null;
   currentLage = null;
   currentKey = "null";
-  schemaInfo = { nyckel: null, opts: null, laddar: null, klar: null, amnen: null, omraden: false };
+  schemaInfo = { nyckel: null, opts: null, laddar: null, klar: null, amnen: null, omraden: false, matchdagen: false };
 }
 
 /**
@@ -216,7 +235,7 @@ export async function lockForMe(meId) {
     mina.forEach((c) => w.docs.set(c.id, c));
     // Veckoschemat (#902): ämnesinfon först (högst 3 s) så första sidan grindas med rätt läge.
     const behov = schemaInfoBehov(mina, meId, serverNow());
-    if (behov) await Promise.race([laddaSchemaInfo(behov), new Promise((r) => setTimeout(r, 3000))]);
+    if (behov) await Promise.race([laddaSchemaInfo(behov, mina), new Promise((r) => setTimeout(r, 3000))]);
     if (watch !== w) return;
     w.startar = true;
     omrakna({ tyst: true }); // startläget: routern grindar själv, ingen notis

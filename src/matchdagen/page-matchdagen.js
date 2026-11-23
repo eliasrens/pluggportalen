@@ -19,9 +19,12 @@
 // #880: elevens årskurs för Topplistan ur klassnamnet (klasserna med Matchdagen, ingen läsning).
 // #899: källorna som används = de valda ∩ det eleven ser i Plugga, och "Samma som Plugga"
 // räknas fram ur synligheten (md-synlig.js) – Plugga-listans cachade läsningar, en gång här.
+// #903 (Veckoschema E): under en lektion bara lektionens ämne (grindens schemaläge, ur minnet –
+// ingen läsning). Börjar eller slutar en lektion medan sidan är öppen räknas källorna om och
+// gäller från NÄSTA match – en pågående match spelas klart med sina frågor (S.bytKallor).
 // ============================================================================
 
-import { app, renderTopbar } from "../ui.js";
+import { app, renderTopbar, getLockGate, onLockChange } from "../ui.js";
 import { currentStudentId, ensureClassProjection, getArea, getAreas, getClasses, getStudentData, getSubjects } from "../data.js";
 import { elevArskurs } from "./delat/md-topplista.js";
 
@@ -54,7 +57,7 @@ export async function pageMatchdagen() {
   let instFel = false;
   let glapp = false; // #878: en ny modul bredvid en gammal cachad (se nedan)
   let klassFel = false; // #899: utan klasslistan vet vi inte vad eleven ser – då inga områden alls
-  const [, egenInst, sd, data, { startaMatchdagen }, klasser, mdInst] = await Promise.all([
+  const [, egenInst, sd, data, { startaMatchdagen }, klasser, mdInst, grind] = await Promise.all([
     renderTopbar(),
     import("./md-inst-data.js").then((m) => m.lasInst(uid)).catch((err) => {
       console.warn("Matchdagen: inställningarna kunde inte läsas", err);
@@ -68,6 +71,7 @@ export async function pageMatchdagen() {
     import("./md-app.js"),
     getClasses().catch(() => { klassFel = true; return []; }),
     import("./md-inst.js"),
+    getLockGate().catch(() => null),
   ]);
   if (ac.signal.aborted) return;
   // Egna inställningar, annars klassens, annars tabellerna 0–10 (#876). Gick de egna inte
@@ -78,20 +82,29 @@ export async function pageMatchdagen() {
   const { harMatchdagen, effektivInst } = mdInst;
   if (typeof effektivInst !== "function") glapp = true;
   const eff = instFel || glapp ? null : effektivInst(egenInst, klasser, uid);
-  let inst = instFel ? null : glapp ? egenInst : eff.inst;
+  const valda = instFel ? null : glapp ? egenInst : eff.inst;
   // #899: aldrig frågor ur ett område eleven inte ser. De lästa områdena återanvänds av frågeströmmen.
-  let lasta = new Map();
-  if (inst) {
+  // #903: under en lektion bara lektionens ämne – eller spärrad med ett vänligt besked.
+  const losa = async (lektion) => {
+    const synlig = await import("./md-synlig.js");
+    const r = await synlig.losKallor({
+      inst: valda, kalla: eff?.kalla || "egen", klasser, uid, hamta: { getSubjects, getAreas, getArea },
+      ...(klassFel ? { synliga: [] } : {}), lektion,
+    });
+    const lasta = r.omraden;
+    return {
+      inst: r.inst, lasta,
+      sparrad: r.sparrad ? (await import("./delat/md-synlighet.js")).lektionsBesked(lektion) : null,
+      hamtaOmrade: (s, a) => (lasta.has(`${s}/${a}`) ? Promise.resolve(lasta.get(`${s}/${a}`)) : getArea(s, a)),
+    };
+  };
+  let lektion = grind?.schema || null;
+  let k = { inst: null, sparrad: null, hamtaOmrade: getArea };
+  if (valda) {
     try {
-      const r = await (await import("./md-synlig.js")).losKallor({
-        inst, kalla: eff?.kalla || "egen", klasser, uid, hamta: { getSubjects, getAreas, getArea },
-        ...(klassFel ? { synliga: [] } : {}),
-      });
-      inst = r.inst;
-      lasta = r.omraden;
+      k = await losa(lektion);
     } catch (err) {
       console.warn("Matchdagen: områdena eleven ser kunde inte läsas", err);
-      inst = null;
       instFel = true;
     }
     if (ac.signal.aborted) return;
@@ -100,16 +113,37 @@ export async function pageMatchdagen() {
   host.setAttribute("aria-label", "Matchdagen");
   app.replaceChildren(host);
   const sok = new URLSearchParams(location.search || location.hash.split("?")[1] || "");
-  await startaMatchdagen(host, {
-    uid, inst,
+  const S = await startaMatchdagen(host, {
+    uid, inst: k.inst,
     meddelande: instFel ? "Inställningarna kunde inte läsas just nu. Prova igen om en stund."
-      : glapp ? "Pluggporten uppdaterades nyss. Vänta någon minut och ladda om sidan." : undefined,
+      : glapp ? "Pluggporten uppdaterades nyss. Vänta någon minut och ladda om sidan." : k.sparrad || undefined,
     data,
-    hamtaOmrade: (s, a) => (lasta.has(`${s}/${a}`) ? Promise.resolve(lasta.get(`${s}/${a}`)) : getArea(s, a)),
+    hamtaOmrade: k.hamtaOmrade,
     avatar: sd ? { avatarId: sd.avatarId, avatarItems: sd.avatarItems || [] } : null,
     tvinga2d: sok.get("2d") === "1",
     vanskap: vanskapFor(klasser, uid, harMatchdagen),
     arskurs: typeof harMatchdagen === "function" ? elevArskurs(klasser, uid, harMatchdagen) : null,
     signal: ac.signal,
   });
+  if (!valda || instFel || ac.signal.aborted) return;
+  // #903: en lektion börjar, slutar eller byter ämne medan sidan är öppen → nästa match följer den.
+  // app.js lämnar sidan orörd medan en match pågår (__ppMatchdagenPagar), även om Matchdagen spärras.
+  const amnesNyckel = (l) => JSON.stringify(l ? [l.amnen, l.tabeller, l.matchdagen] : null);
+  let raknar = 0;
+  const av = onLockChange(async (g) => {
+    const ny = g?.schema || null;
+    if (amnesNyckel(ny) === amnesNyckel(lektion)) return;
+    lektion = ny;
+    const nr = ++raknar;
+    try {
+      const r = await losa(ny);
+      if (nr !== raknar || ac.signal.aborted) return;
+      // Sidan visar "Ingen match än" (spärrad när den öppnades): rita om den när det finns frågor igen.
+      if (typeof S?.bytKallor === "function") S.bytKallor(r);
+      else if (!r.sparrad && mdInst.harKallor?.(r.inst)) pageMatchdagen();
+    } catch (err) { console.warn("Matchdagen: källorna kunde inte räknas om", err); }
+  });
+  // Solomatchen (S.spel) eller en vänskapsmatch (S.vanskapVakt) som pågår.
+  window.__ppMatchdagenPagar = () => !!S?.spel?.pagar || S?.vanskapVakt?.M?.status === "pagar";
+  ac.signal.addEventListener("abort", () => { av(); delete window.__ppMatchdagenPagar; }, { once: true });
 }

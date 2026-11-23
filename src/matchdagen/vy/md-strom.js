@@ -4,6 +4,7 @@
 // md-vy-lager.js) – och källornas namn till statistiken (perKalla).
 //
 //   strom(S) → { nasta, ratta, tom?, meddelande?, kallNamn }   (S.strom efter första gången)
+//   S.strom = null när källorna byts (#903, md-app.js bytKallor) – nästa anrop bygger en ny.
 // Mattematchen (#879): ratta räknar ett giltigt multiplikationssvar (match, straffar och
 // träningslägret – alla rättar här) i elevens aktiva Mattematch via S.data.mmRaknaIn
 // (md-data.js; förhandsvisningens stubbe saknar den). Skickas iväg utan att vänta – spelet
@@ -12,6 +13,8 @@
 
 export async function strom(S) {
   if (S.strom) return S.strom;
+  // Veckoschemat (#903): lektionens ämne kan inte ge några frågor – beskedet, ingen tom match.
+  if (S.sparrad) return { tom: true, meddelande: S.sparrad, kallNamn: {} };
   const kallNamn = {};
   const { skapaFragestrom, mmSvar } = await import("../md-fragor.js");
   const s = await skapaFragestrom({

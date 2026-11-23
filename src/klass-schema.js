@@ -231,9 +231,11 @@ export function nastaSchemaAndring(classes, meId, now) {
  * null = ingen lektion pågår eller återstår I DAG i någon av elevens klasser med
  * aktiverat schema → 0 läsningar (helg, kväll, dagar utan lektion). Bevakarens timer
  * går ändå till nästa ändring (nästa lektions start) och hämtar då.
- * Annars { amnen, omraden, nyckel }: dagens återstående lektionsämnen (namn + gissad
- * koppling ur ämneslistan); deras områden bara när Plugga-klassen ser hela
- * biblioteket (omraden: true). `nyckel` ändras bara när behovet ändras.
+ * Annars { amnen, omraden, matchdagen, nyckel }: dagens återstående lektionsämnen (namn +
+ * gissad koppling ur ämneslistan); deras områden när Plugga-klassen ser hela
+ * biblioteket (omraden: true) eller eleven har Matchdagen (matchdagen: true – Del E,
+ * #903: har ämnet några synliga områden med underlag för frågor? → opts.underlagAmnen).
+ * `nyckel` ändras bara när behovet ändras.
  * @param {number} now  serverNow()
  */
 export function schemaInfoBehov(classes, meId, now) {
@@ -248,7 +250,8 @@ export function schemaInfoBehov(classes, meId, now) {
   if (!amnen.size) return null;
   const lista = [...amnen].sort();
   const omraden = tilldelade(egna[0]).length === 0;
-  return { amnen: lista, omraden, nyckel: JSON.stringify([lista, omraden]) };
+  const matchdagen = !modulesHiddenForStudent(egna, meId).includes(MATCHDAGEN);
+  return { amnen: lista, omraden, matchdagen, nyckel: JSON.stringify([lista, omraden, matchdagen]) };
 }
 
 // --- Elevens schemaläge (B.4) ----------------------------------------------------
@@ -290,8 +293,14 @@ export function amnetsInnehall(klass, amne, { amnenMedOmraden = null, subjects =
  * @param {Array} classes   klassdokumenten (med id, studentIds, schema, assignedAreas …)
  * @param {string} meId
  * @param {number} now      serverNow()
- * @param {{amnenMedOmraden?:Iterable<string>, subjects?:Array<{id,name}>}} [opts]
+ * @param {{amnenMedOmraden?:Iterable<string>, subjects?:Array<{id,name}>, underlagAmnen?:Iterable<string>}} [opts]
  *   subjects ger ämnesnamnen (label) och gissad koppling för nycklar läraren inte sparat.
+ *   underlagAmnen = ämnen med minst ett synligt område med underlag för Matchdagen (Del E).
+ *
+ * `matchdagen` (Del E, #903): kan Matchdagen ge frågor under lektionen? Ja om något av
+ * lektionernas ämnen har synliga områden med underlag (underlagAmnen; saknas den räcker
+ * synliga områden) eller har multiplikationstabellerna kopplade. false = spärrad (menyn
+ * visar länken gråad, "Öppnar 10.00"). Saknas för en elev utan Matchdagen.
  */
 export function schemaForStudent(classes, meId, now, opts = {}) {
   const egna = egnaKlasser(classes, meId);
@@ -302,6 +311,8 @@ export function schemaForStudent(classes, meId, now, opts = {}) {
   const amnen = [];
   const moduler = new Set();
   let tabeller = false;
+  let matchdagen = false;
+  const underlag = opts.underlagAmnen ? new Set(opts.underlagAmnen) : null;
   const lektioner = [];
   for (const c of egna) {
     const l = aktivLektion(c, now);
@@ -313,6 +324,7 @@ export function schemaForStudent(classes, meId, now, opts = {}) {
     const koppling = effektivKoppling(c.schema, opts.subjects);
     for (const k of KOPPLINGAR) if (koppling[k.id] === l.amne && k.id !== MATCHDAGEN_TABELLER) moduler.add(k.id);
     if (koppling[MATCHDAGEN_TABELLER] === l.amne) tabeller = true;
+    if (koppling[MATCHDAGEN_TABELLER] === l.amne || (underlag ? underlag.has(l.amne) : innehall.omraden)) matchdagen = true;
     lektioner.push({ ...l, classId: c.id, till: slutMs(l, now) });
   }
   if (!lektioner.length) return null;
@@ -328,6 +340,7 @@ export function schemaForStudent(classes, meId, now, opts = {}) {
     klockslag: forstSlut.slut,
     till: forstSlut.till,
     home: PLUGGA && !dolda.includes(PLUGGA.id) ? `#${PLUGGA.routes[0]}` : "#/elev/hus",
+    ...(dolda.includes(MATCHDAGEN) ? {} : { matchdagen }),
   };
 }
 
@@ -341,7 +354,8 @@ export function schemaAllowsArea(lage, subjectId, areaId) {
  * Får eleven öppna `path` under lektionen? (B.5)
  *  - Plugga-listan: ja (visar bara lektionens områden); område/spel/äventyr: bara lektionens synliga områden
  *  - inlärningsmoduler: bara de kopplade till lektionens ämne (modulgrinden prövar synligheten som vanligt)
- *  - Prov: som vanligt (eget lås). Matchdagen: öppen (E filtrerar frågorna; `lage.matchdagen === false` spärrar)
+ *  - Prov: som vanligt (eget lås). Matchdagen: öppen (E filtrerar frågorna); `lage.matchdagen === false`
+ *    spärrar – lektionens ämne kan inte ge några frågor (E.3)
  *  - allt annat (hem/hus/värld, Shoppen, profil, Live, avatarvalet): öppet
  */
 export function schemaAllowsRoute(lage, path, query) {
