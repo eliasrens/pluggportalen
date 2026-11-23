@@ -6,7 +6,8 @@
 //   dekor/möbler/trädgård är multi-varor som förr (ownedCounts räknas upp,
 //     andra exemplaret kostar igen) – som Halloweens hw-pumpalykta
 //   Jul av, eller julUntil passerat → "säljs inte just nu", inget dras
-//   för lite pengar för ett hus → nej, inget dras
+//   för lite pengar för ett hus → nej, inget dras; ett ägt hus köps inte igen
+//   Halloweens hw-pumpalykta räknas som förr (fixrunda 1)
 //
 // Körs via emulators:exec --only functions,auth,firestore (FUNCTIONS_EMULATOR_HOST).
 // ============================================================================
@@ -79,6 +80,27 @@ test("dekor (julgran, möbel) räknas också i ownedCounts", async () => {
   await kop("jul-julgran");
   const d = await sd();
   assert.equal(d.ownedCounts?.["jul-julgran"], 1, `ownedCounts: ${JSON.stringify(d.ownedCounts)}`);
+});
+
+test("ett hus som redan ägs köps inte igen – inget dras", async () => {
+  const fore = await sd();
+  const r = await kop("jul-pepparkakshus");
+  assert.equal(r.ok, true, JSON.stringify(r));
+  const d = await sd();
+  assert.equal(d.coins, fore.coins);
+  assert.equal(d.ownedItems.filter((x) => x === "jul-pepparkakshus").length, 1);
+  assert.equal(d.ownedCounts?.["jul-pepparkakshus"], undefined);
+});
+
+test("Halloweens multi-vara oförändrad: två pumpalyktor = två dragningar, ownedCounts 2", async () => {
+  await sasong({ season: "host", halloween: true, jul: true });
+  const fore = (await sd()).coins;
+  await kop("hw-pumpalykta");
+  await kop("hw-pumpalykta");
+  const d = await sd();
+  assert.equal(d.coins, fore - 120);
+  assert.equal(d.ownedCounts?.["hw-pumpalykta"], 2);
+  await sasong({ jul: true, julUntil: null });
 });
 
 test("Jul av → säljs inte just nu, inget dras", async () => {
