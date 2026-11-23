@@ -168,7 +168,9 @@ export function kopVara(data, vara, { nu = Date.now(), rng = Math.random, sasong
   }
 
   // K6 – vanliga djur i roomAnimals (äldre djur ur ownedItems följer med som förut).
-  if (isAnimalItem(id)) {
+  // Klassningen tar katalogposten: de lazy varorna (t.ex. Jul, #910) finns inte i
+  // servern SHOP_ITEMS, så ett id ensamt hade gjort dem till single-varor.
+  if (isAnimalItem(vara)) {
     const animals = rumsdjurMedAldre(d);
     if (fattig) return nej("För få mynt.", { animals });
     const uid = unikt(() => id + "#" + slump(nu, rng), new Set(animals.map((a) => a && (a.uid || a.id))));
@@ -178,7 +180,7 @@ export function kopVara(data, vara, { nu = Date.now(), rng = Math.random, sasong
 
   // K1 – allt annat: single-varor en gång, multi-varor räknas upp i ownedCounts.
   const counts = karta(d.ownedCounts);
-  const multi = isMultiItem(id);
+  const multi = isMultiItem(vara);
   if (!multi && owned.includes(id)) return { ok: true, patch: null, result: { ok: true, coins, owned, counts } };
   if (fattig) return nej("För få mynt.", { owned, counts });
   const nextOwned = owned.includes(id) ? owned : [...owned, id];

@@ -149,9 +149,16 @@ test("konsten: SVG för alla 23, flik-ikon, husskal registrerade, säsongsoberoe
   }
 });
 
-test("husen får vinterns snötäcke: art-hus-ute.js lägger snoTak på varje husskal", () => {
-  const src = readFileSync(new URL("../src/art-hus-ute.js", import.meta.url), "utf8");
-  assert.ok((src.match(/snoTak\(husSkalMarkup\(skalId\)/g) || []).length >= 2, "huset ute + byn");
+test("husen får vinterns snötäcke: husSkalMedSno i ute-scenen, byn och vid husbytet (F2)", async () => {
+  await loadCollectionArt();
+  const { husSkalMedSno } = await import("../src/art-hus-ute.js");
+  for (const it of av("hus")) {
+    const m = husSkalMedSno(it.id);
+    assert.ok(m.startsWith(husSkalMarkup(it.id)) && m.includes('class="sz-bara-vinter" data-sno='), it.id);
+  }
+  const src = (f) => readFileSync(new URL(`../src/${f}`, import.meta.url), "utf8");
+  assert.equal((src("art-hus-ute.js").match(/\$\{husSkalMedSno\(skalId\)\}/g) || []).length, 2, "huset ute + byn");
+  assert.match(src("pages-varld.js"), /husgruppEl\.innerHTML = husSkalMedSno\(skalId\)/, "Nytt hus: snön följer med");
 });
 
 test("samma placeringsflöde som befintliga saker (köpa, placera, flytta, ta bort)", async () => {
