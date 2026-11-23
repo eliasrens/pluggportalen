@@ -76,6 +76,19 @@ export function canUseAvatar(id, ownedItems) {
   return isBuyableAvatar(id) && Array.isArray(ownedItems) && ownedItems.includes(id);
 }
 
+/** Samling → när den säljs, i löptext ("under Halloween"). Ny samling: lägg till en rad. */
+const SAMLING_NAR = { halloween: "Halloween", jul: "julen" };
+
+/**
+ * När de köpbara avatarerna säljs, för låsta figurer i avatarvalet (#911 F1):
+ * "under Halloween", "under julen" eller "under Halloween och julen".
+ * @param {string[]} ids köpavatarernas id:n
+ */
+export function kopAvatarSaljsNar(ids) {
+  const nar = [...new Set(ids.map((id) => SAMLING_NAR[getItem(id)?.collection]).filter(Boolean))];
+  return nar.length ? `under ${nar.join(" och ")}` : "ibland";
+}
+
 /** Samling → laddare som registrerar samlingens avatarkonst (lazy, #271). */
 const AVATAR_KONST = {
   halloween: () => import("./halloween/hw-avatarer.js").then((m) => m.registreraHalloweenAvatarer()),

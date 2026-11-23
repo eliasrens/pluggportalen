@@ -21,6 +21,7 @@ import { WEARABLES, wearableSvg, wearableAnchor } from "../src/art-wearables.js"
 import { loadCollectionArt, itemSvg } from "../src/art-items.js";
 import {
   AVATARS, avatarMarkup, avatarSvg, avatarArtReady, buyableAvatars, canUseAvatar, isBuyableAvatar, loadAvatarArt,
+  kopAvatarSaljsNar,
 } from "../src/avatars.js";
 import { butikVara, kopVara } from "../src/butik-core.js";
 import { JUL_KOSTYMER_KATALOG } from "../src/jul/jul-kostymer.js";
@@ -207,3 +208,14 @@ test("servern (kopVara): kostymer och avatarer säljs bara när Jul är på, kö
 });
 
 // Live-poolen (Halloween-QA F2): test/live-avatar-pool-f2.test.js (egen process, före laddning).
+
+test("avatarvalet (F1): låsta figurer säger rätt samling – Halloween, julen eller båda", () => {
+  assert.equal(kopAvatarSaljsNar(["jul-av-snogubbe"]), "under julen");
+  assert.equal(kopAvatarSaljsNar(["hw-av-spoke"]), "under Halloween");
+  assert.equal(kopAvatarSaljsNar(["hw-av-spoke", "jul-av-ren", "hw-av-mumie"]), "under Halloween och julen");
+  assert.equal(kopAvatarSaljsNar(buyableAvatars().map((it) => it.id)), "under Halloween och julen", "varje samling har en text");
+  assert.equal(kopAvatarSaljsNar(["fox"]), "ibland", "aldrig en fel samling");
+  const src = readFileSync(new URL("../src/pages-elev.js", import.meta.url), "utf8");
+  assert.doesNotMatch(src, /under Halloween/, "ingen hårdkodad samling i avatarvalet");
+  assert.equal((src.match(/kopAvatarSaljsNar\(/g) || []).length, 3, "rubriken, knappens titel och klicktexten");
+});
