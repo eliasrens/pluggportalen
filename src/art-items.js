@@ -252,6 +252,10 @@ export function loadCollectionArt() {
       (m) => m.registreraHalloweenKonst(),
       (err) => console.warn("Säsongskonsten kunde inte laddas", err)
     ),
+    import("./jul/jul-konst.js").then(
+      (m) => m.registreraJulKonst(), // 🎄 Jul-samlingen (#910): varor + konst
+      (err) => console.warn("Julkonsten kunde inte laddas", err)
+    ),
     import("./art-furniture-vyer.js").then(
       (m) => registerItemViews(m.FURNITURE_VYER),
       (err) => console.warn("Möblernas vyer kunde inte laddas", err)

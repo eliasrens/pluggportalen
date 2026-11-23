@@ -21,6 +21,7 @@ globalThis.__season = {
 };
 export const getSeason = () => store.get();
 export const isHalloweenActive = () => store.get().halloweenActive;
+export const isTillaggActive = (id) => !!store.get()[`${id}Active`]; // #910: en flik per samling
 export const onSeasonChange = (fn) => store.subscribe(fn);
 export const startSeasonWatch = () => {};
 export const seasonLoaded = async () => {};
