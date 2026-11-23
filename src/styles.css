@@ -11323,3 +11323,72 @@ html.md-helskarm-sida .sidebar, html.md-helskarm-sida .hamburger, html.md-helska
 
 /* Klassväljarens 📅 (bredvid 🔒). */
 .teacher-dark .mk-schema { display: inline-flex; font-size: 0.95em; line-height: 1; }
+
+/* ── src/styles/53-jul.css ── */
+/* ==========================================================================
+   Julen i världen, på porten och i lärarspärren (#909, epic #906, C.1–C.3)
+   ==========================================================================
+   <html data-jul="1"> sätts av season-world.js (ur TILLAGG). Konsten läggs in
+   av src/jul/jul-varld.js (lazy, bara när Jul är på) och bär .julv-dekor.
+   Julen är mysig, inte mörk: världen behåller säsongens dagsljus – bara
+   inloggningen får kvällshimmel (JUL_LOGIN_PALETTE), som för Halloween. */
+
+/* Synlighet, som .sz-bara-halloween / .sz-dolj-halloween (32-sasong.css). */
+.sz-bara-jul { display: none; }
+html[data-jul] .sz-bara-jul { display: inline; }
+html[data-jul] .sz-dolj-jul { display: none; }
+/* Jul av (live) → juldekoren som redan lagts in döljs. */
+html:not([data-jul]) .julv-dekor { display: none !important; }
+
+/* Porten i julkvällen: solen och fåglarna bort (#907 F1). De bär redan
+   .sz-dolj-halloween i art-port-majestic.js – samma mekanik. Båda tilläggen
+   på: Halloween-månen står där, julens måne behövs inte. */
+html[data-jul] .port-scen .sz-dolj-halloween,
+html[data-jul] .port-overgang .sz-dolj-halloween { display: none; }
+html[data-halloween] .julv-mane { display: none; }
+
+/* Lärarspärren: julens kvällsbakgrund (gate-bg/gate-bg2 ur JUL_LOGIN_PALETTE).
+   Panelen är oförändrad. */
+html[data-jul] body:has(.sz-gate) {
+  background: linear-gradient(180deg, var(--sz-gate-bg2, #0f1419), var(--sz-gate-bg, #0f1419)) fixed;
+}
+
+/* "Lärare →" får kräm-pastillen även när Jul ligger på sommaren (utan
+   data-sasong) – kontrasten mot den mörka himlen/marken (WCAG AA). */
+html[data-jul] .port-scen .port-larare-lank {
+  opacity: 1;
+  background: #FFF3DC;
+  border: 2px solid #3B3350;
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+/* Ljusslingorna blinkar mjukt: EN animation per slinga (varannan lampa i
+   .julv-blink), bara opacity, 3 lägen med step-end och lång period – inget
+   mellanläge att räkna fram per bildruta. */
+.julv-blink { animation: julv-blink 4.8s step-end infinite; }
+@keyframes julv-blink {
+  0% { opacity: 1; }
+  33.333% { opacity: 0.35; }
+  66.667% { opacity: 0.75; }
+  100% { opacity: 1; }
+}
+
+/* Tomten vinkar (som Halloween-djuret på porten): ett par vink, sedan vila. */
+.julv-vinkarm {
+  transform-box: fill-box;
+  transform-origin: 8% 92%;
+  animation: julv-vinka 3.4s ease-in-out infinite;
+}
+@keyframes julv-vinka {
+  0%, 46%, 100% { transform: rotate(0deg); }
+  12%, 34% { transform: rotate(-28deg); }
+  23% { transform: rotate(-6deg); }
+}
+
+/* Pausas i dold flik och är av vid reducerad rörelse (lamporna lyser stilla). */
+html.sz-paus .julv-blink,
+html.sz-paus .julv-vinkarm { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .julv-blink, .julv-vinkarm { animation: none; }
+}

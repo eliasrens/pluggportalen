@@ -14,6 +14,7 @@
 //   • partikellager (PARTIKLAR: löv på hösten ≤16, snö på vintern ≤20 – CSS
 //     transform/opacity) + fladdermöss (Halloween, bara inloggningen); pausas
 //     i dold flik, av vid reducerad rörelse, aldrig klickbara.
+//   • julen (#909): src/jul/jul-varld.js laddas lazy när Jul är på.
 //
 // Ingen blink: applyCachedTheme() läser localStorage SYNKRONT (samma cache som
 // season.js skriver) innan scenen ritas; season.js laddas sedan i bakgrunden
@@ -220,6 +221,7 @@ function mountLager(container, { fladder = false, before = null } = {}) {
       for (const [el, p] of partikelEl) if (p.pa(theme) && !el.firstChild) el.innerHTML = p.markup();
       if (fladderEl && theme.halloween && !fladderEl.firstChild) fladderEl.innerHTML = fladderMarkup();
       if (theme.halloween) fyllVinkdjur(container);
+      if (theme.jul) fyllJul(container);
     },
   };
   lager.add(l);
@@ -240,6 +242,17 @@ export function fyllVinkdjur(root) {
       for (const g of platser) if (!g.firstChild) g.innerHTML = m.HW_DJUR_A.spokis(2, "glad");
     })
     .catch(() => {}); // ren dekor – inloggningen påverkas aldrig
+}
+
+/**
+ * Julen (#909): ljusslingor, granar, tomtar m.m. läggs in i scenerna av
+ * src/jul/jul-varld.js – laddas FÖRST när Jul är på (lazy, som Halloween-djuret
+ * ovan), så inget i sommarens/höstens konst ändras.
+ */
+let julP = null;
+function fyllJul(container) {
+  julP ||= import("./jul/jul-varld.js");
+  julP.then((m) => m.julMontera(container)).catch(() => {}); // ren dekor
 }
 
 /**
