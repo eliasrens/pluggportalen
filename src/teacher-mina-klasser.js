@@ -208,6 +208,11 @@ function klassValjare(root, store) {
 
   const lasIkon = (cls, now) =>
     activeLock(cls, now) ? `<span class="mk-las" title="Fokusläge på">${icon("lock", 14)}<span class="sr-only">Fokusläge på</span></span>` : "";
+  // #901: 📅 på klasser med aktiverat veckoschema (🔒 går före). Läses direkt ur fältet –
+  // klass-schema.js laddas bara när fliken öppnas (bootgrafen, #271).
+  const schemaPa = (cls) => cls?.schema?.pa === true;
+  const schemaIkon = (cls) =>
+    schemaPa(cls) ? `<span class="mk-schema" title="Veckoschemat är aktiverat" aria-hidden="true">📅</span><span class="sr-only">Veckoschemat är aktiverat</span>` : "";
 
   function fyllSelect() {
     const sel = root.querySelector(".mk-klass-select");
@@ -216,7 +221,7 @@ function klassValjare(root, store) {
     const traffar = filtreraKlasser(store.sorted(), sok);
     const vald = traffar.some((c) => c.id === store.selectedId);
     sel.innerHTML = (vald ? "" : `<option value="" selected disabled>${traffar.length ? `${traffar.length} klasser matchar – välj` : "Ingen klass matchar"}</option>`) +
-      traffar.map((c) => `<option value="${esc(c.id)}"${c.id === store.selectedId ? " selected" : ""}>${activeLock(c, now) ? "🔒 " : ""}${esc(c.name || c.id)} (${countLabel(studentCount(c))})</option>`).join("");
+      traffar.map((c) => `<option value="${esc(c.id)}"${c.id === store.selectedId ? " selected" : ""}>${activeLock(c, now) ? "🔒 " : ""}${schemaPa(c) ? "📅 " : ""}${esc(c.name || c.id)} (${countLabel(studentCount(c))})</option>`).join("");
   }
 
   function rita() {
@@ -235,7 +240,7 @@ function klassValjare(root, store) {
     root.classList.remove("mk-klassval-sok");
     const html = klasser.map((c) => `<button type="button" class="mk-klassknapp" data-klass="${esc(c.id)}"
       aria-pressed="${c.id === store.selectedId}" title="${esc(c.name || c.id)} – ${countLabel(studentCount(c))}">
-      <span class="mk-klassknapp-namn">${esc(c.name || c.id)}</span>${lasIkon(c, now)}</button>`).join("");
+      <span class="mk-klassknapp-namn">${esc(c.name || c.id)}</span>${lasIkon(c, now)}${schemaIkon(c)}</button>`).join("");
     if (root.dataset.html === html) return;
     // Fokus stannar på samma klassknapp efter omritningen (tangentbord).
     const fokus = root.contains(document.activeElement) ? document.activeElement.dataset.klass : null;

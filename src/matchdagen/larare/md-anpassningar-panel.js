@@ -13,27 +13,47 @@
 // Matchdagen för klassen (enabledModules) – md-inst-data.js sparaKlass. En elev utan egna
 // inställningar visar klassens (annars tabellerna 0–10); Spara skriver egna bara om
 // läraren ändrat något. "Följ klassens inställningar" raderar elevens egna.
+// #899 (Veckoschema A.2–A.3): överst bland frågekällorna "Samma som Plugga" (foljPlugga, standard)
+// eller "Välj områden själv". I det senare står ett valt område som är dolt för klassen kvar, gråat
+// ("Dolt för klassen – används inte just nu"). Ger valen inga frågor alls efter filtret står det
+// överst med knappen "Byt till Samma som Plugga". Synligheten = klassens assignedAreas (tom = allt),
+// samma regel som eleven och servern (delat/md-synlighet.js) – räknas ur biblioteket, ingen läsning.
 // ============================================================================
 
 import { el, esc, errText, icon } from "../../teacher-shared.js";
 import { areaContentFlags } from "../../gamemode-visibility.js";
 import {
-  KLOCKA_VAL, PAUS_VAL, STANDARD_FRAGOR, TABELLER, elevPa, harKallor, klassInst, klassPa, normalizeInst, omradeNyckel,
+  KLOCKA_VAL, MAX_OMRADEN, PAUS_VAL, STANDARD_FRAGOR, TABELLER, elevPa, harKallor, klassInst, klassPa, normalizeInst, omradeNyckel,
   sammaInst, sammanfattning,
 } from "../md-inst.js";
+import { arSynligt, effektivaKallor, pluggaKallor } from "../delat/md-synlighet.js";
+import { raderUrBibliotek } from "../md-synlig.js";
+
+export const DOLT_TEXT = "Dolt för klassen – används inte just nu";
 
 const antalText = (n) => (n ? `${n} ${n === 1 ? "vald" : "valda"}` : "");
 
 const radio = (namn, varde, text, valt) =>
   `<label class="mda-val"><input type="radio" name="${namn}" value="${varde}"${valt ? " checked" : ""} /><span>${text}</span></label>`;
 
+/** Klassens synliga områden (assignedAreas, tom = hela biblioteket → null) – som synligaOmraden. */
+function klassensSynliga(cls) {
+  const ut = [];
+  for (const a of Array.isArray(cls.assignedAreas) ? cls.assignedAreas : []) {
+    const k = omradeNyckel(a?.subjectId, a?.areaId);
+    if (a?.subjectId && a?.areaId && !ut.includes(k)) ut.push(k);
+  }
+  return ut.length ? ut : null;
+}
+
 /** Ämnesgrupper med de områden som klarar källan (quiz/par eller generator). */
 function grupper(library, cls, valda, passar) {
   const tilldelade = new Set((cls.assignedAreas || []).map((a) => omradeNyckel(a.subjectId, a.areaId)));
+  const synliga = klassensSynliga(cls);
   return library.map((subj) => {
     const areas = (subj.areas || []).filter((a) => passar(areaContentFlags(a))).map((a) => {
       const nyckel = omradeNyckel(subj.id, a.id);
-      return { nyckel, namn: a.name || a.id, klassens: tilldelade.has(nyckel), vald: valda.includes(nyckel) };
+      return { nyckel, namn: a.name || a.id, klassens: tilldelade.has(nyckel), vald: valda.includes(nyckel), dolt: !arSynligt(nyckel, synliga) };
     }).sort((x, y) => (y.vald - x.vald) || (y.klassens - x.klassens) || x.namn.localeCompare(y.namn, "sv"));
     return { subj, areas };
   }).filter((g) => g.areas.length);
@@ -46,8 +66,8 @@ function omradesHtml(typ, gs) {
     const oppen = areas.some((a) => a.vald || a.klassens);
     return `<details class="mda-amne"${oppen ? " open" : ""}>
       <summary>${esc(subj.icon || "📚")} ${esc(subj.name || subj.id)} <span class="mda-antal" data-antal>${antalText(n)}</span></summary>
-      <div class="mda-kryss">${areas.map((a) => `<label class="mda-val"><input type="checkbox" data-${typ}="${esc(a.nyckel)}"${a.vald ? " checked" : ""} />
-        <span>${esc(a.namn)}${a.klassens ? ' <small class="mda-tagg">klassens</small>' : ""}</span></label>`).join("")}</div>
+      <div class="mda-kryss">${areas.map((a) => `<label class="mda-val${a.dolt ? " mda-dolt" : ""}${a.dolt && a.vald ? " mda-dolt-vald" : ""}"><input type="checkbox" data-${typ}="${esc(a.nyckel)}"${a.vald ? " checked" : ""} />
+        <span>${esc(a.namn)}${a.klassens ? ' <small class="mda-tagg">klassens</small>' : ""}${a.dolt ? ` <small class="mda-dolt-text">${DOLT_TEXT}</small>` : ""}</span></label>`).join("")}</div>
     </details>`;
   }).join("");
 }
@@ -78,7 +98,7 @@ export async function renderPanel(ctx, o) {
   const kalla = !elev ? "" : egna
     ? `<p class="hint mda-kalla">${namn} har egna inställningar, som gäller före klassens.
         <button type="button" class="btn ghost small" data-folj>Följ klassens inställningar</button></p>`
-    : `<p class="hint mda-kalla">${namn} följer ${arvd ? "klassens inställningar" : "standard (multiplikationstabellerna 0–10) – klassen har inga inställningar än"}.
+    : `<p class="hint mda-kalla">${namn} följer ${arvd ? "klassens inställningar" : "standard (Samma som Plugga) – klassen har inga inställningar än"}.
         Ändrar du något här får ${namn} egna.</p>`;
   const paRad = elev
     ? `<label class="mda-pa"><input type="checkbox" name="pa"${elevPa(cls, elev.id) ? " checked" : ""} />
@@ -86,16 +106,35 @@ export async function renderPanel(ctx, o) {
     : `<label class="mda-pa"><input type="checkbox" name="pa"${klassPa(cls) ? " checked" : ""} />
       <span><b>Matchdagen</b> för hela ${esc(cls.name || cls.id)}<small>Alla elever i klassen ser den under Öva (samma som i Vad eleverna ser).
         Inställningarna gäller elever utan egna.</small></span></label>`;
+  // "Samma som Plugga" för klassen (#899): de synliga områdena med underlag, ur biblioteket.
+  const synliga = klassensSynliga(cls);
+  const plugga = pluggaKallor(raderUrBibliotek(library, synliga));
+  // Utan några inställningar alls blir det tabellerna 0–10 om klassen inte ser något med underlag.
+  const standard = elev ? !egna && !arvd : !inst;
   const box = el(`<form class="mda-form" novalidate>
+    <div class="mda-tom" data-tom role="status" hidden>
+      <span data-tom-valj><b>Inga frågor just nu.</b> Inget av det som är valt syns för klassen, så eleven kan inte spela.</span>
+      <span data-tom-folj hidden><b>Inga frågor just nu.</b> Klassen ser inga områden med frågor. Välj multiplikationstabeller
+        eller områden under Vad eleverna ser.</span>
+      <button type="button" class="btn gron small" data-byt-plugga>Byt till Samma som Plugga</button>
+    </div>
     ${paRad}
     ${kalla}
 
     <fieldset class="mda-del"><legend>Frågekällor</legend>
-      <p class="hint">Välj en eller flera. Frågorna blir aldrig svårare högre upp i divisionerna. Utan källor kan eleven inte starta någon match.</p>
-      <h4>Plugga-områden</h4>${omradesHtml("omrade", grupper(library, cls, i.omraden, (h) => h.quiz || h.pairs))}
+      <p class="hint">Frågorna blir aldrig svårare högre upp i divisionerna. Det kommer aldrig frågor från ett område som är dolt för klassen.</p>
+      <div class="mda-rad-val mda-folj">
+        ${radio("folj", "1", "Samma som Plugga – frågor från de områden eleven ser just nu <small>(rekommenderat)</small>", i.foljPlugga)}
+        ${radio("folj", "0", "Välj områden själv", !i.foljPlugga)}
+      </div>
+      <p class="hint mda-folj-info" data-folj-info>${esc(pluggaInfo(plugga))}</p>
+      <div data-valj-sjalv>
+        <h4>Plugga-områden</h4>${omradesHtml("omrade", grupper(library, cls, i.omraden, (h) => h.quiz || h.pairs))}
+        <h4>Räkna</h4>${omradesHtml("rakna", grupper(library, cls, i.rakna, (h) => h.generator))}
+      </div>
       <h4>Multiplikationstabeller</h4>
       <div class="mda-kryss mda-tabeller">${TABELLER.map((t) => `<label class="mda-val mda-tal"><input type="checkbox" data-tabell="${t}"${i.tabeller.includes(t) ? " checked" : ""} /><span>${t}</span></label>`).join("")}</div>
-      <h4>Räkna</h4>${omradesHtml("rakna", grupper(library, cls, i.rakna, (h) => h.generator))}
+      <p class="hint">Tabellerna går att ha med i båda lägena.</p>
     </fieldset>
 
     <fieldset class="mda-del"><legend>Svarssätt</legend>
@@ -154,8 +193,22 @@ export async function renderPanel(ctx, o) {
         tabeller: kryss("tabell").map(Number),
         svarssatt: val("svarssatt"), klocka: Number(val("klocka")), paus: Number(val("paus")),
         lugnt: box.querySelector('input[name="lugnt"]').checked,
+        foljPlugga: val("folj") === "1",
       },
     };
+  };
+  // Läget (Samma som Plugga / Välj själv), de gråade dolda och "Inga frågor just nu" följer formuläret.
+  const tom = box.querySelector("[data-tom]");
+  const synka = () => {
+    const v = las().inst;
+    box.querySelector("[data-valj-sjalv]").hidden = v.foljPlugga;
+    box.querySelector("[data-folj-info]").hidden = !v.foljPlugga;
+    box.querySelectorAll(".mda-dolt").forEach((l) => l.classList.toggle("mda-dolt-vald", l.querySelector("input").checked));
+    const anvands = effektivaKallor(normalizeInst(v), { synliga, plugga, standard: standard && sammaInst(v, i) });
+    tom.hidden = harKallor(anvands);
+    tom.querySelector("[data-tom-valj]").hidden = v.foljPlugga;
+    tom.querySelector("[data-tom-folj]").hidden = !v.foljPlugga;
+    tom.querySelector("[data-byt-plugga]").hidden = v.foljPlugga;
   };
   // Antalet valda per ämne följer kryssen; ändrat = "Sparat" bort.
   box.addEventListener("change", (e) => {
@@ -165,6 +218,12 @@ export async function renderPanel(ctx, o) {
       const n = amne.querySelectorAll("input:checked").length;
       amne.querySelector("[data-antal]").textContent = antalText(n);
     }
+    synka();
+  });
+  box.querySelector("[data-byt-plugga]").addEventListener("click", () => {
+    box.querySelector('input[name="folj"][value="1"]').checked = true;
+    synka();
+    box.requestSubmit();
   });
   box.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -181,7 +240,8 @@ export async function renderPanel(ctx, o) {
         : await data.sparaKlass(cls, val);
       const galler = sparad || i;
       const vem = elev ? "eleven" : "eleverna";
-      const varning = val.pa && !harKallor(galler) ? ` – välj frågor, annars kan ${vem} inte spela` : "";
+      const anvands = effektivaKallor(galler, { synliga, plugga, standard: standard && foljer });
+      const varning = val.pa && !harKallor(anvands) ? ` – välj frågor, annars kan ${vem} inte spela` : "";
       resultat.innerHTML = `<span class="ok-inline">Sparat ✓ ${esc(sammanfattning(galler))}${foljer ? (arvd ? " (klassens)" : " (standard)") : ""}${varning}</span>`;
       onSaved();
       // Fick eleven nyss egna: rita om så att "Följ klassens inställningar" syns.
@@ -195,5 +255,15 @@ export async function renderPanel(ctx, o) {
       knapp.disabled = false;
     }
   });
+  synka();
   host.replaceChildren(box);
+}
+
+/** Raden under "Samma som Plugga": vad den ger just nu, och taket. */
+function pluggaInfo(p) {
+  const delar = [];
+  if (p.omraden.length) delar.push(`${p.omraden.length} ${p.omraden.length === 1 ? "Plugga-område" : "Plugga-områden"}`);
+  if (p.rakna.length) delar.push(`${p.rakna.length} ${p.rakna.length === 1 ? "Räkna-område" : "Räkna-områden"}`);
+  const just = delar.length ? `Just nu: ${delar.join(" och ")} som klassen ser.` : "Klassen ser inga områden med frågor just nu.";
+  return p.fler ? `${just} Klassen ser fler än ${MAX_OMRADEN} områden – de ${MAX_OMRADEN} första används.` : just;
 }

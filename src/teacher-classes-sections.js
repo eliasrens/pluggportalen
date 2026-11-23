@@ -133,10 +133,26 @@ export const CLASS_SECTIONS = [
     // F-01–F-09 (#436). Statusens setInterval stannar själv när rutan lämnar DOM:en.
     // onChange → notify: masterns 🔒 följer direkt (#449 F1); samma klass/sektion
     // ritar bara om huvudet, Fokus-rutan står kvar.
-    render: async (ctx, cls, host, store) =>
-      (await import("./teacher-class-lock.js")).renderClassLock(ctx, cls, host, await store.loadLibrary(), {
-        onChange: () => store.notify(),
-      }),
+    // #901: sektionen Veckoschema längst ned, under låset (kryssrutan alltid synlig);
+    // onChange → notify håller klassväljarens 📅 i synk.
+    render: async (ctx, cls, host, store) => {
+      const library = await store.loadLibrary();
+      const lockEl = el(`<div class="cls-block"></div>`);
+      const schemaEl = el(`<div class="cls-block"></div>`);
+      host.replaceChildren(lockEl, schemaEl);
+      await Promise.all([
+        withLoading(lockEl, "fokusläge", async () =>
+          (await import("./teacher-class-lock.js")).renderClassLock(ctx, cls, lockEl, library, {
+            onChange: () => store.notify(),
+          })
+        ),
+        withLoading(schemaEl, "veckoschemat", async () =>
+          (await import("./teacher-class-schema.js")).renderClassSchema(ctx, cls, schemaEl, library, {
+            onChange: () => store.notify(),
+          })
+        ),
+      ]);
+    },
   },
   {
     key: "klasscenter",

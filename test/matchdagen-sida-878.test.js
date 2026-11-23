@@ -19,11 +19,14 @@ import { readFileSync } from "node:fs";
 const MD_INST = new URL("../src/matchdagen/md-inst.js", import.meta.url).href;
 const T = "globalThis.__md878";
 const STUBBAR = {
-  "../ui.js": `export const app = { replaceChildren() {} }; export async function renderTopbar() {}`,
+  "../ui.js": `export const app = { replaceChildren() {} }; export async function renderTopbar() {}
+    export async function getLockGate() { return ${T}.grind ?? null; } export function onLockChange() { return () => {}; }`,
   "../data.js": `export const currentStudentId = () => ${T}.uid;
     export const getClasses = () => ${T}.getClasses();
     export const getStudentData = async () => null;
-    export const getArea = async () => null;
+    export const getArea = async (s, a) => ${T}.area?.(s, a) ?? null;
+    export const getAreas = async () => [];
+    export const getSubjects = async () => [];
     export const ensureClassProjection = async () => ({ members: {} });`,
   "./md-inst-data.js": `export const lasInst = (uid) => ${T}.lasInst(uid);`,
   "./md-data.js": `export const lasKarriar = async () => null;`,

@@ -16,12 +16,13 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
 
 /**
  * HTML för vägen vidare.
- * @param {object|null} gate  fokus-grinden (ui.getLockGate), null = inget lås
+ * @param {object|null} gate  fokus-grinden (ui.getLockGate), null = inget lås (lock null = veckoschemat)
  * @param {string} t          provtillfällets id
  * @param {string[]} [dolda]  klassens dolda moduler (ui.getHiddenModules)
  */
 export function vidareHtml(gate, t, dolda = []) {
-  if (!gate) return `<a href="#/elev/hus" class="provv-vidare-knapp">Till startsidan</a>`;
+  // Inget lås – eller veckoschemat (#900, gate.lock null): provet är inte låst.
+  if (!gate?.lock) return `<a href="#/elev/hus" class="provv-vidare-knapp">Till startsidan</a>`;
   if (gate.lock.mal.typ !== "prov" || gate.lock.mal.id !== t) return "";
   // Villkorade moduler (Mattematchen) syns i menyn när de är aktuella – inte här.
   const moduler = gate.fri

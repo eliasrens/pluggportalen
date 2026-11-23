@@ -19,6 +19,23 @@ Lägen *inom* ett Plugga-område (Quiz, Tidsjakten, Ämnesläsning, äventyr …
 områdeslåset: målområdets lägen är öppna, alla andra områden spärrade. Live styrs
 som förut av sin egen synlighet och av "Dölj allt annat".
 
+## Veckoschemat (#900, #902)
+
+Klassens **veckoschema** (`classes/{id}.schema`, [VECKOSCHEMA.md](VECKOSCHEMA.md)) är ett
+slags fokusläge som filtrerar på **ämne** i stället för att låsa till ett mål: under en
+lektion ser eleverna bara lektionens ämnesområden och modulerna som hör till ämnet.
+Grinden (`gateForSchema` i `src/klass-schema.js`) har samma form som `gateFor`, så routern
+och menyn frågar samma grind. **Fokuslåset går alltid före schemat** (`kombineradGrind`):
+har klassen ett aktivt lås gäller låset och schemat ignoreras; när låset upphör mitt i en
+lektion tar schemat över direkt. Registrets `amnesTips` säger vilket ämne en modul hör till.
+
+Hos eleven (#902) räknar samma bevakare (`src/class-lock-watch.js`) fram båda: den lyssnar
+redan på klassdokumenten, och `ui.getLockGate()` svarar med den kombinerade grinden
+(`aktuellGrind()`). Schemat har en egen timer till **nästa ändring** (lektionens start eller
+slut, `nastaSchemaAndring`) med samma skyddsnät som låset (15 s-intervall och
+flik-återkomst). En schemagrind känns igen på `gate.schema` (och `gate.lock === null`):
+menyn visar då ingen 🎯-ruta, och toasterna är schemats egna (se VECKOSCHEMA.md §Elevsidan).
+
 ## Modulregistret
 
 `STUDENT_MODULES` i `src/gamemode-visibility.js` är källan för elevens
@@ -30,6 +47,10 @@ top-nivå-moduler. **Ny modul = en rad där**, så följer:
 - **routerns grind** (dold modul nås inte via direktlänk, `moduleForRoute`),
 - **fokusläget**: `learning: true` gör att låset spärrar modulen när den inte är
   målet; `lockable: true` gör den valbar som mål (låstypen = modulens id).
+- **veckoschemat** (#900): `amnesTips` (ord som liknar ämnets namn, t.ex.
+  `["matte", "matematik", "ma"]`) kopplar modulen till ett ämne; `null` = hör aldrig till
+  något ämne (spärrad under en lektion). Nyckeln ska också stå i `firestore.rules` →
+  `validSchemaKoppling` (`test/klass-schema.test.mjs` jämför).
 
 Fälten beskrivs i kommentaren ovanför registret.
 
