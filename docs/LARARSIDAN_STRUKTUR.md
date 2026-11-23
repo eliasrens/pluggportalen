@@ -42,7 +42,8 @@ Svarar på "vad behöver jag göra, och hur går det?":
 
 ## Mina klasser (`src/teacher-mina-klasser.js`, #804)
 
-Överst klassväljaren (knappar; fler än 8 klasser → sökruta + rullgardin; 🔒 på klasser med fokusläge på), under den vald
+Överst klassväljaren (knappar; fler än 8 klasser → sökruta + rullgardin; 🔒 på klasser med fokusläge på, 📅 på klasser med
+aktiverat veckoschema – 🔒 går före), under den vald
 klass med fyra flikar (`MINA_FLIKAR` i `src/teacher-mina-val.js`). Valet speglas i adressen
 `#/larare/mina-klasser?klass=<id eller namn>&flik=hur|ser|fokus|elever[&del=<underflik>]`; klassen och statistikens underflik
 ligger också i `localStorage` (`pp:larare:klass`, `pp:larare:statsflik`), så läraren kommer tillbaka till samma ställe.
@@ -51,8 +52,21 @@ ligger också i `localStorage` (`pp:larare:klass`, `pp:larare:statsflik`), så l
 | --- | --- | --- |
 | **Hur går det?** `flik=hur` | Underflikar: Ämnen · Per område · Läsresan · Ekvationsresan · Prov · Bråkresan · Mattematchen · Live · Schack. Läsresans och Ekvationsresans nivåer ändras här. Avstängda moduler visas nedtonade med länk till Vad eleverna ser. | `statistik` (`STATS_TABS`) |
 | **Vad eleverna ser** `flik=ser` | Tre numrerade steg: 1. Områden (hela namn) · 2. Delar i elevernas meny (moduler på/av, byar för admin) · 3. Avancerat (ihopfällt: dölj övningslägen). "Sparat ✓" per steg. | `omraden`, `synlighet`, `lagen` |
-| **Fokusläge** `flik=fokus` | Lås klassen till en sak till ett klockslag, +N min, Lås upp nu, vad eleven får göra efter inlämning. | `fokus` |
+| **Fokusläge** `flik=fokus` | Lås klassen till en sak till ett klockslag, +N min, Lås upp nu, vad eleven får göra efter inlämning. Längst ned sektionen **Veckoschema** (#901, se nedan). | `fokus` |
 | **Elever** `flik=elever` | Den kompakta elevtabellen (se nedan) och under den **Anpassningar per elev** (#867). Admin får också Klasscentret längst ner. | `inloggning` + `anpassningar` (årskurs), `elever` + `anpassningar` + `klasscenter` (admin) |
+
+### Veckoschema i fliken Fokusläge (`src/teacher-class-schema.js`, #901)
+
+En sektion längst ned i fliken Fokusläge, under låset – ingen ny flik, sida eller meny (docs/VECKOSCHEMA.md).
+Överst kryssrutan **Aktivera veckoschemat** (alltid synlig, ett klick). Utan lektioner syns bara kryssrutan och
+**+ Lägg till lektion**. Med lektioner syns raden om läget ("Nu: NO till 10.00 – eleverna ser NO." / "Ingen lektion just nu …" /
+"Schemat är inte aktiverat …"), veckan (fem kolumner Mån–Fre; en lista per dag när sektionen är smal; blekare när schemat
+inte är aktiverat) och knappen. Klick på ett lektionskort → **Ändra** / **Ta bort**. **+ Lägg till lektion** öppnar en liten
+ruta: Ämne, Från, Till och Dagar (fem kryssrutor, alla förbockade) – "Matte 8.20–9.00 alla dagar" på en gång. En krock
+nekas: "Lektionen krockar med NO 9.00–10.00 på måndag." Allt sparas direkt ("Sparat ✓", fel via `errText`), en skrivning
+per ändring (`src/data-class-schema.js`). Vilket ämne modulerna hör till gissas; bara när gissningen misslyckas står det
+"Vi vet inte vilket ämne **Läsresan** hör till – välj", annars finns valet i en ihopfälld länk längst ned. Ren logik i
+`src/klass-schema-larare.js` (test: `test/klass-schema-larare.test.mjs`); allt laddas med `import()` (bootgrafen oförändrad).
 
 ### Elever och menyn ⋯ (`src/teacher-elever-tabell.js`, #805)
 
@@ -125,8 +139,8 @@ Klasscentret för en klass ligger i Mina klasser → Elever (inte på Admin). De
 - **Hjälptexter**: varje flik i Mina klasser (`hjalp` / `hjalpAdmin` i `MINA_FLIKAR`) och varje underflik i Material utom Plugga-områden (`hint` i
   `MATERIAL_FLIKAR`; utan `hint` ritas ingen ruta, #814) har en kort hjälptext (1–2 meningar) överst. Rutan ritas av `hjalpRuta` i `src/teacher-hjalptext.js`, kan
   fällas ihop och valet sparas per ruta i `localStorage` (`pp:larare:hjalp:<ruta>`, i `try/catch` – utan lagring är rutan öppen).
-- **Hjälp och guide** (`#/larare/hjalp`, profilmenyn; `src/teacher-hjalp.js`): sju korta guider med 3–5 steg (Kom igång med en
-  ny klass · Välj vad eleverna ser · Fokusläge · Skapa ett område med AI · Gör ett prov och rätta det · Starta Live · Ändra
+- **Hjälp och guide** (`#/larare/hjalp`, profilmenyn; `src/teacher-hjalp.js`): åtta korta guider med 3–5 steg (Kom igång med en
+  ny klass · Välj vad eleverna ser · Fokusläge · Veckoschema · Skapa ett område med AI · Gör ett prov och rätta det · Starta Live · Ändra
   elevernas nivåer i Läsresan och Ekvationsresan). Guiderna är data i `src/teacher-hjalp-guider.js`; varje steg länkar direkt
   till rätt flik (`?flik=`, `&del=`), aldrig via en gammal adress. Steg för admin (`roll: "admin"`) visas bara för admin.
   Sidan gör inga läsningar.

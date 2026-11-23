@@ -9,31 +9,41 @@
 // (bank[n − 1], utan facit) till elevens privata dokument; mdSvar rättar mot banken.
 //
 // Källorna är solospelets (src/matchdagen/md-kallor.js), med samma urval och ordning:
-//   Plugga-område  quiz utan passage + par ("Vad betyder X?" med tre andra förklaringar som fel-
-//                  alternativ). omradePool är omradeKalla:s urval utan sidans moduler (game-shared.js
-//                  och prov-fran-omrade.js kan inte följa med till servern) – test/matchdagen-vanskap-
-//                  server.test.js jämför de två på samma områden. Rättas med gradeQuiz (kistspel-rattning.js).
+//   Plugga-område  quiz + par ("Vad betyder X?" med tre andra förklaringar som fel-
+//                  alternativ). omradePool är omradeKalla:s urval utan sidans moduler (prov-fran-omrade.js
+//                  kan inte följa med till servern) – test/matchdagen-vanskap-server.test.js jämför de två
+//                  på samma områden. Vilka quizfrågor och lästexter (#905): quizUrval (matchdagen/md-lastext.js,
+//                  samma rena kod som klienten) – lastext av = bara frågor utan lästext, på = alla med
+//                  lästexten i pub.kontext, men högst VANSKAP_LASTEXT_MAX (300, Live) tecken: tiden är synkad
+//                  mellan eleverna. Förklaringen (explanation) ligger i r och kommer med mdSvar:s svar.
+//                  Rättas med gradeQuiz (kistspel-rattning.js).
 //   Multiplikation makeQuestion + multChoices (mult/generator.js, Live-läget multiplication_0_10),
 //                  flerval eller skriv själv efter svarssatt. Rättas med gradeMult (kistspel-rattning.js).
 //   Räkna          rakna-core.js createProblemSource; rättas med Räknas checkAnswer. Bara skriv själv.
 //                  Ett visuellt räknesätt (klocka, statistik …) skickar uppgiften (problem, utan facit)
 //                  som JSON i `bild` – klienten ritar den med matte-visuals.js som i solospelet.
 // Källorna turas om med createTopicBag; en ändlig källa upprepar inget förrän den är slut.
+// #899: källorna = de valda ∩ elevens synliga områden, och "Samma som Plugga" (foljPlugga) räknas
+// fram ur synligheten – med SAMMA rena kod som klienten (matchdagen/md-synlighet.js, en kopia av
+// src/matchdagen/delat/). Utan några inställningar alls: "Samma som Plugga", annars tabellerna 0–10.
 //
-//   normInst(raw) · effektivInst(egen, klass) · harKallor(inst) · omradePool(area) · omradesNycklar(inst)
+//   normInst(raw) · effektivInst(egen, klass) · arStandard(egen, klass) · harKallor(inst) · omradePool(area, lastext)
+//   omradesNycklar(inst) · flaggor(area) (= gamemode-visibility.js areaContentFlags för källorna)
 //   byggKallor(inst, omraden) → källor          omraden: { "ämne/område": area | null }
 //   byggBank(kallor, { antal, rng, fro, svarssatt }) → [post]   post = { pub, kalla, r }
-//   ratta(post, svar) → { giltig, ratt, facit }   svar: index (flerval) eller text (skriv själv)
+//   ratta(post, svar) → { giltig, ratt, facit, forklaring? }   svar: index (flerval) eller text (skriv själv)
 // ============================================================================
 
 import { checkAnswer as raknaRatta, createProblemSource, createTopicBag, expectedAnswerText, hashSeed, problemDisplay } from "./matchdagen/kallor/rakna-core.js";
-import { normalizeGenerator } from "./matchdagen/kallor/exercise-types.js";
+import { hasGeneratorContent, normalizeGenerator } from "./matchdagen/kallor/exercise-types.js";
+import { MAX_OMRADEN } from "./matchdagen/md-synlighet.js";
 import { makeQuestion, multChoices } from "./matchdagen/kallor/mult/generator.js";
+import { VANSKAP_LASTEXT_MAX, quizUrval } from "./matchdagen/kallor/matchdagen/md-lastext.js";
 import { gradeMult, gradeQuiz, KsError } from "./kistspel-rattning.js";
 
 /** Samma gränser som provets "Hämta från område" (src/prov/typer/delat.js GRANS) – testat. */
 export const GRANS = { fragetext: 1000, alternativ: 300 };
-export const MAX_OMRADEN = 60;
+export { MAX_OMRADEN };
 const PAR_ALTERNATIV = 4;
 const FAKTORER = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 /** Samma hjälptexter som solospelet (md-kallor.js TIPS). */
@@ -69,21 +79,32 @@ export function normInst(raw) {
     rakna: nycklar(r.rakna),
     svarssatt: r.svarssatt === "skriv" ? "skriv" : "flerval",
     klocka: [30, 60].includes(r.klocka) ? r.klocka : 0,
+    foljPlugga: r.foljPlugga === true,
+    lastext: r.lastext !== false, // #905: saknas = på
   };
 }
+/** Konkreta källor (efter effektivaKallor) – "Samma som Plugga" räknas inte förrän den är uträknad. */
 export const harKallor = (i) => i.omraden.length + i.tabeller.length + i.rakna.length > 0;
+const klassensInst = (k) => {
+  const ki = k?.matchdagenInst;
+  return ki && typeof ki === "object" && !Array.isArray(ki) ? ki : null;
+};
 /**
  * Inställningarna eleven spelar med (#876, som md-inst.js effektivInst): egna, annars klassens
- * (classes/{id}.matchdagenInst), annars multiplikationstabellerna 0–10.
+ * (classes/{id}.matchdagenInst), annars standard = "Samma som Plugga" (#899).
  * @param {object|null} egen  matchdagenInst/{uid} (null = saknas)
  * @param {object|null} k     klassdokumentet
  */
 export function effektivInst(egen, k) {
   if (egen) return normInst(egen);
-  const ki = k?.matchdagenInst;
-  if (ki && typeof ki === "object" && !Array.isArray(ki)) return normInst(ki);
-  return normInst({ tabeller: FAKTORER });
+  return normInst(klassensInst(k) || { foljPlugga: true });
 }
+/** Inga inställningar alls – då blir det tabellerna 0–10 om eleven inte ser något med underlag. */
+export const arStandard = (egen, k) => !egen && !klassensInst(k);
+/** Källornas underlag (gamemode-visibility.js areaContentFlags: quiz, pairs, generator). */
+export const flaggor = (area) => ({
+  quiz: lista(area?.quiz).length > 0, pairs: lista(area?.pairs).length > 0, generator: hasGeneratorContent(area),
+});
 /** Områdena som ska läsas (subjects/{s}/areas/{a}) – Plugga och Räkna. */
 export const omradesNycklar = (i) => [...new Set([...i.omraden, ...i.rakna])];
 
@@ -95,14 +116,15 @@ function flervalOk(q) {
     Number.isInteger(ai) && ai >= 0 && ai < alt.length;
 }
 const parOk = (p) => !!str(p?.term) && !!str(p?.definition) && tecken(str(p.term)) <= GRANS.alternativ && tecken(str(p.definition)) <= GRANS.alternativ;
-const harPassage = (q) => !!str(q?.passage);
-
-/** Områdets frågor som solospelets omradeKalla: { quiz: [index], par: [index] } (par bara om minst två). */
-export function omradePool(area) {
+/**
+ * Områdets frågor som solospelets omradeKalla: { quiz: [index], par: [index], kontext: { index: lästext } }
+ * (par bara om minst två). lastext = lärarens "Visa lästext till frågorna" (#905), lästexten högst 300 tecken.
+ */
+export function omradePool(area, lastext = false) {
   const quiz = lista(area?.quiz);
-  const plain = quiz.filter((q) => !harPassage(q));
-  const pool = plain.length ? plain : quiz; // plainQuizPool – men frågor med passage tas aldrig med
-  const q = pool.map((x) => quiz.indexOf(x)).filter((i) => !harPassage(quiz[i]) && flervalOk(quiz[i]));
+  const urval = quizUrval(quiz, { lastext, maxPassage: VANSKAP_LASTEXT_MAX, giltig: (i) => flervalOk(quiz[i]) });
+  const q = urval.map((x) => x.i);
+  const kontext = Object.fromEntries(urval.filter((x) => x.kontext).map((x) => [x.i, x.kontext]));
   const sett = new Set();
   const par = [];
   lista(area?.pairs).forEach((p, i) => {
@@ -114,7 +136,7 @@ export function omradePool(area) {
     sett.add(d);
     par.push(i);
   });
-  return { quiz: q, par: par.length >= 2 ? par : [] };
+  return { quiz: q, par: par.length >= 2 ? par : [], kontext };
 }
 
 function blanda(a0, rng) {
@@ -126,14 +148,18 @@ function blanda(a0, rng) {
   return a;
 }
 
-/** En flervalsfråga i bankens form – rättas med gradeQuiz mot r.ai. */
-function quizPost(text, ratt, fel, rng, kalla) {
+/** En flervalsfråga i bankens form – rättas med gradeQuiz mot r.ai. extra: { kontext?, forklaring? } (#905). */
+function quizPost(text, ratt, fel, rng, kalla, { kontext = "", forklaring = "" } = {}) {
   const alternativ = blanda([ratt, ...fel], rng);
-  return { pub: { text, typ: "flerval", alternativ, inputMode: "text" }, kalla, r: { s: "quiz", ai: alternativ.indexOf(ratt), facit: ratt } };
+  return {
+    pub: { text, typ: "flerval", alternativ, inputMode: "text", ...(kontext ? { kontext } : {}) },
+    kalla,
+    r: { s: "quiz", ai: alternativ.indexOf(ratt), facit: ratt, ...(forklaring ? { forklaring } : {}) },
+  };
 }
 
-function omradeKalla(nyckel, area) {
-  const { quiz, par } = omradePool(area);
+function omradeKalla(nyckel, area, lastext) {
+  const { quiz, par, kontext } = omradePool(area, lastext);
   const pairs = lista(area?.pairs);
   const forklaringar = par.map((i) => str(pairs[i].definition));
   const kalla = `omrade:${nyckel}`;
@@ -145,7 +171,8 @@ function omradeKalla(nyckel, area) {
       if (sort === "quiz") {
         const q = area.quiz[Number(nr)];
         const alt = q.options.map((o) => String(o).trim());
-        return quizPost(str(q.question), alt[q.answerIndex], alt.filter((_, j) => j !== q.answerIndex), rng, kalla);
+        return quizPost(str(q.question), alt[q.answerIndex], alt.filter((_, j) => j !== q.answerIndex), rng, kalla,
+          { kontext: kontext[nr], forklaring: str(q.explanation) });
       }
       const p = pairs[Number(nr)];
       const ratt = str(p.definition);
@@ -196,7 +223,7 @@ function raknaKalla(nyckel, area, fro) {
 /** Elevens källor i solospelets ordning (Plugga, tabellerna, Räkna); tomma tas bort. */
 export function byggKallor(inst, omraden, fro = 0) {
   const alla = [
-    ...inst.omraden.map((k) => omradeKalla(k, omraden[k] || null)),
+    ...inst.omraden.map((k) => omradeKalla(k, omraden[k] || null, inst.lastext)),
     ...(inst.tabeller.length ? [tabellKalla(inst.tabeller, inst.svarssatt)] : []),
     ...inst.rakna.map((k) => raknaKalla(k, omraden[k] || null, fro)),
   ];
@@ -237,7 +264,7 @@ export function ratta(post, svar) {
     if (r.s === "quiz") {
       const g = gradeQuiz({ answerKind: "choice" }, { q: 0, choiceIndex: svar }, { nextQ: 0 },
         { questions: [{ id: "0", options: lista(post.pub.alternativ) }] }, { facit: [{ answerIndex: r.ai }] });
-      return { giltig: true, ratt: g.isCorrect, facit };
+      return { giltig: true, ratt: g.isCorrect, facit, ...(r.forklaring ? { forklaring: String(r.forklaring) } : {}) };
     }
     if (r.s === "rakna") {
       if (typeof svar !== "string" || !svar.trim() || svar.length > 200) return { giltig: false, ratt: false, facit };

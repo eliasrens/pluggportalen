@@ -39,7 +39,11 @@
          ?vy=pokaler Pokalskåpet
        #880:
          ?vy=topplista  topp 5 per årskurs (stubbad lista: åk 3, 4, 6, Övriga; eleven på plats 3 i åk 4)
-         ?ak=3|4|6|ovriga  elevens årskurs (standard 4)   ?topp=utanfor  inte på topp 5   ?topp=tom  inte byggd än -->
+         ?ak=3|4|6|ovriga  elevens årskurs (standard 4)   ?topp=utanfor  inte på topp 5   ?topp=tom  inte byggd än
+       #905:
+         ?lastext=1  frågorna kommer från ett läsförståelseområde (frågor med en kort lästext ovanför frågan,
+                     en text på 300 tecken, förklaringar efter fel svar) – "Visa lästext till frågorna" på
+         ?lastext=0  samma område med lästexten av (bara frågorna utan text)  · kombinera med ?klocka=30 (+15 s) -->
   <script type="importmap">
     { "imports": { "../src/game-shared.js": "./matchdagen-868/game-shared.js" } }
   </script>
@@ -84,9 +88,28 @@
         ],
       },
       "ma/addera": { name: "Addition", generator: { topic: "addition", variants: ["enkel"], grade: "ak4" } },
+      // #905: ett läsförståelseområde – frågor med lästext (passage) och förklaringar.
+      "sv/lasning": {
+        name: "Läsförståelse", quiz: [
+          { question: "Varför kunde långskeppen ta sig långt upp i floderna?", options: ["Skrovet var grunt", "De var tunga", "De hade motor", "Floderna var djupa"], answerIndex: 0,
+            passage: "Vikingarnas långskepp var smala och lätta. De kunde både ros och seglas. Eftersom skrovet var grunt kunde skeppen ta sig långt upp i floderna i Ryssland och Frankrike, och besättningen kunde dra upp dem direkt på en strand.",
+            explanation: "Ett grunt skrov går inte på grund i en grund flod." },
+          { question: "Hur många personer ska resa?", options: ["Fyra", "Tre", "Två", "Fem"], answerIndex: 0,
+            passage: "Familjen Berg ska resa till sin mormor i Luleå under sportlovet. Pappa har sparat ihop 4 000 kronor i en burk på köksbänken. På resebyråns hemsida ser de att en flygbiljett kostar 1 604 kronor per person. Familjen är fyra personer: mamma, pappa, Lisa och lillebror Måns.",
+            explanation: "Mamma, pappa, Lisa och Måns – fyra personer." },
+          { question: "Vad gör växterna med solljuset?", options: ["Gör socker", "Gör salt", "Gör vatten"], answerIndex: 0,
+            passage: "Gröna växter fångar solljus med bladen. Med ljuset, vatten och koldioxid gör de socker som de växer av. Samtidigt släpper de ut syre.",
+            explanation: "Fotosyntesen: ljus + vatten + koldioxid blir socker och syre." },
+          { question: "Vilken stad är Norges huvudstad?", options: ["Oslo", "Bergen", "Trondheim", "Stavanger"], answerIndex: 0, explanation: "Oslo har varit huvudstad sedan 1814." },
+        ],
+      },
     };
     const k = p.get("kallor") || "alla";
-    const inst = k === "inga" ? {} : {
+    const lastext = p.get("lastext");
+    const inst = k === "inga" ? {} : lastext ? {
+      omraden: ["sv/lasning"], tabeller: [], rakna: [], svarssatt: "flerval", klocka: Number(p.get("klocka")) || 0,
+      lugnt: p.get("lugnt") === "1", paus: Number(p.get("paus") ?? 60), lastext: lastext !== "0",
+    } : {
       omraden: ["so/sverige"], tabeller: [6, 7, 8], rakna: p.get("svar") === "skriv" ? ["ma/addera"] : [],
       svarssatt: p.get("svar") === "skriv" ? "skriv" : "flerval", klocka: Number(p.get("klocka")) || 0,
       lugnt: p.get("lugnt") === "1", paus: Number(p.get("paus") ?? 60),

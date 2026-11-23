@@ -118,17 +118,17 @@ describe("hopfällbart val i localStorage", () => {
 });
 
 describe("Hjälp och guide", () => {
-  it("de sju guiderna i specens ordning", () => {
+  it("de åtta guiderna i specens ordning (Veckoschema #901 efter Fokusläge)", () => {
     assert.deepEqual(GUIDER.map((g) => g.titel), [
-      "Kom igång med en ny klass", "Välj vad eleverna ser", "Fokusläge", "Skapa ett område med AI",
+      "Kom igång med en ny klass", "Välj vad eleverna ser", "Fokusläge", "Veckoschema", "Skapa ett område med AI",
       "Gör ett prov och rätta det", "Starta Live", "Ändra elevernas nivåer i Läsresan och Ekvationsresan",
     ]);
-    assert.equal(new Set(GUIDER.map((g) => g.key)).size, 7);
+    assert.equal(new Set(GUIDER.map((g) => g.key)).size, 8);
   });
   it("varje guide har 3–5 steg för årskurslärare och för admin", () => {
     for (const adminRoll of [false, true]) {
       const guider = guiderFor(adminRoll);
-      assert.equal(guider.length, 7);
+      assert.equal(guider.length, 8);
       for (const g of guider) {
         assert.ok(g.steg.length >= 3 && g.steg.length <= 5, `${g.key} (${adminRoll ? "admin" : "årskurs"}): ${g.steg.length} steg`);
         for (const s of g.steg) assert.ok(s.text && s.hash && s.knapp, `${g.key}: steg utan text/länk`);

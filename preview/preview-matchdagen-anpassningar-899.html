@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Matchdagen – Samma som Plugga (#899)</title>
+  <!-- Förhandsvisning av lärarens panel i Anpassningar per elev (#899, Veckoschema A.2–A.3) med STUBBADE
+       data: klassen 4A ser bara "Vikingatiden" och "Addition" (assignedAreas). Ingen Firebase – Spara
+       skriver bara i minnet (md-inst-data.js och auth.js byts mot stubbar i importmap).
+       Kör: PORT=8899 node server.mjs → /preview/preview-matchdagen-anpassningar-899.html
+         ?lage=dolt      Hela klassen, Välj själv: Vikingatiden (synligt) + Stenåldern (dolt, gråat)
+         ?lage=tom       Hela klassen, Välj själv: bara Stenåldern (dolt) → "Inga frågor just nu" + knappen
+         ?lage=standard  Hela klassen utan inställningar → Samma som Plugga (standard)
+         ?lage=elev      En elev utan egna (följer klassen, som har Samma som Plugga + tabell 7)
+         ?alla=1         klassen har ingen tilldelning (hela biblioteket syns)
+       #905: Vikingatiden har en fråga med lästext – "Visa lästext till frågorna" är ikryssad där
+       Vikingatiden används (dolt, standard, elev) och gråad med "Inga valda områden har lästexter"
+       när den inte gör det (tom: bara Stenåldern). -->
+  <script type="importmap">
+    { "imports": {
+      "../src/matchdagen/md-inst-data.js": "./matchdagen-899/md-inst-data.js",
+      "../src/auth.js": "./matchdagen-899/auth.js"
+    } }
+  </script>
+  <link rel="stylesheet" href="../src/styles.css" />
+  <style>
+    body { margin: 0; background: var(--t-bg, #0f1420); }
+    .ram { max-width: 760px; margin: 16px auto; padding: 0 16px; }
+  </style>
+</head>
+<body class="teacher-dark">
+  <div class="ram teacher-dark"><h2 style="color:#e8edf6;font:800 18px Nunito,system-ui">Anpassningar per elev – 4A</h2><div id="host" class="mda-panel"></div></div>
+  <script type="module">
+    import { renderPanel } from "../src/matchdagen/larare/md-anpassningar-panel.js";
+    const q = new URLSearchParams(location.search);
+    const lage = q.get("lage") || "dolt";
+    const quiz = [{ question: "Fråga?", options: ["A", "B"], answerIndex: 0 }];
+    const library = [
+      { id: "so", name: "SO", icon: "🌍", areas: [
+        { id: "vikingatiden", name: "Vikingatiden", quiz: [...quiz, { question: "Varför?", options: ["A", "B"], answerIndex: 0, passage: "En kort text." }] },
+        { id: "stenaldern", name: "Stenåldern", quiz },
+        { id: "sverige", name: "Sveriges landskap", pairs: [{ term: "a", definition: "b" }, { term: "c", definition: "d" }] },
+      ] },
+      { id: "ma", name: "Matte", icon: "➗", areas: [
+        { id: "addition", name: "Addition", generator: { topic: "addition", variants: ["enkel"], grade: "ak4" } },
+        { id: "brak", name: "Bråk", generator: { topic: "addition", variants: ["enkel"], grade: "ak4" } },
+      ] },
+    ];
+    const bas = { omraden: [], tabeller: [], rakna: [], svarssatt: "flerval", klocka: 0, lugnt: false, paus: 60 };
+    const instFor = {
+      dolt: { ...bas, omraden: ["so/vikingatiden", "so/stenaldern"], rakna: ["ma/addition"] },
+      tom: { ...bas, omraden: ["so/stenaldern"] },
+      standard: undefined,
+      elev: { ...bas, foljPlugga: true, tabeller: [7] },
+    };
+    const cls = {
+      id: "4a", name: "4A", studentIds: ["alva"], enabledModules: ["matchdagen"],
+      assignedAreas: q.get("alla") === "1" ? [] : [{ subjectId: "so", areaId: "vikingatiden" }, { subjectId: "ma", areaId: "addition" }],
+      ...(instFor[lage] ? { matchdagenInst: instFor[lage] } : {}),
+    };
+    globalThis.__md899 = { egen: null };
+    renderPanel({}, {
+      cls, elev: lage === "elev" ? { id: "alva", namn: "Alva" } : null, host: document.getElementById("host"),
+      avbryt: { aborted: false }, loadLibrary: async () => library, onSaved: () => {},
+    });
+  </script>
+</body>
+</html>

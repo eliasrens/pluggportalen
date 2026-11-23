@@ -114,7 +114,7 @@ describe("frågebanken på servern (§11.3)", () => {
   });
 
   it("banken: källorna turas om, inget upprepas förrän källan är slut, inget facit i det eleven ser", () => {
-    const inst = B.normInst({ omraden: ["so/sverige"], tabeller: [7], rakna: ["ma/addera", "ma/klocka"] });
+    const inst = B.normInst({ omraden: ["so/sverige"], tabeller: [7], rakna: ["ma/addera", "ma/klocka"], lastext: false });
     const kallor = B.byggKallor(inst, OMRADEN, 5);
     assert.equal(kallor.length, 4);
     const r = skapaPrng("bank").tal;
@@ -129,7 +129,7 @@ describe("frågebanken på servern (§11.3)", () => {
       if (p.pub.bild) assert.doesNotMatch(p.pub.bild, new RegExp(`"answer"|${p.r.facit.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"`));
     }
     assert.ok(bank.some((p) => p.pub.bild), "klockan har en bild");
-    assert.deepEqual(B.byggKallor(B.normInst({ omraden: ["so/tomt", "so/baraLasning", "so/ettPar"] }), OMRADEN), []);
+    assert.deepEqual(B.byggKallor(B.normInst({ omraden: ["so/tomt", "so/baraLasning", "so/ettPar"], lastext: false }), OMRADEN), []);
   });
 
   it("rättningen: multiplikation (flerval och skriv själv), quiz och Räkna", () => {

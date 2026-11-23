@@ -336,6 +336,27 @@ body.med-sidomeny .sidebar {
   outline-offset: 2px;
 }
 
+/* Veckoschemat (#903): Matchdagen spärrad under lektionen – står kvar, gråad, "Öppnar 10.00". */
+.sido-nav-lank.sido-nav-gratt {
+  color: #8a96a8;
+  cursor: default;
+  filter: grayscale(1);
+  opacity: 0.75;
+}
+.sido-nav-lank.sido-nav-gratt:hover {
+  background: transparent;
+  transform: none;
+  box-shadow: none;
+}
+.sido-nav-lank.sido-nav-gratt:hover .sido-nav-ikon {
+  animation: none;
+}
+.sido-nav-gratt .sido-nav-text small {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 /* Aktiv: samma känsla som .big-card.bla + vit ikon-bricka och glödpunkt. */
 .sido-nav-lank.aktiv {
   background: linear-gradient(160deg, #56ccf2, #2f80ed);

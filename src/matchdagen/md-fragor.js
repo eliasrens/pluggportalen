@@ -91,7 +91,7 @@ export async function skapaFragestrom({ inst, uid, hamtaOmrade, lagring = webbLa
     }
   };
   const [omraden, rakna] = await Promise.all([
-    Promise.all(i.omraden.map(async (k) => omradeKalla(k, await omrade(k)))),
+    Promise.all(i.omraden.map(async (k) => omradeKalla(k, await omrade(k), { lastext: i.lastext }))),
     Promise.all(i.rakna.map(async (k) => raknaKalla(k, await omrade(k)))),
   ]);
   const alla = [...omraden, ...(i.tabeller.length ? [tabellKalla(i.tabeller)] : []), ...rakna];

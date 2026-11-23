@@ -73,6 +73,8 @@ Efter C (#805): Inloggning och Elever är samma kompakta elevtabell (`src/teache
 | Ta bort klassen | Admin → Klasser & elevkonton → klass → Ta bort klassen (confirm) | admin | Admin → kort **Ta bort klass** → Ta bort… → bekräftelseruta på sidan [C] | 4 → 4 |
 | Vald klass kommer ihåg (`?klass=&sektion=`) | Per sidläge i URL:en | alla | `?klass=` (id eller namn, t.ex. `4B`) + `&flik=` + `&del=` och klassen i `localStorage` (`pp:larare:klass`), gamla `?sektion=` leder till rätt flik [B] | – |
 | Fokuslåset 🔒 på klasser med aktivt fokusläge | Klasslistan till vänster | alla | Klassknappen (rullgardinen: "🔒 4B") [B] | 0 → 0 |
+| Veckoschema (#901, efter epic #802): Aktivera veckoschemat, raden om läget, veckan Mån–Fre, + Lägg till lektion (ämne, från, till, flera dagar), kort → Ändra / Ta bort, "välj" ämne när gissningen misslyckas | – (ny) | alla | Mina klasser → **Fokusläge** → sektionen Veckoschema längst ned (ingen ny flik); sparas direkt med Sparat ✓ | – → aktivera: 1 · lektion alla dagar: ≤ 6 |
+| 📅 på klasser med aktiverat veckoschema (#901) | – (ny) | alla | Klassknappen efter 🔒 (rullgardinen: "🔒 📅 4B") | – → 0 |
 | "Sparat ✓" per steg | – (bara rad vid Spara-knappen) | alla | Vad eleverna ser: stegets rubrik visar Sparat ✓ / Inte sparat än / Kunde inte spara [B] | – |
 
 ### 3.1 Elevtabellen i detalj (C, #805)
@@ -218,7 +220,7 @@ varje länk pekar på en riktig route, flik och underflik och inte på en gammal
 | Hjälptext överst i varje flik i Mina klasser (Hur går det? · Vad eleverna ser · Fokusläge · Elever; admin har egen text för Elever) | – (nytt) | alla | Överst i fliken: hopfällbar ruta "Hjälp" (1–2 meningar, länkar till rätt flik); valet sparas per ruta i `localStorage` (`pp:larare:hjalp:mina-<flik>`) [F] | – → 0 (syns direkt) |
 | Hjälptext överst i varje underflik i Material | Raden "var ändrar jag klassens inställningar" (D) | alla (Hitta rätt!: admin) | Samma hopfällbara ruta (`pp:larare:hjalp:material-<flik>`); texten säger vad fliken är till och var klassinställningarna finns [F] | 0 → 0 |
 | Hjälp och guide: Kom igång med en ny klass | – (nytt) | alla (steg 1 olika för admin och årskurs) | Profilmenyn → Hjälp och guide → guiden; länkar till Admin → Skapa klass (admin), Mina klasser → Elever, Vad eleverna ser [F] | – → 2 |
-| Hjälp och guide: Välj vad eleverna ser · Fokusläge · Ändra elevernas nivåer | – (nytt) | alla | Guiderna; länkar direkt till `?flik=ser|fokus` och `?flik=hur&del=lasresan|ekvationsresan` [F] | – → 2 |
+| Hjälp och guide: Välj vad eleverna ser · Fokusläge · Veckoschema (#901) · Ändra elevernas nivåer | – (nytt) | alla | Guiderna; länkar direkt till `?flik=ser|fokus` och `?flik=hur&del=lasresan|ekvationsresan` [F] | – → 2 |
 | Hjälp och guide: Skapa ett område med AI · Gör ett prov och rätta det · Starta Live | – (nytt) | alla (Mattematchen-steget: admin) | Guiderna; länkar till Material → Plugga-områden, Prov (Nytt prov, Provtillfällen, Att rätta), Live [F] | – → 2 |
 
 ## 12. Att veta (rapport)

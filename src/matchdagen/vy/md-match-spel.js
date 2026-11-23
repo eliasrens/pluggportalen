@@ -52,15 +52,28 @@ const namnPar = (namn) => `<span class="md-lang">${esc(namn)}</span><span class=
  * Planens höjd efter fönstret (§14): skylt, plan, kommentar och frågekort ska synas
  * samtidigt i 1366 × 768 utan att scrolla – också med appens sidhuvud ovanför.
  * UNDER = kommentarens rad + frågekortet (fyra val i två rader) + appens marginal.
+ * En fråga med lästext (#905): planen krymper med lästextens höjd (ner till MIN_KONTEXT),
+ * så att frågan och knapparna fortfarande syns – och växer tillbaka till nästa fråga. Räcker
+ * det inte (smal skärm, lång text) rullas frågekortet fram.
  */
 const UNDER = 262;
-function passaPlanen(plan) {
+const MIN_H = 220;
+const MIN_KONTEXT = 120;
+function passaPlanen(plan, kortyta) {
   const passa = () => {
-    if (!plan.isConnected) { window.removeEventListener("resize", passa); return; }
+    if (!plan.isConnected) { window.removeEventListener("resize", passa); mo?.disconnect(); return; }
     const topp = plan.getBoundingClientRect().top + window.scrollY;
-    const h = Math.round(Math.min(420, Math.max(220, window.innerHeight - topp - UNDER)));
+    const kontext = kortyta?.querySelector(".md-fraga-kontext");
+    const extra = kontext ? kontext.getBoundingClientRect().height + 32 : 0;
+    const h = Math.round(Math.min(420, Math.max(kontext ? MIN_KONTEXT : MIN_H, window.innerHeight - topp - UNDER - extra)));
     plan.style.setProperty("--md-plan-h", `${h}px`);
+    // Smal skärm: räcker inte det, rullas kortet fram så att knapparna syns (sidhuvudet får rulla bort).
+    const kort = kontext?.closest(".md-fraga");
+    if (kort && kort.getBoundingClientRect().bottom > window.innerHeight) kort.scrollIntoView({ block: "end" });
   };
+  // Frågekortet byts (ny fråga, val, tomt) – då kan lästexten komma eller gå.
+  const mo = kortyta && typeof MutationObserver === "function" ? new MutationObserver(passa) : null;
+  mo?.observe(kortyta, { childList: true });
   passa();
   window.addEventListener("resize", passa);
 }
@@ -83,7 +96,7 @@ export function layout(S, el, mot, vi = S.K.klubb) {
     <p class="md-kommentar" aria-live="polite"></p>
     <div class="md-kortyta"></div>
   </div>`;
-  passaPlanen(el.querySelector(".md-plan"));
+  passaPlanen(el.querySelector(".md-plan"), el.querySelector(".md-kortyta"));
   return {
     yta: el.querySelector(".md-yta"), utrop: el.querySelector(".md-utrop"), kommentar: el.querySelector(".md-kommentar"),
     kort: el.querySelector(".md-kortyta"), res: el.querySelector("[data-res]"), tid: el.querySelector("[data-tid]"), straff: el.querySelector("[data-straff]"),
@@ -209,9 +222,9 @@ export async function spelaMatch(S, el, { pagaende = null, spel = null } = {}) {
     while (!ut && behoverFraga(m, valId, svar)) {
       if (svar.length === 1) sag(LAGE_TEXT.skottEfterFint);
       const f = fr.nasta();
-      const { visaFraga } = await import("../md-svar.js");
+      const { visaFraga, klockaFor } = await import("../md-svar.js");
       const r = await visaFraga(v.kort, f, {
-        ratta: fr.ratta, klocka: S.inst.klocka, signal,
+        ratta: fr.ratta, klocka: klockaFor(S.inst.klocka, f), signal,
         vidSvar: (x) => {
           svar.push({ ratt: x.ratt, kalla: f.kalla });
           if (!behoverFraga(m, valId, svar)) spelaLaget();
