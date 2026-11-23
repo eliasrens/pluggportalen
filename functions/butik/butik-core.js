@@ -20,7 +20,7 @@
 
 import { getItem, isAnimalItem, isMultiItem } from "./shop-items.js";
 import { rollMysteryItem, dupCoins } from "./mystery-items.js";
-import { halloweenActive } from "./season-config.js";
+import { TILLAGG, tillaggAktivt } from "./season-config.js";
 import { farmFromData, addFarmAnimalIn } from "./farm-core.js";
 import { newPetId, ownedCount, petsFromData } from "./klass-membership.js";
 import { HW_KOSTYMER_KATALOG } from "./halloween/hw-kostymer.js";
@@ -39,9 +39,9 @@ export function butikVara(id) {
   return getItem(id) || LAZY_VAROR.get(id) || null;
 }
 
-/** Är säsongssamlingen öppen? `sasong` = config/season (rått eller normaliserat). */
+/** Är säsongssamlingen öppen (dess tillägg i TILLAGG är på)? `sasong` = config/season (rått eller normaliserat). */
 export function samlingOppen(samling, sasong, nu) {
-  return samling === "halloween" && halloweenActive(sasong, nu);
+  return TILLAGG.some((t) => t.samling === samling && tillaggAktivt(sasong, t.id, nu));
 }
 
 /** Fyra slumpade base36-tecken efter tiden – samma form som klientens id:n. */

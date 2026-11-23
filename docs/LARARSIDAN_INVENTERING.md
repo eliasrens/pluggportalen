@@ -34,7 +34,7 @@ Godkänd förhandsvisning: [`preview/preview-lararsida-struktur.html`](../previe
 | Klasser & elevkonton (förr `flikar.adminklasser`, `#/larare/admin/klasser`) | Admin → Klasser & elevkonton | admin | **Borta som flik i C:** skapa/döp om/ta bort klass = kort på Admin-sidan, elever/mynt/Klasscentret = Mina klasser → Elever. Adressen omdirigeras (§10) | 1 → C: 2 (Admin → kort) |
 | Admin-sidan `flikar.admin` (`#/larare/admin`) | – (ny i C) | admin | **Admin** → kort: Skapa klass · Döp om klass · Ta bort klass · Lärarkonton · Säsong · Hitta rätt! · Mattematchen; underraden Översikt · Lärarkonton · Säsong [C] | – → 1 |
 | Lärarkonton `flikar.konton` (`#/larare/konton`) | Admin → Lärarkonton | admin | Admin → Lärarkonton (kort och underflik) [C] | 2 → 2 |
-| Säsong och Halloween `flikar.sasong` (`#/larare/admin/sasong`) | Admin → Säsong | admin | Admin → Säsong (kort och underflik) [C] | 2 → 2 |
+| Säsong och tillägg `flikar.sasong` (`#/larare/admin/sasong`) | Admin → Säsong | admin | Admin → Säsong (kort och underflik) [C] | 2 → 2 |
 | Hjälp och guide `flikar.hjalp` (`#/larare/hjalp`) | – (ny) | alla | Profilmenyn → Hjälp och guide: sju guider med 3–5 steg och direktlänkar [A: platshållare; F #808: guiderna, se §11] | – → 2 |
 
 ## 2. Toppmenyns ram

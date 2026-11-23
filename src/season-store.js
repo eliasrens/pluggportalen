@@ -6,13 +6,14 @@
 //   • startläge = localStorage-cachen (rätt tema direkt, utan blink) eller
 //     sommar om den saknas
 //   • snapshot(doc|null) från EN onSnapshot-lyssnare på config/season
-//   • en timer till halloweenUntil → Halloween slår av utan omladdning;
+//   • en timer till närmaste slutdatum (halloweenUntil, julUntil – alla
+//     tillägg i TILLAGG) → tillägget slår av utan omladdning;
 //     recheck() vid flik-återkomst och när server-klockan synkats
 //   • lyssnare får (nytt, förra) bara när läget faktiskt ändras
 // Tiden kommer ALLTID från deps.now() (server-korrigerad), aldrig Date.now().
 // ============================================================================
 
-import { halloweenActive, nextSeasonBoundary, normalizeSeason, seasonConfig } from "./season-config.js";
+import { TILLAGG, aktivaTillagg, nextSeasonBoundary, normalizeSeason, seasonConfig } from "./season-config.js";
 
 // setTimeout tål högst ~24,8 dygn; längre bort = väck och räkna om.
 const MAX_TIMEOUT = 2_000_000_000;
@@ -31,8 +32,12 @@ export function createSeasonStore(deps) {
   let timer = null;
   let fromServer = false;
 
+  /** Läget + `{id}Active` per tillägg (halloweenActive, julActive) + `tillagg` (aktiva id:n). */
   function view(r, now) {
-    return { ...r, halloweenActive: halloweenActive(r, now), config: seasonConfig(r.season) };
+    const aktiva = aktivaTillagg(r, now);
+    const v = { ...r, tillagg: aktiva, config: seasonConfig(r.season) };
+    for (const t of TILLAGG) v[`${t.id}Active`] = aktiva.includes(t.id);
+    return v;
   }
 
   function schedule() {
@@ -65,7 +70,7 @@ export function createSeasonStore(deps) {
   schedule(); // ett cachat slutdatum gäller redan innan servern svarat
 
   return {
-    /** Nuvarande läge: { season, halloween, halloweenUntil, halloweenActive, config }. */
+    /** Nuvarande läge: { season, halloween, halloweenUntil, halloweenActive, jul, julUntil, julActive, tillagg, config }. */
     get: () => state,
     /** Har servern svarat minst en gång (annars är läget cachat/förvalt)? */
     get fromServer() {
@@ -95,7 +100,7 @@ export function createSeasonStore(deps) {
 }
 
 function keyOf(s) {
-  return `${s.season}|${s.halloween}|${s.halloweenUntil}|${s.halloweenActive}`;
+  return [s.season, ...TILLAGG.flatMap((t) => [s[t.falt], s[t.tillFalt], s[`${t.id}Active`]])].join("|");
 }
 
 function safe(fn) {
