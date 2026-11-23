@@ -107,18 +107,22 @@ service cloud.firestore {
     // Säsongen (#690, epic #689): ETT dokument config/season som ALLA läser –
     // även utloggade, inloggningsskärmen följer säsongen. Inget känsligt i det.
     // Bara admin skriver; fälten valideras. Ny säsong = nyckeln här + en rad i
-    // src/season-config.js (SEASONS).
+    // src/season-config.js (SEASONS). Nytt tillägg (#907: Jul) = på/av- och
+    // slutdatumsfältet här + en rad i TILLAGG. `jul` är valfritt så att en
+    // äldre admin-klient (bara Halloween) fortfarande kan spara.
     match /config/season {
       allow read: if true;
       allow create, update: if isAdmin() && validSeasonDoc(request.resource.data);
       allow delete: if isAdmin();
     }
     function validSeasonDoc(d) {
-      return d.keys().hasOnly(['season', 'halloween', 'halloweenUntil', 'updatedAt', 'updatedBy']) &&
+      return d.keys().hasOnly(['season', 'halloween', 'halloweenUntil', 'jul', 'julUntil', 'updatedAt', 'updatedBy']) &&
         d.keys().hasAll(['season', 'halloween', 'updatedAt', 'updatedBy']) &&
-        d.season in ['sommar', 'host'] &&
+        d.season in ['sommar', 'host', 'vinter'] &&
         d.halloween is bool &&
         (!('halloweenUntil' in d) || d.halloweenUntil == null || d.halloweenUntil is timestamp) &&
+        (!('jul' in d) || d.jul is bool) &&
+        (!('julUntil' in d) || d.julUntil == null || d.julUntil is timestamp) &&
         d.updatedAt == request.time &&
         d.updatedBy == request.auth.uid;
     }

@@ -8051,7 +8051,8 @@ body:has(.teacher-dark) .container {
    Säsonger i världen + inloggningen (#691, epic #689)
    ==========================================================================
    <html data-sasong="host" data-halloween="1" data-lov="1"> sätts av
-   season-world.js (saknas = sommar = exakt som i dag). Färgerna kommer som
+   season-world.js (saknas = sommar = exakt som i dag). Vinter/Jul (#907):
+   data-sasong="vinter", data-sno="1", data-jul="1" (tilläggen ur TILLAGG). Färgerna kommer som
    --sz-*-variabler (paletten i season-config.js, inskriven av season-world.js
    i <style id="sz-palett">) och SVG-konsten läser dem via sz() i art-style.js.
    Här bor bara synlighet, lövens/fladdermössens rörelse och temabakgrunder. */
@@ -8076,8 +8077,8 @@ html[data-halloween] .sz-dolj-halloween { display: none; }
 .port-scen,
 .port-overgang { background: var(--sz-port-bg, #bde3f5); }
 
-/* --- Fallande löv ---------------------------------------------------------
-   Högst 16 löv, BARA transform + opacity (kompositorn, ingen layout och
+/* --- Partikellagret: fallande löv (höst) och snö (vinter, #907) -----------
+   Högst 16 löv / 20 flingor, BARA transform + opacity (kompositorn, ingen layout och
    ingen JS per bildruta). EN animation per löv (fall + svaj + snurr i samma
    transform) = ett kompositorlager per löv. pointer-events:none → hindrar
    aldrig klick. */
@@ -8088,8 +8089,9 @@ html[data-halloween] .sz-dolj-halloween { display: none; }
   pointer-events: none;
   contain: strict;
 }
-.sz-lov-lager, .sz-fladder-lager { display: none; }
+.sz-lov-lager, .sz-sno-lager, .sz-fladder-lager { display: none; }
 html[data-lov] .sz-lov-lager,
+html[data-sno] .sz-sno-lager,
 html[data-halloween] .sz-fladder-lager { display: block; }
 
 .sz-lov {
@@ -8109,6 +8111,28 @@ html[data-halloween] .sz-fladder-lager { display: block; }
   75% { transform: translate3d(calc(var(--drift, 40px) * 0.75 + 18px), calc(var(--h, 100vh) * 0.75 + 40px), 0) rotate(60deg); }
   90% { opacity: 1; }
   100% { transform: translate3d(var(--drift, 40px), calc(var(--h, 100vh) + 80px), 0) rotate(10deg); opacity: 0; }
+}
+
+/* Snöflingor (A.4): 4–10 px, #F4F8FC med 1 px blågrå kontur (art-sasong.js),
+   genomskinlighet 0,7–0,9 (--o). Mjukt fall med svaj – ingen snurr. */
+.sz-sno {
+  position: absolute;
+  top: -16px;
+  left: var(--x);
+  width: var(--w, 6px);
+  height: var(--w, 6px);
+  opacity: 0;
+  animation: sz-snoa var(--d, 12s) ease-in-out var(--del, 0s) infinite;
+}
+.sz-sno svg { display: block; width: 100%; height: 100%; overflow: visible; }
+@keyframes sz-snoa {
+  0% { transform: translate3d(0, 0, 0); opacity: 0; }
+  6% { opacity: var(--o, 0.8); }
+  25% { transform: translate3d(calc(var(--drift, 0px) * 0.25 + 12px), calc(var(--h, 100vh) * 0.25), 0); }
+  50% { transform: translate3d(calc(var(--drift, 0px) * 0.5 - 12px), calc(var(--h, 100vh) * 0.5 + 10px), 0); }
+  75% { transform: translate3d(calc(var(--drift, 0px) * 0.75 + 12px), calc(var(--h, 100vh) * 0.75 + 20px), 0); }
+  94% { opacity: var(--o, 0.8); }
+  100% { transform: translate3d(var(--drift, 0px), calc(var(--h, 100vh) + 40px), 0); opacity: 0; }
 }
 
 /* Fladdermöss (bara inloggningen under Halloween): flyger förbi uppe i
@@ -8140,6 +8164,7 @@ html[data-halloween] .sz-fladder-lager { display: block; }
 
 /* Pausa i dold flik (season-world.js sätter .sz-paus) … */
 html.sz-paus .sz-lov,
+html.sz-paus .sz-sno,
 html.sz-paus .sz-fladder,
 html.sz-paus .sz-fladder > i { animation-play-state: paused; }
 /* … och inne i rummet/laggården (rummet följer inte säsongen, §1.3). */

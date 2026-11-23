@@ -54,9 +54,9 @@ function rigg({ start = NU, cache = null } = {}) {
 }
 
 test("test 1: saknat dokument = sommar, ingen Halloween (exakt som i dag)", () => {
-  for (const raw of [null, undefined, {}, "x", { season: "vinter", halloween: "ja" }]) {
+  for (const raw of [null, undefined, {}, "x", { season: "var", halloween: "ja", jul: "ja" }]) {
     const s = normalizeSeason(raw);
-    assert.deepEqual(s, { season: "sommar", halloween: false, halloweenUntil: null });
+    assert.deepEqual(s, { season: "sommar", halloween: false, halloweenUntil: null, jul: false, julUntil: null });
     assert.equal(halloweenActive(raw, NU), false);
   }
   const { store } = rigg();
@@ -169,7 +169,7 @@ test("localStorage-cachen ger startläget och uppdateras vid varje snapshot", ()
   store.snapshot(null);
   assert.equal(store.fromServer, true);
   assert.equal(store.get().season, "sommar");
-  assert.deepEqual(sparat.at(-1), { season: "sommar", halloween: false, halloweenUntil: null });
+  assert.deepEqual(sparat.at(-1), { season: "sommar", halloween: false, halloweenUntil: null, jul: false, julUntil: null });
 });
 
 test("ett cachat slutdatum som passeras slår av Halloween även innan servern svarat", () => {

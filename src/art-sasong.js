@@ -1,9 +1,9 @@
 // ============================================================================
-// Pluggporten – säsongsdekor: löv, fladdermöss, måne, pumpor, vinkande djur (#691)
+// Pluggporten – säsongsdekor: löv, snö, fladdermöss, måne, pumpor, vinkande djur (#691)
 // ----------------------------------------------------------------------------
 // Ren SVG-konst i stilguidens stil (art-style.js) – gulligt-läskigt, aldrig
 // otäckt: stora ögon, runda former, inga tänder. Används av season-world.js
-// (lövlagret + fladdermöss) och inloggningsskärmarna (porten + lärarspärren).
+// (partikellagret: löv/snö + fladdermöss) och inloggningsskärmarna (porten + lärarspärren).
 // Synligheten styrs av klasserna .sz-bara-host / .sz-bara-halloween /
 // .sz-dolj-halloween (styles/32-sasong.css) mot <html data-sasong
 // data-halloween>, så ett säsongsbyte är bara ett attributbyte – ingen
@@ -29,6 +29,22 @@ export function lovSvg(i) {
   return `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
     <path d="${LOV_FORMER[n]}" fill="${LOV_FARGER[n]}" stroke="${O}" stroke-width="1.3" stroke-linejoin="round"/>
     <path d="M12 4 L12 21" stroke="${O}" stroke-width="1" stroke-linecap="round" opacity="0.55"/></svg>`;
+}
+
+// --- Snöflingor (#907, A.4) ---------------------------------------------------
+// Aldrig knallvita prickar: #F4F8FC med en tunn blågrå kontur (#9FB4CB, 1 px
+// oavsett storlek – non-scaling-stroke) så att de syns mot den ljusa snön.
+const SNO_FYLL = "#F4F8FC";
+const SNO_KANT = "#9FB4CB";
+const SNO_STJARNA = "M5.00 0.40 L6.15 3.01 L8.98 2.70 L7.30 5.00 L8.98 7.30 L6.15 6.99 L5.00 9.60 L3.85 6.99 L1.02 7.30 L2.70 5.00 L1.02 2.70 L3.85 3.01 Z";
+
+/** Snöflinga i (jämn = rund, udda = enkel sexuddig stjärna) som liten SVG-sträng (10×10). */
+export function snoSvg(i) {
+  const form = i % 2
+    ? `<path d="${SNO_STJARNA}"`
+    : `<circle cx="5" cy="5" r="4.3"`;
+  return `<svg viewBox="0 0 10 10" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    ${form} fill="${SNO_FYLL}" stroke="${SNO_KANT}" stroke-width="1" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`;
 }
 
 /** Gullig rund fladdermus (64×40) – flyger förbi i Halloween-kvällen. */

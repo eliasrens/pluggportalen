@@ -30,7 +30,7 @@ test("sommar: tom palett, inga löv, ingen palett-CSS (test 1)", () => {
   assert.equal(paletteCss(t), "");
   // Okänd/saknad säsong = sommar.
   assert.equal(themeFor(null).season, "sommar");
-  assert.equal(themeFor({ season: "vinter" }).season, "sommar");
+  assert.equal(themeFor({ season: "var" }).season, "sommar");
 });
 
 test("sz(): sommarfärgen är fallbacken – konsten ritar dagens färg utan variabel", () => {

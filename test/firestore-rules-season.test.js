@@ -4,6 +4,7 @@
 // Alla läser – även utloggade (inloggningsskärmen följer säsongen). Bara admin
 // skriver, och fälten valideras. Elev, årskurskonto, avstängd admin och
 // utloggad nekas att skriva. Körs av `npm run test:rules` (kräver emulatorn).
+// #907 (epic #906, G.1): säsongen vinter och tillägget Jul (jul, julUntil).
 // ============================================================================
 
 import { after, before, beforeEach, describe, it } from "node:test";
@@ -77,7 +78,8 @@ describe("config/season – admin skriver", () => {
   });
   it("fälten valideras", async () => {
     const fel = [
-      { season: "vinter" },
+      { season: "var" },
+      { season: "jul" },
       { season: 1 },
       { halloween: "ja" },
       { halloweenUntil: "2026-11-02" },
@@ -94,6 +96,48 @@ describe("config/season – admin skriver", () => {
   });
   it("en avstängd admin nekas (teacherAccounts active:false, #682 H3)", async () => {
     await assertFails(setDoc(doc(as("admin2", { teacher: true, admin: true }), PATH), giltig("admin2")));
+  });
+});
+
+describe("config/season – vinter och Jul (#907)", () => {
+  const julSlut = Timestamp.fromMillis(Date.UTC(2027, 0, 13, 22, 59));
+  it("admin sätter vinter, med och utan tillägg", async () => {
+    await assertSucceeds(setDoc(doc(adminDb(), PATH), giltig("admin1", { season: "vinter", halloween: false, halloweenUntil: null })));
+    await assertSucceeds(setDoc(doc(adminDb(), PATH), giltig("admin1", { season: "vinter", halloween: false, jul: true, julUntil: julSlut })));
+  });
+  it("Jul ovanpå vilken säsong som helst, med eller utan slutdatum", async () => {
+    for (const season of ["sommar", "host", "vinter"]) {
+      await assertSucceeds(setDoc(doc(adminDb(), PATH), giltig("admin1", { season, jul: true, julUntil: julSlut })));
+      await assertSucceeds(setDoc(doc(adminDb(), PATH), giltig("admin1", { season, jul: true, julUntil: null })));
+      await assertSucceeds(setDoc(doc(adminDb(), PATH), giltig("admin1", { season, jul: true })));
+    }
+  });
+  it("båda tilläggen på samtidigt är tillåtet", async () => {
+    await assertSucceeds(setDoc(doc(adminDb(), PATH), giltig("admin1", { season: "vinter", jul: true, julUntil: julSlut })));
+  });
+  it("ett gammalt dokument utan jul/julUntil (äldre admin-klient) går igenom", async () => {
+    await assertSucceeds(setDoc(doc(adminDb(), PATH), giltig("admin1", { season: "vinter" })));
+  });
+  it("jul och julUntil valideras", async () => {
+    for (const f of [
+      { jul: "ja" },
+      { jul: 1 },
+      { jul: null },
+      { julUntil: "2027-01-13" },
+      { julUntil: 1799877540000 },
+      { jul: true, julUntil: true },
+      { julSattPa: serverTimestamp() },
+    ]) {
+      await assertFails(setDoc(doc(adminDb(), PATH), giltig("admin1", { season: "vinter", ...f })));
+    }
+  });
+  it("bara admin skriver jul (test 3)", async () => {
+    const jul = (uid) => giltig(uid, { season: "vinter", jul: true, julUntil: julSlut });
+    await assertFails(setDoc(doc(ak4(), PATH), jul("ak4")));
+    await assertFails(setDoc(doc(elev("elev1"), PATH), jul("elev1")));
+    await assertFails(updateDoc(doc(elev("elev1"), PATH), { jul: true, updatedAt: serverTimestamp(), updatedBy: "elev1" }));
+    await assertFails(setDoc(doc(unauth(), PATH), { season: "vinter", halloween: false, jul: true }));
+    await assertFails(setDoc(doc(as("admin2", { teacher: true, admin: true }), PATH), jul("admin2")));
   });
 });
 
