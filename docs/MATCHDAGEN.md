@@ -26,6 +26,7 @@ elever** eller (#876, §19) för **hela klassen**. Det här dokumentet växer me
 | #895 | Vänskapsmatcherna snabbare: klockfelet, EN callable (`mdVanskap`), krockar utan väntan, svaret kvar under animationen (§23) | klar |
 | #899 | Matchdagen följer det som är synligt: aldrig frågor ur dolda områden, "Samma som Plugga" (ny standard), panelen visar vad som används (§24) | klar |
 | #903 | Matchdagen under en lektion (Veckoschema Del E): bara lektionens ämne, reserven "Samma som Plugga inom ämnet", spärren med gråad menylänk, samma regler på servern (§25) | klar |
+| #916 | Ett spelarnamn bytt: förnamnet Salihom på den gamla platsen i `FORNAMN`, de sparade spelarna döps om av ett skript (§27) | klar |
 
 ## 1. Moduler per elev (Etapp 1a)
 
@@ -1846,3 +1847,19 @@ oförändrad (`md-lastext.js` och `quiz-passage.js` laddas bara via `import()`-k
 Förhandsvisning: `preview/preview-matchdagen.html?lastext=1` (läsförståelseområde, `&klocka=30` för +15 s, `?lastext=0`
 samma område med texten av) och `preview/preview-matchdagen-anpassningar-899.html` (kryssrutan; `?lage=tom` gråad).
 Skärmdumpar: `docs/lastext-905/`.
+
+## 27. Spelarnamnet Salihom (#916)
+
+`FORNAMN` (`delat/md-namn.js`, plats 28) har **Salihom** i stället för det gamla förnamnet – på samma plats, så
+listan växer fortfarande bara i slutet. Namnen sparas i karriären, så de spelare som redan finns döps om av
+`admin/migrera-md-salihom.mjs`: det byter ett förnamn som är exakt det gamla (efternamnet står kvar) i `trupp`,
+`reserver` och `marknad` (raderna och äldre objekt) i varje `matchdagen/{uid}`. Inget annat i Matchdagen bär
+spelarnamn (ligan, kvalet, pokalerna och klubbhistoriken har lagnamn; vänskapsmatcherna och topplistan elevernas
+och lagens namn). Kärnan `admin/migrera-md-salihom-core.mjs` testas i `test/migrera-md-salihom.test.js`.
+
+**Deploy:** webben (och functions, för den synkade kopian), sedan skriptet: `node admin/migrera-md-salihom.mjs`
+(torrkörning: dokument och spelare som skulle ändras), `--skarpt` skriver, en ny torrkörning ska visa 0. Inga regler.
+En elev som har Matchdagen öppen under körningen sparar sin nästa match mot det omdöpta dokumentet: reglerna nekar
+den gamla truppen och `md-spara.js` lägger kön ovanpå serverns trupp (#871) – inget går förlorat. Ett köp ur en
+gammal marknad i en öppen flik nekas tills sidan laddas om. En sådan flik kan också spara tillbaka en gammal
+marknad med nästa match – kör torrkörningen igen dagen efter och `--skarpt` om den inte visar 0.
