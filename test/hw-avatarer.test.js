@@ -19,7 +19,8 @@ import {
 } from "../src/avatars.js";
 import { itemSvg } from "../src/art-items.js";
 
-const KOP = buyableAvatars();
+// Halloweens sex (Jul-avatarerna #911 testas i jul-kostymer-avatarer.test.js).
+const KOP = buyableAvatars().filter((it) => it.collection === "halloween");
 const IDS = KOP.map((it) => it.id);
 
 test("katalogen: 6 köpbara Halloween-avatarer, 400–800 mynt, stabila id:n", () => {
@@ -60,7 +61,7 @@ test("reglerna listar exakt katalogens köpavatarer", () => {
   const m = rules.match(/function kopAvatarOk\(\)[\s\S]*?!\(av in \[([^\]]*)\]\)/);
   assert.ok(m, "kopAvatarOk med id-lista finns");
   const iRegler = [...m[1].matchAll(/'([^']+)'/g)].map((x) => x[1]).sort();
-  assert.deepEqual(iRegler, [...IDS].sort());
+  assert.deepEqual(iRegler, buyableAvatars().map((it) => it.id).sort(), "alla samlingars köpavatarer");
 });
 
 test("lazy konst: platshållare före laddning, riktig figur efter – med kläder", async () => {

@@ -16,6 +16,12 @@ import { JUL_INNE } from "./jul-art-inne.js";
 import { JUL_UTE } from "./jul-art-ute.js";
 import { JUL_HUS_SKAL, JUL_HUS_BILDER } from "./jul-art-hus.js";
 import { gran, stjarna5, GULD } from "./jul-art-delar.js";
+// Kostymer och avatarer (#911)
+import { registerWearables } from "../art-wearables.js";
+import { JUL_KOSTYMER_KATALOG } from "./jul-kostymer.js";
+import { JUL_KOSTYMER } from "./jul-art-kostymer.js";
+import { JUL_SAMLING } from "./jul-butik.js";
+import { registreraJulAvatarer } from "./jul-avatarer.js";
 
 /** Flik-ikonen för 🎄 Jul i butiken (SVG, ingen Emoji 13+, #590). */
 export const JUL_FLIK_IKON = { viewBox: "0 0 48 50", art: gran(24, 8, 44, 19, 3) + stjarna5(24, 7, 6.5, GULD) };
@@ -30,4 +36,13 @@ export function registreraJulKonst() {
   registerItemArt({ ...JUL_INNE, ...JUL_UTE, ...JUL_HUS_BILDER });
   registerHusSkal(JUL_HUS_SKAL);
   registerCategoryIcons({ jul: JUL_FLIK_IKON });
+  registreraJulKostymer();
+}
+
+/** Kostymerna (#911): katalog + konst, en egen undergrupp sist i fliken, och avatarerna. */
+function registreraJulKostymer() {
+  registerShopItems(JUL_KOSTYMER_KATALOG);
+  registerWearables(JUL_KOSTYMER);
+  JUL_SAMLING.registreraUndergrupp({ id: "kostymer", rubrik: "🎭 Kostymer", match: (it) => it.category === "klader" });
+  registreraJulAvatarer(); // köpbara avatarer: figurer + butikskort
 }

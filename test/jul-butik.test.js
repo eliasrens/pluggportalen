@@ -57,7 +57,9 @@ test("lazy katalog: okänd före loadCollectionArt, sedan i SHOP_ITEMS utan dubb
   await loadCollectionArt();
   await loadCollectionArt(); // idempotent
   assert.equal(getItem("jul-julgran").category, "mobler");
-  assert.deepEqual(itemsInCollection("jul").map((it) => it.id), Object.keys(PRISER));
+  // Kostymerna och avatarerna (#911) har egna tester (jul-kostymer-avatarer.test.js).
+  const varor = itemsInCollection("jul").filter((it) => !["klader", "avatar"].includes(it.category));
+  assert.deepEqual(varor.map((it) => it.id), Object.keys(PRISER));
   const ids = SHOP_ITEMS.map((it) => it.id);
   assert.equal(new Set(ids).size, ids.length, "inga dubbla id:n i hela katalogen");
   for (const cat of ["dekor", "mobler", "tradgard", "hus"]) {
@@ -100,11 +102,12 @@ test("fliken: Halloween och Jul delar samling-butik.js, undergrupperna i Hallowe
   assert.deepEqual([jul.flik.name, jul.flik.emoji], ["Jul", "🎄"]);
   assert.equal(jul.flik.hint, "Bara under julen! Allt du köper här behåller du och kan använda för alltid – även när julen är slut.");
   assert.match(jul.slutText, /[Jj]ulen är slut/);
-  assert.deepEqual(jul.undergrupper.map((g) => g.id), hw.undergrupper.slice(0, 5).map((g) => g.id));
-  assert.deepEqual(jul.undergrupper.map((g) => g.rubrik), ["🕯️ Dekor och möbler", "⛄ Trädgård", "🏠 Hus", "🦌 Djur", "🎅 Avatarer"]);
   await loadCollectionArt();
+  // Kostymerna läggs sist i båda flikarna (Halloween #693, Jul #911).
+  assert.deepEqual(jul.undergrupper.map((g) => g.id), hw.undergrupper.map((g) => g.id));
+  assert.deepEqual(jul.undergrupper.map((g) => g.rubrik), ["🕯️ Dekor och möbler", "⛄ Trädgård", "🏠 Hus", "🦌 Djur", "🎅 Avatarer", "🎭 Kostymer"]);
   const sek = jul.sektioner();
-  assert.deepEqual(sek.map((s) => [s.id, s.items.length]), [["inne", 12], ["tradgard", 8], ["hus", 3]]);
+  assert.deepEqual(sek.map((s) => [s.id, s.items.length]), [["inne", 12], ["tradgard", 8], ["hus", 3], ["avatarer", 6], ["kostymer", 11]]);
   // Halloween-fliken är orörd av julvarorna och tvärtom.
   assert.ok(hw.sektioner().every((s) => s.items.every((it) => it.collection === "halloween")));
   // Samlingarnas undergruppslistor är separata (E:s kostymer registreras per samling).

@@ -40,7 +40,7 @@ test("lazy: före laddning okänd katalog → dold platshållare, ingen emoji", 
 test("katalogen: 11 kostymer i alla fem slottar, 50–250 mynt", async () => {
   await loadCollectionArt();
   assert.equal(KOSTYMER.length, 11);
-  assert.deepEqual(SHOP_ITEMS.filter((it) => it.seasonal), KOSTYMER, "registrerade i SHOP_ITEMS");
+  assert.deepEqual(SHOP_ITEMS.filter((it) => it.seasonal === "halloween"), KOSTYMER, "registrerade i SHOP_ITEMS");
   for (const it of KOSTYMER) {
     assert.equal(it.category, "klader", it.id);
     assert.equal(it.seasonal, "halloween", it.id);
@@ -130,7 +130,7 @@ test("test 9/10 (#799): wearableActive finns inte längre – ingen kostym är s
 test("test 11: varje kostym ritas på varje avatar – även de köpbara (#694) – med slottens box", async () => {
   await Promise.all([loadCollectionArt(), loadAvatarArt()]);
   const kop = buyableAvatars().map((a) => a.id);
-  assert.equal(kop.length, 6, "de sex Halloween-avatarerna");
+  assert.equal(kop.length, 12, "Halloweens sex + Julens sex (#911)");
   for (const av of [...kop, ...Object.keys(AVATARS)]) {
     for (const it of KOSTYMER) {
       const html = avatarMarkup(av, [it.id]);
