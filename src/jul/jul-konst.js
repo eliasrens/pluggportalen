@@ -22,6 +22,7 @@ import { JUL_KOSTYMER_KATALOG } from "./jul-kostymer.js";
 import { JUL_KOSTYMER } from "./jul-art-kostymer.js";
 import { JUL_SAMLING } from "./jul-butik.js";
 import { registreraJulAvatarer } from "./jul-avatarer.js";
+import { registreraJulDjur } from "./jul-djur.js";
 
 /** Flik-ikonen för 🎄 Jul i butiken (SVG, ingen Emoji 13+, #590). */
 export const JUL_FLIK_IKON = { viewBox: "0 0 48 50", art: gran(24, 8, 44, 19, 3) + stjarna5(24, 7, 6.5, GULD) };
@@ -36,7 +37,8 @@ export function registreraJulKonst() {
   registerItemArt({ ...JUL_INNE, ...JUL_UTE, ...JUL_HUS_BILDER });
   registerHusSkal(JUL_HUS_SKAL);
   registerCategoryIcons({ jul: JUL_FLIK_IKON });
-  registreraJulKostymer();
+  registreraJulDjur(); // de tio Jul-djuren + julklappsägget (#912)
+  registreraJulKostymer(); // kostymerna + avatarerna (#911)
 }
 
 /** Kostymerna (#911): katalog + konst, en egen undergrupp sist i fliken, och avatarerna. */

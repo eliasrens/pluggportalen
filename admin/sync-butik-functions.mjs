@@ -13,6 +13,7 @@
 //   src/halloween/hw-djur-katalog.js    Halloween-djurens pumpaägg (lazy i webben)
 //   src/jul/jul-katalog.js              Jul-samlingens varor (#910, lazy i webben)
 //   src/jul/jul-kostymer.js             Jul-kostymernas katalog (#911, lazy i webben)
+//   src/jul/jul-djur-katalog.js         Jul-djurens julklappsägg (#912, lazy i webben)
 // Samma inbördes struktur (functions/butik/<sökväg under src/>), så de relativa
 // importerna fungerar oförändrade. Konsten och sidorna följer ALDRIG med – listan
 // FILER är uttrycklig.
@@ -34,6 +35,7 @@ export const FILER = [
   "butik-core.js", "shop-items.js", "mystery-items.js", "season-config.js", "farm-core.js", "klass-membership.js",
   "halloween/hw-kostymer.js", "halloween/hw-djur-katalog.js", "jul/jul-katalog.js",
   "jul/jul-kostymer.js", // #911
+  "jul/jul-djur-katalog.js",
 ];
 
 export function sharedFiles() {
