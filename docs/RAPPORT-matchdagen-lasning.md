@@ -60,3 +60,19 @@ Datamodellen: [DATAMODELL.md](DATAMODELL.md) `matchdagenInst.lastext`.
    inte, "Samma som Plugga" = de synliga). Ett gråat val sparas oförändrat. Rutan står under områdena och gäller
    både "Samma som Plugga" och "Välj områden själv".
 7. **`sammanfattning`** skriver "med lästext" bara när det finns Plugga-källor (inte för en elev med bara tabeller).
+
+## Testaren (#905) – mot emulatorn
+
+Rigg: `PORT=8905 bash admin/qa-matchdagen-874-preview.sh`, sedan `node admin/qa-matchdagen-905-seed.mjs <alva> <bilal>`
+(`saknas|true|false`) med emulatorns miljö. Skärmdumpar i `docs/lastext-905/e2e/`.
+
+- Sviterna: unit 5051/0, `test:rules` 1221/0, `test:functions` 651/0 (2 todo), `sync:matchdagen --check` grönt.
+- Egen match, lastext saknas: lästexten ovanför frågan, klockan 45 s (30 + 15), utan lästext 30 s; fel svar och tiden ute
+  visar rätt svar + förklaringen. 3D och 2D (`?2d=1`) i 1366 × 768: knapparna syns utan att rulla, även med 412 tecken
+  (planen krymper till 149 px och växer tillbaka till nästa fråga). 375 × 667: kortet rullas fram, ingen sidledsrullning.
+- lastext false: 12 frågor i rad, bara de två utan lästext.
+- Vänskapsmatch (callables i sidan): bankerna – Alva (false) bara frågor utan lästext, Bilal (true) med lästexterna
+  37 och 291 tecken men aldrig den med 412 (300-gränsen); `fraga` ger `kontext` utan förklaring, `svar` fel ger
+  `forklaring`, rätt svar ger ingen. Tiden i vänskapsmatchen oförändrad 30 s.
+- Läraren: kryssrutan sparar `lastext` true/false; gråad ("Inga valda områden har lästexter") med bara Talsorter –
+  sparningen behåller true.
