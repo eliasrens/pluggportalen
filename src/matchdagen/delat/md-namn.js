@@ -8,6 +8,8 @@
 //                       eller marknaden skapas och SPARAS i dokumentet (truppen, reserverna,
 //                       marknadens rader) – inget räknas om ur ett index, så längre listor
 //                       rör inga sparade karriärer. Nya namn läggs ändå till i slutet.
+//                       #916: ett förnamn bytt på sin plats (Salihom) – de sparade spelarna
+//                       döps om av admin/migrera-md-salihom.mjs.
 //   TROJFARGER   de 8 tröjfärgerna eleven väljer bland
 //   LAGFARGER    motståndarnas färger
 // ============================================================================
@@ -39,7 +41,7 @@ export const TOPPKLUBBAR = [
 export const FORNAMN = [
   "Alvin", "Selma", "Omar", "Wilma", "Leo", "Nora", "Ali", "Alva", "Hugo", "Juni", "Sami", "Ines",
   "Liam", "Maja", "Noah", "Saga", "Adam", "Ebba", "Theo", "Lova", "Isak", "Tilde", "Melvin", "Siri",
-  "Yusuf", "Elsa", "Vincent", "Hedda", "Malte", "Ronja", "Aron", "Leah", "Edvin", "Mira", "Jonatan", "Amira",
+  "Yusuf", "Elsa", "Vincent", "Salihom", "Malte", "Ronja", "Aron", "Leah", "Edvin", "Mira", "Jonatan", "Amira",
   // #878: fler namn, hälften flickor och hälften pojkar, vanliga i svenska skolor i dag.
   "Astrid", "Oscar", "Alice", "William", "Olivia", "Lucas", "Ella", "Elton", "Freja", "Viggo", "Agnes", "Charlie",
   "Vera", "Ludvig", "Stella", "Arvid", "Signe", "Axel", "Ellen", "Frans", "Elvira", "Sixten", "Klara", "Otto",
