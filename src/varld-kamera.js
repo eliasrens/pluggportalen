@@ -103,6 +103,12 @@ export function createKamera({ nivaer, startId, onNiva }) {
     }, reduceMotion() ? 30 : KAMERA_MS + 60);
   }
 
+  /** Säg till att kameran står still på en ny nivå – t.ex. gör snön (art-style.js)
+   *  då om sina bitmappar i den storlek husen nu syns i. */
+  function klar() {
+    document.dispatchEvent(new CustomEvent("varld-kamera-klar", { detail: { id: nivaer[aktiv].id } }));
+  }
+
   /** Hoppa direkt (utan animation) till en nivå. */
   function hoppaTill(id) {
     const mal = nivaer.findIndex((n) => n.id === id);
@@ -114,6 +120,7 @@ export function createKamera({ nivaer, startId, onNiva }) {
     void nivaer[mal].el.offsetWidth;
     for (const n of nivaer) n.el.classList.remove("varld-utan-anim");
     onNiva?.(id);
+    klar();
   }
 
   /**
@@ -134,6 +141,7 @@ export function createKamera({ nivaer, startId, onNiva }) {
     return new Promise((res) =>
       setTimeout(() => {
         onNiva?.(id);
+        klar();
         res();
       }, KAMERA_MS)
     );

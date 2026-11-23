@@ -23,6 +23,8 @@
 // (en tomt per elev) – layout, väg och dekor räknas alltid om från antalet.
 // ============================================================================
 
+import { sz } from "./art-style.js";
+
 /** Rimlig kamerazoom by → hus (huset fyller ~1/5 av byn → zoom ≈ 5). */
 export const BY_ZOOM = 5;
 
@@ -322,7 +324,8 @@ export function byVagarSvg(layout) {
   }
 
   const kant = `fill="none" stroke-linecap="round" stroke-linejoin="round"`;
-  return `<path d="${d}" ${kant} stroke="#B0805A" stroke-width="${f(vagHojd + 1.3)}" opacity="0.5"/>
-    <path d="${d}" ${kant} stroke="#EAD9C0" stroke-width="${f(vagHojd)}"/>
+  // Vintern (#908): upptrampad snö i varmt gråbeige via --sz-stig/--sz-stig-kant.
+  return `<path d="${d}" ${kant} stroke="${sz("stig-kant", "#B0805A")}" stroke-width="${f(vagHojd + 1.3)}" opacity="0.5"/>
+    <path d="${d}" ${kant} stroke="${sz("stig", "#EAD9C0")}" stroke-width="${f(vagHojd)}"/>
     ${stenar.join("")}`;
 }
