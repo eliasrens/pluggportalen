@@ -236,7 +236,7 @@ export const TEACHER_TABS = [
   tab("admin", "#/larare/admin", "admin", "Översikt", "Admin", "key", () => import("./teacher-admin.js"), "pageLarareAdmin", true),
   tab("konton", "#/larare/konton", "admin", "Lärarkonton", "Lärarkonton", "key", () => import("./teacher-accounts.js"), "pageLarareKonton", true),
   // Säsong (#690): config/season – Sommar/Höst + Halloween på/av och slutdatum.
-  tab("sasong", "#/larare/admin/sasong", "admin", "Säsong", "Säsong och Halloween", "sparkle", () => import("./teacher-season.js"), "pageLarareSasong", true),
+  tab("sasong", "#/larare/admin/sasong", "admin", "Säsong", "Säsong och tillägg", "sparkle", () => import("./teacher-season.js"), "pageLarareSasong", true),
   // Hjälp och guide (#803, fylls i sub-issue F): nås via profilmenyn, ingen toppflik.
   tab("hjalp", "#/larare/hjalp", "profil", "Hjälp och guide", "Hjälp och guide", "book", () => import("./teacher-hjalp.js"), "pageLarareHjalp"),
 ];
