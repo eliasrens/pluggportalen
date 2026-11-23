@@ -6,8 +6,13 @@
 //   • stora knappar (minst 48 px) och tangenterna 1–N (flerval), ett svarsfält
 //     med Enter (skriv själv – tomt eller ogiltigt räknas inte som svar)
 //   • rätt svar visas grönt
-//   • fel svar visar det rätta svaret i 1,5 sekunder innan spelet fortsätter
-//   • klockan (lärarens val 30/60 s, 0 = av): tiden ute räknas som fel
+//   • fel svar visar det rätta svaret i 1,5 sekunder innan spelet fortsätter – och
+//     quizfrågans förklaring (#905, fraga.forklaring eller serverns r.forklaring),
+//     då lite längre (FORKLARING_MS i md-config.js)
+//   • klockan (lärarens val 30/60 s, 0 = av): tiden ute räknas som fel. En fråga med
+//     lästext får LASTEXT_EXTRA_S extra – klockaFor(klocka, fraga), solospelets anropare
+//   • lästexten (fraga.kontext, #905) står i ett lugnt block ovanför frågan, som
+//     kontextraden i Live (choice-answer.js, Snilleblixtens sbs-kontext)
 //
 //   visaFraga(host, fraga, { ratta, klocka?, signal?, vidSvar?, ute? })
 //     → Promise<{ ratt, svar, sekunder, tidenUte? } | { avbruten: true }>
@@ -18,8 +23,10 @@
 //   rätt svar – då hinner spelet spara utfallet (en omladdning under pausen får
 //   inte ge en ny fråga för samma skott eller straff, #870 F1).
 //   fraga: md-fragor.js nasta(), ratta: strömmens ratta(fraga, svar)
-// Ingen Firebase, inga importer – 1c ritar kortet under planen. Laddas med import().
+// Ingen Firebase, bara de rena talen ur md-config.js – 1c ritar kortet under planen. Laddas med import().
 // ============================================================================
+
+import { FORKLARING_MS, LASTEXT_EXTRA_S } from "./delat/md-config.js";
 
 export const FEL_MS = 1500;
 export const RATT_MS = 600;
@@ -27,6 +34,13 @@ export const MAX_TANGENT = 6;
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const vanta = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/** Klockan för frågan: lärarens sekunder (0 = av), + LASTEXT_EXTRA_S för en fråga med lästext. */
+export const klockaFor = (klocka, fraga) => (klocka > 0 && fraga?.kontext ? klocka + LASTEXT_EXTRA_S : klocka);
+
+/** Hur länge ett fel svar står kvar: längre när en förklaring ska läsas. */
+export const felMs = (forklaring) =>
+  (forklaring ? Math.min(FORKLARING_MS.max, FEL_MS + FORKLARING_MS.perTecken * String(forklaring).length) : FEL_MS);
 
 function kortHtml(fraga, klocka) {
   const flerval = fraga.typ === "flerval";
@@ -38,8 +52,9 @@ function kortHtml(fraga, klocka) {
           aria-label="Ditt svar" spellcheck="false" />
         <button type="submit" class="md-skicka">Svara</button>
       </form>`;
-  return `<div class="md-fraga" tabindex="-1" data-typ="${flerval ? "flerval" : "skriv"}">
+  return `<div class="md-fraga" tabindex="-1" data-typ="${flerval ? "flerval" : "skriv"}"${fraga.kontext ? " data-kontext" : ""}>
     ${klocka ? `<div class="md-fraga-klocka" role="timer" aria-label="Tid kvar"><span data-kvar>${klocka}</span> s</div>` : ""}
+    ${fraga.kontext ? `<p class="md-fraga-kontext">${esc(fraga.kontext)}</p>` : ""}
     <p class="md-fraga-text">${esc(fraga.text)}</p>
     ${fraga.bild ? `<div class="md-fraga-bild" role="img" aria-label="Bild till frågan">${fraga.bild}</div>` : ""}
     ${svar}
@@ -111,10 +126,12 @@ export function visaFraga(host, fraga, { ratta, klocka = 0, signal, vidSvar, ute
         if (!r.ratt && Number.isInteger(svar)) knappar[svar]?.classList.add("fel");
       }
       kort.dataset.utfall = r.ratt ? "ratt" : "fel";
-      facit.innerHTML = r.ratt ? "Rätt!" : `${tidenUte ? "Tiden är ute. " : ""}${r.facit != null && r.facit !== "" ? `Rätt svar: <b>${esc(r.facit)}</b>` : ""}`;
+      const forklaring = r.ratt ? "" : String(r.forklaring || fraga.forklaring || "");
+      facit.innerHTML = r.ratt ? "Rätt!" : `${tidenUte ? "Tiden är ute. " : ""}${r.facit != null && r.facit !== "" ? `Rätt svar: <b>${esc(r.facit)}</b>` : ""}${
+        forklaring ? `<span class="md-fraga-forklaring">${esc(forklaring)}</span>` : ""}`;
       const utfall = { ratt: r.ratt, svar: tidenUte ? null : svar, sekunder, ...(tidenUte ? { tidenUte: true } : {}) };
       vidSvar?.(utfall);
-      await vanta(r.ratt ? RATT_MS : FEL_MS);
+      await vanta(r.ratt ? RATT_MS : felMs(forklaring));
       resolve(utfall);
     }
     function tangent(e) {

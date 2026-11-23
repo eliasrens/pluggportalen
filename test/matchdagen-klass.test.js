@@ -58,8 +58,8 @@ describe("Matchdagen för hela klassen (enabledModules)", () => {
 });
 
 describe("inställningarna eleven spelar med (effektivInst)", () => {
-  const klassens = { omraden: ["so/vikingar"], tabeller: [3], rakna: [], svarssatt: "skriv", klocka: 30, lugnt: true, paus: 45, foljPlugga: false };
-  const egna = { omraden: [], tabeller: [7], rakna: [], svarssatt: "flerval", klocka: 0, lugnt: false, paus: 60, foljPlugga: false };
+  const klassens = { omraden: ["so/vikingar"], tabeller: [3], rakna: [], svarssatt: "skriv", klocka: 30, lugnt: true, paus: 45, foljPlugga: false, lastext: true };
+  const egna = { omraden: [], tabeller: [7], rakna: [], svarssatt: "flerval", klocka: 0, lugnt: false, paus: 60, foljPlugga: false, lastext: false };
   const k = (over = {}) => ({ id: "3a", studentIds: ["alva"], enabledModules: [MD], matchdagenInst: klassens, ...over });
   it("egna går före klassens", () => {
     assert.deepEqual(effektivInst(egna, [k()], "alva"), { inst: egna, kalla: "egen" });

@@ -894,7 +894,7 @@ ovan. Klassens inställningar: `classes/{classId}.matchdagenInst`.
 
 | Fält | Typ | Beskrivning |
 | --- | --- | --- |
-| `omraden` | array\<string\> ≤ 60 | Plugga-områden som frågekälla, `"<subjectId>/<areaId>"` (quiz utan passage + par) |
+| `omraden` | array\<string\> ≤ 60 | Plugga-områden som frågekälla, `"<subjectId>/<areaId>"` (quiz + par; quiz med passage bara när `lastext`) |
 | `tabeller` | array\<int 0–10\> | Multiplikationstabeller |
 | `rakna` | array\<string\> ≤ 60 | Räkna-områden (område med `generator`), `"<subjectId>/<areaId>"` |
 | `svarssatt` | `"flerval"` \| `"skriv"` | Standard flerval; skriv själv där källan stödjer det |
@@ -902,6 +902,7 @@ ovan. Klassens inställningar: `classes/{classId}.matchdagenInst`.
 | `lugnt` | bool | Lugnt läge: färre effekter, ingen publik, inga skakningar, dämpat ljud |
 | `paus` | 0 \| 30 \| 45 \| 60 | Minuter till "Bra jobbat! Dags för en paus.", 0 = av (standard 60) |
 | `foljPlugga` | bool (valfri) | #899 "Samma som Plugga": `omraden`/`rakna` ignoreras och källorna räknas fram ur elevens synliga områden (`assignedAreas`, tom = hela biblioteket). Saknas = false (gamla inställningar). Källorna är alltid de valda ∩ de synliga – `docs/MATCHDAGEN.md` §24 |
+| `lastext` | bool (valfri) | #905 "Visa lästext till frågorna": Plugga-frågor med en kort lästext (`quiz[].passage`) används, med texten ovanför frågan. Saknas = true. Av = bara frågor utan lästext (som före #905) – `docs/MATCHDAGEN.md` §26 |
 | `updatedAt`, `updatedBy` | timestamp, string | Serverns tid och lärarens uid (reglerna kräver båda) |
 
 Skrivs av lärare med `hasStudent(uid)` i samma batch som klassens `elevModuler`

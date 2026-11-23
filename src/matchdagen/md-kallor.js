@@ -2,7 +2,9 @@
 // Matchdagen (#868, Etapp 1b): frågekällorna (spec §2) – hur ett Plugga-område,
 // multiplikationstabellerna och ett Räkna-område blir frågor. Återanvänder,
 // kopierar inte:
-//   Plugga-område  plainQuizPool (game-shared.js) + omradetsSaker
+//   Plugga-område  quizUrval (md-lastext.js, #905: lärarens "Visa lästext till
+//                  frågorna" – av = bara frågor utan lästext, på = alla, med
+//                  lästexten i Fraga.kontext; samma regel som Live) + omradetsSaker
 //                  (prov/prov-fran-omrade.js: samma giltighetskontroll som
 //                  "Hämta från område"). Par → "Vad betyder X?" med de andra
 //                  parens förklaringar som felalternativ. Bara flerval.
@@ -19,12 +21,14 @@
 // En källa = { id, kalla(nyckel) → perKalla-nyckel, nycklar: [...] | null (oändlig),
 //   fraga(nyckel, rng, svarssatt) → Fraga, nasta?(rng) → nyckel (oändliga) }.
 // En Fraga = { id, kalla, text, typ: "flerval"|"skriv", alternativ?, facit,
-//   inputMode, bild?, tips?, data } – data är källans egen (rättningen, aldrig
-//   visad); bild = SVG-markup ur vår egen ritare, tips = hur svaret skrivs.
+//   inputMode, bild?, tips?, kontext?, forklaring?, data } – data är källans egen
+//   (rättningen, aldrig visad); bild = SVG-markup ur vår egen ritare, tips = hur
+//   svaret skrivs, kontext = lästexten ovanför frågan (#905), forklaring = quiz-
+//   frågans explanation (visas efter fel svar, #905).
 // Laddas bara med import() (md-fragor.js) – aldrig i bootgrafen (#271).
 // ============================================================================
 
-import { plainQuizPool, hasPassage } from "../game-shared.js";
+import { quizUrval } from "./md-lastext.js";
 import { omradetsSaker } from "../prov/prov-fran-omrade.js";
 import MULTIPLICATION_0_10 from "../live/modes/multiplication-0-10.js";
 import { makeQuestion } from "../mult/generator.js";
@@ -66,24 +70,22 @@ function flerval(rattText, fel, rng) {
 // ---- Plugga-område -------------------------------------------------------------
 
 /**
- * Plugga-området som källa: quiz utan passage (plainQuizPool) och par.
+ * Plugga-området som källa: quizfrågorna (quizUrval – med lästexterna om lastext) och par.
  * Saker som inte går att visa (omradetsSaker säger problem) tas inte med.
  * @param {string} nyckel "ämne/område"
  * @param {object|null} area
+ * @param {{ lastext?: boolean, maxPassage?: number }} [o]  lastext = lärarens "Visa lästext till
+ *   frågorna"; maxPassage = längsta lästext (elevens egna matcher: ingen gräns)
  */
-export function omradeKalla(nyckel, area) {
+export function omradeKalla(nyckel, area, { lastext = false, maxPassage = Infinity } = {}) {
   const quiz = Array.isArray(area?.quiz) ? area.quiz : [];
   const grupper = omradetsSaker(area || {});
-  const giltiga = new Set(grupper.filter((g) => g.sort === "quiz" || g.sort === "par")
+  const giltiga = new Set(grupper.filter((g) => g.sort === "quiz" || g.sort === "lasning" || g.sort === "par")
     .flatMap((g) => g.saker).filter((s) => !s.problem).map((s) => s.nyckel));
 
-  const nycklar = [];
-  // plainQuizPool faller tillbaka till hela poolen om ALLA frågor har passage –
-  // Matchdagen visar ingen källtext, så de frågorna tas inte med.
-  for (const q of plainQuizPool(quiz)) {
-    const i = quiz.indexOf(q);
-    if (!hasPassage(q) && giltiga.has(`quiz:${i}`)) nycklar.push(`quiz:${i}`);
-  }
+  const kontext = new Map();
+  for (const { i, kontext: k } of quizUrval(quiz, { lastext, maxPassage, giltig: (i) => giltiga.has(`quiz:${i}`) })) kontext.set(i, k);
+  const nycklar = [...kontext.keys()].map((i) => `quiz:${i}`);
   // Par: samma term eller förklaring två gånger blir inte entydigt (som i provet).
   const pairs = Array.isArray(area?.pairs) ? area.pairs : [];
   const sett = new Set();
@@ -111,7 +113,11 @@ export function omradeKalla(nyckel, area) {
         const q = quiz[i];
         const alt = q.options.map((o) => String(o).trim());
         const f = flerval(alt[q.answerIndex], alt.filter((_, j) => j !== q.answerIndex), rng);
-        return { text: str(q.question), typ: "flerval", ...f, facit: alt[q.answerIndex], data: { ratt: f.ratt } };
+        const forklaring = str(q.explanation);
+        return {
+          text: str(q.question), typ: "flerval", ...f, facit: alt[q.answerIndex], data: { ratt: f.ratt },
+          ...(kontext.get(i) ? { kontext: kontext.get(i) } : {}), ...(forklaring ? { forklaring } : {}),
+        };
       }
       const p = pairs[i];
       const ratt = str(p.definition);

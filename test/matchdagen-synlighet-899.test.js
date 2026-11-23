@@ -103,7 +103,7 @@ describe("matchdagenInst.foljPlugga (md-inst.js och servern)", () => {
     assert.equal(sammaInst({ foljPlugga: true }, { foljPlugga: false }), false);
     assert.equal(sammaInst({ omraden: ["a/b"] }, { omraden: ["a/b"], foljPlugga: false }), true);
     assert.equal(harKallor({ foljPlugga: true }), true);
-    assert.equal(sammanfattning({ foljPlugga: true, omraden: ["a/b"], rakna: ["c/d"], tabeller: [7] }), "Samma som Plugga · tabell 7");
+    assert.equal(sammanfattning({ foljPlugga: true, omraden: ["a/b"], rakna: ["c/d"], tabeller: [7] }), "Samma som Plugga · med lästext · tabell 7");
     assert.equal(fragorText({ foljPlugga: true }), "Dina frågor kommer från områdena du ser i Plugga.");
   });
   it("A.3: elevens besked utan frågor", () => {

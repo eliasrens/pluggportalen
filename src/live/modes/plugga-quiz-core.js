@@ -96,33 +96,19 @@
 
 import { QUESTION_CATEGORY_KEYS, normalizeQuestionCategory } from "../../exercise-types.js";
 import { areaSpan, formatYear } from "../../timeline/timeline-logic.js";
+import { QUIZ_PASSAGE_MAX, QUIZ_TEXT_REF_WORDS, hasPassage, normalizeOptionText, passageCheck, refersToText } from "./quiz-passage.js";
+
+// Lästext-regeln är utbruten (#905) – Matchdagen använder samma (quiz-passage.js).
+export { QUIZ_PASSAGE_MAX, QUIZ_TEXT_REF_WORDS, normalizeOptionText, refersToText };
 
 export const QUIZ_MAX_OPTIONS = 4;
 export const QUIZ_DEFAULT_MIN_QUESTIONS = 5;
 export const QUIZ_PASSAGE_POLICY = "fallback";
-export const QUIZ_PASSAGE_MAX = 300;
-/** Frågetext med något av dessa (skiftlägesokänsligt) kräver texten – rutan av → hoppas över. */
-export const QUIZ_TEXT_REF_WORDS = Object.freeze([
-  "texten", "enligt", "berättelsen", "författaren", "i stycket", "ovan", "i dikten",
-]);
 export const QUIZ_OTHER_CATEGORY = "ovrig";
 export const QUIZ_TIMELINE_CATEGORY = "tidslinje";
 const TL_PREFIX = "tl-";
 
 export const isTimelineQuestion = (q) => q?.kind === "timeline";
-
-/** Jämförelseform för alternativ och frågetext: NFC, blanksteg ihop, trim. */
-export function normalizeOptionText(s) {
-  return String(s ?? "").normalize("NFC").replace(/\s+/g, " ").trim();
-}
-
-const hasPassage = (q) => typeof q?.passage === "string" && q.passage.trim() !== "";
-
-/** Kräver frågetexten den (dolda) texten? "Enligt texten …", "Vad gör författaren …" */
-export function refersToText(text) {
-  const t = normalizeOptionText(text).toLocaleLowerCase("sv");
-  return QUIZ_TEXT_REF_WORDS.some((w) => new RegExp(`(^|[^\\p{L}])${w}($|[^\\p{L}])`, "u").test(t));
-}
 
 /** Antal frågor med passage i området (lärarens kryssruta visas bara då). */
 export function countPassageQuestions(quiz) {
@@ -139,13 +125,9 @@ export function countPassageQuestions(quiz) {
  */
 export function prepareQuizQuestion(raw, i = 0, { allowPassage = false, showPassage = false } = {}) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { ok: false, reason: "invalid" };
-  const passage = hasPassage(raw) ? normalizeOptionText(raw.passage) : "";
+  const { passage, reason } = passageCheck(raw, { allowPassage, showPassage });
+  if (reason) return { ok: false, reason };
   const text = normalizeOptionText(raw.question);
-  if (passage) {
-    if (!allowPassage && !showPassage) return { ok: false, reason: "passage" };
-    if (showPassage && passage.length > QUIZ_PASSAGE_MAX) return { ok: false, reason: "lang-passage" };
-    if (!showPassage && refersToText(text)) return { ok: false, reason: "kraver-text" };
-  }
   const ai = raw.answerIndex;
   if (!text || !Array.isArray(raw.options) || !Number.isInteger(ai) || ai < 0 || ai >= raw.options.length) {
     return { ok: false, reason: "invalid" };

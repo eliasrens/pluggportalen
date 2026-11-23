@@ -88,7 +88,7 @@ describe("inga frågor (§2)", () => {
     }
   });
   it("valda områden som saknas eller inte har några frågor → eget meddelande, ingen match", async () => {
-    const s = await strom({ omraden: ["so/finnsinte", "so/lasning"], rakna: ["so/sverige"] });
+    const s = await strom({ omraden: ["so/finnsinte", "so/lasning"], rakna: ["so/sverige"], lastext: false });
     assert.deepEqual(s, { tom: true, meddelande: F.SAKNADE_FRAGOR });
     const fel = await F.skapaFragestrom({ inst: { omraden: ["so/sverige"] }, uid: "u", hamtaOmrade: async () => { throw new Error("nät"); }, lagring: minne() });
     assert.equal(fel.tom, true);
@@ -96,8 +96,8 @@ describe("inga frågor (§2)", () => {
 });
 
 describe("varje källa ger giltiga frågor", () => {
-  it("Plugga-område: quiz utan passage och par som \"Vad betyder X?\" – bara giltiga saker", async () => {
-    const s = await strom({ omraden: ["so/sverige"] });
+  it("Plugga-område: quiz utan passage och par som \"Vad betyder X?\" – bara giltiga saker (lästext av, #905)", async () => {
+    const s = await strom({ omraden: ["so/sverige"], lastext: false });
     assert.equal(s.tom, false);
     assert.deepEqual(s.kallor, [{ id: "omrade:so/sverige", antal: 7 }], "2 quiz + 5 par (passage, tom, dubblett, bild bort)");
     const sedda = new Set();
@@ -118,8 +118,8 @@ describe("varje källa ger giltiga frågor", () => {
     assert.ok(sedda.has("Vad heter Sveriges huvudstad?") && sedda.has("Vad betyder landskap?"));
     assert.ok(!sedda.has("Enligt texten, vad hände?"), "passagefrågor visas aldrig");
   });
-  it("Plugga-område med bara passagefrågor ger inga frågor (plainQuizPools reserv tas inte med)", async () => {
-    assert.equal((await strom({ omraden: ["so/lasning"] })).tom, true);
+  it("Plugga-område med bara passagefrågor ger inga frågor med lästext av (plainQuizPools reserv tas inte med)", async () => {
+    assert.equal((await strom({ omraden: ["so/lasning"], lastext: false })).tom, true);
   });
   it("multiplikation: bara de valda tabellerna, flerval med fyra alternativ eller skriv själv", async () => {
     const s = await strom({ tabeller: [3, 7] });
@@ -188,13 +188,13 @@ describe("påsen och blandningen", () => {
   });
   it("ändrar läraren området börjar påsen om; trasig lagring gör inget", async () => {
     const lagring = minne();
-    const s = await strom({ omraden: ["so/sverige"] }, { lagring });
+    const s = await strom({ omraden: ["so/sverige"], lastext: false }, { lagring });
     s.nasta();
     const kvar = JSON.parse(lagring.hamta(`${F.PASE_NYCKEL}elev1`)).kallor["omrade:so/sverige"].kvar;
     assert.equal(kvar.length, 6);
     AREAS["so/sverige"] = { ...OMRADE, quiz: OMRADE.quiz.slice(0, 1) };
     try {
-      const t = await strom({ omraden: ["so/sverige"] }, { lagring });
+      const t = await strom({ omraden: ["so/sverige"], lastext: false }, { lagring });
       const nycklar = Array.from({ length: 6 }, () => t.nasta().nyckel);
       assert.equal(new Set(nycklar).size, 6, "ny påse med det nya innehållet (1 quiz + 5 par)");
     } finally {
@@ -226,20 +226,22 @@ describe("påsen och blandningen", () => {
 });
 
 describe("källkod: återanvänd, kopiera inte", () => {
-  it("md-kallor.js använder plainQuizPool, prov-omvandlingen, Live-läget och rakna-core", () => {
+  it("md-kallor.js använder lästexturvalet (Live-regeln, #905), prov-omvandlingen, Live-läget och rakna-core", () => {
     const k = read("src/matchdagen/md-kallor.js");
-    assert.match(k, /import \{ plainQuizPool, hasPassage \} from "\.\.\/game-shared\.js"/);
+    assert.match(k, /import \{ quizUrval \} from "\.\/md-lastext\.js"/);
+    assert.match(read("src/matchdagen/md-lastext.js"), /import \{ QUIZ_PASSAGE_MAX, passageCheck \} from "\.\.\/live\/modes\/quiz-passage\.js"/);
+    assert.match(read("src/live/modes/plugga-quiz-core.js"), /from "\.\/quiz-passage\.js"/, "Live använder samma regel");
     assert.match(k, /import \{ omradetsSaker \} from "\.\.\/prov\/prov-fran-omrade\.js"/);
     assert.match(k, /import MULTIPLICATION_0_10 from "\.\.\/live\/modes\/multiplication-0-10\.js"/);
     assert.match(k, /createProblemSource/);
     assert.match(read("src/matchdagen/md-fragor.js"), /createTopicBag/);
   });
-  it("frågekortet (md-svar.js): fel svar visas 1,5 s, tangenterna 1–N, inga importer", async () => {
+  it("frågekortet (md-svar.js): fel svar visas 1,5 s, tangenterna 1–N, bara md-config.js importeras", async () => {
     const S = await import("../src/matchdagen/md-svar.js");
     assert.equal(S.FEL_MS, 1500);
     assert.ok(S.MAX_TANGENT >= 4);
     const src = read("src/matchdagen/md-svar.js");
-    assert.doesNotMatch(src, /^import /m, "ingen Firebase, inga appmoduler");
+    assert.deepEqual(src.match(/^import .*$/gm), ['import { FORKLARING_MS, LASTEXT_EXTRA_S } from "./delat/md-config.js";'], "ingen Firebase, inga appmoduler");
     assert.match(src, /Rätt svar: <b>/);
     assert.match(src, /Tiden är ute/);
     assert.match(read("src/styles/48-matchdagen.css"), /\.md-alt, \.md-skicka \{[^}]*min-height: 56px/, "knappar minst 48 px");

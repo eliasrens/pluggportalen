@@ -12,7 +12,10 @@
          ?lage=tom       Hela klassen, Välj själv: bara Stenåldern (dolt) → "Inga frågor just nu" + knappen
          ?lage=standard  Hela klassen utan inställningar → Samma som Plugga (standard)
          ?lage=elev      En elev utan egna (följer klassen, som har Samma som Plugga + tabell 7)
-         ?alla=1         klassen har ingen tilldelning (hela biblioteket syns) -->
+         ?alla=1         klassen har ingen tilldelning (hela biblioteket syns)
+       #905: Vikingatiden har en fråga med lästext – "Visa lästext till frågorna" är ikryssad där
+       Vikingatiden används (dolt, standard, elev) och gråad med "Inga valda områden har lästexter"
+       när den inte gör det (tom: bara Stenåldern). -->
   <script type="importmap">
     { "imports": {
       "../src/matchdagen/md-inst-data.js": "./matchdagen-899/md-inst-data.js",
@@ -34,7 +37,7 @@
     const quiz = [{ question: "Fråga?", options: ["A", "B"], answerIndex: 0 }];
     const library = [
       { id: "so", name: "SO", icon: "🌍", areas: [
-        { id: "vikingatiden", name: "Vikingatiden", quiz },
+        { id: "vikingatiden", name: "Vikingatiden", quiz: [...quiz, { question: "Varför?", options: ["A", "B"], answerIndex: 0, passage: "En kort text." }] },
         { id: "stenaldern", name: "Stenåldern", quiz },
         { id: "sverige", name: "Sveriges landskap", pairs: [{ term: "a", definition: "b" }, { term: "c", definition: "d" }] },
       ] },
