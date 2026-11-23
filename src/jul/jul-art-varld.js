@@ -34,22 +34,21 @@ const SNOBOLL = "#E6EDF5";
 const VARMT = "#FDE9A8";
 const GLOD = "#F7C948";
 
-/** En lampa som hänger i tråden (x, y = fästet). */
-function lampa(x, y, r, c) {
-  return `<circle cx="${f(x)}" cy="${f(y + r * 0.9)}" r="${f(r * 1.7)}" fill="${c}" opacity="0.3" stroke="none"/>
+/** En lampa som hänger i tråden (x, y = fästet). `glod` = mjuk gloria bakom. */
+function lampa(x, y, r, c, glod = true) {
+  return `${glod ? `<circle cx="${f(x)}" cy="${f(y + r * 0.9)}" r="${f(r * 1.7)}" fill="${c}" fill-opacity="0.3" stroke="none"/>` : ""}
     <rect x="${f(x - r * 0.42)}" y="${f(y - r * 0.2)}" width="${f(r * 0.84)}" height="${f(r * 0.6)}" rx="${f(r * 0.2)}" fill="${SOCKEL}" stroke="none"/>
     <ellipse cx="${f(x)}" cy="${f(y + r * 0.95)}" rx="${f(r * 0.68)}" ry="${f(r)}" fill="${c}" stroke="${O}" stroke-width="${f(Math.max(0.8, r * 0.26))}"/>
-    <ellipse cx="${f(x - r * 0.22)}" cy="${f(y + r * 0.6)}" rx="${f(r * 0.18)}" ry="${f(r * 0.32)}" fill="#fff" opacity="0.6" stroke="none"/>`;
+    <ellipse cx="${f(x - r * 0.22)}" cy="${f(y + r * 0.6)}" rx="${f(r * 0.18)}" ry="${f(r * 0.32)}" fill="#fff" fill-opacity="0.6" stroke="none"/>`;
 }
 
 /**
- * Ljusslinga genom `punkter` ([[x, y], …] = lampornas fästen): en tråd som
- * hänger lite mellan lamporna och lampor i gult/rött/grönt. Varannan lampa
- * ligger i .julv-blink – EN animation per slinga (C.1), `fas` (s) förskjuter
- * blinket så att grannhusen inte blinkar i takt.
+ * Ljusslingans delar: `trad` (tråden + de fasta lamporna) och `blink`
+ * (varannan lampa – den del som blinkar). Byns minihus ritar dem i två egna
+ * SVG-lager så att blinket blir en kompositor-animation (jul-varld.js).
  */
-export function ljusslinga(punkter, { r = 7, sag = r * 0.8, fas = 0 } = {}) {
-  if (punkter.length < 2) return "";
+export function slingaDelar(punkter, { r = 7, sag = r * 0.8, glod = true } = {}) {
+  if (punkter.length < 2) return { trad: "", blink: "" };
   let d = `M${f(punkter[0][0])} ${f(punkter[0][1])}`;
   for (let i = 1; i < punkter.length; i++) {
     const [ax, ay] = punkter[i - 1];
@@ -59,13 +58,28 @@ export function ljusslinga(punkter, { r = 7, sag = r * 0.8, fas = 0 } = {}) {
   let fast = "";
   let blink = "";
   punkter.forEach(([x, y], i) => {
-    const l = lampa(x, y, r, LAMP_FARGER[i % 3]);
+    const l = lampa(x, y, r, LAMP_FARGER[i % 3], glod);
     if (i % 2) blink += l;
     else fast += l;
   });
+  const trad = `<path d="${d}" fill="none" stroke="${O}" stroke-width="${f(Math.max(1, r * 0.3))}" stroke-linecap="round" stroke-linejoin="round"/>${fast}`;
+  return { trad, blink };
+}
+
+/** Blinkgruppen: varannan lampa, i blinkfas `fas` (0–2, styles/53-jul.css). */
+export const blinkGrupp = (blink, fas = 0) => `<g class="julv-blink julv-f${((fas % 3) + 3) % 3}">${blink}</g>`;
+
+/**
+ * Ljusslinga genom `punkter` ([[x, y], …] = lampornas fästen): en tråd som
+ * hänger lite mellan lamporna och lampor i gult/rött/grönt. Varannan lampa
+ * ligger i .julv-blink – EN grupp per slinga (C.1) som blinkar mellan tre
+ * lägen; `fas` (0–2) förskjuter blinket så att grannhusen inte blinkar i takt.
+ */
+export function ljusslinga(punkter, { r = 7, sag = r * 0.8, fas = 0 } = {}) {
+  if (punkter.length < 2) return "";
+  const { trad, blink } = slingaDelar(punkter, { r, sag });
   return `<g class="julv-slinga" aria-hidden="true" pointer-events="none">
-    <path d="${d}" fill="none" stroke="${O}" stroke-width="${f(Math.max(1, r * 0.3))}" stroke-linecap="round" stroke-linejoin="round"/>
-    <g>${fast}</g><g class="julv-blink" style="animation-delay:${f(-fas)}s">${blink}</g></g>`;
+    ${trad}${blinkGrupp(blink, fas)}</g>`;
 }
 
 /** Punkter med jämna mellanrum (`steg`) längs en polylinje [[x, y], …]. */
@@ -97,7 +111,7 @@ export function adventsstjarna(cx, cy, r) {
   }
   return `<g class="julv-advent" aria-hidden="true" pointer-events="none">
     <path d="M${f(cx)} ${f(cy - r * 2.1)} L${f(cx)} ${f(cy - r)}" stroke="${O}" stroke-width="${f(Math.max(1, r * 0.1))}" stroke-linecap="round"/>
-    <circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r * 1.55)}" fill="${GLOD}" opacity="0.35" stroke="none"/>
+    <circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r * 1.55)}" fill="${GLOD}" fill-opacity="0.35" stroke="none"/>
     <path d="${d}Z" fill="${VARMT}" stroke="${O}" stroke-width="${f(Math.max(1, r * 0.11))}" stroke-linejoin="round"/>
     <circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r * 0.2)}" fill="${GLOD}" stroke="none"/></g>`;
 }
@@ -110,7 +124,7 @@ function toppstjarna(x, y, r) {
     const rr = i % 2 ? r * 0.45 : r;
     d += `${i ? "L" : "M"}${f(x + rr * Math.cos(v))} ${f(y + rr * Math.sin(v))} `;
   }
-  return `<circle cx="${x}" cy="${y}" r="${f(r * 1.5)}" fill="${GLOD}" opacity="0.3" stroke="none"/>
+  return `<circle cx="${x}" cy="${y}" r="${f(r * 1.5)}" fill="${GLOD}" fill-opacity="0.3" stroke="none"/>
     <path d="${d}Z" fill="${GLOD}" ${THIN}/>`;
 }
 
@@ -120,19 +134,19 @@ function toppstjarna(x, y, r) {
  */
 export function julgran(x, y, s = 1) {
   const ljus = [[-30, -24], [-6, -30], [22, -22], [36, -20], [-20, -60], [8, -66], [26, -58], [-10, -96], [12, -98], [0, -118]]
-    .map(([lx, ly], i) => `<circle cx="${lx}" cy="${ly}" r="5.5" fill="${GLOD}" opacity="0.35" stroke="none"/>
+    .map(([lx, ly], i) => `<circle cx="${lx}" cy="${ly}" r="5.5" fill="${GLOD}" fill-opacity="0.35" stroke="none"/>
       <circle cx="${lx}" cy="${ly}" r="2.9" fill="${i % 3 === 1 ? "#FFF3B0" : VARMT}" stroke="${O}" stroke-width="1.2"/>`)
     .join("");
   const kulor = [[-18, -36, ROD], [14, -42, "#7FC7E8"], [-26, -76, "#7FC7E8"], [20, -80, ROD], [-4, -108, "#B79BE0"]]
     .map(([kx, ky, c]) => `<circle cx="${kx}" cy="${ky}" r="4.6" fill="${c}" ${THIN}/>`)
     .join("");
   return `<g class="julv-gran" transform="translate(${f(x)} ${f(y)}) scale(${s})" aria-hidden="true" pointer-events="none">
-    <ellipse cx="0" cy="0" rx="46" ry="7" fill="${O}" opacity="0.1"/>
+    <ellipse cx="0" cy="0" rx="46" ry="7" fill="${O}" fill-opacity="0.1"/>
     ${limb("M0 -2 L0 -18", "#8A6242", 10)}
     <path d="M-50 -14 Q0 -6 50 -14 L0 -70 Z" fill="${GRAN}" ${LINE}/>
     <path d="M-41 -50 Q0 -43 41 -50 L0 -104 Z" fill="${GRAN_LJUS}" ${LINE}/>
     <path d="M-30 -86 Q0 -80 30 -86 L0 -130 Z" fill="${GRAN}" ${LINE}/>
-    <path d="M-36 -30 Q0 -14 38 -26 M-28 -66 Q0 -52 30 -64 M-18 -98 Q0 -90 20 -98" fill="none" stroke="${VARMT}" stroke-width="2" opacity="0.7" stroke-linecap="round"/>
+    <path d="M-36 -30 Q0 -14 38 -26 M-28 -66 Q0 -52 30 -64 M-18 -98 Q0 -90 20 -98" fill="none" stroke="${VARMT}" stroke-width="2" stroke-opacity="0.7" stroke-linecap="round"/>
     ${kulor}${ljus}${toppstjarna(0, -134, 10)}</g>`;
 }
 
@@ -142,7 +156,7 @@ export function julklappar(x, y, s = 1) {
     <path d="M${px + w / 2} ${-h} L${px + w / 2} 0 M${px} ${f(-h / 2)} L${px + w} ${f(-h / 2)}" stroke="${band}" stroke-width="3.2"/>
     <path d="M${px + w / 2} ${-h} q-7 -8 -9 -1 q4 3 9 1 q7 -8 9 -1 q-4 3 -9 1" fill="${band}" stroke="${O}" stroke-width="1.4" stroke-linejoin="round"/>`;
   return `<g class="julv-klappar" transform="translate(${f(x)} ${f(y)}) scale(${s})" aria-hidden="true" pointer-events="none">
-    <ellipse cx="0" cy="0" rx="40" ry="5" fill="${O}" opacity="0.1"/>
+    <ellipse cx="0" cy="0" rx="40" ry="5" fill="${O}" fill-opacity="0.1"/>
     ${paket(-38, 24, 18, ROD, "#F7C948")}${paket(14, 22, 14, "#F7C948", ROD)}${paket(-14, 26, 26, "#7FB2E3", "#FFF3DC")}</g>`;
 }
 
@@ -150,11 +164,11 @@ export function julklappar(x, y, s = 1) {
 export function julbock(x, y, s = 1) {
   const ben = [-26, -12, 12, 26].map((bx) => limb(`M${bx} -36 L${bx - 2} -2`, HALM, 6)).join("");
   return `<g class="julv-bock" transform="translate(${f(x)} ${f(y)}) scale(${s})" aria-hidden="true" pointer-events="none">
-    <ellipse cx="0" cy="0" rx="40" ry="6" fill="${O}" opacity="0.1"/>
+    <ellipse cx="0" cy="0" rx="40" ry="6" fill="${O}" fill-opacity="0.1"/>
     ${ben}
     ${limb("M-34 -46 Q-44 -50 -46 -60", HALM, 5)}
     <path d="M-36 -36 Q-40 -54 -24 -56 L26 -56 Q40 -54 36 -36 Q0 -30 -36 -36 Z" fill="${HALM}" ${LINE}/>
-    <path d="M-28 -44 L28 -44 M-26 -50 L24 -50" stroke="${HALM_MORK}" stroke-width="1.6" opacity="0.6" stroke-linecap="round"/>
+    <path d="M-28 -44 L28 -44 M-26 -50 L24 -50" stroke="${HALM_MORK}" stroke-width="1.6" stroke-opacity="0.6" stroke-linecap="round"/>
     <rect x="-20" y="-57" width="7" height="24" rx="2" fill="${ROD}" ${THIN}/>
     <rect x="12" y="-57" width="7" height="24" rx="2" fill="${ROD}" ${THIN}/>
     ${limb("M26 -50 L36 -78", HALM, 11)}
@@ -175,7 +189,7 @@ export function julbock(x, y, s = 1) {
  */
 export function tomte(x, y, s = 1) {
   return `<g class="julv-tomte" transform="translate(${f(x)} ${f(y)}) scale(${s})" aria-hidden="true" pointer-events="none">
-    <ellipse cx="0" cy="0" rx="26" ry="5" fill="${O}" opacity="0.12"/>
+    <ellipse cx="0" cy="0" rx="26" ry="5" fill="${O}" fill-opacity="0.12"/>
     <ellipse cx="-9" cy="-4" rx="9" ry="5.5" fill="#4C4661" ${THIN}/>
     <ellipse cx="9" cy="-4" rx="9" ry="5.5" fill="#4C4661" ${THIN}/>
     ${limb("M-15 -46 Q-25 -34 -23 -24", ROD, 8)}
@@ -200,7 +214,7 @@ export function tomte(x, y, s = 1) {
 export function snolykta(x, y, s = 1) {
   const boll = (bx, by, r) => `<circle cx="${bx}" cy="${by}" r="${r}" fill="${SNOBOLL}" ${THIN}/>`;
   return `<g class="julv-snolykta" transform="translate(${f(x)} ${f(y)}) scale(${s})" aria-hidden="true" pointer-events="none">
-    <ellipse cx="0" cy="-18" rx="27" ry="24" fill="#FFD36B" opacity="0.16" stroke="none"/>
+    <ellipse cx="0" cy="-18" rx="27" ry="24" fill="#FFD36B" fill-opacity="0.16" stroke="none"/>
     ${boll(-17, -8, 9)}${boll(17, -8, 9)}${boll(0, -8, 9)}${boll(-9, -23, 8.5)}${boll(9, -23, 8.5)}${boll(0, -37, 8)}
     <ellipse cx="0" cy="-16" rx="5.5" ry="6" fill="${VARMT}" stroke="${O}" stroke-width="1.6"/>
     <ellipse cx="0" cy="-15" rx="2.6" ry="3.4" fill="#F49E4C" stroke="none"/></g>`;
@@ -237,8 +251,8 @@ function stjarnor(lista) {
 
 /** Mjuk blek måne med gloria (.julv-mane – döljs om Halloween-månen redan står där). */
 function mane(x, y, r) {
-  return `<g class="julv-mane"><circle cx="${x}" cy="${y}" r="${f(r * 1.7)}" fill="#E4ECFF" opacity="0.14" stroke="none"/>
-    <circle cx="${x}" cy="${y}" r="${f(r * 1.3)}" fill="#E4ECFF" opacity="0.16" stroke="none"/>
+  return `<g class="julv-mane"><circle cx="${x}" cy="${y}" r="${f(r * 1.7)}" fill="#E4ECFF" fill-opacity="0.14" stroke="none"/>
+    <circle cx="${x}" cy="${y}" r="${f(r * 1.3)}" fill="#E4ECFF" fill-opacity="0.16" stroke="none"/>
     <circle cx="${x}" cy="${y}" r="${r}" fill="#F3EEDB" ${LINE}/>
     <circle cx="${f(x - r * 0.3)}" cy="${f(y - r * 0.18)}" r="${f(r * 0.15)}" fill="#E2DAC0" stroke="none"/>
     <circle cx="${f(x + r * 0.28)}" cy="${f(y + r * 0.3)}" r="${f(r * 0.11)}" fill="#E2DAC0" stroke="none"/></g>`;
@@ -257,8 +271,8 @@ export function norrsken(x0, x1, y, k = 1) {
       const xb = x0 + (w * i) / 6;
       d += ` Q${f(xa)} ${f(y + dy + (i % 2 ? -amp : amp))} ${f(xb)} ${f(y + dy)}`;
     }
-    return `<path d="${d}" fill="none" stroke="${c}" stroke-width="${f(bredd * k * 2.2)}" stroke-linecap="round" opacity="${f(op * 0.4)}"/>
-      <path d="${d}" fill="none" stroke="${c}" stroke-width="${f(bredd * k)}" stroke-linecap="round" opacity="${op}"/>`;
+    return `<path d="${d}" fill="none" stroke="${c}" stroke-width="${f(bredd * k * 2.2)}" stroke-linecap="round" stroke-opacity="${f(op * 0.4)}"/>
+      <path d="${d}" fill="none" stroke="${c}" stroke-width="${f(bredd * k)}" stroke-linecap="round" stroke-opacity="${op}"/>`;
   };
   return `<g class="julv-norrsken" aria-hidden="true" pointer-events="none">
     ${band(0, 26 * k, "#7FE0B0", 34, 0.2)}${band(46 * k, 20 * k, "#B79BE0", 28, 0.18)}${band(-38 * k, 16 * k, "#8FE8C8", 20, 0.16)}</g>`;

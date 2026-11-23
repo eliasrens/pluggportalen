@@ -27,10 +27,9 @@ const antal = (s, re) => (s.match(re) || []).length;
 
 test("ljusslingan: varannan lampa i EN blinkande grupp, gult/rött/grönt", () => {
   const p = [[0, 0], [30, 5], [60, 0], [90, 5], [120, 0]];
-  const s = ljusslinga(p, { r: 7, fas: 1.2 });
-  assert.equal(antal(s, /class="julv-blink"/g), 1);
+  const s = ljusslinga(p, { r: 7, fas: 2 });
+  assert.equal(antal(s, /class="julv-blink julv-f2"/g), 1);
   for (const c of LAMP_FARGER) assert.ok(s.includes(`fill="${c}"`), c);
-  assert.match(s, /animation-delay:-1.2s/);
   assert.equal(ljusslinga([[0, 0]]), "");
 });
 
@@ -71,7 +70,7 @@ test("husets juldekor: slinga + adventsstjärna, märkt .julv-dekor", () => {
   const s = husJul({ linje, fonster: { x: 440, y: 330, w: 150, h: 130 } });
   assert.match(s, /^<g class="julv-dekor julv-hus">/);
   assert.match(s, /julv-advent/);
-  assert.equal(antal(s, /class="julv-blink"/g), 1);
+  assert.equal(antal(s, /class="julv-blink julv-f\d"/g), 1);
   // Utan fönster hänger stjärnan under takkanten.
   assert.match(husJul({ linje, fonster: null }), /julv-advent/);
 });
@@ -85,7 +84,7 @@ test("porten, spärren och fönstret: allt bär .julv-dekor; tomten vinkar, stj�
   for (const k of ["julv-slinga", "julv-granris", "julv-gran", "julv-tomte", "julv-snolykta", "julv-klappar"]) {
     assert.ok(fram.includes(k), k);
   }
-  assert.equal(antal(fram, /class="julv-blink"/g), 1, "en slinga i bågen");
+  assert.equal(antal(fram, /class="julv-blink julv-f\d"/g), 1, "en slinga i bågen");
   assert.equal(antal(fram, /class="julv-vinkarm"/g), 1);
   assert.match(gateJul(), /^<g class="julv-dekor julv-gate">/);
   assert.ok(gateJul().includes("julv-tomte") && gateJul().includes("julv-snolykta"));
@@ -126,15 +125,28 @@ test("lazy: src/jul/ är inte i bootgrafen (107 filer) och laddas med import()",
   assert.match(sw, /if \(theme\.jul\) fyllJul\(container\)/);
 });
 
-test("CSS: blinket = bara opacity i 3 lägen; av vid reducerad rörelse; pausas i dold flik", () => {
-  const blink = CSS.match(/@keyframes julv-blink \{([\s\S]*?)\n\}/)[1];
-  assert.equal(antal(blink, /opacity/g), 4); // 0 % = 100 % → 3 lägen
-  assert.doesNotMatch(blink, /transform|filter/);
-  assert.match(CSS, /\.julv-blink \{ animation: julv-blink [\d.]+s step-end infinite; \}/);
-  assert.match(CSS, /prefers-reduced-motion: reduce\) \{\s*\.julv-blink, \.julv-vinkarm \{ animation: none; \}/);
-  assert.match(CSS, /html\.sz-paus \.julv-blink,\s*html\.sz-paus \.julv-vinkarm \{ animation-play-state: paused; \}/);
+test("CSS: blinket = bara opacity i 3 lägen per fas; stilla vid reducerad rörelse; vinket pausas", () => {
+  for (const f of [0, 1, 2]) {
+    // Varje fas-klass får 0,35 och 0,75 i var sitt läge (det tredje = 1).
+    const lagen = [0, 1, 2].map((F) => {
+      const m = CSS.match(new RegExp(`\\[data-julv-fas="${F}"\\] \\.julv-blink\\.julv-f${f}[^{]*\\{ opacity: ([\\d.]+); \\}|\\[data-julv-fas="${F}"\\] \\.julv-blink\\.julv-f${f},`));
+      if (!m) return 1;
+      return m[1] ? +m[1] : +CSS.slice(m.index).match(/\{ opacity: ([\d.]+); \}/)[1];
+    });
+    assert.deepEqual([...lagen].sort(), [0.35, 0.75, 1], `fas f${f}: ${lagen}`);
+  }
+  assert.doesNotMatch(CSS, /@keyframes julv-blink/);
+  assert.match(CSS, /prefers-reduced-motion: reduce\) \{\s*\.julv-vinkarm \{ animation: none; \}\s*\.julv-blink \{ opacity: 1 !important; \}/);
+  assert.match(CSS, /html\.sz-paus \.julv-vinkarm \{ animation-play-state: paused; \}/);
+  // EN timer i jul-varld.js flyttar fasen; står still i dold flik / reducerad rörelse.
+  const jv = readFileSync(join(SRC, "jul/jul-varld.js"), "utf8");
+  assert.equal(antal(jv, /setInterval\(/g), 1);
+  assert.match(jv, /document\.hidden/);
+  assert.match(jv, /prefers-reduced-motion: reduce/);
   // #907 F1: solen och fåglarna bort på porten i julkvällen.
   assert.match(CSS, /html\[data-jul\] \.port-scen \.sz-dolj-halloween/);
+  // F4: båda tilläggen → tomten står över där Halloween-djuret vinkar.
+  assert.match(CSS, /html\[data-jul\]\[data-halloween\] \.julv-port-fram \.julv-tomte/);
 });
 
 test("CSS: ingen regel träffar sommar/höst utan Jul (0 px-diff)", () => {
@@ -177,4 +189,9 @@ test("kontrast: skylten, login-kortet och 'Lärare →' mot julkvällen (WCAG AA
   for (const c of himmel) assert.ok(kontrast("#FFF3DC", c) >= 3, `pastillen mot ${c}`);
   for (const c of mark) assert.ok(kontrast("#3B3350", c) >= 3, `pastillens kontur mot ${c}`);
   assert.match(CSS, /html\[data-jul\] \.port-scen \.port-larare-lank \{[^}]*background: #FFF3DC/);
+  // F1: "← Tillbaka" i spärren ≥ 4,5:1 mot hela julkvällens bakgrund.
+  assert.match(CSS, /html\[data-jul\] \.sz-gate \.back-link:not\(:hover\) \{ color: #B4C1CF; \}/);
+  for (const c of [JUL_LOGIN_PALETTE["gate-bg"], JUL_LOGIN_PALETTE["gate-bg2"]]) {
+    assert.ok(kontrast("#B4C1CF", c) >= 4.5, `Tillbaka mot ${c}`);
+  }
 });

@@ -22,7 +22,7 @@
 // ============================================================================
 
 import {
-  ljusslinga, langsLinje, adventsstjarna, julgran, julklappar, julbock, tomte,
+  ljusslinga, slingaDelar, blinkGrupp, langsLinje, adventsstjarna, julgran, julklappar, julbock, tomte,
   portJul, gateJul, fonsterJul,
 } from "./jul-art-varld.js";
 
@@ -154,34 +154,72 @@ function husForm(mal) {
   return p;
 }
 
-/** Husets juldekor: slinga längs takkanten + adventsstjärna. `liten` = byns minihus. */
-export function husJul({ linje, fonster }, { liten = false, fas = 0 } = {}) {
-  const lampor = langsLinje(linje, liten ? 36 : 28);
-  let stjarna = "";
+/** Adventsstjärnan i fönstret (eller under takkanten om inget fönster hittades). */
+function husStjarna({ linje, fonster }) {
   if (fonster) {
     const r = Math.max(11, Math.min(30, Math.min(fonster.w, fonster.h) * 0.3));
-    stjarna = adventsstjarna(fonster.x + fonster.w / 2, fonster.y + fonster.h * 0.48, r);
-  } else if (linje.length) {
-    const [mx, my] = linje[Math.floor(linje.length / 2)];
-    stjarna = adventsstjarna(mx, my + 70, 18);
+    return adventsstjarna(fonster.x + fonster.w / 2, fonster.y + fonster.h * 0.48, r);
   }
-  return `<g class="julv-dekor julv-hus">${stjarna}${ljusslinga(lampor, { r: liten ? 10 : 7, fas })}</g>`;
+  if (!linje.length) return "";
+  const [mx, my] = linje[Math.floor(linje.length / 2)];
+  return adventsstjarna(mx, my + 70, 18);
+}
+
+/** Husets juldekor (huset ute): slinga längs takkanten + adventsstjärna. */
+export function husJul(form, { fas = 0 } = {}) {
+  return `<g class="julv-dekor julv-hus">${husStjarna(form)}${ljusslinga(langsLinje(form.linje, 28), { r: 7, fas })}</g>`;
+}
+
+/** Byns minihus: samma dekor, större lampor och inga glorior i den skalan. */
+export function minihusJul(form, { fas = 0 } = {}) {
+  const { trad, blink } = slingaDelar(langsLinje(form.linje, 36), { r: 10, glod: false });
+  return `<g class="julv-dekor julv-hus">${husStjarna(form)}${trad}${blinkGrupp(blink, fas)}</g>`;
+}
+
+// Husen tas ett i taget när webbläsaren har tid över (requestIdleCallback):
+// kopia + rastrering + fönstermätning per hus blev annars en lång task på
+// ~1 s vid laddning av en full by (#909 F3).
+const ko = [];
+let koar = false;
+const ledig = (fn) =>
+  typeof requestIdleCallback === "function" ? requestIdleCallback(fn, { timeout: 60 }) : setTimeout(fn, 16);
+async function nastaHus() {
+  const jobb = ko.shift();
+  if (!jobb) {
+    koar = false;
+    return;
+  }
+  try {
+    await jobb();
+  } catch {} // ren dekor – världen påverkas aldrig
+  ledig(nastaHus);
 }
 
 const pagar = new WeakSet();
 let husNr = 0;
 
+/** Har huset redan sin juldekor? */
+const harJul = (mal) => !!mal.querySelector(":scope > .julv-hus");
+
 function dekoreraHus(mal, liten) {
-  if (pagar.has(mal) || mal.querySelector(":scope > .julv-hus")) return;
+  if (pagar.has(mal) || harJul(mal)) return;
   pagar.add(mal);
-  const fas = (husNr++ * 1.37) % 4.8;
-  husForm(mal)
-    .then((form) => {
-      if (!mal.isConnected || mal.querySelector(":scope > .julv-hus") || !form.linje.length) return;
-      mal.insertBefore(svgFragment(husJul(form, { liten, fas })), mal.querySelector(":scope > foreignObject"));
-    })
-    .catch(() => {}) // ren dekor – världen påverkas aldrig
-    .finally(() => pagar.delete(mal));
+  const fas = husNr++ % 3;
+  ko.push(async () => {
+    try {
+      if (!mal.isConnected || harJul(mal)) return;
+      const form = await husForm(mal);
+      if (!mal.isConnected || harJul(mal) || !form.linje.length) return;
+      const dekor = liten ? minihusJul(form, { fas }) : husJul(form, { fas });
+      mal.insertBefore(svgFragment(dekor), mal.querySelector(":scope > foreignObject"));
+    } finally {
+      pagar.delete(mal);
+    }
+  });
+  if (!koar) {
+    koar = true;
+    ledig(nastaHus);
+  }
 }
 
 // --- Byn, skolan, gården, rummet, porten och spärren -------------------------
@@ -247,6 +285,27 @@ export function julFyll(root) {
 }
 
 const bevakade = new Set();
+
+/**
+ * Blinket (C.1, #909 F2): EN timer för alla slingor flyttar blinkfasen var
+ * 1,6 s (data-julv-fas på varje monterad scen) – CSS ger varje .julv-f0–2
+ * sin opacity. Husen målas om en gång per fasbyte i stället för att en
+ * CSS-animation per hus kostar stil + målning varje bildruta (i byn sänkte
+ * det bildfrekvensen klart under snöns). Står still i dold flik och vid
+ * reducerad rörelse (där lyser alla lampor).
+ */
+let blinkFas = 0;
+const stilla = () =>
+  document.hidden ||
+  !document.documentElement.dataset.jul ||
+  (typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches);
+if (typeof setInterval === "function" && typeof document !== "undefined") {
+  setInterval(() => {
+    if (stilla()) return;
+    blinkFas = (blinkFas + 1) % 3;
+    for (const r of bevakade) if (r.isConnected) r.dataset.julvFas = blinkFas;
+  }, 1600);
+}
 
 /**
  * Fyll `root` nu och igen varje gång något ritas om därunder (byn, huset vid

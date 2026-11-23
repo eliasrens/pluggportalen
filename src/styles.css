@@ -11347,11 +11347,20 @@ html[data-jul] .port-scen .sz-dolj-halloween,
 html[data-jul] .port-overgang .sz-dolj-halloween { display: none; }
 html[data-halloween] .julv-mane { display: none; }
 
+/* Båda tilläggen på: Halloween-djuret vinkar redan där tomten skulle stå på
+   porten och i spärren (#909 F4) – tomten står över. */
+html[data-jul][data-halloween] .julv-port-fram .julv-tomte,
+html[data-jul][data-halloween] .julv-gate .julv-tomte { display: none; }
+
 /* Lärarspärren: julens kvällsbakgrund (gate-bg/gate-bg2 ur JUL_LOGIN_PALETTE).
    Panelen är oförändrad. */
 html[data-jul] body:has(.sz-gate) {
   background: linear-gradient(180deg, var(--sz-gate-bg2, #0f1419), var(--sz-gate-bg, #0f1419)) fixed;
 }
+
+/* "← Tillbaka" på kvällshimlen: --t-muted (#93A2B3) ger 4,06:1 mot
+   #2C3B74 – samma ljusare grå som vinterspärren (#908) ger 5,8:1 (#909 F1). */
+html[data-jul] .sz-gate .back-link:not(:hover) { color: #B4C1CF; }
 
 /* "Lärare →" får kräm-pastillen även när Jul ligger på sommaren (utan
    data-sasong) – kontrasten mot den mörka himlen/marken (WCAG AA). */
@@ -11363,16 +11372,18 @@ html[data-jul] .port-scen .port-larare-lank {
   padding: 3px 10px;
 }
 
-/* Ljusslingorna blinkar mjukt: EN animation per slinga (varannan lampa i
-   .julv-blink), bara opacity, 3 lägen med step-end och lång period – inget
-   mellanläge att räkna fram per bildruta. */
-.julv-blink { animation: julv-blink 4.8s step-end infinite; }
-@keyframes julv-blink {
-  0% { opacity: 1; }
-  33.333% { opacity: 0.35; }
-  66.667% { opacity: 0.75; }
-  100% { opacity: 1; }
-}
+/* Ljusslingorna blinkar mjukt: varannan lampa ligger i EN grupp per slinga
+   (.julv-blink) med en blinkfas .julv-f0–2. jul-varld.js flyttar scenens
+   data-julv-fas (0 → 1 → 2) var 1,6 s med EN timer för alla – bara opacity,
+   3 lägen, och husen målas om bara vid fasbytet (en CSS-animation per hus
+   kostade stil + målning varje bildruta, #909 F2). Stilla i dold flik och vid
+   reducerad rörelse (timern står, alla lampor lyser). */
+[data-julv-fas="1"] .julv-blink.julv-f0,
+[data-julv-fas="2"] .julv-blink.julv-f2,
+[data-julv-fas="0"] .julv-blink.julv-f1 { opacity: 0.35; }
+[data-julv-fas="2"] .julv-blink.julv-f0,
+[data-julv-fas="0"] .julv-blink.julv-f2,
+[data-julv-fas="1"] .julv-blink.julv-f1 { opacity: 0.75; }
 
 /* Tomten vinkar (som Halloween-djuret på porten): ett par vink, sedan vila. */
 .julv-vinkarm {
@@ -11386,9 +11397,10 @@ html[data-jul] .port-scen .port-larare-lank {
   23% { transform: rotate(-6deg); }
 }
 
-/* Pausas i dold flik och är av vid reducerad rörelse (lamporna lyser stilla). */
-html.sz-paus .julv-blink,
+/* Vinket pausas i dold flik och är av vid reducerad rörelse; där lyser också
+   alla lampor stilla. */
 html.sz-paus .julv-vinkarm { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) {
-  .julv-blink, .julv-vinkarm { animation: none; }
+  .julv-vinkarm { animation: none; }
+  .julv-blink { opacity: 1 !important; }
 }
