@@ -8,11 +8,16 @@
 import { EGG_ITEM_ID, LAMP_ITEM_ID } from "./data-pet.js";
 import { APPLE_ITEM_ID } from "./data-pet-mat.js";
 import { isAnimalItem, isFarmAnimalItem } from "./shop-items.js";
+import { getSpecies } from "./art-pets-creatures.js";
 
 /** Bekräftelsetexten för ett köp. `state.appleCount` = äpplen efter köpet. */
 export function kopMeddelande(item, state) {
   if (item.id === EGG_ITEM_ID) return `Du köpte ett mystiskt ägg! 🥚 Det ruvar nu i Mitt rum.`;
-  if (item.hatchSpecies) return `Du köpte ett pumpaägg med ${item.name} i! 🎃 Det ruvar nu i Mitt rum.`;
+  if (item.hatchSpecies) {
+    // Pumpaägg (Halloween, #695) eller julklappsägg (Jul, #912) – äggets namn står på arten.
+    const s = getSpecies(item.hatchSpecies);
+    return `Du köpte ett ${(s && s.eggName) || "ägg"} med ${item.name} i! ${(s && s.eggEmoji) || "🥚"} Det ruvar nu i Mitt rum.`;
+  }
   if (item.id === LAMP_ITEM_ID) return `Du köpte en värmelampa! 🔦 Nu kläcks ägget dubbelt så snabbt.`;
   if (item.id === APPLE_ITEM_ID) {
     return `Du köpte ett äpple! 🍎 Du har nu ${state.appleCount} st – lägg ut dem i Mitt rum så äter husdjuren.`;
