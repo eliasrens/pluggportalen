@@ -62,11 +62,15 @@ by, hus, gård, rum, port och lärarspärr i sommar, höst, höst + Halloween oc
   det om vid varje kamerazoom, vilket gav en frysning på cirka 1 s. Nu körs filtret en
   gång per husskal till en beskuren PNG (blob-URL) som ritas som `<image>`. Byn
   ligger då på 60 fps i vila och har samma zoom-tider som sommaren.
-- **Snöbitmappens upplösning** följer `devicePixelRatio` (högst 2): 1,25 px per
-  konstenhet gånger DPR, med ett tak på 4 Mpx per bild. Filtret rastreras på
-  huvudtråden, och utan tak frös porten i cirka 21 s vid DPR 2 i headless (mot
-  0,9 s förut); med taket blir det cirka 3 s där. Snökanten har också en brantare
-  tröskel, så den är skarp i stället för mjuk.
+- **Snöbitmappens upplösning** följer hur stor snön syns: skärm-px per konstenhet
+  × `devicePixelRatio` (högst 2) × 1,25 för kamerazoom, inom 0,15–2,5 px per enhet,
+  högst 4 Mpx per bild och 10 Mpx för alla synliga tillsammans. Filtret rastreras
+  på huvudtråden i rutor om 160 × 160 px, en ruta per uppgift, så sidan aldrig
+  fryser. Snön dyker upp lite i taget, och tills dess visas SVG-bilden. Längsta
+  uppgift i headless utan GPU (testarens F5): by 106–118 ms, port 96 ms, hus
+  200–238 ms och gård 331–342 ms vid 1× CPU. Vid 4× CPU är det 761, 579, 527 och
+  350 ms. Förut var byn 3 s vid DPR 1 och 18 s vid DPR 2. Snökanten har också en
+  brantare tröskel, så den är skarp.
 - **Vimpelstängerna och krönkloten** på porten är inte med i snökopian. De fick
   annars snöklumpar.
 - **"← Tillbaka" i lärarspärren** är `#B4C1CF` på vintern (5,6:1 mot `#2E4066`).

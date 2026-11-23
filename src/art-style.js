@@ -257,12 +257,20 @@ export function snogubbe(x, y, s = 1) {
 // nyckel → { nr, svg (data-URL), ruta, bild?: {url, x, y, w, h} } – en post per konst + ruta.
 const snoBilder = new Map();
 const snoPoster = []; // nr - 1 → post
-/** Bitmappens upplösning: px per konstenhet vid devicePixelRatio 1, gångras
- *  med DPR (högst 2) så snön är skarp även på HiDPI-skärmar. */
-const SNO_UPPL = 1.25;
-/** Tak för bitmappens yta (px): filtret rastreras på huvudtråden och tiden
- *  växer med ytan (porten vid DPR 2 utan tak: ~4× längre frys). */
+/** Bitmappens upplösning följer hur stor snön faktiskt syns: skärm-px per
+ *  konstenhet × DPR (högst 2) × marginal för kamerazoom, inom [MIN, MAX]. */
+const SNO_DPR_MAX = 2;
+const SNO_MARGINAL = 1.25;
+const SNO_UPPL_MIN = 0.15;
+const SNO_UPPL_MAX = 2.5;
+/** Tak för en bitmapps yta (px) – iOS Safari ritar inte canvas över ~16,7 Mpx. */
 const SNO_MAX_PX = 4e6;
+/** Tak för alla synliga snöbitmappar tillsammans (px): blir det mer sänks
+ *  upplösningen lika mycket för alla. */
+const SNO_SIDA_PX = 10e6;
+/** Filtret rastreras på huvudtråden i rutor om SNO_RUTA × SNO_RUTA px – en
+ *  ruta per uppgift (≲ 30 ms, ≲ 120 ms vid 4× strypt CPU). */
+const SNO_RUTA = 160;
 
 /**
  * Snötäcke på ALLT som vänder sig uppåt i `markup` (tak, skorstenar, krön …) –
@@ -273,8 +281,9 @@ const SNO_MAX_PX = 4e6;
  *   droppar = bandet lite längre ner i "pelare" ur brus → droppande underkant
  *   rundas (blur + tröskel), mörk kontur (dilate), ljusare highlight upptill.
  * Filtret körs INTE i scenen: det ligger i en egen liten SVG (data-URL) som på
- * vintern rastreras EN gång per husskal till en beskuren PNG (snoBitmap) och
- * ritas som <image>. Ett levande filter kördes om varje bildruta så fort något
+ * vintern rastreras per husskal till en beskuren PNG (snoBitmap) och ritas som
+ * <image> – i den storlek snön syns i, ruta för ruta i egna uppgifter så att
+ * sidan aldrig fryser (snön dyker upp lite i taget). Ett levande filter kördes om varje bildruta så fort något
  * i samma SVG rörde sig (byn ~14 fps), och en SVG-bild rastrerades om vid
  * varje kamerazoom (~1 s frys) – en bitmapp skalas gratis.
  * Ritas ovanpå konsten; `ruta` = ytan i konstens koordinater.
@@ -323,38 +332,81 @@ export function snoTak(markup, { x = 0, y = 0, w = 960, h = 600, t = 22 } = {}) 
   // Bitmappen görs bara när vintern faktiskt syns (resten av året ritas
   // <image> aldrig – .sz-bara-vinter är display:none). Slås vintern på efteråt
   // gör season-world.js det via rastreraSnoTak().
-  if (typeof document !== "undefined" && document.documentElement.dataset.sasong === "vinter") starta(post);
-  const b = post.bild || { url: post.svg, ...post.ruta };
+  if (typeof document !== "undefined" && document.documentElement.dataset.sasong === "vinter") planera();
+  const b = post.bild?.url ? post.bild : { url: post.svg, ...post.ruta };
   return `<image class="sz-bara-vinter" data-sno="${post.nr}" href="${b.url}" x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}"
     preserveAspectRatio="none" aria-hidden="true" pointer-events="none"/>`;
 }
 
 const enc = (t) => encodeURIComponent(t);
-
-function starta(post) {
-  if (!post.bild && !post.jobb) post.jobb = snoBitmap(post).catch(() => null);
-}
+const vanta = (ms = 0) => new Promise((r) => setTimeout(r, ms));
+let planerad = false;
+let lyssnar = false;
+let arbetar = false;
 
 /** Vintern slogs på: gör bitmappar av alla snötäcken som redan är ritade. */
 export function rastreraSnoTak() {
-  if (typeof document === "undefined") return;
+  if (typeof document !== "undefined") planera();
+}
+
+/** Skanna (när scenen är inritad) och rastrera det som behövs, en post i taget. */
+function planera() {
+  if (!lyssnar) {
+    lyssnar = true;
+    addEventListener("resize", () => document.documentElement.dataset.sasong === "vinter" && planera());
+  }
+  if (planerad) return;
+  planerad = true;
+  setTimeout(() => {
+    planerad = false;
+    if (!arbetar) kor();
+  }, 50);
+}
+
+/** Upplösning varje post behöver just nu: den största som någon synlig
+ *  <image data-sno> visas i. Poster som redan har (nästan) det hoppas över. */
+function behov() {
+  const dpr = Math.min(globalThis.devicePixelRatio || 1, SNO_DPR_MAX);
+  const per = new Map();
   for (const el of document.querySelectorAll("image[data-sno]")) {
     const post = snoPoster[Number(el.dataset.sno) - 1];
-    if (post) starta(post);
+    const bredd = el.getBoundingClientRect().width;
+    const enheter = Number(el.getAttribute("width"));
+    if (!post || !bredd || !enheter) continue;
+    const u = Math.min(SNO_UPPL_MAX, Math.max(SNO_UPPL_MIN, (bredd / enheter) * dpr * SNO_MARGINAL));
+    per.set(post, Math.max(per.get(post) || 0, u));
+  }
+  let px = 0;
+  for (const [post, u] of per) px += post.ruta.w * post.ruta.h * u * u;
+  const skala = px > SNO_SIDA_PX ? Math.sqrt(SNO_SIDA_PX / px) : 1;
+  return [...per]
+    .map(([post, u]) => [post, Math.max(SNO_UPPL_MIN, u * skala)])
+    .filter(([post, u]) => !post.misslyckad && (!post.bild || post.bild.uppl < u * 0.8));
+}
+
+async function kor() {
+  arbetar = true;
+  try {
+    for (let lista = behov(); lista.length; lista = behov()) {
+      const [post, u] = lista[0];
+      if ((await snoBitmap(post, u).catch(() => null)) === null) post.misslyckad = true;
+    }
+  } finally {
+    arbetar = false;
   }
 }
 
 /**
- * Rastrera snöbilden en gång: SVG:n (med filtret) → canvas → beskuren till
- * snöns yta → PNG (blob-URL). Alla redan ritade <image data-sno> med samma
- * nummer byter till bitmappen. Misslyckas något står SVG-bilden kvar.
+ * Rastrera snöbilden: SVG:n (med filtret) → canvas i rutor (en per uppgift)
+ * → beskuren till snöns yta → PNG (blob-URL). Alla redan ritade
+ * <image data-sno> med samma nummer byter till bitmappen. Misslyckas något
+ * står SVG-bilden kvar.
  */
-async function snoBitmap(post) {
+async function snoBitmap(post, onskad) {
   const { x, y, w, h } = post.ruta;
-  const dpr = Math.min(globalThis.devicePixelRatio || 1, 2);
-  const uppl = Math.min(SNO_UPPL * dpr, Math.sqrt(SNO_MAX_PX / (w * h)));
-  const cw = Math.round(w * uppl);
-  const ch = Math.round(h * uppl);
+  const uppl = Math.min(onskad, Math.sqrt(SNO_MAX_PX / (w * h)));
+  const cw = Math.max(1, Math.round(w * uppl));
+  const ch = Math.max(1, Math.round(h * uppl));
   // SVG:n får canvasens storlek som egen storlek: annars filtreras den i
   // w × h och skalas sedan upp (suddigt).
   const bild = new Image();
@@ -364,20 +416,39 @@ async function snoBitmap(post) {
   c.width = cw;
   c.height = ch;
   const ctx = c.getContext("2d");
-  ctx.drawImage(bild, 0, 0, cw, ch);
-  const { data } = ctx.getImageData(0, 0, cw, ch);
+  // Rutor om ~SNO_RUTA × SNO_RUTA px: filtret behöver en marginal runt varje
+  // ruta (förskjutning, oskärpa), så kvadrater slösar minst.
+  const ruta = document.createElement("canvas");
+  ruta.width = Math.min(cw, SNO_RUTA);
+  ruta.height = Math.min(ch, SNO_RUTA);
+  const rctx = ruta.getContext("2d", { willReadFrequently: true });
   let x0 = cw, y0 = ch, x1 = -1, y1 = -1;
-  for (let py = 0; py < ch; py++) {
-    for (let px = 0; px < cw; px++) {
-      if (data[(py * cw + px) * 4 + 3]) {
-        if (px < x0) x0 = px;
-        if (px > x1) x1 = px;
-        if (py < y0) y0 = py;
-        y1 = py;
+  for (let ry = 0; ry < ch; ry += ruta.height) {
+    for (let rx = 0; rx < cw; rx += ruta.width) {
+      await vanta();
+      rctx.clearRect(0, 0, ruta.width, ruta.height);
+      rctx.drawImage(bild, -rx, -ry, cw, ch);
+      const rw = Math.min(ruta.width, cw - rx);
+      const rh = Math.min(ruta.height, ch - ry);
+      const { data } = rctx.getImageData(0, 0, rw, rh);
+      for (let py = 0; py < rh; py++) {
+        for (let px = 0; px < rw; px++) {
+          if (data[(py * rw + px) * 4 + 3]) {
+            if (rx + px < x0) x0 = rx + px;
+            if (rx + px > x1) x1 = rx + px;
+            if (ry + py < y0) y0 = ry + py;
+            if (ry + py > y1) y1 = ry + py;
+          }
+        }
       }
+      ctx.drawImage(ruta, 0, 0, rw, rh, rx, ry, rw, rh);
     }
   }
-  if (x1 < 0) return null; // ingen snö alls (inget vänder sig uppåt)
+  if (x1 < 0) {
+    post.misslyckad = true; // ingen snö alls (inget vänder sig uppåt)
+    return post;
+  }
+  await vanta();
   const ut = document.createElement("canvas");
   ut.width = x1 - x0 + 1;
   ut.height = y1 - y0 + 1;
@@ -386,7 +457,7 @@ async function snoBitmap(post) {
   if (!blob) return null;
   const f = (n) => +n.toFixed(2);
   post.bild = {
-    url: URL.createObjectURL(blob),
+    url: URL.createObjectURL(blob), uppl,
     x: f(x + x0 / uppl), y: f(y + y0 / uppl), w: f(ut.width / uppl), h: f(ut.height / uppl),
   };
   for (const el of document.querySelectorAll(`image[data-sno="${post.nr}"]`)) {
