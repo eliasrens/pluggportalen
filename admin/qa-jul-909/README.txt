@@ -7,3 +7,4 @@ URL:erna (H/B) står överst i varje skript – byt till dina preview-adresser.
   node fps.mjs               rAF-fps vid 4x CPU (by + port)
   node lt2.mjs               längsta long task vid laddning (4x CPU, DPR 1/2, kall webbläsare)
   node ovr.mjs               Plugga/Läsresan/profil/shop utan juldekor, konsolfel, klick genom dekoren
+  node ret.mjs <shotdir>     omtest fixrunda 1: blinktimer (reducerad rörelse/Jul av/lämna världen), F1-kontrast, F4 tomte
