@@ -24,23 +24,25 @@ Matrisen och fönstret kommer från `preview/preview-vinter-908.html?vy=matris|f
 
 ### QA 19 – bländtestet (1366×768, hela skärmen inklusive sidomenyn)
 
-Kommandot är `node admin/qa-vinter-blandtest.mjs docs/vinter-jul/b-vinter/{by,by-5hus,hus,gard,port,gate}.png`.
+Kommandot är `node admin/qa-vinter-blandtest.mjs docs/vinter-jul/b-vinter/{by,by-1hus,by-5hus,hus,gard,port,gate}.png`.
 
 | Vy | Medelluminans (≤ 215) | Pixlar ≥ 245 (≤ 5 %) | |
 | --- | --- | --- | --- |
-| by | 211.5 | 2.35 % | OK |
-| by-5hus | 213.2 | 1.23 % | OK |
-| hus | 204.7 | 1.27 % | OK |
-| gard | 203.6 | 1.72 % | OK |
-| port | 183.4 | 3.20 % | OK |
-| gate | 53.2 | 0.16 % | OK |
+| by | 208.7 | 2.36 % | OK |
+| by-1hus | 212.3 | 0.90 % | OK |
+| by-5hus | 210.3 | 1.23 % | OK |
+| hus | 204.5 | 1.23 % | OK |
+| gard | 203.4 | 1.67 % | OK |
+| port | 183.4 | 3.31 % | OK |
+| gate | 50.2 | 0.00 % | OK |
 
 Luminansen räknas med Rec. 709 (0,2126 R + 0,7152 G + 0,0722 B).
 
 Paletten fick en justering. Med `hill: #D3E1EE` från B.1 landade byn på 215,9 på hela
 skärmen, eftersom den ljusa sidomenyn är med. Utan sidomenyn var värdet 211,4. En liten
-by med mycket mark låg ännu högre. Därför är `hill` nu `#CAD8E8`. Det ger byn utan
-sidomeny 206,0 med 20 hus och 208,2 med 5 hus, nära färgtestets 206,7.
+by med mycket mark låg ännu högre: med `#CAD8E8` hamnade en by med 1 hus på 215,5
+(testarens F3). Därför är `hill` nu `#C4D3E4`, och byar med 1–5 hus ligger på
+210,3–212,3.
 
 ### QA 20 – sommar och höst är oförändrade
 
@@ -60,6 +62,15 @@ by, hus, gård, rum, port och lärarspärr i sommar, höst, höst + Halloween oc
   det om vid varje kamerazoom, vilket gav en frysning på cirka 1 s. Nu körs filtret en
   gång per husskal till en beskuren PNG (blob-URL) som ritas som `<image>`. Byn
   ligger då på 60 fps i vila och har samma zoom-tider som sommaren.
+- **Snöbitmappens upplösning** följer `devicePixelRatio` (högst 2): 1,25 px per
+  konstenhet gånger DPR, med ett tak på 4 Mpx per bild. Filtret rastreras på
+  huvudtråden, och utan tak frös porten i cirka 21 s vid DPR 2 i headless (mot
+  0,9 s förut); med taket blir det cirka 3 s där. Snökanten har också en brantare
+  tröskel, så den är skarp i stället för mjuk.
+- **Vimpelstängerna och krönkloten** på porten är inte med i snökopian. De fick
+  annars snöklumpar.
+- **"← Tillbaka" i lärarspärren** är `#B4C1CF` på vintern (5,6:1 mot `#2E4066`).
+  Lärarsidans `--t-muted` gav bara 4,0:1 mot den ljusare blå bakgrunden.
 - **Vintersolen** på porten och huset ute är samma sol, men med opacitet 0,8, lite lägre
   och utan strålar.
 - **Granarna i byn** följer `--sz-gran` och blir mörkgröna på vintern. Det gäller också

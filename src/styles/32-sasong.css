@@ -177,6 +177,9 @@ html[data-halloween] body:has(.sz-gate) {
   width: 100%;
   height: 100%;
 }
+/* Vinterns (och julens) blå bakgrund är ljusare än lärarsidans mörka: den
+   dämpade "← Tillbaka" (--t-muted, 4,0:1) blir ljusare så den klarar AA (5,6:1). */
+html[data-sasong="vinter"] .sz-gate .back-link:not(:hover) { color: #B4C1CF; }
 .sz-gate > * { position: relative; z-index: 1; }
 .sz-gate > .sz-gate-dekor { position: fixed; z-index: 0; }
 @keyframes sz-tona-in {

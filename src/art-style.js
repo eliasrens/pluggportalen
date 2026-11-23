@@ -257,8 +257,12 @@ export function snogubbe(x, y, s = 1) {
 // nyckel → { nr, svg (data-URL), ruta, bild?: {url, x, y, w, h} } – en post per konst + ruta.
 const snoBilder = new Map();
 const snoPoster = []; // nr - 1 → post
-/** Bitmappens upplösning (px per konstenhet) – skarp även när kameran zoomar in. */
+/** Bitmappens upplösning: px per konstenhet vid devicePixelRatio 1, gångras
+ *  med DPR (högst 2) så snön är skarp även på HiDPI-skärmar. */
 const SNO_UPPL = 1.25;
+/** Tak för bitmappens yta (px): filtret rastreras på huvudtråden och tiden
+ *  växer med ytan (porten vid DPR 2 utan tak: ~4× längre frys). */
+const SNO_MAX_PX = 4e6;
 
 /**
  * Snötäcke på ALLT som vänder sig uppåt i `markup` (tak, skorstenar, krön …) –
@@ -296,7 +300,7 @@ export function snoTak(markup, { x = 0, y = 0, w = 960, h = 600, t = 22 } = {}) 
       <feComposite in2="SourceAlpha" operator="in" result="droppar"/>
       <feMerge><feMergeNode in="band"/><feMergeNode in="droppar"/></feMerge>
       <feGaussianBlur stdDeviation="${(t * 0.16).toFixed(1)}"/>
-      <feComponentTransfer result="sno"><feFuncA type="linear" slope="5" intercept="-2"/></feComponentTransfer>
+      <feComponentTransfer result="sno"><feFuncA type="linear" slope="14" intercept="-6.5"/></feComponentTransfer>
       <feMorphology in="sno" operator="dilate" radius="3" result="kantA"/>
       <feFlood flood-color="${O}"/><feComposite in2="kantA" operator="in" result="kant"/>
       <feFlood flood-color="${SNO}"/><feComposite in2="sno" operator="in" result="vit"/>
@@ -325,6 +329,8 @@ export function snoTak(markup, { x = 0, y = 0, w = 960, h = 600, t = 22 } = {}) 
     preserveAspectRatio="none" aria-hidden="true" pointer-events="none"/>`;
 }
 
+const enc = (t) => encodeURIComponent(t);
+
 function starta(post) {
   if (!post.bild && !post.jobb) post.jobb = snoBitmap(post).catch(() => null);
 }
@@ -345,11 +351,15 @@ export function rastreraSnoTak() {
  */
 async function snoBitmap(post) {
   const { x, y, w, h } = post.ruta;
+  const dpr = Math.min(globalThis.devicePixelRatio || 1, 2);
+  const uppl = Math.min(SNO_UPPL * dpr, Math.sqrt(SNO_MAX_PX / (w * h)));
+  const cw = Math.round(w * uppl);
+  const ch = Math.round(h * uppl);
+  // SVG:n får canvasens storlek som egen storlek: annars filtreras den i
+  // w × h och skalas sedan upp (suddigt).
   const bild = new Image();
-  bild.src = post.svg;
+  bild.src = post.svg.replace(enc(`width="${w}" height="${h}"`), enc(`width="${cw}" height="${ch}"`));
   await bild.decode();
-  const cw = Math.round(w * SNO_UPPL);
-  const ch = Math.round(h * SNO_UPPL);
   const c = document.createElement("canvas");
   c.width = cw;
   c.height = ch;
@@ -377,7 +387,7 @@ async function snoBitmap(post) {
   const f = (n) => +n.toFixed(2);
   post.bild = {
     url: URL.createObjectURL(blob),
-    x: f(x + x0 / SNO_UPPL), y: f(y + y0 / SNO_UPPL), w: f(ut.width / SNO_UPPL), h: f(ut.height / SNO_UPPL),
+    x: f(x + x0 / uppl), y: f(y + y0 / uppl), w: f(ut.width / uppl), h: f(ut.height / uppl),
   };
   for (const el of document.querySelectorAll(`image[data-sno="${post.nr}"]`)) {
     el.setAttribute("href", post.bild.url);

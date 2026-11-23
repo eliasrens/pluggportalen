@@ -71,7 +71,7 @@ function fagel(x, y, s, driftTid, driftDelay, bobDelay) {
 // --- Pelare med sockel, kapitäl, krönklot och vimpel -------------------------
 // Mjuk skuggning = en halvtransparent kontur-lila remsa längs skuggsidan
 // (fortfarande platt stil, ingen gradient på formerna).
-function pelare(cx, vimpelFarg, vimpelDir, vimpelFas) {
+function pelare(cx, vimpelFarg, vimpelDir, vimpelFas, kron = true) {
   // Vimpeln svajar milt kring sitt fäste vid stången (.portb-vimpel, se
   // <style>-blocket i portScenMajestic – EGNA portb-klasser, rör aldrig
   // .port-halva/#339). transform-box:fill-box → origin i flaggans stångkant.
@@ -89,12 +89,12 @@ function pelare(cx, vimpelFarg, vimpelDir, vimpelFas) {
     <!-- kapitäl: vulst + kronplatta -->
     <rect x="${cx - 40}" y="128" width="80" height="24" rx="9" fill="${STEN_LJUS}" ${LINE}/>
     <rect x="${cx - 47}" y="108" width="94" height="24" rx="7" fill="${STEN}" ${LINE}/>
-    <!-- krönklot i guld + vimpel -->
+    ${kron ? `<!-- krönklot i guld + vimpel -->
     <circle cx="${cx}" cy="98" r="13" fill="${GULD}" ${LINE}/>
     ${limb(`M${cx} 88 L${cx} 56`, WOOD_DARK, 5)}
     <g class="portb-vimpel" style="transform-origin:${origin} center${vimpelFas ? `;animation-duration:4.6s;animation-delay:-1.7s` : ""}">
       <path d="${flag}" fill="${vimpelFarg}" ${LINE}/>
-    </g>
+    </g>` : ""}
   </g>`;
 }
 
@@ -212,16 +212,14 @@ function stenmur(fromX, toX) {
 
 /**
  * Vinterns snö (#908) på pelarkrönen, valvbågen och stenmurarna: snoTak på en
- * stillastående kopia UTAN vimplarna (de svajar) – skylten och grindhalvorna
- * (som rör sig) är inte med. Regionen täcker letterboxen på breda skärmar.
+ * stillastående kopia UTAN krönet (vimplarna svajar, stången fick klumpar) –
+ * skylten och grindhalvorna (som rör sig) är inte med. Regionen täcker
+ * letterboxen på breda skärmar.
  */
 function portSno() {
-  const pelarna = (pelare(195, "", 1, false) + pelare(765, "", -1, true)).replace(
-    /<g class="portb-vimpel"[\s\S]*?<\/g>/g,
-    ""
-  );
+  const pelarna = pelare(195, "", 1, false, false) + pelare(765, "", -1, true, false);
   return snoTak(pelarna + valvbage() + stenmur(-600, 132) + stenmur(828, 1560), {
-    x: -600, y: 40, w: 2160, h: 500, t: 18,
+    x: -600, y: 50, w: 2160, h: 440, t: 18,
   });
 }
 

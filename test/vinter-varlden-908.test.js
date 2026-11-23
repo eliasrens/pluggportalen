@@ -121,12 +121,13 @@ test("gården: snö på laggården och en snögubbe", () => {
   }
 });
 
-test("porten: snö på pelare/båge/mur (utan vimplarna), drivor, vintersol", () => {
+test("porten: snö på pelare/båge/mur (utan krönen), drivor, vintersol", () => {
   const svg = portScenMajestic(portDekor());
   const bild = svg.match(/<image class="sz-bara-vinter" data-sno[^>]*>/)[0];
   const kopia = bildSvg(bild);
-  assert.match(kopia, /viewBox="-600 40 2160 500"/, "täcker letterboxen");
+  assert.match(kopia, /viewBox="-600 50 2160 440"/, "täcker letterboxen");
   assert.doesNotMatch(kopia, /Pluggporten|port-halva|portb-vimpel|#F890B7/, "skylt, grind och vimplar är inte med");
+  assert.doesNotMatch(kopia, /r="13"|M195 88 L195 56/, "krönklot och vimpelstång är inte med (F4: klumpar)");
   assert.match(svg, /class="portb-solgrupp"/);
   assert.match(svg, /class="portb-sol sz-dolj-vinter"/);
   assert.match(CSS, /html\[data-sasong="vinter"\] \.portb-solgrupp \{ opacity: 0\.8;/);
@@ -135,6 +136,8 @@ test("porten: snö på pelare/båge/mur (utan vimplarna), drivor, vintersol", ()
 
 test("lärarspärren: vinterns bakgrund + drivor och en snögubbe", () => {
   assert.match(CSS, /html\[data-sasong\] body:has\(\.sz-gate\)/);
+  // "← Tillbaka" klarar AA (≥ 4,5:1) mot vinterns ljusare blå (F1).
+  assert.match(CSS, /html\[data-sasong="vinter"\] \.sz-gate \.back-link:not\(:hover\) \{ color: #B4C1CF; \}/);
   const svg = gateDekorSvg();
   assert.ok((svg.match(/class="sz-bara-vinter"/g) || []).length >= 4);
 });

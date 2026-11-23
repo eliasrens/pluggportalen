@@ -67,12 +67,12 @@ export const SEASONS = {
     label: "Vinter",
     // B.1 (#906): aldrig helt vit – snön är som ljusast #EEF3F8 (B.2), mörka
     // granar och ett dovt rönnbärsrött (tree-b) som bryter det gröna.
-    // hill justerad #D3E1EE → #CAD8E8 (#908): byn i appen (med den ljusa
-    // sidomenyn) landade annars på medelluminans 215,9 > 215 i bländtestet
-    // (och en liten by med mycket mark ännu högre).
+    // hill justerad #D3E1EE → #C4D3E4 (#908): byn i appen (med den ljusa
+    // sidomenyn) landade annars över 215 i bländtestet – en liten by (1–5
+    // hus) är mest mark och hamnar nu på ≤ 213.
     palette: {
       sky1: "#7DB3E3", sky2: "#E6EEF7",
-      hill: "#CAD8E8", grass: "#E3EBF3", "grass-light": "#EEF3F8", "grass-mid": "#D8E3EE",
+      hill: "#C4D3E4", grass: "#E3EBF3", "grass-light": "#EEF3F8", "grass-mid": "#D8E3EE",
       tuft: "#AFC4D8", "tuft-dark": "#94ABC4",
       "tree-a": "#3F8C6B", "tree-b": "#C9474F", "tree-c": "#2F7A5C", bush: "#5C9C80",
       "port-bg": "#8DBBE6", "port-sky1": "#5E97D6", "port-sky2": "#A9CBEB", "port-sky3": "#F3E4D2",
