@@ -258,9 +258,9 @@ export function snogubbe(x, y, s = 1) {
 const snoBilder = new Map();
 const snoPoster = []; // nr - 1 → post
 /** Bitmappens upplösning följer hur stor snön faktiskt syns: skärm-px per
- *  konstenhet × DPR (högst 2) × marginal för kamerazoom, inom [MIN, MAX]. */
+ *  konstenhet × DPR (högst 2), inom [MIN, MAX]. Zoomar kameran görs den om
+ *  (händelsen varld-kamera-klar), så ingen extra marginal behövs. */
 const SNO_DPR_MAX = 2;
-const SNO_MARGINAL = 1.25;
 const SNO_UPPL_MIN = 0.15;
 const SNO_UPPL_MAX = 2.5;
 /** Tak för en bitmapps yta (px) – iOS Safari ritar inte canvas över ~16,7 Mpx. */
@@ -350,17 +350,21 @@ export function rastreraSnoTak() {
 }
 
 /** Skanna (när scenen är inritad) och rastrera det som behövs, en post i taget. */
-function planera() {
+function planera(ms = 50) {
   if (!lyssnar) {
     lyssnar = true;
-    addEventListener("resize", () => document.documentElement.dataset.sasong === "vinter" && planera());
+    const igen = (ms) => document.documentElement.dataset.sasong === "vinter" && planera(ms);
+    addEventListener("resize", () => igen());
+    // Kameran har zoomat klart (varld-kamera.js): ett hus kan nu synas mycket
+    // större än bitmappen gjordes för. Vänta in att det yttre lagret tonats ut.
+    document.addEventListener("varld-kamera-klar", () => igen(150));
   }
   if (planerad) return;
   planerad = true;
   setTimeout(() => {
     planerad = false;
     if (!arbetar) kor();
-  }, 50);
+  }, ms);
 }
 
 /** Upplösning varje post behöver just nu: den största som någon synlig
@@ -370,10 +374,15 @@ function behov() {
   const per = new Map();
   for (const el of document.querySelectorAll("image[data-sno]")) {
     const post = snoPoster[Number(el.dataset.sno) - 1];
-    const bredd = el.getBoundingClientRect().width;
+    const r = el.getBoundingClientRect();
+    const bredd = r.width;
     const enheter = Number(el.getAttribute("width"));
     if (!post || !bredd || !enheter) continue;
-    const u = Math.min(SNO_UPPL_MAX, Math.max(SNO_UPPL_MIN, (bredd / enheter) * dpr * SNO_MARGINAL));
+    // Bara det som syns: inte utanför fönstret, inte i ett utzoomat/dolt lager.
+    if (r.bottom < 0 || r.right < 0 || r.top > innerHeight || r.left > innerWidth) continue;
+    if (el.closest(".varld-dold")) continue;
+    if (el.checkVisibility && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;
+    const u = Math.min(SNO_UPPL_MAX, Math.max(SNO_UPPL_MIN, (bredd / enheter) * dpr));
     per.set(post, Math.max(per.get(post) || 0, u));
   }
   let px = 0;
@@ -456,6 +465,7 @@ async function snoBitmap(post, onskad) {
   const blob = await new Promise((r) => ut.toBlob(r, "image/png"));
   if (!blob) return null;
   const f = (n) => +n.toFixed(2);
+  const forra = post.bild?.url;
   post.bild = {
     url: URL.createObjectURL(blob), uppl,
     x: f(x + x0 / uppl), y: f(y + y0 / uppl), w: f(ut.width / uppl), h: f(ut.height / uppl),
@@ -466,6 +476,7 @@ async function snoBitmap(post, onskad) {
     el.setAttribute("width", post.bild.w);
     el.setAttribute("height", post.bild.h);
   }
+  if (forra) URL.revokeObjectURL(forra);
   return post.bild;
 }
 
