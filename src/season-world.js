@@ -29,6 +29,7 @@ import {
   themeFor,
 } from "./season-config.js";
 import { lovSvg, snoSvg, fladderSvg, gateDekorSvg, portDekor } from "./art-sasong.js";
+import { rastreraSnoTak } from "./art-style.js";
 
 export { portDekor };
 
@@ -75,6 +76,8 @@ export function applyTheme(state) {
   else delete root.dataset.lov;
   if (theme.sno) root.dataset.sno = "1";
   else delete root.dataset.sno;
+  // Snötäckena på taken (#908): bitmappar av de redan ritade (art-style.js).
+  if (theme.season === "vinter") rastreraSnoTak();
 
   const css = paletteCss(theme);
   let style = document.getElementById("sz-palett");

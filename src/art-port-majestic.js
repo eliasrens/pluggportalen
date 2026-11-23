@@ -22,7 +22,7 @@
 // Laddas (precis som A) alltid DYNAMISKT – aldrig in i bootgrafen (#271).
 // ============================================================================
 
-import { O, LINE, THIN, limb, stjarna, sz } from "./art-style.js";
+import { O, LINE, THIN, limb, stjarna, sz, snoTak, snoKrona } from "./art-style.js";
 
 // Sten ur paletten (stålblå/gråblå + ljus deriverad fog) – pelare och mur.
 const STEN = "#A9C2DE";
@@ -210,6 +210,21 @@ function stenmur(fromX, toX) {
   </g>`;
 }
 
+/**
+ * Vinterns snö (#908) på pelarkrönen, valvbågen och stenmurarna: snoTak på en
+ * stillastående kopia UTAN vimplarna (de svajar) – skylten och grindhalvorna
+ * (som rör sig) är inte med. Regionen täcker letterboxen på breda skärmar.
+ */
+function portSno() {
+  const pelarna = (pelare(195, "", 1, false) + pelare(765, "", -1, true)).replace(
+    /<g class="portb-vimpel"[\s\S]*?<\/g>/g,
+    ""
+  );
+  return snoTak(pelarna + valvbage() + stenmur(-600, 132) + stenmur(828, 1560), {
+    x: -600, y: 40, w: 2160, h: 500, t: 18,
+  });
+}
+
 /** Bred, inbjudande stentrappa upp mot grindöppningen. */
 function trappa() {
   return `<g>
@@ -308,10 +323,11 @@ export function portScenMajestic(dekor = {}) {
     </style>
     <rect x="-2400" y="-1500" width="5760" height="3600" fill="url(#portb-himmel)"/>
 
-    <!-- Gryningssol med mjuk gloria (Halloween: månen i stället, art-sasong.js) -->
-    <g class="sz-dolj-halloween"><circle cx="110" cy="106" r="52" fill="${GULD}" opacity="0.25" stroke="none"/>
-    <g class="portb-sol">${sol}</g>
-    <circle cx="110" cy="106" r="36" fill="${GULD}" ${LINE}/></g>
+    <!-- Gryningssol med mjuk gloria (Halloween: månen i stället, art-sasong.js;
+         vinter: blekare, lägre och utan strålar – .portb-solgrupp i 32-sasong.css) -->
+    <g class="sz-dolj-halloween"><g class="portb-solgrupp"><circle cx="110" cy="106" r="52" fill="${GULD}" opacity="0.25" stroke="none"/>
+    <g class="portb-sol sz-dolj-vinter">${sol}</g>
+    <circle cx="110" cy="106" r="36" fill="${GULD}" ${LINE}/></g></g>
 
     <g class="hus-moln" style="--t:64s">${moln(0, 60, 1.25)}</g>
     <g class="hus-moln" style="--t:47s;animation-delay:-16s">${moln(0, 156, 0.9)}</g>
@@ -329,12 +345,14 @@ export function portScenMajestic(dekor = {}) {
       <circle cx="84" cy="380" r="58" fill="${sz("tree-a", "#6FC66F")}" ${LINE}/>
       <circle cx="44" cy="408" r="33" fill="${sz("tree-b", "#6FC66F")}" ${LINE}/>
       <circle cx="124" cy="406" r="35" fill="${sz("tree-c", "#6FC66F")}" ${LINE}/>
+      ${snoKrona(84, 380, 58)}${snoKrona(44, 408, 33, 0.35)}${snoKrona(124, 406, 35, 0.35)}
       <circle cx="66" cy="370" r="6" fill="#EF6F6C" ${THIN}/>
       <circle cx="106" cy="394" r="6" fill="#EF6F6C" ${THIN}/></g>
     <g>${limb("M876 504 L876 434", WOOD, 13)}
       <circle cx="876" cy="394" r="50" fill="${sz("tree-a", "#6FC66F")}" ${LINE}/>
       <circle cx="842" cy="418" r="28" fill="${sz("tree-c", "#6FC66F")}" ${LINE}/>
       <circle cx="910" cy="416" r="30" fill="${sz("tree-b", "#6FC66F")}" ${LINE}/>
+      ${snoKrona(876, 394, 50)}${snoKrona(842, 418, 28, 0.35)}${snoKrona(910, 416, 30, 0.35)}
       <circle cx="892" cy="386" r="6" fill="#EF6F6C" ${THIN}/></g>
 
     <!-- Stenmur ut mot kanterna (fyller letterboxen) -->
@@ -353,15 +371,18 @@ export function portScenMajestic(dekor = {}) {
     ${pelare(195, "#F890B7", 1, false)}
     ${pelare(765, GULD, -1, true)}
     ${valvbage()}
+    ${portSno()}
     ${skylt()}
 
     <!-- Buskar och blommor vid pelarnas socklar -->
     <circle cx="266" cy="506" r="22" fill="${sz("port-bush", "#58C6A9")}" ${LINE}/>
     <circle cx="296" cy="512" r="15" fill="${sz("tree-c", "#6FC66F")}" ${LINE}/>
+    ${snoKrona(266, 506, 22, 0.35)}${snoKrona(296, 512, 15, 0.3)}
     <circle cx="694" cy="508" r="20" fill="${sz("port-bush", "#58C6A9")}" ${LINE}/>
     <circle cx="666" cy="514" r="14" fill="${sz("tree-a", "#6FC66F")}" ${LINE}/>
-    ${blomma(138, 512, "#F890B7")}${blomma(316, 520, "#F7C948")}
-    ${blomma(644, 522, "#EF6F6C")}${blomma(822, 514, "#B79BE0")}
+    ${snoKrona(694, 508, 20, 0.35)}${snoKrona(666, 514, 14, 0.3)}
+    <g class="sz-dolj-vinter">${blomma(138, 512, "#F890B7")}${blomma(316, 520, "#F7C948")}
+    ${blomma(644, 522, "#EF6F6C")}${blomma(822, 514, "#B79BE0")}</g>
 
     <!-- Trappan upp till öppningen -->
     ${trappa()}

@@ -4,13 +4,14 @@
 // Ren SVG-konst i stilguidens stil (art-style.js) – gulligt-läskigt, aldrig
 // otäckt: stora ögon, runda former, inga tänder. Används av season-world.js
 // (partikellagret: löv/snö + fladdermöss) och inloggningsskärmarna (porten + lärarspärren).
-// Synligheten styrs av klasserna .sz-bara-host / .sz-bara-halloween /
-// .sz-dolj-halloween (styles/32-sasong.css) mot <html data-sasong
-// data-halloween>, så ett säsongsbyte är bara ett attributbyte – ingen
-// omritning. Laddas BARA med import() (#271).
+// Synligheten styrs av klasserna .sz-bara-host / .sz-bara-vinter /
+// .sz-bara-halloween / .sz-dolj-halloween (styles/32-sasong.css) mot <html
+// data-sasong data-halloween>, så ett säsongsbyte är bara ett attributbyte –
+// ingen omritning. Vintern (#908): snödrivor där lövhögarna ligger och en
+// snögubbe i lärarspärren. Laddas BARA med import() (#271).
 // ============================================================================
 
-import { O, LINE, THIN, stjarna, lovhog, pumpaDekor } from "./art-style.js";
+import { O, LINE, THIN, stjarna, lovhog, pumpaDekor, snodriva, snogubbe } from "./art-style.js";
 
 // --- Löven ------------------------------------------------------------------
 // Fyra varianter som ritas EN gång (som strängar) och återanvänds av alla löv.
@@ -98,6 +99,7 @@ export function portDekor() {
   // Halloween-djuret som vinkar (spec §1.5) står framför vänstra pelarfoten;
   // konsten fylls i lazy av season-world.js (src/halloween/, bara när Halloween är på).
   const fram = `${lovhog(112, 552, 1.5)}${lovhog(852, 550, 1.4)}${lovhog(318, 572, 1)}${lovhog(642, 574, 1)}
+    ${snodriva(112, 552, 1.5)}${snodriva(852, 550, 1.4)}${snodriva(318, 572, 1)}${snodriva(642, 574, 1)}
     ${lyktpumpa(96, 560, 1.35)}${pumpaDekor(48, 588, 0.9)}${lyktpumpa(842, 556, 1.2)}${pumpaDekor(300, 584, 0.75)}
     ${vinkdjur(176, 468, 0.95)}`;
   return { bak, fram };
@@ -113,6 +115,7 @@ export function gateDekorSvg() {
     <g class="sz-bara-halloween">${mane(1080, 110, 52)}${stjarna(940, 70, 1.6, "#FDE9A8")}${stjarna(160, 90, 1.4, "#FDE9A8")}${stjarna(260, 180, 1.1, "#FDE9A8")}
       </g>${vinkdjur(1060, 560, 1.15)}
     ${lovhog(90, 690, 2)}${lovhog(1110, 690, 1.8)}${lovhog(230, 696, 1.2)}
+    ${snodriva(90, 690, 2.2)}${snodriva(1110, 690, 2)}${snodriva(230, 696, 1.3)}${snogubbe(1010, 688, 1.6)}
     ${lyktpumpa(110, 690, 1.8)}${pumpaDekor(200, 696, 1.2)}${lyktpumpa(1010, 692, 1.5)}
   </svg>`;
 }

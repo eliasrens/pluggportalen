@@ -11,7 +11,7 @@
 // studentData.garden.placements + ownedItems (Firestore); `emoji` = fallback.
 // ============================================================================
 
-import { O, LINE, THIN, limb, sz, lovhog } from "./art-style.js";
+import { O, LINE, THIN, limb, sz, lovhog, snodriva, snoKrona } from "./art-style.js";
 
 // Palett – samma gröna/trä-toner som ute-scenen (färgas aldrig om av paletten).
 const LOV = "#6FC66F";
@@ -43,10 +43,11 @@ export const GARDEN = {
       `<circle cx="60" cy="60" r="42" fill="${sz("tree-a", LOV)}" ${LINE}/>` +
       `<circle cx="30" cy="82" r="26" fill="${sz("tree-b", LOV)}" ${LINE}/>` +
       `<circle cx="92" cy="80" r="28" fill="${sz("tree-c", LOV)}" ${LINE}/>` +
+      snoKrona(60, 60, 42) + snoKrona(30, 82, 26, 0.35) + snoKrona(92, 80, 28, 0.35) +
       `<path d="M40 46 Q52 40 60 50" fill="none" ${THIN}/>` +
       `<circle cx="46" cy="54" r="6" fill="#EF6F6C" ${THIN}/>` +
       `<circle cx="82" cy="70" r="6" fill="#EF6F6C" ${THIN}/>` +
-      `<circle cx="66" cy="88" r="6" fill="#EF6F6C" ${THIN}/>` + lovhog(88, 147, 0.6),
+      `<circle cx="66" cy="88" r="6" fill="#EF6F6C" ${THIN}/>` + lovhog(88, 147, 0.6) + snodriva(88, 147, 0.6),
   },
 
   // --- Buske: låg rund grönska med små blommor -----------------------------
@@ -58,6 +59,7 @@ export const GARDEN = {
       `<circle cx="30" cy="46" r="24" fill="${sz("bush", LOV_MORK)}" ${LINE}/>` +
       `<circle cx="80" cy="46" r="24" fill="${sz("bush", LOV_MORK)}" ${LINE}/>` +
       `<circle cx="55" cy="34" r="28" fill="${sz("tree-c", LOV)}" ${LINE}/>` +
+      snoKrona(30, 46, 24, 0.3) + snoKrona(80, 46, 24, 0.3) + snoKrona(55, 34, 28, 0.45) +
       `<path d="M40 40 Q55 32 70 40" fill="none" ${THIN}/>` +
       `<circle cx="34" cy="46" r="4.6" fill="#F890B7" ${THIN}/>` +
       `<circle cx="76" cy="48" r="4.6" fill="#F7C948" ${THIN}/>` +
