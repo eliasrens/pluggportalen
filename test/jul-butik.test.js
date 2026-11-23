@@ -106,7 +106,7 @@ test("fliken: Halloween och Jul delar samling-butik.js, undergrupperna i Hallowe
   await loadCollectionArt();
   // Kostymerna läggs sist i båda flikarna (Halloween #693, Jul #911).
   assert.deepEqual(jul.undergrupper.map((g) => g.id), hw.undergrupper.map((g) => g.id));
-  assert.deepEqual(jul.undergrupper.map((g) => g.rubrik), ["🕯️ Dekor och möbler", "⛄ Trädgård", "🏠 Hus", "🦌 Djur", "🎅 Avatarer", "🎭 Kostymer"]);
+  assert.deepEqual(jul.undergrupper.map((g) => g.rubrik), ["🕯️ Dekor och möbler", "⛄ Trädgård", "🏠 Hus", "🦌 Djur", "🎅 Avatarer", "🧣 Kostymer"]);
   const sek = jul.sektioner();
   assert.deepEqual(sek.map((s) => [s.id, s.items.length]), [["inne", 12], ["tradgard", 8], ["hus", 3], ["djur", 10], ["avatarer", 6], ["kostymer", 11]]);
   // Halloween-fliken är orörd av julvarorna och tvärtom.

@@ -45,6 +45,6 @@ export function registreraJulKonst() {
 function registreraJulKostymer() {
   registerShopItems(JUL_KOSTYMER_KATALOG);
   registerWearables(JUL_KOSTYMER);
-  JUL_SAMLING.registreraUndergrupp({ id: "kostymer", rubrik: "🎭 Kostymer", match: (it) => it.category === "klader" });
+  JUL_SAMLING.registreraUndergrupp({ id: "kostymer", rubrik: "🧣 Kostymer", match: (it) => it.category === "klader" });
   registreraJulAvatarer(); // köpbara avatarer: figurer + butikskort
 }
