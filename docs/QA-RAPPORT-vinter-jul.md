@@ -27,8 +27,9 @@ i test 3 via adminfliken. Sidorna kördes i en egen headless Chromium
   Unicodes tabeller): 44 emojier i tillagda rader, högst E12.
 - **Butikens serverkatalog är i synk:** `npm run sync:butik` ger ingen diff.
   Alla sju varutyper köptes mot functions-emulatorn (se Köp).
-- **Fynd:** inga blockerare. Två låga fynd och två observationer (F1–F4), se nedan.
-- **G.2-dokumentationen saknades och är nu skriven:**
+- **Fynd:** inga blockerare. Två låga fynd, där F2 är rättad, och två observationer
+  (F1–F4), se nedan.
+- **G.2-dokumentationen saknades och är nu skriven,** i commit `c17fd875`:
   - nya [SASONGER.md](SASONGER.md)
   - [DATAMODELL.md](DATAMODELL.md): `config/season`, `jul`/`julUntil`, samlingen
     `jul` och `JUL_SPECIES`
@@ -216,10 +217,14 @@ Svaret har tre rader, alla `block`.
 **Förslag:** `.varld-dold .sz-lager { display: none }`, eller pausa lagret. Det är inte
 rättat här, eftersom testaren inte ändrar produktkoden.
 
-### F2 (låg) – julens kostymflik heter "🎭 Kostymer"
+### F2 (låg, RÄTTAD i `7958a776`) – julens kostymflik hette "🎭 Kostymer"
 
-D.1 vill ha 🧣 Kostymer. Julen ärvde Halloweens rubrik i `src/jul/jul-konst.js:48`.
-Det är kosmetiskt.
+D.1 vill ha 🧣 Kostymer, men julen hade ärvt Halloweens rubrik i
+`src/jul/jul-konst.js:48`. Rubriken och testet `test/jul-butik.test.js` är ändrade.
+
+- **Omtest:** `test/jul-*.test.js` 37 av 37. `preview-jul-butik.html` visar nu
+  "🧣 Kostymer" och har 0 konsolfel.
+- **Emoji:** 🧣 är E5.0.
 
 ### F3 (observation) – med Jul och Halloween på samtidigt syns spöket i stället för tomten
 
