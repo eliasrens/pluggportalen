@@ -25,7 +25,7 @@
 //   }
 // ============================================================================
 
-import { avatarMarkup } from "../../avatars.js";
+import { avatarMarkup, avatarKonstKlar } from "../../avatars.js";
 import { ensureLiveCss } from "../live-css.js";
 
 export function ensureDesignCss() {
@@ -33,6 +33,9 @@ export function ensureDesignCss() {
 }
 
 const looksKey = (i) => `${i.avatarId}|${(i.avatarItems || []).join(",")}`;
+
+// Platshållare för lazy konst (köpavatar / säsongskostym, avatars.js).
+const VANTAR = /data-av-vantar|af-kostym-vantar/;
 
 // Liten deterministisk spridning så 30 figurer inte andas i takt.
 function phase(uid) {
@@ -43,7 +46,8 @@ function phase(uid) {
 
 export function createAvatarPool({ roster }) {
   ensureDesignCss();
-  const els = new Map(); // `${slot}\u0000${uid}` → { el, uid, key }
+  const els = new Map(); // `${slot}\u0000${uid}` → { el, uid, key, laker }
+  let destroyed = false;
 
   function draw(rec) {
     const info = roster.info(rec.uid);
@@ -51,11 +55,24 @@ export function createAvatarPool({ roster }) {
     rec.el.classList.toggle("lav-laddar", !info.resolved);
     if (key === rec.key) return;
     rec.key = key;
+    const html = avatarMarkup(info.avatarId, info.avatarItems);
     const tmp = document.createElement("span");
-    tmp.innerHTML = avatarMarkup(info.avatarId, info.avatarItems);
+    tmp.innerHTML = html;
     const fig = rec.el.querySelector(".avatar-figure");
     if (fig) fig.replaceWith(tmp.firstElementChild);
     else rec.el.querySelector(".lav-glow").after(tmp.firstElementChild);
+    // Halloween-QA F2 (#911): avatars.js byter bara platshållare som sitter i
+    // dokumentet. Ett pool-element kan vara frånkopplat (skapat före visning) –
+    // rita därför om när konsten är laddad. En gång per utseende: står
+    // platshållaren kvar (laddningen misslyckades) blir det ingen slinga.
+    if (VANTAR.test(html) && rec.laker !== key) {
+      rec.laker = key;
+      avatarKonstKlar().then(() => {
+        if (destroyed || rec.key !== key) return;
+        rec.key = null;
+        draw(rec);
+      });
+    }
   }
 
   const off = roster.onChange((uids) => {
@@ -89,6 +106,7 @@ export function createAvatarPool({ roster }) {
       els.delete(k);
     },
     destroy() {
+      destroyed = true;
       off();
       for (const rec of els.values()) rec.el.remove();
       els.clear();

@@ -293,6 +293,12 @@ export const KOP_AVATARER = [
   { id: "hw-av-mumie", name: "Gullig mumie", emoji: "🧻", price: 600, collection: "halloween" },
   { id: "hw-av-haxkatt", name: "Häxkatt", emoji: "🐈", price: 700, collection: "halloween" },
   { id: "hw-av-vampyr", name: "Liten vampyr", emoji: "🧛", price: 800, collection: "halloween" },
+  { id: "jul-av-pepparkaksgubbe", name: "Lilla pepparkaksgubben", emoji: "🍪", price: 400, collection: "jul" }, // #911
+  { id: "jul-av-snogubbe", name: "Snögubben", emoji: "⛄", price: 450, collection: "jul" },
+  { id: "jul-av-ren", name: "Liten ren", emoji: "🦌", price: 500, collection: "jul" },
+  { id: "jul-av-pingvin", name: "Pingvin med halsduk", emoji: "🐧", price: 600, collection: "jul" },
+  { id: "jul-av-isbjorn", name: "Isbjörnsunge", emoji: "🐻", price: 700, collection: "jul" },
+  { id: "jul-av-tomtenisse", name: "Tomtenisse", emoji: "🎅", price: 800, collection: "jul" },
 ].map((it) => ({ ...it, category: "avatar" }));
 SHOP_ITEMS.push(...KOP_AVATARER);
 

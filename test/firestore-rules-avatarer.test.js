@@ -48,6 +48,16 @@ describe("köpbara avatarer – studentData.avatarId", () => {
     await assertFails(setDoc(doc(elev("elev2"), "studentData/elev2"), { avatarId: "hw-av-mumie", ownedItems: [] }));
     await assertSucceeds(setDoc(doc(elev("elev2"), "studentData/elev2"), { avatarId: "fox", ownedItems: [] }));
   });
+  it("Jul-avatarer (#911): ej köpt nekas, köpt väljs, gratis orörda", async () => {
+    for (const id of ["jul-av-pepparkaksgubbe", "jul-av-snogubbe", "jul-av-ren", "jul-av-pingvin", "jul-av-isbjorn", "jul-av-tomtenisse"]) {
+      await assertFails(updateDoc(doc(elev("elev1"), SD), { avatarId: id, avatarChosen: true }));
+    }
+    await testEnv.withSecurityRulesDisabled((ctx) =>
+      setDoc(doc(ctx.firestore(), SD), { coins: 0, avatarId: "fox", ownedItems: ["keps", "jul-av-tomtenisse"] }));
+    await assertFails(updateDoc(doc(elev("elev1"), SD), { avatarId: "jul-av-ren" }), "äger en annan Jul-avatar");
+    await assertSucceeds(updateDoc(doc(elev("elev1"), SD), { avatarId: "jul-av-tomtenisse", avatarChosen: true }));
+    await assertSucceeds(updateDoc(doc(elev("elev1"), SD), { avatarId: "penguin" }));
+  });
   it("admin skriver som förut", async () => {
     await assertSucceeds(updateDoc(doc(teacher(), SD), { avatarId: "hw-av-haxkatt" }));
   });

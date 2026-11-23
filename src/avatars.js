@@ -76,9 +76,23 @@ export function canUseAvatar(id, ownedItems) {
   return isBuyableAvatar(id) && Array.isArray(ownedItems) && ownedItems.includes(id);
 }
 
+/** Samling → när den säljs, i löptext ("under Halloween"). Ny samling: lägg till en rad. */
+const SAMLING_NAR = { halloween: "Halloween", jul: "julen" };
+
+/**
+ * När de köpbara avatarerna säljs, för låsta figurer i avatarvalet (#911 F1):
+ * "under Halloween", "under julen" eller "under Halloween och julen".
+ * @param {string[]} ids köpavatarernas id:n
+ */
+export function kopAvatarSaljsNar(ids) {
+  const nar = [...new Set(ids.map((id) => SAMLING_NAR[getItem(id)?.collection]).filter(Boolean))];
+  return nar.length ? `under ${nar.join(" och ")}` : "ibland";
+}
+
 /** Samling → laddare som registrerar samlingens avatarkonst (lazy, #271). */
 const AVATAR_KONST = {
   halloween: () => import("./halloween/hw-avatarer.js").then((m) => m.registreraHalloweenAvatarer()),
+  jul: () => import("./jul/jul-avatarer.js").then((m) => m.registreraJulAvatarer()), // #911
 };
 let konstLaddas = null;
 
@@ -99,6 +113,17 @@ export function loadAvatarArt() {
     }
   });
   return konstLaddas;
+}
+
+/**
+ * Löses när den lazy konst som avatarMarkup kan ha ritat platshållare för är
+ * laddad (köpavatarer + säsongskostymer). Platshållare i dokumentet byts ut av
+ * sig själva; en vy som ritat i ett element UTANFÖR dokumentet (Live-poolen) ritar
+ * om när detta löses (Halloween-QA F2, #911). Löses alltid, även vid fel.
+ */
+export function avatarKonstKlar() {
+  laddaKostymer();
+  return Promise.all([loadAvatarArt(), kostymP]).then(() => {});
 }
 
 /** Är avatarens konst redo att ritas (gratis, eller köpbar + laddad)? */
@@ -150,7 +175,7 @@ export function avatarSvg(id) {
  * Säsongskostymer (`seasonal`, #693) ritas med klassen af-kostym och syns
  * året runt (#799) – bara butiken är säsongsbunden, det eleven äger kan bäras
  * alltid. Katalogen, konsten och säsongstemat laddas lazy
- * (#271): ett buret "hw-"-id som inte laddats än blir en dold platshållare som
+ * (#271): ett buret "hw-"/"jul-"-id som inte laddats än blir en dold platshållare som
  * fylls i när katalogen kommit (laddaKostymer).
  *
  * @param {string} avatarId
@@ -173,8 +198,8 @@ export function avatarMarkup(avatarId, equipped = []) {
   return `<span class="avatar-figure">${behind}<span class="af-base">${avatarSvg(avatarId)}</span>${front}${vantar}</span>`;
 }
 
-/** Säsongssamlingarnas id-prefix (hw- = Halloween, #692/#693) – lazy katalog. */
-const LAZY_ID = /^hw-/;
+/** Säsongssamlingarnas id-prefix (hw- = Halloween #693, jul- = Jul #911) – lazy katalog. */
+const LAZY_ID = /^(hw|jul)-/;
 
 function wearSpan(it) {
   // Vissa ansiktssaker (mustaschen) ankras lägre än ögonlinjen – lägg på

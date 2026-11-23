@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Förhandsvisning – Halloween-kostymer</title>
+    <title>Förhandsvisning – säsongskostymer</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&display=swap"
       rel="stylesheet"
@@ -28,6 +28,8 @@
       .cell .avatar-figure { font-size: 72px; }
       .cell .lbl { font-size: 0.62rem; opacity: 0.75; }
       .cell.kop { background: #f3edff; border-color: #c9b6f2; }
+      .cell.kop.jul { background: #e9f6ef; border-color: #9fd1b5; }
+      #summa { font-weight: 700; margin: 12px 0 0; }
     </style>
     <!-- Firebase-beroenden → lätta stubbar. avatars.js, art-wearables.js, shop-items.js,
          halloween/*, season-world.js, season-store.js och varld-rum-wear.js körs OFÖRÄNDRADE. -->
@@ -43,12 +45,15 @@
   </head>
   <body>
     <div class="preview-bar">
-      <h1>🎃 Halloween-kostymer (issue #693)</h1>
+      <h1>🎃 Halloween- och 🎄 Jul-kostymer (issue #693, #911)</h1>
       <p>
         Garderoben och figuren är den riktiga koden mot en minnes-elev som äger alla
         kostymer. Halloween <b>av</b>: kostymerna syns inte på någon avatar, är gråade
         i garderoben och kan tas av men inte på. Inget sparas om
         (<b id="skriv">0</b> skrivningar). <b>På</b> igen: de syns igen.
+        (Sedan #799 bärs och syns kostymerna året runt – knapparna styr bara butiksläget.)
+        Matrisen: varje kostym på varje avatar – köpbara Halloween (lila) och Jul (grön) först.
+        <code>?samling=jul</code> eller <code>?samling=halloween</code> visar bara den samlingens kostymer.
       </p>
       <div class="knappar">
         <button class="btn" id="pa">Halloween på</button>
@@ -63,6 +68,7 @@
         <div class="figur" id="figur"></div>
         <div class="wear-tray" id="tray"></div>
       </div>
+      <p id="summa"></p>
       <div id="matris"></div>
     </main>
     <script type="module">
@@ -73,10 +79,14 @@
       const { mountWearTray } = await import("/src/varld-rum-wear.js");
       await Promise.all([loadCollectionArt(), loadAvatarArt()]);
 
-      const KOSTYMER = SHOP_ITEMS.filter((it) => it.seasonal);
-      const AVATAR = new URLSearchParams(location.search).get("avatar") || "fox";
+      const Q = new URLSearchParams(location.search);
+      const SAMLING = Q.get("samling");
+      const KOSTYMER = SHOP_ITEMS.filter((it) => it.seasonal && (!SAMLING || it.seasonal === SAMLING));
+      const AVATAR = Q.get("avatar") || "fox";
       __MEM.ownedItems = [...KOSTYMER.map((it) => it.id), "keps", "halsduk"];
-      __MEM.avatarItems = ["hw-haxhatt", "hw-vampyrkrage", "hw-fladdervingar", "hw-godispase"];
+      __MEM.avatarItems = SAMLING === "jul"
+        ? ["jul-luciakrona", "jul-stickad-halsduk", "jul-snoangelvingar", "jul-polkagrisstav"]
+        : ["hw-haxhatt", "hw-vampyrkrage", "hw-fladdervingar", "hw-godispase"];
 
       const figur = document.getElementById("figur");
       globalThis.__ritaFigur = () => { figur.innerHTML = avatarMarkup(AVATAR, __MEM.avatarItems); };
@@ -92,9 +102,15 @@
         matris.insertAdjacentHTML("beforeend", `<h2>${k.name} <small>(${k.slot}, ${k.price} mynt)</small></h2>`);
         const rad = document.createElement("div");
         rad.className = "rad";
-        rad.innerHTML = ALLA.map((av) => `<div class="cell${KOP.includes(av) ? " kop" : ""}">${avatarMarkup(av, [k.id])}<span class="lbl">${av}</span></div>`).join("");
+        rad.innerHTML = ALLA.map((av) => `<div class="cell${KOP.includes(av) ? " kop" : ""}${av.startsWith("jul-") ? " jul" : ""}">${avatarMarkup(av, [k.id])}<span class="lbl">${av}</span></div>`).join("");
         matris.appendChild(rad);
       }
+      // Räkning för QA-test 11: celler, synliga kostymer, platshållare.
+      const celler = matris.querySelectorAll(".cell").length;
+      const synliga = matris.querySelectorAll(".cell .af-kostym svg").length;
+      const vantar = matris.querySelectorAll(".af-kostym-vantar, [data-av-vantar]").length;
+      document.getElementById("summa").textContent =
+        `${KOSTYMER.length} kostymer × ${ALLA.length} avatarer = ${celler} celler, ${synliga} synliga kostymer, ${vantar} platshållare`;
 
       const visa = () => {
         const s = __season.get();
