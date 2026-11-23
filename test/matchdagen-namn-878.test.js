@@ -20,7 +20,7 @@ const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 // Namnen före #878 (de 36 + 32 första) – får inte flyttas eller tas bort.
 const GAMLA_FOR = ["Alvin", "Selma", "Omar", "Wilma", "Leo", "Nora", "Ali", "Alva", "Hugo", "Juni", "Sami", "Ines",
   "Liam", "Maja", "Noah", "Saga", "Adam", "Ebba", "Theo", "Lova", "Isak", "Tilde", "Melvin", "Siri",
-  "Yusuf", "Elsa", "Vincent", "Hedda", "Malte", "Ronja", "Aron", "Leah", "Edvin", "Mira", "Jonatan", "Amira"];
+  "Yusuf", "Elsa", "Vincent", "Salihom", "Malte", "Ronja", "Aron", "Leah", "Edvin", "Mira", "Jonatan", "Amira"];
 const GAMLA_EFTER = ["Berg", "Ek", "Lind", "Ström", "Holm", "Sund", "Dahl", "Falk", "Nyberg", "Ahmadi", "Kaya", "Nilsson",
   "Virtanen", "Hassan", "Lund", "Kovač", "Sandberg", "Björk", "Hedlund", "Öberg", "Mohammed", "Lindqvist",
   "Ali", "Engström", "Fors", "Wikström", "Nyström", "Åberg", "Berglund", "Sjöberg", "Yilmaz", "Hammar"];
