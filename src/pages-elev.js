@@ -5,7 +5,7 @@
 // ============================================================================
 
 import * as data from "./data.js";
-import { AVATARS, avatarSvg, avatarName, avatarMarkup, DEFAULT_AVATAR, buyableAvatars, canUseAvatar, loadAvatarArt } from "./avatars.js";
+import { AVATARS, avatarSvg, avatarName, avatarMarkup, DEFAULT_AVATAR, buyableAvatars, canUseAvatar, loadAvatarArt, kopAvatarSaljsNar } from "./avatars.js";
 import { app, el, go, loading, renderTopbar, getLockGate, escHtml } from "./ui.js";
 import { coinIcon } from "./icons.js";
 // isTeacher re-exporteras inte via data.js – auth.js ligger redan i bootgrafen.
@@ -169,9 +169,9 @@ export async function pageElevAvatar() {
     )
     .join("");
   const lastaHtml = lasta.length
-    ? `<p class="hint avatar-last-hint">🔒 Finns i butiken under Halloween – köper du en är den din för alltid.</p>
+    ? `<p class="hint avatar-last-hint">🔒 Finns i butiken ${kopAvatarSaljsNar(lasta.map((it) => it.id))} – köper du en är den din för alltid.</p>
       <div class="avatar-pick avatar-pick-last">${lasta.map((it) =>
-        `<button class="avatar-opt last" data-last="${it.id}" title="${it.name} – finns i butiken under Halloween" aria-disabled="true">${avatarSvg(it.id)}</button>`).join("")}</div>`
+        `<button class="avatar-opt last" data-last="${it.id}" title="${it.name} – finns i butiken ${kopAvatarSaljsNar([it.id])}" aria-disabled="true">${avatarSvg(it.id)}</button>`).join("")}</div>`
     : "";
 
   const view = el(`<div>
@@ -195,7 +195,7 @@ export async function pageElevAvatar() {
 
   view.querySelector(".avatar-pick-last")?.addEventListener("click", (e) => {
     const b = e.target.closest(".avatar-opt");
-    if (b) msg.innerHTML = `<div class="msg">🔒 ${avatarName(b.dataset.last)} finns i butiken under Halloween.</div>`;
+    if (b) msg.innerHTML = `<div class="msg">🔒 ${avatarName(b.dataset.last)} finns i butiken ${kopAvatarSaljsNar([b.dataset.last])}.</div>`;
   });
 
   grid.addEventListener("click", (e) => {

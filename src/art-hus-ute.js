@@ -17,7 +17,7 @@
 // igenom överallt.
 // ============================================================================
 
-import { O, LINE, THIN, limb, sz, lovhog, pumpaDekor } from "./art-style.js";
+import { O, LINE, THIN, limb, sz, lovhog, pumpaDekor, snoTak, snoKrona, snodriva } from "./art-style.js";
 import { MYSTERY_HUS_SKAL } from "./art-mystery.js";
 import { LYX_HUS_SKAL } from "./art-hus-lyx.js";
 import { NATUR_HUS_SKAL } from "./art-hus-natur.js";
@@ -175,6 +175,9 @@ const HUS_SKAL = {
 /** Fler skal efter start (#692: Halloween-husen laddas lazy, art-items.js). */
 export const registerHusSkal = (reg) => Object.assign(HUS_SKAL, reg);
 
+/** Husskalet + vinterns snötäcke (#908): ute-scenen, byn och husbytet (#910). */
+export const husSkalMedSno = (id = DEFAULT_HUS_SKAL) => husSkalMarkup(id) + snoTak(husSkalMarkup(id), { x: 150, y: 0, w: 660, h: 600 });
+
 /** Exteriör-markup för ett husskal, med säkert fallback till stugan. */
 export function husSkalMarkup(skalId = DEFAULT_HUS_SKAL) {
   return (HUS_SKAL[skalId] || HUS_SKAL[DEFAULT_HUS_SKAL]).markup();
@@ -325,8 +328,8 @@ export function husScen(avatarHtml, { skalId = DEFAULT_HUS_SKAL, skylt = null } 
       <stop offset="0" stop-color="${sz("sky1", "#9AD3F0")}"/><stop offset="1" stop-color="${sz("sky2", "#E8F6FD")}"/>
     </linearGradient></defs>
     <rect x="-2400" y="-1500" width="5760" height="3600" fill="url(#hus-himmel)"/>
-    <g class="hus-solstralar">${sol}</g>
-    <circle cx="110" cy="86" r="34" fill="#F7C948" ${LINE}/>
+    <g class="hus-sol"><g class="hus-solstralar sz-dolj-vinter">${sol}</g>
+    <circle cx="110" cy="86" r="34" fill="#F7C948" ${LINE}/></g>
     <g class="hus-moln" style="--t:62s">${molnArt(0, 70, 1.25)}</g>
     <g class="hus-moln" style="--t:46s;animation-delay:-18s">${molnArt(0, 150, 0.9)}</g>
     <g class="hus-moln" style="--t:75s;animation-delay:-40s">${molnArt(0, 40, 0.7)}</g>
@@ -339,18 +342,20 @@ export function husScen(avatarHtml, { skalId = DEFAULT_HUS_SKAL, skylt = null } 
       <circle cx="800" cy="392" r="52" fill="${sz("tree-a", "#6FC66F")}" ${LINE}/>
       <circle cx="766" cy="416" r="30" fill="${sz("tree-b", "#6FC66F")}" ${LINE}/>
       <circle cx="836" cy="414" r="32" fill="${sz("tree-c", "#6FC66F")}" ${LINE}/>
+      ${snoKrona(800, 392, 52)}${snoKrona(766, 416, 30, 0.35)}${snoKrona(836, 414, 32, 0.35)}
       <circle cx="784" cy="384" r="6" fill="#EF6F6C" ${THIN}/>
       <circle cx="820" cy="404" r="6" fill="#EF6F6C" ${THIN}/></g>
 
     <g id="husgrupp" role="button" tabindex="0" aria-label="Gå in i huset">
-      ${husSkalMarkup(skalId)}
+      ${husSkalMedSno(skalId)}
     </g>
 
     <!-- Gången (trapets, vidgas nedåt): sidorna FORTSÄTTER under viewBoxen ner i
          den övertecknade nederkanten (gräs ritas till y=2100) så vägen når hela
          vägen ner oavsett hur mycket extra gräs kant-i-kant avslöjar (#373). -->
-    <path d="M390 512 Q380 560 340 600 L-520 2100 L1330 2100 L470 600 Q430 556 420 512 Z" fill="#EAD9C0" ${LINE}/>
+    <path d="M390 512 Q380 560 340 600 L-520 2100 L1330 2100 L470 600 Q430 556 420 512 Z" fill="${sz("stig", "#EAD9C0")}" ${LINE}/>
     ${lovhog(760, 512, 1.1)}${lovhog(150, 566, 0.9)}${lovhog(560, 548, 0.8)}${pumpaDekor(500, 534)}${pumpaDekor(645, 548, 0.8)}
+    ${snodriva(760, 512, 1.1)}${snodriva(150, 566, 0.9)}${snodriva(560, 548, 0.8)}
     ${skyltHtml}
     <ellipse cx="395" cy="545" rx="12" ry="5" fill="#D8C4A4" stroke="none"/>
     <ellipse cx="410" cy="575" rx="14" ry="6" fill="#D8C4A4" stroke="none"/>
@@ -391,7 +396,7 @@ export function husScen(avatarHtml, { skalId = DEFAULT_HUS_SKAL, skylt = null } 
 export function husMini({ skalId = DEFAULT_HUS_SKAL, avatarHtml = "" } = {}) {
   return `<svg viewBox="230 100 500 460" aria-hidden="true" focusable="false"
       preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
-    ${husSkalMarkup(skalId)}
+    ${husSkalMedSno(skalId)}
     <foreignObject x="256" y="346" width="120" height="190" pointer-events="none">
       <div xmlns="http://www.w3.org/1999/xhtml" class="varld-avatar">${avatarHtml}</div>
     </foreignObject>

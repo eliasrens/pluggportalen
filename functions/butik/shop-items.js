@@ -293,6 +293,12 @@ export const KOP_AVATARER = [
   { id: "hw-av-mumie", name: "Gullig mumie", emoji: "🧻", price: 600, collection: "halloween" },
   { id: "hw-av-haxkatt", name: "Häxkatt", emoji: "🐈", price: 700, collection: "halloween" },
   { id: "hw-av-vampyr", name: "Liten vampyr", emoji: "🧛", price: 800, collection: "halloween" },
+  { id: "jul-av-pepparkaksgubbe", name: "Lilla pepparkaksgubben", emoji: "🍪", price: 400, collection: "jul" }, // #911
+  { id: "jul-av-snogubbe", name: "Snögubben", emoji: "⛄", price: 450, collection: "jul" },
+  { id: "jul-av-ren", name: "Liten ren", emoji: "🦌", price: 500, collection: "jul" },
+  { id: "jul-av-pingvin", name: "Pingvin med halsduk", emoji: "🐧", price: 600, collection: "jul" },
+  { id: "jul-av-isbjorn", name: "Isbjörnsunge", emoji: "🐻", price: 700, collection: "jul" },
+  { id: "jul-av-tomtenisse", name: "Tomtenisse", emoji: "🎅", price: 800, collection: "jul" },
 ].map((it) => ({ ...it, category: "avatar" }));
 SHOP_ITEMS.push(...KOP_AVATARER);
 
@@ -327,8 +333,8 @@ export function isHouseItem(id) { return getItem(id)?.category === "hus"; }
 /** VANLIGT djur (hund/katt …)? Blir levande djur i roomAnimals (data-animals.js),
  * inte statiska möbler. Ägget/värmelampan (mystery, data-pet.js) räknas inte. */
 export function isAnimalItem(id) {
-  const it = getItem(id);
-  return !!(it && it.category === "husdjur" && !it.farmAnimal && !it.hatchSpecies && id !== "mystery-egg" && id !== "varmelampa");
+  const it = typeof id === "string" ? getItem(id) : id; // id eller katalogpost (lazy varor på servern, #910)
+  return !!(it && it.category === "husdjur" && !it.farmAnimal && !it.hatchSpecies && it.id !== "mystery-egg" && it.id !== "varmelampa");
 }
 
 /** BONDGÅRDSDJUR (häst/ko/gris, #330)? Bor i farm.animals (data-farm.js) och
@@ -357,7 +363,7 @@ const MULTI_CATEGORIES = new Set(["mobler", "dekor", "tradgard"]);
 /** Får man äga flera exemplar (möbler/dekor/trädgård)? Mystery-saker är UNIKA
  * samlarobjekt (dubbletter → coins, data-mystery.js), uppgraderingar likaså. */
 export function isMultiItem(id) {
-  const it = getItem(id);
+  const it = typeof id === "string" ? getItem(id) : id; // id eller katalogpost (lazy varor på servern, #910)
   return !!(it && MULTI_CATEGORIES.has(it.category) && !it.mysteryOnly && !it.farmUpgrade);
 }
 

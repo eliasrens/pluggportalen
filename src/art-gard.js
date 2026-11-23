@@ -20,7 +20,7 @@
 // husScen, så scenerna skalar med .varld-stage utan egna mått.
 // ============================================================================
 
-import { O, LINE, THIN, limb, sz, lovhog } from "./art-style.js";
+import { O, LINE, THIN, limb, sz, lovhog, snodriva, snoKrona, snoTak, snogubbe } from "./art-style.js";
 import { barnPlaceCountForLevel } from "./farm-core.js";
 import { LADA_SKINS } from "./art-lada-skins.js";
 
@@ -116,8 +116,8 @@ function hage() {
   return `<g aria-hidden="true">
     ${shadow(492, 556, 150)}
     <!-- Lite gräs-tuvor inne i hagen -->
-    <path d="M430 540 q4 -14 8 0 M442 540 q4 -10 8 0" fill="none" stroke="#6FA85B" stroke-width="3.5" stroke-linecap="round"/>
-    <path d="M540 536 q4 -14 8 0 M552 536 q4 -10 8 0" fill="none" stroke="#6FA85B" stroke-width="3.5" stroke-linecap="round"/>
+    <g class="sz-dolj-vinter"><path d="M430 540 q4 -14 8 0 M442 540 q4 -10 8 0" fill="none" stroke="#6FA85B" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M540 536 q4 -14 8 0 M552 536 q4 -10 8 0" fill="none" stroke="#6FA85B" stroke-width="3.5" stroke-linecap="round"/></g>
     <!-- Osynlig promenad-zon: bondgårdsdjurens (#330) rörelseyta INNANFÖR
          gärdsgården. gard-djur.js mäter rektangeln i procent av lagret
          (getBoundingClientRect) så zonen följer scenen oavsett skärmformat. -->
@@ -266,11 +266,13 @@ export function gardScen({ gardenTier = 1, barnLevel = 1, barnSkin = null } = {}
     <g>${limb("M60 396 L60 336", WOOD, 12)}
       <circle cx="60" cy="304" r="42" fill="${sz("tree-a", "#6FC66F")}" ${LINE}/>
       <circle cx="32" cy="324" r="24" fill="${sz("tree-b", "#6FC66F")}" ${LINE}/>
-      <circle cx="90" cy="322" r="26" fill="${sz("tree-c", "#6FC66F")}" ${LINE}/></g>${lovhog(100, 404, 0.9)}
+      <circle cx="90" cy="322" r="26" fill="${sz("tree-c", "#6FC66F")}" ${LINE}/>
+      ${snoKrona(60, 304, 42)}${snoKrona(32, 324, 24, 0.35)}${snoKrona(90, 322, 26, 0.35)}</g>${lovhog(100, 404, 0.9)}${snodriva(100, 404, 0.9)}
 
     ${odlingsbadd(gardenTier)}
     ${hage()}
-    ${laggard(barnLevel, barnSkin)}
+    ${laggard(barnLevel, barnSkin)}${snoTak(laggard(barnLevel, barnSkin), { x: 560, y: 60, w: 420, h: 520 })}
+    ${snogubbe(540, 446, 1.15)}
   </svg>`;
 }
 

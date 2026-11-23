@@ -98,6 +98,18 @@
       NAMN.forEach((n, i) => {
         members[`e${i + 1}`] = { namn: n, avatarId: DJUR[i], avatarItems: KLADER[i % KLADER.length], husLast: i === 5 };
       });
+      // ?sasong=1 (#911): de köpbara Jul- och Halloween-avatarerna med säsongskostymer (lazy
+      // konst) – projektorn ska rita dem utan platshållare (Halloween-QA F2).
+      if (new URLSearchParams(location.search).has("sasong")) {
+        const SASONG = [
+          ["jul-av-pepparkaksgubbe", ["jul-tomteluva", "jul-stickad-halsduk"]], ["jul-av-snogubbe", ["jul-oronmuffar"]],
+          ["jul-av-ren", ["jul-luciakrona", "jul-polkagrisstav"]], ["jul-av-pingvin", ["jul-renhorn", "jul-paket"]],
+          ["jul-av-isbjorn", ["jul-rosiga-kinder", "jul-snoangelvingar"]], ["jul-av-tomtenisse", ["jul-tomteskagg", "jul-tomtesack"]],
+          ["hw-av-spoke", ["jul-luciakrona"]], ["hw-av-vampyr", ["jul-tomteluva", "hw-godispase"]], ["fox", ["jul-renhorn", "jul-tomtesack"]],
+          ["owl", ["hw-haxhatt", "jul-stickad-halsduk"]], ["cat", ["jul-snoangelvingar", "jul-oronmuffar"]], ["dog", ["jul-tomteskagg"]],
+        ];
+        SASONG.forEach(([avatarId, avatarItems], i) => Object.assign(members[`e${i + 1}`], { avatarId, avatarItems }));
+      }
 
       // Fejkad klassprojektion: räknar varje läsning (designtest 2).
       let reads = 0;

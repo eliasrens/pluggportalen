@@ -179,6 +179,307 @@ export function lovhog(x, y, s = 1) {
     <path d="M-6 -4 l4 -6 l4 5 Z M20 -2 l3 -5 l3 5 Z" fill="#F2524A" stroke="none"/></g>`;
 }
 
+// --- Vinter (#908, epic #906) ------------------------------------------------
+// Snön är ALDRIG helt vit (B.2): som ljusast SNO, highlights SNO_HL, alltid med
+// mörk kontur. Allt nedan syns bara på vintern (.sz-bara-vinter).
+export const SNO = "#EEF3F8";
+export const SNO_HL = "#F7FAFD";
+const SNO_SKUGGA = "#D3DEEA";
+
+const f1 = (n) => +n.toFixed(1);
+
+/** Snödriva på marken – lövhögens vinterbror, samma position och storlek. */
+export function snodriva(x, y, s = 1) {
+  return `<g class="sz-bara-vinter" transform="translate(${x} ${y}) scale(${s})">
+    <path d="M-32 0 Q-30 -12 -16 -13 Q-8 -22 4 -17 Q14 -24 24 -13 Q33 -10 32 0 Z" fill="${SNO}" ${THIN}/>
+    <path d="M-20 -9 Q-12 -15 -4 -12 M8 -14 Q15 -17 20 -11" fill="none" stroke="${SNO_HL}" stroke-width="3" stroke-linecap="round"/>
+    <path d="M-26 -2 Q0 -6 26 -2" fill="none" stroke="${SNO_SKUGGA}" stroke-width="3" stroke-linecap="round"/></g>`;
+}
+
+/**
+ * Snökappa på en rund trädkrona (cx, cy, r): följer kronans överkant och har en
+ * rundad, lite droppande underkant (B.3). `a` = hur långt ner (0–1 av radien).
+ */
+export function snoKrona(cx, cy, r, a = 0.55) {
+  const p = (grad, rr) => {
+    const v = (grad * Math.PI) / 180;
+    return [cx + rr * Math.cos(v), cy + rr * Math.sin(v)];
+  };
+  const v0 = -90 - 70 * a - 25;
+  const v1 = -90 + 70 * a + 25;
+  const [x0, y0] = p(v0, r + 1);
+  const [x1, y1] = p(v1, r + 1);
+  // Underkanten: punkter innanför kanten, omväxlande djupt (droppar).
+  const djup = [0.08, 0.3, 0.16, 0.38, 0.14, 0.3, 0.08];
+  const pts = djup.map((d, i) => p(v1 - ((v1 - v0) * i) / (djup.length - 1), r * (1 - d) - r * 0.1));
+  let botten = "";
+  for (let i = 1; i < pts.length; i++) {
+    const [ax, ay] = pts[i - 1];
+    const [bx, by] = pts[i];
+    botten += ` Q${f1(ax)} ${f1(ay + r * 0.12)} ${f1((ax + bx) / 2)} ${f1((ay + by) / 2 + r * 0.06)}`;
+  }
+  return `<path class="sz-bara-vinter" d="M${f1(x0)} ${f1(y0)} A${f1(r + 1)} ${f1(r + 1)} 0 0 1 ${f1(x1)} ${f1(y1)}${botten} L${f1(x0)} ${f1(y0)} Z" fill="${SNO}" ${THIN}/>`;
+}
+
+/** Snökappa på en grans topp (spetsen x,y; våningens halvbredd hw och höjd h). */
+export function snoGran(x, y, hw, h) {
+  const k = 0.5;
+  const l = [x - hw * k, y + h * k];
+  const r = [x + hw * k, y + h * k];
+  return `<path class="sz-bara-vinter" d="M${f1(x)} ${f1(y - 1)} L${f1(r[0] + 1)} ${f1(r[1])}
+    Q${f1(x + hw * 0.32)} ${f1(r[1] + h * 0.14)} ${f1(x + hw * 0.18)} ${f1(r[1] - h * 0.02)}
+    Q${f1(x)} ${f1(r[1] + h * 0.16)} ${f1(x - hw * 0.2)} ${f1(l[1] - h * 0.02)}
+    Q${f1(x - hw * 0.34)} ${f1(l[1] + h * 0.12)} ${f1(l[0] - 1)} ${f1(l[1])} Z" fill="${SNO}" ${THIN}/>`;
+}
+
+/**
+ * Gullig snögubbe (B.3): tre runda snöbollar, kolögon, morotsnäsa, röd
+ * halsduk och en liten kvast-arm. Står på (x, y) – y = marken. ~70 hög vid s=1.
+ */
+export function snogubbe(x, y, s = 1) {
+  return `<g class="sz-bara-vinter" transform="translate(${x} ${y}) scale(${s})">
+    <ellipse cx="0" cy="0" rx="26" ry="5" fill="${O}" opacity="0.1"/>
+    <path d="M-17 -40 L-34 -54 M-30 -50 L-36 -50 M17 -40 L33 -52 M29 -49 L34 -56" fill="none" stroke="#8A6242" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="0" cy="-16" r="19" fill="${SNO}" ${LINE}/>
+    <circle cx="0" cy="-43" r="14" fill="${SNO}" ${LINE}/>
+    <circle cx="0" cy="-65" r="11" fill="${SNO}" ${LINE}/>
+    <path d="M-9 -20 Q-4 -30 6 -28" fill="none" stroke="${SNO_HL}" stroke-width="3" stroke-linecap="round"/>
+    <path d="M-12 -55 Q0 -50 12 -55 L12 -51 Q0 -46 -12 -51 Z" fill="#C9474F" ${THIN}/>
+    <path d="M6 -52 L10 -38 L3 -38 L1 -51 Z" fill="#C9474F" ${THIN}/>
+    <circle cx="-4" cy="-68" r="1.9" fill="${O}"/><circle cx="4" cy="-68" r="1.9" fill="${O}"/>
+    <path d="M0 -64 L11 -62 L0 -61 Z" fill="#F2A23A" ${THIN}/>
+    <path d="M-4 -59 Q0 -57 4 -59" fill="none" stroke="${O}" stroke-width="1.4" stroke-linecap="round"/>
+    <ellipse cx="-7" cy="-62" rx="2" ry="1.2" fill="#FFB1B8"/><ellipse cx="7" cy="-62" rx="2" ry="1.2" fill="#FFB1B8"/>
+    <circle cx="0" cy="-44" r="1.8" fill="${O}"/><circle cx="0" cy="-36" r="1.8" fill="${O}"/>
+    <path d="M-10 -74 L10 -74 L8 -84 L-8 -84 Z M-14 -74 L14 -74" fill="#46557A" ${THIN}/></g>`;
+}
+
+// nyckel → { nr, svg (data-URL), ruta, bild?: {url, x, y, w, h} } – en post per konst + ruta.
+const snoBilder = new Map();
+const snoPoster = []; // nr - 1 → post
+/** Bitmappens upplösning följer hur stor snön faktiskt syns: skärm-px per
+ *  konstenhet × DPR (högst 2), inom [MIN, MAX]. Zoomar kameran görs den om
+ *  (händelsen varld-kamera-klar), så ingen extra marginal behövs. */
+const SNO_DPR_MAX = 2;
+const SNO_UPPL_MIN = 0.15;
+const SNO_UPPL_MAX = 2.5;
+/** Tak för en bitmapps yta (px) – iOS Safari ritar inte canvas över ~16,7 Mpx. */
+const SNO_MAX_PX = 4e6;
+/** Tak för alla synliga snöbitmappar tillsammans (px): blir det mer sänks
+ *  upplösningen lika mycket för alla. */
+const SNO_SIDA_PX = 10e6;
+/** Filtret rastreras på huvudtråden i rutor om SNO_RUTA × SNO_RUTA px – en
+ *  ruta per uppgift (≲ 30 ms, ≲ 120 ms vid 4× strypt CPU). */
+const SNO_RUTA = 160;
+
+/**
+ * Snötäcke på ALLT som vänder sig uppåt i `markup` (tak, skorstenar, krön …) –
+ * generiskt, så varje husskal (även Halloween-husen, de legendariska och
+ * framtida hus) och laggården får ett täcke utan egen ritning per takform.
+ * En stillastående kopia av konsten (utan rök) går genom ett SVG-filter:
+ *   band    = silhuetten minus silhuetten flyttad `t` nedåt (överkanterna)
+ *   droppar = bandet lite längre ner i "pelare" ur brus → droppande underkant
+ *   rundas (blur + tröskel), mörk kontur (dilate), ljusare highlight upptill.
+ * Filtret körs INTE i scenen: det ligger i en egen liten SVG (data-URL) som på
+ * vintern rastreras per husskal till en beskuren PNG (snoBitmap) och ritas som
+ * <image> – i den storlek snön syns i, ruta för ruta i egna uppgifter så att
+ * sidan aldrig fryser (snön dyker upp lite i taget). Ett levande filter kördes om varje bildruta så fort något
+ * i samma SVG rörde sig (byn ~14 fps), och en SVG-bild rastrerades om vid
+ * varje kamerazoom (~1 s frys) – en bitmapp skalas gratis.
+ * Ritas ovanpå konsten; `ruta` = ytan i konstens koordinater.
+ */
+export function snoTak(markup, { x = 0, y = 0, w = 960, h = 600, t = 22 } = {}) {
+  const nyckel = `${x},${y},${w},${h},${t}|${markup}`;
+  let post = snoBilder.get(nyckel);
+  if (!post) {
+    // Bilden är ett eget dokument: inga klasser/roller behövs, id:n (clipPath
+    // i konsten) får vara kvar. var(--hus-*) saknas där → svart fyllning,
+    // men filtret läser bara silhuetten (alfa).
+    const kopia = markup
+      .replace(/<g class="hus-rok[^"]*">[\s\S]*?<\/g>/g, "")
+      .replace(/\s(?:class|role|tabindex|aria-[a-z]+)="[^"]*"/g, "");
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${x} ${y} ${w} ${h}" width="${w}" height="${h}">
+    <filter id="f" filterUnits="userSpaceOnUse" x="${x}" y="${y}" width="${w}" height="${h}" color-interpolation-filters="sRGB">
+      <feOffset in="SourceAlpha" dy="${t}" result="ned"/>
+      <feComposite in="SourceAlpha" in2="ned" operator="out" result="band"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.06 0.0001" numOctaves="1" seed="7"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 12 0 0 0 -6.4" result="pelare"/>
+      <feOffset in="band" dy="${t * 0.55}" result="bandNed"/>
+      <feComposite in="bandNed" in2="pelare" operator="in"/>
+      <feComposite in2="SourceAlpha" operator="in" result="droppar"/>
+      <feMerge><feMergeNode in="band"/><feMergeNode in="droppar"/></feMerge>
+      <feGaussianBlur stdDeviation="${(t * 0.16).toFixed(1)}"/>
+      <feComponentTransfer result="sno"><feFuncA type="linear" slope="14" intercept="-6.5"/></feComponentTransfer>
+      <feMorphology in="sno" operator="dilate" radius="3" result="kantA"/>
+      <feFlood flood-color="${O}"/><feComposite in2="kantA" operator="in" result="kant"/>
+      <feFlood flood-color="${SNO}"/><feComposite in2="sno" operator="in" result="vit"/>
+      <feMorphology in="sno" operator="erode" radius="4" result="inre"/>
+      <feOffset in="inre" dy="${(t * 0.3).toFixed(1)}" result="inreNed"/>
+      <feComposite in="inre" in2="inreNed" operator="out" result="hlA"/>
+      <feFlood flood-color="${SNO_HL}"/><feComposite in2="hlA" operator="in" result="hl"/>
+      <feMerge><feMergeNode in="kant"/><feMergeNode in="vit"/><feMergeNode in="hl"/></feMerge>
+    </filter>
+    <g filter="url(#f)">${kopia}</g></svg>`;
+    post = {
+      nr: snoBilder.size + 1,
+      svg: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg.replace(/\s+/g, " "))}`,
+      ruta: { x, y, w, h },
+      bild: null,
+    };
+    snoBilder.set(nyckel, post);
+    snoPoster.push(post);
+  }
+  // Bitmappen görs bara när vintern faktiskt syns (resten av året ritas
+  // <image> aldrig – .sz-bara-vinter är display:none). Slås vintern på efteråt
+  // gör season-world.js det via rastreraSnoTak().
+  if (typeof document !== "undefined" && document.documentElement.dataset.sasong === "vinter") planera();
+  const b = post.bild?.url ? post.bild : { url: post.svg, ...post.ruta };
+  return `<image class="sz-bara-vinter" data-sno="${post.nr}" href="${b.url}" x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}"
+    preserveAspectRatio="none" aria-hidden="true" pointer-events="none"/>`;
+}
+
+const enc = (t) => encodeURIComponent(t);
+const vanta = (ms = 0) => new Promise((r) => setTimeout(r, ms));
+let planerad = false;
+let lyssnar = false;
+let arbetar = false;
+
+/** Vintern slogs på: gör bitmappar av alla snötäcken som redan är ritade. */
+export function rastreraSnoTak() {
+  if (typeof document !== "undefined") planera();
+}
+
+/** Skanna (när scenen är inritad) och rastrera det som behövs, en post i taget. */
+function planera(ms = 50) {
+  if (!lyssnar) {
+    lyssnar = true;
+    const igen = (ms) => document.documentElement.dataset.sasong === "vinter" && planera(ms);
+    addEventListener("resize", () => igen());
+    // Kameran har zoomat klart (varld-kamera.js): ett hus kan nu synas mycket
+    // större än bitmappen gjordes för. Vänta in att det yttre lagret tonats ut.
+    document.addEventListener("varld-kamera-klar", () => igen(150));
+  }
+  if (planerad) return;
+  planerad = true;
+  setTimeout(() => {
+    planerad = false;
+    if (!arbetar) kor();
+  }, ms);
+}
+
+/** Upplösning varje post behöver just nu: den största som någon synlig
+ *  <image data-sno> visas i. Poster som redan har (nästan) det hoppas över. */
+function behov() {
+  const dpr = Math.min(globalThis.devicePixelRatio || 1, SNO_DPR_MAX);
+  const per = new Map();
+  for (const el of document.querySelectorAll("image[data-sno]")) {
+    const post = snoPoster[Number(el.dataset.sno) - 1];
+    const r = el.getBoundingClientRect();
+    const bredd = r.width;
+    const enheter = Number(el.getAttribute("width"));
+    if (!post || !bredd || !enheter) continue;
+    // Bara det som syns: inte utanför fönstret, inte i ett utzoomat/dolt lager.
+    if (r.bottom < 0 || r.right < 0 || r.top > innerHeight || r.left > innerWidth) continue;
+    if (el.closest(".varld-dold")) continue;
+    if (el.checkVisibility && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;
+    const u = Math.min(SNO_UPPL_MAX, Math.max(SNO_UPPL_MIN, (bredd / enheter) * dpr));
+    per.set(post, Math.max(per.get(post) || 0, u));
+  }
+  let px = 0;
+  for (const [post, u] of per) px += post.ruta.w * post.ruta.h * u * u;
+  const skala = px > SNO_SIDA_PX ? Math.sqrt(SNO_SIDA_PX / px) : 1;
+  return [...per]
+    .map(([post, u]) => [post, Math.max(SNO_UPPL_MIN, u * skala)])
+    .filter(([post, u]) => !post.misslyckad && (!post.bild || post.bild.uppl < u * 0.8));
+}
+
+async function kor() {
+  arbetar = true;
+  try {
+    for (let lista = behov(); lista.length; lista = behov()) {
+      const [post, u] = lista[0];
+      if ((await snoBitmap(post, u).catch(() => null)) === null) post.misslyckad = true;
+    }
+  } finally {
+    arbetar = false;
+  }
+}
+
+/**
+ * Rastrera snöbilden: SVG:n (med filtret) → canvas i rutor (en per uppgift)
+ * → beskuren till snöns yta → PNG (blob-URL). Alla redan ritade
+ * <image data-sno> med samma nummer byter till bitmappen. Misslyckas något
+ * står SVG-bilden kvar.
+ */
+async function snoBitmap(post, onskad) {
+  const { x, y, w, h } = post.ruta;
+  const uppl = Math.min(onskad, Math.sqrt(SNO_MAX_PX / (w * h)));
+  const cw = Math.max(1, Math.round(w * uppl));
+  const ch = Math.max(1, Math.round(h * uppl));
+  // SVG:n får canvasens storlek som egen storlek: annars filtreras den i
+  // w × h och skalas sedan upp (suddigt).
+  const bild = new Image();
+  bild.src = post.svg.replace(enc(`width="${w}" height="${h}"`), enc(`width="${cw}" height="${ch}"`));
+  await bild.decode();
+  const c = document.createElement("canvas");
+  c.width = cw;
+  c.height = ch;
+  const ctx = c.getContext("2d");
+  // Rutor om ~SNO_RUTA × SNO_RUTA px: filtret behöver en marginal runt varje
+  // ruta (förskjutning, oskärpa), så kvadrater slösar minst.
+  const ruta = document.createElement("canvas");
+  ruta.width = Math.min(cw, SNO_RUTA);
+  ruta.height = Math.min(ch, SNO_RUTA);
+  const rctx = ruta.getContext("2d", { willReadFrequently: true });
+  let x0 = cw, y0 = ch, x1 = -1, y1 = -1;
+  for (let ry = 0; ry < ch; ry += ruta.height) {
+    for (let rx = 0; rx < cw; rx += ruta.width) {
+      await vanta();
+      rctx.clearRect(0, 0, ruta.width, ruta.height);
+      rctx.drawImage(bild, -rx, -ry, cw, ch);
+      const rw = Math.min(ruta.width, cw - rx);
+      const rh = Math.min(ruta.height, ch - ry);
+      const { data } = rctx.getImageData(0, 0, rw, rh);
+      for (let py = 0; py < rh; py++) {
+        for (let px = 0; px < rw; px++) {
+          if (data[(py * rw + px) * 4 + 3]) {
+            if (rx + px < x0) x0 = rx + px;
+            if (rx + px > x1) x1 = rx + px;
+            if (ry + py < y0) y0 = ry + py;
+            if (ry + py > y1) y1 = ry + py;
+          }
+        }
+      }
+      ctx.drawImage(ruta, 0, 0, rw, rh, rx, ry, rw, rh);
+    }
+  }
+  if (x1 < 0) {
+    post.misslyckad = true; // ingen snö alls (inget vänder sig uppåt)
+    return post;
+  }
+  await vanta();
+  const ut = document.createElement("canvas");
+  ut.width = x1 - x0 + 1;
+  ut.height = y1 - y0 + 1;
+  ut.getContext("2d").drawImage(c, x0, y0, ut.width, ut.height, 0, 0, ut.width, ut.height);
+  const blob = await new Promise((r) => ut.toBlob(r, "image/png"));
+  if (!blob) return null;
+  const f = (n) => +n.toFixed(2);
+  const forra = post.bild?.url;
+  post.bild = {
+    url: URL.createObjectURL(blob), uppl,
+    x: f(x + x0 / uppl), y: f(y + y0 / uppl), w: f(ut.width / uppl), h: f(ut.height / uppl),
+  };
+  for (const el of document.querySelectorAll(`image[data-sno="${post.nr}"]`)) {
+    el.setAttribute("href", post.bild.url);
+    for (const k of ["x", "y"]) el.setAttribute(k, post.bild[k]);
+    el.setAttribute("width", post.bild.w);
+    el.setAttribute("height", post.bild.h);
+  }
+  if (forra) URL.revokeObjectURL(forra);
+  return post.bild;
+}
+
 /** Liten glad pumpa – syns bara under Halloween (.sz-bara-halloween). */
 export function pumpaDekor(x, y, s = 1) {
   return `<g class="sz-bara-halloween" transform="translate(${x} ${y}) scale(${s})">

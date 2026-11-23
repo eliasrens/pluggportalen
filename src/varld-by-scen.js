@@ -81,7 +81,8 @@ export function mountByScen({ lager, meId, students, klasscenter = null }) {
   // Uppstående dekor (träd/granar/buskar/lyktor): egna små SVG:er som bottnar
   // på sin markpunkt. z-index efter markpunktens y ger enkel målarordning så
   // ett träd framför ett hus ritas över det, och bakom ritas under.
-  const dekorHtml = dekor.uppst
+  // Snögubben (#908) ritas likadant men syns bara på vintern (.sz-bara-vinter).
+  const dekorHtml = [...dekor.uppst, ...(dekor.snogubbe ? [dekor.snogubbe] : [])]
     .map((d) => {
       const m = DEKOR_MATT[d.typ];
       return `<div class="by-dekor" style="left:${d.x.toFixed(2)}%;top:${d.y.toFixed(2)}%;width:${(m.w * d.s).toFixed(2)}%;height:${(m.h * d.s).toFixed(2)}%;z-index:${Math.round(d.y * 10)}">${DEKOR_ART[d.typ]()}</div>`;

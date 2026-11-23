@@ -64,7 +64,7 @@ function petArtHtml(pet, expr) {
   return creatureSvg(pet.speciesId, expr, pet.stage || 1) || "🐾";
 }
 
-/** Okläckt ägg: valt djurs ägg (Halloween-pumpaägget, #695) eller mystery-ägget. */
+/** Okläckt ägg: valt djurs ägg (pumpaägget #695, julklappsägget #912) eller mystery-ägget. */
 function petEggSvg(pet) {
   const s = pet && pet.eggSpecies ? getSpecies(pet.eggSpecies) : null;
   return eggSvg(s && s.egg);
@@ -150,7 +150,7 @@ export function petStageNode(pet, selected) {
   // panelen (och namnbyte där) nås fortfarande. Ägg går inte att döpa än.
   const label = pet.hatchedAt
     ? `<span class="rp-namn ${pet.name ? "rp-namn-tap" : "rp-namn-edit"}" data-rename="${pet.id}" title="${pet.name ? "Öppna djurets panel" : "Döp mig ✏️"}">${petDisplayName(pet)}</span>`
-    : `<span class="rp-namn rp-agg">${pet.eggSpecies ? "🎃" : "🥚"} ruvar…</span>`;
+    : `<span class="rp-namn rp-agg">${(pet.eggSpecies && getSpecies(pet.eggSpecies)?.eggEmoji) || "🥚"} ruvar…</span>`;
   const node = el(`<div class="room-item room-pet${stageClass}${selected ? " selected" : ""}"
     data-pet-id="${pet.id}" style="left:${pos.x}%;top:${pos.y}%" title="${petDisplayName(pet)}">
     <span class="ri-emoji">${art}</span>

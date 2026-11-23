@@ -10,7 +10,7 @@
 // Bakgrunden är pointer-events:none och ligger under alla .room-item.
 // ============================================================================
 
-import { O, LINE, THIN, sz } from "./art-style.js";
+import { O, LINE, THIN, sz, SNO, SNO_HL } from "./art-style.js";
 
 /** Procent av scenhöjden där golvet börjar (används av drag & drop-clampen). */
 export const FLOOR_TOP = 62;
@@ -87,6 +87,10 @@ const windowSvg =
   `<g class="rum-moln" style="--t:38s">${moln(0, 58, 0.85)}</g>` +
   `<g class="rum-moln" style="--t:52s;animation-delay:-26s">${moln(0, 122, 0.6)}</g>` +
   `<path d="M8 182 Q100 152 244 178 L244 204 L8 204 Z" fill="${sz("hill", "#A8DA8F")}" stroke="none"/>` +
+  // Vintern (#908): en liten snödriva i fönsterbågens nedre hörn.
+  `<g class="sz-bara-vinter"><path d="M16 198 L16 180 Q26 176 36 182 Q48 172 62 184 Q76 186 84 198 Z" fill="${SNO}" ${THIN}/>` +
+  `<path d="M24 184 Q32 180 38 186" fill="none" stroke="${SNO_HL}" stroke-width="2.5" stroke-linecap="round"/>` +
+  `<path d="M236 198 L236 186 Q222 182 208 192 Q200 194 196 198 Z" fill="${SNO}" ${THIN}/></g>` +
   `</g>` +
   `<path d="M126 10 L126 200 M12 105 L240 105" stroke="${O}" stroke-width="5" stroke-linecap="round"/>` +
   `<rect x="8" y="6" width="236" height="198" rx="12" fill="none" stroke="${O}" stroke-width="6"/>` +

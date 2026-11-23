@@ -1,16 +1,20 @@
 // ============================================================================
-// Pluggporten – säsongen i världen och på inloggningen (#691, epic #689)
+// Pluggporten – säsongen i världen och på inloggningen (#691, epic #689;
+// tillägg + snö #907, epic #906)
 // ----------------------------------------------------------------------------
-// Spec §1.3–1.5, §2.1. Kopplar säsongsläget (season.js, EN lyssnare på
-// config/season) till utseendet:
-//   • <html data-sasong data-halloween data-lov> – synligheten för
-//     säsongsdekor i konsten (.sz-bara-host m.fl., styles/32-sasong.css)
+// Spec §1.3–1.5, §2.1 (Höst/Halloween), A.2/A.4 (Vinter/Jul). Kopplar
+// säsongsläget (season.js, EN lyssnare på config/season) till utseendet:
+//   • <html data-sasong data-lov data-sno> + data-{tillägg} (data-halloween,
+//     data-jul – ur TILLAGG) – synligheten för säsongsdekor i konsten
+//     (.sz-bara-host m.fl., styles/32-sasong.css)
 //   • <style id="sz-palett"> – paletten (SEASONS[...].palette) som
 //     --sz-*-variabler, BARA på världen (.varld-stage, rumsfönstret) och
 //     inloggningen (.port-scen, port-övergångens overlay .port-overgang,
 //     lärarspärren). Sommar = tom = dagens färger.
-//   • lövlager (≤16 löv, CSS transform/opacity) + fladdermöss (Halloween,
-//     bara inloggningen); pausas i dold flik, av vid reducerad rörelse.
+//   • partikellager (PARTIKLAR: löv på hösten ≤16, snö på vintern ≤20 – CSS
+//     transform/opacity) + fladdermöss (Halloween, bara inloggningen); pausas
+//     i dold flik, av vid reducerad rörelse, aldrig klickbara.
+//   • julen (#909): src/jul/jul-varld.js laddas lazy när Jul är på.
 //
 // Ingen blink: applyCachedTheme() läser localStorage SYNKRONT (samma cache som
 // season.js skriver) innan scenen ritas; season.js laddas sedan i bakgrunden
@@ -20,16 +24,20 @@
 
 import {
   SEASON_CACHE_KEY,
-  halloweenActive,
+  TILLAGG,
+  aktivaTillagg,
   normalizeSeason,
   themeFor,
 } from "./season-config.js";
-import { lovSvg, fladderSvg, gateDekorSvg, portDekor } from "./art-sasong.js";
+import { lovSvg, snoSvg, fladderSvg, gateDekorSvg, portDekor } from "./art-sasong.js";
+import { rastreraSnoTak } from "./art-style.js";
 
 export { portDekor };
 
 /** Antal löv per lager (spec: högst ~15–20). */
 export const LOV_ANTAL = 16;
+/** Antal snöflingor per lager (A.4: högst 20). */
+export const SNO_ANTAL = 18;
 const FLADDER_ANTAL = 4;
 
 const lager = new Set(); // monterade lager: { root, sync(theme) }
@@ -60,10 +68,17 @@ export function applyTheme(state) {
   const root = document.documentElement;
   if (theme.season === "sommar") delete root.dataset.sasong;
   else root.dataset.sasong = theme.season;
-  if (theme.halloween) root.dataset.halloween = "1";
-  else delete root.dataset.halloween;
+  // data-halloween, data-jul, … ur registret.
+  for (const t of TILLAGG) {
+    if (theme[t.id]) root.dataset[t.id] = "1";
+    else delete root.dataset[t.id];
+  }
   if (theme.leaves) root.dataset.lov = "1";
   else delete root.dataset.lov;
+  if (theme.sno) root.dataset.sno = "1";
+  else delete root.dataset.sno;
+  // Snötäckena på taken (#908): bitmappar av de redan ritade (art-style.js).
+  if (theme.season === "vinter") rastreraSnoTak();
 
   const css = paletteCss(theme);
   let style = document.getElementById("sz-palett");
@@ -89,7 +104,10 @@ export function applyCachedTheme() {
   } catch {}
   const s = normalizeSeason(raw);
   // Klientklockan duger för FÖRSTA bilden; season.js räknar om mot servern.
-  return applyTheme({ ...s, halloweenActive: halloweenActive(s, Date.now()) });
+  const aktiva = aktivaTillagg(s, Date.now());
+  const st = { ...s };
+  for (const t of TILLAGG) st[`${t.id}Active`] = aktiva.includes(t.id);
+  return applyTheme(st);
 }
 
 /**
@@ -123,7 +141,7 @@ if (typeof document !== "undefined") {
   paus();
 }
 
-// --- Lövlager + fladdermöss ---------------------------------------------------
+// --- Partikellager (löv, snö) + fladdermöss -----------------------------------
 
 /** Deterministiskt "slump" så samma löv alltid ser likadana ut (0–1). */
 const r = (i, k) => {
@@ -145,6 +163,35 @@ export function lovMarkup(antal = LOV_ANTAL) {
   return s;
 }
 
+/**
+ * Snöns markup (A.4): SNO_ANTAL flingor, 4–10 px, rund eller enkel sexuddig
+ * stjärna, genomskinlighet 0,7–0,9. Mjukt fall med svaj, ingen snurr.
+ */
+export function snoMarkup(antal = SNO_ANTAL) {
+  let s = "";
+  for (let i = 0; i < antal; i++) {
+    const d = 9 + r(i, 11) * 8; // fallets längd 9–17 s
+    const style =
+      `--x:${(1 + (98 * (i + r(i, 12))) / antal).toFixed(1)}%;` +
+      `--w:${Math.round(4 + r(i, 13) * 6)}px;--d:${d.toFixed(1)}s;` +
+      `--del:${(-r(i, 14) * d).toFixed(1)}s;--drift:${Math.round(-30 + r(i, 15) * 60)}px;` +
+      `--o:${(0.7 + r(i, 16) * 0.2).toFixed(2)}`;
+    s += `<i class="sz-sno" style="${style}">${snoSvg(i)}</i>`;
+  }
+  return s;
+}
+
+/**
+ * Partikeltyperna: samma lager, montering, paus, reducerad rörelse och
+ * pointer-events:none för alla. `pa(theme)` = ska typen visas; lagret byggs
+ * först när det behövs (sommar = tomma lager). CSS: html[data-{attr}]
+ * .sz-{typ}-lager visas.
+ */
+export const PARTIKLAR = {
+  lov: { pa: (theme) => !!theme.leaves, markup: () => lovMarkup() },
+  sno: { pa: (theme) => !!theme.sno, markup: () => snoMarkup() },
+};
+
 function fladderMarkup() {
   let s = "";
   for (let i = 0; i < FLADDER_ANTAL; i++) {
@@ -157,24 +204,27 @@ function fladderMarkup() {
 }
 
 /**
- * Montera säsongslager i `container` (före `before`, annars sist). Löven och
- * fladdermössen byggs först när temat behöver dem (sommar = tomma lager).
+ * Montera säsongslager i `container` (före `before`, annars sist). Partiklarna
+ * och fladdermössen byggs först när temat behöver dem (sommar = tomma lager).
  */
 function mountLager(container, { fladder = false, before = null } = {}) {
   const root = document.createElement("div");
   root.className = "sz-lager-wrap";
   root.setAttribute("aria-hidden", "true");
-  root.innerHTML = `<div class="sz-lager sz-lov-lager"></div>${fladder ? `<div class="sz-lager sz-fladder-lager"></div>` : ""}`;
+  root.innerHTML =
+    Object.keys(PARTIKLAR).map((typ) => `<div class="sz-lager sz-${typ}-lager"></div>`).join("") +
+    (fladder ? `<div class="sz-lager sz-fladder-lager"></div>` : "");
   root.style.display = "contents";
   container.insertBefore(root, before);
-  const lovEl = root.querySelector(".sz-lov-lager");
+  const partikelEl = Object.entries(PARTIKLAR).map(([typ, p]) => [root.querySelector(`.sz-${typ}-lager`), p]);
   const fladderEl = root.querySelector(".sz-fladder-lager");
   const l = {
     root,
     sync(theme) {
-      if (theme.leaves && !lovEl.firstChild) lovEl.innerHTML = lovMarkup();
+      for (const [el, p] of partikelEl) if (p.pa(theme) && !el.firstChild) el.innerHTML = p.markup();
       if (fladderEl && theme.halloween && !fladderEl.firstChild) fladderEl.innerHTML = fladderMarkup();
       if (theme.halloween) fyllVinkdjur(container);
+      if (theme.jul) fyllJul(container);
     },
   };
   lager.add(l);
@@ -198,8 +248,19 @@ export function fyllVinkdjur(root) {
 }
 
 /**
- * Världen (pages-varld.js): löv i scenen, temat live. Byarna (egen + grannby)
- * får egna löv INNE i by-lagret, mellan husen och namnskyltarna (#732) – scenens
+ * Julen (#909): ljusslingor, granar, tomtar m.m. läggs in i scenerna av
+ * src/jul/jul-varld.js – laddas FÖRST när Jul är på (lazy, som Halloween-djuret
+ * ovan), så inget i sommarens/höstens konst ändras.
+ */
+let julP = null;
+function fyllJul(container) {
+  julP ||= import("./jul/jul-varld.js");
+  julP.then((m) => m.julMontera(container)).catch(() => {}); // ren dekor
+}
+
+/**
+ * Världen (pages-varld.js): löv/snö i scenen, temat live. Byarna (egen + grannby)
+ * får egna löv/snö INNE i by-lagret, mellan husen och namnskyltarna (#732) – scenens
  * löv ligger över hela lagret och döljs där (32-sasong.css).
  */
 export function mountVarldSasong(stage) {
@@ -209,14 +270,14 @@ export function mountVarldSasong(stage) {
   startLive();
 }
 
-/** Elevernas port-scen: löv + fladdermöss direkt efter port-SVG:n (under skylten). */
+/** Elevernas port-scen: löv/snö + fladdermöss direkt efter port-SVG:n (under skylten). */
 export function mountPortSasong(scen) {
   const svg = scen.querySelector(":scope > svg");
   mountLager(scen, { fladder: true, before: svg ? svg.nextSibling : scen.firstChild });
   startLive();
 }
 
-/** Lärarspärren (teacher-shared.js renderGate): dekor runt panelen + löv. */
+/** Lärarspärren (teacher-shared.js renderGate): dekor runt panelen + löv/snö. */
 export function mountGateSasong(view) {
   if (!current) applyCachedTheme();
   view.classList.add("sz-gate");

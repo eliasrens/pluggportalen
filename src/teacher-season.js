@@ -1,10 +1,12 @@
 // ============================================================================
 // Pluggporten – lärarsidan: Säsong (teacher-season.js, #690, epic #689)
 // ----------------------------------------------------------------------------
-// #/larare/admin/sasong – BARA för admin (spec UTVECKLINGSUPPDRAG_HOST_HALLOWEEN.md §1.2):
-//   * Säsong: Sommar / Höst (en knapp per nyckel i SEASONS)
-//   * Halloween: Av / På + slutdatum (förval 2 nov 23.59, kan ändras eller
-//     tas bort – efter datumet räknas Halloween som av för alla automatiskt)
+// #/larare/admin/sasong – BARA för admin (spec UTVECKLINGSUPPDRAG_HOST_HALLOWEEN.md §1.2,
+// UTVECKLINGSUPPDRAG_VINTER_JUL.md A.3):
+//   * Säsong: Sommar / Höst / Vinter (en knapp per nyckel i SEASONS)
+//   * en rad per tillägg i TILLAGG (Halloween, Jul): Av / På + slutdatum
+//     (förval enligt standardTill, kan ändras eller tas bort – efter datumet
+//     räknas tillägget som av för alla automatiskt)
 //   * enkel förhandsvisning av världen med de valda inställningarna
 //   * bekräftelse innan sparning: "Detta ändras för alla elever direkt."
 // Skriver config/season via season.js (reglerna släpper bara in admin).
@@ -13,11 +15,43 @@
 
 import { el, esc, errText, icon, isTeacher, renderGate, teacherHead, teacherNav } from "./teacher-shared.js";
 import {
-  SEASONS, defaultHalloweenUntil, describeSeason, formatUntil, fromLocalInput, toLocalInput,
+  SEASONS, TILLAGG, defaultTillaggUntil, describeSeason, formatUntil, fromLocalInput, toLocalInput,
 } from "./season-config.js";
 
 const HASH = "#/larare/admin/sasong";
 export const CONFIRM_TEXT = "Detta ändras för alla elever direkt.";
+export const JUL_TIPS = "Tips: Vinter passar ihop med Jul.";
+
+/** Tilläggets hjälptext under raden. */
+const TILLAGG_HINT = {
+  halloween: `När Halloween är på syns Halloween-sektionen i butiken och kostymerna kan bäras.
+              Allt som köpts finns kvar året runt.`,
+  jul: "När Jul är på får världen och inloggningen juldekor. Fungerar ovanpå alla säsonger.",
+};
+
+/** Fältens id:n – Halloween behåller sina från #690 (ts-hw, ts-until, ts-inget). */
+const tid = (t) =>
+  t.id === "halloween"
+    ? { radio: "ts-hw", until: "ts-until", inget: "ts-inget" }
+    : { radio: `ts-${t.id}`, until: `ts-until-${t.id}`, inget: `ts-inget-${t.id}` };
+
+/** Ett tilläggs rad i formuläret (samma utseende för alla tillägg). */
+function tillaggRad(t) {
+  const i = tid(t);
+  return `<fieldset class="ts-grupp" data-tillagg="${esc(t.id)}"><legend>${esc(t.label)}</legend>
+            <div class="ts-knappar">
+              <label class="ts-opt"><input type="radio" name="${i.radio}" value="av" /> <span>Av</span></label>
+              <label class="ts-opt"><input type="radio" name="${i.radio}" value="pa" /> <span>På</span></label>
+            </div>
+            <div class="ts-slut">
+              <div class="field"><label for="${i.until}">Slutdatum <small>(stängs automatiskt för alla efter det)</small></label>
+                <input id="${i.until}" type="datetime-local" /></div>
+              <label class="ts-inget"><input type="checkbox" id="${i.inget}" /> Inget slutdatum</label>
+              <button type="button" class="btn ghost small" data-forval="1">Förval: ${esc(t.standardText)}</button>
+            </div>
+            ${TILLAGG_HINT[t.id] ? `<p class="hint">${TILLAGG_HINT[t.id]}</p>` : ""}
+          </fieldset>`;
+}
 
 function ensureCss() {
   if (document.querySelector('link[data-ts-css="1"]')) return;
@@ -53,13 +87,13 @@ export async function pageLarareSasong(ctx) {
 
 function renderForm(season, now) {
   const cur = season.getSeason();
-  // Formulärets läge (sparas först efter bekräftelsen).
-  const val = {
-    season: cur.season,
-    halloween: cur.halloween,
-    // Saknat datum: förvalet om Halloween är av, annars "inget slutdatum".
-    until: cur.halloweenUntil ?? (cur.halloween ? null : defaultHalloweenUntil(now())),
-  };
+  // Formulärets läge (sparas först efter bekräftelsen): säsongen + per tillägg
+  // { pa, until }. Saknat datum: förvalet om tillägget är av, annars "inget slutdatum".
+  const val = { season: cur.season, tl: {} };
+  for (const t of TILLAGG) {
+    const pa = !!cur[t.falt];
+    val.tl[t.id] = { pa, until: cur[t.tillFalt] ?? (pa ? null : defaultTillaggUntil(t.id, now())) };
+  }
   const node = el(`<div class="ts-wrap">
     <div class="panel ts-nu" role="status" aria-live="polite"></div>
     <form class="panel ts-form" novalidate>
@@ -70,23 +104,11 @@ function renderForm(season, now) {
               `<label class="ts-opt"><input type="radio" name="ts-season" value="${esc(k)}" /> <span>${esc(s.label)}</span></label>`).join("")}</div>
             <p class="hint">Gäller huset utifrån, trädgården, byn och grannbyn – inte spelen, Plugga, Live eller lärarsidan.</p>
           </fieldset>
-          <fieldset class="ts-grupp"><legend>Halloween</legend>
-            <div class="ts-knappar">
-              <label class="ts-opt"><input type="radio" name="ts-hw" value="av" /> <span>Av</span></label>
-              <label class="ts-opt"><input type="radio" name="ts-hw" value="pa" /> <span>På</span></label>
-            </div>
-            <div class="ts-slut">
-              <div class="field"><label for="ts-until">Slutdatum <small>(stängs automatiskt för alla efter det)</small></label>
-                <input id="ts-until" type="datetime-local" /></div>
-              <label class="ts-inget"><input type="checkbox" id="ts-inget" /> Inget slutdatum</label>
-              <button type="button" class="btn ghost small" data-forval="1">Förval: 2 nov 23.59</button>
-            </div>
-            <p class="hint">När Halloween är på syns Halloween-sektionen i butiken och kostymerna kan bäras.
-              Allt som köpts finns kvar året runt.</p>
-          </fieldset>
+          ${TILLAGG.map(tillaggRad).join("")}
         </div>
         <figure class="ts-forhand"><div class="ts-svg"></div>
-          <figcaption class="hint">Förhandsvisning (förenklad)</figcaption></figure>
+          <figcaption class="hint">Förhandsvisning (förenklad)</figcaption>
+          <p class="msg ts-tips" hidden>${esc(JUL_TIPS)}</p></figure>
       </div>
       <div class="ts-fel" role="alert"></div>
       <div class="ts-bekrafta" hidden>
@@ -104,8 +126,12 @@ function renderForm(season, now) {
   </div>`);
   const $ = (s) => node.querySelector(s);
   const form = $(".ts-form");
-  const untilEl = $("#ts-until");
-  const ingetEl = $("#ts-inget");
+  // Per tillägg: radens element.
+  const rader = TILLAGG.map((t) => {
+    const i = tid(t);
+    const rad = node.querySelector(`[data-tillagg="${t.id}"]`);
+    return { t, i, rad, untilEl: rad.querySelector(`#${i.until}`), ingetEl: rad.querySelector(`#${i.inget}`), forval: rad.querySelector("[data-forval]") };
+  });
   const fel = $(".ts-fel");
   const bekrafta = $(".ts-bekrafta");
   const sparaRad = $(".ts-spara-rad");
@@ -121,16 +147,22 @@ function renderForm(season, now) {
     visaNu(s);
   });
 
+  const aktivt = (v) => v.pa && (v.until == null || v.until > now());
   const sync = () => {
     form.querySelector(`input[name="ts-season"][value="${val.season}"]`).checked = true;
-    form.querySelector(`input[name="ts-hw"][value="${val.halloween ? "pa" : "av"}"]`).checked = true;
-    ingetEl.checked = val.until == null;
-    untilEl.value = toLocalInput(val.until);
-    untilEl.disabled = !val.halloween || val.until == null;
-    ingetEl.disabled = !val.halloween;
-    $("[data-forval]").disabled = !val.halloween;
-    $(".ts-slut").classList.toggle("ts-av", !val.halloween);
-    $(".ts-svg").innerHTML = previewSvg(val.season, val.halloween && (val.until == null || val.until > now()));
+    for (const { t, i, rad, untilEl, ingetEl, forval } of rader) {
+      const v = val.tl[t.id];
+      rad.querySelector(`input[name="${i.radio}"][value="${v.pa ? "pa" : "av"}"]`).checked = true;
+      ingetEl.checked = v.until == null;
+      untilEl.value = toLocalInput(v.until);
+      untilEl.disabled = !v.pa || v.until == null;
+      ingetEl.disabled = !v.pa;
+      forval.disabled = !v.pa;
+      rad.querySelector(".ts-slut").classList.toggle("ts-av", !v.pa);
+    }
+    $(".ts-svg").innerHTML = previewSvg(val.season, aktivt(val.tl.halloween), { jul: aktivt(val.tl.jul) });
+    // A.2: Jul kräver inte vinter, men tipset visas under Sommar/Höst.
+    $(".ts-tips").hidden = !(val.tl.jul.pa && val.season !== "vinter");
     stang();
   };
   const stang = () => {
@@ -140,39 +172,54 @@ function renderForm(season, now) {
 
   form.querySelectorAll('input[name="ts-season"]').forEach((r) =>
     r.addEventListener("change", () => ((val.season = r.value), sync())));
-  form.querySelectorAll('input[name="ts-hw"]').forEach((r) =>
-    r.addEventListener("change", () => {
-      val.halloween = r.value === "pa";
-      if (val.halloween && val.until != null && val.until <= now()) val.until = defaultHalloweenUntil(now());
+  for (const { t, i, rad, untilEl, ingetEl, forval } of rader) {
+    const v = val.tl[t.id];
+    const forvalt = () => defaultTillaggUntil(t.id, now());
+    rad.querySelectorAll(`input[name="${i.radio}"]`).forEach((r) =>
+      r.addEventListener("change", () => {
+        v.pa = r.value === "pa";
+        if (v.pa && v.until != null && v.until <= now()) v.until = forvalt();
+        sync();
+      }));
+    ingetEl.addEventListener("change", () => {
+      v.until = ingetEl.checked ? null : forvalt();
       sync();
-    }));
-  ingetEl.addEventListener("change", () => {
-    val.until = ingetEl.checked ? null : defaultHalloweenUntil(now());
-    sync();
-  });
-  untilEl.addEventListener("change", () => {
-    val.until = fromLocalInput(untilEl.value);
-    sync();
-  });
-  $("[data-forval]").addEventListener("click", () => ((val.until = defaultHalloweenUntil(now())), sync()));
+    });
+    untilEl.addEventListener("change", () => {
+      v.until = fromLocalInput(untilEl.value);
+      sync();
+    });
+    forval.addEventListener("click", () => ((v.until = forvalt()), sync()));
+  }
 
   form.addEventListener("submit", (ev) => {
     ev.preventDefault();
     fel.innerHTML = "";
-    if (val.halloween && !ingetEl.checked && val.until == null) {
-      fel.innerHTML = `<div class="msg error">Skriv ett slutdatum – eller kryssa i Inget slutdatum.</div>`;
-      return;
-    }
-    if (val.halloween && val.until != null && val.until <= now()) {
-      fel.innerHTML = `<div class="msg error">Slutdatumet har redan passerat – välj ett datum framåt.</div>`;
-      return;
+    for (const { t, ingetEl } of rader) {
+      const v = val.tl[t.id];
+      if (v.pa && !ingetEl.checked && v.until == null) {
+        fel.innerHTML = `<div class="msg error">${esc(t.label)}: skriv ett slutdatum – eller kryssa i Inget slutdatum.</div>`;
+        return;
+      }
+      if (v.pa && v.until != null && v.until <= now()) {
+        fel.innerHTML = `<div class="msg error">${esc(t.label)}: slutdatumet har redan passerat – välj ett datum framåt.</div>`;
+        return;
+      }
     }
     $(".ts-sammanfatt").textContent = `Nytt läge: ${describeSeason(spara(), now())}.`;
     bekrafta.hidden = false;
     sparaRad.hidden = true;
     $("[data-ja]").focus();
   });
-  const spara = () => ({ season: val.season, halloween: val.halloween, halloweenUntil: val.halloween ? val.until : null });
+  const spara = () => {
+    const s = { season: val.season };
+    for (const t of TILLAGG) {
+      const v = val.tl[t.id];
+      s[t.falt] = v.pa;
+      s[t.tillFalt] = v.pa ? v.until : null;
+    }
+    return s;
+  };
   $("[data-nej]").addEventListener("click", stang);
   let saving = false;
   $("[data-ja]").addEventListener("click", async () => {
@@ -182,8 +229,9 @@ function renderForm(season, now) {
     try {
       await season.saveSeason(spara());
       const s = spara();
-      fel.innerHTML = `<div class="msg ok">✓ Sparat. Eleverna ser nu: ${esc(describeSeason(s, now()))}${
-        s.halloween && s.halloweenUntil ? ` – Halloween stängs automatiskt ${esc(formatUntil(s.halloweenUntil, now()))}` : ""}.</div>`;
+      const stangs = TILLAGG.filter((t) => s[t.falt] && s[t.tillFalt])
+        .map((t) => ` – ${t.label} stängs automatiskt ${formatUntil(s[t.tillFalt], now())}`).join("");
+      fel.innerHTML = `<div class="msg ok">✓ Sparat. Eleverna ser nu: ${esc(describeSeason(s, now()))}${esc(stangs)}.</div>`;
       stang();
     } catch (err) {
       fel.innerHTML = `<div class="msg error">${esc(errText(err))}</div>`;
@@ -196,25 +244,51 @@ function renderForm(season, now) {
   return node;
 }
 
-/** Enkel världsvy: himmel, gräs, hus, träd – höstlöv och pumpa/måne efter valen. */
-export function previewSvg(seasonKey, halloween) {
+/**
+ * Enkel världsvy: himmel, gräs, hus, träd – höstlöv/snö och pumpa/måne/julgran
+ * efter valen. `opt.jul` = Jul på (världen behåller dagsljuset, C).
+ */
+export function previewSvg(seasonKey, halloween, opt = {}) {
   const p = (SEASONS[seasonKey] || SEASONS.sommar).preview;
   const leaves = SEASONS[seasonKey]?.dekor?.leaves;
+  const sno = SEASONS[seasonKey]?.dekor?.sno;
+  const jul = !!opt.jul;
   const sky = halloween ? "#4B3F7A" : p.sky;
   const lov = leaves
     ? [[60, 40, 0], [150, 70, 1], [250, 30, 2], [205, 110, 0], [95, 120, 2], [300, 85, 1]]
         .map(([x, y, i]) => `<ellipse cx="${x}" cy="${y}" rx="6" ry="3.5" fill="${p.tree[i]}" stroke="#3B3350" stroke-width="1.2" transform="rotate(${x % 70 - 35} ${x} ${y})"/>`).join("")
     : "";
+  // Snö (A.4): flingor i #F4F8FC med blågrå kontur, aldrig knallvitt.
+  const flingor = sno
+    ? [[40, 30], [120, 22], [200, 48], [262, 70], [100, 64], [318, 110], [24, 120], [180, 18], [240, 128], [300, 160]]
+        .map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${2 + (i % 3)}" fill="#F4F8FC" stroke="#9FB4CB" stroke-width="1" opacity="0.85"/>`).join("")
+    : "";
+  // Snötäcke på taket och kapporna på trädet.
+  const snotak = sno
+    ? `<path d="M134 94l34-28 34 28q-6 6-12 2q-5 6-11 1q-6 6-11 0q-6 6-11 0q-6 5-11-1q-6 5-12-2z" fill="#EEF3F8" stroke="#3B3350" stroke-width="2" stroke-linejoin="round"/>
+       <path d="M40 72q25-22 50 0q-6 5-12 1q-6 6-13 0q-7 6-13 0q-6 4-12-1z" fill="#EEF3F8" stroke="#3B3350" stroke-width="1.8" stroke-linejoin="round"/>`
+    : "";
+  const julgran = jul
+    ? `<g transform="translate(276 158)">
+         <rect x="-4" y="-6" width="8" height="10" fill="#8A6242" stroke="#3B3350" stroke-width="1.6"/>
+         <path d="M0-58l-16 24h7l-12 18h8l-12 16h50l-12-16h8l-12-18h7z" fill="#2F7A5C" stroke="#3B3350" stroke-width="2" stroke-linejoin="round"/>
+         <circle cx="-6" cy="-30" r="2.6" fill="#EF6F6C"/><circle cx="7" cy="-20" r="2.6" fill="#F7C948"/><circle cx="-9" cy="-10" r="2.6" fill="#7FC7E8"/><circle cx="10" cy="-6" r="2.6" fill="#EF6F6C"/>
+         <path d="M0-68l2.6 5.4 5.8.8-4.2 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.2-4.1 5.8-.8z" fill="#F7C948" stroke="#3B3350" stroke-width="1.4" stroke-linejoin="round"/>
+         <rect x="-26" y="-2" width="12" height="10" rx="1.5" fill="#EF6F6C" stroke="#3B3350" stroke-width="1.6"/><path d="M-20-2v10" stroke="#F7C948" stroke-width="2"/></g>
+       <path d="M124 103q11 7 22 0q11 7 22 0q11 7 22 0q11 7 22 0" fill="none" stroke="#3B3350" stroke-width="1.4"/>
+       ${[[135, 107, "#F7C948"], [157, 107, "#EF6F6C"], [179, 107, "#6FC66F"], [201, 107, "#F7C948"]].map(([x, y, f]) => `<circle cx="${x}" cy="${y}" r="3" fill="${f}" stroke="#3B3350" stroke-width="1.2"/>`).join("")}`
+    : "";
   const himmel = halloween
     ? `<circle cx="290" cy="38" r="20" fill="#FFF3DC" stroke="#3B3350" stroke-width="2"/>`
-    : `<circle cx="290" cy="38" r="16" fill="#F7C948" stroke="#3B3350" stroke-width="2"/>`;
+    : `<circle cx="290" cy="38" r="16" fill="#F7C948" stroke="#3B3350" stroke-width="2"${sno ? ` opacity="0.8"` : ""}/>`;
   const pumpa = halloween
     ? `<g transform="translate(232 168)"><ellipse cx="0" cy="0" rx="17" ry="13" fill="#F49E4C" stroke="#3B3350" stroke-width="2.2"/>
          <path d="M-6 0v-12M0 1v-13M6 0v-12" stroke="#D97A2B" stroke-width="1.6" fill="none"/>
          <path d="M0-13q2-6 6-6" stroke="#58C6A9" stroke-width="3" fill="none" stroke-linecap="round"/>
          <path d="M-8-3l3-3 3 3zM2-3l3-3 3 3z" fill="#3B3350"/><path d="M-7 5q7 5 14 0" stroke="#3B3350" stroke-width="2" fill="none" stroke-linecap="round"/></g>`
     : "";
-  return `<svg viewBox="0 0 340 200" role="img" aria-label="Förhandsvisning: ${esc((SEASONS[seasonKey] || SEASONS.sommar).label)}${halloween ? " med Halloween" : ""}">
+  const med = [halloween && "Halloween", jul && "Jul"].filter(Boolean).join(" och ");
+  return `<svg viewBox="0 0 340 200" role="img" aria-label="Förhandsvisning: ${esc((SEASONS[seasonKey] || SEASONS.sommar).label)}${med ? ` med ${med}` : ""}">
     <rect width="340" height="200" fill="${sky}"/>${himmel}
     <path d="M0 150q85-18 170 0t170 0V200H0z" fill="${p.grass}" stroke="#3B3350" stroke-width="2"/>
     <rect x="58" y="96" width="14" height="60" rx="4" fill="#8A6242" stroke="#3B3350" stroke-width="2"/>
@@ -226,6 +300,6 @@ export function previewSvg(seasonKey, halloween) {
     <rect x="160" y="124" width="18" height="34" rx="3" fill="#B0805A" stroke="#3B3350" stroke-width="2"/>
     <rect x="138" y="114" width="16" height="14" rx="2" fill="${halloween ? "#B79BE0" : "#7FC7E8"}" stroke="#3B3350" stroke-width="2"/>
     <rect x="184" y="114" width="16" height="14" rx="2" fill="${halloween ? "#B79BE0" : "#7FC7E8"}" stroke="#3B3350" stroke-width="2"/>
-    ${pumpa}${lov}
+    ${snotak}${pumpa}${julgran}${lov}${flingor}
   </svg>`;
 }

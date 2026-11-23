@@ -109,7 +109,9 @@ Datamodellen: `docs/DATAMODELL.md` (Matchdagen), behörigheterna: `docs/BEHORIGH
 
 En sida med kort (`ADMIN_KORT`); bara admin. Klassverktygen öppnas i en panel under korten (`?verktyg=skapa|dopom|tabort`),
 de andra korten leder till sina sidor. Underraden under Admin: **Översikt** (korten) · **Lärarkonton** (`#/larare/konton`) ·
-**Säsong** (`#/larare/admin/sasong`, Sommar/Höst och Halloween). Sidan läser inget när den öppnas; klasserna läses först när
+**Säsong** (`#/larare/admin/sasong`, `src/teacher-season.js`): Sommar · Höst · Vinter, och en rad per tillägg i registret (Halloween, Jul) med På/Av och
+slutdatum eller "Inget slutdatum". Förhandsvisningen ritar valt läge, och med Jul under Sommar eller Höst visas "Tips: Vinter passar ihop med
+Jul." Sparas efter bekräftelsen "Ja, ändra för alla" (se [SASONGER.md](SASONGER.md)). Sidan läser inget när den öppnas; klasserna läses först när
 ett klassverktyg öppnas. Skapa klass landar på klassens Elever med lösenorden kvar att skriva ut. Elever, mynt och
 Klasscentret för en klass ligger i Mina klasser → Elever (inte på Admin). Det finns ingen "Klasser & elevkonton" längre.
 

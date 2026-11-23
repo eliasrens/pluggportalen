@@ -8081,7 +8081,8 @@ body:has(.teacher-dark) .container {
    Säsonger i världen + inloggningen (#691, epic #689)
    ==========================================================================
    <html data-sasong="host" data-halloween="1" data-lov="1"> sätts av
-   season-world.js (saknas = sommar = exakt som i dag). Färgerna kommer som
+   season-world.js (saknas = sommar = exakt som i dag). Vinter/Jul (#907):
+   data-sasong="vinter", data-sno="1", data-jul="1" (tilläggen ur TILLAGG). Färgerna kommer som
    --sz-*-variabler (paletten i season-config.js, inskriven av season-world.js
    i <style id="sz-palett">) och SVG-konsten läser dem via sz() i art-style.js.
    Här bor bara synlighet, lövens/fladdermössens rörelse och temabakgrunder. */
@@ -8092,6 +8093,16 @@ body:has(.teacher-dark) .container {
 html[data-sasong="host"] .sz-bara-host,
 html[data-halloween] .sz-bara-halloween { display: inline; }
 html[data-halloween] .sz-dolj-halloween { display: none; }
+/* Vintern (#908): snötäcken, kappor, drivor och snögubbar (.sz-bara-vinter);
+   blommor och tuvor bort (.sz-dolj-vinter). */
+.sz-bara-vinter { display: none; }
+html[data-sasong="vinter"] .sz-bara-vinter { display: inline; }
+html[data-sasong="vinter"] .sz-dolj-vinter { display: none; }
+
+/* Vintersolen på porten (B.4): samma sol, men blekare och lägre och utan
+   strålar (.portb-sol har .sz-dolj-vinter) – den får inte se ut som sommar. */
+html[data-sasong="vinter"] .portb-solgrupp { opacity: 0.8; transform: translateY(34px); }
+html[data-sasong="vinter"] .hus-sol { opacity: 0.8; transform: translateY(24px); }
 
 /* By-/skolnivåns stage-bakgrund (gräset under scen-boxen, 18-varld.css). */
 @media (min-width: 821px) {
@@ -8106,8 +8117,8 @@ html[data-halloween] .sz-dolj-halloween { display: none; }
 .port-scen,
 .port-overgang { background: var(--sz-port-bg, #bde3f5); }
 
-/* --- Fallande löv ---------------------------------------------------------
-   Högst 16 löv, BARA transform + opacity (kompositorn, ingen layout och
+/* --- Partikellagret: fallande löv (höst) och snö (vinter, #907) -----------
+   Högst 16 löv / 20 flingor, BARA transform + opacity (kompositorn, ingen layout och
    ingen JS per bildruta). EN animation per löv (fall + svaj + snurr i samma
    transform) = ett kompositorlager per löv. pointer-events:none → hindrar
    aldrig klick. */
@@ -8118,8 +8129,9 @@ html[data-halloween] .sz-dolj-halloween { display: none; }
   pointer-events: none;
   contain: strict;
 }
-.sz-lov-lager, .sz-fladder-lager { display: none; }
+.sz-lov-lager, .sz-sno-lager, .sz-fladder-lager { display: none; }
 html[data-lov] .sz-lov-lager,
+html[data-sno] .sz-sno-lager,
 html[data-halloween] .sz-fladder-lager { display: block; }
 
 .sz-lov {
@@ -8139,6 +8151,28 @@ html[data-halloween] .sz-fladder-lager { display: block; }
   75% { transform: translate3d(calc(var(--drift, 40px) * 0.75 + 18px), calc(var(--h, 100vh) * 0.75 + 40px), 0) rotate(60deg); }
   90% { opacity: 1; }
   100% { transform: translate3d(var(--drift, 40px), calc(var(--h, 100vh) + 80px), 0) rotate(10deg); opacity: 0; }
+}
+
+/* Snöflingor (A.4): 4–10 px, #F4F8FC med 1 px blågrå kontur (art-sasong.js),
+   genomskinlighet 0,7–0,9 (--o). Mjukt fall med svaj – ingen snurr. */
+.sz-sno {
+  position: absolute;
+  top: -16px;
+  left: var(--x);
+  width: var(--w, 6px);
+  height: var(--w, 6px);
+  opacity: 0;
+  animation: sz-snoa var(--d, 12s) ease-in-out var(--del, 0s) infinite;
+}
+.sz-sno svg { display: block; width: 100%; height: 100%; overflow: visible; }
+@keyframes sz-snoa {
+  0% { transform: translate3d(0, 0, 0); opacity: 0; }
+  6% { opacity: var(--o, 0.8); }
+  25% { transform: translate3d(calc(var(--drift, 0px) * 0.25 + 12px), calc(var(--h, 100vh) * 0.25), 0); }
+  50% { transform: translate3d(calc(var(--drift, 0px) * 0.5 - 12px), calc(var(--h, 100vh) * 0.5 + 10px), 0); }
+  75% { transform: translate3d(calc(var(--drift, 0px) * 0.75 + 12px), calc(var(--h, 100vh) * 0.75 + 20px), 0); }
+  94% { opacity: var(--o, 0.8); }
+  100% { transform: translate3d(var(--drift, 0px), calc(var(--h, 100vh) + 40px), 0); opacity: 0; }
 }
 
 /* Fladdermöss (bara inloggningen under Halloween): flyger förbi uppe i
@@ -8170,6 +8204,7 @@ html[data-halloween] .sz-fladder-lager { display: block; }
 
 /* Pausa i dold flik (season-world.js sätter .sz-paus) … */
 html.sz-paus .sz-lov,
+html.sz-paus .sz-sno,
 html.sz-paus .sz-fladder,
 html.sz-paus .sz-fladder > i { animation-play-state: paused; }
 /* … och inne i rummet/laggården (rummet följer inte säsongen, §1.3). */
@@ -8204,7 +8239,7 @@ html.sz-paus .sz-fladder > i { animation-play-state: paused; }
 /* --- Lärarspärren (#/larare) ----------------------------------------------
    Panelen är OFÖRÄNDRAD (samma kontrast). Temat = bakgrunden + dekor i
    hörnen runt panelen, bakom den (aldrig ovanpå text). */
-html[data-sasong="host"] body:has(.sz-gate),
+html[data-sasong] body:has(.sz-gate),
 html[data-halloween] body:has(.sz-gate) {
   background: linear-gradient(180deg, var(--sz-gate-bg2, #0f1419), var(--sz-gate-bg, #0f1419)) fixed;
 }
@@ -8221,6 +8256,9 @@ html[data-halloween] body:has(.sz-gate) {
   width: 100%;
   height: 100%;
 }
+/* Vinterns (och julens) blå bakgrund är ljusare än lärarsidans mörka: den
+   dämpade "← Tillbaka" (--t-muted, 4,0:1) blir ljusare så den klarar AA (5,6:1). */
+html[data-sasong="vinter"] .sz-gate .back-link:not(:hover) { color: #B4C1CF; }
 .sz-gate > * { position: relative; z-index: 1; }
 .sz-gate > .sz-gate-dekor { position: fixed; z-index: 0; }
 @keyframes sz-tona-in {
@@ -8307,6 +8345,11 @@ html[data-halloween] .port-scen .port-larare-lank {
 /* Fladdermusvingarna (anchor "vingar"): hela figurens bredd, från hjässan –
    rygg-boxen i 08-avatar-klader.css är för smal för att vingarna ska synas. */
 .af-wear.af-rygg.af-anchor-vingar { top: 14%; width: 100%; height: 56%; }
+
+/* Jul (#911): tomteskägget hänger från munnen ner över hakan, och tomtesäcken
+   sticker upp bakom axeln bredvid huvudet – båda behöver större boxar. */
+.af-wear.af-ansikte.af-anchor-skagg { top: 30%; width: 58%; height: 28%; }
+.af-wear.af-rygg.af-anchor-sack { top: 18%; width: 80%; height: 60%; }
 
 /* ── src/styles/35-schack.css ── */
 /* ==========================================================================
@@ -11298,3 +11341,84 @@ html.md-helskarm-sida .sidebar, html.md-helskarm-sida .hamburger, html.md-helska
 
 /* Klassväljarens 📅 (bredvid 🔒). */
 .teacher-dark .mk-schema { display: inline-flex; font-size: 0.95em; line-height: 1; }
+
+/* ── src/styles/53-jul.css ── */
+/* ==========================================================================
+   Julen i världen, på porten och i lärarspärren (#909, epic #906, C.1–C.3)
+   ==========================================================================
+   <html data-jul="1"> sätts av season-world.js (ur TILLAGG). Konsten läggs in
+   av src/jul/jul-varld.js (lazy, bara när Jul är på) och bär .julv-dekor.
+   Julen är mysig, inte mörk: världen behåller säsongens dagsljus – bara
+   inloggningen får kvällshimmel (JUL_LOGIN_PALETTE), som för Halloween. */
+
+/* Synlighet, som .sz-bara-halloween / .sz-dolj-halloween (32-sasong.css). */
+.sz-bara-jul { display: none; }
+html[data-jul] .sz-bara-jul { display: inline; }
+html[data-jul] .sz-dolj-jul { display: none; }
+/* Jul av (live) → juldekoren som redan lagts in döljs. */
+html:not([data-jul]) .julv-dekor { display: none !important; }
+
+/* Porten i julkvällen: solen och fåglarna bort (#907 F1). De bär redan
+   .sz-dolj-halloween i art-port-majestic.js – samma mekanik. Båda tilläggen
+   på: Halloween-månen står där, julens måne behövs inte. */
+html[data-jul] .port-scen .sz-dolj-halloween,
+html[data-jul] .port-overgang .sz-dolj-halloween { display: none; }
+html[data-halloween] .julv-mane { display: none; }
+
+/* Båda tilläggen på: Halloween-djuret vinkar redan där tomten skulle stå på
+   porten och i spärren (#909 F4) – tomten står över. */
+html[data-jul][data-halloween] .julv-port-fram .julv-tomte,
+html[data-jul][data-halloween] .julv-gate .julv-tomte { display: none; }
+
+/* Lärarspärren: julens kvällsbakgrund (gate-bg/gate-bg2 ur JUL_LOGIN_PALETTE).
+   Panelen är oförändrad. */
+html[data-jul] body:has(.sz-gate) {
+  background: linear-gradient(180deg, var(--sz-gate-bg2, #0f1419), var(--sz-gate-bg, #0f1419)) fixed;
+}
+
+/* "← Tillbaka" på kvällshimlen: --t-muted (#93A2B3) ger 4,06:1 mot
+   #2C3B74 – samma ljusare grå som vinterspärren (#908) ger 5,8:1 (#909 F1). */
+html[data-jul] .sz-gate .back-link:not(:hover) { color: #B4C1CF; }
+
+/* "Lärare →" får kräm-pastillen även när Jul ligger på sommaren (utan
+   data-sasong) – kontrasten mot den mörka himlen/marken (WCAG AA). */
+html[data-jul] .port-scen .port-larare-lank {
+  opacity: 1;
+  background: #FFF3DC;
+  border: 2px solid #3B3350;
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+/* Ljusslingorna blinkar mjukt: varannan lampa ligger i EN grupp per slinga
+   (.julv-blink) med en blinkfas .julv-f0–2. jul-varld.js flyttar scenens
+   data-julv-fas (0 → 1 → 2) var 1,6 s med EN timer för alla – bara opacity,
+   3 lägen, och husen målas om bara vid fasbytet (en CSS-animation per hus
+   kostade stil + målning varje bildruta, #909 F2). Stilla i dold flik och vid
+   reducerad rörelse (timern står, alla lampor lyser). */
+[data-julv-fas="1"] .julv-blink.julv-f0,
+[data-julv-fas="2"] .julv-blink.julv-f2,
+[data-julv-fas="0"] .julv-blink.julv-f1 { opacity: 0.35; }
+[data-julv-fas="2"] .julv-blink.julv-f0,
+[data-julv-fas="0"] .julv-blink.julv-f2,
+[data-julv-fas="1"] .julv-blink.julv-f1 { opacity: 0.75; }
+
+/* Tomten vinkar (som Halloween-djuret på porten): ett par vink, sedan vila. */
+.julv-vinkarm {
+  transform-box: fill-box;
+  transform-origin: 8% 92%;
+  animation: julv-vinka 3.4s ease-in-out infinite;
+}
+@keyframes julv-vinka {
+  0%, 46%, 100% { transform: rotate(0deg); }
+  12%, 34% { transform: rotate(-28deg); }
+  23% { transform: rotate(-6deg); }
+}
+
+/* Vinket pausas i dold flik och är av vid reducerad rörelse; där lyser också
+   alla lampor stilla. */
+html.sz-paus .julv-vinkarm { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .julv-vinkarm { animation: none; }
+  .julv-blink { opacity: 1 !important; }
+}

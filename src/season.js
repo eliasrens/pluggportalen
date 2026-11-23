@@ -4,8 +4,10 @@
 // EN onSnapshot-lyssnare på ETT dokument (config/season) för hela sessionen –
 // läskvoten (#231). Läget hålls i season-store.js (ren logik) och exponeras:
 //
-//   getSeason()          { season, halloween, halloweenUntil, halloweenActive, config }
-//   isHalloweenActive()  Halloween på just nu (server-korrigerad klocka)
+//   getSeason()          { season, halloween, halloweenUntil, halloweenActive,
+//                          jul, julUntil, julActive, tillagg, config }
+//   isTillaggActive(id)  tillägget (TILLAGG) på just nu (server-korrigerad klocka)
+//   isHalloweenActive()  tunt omslag: isTillaggActive("halloween")
 //   onSeasonChange(fn)   fn(nytt, förra) vid ändring – också document-händelsen
 //                        "pp:season" (detail = { season, prev })
 //   startSeasonWatch()   startar lyssnaren (anropas av de andra, idempotent)
@@ -29,9 +31,9 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { serverNow, syncServerClock } from "./data-class-lock.js";
 import { createSeasonStore } from "./season-store.js";
-import { SEASONS, SEASON_CACHE_KEY, normalizeSeason } from "./season-config.js";
+import { SEASONS, SEASON_CACHE_KEY, TILLAGG, normalizeSeason } from "./season-config.js";
 
-/** localStorage-nyckeln: JSON { season, halloween, halloweenUntil(ms|null) }. */
+/** localStorage-nyckeln: JSON normalizeSeason() (slutdatum i ms|null). */
 export { SEASON_CACHE_KEY };
 
 const store = createSeasonStore({
@@ -80,8 +82,13 @@ export function getSeason() {
   return store.get();
 }
 
+/** Är tillägget `id` (TILLAGG, t.ex. "jul") på just nu? */
+export function isTillaggActive(id) {
+  return !!getSeason()[`${id}Active`];
+}
+
 export function isHalloweenActive() {
-  return getSeason().halloweenActive;
+  return isTillaggActive("halloween");
 }
 
 /** Har servern svarat (annars visar getSeason() cachen eller sommar)? */
@@ -96,16 +103,20 @@ export function onSeasonChange(fn) {
 }
 
 /**
- * Spara säsongen (admin). halloweenUntil = ms eller null (inget slutdatum).
- * @param {{season:string, halloween:boolean, halloweenUntil:number|null}} v
+ * Spara säsongen (admin). Slutdatumen (halloweenUntil, julUntil) = ms eller
+ * null (inget slutdatum). Alla tillägg i TILLAGG skrivs.
+ * @param {{season:string, halloween:boolean, halloweenUntil:number|null, jul?:boolean, julUntil?:number|null}} v
  */
 export async function saveSeason(v) {
   if (!Object.prototype.hasOwnProperty.call(SEASONS, v.season)) throw new Error(`Okänd säsong: ${v.season}`);
   const s = normalizeSeason(v);
+  const data = { season: s.season };
+  for (const t of TILLAGG) {
+    data[t.falt] = s[t.falt];
+    data[t.tillFalt] = s[t.tillFalt] == null ? null : Timestamp.fromMillis(s[t.tillFalt]);
+  }
   await setDoc(doc(db, "config", "season"), {
-    season: s.season,
-    halloween: s.halloween,
-    halloweenUntil: s.halloweenUntil == null ? null : Timestamp.fromMillis(s.halloweenUntil),
+    ...data,
     updatedAt: serverTimestamp(),
     updatedBy: auth.currentUser?.uid || "",
   });

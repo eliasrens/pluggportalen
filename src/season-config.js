@@ -1,29 +1,36 @@
 // ============================================================================
-// Pluggporten – säsonger: konfiguration + ren logik (issue #690, epic #689)
+// Pluggporten – säsonger: konfiguration + ren logik (issue #690, epic #689;
+// tilläggsregistret + Vinter/Jul #907, epic #906)
 // ----------------------------------------------------------------------------
-// Spec: UTVECKLINGSUPPDRAG_HOST_HALLOWEEN.md §1.1, §2.
+// Spec: UTVECKLINGSUPPDRAG_HOST_HALLOWEEN.md §1.1, §2;
+// UTVECKLINGSUPPDRAG_VINTER_JUL.md A.1–A.2.
 //
 // Dokumentet config/season (skrivs bara av admin, läses av alla – även
 // utloggade, firestore.rules):
-//   { season: "sommar" | "host", halloween: bool, halloweenUntil?: Timestamp|null,
+//   { season: "sommar" | "host" | "vinter",
+//     halloween: bool, halloweenUntil?: Timestamp|null,
+//     jul?: bool, julUntil?: Timestamp|null,
 //     updatedAt, updatedBy }
-// Saknas dokumentet (eller är det trasigt) = sommar utan Halloween, dvs. exakt
-// som i dag.
+// Saknas dokumentet (eller är det trasigt) = sommar utan tillägg, dvs. exakt
+// som i dag. Saknas `jul` (gamla dokument) = Jul av.
 //
-// Säsongen är en NYCKEL i SEASONS → palett + dekor. En ny säsong (vinter, vår,
-// jul) = en rad här + nyckeln i firestore.rules (validSeason) – ingen ombyggnad.
+// Säsongen är en NYCKEL i SEASONS → palett + dekor. En ny säsong = en rad här
+// + nyckeln i firestore.rules (validSeasonDoc) – ingen ombyggnad.
 // Paletten fylls i av höstvärlden (#691); sommarens värden är dagens färger.
 //
-// Halloween är PÅ när halloween === true OCH slutdatumet (om det finns) inte
-// har passerat – jämfört mot den server-korrigerade klockan (season.js), så en
-// elev som ställer fram datorklockan inte påverkar något.
+// Tillägg (Halloween, Jul, …) ligger ovanpå valfri säsong och är rader i
+// TILLAGG: på/av-fält + slutdatumsfält i dokumentet, förvalt slutdatum,
+// inloggningspalett och butikssamling. Ett tillägg är PÅ när fältet === true
+// OCH slutdatumet (om det finns) inte har passerat – jämfört mot den
+// server-korrigerade klockan (season.js), så en elev som ställer fram
+// datorklockan inte påverkar något.
 //
 // Ingen Firebase här – testas i node (test/season.test.js).
 // ============================================================================
 
 export const DEFAULT_SEASON = "sommar";
 
-/** localStorage-nyckeln för senast kända läge: JSON { season, halloween, halloweenUntil(ms|null) }. */
+/** localStorage-nyckeln för senast kända läge: JSON normalizeSeason() (slutdatum i ms|null). */
 export const SEASON_CACHE_KEY = "pp:season";
 
 /**
@@ -56,6 +63,30 @@ export const SEASONS = {
     dekor: { leaves: true },
     preview: { sky: "#4BA2E8", grass: "#93C95A", tree: ["#FF8A2A", "#F2524A", "#FFD23F"] },
   },
+  vinter: {
+    label: "Vinter",
+    // B.1 (#906): aldrig helt vit – snön är som ljusast #EEF3F8 (B.2), mörka
+    // granar och ett dovt rönnbärsrött (tree-b) som bryter det gröna.
+    // hill justerad #D3E1EE → #C4D3E4 (#908): byn i appen (med den ljusa
+    // sidomenyn) landade annars över 215 i bländtestet – en liten by (1–5
+    // hus) är mest mark och hamnar nu på ≤ 213.
+    palette: {
+      sky1: "#7DB3E3", sky2: "#E6EEF7",
+      hill: "#C4D3E4", grass: "#E3EBF3", "grass-light": "#EEF3F8", "grass-mid": "#D8E3EE",
+      tuft: "#AFC4D8", "tuft-dark": "#94ABC4",
+      "tree-a": "#3F8C6B", "tree-b": "#C9474F", "tree-c": "#2F7A5C", bush: "#5C9C80",
+      "port-bg": "#8DBBE6", "port-sky1": "#5E97D6", "port-sky2": "#A9CBEB", "port-sky3": "#F3E4D2",
+      "port-far": "#C2D4E6", "port-bush": "#4F8F74", "port-moln": "#F4F7FB",
+      "gate-bg": "#1F2B44", "gate-bg2": "#2E4066",
+      // Stigen = upptrampad snö i varmt gråbeige (B.3, #908). Kanten ritas med
+      // opacity 0.5 över snön → #9F7D56 blir ≈ #B9AFA2.
+      stig: "#D9D2C7", "stig-kant": "#9F7D56",
+      // Byns granar blir mörkgröna (B.2 punkt 3) – sommar = GRAN_GRON i art-by-dekor.js.
+      gran: "#3A8565",
+    },
+    dekor: { leaves: false, sno: true },
+    preview: { sky: "#7DB3E3", grass: "#E3EBF3", tree: ["#3F8C6B", "#C9474F", "#2F7A5C"] },
+  },
 };
 
 export const SEASON_KEYS = Object.keys(SEASONS);
@@ -73,16 +104,72 @@ export const HALLOWEEN_LOGIN_PALETTE = {
 };
 
 /**
- * Temat som ska visas: { season, halloween } → attribut + palett.
- * `login` = paletten för inloggningsskärmen (Halloween vinner), `world` =
- * världens palett (bara säsongen).
+ * Jul-temat för INLOGGNINGEN (C.2, #906): en blå kväll, inte svart – himlen
+ * #1E2D63 → #6E7FB8, snön ljust blågrå i månsken, granarna mörkgröna. Som för
+ * Halloween får världen den inte (världen behåller säsongens dagsljus).
+ */
+export const JUL_LOGIN_PALETTE = {
+  "port-bg": "#2A3A72", "port-sky1": "#1E2D63", "port-sky2": "#3C4C8A", "port-sky3": "#6E7FB8",
+  "port-far": "#8E9FC8", hill: "#B3C4DE", grass: "#C3D2E8", "tree-a": "#2F6B55",
+  "tree-b": "#B8434B", "tree-c": "#2A5E4A", "port-bush": "#3D6E5C", "port-moln": "#AFBEDD",
+  "gate-bg": "#18234C", "gate-bg2": "#2C3B74",
+};
+
+/** Nästa `dag` i `manad` (0-baserad) kl. 23.59 lokal tid – nästa år om det har passerat. */
+function nastaDag(now, manad, dag) {
+  const nu = new Date(now);
+  const d = new Date(nu.getFullYear(), manad, dag, 23, 59, 0, 0);
+  if (d.getTime() <= now) d.setFullYear(d.getFullYear() + 1);
+  return d.getTime();
+}
+
+/**
+ * Tilläggsregistret (A.2): ett tredje tillägg (t.ex. Påsk) = en rad här +
+ * fälten i firestore.rules (validSeasonDoc) + en samling och en butiksflik.
+ *   falt / tillFalt  fälten i config/season (på/av, slutdatum)
+ *   standardTill     förvalt slutdatum i adminfliken (ms)
+ *   loginPalett      inloggningens palett när tillägget är på
+ *   samling          butikssamlingen (shop-items `collection`) som är öppen då
+ * <html data-{id}="1"> sätts av season-world.js medan tillägget är på.
+ * Båda på samtidigt: inloggningen får den SENARE radens palett (Jul vinner
+ * över Halloween), dekoren visas för båda.
+ */
+export const TILLAGG = [
+  {
+    id: "halloween", label: "Halloween", emoji: "🎃", falt: "halloween", tillFalt: "halloweenUntil",
+    standardTill: (now) => nastaDag(now, 10, 2), standardText: "2 nov 23.59",
+    loginPalett: HALLOWEEN_LOGIN_PALETTE, samling: "halloween",
+  },
+  {
+    id: "jul", label: "Jul", emoji: "🎄", falt: "jul", tillFalt: "julUntil",
+    // Tjugondag Knut.
+    standardTill: (now) => nastaDag(now, 0, 13), standardText: "13 jan 23.59",
+    loginPalett: JUL_LOGIN_PALETTE, samling: "jul",
+  },
+];
+
+export const TILLAGG_IDS = TILLAGG.map((t) => t.id);
+
+/** Tilläggets rad i registret (eller null). */
+export function tillagg(id) {
+  return TILLAGG.find((t) => t.id === id) || null;
+}
+
+/**
+ * Temat som ska visas: läget (med `{id}Active` per tillägg, season-store.js)
+ * → attribut + palett. `login` = paletten för inloggningsskärmen (aktiva
+ * tillägg vinner, senare rad sist), `world` = världens palett (bara säsongen).
+ * `halloween`/`jul` = är tillägget på; `tillagg` = de aktiva id:na.
  */
 export function themeFor(state) {
   const season = Object.prototype.hasOwnProperty.call(SEASONS, state?.season) ? state.season : DEFAULT_SEASON;
-  const halloween = !!state?.halloweenActive;
+  const dekor = seasonConfig(season).dekor || {};
   const world = { ...seasonConfig(season).palette };
-  const login = halloween ? { ...world, ...HALLOWEEN_LOGIN_PALETTE } : world;
-  return { season, halloween, leaves: !!seasonConfig(season).dekor?.leaves, world, login };
+  const aktiva = TILLAGG.filter((t) => !!state?.[`${t.id}Active`]);
+  const login = aktiva.length ? Object.assign({ ...world }, ...aktiva.map((t) => t.loginPalett)) : world;
+  const theme = { season, tillagg: aktiva.map((t) => t.id), leaves: !!dekor.leaves, sno: !!dekor.sno, world, login };
+  for (const t of TILLAGG) theme[t.id] = aktiva.includes(t);
+  return theme;
 }
 
 /** Säsongens konfiguration (okänd nyckel → sommar). */
@@ -102,29 +189,54 @@ export function toMs(v) {
 
 /**
  * config/season-dokumentet (eller localStorage-cachen) → normaliserat läge.
- * Allt okänt faller tillbaka till sommar / ingen Halloween.
- * @returns {{season:string, halloween:boolean, halloweenUntil:number|null}}
+ * Allt okänt faller tillbaka till sommar / tillägget av.
+ * @returns {{season:string, halloween:boolean, halloweenUntil:number|null,
+ *            jul:boolean, julUntil:number|null}}
  */
 export function normalizeSeason(raw) {
   const d = raw && typeof raw === "object" ? raw : {};
-  return {
-    season: Object.prototype.hasOwnProperty.call(SEASONS, d.season) ? d.season : DEFAULT_SEASON,
-    halloween: d.halloween === true,
-    halloweenUntil: toMs(d.halloweenUntil),
-  };
+  const s = { season: Object.prototype.hasOwnProperty.call(SEASONS, d.season) ? d.season : DEFAULT_SEASON };
+  for (const t of TILLAGG) {
+    s[t.falt] = d[t.falt] === true;
+    s[t.tillFalt] = toMs(d[t.tillFalt]);
+  }
+  return s;
+}
+
+/** Är tillägget `id` på vid tiden `now` (ms, server-korrigerad)? */
+export function tillaggAktivt(state, id, now) {
+  const t = tillagg(id);
+  if (!t) return false;
+  const s = normalizeSeason(state);
+  if (!s[t.falt]) return false;
+  return s[t.tillFalt] == null || now < s[t.tillFalt];
+}
+
+/** Id:na för tilläggen som är på vid `now`, i registrets ordning. */
+export function aktivaTillagg(state, now) {
+  const s = normalizeSeason(state);
+  return TILLAGG_IDS.filter((id) => tillaggAktivt(s, id, now));
 }
 
 /** Är Halloween på vid tiden `now` (ms, server-korrigerad)? */
 export function halloweenActive(state, now) {
-  const s = normalizeSeason(state);
-  if (!s.halloween) return false;
-  return s.halloweenUntil == null || now < s.halloweenUntil;
+  return tillaggAktivt(state, "halloween", now);
 }
 
-/** När ändras Halloween-läget av sig självt nästa gång (ms), eller null. */
+/** När ändras något tilläggs läge av sig självt nästa gång (ms), eller null. */
 export function nextSeasonBoundary(state, now) {
   const s = normalizeSeason(state);
-  return s.halloween && s.halloweenUntil != null && now < s.halloweenUntil ? s.halloweenUntil : null;
+  let nasta = null;
+  for (const t of TILLAGG) {
+    const till = s[t.tillFalt];
+    if (s[t.falt] && till != null && now < till && (nasta == null || till < nasta)) nasta = till;
+  }
+  return nasta;
+}
+
+/** Förvalt slutdatum för tillägget `id` (ms). */
+export function defaultTillaggUntil(id, now) {
+  return tillagg(id).standardTill(now);
 }
 
 /**
@@ -132,10 +244,7 @@ export function nextSeasonBoundary(state, now) {
  * nästa år om det redan har passerat.
  */
 export function defaultHalloweenUntil(now) {
-  const nu = new Date(now);
-  const d = new Date(nu.getFullYear(), 10, 2, 23, 59, 0, 0);
-  if (d.getTime() <= now) d.setFullYear(d.getFullYear() + 1);
-  return d.getTime();
+  return defaultTillaggUntil("halloween", now);
 }
 
 /** ms → värde för <input type="datetime-local"> (lokal tid). */
@@ -164,12 +273,23 @@ export function formatUntil(ms, now = Date.now()) {
   return `${d.getDate()} ${MANADER[d.getMonth()]}${ar} ${p(d.getHours())}.${p(d.getMinutes())}`;
 }
 
-/** En rad som beskriver läget, t.ex. "Höst · Halloween på till 2 nov 23.59". */
+/** Ett tilläggs del av beskrivningen, t.ex. "Jul på till 13 jan 23.59". */
+function describeTillagg(s, t, now) {
+  const till = s[t.tillFalt];
+  if (!s[t.falt]) return `${t.label} av`;
+  if (till == null) return `${t.label} på (inget slutdatum)`;
+  if (now >= till) return `${t.label} av (slutdatumet ${formatUntil(till, now)} har passerat)`;
+  return `${t.label} på till ${formatUntil(till, now)}`;
+}
+
+/**
+ * En rad som beskriver läget, t.ex. "Höst · Halloween på till 2 nov 23.59"
+ * eller "Vinter · Jul på till 13 jan 23.59". Tillägg som är påslagna (även med
+ * passerat slutdatum) nämns; inget påslaget → "Halloween av" som förut.
+ */
 export function describeSeason(state, now) {
   const s = normalizeSeason(state);
   const namn = seasonConfig(s.season).label;
-  if (!s.halloween) return `${namn} · Halloween av`;
-  if (s.halloweenUntil == null) return `${namn} · Halloween på (inget slutdatum)`;
-  if (now >= s.halloweenUntil) return `${namn} · Halloween av (slutdatumet ${formatUntil(s.halloweenUntil, now)} har passerat)`;
-  return `${namn} · Halloween på till ${formatUntil(s.halloweenUntil, now)}`;
+  const pa = TILLAGG.filter((t) => s[t.falt]);
+  return [namn, ...(pa.length ? pa : TILLAGG.slice(0, 1)).map((t) => describeTillagg(s, t, now))].join(" · ");
 }
