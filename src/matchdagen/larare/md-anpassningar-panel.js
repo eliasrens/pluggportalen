@@ -18,6 +18,9 @@
 // ("Dolt för klassen – används inte just nu"). Ger valen inga frågor alls efter filtret står det
 // överst med knappen "Byt till Samma som Plugga". Synligheten = klassens assignedAreas (tom = allt),
 // samma regel som eleven och servern (delat/md-synlighet.js) – räknas ur biblioteket, ingen läsning.
+// #905: under källorna kryssrutan "Visa lästext till frågorna" (lastext, samma text som Live) – ikryssad
+// som standard; gråad ("Inga valda områden har lästexter") när inget av områdena som används
+// (effektivaKallor – dolda räknas inte) har frågor med lästext. Ett gråat val sparas som det var.
 // ============================================================================
 
 import { el, esc, errText, icon } from "../../teacher-shared.js";
@@ -28,8 +31,21 @@ import {
 } from "../md-inst.js";
 import { arSynligt, effektivaKallor, pluggaKallor } from "../delat/md-synlighet.js";
 import { raderUrBibliotek } from "../md-synlig.js";
+import { hasPassage } from "../../live/modes/quiz-passage.js";
 
 export const DOLT_TEXT = "Dolt för klassen – används inte just nu";
+export const LASTEXT_TEXT = "Visa lästext till frågorna";
+export const LASTEXT_INFO = "Frågor med en kort text att läsa först – från Pluggas Läsförståelse.";
+export const LASTEXT_INGA = "Inga valda områden har lästexter";
+
+/** Bibliotekets områden med minst en quizfråga med lästext (#905) – nycklarna "ämne/område". */
+function lastextOmraden(library) {
+  const ut = new Set();
+  for (const subj of library) for (const a of subj.areas || []) {
+    if (Array.isArray(a.quiz) && a.quiz.some(hasPassage)) ut.add(omradeNyckel(subj.id, a.id));
+  }
+  return ut;
+}
 
 const antalText = (n) => (n ? `${n} ${n === 1 ? "vald" : "valda"}` : "");
 
@@ -132,6 +148,8 @@ export async function renderPanel(ctx, o) {
         <h4>Plugga-områden</h4>${omradesHtml("omrade", grupper(library, cls, i.omraden, (h) => h.quiz || h.pairs))}
         <h4>Räkna</h4>${omradesHtml("rakna", grupper(library, cls, i.rakna, (h) => h.generator))}
       </div>
+      <label class="mda-val mda-lastext"><input type="checkbox" name="lastext"${i.lastext ? " checked" : ""} />
+        <span>${LASTEXT_TEXT} <small data-lastext-info>${LASTEXT_INFO}</small></span></label>
       <h4>Multiplikationstabeller</h4>
       <div class="mda-kryss mda-tabeller">${TABELLER.map((t) => `<label class="mda-val mda-tal"><input type="checkbox" data-tabell="${t}"${i.tabeller.includes(t) ? " checked" : ""} /><span>${t}</span></label>`).join("")}</div>
       <p class="hint">Tabellerna går att ha med i båda lägena.</p>
@@ -194,9 +212,14 @@ export async function renderPanel(ctx, o) {
         svarssatt: val("svarssatt"), klocka: Number(val("klocka")), paus: Number(val("paus")),
         lugnt: box.querySelector('input[name="lugnt"]').checked,
         foljPlugga: val("folj") === "1",
+        lastext,
       },
     };
   };
+  // Lästexten (#905): lärarens val, oavsett om rutan just nu är gråad.
+  let lastext = i.lastext;
+  const medLastext = lastextOmraden(library);
+  const lastextCb = box.querySelector('input[name="lastext"]');
   // Läget (Samma som Plugga / Välj själv), de gråade dolda och "Inga frågor just nu" följer formuläret.
   const tom = box.querySelector("[data-tom]");
   const synka = () => {
@@ -205,6 +228,12 @@ export async function renderPanel(ctx, o) {
     box.querySelector("[data-folj-info]").hidden = !v.foljPlugga;
     box.querySelectorAll(".mda-dolt").forEach((l) => l.classList.toggle("mda-dolt-vald", l.querySelector("input").checked));
     const anvands = effektivaKallor(normalizeInst(v), { synliga, plugga, standard: standard && sammaInst(v, i) });
+    // Lästexten: bara områdena som faktiskt används (inte de dolda) räknas.
+    const har = anvands.omraden.some((k) => medLastext.has(k));
+    lastextCb.disabled = !har;
+    lastextCb.checked = har && lastext;
+    lastextCb.closest(".mda-lastext").classList.toggle("mda-gra", !har);
+    box.querySelector("[data-lastext-info]").textContent = har ? LASTEXT_INFO : LASTEXT_INGA;
     tom.hidden = harKallor(anvands);
     tom.querySelector("[data-tom-valj]").hidden = v.foljPlugga;
     tom.querySelector("[data-tom-folj]").hidden = !v.foljPlugga;
@@ -213,6 +242,7 @@ export async function renderPanel(ctx, o) {
   // Antalet valda per ämne följer kryssen; ändrat = "Sparat" bort.
   box.addEventListener("change", (e) => {
     resultat.innerHTML = "";
+    if (e.target === lastextCb) lastext = lastextCb.checked;
     const amne = e.target.closest(".mda-amne");
     if (amne) {
       const n = amne.querySelectorAll("input:checked").length;

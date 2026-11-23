@@ -5,7 +5,7 @@
 // Formen på matchdagenInst/{uid} (spec §1.2, speglas i firestore.rules
 // validMatchdagenInst):
 //
-//   omraden:   ["subj/area", ...]   Plugga-områden (quiz utan passage + par), ≤ 60
+//   omraden:   ["subj/area", ...]   Plugga-områden (quiz + par; quiz med lästext bara med lastext), ≤ 60
 //   tabeller:  [0..10]              multiplikationstabeller, ≤ 11
 //   rakna:     ["subj/area", ...]   Räkna-områden (område med generator), ≤ 60
 //   svarssatt: "flerval" | "skriv"  flerval är standard (där källan stödjer det)
@@ -14,6 +14,8 @@
 //   paus:      0 | 30 | 45 | 60     minuter till "Dags för en paus", 0 = av (standard 60)
 //   foljPlugga: bool                "Samma som Plugga" (#899): omraden/rakna ignoreras och räknas
 //                                   fram ur det eleven ser (delat/md-synlighet.js). Saknas = false.
+//   lastext:   bool                 "Visa lästext till frågorna" (#905): Plugga-frågor med en kort
+//                                   lästext tas med, texten ovanför frågan. Saknas = true.
 //   updatedAt, updatedBy            serverns tid + lärarens uid (sätts av md-inst-data.js)
 //
 // Åtkomsten (på/av) bor INTE här utan i classes/{id}.enabledModules (hela klassen, #876)
@@ -41,7 +43,7 @@ export const INGA_FRAGOR = "Din lärare behöver välja frågor till Matchdagen"
 export const SAMMA_SOM_PLUGGA = "Samma som Plugga";
 
 export const STANDARD_INST = Object.freeze({
-  omraden: [], tabeller: [], rakna: [], svarssatt: "flerval", klocka: 0, lugnt: false, paus: 60, foljPlugga: false,
+  omraden: [], tabeller: [], rakna: [], svarssatt: "flerval", klocka: 0, lugnt: false, paus: 60, foljPlugga: false, lastext: true,
 });
 
 /**
@@ -67,7 +69,7 @@ function nycklar(v) {
 /**
  * Hela inställningen med standardvärden för det som saknas eller är ogiltigt.
  * @param {*} raw  matchdagenInst-dokumentet (eller null)
- * @returns {{omraden:string[], tabeller:number[], rakna:string[], svarssatt:string, klocka:number, lugnt:boolean, paus:number, foljPlugga:boolean}}
+ * @returns {{omraden:string[], tabeller:number[], rakna:string[], svarssatt:string, klocka:number, lugnt:boolean, paus:number, foljPlugga:boolean, lastext:boolean}}
  */
 export function normalizeInst(raw) {
   const r = raw && typeof raw === "object" ? raw : {};
@@ -81,6 +83,7 @@ export function normalizeInst(raw) {
     lugnt: r.lugnt === true,
     paus: PAUS_VAL.includes(r.paus) ? r.paus : STANDARD_INST.paus,
     foljPlugga: r.foljPlugga === true, // gamla sparade inställningar saknar fältet = "Välj områden själv"
+    lastext: r.lastext !== false, // #905: saknas = på – eleverna får lästexterna direkt
   };
 }
 
@@ -179,6 +182,7 @@ export function sammanfattning(inst) {
   const delar = [];
   if (i.foljPlugga) delar.push(SAMMA_SOM_PLUGGA);
   else if (i.omraden.length) delar.push(`${i.omraden.length} ${i.omraden.length === 1 ? "område" : "områden"}`);
+  if (i.lastext && (i.foljPlugga || i.omraden.length)) delar.push("med lästext");
   if (i.tabeller.length) delar.push(`${i.tabeller.length === 1 ? "tabell" : "tabellerna"} ${i.tabeller.join(", ")}`);
   if (!i.foljPlugga && i.rakna.length) delar.push(`${i.rakna.length} Räkna`);
   if (!delar.length) delar.push("inga frågor valda");

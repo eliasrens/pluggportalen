@@ -41,12 +41,12 @@ export async function spelaStraffar(S, ctx) {
     sag(l.rad);
     await plan.straffStall(l.lag);
     const f = fr.nasta();
-    const { visaFraga } = await import("../md-svar.js");
+    const { visaFraga, klockaFor } = await import("../md-svar.js");
     // Straffen avgörs och sparas lokalt direkt vid svaret, före pausen med rätt svar
     // (en omladdning då ger ingen ny fråga för samma straff, #870 F1).
     let ut = null;
     const r = await visaFraga(v.kort, f, {
-      ratta: fr.ratta, klocka: S.inst.klocka, signal,
+      ratta: fr.ratta, klocka: klockaFor(S.inst.klocka, f), signal,
       vidSvar: (x) => {
         ut = straffa(m, [{ ratt: x.ratt, kalla: f.kalla }], Math.random, Date.now());
         m = ut.m;

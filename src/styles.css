@@ -10524,6 +10524,9 @@ html.reduce-motion .schack-pokal-ny { animation: none; }
   background: var(--t-raised);
 }
 .teacher-dark .mda-tom[hidden] { display: none; }
+/* #905: Visa lästext till frågorna – gråad när inget område som används har lästexter */
+.teacher-dark .mda-lastext { margin-top: 10px; }
+.teacher-dark .mda-lastext.mda-gra { opacity: 0.6; cursor: default; }
 .teacher-dark .mda-spara { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
 .teacher-dark .mda-resultat:empty { display: none; }
 @media (max-width: 520px) {
@@ -10554,6 +10557,19 @@ html.reduce-motion .schack-pokal-ny { animation: none; }
   font: 800 clamp(22px, 3.2vw, 30px)/1.2 "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
   overflow-wrap: anywhere;
 }
+/* Lästexten (#905): ett lugnt block ovanför frågan, som kontextraden i Live (sbs-kontext). */
+.md-fraga-kontext {
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--md-ink);
+  font: 600 clamp(15px, 1.5vw, 17px)/1.4 Nunito, system-ui, sans-serif;
+  opacity: 0.92;
+  overflow-wrap: break-word;
+}
+.md-fraga:has(.md-fraga-klocka) .md-fraga-kontext { margin-right: 64px; }
+.md-fraga[data-kontext] .md-fraga-text { padding-right: 0; }
 .md-fraga-alt { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .md-fraga:focus { outline: none; }
 .md-alt, .md-skicka {
@@ -10611,6 +10627,8 @@ html.reduce-motion .schack-pokal-ny { animation: none; }
 .md-fraga[data-utfall="ratt"] .md-fraga-facit { color: #7be09e; }
 .md-fraga[data-utfall="fel"] .md-fraga-facit { color: var(--md-ink); }
 .md-fraga[data-utfall="fel"] .md-fraga-facit b { color: #7be09e; }
+/* Förklaringen efter ett fel svar (#905): kort, under rätt svar. */
+.md-fraga-forklaring { display: block; margin-top: 4px; color: var(--md-svag); font-weight: 600; font-size: 0.95rem; line-height: 1.35; }
 .md-fraga-klocka {
   position: absolute;
   top: 14px;
@@ -10623,6 +10641,8 @@ html.reduce-motion .schack-pokal-ny { animation: none; }
 .md-fraga[data-brattom] .md-fraga-klocka { background: rgba(255, 210, 63, 0.25); color: var(--md-gul); }
 @media (max-width: 520px) {
   .md-fraga-alt { grid-template-columns: 1fr; }
+  .md-fraga-kontext { padding: 6px 10px; font-size: 14px; line-height: 1.35; }
+  .md-fraga:has(.md-fraga-klocka) .md-fraga-kontext { margin-right: 58px; }
 }
 
 /* --- Hur går det? → Matchdagen (#869, md-larare-stat.js) ------------------- */

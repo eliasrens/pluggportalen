@@ -149,7 +149,7 @@ async function korLager(S, yta, post, opt) {
   if (post.svar.length < TRANING.fragor) {
     const fr = await strom(S);
     if (fr.tom) { yta.innerHTML = `<p class="md-svag">${esc(fr.meddelande || "Inga frågor än")}</p>`; return; }
-    const { visaFraga } = await import("../md-svar.js");
+    const { visaFraga, klockaFor } = await import("../md-svar.js");
     while (post.svar.length < TRANING.fragor) {
       if (opt.signal?.aborted) return;
       const p = spelaren();
@@ -167,7 +167,7 @@ async function korLager(S, yta, post, opt) {
       const fraga = sist && sist.nyckel === post.nyckel && sist.n === n ? sist.fraga : fr.nasta();
       S.lagerFraga = { nyckel: post.nyckel, n, fraga };
       const r = await visaFraga(yta.querySelector(".md-lager-fraga"), fraga, {
-        ratta: fr.ratta, klocka: S.inst.klocka, signal: opt.signal,
+        ratta: fr.ratta, klocka: klockaFor(S.inst.klocka, fraga), signal: opt.signal,
         vidSvar: (x) => {
           const ut = tranaSpelare(spelaren(), !!x.ratt);
           post.svar.push({ ratt: !!x.ratt });

@@ -771,7 +771,7 @@ service cloud.firestore {
     }
 
     // MATCHDAGEN – lärarens inställningar per elev (#867, spec §1.2, docs/MATCHDAGEN.md):
-    // matchdagenInst/{uid} = frågekällor, svarssätt, klocka, lugnt läge och paus
+    // matchdagenInst/{uid} = frågekällor, svarssätt, klocka, lugnt läge, paus och lästext (#905)
     // (src/matchdagen/md-inst.js). Läraren med eleven (hasStudent) läser och skriver;
     // eleven själv läser (Matchdagen-sidan, EN getDoc per besök) men skriver aldrig.
     // ⚠️ DEPLOY: `firebase deploy --only firestore:rules` (separat från Pages).
@@ -789,10 +789,12 @@ service cloud.firestore {
          l.join('|').matches('[^/|\\s]+/[^/|\\s]+([|][^/|\\s]+/[^/|\\s]+)*')));
     }
     // foljPlugga (#899, "Samma som Plugga"): valfri bool – gamla inställningar saknar den (= false).
+    // lastext (#905, "Visa lästext till frågorna"): valfri bool – saknas = true.
     function validMatchdagenInst(d) {
       return d.keys().hasOnly(['omraden', 'tabeller', 'rakna', 'svarssatt', 'klocka', 'lugnt', 'paus',
-          'foljPlugga', 'updatedAt', 'updatedBy']) &&
+          'foljPlugga', 'lastext', 'updatedAt', 'updatedBy']) &&
         (!('foljPlugga' in d) || d.foljPlugga is bool) &&
+        (!('lastext' in d) || d.lastext is bool) &&
         d.keys().hasAll(['omraden', 'tabeller', 'rakna', 'svarssatt', 'klocka', 'lugnt', 'paus',
           'updatedAt', 'updatedBy']) &&
         mdNycklarOk(d.omraden) && mdNycklarOk(d.rakna) &&

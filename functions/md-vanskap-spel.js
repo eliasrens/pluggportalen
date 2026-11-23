@@ -6,7 +6,7 @@
 //   fraga  { matchId, val } → väljer sitt drag och får lägets fråga ur SIN bank i sitt
 //          privata dokument (utan facit). Samma läge igen = samma fråga (idempotent).
 //   svar   { matchId, svar } → (svar = null: elevens klocka tog slut – räknas som fel) servern rättar (md-vanskap-fragor.js ratta: Live:s rättning) och
-//          svarar { ratt, facit }. När båda har svarat – eller den andras tid är ute – avgörs
+//          svarar { ratt, facit, forklaring? } (förklaringen bara vid fel, #905). När båda har svarat – eller den andras tid är ute – avgörs
 //          läget med motorn och resultatet skrivs till matchdokumentet (båda lyssnar).
 //   tick   { matchId, redo? } → klienten anropar när en tid gått ut: lägen vars tid är ute avgörs
 //          (uteblivet svar = fel, inget val = standardvalet), halvtiden tar slut (båda redo eller
@@ -174,7 +174,9 @@ export async function svar(deps, uid, data = {}) {
     const ute = raw === null || nu >= deadline(m, s); // null = elevens klocka tog slut: fel
     const r = ute ? { giltig: true, ratt: false, facit: String(post?.r?.facit ?? "") } : ratta(post, raw);
     if (!r.giltig) return { giltig: false };
-    const ny = { ...p, svar: { ratt: r.ratt, facit: r.facit, ...(ute ? { tidenUte: true } : {}) }, aktiv: nu };
+    // #905: quizfrågans förklaring följer med svaret (visas efter fel svar) – aldrig före.
+    const forklaring = !r.ratt && post?.r?.forklaring ? String(post.r.forklaring) : "";
+    const ny = { ...p, svar: { ratt: r.ratt, facit: r.facit, ...(forklaring ? { forklaring } : {}), ...(ute ? { tidenUte: true } : {}) }, aktiv: nu };
     const mm = !ute && post?.r?.s === "mult" ? await mmForLive(c, m.classId) : null; // cachat
     await stega(c, tx, matchId, m, { ...P, [s]: ny }, nu);
     tx.set(privatRef(c, matchId, uid), ny);

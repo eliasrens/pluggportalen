@@ -132,7 +132,7 @@ describe("fokusläget spärrar Matchdagen", () => {
 describe("lärarens inställningar (md-inst.js)", () => {
   it("standard: inga källor, flerval, klocka av, lugnt av, paus 60", () => {
     assert.deepEqual(normalizeInst(null), { ...STANDARD_INST });
-    assert.deepEqual(STANDARD_INST, { omraden: [], tabeller: [], rakna: [], svarssatt: "flerval", klocka: 0, lugnt: false, paus: 60, foljPlugga: false });
+    assert.deepEqual(STANDARD_INST, { omraden: [], tabeller: [], rakna: [], svarssatt: "flerval", klocka: 0, lugnt: false, paus: 60, foljPlugga: false, lastext: true });
   });
   it("ogiltiga värden faller tillbaka; listorna rensas", () => {
     const i = normalizeInst({
@@ -140,11 +140,11 @@ describe("lärarens inställningar (md-inst.js)", () => {
       rakna: ["ma/klockan"], svarssatt: "gissa", klocka: 45, lugnt: "ja", paus: 90,
     });
     assert.deepEqual(i, { omraden: ["so/vikingatiden", "ma/brak"], tabeller: [0, 3, 7], rakna: ["ma/klockan"],
-      svarssatt: "flerval", klocka: 0, lugnt: false, paus: 60, foljPlugga: false });
+      svarssatt: "flerval", klocka: 0, lugnt: false, paus: 60, foljPlugga: false, lastext: true });
     assert.equal(normalizeInst({ omraden: Array.from({ length: 80 }, (_, n) => `s/a${n}`) }).omraden.length, 60);
   });
   it("sparas och läses tillbaka oförändrat (rundresa)", () => {
-    const val = { omraden: ["so/vikingatiden"], tabeller: [3, 7], rakna: [], svarssatt: "skriv", klocka: 30, lugnt: true, paus: 45, foljPlugga: false };
+    const val = { omraden: ["so/vikingatiden"], tabeller: [3, 7], rakna: [], svarssatt: "skriv", klocka: 30, lugnt: true, paus: 45, foljPlugga: false, lastext: false };
     assert.deepEqual(normalizeInst(normalizeInst(val)), val);
   });
   it("frågekällor: inga valda → meddelandet om saknade frågor", () => {
@@ -157,7 +157,8 @@ describe("lärarens inställningar (md-inst.js)", () => {
     assert.equal(fragorText({ tabeller: [5] }), "Dina frågor kommer från tabell 5.");
   });
   it("sammanfattningen i lärarens panel", () => {
-    assert.equal(sammanfattning({ omraden: ["a/b"], tabeller: [3, 7], klocka: 30, lugnt: true }), "1 område · tabellerna 3, 7 · klocka 30 s · lugnt läge");
+    assert.equal(sammanfattning({ omraden: ["a/b"], tabeller: [3, 7], klocka: 30, lugnt: true }), "1 område · med lästext · tabellerna 3, 7 · klocka 30 s · lugnt läge");
+    assert.equal(sammanfattning({ omraden: ["a/b"], lastext: false }), "1 område", "#905: utan lästext står inget");
     assert.equal(sammanfattning(null), "inga frågor valda");
     assert.equal(sammanfattning({ tabeller: [5], paus: 30 }), "tabell 5 · paus 30 min");
     assert.equal(sammanfattning({ tabeller: [5], paus: 0 }), "tabell 5 · paus av");

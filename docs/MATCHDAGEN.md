@@ -1781,3 +1781,68 @@ Matchdagen är som vanligt.
 Inga nya regler eller index för Del E. Gammal server + ny webb: vänskapsmatchen följer inte lektionen förrän
 servern är ute (pausad ändå, #894). Ny server + gammal webb: solospelet följer inte lektionen förrän webben är ute.
 
+
+## 26. Lästext till frågorna (#905)
+
+Spec: `UTVECKLINGSUPPDRAG_MATCHDAGEN_LASNING.md`. Plugga-områdenas quizfrågor med en kort lästext
+(`quiz[].passage`) används i Matchdagen, med texten ovanför frågan i det vanliga frågekortet – som Live-spelens
+kryssruta "Visa lästext till frågorna" (#582). Inget nytt spelmoment: samma läge, regler, rättning och statistik
+(frågorna räknas på områdets rad, `omrade:ä/o`). Ämnesläsningen (`readingTexts`), tabellerna och Räkna påverkas inte.
+
+### 26.1 Urvalet
+
+En ren funktion, `quizUrval` i `src/matchdagen/md-lastext.js`, används av klienten (`md-kallor.js omradeKalla`)
+och servern (`functions/md-vanskap-fragor.js omradePool`, kopian `functions/matchdagen/kallor/matchdagen/`).
+Regeln per fråga är Live-lägets, utbruten ur `plugga-quiz-core.js` till `src/live/modes/quiz-passage.js`
+(`passageCheck`) – Live och Matchdagen använder samma kod. Formkontrollen är kvar per sida (klienten
+`omradetsSaker`, servern `flervalOk`; testerna jämför dem).
+
+- **`lastext` av:** exakt som före #905 – bara frågor **utan** lästext. Reserven i `plainQuizPool` (ett område med
+  bara lästextfrågor) tas inte med, så frågor som hänvisar till texten ("Enligt texten …") kommer aldrig.
+- **`lastext` på:** alla frågor; lästexten (normaliserad som i Live: blanksteg och radbrytningar ihop) följer med i
+  `Fraga.kontext` / bankens `pub.kontext`. Texthänvisningar är då tillåtna.
+- **Längdgränsen:** i elevens egna matcher hela texten (ingen väntar). I **vänskapsmatcherna** Live-gränsen
+  `VANSKAP_LASTEXT_MAX` = `QUIZ_PASSAGE_MAX` = 300 tecken (tiden är synkad mellan två elever) – en längre text gör
+  att den frågan hoppas över där.
+
+### 26.2 Frågekortet
+
+- Lästexten står överst i kortet (`.md-fraga-kontext`): ett lugnt block utan ram, mindre text än frågan (15–17 px,
+  14 px på smal skärm), som kontextraden i Live.
+- **Klockan:** har läraren valt 30 eller 60 s får en fråga med lästext **`LASTEXT_EXTRA_S` = 15 s** extra
+  (`md-config.js`, `md-svar.js klockaFor` – match, straffar och träningsläger). Vänskapsmatcherna har serverns
+  synkade tid och ingen extra tid – där gäller i stället 300-gränsen.
+- **Efter ett fel svar** visas rätt svar som förut och, om quizfrågan har en `explanation`, förklaringen under
+  (alla Plugga-quizfrågor, med eller utan lästext). Kortet står då kvar lite längre:
+  `FEL_MS + FORKLARING_MS.perTecken` per tecken, högst `FORKLARING_MS.max` (5 s). I vänskapsmatchen ligger
+  förklaringen i facit-dokumentets bank (`r.forklaring`) och kommer med `mdSvar`:s svar – aldrig före svaret.
+- **Planens höjd** (`md-match-spel.js passaPlanen`): planen krymper med lästextens höjd (ned till 120 px) så att
+  frågan och knapparna syns utan att rulla i 1366 × 768; räcker det inte (smal skärm) rullas kortet fram. Nästa
+  fråga utan text ger planen tillbaka. Lugnt läge och 2D-reserven är oförändrade.
+
+### 26.3 Lärarens val
+
+I "Anpassningar per elev" (per elev och Hela klassen), under frågekällorna: kryssrutan **"Visa lästext till
+frågorna"** – "Frågor med en kort text att läsa först – från Pluggas Läsförståelse." Ikryssad som standard; gråad
+med "Inga valda områden har lästexter" när inget av områdena som används (`effektivaKallor` – dolda räknas inte,
+Samma som Plugga = de synliga) har en fråga med lästext. Ett gråat val sparas som det var.
+
+**`matchdagenInst.lastext`** (bool, valfri, både `matchdagenInst/{uid}` och `classes/{id}.matchdagenInst`):
+saknas = `true` (`normalizeInst`, serverns `normInst`), så eleverna får texterna direkt. `sammaInst` jämför den,
+`sammanfattning` skriver "· med lästext" när den är på och det finns Plugga-källor. Reglerna:
+`validMatchdagenInst` tillåter `lastext` som bool.
+
+### 26.4 Kvoten
+
+Inga nya läsningar: lästexten och förklaringen finns i områdesdokumentet, som redan hämtas. Bootgrafen är
+oförändrad (`md-lastext.js` och `quiz-passage.js` laddas bara via `import()`-kedjan).
+
+### 26.5 Deploy
+
+**Regler → functions → webb.** `firebase deploy --only firestore:rules` först (annars nekas lärarens sparning med
+`lastext`), sedan `firebase deploy --only functions` (`npm run sync:matchdagen` körs som predeploy; vänskapsmatcherna
+är pausade, #894), sist webben. Gammal webb + nya regler: fältet saknas = på, inget går sönder.
+
+Förhandsvisning: `preview/preview-matchdagen.html?lastext=1` (läsförståelseområde, `&klocka=30` för +15 s, `?lastext=0`
+samma område med texten av) och `preview/preview-matchdagen-anpassningar-899.html` (kryssrutan; `?lage=tom` gråad).
+Skärmdumpar: `docs/lastext-905/`.

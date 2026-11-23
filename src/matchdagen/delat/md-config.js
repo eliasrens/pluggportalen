@@ -155,6 +155,19 @@ export const SIM_MAL = { bas: 1.25, skillnad: 2.5, min: 0.2, max: 8 };
 /** Ett läge räknas som högst så här många sekunder speltid (en elev som går ifrån räknas inte). */
 export const MAX_LAGE_S = 120;
 
+// ---- Frågekortet (#905) ------------------------------------------------------
+/**
+ * Klockan på frågorna (lärarens 30 eller 60 s) får så här många sekunder extra för en fråga med
+ * lästext (Fraga.kontext) i elevens egna matcher. Vänskapsmatcherna har serverns synkade tid
+ * (VANSKAP) och i stället en kortare lästext (md-lastext.js VANSKAP_LASTEXT_MAX).
+ */
+export const LASTEXT_EXTRA_S = 15;
+/**
+ * Efter ett fel svar med en förklaring står kortet kvar längre: FEL_MS (md-svar.js) + perTecken ms
+ * per tecken i förklaringen, högst max ms totalt.
+ */
+export const FORKLARING_MS = { perTecken: 35, max: 5000 };
+
 // ---- Tidsmodellen för balansen (spec §12) ------------------------------------
 /**
  * Verklig tid i simuleringen (sekunder): ett svar 8–12 s, ett val (knapparna) och
